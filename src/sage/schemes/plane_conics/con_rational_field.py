@@ -37,7 +37,7 @@ from sage.quadratic_forms.qfsolve import qfsolve, qfparam
 
 from con_number_field import ProjectiveConic_number_field
 
-from sage.structure.element import is_InfinityElement
+from sage.structure.element import InfinityElement
 
 from sage.rings.arith import (lcm, hilbert_symbol)
 
@@ -191,7 +191,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
                                            algorithm = algorithm, \
                                            read_cache = read_cache)
         if point or obstruction:
-            if is_RingHomomorphism(ret[1]):
+            if isinstance(ret[1], RingHomomorphism):
                 ret[1] = -1
         return ret
 
@@ -226,9 +226,9 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             return True
         a = -abc[0]/abc[2]
         b = -abc[1]/abc[2]
-        if is_RealField(p) or is_InfinityElement(p):
+        if is_RealField(p) or isinstance(p, InfinityElement):
             p = -1
-        elif is_RingHomomorphism(p):
+        elif isinstance(p, RingHomomorphism):
             if p.domain() is QQ and is_RealField(p.codomain()):
                 p = -1
             else:

@@ -233,7 +233,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         elif isinstance(modulus, (list, tuple)):
             modulus = GF(self.__char)['x'](modulus)
-        elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
+        elif isinstance(modulus, sage.rings.polynomial.polynomial_element.Polynomial):
             if modulus.parent() is not base_ring:
                 modulus = modulus.change_ring(base_ring)
         else:
@@ -522,7 +522,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             else:
                 raise TypeError("no coercion defined")
 
-        elif sage.interfaces.gap.is_GapElement(x):
+        elif isinstance(x, sage.interfaces.gap.GapElement):
             from sage.interfaces.gap import gfq_gap_to_sage
             try:
                 return gfq_gap_to_sage(x, self)

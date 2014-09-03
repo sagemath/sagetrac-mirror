@@ -146,8 +146,7 @@ Or you can create a homomorphism from one lattice to any other::
 #*****************************************************************************
 
 
-from sage.geometry.toric_lattice_element import (ToricLatticeElement,
-                                                 is_ToricLatticeElement)
+from sage.geometry.toric_lattice_element import ToricLatticeElement
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.misc.all import latex, parent
 from sage.modules.fg_pid.fgp_element import FGP_Element
@@ -456,7 +455,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             coordinates = map(ZZ, args)
         except TypeError:
             # Prohibit conversion of elements of other lattices
-            if (is_ToricLatticeElement(args[0])
+            if (isinstance(args[0], ToricLatticeElement)
                 and args[0].parent().ambient_module()
                 is not self.ambient_module()):
                 raise TypeError("%s cannot be converted to %s!"

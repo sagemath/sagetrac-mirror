@@ -322,8 +322,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: L(pari('O(x^-10)'))
             O(q^-10)
         """
-        from sage.rings.fraction_field_element import is_FractionFieldElement
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
+        from sage.rings.fraction_field_element import FractionFieldElement
+        from sage.rings.polynomial.polynomial_element import Polynomial
         from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
         from sage.structure.element import parent
 
@@ -354,9 +354,9 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                 return (x << n).add_bigoh(bigoh)
             else:  # General case, pretend to be a polynomial
                 return self(self.polynomial_ring()(x)) << n
-        elif is_FractionFieldElement(x) and \
+        elif isinstance(x, FractionFieldElement) and \
              (x.base_ring() is self.base_ring() or x.base_ring() == self.base_ring()) and \
-             (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())):
+             (isinstance(x.numerator(), Polynomial) or is_MPolynomial(x.numerator())):
             x = self(x.numerator())/self(x.denominator())
             return (x << n)
         return self.element_class(self, x, n)

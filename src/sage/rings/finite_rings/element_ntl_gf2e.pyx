@@ -45,7 +45,7 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
 
-from sage.interfaces.gap import is_GapElement
+from sage.interfaces.gap import GapElement
 
 from sage.misc.randstate import current_randstate
 
@@ -59,7 +59,6 @@ cdef object is_IntegerMod
 cdef object IntegerModRing_generic
 cdef object Integer
 cdef object Rational
-cdef object is_Polynomial
 cdef object ConwayPolynomials
 cdef object conway_polynomial
 cdef object MPolynomial
@@ -78,7 +77,6 @@ cdef int late_import() except -1:
            IntegerModRing_generic, \
            Integer, \
            Rational, \
-           is_Polynomial, \
            ConwayPolynomials, \
            conway_polynomial, \
            MPolynomial, \
@@ -359,7 +357,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             # reduce FiniteField_ext_pariElements to pari
             e = e._pari_()
 
-        elif is_GapElement(e):
+        elif isinstance(e, GapElement):
             from sage.interfaces.gap import gfq_gap_to_sage
             return gfq_gap_to_sage(e, self._parent)
         else:
@@ -1023,8 +1021,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: e.polynomial()
             a^15 + a^13 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^4 + a + 1
 
-            sage: from sage.rings.polynomial.polynomial_element import is_Polynomial
-            sage: is_Polynomial(e.polynomial())
+            sage: from sage.rings.polynomial.polynomial_element import Polynomial
+            sage: isinstance(e.polynomial(), Polynomial)
             True
 
             sage: e.polynomial('x')

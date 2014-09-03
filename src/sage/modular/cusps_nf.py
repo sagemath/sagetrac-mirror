@@ -84,7 +84,7 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import Element, is_InfinityElement
+from sage.structure.element import Element, InfinityElement
 from sage.misc.cachefunc import cached_method
 
 _nfcusps_cache = {}
@@ -528,7 +528,7 @@ class NFCusp(Element):
             elif a in number_field:
                 self.__b = R(a.denominator())
                 self.__a = R(a * self.__b)
-            elif is_InfinityElement(a):
+            elif isinstance(a, InfinityElement):
                 self.__a = R(1)
                 self.__b = R(0)
             elif isinstance(a, (int, long)):
@@ -593,7 +593,7 @@ class NFCusp(Element):
             else:
                 if a in R or a in number_field:
                     r = a / b
-                elif is_InfinityElement(a):
+                elif isinstance(a, InfinityElement):
                     self.__a = R(1)
                     self.__b = R(0)
                     return

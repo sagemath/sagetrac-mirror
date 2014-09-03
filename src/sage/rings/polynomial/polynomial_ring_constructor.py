@@ -33,7 +33,7 @@ rings but rather quotients of them (see module
 
 
 from sage.structure.parent_gens import normalize_names
-from sage.structure.element import is_Element
+from sage.structure.element import Element
 import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
@@ -432,9 +432,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         elif not name is None:
             arg1 = name
 
-    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+    if isinstance(arg1, Element) and not isinstance(arg1, (int, long, Integer)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+    if isinstance(arg2, Element) and not isinstance(arg2, (int, long, Integer)):
         arg2 = repr(arg2)
 
     if not m.ring.is_Ring(base_ring):
@@ -574,7 +574,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         return R
 
     from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-    if m.integral_domain.is_IntegralDomain(base_ring):
+    if isinstance(base_ring, m.integral_domain.IntegralDomain):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
         else:

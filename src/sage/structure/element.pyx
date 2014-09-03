@@ -191,6 +191,7 @@ from sage.categories.category   import Category
 from sage.structure.parent      cimport Parent
 from sage.structure.misc        import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format      import LazyFormat
+from sage.rings.ring import IntegralDomain
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -612,8 +613,8 @@ cdef class Element(sage_object.SageObject):
         parent=self._parent
         # We should better not test for ParentWIthGens,
         # as this is essentially deprecated.
-        #from sage.structure.parent_gens import is_ParentWithGens
-        #if not is_ParentWithGens(parent):
+        #from sage.structure.parent_gens import ParentWithGens
+        #if not isinstance(parent, ParentWithGens):
         #    return self
         # Better: Duck typing!
         try:
@@ -1384,12 +1385,6 @@ cdef class ModuleElement(Element):
 # Monoid
 ########################################################################
 
-def is_MonoidElement(x):
-    """
-    Return True if x is of type MonoidElement.
-    """
-    return IS_INSTANCE(x, MonoidElement)
-
 cdef class MonoidElement(Element):
     """
     Generic element of a monoid.
@@ -1450,12 +1445,6 @@ cdef class MonoidElement(Element):
     def __nonzero__(self):
         return True
 
-def is_AdditiveGroupElement(x):
-    """
-    Return True if x is of type AdditiveGroupElement.
-    """
-    return IS_INSTANCE(x, AdditiveGroupElement)
-
 cdef class AdditiveGroupElement(ModuleElement):
     """
     Generic element of an additive group.
@@ -1481,12 +1470,6 @@ cdef class AdditiveGroupElement(ModuleElement):
         Returning None indicates this action is not implemented.
         """
         return None
-
-def is_MultiplicativeGroupElement(x):
-    """
-    Return True if x is of type MultiplicativeGroupElement.
-    """
-    return IS_INSTANCE(x, MultiplicativeGroupElement)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     """
@@ -1519,12 +1502,6 @@ cdef class MultiplicativeGroupElement(MonoidElement):
             return self
         return 1/self
 
-
-def is_RingElement(x):
-    """
-    Return True if x is of type RingElement.
-    """
-    return IS_INSTANCE(x, RingElement)
 
 cdef class RingElement(ModuleElement):
     ##################################################
@@ -2255,7 +2232,7 @@ cdef class CommutativeRingElement(RingElement):
                 return [ sq_rt, -sq_rt ]
             return sq_rt
         #from now on we know that self is not a square
-        if not is_IntegralDomain(P):
+        if not isinstance(P, IntegralDomain):
             raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
         if not extend:
             #all square roots of a non-square should be an empty list

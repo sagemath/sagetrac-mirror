@@ -85,7 +85,6 @@ from sage.structure.parent_gens cimport ParentWithGens
 cdef object is_IntegerMod
 cdef object Integer
 cdef object Rational
-cdef object is_Polynomial
 cdef object ConwayPolynomials
 cdef object conway_polynomial
 cdef object MPolynomial
@@ -99,7 +98,6 @@ cdef void late_import():
     global is_IntegerMod, \
            Integer, \
            Rational, \
-           is_Polynomial, \
            ConwayPolynomials, \
            conway_polynomial, \
            MPolynomial, \
@@ -264,7 +262,7 @@ cdef class Cache_givaro(SageObject):
                 else:
                     modulus.append(0)
 
-        if is_Polynomial(modulus):
+        if isinstance(modulus, Polynomial):
             modulus = modulus.list()
 
         if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
@@ -470,7 +468,7 @@ cdef class Cache_givaro(SageObject):
             # reduce FiniteField_ext_pariElements to pari
             e = e._pari_()
 
-        elif sage.interfaces.gap.is_GapElement(e):
+        elif isinstance(e, sage.interfaces.gap.GapElement):
             from sage.interfaces.gap import gfq_gap_to_sage
             return gfq_gap_to_sage(e, self.parent)
 

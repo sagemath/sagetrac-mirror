@@ -29,11 +29,6 @@ from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
-def is_StringMonoidElement(x):
-    r"""
-    """
-    return isinstance(x, StringMonoidElement)
-
 def is_AlphabeticStringMonoidElement(x):
     r"""
     """

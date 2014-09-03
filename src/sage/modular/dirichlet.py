@@ -156,20 +156,6 @@ def kronecker_character_upside_down(d):
     return G([arith.kronecker(u.lift(),d) for u in G.unit_gens()])
 
 
-def is_DirichletCharacter(x):
-    r"""
-    Return True if x is of type DirichletCharacter.
-
-    EXAMPLES::
-
-        sage: from sage.modular.dirichlet import is_DirichletCharacter
-        sage: is_DirichletCharacter(trivial_character(3))
-        True
-        sage: is_DirichletCharacter([1])
-        False
-    """
-    return isinstance(x, DirichletCharacter)
-
 class DirichletCharacter(MultiplicativeGroupElement):
     """
     A Dirichlet character

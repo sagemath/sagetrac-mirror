@@ -50,13 +50,13 @@ AUTHOR:
 
 import operator
 
-from matrix_space import MatrixSpace, is_MatrixSpace
+from matrix_space import MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
 
 
 cdef class MatrixMulAction(Action):
     def __init__(self, G, S, is_left):
-        if not is_MatrixSpace(G):
+        if not isinstance(G, MatrixSpace):
             raise TypeError, "Not a matrix space: %s" % G
         if G.base_ring() is not S.base_ring():
             from sage.categories.pushout import pushout
@@ -136,7 +136,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             example is good practice.
 
         """
-        if not is_MatrixSpace(S):
+        if not isinstance(S, MatrixSpace):
             raise TypeError, "Not a matrix space: %s" % S
         MatrixMulAction.__init__(self, G, S, True)
 

@@ -2390,7 +2390,7 @@ def polygen(ring_or_element, name="x"):
        get a tuple of indeterminates, exactly as if you called
        polygens.
     """
-    if ring_element.is_RingElement(ring_or_element):
+    if isinstance(ring_or_element, ring_element.RingElement):
         base_ring = ring_or_element.parent()
     elif ring.is_Ring(ring_or_element):
         base_ring = ring_or_element

@@ -252,7 +252,7 @@ class AmbientSpace(Scheme):
             ValueError: no natural map from the base ring (=Rational Field)
             to R (=Finite Field of size 5)!
         """
-        if is_CommutativeRing(R):
+        if isinstance(R, CommutativeRing):
             if self.base_ring() == R:
                 return self
             if not R.has_coerce_map_from(self.base_ring()):

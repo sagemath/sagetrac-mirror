@@ -684,9 +684,6 @@ class KashDocumentation(list):
         return '\n'.join(self)
 
 
-def is_KashElement(x):
-    return isinstance(x, KashElement)
-
 ############
 
 ###########

@@ -236,8 +236,8 @@ from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
 from sage.interfaces.all import macaulay2
-from sage.interfaces.singular import singular as singular_default, is_SingularElement, SingularElement
-from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaulay2Element
+from sage.interfaces.singular import singular as singular_default, SingularElement
+from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, Macaulay2Element
 
 from sage.misc.misc import mul
 from sage.misc.sage_eval import sage_eval
@@ -965,7 +965,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         except AttributeError:
             pass
 
-        if is_Macaulay2Element(element):
+        if isinstance(element, Macaulay2Element):
             return self(element.external_string())
 
         try:
@@ -1074,10 +1074,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if gens.ring() is self:
                 return gens
             gens = gens.gens()
-        if is_SingularElement(gens):
+        if isinstance(gens, SingularElement):
             gens = list(gens)
             coerce = True
-        elif is_Macaulay2Element(gens):
+        elif isinstance(gens, Macaulay2Element):
             gens = list(gens)
             coerce = True
         if not isinstance(gens, (list, tuple)):

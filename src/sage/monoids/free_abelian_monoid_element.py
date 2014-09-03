@@ -44,21 +44,6 @@ list changes the object.
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 
-def is_FreeAbelianMonoidElement(x):
-    r"""
-    Queries whether ``x`` is an object of type ``FreeAbelianMonoidElement``.
-
-    INPUT:
-
-    - ``x`` -- an object.
-
-    OUTPUT:
-
-    - ``True`` if ``x`` is an object of type ``FreeAbelianMonoidElement``;
-      ``False`` otherwise.
-    """
-    return isinstance(x, FreeAbelianMonoidElement)
-
 class FreeAbelianMonoidElement(MonoidElement):
     def __init__(self, F, x):
         """

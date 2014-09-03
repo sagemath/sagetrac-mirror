@@ -63,7 +63,7 @@ include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer
-from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
@@ -837,7 +837,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         if not self_on_left:
             left = x
-            if is_Polynomial(left):
+            if isinstance(left, Polynomial):
                 if self != 1:
                     raise ValueError, "%s does not act on %s"%(self, left.parent())
                 return left

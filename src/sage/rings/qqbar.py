@@ -957,7 +957,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             sage: r = AA.polynomial_root(p, RIF(1, 2)); r^3
             2.000000000000000?
         """
-        if not is_RealIntervalFieldElement(interval):
+        if not isinstance(interval, RealIntervalFieldElement):
             raise ValueError("interval argument of .polynomial_root on algebraic real field must be real")
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
@@ -1446,32 +1446,8 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         from sage.structure.factorization import Factorization
         return Factorization([(f.parent()([-r,1]),e) for r,e in f.roots()], unit=f.leading_coefficient())
 
-def is_AlgebraicField(F):
-    r"""
-    Check whether ``F`` is an :class:`~AlgebraicField` instance.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import is_AlgebraicField
-        sage: [is_AlgebraicField(x) for x in [AA, QQbar, None, 0, "spam"]]
-        [False, True, False, False, False]
-    """
-    return isinstance(F, AlgebraicField)
-
 # Create the globally unique AlgebraicField object.
 QQbar = AlgebraicField()
-
-def is_AlgebraicField_common(F):
-    r"""
-    Check whether ``F`` is an :class:`~AlgebraicField_common` instance.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import is_AlgebraicField_common
-        sage: [is_AlgebraicField_common(x) for x in [AA, QQbar, None, 0, "spam"]]
-        [True, True, False, False, False]
-    """
-    return isinstance(F, AlgebraicField_common)
 
 def prec_seq():
     r"""
@@ -1755,7 +1731,7 @@ def conjugate_expand(v):
         sage: conjugate_expand(RIF(1, 2)).str(style='brackets')
         '[1.0000000000000000 .. 2.0000000000000000]'
     """
-    if is_RealIntervalFieldElement(v):
+    if isinstance(v, RealIntervalFieldElement):
         return v
     im = v.imag()
     if not im.contains_zero():
@@ -1787,7 +1763,7 @@ def conjugate_shrink(v):
         sage: conjugate_shrink(CIF(RIF(1, 2), RIF(-1, 2))).str(style='brackets')
         '[1.0000000000000000 .. 2.0000000000000000]'
     """
-    if is_RealIntervalFieldElement(v):
+    if isinstance(v, RealIntervalFieldElement):
         return v
     im = v.imag()
     if im.contains_zero():
@@ -3617,9 +3593,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         self._descr = new_descr
         new_val = self._descr._interval_fast(self.parent().default_interval_prec())
-        if is_RealIntervalFieldElement(new_val) and is_ComplexIntervalFieldElement(self._value):
+        if isinstance(new_val, RealIntervalFieldElement) and is_ComplexIntervalFieldElement(self._value):
             self._value = self._value.real().intersection(new_val)
-        elif is_RealIntervalFieldElement(self._value) and is_ComplexIntervalFieldElement(new_val):
+        elif isinstance(self._value, RealIntervalFieldElement) and is_ComplexIntervalFieldElement(new_val):
             self._value = self._value.intersection(new_val.real())
         else:
             self._value = self._value.intersection(new_val)
@@ -5844,38 +5820,6 @@ class ANRootOfUnity(ANDescr):
         """
         return self._scale
 
-def is_AlgebraicReal(x):
-    r"""
-    Test if ``x`` is an instance of :class:`~AlgebraicReal`. For internal use.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import is_AlgebraicReal
-        sage: is_AlgebraicReal(AA(sqrt(2)))
-        True
-        sage: is_AlgebraicReal(QQbar(sqrt(2)))
-        False
-        sage: is_AlgebraicReal("spam")
-        False
-    """
-    return isinstance(x, AlgebraicReal)
-
-def is_AlgebraicNumber(x):
-    r"""
-    Test if ``x`` is an instance of :class:`~AlgebraicNumber`. For internal use.
-
-    EXAMPLE::
-
-        sage: from sage.rings.qqbar import is_AlgebraicNumber
-        sage: is_AlgebraicNumber(AA(sqrt(2)))
-        False
-        sage: is_AlgebraicNumber(QQbar(sqrt(2)))
-        True
-        sage: is_AlgebraicNumber("spam")
-        False
-    """
-    return isinstance(x, AlgebraicNumber)
-
 QQbarPoly = PolynomialRing(QQbar, 'x')
 AAPoly = PolynomialRing(AA, 'x')
 
@@ -5916,10 +5860,10 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: type(P) # indirect doctest
             <class 'sage.rings.qqbar.AlgebraicPolynomialTracker'>
         """
-        if not is_Polynomial(poly):
+        if not isinstance(poly, Polynomial):
             raise ValueError("Trying to create AlgebraicPolynomialTracker on non-Polynomial")
         if isinstance(poly.base_ring(), AlgebraicField_common):
-            complex = is_AlgebraicField(poly.base_ring())
+            complex = isinstance(poly.base_ring(), AlgebraicField)
         else:
             try:
                 poly = poly.change_ring(AA)

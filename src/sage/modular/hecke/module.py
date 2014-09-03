@@ -544,7 +544,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 #
 #        This shouldn't be getting called, ever (?)
 #        """
-#        if not element.is_HeckeModuleElement(x):
+#        if not isinstance(x, element.HeckeModuleElement):
 #            return False
 #        if x.parent() == self:  # easy case
 #            return True

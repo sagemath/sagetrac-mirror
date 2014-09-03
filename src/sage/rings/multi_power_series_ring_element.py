@@ -173,17 +173,17 @@ def is_MPowerSeries(f):
 
     TESTS::
 
-        sage: from sage.rings.power_series_ring_element import is_PowerSeries
+        sage: from sage.rings.power_series_ring_element import PowerSeries
         sage: from sage.rings.multi_power_series_ring_element import is_MPowerSeries
         sage: M = PowerSeriesRing(ZZ,4,'v');
-        sage: is_PowerSeries(M.random_element(10))
+        sage: isinstance(M.random_element(10), PowerSeries)
         True
         sage: is_MPowerSeries(M.random_element(10))
         True
         sage: T.<v> = PowerSeriesRing(RR)
         sage: is_MPowerSeries(1 - v + v^2 +O(v^3))
         False
-        sage: is_PowerSeries(1 - v + v^2 +O(v^3))
+        sage: isinstance(1 - v + v^2 +O(v^3), PowerSeries)
         True
     """
 

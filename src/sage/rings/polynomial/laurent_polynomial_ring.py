@@ -40,7 +40,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.parent_gens import normalize_names
-from sage.structure.element import is_Element
+from sage.structure.element import Element
 from sage.rings.ring import is_Ring
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as _single_variate_poly
@@ -220,9 +220,9 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
            sage: (w0 + 2*w8 + w13)^2
            w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
-    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+    if isinstance(arg1, Element) and not isinstance(arg1, (int, long, Integer)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+    if isinstance(arg2, Element) and not isinstance(arg2, (int, long, Integer)):
         arg2 = repr(arg2)
 
     if isinstance(arg1, (int, long, Integer)):

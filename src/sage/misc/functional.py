@@ -1459,9 +1459,9 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
     try:
         return x._numerical_approx(prec, algorithm=algorithm)
     except AttributeError:
-        from sage.rings.complex_double import is_ComplexDoubleElement
+        from sage.rings.complex_double import ComplexDoubleElement
         from sage.rings.complex_number import is_ComplexNumber
-        if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
+        if not (is_ComplexNumber(x) or isinstance(x, ComplexDoubleElement)):
             try:
                 return sage.rings.real_mpfr.RealField(prec)(x)
             # Trac 10761: now catches ValueErrors as well as TypeErrors

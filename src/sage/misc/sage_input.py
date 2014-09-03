@@ -3290,8 +3290,8 @@ def verify_same(a, b):
             assert(a.parent() == b.parent())
         AssertionError
     """
-    from sage.structure.element import is_Element
-    if is_Element(a):
+    from sage.structure.element import Element
+    if isinstance(a, Element):
         assert(a.parent() == b.parent())
     else:
         assert(isinstance(a, type(b)))

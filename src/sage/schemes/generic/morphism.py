@@ -762,7 +762,7 @@ class SchemeMorphism_spec(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            if not is_RingHomomorphism(phi):
+            if not isinstance(phi, RingHomomorphism):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
                 raise TypeError("phi (=%s) must have domain %s"

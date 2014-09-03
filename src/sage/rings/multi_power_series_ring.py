@@ -682,7 +682,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             except NotImplementedError:
                 B = all(v.valuation() > 0 for v in im_gens)
             return B
-        if is_CommutativeRing(codomain):
+        if isinstance(codomain, CommutativeRing):
             return all(v.is_nilpotent() for v in im_gens)
 
 

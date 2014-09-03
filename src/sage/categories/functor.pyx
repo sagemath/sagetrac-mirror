@@ -94,15 +94,15 @@ cdef class Functor(SageObject):
         Category of rings
         sage: F.codomain()
         Category of commutative additive groups
-        sage: from sage.categories.functor import is_Functor
-        sage: is_Functor(F)
+        sage: from sage.categories.functor import Functor
+        sage: isinstance(F, Functor)
         True
         sage: I = IdentityFunctor(abgrps)
         sage: I
         The identity functor on Category of commutative additive groups
         sage: I.domain()
         Category of commutative additive groups
-        sage: is_Functor(I)
+        sage: isinstance(I, Functor)
         True
 
     Note that by default, an instance of the class Functor is coercion
@@ -174,9 +174,9 @@ cdef class Functor(SageObject):
             Finite Field of size 2
 
         """
-        if not category.is_Category(domain):
+        if not isinstance(domain, category.Category):
             raise TypeError, "domain (=%s) must be a category"%domain
-        if not category.is_Category(codomain):
+        if not isinstance(codomain, category.Category):
             raise TypeError, "codomain (=%s) must be a category"%codomain
         self.__domain = domain
         self.__codomain = codomain
@@ -365,8 +365,8 @@ cdef class Functor(SageObject):
             TypeError: Functor from Category of rings to Category of rings is ill-defined, since it sends x (=Rational Field) to something that is not in Category of rings.
 
         """
-        from sage.categories.morphism import is_Morphism
-        if is_Morphism(x):
+        from sage.categories.morphism import Morphism
+        if isinstance(x, Morphism):
             return self._apply_functor_to_morphism(x)
         y = self._apply_functor(self._coerce_into_domain(x))
         if not ((y in self.__codomain) or (y in self.__codomain.hom_category())):

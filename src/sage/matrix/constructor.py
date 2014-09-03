@@ -2071,7 +2071,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
         R = arg0
         arg0 = arg1
     elif scale is not None:
-        if not sage.structure.element.is_RingElement(scale):
+        if not isinstance(scale, sage.structure.element.RingElement):
             raise TypeError('scale must be an element of some ring, not {0}'.format(scale))
         R = scale.parent()
     else:

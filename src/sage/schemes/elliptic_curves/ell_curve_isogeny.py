@@ -148,7 +148,7 @@ def isogeny_determine_algorithm(E, kernel):
         kernel = [kernel]
         kernel_is_list = True
 
-    if (is_Polynomial(kernel) or ( kernel_is_list) and (kernel[0] in E.base_ring()) ):
+    if (isinstance(kernel, Polynomial) or ( kernel_is_list) and (kernel[0] in E.base_ring()) ):
         algorithm = "kohel"
     elif (kernel_is_list) and (kernel[0] in E):
         # note that if kernel[0] is on an extension of E this

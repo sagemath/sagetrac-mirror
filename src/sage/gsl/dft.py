@@ -76,7 +76,7 @@ AUTHORS:
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.plot.all import polygon, line, text
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.arith import factor
@@ -333,7 +333,7 @@ class IndexedSequence(SageObject):
             zeta = CyclotomicField(N).gen()
             FT = [sum([S[i]*chi(zeta**(i*j)) for i in J]) for j in J]
         elif not(J[0] in ZZ) and G.is_abelian() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
-            if is_PermutationGroupElement(J[0]):
+            if isinstance(J[0], PermutationGroupElement):
                 ## J is a CyclicPermGp
                 n = G.order()
                 a = list(factor(n))

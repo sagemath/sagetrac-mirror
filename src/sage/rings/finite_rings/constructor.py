@@ -486,7 +486,7 @@ class FiniteFieldFactory(UniqueFactory):
             # constructors with check options (like above).
             from sage.structure.proof.all import WithProof
             with WithProof('arithmetic', proof):
-                if check_irreducible and polynomial_element.is_Polynomial(modulus):
+                if check_irreducible and isinstance(modulus, polynomial_element.Polynomial):
                     if modulus.parent().base_ring().characteristic() == 0:
                         modulus = modulus.change_ring(FiniteField(p))
                     if not modulus.is_irreducible():

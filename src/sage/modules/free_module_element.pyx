@@ -142,17 +142,6 @@ cdef is_Ring(R):
 #For the norm function, we cache a Sage integer "one"
 __one__ = sage.rings.integer.Integer(1)
 
-def is_FreeModuleElement(x):
-    """
-    EXAMPLES::
-
-        sage: sage.modules.free_module_element.is_FreeModuleElement(0)
-        False
-        sage: sage.modules.free_module_element.is_FreeModuleElement(vector([1,2,3]))
-        True
-    """
-    return isinstance(x, FreeModuleElement)
-
 def vector(arg0, arg1=None, arg2=None, sparse=None):
     r"""
     Return a vector or free module element with specified entries.

@@ -27,14 +27,8 @@ from sage.sets.set import Set
 def is_ProbabilitySpace(S):
     return isinstance(S, ProbabilitySpace_generic)
 
-def is_DiscreteProbabilitySpace(S):
-    return isinstance(S, DiscreteProbabilitySpace)
-
 def is_RandomVariable(X):
     return isinstance(X, RandomVariable_generic)
-
-def is_DiscreteRandomVariable(X):
-    return isinstance(X, DiscreteRandomVariable)
 
 ################################################################################
 ################################################################################

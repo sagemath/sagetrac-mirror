@@ -29,19 +29,6 @@ import module
 import ambient_module
 
 
-def is_HeckeSubmodule(x):
-    r"""
-    Return True if x is of type HeckeSubmodule.
-
-    EXAMPLES::
-
-        sage: sage.modular.hecke.submodule.is_HeckeSubmodule(ModularForms(1, 12))
-        False
-        sage: sage.modular.hecke.submodule.is_HeckeSubmodule(CuspForms(1, 12))
-        True
-    """
-    return isinstance(x, HeckeSubmodule)
-
 class HeckeSubmodule(module.HeckeModule_free_module):
     """
     Submodule of a Hecke module.

@@ -69,7 +69,7 @@ AUTHORS:
    -- William Stein (2006-02-09): fixed bug in reading from file and
              improved output cleaning.
    -- Kiran Kedlaya (2006-02-12): added ring and ideal constructors,
-             list delimiters, is_Macaulay2Element, sage_polystring,
+             list delimiters, Macaulay2Element, sage_polystring,
              __floordiv__, __mod__, __iter__, __len__; stripped extra
              leading space and trailing newline from output.
 

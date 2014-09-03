@@ -165,7 +165,7 @@ def Curve(F):
         ...
         ValueError: defining polynomial of curve must be nonzero
     """
-    if is_AlgebraicScheme(F):
+    if isinstance(F, AlgebraicScheme):
         return Curve(F.defining_polynomials())
 
     if isinstance(F, (list, tuple)):

@@ -602,9 +602,6 @@ class InterfaceFunctionElement(SageObject):
 
 
 
-def is_InterfaceElement(x):
-    return isinstance(x, InterfaceElement)
-
 class InterfaceElement(RingElement):
     """
     Interface element.

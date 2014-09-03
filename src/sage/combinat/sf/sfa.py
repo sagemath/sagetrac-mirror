@@ -4684,7 +4684,7 @@ def _nonnegative_coefficients(x):
         sage: _nonnegative_coefficients(x^2-4)
         False
     """
-    if is_Polynomial(x) or is_MPolynomial(x):
+    if isinstance(x, Polynomial) or is_MPolynomial(x):
         return all([ c >= 0 for c in x.coeffs() ])
     else:
         return x >= 0

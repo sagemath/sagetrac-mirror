@@ -324,7 +324,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         ...
         TypeError: gens must be a tuple, list, or GapElement
     """
-    if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
+    if not isinstance(gens, ExpectElement) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
         raise TypeError("gens must be a tuple, list, or GapElement")

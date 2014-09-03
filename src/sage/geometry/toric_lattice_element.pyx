@@ -105,33 +105,6 @@ from sage.structure.element cimport Element, Vector
 from sage.rings.integer cimport Integer
 
 
-def is_ToricLatticeElement(x):
-    r"""
-    Check if ``x`` is an element of a toric lattice.
-
-    INPUT:
-
-    - ``x`` -- anything.
-
-    OUTPUT:
-
-    - ``True`` if ``x`` is an element of a toric lattice, ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.toric_lattice_element import (
-        ...     is_ToricLatticeElement)
-        sage: is_ToricLatticeElement(1)
-        False
-        sage: e = ToricLattice(3).an_element()
-        sage: e
-        N(1, 0, 0)
-        sage: is_ToricLatticeElement(e)
-        True
-    """
-    return isinstance(x, ToricLatticeElement)
-
-
 # Why do we need a special class:
 # - customize output to include lattice name
 # - prohibit operations mixing "wrong" lattices
@@ -291,7 +264,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         """
         Ns = self.parent()
         # We try to deal only with the case of two lattice elements...
-        if is_ToricLatticeElement(other):
+        if isinstance(other, ToricLatticeElement):
             if other.parent().ambient_module() is Ns.ambient_module().dual():
                 # Our own _dot_product_ is disabled
                 return Vector_integer_dense._dot_product_(self, other)
@@ -305,7 +278,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         # We also allow action on elements of lattice quotients
         try:
             lift = other.lift()
-            if is_ToricLatticeElement(lift):
+            if isinstance(lift, ToricLatticeElement):
                 if other.parent().W().is_submodule(Ns.dual().W()):
                     return Vector_integer_dense._dot_product_(self, lift)
                 raise CoercionException("only elements of dual toric lattices "

@@ -109,13 +109,13 @@ class Scheme(Parent):
                 self._base_scheme = SpecZ
             except ImportError:  # we are currently constructing SpecZ
                 self._base_ring = ZZ
-        elif is_Scheme(X):
+        elif isinstance(X, Scheme):
             self._base_scheme = X
         elif is_SchemeMorphism(X):
             self._base_morphism = X
-        elif is_CommutativeRing(X):
+        elif isinstance(X, CommutativeRing):
             self._base_ring = X
-        elif is_RingHomomorphism(X):
+        elif isinstance(X, RingHomomorphism):
             self._base_ring = X.codomain()
         else:
             raise ValueError('The base must be define by a scheme, '
@@ -155,7 +155,7 @@ class Scheme(Parent):
             sage: X is Y
             False
         """
-        if not is_Scheme(right):
+        if not isinstance(right, Scheme):
             return -1
         return left._cmp_(right)
 
@@ -634,7 +634,7 @@ class Scheme(Parent):
               Defn: Structure map
         """
         if Y is None:
-            if is_Scheme(x):
+            if isinstance(x, Scheme):
                 return self.Hom(x).natural_map()
             else:
                 raise TypeError("unable to determine codomain")

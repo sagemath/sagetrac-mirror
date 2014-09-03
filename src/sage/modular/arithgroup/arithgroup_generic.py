@@ -29,22 +29,6 @@ from sage.structure.element import parent
 
 from arithgroup_element import ArithmeticSubgroupElement
 
-def is_ArithmeticSubgroup(x):
-    r"""
-    Return True if x is of type ArithmeticSubgroup.
-
-    EXAMPLE::
-
-        sage: from sage.modular.arithgroup.all import is_ArithmeticSubgroup
-        sage: is_ArithmeticSubgroup(GL(2, GF(7)))
-        False
-        sage: is_ArithmeticSubgroup(Gamma0(4))
-        True
-    """
-
-    return isinstance(x, ArithmeticSubgroup)
-
-
 class ArithmeticSubgroup(group.Group):
     r"""
     Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not

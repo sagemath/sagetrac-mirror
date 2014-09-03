@@ -1287,9 +1287,6 @@ class FunctionElement(InterfaceFunctionElement):
     pass
 
 
-def is_ExpectElement(x):
-    return isinstance(x, ExpectElement)
-
 class ExpectElement(InterfaceElement):
     """
     Expect element.

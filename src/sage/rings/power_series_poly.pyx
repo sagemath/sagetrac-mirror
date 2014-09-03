@@ -13,7 +13,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
 import arith
 from sage.libs.all import PariError
-from power_series_ring_element import is_PowerSeries
 import rational_field
 
 cdef class PowerSeries_poly(PowerSeries):
@@ -700,7 +699,7 @@ cdef class PowerSeries_poly(PowerSeries):
         try:
             return PowerSeries.__div__(self, denom)
         except (PariError, ZeroDivisionError) as e: # PariError to general?
-            if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
+            if isinstance(denom, PowerSeries) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
                 denom = denom[0]
             elif not denom in self._parent.base_ring():
                 raise ZeroDivisionError, e

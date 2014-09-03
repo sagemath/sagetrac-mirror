@@ -84,7 +84,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         self._trace = trace
         self._one = W.one()
         self._base_ring = q.parent()
-        if is_Polynomial(q):
+        if isinstance(q, Polynomial):
             self._base_ring_type = "polynomial"
         elif isinstance(q, LaurentPolynomial_generic):
             self._base_ring_type = "laurent"

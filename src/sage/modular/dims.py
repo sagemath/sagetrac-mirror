@@ -50,7 +50,7 @@ from sage.rings.rational_field import frac
 import dirichlet
 Z = ZZ  # useful abbreviation.
 
-from sage.modular.arithgroup.all import Gamma0, Gamma1, is_ArithmeticSubgroup, is_GammaH
+from sage.modular.arithgroup.all import Gamma0, ArithmeticSubgroup, is_GammaH, Gamma1
 
 ##########################################################################
 # Helper functions for calculating dimensions of spaces of modular forms
@@ -426,7 +426,7 @@ def dimension_cusp_forms(X, k=2):
             return Gamma0(N).dimension_cusp_forms(k)
         else:
             return Gamma1(N).dimension_cusp_forms(k, X)
-    elif is_ArithmeticSubgroup(X):
+    elif isinstance(X, ArithmeticSubgroup):
         return X.dimension_cusp_forms(k)
     elif isinstance(X, (Integer,int,long)):
         return Gamma0(X).dimension_cusp_forms(k)
@@ -508,7 +508,7 @@ def dimension_eis(X, k=2):
         6
     """
 
-    if is_ArithmeticSubgroup(X):
+    if isinstance(X, ArithmeticSubgroup):
         return X.dimension_eis(k)
     elif isinstance(X, dirichlet.DirichletCharacter):
         return Gamma1(X.modulus()).dimension_eis(k, X)
@@ -557,7 +557,7 @@ def dimension_modular_forms(X, k=2):
     """
     if isinstance(X, (int, long, Integer)):
         return Gamma0(X).dimension_modular_forms(k)
-    elif is_ArithmeticSubgroup(X):
+    elif isinstance(X, ArithmeticSubgroup):
         return X.dimension_modular_forms(k)
     elif isinstance(X,dirichlet.DirichletCharacter):
         return Gamma1(X.modulus()).dimension_modular_forms(k, eps=X)
@@ -592,7 +592,7 @@ def sturm_bound(level, weight=2):
         sage: sturm_bound(11)
         2
     """
-    if is_ArithmeticSubgroup(level):
+    if isinstance(level, ArithmeticSubgroup):
         if level.is_congruence():
             return level.sturm_bound(weight)
         else:

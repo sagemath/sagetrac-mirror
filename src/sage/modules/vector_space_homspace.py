@@ -202,44 +202,6 @@ import sage.modules.free_module_homspace
 # for the examples.
 
 
-def is_VectorSpaceHomspace(x):
-    r"""
-    Return ``True`` if ``x`` is a vector space homspace.
-
-    INPUT:
-
-    ``x`` - anything
-
-    EXAMPLES:
-
-    To be a vector space morphism, the domain and codomain must both be
-    vector spaces, in other words, modules over fields.  If either
-    set is just a module, then the ``Hom()`` constructor will build a
-    space of free module morphisms.  ::
-
-        sage: H = Hom(QQ^3, QQ^2)
-        sage: type(H)
-        <class 'sage.modules.vector_space_homspace.VectorSpaceHomspace_with_category'>
-        sage: sage.modules.vector_space_homspace.is_VectorSpaceHomspace(H)
-        True
-
-        sage: K = Hom(QQ^3, ZZ^2)
-        sage: type(K)
-        <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
-        sage: sage.modules.vector_space_homspace.is_VectorSpaceHomspace(K)
-        False
-
-        sage: L = Hom(ZZ^3, QQ^2)
-        sage: type(L)
-        <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
-        sage: sage.modules.vector_space_homspace.is_VectorSpaceHomspace(L)
-        False
-
-        sage: sage.modules.vector_space_homspace.is_VectorSpaceHomspace('junk')
-        False
-    """
-    return isinstance(x, VectorSpaceHomspace)
-
 class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
 
     def __call__(self, A, check=True):

@@ -578,7 +578,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
                 return self(0)
             return sum([c*self._coerce_in_manin_symbol(v) for c, v in S])
 
-        elif is_FreeModuleElement(x):
+        elif isinstance(x, FreeModuleElement):
             y = dict([(i,x[i]) for i in xrange(len(x))])
             return BoundarySpaceElement(self, y)
 

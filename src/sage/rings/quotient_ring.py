@@ -935,7 +935,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
             return commutative_ring.CommutativeRing.ideal(self, gens, **kwds)
-        if is_SingularElement(gens):
+        if isinstance(gens, SingularElement):
             gens = list(gens)
             coerce = True
         elif not isinstance(gens, (list, tuple)):
@@ -983,7 +983,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             if x.parent() is self:
                 return x
             x = x.lift()
-        if is_SingularElement(x):
+        if isinstance(x, SingularElement):
             #self._singular_().set_ring()
             x = self.element_class(self, x.sage_poly(self.cover_ring()))
             return x

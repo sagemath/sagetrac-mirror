@@ -82,7 +82,7 @@ from sage.structure.parent_gens import localvars
 import sage.libs.ntl.all as ntl
 import sage.rings.arith
 
-from sage.categories.map import is_Map
+from sage.categories.map import Map
 from sage.structure.sequence import Sequence
 
 import sage.structure.parent_gens
@@ -2430,7 +2430,7 @@ class NumberField_relative(NumberField_generic):
         K = self.absolute_field('a')
         from_K, to_K = K.structure()
 
-        if is_Map(alpha):
+        if isinstance(alpha, Map):
             # alpha is an embedding of a subfield into self; compose to get an
             # embedding of a subfield into the absolute field
             beta = to_K * alpha
@@ -2474,7 +2474,7 @@ class NumberField_relative(NumberField_generic):
             sage: (P, 1) in K.factor(u)
             True
         """
-        if not is_NumberFieldIdeal(P):
+        if not isinstance(P, NumberFieldIdeal):
             P = self.ideal(P)
         if not P.is_maximal():
             raise ValueError("P (=%s) must be a nonzero prime."%P)

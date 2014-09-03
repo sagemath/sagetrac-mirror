@@ -39,7 +39,7 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import is_Element
+from sage.structure.element import Element
 
 from number_field_element import OrderElement_absolute, OrderElement_relative
 
@@ -1061,9 +1061,9 @@ class AbsoluteOrder(Order):
             sage: k(m(6*z))
             6*z
         """
-        if is_Element(x) and x.parent() is self:
+        if isinstance(x, Element) and x.parent() is self:
             return x
-        if not is_Element(x) or x.parent() is not self._K:
+        if not isinstance(x, Element) or x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()
         if not embedding(x) in self._module_rep:

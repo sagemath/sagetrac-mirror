@@ -855,7 +855,7 @@ class Newform(ModularForm_abstract):
                 return True
             else:
                 return False
-        if is_ModularFormElement(other):
+        if isinstance(other, ModularFormElement):
             if self.element() == other.element():
                 return True
             else:
@@ -884,7 +884,7 @@ class Newform(ModularForm_abstract):
                 return 0
             else:
                 return -1
-        if is_ModularFormElement(other):
+        if isinstance(other, ModularFormElement):
             if self.element() == other.element():
                 return 0
             else:

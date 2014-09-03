@@ -66,25 +66,6 @@ from sage.structure.sage_object import SageObject
 
 from apply import apply_to_monomial
 
-def is_ManinSymbol(x):
-    """
-    Returns True if ``x`` is a ManinSymbol.
-
-    EXAMPLES::
-
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0, is_ManinSymbol
-        sage: m = ManinSymbolList_gamma0(6, 4)
-        sage: is_ManinSymbol(m[3])
-        False
-        sage: s = ManinSymbol(m,m[3])
-        sage: s
-        [Y^2,(1,2)]
-        sage: is_ManinSymbol(s)
-        True
-
-    """
-    return isinstance(x, ManinSymbol)
-
 class ManinSymbolList(SageObject):
     """
     Base class for lists of all Manin symbols for a given weight, group or character.

@@ -53,7 +53,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.arith import previous_prime
-from sage.structure.element import is_Element
+from sage.structure.element import Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
@@ -394,7 +394,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if entries is None:
             x = ZZ(0)
             is_list = 0
-        elif isinstance(entries, (int,long)) or is_Element(entries):
+        elif isinstance(entries, (int,long)) or isinstance(entries, Element):
             try:
                 x = ZZ(entries)
             except TypeError:

@@ -32,7 +32,7 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import ideal, denominator, is_even, is_field
 from sage.rings.arith import GCD, LCM
-from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
+from sage.rings.principal_ideal_domain import PrincipalIdealDomain
 from sage.rings.ring import is_Ring
 from sage.matrix.matrix import is_Matrix
 from sage.structure.sage_object import SageObject

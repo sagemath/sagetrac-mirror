@@ -32,7 +32,7 @@ from sage.rings.all import Rational, Integer, ZZ, QQ
 
 from sage.rings.infinity import is_Infinite
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import Element, is_InfinityElement
+from sage.structure.element import Element, InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
@@ -293,7 +293,7 @@ class Cusp(Element):
             elif isinstance(a, Rational):
                 self.__a = a.numer()
                 self.__b = a.denom()
-            elif is_InfinityElement(a):
+            elif isinstance(a, InfinityElement):
                 self.__a = ZZ(1)
                 self.__b = ZZ(0)
             elif isinstance(a, Cusp):
@@ -339,7 +339,7 @@ class Cusp(Element):
 
         if isinstance(a, Integer) or isinstance(a, Rational):
             r = a / ZZ(b)
-        elif is_InfinityElement(a):
+        elif isinstance(a, InfinityElement):
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return

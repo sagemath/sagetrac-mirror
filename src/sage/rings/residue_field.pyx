@@ -147,11 +147,11 @@ include "sage/ext/stdsage.pxi"
 from sage.rings.field import Field
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from sage.rings.number_field.number_field_element import is_NumberFieldElement
+from sage.rings.number_field.number_field_element import NumberFieldElement
 from sage.categories.homset import Hom
 from sage.categories.basic import Fields, Rings
 from sage.rings.all import ZZ, QQ, Integers
-from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
+from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
 import weakref
 from sage.rings.finite_rings.constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
@@ -168,7 +168,7 @@ from sage.rings.fraction_field import is_FractionField
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_element import Polynomial
 
 from sage.structure.factory import UniqueFactory
 
@@ -291,12 +291,12 @@ class ResidueFieldFactory(UniqueFactory):
             if not is_Ideal(p):
                 if isinstance(p, (int, Integer, Rational)):
                     p = ZZ.ideal(p)
-                elif is_NumberFieldElement(p):
+                elif isinstance(p, NumberFieldElement):
                     if p.parent().is_field():
                         p = p.parent().ring_of_integers().ideal(p)
                     else:
                         p = p.parent().ideal(p)
-                elif is_Polynomial(p):
+                elif isinstance(p, Polynomial):
                     p = p.parent().ideal(p)
                 #elif isinstance(p.parent(), FractionField_1poly_field):
                 #    p = p.parent().ring_of_integers().ideal(p)
@@ -311,7 +311,7 @@ class ResidueFieldFactory(UniqueFactory):
                 if not p.ring().base_ring().is_prime_field():
                     # neither of these will work over non-prime fields quite yet.  We should use relative finite field extensions.
                     raise NotImplementedError
-            elif not (is_NumberFieldIdeal(p) or p.ring() is ZZ):
+            elif not (isinstance(p, NumberFieldIdeal) or p.ring() is ZZ):
                 raise NotImplementedError
         if isinstance(names, tuple):
             if len(names) > 0:
@@ -358,7 +358,7 @@ class ResidueFieldFactory(UniqueFactory):
                     raise ValueError, "unrecognized finite field type"
 
         # Should generalize to allowing residue fields of relative extensions to be extensions of finite fields.
-        if is_NumberFieldIdeal(p):
+        if isinstance(p, NumberFieldIdeal):
             characteristic = p.smallest_integer()
         else: # ideal of a function field
             characteristic = pring.base_ring().characteristic()

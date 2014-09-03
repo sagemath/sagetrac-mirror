@@ -21,20 +21,6 @@ import sage.categories.homset
 import morphism
 import module
 
-def is_HeckeModuleHomspace(x):
-    r"""
-    Return True if x is a space of homomorphisms in the category of Hecke modules.
-
-    EXAMPLES::
-
-        sage: M = ModularForms(Gamma0(7), 4)
-        sage: sage.modular.hecke.homspace.is_HeckeModuleHomspace(Hom(M, M))
-        True
-        sage: sage.modular.hecke.homspace.is_HeckeModuleHomspace(Hom(M, QQ))
-        False
-    """
-    return isinstance(x, HeckeModuleHomspace)
-
 class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
     r"""
     A space of homomorphisms between two objects in the category of Hecke

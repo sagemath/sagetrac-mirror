@@ -297,14 +297,14 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
                 x = self.base_ring()(x)
             if x.parent() is self:
                 return x
-            elif hecke_operator.is_HeckeOperator(x):
+            elif isinstance(x, hecke_operator.HeckeOperator):
                 if x.parent() == self \
                         or (self.is_anemic() == False and x.parent() == self.anemic_subalgebra()) \
                         or (self.is_anemic() == True and x.parent().anemic_subalgebra() == self and arith.gcd(x.index(), self.level()) == 1):
                     return hecke_operator.HeckeOperator(self, x.index())
                 else:
                     raise TypeError
-            elif hecke_operator.is_HeckeAlgebraElement(x):
+            elif isinstance(x, hecke_operator.HeckeAlgebraElement):
                 if x.parent() == self or (self.is_anemic() == False and x.parent() == self.anemic_subalgebra()):
                     if x.parent().module().basis_matrix() == self.module().basis_matrix():
                         return hecke_operator.HeckeAlgebraElement_matrix(self, x.matrix())

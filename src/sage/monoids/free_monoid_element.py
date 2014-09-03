@@ -27,9 +27,6 @@ pairs of integers.
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 
-def is_FreeMonoidElement(x):
-    return isinstance(x, FreeMonoidElement)
-
 class FreeMonoidElement(MonoidElement):
     """
     Element of a free monoid.

@@ -450,7 +450,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             else:
                 raise TypeError("unable to coerce since the denominator is not 1")
 
-        elif is_SingularElement(x) and self._has_singular:
+        elif isinstance(x, SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
@@ -467,7 +467,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             except NameError as e:
                 raise TypeError("unable to convert string")
 
-        elif is_Macaulay2Element(x):
+        elif isinstance(x, Macaulay2Element):
             try:
                 s = x.sage_polystring()
                 if len(s) == 0:
@@ -517,10 +517,10 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         if not self._has_singular:
             # pass through
             MPolynomialRing_generic.ideal(self,gens,**kwds)
-        if is_SingularElement(gens):
+        if isinstance(gens, SingularElement):
             gens = list(gens)
             do_coerce = True
-        if is_Macaulay2Element(gens):
+        if isinstance(gens, Macaulay2Element):
             gens = list(gens)
             do_coerce = True
         elif not isinstance(gens, (list, tuple)):

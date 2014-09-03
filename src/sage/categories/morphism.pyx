@@ -45,9 +45,6 @@ def make_morphism(_class, parent, _dict, _slots):
         mor.__dict__ = _dict
     return mor
 
-def is_Morphism(x):
-    return isinstance(x, Morphism)
-
 cdef class Morphism(Map):
 
     def _repr_(self):

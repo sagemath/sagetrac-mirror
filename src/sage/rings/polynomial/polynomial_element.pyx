@@ -71,6 +71,7 @@ CC = ComplexField()
 from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
+from sage.rings.qqbar import AlgebraicField, AlgebraicField_common
 
 from sage.structure.element import RingElement, generic_power, parent
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
@@ -81,7 +82,7 @@ from sage.rings.integer cimport smallInteger
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
-from sage.rings.integral_domain import is_IntegralDomain
+from sage.rings.integral_domain import IntegralDomain
 from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
@@ -163,8 +164,8 @@ cdef void late_import():
 
     import sage.rings.qqbar
     is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
-    is_AlgebraicField = sage.rings.qqbar.is_AlgebraicField
-    is_AlgebraicField_common = sage.rings.qqbar.is_AlgebraicField_common
+    AlgebraicField = sage.rings.qqbar.AlgebraicField
+    AlgebraicField_common = sage.rings.qqbar.AlgebraicField_common
     import sage.rings.number_field.number_field
     NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
     import sage.rings.complex_interval_field
@@ -5761,7 +5762,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 return [rt for (rt, mult) in rts_mult]
 
-        if L != K or is_AlgebraicField_common(L):
+        if L != K or isinstance(L, AlgebraicField_common):
             # So far, the only "special" implementations are for real
             # and complex root isolation and for p-adic factorization
             if (is_IntegerRing(K) or is_RationalField(K)
@@ -5795,14 +5796,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     return [rt for (rt, mult) in rts]
 
             if (is_IntegerRing(K) or is_RationalField(K)
-                or is_AlgebraicField_common(K) or input_gaussian) and \
-                (is_ComplexIntervalField(L) or is_AlgebraicField_common(L)):
+                or isinstance(K, AlgebraicField_common) or input_gaussian) and \
+                (is_ComplexIntervalField(L) or isinstance(L, AlgebraicField_common)):
 
                 from sage.rings.polynomial.complex_roots import complex_roots
 
                 if is_ComplexIntervalField(L):
                     rts = complex_roots(self, min_prec=L.prec())
-                elif is_AlgebraicField(L):
+                elif isinstance(L, AlgebraicField):
                     rts = complex_roots(self, retval='algebraic')
                 else:
                     rts = complex_roots(self, retval='algebraic_real')
@@ -7046,7 +7047,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                 self.__coeffs = x
             return
 
-        if sage.rings.fraction_field_element.is_FractionFieldElement(x):
+        if isinstance(x, sage.rings.fraction_field_element.FractionFieldElement):
             if x.denominator() != 1:
                 raise TypeError("denominator must be 1")
             else:

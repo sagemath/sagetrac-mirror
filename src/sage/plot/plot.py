@@ -78,8 +78,6 @@ The following miscellaneous Graphics functions are included:
 
 -  :func:`Graphics`
 
--  :func:`is_Graphics`
-
 -  :func:`~sage.plot.colors.hue`
 
 

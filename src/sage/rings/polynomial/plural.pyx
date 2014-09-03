@@ -817,10 +817,10 @@ cdef class NCPolynomialRing_plural(Ring):
         coerce = kwds.get('coerce', True)
         if len(gens) == 1:
             gens = gens[0]
-        #if is_SingularElement(gens):
+        #if isinstance(gens, SingularElement):
         #    gens = list(gens)
         #    coerce = True
-        #elif is_Macaulay2Element(gens):
+        #elif isinstance(gens, Macaulay2Element):
         #    gens = list(gens)
         #    coerce = True
         if not isinstance(gens, (list, tuple)):

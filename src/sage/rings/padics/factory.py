@@ -2204,7 +2204,7 @@ class pAdicExtension_class(UniqueFactory):
                 if len(premodulus.variables()) != 1:
                     raise ValueError("symbolic expression must be in only one variable")
                 modulus = premodulus.polynomial(base)
-            elif is_Polynomial(premodulus):
+            elif isinstance(premodulus, Polynomial):
                 if premodulus.parent().ngens() != 1:
                     raise ValueError("must use univariate polynomial")
                 modulus = premodulus.change_ring(base)

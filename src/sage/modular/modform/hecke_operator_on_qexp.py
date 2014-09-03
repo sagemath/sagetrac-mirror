@@ -111,7 +111,7 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
             v.append(am)
     if _return_list:
         return v
-    if is_ModularFormElement(f):
+    if isinstance(f, ModularFormElement):
         R = f.parent()._q_expansion_ring()
     else:
         R = f.parent()
@@ -220,7 +220,7 @@ def hecke_operator_on_basis(B, n, k, eps=None,
         eps = DirichletGroup(1, R).gen(0)
     all_powerseries = True
     for x in B:
-        if not is_PowerSeries(x):
+        if not isinstance(x, PowerSeries):
             all_powerseries = False
     if not all_powerseries:
         raise TypeError("each element of B must be a power series")

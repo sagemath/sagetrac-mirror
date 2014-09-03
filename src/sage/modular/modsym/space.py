@@ -25,7 +25,7 @@ abstract base class.
 
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
-from   sage.modules.free_module_element  import is_FreeModuleElement
+from   sage.modules.free_module_element  import FreeModuleElement
 import sage.misc.misc as misc
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
@@ -40,20 +40,6 @@ from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound give
 import hecke_operator
 
 from sage.misc.cachefunc import cached_method
-
-def is_ModularSymbolsSpace(x):
-    r"""
-    Return True if x is a space of modular symbols.
-
-    EXAMPLES::
-
-        sage: M = ModularForms(3, 2)
-        sage: sage.modular.modsym.space.is_ModularSymbolsSpace(M)
-        False
-        sage: sage.modular.modsym.space.is_ModularSymbolsSpace(M.modular_symbols(sign=1))
-        True
-    """
-    return isinstance(x, ModularSymbolsSpace)
 
 class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     r"""
@@ -2404,7 +2390,7 @@ class PeriodMapping(SageObject):
             sage: M(vector([1,0,2]))
             (0, 9/4)
         """
-        if is_FreeModuleElement(x):
+        if isinstance(x, FreeModuleElement):
             v = x
         else:
             v = self.__domain(x).element()

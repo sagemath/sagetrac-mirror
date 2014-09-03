@@ -114,7 +114,7 @@ from unit_group import UnitGroup
 from class_group import ClassGroup
 from class_group import SClassGroup
 
-from sage.structure.element import is_Element
+from sage.structure.element import Element
 from sage.structure.sequence import Sequence
 
 import sage.structure.parent_gens
@@ -1401,7 +1401,7 @@ class NumberField_generic(number_field_base.NumberField):
                     return self._element_class(self, x)
                 x = L(x)
             return self._coerce_from_other_number_field(x)
-        elif sage.interfaces.gap.is_GapElement(x):
+        elif isinstance(x, sage.interfaces.gap.GapElement):
             s = repr(x)
             if self.variable_name() in s:
                 return self._coerce_from_str(s)
@@ -1440,7 +1440,7 @@ class NumberField_generic(number_field_base.NumberField):
         # provide string coercion, as
         # for finite fields
         w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
-        if not (is_Element(w) and w.parent() is self):
+        if not (isinstance(w, Element) and w.parent() is self):
             return self(w)
         else:
             return w
@@ -5568,7 +5568,7 @@ class NumberField_generic(number_field_base.NumberField):
             with exponent of -1 and invert the result in the "negative"
             case.
         """
-        if not is_NumberFieldIdeal(P):
+        if not isinstance(P, NumberFieldIdeal):
             P = self.ideal(P)
         P = P.pari_prime()
         if others == "positive":
@@ -6408,7 +6408,7 @@ class NumberField_absolute(NumberField_generic):
             -1/3*theta25 - 1
         """
         w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
-        if not (is_Element(w) and w.parent() is self):
+        if not (isinstance(w, Element) and w.parent() is self):
             return self(w)
         else:
             return w
@@ -7717,8 +7717,8 @@ class NumberField_absolute(NumberField_generic):
 
         names = sage.structure.parent_gens.normalize_names(2, names)
 
-        from sage.categories.map import is_Map
-        if is_Map(alpha):
+        from sage.categories.map import Map
+        if isinstance(alpha, Map):
             # alpha better be a morphism with codomain self
             if alpha.codomain() != self:
                 raise ValueError("Co-domain of morphism must be self")
@@ -8110,7 +8110,7 @@ class NumberField_absolute(NumberField_generic):
                 if P(a) > 0 or P(b) > 0:
                     return 1
                 return -1
-        if not is_NumberFieldIdeal(P):
+        if not isinstance(P, NumberFieldIdeal):
             P = self.ideal(P)
         if not P.number_field() == self:
             raise ValueError("P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field()))
@@ -8814,7 +8814,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                 return self._coerce_from_other_cyclotomic_field(x)
             else:
                 return NumberField_absolute._element_constructor_(self, x)
-        elif sage.interfaces.gap.is_GapElement(x):
+        elif isinstance(x, sage.interfaces.gap.GapElement):
             return self._coerce_from_gap(x)
         elif isinstance(x,UniversalCyclotomicField.Element):
             return self._coerce_from_universal_cyclotomic_field(x)
