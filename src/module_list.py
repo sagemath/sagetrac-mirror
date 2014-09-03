@@ -662,6 +662,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.lfunctions
+    ##
+    ################################
+
+    Extension("sage.lfunctions.eulerprod_fast",
+              ["sage/lfunctions/eulerprod_fast.pyx"]),
+
+    ################################
+    ##
     ## sage.libs
     ##
     ################################
