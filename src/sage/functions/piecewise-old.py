@@ -48,6 +48,8 @@ TESTS::
 
     sage: R.<x> = QQ[]
     sage: f = Piecewise([[(0,1),1*x^0]])
+    doctest:...: DeprecationWarning: use lower-case piecewise instead
+    See http://trac.sagemath.org/14801 for details.
     sage: 2*f
     Piecewise defined function with 1 parts, [[(0, 1), 2]]
 """
@@ -151,6 +153,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.list()
             [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
             sage: f.length()
@@ -178,6 +182,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.list()
             [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
         """
@@ -192,6 +198,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.length()
             2
         """
@@ -204,6 +212,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]]); f
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 2 parts, [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
         """
         return 'Piecewise defined function with %s parts, %s'%(
@@ -216,6 +226,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: latex(f)
             \begin{cases}
             x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
@@ -253,6 +265,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.intervals()
             [(0, 1), (1, 2), (2, 3), (3, 10)]
         """
@@ -269,6 +283,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.domain()
             (0, 10)
         """
@@ -286,6 +302,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.functions()
             [x |--> 1, x |--> -x + 1, x |--> e^x, x |--> sin(2*x)]
         """
@@ -302,6 +320,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.extend_by_zero_to(-1, 3)
             Piecewise defined function with 4 parts, [[(-1, 0), 0], [(0, 1), x |--> 1], [(1, 2), x |--> -x + 1], [(2, 3), 0]]
         """
@@ -323,6 +343,8 @@ class PiecewisePolynomial:
         
             sage: R.<x> = QQ[]
             sage: f = Piecewise([[(-3,-1),1+2+x],[(-1,1),1-x^2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: e = f.extend_by_zero_to(-10,10); e
             Piecewise defined function with 4 parts, [[(-10, -3), 0], [(-3, -1), x + 3], [(-1, 1), -x^2 + 1], [(1, 10), 0]]
             sage: d = e.unextend(); d
@@ -358,6 +380,8 @@ class PiecewisePolynomial:
             sage: f1(x) = x^2                   ## example 1
             sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f._riemann_sum_helper(6, lambda x0, x1: (x1-x0)*f(x1))
             19/6
         """
@@ -387,6 +411,8 @@ class PiecewisePolynomial:
             sage: f1(x) = x^2                   ## example 1
             sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.riemann_sum_integral_approximation(6)
             17/6
             sage: f.riemann_sum_integral_approximation(6,mode="right")
@@ -421,6 +447,8 @@ class PiecewisePolynomial:
             sage: f1(x) = x^2
             sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.riemann_sum(6,mode="midpoint")
             Piecewise defined function with 6 parts, [[(0, 1/3), 1/36], [(1/3, 2/3), 1/4], [(2/3, 1), 25/36], [(1, 4/3), 131/36], [(4/3, 5/3), 11/4], [(5/3, 2), 59/36]]
         
@@ -467,6 +495,8 @@ class PiecewisePolynomial:
             sage: f1 = x^2 
             sage: f2 = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.trapezoid(4)
             Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x], [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2], [(3/2, 2), -7/2*x + 8]]
         
@@ -519,6 +549,8 @@ class PiecewisePolynomial:
             sage: f1(x) = x^2                      ## example 1
             sage: f2(x) = 1-(1-x)^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: tf = f.trapezoid(6)
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
@@ -562,6 +594,8 @@ class PiecewisePolynomial:
             sage: f2 = 10*x - x^2
             sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
             sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: expected = [5, 12, 13, 14]
             sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
             True
@@ -600,6 +634,8 @@ class PiecewisePolynomial:
             sage: f2(x) = 1-x
             sage: f3(x) = x^2-5
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: base_ring(f)
             Symbolic Ring
 
@@ -625,6 +661,8 @@ class PiecewisePolynomial:
             sage: f2(x) = 1-x
             sage: f3(x) = x^2-5
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.end_points()
             [0, 1, 2, 3]
         """
@@ -644,6 +682,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f(0.5)
             1
             sage: f(5/2)
@@ -679,6 +719,8 @@ class PiecewisePolynomial:
             sage: f3(y) = exp(y)
             sage: f4(t) = sin(2*t)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.which_function(3/2)
             x |--> -x + 1
         """
@@ -702,6 +744,8 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 5*x
             sage: p = Piecewise([[(0,1),f1],[(1,4),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: p.default_variable()
             x
 
@@ -743,6 +787,8 @@ class PiecewisePolynomial:
 
             sage: f1(x) = 1-x
             sage: f = Piecewise([[(0,1),1],[(1,2),f1]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.integral(definite=True)
             1/2
         
@@ -888,6 +934,8 @@ class PiecewisePolynomial:
         
             sage: x = PolynomialRing(QQ,'x').gen()
             sage: f = Piecewise([[(0,1),1*x^0]])  ## example 0
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: g = f.convolution(f)
             sage: h = f.convolution(g)
             sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
@@ -977,11 +1025,15 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.derivative()
             Piecewise defined function with 2 parts, [[(0, 1), x |--> 0], [(1, 2), x |--> -1]]
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.derivative()
             Piecewise defined function with 2 parts, [[(0, 1/2*pi), x |--> 0], [(1/2*pi, pi), x |--> 0]]
             
@@ -1005,6 +1057,8 @@ class PiecewisePolynomial:
             sage: f1(x) = x^2
             sage: f2(x) = 5-x^3+x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: tf = f.tangent_line(0.9) ## tangent line at x=0.9
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
@@ -1033,6 +1087,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
         
@@ -1094,6 +1150,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_cosine_coefficient(2,1)
             pi^(-2)
             sage: f(x) = x^2
@@ -1136,6 +1194,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_sine_coefficient(2,1)  # L=1, n=2
             0
         """
@@ -1158,6 +1218,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f._fourier_series_helper(3, 1, lambda n: 1)
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
         """
@@ -1185,6 +1247,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_partial_sum(3,1)
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
@@ -1211,6 +1275,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_partial_sum_cesaro(3,1)
             1/3*cos(2*pi*x)/pi^2 - 8/3*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
@@ -1237,6 +1303,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_partial_sum_hann(3,1)
             1/4*cos(2*pi*x)/pi^2 - 3*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
@@ -1264,6 +1332,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
@@ -1291,6 +1361,8 @@ class PiecewisePolynomial:
             sage: f3(x) = -1
             sage: f4(x) = 2
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot_fourier_series_partial_sum(3,pi,-5,5)    # long time
             sage: f1(x) = -1
             sage: f2(x) = 2
@@ -1322,6 +1394,8 @@ class PiecewisePolynomial:
             sage: f3(x) = -1
             sage: f4(x) = 2
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot_fourier_series_partial_sum_cesaro(3,pi,-5,5)    # long time
             sage: f1(x) = -1
             sage: f2(x) = 2
@@ -1353,6 +1427,8 @@ class PiecewisePolynomial:
             sage: f3(x) = -1
             sage: f4(x) = 2
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot_fourier_series_partial_sum_hann(3,pi,-5,5)    # long time
             sage: f1(x) = -1
             sage: f2(x) = 2
@@ -1431,6 +1507,8 @@ class PiecewisePolynomial:
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(-10,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.fourier_series_value(101,10)  
             1/2
             sage: f.fourier_series_value(100,10)
@@ -1488,6 +1566,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = x
             sage: f = Piecewise([[(0,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.cosine_series_coefficient(2,1)  
             0
             sage: f.cosine_series_coefficient(3,1)
@@ -1543,6 +1623,8 @@ class PiecewisePolynomial:
         
             sage: f(x) = 1
             sage: f = Piecewise([[(0,1),f]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.sine_series_coefficient(2,1)  
             0
             sage: f.sine_series_coefficient(3,1)
@@ -1576,6 +1658,8 @@ class PiecewisePolynomial:
         
             sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f.laplace(x, s)
             -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
             sage: f.laplace(x, w)
@@ -1617,6 +1701,8 @@ class PiecewisePolynomial:
         
             sage: R.<x> = QQ[]
             sage: f1 = Piecewise([[(0, 2), x]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: f2 = Piecewise([[(1, 3), x^2]])
             sage: f1._make_compatible(f2)
             (Piecewise defined function with 2 parts, [[(0, 2), x], [(2, 3), 0]],
@@ -1646,6 +1732,8 @@ class PiecewisePolynomial:
             sage: f3 = 2*x
             sage: f4 = 10-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: g1 = x-2
             sage: g2 = x-5
             sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
@@ -1675,6 +1763,8 @@ class PiecewisePolynomial:
             sage: f3 = 2*x
             sage: f4 = 10-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: g1 = x-2
             sage: g2 = x-5
             sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
@@ -1710,6 +1800,8 @@ class PiecewisePolynomial:
             sage: f3 = 2*x
             sage: f4 = 10-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: g = Piecewise([[(0,1),1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f==g
             True
