@@ -19,7 +19,6 @@ Quiver Paths
 #*****************************************************************************
 
 from sage.rings.integer_ring import ZZ
-from cython.operator import dereference as deref
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -110,12 +109,39 @@ cdef class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
+    def __cinit__(self):
+        """
+        TESTS::
+
+            sage: from sage.quivers.paths import QuiverPath
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: p = Q([(1, 1)])  # indirect doctest
+
+        """
+        self._path = NULL
 
     def __dealloc__(self):
-        # I tested that this will not crash, even if self._path isn't initialised
-        mpz_clear(self._path.data)
+        """
+        TESTS::
+
+            sage: from sage.quivers.paths import QuiverPath
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: p = Q([(1, 1)]) * Q([(1, 1)])
+            sage: del p    # indirect doctest
+
+        """
+        if self._path!=NULL:
+            dealloc_biseq(self._path)
 
     cdef QuiverPath _new_(self, int start, int end, biseq_t data):
+        """
+        TESTS::
+
+            sage: from sage.quivers.paths import QuiverPath
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: p = Q(['a']) * Q(['b'])    # indirect doctest
+
+        """
         cdef QuiverPath out = PY_NEW(self._parent.element_class)
         out._parent = self._parent
         out._start = start
@@ -146,15 +172,13 @@ cdef class QuiverPath(MonoidElement):
             True
             sage: list(Q([(1, 1)])*Q([(1, 2, 'a')])*Q([(2, 2)])*Q([(2, 3, 'b')])*Q([(3, 3)]))
             [(1, 2, 'a'), (2, 3, 'b')]
+
         """
         MonoidElement.__init__(self, parent=parent)
         cdef unsigned int l = len(path)
-        cdef mpz_t tmp
         self._start = start
         self._end   = end
-        mpz_init_set_ui(tmp, len(parent.quiver().edges())-1)
-        self._path = deref(list_to_biseq(deref(allocate_biseq(l, mpz_sizeinbase(tmp, 2))), path))
-        mpz_clear(tmp)
+        self._path = list_to_biseq(path, max(len(parent.quiver().edges()), 1))
         if not check:
             return
         Q = parent.quiver()
@@ -180,6 +204,18 @@ cdef class QuiverPath(MonoidElement):
                 raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
 
     def __reduce__(self):
+        """
+        TESTS::
+
+            sage: from sage.quivers.paths import QuiverPath
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: p = Q(['a']) * Q(['b'])
+            sage: loads(dumps(p)) == p   # indirect doctest
+            True
+            sage: loads(dumps(p)) is p
+            False
+
+        """
         cdef size_t n
         cdef char *s
         n = mpz_sizeinbase(self._path.data, 32) + 2
@@ -194,6 +230,17 @@ cdef class QuiverPath(MonoidElement):
         return NewQuiverPath, (self._parent, self._start, self._end, data_str, self._path.bitsize, self._path.itembitsize, self._path.length)
 
     def __hash__(self):
+        """
+        TESTS::
+
+            sage: from sage.quivers.paths import QuiverPath
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: p = Q(['a']) * Q(['b'])
+            sage: q = Q([(1, 1)])
+            sage: {p:1, q:2}[Q(['a','b'])]    # indirect doctest
+            1
+
+        """
         if self._path.length==0:
             return hash(self._start)
         return mpz_pythonhash(self._path.data)
@@ -356,14 +403,14 @@ cdef class QuiverPath(MonoidElement):
                 return self
             init = E[getitem_biseq(self._path, start)][0]
             end   = E[getitem_biseq(self._path, stop)][0]
-            return self._new_(init, end, deref(slice_biseq(self._path, start, stop, step)))
+            return self._new_(init, end, slice_biseq(self._path, start, stop, step))
         if index<0:
             index = self._path.length+index
         if index<0 or index>=self._path.length:
             raise IndexError("list index out of range")
         init = E[getitem_biseq(self._path, index)][0]
         end = E[getitem_biseq(self._path, index)][1]
-        return self._new_(init, end, deref(slice_biseq(self._path, index, index+1, 1)))
+        return self._new_(init, end, slice_biseq(self._path, index, index+1, 1))
 
     def __iter__(self):
         """
@@ -418,7 +465,7 @@ cdef class QuiverPath(MonoidElement):
         cdef QuiverPath right = other
         if self._end != right._start:
             return None
-        return self._new_(self._start, right._end, deref(concat_biseq(self._path,right._path)))
+        return self._new_(self._start, right._end, concat_biseq(self._path,right._path))
 
     def __mod__(self, other):
         """
@@ -455,7 +502,7 @@ cdef class QuiverPath(MonoidElement):
 
         # If other is the beginning, return the rest
         if startswith_biseq(cself._path, right._path):
-            return cself._new_(right._end, cself._end, deref(slice_biseq(cself._path, right._path.length, cself._path.length, 1)))
+            return cself._new_(right._end, cself._end, slice_biseq(cself._path, right._path.length, cself._path.length, 1))
         else:
             return None
 
@@ -579,11 +626,44 @@ cdef class QuiverPath(MonoidElement):
         return Q.element_class(Q, self._end, self._start, biseq_to_list(self._path)[::-1], check=False)
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length):
+    """
+    Return a new quiver path for given defining data.
+
+    INPUT:
+
+    - ``Q``, the path semigroup of a quiver
+    - ``start``, an integer, the label of the startpoint
+    - ``end``, an integer, the label of the endpoint
+    - ``data``, a string: The bitmap encoding the path represented as integer
+       at base `32`.
+    - ``bitsize``, the number of bits used to store the path
+    - ``itembitsize``, the number of bits used to store a single item
+    - ``length``, the number of items in the path
+
+    TESTS::
+
+        sage: from sage.quivers.paths import QuiverPath
+        sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+        sage: p = Q(['a']) * Q(['b'])
+        sage: loads(dumps(p)) == p   # indirect doctest
+        True
+        sage: p.__reduce__()
+        (<...NewQuiverPath>,
+         (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
+          1,
+          3,
+          '2',
+          2L,
+          1L,
+          2))
+
+    """
     cdef QuiverPath out = PY_NEW(Q.element_class)
     out._parent = Q
     out._start = start
     out._end   = end
-    mpz_init2(out._path.data, bitsize)
+    out._path = <biseq_t>sage_malloc(sizeof(biseq))
+    mpz_init2(out._path.data, bitsize+mp_bits_per_limb)
     out._path.bitsize = bitsize
     out._path.itembitsize = itembitsize
     out._path.mask_item = ((<unsigned int>1)<<itembitsize)-1
