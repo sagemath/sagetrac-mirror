@@ -352,7 +352,7 @@ def _init():
 
         sage: from sage.functions.orthogonal_polys import legendre_P
         sage: legendre_P(2,x)
-        3/2*(x - 1)^2 + 3*x - 2
+        3/2*x^2 - 1/2
         sage: sage.functions.orthogonal_polys._done
         True
 
@@ -1307,7 +1307,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: legendre_P(4, sqrt(2)).simplify()
             83/8
             sage: legendre_P(4, I*e)
-            35/8*e^4 + 15/4*e^2 + 3/8
+            35/8*(I*e)^4 - 15/4*(I*e)^2 + 3/8
         """
         if n<0:
             n = - n - 1
@@ -1320,7 +1320,10 @@ class Func_legendre_P(OrthogonalPolynomial):
             return pol
         elif P is SR:
             from sage.libs.pari.all import pari
-            return SR(pari.pollegendre(n, str(arg)))
+            argstr = str(arg)
+            if not is_SymbolicVariable(arg):
+                argstr = '('+argstr+')'
+            return SR(pari.pollegendre(n, argstr))
         elif is_PolynomialRing(P):
             from sage.libs.pari.all import pari
             if arg == P.gen():
