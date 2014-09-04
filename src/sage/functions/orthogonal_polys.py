@@ -321,9 +321,10 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.real_mpfr import RealField
-from sage.rings.complex_field import ComplexField
+from sage.rings.real_mpfr import is_RealField
+from sage.rings.complex_field import is_ComplexField
 from sage.calculus.calculus import maxima
 
 
@@ -699,7 +700,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         except KeyError:
             real_parent = parent(x)
 
-            if not isinstance(real_parent, RealField) and not isinstance(real_parent, ComplexField):
+            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -708,7 +709,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
                     x = CC(x)
                     real_parent = CC
 
-        if not isinstance(real_parent, RealField) and not isinstance(real_parent, ComplexField):
+        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
             raise TypeError("cannot evaluate chebyshev_T with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1062,7 +1063,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         except KeyError:
             real_parent = parent(x)
 
-            if not isinstance(real_parent, RealField) and not isinstance(real_parent, ComplexField):
+            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -1071,7 +1072,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
                     x = CC(x)
                     real_parent = CC
 
-        if not isinstance(real_parent, RealField) and not isinstance(real_parent, ComplexField):
+        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
             raise TypeError("cannot evaluate chebyshev_U with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1162,6 +1163,14 @@ chebyshev_U = Func_chebyshev_U()
 
 class Func_legendre_P(OrthogonalPolynomial):
     def __init__(self):
+        r"""
+        Init method for the Legendre polynomials of the first kind.
+
+        EXAMPLES::
+
+            sage: loads(dumps(legendre_P))
+            legendre_P
+        """
         OrthogonalPolynomial.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
                 conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
@@ -1169,7 +1178,18 @@ class Func_legendre_P(OrthogonalPolynomial):
     def __call__(self, n, x, *args, **kwds):
         r"""
         Return an evaluation or call super.
+        
+        EXAMPLES::
+            
+            sage: legendre_P(1/2, I+1)
+            1.05338240025858 + 0.359890322109665*I
+            sage: legendre_P(1/2, I+1, hold=True)
+            legendre_P(1/2, I + 1)
         """
+        algorithm = kwds.get('algorithm', None)
+        if algorithm == 'pari':
+            return self.eval_pari(n, x)
+        
         if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
             ret = self._eval_(n, x, *args, **kwds)
             if ret is not None:
@@ -1180,6 +1200,17 @@ class Func_legendre_P(OrthogonalPolynomial):
     def _eval_(self, n, x, *args, **kwds):
         r"""
         Return an evaluation of this Legendre P expression.
+        
+        EXAMPLES::
+            
+            sage: legendre_P(4, 2.0, algorithm='pari')
+            55.3750000000000
+            sage: legendre_P(1, x)
+            x
+            sage: legendre_P(4, x+1)
+            35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
+            sage: legendre_P(1/2, I+1)
+            1.05338240025858 + 0.359890322109665*I
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'pari':
@@ -1189,7 +1220,9 @@ class Func_legendre_P(OrthogonalPolynomial):
         if ret is not None:
             return ret
         if isinstance(n, Integer):
-            return self.eval_pari(n, x)
+            ret = self.eval_pari(n, x)
+            if ret is not None:
+                return ret
         if SR(x).is_numeric() and SR(n).is_numeric():
             return self._evalf_(n, x, **kwds)
 
@@ -1213,12 +1246,14 @@ class Func_legendre_P(OrthogonalPolynomial):
         """
         EXAMPLES::
             
+            sage: legendre_P(4, 2.)
+            55.3750000000000
             sage: legendre_P(5.5,1.00001)
             1.00017875754114
-            sage: legendre_P(5.50000000000000000000000000000000,1.00001,hold=True).n(200)
-            1.0001787575411413833137430628994002144802563938164692...
-            sage: legendre_P(5.5,1.00001*I)
-            -19.4406381779 + 19.4396750265*I
+            sage: legendre_P(1/2, I+1).n()
+            1.05338240025858 + 0.359890322109665*I
+            sage: legendre_P(1/2, I+1).n(59)
+            1.0533824002585803 + 0.35989032210966537*I
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
@@ -1228,8 +1263,7 @@ class Func_legendre_P(OrthogonalPolynomial):
         if real_parent is None:
             real_parent = parent(x)
 
-            if (not isinstance(real_parent, RealField)
-                and not isinstance(real_parent, ComplexField)):
+            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -1238,25 +1272,25 @@ class Func_legendre_P(OrthogonalPolynomial):
                     x = CC(x)
                     real_parent = CC
 
-        if (not isinstance(real_parent, RealField)
-            and not isinstance(real_parent, ComplexField)):
+        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
             raise TypeError("cannot evaluate legendre_P with parent {}".format(real_parent))
 
-        prec = kwds.get('prec', None)
-        if prec is None:
-            prec = 53
-        if prec <= 53:
+        if real_parent.prec() <= 53:
             from scipy.special import eval_legendre
             if real_parent is RR:
-                return R(eval_legendre(float(n), float(x)))
+                return RR(eval_legendre(float(n), float(x)))
             else:
-                return R(eval_legendre(float(n), complex(x)))
+                return real_parent(eval_legendre(float(n), complex(x)))
         else:
+            import mpmath
             from sage.libs.mpmath.all import call as mpcall   
-            return mpcall(mpmath.legenp, n, 0, x, parent=real_parent, prec=prec)
+            return mpcall(mpmath.legenp, n, 0, x, parent=real_parent, prec=real_parent.prec())
 
     def eval_pari(self, n, arg):
         """
+        Use Pari to evaluate legendre_P for integer, symbolic, and
+        polynomial argument.
+        
         EXAMPLES::
             
             sage: R.<x> = QQ[]
@@ -1270,13 +1304,15 @@ class Func_legendre_P(OrthogonalPolynomial):
             35/8*t^4 - 15/4*t^2 + 3/8
             sage: legendre_P(4, x+1)
             35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
-            sage: legendre_P(4, sqrt(I))
-            -15/4*I - 4
+            sage: legendre_P(4, sqrt(2)).simplify()
+            83/8
+            sage: legendre_P(4, I*e)
+            35/8*e^4 + 15/4*e^2 + 3/8
         """
         if n<0:
             n = - n - 1
         P = parent(arg)
-        if P is ZZ:
+        if P in (ZZ, QQ, RR, CC):
             from sage.libs.pari.all import pari
             R = PolynomialRing(QQ, 'x')
             pol = R(pari.pollegendre(n))
@@ -1285,7 +1321,7 @@ class Func_legendre_P(OrthogonalPolynomial):
         elif P is SR:
             from sage.libs.pari.all import pari
             return SR(pari.pollegendre(n, str(arg)))
-        elif isinstance(P, PolynomialRing):
+        elif is_PolynomialRing(P):
             from sage.libs.pari.all import pari
             if arg == P.gen():
                 return P(pari.pollegendre(n))
@@ -1295,8 +1331,6 @@ class Func_legendre_P(OrthogonalPolynomial):
                 pol = pol.subs({pol.parent().gen():arg})
                 pol = pol.change_ring(P.base_ring())
                 return pol
-        else:
-            raise TypeError("arg: %s, parent: %s" % (type(arg), type(P)))
         
 legendre_P = Func_legendre_P()
 
