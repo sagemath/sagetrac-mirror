@@ -412,7 +412,34 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         return msg.format(self.domain(), self.codomain())
     def _an_element_(self):
         """
-        Return an element of self. 
+        Return an element of self.
+
+        EXAMPLES:
+        
+        We return a somewhat typical element of self. ::
+        
+            sage: K = GF(3)
+            sage: M = K^2
+            sage: N = K^3
+            sage: Hom(M, N).an_element() 
+            Vector space morphism represented by the matrix:
+            [2 0 0]
+            [0 2 0]
+            Domain: Vector space of dimension 2 over Finite Field of size 3
+            Codomain: Vector space of dimension 3 over Finite Field of size 3
+
+        We note that there are no vector space homomorphims between vector spaces over 
+        different fields. Note that, by design, even isomorphic fields are considered 
+        different.::
+
+            sage: K1 = GF(4, 'a')
+            sage: K2 = GF(4, 'b')
+            sage: M = K1^2
+            sage: N = K2^2
+            sage: Hom(M, N).an_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: There is no homorphism between vector spaces over different fields.
         """
         from sage.modules.vector_space_morphism import VectorSpaceMorphism
         from sage.matrix.constructor import block_matrix, diagonal_matrix, zero_matrix
