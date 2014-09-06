@@ -181,6 +181,12 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
+    def _an_element_(self):
+        """
+        Return an (a typical) element of the prime field. 
+        """
+        return self(-1)
+
     def construction(self):
         """
         Returns the construction of this finite field (for use by sage.categories.pushout)

@@ -410,3 +410,23 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         """
         msg = 'Set of Morphisms (Linear Transformations) from {0} to {1}'
         return msg.format(self.domain(), self.codomain())
+    def _an_element_(self):
+        """
+        Return an element of self. 
+        """
+        from sage.modules.vector_space_morphism import VectorSpaceMorphism
+        from sage.matrix.constructor import block_matrix, diagonal_matrix, zero_matrix
+        from sage.categories.sets_cat import EmptySetError
+
+        M1 = self.domain()
+        M2 = self.codomain()
+        K = M1.base_field()
+        if M2.base_field() != K:
+            raise EmptySetError("There is no homorphism between vector spaces over different fields.")
+        else:
+            a = K.an_element()
+            m1= M1.dimension()
+            m2= M2.dimension()
+            m=min(m1, m2)
+            A = diagonal_matrix(K, [a]*m)
+            return VectorSpaceMorphism(self, block_matrix(K, 2, 2, [A, 0, 0, zero_matrix(m1-m, m2-m)], subdivide=False)) 
