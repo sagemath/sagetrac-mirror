@@ -76,6 +76,7 @@ from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
+ecl_eval("(setf *compile-verbose* NIL)")
 ecl_eval("(setf *load-verbose* NIL)")
 ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")

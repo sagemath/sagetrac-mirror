@@ -67,10 +67,6 @@ The following patches are applied:
    executable program.  Introduced in Trac #16178 (Build maxima fasl
    without asdf).
 
- * compile-verbose.patch: Suppress some lines of compilation output
-   when starting Maxima.  Introduced in Trac #16908 (Upgrade Maxima to
-   5.34.0).
-
  * infodir.patch: Correct the path to the Info directory.  Introduced
    in Trac #11348 (maxima test fails when install tree is moved).
 

@@ -165,12 +165,9 @@ class MaximaAbstract(Interface):
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             res = p.stdout.read()
-            # ecl-10.2 : 3 lines
-            # ecl-10.4 : 5 lines
-            # ecl-11.1 : 4 lines fancy a tango?
-            # We now get 4 lines of commented verbosity
+            # We now get 16 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
-            for _ in range(4):
+            for _ in range(16):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
