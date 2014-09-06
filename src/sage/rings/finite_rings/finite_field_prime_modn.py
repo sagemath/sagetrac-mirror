@@ -184,6 +184,13 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
     def _an_element_(self):
         """
         Return an (a typical) element of the prime field. 
+        
+        EXAMPLES:: 
+
+            sage: GF(2).an_element()
+            1
+            sage: GF(3).an_element()
+            2
         """
         return self(-1)
 
