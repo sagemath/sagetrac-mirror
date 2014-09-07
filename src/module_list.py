@@ -2190,3 +2190,18 @@ if is_package_installed('lrcalc'):
                   libraries = ["lrcalc"],
                   depends = [SAGE_INC + "/lrcalc/symfcn.h"]), # should include all .h
         )
+
+if is_package_installed('polymake'):
+    ext_modules.append(
+        Extension('sage.libs.polymake.polymake',
+                  sources = ['sage/libs/polymake/polymake.pyx'],
+                  language='c++',
+                  include_dirs=[SAGE_INC, "/sage/c_lib/include",
+                                "sage/libs/polymake"],
+                  libraries=['polymake', 'gmp', 'xml2'],
+                  library_dirs=[SAGE_LOCAL + "/lib"], 
+                  depends=["sage/libs/polymake/wrap.h",
+                           "sage/libs/polymake/defs.pxd"],
+                  extra_compile_args=["-DPOLYMAKE_DEBUG=0"], 
+                  )
+        )
