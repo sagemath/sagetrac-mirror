@@ -51,9 +51,9 @@ class CurveEnumerator_abstract(object):
 
     def __repr__(self):
         """
-        Representation of self.
+        Return a string representation of ``self``.
 
-        Prints what family of curves is being considered, the model
+        Print what family of curves is being considered, the model
         description and the height function on that family.
 
         EXAMPLES::
@@ -76,10 +76,10 @@ class CurveEnumerator_abstract(object):
         """
 
         s = "Height iterator for elliptic curves over QQ\n"
-        s += "Family:             "+self._name+"\n"
-        s += "Model:              "+self._model+"\n"
-        s += "Coefficients:       "+self._coeff_names+"\n"
-        s += "Height function:    "+self._height_function
+        s += "Family:             " + self._name + "\n"
+        s += "Model:              " + self._model + "\n"
+        s += "Coefficients:       " + self._coeff_names + "\n"
+        s += "Height function:    " + self._height_function
         return s
 
     def _height_increment(self, coeffs):
@@ -115,7 +115,7 @@ class CurveEnumerator_abstract(object):
             (64, [4, 8], [0, 1])
         """
         I = range(len(coeffs))
-        height_candidates = [(coeffs[i]+1)**(self._pows[i]) for i in I]
+        height_candidates = [(coeffs[i] + 1) ** (self._pows[i]) for i in I]
         next_height = min(height_candidates)
         index = []
 
@@ -291,8 +291,8 @@ class CurveEnumerator_abstract(object):
 
     def _coeffs_from_height(self, height_tuple):
         r"""
-        Returns a list of tuples of a-invariants of all curves
-         described by height_tuple.
+        Return a list of tuples of a-invariants of all curves
+        described by ``height_tuple``.
 
         INPUT:
 
@@ -340,9 +340,9 @@ class CurveEnumerator_abstract(object):
                 if j in S:
                     B.append([-coeffs[j], coeffs[j]])
                 elif j in index:
-                    B.append(srange(-coeffs[j]+1, coeffs[j]))
+                    B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
-                    B.append(srange(-coeffs[j], coeffs[j]+1))
+                    B.append(srange(-coeffs[j], coeffs[j] + 1))
             C = CartesianProduct(*B).list()
             for c in C:
                 L.append(c)
@@ -1142,7 +1142,6 @@ class CurveEnumerator_abstract(object):
             try:
                 E = EllipticCurve(C[1])
 
-#####THIS REQUIRES CHECKING#####
                 # Compute datum
                 # By Mazur's Torsion Theorem, the possible torsion subgroups
                 # for curves over QQ are C1 thru C10, and C2xC2, C2xC4, C2xC6
@@ -1283,10 +1282,10 @@ class CurveEnumerator_abstract(object):
 
                 # Write to file and/or append to return list
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -1295,9 +1294,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -1368,7 +1367,7 @@ class CurveEnumerator_abstract(object):
 
         #Compute running average
         N = np.arange(X.shape[0], dtype=np.float64) + 1
-        Y = np.cumsum(V)/N
+        Y = np.cumsum(V) / N
 
         # Retain only lines with new heights
         I = X[:-1] != X[1:]
@@ -1392,7 +1391,7 @@ class CurveEnumeratorShortWeierstrass(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1410,8 +1409,6 @@ class CurveEnumeratorShortWeierstrass(CurveEnumerator_abstract):
         self._coeff_names = "[A,B]"
         self._height_function = "H = min{|A|^3,|B|^2}"
 
-        # The following constants must be Sage Integers; if not, some
-        # methods won't work
         self._num_coeffs = ZZ(2)
         self._pows = (ZZ(3), ZZ(2))
 
@@ -1479,7 +1476,7 @@ class CurveEnumeratorRankOne(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Instantiates self.
+        Instantiate ``self``.
 
         EXAMPLES::
 
@@ -1497,7 +1494,6 @@ class CurveEnumeratorRankOne(CurveEnumerator_abstract):
         self._coeff_names = "[A,B,C]"
         self._height_function = "H = min{|A|^6,|B|^4,|C|^3}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(3)
         self._pows = (ZZ(6), ZZ(4), ZZ(3))
 
@@ -1541,7 +1537,7 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1563,7 +1559,6 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
         self._coeff_names = "[a2,a4,b4,c6]"
         self._height_function = "H = min{|a2|^6,|a4|^3,|b4|^3,|c6|^2}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(4)
         self._pows = (ZZ(6), ZZ(3), ZZ(3), ZZ(2))
 
@@ -1586,6 +1581,7 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
         the curve.
 
         EXAMPLES::
+
             sage: C = EllipticCurveEnumerator("rank_two")
             sage: C._coeffs_to_a_invariants([1, 2, 3, 4])
             [0, 0, 0, -243, 5130]
@@ -1601,10 +1597,10 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
         # J may have denominator 2 or 4. If so, the following produces
         # an isomorphic curve with integral coefficients
         if J.denominator() > 1:
-            I = I*16
-            J = J*64
+            I = I * 16
+            J = J * 64
 
-        return [0, 0, 0, -27*I, -27*J]
+        return [0, 0, 0, -27 * I, -27 * J]
 
 
 class CurveEnumeratorTwoTorsion(CurveEnumerator_abstract):
@@ -1620,7 +1616,7 @@ class CurveEnumeratorTwoTorsion(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1638,7 +1634,6 @@ class CurveEnumeratorTwoTorsion(CurveEnumerator_abstract):
         self._coeff_names = "[A,B]"
         self._height_function = "H = min{|A|^6,|C|^3}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(2)
         self._pows = (ZZ(6), ZZ(3))
 
@@ -1682,7 +1677,7 @@ class CurveEnumeratorThreeTorsion(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Crates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1700,7 +1695,6 @@ class CurveEnumeratorThreeTorsion(CurveEnumerator_abstract):
         self._coeff_names = "[A,B]"
         self._height_function = "H = min{|A|^12,|B|^4}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(2)
         self._pows = (ZZ(12), ZZ(4))
 
@@ -1743,7 +1737,7 @@ class CurveEnumeratorF_12(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Create an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1761,7 +1755,6 @@ class CurveEnumeratorF_12(CurveEnumerator_abstract):
         self._coeff_names = "[A,B,C]"
         self._height_function = "H = min{|A|,|B|^2,|C|^2}"
 
-        # The following constants must be Sage Integers; if not, kittens die
         self._num_coeffs = ZZ(3)
         self._pows = (ZZ(1), ZZ(2), ZZ(2))
 
@@ -1789,7 +1782,7 @@ class CurveEnumeratorF_12(CurveEnumerator_abstract):
             sage: C._coeffs_to_a_invariants([1, 2, 3])
             [0, -4, 0, 6, 0]
         """
-        return [0, c[0]**2-c[1]-c[2], 0, c[1]*c[2], 0]
+        return [0, c[0] ** 2 - c[1] - c[2], 0, c[1] * c[2], 0]
 
 
 class CurveEnumeratorF_22(CurveEnumerator_abstract):
@@ -1806,7 +1799,7 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1828,7 +1821,6 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
         self._coeff_names = "[w0,w1,w2,w3]"
         self._height_function = "H = min{|w0|,|w1|,|w2|,|w3|}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(4)
         self._pows = (ZZ(1), ZZ(1), ZZ(1), ZZ(1))
 
@@ -1864,8 +1856,8 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
         # A may be be a rational with denominator 2 or 4.
         # If so, the following converts to an integral model:
         if A.denominator() > 1:
-            A = A*4
-            B = B*64
+            A = A * 4
+            B = B * 64
 
         return [0, A, 0, 0, B]
 
@@ -1883,7 +1875,7 @@ class CurveEnumeratorF_13(CurveEnumerator_abstract):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1905,7 +1897,6 @@ class CurveEnumeratorF_13(CurveEnumerator_abstract):
         self._coeff_names = "[w0,w1,w2]"
         self._height_function = "H = min{|w0|,|w1|,|w2|}"
 
-        # The following constants must be Sage Integers;
         self._num_coeffs = ZZ(3)
         self._pows = (ZZ(1), ZZ(1), ZZ(1))
 
@@ -1934,8 +1925,8 @@ class CurveEnumeratorF_13(CurveEnumerator_abstract):
             sage: C._coeffs_to_a_invariants([1, 2, 4])
             [7, 0, 8, 0, 0]
         """
-        A = c[0]+c[1]+c[2]
-        B = c[0]*c[1]*c[2]
+        A = c[0] + c[1] + c[2]
+        B = c[0] * c[1] * c[2]
         return [A, 0, B, 0, 0]
 
 
@@ -1953,7 +1944,7 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -1975,7 +1966,6 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
         self._coeff_names = "[w0,w1,w2,w3], with w0*w1 = w2*w3"
         self._height_function = "H = min{|w0|,|w1|,|w2|,|w3|}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(4)
         self._pows = (ZZ(1), ZZ(1), ZZ(1), ZZ(1))
 
@@ -1985,8 +1975,8 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
 
     def _coeffs_from_height(self, height_tuple):
         """
-        Returns a list of tuples of a-invariants of all curves
-         described by height_tuple.
+        Return a list of tuples of a-invariants of all curves described
+        by ``height_tuple``.
 
         INPUT:
 
@@ -2036,14 +2026,14 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
                 if j in S:
                     B.append([-coeffs[j], coeffs[j]])
                 elif j in index:
-                    B.append(srange(-coeffs[j]+1, coeffs[j]))
+                    B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
-                    B.append(srange(-coeffs[j], coeffs[j]+1))
+                    B.append(srange(-coeffs[j], coeffs[j] + 1))
             C = CartesianProduct(*B).list()
             for c in C:
                 # This family has the additional constraint that
                 # c[0]*c[1] = c[2]*c[3]
-                if c[0]*c[1] == c[2]*c[3]:
+                if c[0] * c[1] == c[2] * c[3]:
                     L.append(c)
 
         # Convert coefficient tuples to a-invariants
@@ -2071,7 +2061,7 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
     """
     def __init__(self):
         """
-        Creates an instance of self.
+        Create an instance of ``self``.
 
         EXAMPLES::
 
@@ -2093,7 +2083,6 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
         self._coeff_names = "[w0,w1,w2,w3], with w0 + w1 = w2 + w3"
         self._height_function = "H = min{|w0|,|w1|,|w2|,|w3|}"
 
-        # The following constants must be Sage Integers
         self._num_coeffs = ZZ(4)
         self._pows = (ZZ(1), ZZ(1), ZZ(1), ZZ(1))
 
@@ -2103,8 +2092,8 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
 
     def _coeffs_from_height(self, height_tuple):
         """
-        Returns a list of tuples of a-invariants of all curves
-         described by height_tuple.
+        Return a list of tuples of a-invariants of all curves
+        described by ``height_tuple``.
 
         INPUT:
 
@@ -2157,14 +2146,14 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
                 if j in S:
                     B.append([-coeffs[j], coeffs[j]])
                 elif j in index:
-                    B.append(srange(-coeffs[j]+1, coeffs[j]))
+                    B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
-                    B.append(srange(-coeffs[j], coeffs[j]+1))
+                    B.append(srange(-coeffs[j], coeffs[j] + 1))
             C = CartesianProduct(*B).list()
             for c in C:
                 # This family has the additional constraint that
                 # c[0]+c[1] = c[2]+c[3]
-                if c[0]+c[1] == c[2]+c[3]:
+                if c[0] + c[1] == c[2] + c[3]:
                     L.append(c)
 
         # Convert coefficient tuples to a-invariants
@@ -2180,10 +2169,11 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
 
 def EllipticCurveEnumerator(family):
     r"""
-    Return the correct CurveEnumerator family. This instance will allow
-    enumeration of all elliptic curves with a given height range, so that
-    values of associated invariants (and averages thereof) can be quickly
-    computed.
+    Return the correct CurveEnumerator family.
+
+    This instance will allow enumeration of all elliptic curves with a
+    given height range, so that values of associated invariants (and
+    averages thereof) can be quickly computed.
 
     INPUT:
 
