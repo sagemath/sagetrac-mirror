@@ -1298,7 +1298,31 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def isogenies_graph(self,l):
         """
-        Return the l-isogenies graph.
+        Return the l-isogenies graph of E.
+        
+        EXAMPLE::
+            sage: E= EllipticCurve(GF(31),[1,2,3,4,5])
+            sage: E.isogenies_graph(5).edges()
+            [(3, 9, None), (9, 3, None)]
+            sage: E= EllipticCurve(GF(5081),[3290,3887])
+            sage: E.isogenies_graph(5).edges()
+            [(478, 794, None),
+             (531, 3959, None),
+             (711, 2483, None),
+             (794, 478, None),
+             (794, 1223, None),
+             (794, 2919, None),
+             (794, 3431, None),
+             (794, 4700, None),
+             (794, 4888, None),
+             (820, 1986, None),
+             (820, 2285, None),
+             (820, 2467, None),
+             (820, 2919, None),
+             (820, 3413, None),
+             ...
+             (4996, 3959, None)]
+        
         """
         if not l.is_prime():
             raise AttributeError("l has to be prime")
