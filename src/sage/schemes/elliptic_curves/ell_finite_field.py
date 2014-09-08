@@ -41,7 +41,7 @@ import sage.groups.generic as generic
 import ell_point
 from sage.rings.arith import gcd, lcm
 from sage.structure.sequence import Sequence
-
+from sage.graphs.graph import DiGraph
 import sage.plot.all as plot
 
 import sage.libs.pari
@@ -1282,6 +1282,54 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...
         """
         return self.points()[n]
+
+    def isogenies_graph(self,l):
+        """
+        Return the l-isogenies graph of E.
+        
+        EXAMPLE::
+            sage: E= EllipticCurve(GF(31),[1,2,3,4,5])
+            sage: E.isogenies_graph(5).edges()
+            [(3, 9, None), (9, 3, None)]
+            sage: E= EllipticCurve(GF(5081),[3290,3887])
+            sage: E.isogenies_graph(5).edges()
+            [(478, 794, None),
+             (531, 3959, None),
+             (711, 2483, None),
+             (794, 478, None),
+             (794, 1223, None),
+             (794, 2919, None),
+             (794, 3431, None),
+             (794, 4700, None),
+             (794, 4888, None),
+             (820, 1986, None),
+             (820, 2285, None),
+             (820, 2467, None),
+             (820, 2919, None),
+             (820, 3413, None),
+             ...
+             (4996, 3959, None)]
+        
+        """
+        if not l.is_prime():
+            raise AttributeError("l has to be prime")
+        
+        R= PolynomialRing(self.base_field(),'j0,j1')
+        mod_pol=R (sage.databases.db_modular_polynomials.ClassicalModularPolynomialDatabase()[l] )
+        Univar = PolynomialRing(self.base_field(),'x')
+        x=Univar.gen()
+        G=DiGraph(sparse=True, multiedges=True, loops=True )
+        already_visited=set()
+        
+        def recurse_loop(j):
+            if j in already_visited: return
+            already_visited.add(j)
+
+            for (r,m) in mod_pol(x,j).roots():
+                G.add_edges([(r,j)]*m)
+                recurse_loop(r)
+        recurse_loop(self.j_invariant())
+        return G
 
     def abelian_group(self, debug=False):
         r"""
