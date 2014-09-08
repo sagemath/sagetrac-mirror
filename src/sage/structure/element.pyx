@@ -2740,7 +2740,10 @@ cdef class Matrix(ModuleElement):
             [2/5 3/5]
         """
         if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(~<Matrix>right)
+            right_inv = ~<Matrix>right
+            denom = right_inv.denominator()
+            right_inv = (denom * right_inv).change_ring(left.base_ring())
+            return (~denom) * ((<Matrix>left)._matrix_times_matrix_(<Matrix>right_inv))
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, div)

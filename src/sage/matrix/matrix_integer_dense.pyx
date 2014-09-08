@@ -918,7 +918,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             parent = self.matrix_space(nr, nc)
 
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(parent.nrows(),parent.ncols())
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(nr, nc)
 
         sig_on()
         fmpz_mat_mul(M._matrix,self._matrix,(<Matrix_integer_dense>right)._matrix)
