@@ -516,7 +516,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['H',3]).root_lattice()
             Traceback (most recent call last):
             ...
-            blabla
+            TypeError: The root lattice is only defined for crystallographic root systems.
         """
         if not self.is_crystallographic():
             raise TypeError("The root lattice is only defined for "

@@ -43,7 +43,7 @@ from sage.interfaces.gap3 import GAP3Record, gap3
 from sage.interfaces.gap import gap
 from sage.combinat.words.word import Word
 from sage.rings.arith import gcd, lcm
-from sage.combinat.root_system.complex_reflection_group import FiniteComplexReflectionGroup, IrreducibleFiniteComplexReflectionGroup, is_chevie_available
+from sage.combinat.root_system.complex_reflection_group import FiniteComplexReflectionGroup, IrreducibleFiniteComplexReflectionGroup, assert_chevie_available
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
@@ -347,7 +347,8 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = groups.misc.CoxeterGroup(["H",3])
     """
-    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
+    if implementation not in ["permutation", "matrix", "coxeter3",
+                              "reflection", None]:
         raise ValueError("invalid type implementation")
 
     try:
@@ -367,7 +368,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
             raise RuntimeError("coxeter3 must be installed")
         else:
             return CoxeterGroup(cartan_type)
-    if implementation == "permutation" and is_chevie_available() and \
+    if implementation == "permutation" and assert_chevie_available() and \
        cartan_type.is_finite() and cartan_type.is_irreducible():
         return CoxeterGroupAsPermutationGroup(cartan_type)
     elif implementation == "matrix":
