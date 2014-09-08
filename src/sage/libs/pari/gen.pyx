@@ -4848,8 +4848,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.00000000000000 - 2.710505431 E-20*I       # 32-bit
             1.00000000000000 - 2.71050543121376 E-20*I  # 64-bit
             sage: (s*z)^5
-            2.00000000000000 + 0.E-19*I                 # 32-bit
-            2.00000000000000 - 1.08420217248550 E-19*I  # 64-bit
+            2.00000000000000 + 0.E-19*I
         """
         # TODO: ???  lots of good examples in the PARI docs ???
         cdef GEN zetan
@@ -6480,7 +6479,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: C.<i> = ComplexField()
             sage: e.ellztopoint(1+i)
-            [0.E-19 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]
+            [0.E-18 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]
 
         Complex numbers belonging to the period lattice of e are of course
         sent to the point at infinity on e::

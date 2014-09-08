@@ -1238,7 +1238,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.S_units([K.ideal(1/2*a - 3/2)])
             [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity), (-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
             sage: L.S_units([K.ideal(2)])
-            [((-1/2*a + 1/2)*b^2 + (-a - 1)*b - 3, +Infinity), ((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 5/6*a - 1/2, +Infinity), ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity), (-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
+            [((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity), ((-1/2*a + 1/2)*b^2 + (-a - 1)*b - 3, +Infinity), ((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 5/6*a - 1/2, +Infinity), (-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
 
         Note that all the returned values live where we expect them to::
 
