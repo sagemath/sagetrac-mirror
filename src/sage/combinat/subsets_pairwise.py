@@ -83,8 +83,6 @@ class PairwiseCompatibleSubsets(SearchForest):
     #    ambient = Set(ambient)
     #    return super(PairwiseCompatibleSubsets, cls).__classcall__(cls, ambient, predicate)
 
-    __len__ = None
-
     def __init__(self, ambient, predicate, maximal = False, element_class = Set_object_enumerated):
         """
         TESTS::
