@@ -54,4 +54,4 @@ from basis_matroid import BasisMatroid
 from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 from utilities import setprint, newlabel, get_nonisomorphic_matroids
 import lean_matrix
-from extension import LinearSubclasses, MatroidExtensions
+#from extension import LinearSubclasses, MatroidExtensions

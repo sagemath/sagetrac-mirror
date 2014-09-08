@@ -1,5 +1,5 @@
 from sage.rings.finite_rings.finite_field_prime_modn import *
-#from sage.matroids.advanced import *
+from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
 import numpy as np
@@ -249,7 +249,8 @@ cpdef add_identity_codes(mcode_n_n,nc,maxgnd):
     matroid. The p-codes for this matroid are computed in p-codes
     of input mcode
     """
-    child_Mcode = MatroidCodes(BinaryMatroid(identity_matrix(GF2,n)),[])
+    n=len(mcode_n_n._M.groundset())
+    child_Mcode = MatroidCodes(BinaryMatroid(identity_matrix(GF2,n+1)),[])
     extendpmaps(child_Mcode,mcode_n_n,nc,maxgnd,len(ncinstance_vars(nc)))
     return child_Mcode
 
@@ -278,13 +279,15 @@ cpdef dfz_matroidal_network(M):
     print 'dag',dag
     print 'f',f
     print 'g',g
+    used_ckts=set([])
     # STEP 2: find circuits with 1 undefined (in terms of g) element
     while True:
         c = candidate_circuit(M.circuits(),g)
         if c == None:
             break
         else:
-            print 'define',list(set(c)-set(g.keys()))[0]
+            print '2.enforce', c
+            used_ckts.add(c)
             # Step 2.(i)
             dag[i]=[]
             msgs.append(i)
@@ -300,16 +303,15 @@ cpdef dfz_matroidal_network(M):
             g[list(set(c)-set(g.keys()))[0]] = i
             j+=1
             i+=1
-    print 'dag',dag
-    print 'f',f
-    print 'g',g
-    # STEP 3: for every source msg-containing circuit pair add a receiver
+    # STEP 3: for every source msg and containing circuit pair add a receiver
     demands = {}
-    used_ckts=set([])
+    used_src=set([])
     for x in M.groundset():
         if g[x] < nsrc:
             for ckt in M.circuits():
-                if x in ckt:
+                if x in ckt and g[x] not in used_src:
+                    used_src.add(g[x])
+                    print '3.enforce', ckt,x
                     used_ckts.add(ckt)
                     demands[i] = [g[x]]
                     for y in set(ckt)-set([x]):
@@ -317,10 +319,16 @@ cpdef dfz_matroidal_network(M):
                         f[(g[y],i)]=y
                         j+=1
                     i+=1
+                if used_src==set(xrange(nsrc)):
+                    break
+        if used_src==set(xrange(nsrc)):
+            break
     # STEP 4:
+    print used_ckts
     for ckt in M.circuits():
         if ckt not in used_ckts:
             # encorce dependency
+            print '4 WAS USED'
             B = M.basis()
             for b in B:
                 dag[g[b]].append(i)
@@ -488,7 +496,7 @@ cpdef mdcs_instance_is_valid(config_list):
     for level in config_list:
         lsets_all=[set([len(k.binary())-i for i in xrange(len(k.binary())) if k.binary()[i]=='1']) for k in level]
         lsets=[s for s in lsets_all if len(s)>0]
-        all_enc.union(*lsets)
+        all_enc=all_enc.union(*lsets)
         # (C5)
         if len(lsets) == 0:
             return False
@@ -502,16 +510,25 @@ cpdef mdcs_instance_is_valid(config_list):
                 if any([x >= y or x <= y for y in lsets2]):
                     return False
     print 'C1,C5 pass'
+    # test (C3)
+    print all_enc
+    encstr='1'*max(all_enc)
+    if set([len(encstr)-i for i in xrange(len(encstr)) if encstr[i]=='1']) != all_enc:
+        return False
+    print  'C3 pass'
     # test (C4)
     all_enc_fans=[]
     for enc in all_enc:
         e_dec=set([])
-        for l in all_levels:
-            l_e = set([dec for dec in xrange(len(l)) if enc in l[dec]])
+        for i in xrange(len(all_levels)):
+            l = all_levels[i]
+            l_e = set([i+dec for dec in xrange(len(l)) if enc in l[dec]])
             e_dec=e_dec.union(l_e)
         all_enc_fans.append(e_dec)
+    print all_enc_fans
     for efan in all_enc_fans:
-        others=all_enc_fans.copy()
+        others=all_enc_fans[:]
+        print efan,others
         others.remove(efan)
         for o in others:
             if efan==o:
@@ -584,7 +601,7 @@ cpdef is_pcode(M,pmap,ncinstance):
         src_sum=0
         for s in def_src:
             src_sum += M.rank(ipmap[s])
-        src_joint = M.rank(def_src)
+        src_joint = M.rank(set([]).union(*[ipmap[s] for s in def_src]))
         if src_sum != src_joint:
             return False
     return True
