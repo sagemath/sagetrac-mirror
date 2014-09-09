@@ -28,6 +28,7 @@ all-sage: \
      $(INST)/$(ATLAS) \
      $(INST)/$(BOEHM_GC) \
      $(INST)/$(BOOST_CROPPED) \
+     $(INST)/$(BUCKYGEN) \
      $(INST)/$(CDDLIB) \
      $(INST)/$(CEPHES) \
      $(INST)/$(CLIQUER) \
@@ -182,6 +183,9 @@ $(INST)/$(BOEHM_GC): $(INST)/$(PKGCONF)
 
 $(INST)/$(BOOST_CROPPED):
 	+$(PIPE) "$(SAGE_SPKG) $(BOOST_CROPPED) 2>&1" "tee -a $(SAGE_LOGS)/$(BOOST_CROPPED).log"
+
+$(INST)/$(BUCKYGEN):
+	+$(PIPE) "$(SAGE_SPKG) $(BUCKYGEN) 2>&1" "tee -a $(SAGE_LOGS)/$(BUCKYGEN).log"
 
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
