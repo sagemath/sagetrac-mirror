@@ -992,17 +992,17 @@ class GraphGenerators():
         There are 1812 isomers of `\textrm{C}_{60}`, i.e., 1812 fullerene graphs
         on 60 vertices:  ::
 
-            sage: gen = graphs.fullerenes(60)  # optional buckygen
-            sage: len(list(gen))  # optional buckygen
+            sage: gen = graphs.fullerenes(60)
+            sage: len(list(gen))
             1812
 
         However, there is only one IPR fullerene graph on 60 vertices: the famous
         Buckminster Fullerene:  ::
 
-            sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
-            sage: gen.next()  # optional buckygen
+            sage: gen = graphs.fullerenes(60, ipr=True)
+            sage: gen.next()
             Graph on 60 vertices
-            sage: gen.next()  # optional buckygen
+            sage: gen.next()
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1010,11 +1010,11 @@ class GraphGenerators():
         The unique fullerene graph on 20 vertices is isomorphic to the dodecahedron
         graph. ::
 
-            sage: gen = graphs.fullerenes(20)  # optional buckygen
-            sage: g = gen.next()  # optional buckygen
-            sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
+            sage: gen = graphs.fullerenes(20)
+            sage: g = gen.next()
+            sage: g.is_isomorphic(graphs.DodecahedralGraph())
             True
-            sage: g.get_embedding()  # optional buckygen
+            sage: g.get_embedding()
             {1: [2, 3, 4],
              2: [1, 5, 6],
              3: [1, 7, 8],
@@ -1035,7 +1035,7 @@ class GraphGenerators():
              18: [12, 20, 13],
              19: [14, 20, 15],
              20: [17, 19, 18]}
-            sage: g.plot3d(layout='spring')  # optional buckygen
+            sage: g.plot3d(layout='spring')
 
         REFERENCE:
 
@@ -1044,7 +1044,7 @@ class GraphGenerators():
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("buckygen"):
-            raise TypeError("the optional buckygen package is not installed")
+            raise TypeError("the buckygen package is not installed")
 
         # number of vertices should be positive
         if order < 0:
