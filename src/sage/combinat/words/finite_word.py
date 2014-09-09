@@ -2431,19 +2431,109 @@ exponent %s: the length of the word (%s) times the exponent \
             l[i] = None
         return l
 
+    def long_lpc(self, j, m=0, f=None):
+        r"""
+        Returns the length of the longest palindrome centered at a given position (letters or spaces between) j in s.
+
+        INPUT :
+
+        - ``j`` -- integer a position that is the symmetry axis of the palindrome.
+
+        - ``m`` -- integer (default: 0) the minimal length of the palindrome, if known.
+
+        - ``f`` -- involution (default: None) on the alphabet of self. It must be
+          callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT :
+
+        - The length of the longest `f`-palindrome of self centered at position j.
+
+        EXAMPLES::
+
+            sage: Word('01001010').long_lpc(3)
+            3
+            sage: Word('01101001').long_lpc(4)
+            4
+            sage: Word('01010').long_lpc(j=3,f='0->1,1->0')
+            0
+        """
+
+        # Ensure 'f' is an involutory word morphism
+        if f is not None:
+	    from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+
+        #Initialize m if set to 0
+        if m==0:
+            m=-(j%2)
+
+        # Initialize of the index i that counts the longest palindrome
+        i = m + 1
+
+        # Test pair of letters centered around a letter as long as they are
+            #equal
+
+        if j%2 == 1:
+        # Manage exception to avoid to count outside of the string
+            try:
+                if f is None:
+                    while j//2-i >= 0 and tuple(self[j//2-i:j//2-i+1]) == tuple(self[j//2+i:j//2+i+1]):
+                        i = i + 1
+
+                else:
+		    from sage.combinat.words.word import Word
+                    while (j-1)/2-i >= 0 and tuple(self[j//2-i:j//2-i+1]) == tuple(f(self[j//2+i:j//2+i+1])):
+                        i = i + 1
+
+            except IndexError:
+                pass
+
+            p = 2*i - 1
+
+            # Manage the error created by the case of the letter in j not a `f`-palindrome
+            if p < 0:
+                p = 0
+
+        # Test each pair of letters centered around a space as long as it is
+            #corresponding
+
+        else:
+        # Manage exception to avoid to count outside of the string
+            try:
+                if f is None:
+                    while j/2-i >= 0 and tuple(self[j/2-i:j/2-i+1]) == tuple(self[j/2+i-1:j/2+i]):
+		        i = i + 1
+
+                else:
+                    from sage.combinat.words.word import Word
+                    while j/2-i >= 0 and tuple(self[j/2-i:j/2-i+1]) == tuple(f(self[j/2+i-1:j/2+i])):
+                        i = i + 1
+
+            except IndexError:
+                pass
+
+            p = 2*i -2
+
+        # Return the length of the palindrome
+        return p
+
+
     def palindromes(self, f=None):
         r"""
-        Returns the set of all palindromic (or `f`-palindromic) factors of self.
+        Returns the set of all palindromes (of `f`-palindromes) in the given word.
 
-        INPUT:
+        INPUT :
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: None) on the alphabet of self. It must be
+          callable on letters as well as words (e.g. WordMorphism).
 
-        OUTPUT:
+        OUTPUT :
 
-            set -- If f is None, the set of all palindromic factors of self;
-                   otherwise, the set of all f-palindromic factors of self.
+        - The set of all `f`-palindromes in self.
 
         EXAMPLES::
 
@@ -2455,13 +2545,103 @@ exponent %s: the length of the word (%s) times the exponent \
             [word: , word: 0]
             sage: sorted(Word('').palindromes())
             [word: ]
-            sage: sorted(Word().palindromes())
+            sage: sorted(Word().palindromes('a->b,b->a'))
             [word: ]
-            sage: f = WordMorphism('a->b,b->a')
-            sage: sorted(Word('abbabaab').palindromes(f))
-            [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
-        return self.palindromic_lacunas_study(f=f)[2]
+
+        # Ensure 'f' is an involutory word morphism
+        if f is not None :
+	    from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        # Initialize the list LPS, recording the lengths of the longest
+            # `f`-palindromic suffix for each prefix of the given word.
+        LPS = []
+
+        # Initialize the list LPC, recording the lengths of the maximal
+            # `f`-palindromes centered at each position j in self.
+            # Odd positions are letters, even positions are spaces.
+
+        LPC = []
+
+        # Initialize the index where is centered the rightmost-ending
+            # `f`-palindrome encountered at each step of the process.
+        k = Integer(0)
+
+        # Initialize the index of the tested position
+        j = 0
+
+        # At position 0
+        LPC.append(0)
+        LPS.append(0)
+
+        j = Integer(1)
+
+        # Process while there exists untested positions
+        while len(LPC) < 2 * len(self):
+            # Case that occurs when there is no information on the tested
+                #position (it is not included in any encountered `f`-palindrome)
+            if j >= k + LPC[k]:
+                p = self.long_lpc(j,-(j%2),f)
+                LPC.append(p)
+                # If necessary, modify the index of the center of the
+                    #rightmost-ending palindrome and append new values to
+                    #the LPS list.
+                if j + p > k + LPC[k]:
+                    for i in range(k+LPC[k]+1, j+p+1):
+                        if i%2 == 0:
+                            LPS.append(i-j)    # at position i/2
+                    k = j
+
+            # Case when the center is included in an already encountered
+                # `f`-palindrome
+            else:
+                # When the `f`-palindrome centered at position j is not the
+                    # longest proper `f`-palindromic suffix of the maximal
+                    # `f`-palindrome centered at k
+                if LPC[k]+k-j != LPC[2*k-j]:
+                    LPC.append(min(LPC[k]+k-j, LPC[2*k-j]))
+
+                # When the `f`-palindrome centered at position j is the longest
+                    # proper `f`-palindromic suffix of the maximal `f`-palindrome
+                    # centered at k
+                else:
+                    p = self.long_lpc(j,(LPC[k]+k-j)//2-(j%2), f)
+                    LPC.append(p)
+                    #If necessary, modify the index of the center of the
+                        # rightmost-ending `f`-palindrome and append new
+                        # values to the LPS list.
+                    if j + p > k + LPC[k]:
+                        for i in range(k+LPC[k]+1, j+p+1):
+                            if i%2 == 0:
+                                LPS.append(i-j)    # at position i/2
+                    k = j
+
+            j = j+Integer(1)
+
+
+        # Change the type of self to tuple (it makes the execution faster)
+        self = tuple(self)
+
+        # Initialize the set of the longest `f`-palindromic suffixes using
+            #their lengths (stocked in the LPS list)
+        palindromes = set()
+
+        for i in range(len(self)+1):
+            # Add to the list of `f`-palindromes each of the longest `f`-palindromic
+                # suffix of a prefix
+
+            palindromes.add(self[i-LPS[i]:i])
+
+        from sage.combinat.words.word import Word
+        palindromes = map(Word, palindromes)
+
+        # Return the list of `f`-palindromes
+        return palindromes
 
     def palindrome_prefixes(self):
         r"""
