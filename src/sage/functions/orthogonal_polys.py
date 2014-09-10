@@ -1332,7 +1332,7 @@ class Func_legendre_P(OrthogonalPolynomial):
     def _derivative_(self, n, x, *args,**kwds):
         """
         Return the derivative of legendre_P.
- 
+  
         EXAMPLES:: 
             sage: n = var('n')
             sage: derivative(legendre_P(n,x), x)
@@ -1347,7 +1347,7 @@ class Func_legendre_P(OrthogonalPolynomial):
         diff_param = kwds['diff_param'] 
         if diff_param == 0:  
             raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else: 
+        else:
             return (n*legendre_P(n-1, x) - n*x*legendre_P(n, x))/(1 - x**2)
          
 legendre_P = Func_legendre_P()
@@ -1527,7 +1527,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
         """
         Return expanded Legendre Q(n, arg) function expression.
         
-        This is about 2x faster than Maxima for n<1000.
+        This is about twice as fast as Maxima for n<1000.
         
         EXAMPLES::
         
@@ -1560,51 +1560,216 @@ class Func_legendre_Q(OrthogonalPolynomial):
                     for mon in help3.monomials() if l.divides(mon)])
         return sum1 + sum2
 
+    def _derivative_(self, n, x, *args,**kwds):
+        """
+        Return the derivative of legendre_Q.
+  
+        EXAMPLES:: 
+            sage: n = var('n')
+            sage: derivative(legendre_Q(n,x), x)
+            (n*x*legendre_Q(n, x) - n*legendre_Q(n - 1, x))/(x^2 - 1) 
+            sage: legendre_Q(2,x,hold=True).diff(x).expand().simplify_full()
+            -1/2*(6*x^2 - 3*(x^3 - x)*log(-(x + 1)/(x - 1)) - 4)/(x^2 - 1)
+            sage: derivative(legendre_Q(n,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param'] 
+        if diff_param == 0:  
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else: 
+            return (n*x*legendre_Q(n, x) - n*legendre_Q(n-1, x))/(x**2 - 1)
+
 legendre_Q = Func_legendre_Q()
 
 class Func_assoc_legendre_P(OrthogonalPolynomial):
     def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: loads(dumps(gen_legendre_P))
+            gen_legendre_P
+        """
         OrthogonalPolynomial.__init__(self, "gen_legendre_P", nargs=3, latex_name=r"P",
                 conversions={'maxima':'assoc_legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
 
-    def __call__(n,m,x):
+    def __call__(self, n, m, x, *args, **kwds):
         r"""
-        Returns the generalized (or associated) Legendre function of the
-        first kind for integers `n > -1, m > -1`.
-    
-        The awkward code for when m is odd and 1 results from the fact that
-        Maxima is happy with, for example, `(1 - t^2)^3/2`, but
-        Sage is not. For these cases the function is computed from the
-        (m-1)-case using one of the recursions satisfied by the Legendre
-        functions.
-    
+        Return an evaluation or call super.
+        
+        EXAMPLES::
+        
+            sage: gen_legendre_P(3,2,I+1)
+            45.0000000000000 - 15.0000000000000*I
+            sage: gen_legendre_P(3,2,I+1,hold=True)
+            gen_legendre_P(3, 2, I + 1)
+        """
+        algorithm = kwds.get('algorithm', None)
+        if algorithm == 'maxima':
+            return self._maxima_init_evaled_(n, m, x)
+        
+        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
+            ret = self._eval_(n, m, x, *args, **kwds)
+            if ret is not None:
+                return ret
+
+        return super(OrthogonalPolynomial,self).__call__(n, m, x, *args, **kwds)
+
+    def _eval_(self, n, m, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Legendre P(n, m, x) expression.
+        
+        EXAMPLES::
+        
+            sage: gen_legendre_P(3,2,2,algorithm='maxima')
+            -90
+            sage: gen_legendre_P(13/2,2,0)
+            2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
+            sage: gen_legendre_P(3,2,x)
+            -15*(x^2 - 1)*x
+            sage: gen_legendre_P(3,2,2.)             # abs tol 1e-12
+            -90.0000000000000 + 2.92349760253706e-23*I
+        """
+        algorithm = kwds.get('algorithm', None)
+        if algorithm == 'maxima':
+            return self._maxima_init_evaled_(n, m, x)
+
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+        if (isinstance(n, Integer) and isinstance(m, Integer)
+            and n >= 0 and m >= 0
+            and (SR(x).is_integer() or not SR(x).is_numeric())):
+            return self.eval_poly(n, m, x)
+        if SR(x).is_numeric() and SR(n).is_numeric() and SR(m).is_numeric():
+            return self._evalf_(n, m, x, **kwds)
+
+    def _maxima_init_evaled_(self, n, m, x):
+        """
+        Return a string which represents this function evaluated at
+        ``n, m, x`` in Maxima.
+
+        EXAMPLES::
+        
+            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coeff(x^10)
+            2508866163428625/128
+        """
+        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x}) 
+     
+    def _eval_special_values_(self, n, m, x):
+        """
+        Special values known.
+        
+        EXAMPLES::
+            sage: gen_legendre_P(2,3,4)
+            0
+            sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
+            True
+            sage: gen_legendre_P(2,2,4)
+            45
+            sage: gen_legendre_P(2,2,x)
+            3*x^2 - 3
+            sage: gen_legendre_P(13/2,2,0)
+            2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
+        """
+        if m > n:
+            return 0
+        if m == 0:
+            return legendre_P(n, x)
+        if n == m:
+            return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
+        if x == 0 and parent(n).is_exact() and parent(m).is_exact():
+            from sage.functions.other import gamma, sqrt
+            from sage.functions.trig import cos
+            return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma(QQ(n+m+1)/2)/gamma(QQ(n-m)/2+1))
+
+    def _evalf_(self, n, m, x, **kwds):
+        """
+        Float evaluation of Legendre P(n, m, x) function.
+        
+        EXAMPLES::
+            
+            sage: gen_legendre_P(10,2,3.)                 # abs tol 1e-12
+            -7.19496360000000e8 + 2.33716209277127e-16*I
+            sage: gen_legendre_P(5/2,2,1+I)
+            14.3165258449040 - 12.7850496155152*I
+            sage: gen_legendre_P(5/2,2,ComplexField(70)(1+I))
+            14.316525844904028532 - 12.785049615515157033*I
+        """
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+        
+        real_parent = kwds.get('parent', None)
+        if real_parent is None:
+            real_parent = parent(x)
+
+            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+                # parent is not a real or complex field: figure out a good parent
+                if x in RR:
+                    x = RR(x)
+                    real_parent = RR
+                elif x in CC:
+                    x = CC(x)
+                    real_parent = CC
+
+        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+            raise TypeError("cannot evaluate legendre_Q with parent {}".format(real_parent))
+
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall   
+        return mpcall(mpmath.legenp, n, m, x, parent=real_parent, prec=real_parent.prec())
+
+    def eval_poly(self, n, m, arg, **kwds):
+        """
+        Return the associated Legendre P(n, m, arg) polynomial for integers `n > -1, m > -1`.
+        
+        EXAMPLES::
+        
+            sage: gen_legendre_P(7,4,x)
+            3465/2*(13*x^3 - 3*x)*(x^2 - 1)^2
+            sage: gen_legendre_P(3,1,sqrt(x))
+            -3/2*(5*x - 1)*sqrt(-x + 1)
+
         REFERENCE:
     
-        - Gradshteyn and Ryzhik 8.706 page 1000.
-    
-        EXAMPLES::
-    
-            sage: P.<t> = QQ[]
-            sage: gen_legendre_P(2, 0, t)
-            3/2*t^2 - 1/2
-            sage: gen_legendre_P(2, 0, t) == legendre_P(2, t)
-            True
-            sage: gen_legendre_P(3, 1, t)
-            -3/2*(5*t^2 - 1)*sqrt(-t^2 + 1)
-            sage: gen_legendre_P(4, 3, t)
-            105*(t^2 - 1)*sqrt(-t^2 + 1)*t
-            sage: gen_legendre_P(7, 3, I).expand()
-            -16695*sqrt(2)
-            sage: gen_legendre_P(4, 1, 2.5)
-            -583.562373654533*I
+        - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E10
         """
-        from sage.functions.all import sqrt
-        _init()
-        if m.mod(2).is_zero() or m.is_one():
-            return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
-        else:
-            return sqrt(1-x**2)*(((n-m+1)*x*gen_legendre_P(n,m-1,x)-(n+m-1)*gen_legendre_P(n-1,m-1,x))/(1-x**2))
+        from sage.functions.other import factorial        
+        if n < 0 or m < 0:
+            return
+        R = PolynomialRing(QQ, 'x')
+        x = R.gen()
+        p = (1-x**2)**ZZ(n)
+        for i in range(m+n):
+            p = p.diff(x)
+        ex1 = (1-arg**2)**(QQ(m)/2)/2**n/factorial(ZZ(n))
+        ex2 = sum([b*arg**a for (a,b) in enumerate(p)])
+        return (-1)**(m+n)*ex1*ex2
+
+    def _derivative_(self, n, m, x, *args,**kwds):
+        """
+        Return the derivative of ``gen_legendre_P(n,m,x)``.
+  
+        EXAMPLES::
+        
+            sage: (m,n) = var('m,n')
+            sage: derivative(gen_legendre_P(n,m,x), x)
+            -((n + 1)*x*gen_legendre_P(n, m, x) + (m - n - 1)*gen_legendre_P(n + 1, m, x))/(x^2 - 1)
+            sage: gen_legendre_P(3,2,x,hold=True).diff(x).expand().simplify_full()
+            -45*x^2 + 15
+            sage: derivative(gen_legendre_P(n,m,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param'] 
+        if diff_param == 0:  
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else: 
+            return ((n-m+1)*gen_legendre_P(n+1, m, x) - (n+1)*x*gen_legendre_P(n, m, x))/(x**2 - 1)
 
 gen_legendre_P = Func_assoc_legendre_P()
 
