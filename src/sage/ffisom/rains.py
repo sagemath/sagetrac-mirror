@@ -14,6 +14,7 @@ The algorithm for finding the generators α and β is implemented by
 `find_gens_cyclotomic` and described in its docstring.
 '''
 
+from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer_ring import crt_basis
 from sage.rings.finite_rings.constructor import GF
@@ -66,8 +67,8 @@ def find_gens_cyclotomic(k1, k2):
     Read the docstrings of `find_root_order` and `find_unique_orbit`
     to find out more on the algorithm.
     '''
-    p = k1.characteristic()
-    n = k1.degree()
+    p = ZZ(k1.characteristic())
+    n = ZZ(k1.degree())
     assert (p, n) == (k2.characteristic(), k2.degree())
 
     # Find a suitable m, see doc below

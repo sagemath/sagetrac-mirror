@@ -70,8 +70,8 @@ def isom_elliptic(k1, k2, k = None, bound = None):
     '''
     if k is None:
         k = k1.base_ring()
-    p = k.characteristic()
-    n = k1.degree()  
+    p = ZZ(k.characteristic())
+    n = ZZ(k1.degree())
     q = k.cardinality()
     
     # We compute a list of candidates for m (i.e. such that n divides phi(m) 
