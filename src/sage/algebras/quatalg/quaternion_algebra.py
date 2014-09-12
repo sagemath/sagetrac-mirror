@@ -1452,7 +1452,8 @@ class QuaternionOrder(Algebra):
 
         """
         basis = tuple(A(e) for e in basis)
-
+        self.__basis = None
+        self.__pseudobasis = None
         if check:
             # right data type
             if not isinstance(basis, (list, tuple)):
@@ -1478,13 +1479,17 @@ class QuaternionOrder(Algebra):
                     raise ValueError("lattice must contain 1")
 
                 # check if multiplicatively closed
-                M1 = A.basis_for_quaternion_lattice(basis)
-                M2 = A.basis_for_quaternion_lattice(basis + tuple(x*y for x in basis for y in basis))
+                M1 = A.basis_for_quaternion_lattice(basis,ideal_list = ideal_list)
+                if ideal_list is None:
+                    new_ideal_list = None
+                else:
+                    new_ideal_list = tuple(ideal_list) + tuple(I*J for I in ideal_list for J in ideal_list)
+                M2 = A.basis_for_quaternion_lattice(basis + tuple(x*y for x in basis for y in basis), new_ideal_list)
                 if M1 != M2:
-                    raise ValueError("given lattice must be a ring")
+                    raise ValueError("lattice must be a ring")
                 self.__basis = basis
 
-            if A.base_ring() != QQ or ideal_list is not None:
+            else:
                 O = None
                 try:
                     O = A.base_ring().maximal_order()
@@ -1498,13 +1503,12 @@ class QuaternionOrder(Algebra):
                     else:
                         M2 = A.basis_for_quaternion_lattice(basis+tuple(x*y for x in basis for y in basis))
                     if M1 != M2:
-                        raise ValueError("given lattice must be a ring")
+                        raise ValueError("lattice must be a ring")
                 if len(M1) == 2:
                     if M1[0][0] != 1 or M1[1][0] != A.base_ring().ideal(1):
                         raise ValueError("lattice must contain 1")
                     basis = tuple(M1[0])
                     ideal_list = tuple(M1[1])
-                    self.__basis = None
                     self.__pseudobasis = (basis, ideal_list)
                 else:
                     if M1[0] != 1:
@@ -1599,7 +1603,10 @@ class QuaternionOrder(Algebra):
             (1, i, j, k)
 
         """
-        return self.__basis
+        if self.__basis is not None:
+            return self.__basis
+        else:
+            raise AttributeError("This order has no basis. Try with pseudobasis()")
 
     def pseudobasis(self):
         """
@@ -1617,8 +1624,8 @@ class QuaternionOrder(Algebra):
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (1)))
 
         """
-        if self.basis():
-            return self.basis()
+        if self.__basis is not None:
+            return self.__basis
         else:
             return self.__pseudobasis
 
@@ -1655,10 +1662,10 @@ class QuaternionOrder(Algebra):
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (1)))
 
         """
-        if self.basis():
+        if self.__basis is not None:
             return 'Order of %s with basis %s'%(self.quaternion_algebra(), self.basis())
         else:
-            return 'Order of %s with pseudo-basis %s'%(self.quaternion_algebra(), self.pseudobasis())
+            return 'Order of %s with pseudo-basis %s'%(self.quaternion_algebra(), self.__pseudobasis)
 
     def random_element(self, *args, **kwds):
         """
