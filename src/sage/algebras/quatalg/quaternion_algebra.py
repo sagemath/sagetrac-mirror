@@ -374,7 +374,7 @@ class QuaternionAlgebra_abstract(Algebra):
             Fractional ideal (1), Fractional ideal (1)))
             sage: A.basis_for_quaternion_lattice([1,i,j,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
-            sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
+            sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()]) # random output
             ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)))
 
         """
@@ -386,46 +386,43 @@ class QuaternionAlgebra_abstract(Algebra):
         if F != QQ:
             try:
                 #create pari matrix and list of ideals
-                Mpari =  pari.pari(matrix([vector(elt).list() for elt in gens]).transpose())
+                Mpari =  (matrix([vector(elt).list() for elt in gens]).transpose())._pari_()
                 if ideal_list:
-                    Ipari = [pari.pari(ids) for ids in ideal_list]
+                    Ipari = [ids._pari_() for ids in ideal_list]
                 else:
-                    Ipari = [pari.pari(F.ideal(1)) for elt in gens]
-
+                    onepari = F.ideal(1)._pari_()
+                    Ipari = [onepari for elt in gens]
                 #pari version of number field F
-                Fp = pari.pari(F)
-
+                Fp = F._pari_()
                 #use pari's nfhnf to find a pseudo-basis
                 M1,I1 = Fp.nfhnf([Mpari,Ipari])
-
-                #convert back to sage
-                M = matrix([[F(M1[i][j]) for i in range(len(M1))] for j in range(len(M1[0]))])
-                I = [F.ideal(id) for id in I1]
-
-                #and back to sage quaternion algebra elements
-                basis_elts = [sum([M[n][l]*self.basis()[l] for l in range(M.nrows())]) for n in range(M.ncols())]
-
-                #if each ideal in I is principal, there is a basis:
-                #check
-                IT = [id.is_principal() for id in I]
-                if sum(IT) == len(I):
-                    bas_tup = tuple(basis_elts[k]*I[k].gens_reduced()[0] for k in range(len(basis_elts)))
-                    return bas_tup
-                #otherwise we only have a pseudo-basis
-                else:
-                    basis_tup = tuple(basis_elts)
-                    I_tup = tuple(I)
-                    return basis_tup, I_tup
             except NotImplementedError:
-                print "Not implemented for quaternion algebras over rings other than QQ or number fields."
+                raise NotImplementedError("Not implemented for quaternion algebras over rings other than QQ or number fields.")
+            #convert back to sage
+            M = M1._sage_()
+            I = [F.ideal(id) for id in I1]
+
+            #and back to sage quaternion algebra elements
+            basis_elts = [sum(Mnl * bl for Mnl, bl in zip(M.column(n),self.basis())) for n in range(M.ncols())]
+
+            #if each ideal in I is principal, there is a basis:
+            #check
+            if all(id.is_principal() for id in I):
+                basis_tup = tuple(bk * ik.gens_reduced()[0] for bk, ik in zip(basis_elts,I))
+                return basis_tup
+            #otherwise we only have a pseudo-basis
+            else:
+                basis_tup = tuple(basis_elts)
+                I_tup = tuple(I)
+                return basis_tup, I_tup
         else:
             if ideal_list is not None:
                 # fix gens taking ideal_list into account
                 if len(gens) != len(ideal_list):
                     raise ValueError("gens and ideal_list must have the same lenghth")
-                gens = [g*ids.gen() for g,ids in zip(gens,ideal_list)]
+                gens = [g * ids.gen() for g, ids in zip(gens,ideal_list)]
             Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens, reverse)
-            H = Z._hnf_pari(0, include_zero_rows=False)
+            H = Z._hnf_pari(0, include_zero_rows = False)
             bas = quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(self, H, d, reverse)
             return tuple(bas)
 
@@ -1010,7 +1007,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
     def _repr_(self):
         """
-        Print representation.
+        Return representation of self.
 
         TESTS::
 
