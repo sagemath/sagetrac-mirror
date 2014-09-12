@@ -374,7 +374,7 @@ class QuaternionAlgebra_abstract(Algebra):
             Fractional ideal (1), Fractional ideal (1)))
             sage: A.basis_for_quaternion_lattice([1,i,j,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
-            sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()]) # random output
+            sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)))
 
         """
@@ -403,7 +403,7 @@ class QuaternionAlgebra_abstract(Algebra):
             I = [F.ideal(id) for id in I1]
 
             #and back to sage quaternion algebra elements
-            basis_elts = [sum(Mnl * bl for Mnl, bl in zip(M.column(n),self.basis())) for n in range(M.ncols())]
+            basis_elts = [sum(Mnl * bl for Mnl, bl in zip(Mn,self.basis())) for Mn in M.rows()]
 
             #if each ideal in I is principal, there is a basis:
             #check
