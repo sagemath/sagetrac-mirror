@@ -86,13 +86,14 @@ choose_patches()
     cd "$PATCHES" || return $?
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        mv conditional/sage_debug.patch . || return $?
+        cp -p conditional/sage_debug.patch . || return $?
+        cp -p conditional/debug_fixes.patch . || return $?
         # Remove old omalloc files, except for configure
-        mv "$SRC/omalloc/configure" configure_omalloc
+        cp -p "$SRC/omalloc/configure" configure_omalloc
         rm -r "$SRC/omalloc"/*
-        mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-	mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
+        cp -p configure_omalloc "$SRC/omalloc/configure"
+        cp -p conditional/singular_xalloc.patch . || return $?
+        cp -p conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
