@@ -1064,6 +1064,9 @@ ext_modules = [
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.matrix.matrix_mod_dense',
+              sources = ['sage/matrix/matrix_mod_dense.pyx']),
+
     Extension('sage.matrix.matrix_mod2_dense',
               sources = ['sage/matrix/matrix_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'gd', 'png12', 'z'],

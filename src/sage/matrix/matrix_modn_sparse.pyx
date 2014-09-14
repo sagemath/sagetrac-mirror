@@ -319,7 +319,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         This code is implicitly called for multiplying self by another
         sparse matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(43), 3, 3, range(9), sparse=True)
             sage: b = matrix(GF(43), 3, 3, range(10,19), sparse=True)
             sage: a*b
@@ -338,7 +339,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         Even though sparse and dense matrices are represented
         differently, they still compare as equal if they have the
-        same entries:
+        same entries::
+
             sage: a*b == a._matrix_times_matrix_dense(b)
             True
             sage: d = matrix(GF(43), 3, 8, range(24))
@@ -587,7 +589,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         If this matrix is sparse, return a dense matrix with the same
         entries. If this matrix is dense, return this matrix (not a copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing to
            do with the number of nonzero entries. Sparse and dense are
