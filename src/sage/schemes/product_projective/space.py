@@ -87,6 +87,31 @@ def ProductProjectiveSpaces(dim_list, ring=None, names='x'):
     return ProductProjectiveSpaces_ring(dim_list, ring, names)
 
 
+def is_ProductProjectiveSpaces(x):
+    """
+    Return whether ``x`` is a product of projective spaces.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT
+
+    Boolean. Whether ``x`` is defined as a product of projective
+    spaces. Regardless of whether ``x`` is isomorphic to one.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        sage: is_ProductProjectiveSpaces('foo')
+        False
+        sage: X.<x,y,z,w> = ProductProjectiveSpaces([1, 1], QQ)
+        sage: is_ProductProjectiveSpaces(X)
+        True
+    """
+    return isinstance(x, ProductProjectiveSpaces_ring)
+
+
 class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def __init__(self, dim_tuple, ring, names=None):
@@ -610,3 +635,22 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             import GenericCompleteIntersection
         return GenericCompleteIntersection(self, degrees)
         
+    @cached_method
+    def cohomology_ring(self):
+        r"""
+        Return the cohomology ring of the product of projective spaces.
+
+        OUTPUT:
+
+        An instance of
+        :class:`sage.schemes.product_projective.cohomology_ring.CohomologyRing`.
+
+        EXAMPLES::
+
+            sage: P2xP3.<x,y> = ProductProjectiveSpaces([2, 2], QQ)
+            sage: P2xP3.cohomology_ring()
+            Rational cohomology ring of a Product of projective
+            spaces P^2 x P^2 over Rational Field
+        """
+        from sage.schemes.product_projective.cohomology_ring import CohomologyRing
+        return CohomologyRing(self)
