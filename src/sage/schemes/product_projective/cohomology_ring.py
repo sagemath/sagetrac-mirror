@@ -55,7 +55,7 @@ class CohomologyClass(QuotientRingElement):
 
             sage: P1xP2.<x0,x1,y0,y1,y2> = ProductProjectiveSpaces([1, 2], QQ)
             sage: H = P1xP2.cohomology_ring()
-            sage: from sage.schemes.toric.variety import CohomologyClass
+            sage: from sage.schemes.product_projective.cohomology_ring import CohomologyClass
             sage: CohomologyClass(H, H.defining_ideal().ring().zero() )
             [0]
         """
@@ -373,7 +373,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
 #*****************************************************************
 def is_CohomologyClass(x):
     r"""
-    Check whether ``x`` is a cohomology class of a toric variety.
+    Check whether ``x`` is a cohomology class of a product of projective spaces.
 
     INPUT:
 

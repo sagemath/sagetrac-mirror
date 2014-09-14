@@ -43,6 +43,7 @@ The coordinate names can optionally be specified::
 from sage.rings.all import (PolynomialRing, ZZ, QQ)
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 from sage.structure.parent_gens import normalize_names
 from sage.schemes.generic.ambient_space import AmbientSpace
 
@@ -647,10 +648,220 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: P2xP3.<x,y> = ProductProjectiveSpaces([2, 2], QQ)
+            sage: P2xP3.<x,y> = ProductProjectiveSpaces([2, 3], QQ)
             sage: P2xP3.cohomology_ring()
             Rational cohomology ring of a Product of projective
-            spaces P^2 x P^2 over Rational Field
+            spaces P^2 x P^3 over Rational Field
         """
         from sage.schemes.product_projective.cohomology_ring import CohomologyRing
         return CohomologyRing(self)
+
+    @cached_method
+    def volume_class(self):
+        r"""
+        Return the cohomology class of the volume form.
+
+        OUTPUT:
+
+         A
+        :class:`~sage.schemes.product_projective.cohomology_ring.CohomologyClass`. The
+        class of the (properly normalized) volume form, that is, it is
+        the Poincare dual of a single point.
+
+        EXAMPLES::
+
+            sage: P2xP3.<x,y> = ProductProjectiveSpaces([2, 3], QQ)
+            sage: P2xP3.volume_class()
+            [x2^2*y3^3]
+        """
+        HH = self.cohomology_ring()
+        dVol = HH(1)
+        for gen, dim in zip(HH.gens(), self.factor_dim()):
+            dVol *= gen ** dim
+        return dVol
+
+    def integrate(self, cohomology_class):
+        """
+        Integrate a cohomology class over the product of projective spaces.
+
+        INPUT:
+
+        - ``cohomology_class`` -- A cohomology class given as a
+          polynomial in ``self.cohomology_ring()``
+
+        OUTPUT:
+
+         A
+        :class:`~sage.schemes.product_projective.cohomology_ring.CohomologyClass`. The
+        volume normalization is given by :meth:`volume_class`.
+
+        EXAMPLES::
+
+            sage: P1xP1 = ProductProjectiveSpaces([1, 1], QQ)
+            sage: x, y = P1xP1.cohomology_ring().gens()
+            sage: (1-x)^2 * (1-y)^3
+            [6*x1*x3 - 2*x1 - 3*x3 + 1]
+            sage: P1xP1.integrate((1-x)^2 * (1-y)^3)
+            6
+        """
+        top_form = cohomology_class.part_of_degree(self.dimension_relative())
+        return top_form.lc() / self.volume_class().lc()
+
+    @cached_method
+    def Chern_class(self, deg=None):
+        """
+        Return Chern class (of the tangent bundle).
+
+        INPUT:
+
+        - ``deg`` -- integer (optional). The degree of the Chern class.
+
+        OUTPUT:
+
+        - If the degree is specified, the ``deg``-th Chern class.
+
+        - If no degree is specified, the total Chern class.
+
+        REFERENCES:
+
+        ..
+
+            http://en.wikipedia.org/wiki/Chern_class
+
+        EXAMPLES::
+
+            sage: P1xP1.<x,y> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: P1xP1.Chern_class(1)
+            [2*x1 + 2*y1]
+            sage: P1xP1.Chern_class()
+            [4*x1*y1 + 2*x1 + 2*y1 + 1]
+            sage: P1xP1.integrate(P1xP1.c(2)) == P1xP1.Euler_number()
+            True
+        """
+        c = prod([1+self.cohomology_ring().gen(i) 
+                  for i in range(self.coordinate_ring().ngens())])
+        if deg is None:
+            return c
+        else:
+            return c.part_of_degree(deg)
+
+    @cached_method
+    def Chern_character(self, deg=None):
+        """
+        Return the Chern character (of the tangent bundle).
+
+        INPUT:
+
+        - ``deg`` -- integer (optional). The degree of the Chern
+          character.
+
+        OUTPUT:
+
+        - If the degree is specified, the degree-``deg`` part of the
+          Chern character.
+
+        - If no degree is specified, the total Chern character.
+
+        REFERENCES:
+
+        ..
+
+            http://en.wikipedia.org/wiki/Chern_character#The_Chern_character
+
+        EXAMPLES::
+
+            sage: P1xP1.<x,y> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: P1xP1.Chern_character(1)
+            [2*x1 + 2*y1]
+            sage: P1xP1.Chern_character()
+            [2*x1 + 2*y1 + 2]
+            sage: P1xP1.ch(1) == P1xP1.c(1)
+            True
+        """
+        ch = sum(self.cohomology_ring().gen(i).exp()
+                 for i in range(self.cohomology_ring().ngens())) - self.num_factors()
+        if deg is None:
+            return ch
+        else:
+            return ch.part_of_degree(deg)
+
+    @cached_method
+    def Todd_class(self, deg=None):
+        """
+        Return the Todd class (of the tangent bundle).
+
+        INPUT:
+
+        - ``deg`` -- integer (optional). The desired degree part.
+
+        OUTPUT:
+
+        - If the degree is specified, the degree-``deg`` part of the
+          Todd class.
+
+        - If no degree is specified, the total Todd class.
+
+        REFERENCES:
+
+        ..
+
+            http://en.wikipedia.org/wiki/Todd_class
+
+        EXAMPLES::
+
+            sage: P1xP2.<x,y> = ProductProjectiveSpaces([1, 2], QQ)
+            sage: P1xP2.Todd_class(1)
+            [x1 + 3/2*y2]
+            sage: P1xP2.Td()
+            [x1*y2^2 + 3/2*x1*y2 + y2^2 + x1 + 3/2*y2 + 1]
+        """
+        Td = QQ(1)
+        if self.dimension() >= 1:
+            c1 = self.Chern_class(1)
+            Td += QQ(1)/2 * c1
+        if self.dimension() >= 2:
+            c2 = self.Chern_class(2)
+            Td += QQ(1)/12 * (c1**2 + c2)
+        if self.dimension() >= 3:
+            Td += QQ(1)/24 * c1*c2
+        if self.dimension() >= 4:
+            c3 = self.Chern_class(3)
+            c4 = self.Chern_class(4)
+            Td += -QQ(1)/720 * (c1**4 -4*c1**2*c2 -3*c2**2 -c1*c3 +c4)
+        if self.dimension() >= 5:
+            raise NotImplementedError('Todd class is currently only implemented up to degree 4')
+        if deg is None:
+            return Td
+        else:
+            return Td.part_of_degree(deg)
+
+    c = Chern_class
+    ch = Chern_character
+    Td = Todd_class
+
+    @cached_method
+    def Euler_number(self):
+        """
+        Return the topological Euler number.
+
+        Sometimes, this is also called the Euler
+        characteristic. :meth:`chi` is a synonym for
+        :meth:`Euler_number`.
+
+        REFERENCES:
+
+        ..
+
+            http://en.wikipedia.org/wiki/Euler_characteristic
+
+        EXAMPLES::
+
+            sage: P1xP1 = ProductProjectiveSpaces([1, 1], QQ)
+            sage: P1xP1.Euler_number()
+            4
+            sage: P1xP1.chi()
+            4
+        """
+        return prod(dim+1 for dim in self.factor_dim())
+
+    chi = Euler_number
