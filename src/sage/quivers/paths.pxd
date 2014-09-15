@@ -19,5 +19,7 @@ cdef class QuiverPath(MonoidElement):
     cdef biseq_t _path
     cdef int _start, _end
     cdef QuiverPath _new_(self, int start, int end, biseq_t data)
+    cpdef int has_subpath(self, QuiverPath subpath) except -1
+    cpdef int has_initial_segment(self, QuiverPath subpath) except -1
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length)

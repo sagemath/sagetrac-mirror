@@ -564,6 +564,83 @@ cdef class QuiverPath(MonoidElement):
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
+    cpdef int has_subpath(self, QuiverPath subpath) except -1:
+        """
+        Tells whether ``self`` contains a given sub-path.
+
+        INPUT:
+
+        ``subpath``, a path of positive length in the same path semigroup as
+        ``self``.
+
+        OUTPUT:
+
+        ``0`` or ``1``, which stands for ``False`` resp. ``True``.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: (c*b*e*a).has_subpath(b*e)
+            1
+            sage: (c*b*e*a).has_subpath(b*f)
+            0
+            sage: (c*b*e*a).has_subpath(e_1)
+            Traceback (most recent call last):
+            ...
+            ValueError: We only consider sub-paths of positive length
+            sage: (c*b*e*a).has_subpath(None)
+            Traceback (most recent call last):
+            ...
+            ValueError: The given sub-path is empty
+
+        """
+        if subpath is None:
+            raise ValueError("The given sub-path is empty")
+        if subpath._parent is not self._parent:
+            raise ValueError("The two paths belong to different quivers")
+        if subpath._path.length == 0:
+            raise ValueError("We only consider sub-paths of positive length")
+        if contains_biseq(self._path, subpath._path, 0)==-1:
+            return 0
+        return 1
+
+    cpdef int has_initial_segment(self, QuiverPath subpath) except -1:
+        """
+        Tells whether ``self`` starts with a given sub-path.
+
+        INPUT:
+
+        ``subpath``, a path in the same path semigroup as ``self``.
+
+        OUTPUT:
+
+        ``0`` or ``1``, which stands for ``False`` resp. ``True``.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: (c*b*e*a).has_initial_segment(b*e)
+            0
+            sage: (c*b*e*a).has_initial_segment(c*b)
+            1
+            sage: (c*b*e*a).has_initial_segment(e_1)
+            1
+            sage: (c*b*e*a).has_initial_segment(e_2)
+            0
+            
+        """
+        if subpath._parent is not self._parent:
+            raise ValueError("The two paths belong to different quivers")
+        if subpath._path.length==0:
+            return self._start == subpath._start
+        if startswith_biseq(self._path, subpath._path):
+            return 1
+        return 0
+
     def initial_vertex(self):
         """
         Return the initial vertex of the path.
