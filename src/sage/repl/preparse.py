@@ -41,6 +41,10 @@ AUTHORS:
         expressions.
       - Bug fixes, complex numbers, and binary input.
 
+    - Martin von Gagern (2014-09)
+
+      - Bug fixes regarding extraction of numeric literals
+
 EXAMPLES:
 
 Preparsing::
@@ -577,23 +581,27 @@ def extract_numeric_literals(code):
     OUTPUT:
 
     - a (string, string:string dictionary) 2-tuple; the block with
-      literals replaced by variable names and a mapping from names to
-      the new variables
+      literals replaced by named formatting placeholders
+      and a mapping from names to suitable constructors.
+
+    The idea is that the names used to identify the replacement strings
+    during string formatting can also be used as names for variables.
+    The corresponding values will then be used to initialize these.
 
     EXAMPLES::
 
         sage: from sage.repl.preparse import extract_numeric_literals
         sage: code, nums = extract_numeric_literals("1.2 + 5")
         sage: print code
-        _sage_const_1p2  + _sage_const_5
+        %(_sage_const_1p2)s  + %(_sage_const_5)s
         sage: print nums
         {'_sage_const_1p2': "RealNumber('1.2')", '_sage_const_5': 'Integer(5)'}
 
         sage: extract_numeric_literals("[1, 1.1, 1e1, -1e-1, 1.]")[0]
-        '[_sage_const_1 , _sage_const_1p1 , _sage_const_1e1 , -_sage_const_1en1 , _sage_const_1p ]'
+        '[%(_sage_const_1)s , %(_sage_const_1p1)s , %(_sage_const_1e1)s , -%(_sage_const_1en1)s , %(_sage_const_1p)s ]'
 
         sage: extract_numeric_literals("[1.sqrt(), 1.2.sqrt(), 1r, 1.2r, R.1, R0.1, (1..5)]")[0]
-        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1 , 1.2 , R.1, R0.1, (_sage_const_1 .._sage_const_5 )]'
+        '[%(_sage_const_1)s .sqrt(), %(_sage_const_1p2)s .sqrt(), 1, 1.2, R.1, R0.1, (%(_sage_const_1)s ..%(_sage_const_5)s )]'
     """
     return preparse_numeric_literals(code, True)
 
@@ -692,7 +700,7 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
-            num_name = num_make = num + postfix.replace('R', '')
+            replacement = num + postfix.replace('R', '')
         elif 'L' in postfix:
             continue
         else:
@@ -740,13 +748,14 @@ def preparse_numeric_literals(code, extract=False):
                 num_name = numeric_literal_prefix + num
                 num_make = "Integer(%s)" % num
 
-            literals[num_name] = num_make
+            if extract:
+                literals[num_name] = num_make
+                replacement = '%(' + num_name + ')s '
+            else:
+                replacement = num_make
 
         new_code.append(code[last:start])
-        if extract:
-            new_code.append(num_name+' ')
-        else:
-            new_code.append(num_make)
+        new_code.append(replacement)
         last = end
 
     new_code.append(code[last:])
@@ -853,13 +862,13 @@ def preparse_calculus(code):
         sage: preparse_file("f(1)=x")
         Traceback (most recent call last):
         ...
-        ValueError: Argument names should be valid python identifiers.
+        SyntaxError: can't assign to function call
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(x,1)=2")
         Traceback (most recent call last):
         ...
-        ValueError: Argument names should be valid python identifiers.
+        SyntaxError: can't assign to function call
     """
     new_code = []
     last_end = 0
@@ -1051,7 +1060,7 @@ def preparse_generators(code):
 quote_state = None
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
-             numeric_literals=True):
+             numeric_literals=True, literals_already_extracted=False):
     r"""
     Preparses a line of input.
 
@@ -1066,6 +1075,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     - ``ignore_prompts`` - a boolean (default: False)
 
     - ``numeric_literals`` - a boolean (default: True)
+
+    - ``literals_already_extracted`` - a boolean (default: False)
 
     OUTPUT:
 
@@ -1124,15 +1135,16 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # the documentation works.
         line = strip_prompts(line)
 
-    # This part handles lines with semi-colons all at once
-    # Then can also handle multiple lines more efficiently, but
-    # that optimization can be done later.
-    L, literals, quote_state = strip_string_literals(line, quote_state)
+    if not literals_already_extracted:
+        # This part handles lines with semi-colons all at once
+        # Then can also handle multiple lines more efficiently, but
+        # that optimization can be done later.
+        line, literals, quote_state = strip_string_literals(line, quote_state)
 
     # Ellipsis Range
     # [1..n]
     try:
-        L = parse_ellipsis(L, preparse_step=False)
+        L = parse_ellipsis(line, preparse_step=False)
     except SyntaxError:
         pass
 
@@ -1181,9 +1193,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
                    L)
 
     # Remove extra ;'s
-    L = L.replace(';\n;', '\n')[1:-1]
+    line = L.replace(';\n;', '\n')[1:-1]
 
-    line = L % literals
+    if not literals_already_extracted:
+        line = line % literals
 
     return line
 
@@ -1223,7 +1236,22 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         sage: _ = preparse_file(lots_of_numbers)
         sage: print preparse_file("type(100r), type(100)")
         _sage_const_100 = Integer(100)
-        type(100 ), type(_sage_const_100 )
+        type(100), type(_sage_const_100 )
+
+    We must not allow assignment to numeric literals, see :trac:`11542`::
+
+        sage: preparse_file("1=5")
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Cannot assign to numeric literal
+        sage: preparse_file("foo = 1=5")
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Cannot assign to numeric literal
+        sage: preparse_file("[1^2 for j in range(10) for 1 in [1..2*1] ]")
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Cannot assign to numeric literal
     """
     if not isinstance(contents, basestring):
         raise TypeError("contents must be a string")
@@ -1240,21 +1268,6 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     if numeric_literals:
         contents, literals, state = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
-        contents = contents % literals
-        if nums:
-            # Stick the assignments at the top, trying not to shift
-            # the lines down.
-            ix = contents.find('\n')
-            if ix == -1: ix = len(contents)
-            if not re.match(r"^ *(#.*)?$", contents[:ix]):
-                contents = "\n"+contents
-            assignments = ["%s = %s" % x for x in nums.items()]
-            # the preparser recurses on semicolons, so we only attempt
-            # to preserve line numbers if there are a few
-            if len(assignments) < 500:
-                contents = "; ".join(assignments) + contents
-            else:
-                contents = "\n".join(assignments) + "\n\n" + contents
 
     # The list F contains the preparsed lines so far.
     F = []
@@ -1275,10 +1288,46 @@ def preparse_file(contents, globals=None, numeric_literals=True):
                     continue
         if do_preparse:
             F.append(preparse(L, reset=(i==0), do_time=True, ignore_prompts=False,
-                              numeric_literals=not numeric_literals))
+                              numeric_literals=not numeric_literals,
+                              literals_already_extracted=numeric_literals))
         i += 1
+    contents = '\n'.join(F)
 
-    return '\n'.join(F)
+    if numeric_literals:
+        hadSyntaxError = False
+        if nums:
+            # Verify we don't assign to literal constants, #11542
+            dummyliterals = literals.copy()
+            dummyliterals.update((key, "1") for key in nums)
+            import ast
+            try:
+                ast.parse(contents % dummyliterals, '<sage input>') # may throw
+            except:
+                hadSyntaxError = True
+            literals.update((key, key) for key in nums)
+            # Stick the assignments at the top, trying not to shift
+            # the lines down.
+            ix = contents.find('\n')
+            if ix == -1: ix = len(contents)
+            if not re.match(r"^ *(#.*)?$", contents[:ix]):
+                contents = "\n"+contents
+            assignments = ["%s = %s" % x for x in sorted(nums.items())]
+            # TODO: The following argument no longer applies, since we are
+            # operating after the preparser. Can we drop the second case?
+            # > the preparser recurses on semicolons, so we only attempt
+            # > to preserve line numbers if there are a few
+            if len(assignments) < 500:
+                contents = "; ".join(assignments) + contents
+            else:
+                contents = "\n".join(assignments) + "\n\n" + contents
+        contents = contents % literals
+        if hadSyntaxError:
+            ast.parse(contents, '<sage input>') # may throw
+            # if the above did NOT throw, then we had an assignment
+            # to a literal constant, and report it as such
+            raise SyntaxError("Cannot assign to numeric literal")
+
+    return contents
 
 def implicit_mul(code, level=5):
     """
