@@ -1,3 +1,4 @@
+## -*- encoding: utf-8 -*-
 """
 Path Semigroups
 """
@@ -811,7 +812,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     @lazy_attribute
     def _poincare_series(self):
         r"""
-        The Poincar\\'e series matrix of this path semigroup.
+        The Poincaré series matrix of this path semigroup.
 
         The coefficient `(i,j)` of the matrix is a generating function for the
         number of paths from vertex number `i` to vertex number `j`.
@@ -834,7 +835,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             t^2 + 2*t^3 + 5*t^4 + 10*t^5 + 21*t^6 + 42*t^7 + 85*t^8 + 170*t^9 + 341*t^10 + 682*t^11 + O(t^12)
 
         For comparison, we list the paths that start at `1` and end at `2`, by
-        length, and see that the Poincar\'e series matrix predicts the correct
+        length, and see that the Poincaré series matrix predicts the correct
         numbers::
 
             sage: [p for p in S.iter_paths_by_length_and_startpoint(1,1) if p.terminal_vertex()==2]
@@ -860,7 +861,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def poincare_series(self, F=(), is_interreduced=False):
         r"""
-        The Poincar\\'e series matrix for the paths not containing a path from `F`.
+        The Poincaré series matrix for the paths not containing a path from `F`.
 
         The coefficient `(i,j)` of the matrix is a generating function for the
         number of paths from vertex number `i` to vertex number `j`.
@@ -894,7 +895,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         For comparison, we list the paths that start and end at `0`, by
         length, restricted to those paths that do not contain the three
-        forbidden sub-paths. We see that the Poincar\'e series matrix predicts
+        forbidden sub-paths. We see that the Poincaré series matrix predicts
         the correct numbers::
 
             sage: [p for p in S.iter_paths_by_length_and_startpoint(0,0) if p.terminal_vertex()==0
