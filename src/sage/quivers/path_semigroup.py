@@ -811,7 +811,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     @lazy_attribute
     def _poincare_series(self):
         r"""
-        The Poincar\'e series matrix of this path semigroup.
+        The Poincar\\'e series matrix of this path semigroup.
 
         The coefficient `(i,j)` of the matrix is a generating function for the
         number of paths from vertex number `i` to vertex number `j`.
@@ -860,7 +860,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def poincare_series(self, F=(), is_interreduced=False):
         r"""
-        The Poincar\'e series matrix for the paths not containing a path from `F`.
+        The Poincar\\'e series matrix for the paths not containing a path from `F`.
 
         The coefficient `(i,j)` of the matrix is a generating function for the
         number of paths from vertex number `i` to vertex number `j`.
@@ -868,7 +868,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         INPUT:
 
         - `F`, an iterable of elements of this path semigroup. Default: Empty.
-        - `is_interreduced`, optional bool (default False) asserting that no
+        - ``is_interreduced``, optional bool (default False) asserting that no
           element of `F` starts with another element of `F`.
           
 
@@ -935,10 +935,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # where `t^f` denotes the matrix that has entry t^(len(f)) at index
         # ``(f.initial_vertex(),f.terminal_vertex())``.
         #
-        # Reason: In a to-be-excluded path p, f in F is unique, if F is
-        # left-interreduced.  Hence, p is of the form p_0*f*p_1, where p_0 does
-        # not contain a sub-path from F, and p_1 is just some path, without
-        # forbidded sub-paths. We obtain
+        # Reason: Any to-be-excluded path p is of the form p_0*f*p_1, where
+        # p_0 does not contain a sub-path from F, f in F, and p_1 is just some
+        # path that may or may not contain further paths from F. If F is
+        # left-interreduced, then this decomposition is unique. We thus obtain
         #
         #       std(F) = std({}) * ~(1 + sum_{f in F} t^f*std({}))
         if not is_interreduced:
