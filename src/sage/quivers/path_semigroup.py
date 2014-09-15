@@ -884,8 +884,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             [                            -536870912*t/(-536870912*t^3 + 536870912*t^2 + 536870912*t - 536870912)                                       1048576*t^2/(1048576*t^3 - 1048576*t^2 - 1048576*t + 1048576)                                                                            -32768/(32768*t - 32768)]
 
         Let us check that the result is plausible. We study the paths that
-        start and end at vertex `0`, and do not contain a sub-path of the for
-        `e*b`, `c*b`, `d`. The number of paths sorted by length are given by
+        start and end at vertex `0`, and do not contain a sub-path of the form
+        `e*b`, `c*b`, or `d`. The number of paths sorted by length are given by
         the power series expansion of the corresponding matrix entry::
 
             sage: P = PowerSeriesRing(QQ, 't', default_prec=10)
