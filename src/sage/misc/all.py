@@ -209,3 +209,6 @@ class logstr(str):
 import messaging
 
 from ascii_art import ascii_art
+
+lazy_import('sage.misc.user_interface', 'user_interface')
+
