@@ -792,9 +792,12 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                     return self.monomial(b) * self.from_fundamental(pi)
                 return self.from_fundamental(pi) * self.monomial(b)
 
-            def from_reduced_word(self, word):
+            def signed_generator_product(self, word, signs=None):
                 r"""
-                Converts an affine or finite reduced word into a group element.
+                The product of generators `T_i` with indices coming from the word ``word``.
+
+                If ``signs`` is present, the sign `-1` indicates that the corresponding factor
+                `T_i` should be replaced by its inverse.
 
                 .. warning::
 
@@ -802,11 +805,11 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: ExtendedAffineHeckeAlgebra("A2").tvLv().from_reduced_word([0,2,1])
+                    sage: ExtendedAffineHeckeAlgebra("A2").tvLv().signed_generator_product([0,2,1])
                     Ty[2] Y[(1, -1, 0)]
 
                 """
-                return self(self.realization_of().T().from_reduced_word(word))
+                return self(self.realization_of().T().signed_generator_product(word,signs=signs))
 
     class _Bases(UniqueRepresentation, BindableClass):
         r"""
@@ -871,24 +874,28 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: ExtendedAffineHeckeAlgebra("A2").T().from_reduced_word([0,2,1]) # indirect doctest
+                sage: ExtendedAffineHeckeAlgebra("A2").T().signed_generator_product([0,2,1]) # indirect doctest
                 TX[0,2,1]                
 
             """
             H = self.realization_of()
             return self.factor_embedding(1)(self.factor(1).monomial(w))
 
-        def from_reduced_word(self, word):
+        def signed_generator_product(self, word, signs=None):
             r"""
-            The basis element for a reduced word of affine type.
+            The product of generators (and possibly their inverses) indexed by a word.
 
             EXAMPLES::
 
-                sage: ExtendedAffineHeckeAlgebra("A2").T().from_reduced_word([0,2,1])
+                sage: ExtendedAffineHeckeAlgebra("A2").T().signed_generator_product([0,2,1])
                 TX[0,2,1]                
+                sage: ExtendedAffineHeckeAlgebra("A2").T().signed_generator_product([0,2,1],[1,1,-1])
+                ((-v^2+1)/v)*TX[0,2] + TX[0,2,1]
 
             """
-            return self.from_affine_hecke_on_basis(self.realization_of().affine_weyl().from_reduced_word(word))
+            if signs is None:
+                return self.from_affine_hecke_on_basis(self.realization_of().affine_weyl().from_reduced_word(word))
+            return self.factor_embedding(1)(self.factor(1).signed_generator_product(word, signs=signs))
 
         def from_fundamental(self, f):
             r"""
@@ -916,7 +923,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 TX[1,2]
 
             """
-            return self.from_reduced_word(u.reduced_word())
+            return self.signed_generator_product(u.reduced_word())
 
         def from_dual_lattice_algebra_on_basis(self, mu):
             r"""
@@ -944,7 +951,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             else:
                 signs = tuple([-x for x in signs])
             Ta = H.affine_hecke_algebra()
-            return self.from_direct_product((self.factor(0).monomial(pi), Ta.product_by_signed_generator_sequence(Ta.one(), word, signs)))
+            return self.from_direct_product((self.factor(0).monomial(pi), Ta.signed_generator_product(word, signs)))
 
         def product_by_generator_on_basis(self, b, i, side = 'right'):
             r"""
@@ -1222,7 +1229,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 signs = tuple([-1 for i in range(len(rw))])
             else:
                 signs = tuple([1 for i in range(len(rw))])
-            return self.from_direct_product((HY.product_by_signed_generator_sequence(HY.one(), rw, signs), H.dual_lattice_algebra().monomial(mu)))
+            return self.from_direct_product((HY.signed_generator_product(rw, signs), H.dual_lattice_algebra().monomial(mu)))
 
     class ExtendedAffineHeckeAlgebraLvtv(SmashProductAlgebra, _Bases):
         r"""
@@ -1313,7 +1320,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             phi = E._cartan_type_v.root_system().coroot_lattice().highest_root().associated_coroot()
             s_phi = phi.associated_reflection()
             tv = self.factor(1)
-            return self.from_direct_product((self.factor(0).monomial(phi.to_ambient()), tv.product_by_signed_generator_sequence(tv.one(), s_phi, [-1 for i in range(len(s_phi))])))
+            return self.from_direct_product((self.factor(0).monomial(phi.to_ambient()), tv.signed_generator_product(s_phi, [-1 for i in range(len(s_phi))])))
 
         @cached_method
         def algebra_generators(self):
@@ -1377,5 +1384,5 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 signs = tuple([1 for i in range(len(rw))])
             else:
                 signs = tuple([-1 for i in range(len(rw))])
-            return self.from_direct_product((self.factor(0).monomial(mu),tv.product_by_signed_generator_sequence(tv.one(), rw, signs)))
+            return self.from_direct_product((self.factor(0).monomial(mu),tv.signed_generator_product(rw, signs)))
 

@@ -809,6 +809,17 @@ class DoubleAffineType(SageObject):
             return x - 1/x
         return Family(dict([[i, diff_reciprocal(self.parameters()[self._v2i[i]])] for i in self.doubled_nodes()]))
 
+    @cached_method
+    def eta_base_ring(self):
+        r"""
+        Cherednik's eta automorphism of the base field.
+
+        It inverts all of the parameters, sending `q` and each `v_i` to its reciprocal.
+
+        """
+        K = self.base_ring()
+        return K.hom([1/x if x in self.parameters() else x for x in K.gens()])
+
     def dual(self):
         r"""
         The DAHA dual affine type.
@@ -1818,10 +1829,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 """
                 return self(self.realization_of().LtvLv().from_dual_classical_hecke(a))
 
-            def from_reduced_word(self, word):
+            def signed_generator_product(self, word, signs=None):
                 r"""
                 Given a reduced word for an element `w` in the affine Weyl group, return the image of the basis element `T_w`
                 in ``self``.
+
+                The list ``signs``, if present, is a list of entries `+1` or `-1`. The `-1` indicates that
+                the corresponding generator `T_i` should be replaced by its inverse.
 
                 .. warning::
 
@@ -1829,18 +1843,20 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: DoubleAffineHeckeAlgebraSansDuality("B2").LT().from_reduced_word([0,2,1])
+                    sage: DoubleAffineHeckeAlgebraSansDuality("B2").LT().signed_generator_product([0,2,1])
                     TX[0,2,1]
 
-                    sage: DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True).LT().from_reduced_word([0,2,1])
+                    sage: DoubleAffineHeckeAlgebraSansDuality("B2").LT().signed_generator_product([0,2,1], signs=[1,1,-1])
+                    TX[0,2,1] + ((-vl^2+1)/vl)*TX[0,2]
+
+                    sage: DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True).LT().signed_generator_product([0,2,1])
                     TY[0,2,1]
                 """
-                return self(self.realization_of().LT().from_reduced_word(word))
+                return self(self.realization_of().LT().signed_generator_product(word,signs=signs))
 
-            def from_reduced_word_dual(self, word):
+            def signed_generator_product_dual(self, word, signs=None):
                 r"""
-                Given a reduced word for an element `w` in the dual classical Weyl group,
-                return the image of the corresponding basis element of the dual classical Hecke algebra in ``self``.
+                Similar to `meth`:signed_generator_product` except use the dual classical Hecke algebra.
 
                 .. warning::
 
@@ -1849,24 +1865,26 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2")
-                    sage: a = HH.LtvLv().from_reduced_word_dual([2,1]); a
+                    sage: a = HH.LtvLv().signed_generator_product_dual([2,1]); a
                     Ty[2,1]
                     sage: LT = HH.LT()
-                    sage: b = LT.from_reduced_word_dual([2,1]); b
+                    sage: b = LT.signed_generator_product_dual([2,1]); b
                     TX[2,1]
                     sage: b == LT(a)
                     True
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True)
-                    sage: a = HH.LtvLv().from_reduced_word_dual([2,1]); a
+                    sage: a = HH.LtvLv().signed_generator_product_dual([2,1]); a
                     Tx[2,1]
                     sage: LT = HH.LT()
-                    sage: b = LT.from_reduced_word_dual([2,1]); b
+                    sage: b = LT.signed_generator_product_dual([2,1]); b
                     TY[2,1]
                     sage: b == LT(a)
                     True
+                    sage: LT.signed_generator_product_dual([2,1],[1,-1])
+                    TY[2,1] + ((-vl^2+1)/vl)*TY[2]
 
                 """
-                return self(self.realization_of().LtvLv().from_reduced_word(word))
+                return self(self.realization_of().LtvLv().signed_generator_product(word,signs=signs))
 
             def to_polynomial_module(self, x):
                 r"""
@@ -1892,6 +1910,34 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 """
                 M = self.realization_of().LtvLv()
                 return M.to_polynomial_module(M(x))
+
+            def eta_involution(self, x):
+                r"""
+                Apply Cherednik's eta involution to `x`.
+
+                It is an automorphism over the rationals that is the identity on length zero extended affine Weyl group
+                elements, sends `X^{\lambda}` to `X^{-\lambda}`, `T_i` to `T_i^{-1}` for all `i` including `0`, and
+                `q` to `q^{-1}` and `v` to `v^{-1}`.
+
+                ..warning:: Must be implemented by basis "LT".
+
+                EXAMPLES::
+
+                    sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2",general_linear=True); LT = HH.LT()
+                    sage: x = LT.a_monomial(); x
+                    X[(2, 2, 3)] piX[5] TX[0,1,2]
+                    sage: LT.eta_involution(x)
+                    ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[5] TX[0] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[5] TX[0,1] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[5] TX[0,2] + ((-v^6+3*v^4-3*v^2+1)/v^3)*X[(-2, -2, -3)] piX[5] + ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[5] TX[2] + ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[5] TX[1] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[5] TX[1,2] + X[(-2, -2, -3)] piX[5] TX[0,1,2]
+                    sage: M = HH.LtvLv()
+                    sage: y = M.a_monomial(); y
+                    X[(2, 2, 3)] Ty[1,2] Y[(2, 2, 3)]
+                    sage: M.eta_involution(y)
+                    X[(-2, -2, -3)] Ty[1,2] Y[(2, 2, 3)]
+
+                """
+                LT = self.realization_of().LT()
+                return self(LT.eta_involution(LT(x)))
+
 
     class _DAHABases(UniqueRepresentation, BindableClass):
         r"""
@@ -1956,6 +2002,8 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             SmashProductAlgebra.__init__(self, HH._KL, HH._T, left_action=left_LTmod_on_basis, category=Category.join((HH._DAHABasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
             self._style = "LT"
 
+            self._eta = self.module_morphism(on_basis = self._eta_on_basis, codomain=self)
+
         def _repr_(self):
             HH = self.realization_of()
             return "%s basis of %s"%(self._style, HH._repr_())
@@ -1973,7 +2021,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
 
             """
-            return Family(dict([[i, self.factor_embedding(1)(self.factor(1).from_reduced_word([i]))] for i in self.realization_of().double_affine_type().cartan_type().index_set()]))
+            return Family(dict([[i, self.factor_embedding(1)(self.factor(1).signed_generator_product([i]))] for i in self.realization_of().double_affine_type().cartan_type().index_set()]))
 
         @cached_method
         def from_fundamental(self, i):
@@ -2031,22 +2079,62 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             """
             return self.factor_embedding(1)(a)
 
-        def from_reduced_word(self, word):
+        def signed_generator_product(self, word, signs=None):
             r"""
             Given a reduced word for an element `w` in the affine Weyl group of `L`, return the image of the basis element `T_w`
             in ``self``.
 
-            .. warning::
-
-                Must be implemented in style "LT".
+            The list ``signs``, if present, is a list of entries `+1` or `-1`. The `-1` indicates that
+            the corresponding generator `T_i` should be replaced by its inverse.
 
             EXAMPLES::
 
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").LT().from_reduced_word([0,2,1])
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").LT().signed_generator_product([0,2,1])
                 TX[0,2,1]
 
             """
-            return self.from_extended_affine_hecke(self.factor(1).from_reduced_word(word))
+            return self.from_extended_affine_hecke(self.factor(1).signed_generator_product(word,signs=signs))
+
+        def _eta_on_basis(self, (mu, pi, w)):
+            r"""
+            The image of the `LT` basis element indexed by a triple.
+
+            EXAMPLES::
+
+                sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
+                sage: LT = HH.LT()
+                sage: mu = HH.lattice().an_element(); mu
+                (2, 2, 3)
+                sage: pi = HH.F().an_element(); pi
+                [2]
+                sage: w = HH.T().realization_of().affine_weyl().from_reduced_word([1])
+                sage: LT._eta_on_basis((mu,pi,w))
+                ((-v^2+1)/v)*X[(-2, -2, -3)] piX[2] + X[(-2, -2, -3)] piX[2] TX[1]
+
+            """
+            rw = w.reduced_word()
+            signs = [-1] * len(rw)
+            return self.from_lattice_algebra(self.factor(0).monomial(-mu)) * self.from_fundamental(pi) * self.signed_generator_product(rw, signs)
+
+        def eta_involution(self, z):
+            r"""
+            Cherednik's eta involution.
+
+            It sends `X^\lambda` to `X^{-\lambda}`, `T_i` to its inverse, and `q` and `v_i` to their inverses.
+
+            EXAMPLES::
+
+                sage: LT=DoubleAffineHeckeAlgebraSansDuality("A2").LT()
+                sage: z = LT.a_monomial(); z
+                X[(2, 2, 3)] piX[2] TX[0,1,2]
+                sage: LT.eta_involution(z)
+                ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[2] TX[0] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[2] TX[0,1] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[2] TX[0,2] + ((-v^6+3*v^4-3*v^2+1)/v^3)*X[(-2, -2, -3)] piX[2] + ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[2] TX[2] + ((v^4-2*v^2+1)/v^2)*X[(-2, -2, -3)] piX[2] TX[1] + ((-v^2+1)/v)*X[(-2, -2, -3)] piX[2] TX[1,2] + X[(-2, -2, -3)] piX[2] TX[0,1,2]                
+                sage: LT.eta_involution(z*LT.realization_of().double_affine_type().q())
+                ((v^4-2*v^2+1)/(q*v^2))*X[(-2, -2, -3)] piX[2] TX[0] + ((-v^2+1)/(q*v))*X[(-2, -2, -3)] piX[2] TX[0,1] + ((-v^2+1)/(q*v))*X[(-2, -2, -3)] piX[2] TX[0,2] + ((-v^6+3*v^4-3*v^2+1)/(q*v^3))*X[(-2, -2, -3)] piX[2] + ((v^4-2*v^2+1)/(q*v^2))*X[(-2, -2, -3)] piX[2] TX[2] + ((v^4-2*v^2+1)/(q*v^2))*X[(-2, -2, -3)] piX[2] TX[1] + ((-v^2+1)/(q*v))*X[(-2, -2, -3)] piX[2] TX[1,2] + 1/q*X[(-2, -2, -3)] piX[2] TX[0,1,2]                
+
+            """
+            z = z.map_coefficients(self.realization_of().double_affine_type().eta_base_ring())
+            return self._eta(z)
 
     class DoubleAffineHeckeAlgebraSansDualityTL(SmashProductAlgebra, _DAHABases):
         r"""
@@ -2108,7 +2196,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
 
             """
-            return Family(dict([[i, self.factor_embedding(0)(self.factor(0).from_reduced_word([i]))] for i in self.realization_of().double_affine_type().cartan_type().index_set()]))
+            return Family(dict([[i, self.factor_embedding(0)(self.factor(0).signed_generator_product([i]))] for i in self.realization_of().double_affine_type().cartan_type().index_set()]))
 
         @cached_method
         def from_fundamental(self, i):
@@ -2161,19 +2249,18 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             """
             return self.factor_embedding(0)(a)
 
-        def from_reduced_word(self, word):
+        def signed_generator_product(self, word, signs=None):
             r"""
             Given a reduced word for an element `w` in the affine Weyl group of `L`, return the image of the basis element `T_w`
             in ``self``.
 
             EXAMPLES::
 
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").TL().from_reduced_word([0,2,1])
-                TX[0,2,1]
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").TL().signed_generator_product([0,2,1],[1,-1,1])
+                ((-v^2+1)/v)*TX[0,1] + TX[0,2,1]
 
             """
-            return self.from_extended_affine_hecke(self.factor(0).from_reduced_word(word))
-
+            return self.from_extended_affine_hecke(self.factor(0).signed_generator_product(word,signs=signs))
 
 
     class DoubleAffineHeckeAlgebraSansDualityLtvLv(SmashProductAlgebra, _DAHABases):
@@ -2272,17 +2359,18 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             """
             return self.factor_embedding(1)(self.factor(1).factor_embedding(0)(a))
 
-        def from_reduced_word_dual(self, word):
+        def signed_generator_product_dual(self, word, signs=None):
             r"""
             Given a reduced word for an element `w` in the classical Weyl group of `Lv`, return the image of the basis element `T_w`
             in ``self``.
 
             EXAMPLES::
 
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").TL().from_reduced_word_dual([2,1])
-                TX[2,1]
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").TL().signed_generator_product_dual([2,1],[1,-1])
+                ((-v^2+1)/v)*TX[2] + TX[2,1]
+
             """
-            return self.factor_embedding(1)(self.factor(1).from_reduced_word(word))
+            return self.factor_embedding(1)(self.factor(1).signed_generator_product(word, signs=signs))
 
         def _to_polynomial_module_on_basis(self, (mu, u, nu)):
             r"""

@@ -551,40 +551,36 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         return self.linear_combination((self.product_by_inverse_generator_on_basis(w, i, side), c)
                                        for (w,c) in x)
 
-    def product_by_signed_generator_sequence(self, x, word, signs=None, side="right"):
+    def signed_generator_product(self, word, signs=None):
         r"""
-        Returns `x T_{i_1}^{e_1} T_{i_2}^{e_2} \dotsm T_{i_l}^{e_l}` where the indices `i_k`
+        Returns `T_{i_1}^{e_1} T_{i_2}^{e_2} \dotsm T_{i_l}^{e_l}` where the indices `i_k`
         are given by `word` and the signs `e_k = \pm 1` are given by `signs`.
 
-        If ``side`` is "left", returns the product `T_{i_1}^{e_1}\dotsm T_{i_l}^{e_l} x`.
         If ``signs`` is None, all signs are assumed to be positive.
 
         EXAMPLES::
 
             sage: H = MultiParameterHeckeAlgebra(CartanType(['A',2,1]))
-            sage: y = H.product_by_signed_generator_sequence(H.one(), [0,1,2,1], [1,1,1,1]); y
+            sage: y = H.signed_generator_product([0,1,2,1], [1,1,1,1]); y
             T[0,1,2,1]
-            sage: z = H.product_by_signed_generator_sequence(H.one(), [1,2,1,0], [-1,-1,-1,-1]); z
+            sage: z = H.signed_generator_product([1,2,1,0], [-1,-1,-1,-1]); z
             T[1,2,1,0] + ((-v^2+1)/v)*T[1,2,0] + ((-v^2+1)/v)*T[2,1,0] + ((-v^2+1)/v)*T[1,2,1] + ((v^4-2*v^2+1)/v^2)*T[1,0] + ((v^4-2*v^2+1)/v^2)*T[2,0] + ((v^4-2*v^2+1)/v^2)*T[2,1] + ((v^4-2*v^2+1)/v^2)*T[1,2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*T[0] + ((-v^6+3*v^4-3*v^2+1)/v^3)*T[2] + ((-v^6+3*v^4-3*v^2+1)/v^3)*T[1] + ((v^8-3*v^6+4*v^4-3*v^2+1)/v^4)
             sage: y*z
             1
-            sage: y == H.product_by_signed_generator_sequence(H.one(), [0,1,2,1], [1,1,1,1], side="left")
+            sage: y == H.signed_generator_product([0,1,2,1], [1,1,1,1])
             True
-            sage: z == H.product_by_signed_generator_sequence(H.one(), [1,2,1,0], [-1,-1,-1,-1], side="left")
+            sage: z == H.signed_generator_product([1,2,1,0], [-1,-1,-1,-1])
             True
 
         """
-        seq = range(len(word))
-        if side == "left":
-            seq.reverse()
         if signs is None:
             signs = tuple([1 for i in range(len(word))])
-
-        for i in seq:
+        x = self.one()
+        for i in range(len(word)):
             if signs[i] == 1:
-                x = self.product_by_generator(x, word[i], side=side)
+                x = self.product_by_generator(x, word[i], side='right')
             else:
-                x = self.product_by_inverse_generator(x, word[i], side=side)
+                x = self.product_by_inverse_generator(x, word[i], side='right')
         return x
 
     def __getitem__(self, i):
