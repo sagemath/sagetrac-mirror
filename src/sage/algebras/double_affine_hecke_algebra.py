@@ -859,6 +859,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                    and `\mu` is in the lattice `X`
     - "TL" -- `\pi^X T_w X^\mu` 
     - "LtvLv" -- `X^\mu T_w Y^\nu` where `\mu \in X`, `w` is in the finite Weyl group `W(Y)`, and `\nu \in Y`.
+    - "LLvtv" -- `X^\mu Y^\nu T_w`
 
     EXAMPLES::
 
@@ -875,8 +876,14 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         LtvLv basis of The double affine Hecke algebra of type ['A', 2, 1]
         sage: LtvLv(m)
         X[(2, 2, 3)] Ty[2] Y[(0, 0, -1)]
+        sage: LLvtv = HH.LLvtv(); LLvtv
+        LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
+        sage: LLvtv(m)
+        ((v^2-1)/v)*X[(2, 2, 3)] Y[(1, 1, 0)] + X[(2, 2, 3)] Y[(1, 0, 1)] Ty[2]        
 
-    The first two have "native" product; the third has product via coercion with "LT".
+    The first two have "native" product; the other two have product via coercion.
+    This means that serious computations should be done in the "LT" or "TL" bases
+    and only at the end should they be coerced into the other bases.
 
     There is an input option ``dual_side`` which, if True, essentially applies a form of Macdonald duality:
     The interpretation of the bases become:
@@ -885,6 +892,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                    and `\mu` is in the lattice `Y`
     - "TL" -- `\pi^Y T_w Y^\mu` 
     - "LtvLv" -- `Y^\mu T_w X^\nu` where `\mu \in Y`, `w` is in the finite Weyl group `W(X)`, and `\nu \in X`.
+    - "LLvtv" -- `Y^\mu X^\nu T_w`
 
     Other differences: 
 
@@ -984,6 +992,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         self._W0Pv = self._E.W0Pv()
         self._F = self._H.fundamental_group()
         self._tvLv = self._H.tvLv()
+        self._Lvtv = self._H.Lvtv()
         self._tv = self._H.dual_classical_hecke()
 
         cat = ModulesWithBasis(self._base_ring)
@@ -1004,10 +1013,17 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         self._LtvLvmod = tensor([self._KL, self._tvLv], category = tcat)
         self._tvLvLmod= tensor([self._tvLv, self._KL], category = tcat)
 
+        self._LLvtvmod = tensor([self._KL, self._Lvtv], category = tcat)
+        self._LvtvLmod= tensor([self._Lvtv, self._KL], category = tcat)
+
         LtvLv = self.LtvLv()
+        LLvtv = self.LLvtv()
 
         SetMorphism(Hom(LtvLv.factor(0),LtvLv,category=cat),LtvLv.factor_embedding(0)).register_as_coercion()
         SetMorphism(Hom(LtvLv.factor(1),LtvLv,category=cat),LtvLv.factor_embedding(1)).register_as_coercion()
+
+        SetMorphism(Hom(LLvtv.factor(0),LLvtv,category=cat),LLvtv.factor_embedding(0)).register_as_coercion()
+        SetMorphism(Hom(LLvtv.factor(1),LLvtv,category=cat),LLvtv.factor_embedding(1)).register_as_coercion()
 
         def LtvLv_to_LT_on_basis((mu, w, nu)):
             return LT.from_direct_product((self._KL.monomial(mu),self._T(self._tvLv.monomial((w,nu)))))
@@ -1021,7 +1037,17 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         LT_to_LtvLv = LT.module_morphism(on_basis=LT_to_LtvLv_on_basis, codomain=LtvLv)
         LT_to_LtvLv.register_as_coercion()
 
+        def LLvtv_to_LT_on_basis((mu, nu, w)):
+            return LT.from_direct_product((self._KL.monomial(mu),self._T(self._Lvtv.monomial((nu,w)))))
 
+        LLvtv_to_LT = LLvtv.module_morphism(on_basis=LLvtv_to_LT_on_basis, codomain=LT)
+        LLvtv_to_LT.register_as_coercion()
+
+        def LT_to_LLvtv_on_basis((mu, pi, w)):
+            return LLvtv.from_direct_product((self._KL.monomial(mu),self._Lvtv(self._T.monomial((pi,w)))))
+
+        LT_to_LLvtv = LT.module_morphism(on_basis=LT_to_LLvtv_on_basis, codomain=LLvtv)
+        LT_to_LLvtv.register_as_coercion()
 
     def double_affine_type(self):
         r"""
@@ -1589,8 +1615,23 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         """
         return self.DoubleAffineHeckeAlgebraSansDualityLtvLv()
 
+    def LLvtv(self):
+        r"""
+        The LLvtv basis.
+
+        EXAMPLES::
+
+            sage: DoubleAffineHeckeAlgebraSansDuality("A2").LLvtv()
+            LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
+
+        """
+        return self.DoubleAffineHeckeAlgebraSansDualityLLvtv()
+
     def tv_Lv(self):
         return self._tvLv
+
+    def Lv_tv(self):
+        return self._Lvtv
 
     def tv(self):
         return self._tv
@@ -2366,8 +2407,8 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").TL().signed_generator_product_dual([2,1],[1,-1])
-                ((-v^2+1)/v)*TX[2] + TX[2,1]
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").LtvLv().signed_generator_product_dual([2,1],[1,-1])
+                Ty[2,1] + ((-v^2+1)/v)*Ty[2]
 
             """
             return self.factor_embedding(1)(self.factor(1).signed_generator_product(word, signs=signs))
@@ -2401,5 +2442,148 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 2*X[(2, 2, 3)] Ty[1,2,1] Y[(2, 2, 3)] + 4*X[(2, 2, 3)] Ty[1,2] Y[(2, 2, 3)] + X[(2, 2, 3)] Y[(2, 2, 3)]
                 sage: M.to_polynomial_module(x)
                 ((2*v^3+4*v^2+1)/v^2)*X[(2, 2, 3)]
+            """
+            return self._to_polynomial_morphism(x)
+
+
+    class DoubleAffineHeckeAlgebraSansDualityLLvtv(SmashProductAlgebra, _DAHABases):
+        r"""
+        DAHA basis LLvtv.
+
+        INPUT:
+
+        - `HH` -- DAHA realization parent
+
+        EXAMPLES::
+
+            sage: DoubleAffineHeckeAlgebraSansDuality("A2").LLvtv()
+            LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
+
+
+        """
+
+        def __init__(self, HH):
+            dat = HH.double_affine_type()
+            # To define the product on LLvtv we just coerce to LT and back.
+            # That is, we define the twist for LLvtv in terms of the twist for LT.
+            mcat = ModulesWithBasis(HH.base_ring())
+            tmcat = mcat.TensorProducts()
+            KL = HH._KL
+            coerceoid = tensor([HH.T().coerce_map_from(HH.Lv_tv()), KL._identity_map()], category=tmcat)
+            idocoerce = tensor([KL._identity_map(), HH.Lv_tv().coerce_map_from(HH.T())], category=tmcat)
+
+            HH._twist_LLvtv = SetMorphism(Hom(HH._LvtvLmod,HH._LLvtvmod,mcat),idocoerce * HH.LT().twist() * coerceoid)
+
+            SmashProductAlgebra.__init__(self, HH._KL, HH.Lv_tv(), twist_morphism=HH._twist_LLvtv, category=Category.join((HH._DAHABasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+            self._style = "LLvtv"
+
+            self._to_polynomial_morphism = self.module_morphism(on_basis=self._to_polynomial_module_on_basis, category=ModulesWithBasis(self.base_ring()), codomain = HH._KL)
+
+        def _repr_(self):
+            HH = self.realization_of()
+            return "%s basis of %s"%(self._style, HH._repr_())
+
+        def from_lattice_algebra(self, a):
+            r"""
+            The image of the element `a` of `KL` in ``self``.
+
+            EXAMPLES::
+
+                sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
+                sage: LLvtv = HH.LLvtv()
+                sage: KL = HH.lattice_algebra()
+                sage: a = KL.an_element(); a
+                X[(2, 2, 3)]
+                sage: b = LLvtv.from_lattice_algebra(a); b
+                X[(2, 2, 3)]
+                sage: b.parent()
+                LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
+            """
+            return self.factor_embedding(0)(a)
+
+
+        def from_dual_lattice_algebra(self, a):
+            r"""
+            The embedding of the group algebra of `Lv` into ``self``.
+
+            EXAMPLES::
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2")
+                sage: KLv = HH.dual_lattice_algebra()
+                sage: a = KLv.an_element(); a
+                Y[(2, 2, 3)]
+                sage: a.parent()
+                Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                sage: LLvtv = HH.LLvtv()
+                sage: b = LLvtv.from_dual_lattice_algebra(a); b
+                Y[(2, 2, 3)]
+                sage: b.parent()
+                LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
+
+            """
+            return self.factor_embedding(1)(self.factor(1).factor_embedding(0)(a))
+
+        def from_dual_classical_hecke(self, a):
+            r"""
+            Returns the image of `a` from the finite Hecke algebra "tv" of dual type, to ``self``.
+
+            EXAMPLES::
+
+                sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
+                sage: Lv_tv = HH.Lv_tv()
+                sage: tv = HH.tv()
+                sage: a = tv.an_element(); a
+                2*Ty[1,2,1] + 4*Ty[1,2] + 1
+                sage: LLvtv = HH.LLvtv()
+                sage: b = LLvtv.from_dual_classical_hecke(a); b
+                2*Ty[1,2,1] + 4*Ty[1,2] + 1
+                sage: b == LLvtv(a)
+                True
+            """
+            return self.factor_embedding(1)(self.factor(1).factor_embedding(1)(a))
+
+        def signed_generator_product_dual(self, word, signs=None):
+            r"""
+            Given a reduced word for an element `w` in the classical Weyl group of `Lv`, return the image of the basis element `T_w`
+            in ``self``.
+
+            EXAMPLES::
+
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").LLvtv().signed_generator_product_dual([2,1],[1,-1])
+                Ty[2,1] + ((-v^2+1)/v)*Ty[2]
+
+            """
+            return self.factor_embedding(1)(self.factor(1).signed_generator_product(word, signs=signs))
+
+        def _to_polynomial_module_on_basis(self, (mu, nu, u)):
+            r"""
+            Given a basis triple for ``self``, return the projected element in the polynomial module.
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A3",general_linear=True); M = HH.LLvtv()
+                sage: mu = HH.lattice().an_element(); mu
+                (2, 2, 3, 0)
+                sage: u = HH.double_affine_type().extended_affine_weyl().dual_classical_weyl().an_element(); u
+                s1*s2*s3
+                sage: nu = HH.dual_lattice().an_element(); nu
+                (2, 2, 3, 0)
+                sage: HH.LLvtv()._to_polynomial_module_on_basis((mu,nu,u))
+                v^8*X[(2, 2, 3, 0)]
+
+            """
+            HH = self.realization_of()
+            return HH._KL.term(mu, HH.T_eigenvalue(u) * HH.Y_eigenvalue(nu))
+
+        def to_polynomial_module(self, x):
+            r"""
+            Project an element into the polynomial module.
+
+            EXAMPLES::
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2",general_linear=True); M = HH.LLvtv()
+                sage: x = M.an_element(); x
+                2*X[(2, 2, 3)] Y[(2, 2, 3)] Ty[1,2,1] + 4*X[(2, 2, 3)] Y[(2, 2, 3)] Ty[1,2] + X[(2, 2, 3)] Y[(2, 2, 3)]
+                sage: M.to_polynomial_module(x)
+                ((2*v^3+4*v^2+1)/v^2)*X[(2, 2, 3)]
+
             """
             return self._to_polynomial_morphism(x)
