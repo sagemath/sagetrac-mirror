@@ -1056,6 +1056,32 @@ cdef class gen(sage.structure.element.RingElement):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
+    cdef _richcmp_c_impl(left, Element right, int op):
+        cdef bint r
+        cdef GEN x = (<gen>left).g
+        cdef GEN y = (<gen>right).g
+        try:
+            pari_catch_sig_on()
+            if op == 0:    # <
+                r = (gcmp(x, y) < 0)
+            elif op == 1:  # <=
+                r = (gcmp(x, y) <= 0)
+            elif op == 2:  # ==
+                r = (gequal(x, y) != 0)
+            elif op == 3:  # !=
+                r = (gequal(x, y) == 0)
+            elif op == 4:  # >
+                r = (gcmp(x, y) > 0)
+            elif op == 5:  # >=
+                r = (gcmp(x, y) >= 0)
+            pari_catch_sig_off()
+        except PariError:
+            r = 0
+        return r
+
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Comparisons
