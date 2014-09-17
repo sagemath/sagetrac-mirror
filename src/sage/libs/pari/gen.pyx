@@ -1122,7 +1122,13 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(I) == pari(I)
             True
         """
-        return gcmp_sage(left.g, (<gen>right).g)
+        try:
+            pari_catch_sig_on()
+            r = gcmp(left.g, (<gen>right).g)
+            pari_catch_sig_off()
+        except PariError:
+            r = cmp(str(left), str(right))
+        return r
 
     def __copy__(gen self):
         pari_catch_sig_on()
