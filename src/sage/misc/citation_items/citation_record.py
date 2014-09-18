@@ -4,6 +4,11 @@ A record of citation items.
 This is a list of citation items, which allows the use to access LaTeX
 cite statements and BibTeX code.
 
+.. TODO:
+
+Add pybtex support and replace the workaround as soon as pybtex is a
+standard package.
+
 AUTHORS:
 
 - Martin Westerholt-Raum (martin@raum-brothers.eu)
