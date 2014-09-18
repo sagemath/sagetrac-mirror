@@ -76,6 +76,7 @@ AUTHORS:
 from contextlib import contextmanager
 from sage.misc.all import tmp_filename
 from sage.misc.citation_items.all import CitationRecord
+from sage.misc.citation_cython import citation_enable, citation_disable
 import os, re, sys
 
 
@@ -123,44 +124,34 @@ def citations(record = None):
             Macaulay2, Singular
         sage: latest_citations()
         [Macaulay2, Singular]
+
+    ::
+
+        sage: with citations():
+        ...       d = dict()
+        The computation did not use any registered components.
     """
     import warnings
-    import cProfile, pstats
 
-    from sage.misc.citation_items.all import citation_items
+    if record is None:
+        _record = CitationRecord()
+    else:
+        _record = record
 
-
-    cprofiler = cProfile.Profile()
-
-    cprofiler.enable()
-
+    citation_enable(_record)
     yield
-
-    cprofiler.disable()
-    cprofiler_calls = map(_cprofile_stat_to_function_string,
-                          pstats.Stats(cprofiler).stats.keys())
-
-
-    #Remove trivial functions
-    bad_res = map(re.compile,
-                  [r'is_.*Element'])
-    calls = [c for c in cprofiler_calls
-             if all(r.match(c) is None for r in bad_res)]
-
-
-    #Check to see which citations appear in the profiled run
-    called_items = [item for item in citation_items
-                    if any(r.match(c) is not None for r in item.re() for c in calls)]
+    citation_disable(_record)
 
     if record is None:
         import sage
-        sage.misc.citation._latest_citations = CitationRecord(called_items)
+        sage.misc.citation._latest_citations = _record
 
-        print "The computation used the following components."
-        print "Access them as a list by calling latest_citations()."
-        print "    " + ", ".join(map(repr, called_items))
-    else:
-        record.extend(called_items)
+        if len(_record) == 0:
+            print "The computation did not use any registered components."
+        else:
+            print "The computation used the following components."
+            print "Access them as a list by calling latest_citations()."
+            print "    " + ", ".join(map(repr, _record))
 
 def eval_citations(cmd, locals = None):
     r"""
@@ -191,7 +182,7 @@ def eval_citations(cmd, locals = None):
     if locals is None:
         locals = inspect.stack()[1][0].f_globals
 
-    record = list()
+    record = CitationRecord()
     with citations(record):
         sage_eval(cmd, locals=locals)
     return record
@@ -224,60 +215,3 @@ def get_systems(cmd):
     import inspect
 
     return eval_citations(cmd, locals=inspect.stack()[1][0].f_globals)
-
-def _cprofile_stat_to_function_string(stat_key):
-    r"""
-    Parse the profiling data collected by ``cProfile`` and ``pstat``.
-
-    INPUT:
-
-    - ``stat_key`` -- A triple ``(string, number, string)``, which
-                      occurs as a key in the dictionary ``pstats.Stats.stats``.
-
-    OUTPUT:
-
-    A string.
-
-    EXAMPLES::
-
-        sage: from sage.misc.citation import _cprofile_stat_to_function_string
-
-    Modules accessed as site packages are reconstructed using file
-    path information.
-
-    ::
-
-        sage: _cprofile_stat_to_function_string( ("/home/.../sage/local/lib/python2.7/site-packages/sage/rings/number_field/number_field.py", 1178, "_element_constructor_") )
-        'sage.rings.number_field.number_field._element_constructor_'
-
-    Builtin methods are reconstructed from the object clauses, if possible.
-
-    ::
-
-        sage: _cprofile_stat_to_function_string( ('~', 0, "<method 'base' of 'sage.structure.category_object.CategoryObject' objects>") )
-        'sage.structure.category_object.CategoryObject.base'
-        sage: _cprofile_stat_to_function_string( ('~', 0, "<posix.WIFEXITED>") )
-        'posix.WIFEXITED'
-    """
-    if stat_key[0] == '~':
-        if stat_key[2].startswith("<method "):
-            object_start = stat_key[2].find("of '") + len("of '")
-            object_end = stat_key[2].find("'", object_start)
-            module_part = stat_key[2][object_start:object_end]
-
-            function_start = stat_key[2].find("method '") + len("method '")
-            function_end = stat_key[2].find("'", function_start)
-            function_part = stat_key[2][function_start:function_end]
-        else:
-            module_part = None
-            function_part = stat_key[2][1:-1]
-    else:
-        module_part = (stat_key[0].split("site-packages/")[-1]
-                       .split('.')[0]
-                       .replace("/", "."))
-        function_part = stat_key[2]
-
-    if module_part:
-        return module_part + "." + function_part
-    else:
-        return function_part

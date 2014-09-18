@@ -1198,8 +1198,8 @@ ext_modules = [
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),
 
-    Extension('sage.misc.citation',
-              sources = ['sage/misc/citation.pyx']),
+    Extension('sage.misc.citation_cython',
+              sources = ['sage/misc/citation_cython.pyx']),
 
     Extension('sage.misc.citation_items.citation_record',
               sources = ['sage/misc/citation_items/citation_record.pyx']),
