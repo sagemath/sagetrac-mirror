@@ -341,6 +341,8 @@ import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 
+from sage.misc.citation_cython import cite
+
 class SingularError(RuntimeError):
     """
     Raised if Singular printed an error message
@@ -557,6 +559,8 @@ class Singular(Expect):
             sage: set_verbose(0)
             sage: o = s.hilb()
         """
+        cite("singular")
+
         # Simon King:
         # In previous versions, the interface was first synchronised and then
         # unused variables were killed. This created a considerable overhead.
@@ -713,6 +717,8 @@ class Singular(Expect):
             sage: I.parent()
             Singular
         """
+        cite("singular")
+
         if isinstance(x, SingularElement) and x.parent() is self:
             return x
         elif isinstance(x, ExpectElement):

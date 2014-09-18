@@ -18,7 +18,3 @@ class Singular_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.singular.uni-kl.de}}},
 }
     """
-
-    _re = [r"^sage.interfaces.singular",
-           "_libsingular",
-           "^sage.libs.singular"]
