@@ -50,6 +50,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+from sage.misc.latex import latex
 from sage.structure.sage_object import SageObject
 
 class CitationRecord( SageObject, list ):
