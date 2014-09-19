@@ -124,12 +124,15 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     N = 0
     error_factor = RIF(4)
+    N_factorial = ZZ(1)
 
     while True:
         N += 2
         factor *= (-s - N + 2)/(M + alpha)
         assert factor.overlaps(falling_factorial(-s, N - 1)/(M + alpha)**(s + N - 1))
-        result -= bernoulli(N)/ZZ(N).factorial() * factor
+        N_factorial *= (N - 1)*N
+        assert ZZ(N).factorial() == N_factorial
+        result -= bernoulli(N)/N_factorial * factor
 
         factor *= (-s - N + 1)
         assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
