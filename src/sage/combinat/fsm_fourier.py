@@ -35,7 +35,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
             sage: from fsm_fourier import _hurwitz_zeta_
             sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
-            0.097483848201852? + 0.?e-17*I
+            0.097483848201852? + 0.?e-19*I
 
     -   Compare with well-known value `\zeta(2)=\zeta(2, 1)=\pi^2/6`::
 
