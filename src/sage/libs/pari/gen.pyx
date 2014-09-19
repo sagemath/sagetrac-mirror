@@ -64,6 +64,9 @@ cdef extern from "misc.h":
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
+cdef extern from "string.h":
+    int strcmp(const char *a, const char *b)
+
 # Will be imported as needed
 Integer = None
 
@@ -1122,12 +1125,25 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(I) == pari(I)
             True
         """
+        cdef int r
+        cdef char *a
+        cdef char *b
         try:
             pari_catch_sig_on()
             r = gcmp(left.g, (<gen>right).g)
             pari_catch_sig_off()
         except PariError:
-            r = cmp(str(left), str(right))
+            pari_catch_sig_on()
+            a = GENtostr(left.g)
+            b = GENtostr((<gen>right).g)
+            r = strcmp(a, b)
+            pari_free(a)
+            pari_free(b)
+            pari_catch_sig_off()
+            if r > 0:
+                r = 1
+            elif r < 0:
+                r = -1
         return r
 
     def __copy__(gen self):
