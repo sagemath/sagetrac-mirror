@@ -10,6 +10,7 @@ Fourier Coefficients
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.misc.cachefunc import cached_method
+from sage.rings.integer_ring import ZZ
 
 def _hurwitz_zeta_(s, alpha,  m = 0):
     r"""
@@ -83,6 +84,12 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             0.6662132930552261854907365944100480575054?
             - 0.846149952187313903148341318493225023684?*I
     """
+    from sage.misc.misc import srange, verbose
+    from sage.rings.arith import bernoulli, falling_factorial
+
+    CIF = s.parent()
+    RIF = s.real().parent()
+
     # We rely on (2pi)^-N for convergence of the error term.
     # As a conservative estimate, 2pi is approximately 2^2,
     # so we will need N ~ s.prec()/2 to achieve an error which
@@ -100,7 +107,6 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
     result += factor/2
 
     N = 0
-    RIF = s.real().parent()
     error_factor = RIF(4)
 
     while True:
@@ -112,8 +118,8 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         factor *= (-s - N + 1)
         assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
 
-        error_factor /= RIF(4*pi**2)
-        assert error_factor.overlaps(RIF(4/(2*pi)**N))
+        error_factor /= 4*RIF.pi()**2
+        assert error_factor.overlaps(4/(2*RIF.pi())**N)
         error_bound = error_factor / (sigma + N - 1) * factor.abs()
 
         error_acceptable = ZZ(2) ** (max(result.real().abs().log2(),
@@ -341,7 +347,6 @@ class FSMFourier(Transducer):
         from sage.modules.free_module import VectorSpace
         from sage.modules.free_module_element import vector
         from sage.rings.arith import lcm
-        from sage.rings.integer_ring import ZZ
         from sage.rings.number_field.number_field import CyclotomicField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.rational_field import QQ
