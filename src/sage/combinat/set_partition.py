@@ -24,6 +24,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.species import Species
+from sage.misc.bijection import bijection
 
 from sage.sets.set import Set, is_Set
 
@@ -32,8 +34,6 @@ import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
@@ -561,6 +561,28 @@ class SetPartition(ClonableArray):
             {{1, 4, 5}, {2, 3}}
         """
         return self.__class__(self.parent(), [Set(map(p, B)) for B in self])
+
+    @bijection
+    def transport(self, bij):
+        """
+
+        TESTS::
+
+            sage: SetPartition([[1,2], [3,5,4]]).transport([2,1,4,5,3])
+            {{1, 2}, {3, 4, 5}}
+
+        """
+        return self.apply_permutation(bij)
+
+    def underlying_set(self):
+        """
+        TESTS::
+
+            sage: SetPartition([[1,2], [3,5,4]]).underlying_set()
+            {1, 2, 3, 4, 5}
+
+        """
+        return reduce(lambda i,j: i+j, self, Set([]))
 
     def is_noncrossing(self):
         r"""
@@ -1200,8 +1222,55 @@ class SetPartitions_all(SetPartitions):
 
             sage: S = SetPartitions()
             sage: TestSuite(S).run()
+
+        TESTS::
+
+            sage: SetPartitions().cycle_index_series(4)
+            5/8*p[1, 1, 1, 1] + 7/4*p[2, 1, 1] + 7/8*p[2, 2] + p[3, 1] + 3/4*p[4]
         """
-        SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
+        SetPartitions.__init__(self, category=Species())
+
+    def transport(self, bij):
+        """
+        TESTS::
+
+            sage: sp = SetPartitions(4)[12]; sp
+            {{1, 3}, {2}, {4}}
+            sage: sp.transport([2,3,1,4])
+            {{1, 2}, {3}, {4}}
+
+        """
+        return lambda sp: sp.transport(bij)
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: SetPartitions().graded_component(4)
+            Set partitions of {1, 2, 3, 4}
+
+        """
+        return self.structures(frozenset(range(1, n+1)))
+
+    def structures(self, U):
+        """
+        TESTS::
+
+            sage: SetPartitions().structures({'a','b','c'}) # random order
+            Set partitions of {'a', 'c', 'b'}
+        """
+        return SetPartitions_set(U)
+
+    def grading(self, elt):
+        """
+        TESTS::
+
+            sage: SetPartition(({1,2,3},{4,5}))
+            {{1, 2, 3}, {4, 5}}
+            sage: SetPartitions().grading(_)
+            5
+        """
+        return sum(s.cardinality() for s in elt)
 
     def _repr_(self):
         """
@@ -1264,7 +1333,17 @@ class SetPartitions_set(SetPartitions):
             [{}]
         """
         self._set = s
-        SetPartitions.__init__(self, category=FiniteEnumeratedSets())
+        SetPartitions.__init__(self, category=Species.Structures())
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: SetPartitions(4).ambient()
+            Set partitions
+
+        """
+        return SetPartitions_all()
 
     def _repr_(self):
         """
@@ -1274,6 +1353,15 @@ class SetPartitions_set(SetPartitions):
             Set partitions of {1, 2, 3}
         """
         return "Set partitions of %s"%(Set(self._set))
+
+    def underlying_set(self):
+        """
+        TESTS::
+
+            sage: SetPartitions([1,2,3]).underlying_set()
+            {1, 2, 3}
+        """
+        return Set(self._set)
 
     def __contains__(self, x):
         """

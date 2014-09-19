@@ -223,12 +223,13 @@ Classes and methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.categories.species import Species
+
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.sets.set import Set
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.list_clone import ClonableArray
@@ -5424,7 +5425,15 @@ class StandardPermutations_all(Permutations):
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
         """
-        Permutations.__init__(self, category=CombinatorialStructures())
+        Permutations.__init__(self, category=Species())
+
+    def transport(self, bij):
+        if isinstance(bij, (list, tuple)):
+            bij= self._element_constructor(bij)
+        return  lambda sigma: bij * sigma * ~bij
+
+    def structures(self, U):
+        pass
 
     def graded_component(self, grade):
         """
@@ -5506,10 +5515,39 @@ class StandardPermutations_n(Permutations):
 
             sage: SP = Permutations(3)
             sage: TestSuite(SP).run()
+
         """
         self.n = n
         Permutations.__init__(self,
-                        category=CombinatorialStructures.GradedComponents())
+                        category=Species.Structures())
+
+    def cycle_index_series(self):
+        """
+        TESTS::
+
+            sage: P = Permutations()
+            sage: P.cycle_index_series(3)
+            p[1, 1, 1] + p[2, 1] + p[3]
+            sage: P.cycle_index_series(4)
+            p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2] + p[3, 1] + p[4]
+
+        """
+        from sage.combinat.partition import Partitions
+        from sage.rings.rational_field import QQ
+        from sage.combinat.sf.sf import SymmetricFunctions
+
+        p = SymmetricFunctions(QQ).p()
+        return sum(p(lamb) for lamb in Partitions(self.grading()))
+
+    def underlying_set(self):
+        """
+        TESTS::
+
+            sage: Permutations(4).underlying_set()
+            {1, 2, 3, 4}
+
+        """
+        return Set(range(1, self.grading()+1))
 
     def ambient(self):
         """
@@ -5517,6 +5555,7 @@ class StandardPermutations_n(Permutations):
 
             sage: Permutations(3).ambient()
             Standard permutations
+
         """
         return StandardPermutations_all()
 

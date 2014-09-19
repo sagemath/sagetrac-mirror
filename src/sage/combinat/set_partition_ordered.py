@@ -24,6 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.bijection import bijection
 
 from sage.rings.arith import factorial
 import sage.rings.integer
@@ -190,6 +191,29 @@ class OrderedSetPartition(ClonableArray):
             [2, 1, 2]
         """
         return Composition(map(len, self))
+
+
+    @bijection
+    def transport(self, bij):
+        """
+        TESTS::
+
+            sage: OrderedSetPartition([[1,2], [3,5,4]]).transport([3,4,1,2,5])
+            [{3, 4}, {1, 2, 5}]
+
+        """
+        return self.parent()._element_constructor_([[bij(j) for j in s]
+                                                    for s in self])
+
+    def underlying_set(self):
+        """
+        TESTS::
+
+            sage: OrderedSetPartition([[1,2], [3,5,4]]).underlying_set()
+            {1, 2, 3, 4, 5}
+
+        """
+        return reduce(lambda i,j: i+j, self, Set([]))
 
 class OrderedSetPartitions(Parent, UniqueRepresentation):
     """
