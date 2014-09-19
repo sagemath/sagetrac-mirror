@@ -53,10 +53,12 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             ...
             ZeroDivisionError: zeta is singular at 1.
 
-    -   Currently, the function is not implemented for non-positive
-        integers::
+    -   Checking the function for non-positive integers::
 
-            sage: _hurwitz_zeta_(CIF(-1), 1)
+            sage: zeta(-1) in _hurwitz_zeta_(CIF(-1), 1)
+            True
+            sage: zeta(0) in _hurwitz_zeta_(CIF(0), 1)
+            True
 
     -   Debugging output can be enabled using
         :func:`~sage.misc.misc.set_verbose`. To test it, We use a
@@ -65,7 +67,18 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
             sage: set_verbose(2)
             sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
-            1.002679824577679? - 0.00099015190761022?*I
+            verbose 1 (...) _hurwitz_zeta_(1 + 144.2695040888963?*I, 1, 0): M = 172
+            verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 2.22044604925031?e-16, result = 2.125571548789? + 0.511221280470?*I
+            verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 2.22044604925031?e-16, result = 2.125575595864? + 0.51121897538?*I
+            verbose 2 (...)     N = 6, error = 3.65215306101?e-6, acceptable_error = 2.22044604925031?e-16, result = 2.125575660430? + 0.511218933060?*I
+            verbose 2 (...)     N = 8, error = 4.83820940904?e-8, acceptable_error = 2.22044604925031?e-16, result = 2.125575661484? + 0.511218932225?*I
+            verbose 2 (...)     N = 10, error = 6.84787778802?e-10, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.511218932208?*I
+            verbose 2 (...)     N = 12, error = 1.011644165731?e-11, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 16, error = 2.40250320318?e-15, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 1 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            2.125575661501? + 0.51121893221?*I
             sage: set_verbose(0)
 
     -   The current implementation does not work well with negative real
@@ -81,8 +94,8 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         to clear the cache first::
 
             sage: _hurwitz_zeta_(ComplexIntervalField(200)(-15 + I), 1)
-            0.6662132930552261854907365944100480575054?
-            - 0.846149952187313903148341318493225023684?*I
+            0.66621329305522618549073660?
+            - 0.8461499521873139031483414?*I
     """
     from sage.misc.misc import srange, verbose
     from sage.rings.arith import bernoulli, falling_factorial
