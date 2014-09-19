@@ -97,7 +97,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
     result = sum((r + alpha)**(-s) for r in reversed(srange(m, M)))
     result += (M + alpha)**(1-s)/(s-1)
     factor = (M + alpha)**(-s)
-    result += 1/2 * factor
+    result += factor/2
 
     N = 0
     RIF = s.real().parent()
