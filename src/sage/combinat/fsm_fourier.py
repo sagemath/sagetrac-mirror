@@ -85,7 +85,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         values, all precision is lost::
 
             sage: _hurwitz_zeta_(CIF(-15+I), 1)
-            0.?e5 + 0.?e5*I
+            0.?e12 + 0.?e12*I
             sage: hurwitz_zeta(ComplexField(200)(-15 + I), 1)
             0.66621329305522618549073659441004805750538410627754288912677
             - 0.84614995218731390314834131849322502368334938802936485299779*I
@@ -102,6 +102,9 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     CIF = s.parent()
     RIF = s.real().parent()
+
+    if ZZ(1) in s:
+        raise ZeroDivisionError("zeta is singular at 1.")
 
     # We rely on (2pi)^-N for convergence of the error term.
     # As a conservative estimate, 2pi is approximately 2^2,
@@ -135,9 +138,12 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         assert error_factor.overlaps(4/(2*RIF.pi())**N)
         error_bound = error_factor / (sigma + N - 1) * factor.abs()
 
-        error_acceptable = ZZ(2) ** (max(result.real().abs().log2(),
-                                         result.imag().abs().log2()).floor()
-                                     - result.prec())
+        if result.abs().upper().is_zero():
+            error_acceptable = 0
+        else:
+            error_acceptable = ZZ(2) ** (max(result.real().abs().upper().log2(),
+                                             result.imag().abs().upper().log2()).floor()
+                                         - result.prec())
 
         verbose("    N = %d, error = %s, acceptable_error = %s, result = %s" %
                 (N, error_bound, error_acceptable, result), level=2)
