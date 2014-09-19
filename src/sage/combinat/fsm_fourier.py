@@ -10,6 +10,129 @@ Fourier Coefficients
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.misc.cachefunc import cached_method
+
+def _hurwitz_zeta_(s, alpha,  m = 0):
+    r"""
+    Compute the truncated Hurwitz zeta function `\sum_{k\ge m} (k+\alpha)^{-s}`.
+
+    INPUT:
+
+    -   ``s`` -- a :class:`ComplexIntervalField` element
+
+    -   ``alpha`` -- a :class:`RealIntervalField` element
+
+    -   ``m`` -- a positive integer
+
+
+    OUTPUT:
+
+    A :class:`ComplexIntervalField` element in the same ring as ``s``.
+
+    EXAMPLES:
+
+    -   ::
+
+            sage: from fsm_fourier import _hurwitz_zeta_
+            sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
+            0.097483848201852? + 0.?e-17*I
+
+    -   Compare with well-known value `\zeta(2)=\zeta(2, 1)=\pi^2/6`::
+
+            sage: _hurwitz_zeta_(CIF(2), 1)
+            1.64493406684823? + 0.?e-17*I
+            sage: (_hurwitz_zeta_(CIF(2), 1) - CIF(pi)^2/6).abs()<10^(-13)
+            True
+            sage: _hurwitz_zeta_(CIF(2*pi*I/log(2)), 1)
+            1.598734526809? + 0.278338669639?*I
+
+    -   There is a singularity at `s=1`. ::
+
+            sage: _hurwitz_zeta_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)), 1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: zeta is singular at 1.
+
+    -   Currently, the function is not implemented for non-positive
+        integers::
+
+            sage: _hurwitz_zeta_(CIF(-1), 1)
+
+    -   Debugging output can be enabled using
+        :func:`~sage.misc.misc.set_verbose`. To test it, We use a
+        large imaginary part because convergence is worse in those
+        cases::
+
+            sage: set_verbose(2)
+            sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
+            1.002679824577679? - 0.00099015190761022?*I
+            sage: set_verbose(0)
+
+    -   The current implementation does not work well with negative real
+        values, all precision is lost::
+
+            sage: _hurwitz_zeta_(CIF(-15+I), 1)
+            0.?e5 + 0.?e5*I
+            sage: hurwitz_zeta(ComplexField(200)(-15 + I))
+            0.66621329305522618549073659441004805750538410627754288912677
+            - 0.84614995218731390314834131849322502368334938802936485299779*I
+
+        A work-around is to start with higher precision; however, we have
+        to clear the cache first::
+
+            sage: _hurwitz_zeta_(ComplexIntervalField(200)(-15 + I))
+            0.6662132930552261854907365944100480575054?
+            - 0.846149952187313903148341318493225023684?*I
+    """
+    # We rely on (2pi)^-N for convergence of the error term.
+    # As a conservative estimate, 2pi is approximately 2^2,
+    # so we will need N ~ s.prec()/2 to achieve an error which
+    # is less than the resolution of s.
+    # In order to have the falling factorial (-s)^\underline{N}
+    # smaller than (M+a)^N, we choose M>|s|+N
+    M = max(m, (s.prec()/2).ceil() + ZZ(s.abs().upper().ceil()))
+    verbose("_hurwitz_zeta_(%s, %s, %s): M = %d" % (s, alpha, m, M),
+            level=1)
+
+    sigma = s.real()
+    result = sum((r + alpha)**(-s) for r in reverse(srange(m, M)))
+    result += (M + alpha)**(1-s)/(s-1)
+    factor = (M + alpha)**(-s)
+    result += 1/2 * factor
+
+    N = 0
+    error_factor = s.real().parent(4)
+
+    while True:
+        N += 2
+        factor *= (-s - N + 2)/(M + alpha)
+        assert factor.overlaps(falling_factorial(-s, N - 1)/(M + alpha)**(s + N - 1))
+        result -= bernoulli(N)/N.factorial() * factor
+
+        factor *= (-s - N + 1)
+        assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
+
+        error_factor /= (4*pi**2)
+        assert error_factor.overlaps(4/(2*pi)**N)
+        error_bound = error_factor / (sigma + N - 1) * factor.abs()
+
+        error_acceptable = ZZ(2) ** (max(result.real().abs().log2(),
+                                         result.imag().abs().log2()).floor()
+                                     - result.prec())
+
+        verbose("    N = %d, error = %f, acceptable_error = %f, result = %" %
+                (N, error_bound, error_acceptable, result), level=2)
+
+        if error_bound.abs() < error_acceptable:
+            error_real = RIF(-error_bound, error_bound)
+            error = CIF(error_real, error_real)
+            verbose("    N = %d, error = %f, acceptable_error = %f, result = %" %
+                    (N, error_bound, error_acceptable, result), level=1)
+            return result + error
+
+        factor /= (M + alpha)
+        assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
+
+
 class FSMFourier(Transducer):
     """
     Fourier coefficients for the sum of output of transducers.
