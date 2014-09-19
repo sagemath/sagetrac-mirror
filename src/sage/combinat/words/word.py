@@ -22,6 +22,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.combinat.words.word_char import Word_char
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.infinite_word import InfiniteWord_class
@@ -214,6 +215,27 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 #######################################################################
 
 ##### Finite Words #####
+
+class FiniteWord_char(Word_char, FiniteWord_class):
+    r"""
+    Finite word represented by a Python list.
+
+    For any word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: w = Word(range(10))
+        sage: w.iterated_right_palindromic_closure()
+        word: 0102010301020104010201030102010501020103...
+
+    TESTS::
+
+        sage: w = Word([0,1,1,0])
+        sage: w == loads(dumps(w))
+        True
+    """
+    pass
 
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
