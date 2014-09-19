@@ -89,43 +89,44 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
     # is less than the resolution of s.
     # In order to have the falling factorial (-s)^\underline{N}
     # smaller than (M+a)^N, we choose M>|s|+N
-    M = max(m, (s.prec()/2).ceil() + ZZ(s.abs().upper().ceil()))
+    M = max(m, (s.prec()/ZZ(2)).ceil() + ZZ(s.abs().upper().ceil()))
     verbose("_hurwitz_zeta_(%s, %s, %s): M = %d" % (s, alpha, m, M),
             level=1)
 
     sigma = s.real()
-    result = sum((r + alpha)**(-s) for r in reverse(srange(m, M)))
+    result = sum((r + alpha)**(-s) for r in reversed(srange(m, M)))
     result += (M + alpha)**(1-s)/(s-1)
     factor = (M + alpha)**(-s)
     result += 1/2 * factor
 
     N = 0
-    error_factor = s.real().parent(4)
+    RIF = s.real().parent()
+    error_factor = RIF(4)
 
     while True:
         N += 2
         factor *= (-s - N + 2)/(M + alpha)
         assert factor.overlaps(falling_factorial(-s, N - 1)/(M + alpha)**(s + N - 1))
-        result -= bernoulli(N)/N.factorial() * factor
+        result -= bernoulli(N)/ZZ(N).factorial() * factor
 
         factor *= (-s - N + 1)
         assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
 
-        error_factor /= (4*pi**2)
-        assert error_factor.overlaps(4/(2*pi)**N)
+        error_factor /= RIF(4*pi**2)
+        assert error_factor.overlaps(RIF(4/(2*pi)**N))
         error_bound = error_factor / (sigma + N - 1) * factor.abs()
 
         error_acceptable = ZZ(2) ** (max(result.real().abs().log2(),
                                          result.imag().abs().log2()).floor()
                                      - result.prec())
 
-        verbose("    N = %d, error = %f, acceptable_error = %f, result = %" %
+        verbose("    N = %d, error = %s, acceptable_error = %s, result = %s" %
                 (N, error_bound, error_acceptable, result), level=2)
 
         if error_bound.abs() < error_acceptable:
             error_real = RIF(-error_bound, error_bound)
             error = CIF(error_real, error_real)
-            verbose("    N = %d, error = %f, acceptable_error = %f, result = %" %
+            verbose("    N = %d, error = %s, acceptable_error = %s, result = %s" %
                     (N, error_bound, error_acceptable, result), level=1)
             return result + error
 
