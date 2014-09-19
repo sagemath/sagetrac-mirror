@@ -68,16 +68,16 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             sage: set_verbose(2)
             sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
             verbose 1 (...) _hurwitz_zeta_(1 + 144.2695040888963?*I, 1, 0): M = 172
-            verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 2.22044604925031?e-16, result = 2.125571548789? + 0.511221280470?*I
-            verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 2.22044604925031?e-16, result = 2.125575595864? + 0.51121897538?*I
-            verbose 2 (...)     N = 6, error = 3.65215306101?e-6, acceptable_error = 2.22044604925031?e-16, result = 2.125575660430? + 0.511218933060?*I
-            verbose 2 (...)     N = 8, error = 4.83820940904?e-8, acceptable_error = 2.22044604925031?e-16, result = 2.125575661484? + 0.511218932225?*I
-            verbose 2 (...)     N = 10, error = 6.84787778802?e-10, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.511218932208?*I
-            verbose 2 (...)     N = 12, error = 1.011644165731?e-11, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 16, error = 2.40250320318?e-15, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 1 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.22044604925031?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 2.2204460492503131?e-16, result = 2.125571548789? + 0.511221280470?*I
+            verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 2.2204460492503131?e-16, result = 2.125575595864? + 0.51121897538?*I
+            verbose 2 (...)     N = 6, error = 3.65215306101?e-6, acceptable_error = 2.2204460492503131?e-16, result = 2.125575660430? + 0.511218933060?*I
+            verbose 2 (...)     N = 8, error = 4.83820940904?e-8, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661484? + 0.511218932225?*I
+            verbose 2 (...)     N = 10, error = 6.84787778802?e-10, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.511218932208?*I
+            verbose 2 (...)     N = 12, error = 1.011644165731?e-11, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 16, error = 2.40250320318?e-15, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 1 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
             2.125575661501? + 0.51121893221?*I
             sage: set_verbose(0)
 
@@ -141,7 +141,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         if result.abs().upper().is_zero():
             error_acceptable = 0
         else:
-            error_acceptable = ZZ(2) ** (max(result.real().abs().upper().log2(),
+            error_acceptable = RIF(2) ** (max(result.real().abs().upper().log2(),
                                              result.imag().abs().upper().log2()).floor()
                                          - result.prec())
 
