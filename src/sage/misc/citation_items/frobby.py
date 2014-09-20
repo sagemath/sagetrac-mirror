@@ -17,5 +17,3 @@ class Frobby_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.broune.com/frobby}}},
 }
     """
-
-    _re = [r"^sage.interfaces.frobby"]

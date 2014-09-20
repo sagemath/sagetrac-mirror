@@ -20,6 +20,7 @@ NOTES:
 """
 
 from subprocess import *
+from sage.misc.cite import cite
 from sage.misc.misc_c import prod
 
 class Frobby:
@@ -55,6 +56,8 @@ class Frobby:
         AUTHOR:
             - Bjarke Hammersholt Roune (2008-04-27)
         """
+        cite("frobby")
+
         command = ['frobby'] + action.split()
         for option in options:
             command += ('-' + option.strip()).split()
