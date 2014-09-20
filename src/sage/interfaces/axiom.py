@@ -179,6 +179,7 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import verbose, DOT_SAGE
 from pexpect import EOF
+from sage.misc.cite import cite
 from sage.misc.multireplace import multiple_replace
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
@@ -419,6 +420,8 @@ class PanAxiom(Expect):
               4
                                                        Type: PositiveInteger
         """
+        cite("axiom")
+
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
         line = line.rstrip().rstrip(';')

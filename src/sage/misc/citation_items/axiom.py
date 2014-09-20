@@ -19,5 +19,3 @@ class Axiom_CitationItem( CitationItem ):
     Publisher = {Springer-Verlag, Berlin},
 }
     """
-
-    _re = [r"^sage.interfaces.axiom"]
