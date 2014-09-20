@@ -38,6 +38,8 @@ TODO -- much functionality of gfan-0.3 is still not exposed
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cite import cite
+
 from subprocess import *
 
 class Gfan:
@@ -45,6 +47,8 @@ class Gfan:
     Interface to Anders Jensen's Groebner Fan program.
     """
     def __call__(self, I, cmd='',verbose = False, format=True):
+        cite("gfan")
+
         if cmd != '' and cmd.lstrip()[0] != '-':
             cmd = 'gfan_%s'%cmd
         else:

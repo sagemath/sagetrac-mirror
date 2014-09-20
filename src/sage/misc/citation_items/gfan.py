@@ -19,5 +19,3 @@ class gfan_CitationItem( CitationItem ):
     howpublished = {{\url{http://home.imf.au.dk/jensen/software/gfan/gfan.html}}}
 } 
     """
-
-    _re = [r"^sage.interfaces.gfan"]
