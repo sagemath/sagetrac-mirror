@@ -41,6 +41,8 @@ import matrix_double_dense
 
 from sage.rings.complex_double import CDF
 
+from sage.misc.citation_cython cimport cite
+
 cimport numpy as cnumpy
 
 numpy=None
@@ -98,6 +100,8 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
+        cite("numpy")
+
         global numpy
         if numpy is None:
             import numpy

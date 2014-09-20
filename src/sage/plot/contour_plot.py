@@ -24,6 +24,8 @@ from sage.plot.colors import rgbcolor, get_cmap
 from sage.misc.misc import xsrange
 import operator
 
+from sage.misc.citation_cython import cite
+
 class ContourPlot(GraphicPrimitive):
     """
     Primitive class for the contour plot graphics type.  See
@@ -492,6 +494,8 @@ def contour_plot(f, xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,-2,0], fill=False)
     """
+    cite("numpy")
+
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
 
@@ -836,6 +840,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
         sage: region_plot(x^2+y^2<100, (x,1,10), (y,1,10), scale='loglog')
 
     """
+    cite("numpy")
 
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid

@@ -22,6 +22,8 @@ from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 
+from sage.misc.citation_cython import cite
+
 class CurveArrow(GraphicPrimitive):
     def __init__(self, path, options):
         """
@@ -34,6 +36,8 @@ class CurveArrow(GraphicPrimitive):
             sage: b
             CurveArrow from (0, 0) to (0, 0)
         """
+        cite("numpy")
+
         import numpy as np
         self.path = path
         codes = [1] + (len(self.path[0])-1)*[len(self.path[0])]
@@ -403,6 +407,7 @@ class Arrow(GraphicPrimitive):
                     vert1, code1 = path.vertices, path.codes
                     import numpy as np
 
+                    cite("numpy")
                     if np.all(vert1 == tpath.vertices) and np.all(code1 == tpath.codes):
                         return True
                     else:

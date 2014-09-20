@@ -453,6 +453,8 @@ def matrix_plot(mat, **options):
 
         sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
     """
+    cite("numpy")
+
     import numpy as np
     import scipy.sparse as scipysparse
     from sage.plot.all import Graphics

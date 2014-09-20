@@ -23,6 +23,8 @@ include "sage/ext/python.pxi"
 
 import sage.modules.free_module
 
+from sage.misc.citation_cython import cite
+
 cdef class Matrix(matrix0.Matrix):
     ###################################################
     # Coercion to Various Systems
@@ -532,6 +534,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: b.shape
             (3, 4)
         """
+        cite("numpy")
+
         import numpy
         A = numpy.matrix(self.list(), dtype=dtype)
         return numpy.resize(A,(self.nrows(), self.ncols()))

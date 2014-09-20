@@ -26,6 +26,8 @@ Development supported by NSF award No. 0702939.
 import numpy as np
 cimport numpy as np
 
+from sage.misc.citation_cython cimport cite
+
 from math import pi
 cdef double TWOPI = 2*pi
 
@@ -87,6 +89,8 @@ cdef class PSpline:
             sage: pts = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
             sage: ps = polygon_spline(pts)
         """
+        cite("numpy")
+
         if type(pts[0]) == type((0,0)):
             self.pts = np.array(
                 [np.complex(i[0], i[1]) for i in pts], dtype=np.complex128)

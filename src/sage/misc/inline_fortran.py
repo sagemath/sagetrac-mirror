@@ -6,6 +6,8 @@ import os
 
 from sage.misc.temporary_file import tmp_dir
 
+from sage.misc.citation_cython import cite
+
 
 class InlineFortran:
     def __init__(self,globals):
@@ -43,6 +45,8 @@ class InlineFortran:
             sage: os.getcwd() == SAGE_ROOT
             True
         """
+        cite("numpy")
+
         if len(x.splitlines()) == 1 and os.path.exists(x):
             filename = x
             x = open(x).read()

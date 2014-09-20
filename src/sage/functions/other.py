@@ -24,6 +24,8 @@ from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 
+from sage.misc.citation_cython import cite
+
 one_half = ~SR(2)
 
 class Function_erf(BuiltinFunction):
@@ -403,6 +405,7 @@ class Function_ceil(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
             elif type(x).__module__ == 'numpy':
+                cite("numpy")
                 import numpy
                 return numpy.ceil(x)
 

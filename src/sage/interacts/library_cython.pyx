@@ -18,6 +18,8 @@ AUTHORS:
 
 from sage.misc.misc import prod
 
+from sage.misc.citation_cython import cite
+
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include "sage/ext/stdsage.pxi"
@@ -96,6 +98,8 @@ cpdef cellular(rule, int N):
          [1 1 0 1 0 1 0 0]
          [0 1 1 1 1 1 0 0]]
     """
+    cite("numpy")
+
     from numpy import zeros
     cdef int j, k, l
     M=zeros((N, 2*N+2), dtype=int)

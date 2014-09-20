@@ -42,6 +42,8 @@ from sage.rings.real_double import RDF
 
 cimport numpy as cnumpy
 
+from sage.misc.citation_cython cimport cite
+
 numpy=None
 scipy=None
 
@@ -98,6 +100,8 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
+        cite("numpy")
+
         global numpy
         if numpy is None:
             import numpy

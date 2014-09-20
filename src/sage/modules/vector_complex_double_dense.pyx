@@ -40,6 +40,8 @@ from sage.rings.complex_double import CDF
 
 cimport numpy as cnumpy
 
+from sage.misc.citation_cython cimport cite 
+
 numpy=None
 
 cdef class Vector_complex_double_dense(vector_double_dense.Vector_double_dense):
@@ -57,6 +59,8 @@ cdef class Vector_complex_double_dense(vector_double_dense.Vector_double_dense):
         -21.8696044011 + 40.5663706144*I
     """
     def __cinit__(self, parent, entries, coerce=True, copy=True):
+        cite("numpy")
+
         global numpy
         if numpy is None:
             import numpy

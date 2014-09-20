@@ -44,6 +44,8 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
+from sage.misc.citation_cython cimport cite
+
 cimport numpy as cnumpy
 
 numpy = None
@@ -81,6 +83,8 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         sage: v.__new__(v.__class__, v.parent(), [1,1,1]) # random output
         (-2.26770549592e-39, 5.1698223615e-252*I, -5.9147262602e-62 + 4.63145528786e-258*I)
         """
+        cite("numpy")
+
         self._is_mutable = 1
         self._degree = parent.degree()
         self._parent = parent

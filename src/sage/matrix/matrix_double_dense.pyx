@@ -58,6 +58,8 @@ cimport sage.structure.element
 from matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
 
+from sage.misc.citation_cython import cite
+
 cimport numpy as cnumpy
 
 numpy=None
@@ -104,6 +106,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Set up a new matrix
         """
+        cite("numpy")
+
         matrix_dense.Matrix_dense.__init__(self,parent)
         return
 

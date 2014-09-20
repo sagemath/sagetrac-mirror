@@ -121,6 +121,8 @@ cdef class TimeSeries:
 
             sage: t = finance.TimeSeries(10, initialize=False)
         """
+        cite("numpy")
+
         cdef Vector_real_double_dense z
         cdef cnumpy.ndarray np
         cdef double *np_data

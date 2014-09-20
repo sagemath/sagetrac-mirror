@@ -22,6 +22,8 @@ Scatter Plots
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 
+from sage.misc.citation_cython import cite
+
 class ScatterPlot(GraphicPrimitive):
     """
     Scatter plot graphics primitive.
@@ -178,6 +180,8 @@ def scatter_plot(datalist, **options):
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green', ymax=100)
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green').show(ymax=100) # These are equivalent
     """
+    cite("numpy")
+
     import numpy
     from sage.plot.all import Graphics
     g = Graphics()

@@ -28,6 +28,8 @@ AUTHORS:
 ##############################################################################
 from sage.rings.real_double import RDF
 
+from sage.misc.citation_cython import cite
+
 cimport numpy as cnumpy
 
 numpy=None
@@ -47,6 +49,8 @@ cdef class Vector_real_double_dense(vector_double_dense.Vector_double_dense):
         30.0
     """
     def __cinit__(self, parent, entries, coerce=True, copy=True):
+        cite("numpy")
+
         global numpy
         if numpy is None:
             import numpy

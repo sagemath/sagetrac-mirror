@@ -114,6 +114,7 @@ class BarChart(GraphicPrimitive):
         width = float(options['width'])
         # it is critical to make NumPy arrays of type float below,
         # or bar will go boom:
+        cite("numpy")
         import numpy
         ind = numpy.array(self.ind, dtype=float)
         datalist = numpy.array(self.datalist, dtype=float)
