@@ -302,8 +302,10 @@ cdef class Word_char(object):
         if data == NULL:
             raise MemoryError
 
+        sig_on()
         memcpy(data, self._data, self._length * sizeof(unsigned char))
         memcpy(data+self._length, other._data, other._length * sizeof(unsigned char))
+        sig_off()
 
         return self._new_c(data, self._length + other._length, None)
 
@@ -311,7 +313,13 @@ cdef class Word_char(object):
         r"""
         Concatenation of ``self`` and ``other``.
 
-        The result is automatically converted to a Word_char.
+        The result is automatically converted to a Word_char. Currently we can
+        even do
+
+            sage: W = Words(IntegerRange(0,255))
+            sage: w = FiniteWord_char(W, [0,1,2,3])
+            sage: w * [4,0,4,0]
+            word: 01234040
         """
         cdef Word_char w
 

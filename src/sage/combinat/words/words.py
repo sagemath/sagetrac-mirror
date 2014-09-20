@@ -165,7 +165,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             True
         """
         import sage.combinat.words.word as word
-        return {
+        classes = {
+            'FiniteWord_char': word.FiniteWord_char,
             'FiniteWord_list': word.FiniteWord_list,
             'FiniteWord_str': word.FiniteWord_str,
             'FiniteWord_tuple': word.FiniteWord_tuple,
@@ -180,6 +181,10 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
+        if len(self.alphabet()) <= 256 and all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet()):
+            classes['FiniteWord_list'] = classes['FiniteWord_char']
+            classes['FiniteWord_tuple'] = classes['FiniteWord_char']
+        return classes
 
     def _an_element_(self):
         r"""
@@ -521,9 +526,6 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 raise ValueError("Your data is not iterable")
             elif datatype == "callable" and not callable(data):
                 raise ValueError("Your data is not callable")
-            elif datatype not in ("list", "tuple", "str",
-                                "callable", "iter", "pickled_function"):
-                raise ValueError("Unknown datatype (=%s)" % datatype)
 
         # If `data` is a pickled_function, restore the function
         if datatype == 'pickled_function':
@@ -532,7 +534,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             datatype = 'callable'
 
         # Construct the word class and keywords
-        if datatype in ('list','str','tuple'):
+        if datatype in ('char', 'list','str','tuple'):
             cls_str = 'FiniteWord_%s'%datatype
             kwds = dict(parent=self,data=data)
         elif datatype == 'callable':
@@ -558,7 +560,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 cls_str += '_with_caching'
             kwds = dict(parent=self,iter=data,length=length)
         else:
-            raise ValueError("Not known datatype")
+            raise ValueError("Unknown datatype (=%s)" % datatype)
 
         wordclass = self._element_classes
         cls = wordclass[cls_str]
