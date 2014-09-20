@@ -159,14 +159,13 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: type(d)
             <type 'dict'>
             sage: len(d)
-            14
+            13
             sage: e = Words('abcdefg')._element_classes
             sage: d == e
             True
         """
         import sage.combinat.words.word as word
         classes = {
-            'FiniteWord_char': word.FiniteWord_char,
             'FiniteWord_list': word.FiniteWord_list,
             'FiniteWord_str': word.FiniteWord_str,
             'FiniteWord_tuple': word.FiniteWord_tuple,
@@ -181,14 +180,13 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
+
+        # test whether or not we can use the class Finiteword_char
         if self.alphabet().cardinality() <= 256 and all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet()):
             l = self.alphabet().list()
-
             if all(l[i] < l[i+1] for i in range(len(l)-1)) and all(self.cmp_letters(l[i],l[i+1]) == -1 for i in range(len(l)-1)):
-                classes['FiniteWord_list'] = classes['FiniteWord_char']
-                classes['FiniteWord_tuple'] = classes['FiniteWord_char']
-            else:
-                del classes['FiniteWord_char']
+                classes['FiniteWord_char'] = word.FiniteWord_char
+
         return classes
 
     def _an_element_(self):
@@ -516,10 +514,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         # Guess the datatype if it is not given.
         if datatype is None:
-            if isinstance(data, (list, CombinatorialObject)):
-                datatype = "list"
-            elif isinstance(data, (str)):
+            if 'FiniteWord_char' in self._element_classes and isinstance(data, (list,CombinatorialObject,tuple)):
+                datatype = 'char'
+            elif isinstance(data, str):
                 datatype = "str"
+            elif isinstance(data, (list, CombinatorialObject)):
+                datatype = "list"
             elif isinstance(data, tuple):
                 datatype = "tuple"
             elif callable(data):

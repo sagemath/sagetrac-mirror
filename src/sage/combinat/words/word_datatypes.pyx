@@ -41,9 +41,9 @@ cdef class WordDatatype(object):
 
             sage: w = Word([0,1,1,0,0,1])
             sage: w.__reduce__()
-            (<class 'sage.combinat.words.word.FiniteWord_list'>, (Words, [0, 1, 1, 0, 0, 1]))
+            (Words, ([0, 1, 1, 0, 0, 1],))
         """
-        return self.__class__, (self._parent, self._data)
+        return self._parent, (list(self),)
 
     def __hash__(self):
         r"""

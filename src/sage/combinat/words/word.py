@@ -218,10 +218,11 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
 class FiniteWord_char(WordDatatype_char, FiniteWord_class):
     r"""
-    Finite word represented by a Python list.
+    Finite word represented by an array of `unsigned char` (i.e. integers
+    between 0 and 255).
 
-    For any word `w`, type ``w.`` and hit TAB key to see the list of
-    functions defined on `w`.
+    For any word ``w``, type ``w.<TAB>`` to see the functions that can be applied
+    to ``w``.
 
     EXAMPLES::
 
@@ -245,10 +246,6 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
         sage: W(range(10)+[10,10]).is_lyndon()
         True
 
-        sage: w.is_square()
-        True
-        sage: w[:-2].is_square()
-        False
         sage: w.is_square_free()
         False
         sage: w[:-1].is_square_free()
@@ -270,20 +267,6 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
         0
         sage: u.first_pos_in(w[1:])
         8
-
-        sage: w = W([0,1,2,3])
-        sage: w
-        word: 0123
-        sage: w ** (1/2)
-        word: 01
-        sage: w ** 2
-        word: 01230123
-        sage: w ** 3
-        word: 012301230123
-        sage: w ** (7/2)
-        word: 01230123012301
-        sage: len(((w ** 2) ** 3) ** 5) == len(w) * 2 * 3 * 5
-        True
 
     TESTS::
 

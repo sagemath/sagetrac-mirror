@@ -31,6 +31,14 @@ def reversed_word_iterator(WordDatatype_char w):
     r"""
     This function exists only because it is not possible to use yield in the
     special method `__reversed__`.
+
+    EXAMPLES::
+
+        sage: W = Words([0,1,2])
+        sage: w = W([0,1,0,0,1])
+        sage: for i in reversed(w): # indirect doctest
+        ....:     print i,
+        1 0 0 1 0
     """
     cdef ssize_t i
     for i in range(w._length-1, 0, -1):
@@ -48,19 +56,35 @@ cdef class WordDatatype_char(WordDatatype):
     cdef WordDatatype_char _master
 
     def __cinit__(self):
+        r"""
+        Initialization of C attributes
+
+        TESTS::
+
+            sage: Words([0,1])([])
+            word:
+        """
         self._data = NULL
         self._length = 0
 
     def __init__(self, parent, data):
+        r"""
+        Constructor
+
+        TESTS::
+
+            sage: W = Words([0,1,2,3])
+            sage: W([0,1,2,3])
+            word: 0123
+            sage: W(iter([0,1,2,3]))
+            word: 0123
+        """
         self._parent = parent
 
         if not PySequence_Check(data):
             data = list(data)
         if data:
             self._set_data(data)
-
-    def __reduce__(self):
-        return self._parent, (list(self),)
 
     @cython.boundscheck(False) # assume that indexing will not cause any IndexErrors
     @cython.wraparound(False)  # not check not correctly handle negative indices
@@ -144,6 +168,14 @@ cdef class WordDatatype_char(WordDatatype):
     def __hash__(self):
         r"""
         Return the hash value.
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: W([0,1,0,1,0,0,0], datatype='list').__hash__()
+            102060647
+            sage: W([0,1,0,1,0,0,0], datatype='char').__hash__()
+            102060647
         """
         cdef int res = 5381
         cdef size_t i
@@ -192,6 +224,15 @@ cdef class WordDatatype_char(WordDatatype):
             return op == 1 or op == 2 or op == 5
 
     def __cmp__(self, other):
+        r"""
+        TESTS::
+
+            sage: W = Words([0,1,2,3])
+            sage: cmp(W([0,1,0]), W([0,1,0]))
+            0
+            sage: cmp(W([0,1,0,0]), W([0,1,1]))
+            -1
+        """
         if not PY_TYPE_CHECK(other, WordDatatype_char):
             return NotImplemented
 
@@ -220,19 +261,9 @@ cdef class WordDatatype_char(WordDatatype):
         else:
             return 1
 
-    def _get_info(self):
-        r"""
-        Temporary function that print useful debug information
-        """
-        if self._master:
-            print "master at %u"%(id(self._master))
-        print "data at %u"%(<size_t>self._data)
-
     def __getitem__(self, key):
         r"""
         TESTS::
-
-        EXAMPLES::
 
             sage: W = Words([0,1,2,3])
             sage: w = W([0,1,0,2,0,3,1,2,3])
@@ -244,8 +275,6 @@ cdef class WordDatatype_char(WordDatatype):
             word: 10203123
             sage: w[5::-2]
             word: 321
-
-        TESTS::
 
             sage: w = W([randint(0,3) for _ in range(20)])
             sage: list(w) == [w[i] for i in range(len(w))]
@@ -283,11 +312,31 @@ cdef class WordDatatype_char(WordDatatype):
         raise TypeError("word indices must be integers")
 
     def __iter__(self):
+        r"""
+        Iterator over the letter of self
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2,3])
+            sage: for i in W([0,0,1,0]):  # indirect doctest
+            ....:     print i,
+            0 0 1 0
+        """
         cdef size_t i
         for i in range(self._length):
             yield self._data[i]
 
     def __reversed__(self):
+        r"""
+        Reversed iterator over the letter of self
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2,3])
+            sage: for i in reversed(W([0,0,1,0])): # indirect doctest
+            ....:     print i,
+            0 1 0 0
+        """
         return reversed_word_iterator(self)
 
     cdef _concatenate(self, WordDatatype_char other):
@@ -309,10 +358,13 @@ cdef class WordDatatype_char(WordDatatype):
 
         TESTS:
 
+            sage: W = Words(IntegerRange(0,255))
+            sage: W([0,1]) * W([2,0])
+            word: 0120
+
         The result is automatically converted to a WordDatatype_char. Currently we can
         even do::
 
-            sage: W = Words(IntegerRange(0,255))
             sage: w = W([0,1,2,3])
             sage: w * [4,0,4,0]
             word: 01234040
@@ -333,6 +385,28 @@ cdef class WordDatatype_char(WordDatatype):
     def __pow__(self, exp, mod):
         r"""
         Power
+
+        TESTS::
+
+            sage: W = Words(range(20))
+            sage: w = W([0,1,2,3])
+            sage: w
+            word: 0123
+            sage: w ** (1/2)
+            word: 01
+            sage: w ** 2
+            word: 01230123
+            sage: w ** 3
+            word: 012301230123
+            sage: w ** (7/2)
+            word: 01230123012301
+            sage: len(((w ** 2) ** 3) ** 5) == len(w) * 2 * 3 * 5
+            True
+
+        Infinite exponents::
+
+            sage: W([0,1]) ** Infinity
+            word: 0101010101010101010101010101010101010101...
         """
         if not PyNumber_Check(exp):
             raise ValueError("the exponent must be a number or infinity")
@@ -396,6 +470,21 @@ cdef class WordDatatype_char(WordDatatype):
         INPUT:
 
         - ``other`` -- a word or a sequence (e.g. tuple, list)
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,1,1,0,1,2,0])
+            sage: w.has_prefix([0,1,1])
+            True
+            sage: w.has_prefix([0,1,2])
+            False
+            sage: w.has_prefix(w)
+            True
+            sage: w.has_prefix(w[:-1])
+            True
+            sage: w.has_prefix(w[1:])
+            False
         """
         cdef size_t i
         cdef WordDatatype_char w

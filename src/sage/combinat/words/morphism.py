@@ -620,13 +620,13 @@ class WordMorphism(SageObject):
             sage: w = m([0],4); type(w)
             <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
             sage: w = m([0],4,datatype='list'); type(w)
-            <class 'sage.combinat.words.word.FiniteWord_char'>
+            <class 'sage.combinat.words.word.FiniteWord_list'>
             sage: w = m([0],4,datatype='str')
             Traceback (most recent call last):
             ...
             ValueError: 0 not in alphabet!
             sage: w = m([0],4,datatype='tuple'); type(w)
-            <class 'sage.combinat.words.word.FiniteWord_char'>
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
 
         The word must be in the domain of self::
 
