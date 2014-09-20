@@ -43,6 +43,7 @@ from math import ceil, floor
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
+from sage.misc.cite import cite
 from sage.misc.misc import verbose, tmp_filename
 from sage.misc.decorators import rename_keyword
 
@@ -211,6 +212,8 @@ class ECM(SageObject):
             sage: ecm._run_ecm(['cat'], 1234)
             '1234'
         """
+        cite("ecm")
+
         from subprocess import Popen, PIPE, STDOUT
         p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         out, err = p.communicate(input=str(n))
