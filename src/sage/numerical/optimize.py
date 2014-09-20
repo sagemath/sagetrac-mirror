@@ -12,6 +12,7 @@ Functions and Methods
 """
 
 
+from sage.misc.cite import cite
 from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -109,6 +110,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
             raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
+    cite("scipy")
     import scipy.optimize
     return scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
@@ -225,6 +227,7 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     except AttributeError:
         pass
     a = float(a); b = float(b)
+    cite("scipy")
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
@@ -311,6 +314,8 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
         (1.00...,  1.00..., 1.00...)
     """
+    cite("scipy")
+
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
     import scipy
@@ -426,6 +431,8 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
       optimization. ACM Transactions on Mathematical Software, Vol 23, Num. 4,
       pp.550--560, 1997.
     """
+    cite("scipy")
+
     from sage.symbolic.expression import Expression
     import scipy
     from scipy import optimize
@@ -700,6 +707,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
     x_data = data[:, 0:len(variables)]
     y_data = data[:, -1]
 
+    cite("scipy")
     from scipy.optimize import leastsq
     estimated_params, d = leastsq(error_function, initial_guess, args = (x_data, y_data))
 

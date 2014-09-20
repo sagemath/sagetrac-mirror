@@ -18,5 +18,3 @@ class scipy_CitationItem( CitationItem ):
     howpublished          = {{\url{http://www.scipy.org}}},
 }
     """
-
-    _re = [r"scipy"]

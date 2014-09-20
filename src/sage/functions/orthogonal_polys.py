@@ -317,6 +317,7 @@ AUTHORS:
 
 import warnings
 
+from sage.misc.cite import cite
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, RR, CC
 from sage.rings.real_mpfr import is_RealField
@@ -853,6 +854,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: chebyshev_T(z,0.1)
             array([ 0.1 , -0.98])
         """
+        cite("scipy")
         from scipy.special import eval_chebyt
         return eval_chebyt(n, x)
 
@@ -1126,6 +1128,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U(z,0.1)
             array([ 0.2 , -0.96])
         """
+        cite("scipy")
         from scipy.special import eval_chebyu
         return eval_chebyu(n, x)
 

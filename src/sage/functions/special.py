@@ -206,6 +206,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
+from sage.misc.cite import cite
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF
@@ -523,6 +524,8 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         0.59634736232319407434...
     """
     if algorithm=="scipy":
+        cite("scipy")
+
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
@@ -555,6 +558,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
         0.345677499762355...
     """
     if algorithm=="scipy":
+        cite("scipy")
         from scipy.special.specfun import sphj
         return sphj(int(n), float(var))[1][-1]
     elif algorithm == 'maxima':
@@ -577,6 +581,8 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
         -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
     """
     if algorithm=="scipy":
+        cite("scipy")
+
         import scipy.special
         ans = str(scipy.special.sph_yn(int(n),float(var)))
         ans = ans.replace("(","")

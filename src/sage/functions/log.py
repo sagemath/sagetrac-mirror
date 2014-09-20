@@ -10,6 +10,7 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
+from sage.misc.cite import cite
 from sage.structure.coerce import parent as sage_structure_coerce_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
@@ -685,6 +686,7 @@ class Function_lambert_w(BuiltinFunction):
         """
         R = parent or sage_structure_coerce_parent(z)
         if R is float or R is complex or R is RDF or R is CDF:
+            cite("scipy")
             import scipy.special
             return scipy.special.lambertw(z, n)
         else:

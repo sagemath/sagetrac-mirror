@@ -182,6 +182,7 @@ from sage.functions.log import exp
 from sage.functions.hyperbolic import sinh, cosh
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.misc.latex import latex
+from sage.misc.cite import cite
 from sage.rings.all import RR, Integer
 from sage.structure.coerce import parent
 from sage.structure.element import get_coercion_model
@@ -1182,6 +1183,7 @@ def _bessel_I(nu,z,algorithm = "pari",prec=53):
         K = z.parent()
         return K(pari(nu).besseli(z, precision=prec))
     elif algorithm=="scipy":
+        cite("scipy")
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
@@ -1276,6 +1278,8 @@ def _bessel_J(nu,z,algorithm="pari",prec=53):
         K = z.parent()
         return K(pari(nu).besselj(z, precision=prec))
     elif algorithm=="scipy":
+        cite("scipy")
+
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
@@ -1336,6 +1340,8 @@ def _bessel_K(nu,z,algorithm="pari",prec=53):
 
     """
     if algorithm=="scipy":
+        cite("scipy")
+
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
@@ -1403,6 +1409,8 @@ def _bessel_Y(nu,z,algorithm="maxima", prec=53):
         NotImplementedError: The Y-Bessel function is only implemented for the maxima and scipy algorithms
     """
     if algorithm=="scipy":
+        cite("scipy")
+
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special

@@ -21,6 +21,7 @@ Matrix Plots
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
 from sage.plot.colors import get_cmap
+from sage.misc.cite import cite
 
 class MatrixPlot(GraphicPrimitive):
     """
@@ -464,6 +465,8 @@ def matrix_plot(mat, **options):
     if is_Matrix(mat):
         sparse = mat.is_sparse()
         if sparse:
+            cite("scipy")
+
             entries = list(mat._dict().items())
             try:
                 data = np.asarray([d for _,d in entries], dtype=float)

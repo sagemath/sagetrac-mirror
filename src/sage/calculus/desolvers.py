@@ -68,6 +68,7 @@ from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.decorators import rename_keyword
+from sage.misc.cite import cite
 
 maxima = Maxima()
 
@@ -1494,6 +1495,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 
     - Oriol Castejon (05-2010)
     """
+    cite("scipy")
 
     from scipy.integrate import odeint
     from sage.ext.fast_eval import fast_float

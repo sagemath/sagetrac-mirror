@@ -18,5 +18,3 @@ class numpy_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.numpy.org}}},
 }
     """
-
-    _re = [r"numpy"]

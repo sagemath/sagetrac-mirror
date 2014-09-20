@@ -71,6 +71,7 @@ EXAMPLES::
 import scipy
 import scipy.interpolate
 import numpy as np
+from sage.misc.cite import cite
 from sage.plot.all import Graphics, line, text, polygon2d, point, points
 from sage.plot.colors import Color
 from sage.sets.set import Set
@@ -345,6 +346,8 @@ def createline(ptsdict, ll, lineorders2=None):
             This method does NOT do any checks.
 
     """
+    cite("scipy")
+
     x, lo = line_hasorder(ll, lineorders2)
     flip = False
     if x is False:
