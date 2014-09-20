@@ -19,5 +19,3 @@ class GAP_CitationItem( CitationItem ):
     note  = {{Version~4.7.5, \url{http://www.gap-system.org}}},
 }
     """
-
-    _re = [r"^sage.interfaces.gap"]

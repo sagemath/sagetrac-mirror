@@ -147,6 +147,8 @@ from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 
+from sage.misc.cite import cite
+
 class FinitelyPresentedGroupElement(FreeGroupElement):
     """
     A wrapper of GAP's Finitely Presented Group elements.
@@ -195,6 +197,8 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             sage: TestSuite(x).run()
             sage: TestSuite(G.one()).run()
         """
+        cite("gap")
+
         if not isinstance(x, GapElement):
             F = parent.free_group()
             free_element = F(x)
@@ -762,6 +766,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: TestSuite(H).run()
             sage: TestSuite(J).run()
         """
+        cite("gap")
+
         from sage.groups.free_group import is_FreeGroup
         assert is_FreeGroup(free_group)
         assert isinstance(relations, tuple)

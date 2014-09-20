@@ -251,6 +251,8 @@ from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.libs.gap.element cimport *
 
+from sage.misc.cite cimport cite
+
 
 ############################################################################
 ### Debugging ##############################################################
@@ -416,6 +418,8 @@ class Gap(Parent):
             sage: libgap.eval('"string"')
             "string"
         """
+        cite("gap")
+
         if not isinstance(gap_command, basestring):
             gap_command = str(gap_command._gap_init_())
         return make_any_gap_element(self, gap_eval(gap_command))

@@ -64,6 +64,7 @@ from sage.matrix.constructor import diagonal_matrix
 from sage.modules.fg_pid.fgp_module import FGP_Module
 from sage.rings.integer_ring import ZZ
 from sage.sets.set import Set
+from sage.misc.cite import cite
 
 def CyclicPresentation(n):
     r"""
@@ -319,6 +320,8 @@ def SymmetricPresentation(n):
         sage: groups.presentation.Symmetric(8).order()
         40320
     """
+    cite("gap")
+
     from sage.groups.perm_gps.permgroup_named import SymmetricGroup
     from sage.groups.free_group import _lexi_gen
 
@@ -392,6 +395,8 @@ def AlternatingPresentation(n):
         sage: A8 = groups.presentation.Alternating(8); A8.order()
         20160
     """
+    cite("gap")
+
     from sage.groups.perm_gps.permgroup_named import AlternatingGroup
     from sage.groups.free_group import _lexi_gen
 

@@ -178,6 +178,7 @@ AUTHORS:
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
+from sage.misc.cite import cite
 from sage.misc.misc import is_64_bit, is_in_string
 import re
 import os
@@ -722,6 +723,8 @@ class Gap_generic(Expect):
             3
 
         """
+        cite("gap")
+
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
         E = None
@@ -1345,6 +1348,8 @@ class Gap(Gap_generic):
         self._eval_line("$SAGE.StopInteract();")
 
     def _eval_line_using_file(self, line):
+        cite("gap")
+
         i = line.find(':=')
         if i != -1:
             j = line.find('"')

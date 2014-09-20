@@ -21,6 +21,8 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ
 
+from sage.misc.cite cimport cite
+
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
     libGAP_T_INTPOS: 'T_INTPOS (positive integer)',
@@ -176,6 +178,8 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         sage: t.sage()
         ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
+    cite("gap")
+
     if obj is NULL:
         return make_GapElement(parent, obj)
     cdef int num = libGAP_TNUM_OBJ(obj)
@@ -252,6 +256,8 @@ cdef GapElement make_GapElement(parent, libGAP_Obj obj):
         ...
         AttributeError: 'NoneType' object has no attribute '_gap_init_'
     """
+    cite("gap")
+
     cdef GapElement r = GapElement.__new__(GapElement)
     r._initialize(parent, obj)
     return r

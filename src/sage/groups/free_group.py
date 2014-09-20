@@ -203,6 +203,8 @@ class FreeGroupElement(ElementLibGAP):
             sage: TestSuite(G).run()
             sage: TestSuite(x).run()
         """
+        cite("gap")
+
         if not isinstance(x, GapElement):
             try:
                 l = x.Tietze()
@@ -605,6 +607,8 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: G.variable_names()
             ('a', 'b')
         """
+        cite("gap")
+
         n = len(generator_names)
         self._assign_names(generator_names)
         if libgap_free_group is None:
