@@ -159,7 +159,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: type(d)
             <type 'dict'>
             sage: len(d)
-            13
+            14
             sage: e = Words('abcdefg')._element_classes
             sage: d == e
             True
@@ -181,9 +181,14 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
-        if len(self.alphabet()) <= 256 and all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet()):
-            classes['FiniteWord_list'] = classes['FiniteWord_char']
-            classes['FiniteWord_tuple'] = classes['FiniteWord_char']
+        if self.alphabet().cardinality() <= 256 and all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet()):
+            l = self.alphabet().list()
+
+            if all(l[i] < l[i+1] for i in range(len(l)-1)) and all(self.cmp_letters(l[i],l[i+1]) == -1 for i in range(len(l)-1)):
+                classes['FiniteWord_list'] = classes['FiniteWord_char']
+                classes['FiniteWord_tuple'] = classes['FiniteWord_char']
+            else:
+                del classes['FiniteWord_char']
         return classes
 
     def _an_element_(self):
@@ -469,6 +474,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         """
         from sage.combinat.words.abstract_word import Word_class
+        from sage.combinat.words.word_char import WordDatatype_char
         from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable, WordDatatype_iter
         from sage.combinat.words.word_datatypes import WordDatatype
         if isinstance(data, Word_class):
@@ -494,10 +500,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 if length is None:
                     length = data._len
                 data = data._func
-            elif isinstance(data,  WordDatatype_iter):
+            elif isinstance(data, WordDatatype_iter):
                 if length is None:
                     length = data._len
                 data = iter(data)
+            elif isinstance(data, WordDatatype_char):
+                data = list(data)
             elif isinstance(data, WordDatatype):
                 data = data._data
             else:
@@ -562,10 +570,10 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         else:
             raise ValueError("Unknown datatype (=%s)" % datatype)
 
-        wordclass = self._element_classes
-        cls = wordclass[cls_str]
-        w = cls(**kwds)
-        return w
+        word_classes = self._element_classes
+        if cls_str not in word_classes:
+            raise ValueError("Unknwon datatype (=%s)" % datatype)
+        return word_classes[cls_str](**kwds)
 
     def _check(self, w, length=40):
         r"""

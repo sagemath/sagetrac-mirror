@@ -22,7 +22,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.words.word_char import Word_char
+from sage.combinat.words.word_char import WordDatatype_char
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.infinite_word import InfiniteWord_class
@@ -216,7 +216,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
 ##### Finite Words #####
 
-class FiniteWord_char(Word_char, FiniteWord_class):
+class FiniteWord_char(WordDatatype_char, FiniteWord_class):
     r"""
     Finite word represented by a Python list.
 
@@ -225,13 +225,70 @@ class FiniteWord_char(Word_char, FiniteWord_class):
 
     EXAMPLES::
 
-        sage: w = Word(range(10))
-        sage: w.iterated_right_palindromic_closure()
-        word: 0102010301020104010201030102010501020103...
+        sage: W = Words(range(20))
+
+        sage: w = W(range(1,10)*2)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_char'>
+        sage: w
+        word: 123456789123456789
+
+        sage: w.is_palindrome()
+        False
+        sage: (w*w[::-1]).is_palindrome()
+        True
+        sage: (w[:-1:]*w[::-1]).is_palindrome()
+        True
+
+        sage: w.is_lyndon()
+        False
+        sage: W(range(10)+[10,10]).is_lyndon()
+        True
+
+        sage: w.is_square()
+        True
+        sage: w[:-2].is_square()
+        False
+        sage: w.is_square_free()
+        False
+        sage: w[:-1].is_square_free()
+        True
+
+        sage: u = W([randint(0,10) for i in range(10)])
+        sage: (u*u).is_square()
+        True
+        sage: (u*u*u).is_cube()
+        True
+
+        sage: len(w.factor_set())
+        127
+        sage: w.rauzy_graph(5)
+        Looped digraph on 9 vertices
+
+        sage: u = W([1,2,3])
+        sage: u.first_pos_in(w)
+        0
+        sage: u.first_pos_in(w[1:])
+        8
+
+        sage: w = W([0,1,2,3])
+        sage: w
+        word: 0123
+        sage: w ** (1/2)
+        word: 01
+        sage: w ** 2
+        word: 01230123
+        sage: w ** 3
+        word: 012301230123
+        sage: w ** (7/2)
+        word: 01230123012301
+        sage: len(((w ** 2) ** 3) ** 5) == len(w) * 2 * 3 * 5
+        True
 
     TESTS::
 
-        sage: w = Word([0,1,1,0])
+        sage: W = Words([0,1,2])
+        sage: w = W([0,1,1,0])
         sage: w == loads(dumps(w))
         True
     """
