@@ -20,6 +20,8 @@ import sage.algebras.algebra
 
 from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
 
+from sage.misc.cite cimport cite
+
 class FpT(FractionField_1poly_field):
     """
     This class represents the fraction field GF(p)(T) for `2 < p < 2^16`.
@@ -100,6 +102,8 @@ cdef class FpTElement(RingElement):
             sage: R(7)
             2
         """
+        cite("flint")
+
         RingElement.__init__(self, parent)
         if coerce:
             numer = parent.poly_ring(numer)
@@ -1076,6 +1080,8 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             sage: f(t^2 + 1) # indirect doctest
             t^2 + 1
         """
+        cite("flint")
+
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self.codomain()

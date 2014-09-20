@@ -20,5 +20,3 @@ class FLINT_CitationItem( CitationItem ):
     howpublished = {{\url{http://flintlib.org}}}
 }
     """
-
-    _re = [r"_flint"]
