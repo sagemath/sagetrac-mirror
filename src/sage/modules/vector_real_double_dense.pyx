@@ -28,7 +28,7 @@ AUTHORS:
 ##############################################################################
 from sage.rings.real_double import RDF
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite cimport cite
 
 cimport numpy as cnumpy
 

@@ -22,7 +22,7 @@ Scatter Plots
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 class ScatterPlot(GraphicPrimitive):
     """

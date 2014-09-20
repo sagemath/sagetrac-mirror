@@ -26,7 +26,7 @@ Development supported by NSF award No. 0702939.
 import numpy as np
 cimport numpy as np
 
-from sage.misc.citation_cython cimport cite
+from sage.misc.cite cimport cite
 
 from math import pi
 cdef double TWOPI = 2*pi

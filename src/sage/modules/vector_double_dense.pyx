@@ -44,7 +44,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
-from sage.misc.citation_cython cimport cite
+from sage.misc.cite cimport cite
 
 cimport numpy as cnumpy
 

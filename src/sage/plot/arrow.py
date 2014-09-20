@@ -22,7 +22,7 @@ from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 class CurveArrow(GraphicPrimitive):
     def __init__(self, path, options):

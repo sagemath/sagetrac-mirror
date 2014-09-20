@@ -24,7 +24,7 @@ from sage.plot.colors import rgbcolor, get_cmap
 from sage.misc.misc import xsrange
 import operator
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 class ContourPlot(GraphicPrimitive):
     """

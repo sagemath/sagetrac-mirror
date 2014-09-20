@@ -6,7 +6,7 @@ import os
 
 from sage.misc.temporary_file import tmp_dir
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 
 class InlineFortran:

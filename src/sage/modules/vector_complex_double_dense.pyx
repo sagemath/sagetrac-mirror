@@ -40,7 +40,7 @@ from sage.rings.complex_double import CDF
 
 cimport numpy as cnumpy
 
-from sage.misc.citation_cython cimport cite 
+from sage.misc.cite cimport cite 
 
 numpy=None
 

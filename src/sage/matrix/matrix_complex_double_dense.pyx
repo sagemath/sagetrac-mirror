@@ -41,7 +41,7 @@ import matrix_double_dense
 
 from sage.rings.complex_double import CDF
 
-from sage.misc.citation_cython cimport cite
+from sage.misc.cite cimport cite
 
 cimport numpy as cnumpy
 

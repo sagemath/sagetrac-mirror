@@ -23,7 +23,7 @@ include "sage/ext/python.pxi"
 
 import sage.modules.free_module
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite cimport cite
 
 cdef class Matrix(matrix0.Matrix):
     ###################################################

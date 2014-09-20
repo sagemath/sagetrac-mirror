@@ -42,7 +42,7 @@ from sage.rings.real_double import RDF
 
 cimport numpy as cnumpy
 
-from sage.misc.citation_cython cimport cite
+from sage.misc.cite cimport cite
 
 numpy=None
 scipy=None

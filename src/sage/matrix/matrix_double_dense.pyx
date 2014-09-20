@@ -58,7 +58,7 @@ cimport sage.structure.element
 from matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite cimport cite
 
 cimport numpy as cnumpy
 

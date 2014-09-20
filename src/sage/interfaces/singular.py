@@ -341,7 +341,7 @@ import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 class SingularError(RuntimeError):
     """

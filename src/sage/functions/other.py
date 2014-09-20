@@ -24,7 +24,7 @@ from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 one_half = ~SR(2)
 
