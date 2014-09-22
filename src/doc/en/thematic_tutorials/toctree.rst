@@ -53,6 +53,7 @@ Thematic tutorial document tree
    demo-symbolics
    demo-symmetric-functions
    demo-tsetlin
+   coding_theory
    functional_programming
    group_theory
    index-sage-combinat
