@@ -18,5 +18,3 @@ class Givaro_CitationItem( CitationItem ):
     howpublished = {{\url{http://ljk.imag.fr/CASYS/LOGICIELS/givaro}}},
 }
     """
-
-    _re = [r"^sage.rings.finite_rings.element_givaro"]

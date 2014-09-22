@@ -82,6 +82,8 @@ from sage.structure.parent  cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
+from sage.misc.cite cimport cite
+
 cdef object is_IntegerMod
 cdef object Integer
 cdef object Rational
@@ -1937,6 +1939,7 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_givaro', 'unpickle_FiniteField_givaroElement', unpickle_FiniteField_givaroElement)
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x):
+    cite("givaro")
     cdef FiniteField_givaroElement y
 
     if cache._has_array:
