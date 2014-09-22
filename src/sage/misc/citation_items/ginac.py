@@ -17,5 +17,3 @@ class ginac_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.ginac.de}}}
 }
     """
-
-    _re = [r"^sage.symbolic"]

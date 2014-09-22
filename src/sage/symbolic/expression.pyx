@@ -150,6 +150,7 @@ from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.cite cimport cite
 from sage.structure.dynamic_class import dynamic_class
 
 # a small overestimate of log(10,2)
@@ -275,6 +276,8 @@ cdef class Expression(CommutativeRingElement):
             sage: u.operator()
             f
         """
+        cite("ginac")
+
         self._parent = SR
         cdef Expression exp = self.coerce_in(x)
         GEx_construct_ex(&self._gobj, exp._gobj)
@@ -10501,6 +10504,8 @@ cdef get_dynamic_class_for_function(unsigned serial):
     return cls
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
+    cite("ginac")
+
     cdef Expression nex
     cdef unsigned serial
     if is_exactly_a_function(juice):

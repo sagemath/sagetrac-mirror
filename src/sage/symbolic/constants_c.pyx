@@ -10,6 +10,8 @@ Wrapper around Pynac's constants
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+
+from sage.misc.cite cimport cite
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
@@ -121,6 +123,7 @@ cdef class PynacConstant:
             sage: foo + 2
             foo + 2
         """
+        cite("ginac")
         return new_Expression_from_GEx(SR, <GEx>(self.pointer[0]))
 
 # keep exp(1) for fast access
