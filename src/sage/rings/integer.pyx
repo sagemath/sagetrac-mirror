@@ -185,6 +185,8 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.structure.element import canonical_coercion, coerce_binop
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.misc.cite cimport cite
+
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
@@ -506,6 +508,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     """
 
     def __cinit__(self):
+        cite("gmp")
+
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
 
@@ -657,6 +661,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(mpz_t y, object x)
         # Then this function becomes the one liner:
         #     mpz_init_set_sage(self.value, x)
+
+        cite("gmp")
 
         cdef Integer tmp
         cdef char* xs

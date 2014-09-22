@@ -18,5 +18,3 @@ class GMP_CitationItem( CitationItem ):
     note = {{\url{http://​gmplib.​org}}},
 }
     """
-
-    _re = [r"^sage.rings.integer.Integer"]
