@@ -431,6 +431,7 @@ unlike for the other interfaces.
 #*****************************************************************************
 
 from expect import Expect, ExpectElement
+from sage.misc.cite import cite
 import os
 
 class Kash(Expect):
@@ -491,6 +492,8 @@ class Kash(Expect):
         return 'Read("%s");'%filename
 
     def _eval_line_using_file(self, line):
+        cite("kash")
+
         F = open(self._local_tmpfile(), 'w')
         F.write(line)
         F.close()
@@ -504,6 +507,8 @@ class Kash(Expect):
     # Change the default for KASH, since eval using a file doesn't
     # work except for setting variables.
     def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True, restart_if_needed=False):
+        cite("kash")
+
         return Expect._eval_line(self, line, allow_use_file=allow_use_file,
                                  wait_for_prompt=wait_for_prompt)
 

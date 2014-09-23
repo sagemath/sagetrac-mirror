@@ -18,5 +18,3 @@ class KASH_CitationItem( CitationItem ):
     url          = {{\url{http://www.math.tu-berlin.de/~kant}}},
 }
     """
-
-    _re = [r"^sage.interfaces.kash"]
