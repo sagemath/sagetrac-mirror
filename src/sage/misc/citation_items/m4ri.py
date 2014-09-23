@@ -20,5 +20,3 @@ class M4RI_CitationItem( CitationItem ):
     howpublished = {{\url{http://m4ri.sagemath.org}}},
 }
     """
-
-    _re = [r"^sage.matrix.matrix_mod2_dense"]

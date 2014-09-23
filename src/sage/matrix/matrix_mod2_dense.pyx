@@ -105,6 +105,8 @@ from sage.structure.element cimport ModuleElement, Element
 from sage.misc.functional import log
 
 from sage.misc.misc import verbose, get_verbose, cputime
+from sage.misc.cite cimport cite
+
 
 from sage.modules.free_module import VectorSpace
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
@@ -758,6 +760,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                      Archive (http://eprint.iacr.org/2006/251.pdf),
                      2006.
         """
+        cite("m4ri")
+
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
@@ -818,6 +822,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A._multiply_classical(B)
             []
         """
+        cite("m4ri")
+
         cdef Matrix_mod2_dense A
         A = self.new_matrix(nrows = self._nrows, ncols = right._ncols)
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
@@ -903,6 +909,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
+        cite("m4ri")
+
         cdef Matrix_mod2_dense ans
         #ans = self.new_matrix(nrows = self._nrows, ncols = right._ncols)
         # The following is a little faster:
@@ -965,6 +973,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if self.rank() != self._nrows:
             raise ZeroDivisionError("Matrix does not have full rank.")
+
+        cite("m4ri")
 
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc = False)
         sig_on()
@@ -1106,6 +1116,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if not x is None: return  # already known to be in echelon form
 
         if algorithm == 'heuristic':
+            cite("m4ri")
 
             self.check_mutability()
             self.clear_cache()
@@ -1119,6 +1130,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.cache('pivots', tuple(self._pivots()))
 
         elif algorithm == 'm4ri':
+            cite("m4ri")
 
             self.check_mutability()
             self.clear_cache()
@@ -1142,6 +1154,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
         elif algorithm == 'pluq':
+            cite("m4ri")
 
             self.check_mutability()
             self.clear_cache()
@@ -1330,6 +1343,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 1]
             [0 0 0]
         """
+        cite("m4ri")
         if (int(multiple)%2) != 0:
             mzd_row_add_offset(self._entries, row_to, row_from, start_col)
 
@@ -1346,6 +1360,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 0]
         """
+        cite("m4ri")
         mzd_row_swap(self._entries, row1, row2)
 
     cdef swap_columns_c(self, Py_ssize_t col1, Py_ssize_t col2):
@@ -1377,6 +1392,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.column(63) == B.column(0)
             True
         """
+        cite("m4ri")
         mzd_col_swap(self._entries, col1, col2)
 
 
@@ -1848,12 +1864,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mzp_t *P, *Q
 
         if algorithm == 'ple':
+            cite("m4ri")
             P = mzp_init(self._entries.nrows)
             Q = mzp_init(self._entries.ncols)
             r = mzd_ple(A, P, Q, 0)
             mzp_free(P)
             mzp_free(Q)
         elif algorithm == 'm4ri':
+            cite("m4ri")
             r = mzd_echelonize_m4ri(A, 0, 0)
         else:
             raise ValueError("Algorithm '%s' unknown."%algorithm)
@@ -1932,6 +1950,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
         """
+        cite("m4ri")
         tm = verbose("computing right kernel matrix over integers mod 2 for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
         if self.nrows()==0 or self.ncols()==0:
             raise ValueError("kernels of matrices mod 2 with zero rows or zero columns cannot be computed")
@@ -2149,6 +2168,8 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
         sage: Q
         [1, 2, 3, 3]
     """
+    cite("m4ri")
+
     cdef Matrix_mod2_dense B = A.__copy__()
     cdef mzp_t *p = mzp_init(A._entries.nrows)
     cdef mzp_t *q = mzp_init(A._entries.ncols)
@@ -2212,6 +2233,8 @@ def ple(Matrix_mod2_dense A, algorithm="standard", int param=0):
         sage: ple(A) == ple(A,'russian') == ple(A,'naive')
         True
     """
+    cite("m4ri")
+
     cdef Matrix_mod2_dense B = A.__copy__()
     cdef mzp_t *p = mzp_init(A._entries.nrows)
     cdef mzp_t *q = mzp_init(A._entries.ncols)
