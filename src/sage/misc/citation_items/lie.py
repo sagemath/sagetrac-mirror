@@ -19,5 +19,3 @@ class LiE_CitationItem( CitationItem ):
 }
 
     """
-
-    _re = [r"^sage.interfaces.lie"]

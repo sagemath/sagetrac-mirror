@@ -285,6 +285,7 @@ AUTHORS:
 ##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
+from sage.misc.cite import cite
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_LOCAL
 
 
@@ -622,6 +623,8 @@ class LiE(Expect):
             Valid argument types are for instance: diagram(grp).
 
         """
+        cite("lie")
+
         out = Expect._eval_line(self, line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         #Check to see if an error has occurred
         err = max( out.find("\n(in"), out.find('not defined'), out.find('Argument types')  )
