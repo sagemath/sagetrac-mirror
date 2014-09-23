@@ -99,6 +99,7 @@ import os
 from expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
 
 from sage.misc.multireplace import multiple_replace
+from sage.misc.cite import cite
 
 import re
 
@@ -258,6 +259,8 @@ class Macaulay2(Expect):
             sage: macaulay2.eval("2+2") #optional
             4
         """
+        cite("macaulay2")
+
         code = code.strip()
         # TODO: in some cases change toExternalString to toString??
         ans = Expect.eval(self, code, strip=strip, **kwds).strip('\n')

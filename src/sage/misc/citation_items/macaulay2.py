@@ -17,5 +17,4 @@ class Macaulay2_CitationItem( CitationItem ):
     howpublished = {{\ulr{http://www.math.uiuc.edu/Macaulay2}},
 }
     """
-
-    _re = [r"^sage.interfaces.macaulay2"]
+o
