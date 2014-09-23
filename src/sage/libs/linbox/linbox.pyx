@@ -4,6 +4,7 @@
 
 from sage.rings.integer cimport Integer
 from sage.misc.misc import verbose, get_verbose, cputime, UNAME
+from sage.misc.cite import cite
 
 ##########################################################################
 ## Sparse matrices modulo p.
@@ -29,6 +30,8 @@ cdef class Linbox_modn_sparse:
         self.modulus = modulus
 
     cdef object rank(self, int gauss):
+        cite("linbox")
+
         #cdef int *_pivots
         cdef int r
         r = linbox_modn_sparse_matrix_rank(self.modulus, self.nrows, self.ncols, self.rows, gauss)
@@ -40,6 +43,8 @@ cdef class Linbox_modn_sparse:
     cdef void solve(self, c_vector_modint **x, c_vector_modint *b, int method):
         """
         """
+        cite("linbox")
+
         cdef vector_uint X
         X = linbox_modn_sparse_matrix_solve(self.modulus, self.nrows, self.ncols, self.rows, b, method)
 
@@ -86,6 +91,8 @@ cdef class Linbox_integer_dense:
         OUTPUT:
             coefficients of minpoly as a Python list
         """
+        cite("linbox")
+
         cdef mpz_t* poly
         cdef size_t degree
         verbose("using linbox poly comp")
@@ -109,6 +116,8 @@ cdef class Linbox_integer_dense:
         OUTPUT:
             coefficients of charpoly or minpoly as a Python list
         """
+        cite("linbox")
+
         cdef mpz_t* poly
         cdef size_t degree
         verbose("using linbox poly comp")
@@ -131,6 +140,8 @@ cdef class Linbox_integer_dense:
                                 mpz_t **ans,
                                 mpz_t **B,
                                 size_t B_nr, size_t B_nc):
+        cite("linbox")
+
         cdef int e
         e = linbox_integer_dense_matrix_matrix_multiply(ans, self.matrix,  B, self.nrows, self.ncols, B_nc)
         if e:
@@ -138,9 +149,11 @@ cdef class Linbox_integer_dense:
 
 
     cdef unsigned long rank(self) except -1:
+        cite("linbox")
         return linbox_integer_dense_rank(self.matrix, self.nrows, self.ncols)
 
     def det(self):
+        cite("linbox")
         cdef Integer z
         z = Integer()
         linbox_integer_dense_det(z.value, self.matrix, self.nrows, self.ncols)

@@ -18,5 +18,3 @@ class Linbox_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.linalg.org}}},
 }
     """
-
-    _re = [r"^sage.libs.linbox"]
