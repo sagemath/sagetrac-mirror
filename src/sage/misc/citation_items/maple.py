@@ -18,5 +18,3 @@ class Maple_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.maplesoft.com}}},
 } 
     """
-
-    _re = [r"^sage.interfaces.maple"]

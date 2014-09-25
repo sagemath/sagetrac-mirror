@@ -241,8 +241,10 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_di
 
 import pexpect
 
+from sage.misc.cite import cite
 from sage.misc.misc import verbose, DOT_SAGE
 from sage.misc.pager import pager
+
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
@@ -539,6 +541,8 @@ connection to a server running Maple; for hints, type
             sage: maple._eval_line('2+2')  # optional - maple
             '4'
         """
+        cite("maple")
+
         line += ';'
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
