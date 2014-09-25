@@ -11,8 +11,8 @@ Finite Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.category import HomCategory
 from sage.categories.tensor import TensorProductsCategory
+from sage.categories.category import HomCategory
 
 class FiniteCrystals(CategoryWithAxiom):
     """
@@ -96,6 +96,7 @@ class FiniteCrystals(CategoryWithAxiom):
             """
             return [self.base_category()]
 
+
     class HomCategory(HomCategory):
         """
         The category of homomorphisms sets `Hom(X,Y)` for
@@ -152,4 +153,3 @@ class FiniteCrystals(CategoryWithAxiom):
                         if self(x.f(i)) != y.f(i) or self(x.e(i)) != y.e(i):
                             return False
                 return True
-

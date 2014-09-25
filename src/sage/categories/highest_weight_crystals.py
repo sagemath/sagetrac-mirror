@@ -376,6 +376,47 @@ class HighestWeightCrystals(Category_singleton):
                 ret = P(ret, prec)
             return ret
 
+        # TODO: This is not correct if a factor has multiple heads (i.e., we
+        #   should have a category for uniqueness of highest/lowest weights)
+        connected_components_generators = highest_weight_vectors
+
+        def _Hom_(self, Y, category=None, **options):
+            r"""
+            Return the homset from ``self`` to ``Y`` in the
+            category ``category``.
+
+            INPUT::
+
+            - ``Y`` -- a crystal
+            - ``category`` -- a subcategory of :class:`HighestWeightCrysals`()
+              or ``None``
+
+            The sole purpose of this method is to construct the homset as a
+            :class:`~sage.categories.highest_weight_crystals.HighestWeightCrystalHomset`.
+            If ``category`` is specified and is not a subcategory of
+            :class:`HighestWeightCrystals`, a ``TypeError`` is raised instead
+
+            This method is not meant to be called directly. Please use
+            :func:`sage.categories.homset.Hom` instead.
+
+            EXAMPLES::
+
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: H = B._Hom_(B)
+                sage: H
+                Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+                 to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+                sage: type(H)
+                <class 'sage.categories.highest_weight_crystals.HighestWeightCrystalHomset_with_category'>
+            """
+            if category is None:
+                category = self.category()
+            elif not category.is_subcategory(HighestWeightCrystals()):
+                raise TypeError("{} is not a subcategory of HighestWeightCrystals()".format(category))
+            if Y not in Crystals():
+                raise TypeError("{} is not a crystal".format(Y))
+            return HighestWeightCrystalHomset(self, Y, category=category, **options)
+
     class ElementMethods:
         pass
 
@@ -462,47 +503,6 @@ class HighestWeightCrystals(Category_singleton):
                     else:
                         it.append( iter(self.crystals[-len(path)-1]) )
                 return tuple(ret)
-
-        # TODO: This is not correct if a factor has multiple heads (i.e., we
-        #   should have a category for uniqueness of highest/lowest weights)
-        connected_components_generators = highest_weight_vectors
-
-        def _Hom_(self, Y, category=None, **options):
-            r"""
-            Return the homset from ``self`` to ``Y`` in the
-            category ``category``.
-
-            INPUT::
-
-            - ``Y`` -- a crystal
-            - ``category`` -- a subcategory of :class:`HighestWeightCrysals`()
-              or ``None``
-
-            The sole purpose of this method is to construct the homset as a
-            :class:`~sage.categories.highest_weight_crystals.HighestWeightCrystalHomset`.
-            If ``category`` is specified and is not a subcategory of
-            :class:`HighestWeightCrystals`, a ``TypeError`` is raised instead
-
-            This method is not meant to be called directly. Please use
-            :func:`sage.categories.homset.Hom` instead.
-
-            EXAMPLES::
-
-                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
-                sage: H = B._Hom_(B)
-                sage: H
-                Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-                 to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-                sage: type(H)
-                <class 'sage.categories.highest_weight_crystals.HighestWeightCrystalHomset_with_category'>
-            """
-            if category is None:
-                category = self.category()
-            elif not category.is_subcategory(HighestWeightCrystals()):
-                raise TypeError("{} is not a subcategory of HighestWeightCrystals()".format(category))
-            if Y not in Crystals():
-                raise TypeError("{} is not a crystal".format(Y))
-            return HighestWeightCrystalHomset(self, Y, category=category, **options)
 
 ###############################################################################
 ## Morphisms
@@ -708,4 +708,3 @@ class HighestWeightCrystalHomset(CrystalHomset):
     _generic = HighestWeightCrystalMorphism
     _twisted = HighestWeightTwistedCrystalMorphism
     _virtual = HighestWeightVirtualCrystalMorphism
-
