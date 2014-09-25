@@ -672,14 +672,16 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T.category()
             Category of tensor products of classical crystals
 
-            sage: B1 = crystals.TensorProduct(T, C)
-            sage: B2 = crystals.TensorProduct(C, T)
-            sage: B3 = crystals.TensorProduct(C, C, C)
-            sage: B1 is B2 and B2 is B3
             sage: T3 = crystals.TensorProduct(C, C, C)
             sage: T3p = crystals.TensorProduct(T, C)
             sage: T3 is T3p
             True
+            sage: B1 = crystals.TensorProduct(T, C)
+            sage: B2 = crystals.TensorProduct(C, T)
+            sage: B3 = crystals.TensorProduct(C, C, C)
+            sage: B1 is B2 and B2 is B3
+            True
+
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: T = crystals.TensorProduct(B, B)
             sage: T.category()
@@ -709,8 +711,6 @@ class TensorProductOfCrystals(CrystalOfWords):
             raise ValueError("all crystals must be of the same Cartan type")
 
         if "generators" in options:
-            if any(c.cartan_type() != cartan_type for c in crystals):
-                raise ValueError("mismatched Cartan types")
             generators = tuple(tuple(x) if isinstance(x, list) else x for x in options["generators"])
 
             if all(c in RegularCrystals() for c in crystals):
@@ -721,25 +721,7 @@ class TensorProductOfCrystals(CrystalOfWords):
         tp = sum([B.crystals if isinstance(B, FullTensorProductOfCrystals) else (B,)
                   for B in crystals], ())
 
-        # Flatten out the full tensor product of crystals
-        is_regular = True
-        crystal_list = []
-        for c in crystals:
-            if c.cartan_type() != cartan_type:
-                raise ValueError("mismatched Cartan types")
-
-            if isinstance(c, FullTensorProductOfRegularCrystals):
-                crystal_list += list(c.crystals)
-            elif isinstance(c, FullTensorProductOfCrystals):
-                is_regular = False
-                crystal_list += list(c.crystals)
-            else:
-                if c not in RegularCrystals():
-                    is_regular = False
-                crystal_list.append(c)
-
-        crystals = tuple(crystal_list)
-        if is_regular:
+        if all(c in RegularCrystals() for c in crystals):
             return FullTensorProductOfRegularCrystals(tp, cartan_type=cartan_type)
         return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
