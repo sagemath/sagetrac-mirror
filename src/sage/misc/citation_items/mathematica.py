@@ -18,5 +18,3 @@ class Mathematica_CitationItem( CitationItem ):
     howpublished = {{\url{www.wolfram.com/mathematica}}},
 }
     """
-
-    _re = [r"^sage.interfaces.mathematica"]

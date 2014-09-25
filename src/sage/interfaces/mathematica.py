@@ -367,6 +367,7 @@ import re
 
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
+from sage.misc.cite import cite
 
 def clean_output(s):
     if s is None:
@@ -413,6 +414,7 @@ class Mathematica(Expect):
                         eval_using_file_cutoff=50)
 
     def _read_in_file_command(self, filename):
+        cite("mathematica")
         return '<<"%s"'%filename
 
     def _keyboard_interrupt(self):
@@ -533,6 +535,7 @@ remote connection to a server running Mathematica -- for hints, type
     #    self.eval('Clear[%s]'%var)
 
     def _eval_line(self, line,  allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
+        cite("mathematica")
         s = Expect._eval_line(self, line,
              allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')
