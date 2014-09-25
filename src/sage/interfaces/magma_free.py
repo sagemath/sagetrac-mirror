@@ -13,6 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cite import cite
+
 class MagmaExpr(str):
     def __repr__(self):
         return str(self)
@@ -29,6 +31,8 @@ def magma_free_eval(code, strip=True, columns=0):
         sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
+    cite("magma")
+
     import urllib, httplib
     from xml.dom.minidom import parseString
     from string import join

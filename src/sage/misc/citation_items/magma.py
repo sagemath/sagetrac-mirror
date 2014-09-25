@@ -23,6 +23,3 @@ class Magma_CitationItem( CitationItem ):
     Publisher = {Elsevier Science, London},
 }
     """
-
-    _re = [r"^sage.interfaces.magma",
-           "^sage.interfaces.magma_free"]
