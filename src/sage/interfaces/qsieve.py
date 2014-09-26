@@ -7,6 +7,7 @@ import os
 import sage.rings.integer
 
 from sage.misc.all import tmp_dir
+from sage.misc.cite import cite
 
 _tmp_dir = False
 def tmpdir():
@@ -79,6 +80,8 @@ def qsieve_block(n, time, verbose=False):
     Compute the factorization of n using Hart's quadratic Sieve
     blocking until complete.
     """
+    cite("qsieve")
+
     if time:
         t = 'time '
     else:
@@ -155,6 +158,8 @@ class qsieve_nonblock:
         [100000000000000000039, 1000000000000000000117]
     """
     def __init__(self, n, time):
+        cite("qsieve")
+
         self._n = n
         if time:
             cmd = 'time QuadraticSieve'

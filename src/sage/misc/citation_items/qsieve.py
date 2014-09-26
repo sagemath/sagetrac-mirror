@@ -17,5 +17,3 @@ class qsieve_CitationItem( CitationItem ):
     howpublished          = {{\url{http://www.thorstenreinecke.de/qsieve}}},
 }
 """
-
-    _re = [r"^sage.interfaces.qsieve"]
