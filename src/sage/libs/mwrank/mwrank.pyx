@@ -21,6 +21,7 @@ EXAMPLES::
 
 import os
 import sys
+from sage.misc.cite cimport cite
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
@@ -293,6 +294,8 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             disc = -432	(# real components = 1)
             #torsion not yet computed
         """
+        cite("mwrank")
+
         cdef _bigint _a1, _a2, _a3, _a4, _a6
         _a1 = _bigint(a1)
         _a2 = _bigint(a2)
@@ -658,6 +661,8 @@ cdef class _mw:
             [[-3:0:1], [-2:3:1], [-14:25:8], [-1:3:1], [0:2:1], [2:13:8], [1:0:1], [2:0:1], [18:7:8], [3:3:1], [4:6:1], [36:69:64], [68:-25:64], [12:35:27]]
 
         """
+        cite("mwrank")
+
         self.curve = curve.x
         self.x = mw_new(curve.x, verb, pp, maxr)
         self.verb = verb

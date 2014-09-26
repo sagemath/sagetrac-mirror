@@ -18,6 +18,3 @@ class mwrank_CitationItem( CitationItem ):
     howpublished = {{\url{http://homepages.warwick.ac.uk/staff/J.E.Cremona/mwrank}}},
 }
     """
-
-    _re = [r"^sage.interfaces.mwrank",
-           "^sage.libs.mwrank"]
