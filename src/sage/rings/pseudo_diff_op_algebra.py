@@ -86,7 +86,7 @@ class PseudoDiffOpAlgebra(Algebra):
     r"""
     An algebra of pseudo-differential operators.
 
-    Pseudo-differential operators  are formal expansions of the form
+    Pseudo-differential operators are formal expansions of the form
     $\sum_n=-N^\infty u_{-n}(x) \partial_x^{-n}$. Multiplication is such that
     $[\partial_x, u(x)] =\frac{\partial u}{\partial x}$.
 
@@ -117,12 +117,12 @@ class PseudoDiffOpAlgebra(Algebra):
 
         - ``base`` -- the ring of coefficients
 
-        -   ``variable`` -- the variable with respect to which the operators
+        - ``variable`` -- the variable with respect to which the operators
             should differentiate
 
-        -   ``prec`` -- the default order up to which to evaluate expansions, default is 10
+        - ``prec`` -- the default order up to which to evaluate expansions, default is 10
 
-        -   ``names`` -- the name of the generator variable
+        - ``names`` -- the name of the generator variable
 
         EXAMPLES::
 
@@ -131,9 +131,6 @@ class PseudoDiffOpAlgebra(Algebra):
             sage: A.<d> = PseudoDiffOpAlgebra(SR,x); A
             Algebra of pseudo-differential operators over Symbolic Ring acting on x
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         Algebra.__init__(self, base, *kwds, **args)
         self._var = variable
@@ -146,21 +143,20 @@ class PseudoDiffOpAlgebra(Algebra):
 
         EXAMPLES:
 
-        We first create a pseudo-differential operator algebra with coefficients in the symbolic ring::
+        We first create a pseudo-differential operator algebra with
+        coefficients in the symbolic ring::
 
             sage: x = var('x')
             sage: from sage.rings.pseudo_diff_op_algebra import *
             sage: A.<d> = PseudoDiffOpAlgebra(SR,x,20); A
             Algebra of pseudo-differential operators over Symbolic Ring acting on x
 
-        This illustrates associativity of the product, but now with precision equal to 20::
+        This illustrates associativity of the product, but now with
+        precision equal to 20::
 
             sage: d*(d^-1 * (u * d^-3)) # long time
             (u(x))d^(-3) + O(d^-19)
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return self._prec
 
@@ -170,9 +166,6 @@ class PseudoDiffOpAlgebra(Algebra):
 
         EXAMPLES::
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
 
     def _repr_(self):
@@ -186,9 +179,6 @@ class PseudoDiffOpAlgebra(Algebra):
             sage: A.<d> = PseudoDiffOpAlgebra(SR,x); A
             Algebra of pseudo-differential operators over Symbolic Ring acting on x
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return "Algebra of pseudo-differential operators over {} acting on {}".format(self.__symbolAlgebra.base_ring(), self._var)
 
@@ -203,9 +193,6 @@ class PseudoDiffOpAlgebra(Algebra):
             sage: A.<d> = PseudoDiffOpAlgebra(SR,x); latex(A)
             \texttt{Algebra of pseudo-differential operators over } \text{SR} \texttt{ acting on } x
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return r"\texttt{Algebra of pseudo-differential operators over } %s \texttt{ acting on } %s" % (latex(self.__symbolAlgebra.base_ring()), latex(self._var))
 
@@ -221,27 +208,21 @@ class PseudoDiffOpAlgebra(Algebra):
         from the base ring to PseudoDiffOpAlgebra. Coercion via the symbol
         ring provides this.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return self.__symbolAlgebra.has_coerce_map_from(S)
 
     def _element_constructor_(self, x):
         r"""
-        Return a pseudo-differential operator with symbol x.
+        Return a pseudo-differential operator with symbol ``x``.
 
         INPUT:
 
-        - ``x`` -- the symbol of x as an element of the symbol algebra
+        - ``x`` -- the symbol of ``x`` as an element of the symbol algebra
 
         OUTPUT:
 
-        An instance of PseudoDiffOpAlgebra_element with symbol equal to x
+        An instance of PseudoDiffOpAlgebra_element with symbol equal to ``x``
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         x = self.__symbolAlgebra(x)
         return PseudoDiffOpAlgebraElement(self, x)
@@ -252,9 +233,6 @@ class PseudoDiffOpAlgebra(Algebra):
 
         EXAMPLES::
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return False
 
@@ -269,9 +247,6 @@ class PseudoDiffOpAlgebra(Algebra):
             sage: A.gen(0)
             d
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         if n != 0:
             raise IndexError("Generator n not defined.")
@@ -282,7 +257,7 @@ class PseudoDiffOpAlgebra(Algebra):
 
     def ngens(self):
         r"""
-        Return 1; the only generator is $\partial_{\mathrm{var}}$.
+        Return 1, as the only generator is `\partial_{\mathrm{var}}`.
 
         EXAMPLES::
 
@@ -291,9 +266,6 @@ class PseudoDiffOpAlgebra(Algebra):
             sage: A.ngens()
             1
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return 1
 
@@ -333,14 +305,11 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         INPUT:
 
-        -  ``symbol`` -- the symbol of x as an element of the symbol algebra
+        -  ``symbol`` -- the symbol of `x` as an element of the symbol algebra
 
         -  ``is_gen`` -- whether this symbol is equal to z_inverse^(-1) (for
             internal use only!)
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         AlgebraElement.__init__(self, parent)
         self._symbol = symbol
@@ -348,13 +317,10 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
     def _add_(left, right):
         r"""
-        Adds two pseudo-differential operators.
+        Add two pseudo-differential operators.
 
         This is just addition of the symbols.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         new_symbol = left._symbol + right._symbol
         return PseudoDiffOpAlgebraElement(left.parent(), new_symbol)
@@ -365,9 +331,6 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         This is just substraction of the symbols.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         new_symbol = left._symbol - right._symbol
         return PseudoDiffOpAlgebraElement(left.parent(), new_symbol)
@@ -400,9 +363,6 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
             sage: d*(d^-1 * (u * d^-3))   # long time
             (u(x))d^(-3) + O(d^-9)
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         # some shortcuts
         #if(left.is_zero() or right.is_zero()):
@@ -417,15 +377,16 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
         if not new_prec < Infinity:
             new_prec = left.parent().prec()
         new_symbol = left._symbol.parent()(0)
+        left_var = left.parent().var()
         for a, n in zip(left.coefficients(), left.exponents()):
             for b, m in zip(right.coefficients(), right.exponents()):
                 k = 0
                 while k - m - n < new_prec:
                     new_symbol += (binomial(n, k) * a *
-                                   diff(b, left.parent().var(), k) *
+                                   diff(b, left_var, k) *
                                    z_inverse ** (k - m - n))
                     k += 1
-                if binomial(n, k) != 0 and diff(b, left.parent().var(), k) != 0:
+                if binomial(n, k) != 0 and diff(b, left_var, k) != 0:
                     new_symbol = new_symbol.add_bigoh(new_prec)
 
         return PseudoDiffOpAlgebraElement(left.parent(), new_symbol)
@@ -436,12 +397,9 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         .. NOTE::
 
-            Raising any operator but $\partial_x$ to a negative power raises a
+            Raising any operator but `\partial_x` to a negative power raises a
             value error. I am not sure if that is mathematically right.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         try:
             exponent = Integer(exponent)
@@ -470,12 +428,12 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
         This can only be done for operators with only a positive
         part. Otherwise, a ValueError is raised.
 
-        AUTHORS:
+        EXAMPLES::
 
-        Timo Kluck (2010-11-15)
         """
         if self._symbol.degree() > 0:
-            raise ValueError("Can only apply the positive part of a pseudo-differential operator to a function.")
+            raise ValueError("Can only apply the positive part of a "
+                             "pseudo-differential operator to a function.")
 
         ret = 0
         var = self.parent().var()
@@ -491,9 +449,8 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
         This is most useful when the base ring is the symbolic ring, or a
         power series ring, or similar.
 
-        AUTHORS:
+        EXAMPLES::
 
-        Timo Kluck (2010-11-15)
         """
         # differentiate a pseudo diff op's coefficients
         d = self.parent().gen(0)
@@ -507,16 +464,11 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
         r"""
         Return the positive part of the pseudo-differential operator.
 
-        The positive part is the summands with non-negative exponents of $\partial_x$.
-        These are the ones that can be applied to a function of x.
+        The positive part is the summands with non-negative exponents of `\partial_x`.
+        These are the ones that can be applied to a function of `x`.
 
-        .. NOTE::
-            The current implementation requires a patch of laurent series,
-            trac #10272
+        EXAMPLES::
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         new_symbol = self._symbol.truncate(1)
         return PseudoDiffOpAlgebraElement(self.parent(), new_symbol)
@@ -525,44 +477,33 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
         r"""
         Return the negative part of the pseudo-differential operator.
 
-        The negative part is the summands with negative exponents of $\partial_x$.
+        The negative part is the summands with negative exponents
+        of `\partial_x`.
         It is given by self - self.pos_part()
 
-        .. NOTE::
-            The current implementation requires a patch of laurent series,
-            trac #10272
-
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
+        EXAMPLES::
         """
         return self - self.pos_part()
 
     def coefficients(self):
         r"""
-        Return a list of coefficients of self.
+        Return a list of coefficients of ``self``.
 
         To obtain the corresponding exponents, use self.exponents()
 
         See the documentation for LaurentSeries.coefficients() for details.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return self._symbol.coefficients()
 
     def exponents(self):
         r"""
-        Return a list of exponents of self.
+        Return a list of exponents of ``self``.
 
         To obtain the corresponding coefficients, use self.coefficients()
 
         See the documentation for LaurentSeries.exponents() for details.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return [-e for e in self._symbol.exponents()]
 
@@ -572,9 +513,6 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         See the documentation for LaurentSeries.dict() for details.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return dict(zip(self.exponents(), self.coefficients()))
 
@@ -585,14 +523,11 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         This is most useful when the base ring is the symbolic ring.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         from sage.calculus.functional import simplify
         new_coeff = [simplify(c) for c in self.coefficients()]
         z_inverse = self._symbol.parent().gen(0)
-        new_symbol = self._symbol.parent()(0)
+        new_symbol = self._symbol.parent().zero()
         new_symbol = new_symbol.add_bigoh(self._symbol.prec())
         for c, e in zip(new_coeff, self.exponents()):
             new_symbol += c * z_inverse ** -e
@@ -605,14 +540,11 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
         This is most useful when the base ring is the symbolic ring.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         from sage.calculus.functional import expand
         new_coeff = [expand(c) for c in self.coefficients()]
         z_inverse = self._symbol.parent().gen(0)
-        new_symbol = self._symbol.parent()(0)
+        new_symbol = self._symbol.parent().zero()
         new_symbol = new_symbol.add_bigoh(self._symbol.prec())
         for c, e in zip(new_coeff, self.exponents()):
             new_symbol += c * z_inverse ** -e
@@ -633,16 +565,15 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
     def is_monomial(self):
         r"""
-        Return True when this pseudo-differential operator consists of a single
-        term in the expansion in powers of $\partial_x$.
+        Return ``True`` when this pseudo-differential operator
+        consists of a single term in the expansion in powers of
+        `\partial_x`.
 
         .. NOTE::
 
-            self.is_monomial() returns False if its precision is not Infinity.
+            self.is_monomial() returns ``False`` if its precision is
+            not Infinity.
 
-        AUTHORS:
-
-        Timo Kluck (2010-11-15)
         """
         return len(self._symbol.coefficients()) == 1 and self._symbol.prec() == Infinity
 
@@ -654,8 +585,8 @@ class PseudoDiffOpAlgebraElement(AlgebraElement):
 
     def degree(self):
         r"""
-        Return the maximum integer $n$ for which the coefficient
-        of $\partial_x^n$ is non-zero.
+        Return the maximum integer `n` for which the coefficient
+        of `\partial_x^n` is non-zero.
 
         EXAMPLES::
         """
