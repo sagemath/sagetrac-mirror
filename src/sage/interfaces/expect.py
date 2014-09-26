@@ -67,6 +67,7 @@ from sage.structure.element import RingElement
 import sage.misc.sage_eval
 from sage.misc.misc import SAGE_EXTCODE, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
+from sage.misc.cite import cite
 
 BAD_SESSION = -2
 
@@ -131,7 +132,7 @@ class Expect(Interface):
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner=True, remote_cleaner=False, path=None,
-                 terminal_echo=True):
+                 terminal_echo=True, citation=None):
 
         Interface.__init__(self, name)
         self.__is_remote = False
@@ -186,6 +187,8 @@ class Expect(Interface):
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
         self._terminal_echo = terminal_echo
+
+        self._citation = citation
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -1201,6 +1204,8 @@ If this all works, you can then make calls like:
         -  ``**kwds``     -- All other arguments are passed onto the _eval_line
                              method. An often useful example is reformat=False.
         """
+        cite(self._citation)
+
         if synchronize:
             try:
                 self._synchronize()
