@@ -24,6 +24,7 @@ from sage.rings.integer cimport Integer
 from ntl_ZZ import unpickle_class_value
 from ntl_GF2 cimport ntl_GF2
 
+from sage.misc.cite cimport cite
 
 ##############################################################################
 #
@@ -119,6 +120,7 @@ cdef class ntl_GF2X:
             sage: ntl.GF2X(f)
             [1 0 1 0 0 1]
         """
+        cite("ntl")
 
         from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
         from sage.rings.finite_rings.element_givaro import FiniteField_givaroElement
@@ -162,6 +164,8 @@ cdef class ntl_GF2X:
         sig_off()
 
     def __cinit__(self):
+        cite("ntl")
+
         GF2X_construct(&self.x)
 
     def __dealloc__(self):

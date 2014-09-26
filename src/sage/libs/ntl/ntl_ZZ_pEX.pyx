@@ -36,6 +36,8 @@ from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 ##############################################################################
 #
 # ZZ_pEX  -- polynomials over an extension of the integers modulo p
@@ -68,6 +70,8 @@ cdef class ntl_ZZ_pEX:
             sage: g[10]
             [5]
         """
+        cite("ntl")
+
         if modulus is None and v is None:
             raise ValueError, "You must specify a modulus when creating a ZZ_pEX."
 
@@ -109,6 +113,8 @@ cdef class ntl_ZZ_pEX:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None and v is None: # we also check for v is None so that a user can specify the modulus by v.
             ZZ_pEX_construct(&self.x)
             return

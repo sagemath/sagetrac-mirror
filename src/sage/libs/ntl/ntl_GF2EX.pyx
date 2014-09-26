@@ -23,6 +23,8 @@ from ntl_GF2EContext import ntl_GF2EContext
 from ntl_GF2EContext cimport ntl_GF2EContext_class
 from ntl_GF2E cimport ntl_GF2E
 
+from sage.misc.cite cimport cite
+
 ##############################################################################
 #
 # ntl_GF2EX: Polynomials over GF(2) via NTL
@@ -45,6 +47,8 @@ cdef class ntl_GF2EX:
             sage: ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             [[1] [0 1]]
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus when creating a GF2E."
 
@@ -67,6 +71,8 @@ cdef class ntl_GF2EX:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             return
         if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):

@@ -32,6 +32,8 @@ from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
+from sage.misc.cite cimport cite
+
 ZZ_sage = IntegerRing()
 
 def ntl_ZZ_p_random_element(v):
@@ -92,6 +94,8 @@ cdef class ntl_ZZ_p:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus when creating a ZZ_p."
 
@@ -134,6 +138,8 @@ cdef class ntl_ZZ_p:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             ZZ_p_construct(&self.x)
             return

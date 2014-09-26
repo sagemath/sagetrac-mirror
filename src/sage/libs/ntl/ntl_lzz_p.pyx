@@ -46,6 +46,8 @@ from sage.rings.finite_rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int,
 from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext
 from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
 
+from sage.misc.cite cimport cite
+
 ZZ_sage = IntegerRing()
 
 ##############################################################################
@@ -72,6 +74,8 @@ cdef class ntl_zz_p:
             sage: g = ntl.zz_p(2,7) ; g
             2
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus."
 
@@ -132,6 +136,8 @@ cdef class ntl_zz_p:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             zz_p_construct(&self.x)
             return

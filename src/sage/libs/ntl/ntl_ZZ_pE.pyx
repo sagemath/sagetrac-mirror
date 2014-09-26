@@ -35,6 +35,8 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
 
+from sage.misc.cite cimport cite
+
 
 ZZ_sage = IntegerRing()
 
@@ -94,6 +96,8 @@ cdef class ntl_ZZ_pE:
 
         AUTHOR: David Roe (2007-9-25)
         """
+        cite("ntl")
+
         if PY_TYPE_CHECK( modulus, ntl_ZZ_pEContext_class ):
             self.c = <ntl_ZZ_pEContext_class>modulus
         elif PY_TYPE_CHECK( modulus, ntl_ZZ_pX ):
@@ -152,6 +156,8 @@ cdef class ntl_ZZ_pE:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             ZZ_pE_construct(&self.x)
             return

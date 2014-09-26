@@ -25,6 +25,8 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.misc.cite cimport cite
+
 ZZ_sage = IntegerRing()
 
 cdef make_ZZ(ZZ_c* x):
@@ -79,6 +81,8 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
+        cite("ntl")
+
         if PY_TYPE_CHECK(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
         elif PyInt_Check(v):
@@ -100,6 +104,8 @@ cdef class ntl_ZZ:
             sig_off()
 
     def __cinit__(self):
+        cite("ntl")
+
         ZZ_construct(&self.x)
 
     def __dealloc__(self):

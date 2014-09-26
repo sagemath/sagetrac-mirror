@@ -26,6 +26,8 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.misc.cite cimport cite
+
 ZZ = IntegerRing()
 
 cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
@@ -113,6 +115,8 @@ cdef class ntl_ZZX:
             sage: g[10]
             5
         """
+        cite("ntl")
+
         cdef ntl_ZZ cc
         cdef Py_ssize_t i
 
@@ -140,6 +144,8 @@ cdef class ntl_ZZX:
         return unpickle_class_value, (ntl_ZZX, self.list())
 
     def __cinit__(self):
+        cite("ntl")
+
         ZZX_construct(&self.x)
 
     def __dealloc__(self):

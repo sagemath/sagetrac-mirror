@@ -36,6 +36,8 @@ from sage.rings.integer cimport Integer
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 cdef class ntl_mat_GF2E:
     r"""
     The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
@@ -78,6 +80,8 @@ cdef class ntl_mat_GF2E:
             [0x4 0x5 0x6 0x7 0x8]
             ]
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus when creating a GF2E."
 
@@ -118,6 +122,8 @@ cdef class ntl_mat_GF2E:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             return
         if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):

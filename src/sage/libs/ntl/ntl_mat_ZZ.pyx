@@ -24,6 +24,8 @@ from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
 from ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
@@ -82,6 +84,8 @@ cdef class ntl_mat_ZZ:
             [7 8 9]
             ]
         """
+        cite("ntl")
+
         if nrows == _INIT:
             return
         cdef unsigned long i, j
@@ -121,6 +125,8 @@ cdef class ntl_mat_ZZ:
         return unpickle_class_args, (ntl_mat_ZZ, (self.__nrows, self.__ncols, self.list()))
 
     def __cinit__(self):
+        cite("ntl")
+
         mat_ZZ_construct(&self.x)
 
     def __dealloc__(self):

@@ -22,6 +22,8 @@ include 'decl.pxi'
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.misc.cite cimport cite
+
 ##############################################################################
 # GF2: Bits
 ##############################################################################
@@ -45,6 +47,8 @@ cdef class ntl_GF2:
             sage: ntl.GF2('1')
             1
         """
+        cite("ntl")
+
         if PY_TYPE_CHECK(v, ntl_GF2):
             self.x = (<ntl_GF2>v).x
         elif PyInt_Check(v) or PyLong_Check(v) or PY_TYPE_CHECK(v, Integer):
@@ -56,6 +60,8 @@ cdef class ntl_GF2:
             sig_off()
 
     def __cinit__(self):
+        cite("ntl")
+
         GF2_construct(&self.x)
 
     def __dealloc__(self):

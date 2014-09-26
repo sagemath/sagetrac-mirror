@@ -55,6 +55,8 @@ from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.misc.cite cimport cite
+
 cdef object is_IntegerMod
 cdef object IntegerModRing_generic
 cdef object Integer
@@ -489,6 +491,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: a.parent() is k
             True
         """
+        cite("ntl")
+
         if parent is None:
             raise ValueError, "You must provide a parent to construct a finite field element"
 
@@ -500,6 +504,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
             sage: k.<a> = GF(2^8) # indirect doctest
         """
+        cite("ntl")
+
         if parent is None:
             return
         if PY_TYPE_CHECK(parent, FiniteField_ntl_gf2e):

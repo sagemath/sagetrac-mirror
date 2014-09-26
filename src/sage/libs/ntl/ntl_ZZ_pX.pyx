@@ -27,6 +27,8 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
     sig_off()
@@ -79,6 +81,8 @@ cdef class ntl_ZZ_pX:
             sage: g[10]
             5
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus when creating a ZZ_pX."
 
@@ -117,6 +121,8 @@ cdef class ntl_ZZ_pX:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             ZZ_pX_construct(&self.x)
             return

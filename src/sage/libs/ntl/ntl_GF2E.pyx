@@ -28,6 +28,8 @@ from ntl_GF2EContext import ntl_GF2EContext
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 ##############################################################################
 #
 # ntl_GF2E: GF(2**x) via NTL
@@ -101,6 +103,8 @@ cdef class ntl_GF2E:
             sage: ntl.GF2E(ntl.GF2(1),ctx)
             [1]
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus when creating a GF2E."
 
@@ -135,6 +139,8 @@ cdef class ntl_GF2E:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             return
         if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):

@@ -35,6 +35,8 @@ from ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
+from sage.misc.cite cimport cite
+
 cdef class ntl_mat_GF2:
     r"""
     The \class{mat_GF2} class implements arithmetic with matrices over $F_2$.
@@ -77,6 +79,8 @@ cdef class ntl_mat_GF2:
             [0 1 1 0]
             ]
         """
+        cite("ntl")
+
         cdef Py_ssize_t _nrows, _ncols
         cdef Py_ssize_t i, j
         cdef GF2_c _elem
@@ -113,6 +117,8 @@ cdef class ntl_mat_GF2:
             sig_off()
 
     def __cinit__(self):
+        cite("ntl")
+
         mat_GF2_construct(&self.x)
 
     cdef ntl_GF2 _new_element(self):

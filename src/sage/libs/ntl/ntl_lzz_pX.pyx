@@ -41,6 +41,8 @@ from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
 from sage.libs.ntl.ntl_lzz_p import ntl_zz_p
 from sage.libs.ntl.ntl_lzz_p cimport ntl_zz_p
 
+from sage.misc.cite cimport cite
+
 ZZ_sage = IntegerRing()
 
 ##############################################################################
@@ -79,6 +81,8 @@ cdef class ntl_zz_pX:
             sage: f = ntl.zz_pX([10^30+1, 10^50+1], 100); f
             [1, 1]
         """
+        cite("ntl")
+
         if modulus is None:
             raise ValueError, "You must specify a modulus."
 
@@ -148,6 +152,8 @@ cdef class ntl_zz_pX:
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
+        cite("ntl")
+
         if modulus is None:
             zz_pX_construct(&self.x)
             return
