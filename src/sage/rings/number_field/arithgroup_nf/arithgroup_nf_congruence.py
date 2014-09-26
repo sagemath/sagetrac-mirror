@@ -1,7 +1,6 @@
 r"""
-Congruence subgroups of `{\rm SL}_2(\mathcal{O})` and `{\rm
-GL}_2(\mathcal{O})`) where `\mathcal{O}` is an (maximal) order in a
-number field `K`.
+Congruence subgroups of `{\rm SL}_2(\mathcal{O})` and `{\rm GL}_2(\mathcal{O})`,
+where `\mathcal{O}` is a (maximal) order in a number field `K`.
 
 AUTHORS:
 
@@ -70,6 +69,10 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         Check if self is congruence.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         return True
 
@@ -80,6 +83,10 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         Return the index of self in SL(2,O).
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self.level() == self.base_ring().ideal(1):
             return 1
@@ -90,6 +97,10 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         Return right coset representatives of self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self.index() != 1 or G is not None:
             raise NotImplementedError
@@ -118,6 +129,10 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         Return the number of inequivalent cusps of self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self._ncusps is not None:
             return self._ncusps
@@ -129,10 +144,16 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         r"""
         Find a set of cusp representatives.
 
-        ..NOTE: currently only implemented for the full Hilbert modular
-        group SL(2,O)
+        .. NOTE::
+        
+            Currently only implemented for the full Hilbert modular
+            group SL(2,O)
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self.level() != self.base_ring().ideal(1) or not self.is_special():
             raise NotImplementedError
@@ -158,7 +179,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
 
 class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_CongruenceSubgroup_class):
     r"""
-    Principal congruence subgroup `\Gamma_{0}(N) of `{\rm SL}_{2}(O)`.
+    Principal congruence subgroup `\Gamma_{0}(N)` of `{\rm SL}_{2}(O)`.
     where `O` is a maximal order in a number field and `N` an ideal in `O`.
     """
     def __init__(self, order, level, group, name='', ltx=''):
@@ -174,6 +195,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
         - `ltx` -- string
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         assert order.ideal(level) == level
         self._level = level
@@ -184,6 +209,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
         Check if A is in self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if A.parent() == self:
             return True
@@ -202,6 +231,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
         Check if other is equal to self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if not isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma_class):
             return False
@@ -210,6 +243,12 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
     def is_subgroup(self, other):
         r"""
         Check if self is a subgroup of other.
+
+        EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma_class):
             if other.level().divides(self.level()):
@@ -238,6 +277,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         - `ltx` -- string
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if level is None:
             self._level = order
@@ -250,6 +293,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         Check if A is in self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         try:
             a, b, c, d = A
@@ -266,6 +313,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         Check if other is equal to self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if not isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma0_class):
             return False
@@ -276,6 +327,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         Check if self is a subgroup of other.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma0_class):
             if other.level().divides(self.level()):
@@ -289,6 +344,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         Return a fundamental domain for self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self._fundamental_domain is not None:
             return self._fundamental_domain
@@ -308,6 +367,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         Init a congruence group Gamma_0^0
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         self._b_ideal = b
         self._c_ideal = c
@@ -322,6 +385,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         congruent to [[*,bi],[ci,*]]
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         return self._b_ideal
 
@@ -331,6 +398,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         congruent to [[*,bi],[ci,*]]
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         return self._c_ideal
 
@@ -339,6 +410,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         Check if A is in self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         try:
             a, b, c, d = A
@@ -357,6 +432,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         Check if other is equal to self.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if not isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma00_class):
             return False
@@ -365,8 +444,8 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
 
 class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
     r"""
-    Base class for arithmetic subgroups of `SL(2,K)' of the form `{\rm
-    SL}_{2}(O+a)` where `O` is a maximal order in the number field `K`
+    Base class for arithmetic subgroups of `SL(2,K)' of the form
+    `{\rm SL}_{2}(O+a)` where `O` is a maximal order in the number field `K`
     and `a` is an ideal in `O`.
     """
     def __init__(self, order, a, group='SL', name='', ltx=''):
@@ -374,6 +453,10 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
         Init  a conjugate of a Hilbert modular group.
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         super(HilbertModularGroup_Conjugate_class, self).__init__(order, group, name, ltx)
         self._a = a
@@ -383,6 +466,10 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
         Return the ideal a such that self = SL_2(O+a).
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         return self._a
 
@@ -390,10 +477,16 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
         r"""
         Find a set of cusp representatives.
 
-        ..NOTE: currently only implemented for the full Hilbert modular
-        group SL(2,O)
+        .. NOTE::
+        
+            Currently only implemented for the full Hilbert modular
+            group SL(2,O)
 
         EXAMPLES::
+
+            sage: "example needed"
+            "example needed"
+
         """
         if self.plusa() != self.base_ring().ideal(1) or not self.is_special():
             raise NotImplementedError
