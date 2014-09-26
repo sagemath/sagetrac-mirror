@@ -1,4 +1,5 @@
 from cpython.object cimport *
+from sage.misc.cite cimport cite
 
 cdef extern from 'symmetrica/def.h':
     INT kostka_number(OP shape, OP content, OP result)
@@ -24,6 +25,8 @@ def kostka_number_symmetrica(shape, content):
         sage: symmetrica.kostka_number([3],[1,1,1])
         1
     """
+    cite("symmetrica")
+
     cdef OP cshape = callocobject(), ccontent = callocobject(), result = callocobject()
 
     if isinstance(shape, <type>builtinlist):

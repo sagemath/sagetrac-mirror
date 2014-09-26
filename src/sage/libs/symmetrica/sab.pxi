@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT dimension_symmetrization(OP n, OP part, OP a)
     INT bdg(OP part, OP perm, OP D)
@@ -14,6 +16,8 @@ def dimension_symmetrization_symmetrica(n, part):
     representation of the GL_n, n is a INTEGER object, labeled
     by the PARTITION object a.
     """
+    cite("symmetrica")
+
     cdef OP cn, cpart, cres
 
 
@@ -44,6 +48,8 @@ def bdg_symmetrica(part, perm):
                Darstellungen von Gruppen, Springer 1955.
                pp. 104-107.
     """
+    cite("symmetrica")
+
     cdef OP cpart, cperm, cD
 
 
@@ -74,6 +80,8 @@ def sdg_symmetrica(part, perm):
                Addison/Wesley 1981.
                pp. 124-126.
     """
+    cite("symmetrica")
+
     cdef OP cpart, cperm, cD
 
 
@@ -105,6 +113,8 @@ def odg_symmetrica(part, perm):
                Addison/Wesley 1981.
                pp. 127-129.
     """
+    cite("symmetrica")
+
     cdef OP cpart, cperm, cD
 
 
@@ -131,6 +141,8 @@ def ndg_symmetrica(part, perm):
     """
 
     """
+    cite("symmetrica")
+
     cdef OP cpart, cperm, cD
 
 
@@ -156,6 +168,8 @@ def specht_dg_symmetrica(part, perm):
     """
 
     """
+    cite("symmetrica")
+
     cdef OP cpart, cperm, cD
 
 

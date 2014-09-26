@@ -19,4 +19,3 @@ class Symmetrica_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA}}},
 }
     """
-    _re = [r"^sage.libs.symmetrica"]

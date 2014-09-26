@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT plethysm(OP s1, OP s2, OP res)
     INT schur_schur_plet(OP p1, OP p2, OP res)
@@ -5,6 +7,7 @@ cdef extern from 'symmetrica/def.h':
 def plethysm_symmetrica(outer, inner):
     """
     """
+    cite("symmetrica")
 
     cdef OP couter = callocobject(), cinner = callocobject(), cresult = callocobject()
 
@@ -27,6 +30,7 @@ def plethysm_symmetrica(outer, inner):
 def schur_schur_plet_symmetrica(outer, inner):
     """
     """
+    cite("symmetrica")
 
     cdef OP couter = callocobject(), cinner = callocobject(), cresult = callocobject()
 

@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT outerproduct_schur(OP parta, OP partb, OP result)
     INT dimension_schur(OP a, OP result)
@@ -67,6 +69,8 @@ def outerproduct_schur_symmetrica(parta, partb):
         sage: symmetrica.outerproduct_schur([2],[2])
         s[2, 2] + s[3, 1] + s[4]
     """
+    cite("symmetrica")
+
     cdef OP cparta, cpartb, cresult
 
     cparta  = callocobject()
@@ -95,6 +99,8 @@ def dimension_schur_symmetrica(s):
     dimension of the corresponding representation of the
     symmetric group sn.
     """
+    cite("symmetrica")
+
     cdef OP ca, cresult
 
     cresult = callocobject()
@@ -118,6 +124,8 @@ def newtrans_symmetrica(perm):
     the permutation perm, as a sum of Schurfunction.
     FIXME!
     """
+    cite("symmetrica")
+
     cdef OP cperm = callocobject(), cresult = callocobject()
 
     _op_permutation(perm, cperm)
@@ -154,6 +162,8 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
         sage: symmetrica.compute_schur_with_alphabet([2,1],1,'x')
         0
     """
+    cite("symmetrica")
+
     late_import()
     cdef OP cpart = callocobject(), cresult = callocobject(), clength = callocobject()
 
@@ -198,6 +208,8 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
         Multivariate Polynomial Ring in x0, x1 over Integer Ring
 
     """
+    cite("symmetrica")
+
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
 
@@ -244,6 +256,8 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
         0
 
     """
+    cite("symmetrica")
+
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
 
@@ -292,6 +306,8 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
         Multivariate Polynomial Ring in x0, x1 over Integer Ring
 
     """
+    cite("symmetrica")
+
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
     if isinstance(n, (int, Integer)):
@@ -338,6 +354,8 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
         a^3 + a^2*b + a*b^2 + b^3
 
     """
+    cite("symmetrica")
+
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
 
@@ -377,6 +395,8 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
         sage: symmetrica.compute_schur_with_alphabet_det(Partition([2]),2,'a,b')
         a^2 + a*b + b^2
     """
+    cite("symmetrica")
+
     cdef OP cpart = callocobject(), cresult = callocobject(), clength = callocobject()
 
     if isinstance(part, (int, Integer)):
@@ -408,6 +428,8 @@ def part_part_skewschur_symmetrica(outer, inner):
         sage: symmetrica.part_part_skewschur([3,2,1],[2,1])
         s[1, 1, 1] + 2*s[2, 1] + s[3]
     """
+    cite("symmetrica")
+
     cdef OP couter = callocobject(), cinner = callocobject(), cresult = callocobject()
 
     _op_partition(outer, couter)
@@ -433,6 +455,7 @@ def hall_littlewood_symmetrica(part):
     in the paper: A.O. Morris The Characters of the group GL(n,q)
     Math Zeitschr 81, 112-123 (1963)
     """
+    cite("symmetrica")
 
     cdef OP cpart = callocobject(), cresult = callocobject()
     cdef OP pointer
@@ -457,6 +480,7 @@ def hall_littlewood_symmetrica(part):
 def t_SCHUR_MONOMIAL_symmetrica(schur):
     """
     """
+    cite("symmetrica")
 
     cdef OP cschur = callocobject(), cresult = callocobject()
 
@@ -478,6 +502,7 @@ def t_SCHUR_MONOMIAL_symmetrica(schur):
 def t_SCHUR_HOMSYM_symmetrica(schur):
     """
     """
+    cite("symmetrica")
 
     cdef OP cschur = callocobject(), cresult = callocobject()
 
@@ -498,6 +523,7 @@ def t_SCHUR_HOMSYM_symmetrica(schur):
 def t_SCHUR_ELMSYM_symmetrica(schur):
     """
     """
+    cite("symmetrica")
 
     cdef OP cschur = callocobject(), cresult = callocobject()
 
@@ -519,6 +545,7 @@ def t_SCHUR_POWSYM_symmetrica(schur):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cschur = callocobject(), cresult = callocobject()
 
@@ -540,6 +567,8 @@ def t_POLYNOM_SCHUR_symmetrica(p):
     Converts a symmetric polynomial with base ring QQ or ZZ into a symmetric function
     in the Schur basis.
     """
+    cite("symmetrica")
+
     cdef OP polynom = callocobject(), cresult = callocobject()
 
     _op_polynom(p, polynom)
@@ -566,6 +595,7 @@ def t_MONOMIAL_HOMSYM_symmetrica(monomial):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cmonomial = callocobject(), cresult = callocobject()
 
@@ -586,6 +616,7 @@ def t_MONOMIAL_ELMSYM_symmetrica(monomial):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cmonomial = callocobject(), cresult = callocobject()
 
@@ -628,6 +659,7 @@ def t_MONOMIAL_POWSYM_symmetrica(monomial):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cmonomial = callocobject(), cresult = callocobject()
 
@@ -649,6 +681,8 @@ def t_POLYNOM_MONOMIAL_symmetrica(p):
     Converts a symmetric polynomial with base ring QQ or ZZ into a symmetric function
     in the monomial basis.
     """
+    cite("symmetrica")
+
     cdef OP polynom = callocobject(), cresult = callocobject()
 
     _op_polynom(p, polynom)
@@ -672,6 +706,7 @@ def t_ELMSYM_SCHUR_symmetrica(elmsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP celmsym = callocobject(), cresult = callocobject()
 
@@ -693,6 +728,7 @@ def t_ELMSYM_POWSYM_symmetrica(elmsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP celmsym = callocobject(), cresult = callocobject()
 
@@ -713,6 +749,7 @@ def t_ELMSYM_MONOMIAL_symmetrica(elmsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP celmsym = callocobject(), cresult = callocobject()
 
@@ -735,6 +772,7 @@ def t_ELMSYM_HOMSYM_symmetrica(elmsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP celmsym = callocobject(), cresult = callocobject()
 
@@ -756,6 +794,8 @@ def t_POLYNOM_ELMSYM_symmetrica(p):
     Converts a symmetric polynomial with base ring QQ or ZZ into a symmetric function
     in the elementary basis.
     """
+    cite("symmetrica")
+
     cdef OP polynom = callocobject(), cresult = callocobject()
 
     _op_polynom(p, polynom)
@@ -780,6 +820,7 @@ def t_HOMSYM_SCHUR_symmetrica(homsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP chomsym = callocobject(), cresult = callocobject()
 
@@ -800,6 +841,7 @@ def t_HOMSYM_POWSYM_symmetrica(homsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP chomsym = callocobject(), cresult = callocobject()
 
@@ -823,6 +865,7 @@ def t_HOMSYM_MONOMIAL_symmetrica(homsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP chomsym = callocobject(), cresult = callocobject()
 
@@ -843,6 +886,7 @@ def t_HOMSYM_ELMSYM_symmetrica(homsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP chomsym = callocobject(), cresult = callocobject()
 
@@ -865,6 +909,7 @@ def t_POWSYM_MONOMIAL_symmetrica(powsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cpowsym = callocobject(), cresult = callocobject()
 
@@ -888,6 +933,7 @@ def t_POWSYM_SCHUR_symmetrica(powsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cpowsym = callocobject(), cresult = callocobject()
 
@@ -908,6 +954,7 @@ def t_POWSYM_ELMSYM_symmetrica(powsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cpowsym = callocobject(), cresult = callocobject()
 
@@ -928,6 +975,7 @@ def t_POWSYM_HOMSYM_symmetrica(powsym):
     """
 
     """
+    cite("symmetrica")
 
     cdef OP cpowsym = callocobject(), cresult = callocobject()
 
@@ -949,6 +997,8 @@ def t_POLYNOM_POWER_symmetrica(p):
     Converts a symmetric polynomial with base ring QQ or ZZ into a symmetric function
     in the power sum basis.
     """
+    cite("symmetrica")
+
     cdef OP polynom = callocobject(), cresult = callocobject()
 
     _op_polynom(p, polynom)
@@ -971,6 +1021,8 @@ def t_POLYNOM_POWER_symmetrica(p):
 def mult_schur_schur_symmetrica(s1, s2):
     """
     """
+    cite("symmetrica")
+
     cdef OP cs1 = callocobject(), cs2 = callocobject(), cresult = callocobject()
 
     _op_schur(s1, cs1)
@@ -993,6 +1045,8 @@ def mult_schur_schur_symmetrica(s1, s2):
 def mult_monomial_monomial_symmetrica(m1, m2):
     """
     """
+    cite("symmetrica")
+
     cdef OP cm1 = callocobject(), cm2 = callocobject(), cresult = callocobject()
 
     _op_monomial(m1, cm1)
@@ -1013,6 +1067,8 @@ def mult_monomial_monomial_symmetrica(m1, m2):
 
 
 def scalarproduct_schur_symmetrica(s1, s2):
+    cite("symmetrica")
+
     cdef OP cs1 = callocobject(), cs2 = callocobject(), cresult = callocobject()
 
     _op_schur(s1, cs1)

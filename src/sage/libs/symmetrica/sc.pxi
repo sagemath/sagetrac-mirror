@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT chartafel(OP degree, OP result)
     INT charvalue(OP irred, OP cls, OP result, OP table)
@@ -22,6 +24,7 @@ def chartafel_symmetrica(n):
         [ 1  0 -1 -1  3]
         [-1  1  1 -1  1]
      """
+    cite("symmetrica")
 
     cdef OP cn, cres
 
@@ -64,6 +67,7 @@ def charvalue_symmetrica(irred, cls, table=None):
         sage: m == symmetrica.chartafel(n)
         True
     """
+    cite("symmetrica")
 
     cdef OP cirred, cclass, ctable, cresult
 
@@ -130,6 +134,7 @@ def kranztafel_symmetrica(a, b):
        [0 0]
 
     """
+    cite("symmetrica")
 
     cdef OP ca, cb, cres, cco, ccl
 

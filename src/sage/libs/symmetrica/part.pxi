@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT strict_to_odd_part(OP s, OP o)
     INT odd_to_strict_part(OP o, OP s)
@@ -13,6 +15,7 @@ def strict_to_odd_part_symmetrica(part):
     result is a partition of the same weight with only odd parts.
 
     """
+    cite("symmetrica")
 
     #Make sure that the partition is strict
     cdef INT i
@@ -43,6 +46,7 @@ def odd_to_strict_part_symmetrica(part):
     and strict partitions. input is a VECTOR type partition, the
     result is a partition of the same weight with different parts.
     """
+    cite("symmetrica")
 
     #Make sure that the partition is strict
     cdef INT i
@@ -77,6 +81,7 @@ def q_core_symmetrica(part, d):
     partition disappears.
 
     """
+    cite("symmetrica")
 
 
     cdef OP cpart, cres, cd
@@ -108,6 +113,7 @@ def gupta_nm_symmetrica(n, m):
     freed first to an empty object. The result must
     be a different from m and n.
     """
+    cite("symmetrica")
 
 
     cdef OP cn, cm, cres
@@ -139,6 +145,7 @@ def gupta_tafel_symmetrica(max):
     weight for the partitions. max must be different from
     result.
     """
+    cite("symmetrica")
 
 
     cdef OP cmax, cres
@@ -168,6 +175,7 @@ def random_partition_symmetrica(n):
     Type of partition is VECTOR . Its the algorithm of
     Nijnhuis Wilf p.76
     """
+    cite("symmetrica")
 
 
     cdef OP cn, cres

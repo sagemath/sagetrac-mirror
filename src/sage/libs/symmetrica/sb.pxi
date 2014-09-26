@@ -1,3 +1,5 @@
+from sage.misc.cite cimport cite
+
 cdef extern from 'symmetrica/def.h':
     INT mult_schubert_schubert(OP a, OP b, OP result)
     INT m_perm_sch(OP a, OP b)
@@ -39,6 +41,8 @@ def mult_schubert_schubert_symmetrica(a, b):
         sage: symmetrica.mult_schubert_schubert([3,2,1], [3,2,1])
         X[5, 3, 1, 2, 4]
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), cb = callocobject(), cres = callocobject()
@@ -72,6 +76,8 @@ def t_SCHUBERT_POLYNOM_symmetrica(a):
         sage: symmetrica.t_SCHUBERT_POLYNOM([3,2,1])
         x0^2*x1
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), cres = callocobject()
@@ -103,6 +109,8 @@ def t_POLYNOM_SCHUBERT_symmetrica(a):
         sage: symmetrica.t_POLYNOM_SCHUBERT(w0)
         X[3, 2, 1]
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), cres = callocobject()
@@ -140,6 +148,8 @@ def mult_schubert_variable_symmetrica(a, i):
         sage: symmetrica.mult_schubert_variable([3,2,1], 4)
         X[3, 2, 1, 4, 6, 5] - X[3, 2, 1, 5, 4]
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), ci = callocobject(),  cres = callocobject()
@@ -179,6 +189,8 @@ def divdiff_perm_schubert_symmetrica(perm, a):
        ...
        ValueError: cannot apply \delta_{[3, 2, 4, 1]} to a (= [3, 2, 1])
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), cperm = callocobject(),  cres = callocobject()
@@ -221,6 +233,8 @@ def scalarproduct_schubert_symmetrica(a, b):
         sage: symmetrica.scalarproduct_schubert([3,2,1], [2,1,3])
         X[1, 2, 4, 3]
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), cb = callocobject(), cres = callocobject()
@@ -261,6 +275,8 @@ def divdiff_schubert_symmetrica(i, a):
        ...
        ValueError: cannot apply \delta_{3} to a (= [3, 2, 1])
     """
+    cite("symmetrica")
+
     late_import()
 
     cdef OP ca = callocobject(), ci = callocobject(),  cres = callocobject()
