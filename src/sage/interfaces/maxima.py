@@ -462,6 +462,7 @@ import pexpect
 from random import randrange
 
 from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.misc.cite import cite
 
 ##import sage.rings.all
 
@@ -735,6 +736,8 @@ class Maxima(MaximaAbstract, Expect):
 
 
         """
+        cite("maxima")
+
         if len(line) == 0:
             return ''
         line = line.rstrip()

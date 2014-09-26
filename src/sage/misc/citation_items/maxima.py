@@ -18,5 +18,3 @@ class Maxima_CitationItem( CitationItem ):
     howpublished = {{\url{http://maxima.sourceforge.net}}},
 }
     """
-
-    _re = [r"^sage.interfaces.maxima"]
