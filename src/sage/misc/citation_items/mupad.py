@@ -17,5 +17,3 @@ class MuPAD_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.mathworks.de/discovery/mupad.html}}},
 }
     """
-
-    _re = [r"^sage.interfaces.mupad"]

@@ -95,6 +95,7 @@ from expect import (Expect, ExpectElement, ExpectFunction,
 
 
 from sage.misc.misc import verbose, DOT_SAGE
+from sage.misc.cite import cite
 
 COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj'%DOT_SAGE
 PROMPT = ">>"
@@ -247,6 +248,8 @@ command-line version of MuPAD.
             RuntimeError: Unknown slot "x::asdf" [slot]
 
         """
+        cite("mupad")
+
         if self._expect is None:
             self._start()
         if not need_output:
