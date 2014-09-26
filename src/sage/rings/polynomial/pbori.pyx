@@ -218,6 +218,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.all import singular as singular_default
 from sage.interfaces.singular import SingularElement
 
+from sage.misc.cite cimport cite
+
 order_dict= {"lp":      pblp,
              "dlex":    pbdlex,
              "dp_asc":  pbdp_asc,
@@ -2216,6 +2218,7 @@ cdef class BooleanMonomial(MonoidElement):
 
           See class documentation for parameters.
         """
+        cite("polybori")
 
         _parent = <ParentWithBase>parent
         self._ring = parent._ring
@@ -2925,6 +2928,8 @@ cdef class BooleanPolynomial(MPolynomial):
         use the appropriate ``__call__`` method in the parent.
     """
     def __init__(self, parent):
+        cite("polybori")
+
         self._parent = <ParentWithBase>parent
         self._pbpoly = PBPoly_Constructor_ring((<BooleanPolynomialRing>parent)._pbring)
 

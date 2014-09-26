@@ -18,5 +18,3 @@ class PolyBoRi_CitationItem( CitationItem ):
     howpublished          = {{\url{http://polybori.sourceforge.net}}},
 }
 """
-
-    _re = [r"^sage.rings.polynomial.pbori"]
