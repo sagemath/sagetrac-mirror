@@ -1807,7 +1807,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: x = var('x')
         sage: sage_getsourcelines(x)
         (['cdef class Expression(CommutativeRingElement):\n',
-          '    cpdef object pyobject(self):\n',
+          '\n',
         ...
           '        return self / x\n'], ...)
 

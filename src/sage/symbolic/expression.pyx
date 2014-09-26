@@ -204,6 +204,13 @@ cpdef bint is_SymbolicEquation(x):
 
 cdef class Expression(CommutativeRingElement):
 
+    # It seems a class docstring is needed here to make sure
+    # sage.misc.sageinspect.sage_getsourcelines can find the source.
+    # This is probably because the location doesn't get inserted into
+    # a docstring suitable for sage_getsourcelines by Cython's compilation
+    # when property __doc__ is defined.
+    """A class for symbolic expressions."""
+
     property __doc__:
         def __get__(self):
             """
