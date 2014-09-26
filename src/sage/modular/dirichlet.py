@@ -1194,6 +1194,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return self(-1) == R(1)
 
     @cached_method
+    def is_totally_even(self):
+        if self.is_even():
+            return all(chi.is_even() for chi in self.decomposition())
+        else:
+            return False
+
+    @cached_method
     def is_odd(self):
         r"""
         Return ``True`` if and only if

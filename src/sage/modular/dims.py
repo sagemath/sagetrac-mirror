@@ -42,7 +42,7 @@ classes.
 
 
 from sage.rings.arith import (factor, is_prime,
-                              valuation, kronecker_symbol, gcd, euler_phi, lcm)
+                              valuation, kronecker_symbol, gcd, euler_phi, lcm, divisors, prime_divisors, jacobi_symbol)
 
 from sage.misc.misc import mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
@@ -51,6 +51,8 @@ import dirichlet
 Z = ZZ  # useful abbreviation.
 
 from sage.modular.arithgroup.all import Gamma0, Gamma1, is_ArithmeticSubgroup, is_GammaH
+from sage.functions.other import sqrt
+from sage.modular.dirichlet import DirichletGroup, trivial_character
 
 ##########################################################################
 # Helper functions for calculating dimensions of spaces of modular forms
@@ -179,15 +181,14 @@ def CohenOesterle(eps, k):
     r"""
     Compute the Cohen-Oesterle function associate to eps, `k`.
     This is a summand in the formula for the dimension of the space of
-    cusp forms of weight `2` with character
-    `\varepsilon`.
+    cusp forms of weight `k` with character `\varepsilon`.
 
     INPUT:
 
 
     -  ``eps`` - Dirichlet character
 
-    -  ``k`` - integer
+    -  ``k`` - integer, or half an integer
 
 
     OUTPUT: element of the base ring of eps.
@@ -200,19 +201,17 @@ def CohenOesterle(eps, k):
         sage: sage.modular.dims.CohenOesterle(eps, 4)
         -1
     """
-    N    = eps.modulus()
-    facN = factor(N)
-    f    = eps.conductor()
-    gamma_k = 0
-    if k%4==2:
-        gamma_k = frac(-1,4)
-    elif k%4==0:
-        gamma_k = frac(1,4)
-    mu_k = 0
-    if k%3==2:
-        mu_k = frac(-1,3)
-    elif k%3==0:
-        mu_k = frac(1,3)
+    den = abs(k.denominator())
+    N = eps.modulus()
+    f = eps.conductor()
+    K = eps.base_ring()
+    L = prime_divisors(N)
+    r = {}
+    s = {}
+    for p in L:
+        r[p] = valuation(N, p)
+        s[p] = valuation(f, p)
+        
     def _lambda(r,s,p):
         """
         Used internally by the CohenOesterle function.
@@ -240,11 +239,65 @@ def CohenOesterle(eps, k):
             return 2*p**((r-1)//2)
         return 2*(p**(r-s))
     #end def of lambda
-    K = eps.base_ring()
-    return K(frac(-1,2) * mul([_lambda(r,valuation(f,p),p) for p, r in facN]) + \
-               gamma_k * mul([CO_delta(r,p,N,eps)         for p, r in facN]) + \
-                mu_k    * mul([CO_nu(r,p,N,eps)            for p, r in facN]))
+    if den == 1:
+        gamma_k = 0
+        if k%4==2:
+            gamma_k = frac(-1,4)
+        elif k%4==0:
+            gamma_k = frac(1,4)
+        mu_k = 0
+        if k%3==2:
+            mu_k = frac(-1,3)
+        elif k%3==0:
+            mu_k = frac(1,3)
+        return K(frac(-1,2) * mul([_lambda(r[p], s[p], p)     for p in L]) + \
+                    gamma_k * mul([CO_delta(r[p], p, N, eps)  for p in L]) + \
+                    mu_k    * mul([CO_nu(r[p], p, N, eps)     for p in L]))
+    
+    if den == 2:
+        if r[2] >= 4:
+            zeta = _lambda(r[2], s[2], 2)
+        if r[2] == 3:
+            zeta = 3
+        if r[2] == 2:
+            C = False
+            for p in L:
+                if p%4 == 3:
+                    if r[p]%2 == 1 or ( 0 < r[p] < 2*s[p]):
+                        C = True
+            if C:
+                zeta = 2
+            else:
+                if (2*k-1)%4 == 0:
+                    if s[2] == 0:
+                        zeta = 3/2
+                    else:
+                        zeta = 5/2
+                else:
+                    if s[2] == 0:
+                        zeta = 5/2
+                    else:
+                        zeta = 3/2
+        return K(frac(-zeta,2) * mul([_lambda(r[p], s[p], p) for p in L if p!= 2]))
 
+def StarkSerre(eps, cusp_space=False):
+    N = eps.modulus()
+    K = eps.base_ring()
+    d = 0
+    for t in divisors(N):
+        for rr in divisors(N/t):
+            if rr.is_square():
+                r = sqrt(rr)
+                chars = DirichletGroup(r).list()
+                for psi in chars:
+                    if all([psi.is_primitive(), psi.is_even(), (not cusp_space) or psi.is_totally_even()]):
+                        a = 1
+                        for n in range(1, N):
+                            if gcd(n, N) == 1 and psi(n)*jacobi_symbol(t, n) != eps(n):
+                                a = 0
+                                break
+                        d += a
+    return K(d)
 
 ####################################################################
 # Functions exported to the global namespace.
@@ -420,16 +473,30 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
     """
+    from sage.rings.all import QQ
+    k = QQ(k)
+    den = abs(k.denominator())
+    if den > 2:
+        raise TypeError("The weight must be an integer or half an integer")
+    
     if isinstance(X, dirichlet.DirichletCharacter):
         N = X.modulus()
-        if N <= 2:
+        if den == 2 and N%4 !=0:
+            raise TypeError("The level must be divisible by 4")
+        if N <= 2 and den == 1:
             return Gamma0(N).dimension_cusp_forms(k)
         else:
             return Gamma1(N).dimension_cusp_forms(k, X)
     elif is_ArithmeticSubgroup(X):
-        return X.dimension_cusp_forms(k)
+        if den == 1:
+            return X.dimension_cusp_forms(k)
+        else:
+            raise NotImplementedError("Computation of dimensions of spaces of cusp forms for general arithmetic subgroups not implemented at present")
     elif isinstance(X, (Integer,int,long)):
-        return Gamma0(X).dimension_cusp_forms(k)
+        if den == 1:
+            return Gamma0(X).dimension_cusp_forms(k)
+        else:
+            return Gamma1(X).dimension_cusp_forms(k, trivial_character(X))
     else:
         raise TypeError("Argument 1 must be a Dirichlet character, an integer or a finite index subgroup of SL2Z")
 

@@ -419,22 +419,33 @@ class Gamma1_class(GammaH_class):
         """
 
         from all import Gamma0
-
+        from sage.rings.all import QQ
+        k = QQ(k)
+        den = abs(k.denominator())
+        num = k.numerator()        
+        N = self.level()
+        
         # first deal with special cases
+
+        if k <= 0:
+            return ZZ(0)
 
         if eps is None:
             return GammaH_class.dimension_cusp_forms(self, k)
-
-        N = self.level()
+        
         if eps.base_ring().characteristic() != 0:
             raise ValueError
 
         eps = DirichletGroup(N, eps.base_ring())(eps)
 
-        if eps.is_trivial():
+        if eps.is_trivial() and den == 1:
             return Gamma0(N).dimension_cusp_forms(k)
 
-        if (k <= 0) or ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+        if den == 1:
+            if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+                return ZZ(0)
+        
+        if den == 2 and eps.is_odd():
             return ZZ(0)
 
         if k == 1:
@@ -450,18 +461,27 @@ class Gamma1_class(GammaH_class):
         # now the main part
 
         if algorithm == "Quer":
-            n = eps.order()
-            dim = ZZ(0)
-            for d in n.divisors():
-                G = GammaH_constructor(N,(eps**d).kernel())
-                dim = dim + moebius(d)*G.dimension_cusp_forms(k)
-            return dim//phi(n)
+            if den == 2:
+                raise NotImplementedError("Computation of dimensions of spaces of half integral weight cusp forms is only implemented using Cohen--Oesterle algorithm")
+            else:
+                n = eps.order()
+                dim = ZZ(0)
+                for d in n.divisors():
+                    G = GammaH_constructor(N,(eps**d).kernel())
+                    dim = dim + moebius(d)*G.dimension_cusp_forms(k)
+                return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
             K = eps.base_ring()
-            from sage.modular.dims import CohenOesterle
             from all import Gamma0
-            return ZZ( K(Gamma0(N).index() * (k-1)/ZZ(12)) + CohenOesterle(eps,k) )
+            from sage.modular.dims import StarkSerre, CohenOesterle
+            if den == 2 and num == 1:
+                return StarkSerre(eps, cusp_space=True)
+            aux_dim = ZZ(K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k))
+            if den == 2 and num == 3:
+                return aux_dim + StarkSerre(eps)
+            else:
+                return aux_dim
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
             raise ValueError("Unrecognised algorithm in dimension_cusp_forms")
@@ -513,7 +533,12 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
         """
         from all import Gamma0
-
+        from sage.rings.all import QQ
+        k = QQ(k)
+        den = abs(k.denominator())
+        num = k.numerator()
+        if den == 2 and N%4 !=0:
+            raise TypeError("The level must be divisible by 4")        
         # first deal with special cases
 
         if eps is None:
@@ -526,16 +551,26 @@ class Gamma1_class(GammaH_class):
             return Gamma0(N).dimension_eis(k)
 
         # Note case of k = 0 and trivial character already dealt with separately, so k <= 0 here is valid:
-        if (k <= 0) or ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+        if k <= 0:
+            return ZZ(0)
+        
+        if den == 1:
+            if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+                return ZZ(0)
+            
+        if den == 2 and eps.is_odd():
             return ZZ(0)
 
         if algorithm == "Quer":
-            n = eps.order()
-            dim = ZZ(0)
-            for d in n.divisors():
-                G = GammaH_constructor(N,(eps**d).kernel())
-                dim = dim + moebius(d)*G.dimension_eis(k)
-            return dim//phi(n)
+            if den == 2:
+                raise NotImplementedError("Computation of dimensions of spaces of half integral weight Einsenstein series forms is only implemented using Cohen--Oesterle algorithm")
+            else:
+                n = eps.order()
+                dim = ZZ(0)
+                for d in n.divisors():
+                    G = GammaH_constructor(N,(eps**d).kernel())
+                    dim = dim + moebius(d)*G.dimension_eis(k)
+                return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
             from sage.modular.dims import CohenOesterle
