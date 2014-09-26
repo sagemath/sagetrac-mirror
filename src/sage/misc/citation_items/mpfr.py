@@ -18,6 +18,3 @@ class MPFR_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.mpfr.org}}},
 }
     """
-
-    _re = [r"^sage.rings.real_mpfr",
-           "^sage.rings.complex_number"]

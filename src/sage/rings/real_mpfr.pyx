@@ -137,6 +137,7 @@ from sage.structure.element import bin_op
 
 import sage.misc.misc as misc
 import sage.misc.weak_dict
+from sage.misc.cite cimport cite
 
 import operator
 
@@ -1285,6 +1286,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Return a new real number with same parent as self.
         """
+        cite("mpfr")
+
         cdef RealNumber x
         x = <RealNumber>PY_NEW(RealNumber)
         x._parent = self._parent
@@ -1337,6 +1340,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: TestSuite(R).run()
         """
+        cite("mpfr")
+
         self.init = 0
         if parent is None:
             raise TypeError

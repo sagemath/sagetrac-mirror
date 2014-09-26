@@ -37,6 +37,7 @@ import complex_field
 import sage.misc.misc
 import integer
 import infinity
+from sage.misc.cite cimport cite
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
@@ -120,6 +121,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Quickly creates a new initialized complex number with the same
         parent as ``self``.
         """
+        cite("mpfr")
+
         cdef ComplexNumber x
         x = PY_NEW(ComplexNumber)
         x._parent = self._parent
@@ -138,6 +141,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: ComplexNumber(2,1) # indirect doctest
             2.00000000000000 + 1.00000000000000*I
         """
+        cite("mpfr")
+
         self._prec = -1
 
     def __init__(self, parent, real, imag=None):
@@ -157,6 +162,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: imag(a)
             1.00000000000000
         """
+        cite("mpfr")
+
         cdef real_mpfr.RealNumber rr, ii
         self._parent = parent
         self._prec = self._parent._prec
