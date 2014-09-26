@@ -223,15 +223,19 @@ cdef class Expression(CommutativeRingElement):
                     Get the underlying Python object.
                 <BLANKLINE>
                 :meth:`.numerical_approx`
-                    Return a numerical approximation this symbolic expression as
-                    either a real or complex number with at least the requested
-                    number of bits or digits of precision.
+                    Return a numerical approximation of this symbolic expression as
+                    either a real or complex number with at least the requested number
+                    of bits or digits of precision.
                 <BLANKLINE>
                 Docstring of the return value of :meth:`.pyobject`
                 --------------------------------------------------
                 <BLANKLINE>
-                The return value does not have a docstring.
+                ...
+                <mi>&pi;</mi>
             """
+
+            from sage.misc.sageinspect import sage_getdoc
+            from inspect import cleandoc
 
             # Figure out what kind of expression we're dealing with.
             kind = None
@@ -326,12 +330,6 @@ cdef class Expression(CommutativeRingElement):
                 parts.append(fmt.format(a_single[kind]))
 
             # the methods of interest section
-            def first_interesting_part(docstring):
-                if docstring[:5] == "File:":
-                    docstring = docstring.split("\n\n", 1)[1]
-                from inspect import cleandoc
-                docstring = cleandoc(docstring)
-                return docstring.split("\n\n", 1)[0]
             if interesting_methods != []:
                 parts.append(
                     """
@@ -339,11 +337,20 @@ cdef class Expression(CommutativeRingElement):
                     ------------------------
                     """)
                 for method in interesting_methods:
-                    definition = getattr(self, method).__doc__
-                    if definition is None:
-                        definition = "A method without a docstring."
+                    # Get or invent a docstring (without Cython's location).
+                    try:
+                        attr = getattr(self, method)
+                    except AttributeError:
+                        definition = """The method does not exist.
+                                        Please file a bug report;
+                                        this method should not appear here."""
                     else:
-                        definition = first_interesting_part(definition)
+                        definition = sage_getdoc(attr)
+                    if not definition:
+                        definition = "A method without a useful docstring."
+                    # Extract first part, without indentation.
+                    definition = cleandoc(definition).split("\n\n", 1)[0]
+                    # Add an item to the definition list.
                     part = "\n:meth:`.{method}`".format(method=method)
                     for line in definition.splitlines():
                         part += "\n    " # indent
@@ -364,13 +371,12 @@ cdef class Expression(CommutativeRingElement):
                     fmt = """Calling :meth:`.{method}` raises an exception."""
                     part = fmt.format(method=method)
                 else:
-                    part = v.__doc__
-                    if part is None:
-                        part = """The return value does not have a docstring."""
+                    part = sage_getdoc(v)
+                    if not part:
+                        part = """The return value has no useful docstring."""
                 parts.append(part)
 
             # paste it all together
-            from inspect import cleandoc
             return "\n\n".join([cleandoc(part) for part in parts])
 
     cpdef object pyobject(self):
@@ -4915,7 +4921,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation this symbolic expression as
+        Return a numerical approximation of this symbolic expression as
         either a real or complex number with at least the requested
         number of bits or digits of precision.
 
