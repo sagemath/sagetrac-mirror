@@ -17,5 +17,3 @@ class matlab_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.mathworks.com/products/matlab}}},
 }
     """
-
-    _re = [r"^sage.interfaces.matlab"]
