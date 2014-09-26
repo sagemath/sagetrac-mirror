@@ -17,5 +17,3 @@ class Octave_CitationItem( CitationItem ):
     howpublished = {{\url{http://www.gnu.org/software/octave}}},
 }
     """
-
-    _re = [r"^sage.interfaces.octave"]

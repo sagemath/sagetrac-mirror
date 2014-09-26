@@ -155,6 +155,7 @@ EXAMPLES::
 import os
 from expect import Expect, ExpectElement
 from sage.misc.misc import verbose
+from sage.misc.cite import cite
 
 
 class Octave(Expect):
@@ -191,7 +192,8 @@ class Octave(Expect):
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        citation = "octave")
 
     def __reduce__(self):
         """
