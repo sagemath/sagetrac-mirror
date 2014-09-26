@@ -48,6 +48,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.misc.misc_c import is_64_bit
 
+from sage.misc.cite cimport cite
+
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
@@ -9267,6 +9269,8 @@ def init_pari_stack(s=8000000):
 
 cdef gen objtogen(s):
     """Convert any Sage/Python object to a PARI gen"""
+    cite("pari")
+
     cdef GEN g
     cdef Py_ssize_t length, i
     cdef mpz_t mpz_int

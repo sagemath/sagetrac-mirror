@@ -19,6 +19,3 @@ class PARI_CitationItem( CitationItem ):
     howpublished          = {{\url{http://pari.math.u-bordeaux.fr}}},
 }
     """
-
-    _re = [r"^sage.libs.pari",
-           "^sage.interfaces.gp"]
