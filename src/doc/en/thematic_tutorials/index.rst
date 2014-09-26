@@ -26,6 +26,11 @@ a `Creative Commons Attribution-Share Alike 3.0 License <http://creativecommons.
 Some of those tutorials are part of a series developed for the MAA
 PREP Workshop `Sage: Using Open-Source Mathematics Software with Undergraduates <../prep/index.html>`_.
 
+.. SEEALSO::
+
+    - A list of :ref:`talks` which used those documents.
+    - :ref:`thematic_tutorials.sage_combinat`
+
 Introduction to Sage
 ====================
 
@@ -74,6 +79,7 @@ Combinatorics
 Algebraic Combinatorics
 -----------------------
 
+* :ref:`algebraic_combinatorics`
 * :class:`Tutorial: Symmetric Functions <SymmetricFunctions>`
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`

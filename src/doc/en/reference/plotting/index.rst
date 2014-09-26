@@ -4,6 +4,7 @@
 .. toctree::
    :maxdepth: 2
 
+   sage/plot/demo
    sage/plot/plot
    sage/plot/graphics
    sage/plot/animate

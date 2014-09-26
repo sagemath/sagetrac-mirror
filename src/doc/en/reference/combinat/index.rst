@@ -1,6 +1,17 @@
 Combinatorics
 =============
 
+**Demonstrations and tutorials**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/demo_short
+   sage/combinat/demo
+   sage/combinat/demo_algebraic_combinatorics
+   sage/combinat/tutorial
+   sage/combinat/tutorial_enumerated_sets
+
 **Algebra**
 
 .. toctree::
@@ -171,8 +182,6 @@ Combinatorics
 
 .. toctree::
    :maxdepth: 1
-
-   sage/combinat/tutorial
 
    sage/combinat/cartesian_product
    sage/combinat/combination

@@ -147,6 +147,7 @@ Functions and classes
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import copy
 from sage.interfaces.all import gap, maxima
 from sage.rings.all import QQ, ZZ, Integer
 from sage.rings.arith import bernoulli, binomial
