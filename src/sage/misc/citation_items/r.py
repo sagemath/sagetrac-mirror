@@ -21,5 +21,3 @@ class R_CitationItem( CitationItem ):
   note         = {{Version~3.1.1, \url{http://www.R-project.org}}},
 }
     """
-
-    _re = [r"^sage.interfaces.r"]

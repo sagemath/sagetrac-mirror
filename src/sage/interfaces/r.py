@@ -292,7 +292,9 @@ class R(Expect):
 
                   # If an input is longer than this number of characters, then
                   # try to switch to outputting to a file.
-                  eval_using_file_cutoff=1024)
+                  eval_using_file_cutoff=1024,
+
+                  citation = "r")
 
         self.__seq = 0
         self.__var_store_len = 0
