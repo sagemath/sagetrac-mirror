@@ -255,6 +255,8 @@ import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
 
+from sage.misc.cite cimport cite
+
 cdef class RealIntervalFieldElement(sage.structure.element.RingElement)
 
 #*****************************************************************************
@@ -562,6 +564,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a new real number with parent ``self``.
         """
+        cite("mpfi")
+
         cdef RealIntervalFieldElement x
         x = PY_NEW(RealIntervalFieldElement)
         x._parent = self
@@ -1154,6 +1158,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         Type: ``RealIntervalField?`` for many more examples.
         """
+        cite("mpfi")
+
         import sage.rings.qqbar
 
         self.init = 0

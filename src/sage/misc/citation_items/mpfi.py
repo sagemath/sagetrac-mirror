@@ -17,6 +17,3 @@ class MPFI_CitationItem( CitationItem ):
     howpublished = {{\url{http://perso.ens-lyon.fr/nathalie.revol/software.html}}},
 }
     """
-
-    _re = [r"^sage.rings.real_mpfi",
-           "^sage.rings.complex_interval"]

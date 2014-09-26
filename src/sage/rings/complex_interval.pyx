@@ -52,6 +52,8 @@ import real_mpfi
 import real_mpfr
 cimport real_mpfr
 
+from sage.misc.cite cimport cite
+
 include "sage/ext/stdsage.pxi"
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
@@ -85,6 +87,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Quickly creates a new initialized complex interval with the
         same parent as ``self``.
         """
+        cite("mpfi")
+
         cdef ComplexIntervalFieldElement x
         x = PY_NEW(ComplexIntervalFieldElement)
         x._parent = self._parent
@@ -106,6 +110,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1.5 + 2.5*I)
             1.5000000000000000? + 2.5000000000000000?*I
         """
+        cite("mpfi")
+
         cdef real_mpfi.RealIntervalFieldElement rr, ii
         self._parent = parent
         self._prec = self._parent._prec
