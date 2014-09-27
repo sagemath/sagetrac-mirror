@@ -496,7 +496,10 @@ def dimension_cusp_forms(X, k=2):
         if den == 1:
             return Gamma0(X).dimension_cusp_forms(k)
         else:
-            return Gamma1(X).dimension_cusp_forms(k, trivial_character(X))
+            if X%4 !=0:
+                raise TypeError("The level must be divisible by 4")
+            else:
+                return Gamma1(X).dimension_cusp_forms(k, trivial_character(X))
     else:
         raise TypeError("Argument 1 must be a Dirichlet character, an integer or a finite index subgroup of SL2Z")
 
