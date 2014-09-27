@@ -473,33 +473,25 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
     """
-    from sage.rings.all import QQ
+    from sage.rings.rational_field import QQ
+    from sage.rings.rational import Rational
+    
     k = QQ(k)
     den = abs(k.denominator())
-    if den > 2:
-        raise TypeError("The weight must be an integer or half an integer")
     
     if isinstance(X, dirichlet.DirichletCharacter):
         N = X.modulus()
-        if den == 2 and N%4 !=0:
-            raise TypeError("The level must be divisible by 4")
         if N <= 2 and den == 1:
             return Gamma0(N).dimension_cusp_forms(k)
         else:
             return Gamma1(N).dimension_cusp_forms(k, X)
     elif is_ArithmeticSubgroup(X):
-        if den == 1:
-            return X.dimension_cusp_forms(k)
-        else:
-            raise NotImplementedError("Computation of dimensions of spaces of cusp forms for general arithmetic subgroups not implemented at present")
-    elif isinstance(X, (Integer,int,long)):
+        return X.dimension_cusp_forms(k)
+    elif isinstance(X, (Integer,int,long,Rational)):
         if den == 1:
             return Gamma0(X).dimension_cusp_forms(k)
         else:
-            if X%4 !=0:
-                raise TypeError("The level must be divisible by 4")
-            else:
-                return Gamma1(X).dimension_cusp_forms(k, trivial_character(X))
+            return Gamma1(X).dimension_cusp_forms(k, trivial_character(X))
     else:
         raise TypeError("Argument 1 must be a Dirichlet character, an integer or a finite index subgroup of SL2Z")
 
@@ -577,13 +569,21 @@ def dimension_eis(X, k=2):
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
     """
+    from sage.rings.rational_field import QQ
+    from sage.rings.rational import Rational
+    
+    k = QQ(k)
+    den = abs(k.denominator())
 
     if is_ArithmeticSubgroup(X):
         return X.dimension_eis(k)
     elif isinstance(X, dirichlet.DirichletCharacter):
-        return Gamma1(X.modulus()).dimension_eis(k, X)
-    elif isinstance(X, (int, long, Integer)):
-        return Gamma0(X).dimension_eis(k)
+        return Gamma1(X.modulus()).dimension_eis(k, X)        
+    elif isinstance(X, (int, long, Integer, Rational)):
+        if den == 1:
+            return Gamma0(X).dimension_eis(k)
+        else:
+            return Gamma1(X).dimension_eis(k, trivial_character(X))        
     else:
         raise TypeError("Argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X)
 
@@ -625,8 +625,13 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(11,2)
         2
     """
+    from sage.rings.rational import Rational
     if isinstance(X, (int, long, Integer)):
-        return Gamma0(X).dimension_modular_forms(k)
+        if isinstance(k, Integer):
+            return Gamma0(X).dimension_modular_forms(k)
+        elif isinstance(k, Rational):
+            return Gamma1(X).dimension_modular_forms(k, trivial_character(X))
+        else: TypeError("Argument 2 must be an integer or half an integer.")
     elif is_ArithmeticSubgroup(X):
         return X.dimension_modular_forms(k)
     elif isinstance(X,dirichlet.DirichletCharacter):

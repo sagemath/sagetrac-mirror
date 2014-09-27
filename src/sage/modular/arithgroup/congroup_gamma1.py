@@ -419,11 +419,15 @@ class Gamma1_class(GammaH_class):
         """
 
         from all import Gamma0
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import frac, QQ
         k = QQ(k)
         den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")        
         num = k.numerator()        
         N = self.level()
+        if den == 2 and N%4 !=0:
+            raise TypeError("The level must be divisible by 4")
         
         # first deal with special cases
 
@@ -473,12 +477,11 @@ class Gamma1_class(GammaH_class):
 
         elif algorithm == "CohenOesterle":
             K = eps.base_ring()
-            from all import Gamma0
             from sage.modular.dims import StarkSerre, CohenOesterle
-            if den == 2 and num == 1:
+            if k == frac(1,2):
                 return StarkSerre(eps, cusp_space=True)
             aux_dim = ZZ(K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k))
-            if den == 2 and num == 3:
+            if k == frac(3,2):
                 return aux_dim + StarkSerre(eps)
             else:
                 return aux_dim
@@ -533,21 +536,24 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
         """
         from all import Gamma0
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import frac, QQ
         k = QQ(k)
         den = abs(k.denominator())
-        num = k.numerator()
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")        
+        num = k.numerator()        
+        N = self.level()
         if den == 2 and N%4 !=0:
-            raise TypeError("The level must be divisible by 4")        
+            raise TypeError("The level must be divisible by 4")
+
         # first deal with special cases
 
         if eps is None:
             return GammaH_class.dimension_eis(self, k)
 
-        N = self.level()
         eps = DirichletGroup(N)(eps)
 
-        if eps.is_trivial():
+        if eps.is_trivial() and den == 1:
             return Gamma0(N).dimension_eis(k)
 
         # Note case of k = 0 and trivial character already dealt with separately, so k <= 0 here is valid:
@@ -573,17 +579,21 @@ class Gamma1_class(GammaH_class):
                 return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
-            from sage.modular.dims import CohenOesterle
-            K = eps.base_ring()
-            j = 2-k
-            # We use the Cohen-Oesterle formula in a subtle way to
-            # compute dim M_k(N,eps) (see Ch. 6 of William Stein's book on
-            # computing with modular forms).
-            alpha = -ZZ( K(Gamma0(N).index()*(j-1)/ZZ(12)) + CohenOesterle(eps,j) )
-            if k == 1:
-                return alpha
+            if k == frac(1,2):
+                from sage.modular.dims import StarkSerre
+                return StarkSerre(eps) - self.dimension_cusp_forms(k, eps)
             else:
-                return alpha - self.dimension_cusp_forms(k, eps)
+                from sage.modular.dims import CohenOesterle
+                K = eps.base_ring()
+                j = 2-k
+                # We use the Cohen-Oesterle formula in a subtle way to
+                # compute dim M_k(N,eps) (see Ch. 6 of William Stein's book on
+                # computing with modular forms).
+                alpha = -ZZ( K(Gamma0(N).index()*(j-1)/ZZ(12)) + CohenOesterle(eps,j) )
+                if k == 1:
+                    return alpha
+                else:
+                    return alpha - self.dimension_cusp_forms(k, eps)
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
             raise ValueError("Unrecognised algorithm in dimension_eis")
