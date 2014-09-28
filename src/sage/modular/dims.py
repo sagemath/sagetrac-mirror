@@ -386,7 +386,7 @@ def dimension_cusp_forms(X, k=2):
     -  ``X`` - congruence subgroup or Dirichlet character
        or integer
 
-    -  ``k`` - weight (integer)
+    -  ``k`` - weight (integer, or half an integer)
 
 
     EXAMPLES::
@@ -396,17 +396,22 @@ def dimension_cusp_forms(X, k=2):
 
     ::
 
-        sage: dimension_cusp_forms(Gamma0(11),2)
-        1
-        sage: dimension_cusp_forms(Gamma1(13),2)
-        2
-
-    ::
-
         sage: dimension_cusp_forms(DirichletGroup(13).0^2,2)
         1
         sage: dimension_cusp_forms(DirichletGroup(13).0,3)
         1
+
+    ::
+
+        sage: G = DirichletGroup(108)
+        sage: eps = G.0*G.1^9
+        sage: dimension_cusp_forms(eps,3/2)
+        5
+        sage: dimension_cusp_forms(eps,1/2)
+        0
+        sage: K = DirichletGroup(156)
+        sage: dimension_cusp_forms(K.1*K.2, 9/2)
+        94
 
     ::
 
@@ -442,7 +447,8 @@ def dimension_cusp_forms(X, k=2):
         0
         sage: dimension_cusp_forms(Gamma1(1),4)
         0
-
+        sage: dimension_cusp_forms(Gamma1(13),2)
+        2
     ::
 
         sage: dimension_cusp_forms(Gamma1(389),2)
@@ -474,10 +480,10 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
     """
-    
+
     k = QQ(k)
     den = abs(k.denominator())
-    
+
     if isinstance(X, dirichlet.DirichletCharacter):
         N = X.modulus()
         if N <= 2 and den == 1:
@@ -487,6 +493,9 @@ def dimension_cusp_forms(X, k=2):
     elif is_ArithmeticSubgroup(X):
         return X.dimension_cusp_forms(k)
     elif isinstance(X, (Integer,int,long,Rational)):
+        # For integral k we use the method given in Diamond--Shurman.
+        # For half-integral k, we use the algorithms of Cohen--Oesterle
+        # and Serre--Stark.
         if den == 1:
             return Gamma0(X).dimension_cusp_forms(k)
         else:
@@ -505,7 +514,7 @@ def dimension_eis(X, k=2):
     -  ``X`` - congruence subgroup or Dirichlet character
        or integer
 
-    -  ``k`` - weight (integer)
+    -  ``k`` - weight (integer, or half an integer)
 
 
     EXAMPLES::
@@ -567,20 +576,37 @@ def dimension_eis(X, k=2):
 
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
+
+        ::
+
+        sage: G = DirichletGroup(108)
+        sage: dimension_eis(G.0*G.1^9, 3/2)
+        7
+        sage: H = DirichletGroup(36)
+        sage: dimension_eis(H.0, 1/2)
+        1
+        sage: dimension_eis(H.1, 1/2)
+        0
+        sage: K = DirichletGroup(156)
+        sage: dimension_eis(K.1*K.2, 9/2)
+        8
     """
-    
+
     k = QQ(k)
     den = abs(k.denominator())
 
     if is_ArithmeticSubgroup(X):
         return X.dimension_eis(k)
     elif isinstance(X, dirichlet.DirichletCharacter):
-        return Gamma1(X.modulus()).dimension_eis(k, X)        
+        return Gamma1(X.modulus()).dimension_eis(k, X)
     elif isinstance(X, (int, long, Integer, Rational)):
+        # For integral k we use the method given in Diamond--Shurman.
+        # For half-integral k, we use the algorithms of Cohen--Oesterle
+        # and Serre--Stark.
         if den == 1:
             return Gamma0(X).dimension_eis(k)
         else:
-            return Gamma1(X).dimension_eis(k, trivial_character(X))        
+            return Gamma1(X).dimension_eis(k, trivial_character(X))
     else:
         raise TypeError("Argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X)
 
@@ -595,7 +621,7 @@ def dimension_modular_forms(X, k=2):
 
     -  ``X`` - congruence subgroup or Dirichlet character
 
-    -  ``k`` - weight (integer)
+    -  ``k`` - weight (integer, or half an integer)
 
 
     EXAMPLES::
@@ -604,6 +630,8 @@ def dimension_modular_forms(X, k=2):
         2
         sage: dimension_modular_forms(Gamma0(11),0)
         1
+        sage: dimension_modular_forms(Gamma0(64),1/2)
+        3
         sage: dimension_modular_forms(Gamma1(13),2)
         13
         sage: dimension_modular_forms(GammaH(11, [10]), 2)
@@ -621,8 +649,23 @@ def dimension_modular_forms(X, k=2):
         6
         sage: dimension_modular_forms(11,2)
         2
+
+        ::
+
+        sage: G = DirichletGroup(156)
+        sage: dimension_modular_forms(G.1*G.2, 9/2)
+        102
+        sage: H = DirichletGroup(36)
+        sage: dimension_modular_forms(H.0, 1/2)
+        1
+        sage: dimension_modular_forms(H.1, 1/2)
+        0
+        sage: K = DirichletGroup(108)
+        sage: eps = G.0*G.1^9
+        sage: dimension_modular_forms(eps,3/2)
+        15
     """
-    
+
     if isinstance(X, (int, long, Integer)):
         if isinstance(k, Integer):
             return Gamma0(X).dimension_modular_forms(k)

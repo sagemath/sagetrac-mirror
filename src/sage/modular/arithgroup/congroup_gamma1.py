@@ -428,7 +428,7 @@ class Gamma1_class(GammaH_class):
         N = self.level()
         if den == 2 and N%4 !=0:
             raise TypeError("The level must be divisible by 4")
-        
+
         # first deal with special cases
 
         if k <= 0:
@@ -436,7 +436,7 @@ class Gamma1_class(GammaH_class):
 
         if eps is None:
             return GammaH_class.dimension_cusp_forms(self, k)
-        
+
         if eps.base_ring().characteristic() != 0:
             raise ValueError
 
@@ -448,7 +448,7 @@ class Gamma1_class(GammaH_class):
         if den == 1:
             if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
                 return ZZ(0)
-        
+
         if den == 2 and eps.is_odd():
             return ZZ(0)
 
@@ -466,7 +466,7 @@ class Gamma1_class(GammaH_class):
 
         if algorithm == "Quer":
             if den == 2:
-                raise NotImplementedError("Computation of dimensions of spaces of half integral weight cusp forms is only implemented using Cohen--Oesterle algorithm")
+                raise NotImplementedError("Computation of dimensions of spaces of half-integral weight cusp forms is only implemented using Cohen--Oesterle algorithm")
             else:
                 n = eps.order()
                 dim = ZZ(0)
@@ -480,11 +480,11 @@ class Gamma1_class(GammaH_class):
             from sage.modular.dims import StarkSerre, CohenOesterle
             if k == frac(1,2):
                 return StarkSerre(eps, cusp_space=True)
-            aux_dim = ZZ(K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k))
+            aux_dim = K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k)
             if k == frac(3,2):
-                return aux_dim + StarkSerre(eps)
+                return ZZ(aux_dim + StarkSerre(eps))
             else:
-                return aux_dim
+                return ZZ(aux_dim)
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
             raise ValueError("Unrecognised algorithm in dimension_cusp_forms")
@@ -558,11 +558,11 @@ class Gamma1_class(GammaH_class):
         # Note case of k = 0 and trivial character already dealt with separately, so k <= 0 here is valid:
         if k <= 0:
             return ZZ(0)
-        
+
         if den == 1:
             if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
                 return ZZ(0)
-            
+
         if den == 2 and eps.is_odd():
             return ZZ(0)
 
