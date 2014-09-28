@@ -20,7 +20,6 @@ Path Semigroups
 #*****************************************************************************
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.semigroups import Semigroups
@@ -830,7 +829,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         given by the power series expansion of the corresponding matrix
         entry::
 
-            sage: P = PowerSeriesRing(QQ, 't', default_prec=10)
+            sage: P = PowerSeriesRing(ZZ, 't', default_prec=10)
             sage: P(S._poincare_series[1,2].numerator())/P(S._poincare_series[1,2].denominator())
             t^2 + 2*t^3 + 5*t^4 + 10*t^5 + 21*t^6 + 42*t^7 + 85*t^8 + 170*t^9 + 341*t^10 + 682*t^11 + O(t^12)
 
@@ -852,117 +851,12 @@ class PathSemigroup(UniqueRepresentation, Parent):
             341
 
         """
-        P = QQ['t']
+        P = ZZ['t']
         t = P.gen()
         M = self._quiver.adjacency_matrix()
         out = ~(1-M*t)
         out.set_immutable()
         return out
-
-    def poincare_series(self, F=(), is_interreduced=False):
-        r"""
-        The Poincaré series matrix for the paths not containing a path from `F`.
-
-        The coefficient `(i,j)` of the matrix is a generating function for the
-        number of paths from vertex number `i` to vertex number `j`.
-
-        INPUT:
-
-        - `F`, an iterable of elements of this path semigroup. Default: Empty.
-        - ``is_interreduced``, optional bool (default False) asserting that no
-          element of `F` starts with another element of `F`.
-          
-
-        EXAMPLES::
-
-            sage: S = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup()
-            sage: S.inject_variables()
-            Defining e_0, e_1, e_2, a, b, c, d, e, f
-            sage: M = S.poincare_series((e*b, c*b, c*b*e,d))  # this is not interreduced
-            sage: M
-            [(536870912*t^2 - 536870912*t + 536870912)/(536870912*t^3 - 536870912*t^2 - 536870912*t + 536870912)         (-1048576*t^3 + 1048576*t^2 - 1048576*t)/(-1048576*t^3 + 1048576*t^2 + 1048576*t - 1048576)                                                                          32768*t/(-32768*t + 32768)]
-            [                                                           -536870912*t/(536870912*t^2 - 536870912)                                                                    1048576/(-1048576*t^2 + 1048576)                                                                                                   0]
-            [                            -536870912*t/(-536870912*t^3 + 536870912*t^2 + 536870912*t - 536870912)                                       1048576*t^2/(1048576*t^3 - 1048576*t^2 - 1048576*t + 1048576)                                                                            -32768/(32768*t - 32768)]
-
-        Let us check that the result is plausible. We study the paths that
-        start and end at vertex `0`, and do not contain a sub-path of the form
-        `e*b`, `c*b`, or `d`. The number of paths sorted by length are given by
-        the power series expansion of the corresponding matrix entry::
-
-            sage: P = PowerSeriesRing(QQ, 't', default_prec=10)
-            sage: P(M[0,0].numerator())/P(M[0,0].denominator())
-            1 + 2*t^2 + t^3 + 3*t^4 + 2*t^5 + 4*t^6 + 3*t^7 + 5*t^8 + 4*t^9 + O(t^10)
-
-        For comparison, we list the paths that start and end at `0`, by
-        length, restricted to those paths that do not contain the three
-        forbidden sub-paths. We see that the Poincaré series matrix predicts
-        the correct numbers::
-
-            sage: [p for p in S.iter_paths_by_length_and_startpoint(0,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))]
-            [e_0]
-            sage: [p for p in S.iter_paths_by_length_and_startpoint(1,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))]
-            []
-            sage: [p for p in S.iter_paths_by_length_and_startpoint(2,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))]
-            [a*c, b*e]
-            sage: [p for p in S.iter_paths_by_length_and_startpoint(3,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))]
-            [b*f*e]
-            sage: [p for p in S.iter_paths_by_length_and_startpoint(4,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))]
-            [a*c*a*c, b*e*a*c, b*f*f*e]
-            sage: len([p for p in S.iter_paths_by_length_and_startpoint(9,0) if p.terminal_vertex()==0
-            ....:     and not (p.has_subpath(d) or p.has_subpath(e*b) or p.has_subpath(c*b))])
-            4
-
-        """
-        if not F:
-            return self._poincare_series
-        P = QQ['t']
-        t = P.gen()
-        Q = self._quiver
-        V = Q.vertices()
-        M = Q.adjacency_matrix()
-        if M==0:
-            # The adjacency matrix says that we just have disconnected vertices
-            return M.parent().one().change_ring(P)
-        # For each path containing any sub-path from F, there is a unique sub-path
-        # from F that comes first, if F is left-interreduced, Hence,
-        #
-        #       std(F) = std({}) - (sum_{f in F} std(F)*(t^f)*std({}))
-        #
-        # where `t^f` denotes the matrix that has entry t^(len(f)) at index
-        # ``(f.initial_vertex(),f.terminal_vertex())``.
-        #
-        # Reason: Any to-be-excluded path p is of the form p_0*f*p_1, where
-        # p_0 does not contain a sub-path from F, f in F, and p_1 is just some
-        # path that may or may not contain further paths from F. If F is
-        # left-interreduced, then this decomposition is unique. We thus obtain
-        #
-        #       std(F) = std({}) * ~(1 + sum_{f in F} t^f*std({}))
-        if not is_interreduced:
-            F = list(F)
-            for i in range(len(F)):
-                x = F[i]
-                if x is None:
-                    continue
-                for j in range(i+1,len(F)):
-                    y = F[j]
-                    if y is None:
-                        continue
-                    if y.has_initial_segment(x):
-                        F[j] = None
-                    elif x.has_initial_segment(y):
-                        F[i] = None
-                        break
-        out = self._poincare_series
-        T = M.parent()(0).change_ring(P)
-        for f in F:
-            if f is not None:
-                T[V.index(f.initial_vertex()), V.index(f.terminal_vertex())] += t**len(f)
-        return out*~(1+T*out)
 
     def all_paths(self, start=None, end=None):
         """
