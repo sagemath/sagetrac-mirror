@@ -749,6 +749,8 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = True
         elements = tuple(elements)
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
+        if facade:
+            category = Category.join([category,Sets().Facade()])
         return super(FinitePoset, cls).__classcall__(cls, hasse_diagram = hasse_diagram, elements = elements,
                                                      category = category, facade = facade, key = key)
 
