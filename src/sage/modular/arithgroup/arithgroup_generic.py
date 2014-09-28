@@ -17,6 +17,7 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 
 import sage.groups.old as group
 from sage.rings.all import ZZ
+from sage.rings.rational_field import QQ
 import sage.rings.arith as arith
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
@@ -1111,10 +1112,11 @@ class ArithmeticSubgroup(group.Group):
     def dimension_modular_forms(self, k=2):
         r"""
         Return the dimension of the space of weight k modular forms for this
-        group. This is given by a standard formula in terms of k and various
-        invariants of the group; see Diamond + Shurman, "A First Course in
-        Modular Forms", section 3.5 and 3.6. If k is not given, defaults to k =
-        2.
+        group. This is given, for integral k, by a standard formula in terms
+        of k and various invariants of the group; see Diamond + Shurman, "A
+        First Course in Modular Forms", section 3.5 and 3.6. For half-integral
+        k, this is computed using the algorithms of Cohen--Oesterle and
+        Serre-Stark. If k is not given, defaults to k = 2.
 
         For dimensions of spaces of modular forms with character for Gamma1, use
         the standalone function dimension_modular_forms().
@@ -1139,9 +1141,12 @@ class ArithmeticSubgroup(group.Group):
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
 
-        k = ZZ(k)
+        k = QQ(k)
         if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
+        if k == 0: return ZZ(1)        
+        
+        if not k in ZZ:
+            return self.dimension_cusp_forms() + self.dimension_eis()
 
         if not (k % 2):
             # k even
@@ -1167,10 +1172,11 @@ class ArithmeticSubgroup(group.Group):
     def dimension_cusp_forms(self, k=2):
         r"""
         Return the dimension of the space of weight k cusp forms for this
-        group. This is given by a standard formula in terms of k and various
-        invariants of the group; see Diamond + Shurman, "A First Course in
-        Modular Forms", section 3.5 and 3.6. If k is not given, default to k =
-        2.
+        group. This is given, for integral k, by a standard formula in terms
+        of k and various invariants of the group; see Diamond + Shurman, "A
+        First Course in Modular Forms", section 3.5 and 3.6. For half-integral k,
+        this is computed using the algorithms of Cohen--Oesterle and Serre-Stark.
+        If k is not given, default to k = 2.
 
         For dimensions of spaces of cusp forms with character for Gamma1, use
         the standalone function dimension_cusp_forms().
@@ -1194,35 +1200,51 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
-        k = ZZ(k)
+        k = QQ(k)
         if k <= 0: return ZZ(0)
 
-        if not (k % 2):
-            # k even
-
-            if k == 2:
-                return self.genus()
-
+        if not k in ZZ:
+            from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
+            from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
+            from sage.modular.dims import dimension_cusp_forms
+            N = self.level()
+            if is_Gamma0(self):
+                return dimension_cusp_forms(N, k)
+            elif is_Gamma1(self):
+                from sage.modular.dirichlet import DirichletGroup
+                char_group = DirichletGroup(N)
+                return sum([dimension_cusp_forms(eps, k) for eps in char_group])
             else:
-                return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2) - 1)*self.ncusps()
+                raise NotImplementedError("Computation of dimensions of half-integral weight cusp forms spaces not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
         else:
-            # k odd
 
-            if self.is_even():
-                return ZZ(0)
+            if not (k % 2):
+                # k even
+
+                if k == 2:
+                    return self.genus()
+
+                else:
+                    return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2) - 1)*self.ncusps()
 
             else:
-                e_reg = self.nregcusps()
-                e_irr = self.nirregcusps()
+                # k odd
 
-                if k > 1:
-                    return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k-2)/ZZ(2) * e_reg + (k-1)/ZZ(2) * e_irr
+                if self.is_even():
+                    return ZZ(0)
+
                 else:
-                    if e_reg > 2*self.genus() - 2:
-                        return ZZ(0)
+                    e_reg = self.nregcusps()
+                    e_irr = self.nirregcusps()
+
+                    if k > 1:
+                        return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k-2)/ZZ(2) * e_reg + (k-1)/ZZ(2) * e_irr
                     else:
-                        raise NotImplementedError("Computation of dimensions of weight 1 cusp forms spaces not implemented in general")
+                        if e_reg > 2*self.genus() - 2:
+                            return ZZ(0)
+                        else:
+                            raise NotImplementedError("Computation of dimensions of weight 1 cusp forms spaces not implemented in general")
 
     def dimension_eis(self, k=2):
         r"""
@@ -1232,7 +1254,7 @@ class ArithmeticSubgroup(group.Group):
 
         INPUT:
 
-        - ``k`` - an integer (default 2).
+        - ``k`` - an integer, or half an integer (default 2).
 
         EXAMPLES::
 
@@ -1245,9 +1267,23 @@ class ArithmeticSubgroup(group.Group):
             sage: GammaH(33, [4]).dimension_eis(1)
             4
         """
-
+        k = QQ(k)
         if k < 0: return ZZ(0)
         if k == 0: return ZZ(1)
+
+        if not k in ZZ:
+            from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
+            from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
+            from sage.modular.dims import dimension_eis
+            N = self.level()
+            if is_Gamma0(self):
+                return dimension_eis(N, k)
+            elif is_Gamma1(self):
+                from sage.modular.dirichlet import DirichletGroup
+                char_group = DirichletGroup(N)
+                return sum([dimension_eis(eps, k) for eps in char_group])
+            else:
+                raise NotImplementedError("Computation of dimensions of spaces of half-integral weight Eisenstein series not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
         if not (k % 2): # k even
             if k > 2:

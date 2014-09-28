@@ -46,7 +46,8 @@ from sage.rings.arith import (factor, is_prime,
 
 from sage.misc.misc import mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
-from sage.rings.rational_field import frac
+from sage.rings.rational_field import frac, QQ
+from sage.rings.rational import Rational
 import dirichlet
 Z = ZZ  # useful abbreviation.
 
@@ -473,8 +474,6 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
     """
-    from sage.rings.rational_field import QQ
-    from sage.rings.rational import Rational
     
     k = QQ(k)
     den = abs(k.denominator())
@@ -569,8 +568,6 @@ def dimension_eis(X, k=2):
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
     """
-    from sage.rings.rational_field import QQ
-    from sage.rings.rational import Rational
     
     k = QQ(k)
     den = abs(k.denominator())
@@ -625,7 +622,7 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(11,2)
         2
     """
-    from sage.rings.rational import Rational
+    
     if isinstance(X, (int, long, Integer)):
         if isinstance(k, Integer):
             return Gamma0(X).dimension_modular_forms(k)

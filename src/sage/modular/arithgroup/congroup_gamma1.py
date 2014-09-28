@@ -19,6 +19,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import prod
 from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
+from sage.rings.rational_field import frac, QQ
 from sage.modular.dirichlet import DirichletGroup
 
 # Just for now until we make an SL_2 group type.
@@ -343,7 +344,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half ain integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -378,7 +379,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -419,7 +420,6 @@ class Gamma1_class(GammaH_class):
         """
 
         from all import Gamma0
-        from sage.rings.rational_field import frac, QQ
         k = QQ(k)
         den = abs(k.denominator())
         if den > 2:
@@ -498,7 +498,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -536,7 +536,6 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
         """
         from all import Gamma0
-        from sage.rings.rational_field import frac, QQ
         k = QQ(k)
         den = abs(k.denominator())
         if den > 2:
