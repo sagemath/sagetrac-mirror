@@ -3,6 +3,7 @@
 #
 
 from libcpp.vector cimport vector
+from libcpp.string cimport string
 
 #
 # integers
@@ -67,6 +68,7 @@ cdef extern from "fplll/defs.h" namespace "fplll":
         BKZ_MAX_TIME
         BKZ_BOUNDED_LLL
         BKZ_AUTO_ABORT
+        BKZ_DUMP_GSO
 
     cdef enum LLLMethod:
         LM_WRAPPER
@@ -103,21 +105,23 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
                      LLLMethod method, FloatType floatType,
                      int precision, int flags)
 
-    cdef struct BKZParam:
+    cdef cppclass BKZParam:
          BKZParam()
-         ZZ_mat[mpz_t]* b
-         ZZ_mat[mpz_t]* u
+         BKZParam(int blockSize, double delta, int flags, int maxLoops, int maxTime)
          int blockSize
          double delta
-         FloatType floatType
-         int precision
          int flags
          int maxLoops
          double maxTime
-         vector[double] pruning
 
-    int bkzReduction(BKZParam &param)
-    int bkzReduction(ZZ_mat[mpz_t] b, int blockSize)
+         string verbosePrefix
+         vector[double] pruning
+         string dumpGSOFilename
+
+         BKZParam *preprocessing
+
+    int bkzReduction(ZZ_mat[mpz_t]* b, ZZ_mat[mpz_t]* u, BKZParam &param, FloatType floatType, int precision)
+    int bkzReduction(ZZ_mat[mpz_t] b, int blockSize, int flags, FloatType floatType, int precision)
 
     int hkzReduction(ZZ_mat[mpz_t] b)
     int shortestVector(ZZ_mat[mpz_t] b,

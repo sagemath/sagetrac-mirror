@@ -99,6 +99,13 @@ cdef inline FloatType check_float_type(object float_type):
         raise ValueError("Float type '%s' unknown" % float_type)
     return float_type_
 
+cdef inline void _free_param(BKZParam *param):
+        if not param:
+            return
+        if param.preprocessing:
+            _free_param(param.preprocessing)
+        del param
+
 cdef class FP_LLL:
     """
     A basic wrapper class to support conversion to/from Sage integer matrices
@@ -441,7 +448,8 @@ cdef class FP_LLL:
 
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
-            verbose=False, no_lll=False, bounded_lll=False, auto_abort=False):
+            verbose=False, no_lll=False, bounded_lll=False, auto_abort=False,
+            preprocessing=None, dump_gso_filename=None):
         r"""
         Run BKZ reduction.
 
@@ -469,6 +477,16 @@ cdef class FP_LLL:
         - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
           average slope of `\log(\lVert b_i^* \rVert)` does not decrease
           fast enough
+        - ``preprocessing`` - (default: ``None``) if not ``None`` this is parameter is
+          interpreted as a list of preprocessing options which are applied recursively.
+          That is, if ``preprocessing=[(10,10,3600.0), (10,0,0)]`` local blocks are
+          preprocessed with at most 10 rounds of BKZ-10 (interrupted after 3600.0).
+          Inner blocks of this BKZ-10 are preprocessed with LLL only (the other two
+          parameters are ignored if the first parameter is <= 2). If ``None`` only LLL
+          is run to preprocess local blocks before calling enumeration.
+        - ``dump_gso_filename`` - (default: ``None``) if this is not ``None``
+          then the logs of the norms of the Gram-Schmidt vectors are written
+          to this file after each BKZ loop.
 
         OUTPUT:
 
@@ -511,12 +529,11 @@ cdef class FP_LLL:
 
         cdef BKZParam o = BKZParam()
 
-        o.b = self._lattice
         o.delta = delta
         o.blockSize = block_size
-        o.floatType = check_float_type(float_type)
-        o.precision = precision
+        cdef FloatType floatType = check_float_type(float_type)
         o.flags = BKZ_DEFAULT
+        o.preprocessing = NULL
 
         if verbose:
             o.flags |= BKZ_VERBOSE
@@ -532,10 +549,33 @@ cdef class FP_LLL:
         if max_time:
             o.flags |= BKZ_MAX_TIME
             o.maxTime = max_time
+        if dump_gso_filename is not None:
+            o.flags |= BKZ_DUMP_GSO
+            o.dumpGSOFilename = dump_gso_filename
+
+        cdef BKZParam *preproc = &o
+
+        cdef int flags
+        if preprocessing:
+            for i,step in enumerate(preprocessing):
+                b,l,t = step
+                if b <= 2:
+                    break
+                if b > preproc.blockSize:
+                    raise ValueError("Preprocessing block size must be smaller than block size")
+                flags = BKZ_DEFAULT|BKZ_AUTO_ABORT
+                if verbose >= 2:
+                    flags |= BKZ_VERBOSE
+                preproc.preprocessing = new BKZParam(b, LLL_DEF_DELTA, flags, maxLoops=l, maxTime=t)
+                preproc = preproc.preprocessing
 
         sig_on()
-        cdef int r = bkzReduction(o)
+        cdef int r = bkzReduction(self._lattice, NULL, o, floatType, precision)
         sig_off()
+
+
+        _free_param(o.preprocessing)
+
         if r:
             if r in (RED_BKZ_LOOPS_LIMIT, RED_BKZ_TIME_LIMIT):
                 if verbose:

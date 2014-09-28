@@ -2515,7 +2515,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return U
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, max_loops=0, max_time=0, auto_abort=False):
+            precision=0, max_loops=0, max_time=0, auto_abort=False,
+            preprocessing=None, dump_gso_filename=None):
         """
         Block Korkin-Zolotarev reduction.
 
@@ -2578,6 +2579,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
           average slope of `\log(||b_i^*||)` does not decrease fast enough
+
+        - ``preprocessing`` - (default: ``None``) if not ``None`` this is parameter is
+          interpreted as a list of preprocessing options which are applied recursively.
+          That is, if ``preprocessing=[(10,10,3600.0), (10,0,0)]`` local blocks are
+          preprocessed with at most 10 rounds of BKZ-10 (interrupted after 3600.0).
+          Inner blocks of this BKZ-10 are preprocessed with LLL only (the other two
+          parameters are ignored if the first parameter is <= 2). If ``None`` only LLL
+          is run to preprocess local blocks before calling enumeration.
+
+        - ``dump_gso_filename`` - (default: ``None``) if this is not ``None``
+          then the logs of the norms of the Gram-Schmidt vectors are written
+          to this file after each BKZ loop.
 
         EXAMPLES::
 
@@ -2702,7 +2715,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                   verbose=verbose,
                   max_time=max_time,
                   max_loops=max_loops,
-                  auto_abort=auto_abort)
+                  auto_abort=auto_abort,
+                  preprocessing=preprocessing,
+                  dump_gso_filename=dump_gso_filename)
             R = A._sage_()
         return R
 
@@ -5485,4 +5500,3 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     sage_free(tmp)
     sig_off()
     return M
-
