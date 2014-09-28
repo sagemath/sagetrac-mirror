@@ -252,9 +252,8 @@ class DiffForm(TensorField):
         from utilities import format_unop_txt, format_unop_latex
         p = self._tensor_rank
         eps = metric.volume_form(p)
-        resu = self.contract(0, eps, 0)
-        for j in range(1, p):
-            resu = resu.self_contract(0, p-j)
+        args = range(p) + [eps] + range(p)
+        resu = self.contract(*args)
         if p > 1:
             resu = resu / factorial(p)
         resu.set_name(name=format_unop_txt('*', self._name),
@@ -908,7 +907,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         eps = metric.volume_form(p)
         resu = self.contract(0, eps, 0)
         for j in range(1, p):
-            resu = resu.self_contract(0, p-j)
+            resu = resu.trace(0, p-j)
         if p > 1:
             resu = resu / factorial(p)
         resu.set_name(name=format_unop_txt('*', self._name),

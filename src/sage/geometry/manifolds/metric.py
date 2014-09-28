@@ -293,7 +293,7 @@ class Metric(TensorField):
     `-r g_{j[k} \delta^i_{\ \, l]}`::
         
         sage: delta = M.tangent_identity_field()
-        sage: riem == - r*(g*delta).antisymmetrize([2,3])
+        sage: riem == - r*(g*delta).antisymmetrize(2,3)
         True
 
     """
@@ -714,7 +714,7 @@ class Metric(TensorField):
         This formula can be checked here, with the r.h.s. rewritten as 
         `-r g_{j[k} \delta^i_{\ \, l]}`::
         
-            sage: g.riemann() == -g.ricci_scalar()*(g*U.tangent_identity_field()).antisymmetrize([2,3])
+            sage: g.riemann() == -g.ricci_scalar()*(g*U.tangent_identity_field()).antisymmetrize(2,3)
             True
         
         """
@@ -820,7 +820,7 @@ class Metric(TensorField):
 
         """
         if self._ricci_scalar is None:
-            resu = (self.inverse().contract(self.ricci())).self_contract(0,1)
+            resu = self.inverse().contract(0, 1, self.ricci(), 0, 1)
             if name is None:
                 name = "r(" + self._name + ")"
             if latex_name is None:
@@ -883,7 +883,7 @@ class Metric(TensorField):
             # First index of the Ricci tensor raised with the metric
             ricup = ric.up(self, 0) 
             aux = self*ricup + ric*delta - rscal/(n-1)* self*delta
-            self._weyl = riem + 2/(n-2)* aux.antisymmetrize([2,3]) 
+            self._weyl = riem + 2/(n-2)* aux.antisymmetrize(2,3) 
             if name is None:
                 name = "C(" + self._name + ")"
             if latex_name is None:
@@ -1177,7 +1177,7 @@ class Metric(TensorField):
                 epsk = epskm1.up(self, k-1)
                 if k > 1:
                     # restoring the antisymmetry after the up operation: 
-                    epsk = epsk.antisymmetrize(range(k)) 
+                    epsk = epsk.antisymmetrize(*range(k)) 
                 self._vol_forms.append(epsk)
         return self._vol_forms[contra]
 

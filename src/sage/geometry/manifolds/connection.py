@@ -27,7 +27,65 @@ from domain import Domain
 
 class AffConnection(SageObject):
     r"""
-    Base class for affine connections on a differentiable manifold.
+    Affine connection on a differentiable manifold.
+
+    Given a differentiable manifold `M` and denoting by `\mathcal{X}(M)` 
+    the `C^\infty(M)`-module of vector fields on `M`, an *affine connection* 
+    on `M` is an operator
+
+    .. MATH::
+
+        \begin{array}{cccc}
+        \nabla: & \mathcal{X}(M)\times \mathcal{X}(M) & \longrightarrow & 
+                 \mathcal{X}(M) \\
+                & (u,v) & \longmapsto & \nabla_u v
+        \end{array}
+                
+    that
+    
+    - is a bilinear when considering `\mathcal{X}(M)` as a
+      vector space over `\RR`
+    - is `C^\infty(M)`-linear w.r.t. the first argument:
+      `\forall f\in C^\infty(M),\ \nabla_{fu} v = f\nabla_u v` 
+    - obeys Leibniz rule w.r.t. the second argument:
+      `\forall f\in C^\infty(M),\ \nabla_u (f v) = \mathrm{d}f(u)\, v + f  \nabla_u v`
+
+    The affine connection `\nabla` gives birth to the *covariant derivative
+    operator* acting on tensor fields, denoted by the same symbol:
+    
+    .. MATH::
+
+        \begin{array}{cccc}
+        \nabla: &  T^{(k,l)}(M) & \longrightarrow & T^{(k,l+1)}(M)\\
+                & t & \longmapsto & \nabla t
+        \end{array}
+        
+    where `T^{(k,l)}(M)` stands for the `C^\infty(M)`-module of tensor fields
+    of type `(k,l)` on `M` (with the convention `T^{(0,0)}(M):=C^\infty(M)`).
+    For a vector field `v`,  the covariant derivative `\nabla v` is a 
+    type-(1,1) tensor field such that 
+    
+    .. MATH::
+    
+        \forall u \in\mathcal{X}(M), \   \nabla_u v = \nabla v(., u) 
+        
+    More generally for any tensor field `t\in T^{(k,l)}(M)`, we have
+
+    .. MATH::
+    
+        \forall u \in\mathcal{X}(M), \   \nabla_u t = \nabla t(\ldots, u) 
+        
+    
+    .. NOTE::
+    
+        The above convention means that, in terms of index notation, 
+        the "derivation index" in `\nabla t` is the *last* one:
+        
+        .. MATH::
+        
+            \nabla_c t^{a_1\ldots a_k}_{\quad\quad b_1\ldots b_l} =
+                (\nabla t)^{a_1\ldots a_k}_{\quad\quad b_1\ldots b_l c}
+
 
     INPUT:
     
@@ -994,7 +1052,7 @@ class AffConnection(SageObject):
        
         """
         if self._ricci is None:
-            self._ricci = self.riemann().self_contract(0,2)
+            self._ricci = self.riemann().trace(0,2)
         return self._ricci 
         
     def connection_form(self, i, j, frame=None):
@@ -1329,11 +1387,74 @@ class AffConnection(SageObject):
             
 class LeviCivitaConnection(AffConnection):
     r"""
-    Levi-Civita connection on a differentiable manifold.
+    Levi-Civita connection on a pseudo-Riemannian manifold.
+
+    Given a differentiable manifold `M` endowed with a pseudo-Riemannian 
+    metric `g` and denoting by `\mathcal{X}(M)` 
+    the `C^\infty(M)`-module of vector fields on `M`, the 
+    *Levi-Civita connection associated with* `g` is the unique operator
+
+    .. MATH::
+
+        \begin{array}{cccc}
+        \nabla: & \mathcal{X}(M)\times \mathcal{X}(M) & \longrightarrow & 
+                 \mathcal{X}(M) \\
+                & (u,v) & \longmapsto & \nabla_u v
+        \end{array}
+                
+    that
+    
+    - is a bilinear when considering `\mathcal{X}(M)` as a
+      vector space over `\RR`
+    - is `C^\infty(M)`-linear w.r.t. the first argument:
+      `\forall f\in C^\infty(M),\ \nabla_{fu} v = f\nabla_u v` 
+    - obeys Leibniz rule w.r.t. the second argument:
+      `\forall f\in C^\infty(M),\ \nabla_u (f v) = \mathrm{d}f(u)\, v + f  \nabla_u v`
+    - is torsion-free
+    - is compatible with `g`: 
+      `\forall (u,v,w)\in \mathcal{X}(M)^3,\ u(g(v,w)) = g(\nabla_u v, w) + g(v, \nabla_u w)`
+      
+
+    The Levi-Civita connection `\nabla` gives birth to the *covariant derivative
+    operator* acting on tensor fields, denoted by the same symbol:
+    
+    .. MATH::
+
+        \begin{array}{cccc}
+        \nabla: &  T^{(k,l)}(M) & \longrightarrow & T^{(k,l+1)}(M)\\
+                & t & \longmapsto & \nabla t
+        \end{array}
+        
+    where `T^{(k,l)}(M)` stands for the `C^\infty(M)`-module of tensor fields
+    of type `(k,l)` on `M` (with the convention `T^{(0,0)}(M):=C^\infty(M)`).
+    For a vector field `v`,  the covariant derivative `\nabla v` is a 
+    type-(1,1) tensor field such that 
+    
+    .. MATH::
+    
+        \forall u \in\mathcal{X}(M), \   \nabla_u v = \nabla v(., u) 
+        
+    More generally for any tensor field `t\in T^{(k,l)}(M)`, we have
+
+    .. MATH::
+    
+        \forall u \in\mathcal{X}(M), \   \nabla_u t = \nabla t(\ldots, u) 
+        
+    
+    .. NOTE::
+    
+        The above convention means that, in terms of index notation, 
+        the "derivation index" in `\nabla t` is the *last* one:
+        
+        .. MATH::
+        
+            \nabla_c t^{a_1\ldots a_k}_{\quad\quad b_1\ldots b_l} =
+                (\nabla t)^{a_1\ldots a_k}_{\quad\quad b_1\ldots b_l c}
+
 
     INPUT:
     
-    - ``metric`` -- the metric defining the Levi-Civita connection, as an
+    - ``metric`` -- the metric `g` defining the Levi-Civita connection, as an
       instance of class :class:`~sage.geometry.manifolds.metric.Metric`
     - ``name`` -- name given to the connection
     - ``latex_name`` -- (default: None) LaTeX symbol to denote the  

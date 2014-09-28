@@ -111,6 +111,8 @@ class Point(Element):
         sage: latex(p)
         \mathcal{P}
     
+    Points can be drawn in 2D or 3D graphics thanks to the method :meth:`plot`.
+    
     """
     def __init__(self, domain, coords=None, chart=None, name=None, 
                  latex_name=None): 
@@ -461,3 +463,135 @@ class Point(Element):
             (self._manifold)._tangent_spaces[self] = res
             return res 
 
+    def plot(self, ambient_chart, ambient_coords=None, size=10, color='black', 
+             label=None, label_color=None, fontsize=10, label_offset=0.1, 
+             parameters=None):
+        r"""
+        Plot the point in a Cartesian graph based on the coordinates of
+        some chart, called hereafter the *ambient chart*.
+
+        INPUT:
+        
+        - ``ambient_chart`` -- the ambient chart (see above)
+        - ``ambient_coords`` -- (default: None) tuple containing the 2 or 3 
+          coordinates of the ambient chart in terms of which the plot is 
+          performed; if None, all the coordinates of the ambient chart are 
+          considered
+        - ``size`` -- (default: 10) size of the point once drawn as a small
+          disk or sphere
+        - ``color`` -- (default: 'black') color of the point
+        - ``label`` -- (default: None) label printed next to the point; if None, 
+          the point's name is used.  
+        - ``label_color`` -- (default: None) color to print the label; if None,
+          the value of ``color`` is used
+        - ``fontsize`` -- (default: 10) size of the font used to print the 
+          label
+        - ``label_offset`` -- (default: 0.1) determines the separation between
+          the point and its label
+        - ``parameters`` -- (default: None) dictionary giving the numerical
+          values of the parameters that may appear in the point coordinates
+
+        OUTPUT:
+        
+        - a graphic object, either an instance of
+          :class:`~sage.plot.graphics.Graphics` for a 2D plot (i.e. based on
+          2 coordinates of the ambient chart) or an instance of 
+          :class:`~sage.plot.plot3d.base.Graphics3d` for a 3D plot (i.e. 
+          based on 3 coordinates of the ambient chart)
+        
+        EXAMPLES:
+        
+        Drawing a point on a 2-dimensional manifold::
+        
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((1,3), name='p')
+            sage: g = p.plot(X)
+            sage: print g
+            Graphics object consisting of 2 graphics primitives
+            sage: gX = X.plot(X) # plot of the coordinate grid
+            sage: show(g+gX) # display of the point atop the coordinate grid
+            
+        Call with some options:: 
+        
+            sage: g = p.plot(X, size = 40, color='green', label='$P$', label_color='blue', fontsize=20, label_offset=0.3)
+            sage: show(g+gX)
+            
+        Use of the ``parameters`` option to set a numerical value of some 
+        symbolic variable::
+        
+            sage: a = var('a')
+            sage: q = M.point((a,2*a), name='q')
+            sage: gq = q.plot(X, parameters={a:-2})
+            sage: show(g+gX+gq)
+        
+        The numerical value is used only for the plot::
+
+            sage: q.coord()
+            (a, 2*a)
+
+        Drawing a point on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: p = M.point((2,1,3), name='p')
+            sage: g = p.plot(X)
+            sage: print g
+            Graphics3d Object
+            sage: gX = X.plot(X, nb_values=5) # coordinate mesh cube
+            sage: show(g+gX) # display of the point atop the coordinate mesh
+            
+        Call with some options:: 
+        
+            sage: g = p.plot(X, size = 40, color='green', label='P_1', label_color='blue', fontsize=20, label_offset=0.3)
+            sage: show(g+gX)
+
+        Use of the option ``ambient_coords`` for plots on a 4-dimensional 
+        manifold::
+        
+            sage: M = Manifold(4, 'M')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: p = M.point((1,2,3,4), name='p')
+            sage: g = p.plot(X, ambient_coords=(t,x,y))  # the coordinate z is skipped
+            sage: gX = X.plot(X, ambient_coords=(t,x,y), nb_values=5)
+            sage: show(g+gX) # 3D plot
+            sage: g = p.plot(X, ambient_coords=(t,y,z))  # the coordinate x is skipped
+            sage: gX = X.plot(X, ambient_coords=(t,y,z), nb_values=5)
+            sage: show(g+gX) # 3D plot
+            sage: g = p.plot(X, ambient_coords=(y,z))  # the coordinates t and x are skipped
+            sage: gX = X.plot(X, ambient_coords=(y,z))
+            sage: show(g+gX) # 2D plot
+
+        """
+        from sage.plot.point import point2d
+        from sage.plot.text import text
+        from sage.plot.graphics import Graphics
+        from sage.plot.plot3d.shapes2 import point3d, text3d
+        if ambient_coords is None:
+            ambient_coords = ambient_chart._xx
+        elif not isinstance(ambient_coords, tuple):
+            ambient_coords = tuple(ambient_coords)
+        nca = len(ambient_coords)
+        if nca != 2 and nca !=3:
+            raise TypeError("Bad number of ambient coordinates: " + str(nca))
+        coords = self.coord(ambient_chart)
+        xx = ambient_chart[:]
+        xp = [coords[xx.index(c)] for c in ambient_coords]
+        if parameters is not None:
+            xps = [coord.substitute(parameters) for coord in xp]
+            xp = xps
+        xlab = [coord + label_offset for coord in xp]
+        if label_color is None:
+            label_color = color
+        resu = Graphics()
+        if nca == 2:
+            if label is None:
+                label = r'$' + self._latex_name + r'$'
+            resu += point2d(xp, color=color, size=size) + \
+                    text(label, xlab, fontsize=fontsize, color=label_color)
+        else:
+            if label is None:
+                label = self._name
+            resu += point3d(xp, color=color, size=size) + \
+                    text3d(label, xlab, fontsize=fontsize, color=label_color)
+        return resu

@@ -282,8 +282,6 @@ def simple_determinant(aa):
         sign = not sign
     return res
 
-
-
 def simplify_sqrt_real(expr):
     r"""
     Simplify sqrt in symbolic expressions in the real domain.
@@ -300,6 +298,17 @@ def simplify_sqrt_real(expr):
         -x + 1
         sage: simplify_sqrt_real( sqrt(x^2) + sqrt(x^2-2*x+1) )
         -2*x + 1
+        
+    This improves over Sage's 
+    :meth:`~sage.symbolic.expression.Expression.simplify_radical` which yields
+    incorrect results when x<0:
+    
+        sage: sqrt(x^2).simplify_radical() # wrong output
+        x
+        sage: sqrt(x^2-2*x+1).simplify_radical() # wrong output
+        x - 1
+        sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).simplify_radical() # wrong output
+        2*x - 1
 
     """
     from sage.symbolic.ring import SR
@@ -333,7 +342,12 @@ def simplify_sqrt_real(expr):
         simpl = SR(x._maxima_().radcan())
         # the absolute value of radcan's output is taken, the call to simplify() 
         # taking into account possible assumptions regarding the sign of simpl:
-        new_expr += sexpr[pos0:pos] + '(' + str(abs(simpl).simplify()) + ')'
+        ssimpl = str(abs(simpl).simplify())
+        # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
+        pstart = ssimpl.find('abs(1/sqrt(')
+        if pstart != -1:
+            ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
+        new_expr += sexpr[pos0:pos] + '(' + ssimpl + ')'
         pos0 = pos + len(the_sqrts[i])
     new_expr += sexpr[pos0:]
     return SR(new_expr)
@@ -408,5 +422,44 @@ def simplify_chain(expr):
     expr = expr.simplify_trig()
     return expr
 
+def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
+    r"""
+    Set axes labels for a 3D graphics object.
     
+    This is a workaround for the lack of axes labels in Sage 3D plots; it 
+    sets the labels as text3d objects at locations determined from the 
+    bounding box of the graphic object ``graph``. 
+    
+    INPUT:
+    
+    - ``graph`` -- a 3D graphic object, as an instance of 
+          :class:`~sage.plot.plot3d.base.Graphics3d` 
+    - ``xlabel`` -- string for the x-axis label
+    - ``ylabel`` -- string for the y-axis label
+    - ``zlabel`` -- string for the z-axis label
+    - ``**kwds`` -- options (e.g. color) for text3d
+    
+    OUTPUT:
+    
+    - the 3D graphic object with text3d labels added.
+    
+    """  
+    from sage.plot.plot3d.shapes2 import text3d
+    xmin, ymin, zmin = graph.bounding_box()[0]
+    xmax, ymax, zmax = graph.bounding_box()[1]
+    dx = xmax - xmin
+    dy = ymax - ymin
+    dz = zmax - zmin
+    x1 = xmin + dx / 2
+    y1 = ymin + dy / 2
+    z1 = zmin + dz / 2
+    xmin1 = xmin - dx / 20
+    xmax1 = xmax + dx / 20
+    ymin1 = ymin - dy / 20
+    zmin1 = zmin - dz / 20
+    graph += text3d('  ' + xlabel, (x1, ymin1, zmin1), **kwds)
+    graph += text3d('  ' + ylabel, (xmax1, y1, zmin1), **kwds)
+    graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
+    return graph
+
     

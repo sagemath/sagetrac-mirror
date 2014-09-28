@@ -252,8 +252,6 @@ class TensorFieldModule(UniqueRepresentation, Module):
           :class:`~sage.geometry.manifolds.vectorfield_module.VectorFieldModule`
           representing the module on which the tensor module is defined. 
         
-        EXAMPLE:
-
         """
         return self._vmodule
 
