@@ -126,41 +126,26 @@ class Link:
             Link with 2 components represented by 2 crossings
         """
         if isinstance(data, list):
-            if len(data) != 2:
+            if not data:
+                raise ValueError("does not accept empty list as argument")
+
+            if len(data) != 2 or not all(isinstance(i,list) for i in data[0]):
+                # here we expect a PD code
                 if _pd_error_(data):
                     raise ValueError("Either every number does not repeat twice or the length of each array is not four")
-                else:
-                    self._PD_code = data
-                    self._oriented_gauss_code = None
-                    self._braid = None
+                self._PD_code = data
+                self._oriented_gauss_code = None
+                self._braid = None
 
-            elif len(data) == 2:
-                for i in data[0]:
-                    if type(i) == list:
-                        ogc = True
-                        break
-                else:
-                    ogc = False
-                if ogc == False:
-                    if _pd_error_(data):
-                        raise ValueError("Either every number does not repeat twice or the length of each array is not four")
-                    else:
-                        self._PD_code = data
-                        self._oriented_gauss_code = None
-                        self._braid = None
-                elif ogc == True:
-                    for i in data[0]:
-                        if not isinstance(i, list):
-                            raise TypeError("Every entry must be a list")
-                    else:
-                        flat = [x for y in data[0] for x in y]
-                        a, b = max(flat), min(flat)
-                        if 2 * len(data[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
-                            self._oriented_gauss_code = data
-                            self._PD_code = None
-                            self._braid = None
-                        else:
-                            raise Exception("Invalid Input")
+            else:
+                # here we expect a Gauss code
+                flat = [x for y in data[0] for x in y]
+                a, b = max(flat), min(flat)
+                if 2 * len(data[1]) != len(flat) or len(set(flat).difference([0])) != a+1-b:
+                    raise ValueError("Invalid input: data is not a valid Gauss code")
+                self._oriented_gauss_code = data
+                self._PD_code = None
+                self._braid = None
         else:
             from sage.groups.braid import Braid
             if isinstance(data, Braid):
@@ -169,7 +154,7 @@ class Link:
                 self._PD_code = None
 
             else:
-                raise Exception("Invalid Input")
+                raise TypeError("Invalid input: data must be either a list or a Braid")
 
     def __repr__(self):
         r"""
