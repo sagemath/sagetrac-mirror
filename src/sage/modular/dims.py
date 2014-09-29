@@ -281,17 +281,20 @@ def CohenOesterle(eps, k):
                         zeta = 3/2
         return K(frac(-zeta,2) * mul([_lambda(r[p], s[p], p) for p in L if p!= 2]))
 
-def StarkSerre(eps, cusp_space=False):
+def SerreStark(eps, cusp_space=False):
     N = eps.modulus()
     K = eps.base_ring()
     d = 0
-    for t in divisors(N):
-        for rr in divisors(N/t):
+    for t in divisors(N/4):
+        for rr in divisors(N/(4*t)):
             if rr.is_square():
                 r = sqrt(rr)
                 chars = DirichletGroup(r).list()
                 for psi in chars:
-                    if all([psi.is_primitive(), psi.is_even(), (not cusp_space) or psi.is_totally_even()]):
+                    if cusp_space:
+                        if psi.is_totally_even():
+                            continue
+                    if psi.is_primitive() and psi.is_even():
                         a = 1
                         for n in range(1, N):
                             if gcd(n, N) == 1 and psi(n)*jacobi_symbol(t, n) != eps(n):
@@ -409,6 +412,10 @@ def dimension_cusp_forms(X, k=2):
         5
         sage: dimension_cusp_forms(eps,1/2)
         0
+        sage: H = DirichletGroup(576)
+        sage: chi = H.0*H.2^3
+        sage: dimension_cusp_forms(chi,1/2)
+        1
         sage: K = DirichletGroup(156)
         sage: dimension_cusp_forms(K.1*K.2, 9/2)
         94

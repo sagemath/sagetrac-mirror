@@ -477,12 +477,12 @@ class Gamma1_class(GammaH_class):
 
         elif algorithm == "CohenOesterle":
             K = eps.base_ring()
-            from sage.modular.dims import StarkSerre, CohenOesterle
+            from sage.modular.dims import SerreStark, CohenOesterle
             if k == frac(1,2):
-                return StarkSerre(eps, cusp_space=True)
+                return SerreStark(eps, cusp_space=True)
             aux_dim = K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k)
             if k == frac(3,2):
-                return ZZ(aux_dim + StarkSerre(eps))
+                return ZZ(aux_dim + SerreStark(eps))
             else:
                 return ZZ(aux_dim)
 
@@ -579,8 +579,8 @@ class Gamma1_class(GammaH_class):
 
         elif algorithm == "CohenOesterle":
             if k == frac(1,2):
-                from sage.modular.dims import StarkSerre
-                return StarkSerre(eps) - self.dimension_cusp_forms(k, eps)
+                from sage.modular.dims import SerreStark
+                return SerreStark(eps) - self.dimension_cusp_forms(k, eps)
             else:
                 from sage.modular.dims import CohenOesterle
                 K = eps.base_ring()
