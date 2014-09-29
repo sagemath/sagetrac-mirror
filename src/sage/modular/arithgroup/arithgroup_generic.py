@@ -1140,12 +1140,14 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
-
         k = QQ(k)
+        den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")
         if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)        
-        
-        if not k in ZZ:
+        if k == 0: return ZZ(1)
+
+        if den == 2: #else, k is an integer
             return self.dimension_cusp_forms() + self.dimension_eis()
 
         if not (k % 2):
@@ -1201,9 +1203,13 @@ class ArithmeticSubgroup(group.Group):
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         k = QQ(k)
+        den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")
         if k <= 0: return ZZ(0)
 
-        if not k in ZZ:
+        if den == 2: #else, k is an integer
+            print 111222
             from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
             from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
             from sage.modular.dims import dimension_cusp_forms
@@ -1217,34 +1223,32 @@ class ArithmeticSubgroup(group.Group):
             else:
                 raise NotImplementedError("Computation of dimensions of half-integral weight cusp forms spaces not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
-        else:
+        if not (k % 2):
+            # k even
 
-            if not (k % 2):
-                # k even
-
-                if k == 2:
-                    return self.genus()
-
-                else:
-                    return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2) - 1)*self.ncusps()
+            if k == 2:
+                return self.genus()
 
             else:
-                # k odd
+                return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2) - 1)*self.ncusps()
 
-                if self.is_even():
-                    return ZZ(0)
+        else:
+            # k odd
 
+            if self.is_even():
+                return ZZ(0)
+
+            else:
+                e_reg = self.nregcusps()
+                e_irr = self.nirregcusps()
+
+                if k > 1:
+                    return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k-2)/ZZ(2) * e_reg + (k-1)/ZZ(2) * e_irr
                 else:
-                    e_reg = self.nregcusps()
-                    e_irr = self.nirregcusps()
-
-                    if k > 1:
-                        return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k-2)/ZZ(2) * e_reg + (k-1)/ZZ(2) * e_irr
+                    if e_reg > 2*self.genus() - 2:
+                        return ZZ(0)
                     else:
-                        if e_reg > 2*self.genus() - 2:
-                            return ZZ(0)
-                        else:
-                            raise NotImplementedError("Computation of dimensions of weight 1 cusp forms spaces not implemented in general")
+                        raise NotImplementedError("Computation of dimensions of weight 1 cusp forms spaces not implemented in general")
 
     def dimension_eis(self, k=2):
         r"""
@@ -1268,10 +1272,15 @@ class ArithmeticSubgroup(group.Group):
             4
         """
         k = QQ(k)
+        k = QQ(k)
+        den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")
+
         if k < 0: return ZZ(0)
         if k == 0: return ZZ(1)
 
-        if not k in ZZ:
+        if den == 2: #else, k is an integer
             from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
             from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
             from sage.modular.dims import dimension_eis

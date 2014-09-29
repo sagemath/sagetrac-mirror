@@ -202,7 +202,10 @@ def CohenOesterle(eps, k):
         sage: sage.modular.dims.CohenOesterle(eps, 4)
         -1
     """
+    k = QQ(k)
     den = abs(k.denominator())
+    if den > 2:
+        raise TypeError("The weight must be an integer or half an integer")
     N = eps.modulus()
     f = eps.conductor()
     K = eps.base_ring()
@@ -254,7 +257,7 @@ def CohenOesterle(eps, k):
         return K(frac(-1,2) * mul([_lambda(r[p], s[p], p)     for p in L]) + \
                     gamma_k * mul([CO_delta(r[p], p, N, eps)  for p in L]) + \
                     mu_k    * mul([CO_nu(r[p], p, N, eps)     for p in L]))
-    
+
     if den == 2:
         if r[2] >= 4:
             zeta = _lambda(r[2], s[2], 2)
@@ -264,25 +267,28 @@ def CohenOesterle(eps, k):
             C = False
             for p in L:
                 if p%4 == 3:
-                    if r[p]%2 == 1 or ( 0 < r[p] < 2*s[p]):
+                    if r[p]%2 == 1 or (0 < r[p] < 2*s[p]):
                         C = True
+                        break
             if C:
                 zeta = 2
             else:
-                if (2*k-1)%4 == 0:
+                if 2*k % 4 == 1:
                     if s[2] == 0:
-                        zeta = 3/2
+                        zeta = frac(3,2)
                     else:
-                        zeta = 5/2
+                        zeta = frac(5,2)
                 else:
                     if s[2] == 0:
-                        zeta = 5/2
+                        zeta = frac(5,2)
                     else:
-                        zeta = 3/2
+                        zeta = frac(3,2)
         return K(frac(-zeta,2) * mul([_lambda(r[p], s[p], p) for p in L if p!= 2]))
 
 def SerreStark(eps, cusp_space=False):
     N = eps.modulus()
+    if N%4 != 0:
+        raise TypeError("The modulus of the character must be divisible by 4")
     K = eps.base_ring()
     d = 0
     for t in divisors(N/4):
@@ -456,6 +462,7 @@ def dimension_cusp_forms(X, k=2):
         0
         sage: dimension_cusp_forms(Gamma1(13),2)
         2
+
     ::
 
         sage: dimension_cusp_forms(Gamma1(389),2)
@@ -584,7 +591,7 @@ def dimension_eis(X, k=2):
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
 
-        ::
+    ::
 
         sage: G = DirichletGroup(108)
         sage: dimension_eis(G.0*G.1^9, 3/2)
@@ -657,7 +664,7 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(11,2)
         2
 
-        ::
+    ::
 
         sage: G = DirichletGroup(156)
         sage: dimension_modular_forms(G.1*G.2, 9/2)
@@ -668,7 +675,7 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(H.1, 1/2)
         0
         sage: K = DirichletGroup(108)
-        sage: eps = G.0*G.1^9
+        sage: eps = K.0*K.1^9
         sage: dimension_modular_forms(eps,3/2)
         15
     """

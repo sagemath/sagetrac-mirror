@@ -423,8 +423,8 @@ class Gamma1_class(GammaH_class):
         k = QQ(k)
         den = abs(k.denominator())
         if den > 2:
-            raise TypeError("The weight must be an integer or half an integer")        
-        num = k.numerator()        
+            raise TypeError("The weight must be an integer or half an integer")
+        num = k.numerator()
         N = self.level()
         if den == 2 and N%4 !=0:
             raise TypeError("The level must be divisible by 4")
@@ -437,10 +437,12 @@ class Gamma1_class(GammaH_class):
         if eps is None:
             return GammaH_class.dimension_cusp_forms(self, k)
 
-        if eps.base_ring().characteristic() != 0:
+        K = eps.base_ring()
+
+        if K.characteristic() != 0:
             raise ValueError
 
-        eps = DirichletGroup(N, eps.base_ring())(eps)
+        eps = DirichletGroup(N, K)(eps)
 
         if eps.is_trivial() and den == 1:
             return Gamma0(N).dimension_cusp_forms(k)
@@ -476,7 +478,7 @@ class Gamma1_class(GammaH_class):
                 return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
-            K = eps.base_ring()
+            
             from sage.modular.dims import SerreStark, CohenOesterle
             if k == frac(1,2):
                 return SerreStark(eps, cusp_space=True)
