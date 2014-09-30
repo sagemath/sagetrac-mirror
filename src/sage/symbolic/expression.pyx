@@ -8277,13 +8277,20 @@ cdef class Expression(CommutativeRingElement):
             sage: f.simplify_trig(False)
             sin(3*x)/cos(3*x)
 
+        Simplification includes linearization of rational arguments
+        (Maxima's ``trigrat()``), see :trac:`17065`::
+        
+            sage: ex=sin(1/8*pi)*sin(3/8*pi)*sin(5/8*pi)*sin(7/8*pi)
+            sage: ex.simplify_trig()
+            1/8
+
         """
         # much better to expand first, since it often doesn't work
         # right otherwise!
         if expand:
-            return self.parent()(self._maxima_().trigexpand().trigsimp())
+            return self.parent()(self._maxima_().trigexpand().trigrat().trigsimp())
         else:
-            return self.parent()(self._maxima_().trigsimp())
+            return self.parent()(self._maxima_().trigrat().trigsimp())
 
     trig_simplify = simplify_trig
 
