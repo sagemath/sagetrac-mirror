@@ -267,12 +267,29 @@ class Hypergeometric(BuiltinFunction):
         
             sage: hypergeometric([], [], 0)
             1
+            sage: hypergeometric([-2,-1],[3],-1)
+            1/3
+            sage: hypergeometric([1,1],[2],z)
+            -log(-z + 1)/z
+            sage: hypergeometric([a,a+1/2],[3/2],z^2)
+            -1/2*((z + 1)^(-2*a + 1) - (-z + 1)^(-2*a + 1))/((2*a - 1)*z)
+            sage: hypergeometric([a^2,a+1/2],[3/2],z^2)
+            hypergeometric((a^2, a + 1/2), (3/2,), z^2)
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
             raise ValueError('First two parameters must be of type list.')
         coercion_model = get_coercion_model()
         co = reduce(lambda x, y: coercion_model.canonical_coercion(x, y)[0],
                     a + b + (z,))
+
+        from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        try:
+            res = max_to_sr(maxima_lib.hgfred(a,b,z).ecl())
+        except (RuntimeError,TypeError):
+            pass
+        else:
+            if SR(res).is_numeric() or isinstance(res, Expression):
+                return res
         if is_inexact(co) and not isinstance(co, Expression):
             from sage.structure.coerce import parent
             return self._evalf_(a, b, z, parent=parent(co))
