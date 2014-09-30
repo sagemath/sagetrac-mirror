@@ -1147,7 +1147,7 @@ class ArithmeticSubgroup(group.Group):
         if k < 0: return ZZ(0)
         if k == 0: return ZZ(1)
 
-        if den == 2: #else, k is an integer
+        if den == 2: # else, k is an integer
             return self.dimension_cusp_forms() + self.dimension_eis()
 
         if not (k % 2):
@@ -1208,8 +1208,7 @@ class ArithmeticSubgroup(group.Group):
             raise TypeError("The weight must be an integer or half an integer")
         if k <= 0: return ZZ(0)
 
-        if den == 2: #else, k is an integer
-            print 111222
+        if den == 2: # else, k is an integer
             from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
             from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
             from sage.modular.dims import dimension_cusp_forms
@@ -1223,6 +1222,7 @@ class ArithmeticSubgroup(group.Group):
             else:
                 raise NotImplementedError("Computation of dimensions of half-integral weight cusp forms spaces not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
+        k = ZZ(k)
         if not (k % 2):
             # k even
 
@@ -1272,7 +1272,6 @@ class ArithmeticSubgroup(group.Group):
             4
         """
         k = QQ(k)
-        k = QQ(k)
         den = abs(k.denominator())
         if den > 2:
             raise TypeError("The weight must be an integer or half an integer")
@@ -1280,7 +1279,7 @@ class ArithmeticSubgroup(group.Group):
         if k < 0: return ZZ(0)
         if k == 0: return ZZ(1)
 
-        if den == 2: #else, k is an integer
+        if den == 2: # else, k is an integer
             from sage.modular.arithgroup.congroup_gamma1 import is_Gamma1
             from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
             from sage.modular.dims import dimension_eis
@@ -1294,6 +1293,7 @@ class ArithmeticSubgroup(group.Group):
             else:
                 raise NotImplementedError("Computation of dimensions of spaces of half-integral weight Eisenstein series not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
+        k = ZZ(k)
         if not (k % 2): # k even
             if k > 2:
                 return self.ncusps()

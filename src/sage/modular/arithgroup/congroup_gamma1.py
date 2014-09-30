@@ -478,7 +478,7 @@ class Gamma1_class(GammaH_class):
                 return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
-            
+
             from sage.modular.dims import SerreStark, CohenOesterle
             if k == frac(1,2):
                 return SerreStark(eps, cusp_space=True)
@@ -541,8 +541,8 @@ class Gamma1_class(GammaH_class):
         k = QQ(k)
         den = abs(k.denominator())
         if den > 2:
-            raise TypeError("The weight must be an integer or half an integer")        
-        num = k.numerator()        
+            raise TypeError("The weight must be an integer or half an integer")
+        num = k.numerator()
         N = self.level()
         if den == 2 and N%4 !=0:
             raise TypeError("The level must be divisible by 4")
