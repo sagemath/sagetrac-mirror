@@ -551,15 +551,16 @@ class FiniteWord_class(Word_class):
             return self
         r = self.reversal()
         w = list(r)
+        parent = self.parent()
         if n is None:
-            alphsize = self.parent().size_of_alphabet()
+            alphsize = parent.size_of_alphabet()
             if not alphsize == +Infinity:
-                n = max(self.parent().alphabet())
+                n = max(parent.alphabet())
             elif r.length()>0:
                 n = max(w)
         for k in range(r.length()):
             w[k] = n+1 - w[k]
-        return self.parent()(w)
+        return parent(w, check=False)
 
     def is_empty(self):
         r"""
@@ -4539,7 +4540,7 @@ class FiniteWord_class(Word_class):
                 out[p] = i
             else:
                 out[p] = i+1
-        return self.parent()(out)
+        return self.parent()(out, check=False)
 
     def _to_partition_content(self):
         r"""
@@ -4745,7 +4746,7 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
            return self
         conjugates = sorted(self._conjugates_list())
-        return self.parent()([x[x.length()-1] for x in conjugates])
+        return self.parent()([x[x.length()-1] for x in conjugates], check=False)
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -5161,7 +5162,7 @@ class FiniteWord_class(Word_class):
                 raise TypeError('your word must be defined on a binary alphabet or use at most two different letters')
             elif len(alphabet) < 2:
                 return W()
-        word_from_letter = {l:W([l],datatype="list") for l in alphabet}
+        word_from_letter = {l:W([l],datatype="list",check=False) for l in alphabet}
         is_prefix = True
         current_run_length = 0
         prefix_length = 0
@@ -5648,7 +5649,7 @@ class FiniteWord_class(Word_class):
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
         else:
-            return self.shuffle(self._parent([x + shift for x in other]))
+            return self.shuffle(self._parent([x + shift for x in other], check=False))
 
     def delta_inv(self, W=None, s=None):
         r"""
@@ -5889,7 +5890,7 @@ class FiniteWord_class(Word_class):
             W = self.parent()
         if self.is_empty():
             return W()
-        v = self.parent()((self[-1],))
+        v = self.parent()((self[-1],), check=False)
         for i in xrange(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
@@ -6082,7 +6083,7 @@ class FiniteWord_class(Word_class):
                 permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
-        return self.parent()(permutation.action(self))
+        return self.parent()(permutation.action(self), check=False)
 
     def apply_permutation_to_letters(self, permutation):
         r"""
