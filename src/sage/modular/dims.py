@@ -187,7 +187,8 @@ def CohenOesterle(eps, k):
     INPUT:
 
 
-    -  ``eps`` - Dirichlet character
+    -  ``eps`` - Dirichlet character. Its modulus must be divisible by 4
+        if k is half-integral.
 
     -  ``k`` - integer, or half an integer
 
@@ -201,6 +202,14 @@ def CohenOesterle(eps, k):
         -2/3
         sage: sage.modular.dims.CohenOesterle(eps, 4)
         -1
+        sage: G = DirichletGroup(108)
+        sage: psi = G.0*G.1^9
+        sage: sage.modular.dims.CohenOesterle(psi, 3/2)
+        -6
+        sage: H = DirichletGroup(576)
+        sage: chi = H.0*H.2^3
+        sage: sage.modular.dims.CohenOesterle(chi, 1/2)
+        -24
     """
     k = QQ(k)
     den = abs(k.denominator())
@@ -236,6 +245,10 @@ def CohenOesterle(eps, k):
             sage: eps = DirichletGroup(7*43,K).0^2
             sage: sage.modular.dims.CohenOesterle(eps,2)
             -4/3
+            sage: G = DirichletGroup(108)
+            sage: eps = G.0*G.1^9
+            sage: sage.modular.dims.CohenOesterle(eps,3/2)
+            -6
         """
         if 2*s<=r:
             if r%2==0:
@@ -260,8 +273,10 @@ def CohenOesterle(eps, k):
                     gamma_k * mul([CO_delta(r[p], p, N, eps)  for p in L]) + \
                     mu_k    * mul([CO_nu(r[p], p, N, eps)     for p in L]))
 
-    # We now consider the case of half-integral
+    # We now consider the case of half-integral weight
     if den == 2:
+        if N%4 != 0:
+            raise TypeError("The modulus of the character must be divisible by 4.")
         if r[2] >= 4:
             zeta = _lambda(r[2], s[2], 2)
         if r[2] == 3:
