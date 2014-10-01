@@ -215,7 +215,7 @@ def CohenOesterle(eps, k):
     for p in L:
         r[p] = valuation(N, p)
         s[p] = valuation(f, p)
-        
+
     def _lambda(r,s,p):
         """
         Used internally by the CohenOesterle function.
@@ -243,6 +243,8 @@ def CohenOesterle(eps, k):
             return 2*p**((r-1)//2)
         return 2*(p**(r-s))
     #end def of lambda
+
+    # We first consider the case of integral weight
     if den == 1:
         gamma_k = 0
         if k%4==2:
@@ -258,6 +260,7 @@ def CohenOesterle(eps, k):
                     gamma_k * mul([CO_delta(r[p], p, N, eps)  for p in L]) + \
                     mu_k    * mul([CO_nu(r[p], p, N, eps)     for p in L]))
 
+    # We now consider the case of half-integral
     if den == 2:
         if r[2] >= 4:
             zeta = _lambda(r[2], s[2], 2)
@@ -286,10 +289,47 @@ def CohenOesterle(eps, k):
         return K(frac(-zeta,2) * mul([_lambda(r[p], s[p], p) for p in L if p!= 2]))
 
 def SerreStark(eps, cusp_space=False):
+    r"""
+    Compute the size of the basis of theta series for the space
+    of modular forms of weight 1/2 and character \varepsilon
+    given by Serre-Stark.
+
+    INPUT:
+
+
+    -  ``eps`` - an even Dirichlet character, with conductor
+        divisible by 4.
+
+    -  ``cusp_space`` - (optional: default False) if True
+        returns the size of a basis for the space of cusp forms.
+
+    OUTPUT: Integer
+
+
+    EXAMPLES::
+
+        sage: G = DirichletGroup(108)
+        sage: sage.modular.dims.SerreStark(G.0*G.1^9)
+        2
+        sage: H = DirichletGroup(64)
+        sage: sage.modular.dims.SerreStark(H.0^2)
+        3
+        sage: sage.modular.dims.SerreStark(H.1^2)
+        0
+        sage: sage.modular.dims.SerreStark(H.1^8)
+        2
+        sage: sage.modular.dims.SerreStark(H.1^8, cusp_space=True)
+        0
+        sage: H = DirichletGroup(576)
+        sage: chi = H.0*H.2^3
+        sage: sage.modular.dims.SerreStark(chi, cusp_space=True)
+        1
+    """
+    if eps.is_odd():
+        raise TypeError("The character must be even")
     N = eps.modulus()
     if N%4 != 0:
         raise TypeError("The modulus of the character must be divisible by 4")
-    K = eps.base_ring()
     d = 0
     for t in divisors(N/4):
         for rr in divisors(N/(4*t)):
@@ -307,7 +347,7 @@ def SerreStark(eps, cusp_space=False):
                                 a = 0
                                 break
                         d += a
-    return K(d)
+    return ZZ(d)
 
 ####################################################################
 # Functions exported to the global namespace.
@@ -412,6 +452,12 @@ def dimension_cusp_forms(X, k=2):
 
     ::
 
+        sage: dimension_cusp_forms(44,3/2)
+        2
+        sage: dimension_cusp_forms(Gamma0(160),3/2)
+        6
+        sage: dimension_cusp_forms(Gamma1(44),3/2)
+        12
         sage: G = DirichletGroup(108)
         sage: eps = G.0*G.1^9
         sage: dimension_cusp_forms(eps,3/2)
@@ -593,14 +639,22 @@ def dimension_eis(X, k=2):
 
     ::
 
+        sage: dimension_eis(44,3/2)
+        3
+        sage: dimension_eis(Gamma0(160),3/2)
+        14
+        sage: dimension_eis(Gamma1(44),3/2)
+        38
         sage: G = DirichletGroup(108)
         sage: dimension_eis(G.0*G.1^9, 3/2)
-        7
-        sage: H = DirichletGroup(36)
-        sage: dimension_eis(H.0, 1/2)
-        1
-        sage: dimension_eis(H.1, 1/2)
+        10
+        sage: H = DirichletGroup(64)
+        sage: dimension_eis(H.0^2, 1/2)
+        3
+        sage: dimension_eis(H.1^2, 1/2)
         0
+        sage: dimension_eis(H.1^8, 1/2)
+        2
         sage: K = DirichletGroup(156)
         sage: dimension_eis(K.1*K.2, 9/2)
         8
@@ -644,8 +698,6 @@ def dimension_modular_forms(X, k=2):
         2
         sage: dimension_modular_forms(Gamma0(11),0)
         1
-        sage: dimension_modular_forms(Gamma0(64),1/2)
-        3
         sage: dimension_modular_forms(Gamma1(13),2)
         13
         sage: dimension_modular_forms(GammaH(11, [10]), 2)
@@ -666,17 +718,24 @@ def dimension_modular_forms(X, k=2):
 
     ::
 
+        sage: dimension_modular_forms(44,3/2)
+        5
+        sage: dimension_modular_forms(Gamma0(160),3/2)
+        20
+        sage: dimension_modular_forms(Gamma1(44),3/2)
+        50
         sage: G = DirichletGroup(156)
         sage: dimension_modular_forms(G.1*G.2, 9/2)
         102
-        sage: H = DirichletGroup(36)
-        sage: dimension_modular_forms(H.0, 1/2)
-        1
-        sage: dimension_modular_forms(H.1, 1/2)
+        sage: H = DirichletGroup(64)
+        sage: dimension_modular_forms(H.0^2, 1/2)
+        3
+        sage: dimension_modular_forms(H.1^2, 1/2)
         0
+        sage: dimension_modular_forms(H.1^8, 1/2)
+        2
         sage: K = DirichletGroup(108)
-        sage: eps = K.0*K.1^9
-        sage: dimension_modular_forms(eps,3/2)
+        sage: dimension_modular_forms(K.0*K.1^9, 3/2)
         15
     """
 

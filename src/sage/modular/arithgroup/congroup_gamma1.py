@@ -367,6 +367,20 @@ class Gamma1_class(GammaH_class):
             32
             sage: G.dimension_modular_forms(2, eps, algorithm="Quer")
             32
+            
+        ::
+            
+            sage: Gamma1(44).dimension_modular_forms(3/2)
+            50
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_modular_forms(9/2, G.1*G.2)
+            102
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_modular_forms(1/2, H.0^2)
+            3
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_modular_forms(3/2, K.0*K.1^9)
+            15
         """
 
         return self.dimension_cusp_forms(k, eps, algorithm) + self.dimension_eis(k, eps, algorithm)
@@ -417,6 +431,21 @@ class Gamma1_class(GammaH_class):
             [0, 0, 1, 0, 3, 0, 5, 0, 7, 0]
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
+            
+        ::
+
+            sage: Gamma1(44).dimension_cusp_forms(3/2)
+            12
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_cusp_forms(9/2, G.1*G.2)
+            94
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_cusp_forms(1/2, H.0^2)
+            0
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_cusp_forms(3/2, K.0*K.1^9)
+            5          
+          
         """
 
         from all import Gamma0
@@ -536,6 +565,21 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
             sage: [Gamma1(48).dimension_eis(3,eps,algorithm="Quer") for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
+            
+        Some more examples: ::
+        
+            sage: Gamma1(44).dimension_eis(3/2)
+            38
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_eis(9/2, G.1*G.2)
+            8
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_eis(1/2, H.0^2)
+            3
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_eis(3/2, K.0*K.1^9)
+            10                   
+            
         """
         from all import Gamma0
         k = QQ(k)
