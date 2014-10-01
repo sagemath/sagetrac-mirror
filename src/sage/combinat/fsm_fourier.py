@@ -108,7 +108,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     # We rely on (2pi)^-N for convergence of the error term.
     # As a conservative estimate, 2pi is approximately 2^2,
-    # so we will need N ~ s.prec()/2 to achieve an error which
+    # so we will finally need N ~ s.prec()/2 to achieve an error which
     # is less than the resolution of s.
     # In order to have the falling factorial (-s)^\underline{N}
     # smaller than (M+a)^N, we choose M>|s|+N
@@ -118,7 +118,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     sigma = s.real()
     result = sum((r + alpha)**(-s) for r in reversed(srange(m, M)))
-    result += (M + alpha)**(1-s)/(s-1)
+    result += (M + alpha)**(1-s) / (s-1)
     factor = (M + alpha)**(-s)
     result += factor/2
 
