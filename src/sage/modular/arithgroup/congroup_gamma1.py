@@ -344,7 +344,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer, or half ain integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -353,9 +353,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         EXAMPLES::
 
@@ -367,9 +368,9 @@ class Gamma1_class(GammaH_class):
             32
             sage: G.dimension_modular_forms(2, eps, algorithm="Quer")
             32
-            
-        ::
-            
+
+        Examples with half-integral weights: ::
+
             sage: Gamma1(44).dimension_modular_forms(3/2)
             50
             sage: G = DirichletGroup(156)
@@ -402,9 +403,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         EXAMPLES:
 
@@ -431,8 +433,8 @@ class Gamma1_class(GammaH_class):
             [0, 0, 1, 0, 3, 0, 5, 0, 7, 0]
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
-            
-        ::
+
+        Examples with half-integral weights: ::
 
             sage: Gamma1(44).dimension_cusp_forms(3/2)
             12
@@ -444,8 +446,7 @@ class Gamma1_class(GammaH_class):
             0
             sage: K = DirichletGroup(108)
             sage: Gamma1(108).dimension_cusp_forms(3/2, K.0*K.1^9)
-            5          
-          
+            5
         """
 
         from all import Gamma0
@@ -511,7 +512,7 @@ class Gamma1_class(GammaH_class):
             from sage.modular.dims import SerreStark, CohenOesterle
             if k == frac(1,2):
                 return SerreStark(eps, cusp_space=True)
-            aux_dim = K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps,k)
+            aux_dim = K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps, k)
             if k == frac(3,2):
                 return ZZ(aux_dim + SerreStark(eps))
             else:
@@ -538,9 +539,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         AUTHORS:
 
@@ -549,6 +551,8 @@ class Gamma1_class(GammaH_class):
         - Jordi Quer - algorithm based on GammaH subgroups
 
         - David Loeffler (2009) - code refactoring
+
+        - Nicolás Sirolli (2014) - half-integral weights
 
         EXAMPLES:
 
@@ -565,9 +569,9 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
             sage: [Gamma1(48).dimension_eis(3,eps,algorithm="Quer") for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
-            
-        Some more examples: ::
-        
+
+        Examples with half-integral weights: ::
+
             sage: Gamma1(44).dimension_eis(3/2)
             38
             sage: G = DirichletGroup(156)
@@ -578,8 +582,7 @@ class Gamma1_class(GammaH_class):
             3
             sage: K = DirichletGroup(108)
             sage: Gamma1(108).dimension_eis(3/2, K.0*K.1^9)
-            10                   
-            
+            10
         """
         from all import Gamma0
         k = QQ(k)

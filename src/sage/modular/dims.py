@@ -467,28 +467,6 @@ def dimension_cusp_forms(X, k=2):
 
     ::
 
-        sage: dimension_cusp_forms(44,3/2)
-        2
-        sage: dimension_cusp_forms(Gamma0(160),3/2)
-        6
-        sage: dimension_cusp_forms(Gamma1(44),3/2)
-        12
-        sage: G = DirichletGroup(108)
-        sage: eps = G.0*G.1^9
-        sage: dimension_cusp_forms(eps,3/2)
-        5
-        sage: dimension_cusp_forms(eps,1/2)
-        0
-        sage: H = DirichletGroup(576)
-        sage: chi = H.0*H.2^3
-        sage: dimension_cusp_forms(chi,1/2)
-        1
-        sage: K = DirichletGroup(156)
-        sage: dimension_cusp_forms(K.1*K.2, 9/2)
-        94
-
-    ::
-
         sage: dimension_cusp_forms(Gamma0(11),2)
         1
         sage: dimension_cusp_forms(Gamma0(11),0)
@@ -554,6 +532,28 @@ def dimension_cusp_forms(X, k=2):
         1
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
+
+    Examples with half-integral weights: ::
+
+        sage: dimension_cusp_forms(44,3/2)
+        2
+        sage: dimension_cusp_forms(Gamma0(160),3/2)
+        6
+        sage: dimension_cusp_forms(Gamma1(44),3/2)
+        12
+        sage: G = DirichletGroup(108)
+        sage: eps = G.0*G.1^9
+        sage: dimension_cusp_forms(eps,3/2)
+        5
+        sage: dimension_cusp_forms(eps,1/2)
+        0
+        sage: H = DirichletGroup(576)
+        sage: chi = H.0*H.2^3
+        sage: dimension_cusp_forms(chi,1/2)
+        1
+        sage: K = DirichletGroup(156)
+        sage: dimension_cusp_forms(K.1*K.2, 9/2)
+        94
     """
 
     k = QQ(k)
@@ -652,7 +652,7 @@ def dimension_eis(X, k=2):
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
 
-    ::
+    Examples with half-integral weights: ::
 
         sage: dimension_eis(44,3/2)
         3
@@ -731,7 +731,7 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(11,2)
         2
 
-    ::
+    Examples with half-integral weights: ::
 
         sage: dimension_modular_forms(44,3/2)
         5

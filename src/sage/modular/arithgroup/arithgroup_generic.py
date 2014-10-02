@@ -1113,10 +1113,10 @@ class ArithmeticSubgroup(group.Group):
         r"""
         Return the dimension of the space of weight k modular forms for this
         group. This is given, for integral k, by a standard formula in terms
-        of k and various invariants of the group; see Diamond + Shurman, "A
+        of k and various invariants of the group; see Diamond--Shurman, "A
         First Course in Modular Forms", section 3.5 and 3.6. For half-integral
         k, this is computed using the algorithms of Cohen--Oesterle and
-        Serre-Stark. If k is not given, defaults to k = 2.
+        Serre--Stark. If k is not given, defaults to k = 2.
 
         For dimensions of spaces of modular forms with character for Gamma1, use
         the standalone function dimension_modular_forms().
@@ -1181,9 +1181,9 @@ class ArithmeticSubgroup(group.Group):
         r"""
         Return the dimension of the space of weight k cusp forms for this
         group. This is given, for integral k, by a standard formula in terms
-        of k and various invariants of the group; see Diamond + Shurman, "A
+        of k and various invariants of the group; see Diamond--Shurman, "A
         First Course in Modular Forms", section 3.5 and 3.6. For half-integral k,
-        this is computed using the algorithms of Cohen--Oesterle and Serre-Stark.
+        this is computed using the algorithms of Cohen--Oesterle and Serre--Stark.
         If k is not given, default to k = 2.
 
         For dimensions of spaces of cusp forms with character for Gamma1, use
