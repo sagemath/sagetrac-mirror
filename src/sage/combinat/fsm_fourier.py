@@ -249,6 +249,11 @@ class FSMFourier(Transducer):
         - ``Delta_epsilon`` -- list of partial output matrices
           `\Delta_\varepsilon`.
 
+        - ``C_0'' -- `\max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`.
+
+        - ``C_1'' -- `\max\{\|\Delta_\varepsilon\|_\infty:
+           0\le \varepsilon<q\}`.
+
         EXAMPLES:
 
         -   Binary sum of digits::
@@ -263,11 +268,12 @@ class FSMFourier(Transducer):
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
                 ....:     f, n, 2)
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: FSMFourier(T)._fourier_coefficient_data_()
                 FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
                 w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
                 M=[2], M_epsilon=[[1], [1]], Delta=[1],
-                Delta_epsilon=[[0], [1]])
+                Delta_epsilon=[[0], [1]], C_0=1, C_1=1)
 
         -   NAF::
 
@@ -400,6 +406,8 @@ class FSMFourier(Transducer):
                 [1/2, 1/2], 11/8, [5/4, 5/4]
                 )
         """
+
+
         import collections
         import itertools
         import operator
@@ -418,7 +426,8 @@ class FSMFourier(Transducer):
         FourierCoefficientData = collections.namedtuple(
             "FourierCoefficientData",
             ["c", "periods", "period", "T", "w", "coefficient_lambda",
-             "e_T", "a", "M", "M_epsilon", "Delta", "Delta_epsilon"])
+             "e_T", "a", "M", "M_epsilon", "Delta", "Delta_epsilon",
+             "C_0", "C_1"])
 
         positions = dict((state.label(), j)
                          for j, state in enumerate(self.iter_states()))
@@ -568,6 +577,11 @@ class FSMFourier(Transducer):
                              entry=lambda t: sum(t.word_out))
         assert Delta == sum(Delta_epsilon)
 
+        C_0 = max(self._FC_b_direct_(r).norm(infinity)
+                  for r in range(q))
+        C_1 = max(infinity_norm(d)
+                  for d in Delta_epsilon)
+
         return FourierCoefficientData(
             c=len(components),
             periods=[c.period for c in components],
@@ -581,7 +595,9 @@ class FSMFourier(Transducer):
             M=M,
             M_epsilon=M_epsilon,
             Delta=Delta,
-            Delta_epsilon=Delta_epsilon)
+            Delta_epsilon=Delta_epsilon,
+            C_0=C_0,
+            C_1=C_1)
 
     @cached_method
     def _FC_b_direct_(self, r):
