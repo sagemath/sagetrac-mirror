@@ -10,7 +10,47 @@ Fourier Coefficients
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+
+def infinity_norm(A):
+    """
+    Compute the infinity norm of a matrix A, in the same ring as
+    the original matrix A.
+
+    INPUT:
+
+    - ``A`` -- a matrix.
+
+    OUTPUT:
+
+    An entry.
+
+    In contrast to :meth:`sage.matrix.matrix2.Matrix.norm`,
+    sparse zero matrices are allowed and the result is not
+    necessarily a
+    :class:`~sage.rings.real_double.RealDoubleElement`.
+
+    EXAMPLES::
+
+        sage: from fsm_fourier import infinity_norm
+        sage: M = matrix([[1, 2], [-5, -1]])
+        sage: infinity_norm(M)
+        6
+        sage: M.norm(infinity)
+        6.0
+        sage: M = matrix([[0]], sparse=True)
+        sage: infinity_norm(M)
+        0
+        sage: M.norm(infinity)
+        Traceback (most recent call last):
+        ...
+        TypeError: base_ring (=Category of objects) must be a ring
+    """
+    if A.is_zero():
+        return 0
+    return max(sum(r) for r in A.apply_map(abs).rows())
+
 
 def _hurwitz_zeta_(s, alpha,  m = 0):
     r"""
