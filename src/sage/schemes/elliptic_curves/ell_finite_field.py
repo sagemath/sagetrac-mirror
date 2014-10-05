@@ -1286,14 +1286,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def isogenies_graph(self, l):
         """
         Return the l-isogenies graph of E.
+        
+        .. note::
+        
+            Needs the database "db_modular_polynomials" in order to work
+            properly.
 
         EXAMPLE::
 
             sage: E = EllipticCurve(GF(31),[1,2,3,4,5])
-            sage: E.isogenies_graph(5).edges()
+            sage: E.isogenies_graph(5).edges()  # optional - db_modular_polynomials 
             [(3, 9, None), (9, 3, None)]
             sage: E = EllipticCurve(GF(5081),[3290,3887])
-            sage: E.isogenies_graph(5).edges()
+            sage: E.isogenies_graph(5).edges() # optional - db_modular_polynomials
             [(478, 794, None),
              (531, 3959, None),
              (711, 2483, None),
