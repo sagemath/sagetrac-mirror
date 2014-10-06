@@ -15,6 +15,91 @@ from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
+
+def max_RIF(elements):
+    r"""
+    Compute the maximum of :class:`~sage.rings.real_interval` elements.
+
+    INPUT:
+
+    - ``elements`` -- iterable of :class:`~sage.rings.real_interval` elements
+
+    OUTPUT:
+
+    :class:`~sage.rings.real_interval` element.
+
+    EXAMPLES::
+
+        sage: a = RIF(1, 4)
+        sage: b = RIF(2, 3)
+        sage: max_RIF([a, b]).endpoints()
+        (2.00000000000000, 4.00000000000000)
+        sage: max_RIF([b, a]).endpoints()
+        (2.00000000000000, 4.00000000000000)
+
+    For two elements, this corresponds to
+    :meth:`sage.rings.real_interval.max`::
+
+        sage: a.max(b).endpoints()
+        (2.00000000000000, 4.00000000000000)
+        sage: b.max(a).endpoints()
+        (2.00000000000000, 4.00000000000000)
+
+    Note that the standard Python ``max`` function does not handle
+    :class:`~sage.rings.real_interval` elements correctly.
+
+        sage: max(a, b).endpoints()
+        (1.00000000000000, 4.00000000000000)
+        sage: max(b, a).endpoints()
+        (2.00000000000000, 3.00000000000000)
+
+    .. SEEALSO::
+
+        :meth:`sage.rings.real_interval.max`
+    """
+    # we iterate twice, so store as a list.
+    data = list(elements)
+    max_upper = max(e.upper() for e in data)
+    max_lower = max(e.lower() for e in data)
+    return data[0].parent()(max_lower, max_upper)
+
+
+def infinity_vector_norm(v):
+    """
+    Compute the infinity norm of a vector of
+    :class:`~sage.rings.real_interval` elements.
+
+    INPUT:
+
+    - ``v`` -- a vector of :class:`~sage.rings.real_interval` elements.
+
+    OUTPUT:
+
+    A :class:`~sage.rings.real_interval` element.
+
+    EXAMPLES::
+
+        sage: from fsm_fourier import infinity_vector_norm
+        sage: a = RIF(1, 4)
+        sage: b = RIF(-3, -2)
+        sage: infinity_vector_norm(vector([a, b])).endpoints()
+        (2.00000000000000, 4.00000000000000)
+        sage: infinity_vector_norm(vector([b, a])).endpoints()
+        (2.00000000000000, 4.00000000000000)
+
+    Note that the
+    :meth:`sage.rings.modules.free_module_element.FreeModuleElement.norm`
+    method is inadequate, as it uses the Python max instead of
+    :func:`max_RIF`::
+
+        sage: vector([a, b]).norm(infinity).endpoints()
+        (1.00000000000000, 4.00000000000000)
+        sage: vector([b, a]).norm(infinity).endpoints()
+        (2.00000000000000, 3.00000000000000)
+    """
+    return max_RIF(abs(r) for r in v)
+
+
 def infinity_matrix_norm(A):
     """
     Compute the infinity norm of a matrix A, in the same ring as
