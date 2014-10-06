@@ -364,7 +364,7 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3, 4, 5, 6]
         """
         if isinstance(other_graph, GenericGraph):
-            return self.disjoint_union(other_graph, labels='integers')
+            return self.disjoint_union(other_graph, verbose_relabel=False)
 
     def __eq__(self, other):
         """
@@ -1174,22 +1174,22 @@ class GenericGraph(GenericGraph_pyx):
             {0: {1: None, 4: None, 5: None},
              1: {0: None, 2: None, 6: None},
              2: {1: None, 3: None, 7: None},
-             3: {2: None, 4: None, 8: None},
-             4: {0: None, 3: None, 9: None},
-             5: {0: None, 7: None, 8: None},
-             6: {1: None, 8: None, 9: None},
-             7: {2: None, 5: None, 9: None},
+             3: {8: None, 2: None, 4: None},
+             4: {0: None, 9: None, 3: None},
+             5: {0: None, 8: None, 7: None},
+             6: {8: None, 1: None, 9: None},
+             7: {9: None, 2: None, 5: None},
              8: {3: None, 5: None, 6: None},
              9: {4: None, 6: None, 7: None}}
             sage: graphs.PetersenGraph().to_dictionary(edge_labels=True,multiple_edges=True)
             {0: {1: [None], 4: [None], 5: [None]},
              1: {0: [None], 2: [None], 6: [None]},
              2: {1: [None], 3: [None], 7: [None]},
-             3: {2: [None], 4: [None], 8: [None]},
-             4: {0: [None], 3: [None], 9: [None]},
-             5: {0: [None], 7: [None], 8: [None]},
-             6: {1: [None], 8: [None], 9: [None]},
-             7: {2: [None], 5: [None], 9: [None]},
+             3: {8: [None], 2: [None], 4: [None]},
+             4: {0: [None], 9: [None], 3: [None]},
+             5: {0: [None], 8: [None], 7: [None]},
+             6: {8: [None], 1: [None], 9: [None]},
+             7: {9: [None], 2: [None], 5: [None]},
              8: {3: [None], 5: [None], 6: [None]},
              9: {4: [None], 6: [None], 7: [None]}}
         """
@@ -11815,7 +11815,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
               the copies of `G` contained in `self`.
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: P = graphs.PetersenGraph()
             sage: G = P.subgraph(range(6))
@@ -13866,10 +13866,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P = graphs.PetersenGraph()
             sage: P.plot() # long time
-            Graphics object consisting of 26 graphics primitives
             sage: PC = P.complement()
             sage: PC.plot() # long time
-            Graphics object consisting of 41 graphics primitives
 
         ::
 
@@ -13934,20 +13932,18 @@ class GenericGraph(GenericGraph_pyx):
         g.allow_multiple_edges(False)
         return g
 
-    def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
+    def disjoint_union(self, other, verbose_relabel=True):
         """
-        Return the disjoint union of self and other.
+        Returns the disjoint union of self and other.
 
         INPUT:
 
-        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
+        - ``verbose_relabel`` - (defaults to True) If True, each
           vertex v in the first graph will be named '0,v' and each
           vertex u in the second graph will be named '1,u' in the
-          final graph. If set to 'integers', the vertices of the first
-          graph and the second graph will be relabeled with
-          consecutive integers.
-
-        - ``verbose_relabel`` - deprecated.
+          final graph. If False, the vertices of the first graph and
+          the second graph will be relabeled with consecutive
+          integers.
 
         .. SEEALSO::
 
@@ -13963,7 +13959,7 @@ class GenericGraph(GenericGraph_pyx):
             Cycle graph disjoint_union Cycle graph: Graph on 7 vertices
             sage: J.vertices()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (1, 3)]
-            sage: J = G.disjoint_union(H, labels='integers'); J
+            sage: J = G.disjoint_union(H, verbose_relabel=False); J
             Cycle graph disjoint_union Cycle graph: Graph on 7 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
@@ -13984,16 +13980,7 @@ class GenericGraph(GenericGraph_pyx):
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
 
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel == True:
-                labels="pairs"
-            if verbose_relabel == False:
-                labels="integers"
-
-        if labels not in ['pairs', 'integers']:
-            raise ValueError("Parameter labels must be either 'pairs' or 'integers'.")
-        if labels == "integers":
+        if not verbose_relabel:
             r_self = {}; r_other = {}; i = 0
             for v in self:
                 r_self[v] = i; i += 1
@@ -14172,7 +14159,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.size()
             10
             sage: T.plot() # long time
-            Graphics object consisting of 21 graphics primitives
 
         ::
 
@@ -14183,7 +14169,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.size()
             900
             sage: T.plot() # long time
-            Graphics object consisting of 1101 graphics primitives
 
         TESTS:
 
@@ -14252,7 +14237,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = C.lexicographic_product(Z); L
             Graph on 10 vertices
             sage: L.plot() # long time
-            Graphics object consisting of 36 graphics primitives
 
         ::
 
@@ -14261,7 +14245,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = D.lexicographic_product(P); L
             Graph on 200 vertices
             sage: L.plot() # long time
-            Graphics object consisting of 3501 graphics primitives
 
         TESTS:
 
@@ -14326,7 +14309,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = C.strong_product(Z); S
             Graph on 10 vertices
             sage: S.plot() # long time
-            Graphics object consisting of 36 graphics primitives
 
         ::
 
@@ -14335,7 +14317,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = D.strong_product(P); S
             Graph on 200 vertices
             sage: S.plot() # long time
-            Graphics object consisting of 1701 graphics primitives
 
         TESTS:
 
@@ -14405,7 +14386,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = Z.disjunctive_product(Z); D
             Graph on 4 vertices
             sage: D.plot() # long time
-            Graphics object consisting of 11 graphics primitives
 
         ::
 
@@ -14413,7 +14393,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = C.disjunctive_product(Z); D
             Graph on 10 vertices
             sage: D.plot() # long time
-            Graphics object consisting of 46 graphics primitives
 
         TESTS:
 
@@ -14483,13 +14462,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.transitive_closure().edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
-        On an immutable digraph::
-
-            sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
-            Transitive closure of Path: Digraph on 5 vertices
         """
         from copy import copy
-        G = self.copy(immutable=False)
+        G = copy(self)
         G.name('Transitive closure of ' + self.name())
         for v in G:
             # todo optimization opportunity: we are adding edges that
@@ -14607,7 +14582,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = SymmetricGroup(4).cayley_graph()
             sage: set(G.edge_labels())
-            {1, 2, 3}
+            set([1, 2, 3])
 
         We first request the coloring as a function::
 
@@ -14627,9 +14602,9 @@ class GenericGraph(GenericGraph_pyx):
         The default output is a dictionary assigning edges to colors::
 
             sage: G._color_by_label()
-            {'#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)],
-             '#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
-             '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)]}
+            {'#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
+             '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)],
+             '#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
             {'blue':    [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
@@ -14766,23 +14741,25 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.ButterflyGraph(1)
             sage: g.layout()
-            {('0', 0): [2.22..., 0.832...],
-             ('0', 1): [0.833..., 0.543...],
+            {('1', 1): [2.50..., -0.545...],
+             ('0', 0): [2.22..., 0.832...],
              ('1', 0): [1.12..., -0.830...],
-             ('1', 1): [2.50..., -0.545...]}
-        
-            sage: g.layout(layout="acyclic_dummy", save_pos=True)
-            {('0', 0): [0.3..., 0],
-             ('0', 1): [0.3..., 1],
-             ('1', 0): [0.6..., 0],
-             ('1', 1): [0.6..., 1]}
+             ('0', 1): [0.833..., 0.543...]}
+
+            sage: 1+1
+            2
+            sage: x = g.layout(layout = "acyclic_dummy", save_pos = True)
+            sage: x =  {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
+
+            {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
+
 
             sage: g.layout(dim = 3)
-            {('0', 0): [2.02..., 0.528..., 0.343...],
-             ('0', 1): [1.61..., 0.260..., -0.927...],
+            {('1', 1): [1.07..., -0.260..., 0.927...],
+             ('0', 0): [2.02..., 0.528..., 0.343...],
              ('1', 0): [0.674..., -0.528..., -0.343...],
-             ('1', 1): [1.07..., -0.260..., 0.927...]}
-             
+             ('0', 1): [1.61..., 0.260..., -0.927...]}
+
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
@@ -14863,7 +14840,6 @@ class GenericGraph(GenericGraph_pyx):
              5: [1.08..., 0.946...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
-            Graphics object consisting of 34 graphics primitives
         """
         return spring_layout_fast(self, by_component = by_component, **options)
 
@@ -14901,7 +14877,6 @@ class GenericGraph(GenericGraph_pyx):
              5: [1.33..., 2]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
-            Graphics object consisting of 34 graphics primitives
         """
         assert heights is not None
 
@@ -14960,10 +14935,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: H = digraphs.ButterflyGraph(1)
             sage: H.layout_extend_randomly({('0',0): (0,0), ('1',1): (1,1)})
-            {('0', 0): (0, 0),
-             ('0', 1): [0.0446..., 0.332...],
+            {('1', 1): (1, 1),
+             ('0', 0): (0, 0),
              ('1', 0): [0.111..., 0.514...],
-             ('1', 1): (1, 1)}
+             ('0', 1): [0.0446..., 0.332...]}
         """
         assert dim == 2 # 3d not yet implemented
         from sage.misc.randstate import current_randstate
@@ -14999,7 +14974,6 @@ class GenericGraph(GenericGraph_pyx):
              5: [0.97...,  -0.22...],
              6: [0.78...,   0.62...]}
             sage: G.plot(layout = "circular")
-            Graphics object consisting of 22 graphics primitives
         """
         assert dim == 2, "3D circular layout not implemented"
         from math import sin, cos, pi
@@ -15051,11 +15025,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.BalancedTree(2,4)
             sage: G.plot(layout="tree", tree_root = 0, tree_orientation = "up")
-            Graphics object consisting of 62 graphics primitives
 
             sage: G = graphs.RandomTree(80)
             sage: G.plot(layout="tree", tree_orientation = "right")
-            Graphics object consisting of 160 graphics primitives
 
         TESTS::
 
@@ -15292,18 +15264,14 @@ class GenericGraph(GenericGraph_pyx):
             See http://trac.sagemath.org/15494 for details.
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
 
         We can modify the graphplot object.  Notice that the changes are cumulative::
 
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
-            Graphics object consisting of 22 graphics primitives
         """
-        print "G graphplot", options
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options)
 
@@ -15487,7 +15455,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.plot(pos=pos, layout='spring', iterations=0)
-            Graphics object consisting of 11 graphics primitives
 
         ::
 
@@ -15535,14 +15502,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
-            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
-            Graphics object consisting of 14 graphics primitives
             sage: t.set_edge_label(0,1,-7)
             sage: t.set_edge_label(0,5,3)
             sage: t.set_edge_label(0,5,99)
@@ -15551,38 +15516,31 @@ class GenericGraph(GenericGraph_pyx):
             sage: t.set_edge_label(2,6,3/2)
             sage: t.set_edge_label(0,4,66)
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True)
-            Graphics object consisting of 20 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(layout='tree')
-            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: t = DiGraph('JCC???@A??GO??CO??GO??')
             sage: t.plot(layout='tree', tree_root=0, tree_orientation="up")
-            Graphics object consisting of 22 graphics primitives
             sage: D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
             sage: D.plot()
-            Graphics object consisting of 16 graphics primitives
 
             sage: D = DiGraph(multiedges=True,sparse=True)
             sage: for i in range(5):
             ...     D.add_edge((i,i+1,'a'))
             ...     D.add_edge((i,i-1,'b'))
             sage: D.plot(edge_labels=True,edge_colors=D._color_by_label())
-            Graphics object consisting of 34 graphics primitives
             sage: D.plot(edge_labels=True, color_by_label={'a':'blue', 'b':'red'}, edge_style='dashed')
-            Graphics object consisting of 34 graphics primitives
 
             sage: g = Graph({}, loops=True, multiedges=True,sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
-            Graphics object consisting of 22 graphics primitives
 
         ::
 
@@ -15600,11 +15558,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph({0:{1:'a', 2:'a'}, 1:{0:'b'}, 2:{0:'c'}})
             sage: p = G.plot(edge_labels=True, color_by_label={'a':'yellow', 'b':'purple'}); p
-            Graphics object consisting of 14 graphics primitives
             sage: sorted([x.options()['rgbcolor'] for x in p if isinstance(x, sage.plot.arrow.CurveArrow)])
             ['black', 'purple', 'yellow', 'yellow']
         """
-        print "G plot", options
         return self.graphplot(**options).plot()
 
     def show(self, method = "matplotlib", **kwds):
@@ -15731,7 +15687,6 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(5)
             sage: G.plot3d(iterations=500, edge_size=None, vertex_size=0.04) # long time
-            Graphics3d Object
 
         We plot a fairly complicated Cayley graph::
 
@@ -15739,7 +15694,6 @@ class GenericGraph(GenericGraph_pyx):
             Alternating group of order 5!/2 as a permutation group
             sage: G = A5.cayley_graph()
             sage: G.plot3d(vertex_size=0.03, edge_size=0.01, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, iterations=200) # long time
-            Graphics3d Object
 
         Some Tachyon examples::
 
