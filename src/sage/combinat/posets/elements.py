@@ -21,7 +21,7 @@ from sage.structure.sage_object import have_same_parent
 
 class PosetElement(Element):
 
-    def __init__(self, poset, element, vertex):
+    def __init__(self, poset, element, vertex=None): #TODO: Deprecate me
         r"""
         Establishes the parent-child relationship between ``poset``
         and ``element``, where ``element`` is associated to the
@@ -49,7 +49,7 @@ class PosetElement(Element):
             self.element = element.element
         else:
             self.element = element
-        self.vertex = vertex
+        #self.vertex = vertex
 
     def _repr_(self):
         """
@@ -114,7 +114,7 @@ class PosetElement(Element):
         # self is other, or best inherit __eq__ from there. But there
         # are issues around pickling and rich comparison functions.
         return have_same_parent(self, other) \
-            and self.vertex == other.vertex
+            and self.element == other.element
 
 
     def __ne__(self,other):

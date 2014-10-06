@@ -213,7 +213,7 @@ class LinearExtensionOfPoset(ClonableArray):
         old = [P.unwrap(x) for x in self]
         new = [P.unwrap(x) for x in P]
         relabelling = dict(zip(old,new))
-        return P.relabel(relabelling).with_linear_extension(new)
+        return P.relabel(relabelling)#.with_linear_extension(new)
 
     def tau(self, i):
         r"""
@@ -237,9 +237,8 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: l.tau(1)
             [2, 1, 3, 4]
             sage: for p in L:
-            ...       for i in range(1,4):
-            ...           print i, p, p.tau(i)
-            ...
+            ....:     for i in range(1,4):
+            ....:         print i, p, p.tau(i)
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
@@ -279,7 +278,8 @@ class LinearExtensionOfPoset(ClonableArray):
 
         INPUT:
 
-        - `i` -- an integer between `1` and `n-1`, where `n` is the cardinality of the poset (default: `1`)
+        - `i` -- an integer between `1` and `n-1`, where `n` is the
+          cardinality of the poset (default: `1`)
 
         The `i`-th generalized promotion operator `\partial_i` on a linear extension
         `\pi` is defined as `\pi \tau_i \tau_{i+1} \cdots \tau_{n-1}`, where `n` is the
@@ -300,7 +300,7 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: p.to_poset().is_isomorphic(q.to_poset())
             True
         """
-        for j in range(i,len(self)):
+        for j in range(i, len(self)):
             self = self.tau(j)
         return self
 
@@ -445,9 +445,8 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: list(L)
             [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
         """
-        vertex_to_element = self._poset._vertex_to_element
         for lin_ext in self._linear_extensions_of_hasse_diagram:
-            yield self._element_constructor_(map(vertex_to_element,lin_ext))
+            yield self._element_constructor_(map(self._poset, lin_ext))
 
     def __contains__(self, obj):
         """
@@ -680,3 +679,4 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             return self.element_class(self, lst, check)
 
     Element = LinearExtensionOfPoset
+

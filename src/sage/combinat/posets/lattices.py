@@ -107,7 +107,7 @@ class FiniteMeetSemilattice(FinitePoset):
             'Finite meet-semilattice containing 4 elements'
         """
         return "Finite meet-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+                %self.cardinality()
 
     def meet(self,x,y):
         r"""
@@ -141,10 +141,9 @@ class FiniteMeetSemilattice(FinitePoset):
             2
             sage: L.meet(1, 2)
             0
-
         """
-        i, j = map(self._element_to_vertex,(x,y))
-        return self._vertex_to_element(self._hasse_diagram._meet[i,j])
+        i, j = map(self._element_index,(x,y))
+        return self(self._meet[i,j])
 
 ####################################################################################
 
@@ -230,7 +229,7 @@ class FiniteJoinSemilattice(FinitePoset):
             'Finite join-semilattice containing 4 elements'
         """
         return "Finite join-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+                %self.cardinality()
 
     def join(self,x,y):
         r"""
@@ -264,10 +263,9 @@ class FiniteJoinSemilattice(FinitePoset):
             1
             sage: L.join(1, 2)
             3
-
         """
-        i, j = map(self._element_to_vertex,(x,y))
-        return self._vertex_to_element(self._hasse_diagram._join[i,j])
+        i, j = map(self._element_index,(x,y))
+        return self(self._join[i,j])
 
 ####################################################################################
 
@@ -367,7 +365,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L._repr_()
             'Finite lattice containing 4 elements'
         """
-        return "Finite lattice containing %s elements"%self._hasse_diagram.order()
+        return "Finite lattice containing %s elements"%self.cardinality()
 
     def is_distributive(self):
         r"""
