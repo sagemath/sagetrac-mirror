@@ -863,14 +863,25 @@ class FSMFourier(Transducer):
                 f
                 sage: var('n')
                 n
-                sage: T = transducers.Recursion([
+                sage: T = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
-                ....:     f, n, 2)
+                ....:     f, n, 2))
                 sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: FSMFourier(T)._H_m_rhs_(CIF(2), 100)
-                (0.0050250833316668?)
+                sage: T._H_m_rhs_(CIF(2), 100)
+                (0.0050250833316668? + 0.?e-18*I)
+
+            Evaluated at `s = 1 + 2k \pi i/\log 2` for `k\neq 0`, the
+            result must be zero, as the Riemann zeta function does not
+            have a pole there and the first factor therefore annihilates
+            the result::
+
+                sage: result = T._H_m_rhs_(CIF(1+2*pi*I/log(2)), 20)[0]
+                sage: result
+                0.?e-13 + 0.?e-13*I
+                sage: result.contains_zero()
+                True
         """
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
 
@@ -978,7 +989,7 @@ class FSMFourier(Transducer):
                 ....:     f(0) == 1],
                 ....:     f, n, 2)
                 sage: FSMFourier(T)._H_m_(CIF(2), 100)
-                (0.0100501666633336?)
+                (0.0100501666633336? + 0.?e-18*I)
         """
         q = ZZ(len(self.input_alphabet))
         M = self._fourier_coefficient_data_().M
@@ -1015,7 +1026,7 @@ class FSMFourier(Transducer):
                 ....:     f, n, 2)
                 sage: result = FSMFourier(T)._H_(CIF(2))
                 sage: result
-                (1.64493406684823?)
+                (1.64493406684823? + 0.?e-17*I)
                 sage: result[0].overlaps(CIF(pi^2/6))
                 True
         """
