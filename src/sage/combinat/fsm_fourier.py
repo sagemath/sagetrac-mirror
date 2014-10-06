@@ -9,7 +9,9 @@ Fourier Coefficients
 """
 
 from sage.combinat.finite_state_machine import Transducer
+from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
+from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
@@ -413,9 +415,7 @@ class FSMFourier(Transducer):
         import operator
 
         from sage.calculus.var import var
-        from sage.matrix.constructor import matrix
         from sage.modules.free_module import VectorSpace
-        from sage.modules.free_module_element import vector
         from sage.rings.arith import lcm
         from sage.rings.number_field.number_field import CyclotomicField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
