@@ -878,6 +878,12 @@ class FSMFourier(Transducer):
         CIF = s.parent()
         RIF = sigma.parent()
 
+        def taylor_error(N, sigma, x):
+            return min_RIF([
+                max_RIF([RIF(1), 1/(1 + x)**(sigma + N)]),
+                max_RIF([RIF(N), N/(1 + x)**(sigma + 1)])])
+
+
         q = ZZ(len(self.input_alphabet))
         log_q = log(RIF(q))
         log_m_1 = log(RIF(m - 1))
@@ -910,9 +916,12 @@ class FSMFourier(Transducer):
                 (C_0 * (sigma + N -1) * log_q\
                      + C_1 * (sigma + N -1) * log_m_1\
                      + C_1) / \
-                     ((sigma + N - 1)**2 \
-                          * (m - 1)**(sigma + N - 1)\
-                          * log_q)
+                ((sigma + N - 1)**2 \
+                     * (m - 1)**(sigma + N - 1)\
+                     * log_q) * \
+                sum(epsilon**N
+                    * taylor_error(N, sigma, ZZ(epsilon)/ZZ(q*m))
+                    for epsilon in range(q))
 
             verbose("    N = %d, error = %s, acceptable_error = %s, "
                     "result = %s" %
