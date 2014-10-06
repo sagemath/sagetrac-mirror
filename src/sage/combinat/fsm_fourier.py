@@ -705,3 +705,163 @@ class FSMFourier(Transducer):
         ones = vector(1 for _ in range(d.M.nrows()))
         return d.Delta_epsilon[epsilon]*ones +\
             d.M_epsilon[epsilon] * self._FC_b_recursive_(R)
+
+
+    def _H_m_rhs_(self, s, m):
+        r"""
+        Compute `(I - q^{-s}M)\mathbf{H}_m(s)`
+
+        INPUT:
+
+        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+
+        -   ``m`` -- non-negative integer
+
+        OUTPUT:
+
+        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+
+        EXAMPLES:
+
+        -   One state, always ``1``: this corresponds to the Riemann
+            zeta function. ::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n),
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 1],
+                ....:     f, n, 2)
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: FSMFourier(T)._H_m_rhs(CIF(2), 100)
+        """
+        verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
+
+        sigma = s.real()
+        CIF = s.parent()
+        RIF = sigma.parent()
+
+        q = ZZ(len(self.input_alphabet))
+        log_q = log(RIF(q))
+        log_m_1 = log(RIF(m - 1))
+
+        Delta_epsilon = self._fourier_coefficient_data_().Delta_epsilon
+        M_epsilon = self._fourier_coefficient_data_().M_epsilon
+        C_0 = self._fourier_coefficient_data_().C_0
+        C_1 = self._fourier_coefficient_data_().C_1
+
+        ones = vector(1 for _ in range(M_epsilon[0].ncols()))
+
+        result = sum(self._FC_b_recursive_(r) * r**(-s)
+                     for r in reversed(srange(m, q*m)))
+        result += q**(-s) * sum(
+            D * ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
+            for epsilon, D in enumerate(Delta_epsilon))
+
+        N = 1
+        factor = -s * q**(-s - 1)
+
+        while True:
+            assert factor.overlaps(sage.rings.arith.binomial(-s, N) * q**(-s - N))
+
+            if result.abs().upper().is_zero():
+                error_acceptable = 0
+            else:
+                error_acceptable = RIF(2) ** (max(result.real().abs().upper().log2(),
+                                                 result.imag().abs().upper().log2()).floor()
+                                             - result.prec())
+            error_bound = factor.abs() * \
+                (C_0 * (sigma + N -1) * log_q\
+                     + C_1(sigma + N -1) * log_m_1\
+                     + C_1) / \
+                     ((sigma + N - 1)**2 \
+                          * (m - 1)**(sigma + N - 1)\
+                          * log_q)
+
+            verbose("    N = %d, error = %s, acceptable_error = %s, "
+                    "result = %s" %
+                    (N, error_bound, error_acceptable, result), level=2)
+
+            if error_bound.abs() < error_acceptable:
+                error_real = RIF(-error_bound, error_bound)
+                error = CIF(error_real, error_real)
+                verbose("    N = %d, error = %s, acceptable_error = %s, "
+                        "result = %s" %
+                        (N, error_bound, error_acceptable, result),
+                        level=1)
+                return result + error
+
+            result += factor * sum(
+                epsilon**k * M
+                for epsilon, M in reversed(M_epsilon)) \
+                * self._H_m_(s + k)
+
+    @cached_method(key=lambda self, s, m: (s.real().lower(),
+                                           s.real().upper(),
+                                           s.imag().lower(),
+                                           s.imag().upper(), m))
+    def _H_m_(self, s, m):
+        r"""
+        Compute `\mathbf{H}_m(s)`.
+
+        INPUT:
+
+        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+
+        -   ``m`` -- non-negative integer
+
+        OUTPUT:
+
+        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+
+        EXAMPLES:
+
+        -   One state, always ``1``: this corresponds to the Riemann
+            zeta function. ::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n),
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 1],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._H_m_(CIF(2), 100)
+        """
+        q = ZZ(len(self.input_alphabet))
+        M = self._fourier_coefficient_data_().M
+        n = M.nrows()
+
+        return (matrix.identity(n) - q**(-s)*M).solve_right(
+            self._H_m_rhs_(s, m))
+
+    def _H_(self, s):
+        r"""
+        Compute `\mathbf{H}_1(s)`.
+
+        INPUT:
+
+        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+
+        OUTPUT:
+
+        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+
+        EXAMPLES:
+
+        -   One state, always ``1``: this is the Riemann
+            zeta function. ::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n),
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 1],
+                ....:     f, n, 2)
+                sage: result = FSMFourier(T)._H_(CIF(1))
+                sage: result
+                sage: result.overlaps(CIF(pi^2/6))
+                True
+        """
+        m = (2 * s.abs()).upper().ceil()
+        result = self._H_m_(s, m)
+        result += sum(self._FC_b_recursive_(r) * r**(-s)
+                      for r in reversed(range(1, m)))
+
+        return result
