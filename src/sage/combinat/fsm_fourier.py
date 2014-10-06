@@ -808,16 +808,21 @@ class FSMFourier(Transducer):
 
         EXAMPLES:
 
-        -   One state, always ``1``: this corresponds to the Riemann
-            zeta function. ::
+        -   One state, always ``1``: this corresponds to the Riemann zeta
+            function (minus the first 99 summands, multiplied by 2). ::
 
+                sage: function('f')
+                f
+                sage: var('n')
+                n
                 sage: T = transducers.Recursion([
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     f, n, 2)
                 sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: FSMFourier(T)._H_m_rhs(CIF(2), 100)
+                sage: FSMFourier(T)._H_m_rhs_(CIF(2), 100)
+                (0.0050250833316668?)
         """
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
 
@@ -848,15 +853,14 @@ class FSMFourier(Transducer):
         while True:
             assert factor.overlaps(sage.rings.arith.binomial(-s, N) * q**(-s - N))
 
-            if result.abs().upper().is_zero():
+            if result.is_zero():
                 error_acceptable = 0
             else:
-                error_acceptable = RIF(2) ** (max(result.real().abs().upper().log2(),
-                                                 result.imag().abs().upper().log2()).floor()
-                                             - result.prec())
+                error_acceptable = RIF(2) ** (infinity_vector_norm(result).upper().log2()
+                                             - result[0].prec())
             error_bound = factor.abs() * \
                 (C_0 * (sigma + N -1) * log_q\
-                     + C_1(sigma + N -1) * log_m_1\
+                     + C_1 * (sigma + N -1) * log_m_1\
                      + C_1) / \
                      ((sigma + N - 1)**2 \
                           * (m - 1)**(sigma + N - 1)\
@@ -869,16 +873,20 @@ class FSMFourier(Transducer):
             if error_bound.abs() < error_acceptable:
                 error_real = RIF(-error_bound, error_bound)
                 error = CIF(error_real, error_real)
+                error_vector = vector(error for _ in range(len(result)))
                 verbose("    N = %d, error = %s, acceptable_error = %s, "
                         "result = %s" %
                         (N, error_bound, error_acceptable, result),
                         level=1)
-                return result + error
+                return result + error_vector
 
             result += factor * sum(
-                epsilon**k * M
-                for epsilon, M in reversed(M_epsilon)) \
-                * self._H_m_(s + k)
+                epsilon**N * M
+                for epsilon, M in enumerate(M_epsilon)) \
+                * self._H_m_(s + N, m)
+
+            factor *= (-s - N)/(N + 1) / q
+            N += 1
 
     @cached_method(key=lambda self, s, m: (s.real().lower(),
                                            s.real().upper(),
@@ -901,14 +909,19 @@ class FSMFourier(Transducer):
         EXAMPLES:
 
         -   One state, always ``1``: this corresponds to the Riemann
-            zeta function. ::
+            zeta function (minus the first 99 summands). ::
 
+                sage: function('f')
+                f
+                sage: var('n')
+                n
                 sage: T = transducers.Recursion([
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     f, n, 2)
                 sage: FSMFourier(T)._H_m_(CIF(2), 100)
+                (0.0100501666633336?)
         """
         q = ZZ(len(self.input_alphabet))
         M = self._fourier_coefficient_data_().M
@@ -934,19 +947,24 @@ class FSMFourier(Transducer):
         -   One state, always ``1``: this is the Riemann
             zeta function. ::
 
+                sage: function('f')
+                f
+                sage: var('n')
+                n
                 sage: T = transducers.Recursion([
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     f, n, 2)
-                sage: result = FSMFourier(T)._H_(CIF(1))
+                sage: result = FSMFourier(T)._H_(CIF(2))
                 sage: result
-                sage: result.overlaps(CIF(pi^2/6))
+                (1.64493406684823?)
+                sage: result[0].overlaps(CIF(pi^2/6))
                 True
         """
         m = (2 * s.abs()).upper().ceil()
         result = self._H_m_(s, m)
         result += sum(self._FC_b_recursive_(r) * r**(-s)
-                      for r in reversed(range(1, m)))
+                      for r in reversed(srange(1, m)))
 
         return result
