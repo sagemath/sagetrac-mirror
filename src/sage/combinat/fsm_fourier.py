@@ -15,7 +15,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
-def infinity_norm(A):
+def infinity_matrix_norm(A):
     """
     Compute the infinity norm of a matrix A, in the same ring as
     the original matrix A.
@@ -35,14 +35,14 @@ def infinity_norm(A):
 
     EXAMPLES::
 
-        sage: from fsm_fourier import infinity_norm
+        sage: from fsm_fourier import infinity_matrix_norm
         sage: M = matrix([[1, 2], [-5, -1]])
-        sage: infinity_norm(M)
+        sage: infinity_matrix_norm(M)
         6
         sage: M.norm(infinity)
         6.0
         sage: M = matrix([[0]], sparse=True)
-        sage: infinity_norm(M)
+        sage: infinity_matrix_norm(M)
         0
         sage: M.norm(infinity)
         Traceback (most recent call last):
@@ -579,7 +579,7 @@ class FSMFourier(Transducer):
 
         C_0 = max(self._FC_b_direct_(r).norm(infinity)
                   for r in range(q))
-        C_1 = max(infinity_norm(d)
+        C_1 = max(infinity_matrix_norm(d)
                   for d in Delta_epsilon)
 
         return FourierCoefficientData(
