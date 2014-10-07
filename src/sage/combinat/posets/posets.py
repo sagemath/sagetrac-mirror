@@ -2298,8 +2298,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. TODO::
 
-            The current algorithm could be improvable. See
-            :trac:`13223`.
+            If rank function is already computed, we could use it
+            to check if the poset is graded. However, as of october
+            2014 it is not possible to check if @lazy_attribute is
+            computed or not.
 
         EXAMPLES::
 
@@ -2338,21 +2340,36 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset([[],[]]).is_graded()
             True
         """
-        # The code below is not really optimized, but beats looking at
-        # every maximal chain...
-        if len(self) <= 2:
-            return True
-        # Let's work with the Hasse diagram in order to avoid some
-        # indirection (the output doesn't depend on the vertex labels).
-        hasse = self._hasse_diagram
-        rf = hasse.rank_function()
-        if rf is None:
-            return False    # because every graded poset is ranked.
-        if not all(rf(i) == 0 for i in hasse.minimal_elements()):
-            return False
-        maxes = hasse.maximal_elements()
-        rank = rf(maxes[0])
-        return all(rf(i) == rank for i in maxes)
+        # If we already have computed (normalized) rank function, then
+        # we could just check that all maximal elements have same rank.
+        
+        # How to do that, i.e. How to check if some @lazy_attribute
+        # has been computed without actually computing it if not?
+        # After that this would be just
+
+        # maxs=G.maximal_elements()
+        # return all(rank[x] == maxs[0] for x in maxs)
+
+        # Now we suppose that rank function has not been computed.
+
+        G=self._hasse_diagram     # Work directly with graph.
+        found=G.order()*[False]   # Preallocation; none seen on start.
+        elms=G.minimal_elements() # Starting level
+
+        while len(elms) > 0:
+            # Check: If one of the elements has no upper covers,
+            # then others must not have any either.
+            outdegs=G.out_degree(elms, labels=False)
+            if 0 in outdegs:
+                if any(x>0 for x in outdegs):
+                    return False
+
+            elms=[e[1] for e in G.outgoing_edges(elms, labels=False)]
+            if True in [found[x] for x in elms]:
+                return False
+            for i in elms:
+                found[i]=True
+        return True
 
     def covers(self,x,y):
         """
