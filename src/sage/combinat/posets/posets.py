@@ -2342,7 +2342,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         # If we already have computed (normalized) rank function, then
         # we could just check that all maximal elements have same rank.
-        
+
         # How to do that, i.e. How to check if some @lazy_attribute
         # has been computed without actually computing it if not?
         # After that this would be just
