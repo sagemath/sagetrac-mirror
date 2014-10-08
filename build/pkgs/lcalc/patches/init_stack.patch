@@ -11,7 +11,7 @@ diff -ru src/include/Lcommandline.h b/include/Lcommandline.h
 -                           //we place the pari include first since otherwise it
 -                           //messes up.
 -
-+#include "paripriv.h"      //for pari_init_stack()
++
  #endif //ifdef INCLUDE_PARI
  
  
@@ -24,7 +24,7 @@ diff -ru src/src/Lcommandline.cc b/src/Lcommandline.cc
          if(do_elliptic_curve){
 -             allocatemoremem((int) N_terms*16+1000000); //XXXXXXXXX this should depend on whether we're double or long double or mpfr double
 +             // Reallocate PARI stack
-+             pari_init_stack((size_t)N_terms*16 + 1000000, top-bot); //XXXXXXXXX this should depend on whether we're double or long double or mpfr double
++             paristack_setsize((size_t)N_terms*16 + 1000000, 0); //XXXXXXXXX this should depend on whether we're double or long double or mpfr double
 +
               if (my_verbose>0) cout << "Will precompute " << N_terms << " elliptic L-function dirichlet coefficients..." << endl;
               initialize_new_L(a1,a2,a3,a4,a6,N_terms); 

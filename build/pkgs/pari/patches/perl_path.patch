@@ -1,18 +1,13 @@
-diff -ru src/doc/gphelp.in b/doc/gphelp.in
---- src/doc/gphelp.in	2013-05-06 16:01:56.000000000 +0200
-+++ b/doc/gphelp.in	2013-05-06 16:41:15.522405496 +0200
-@@ -1,4 +1,4 @@
--#!@perl@
-+#!/usr/bin/env perl
- #
- # $Id$
- #
-diff -ru src/misc/tex2mail.in b/misc/tex2mail.in
---- src/misc/tex2mail.in	2013-05-06 16:01:47.000000000 +0200
-+++ b/misc/tex2mail.in	2013-05-06 16:41:43.523232305 +0200
-@@ -1,4 +1,4 @@
--#!@perl@
-+#!/usr/bin/env perl
- # Original version by Ilya Zakharevich. Minor updates by the PARI group
- # Features:
- #      % at the end of a line followed by \n\n is recognized as end of 
+diff --git a/config/extract_files b/config/extract_files
+index e8eae1a..2119dee 100755
+--- a/config/extract_files
++++ b/config/extract_files
+@@ -9,7 +9,7 @@ for dir in "$doc_dir" "$misc_dir"; do
+     echo "...in $dir"
+     flist=`ls $dir/*.in`
+     for file in $flist; do
+-      sed -e "s%@perl@%$perl%g"\
++      sed -e "s%@perl@%/usr/bin/env perl%g"\
+           -e "s%@datadir@%$datadir%g"\
+           -e "s%@bindir@%$bindir%g"\
+           -e "s%@includedir@%$includedir%g"\

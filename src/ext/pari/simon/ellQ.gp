@@ -1484,7 +1484,7 @@ if( DEBUGLEVEL_ell >= 4,print("    sol = ",sol));
 
 \\ Parametrizing the solutions of q2=0
 
-    param = qfparam(q2,sol)*['x^2,'x,1]~;
+    param = qfparam(q2,sol,3)*['x^2,'x,1]~;
     param /= content(param);
 
 \\ Construction of the quartic

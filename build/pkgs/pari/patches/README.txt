@@ -13,8 +13,8 @@ Patches to configuration files:
   Darwin. Submitted upstream, but upstream only applied it for PowerPC.
   Since this doesn't break anything and only improves performance, add
   the flag unconditionally.
-* perl_path.patch (Jeroen Demeyer): change first line of all perl
-  scripts to "#!/usr/bin/env perl" (#10559).
+* perl_path.patch (Jeroen Demeyer): do not hardcode path to perl,
+  use "#!/usr/bin/env perl" instead (#10559).
 * KERNELCFLAGS.patch (Jeroen Demeyer): when SAGE_DEBUG=yes, compile
   kernel files with -O1 instead of -funroll-loops; -O0 gives a
   segmentation fault on some OS X systems when doing
@@ -34,5 +34,5 @@ C files:
   determinant(), only collect garbage once per outer loop iteration.
   Better increase PARI stack size instead of collecting garbage too
   often.
-* nffactor.patch (Jeroen Demeyer, #16894): Fix an nffactor() bug, taken
-  from PARI git commit 7630f584371c3db43c5fd6f57900c70a2c832b8e.
+* public_memory_functions.patch (Jeroen Demeyer, #16997): Make some of
+  PARI's private memory functions public to improve interface with Sage.
