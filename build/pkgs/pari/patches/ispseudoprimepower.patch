@@ -1,0 +1,79 @@
+diff --git a/src/basemath/arith1.c b/src/basemath/arith1.c
+index 5ba04a1..f7cb5df 100644
+--- a/src/basemath/arith1.c
++++ b/src/basemath/arith1.c
+@@ -1471,13 +1471,15 @@ Z_ispow2(GEN n)
+   return !(u & (u-1)); /* faster than hamming_word(u) == 1 */
+ }
+ 
+-long
+-isprimepower(GEN n, GEN *pt)
++/* Like isprimepower(), but handle only the cases where n fits in a
++ * long or where a tiny prime divides n.
++ * Return -1 if we couldn't yet determine whether n is a prime power. */
++static long
++isprimepower_small(GEN n, GEN* pt)
+ {
+   pari_sp av = avma;
+   long i, v;
+ 
+-  if (typ(n) != t_INT) pari_err_TYPE("isprimepower", n);
+   if (signe(n) <= 0) return 0;
+ 
+   if (lgefint(n) == 3)
+@@ -1503,6 +1505,19 @@ isprimepower(GEN n, GEN *pt)
+       return v;
+     }
+   }
++  return -1;
++}
++
++long
++isprimepower(GEN n, GEN *pt)
++{
++  pari_sp av = avma;
++  long v;
++
++  if (typ(n) != t_INT) pari_err_TYPE("isprimepower", n);
++
++  if ((v = isprimepower_small(n, pt)) >= 0) return v;
++
+   /* p | n => p >= 103 */
+   v = Z_isanypower_nosmalldiv(&n); /* expensive */
+   if (!isprime(n)) { avma = av; return 0; }
+@@ -1511,6 +1526,23 @@ isprimepower(GEN n, GEN *pt)
+ }
+ 
+ long
++ispseudoprimepower(GEN n, GEN *pt)
++{
++  pari_sp av = avma;
++  long v;
++
++  if (typ(n) != t_INT) pari_err_TYPE("ispseudoprimepower", n);
++
++  if ((v = isprimepower_small(n, pt)) >= 0) return v;
++
++  /* p | n => p >= 103 */
++  v = Z_isanypower_nosmalldiv(&n); /* expensive */
++  if (!ispseudoprime(n,0)) { avma = av; return 0; }
++  if (pt) *pt = gerepilecopy(av, n); else avma = av;
++  return v;
++}
++
++long
+ uisprimepower(ulong n, ulong *pp)
+ { /* We must have CUTOFF^11 >= ULONG_MAX and CUTOFF^3 < ULONG_MAX.
+    * Tests suggest that 200-300 is the best range for 64-bit platforms. */
+diff --git a/src/headers/paridecl.h b/src/headers/paridecl.h
+index 7e02467..a8ac712 100644
+--- a/src/headers/paridecl.h
++++ b/src/headers/paridecl.h
+@@ -1369,6 +1369,7 @@ long    isfundamental(GEN x);
+ long    ispolygonal(GEN x, GEN S, GEN *N);
+ long    ispower(GEN x, GEN k, GEN *pty);
+ long    isprimepower(GEN x, GEN *pty);
++long    ispseudoprimepower(GEN x, GEN *pty);
+ long    issquare(GEN x);
+ long    issquareall(GEN x, GEN *pt);
+ long    krois(GEN x, long y);
