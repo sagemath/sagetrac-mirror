@@ -1026,11 +1026,11 @@ class FSMFourier(Transducer):
                 ....:     f, n, 2)
                 sage: result = FSMFourier(T)._H_(CIF(2))
                 sage: result
-                (1.64493406684823? + 0.?e-17*I)
+                (1.644934066848226? + 0.?e-18*I)
                 sage: result[0].overlaps(CIF(pi^2/6))
                 True
         """
-        m = (2 * s.abs()).upper().ceil()
+        m = s.abs().upper().ceil() + s.parent().precision()
         result = self._H_m_(s, m)
         result += sum(self._FC_b_recursive_(r) * r**(-s)
                       for r in reversed(srange(1, m)))
