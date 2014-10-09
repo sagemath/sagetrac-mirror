@@ -379,15 +379,14 @@ class FSMFourier(Transducer):
         - ``M_epsilon`` -- list of partial adjacency matrices
           `M_\varepsilon`.
 
-        - ``Delta`` -- output matrix ``\Delta``.
+        - ``Delta`` -- output matrix `\Delta`.
 
         - ``Delta_epsilon`` -- list of partial output matrices
           `\Delta_\varepsilon`.
 
         - ``C_0`` -- `\max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`.
 
-        - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty:
-           0\le \varepsilon<q\}`.
+        - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty: 0\le \varepsilon<q\}`.
 
         EXAMPLES:
 
