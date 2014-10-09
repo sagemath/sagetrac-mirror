@@ -877,10 +877,40 @@ class FSMFourier(Transducer):
             have a pole there and the first factor therefore annihilates
             the result::
 
-                sage: result = T._H_m_rhs_(CIF(1+2*pi*I/log(2)), 20)[0]
-                sage: result
-                0.?e-13 + 0.?e-13*I
-                sage: result.contains_zero()
+                sage: result = [T._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for
+                ....:      k in range(1, 10)]
+                sage: all(value.abs().absolute_diameter() < 1e-12
+                ....:      for value in result)
+                True
+                sage: all(value.contains_zero() for value in result)
+                True
+
+        -   One state, one for every input digit, but subtract one at the
+            end. This corresponds to the function `L`. Evaluated at `s =
+            1 + 2k \pi i/\log 2` for `k\neq 0`, the result must equal
+            `\log 2/(2 k \pi i)`, because the `1 \times 1`-matrix is
+            singular so that we actually compute the residue at this
+            point, multiplied by `\log 2`. The value for `m` does not
+            matter, as the difference is analytic and thus does not
+            contribute to the residue.
+
+                sage: T = FSMFourier(transducers.Recursion([
+                ....:         f(2*n + 1) == f(n) + 1,
+                ....:         f(2*n) == f(n) + 1,
+                ....:         f(0) == -1],
+                ....:         f, n, 2))
+
+            We first check that this is indeed the function `L`.
+
+                sage: all(T._FC_b_recursive_(r)[0] ==
+                ....:     floor(log(r, base=2)) for r in range(1, 9))
+                True
+
+            Next, we check that the result agrees with the known values.
+
+                sage: all(T._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
+                ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
+                ....:     for k in range(1, 10))
                 True
         """
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
