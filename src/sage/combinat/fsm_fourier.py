@@ -384,9 +384,9 @@ class FSMFourier(Transducer):
         - ``Delta_epsilon`` -- list of partial output matrices
           `\Delta_\varepsilon`.
 
-        - ``C_0'' -- `\max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`.
+        - ``C_0`` -- `\max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`.
 
-        - ``C_1'' -- `\max\{\|\Delta_\varepsilon\|_\infty:
+        - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty:
            0\le \varepsilon<q\}`.
 
         EXAMPLES:
