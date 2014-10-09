@@ -889,7 +889,7 @@ class FSMFourier(Transducer):
         -   One state, one for every input digit, but subtract one at the
             end. This corresponds to the function `L`. Evaluated at `s =
             1 + 2k \pi i/\log 2` for `k\neq 0`, the result must equal
-            `\log 2/(2 k \pi i)`, because the `1 \times 1`-matrix is
+            :math:'\log 2/(2 k \pi i)', because the `1 \times 1`-matrix is
             singular so that we actually compute the residue at this
             point, multiplied by `\log 2`. The value for `m` does not
             matter, as the difference is analytic and thus does not
