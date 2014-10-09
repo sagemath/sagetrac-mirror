@@ -46,7 +46,7 @@ def max_RIF(elements):
         (2.00000000000000, 4.00000000000000)
 
     Note that the standard Python ``max`` function does not handle
-    :class:`~sage.rings.real_interval` elements correctly.
+    :class:`~sage.rings.real_interval` elements correctly::
 
         sage: max(a, b).endpoints()
         (1.00000000000000, 4.00000000000000)
@@ -93,7 +93,7 @@ def min_RIF(elements):
         (1.00000000000000, 3.00000000000000)
 
     Note that the standard Python ``min`` function does not handle
-    :class:`~sage.rings.real_interval` elements correctly.
+    :class:`~sage.rings.real_interval` elements correctly::
 
         sage: min(a, b).endpoints()
         (1.00000000000000, 4.00000000000000)
@@ -888,7 +888,7 @@ class FSMFourier(Transducer):
         -   One state, one for every input digit, but subtract one at the
             end. This corresponds to the function `L`. Evaluated at `s =
             1 + 2k \pi i/\log 2` for `k\neq 0`, the result must equal
-            :math:'\log 2/(2 k \pi i)', because the `1 \times 1`-matrix is
+            `\log 2/(2 k \pi i)`, because the `1 \times 1`-matrix is
             singular so that we actually compute the residue at this
             point, multiplied by `\log 2`. The value for `m` does not
             matter, as the difference is analytic and thus does not
