@@ -846,7 +846,8 @@ class FSMFourier(Transducer):
 
         INPUT:
 
-        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+        - ``s`` -- a
+            :class:`sage.rings.complex_interval.ComplexInterval` element
 
         -   ``m`` -- non-negative integer
 
@@ -986,10 +987,12 @@ class FSMFourier(Transducer):
             factor *= (-s - N)/(N + 1) / q
             N += 1
 
+    # BEGIN_REMOVE_FOR_DOCUMENTATION
     @cached_method(key=lambda self, s, m: (s.real().lower(),
                                            s.real().upper(),
                                            s.imag().lower(),
                                            s.imag().upper(), m))
+    # END_REMOVE_FOR_DOCUMENTATION
     def _H_m_(self, s, m):
         r"""
         Compute `\mathbf{H}_m(s)`.
