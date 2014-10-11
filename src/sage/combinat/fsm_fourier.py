@@ -642,15 +642,16 @@ class FSMFourier(Transducer):
             def a(self):
                 return QQ(-I * self.mu_prime()/q)
 
-            def A_k(self, ell, k):
+            def A_k(self, ell, k, CIF=CIF):
                 """Compute `A_{jk}`."""
 
                 assert (ell - k*self.period/common_period)/common_period \
                     in ZZ
                 chi_ell = 2*ell*pi*I / (common_period*log(q))
-                b_0 = parent._FC_b_direct(0)
+                s = CIF(1 + chi_ell)
+                b_0 = self.parent._FC_b_direct_(0)
                 ones = vector(1 for _ in b_0)
-                w_k = self.vectors_w[k]
+                w_k = self.vectors_w()[k].change_ring(s.parent())
 
                 result = w_k * (
                     b_0
@@ -663,13 +664,13 @@ class FSMFourier(Transducer):
                         "Zeroth Fourier coefficient is not yet "
                         "implemented")
 
-                s = CIF(1 + chi_ell)
                 m = s.abs().upper().ceil() + s.parent().precision()
-                result -= parent._H_m_rhs_(CIF(1 + chi_ell),
-                                           m)
+                result -= w_k * self.parent._H_m_rhs_(s, m)
                 if common_period.divides(ell):
-                    result += log(q) * w_k * common_period / \
-                        (2 * ell * pi * I)
+                    result += CIF(log(q) * w_k * ones * self.a() * \
+                        common_period / (2 * ell * pi * I))
+
+                return result
 
 
         components = [FCComponent(c, self) for c in self.final_components()]
@@ -1102,6 +1103,7 @@ class FSMFourier(Transducer):
 
         return result
 
+    @cached_method
     def FourierCoefficient(self, ell):
         """
         Compute the `\ell`-th Fourier coefficient of the fluctuation
@@ -1126,7 +1128,7 @@ class FSMFourier(Transducer):
         q = len(self.input_alphabet)
         log_q = CIF(log(q))
         data = self._fourier_coefficient_data_()
-        chi_ell =  2*ell*pi*I / (data.period*log_q)
+        chi_ell =  CIF(2*ell*pi*I / (data.period*log_q))
 
 
         result = -1/(1 + chi_ell)/log_q * sum(
