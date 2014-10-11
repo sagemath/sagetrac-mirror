@@ -388,6 +388,8 @@ class FSMFourier(Transducer):
 
         - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty: 0\le \varepsilon<q\}`.
 
+        - ``components`` -- a list of :class:`FCComponent`, representing the final components.
+
         EXAMPLES:
 
         -   Binary sum of digits::
@@ -407,7 +409,8 @@ class FSMFourier(Transducer):
                 FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
                 w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
                 M=[2], M_epsilon=[[1], [1]], Delta=[1],
-                Delta_epsilon=[[0], [1]], C_0=1, C_1=1)
+                Delta_epsilon=[[0], [1]], C_0=1, C_1=1,
+                components=[<class 'fsm_fourier.FCComponent'>])
 
         -   NAF::
 
@@ -559,7 +562,7 @@ class FSMFourier(Transducer):
             "FourierCoefficientData",
             ["c", "periods", "period", "T", "w", "coefficient_lambda",
              "e_T", "a", "M", "M_epsilon", "Delta", "Delta_epsilon",
-             "C_0", "C_1"])
+             "C_0", "C_1", "components"])
 
         positions = dict((state.label(), j)
                          for j, state in enumerate(self.iter_states()))
@@ -729,7 +732,8 @@ class FSMFourier(Transducer):
             Delta=Delta,
             Delta_epsilon=Delta_epsilon,
             C_0=C_0,
-            C_1=C_1)
+            C_1=C_1,
+            components=components)
 
     @cached_method
     def _FC_b_direct_(self, r):
