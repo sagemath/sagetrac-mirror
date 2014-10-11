@@ -573,7 +573,7 @@ class FSMFourier(Transducer):
                 self.period = fsm.graph().period()
                 self.n_states = len(self.fsm.states())
 
-            def eigenvectors(self, M, components, common_period):
+            def eigenvectors(self, M, components):
                 nrows = sum(c.n_states for c in components if c != self)
                 mask = matrix(
                     nrows, M.ncols(),
@@ -601,13 +601,12 @@ class FSMFourier(Transducer):
 
             @cached_method()
             def right_eigenvectors(self):
-                return self.eigenvectors(M, components, period)
+                return self.eigenvectors(M, components)
 
             @cached_method()
             def left_eigenvectors(self):
                 left_eigenvectors = self.eigenvectors(M.transpose(),
-                                                      components,
-                                                      period)
+                                                      components)
                 return [w/(v*w) for v, w
                         in itertools.izip(self.right_eigenvectors(),
                                           left_eigenvectors)]
@@ -641,8 +640,8 @@ class FSMFourier(Transducer):
 
 
         components = [FCComponent(c) for c in self.final_components()]
-        period = lcm([c.period for c in components])
-        field = CyclotomicField(period)
+        common_period = lcm([c.period for c in components])
+        field = CyclotomicField(common_period)
         alpha = field.gen()
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
@@ -673,7 +672,7 @@ class FSMFourier(Transducer):
         assert T.is_invertible()
 
         check = T.inverse() * M * T
-        eigenvalues = [q * alpha**(j * period/c.period)
+        eigenvalues = [q * alpha**(j * common_period/c.period)
                        for c in components
                        for j in range(c.period)]
         check_dont_care = check.submatrix(len(eigenvalues),
@@ -717,7 +716,7 @@ class FSMFourier(Transducer):
         return FourierCoefficientData(
             c=len(components),
             periods=[c.period for c in components],
-            period=period,
+            period=common_period,
             T=T,
             w=[c.vectors_w() for c in components],
             coefficient_lambda=[c.coefficient_lambda()
