@@ -568,10 +568,11 @@ class FSMFourier(Transducer):
 
         class FCComponent(SageObject):
             """Hold a final component and associated data."""
-            def __init__(self, fsm):
+            def __init__(self, fsm, parent):
                 self.fsm = fsm
                 self.period = fsm.graph().period()
                 self.n_states = len(self.fsm.states())
+                self.parent = parent
 
             def eigenvectors(self, M, components):
                 nrows = sum(c.n_states for c in components if c != self)
@@ -639,7 +640,7 @@ class FSMFourier(Transducer):
                 return QQ(-I * self.mu_prime()/q)
 
 
-        components = [FCComponent(c) for c in self.final_components()]
+        components = [FCComponent(c, self) for c in self.final_components()]
         common_period = lcm([c.period for c in components])
         field = CyclotomicField(common_period)
         alpha = field.gen()
