@@ -9,9 +9,13 @@ Fourier Coefficients
 """
 
 from sage.combinat.finite_state_machine import Transducer
+from sage.functions.log import log
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import srange, verbose
 from sage.modules.free_module_element import vector
+import sage.rings.arith
+from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
@@ -272,7 +276,6 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             0.66621329305522618549073660?
             - 0.8461499521873139031483414?*I
     """
-    from sage.misc.misc import srange, verbose
     from sage.rings.arith import bernoulli, falling_factorial
 
     CIF = s.parent()
@@ -642,11 +645,13 @@ class FSMFourier(Transducer):
             def a(self):
                 return QQ(-I * self.mu_prime()/q)
 
-            def A_k(self, ell, k, CIF=CIF):
+            def A_k(self, ell, k, CIF=ComplexIntervalField()):
                 """Compute `A_{jk}`."""
 
                 assert (ell - k*self.period/common_period)/common_period \
                     in ZZ
+                I = CIF.gens()[0]
+                pi = CIF.pi()
                 chi_ell = 2*ell*pi*I / (common_period*log(q))
                 s = CIF(1 + chi_ell)
                 b_0 = self.parent._FC_b_direct_(0)
@@ -1104,7 +1109,7 @@ class FSMFourier(Transducer):
         return result
 
     @cached_method
-    def FourierCoefficient(self, ell):
+    def FourierCoefficient(self, ell, CIF=ComplexIntervalField()):
         """
         Compute the `\ell`-th Fourier coefficient of the fluctuation
         of the summatory function of the sum of outputs.
@@ -1118,6 +1123,26 @@ class FSMFourier(Transducer):
         A :class:`ComplexIntervalField` element.
 
         EXAMPLES:
+
+        -   Binary sum of digits::
+
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: from fsm_fourier import FSMFourier
+                sage: T = FSMFourier(transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2))
+                sage: def FourierCoefficientDelange(k):
+                ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1) \
+                ....:            *zeta(CC(2*k*pi*I/log(2))))
+                sage: all(FourierCoefficientDelange(k)
+                ....:     in T.FourierCoefficient(k)
+                ....:     for k in range(1, 5))
+                True
         """
 
         if ell == 0:
@@ -1128,7 +1153,8 @@ class FSMFourier(Transducer):
         q = len(self.input_alphabet)
         log_q = CIF(log(q))
         data = self._fourier_coefficient_data_()
-        chi_ell =  CIF(2*ell*pi*I / (data.period*log_q))
+        I = CIF.gens()[0]
+        chi_ell =  CIF(2*ell*CIF.pi()*I / (data.period*log_q))
 
 
         result = -1/(1 + chi_ell)/log_q * sum(
