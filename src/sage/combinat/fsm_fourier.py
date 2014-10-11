@@ -1123,9 +1123,10 @@ class FSMFourier(Transducer):
                 "Zeroth Fourier coefficient is not yet "
                 "implemented")
 
+        q = len(self.input_alphabet)
         log_q = CIF(log(q))
-        chi_ell =  2*ell*pi*I / (common_period*log_q)
         data = self._fourier_coefficient_data_()
+        chi_ell =  2*ell*pi*I / (data.period*log_q)
 
 
         result = -1/(1 + chi_ell)/log_q * sum(
