@@ -29,7 +29,7 @@ def perfect_matchings(G):
 
 
     """
-    n = G.vertices()
+    n = G.num_verts()
 
     if n == 0:
         return [[]]
@@ -38,4 +38,16 @@ def perfect_matchings(G):
         raise ValueError("there is no perfect matching for a graph with an odd number of vertices")
 
     g = G.vertices()[0]
+    N = G.neighbors(g)
+    PP = []
+    for h in N:
+        H = copy(G)
+        H.delete_vertices([g,h])
+        P = perfect_matchings(H)
+        for p in P:
+            p.append((g,h))
+        PP += P
+    return PP
+
+
     
