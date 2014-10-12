@@ -682,7 +682,7 @@ class FSMFourier(Transducer):
         common_period = lcm([c.period for c in components])
         field = CyclotomicField(common_period)
         alpha = field.gen()
-        field_to_CIF = field.hom([CIF.zeta(common_period)], check=False)
+        field_to_CIF = field.hom([ComplexIntervalField().zeta(common_period)], check=False)
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
 
