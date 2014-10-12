@@ -656,7 +656,7 @@ class FSMFourier(Transducer):
                 s = CIF(1 + chi_ell)
                 b_0 = self.parent._FC_b_direct_(0)
                 ones = vector(1 for _ in b_0)
-                w_k = self.vectors_w()[k].change_ring(s.parent())
+                w_k = vector(field_to_CIF(c) for c in self.vectors_w()[k])
 
                 result = w_k * (
                     b_0
@@ -682,6 +682,7 @@ class FSMFourier(Transducer):
         common_period = lcm([c.period for c in components])
         field = CyclotomicField(common_period)
         alpha = field.gen()
+        field_to_CIF = field.hom([CIF.zeta(common_period)], check=False)
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
 
