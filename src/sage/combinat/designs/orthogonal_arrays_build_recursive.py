@@ -27,6 +27,7 @@ called.
     :func:`thwart_lemma_4_1` | Returns an `OA(k,nm+4(n-2))`.
     :func:`three_factor_product` | Returns an `OA(k+1,n_1n_2n_3)`.
     :func:`brouwer_separable_design` | Returns a `OA(k,t(q^2+q+1)+x)` using Brouwer's result on separable designs.
+    :func:`brouwer_van_rees_with_one_truncated_column` | Return an `OA(k,rm+\sum_{1\leq i\leq c} u_i)` using the Brouwer-van Rees construction with one truncated column.
 
 Functions
 ---------
@@ -94,7 +95,7 @@ def simple_wilson_construction(k,r,m,u,explain_construction=False):
         matrix.append(range(uu)+[None]*(r-uu))
     OA = OA_relabel(OA,k+n_trunc,r,matrix=matrix)
 
-    return wilson_construction(OA,k,r,m,n_trunc,u,False)
+    return wilson_construction(OA,k,r,m,u,False)
 
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
@@ -151,7 +152,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
     # Truncated version
     OA = [B[:k]+[0 if x == 0 else None for x in B[k:]] for B in OA]
 
-    OA = wilson_construction(OA,k,n,m,i,[1]*i,check=False)[:-i]
+    OA = wilson_construction(OA,k,n,m,[1]*i,check=False)[:-i]
     matrix = [range(m)+range(n*m,n*m+i)]*k
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
@@ -235,7 +236,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
         matrix[-1][x] = i
 
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
-    OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
+    OA = wilson_construction(OA,k,n,m,[1]*r+[s],check=False)
     return OA
 
 def construction_3_5(k,n,m,r,s,t,explain_construction=False):
@@ -330,7 +331,7 @@ def construction_3_5(k,n,m,r,s,t,explain_construction=False):
         r3[x] = i
 
     OA = OA_relabel(master_design, k+3,q, matrix=[range(q)]*k+[r1,r2,r3])
-    OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
+    OA = wilson_construction(OA,k,q,m,[r,s,t], check=False)
     return OA
 
 def construction_3_6(k,n,m,i,explain_construction=False):
@@ -384,7 +385,7 @@ def construction_3_6(k,n,m,i,explain_construction=False):
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
-    OA = wilson_construction(OA,k,n,m,i,[1]*i)
+    OA = wilson_construction(OA,k,n,m,[1]*i)
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
@@ -799,7 +800,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
                 R[-4] = None
         sizes.insert(0,d)
 
-    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+    return wilson_construction(OA,k,n,m,sizes, check=False)
 
 def thwart_lemma_4_1(k,n,m,explain_construction=False):
     r"""
@@ -927,7 +928,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
             if B[k+i] >= n-2:
                 B[k+i] = None
 
-    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+    return wilson_construction(OA,k,n,m,[n-2,]*4,check=False)
 
 def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     r"""
@@ -1823,4 +1824,43 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
 
     if check:
         assert is_orthogonal_array(OA,k,N,2,1)
+    return OA
+
+def brouwer_van_rees_with_one_truncated_column(k,r,m,u):
+    r"""
+    Return an `OA(k,rm+\sum_{1\leq i\leq c} u_i)` using the
+    Brouwer-van Rees construction with one truncated column.
+
+    Let `n=rm+\sum_{1\leq i\leq c}` such that `c\leq r`. The
+    generalization of Wilson's construction found by Brouwer and van
+    Rees (with one truncated column) ensures that an `OA(k,n)` exists
+    if the following designs exist: `OA(k+1,r)`, `OA(k,m)`,
+    `OA(k,\sum_{1\leq i\leq c} u_i)`, `OA(k,m+x_1)-OA(k,x_1)`, ...,
+    `OA(k,m+x_c)-OA(k,x_c)`.
+
+    For more information, see the documentation of
+    :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`.
+
+    INPUT:
+
+    - ``k,r,m`` (integers)
+
+    - ``u`` (list of integers of length `\leq r`).
+
+    .. SEEALSO::
+
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import brouwer_van_rees_with_one_truncated_column
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: OA = brouwer_van_rees_with_one_truncated_column(5, 7, 7, (2, 2))
+        sage: is_orthogonal_array(OA,5,53)
+        True
+    """
+    OA = orthogonal_array(k+1,r)
+    c = len(u)
+    OA = [[x if (i<k or x<c) else None for i,x in enumerate(R)] for R in OA]
+    OA = wilson_construction(OA,k,r,m,[[(x,1) for x in u]],check=False)
     return OA
