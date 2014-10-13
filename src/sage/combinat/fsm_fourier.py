@@ -648,8 +648,8 @@ class FSMFourier(Transducer):
             def A_k(self, ell, k, CIF=ComplexIntervalField()):
                 """Compute `A_{jk}`."""
 
-                assert (ell - k*self.period/common_period)/common_period \
-                    in ZZ
+                assert common_period.divides(
+                    ell - k*common_period/self.period)
                 I = CIF.gens()[0]
                 pi = CIF.pi()
                 chi_ell = 2*ell*pi*I / (common_period*log(q))
@@ -1162,7 +1162,7 @@ class FSMFourier(Transducer):
             c.A_k(ell, k)
             for c in data.components
             for k in range(c.period)
-            if data.period.divides(ell - k*c.period/data.period)
+            if data.period.divides(ell - k*data.period/c.period)
             )
 
         if data.period.divides(ell):
