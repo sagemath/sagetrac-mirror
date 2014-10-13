@@ -448,7 +448,7 @@ cdef class FP_LLL:
 
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
-            verbose=False, no_lll=False, bounded_lll=False, auto_abort=False,
+            verbose=False, no_lll=False, bounded_lll=False, auto_abort=False, prune=False,
             preprocessing=None, dump_gso_filename=None):
         r"""
         Run BKZ reduction.
@@ -527,12 +527,20 @@ cdef class FP_LLL:
         _check_delta(delta)
         _check_precision(precision)
 
-        cdef BKZParam o = BKZParam()
-
-        o.delta = delta
-        o.blockSize = block_size
         cdef FloatType floatType = check_float_type(float_type)
-        o.flags = BKZ_DEFAULT
+
+        cdef BKZParam o = BKZParam(block_size, delta)
+
+        linearPruningLevel = 0
+        try:
+            linearPruningLevel = int(prune)
+            o.enableLinearPruning(linearPruningLevel)
+        except TypeError:
+            if prune:
+                o.pruning.resize(block_size)
+                for j in range(block_size):
+                    o.pruning[j] = prune[j]
+        
         o.preprocessing = NULL
 
         if verbose:
@@ -543,6 +551,13 @@ cdef class FP_LLL:
             o.flags |= BKZ_BOUNDED_LLL
         if auto_abort:
             o.flags |= BKZ_AUTO_ABORT
+            try:
+                a_s, a_l = auto_abort
+                o.autoAbort_scale = a_s
+                o.autoAbort_maxNoDec = a_l
+            except TypeError:
+                pass
+            
         if max_loops:
             o.flags |= BKZ_MAX_LOOPS
             o.maxLoops = max_loops
@@ -555,19 +570,67 @@ cdef class FP_LLL:
 
         cdef BKZParam *preproc = &o
 
+        # preprocessing is an integer
+        try:
+            _ = int(preprocessing)
+            preprocessing = [preprocessing]
+        except TypeError:
+            pass
+
+        # preprocessing is a list of integers
+        try:
+            _ = [int(step) for step in preprocessing]
+            preprocessing = [(step,) for step in preprocessing]
+        except TypeError:
+            pass
+
+        # preprocessing has shorter tuples in it
+        tmp = []
+
+        defaults = [None,0,0,True,0]
+        for step in preprocessing:
+            if len(step) < 5:
+                step = list(step) + defaults[len(step):]
+                tmp.append(step)
+        preprocessing = tmp
+        
         cdef int flags
         if preprocessing:
             for i,step in enumerate(preprocessing):
-                b,l,t = step
+                flags = BKZ_DEFAULT
+                b, ml, mt, aa, prune = step
+
                 if b <= 2:
                     break
                 if b > preproc.blockSize:
                     raise ValueError("Preprocessing block size must be smaller than block size")
-                flags = BKZ_DEFAULT|BKZ_AUTO_ABORT
-                if verbose >= 2:
-                    flags |= BKZ_VERBOSE
-                preproc.preprocessing = new BKZParam(b, LLL_DEF_DELTA, flags, maxLoops=l, maxTime=t)
+
+                a_s, a_l = 1.0,5
+                try:
+                    a_s, a_l = aa
+                    flags = flags|BKZ_AUTO_ABORT
+                except TypeError:
+                    if (aa is 0) or aa:
+                        flags = flags|BKZ_AUTO_ABORT
+                else:
+                    flags = flags|BKZ_AUTO_ABORT
+
+                linearPruningLevel = 0
+                prune = None
+                try:
+                    linearPruningLevel = int(prune)
+                except TypeError:
+                    pass
+
+                preproc.preprocessing = new BKZParam(b, LLL_DEF_DELTA, flags, maxLoops=ml, maxTime=mt,
+                                                     linearPruningLevel=linearPruningLevel,
+                                                     autoAbort_scale=a_s, autoAbort_maxNoDec=a_l)
                 preproc = preproc.preprocessing
+
+                if prune:
+                    preproc.pruning.resize(b)
+                    for j in range(b):
+                        preproc.pruning[j] = prune[j]
 
         sig_on()
         cdef int r = bkzReduction(self._lattice, NULL, o, floatType, precision)

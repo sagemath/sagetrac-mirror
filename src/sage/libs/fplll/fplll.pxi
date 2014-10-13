@@ -107,18 +107,25 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
 
     cdef cppclass BKZParam:
          BKZParam()
-         BKZParam(int blockSize, double delta, int flags, int maxLoops, int maxTime)
+         BKZParam(int blockSize)
+         BKZParam(int blockSize, double delta)
+         BKZParam(int blockSize, double delta, int flags, int maxLoops, int maxTime, int linearPruningLevel,
+                  double autoAbort_scale, int autoAbort_maxNoDec)
          int blockSize
          double delta
          int flags
          int maxLoops
          double maxTime
 
-         string verbosePrefix
+         double autoAbort_scale
+         int autoAbort_maxNoDec
+
          vector[double] pruning
          string dumpGSOFilename
 
          BKZParam *preprocessing
+
+         void enableLinearPruning(int level)
 
     int bkzReduction(ZZ_mat[mpz_t]* b, ZZ_mat[mpz_t]* u, BKZParam &param, FloatType floatType, int precision)
     int bkzReduction(ZZ_mat[mpz_t] b, int blockSize, int flags, FloatType floatType, int precision)
