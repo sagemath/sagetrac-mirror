@@ -3,8 +3,6 @@ include "sage/ext/cdefs.pxi"
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 
-from sage.libs.flint.ntl_interface cimport *
-
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.integer cimport Integer
 from sage.structure.parent cimport Parent

@@ -17,8 +17,6 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/gmp.pxi"
-include "sage/libs/ntl/decl.pxi"
-
 include "sage/ext/cdefs.pxi"
 
 from sage.libs.flint.fmpz cimport *
