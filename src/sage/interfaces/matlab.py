@@ -234,7 +234,7 @@ for hints on how to do that).
 #        t = self._temp_file(var_name)
 #        self.eval('save -text "%s" %s'%(t,var_name))
 #        r = open(t).read()
-n#        os.unlink(t)
+#        os.unlink(t)
 #        return r.strip('\n')
 
 #    def set_via_file(self, var_name, x):

@@ -58,6 +58,8 @@ from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 
+from sage.misc.cite cimport cite
+
 max_print = 10
 digits = 4
 
