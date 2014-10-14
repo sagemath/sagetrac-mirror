@@ -1,5 +1,6 @@
-cdef extern from "flint/flint.h":
+from sage.libs.gmp.types cimport mp_limb_t, mp_limb_signed_t
 
+cdef extern from "flint/flint.h":
     cdef long FLINT_BITS
     cdef long FLINT_D_BITS
 

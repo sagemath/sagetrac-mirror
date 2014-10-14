@@ -8,19 +8,11 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include "../../ext/interrupt.pxi"
-from sage.libs.flint.fmpz cimport *
+include "sage/ext/interrupt.pxi"
 
-cdef extern from "flint/fmpq.h":
-    ctypedef void * fmpq_t
-    void fmpq_init(fmpq_t)
-    void fmpq_clear(fmpq_t)
-    void fmpq_get_mpq(mpq_t, fmpq_t)
-    void fmpq_set_mpq(fmpq_t, mpq_t)
-
-cdef extern from "flint/arith.h":
-    void arith_number_of_partitions(fmpz_t x, unsigned long n)
-    void arith_dedekind_sum(fmpq_t, fmpz_t, fmpz_t)
+from fmpz cimport *
+from fmpq cimport *
+from arith cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

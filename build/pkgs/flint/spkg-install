@@ -21,11 +21,7 @@ if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of FLINT."
     CFLAGS="-O0 -g $CFLAGS"; export CFLAGS
     FLINT_TUNE=" $FLINT_TUNE"; export FLINT_TUNE
-fi
-
-if [ "$UNAME" = "CYGWIN" ]; then
-    echo "Only building a shared version of FLINT on Cygwin."
-    FLINT_CONFIGURE="--disable-static $FLINT_CONFIGURE"
+    FLINT_CONFIGURE="--enable-assert $FLINT_CONFIGURE"
 fi
 
 CUR=`pwd`

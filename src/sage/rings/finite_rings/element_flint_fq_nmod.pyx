@@ -21,8 +21,10 @@ include "sage/ext/stdsage.pxi"
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
+from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.nmod_poly cimport *
+from sage.libs.flint.fq_nmod cimport *
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -41,8 +43,6 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
-
-cdef long mpz_t_offset = sage.rings.integer.mpz_t_offset_python
 
 cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
     """
@@ -160,7 +160,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
                 raise TypeError("no coercion defined")
 
         elif isinstance(x, Integer):
-            fmpz_init_set_readonly(x_flint, <void*>x + mpz_t_offset)
+            fmpz_init_set_readonly(x_flint, (<Integer>x).value)
             fq_nmod_set_fmpz(self.val, x_flint, self._cparent)
             fmpz_clear_readonly(x_flint)
 
@@ -171,7 +171,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         elif isinstance(x, IntegerMod_abstract):
             if self._parent.characteristic().divides(x.modulus()):
                 x_INT = Integer(x)
-                fmpz_init_set_readonly(x_flint, <void*>x_INT + mpz_t_offset)
+                fmpz_init_set_readonly(x_flint, x_INT.value)
                 fq_nmod_set_fmpz(self.val, x_flint, self._cparent)
                 fmpz_clear_readonly(x_flint)
             else:
@@ -355,7 +355,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         if fq_nmod_equal(self.val, (<FiniteFieldElement_flint_fq_nmod>other).val, self._cparent):
             return 0
         else:
-            r = cmp(fmpz_poly_degree(self.val), fmpz_poly_degree((<FiniteFieldElement_flint_fq_nmod>other).val))
+            r = cmp(nmod_poly_degree(self.val), nmod_poly_degree((<FiniteFieldElement_flint_fq_nmod>other).val))
             if r:
                 return r
             return cmp(self.polynomial(), other.polynomial())
@@ -601,7 +601,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         else:
             exp_INT = Integer(exp)
             sig_on()
-            fmpz_init_set_readonly(exp_fmpz, <void*>exp_INT + mpz_t_offset)
+            fmpz_init_set_readonly(exp_fmpz, exp_INT.value)
             fq_nmod_pow(x.val, self.val, exp_fmpz, self._cparent)
             fmpz_clear_readonly(exp_fmpz)
             sig_off()

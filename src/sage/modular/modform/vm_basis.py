@@ -32,7 +32,7 @@ import math
 from sage.rings.all import QQ, ZZ, Integer, \
         PolynomialRing, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
-from sage.libs.flint.fmpz_poly_class import Fmpz_poly
+from sage.libs.flint.fmpz_poly import Fmpz_poly
 from sage.misc.all import verbose
 
 from eis_series_cython import eisenstein_series_poly

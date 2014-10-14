@@ -16,6 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "sage/ext/stdsage.pxi"
+from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.fmpz_mod_poly cimport *
@@ -24,8 +26,6 @@ from sage.libs.flint.fq cimport *
 import sage.rings.integer
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.element_flint_fq cimport FiniteFieldElement_flint_fq
-
-cdef long mpz_t_offset = sage.rings.integer.mpz_t_offset_python
 
 cdef class FiniteField_flint_fq(FiniteField):
     """
@@ -151,12 +151,12 @@ cdef class FiniteField_flint_fq(FiniteField):
         cdef Integer ci
         cdef fmpz_t cflint, pflint
         cdef fmpz_mod_poly_t modulus_flint
-        fmpz_init_set_readonly(pflint, <void*>p + mpz_t_offset)
+        fmpz_init_set_readonly(pflint, (<Integer>p).value)
         fmpz_mod_poly_init(modulus_flint, pflint)
         fmpz_clear_readonly(pflint)
         for i in xrange(n+1):
             ci = Integer(modulus[i])
-            fmpz_init_set_readonly(cflint, <void*>ci + mpz_t_offset)
+            fmpz_init_set_readonly(cflint, ci.value)
             fmpz_mod_poly_set_coeff_fmpz(modulus_flint, i, cflint)
             fmpz_clear_readonly(cflint)
         fq_ctx_init_modulus(self._ctx, modulus_flint, <char *> (name[0]))

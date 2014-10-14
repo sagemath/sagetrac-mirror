@@ -16,14 +16,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "sage/ext/stdsage.pxi"
+from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fq_nmod cimport *
+from sage.libs.flint.nmod_poly cimport *
 
 import sage.rings.integer
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.element_flint_fq_nmod cimport FiniteFieldElement_flint_fq_nmod
-
-cdef long mpz_t_offset = sage.rings.integer.mpz_t_offset_python
 
 cdef class FiniteField_flint_fq_nmod(FiniteField):
     """

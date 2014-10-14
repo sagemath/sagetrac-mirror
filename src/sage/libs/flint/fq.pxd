@@ -1,14 +1,6 @@
-from sage.libs.flint.fmpz cimport fmpz_t
-from sage.libs.flint.fmpz_mod_poly cimport fmpz_mod_poly_t
+from sage.libs.flint.types cimport fq_ctx_t, fq_t, fmpz_t, fmpz_mod_poly_t
 
 cdef extern from "flint/fq.h":
-    ctypedef void *fq_ctx_t
-    ctypedef struct fq_ctx_struct:
-        fmpz_mod_poly_t modulus
-    ctypedef void *fq_t
-    ctypedef struct fq_struct:
-        pass
-
     void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, long d, const char *var)
     void fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, long d, const char *var)
     void fq_ctx_init_modulus(fq_ctx_t ctx,
