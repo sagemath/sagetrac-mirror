@@ -1,17 +1,8 @@
 from libc.stdio cimport FILE
-from sage.libs.gmp.types cimport *
-from sage.libs.flint.flint cimport ulong, slong
+from sage.libs.gmp.types cimport mpz_t
+from sage.libs.flint.types cimport *
 
 cdef extern from "flint/fmpz.h":
-    ctypedef slong fmpz
-    ctypedef fmpz fmpz_t[1]
-
-    ctypedef struct fmpz_preinvn_struct:
-        mp_ptr dinv
-        long n
-        mp_bitcnt_t norm
-    ctypedef fmpz_preinvn_struct[1] fmpz_preinvn_t
-
     # Memory management
     void fmpz_init(fmpz_t)
     void fmpz_init2(fmpz_t, ulong limbs)

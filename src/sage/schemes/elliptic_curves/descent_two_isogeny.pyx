@@ -20,6 +20,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.libs.gmp.mpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *

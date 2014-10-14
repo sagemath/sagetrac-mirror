@@ -1,4 +1,4 @@
-from sage.libs.flint.fq cimport *
+from sage.libs.flint.types cimport fq_ctx_struct
 
 from finite_field_base cimport FiniteField
 

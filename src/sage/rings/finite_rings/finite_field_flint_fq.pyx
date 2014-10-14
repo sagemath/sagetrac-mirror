@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
+from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.fmpz_mod_poly cimport *

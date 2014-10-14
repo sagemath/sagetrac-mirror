@@ -9,22 +9,10 @@
 #*****************************************************************************
 
 from sage.libs.gmp.types cimport mpz_t, mpq_t
-
-from flint cimport ulong, slong
-from fmpz cimport fmpz, fmpz_t
-from fmpq cimport fmpq_t
-from fmpz_poly cimport fmpz_poly_struct, fmpz_poly_t
-
-# TODO: move to fmpz_vec.pxd
-cdef extern from "flint/fmpz_vec.h":
-    ulong _fmpz_vec_max_limbs(const fmpz *, slong)
+from sage.libs.flint.types cimport *
+from sage.libs.flint.fmpz_vec cimport _fmpz_vec_max_limbs
 
 cdef extern from "flint/fmpq_poly.h":
-    ctypedef struct fmpq_poly_struct:
-        pass
-
-    ctypedef fmpq_poly_struct fmpq_poly_t[1]
-
     # Memory management
     void fmpq_poly_init(fmpq_poly_t)
 

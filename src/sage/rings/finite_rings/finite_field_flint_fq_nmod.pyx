@@ -17,8 +17,11 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
+from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fq_nmod cimport *
+from sage.libs.flint.nmod_poly cimport *
 
 import sage.rings.integer
 from sage.rings.integer cimport Integer

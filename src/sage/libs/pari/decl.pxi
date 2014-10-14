@@ -25,7 +25,7 @@ include 'sage/ext/cdefs.pxi'
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list
 
-from sage.libs.flint.flint cimport ulong
+from sage.libs.flint.types cimport ulong
 
 cdef extern from 'parisage.h':
     char* PARIVERSION

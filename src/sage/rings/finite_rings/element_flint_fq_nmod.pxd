@@ -1,4 +1,4 @@
-from sage.libs.flint.fq_nmod cimport *
+from sage.libs.flint.types cimport fq_nmod_struct, fq_nmod_ctx_struct, fq_nmod_t
 
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 

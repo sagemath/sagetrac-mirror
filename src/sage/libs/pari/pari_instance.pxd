@@ -1,6 +1,6 @@
 include 'decl.pxi'
 
-from sage.libs.flint.fmpz_mat cimport fmpz_mat_t
+from sage.libs.flint.types cimport fmpz_mat_t
 cimport sage.structure.parent_base
 cimport cython
 

@@ -1,16 +1,8 @@
 from libc.stdio cimport FILE
-from sage.libs.gmp.types cimport *
-from sage.libs.flint.flint cimport ulong, slong
-from sage.libs.flint.fmpz cimport fmpz, fmpz_t
-from sage.libs.flint.fmpq cimport fmpq_t
-from sage.libs.flint.nmod_poly cimport nmod_poly_t
+from sage.libs.gmp.types cimport mpz_t
+from sage.libs.flint.types cimport *
 
 cdef extern from "flint/fmpz_poly.h":
-    ctypedef struct fmpz_poly_struct:
-        pass
-
-    ctypedef fmpz_poly_struct fmpz_poly_t[1]
-
     # Memory management
     void fmpz_poly_init(fmpz_poly_t)
     void fmpz_poly_init2(fmpz_poly_t, slong)
