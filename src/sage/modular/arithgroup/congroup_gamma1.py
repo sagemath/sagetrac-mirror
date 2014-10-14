@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_1(N)`
 """
@@ -552,7 +553,7 @@ class Gamma1_class(GammaH_class):
 
         - David Loeffler (2009) - code refactoring
 
-        - Nicolas Sirolli (2014) - half-integral weights
+        - Nicolás Sirolli (2014) - half-integral weights
 
         EXAMPLES:
 
