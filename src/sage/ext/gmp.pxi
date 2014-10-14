@@ -4,11 +4,11 @@
 #
 # Include the following at the top of client .pyx file.
 #
-#    include "cdefs.pxi"
 #    include "gmp.pxi"
 #
 # to include this in a file.
 
+include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 
 cimport libc.stdlib

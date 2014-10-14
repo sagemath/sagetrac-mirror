@@ -1,5 +1,5 @@
-from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_poly cimport *
+from fmpz cimport fmpz_t
+from fmpz_poly cimport fmpz_poly_t
 
 cdef extern from "flint/fmpz_mat.h":
     ctypedef struct fmpz_mat_struct:

@@ -33,9 +33,11 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
 from sage.matrix.all import matrix
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+from sage.libs.ntl.ntl_ZZ_decl cimport mpz_to_ZZ, ZZ_to_mpz
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *

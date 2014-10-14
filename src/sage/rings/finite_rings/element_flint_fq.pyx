@@ -43,8 +43,6 @@ from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-cdef long mpz_t_offset = sage.rings.integer.mpz_t_offset_python
-
 cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
     """
     An element of a finite field.
@@ -161,7 +159,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
                 raise TypeError("no coercion defined")
 
         elif isinstance(x, Integer):
-            fmpz_init_set_readonly(x_flint, <void*>x + mpz_t_offset)
+            fmpz_init_set_readonly(x_flint, (<Integer>x).value)
             fq_set_fmpz(self.val, x_flint, self._cparent)
             fmpz_clear_readonly(x_flint)
 
@@ -172,7 +170,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         elif isinstance(x, IntegerMod_abstract):
             if self._parent.characteristic().divides(x.modulus()):
                 x_INT = Integer(x)
-                fmpz_init_set_readonly(x_flint, <void*>x_INT + mpz_t_offset)
+                fmpz_init_set_readonly(x_flint, x_INT.value)
                 fq_set_fmpz(self.val, x_flint, self._cparent)
                 fmpz_clear_readonly(x_flint)
             else:
@@ -243,7 +241,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
                 fmpz_poly_zero(self.val)
                 for i in xrange(n):
                     x_INT = Integer(x[i])
-                    fmpz_init_set_readonly(x_flint, <void*>x_INT + mpz_t_offset)
+                    fmpz_init_set_readonly(x_flint, x_INT.value)
                     fmpz_poly_set_coeff_fmpz(self.val, i, x_flint)
                     fmpz_clear_readonly(x_flint)
                 fq_reduce(self.val, self._cparent)
@@ -604,7 +602,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         else:
             exp_INT = Integer(exp)
             sig_on()
-            fmpz_init_set_readonly(exp_fmpz, <void*>exp_INT + mpz_t_offset)
+            fmpz_init_set_readonly(exp_fmpz, exp_INT.value)
             fq_pow(x.val, self.val, exp_fmpz, self._cparent)
             fmpz_clear_readonly(exp_fmpz)
             sig_off()
@@ -654,7 +652,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         n = K.degree()
         clist = []
         for i in xrange(n):
-            fmpz_mod_poly_get_coeff_fmpz(cflint, self.val, i)
+            fmpz_poly_get_coeff_fmpz(cflint, self.val, i)
             flint_mpz_init_set_readonly(cgmp, cflint)
             cint.set_from_mpz(cgmp)
             flint_mpz_clear_readonly(cgmp)

@@ -1,20 +1,19 @@
 """
 Eisenstein Series (optimized compiled functions)
 """
-
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'sage/ext/gmp.pxi'
-
-from sage.libs.flint.fmpz_poly cimport *
 
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer cimport Integer
 from sage.rings.arith import primes, bernoulli
 from sage.rings.fast_arith cimport prime_range
-from sage.libs.flint.fmpz_poly_class cimport Fmpz_poly
+
+from cpython.list cimport PyList_GET_ITEM
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.fmpz_poly cimport Fmpz_poly
 
 cpdef Ek_ZZ(int k, int prec=10):
     """

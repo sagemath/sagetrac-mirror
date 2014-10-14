@@ -1,4 +1,5 @@
 from sage.libs.gmp.types cimport *
+from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
 
 cimport matrix_dense

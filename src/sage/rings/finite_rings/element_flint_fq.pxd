@@ -3,7 +3,8 @@ from sage.libs.flint.fq cimport *
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 
 cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
-    cdef fq_t val
+    cdef fq_struct *val
+    #cdef fq_t val
     cdef int initialized
     cdef fq_ctx_struct *_cparent
     #cdef fq_ctx_t _cparent
