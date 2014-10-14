@@ -552,7 +552,7 @@ class Gamma1_class(GammaH_class):
 
         - David Loeffler (2009) - code refactoring
 
-        - Nicolás Sirolli (2014) - half-integral weights
+        - Nicolas Sirolli (2014) - half-integral weights
 
         EXAMPLES:
 
