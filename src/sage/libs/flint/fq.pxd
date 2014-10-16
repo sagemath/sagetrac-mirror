@@ -1,4 +1,4 @@
-from sage.libs.flint.types cimport fq_ctx_t, fq_t, fmpz_t, fmpz_mod_poly_t
+from sage.libs.flint.types cimport fq_ctx_t, fq_t, fmpz_t, fmpz_mod_poly_t, slong, ulong
 
 cdef extern from "flint/fq.h":
     void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
