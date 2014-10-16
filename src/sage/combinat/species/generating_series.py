@@ -76,7 +76,6 @@ from series_stream import (SeriesStream, PowerStream, SumGeneratorStream,
                            ListSumStream, TermStream, SeriesStreamFromIterator)
 from sage.rings.all import ZZ, Integer, moebius, lcm, divisors, gcd, NN
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.misc.cachefunc import cached_function
 from sage.combinat.partition import Partition, Partitions
 from sage.structure.element import coerce_binop
 
@@ -1157,9 +1156,9 @@ class CycleIndexSeries(LazyPowerSeries):
         """
         parent = self.parent()
         res =  parent.sum_generator(self._weighted_compose_term(self.coefficient(i), y_species)
-                                    for i in _integers_from(0))
+                                    for i in NN)
 
-        for i in _integers_from(0):
+        for i in NN:
             yield res.coefficient(i)
 
     def _weighted_compose_term(self, p, y_species):

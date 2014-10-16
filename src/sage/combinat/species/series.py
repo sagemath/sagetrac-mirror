@@ -28,6 +28,7 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 from series_order import  inf, unk
 from sage.rings.all import Integer
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 import sage.structure.parent_base
 from sage.categories.all import Rings
@@ -37,9 +38,10 @@ from series_stream import (SeriesStream, SeriesStreamFromList, SeriesStreamFromI
                            ListSumStream, SumGeneratorStream, ProductGeneratorStream)
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element, AlgebraElement
+from sage.structure.element import AlgebraElement
 from sage.algebras.algebra import Algebra
 from sage.categories.algebras import Algebras
+
 
 class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
     def __init__(self, R, element_class=None, category=None, names=None):
