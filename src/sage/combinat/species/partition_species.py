@@ -16,14 +16,14 @@ Partition Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from species import GenericCombinatorialSpecies
-from generating_series import _integers_from, factorial_stream
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
+from generating_series import factorial_stream
 from subset_species import SubsetSpeciesStructure
 from set_species import SetSpecies
 from structure import GenericSpeciesStructure
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
+from sage.sets.all import PositiveIntegers
 from sage.combinat.species.misc import accept_size
 from functools import reduce
 
@@ -123,7 +123,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
         return PartitionSpeciesStructure(self.parent(), labels, [block.change_labels(labels) for block in self._list])
 
 
-class PartitionSpecies(GenericCombinatorialSpecies):
+class PartitionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     @staticmethod
     @accept_size
     def __classcall__(cls, *args, **kwds):
@@ -223,34 +223,34 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         breaks = [sum(p[:i]) for i in range(len(p)+1)]
         return structure_class(self, labels, [range(breaks[i]+1, breaks[i+1]+1) for i in range(len(p))])
 
-    def _gs_iterator(self, base_ring):
-        r"""
-        EXAMPLES::
+    class GeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            EXAMPLES::
 
-            sage: P = species.PartitionSpecies()
-            sage: g = P.generating_series()
-            sage: g.coefficients(5)
-            [1, 1, 1, 5/6, 5/8]
-        """
-        from sage.combinat.combinat import bell_number
-        for n in _integers_from(0):
-            yield self._weight*base_ring(bell_number(n)/factorial_stream[n])
+                sage: P = species.PartitionSpecies()
+                sage: g = P.generating_series()
+                sage: g.coefficients(5)
+                [1, 1, 1, 5/6, 5/8]
+            """
+            from sage.combinat.combinat import bell_number
+            return self._weight*self._base_ring(bell_number(n)/factorial_stream[n])
 
-    def _itgs_iterator(self, base_ring):
-        r"""
-        The isomorphism type generating series is given by
-        `\frac{1}{1-x}`.
+    class IsotypeGeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The isomorphism type generating series is given by
+            `\frac{1}{1-x}`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.PartitionSpecies()
-            sage: g = P.isotype_generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-        """
-        from sage.combinat.partitions import number_of_partitions
-        for n in _integers_from(0):
-            yield self._weight*base_ring(number_of_partitions(n))
+                sage: P = species.PartitionSpecies()
+                sage: g = P.isotype_generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
+            """
+            from sage.combinat.partitions import number_of_partitions
+            return self._weight * self._base_ring(number_of_partitions(n))
 
     def _cis(self, series_ring, base_ring):
         r"""
@@ -259,8 +259,6 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         .. math::
 
              exp \sum_{n \ge 1} \frac{1}{n} \left( exp \left( \sum_{k \ge 1} \frac{x_{kn}}{k} \right) -1 \right).
-
-
 
         EXAMPLES::
 
@@ -273,9 +271,10 @@ class PartitionSpecies(GenericCombinatorialSpecies):
              5/6*p[1, 1, 1] + 3/2*p[2, 1] + 2/3*p[3],
              5/8*p[1, 1, 1, 1] + 7/4*p[2, 1, 1] + 7/8*p[2, 2] + p[3, 1] + 3/4*p[4]]
         """
+        PP = PositiveIntegers()
         ciset = SetSpecies().cycle_index_series(base_ring)
         CIS = ciset.parent()
-        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in _integers_from(ZZ(1))).exponential()
+        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in PP).exponential()
         if self.is_weighted():
             res *= self._weight
         return res

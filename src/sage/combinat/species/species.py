@@ -50,13 +50,64 @@ three internal nodes.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing, CycleIndexSeriesRing
+from generating_series import (OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing,
+                               CycleIndexSeriesRing)
+from series import SeriesStream, TermStream
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.combinat.species.misc import accept_size
 from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
 from functools import reduce
+
+
+class SpeciesSeriesStream(SeriesStream):
+    def __init__(self, weight=None, species=None, **kwds):
+        """
+        A SeriesStream which knows about the weight of the species as
+        well as its order.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.species import SpeciesSeriesStream
+            sage: S = species.SetSpecies(min=2)
+            sage: s = SpeciesSeriesStream(weight=S.weight(), species=S, base_ring=QQ)
+
+        """
+        assert species is not None
+        self._species = species
+        self._weight = weight if weight is not None else species.weight()
+        if hasattr(species, '_order'):
+            order = species._order()
+            if species._min is not None:
+                order = max(order, species._min)
+            kwds['order'] = kwds['aorder'] = order
+            kwds['aorder_changed'] = False
+        super(SpeciesSeriesStream, self).__init__(**kwds)
+
+class SpeciesTermStream(TermStream, SpeciesSeriesStream):
+    def __init__(self, weight=None, base_ring=None, species=None, **kwds):
+        """
+        A :class:`TermStream` which gets its order from the order
+        defined on ``species`` and gets the value from :meth:`value`.
+
+        EXAMPLES:
+
+            sage: from sage.combinat.species.species import SpeciesTermStream
+            sage: S = species.SingletonSpecies()
+            sage: class STS(SpeciesTermStream):
+            ....:     def value(self, base_ring, weight):
+            ....:         return base_ring(1)
+            sage: s = STS(weight=S.weight(), base_ring=QQ, species=S)
+            sage: s[0]
+            0
+            sage: s[1]
+            1
+        """
+        self._n = kwds['n'] = species._order()
+        kwds['value'] = self.value(base_ring, weight)
+        super(SpeciesTermStream, self).__init__(weight=weight, base_ring=base_ring,
+                                                species=species, **kwds)
 
 class GenericCombinatorialSpecies(SageObject):
     def __init__(self, min=None, max=None, weight=None):
@@ -86,6 +137,18 @@ class GenericCombinatorialSpecies(SageObject):
         """
         return hash(self._unique_info())
 
+    def weight(self):
+        """
+        Returns the weight of this species.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: S = species.SetSpecies(weight=q)
+            sage: S.weight()
+            q
+        """
+        return self._weight
 
     def _unique_info(self):
         """
@@ -206,7 +269,7 @@ class GenericCombinatorialSpecies(SageObject):
         kwds.update({'weight': weight})
         return self.__class__(*[args_dict[i] for i in range(len(args_dict))], **kwds)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Returns a string representation of this species.
 
@@ -226,13 +289,17 @@ class GenericCombinatorialSpecies(SageObject):
             sage: t = ZZ['t'].gen()
             sage: species.SetSpecies(min=1, max=4, weight=t)
             Set species with min=1, max=4, weight=t
+            sage: L = species.SetSpecies()
+            sage: L.rename('L'); L
+            L
+            sage: L.rename('Set species'); L
+            Set species
         """
         if hasattr(self, "_name"):
             name = self._name if isinstance(self._name, str) else self._name()
         else:
             name = "Combinatorial species"
 
-        optional = False
         options  = []
 
         if self._min is not None:
@@ -343,7 +410,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: F.structures([1,2,3]).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: must call define() first
         """
         return StructuresWrapper(self, labels, structure_class)
 
@@ -355,7 +422,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: F.isotypes([1,2,3]).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: must call define() first
         """
         return IsotypesWrapper(self, labels, structure_class=structure_class)
 
@@ -529,41 +596,24 @@ class GenericCombinatorialSpecies(SageObject):
         #for example, returning the exponential of a
         #generating series.
         try:
-            return getattr(self, prefix)(series_ring, base_ring)
+            getattr(self, prefix)
         except AttributeError:
             pass
+        else:
+           return getattr(self, prefix)(series_ring, base_ring)
 
-        #Try to return things like self._gs_iterator(base_ring).
-        #This is used when the subclass just provides an iterator
-        #for the coefficients of the generating series.  Optionally,
-        #the subclass can specify the order of the series.
-        try:
-            iterator = getattr(self, prefix+"_iterator")(base_ring)
-            try:
-                return series_ring(iterator, order=self._order())
-            except AttributeError:
-                return series_ring(iterator)
-        except AttributeError:
-            pass
-
-        #Try to use things like self._gs_term(base_ring).
-        #This is used when the generating series is just a single
-        #term.
-        try:
-            return series_ring.term( getattr(self, prefix+"_term")(base_ring),
-                                     self._order())
-        except AttributeError:
-            pass
-
-        #Try to use things like self._gs_list(base_ring).
-        #This is used when the coefficients of the generating series
-        #can be given by a finite list with the last coefficient repeating.
-        #The generating series with all ones coefficients is generated this
-        #way.
-        try:
-            return series_ring(getattr(self, prefix+"_list")(base_ring))
-        except AttributeError:
-            pass
+        ###################
+        # Transition code #
+        ###################
+        if prefix == '_gs' and hasattr(self, 'GeneratingSeriesStream'):
+            return series_ring._new(self.GeneratingSeriesStream,
+                                    weight=self._weight, species=self)
+        elif prefix == '_itgs' and hasattr(self, 'IsotypeGeneratingSeriesStream'):
+            return series_ring._new(self.IsotypeGeneratingSeriesStream,
+                                    weight=self._weight, species=self)
+        elif prefix == '_cis' and hasattr(self, 'CycleIndexSeriesStream'):
+            return series_ring._new(self.CycleIndexSeriesStream,
+                                    weight=self._weight, species=self)
 
         raise NotImplementedError
 

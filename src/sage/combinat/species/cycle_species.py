@@ -15,12 +15,11 @@ Cycle Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
+from series import SeriesStreamFromList
 from structure import GenericSpeciesStructure
-from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, divisors, euler_phi
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 
 class CycleSpeciesStructure(GenericSpeciesStructure):
@@ -58,7 +57,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
             sage: a.permutation_group_element()
             (1,2,3)
         """
-        from sage.groups.all import PermutationGroupElement, SymmetricGroup
+        from sage.groups.all import PermutationGroupElement
         return PermutationGroupElement(tuple(self._list))
 
     def transport(self, perm):
@@ -178,30 +177,6 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         if len(labels) != 0:
             yield structure_class(self, labels, range(1, len(labels)+1))
 
-    def _gs_iterator(self, base_ring):
-        r"""
-        The generating series for cyclic permutations is
-        `-\log(1-x) = \sum_{n=1}^\infty x^n/n`.
-
-        EXAMPLES::
-
-            sage: P = species.CycleSpecies()
-            sage: g = P.generating_series()
-            sage: g.coefficients(10)
-            [0, 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7, 1/8, 1/9]
-
-        TESTS::
-
-            sage: P = species.CycleSpecies()
-            sage: g = P.generating_series(RR)
-            sage: g.coefficients(3)
-            [0.000000000000000, 1.00000000000000, 0.500000000000000]
-        """
-        one = base_ring(1)
-        yield base_ring(0)
-        for n in _integers_from(ZZ(1)):
-            yield self._weight*one/n
-
     def _order(self):
         """
         Returns the order of the generating series.
@@ -214,70 +189,92 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         return 1
 
-    def _itgs_list(self, base_ring):
-        """
-        The isomorphism type generating series for cyclic permutations is
-        given by `x/(1-x)`.
+    class GeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The generating series for cyclic permutations is
+            `-\log(1-x) = \sum_{n=1}^\infty x^n/n`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.CycleSpecies()
-            sage: g = P.isotype_generating_series()
-            sage: g.coefficients(5)
-            [0, 1, 1, 1, 1]
+                sage: P = species.CycleSpecies()
+                sage: g = P.generating_series()
+                sage: g.coefficients(10)
+                [0, 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7, 1/8, 1/9]
 
-        TESTS::
+            TESTS::
 
-            sage: P = species.CycleSpecies()
-            sage: g = P.isotype_generating_series(RR)
-            sage: g.coefficients(3)
-            [0.000000000000000, 1.00000000000000, 1.00000000000000]
-        """
-        return [base_ring(0), self._weight*base_ring(1)]
+                sage: P = species.CycleSpecies()
+                sage: g = P.generating_series(RR)
+                sage: g.coefficients(3)
+                [0.000000000000000, 1.00000000000000, 0.500000000000000]
+            """
+            if n == 0:
+                return self._zero
+            else:
+                return self._base_ring(self._weight) / n
 
-    def _cis_iterator(self, base_ring):
-        r"""
-        The cycle index series of the species of cyclic permutations is
-        given by
+    class IsotypeGeneratingSeriesStream(SeriesStreamFromList, SpeciesSeriesStream):
+        def list(self):
+            """
+            The isomorphism type generating series for cyclic permutations is
+            given by `x/(1-x)`.
 
-        .. math::
+            EXAMPLES::
 
-             -\sum_{k=1}^\infty \phi(k)/k * log(1 - x_k)
+                sage: P = species.CycleSpecies()
+                sage: g = P.isotype_generating_series()
+                sage: g.coefficients(5)
+                [0, 1, 1, 1, 1]
+
+            TESTS::
+
+                sage: P = species.CycleSpecies()
+                sage: g = P.isotype_generating_series(RR)
+                sage: g.coefficients(3)
+                [0.000000000000000, 1.00000000000000, 1.00000000000000]
+            """
+            return [self._zero, self._weight*self._base_ring(1)]
+
+    class CycleIndexSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The cycle index series of the species of cyclic permutations is
+            given by
+
+            .. math::
+
+                 -\sum_{k=1}^\infty \phi(k)/k * log(1 - x_k)
 
 
-        which is equal to
+            which is equal to
 
-        .. math::
+            .. math::
 
-             \sum_{n=1}^\infty \frac{1}{n} * \sum_{k|n} \phi(k) * x_k^{n/k}
+                 \sum_{n=1}^\infty \frac{1}{n} * \sum_{k|n} \phi(k) * x_k^{n/k}
 
-        .
+            .
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.CycleSpecies()
-            sage: cis = P.cycle_index_series()
-            sage: cis.coefficients(7)
-            [0,
-             p[1],
-             1/2*p[1, 1] + 1/2*p[2],
-             1/3*p[1, 1, 1] + 2/3*p[3],
-             1/4*p[1, 1, 1, 1] + 1/4*p[2, 2] + 1/2*p[4],
-             1/5*p[1, 1, 1, 1, 1] + 4/5*p[5],
-             1/6*p[1, 1, 1, 1, 1, 1] + 1/6*p[2, 2, 2] + 1/3*p[3, 3] + 1/3*p[6]]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(base_ring).power()
+                sage: P = species.CycleSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: cis.coefficients(7)
+                [0,
+                 p[1],
+                 1/2*p[1, 1] + 1/2*p[2],
+                 1/3*p[1, 1, 1] + 2/3*p[3],
+                 1/4*p[1, 1, 1, 1] + 1/4*p[2, 2] + 1/2*p[4],
+                 1/5*p[1, 1, 1, 1, 1] + 4/5*p[5],
+                 1/6*p[1, 1, 1, 1, 1, 1] + 1/6*p[2, 2, 2] + 1/3*p[3, 3] + 1/3*p[6]]
+            """
+            if n == 0:
+                return self._zero
 
-        zero = base_ring(0)
-
-        yield zero
-        for n in _integers_from(1):
-            res = zero
+            res = self._zero
             for k in divisors(n):
-                res += euler_phi(k)*p([k])**(n//k)
-            res /= n
-            yield self._weight*res
+                res += euler_phi(k)*self._base_ring([k])**(n//k)
+            return self._weight * res / n
 
 #Backward compatibility
 CycleSpecies_class = CycleSpecies
