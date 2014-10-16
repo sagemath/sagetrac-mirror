@@ -1,8 +1,8 @@
 from sage.libs.flint.types cimport fq_ctx_t, fq_t, fmpz_t, fmpz_mod_poly_t
 
 cdef extern from "flint/fq.h":
-    void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, long d, const char *var)
-    void fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, long d, const char *var)
+    void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
+    void fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     void fq_ctx_init_modulus(fq_ctx_t ctx,
                          fmpz_mod_poly_t modulus,
                          const char *var)
@@ -10,7 +10,7 @@ cdef extern from "flint/fq.h":
     void fq_ctx_clear(fq_ctx_t ctx)
 
     fmpz_t fq_ctx_prime(fq_ctx_t ctx)
-    long fq_ctx_degree(const fq_ctx_t ctx)
+    slong fq_ctx_degree(const fq_ctx_t ctx)
     void fq_ctx_order(fmpz_t f, const fq_ctx_t ctx)
 
     void fq_ctx_print(const fq_ctx_t ctx)
@@ -29,13 +29,13 @@ cdef extern from "flint/fq.h":
     void fq_neg(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
     void fq_mul(fq_t rop, const fq_t op1, const fq_t op2, const fq_ctx_t ctx)
     void fq_mul_fmpz(fq_t rop, const fq_t op, const fmpz_t x, const fq_ctx_t ctx)
-    void fq_mul_si(fq_t rop, const fq_t op, long x, const fq_ctx_t ctx)
-    void fq_mul_ui(fq_t rop, const fq_t op, unsigned long x, const fq_ctx_t ctx)
+    void fq_mul_si(fq_t rop, const fq_t op, slong x, const fq_ctx_t ctx)
+    void fq_mul_ui(fq_t rop, const fq_t op, ulong x, const fq_ctx_t ctx)
     void fq_sqr(fq_t rop, const fq_t op, const fq_ctx_t ctx)
     void fq_inv(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
     void fq_gcdinv(fq_t rop, fq_t inv, const fq_t op, const fq_ctx_t ctx)
     void fq_pow(fq_t rop, const fq_t op1, const fmpz_t e, const fq_ctx_t ctx)
-    void fq_pow_ui(fq_t rop, const fq_t op, const unsigned long e, const fq_ctx_t ctx)
+    void fq_pow_ui(fq_t rop, const fq_t op, const ulong e, const fq_ctx_t ctx)
     void fq_pth_root(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
 
     #  Comparison 
@@ -48,9 +48,9 @@ cdef extern from "flint/fq.h":
 
     void fq_set(fq_t rop, const fq_t op, const fq_ctx_t ctx)
     void fq_set_fmpz(fq_t rop, const fmpz_t x, const fq_ctx_t ctx)
-    void fq_set_ui(fq_t rop, const unsigned long x, const fq_ctx_t ctx)
-    void fq_set_si(fq_t rop, const long x, const fq_ctx_t ctx)
-    void fq_set_coeff_fmpz(fq_t rop, const fmpz_t x, const unsigned long n, const fq_ctx_t ctx)
+    void fq_set_ui(fq_t rop, const ulong x, const fq_ctx_t ctx)
+    void fq_set_si(fq_t rop, const slong x, const fq_ctx_t ctx)
+    void fq_set_coeff_fmpz(fq_t rop, const fmpz_t x, const ulong n, const fq_ctx_t ctx)
     void fq_swap(fq_t op1, fq_t op2, const fq_ctx_t ctx)
     void fq_zero(fq_t rop, const fq_ctx_t ctx)
     void fq_one(fq_t rop, const fq_ctx_t ctx)
@@ -67,7 +67,7 @@ cdef extern from "flint/fq.h":
     #  Special functions 
 
     void fq_trace(fmpz_t rop, const fq_t op, const fq_ctx_t ctx)
-    void fq_frobenius(fq_t rop, const fq_t op, long e, const fq_ctx_t ctx)
+    void fq_frobenius(fq_t rop, const fq_t op, slong e, const fq_ctx_t ctx)
     void fq_norm(fmpz_t rop, const fq_t op, const fq_ctx_t ctx)
 
     # Templated functions
