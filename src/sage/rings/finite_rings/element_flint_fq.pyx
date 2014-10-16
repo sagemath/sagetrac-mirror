@@ -118,7 +118,6 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
 
     # Cython should automatically set the C fields to 0
     #def __cinit__(FiniteFieldElement_flint_fq self):
-    #    pass
     #    self.val = NULL
     #    self._cparent = NULL
 
