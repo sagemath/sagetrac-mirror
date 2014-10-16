@@ -8,7 +8,6 @@
 #
 # to include this in a file.
 
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 
 cimport libc.stdlib
