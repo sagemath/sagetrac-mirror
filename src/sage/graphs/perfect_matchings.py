@@ -29,6 +29,8 @@ from sage.misc.cachefunc import cached_method
 def perfect_matchings(G):
     r"""
     Computes all perfect matchings or dimer coverings or 1-factors of the graph G
+    Recall that a perfect matching of a graph is a subset of the edge-set such
+    that each vertex is incident to exactly one edge.
 
     INPUT:
 
@@ -46,13 +48,11 @@ def perfect_matchings(G):
     Traceback (most recent call last)
     ...
     ValueError: there is no perfect matching for a graph with an odd number of vertices
-
     """
     n = G.num_verts()
 
     if n == 0:
         return [[]]
-
     if n % 2 == 1:
         raise ValueError("there is no perfect matching for a graph with an odd number of vertices")
 
