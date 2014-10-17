@@ -18,7 +18,7 @@ def is_FiniteFieldElement(x):
 
     EXAMPLE::
 
-        sage: from sage.rings.finite_rings.element_ext_pari import is_FiniteFieldElement
+        sage: from sage.rings.finite_rings.element_base import is_FiniteFieldElement
         sage: is_FiniteFieldElement(1)
         False
         sage: is_FiniteFieldElement(IntegerRing())
@@ -591,21 +591,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ValueError: must be a perfect square.
         """
         return self.nth_root(2, extend=extend, all=all)
-        # The following which calls PARI is utterly slower.
-#        if extend:
-#            raise NotImplementedError
-#        R = self.parent()['x']
-#        f = R([-self, 0, 1])
-#        g = f.factor()
-#        if len(g) == 2 or g[0][1] == 2:
-#            if all:
-#                return [-g[0][0][0], g[0][0][0]]
-#            else:
-#                return -g[0][0][0]
-#        if all:
-#            return []
-#        else:
-#            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """
