@@ -521,18 +521,15 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**2, 'a')
-            sage: a = k.gen()
+            sage: k.<a> = FiniteField(9, impl='pari_mod')
             sage: a.is_square()
             False
             sage: (a**2).is_square()
             True
-            sage: k = FiniteField_ext_pari(2**2,'a')
-            sage: a = k.gen()
+            sage: k.<a> = FiniteField(4, impl='pari_mod')
             sage: (a**2).is_square()
             True
-            sage: k = FiniteField_ext_pari(17**5,'a'); a = k.gen()
+            sage: k.<a> = FiniteField(17^5, impl='pari_mod')
             sage: (a**2).is_square()
             True
             sage: a.is_square()
@@ -574,23 +571,25 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: F = FiniteField_ext_pari(7^2, 'a')
+            sage: F = FiniteField(7^2, 'a', impl='pari_mod')
             sage: F(2).square_root()
             4
             sage: F(3).square_root()
-            5*a + 1
+            2*a + 6
             sage: F(3).square_root()**2
             3
             sage: F(4).square_root()
-            5
-            sage: K = FiniteField_ext_pari(7^3, 'alpha')
+            2
+            sage: K = FiniteField(7^3, 'alpha', impl='pari_mod')
             sage: K(3).square_root()
             Traceback (most recent call last):
             ...
             ValueError: must be a perfect square.
         """
-        return self.nth_root(2, extend=extend, all=all)
+        try:
+            return self.nth_root(2, extend=extend, all=all)
+        except ValueError:
+            raise ValueError, "must be a perfect square"
 
     def sqrt(self, extend=False, all = False):
         """
@@ -600,7 +599,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
             sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^3 - a - 1).sqrt()
-            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
+            a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
         """
         return self.square_root(extend=extend, all=all)
 
