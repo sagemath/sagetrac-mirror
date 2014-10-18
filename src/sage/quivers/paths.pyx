@@ -18,7 +18,10 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include 'sage/misc/bitset.pxi'
+
 from sage.rings.integer_ring import ZZ
+from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -118,7 +121,7 @@ cdef class QuiverPath(MonoidElement):
             sage: p = Q([(1, 1)])  # indirect doctest
 
         """
-        self._path = NULL
+        self._path.length = 0
 
     def __dealloc__(self):
         """
@@ -130,10 +133,9 @@ cdef class QuiverPath(MonoidElement):
             sage: del p    # indirect doctest
 
         """
-        if self._path!=NULL:
-            dealloc_biseq(self._path)
+        dealloc_biseq(self._path)
 
-    cdef QuiverPath _new_(self, int start, int end, biseq_t data):
+    cdef QuiverPath _new_(self, int start, int end):
         """
         TESTS::
 
@@ -146,7 +148,6 @@ cdef class QuiverPath(MonoidElement):
         out._parent = self._parent
         out._start = start
         out._end = end
-        out._path = data
         return out
 
     def __init__(self, parent, start, end, path, check=True):
@@ -178,7 +179,7 @@ cdef class QuiverPath(MonoidElement):
         cdef unsigned int l = len(path)
         self._start = start
         self._end   = end
-        self._path = list_to_biseq(path, max(len(parent.quiver().edges()), 1))
+        list_to_biseq(self._path, path, max(len(parent.quiver().edges()), 1))
         if not check:
             return
         Q = parent.quiver()
@@ -216,18 +217,7 @@ cdef class QuiverPath(MonoidElement):
             False
 
         """
-        cdef size_t n
-        cdef char *s
-        n = mpz_sizeinbase(self._path.data, 32) + 2
-        s = <char *>PyMem_Malloc(n)
-        if s == NULL:
-            raise MemoryError, "Unable to allocate enough memory for the string defining a bounded integer sequence."
-        sig_on()
-        mpz_get_str(s, 32, self._path.data)
-        sig_off()
-        data_str = <object> PyString_FromString(s)
-        PyMem_Free(s)
-        return NewQuiverPath, (self._parent, self._start, self._end, data_str, self._path.bitsize, self._path.itembitsize, self._path.length)
+        return NewQuiverPath, (self._parent, self._start, self._end, bitset_pickle(self._path.data), self._path.itembitsize, self._path.length)
 
     def __hash__(self):
         """
@@ -243,7 +233,23 @@ cdef class QuiverPath(MonoidElement):
         """
         if self._path.length==0:
             return hash(self._start)
-        return mpz_pythonhash(self._path.data)
+        # This is similar to mpz_pythonhash, which is a very bad additive hash:
+        cdef mp_limb_t h = (hash(self._start)<<4)^hash(self._end)
+        cdef mp_limb_t h0
+        cdef mp_size_t i
+        cdef mp_limb_t* p = self._path.data.bits
+        for i from self._path.data.limbs>i>=0:
+            h0 = h
+            h += deref(postinc(p))
+            if h<h0: # overflow
+                preinc(h)
+        if h==-1:
+            return -2
+        return h
+        ## bitset_hash is not a good hash either
+        ## We should consider using FNV-1a hash, see http://www.isthe.com/chongo/tech/comp/fnv/,
+        ## Or the hash defined in http://burtleburtle.net/bob/hash/doobs.html
+        ## Or http://www.azillionmonkeys.com/qed/hash.html
 
     def _repr_(self):
         r"""
@@ -373,7 +379,7 @@ cdef class QuiverPath(MonoidElement):
         cdef int c = cmp(other._path.length, cself._path.length)
         if c!=0:
             return c
-        return mpz_cmp(cself._path.data, other._path.data)
+        return mpn_cmp(cself._path.data.bits, other._path.data.bits, cself._path.data.limbs)
 
     def __getitem__(self, index):
         """
@@ -395,6 +401,7 @@ cdef class QuiverPath(MonoidElement):
         cdef list E = self._parent._quiver.edges()
         cdef int start, stop, step
         cdef unsigned int init, end
+        cdef QuiverPath OUT
         if PySlice_Check(<PyObject *>index):
             start,stop,step = index.indices(self._path.length)
             if step!=1:
@@ -403,14 +410,18 @@ cdef class QuiverPath(MonoidElement):
                 return self
             init = E[getitem_biseq(self._path, start)][0]
             end   = E[getitem_biseq(self._path, stop)][0]
-            return self._new_(init, end, slice_biseq(self._path, start, stop, step))
+            OUT = self._new_(init, end)
+            slice_biseq(OUT._path, self._path, start, stop, step)
+            return OUT
         if index<0:
             index = self._path.length+index
         if index<0 or index>=self._path.length:
             raise IndexError("list index out of range")
         init = E[getitem_biseq(self._path, index)][0]
         end = E[getitem_biseq(self._path, index)][1]
-        return self._new_(init, end, slice_biseq(self._path, index, index+1, 1))
+        OUT = self._new_(init, end)
+        slice_biseq(OUT._path, self._path, index, index+1, 1)
+        return OUT
 
     def __iter__(self):
         """
@@ -465,7 +476,9 @@ cdef class QuiverPath(MonoidElement):
         cdef QuiverPath right = other
         if self._end != right._start:
             return None
-        return self._new_(self._start, right._end, concat_biseq(self._path,right._path))
+        cdef QuiverPath OUT = self._new_(self._start, right._end)
+        concat_biseq(OUT._path, self._path,right._path)
+        return OUT
 
     def __mod__(self, other):
         """
@@ -501,8 +514,11 @@ cdef class QuiverPath(MonoidElement):
             return self
 
         # If other is the beginning, return the rest
+        cdef QuiverPath OUT
         if startswith_biseq(cself._path, right._path):
-            return cself._new_(right._end, cself._end, slice_biseq(cself._path, right._path.length, cself._path.length, 1))
+            OUT = cself._new_(right._end, cself._end)
+            slice_biseq(OUT._path, cself._path, right._path.length, cself._path.length, 1)
+            return OUT
         else:
             return None
 
@@ -564,7 +580,7 @@ cdef class QuiverPath(MonoidElement):
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
-    cpdef int has_subpath(self, QuiverPath subpath) except -1:
+    cpdef bint has_subpath(self, QuiverPath subpath) except -1:
         """
         Tells whether ``self`` contains a given sub-path.
 
@@ -606,7 +622,7 @@ cdef class QuiverPath(MonoidElement):
             return 0
         return 1
 
-    cpdef int has_initial_segment(self, QuiverPath subpath) except -1:
+    cpdef bint has_initial_segment(self, QuiverPath subpath) except -1:
         """
         Tells whether ``self`` starts with a given sub-path.
 
@@ -702,7 +718,7 @@ cdef class QuiverPath(MonoidElement):
         # Reverse all the edges in the path, then reverse the path
         return Q.element_class(Q, self._end, self._start, biseq_to_list(self._path)[::-1], check=False)
 
-cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length):
+cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
     """
     Return a new quiver path for given defining data.
 
@@ -729,8 +745,7 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,
-          '2',
-          2L,
+          (0, 2L, 1, 4, (2L,)),
           1L,
           2))
 
@@ -739,11 +754,10 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length
     out._parent = Q
     out._start = start
     out._end   = end
-    out._path = <biseq_t>sage_malloc(sizeof(biseq))
-    mpz_init2(out._path.data, bitsize+mp_bits_per_limb)
-    out._path.bitsize = bitsize
     out._path.itembitsize = itembitsize
     out._path.mask_item = ((<unsigned int>1)<<itembitsize)-1
     out._path.length = length
-    mpz_set_str(out._path.data, data, 32)
+    if length>0:
+        bitset_init(out._path.data, mp_bits_per_limb)
+        bitset_unpickle(out._path.data, bitset_data)
     return out
