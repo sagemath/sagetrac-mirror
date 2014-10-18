@@ -188,7 +188,7 @@ class Timer:
             sage: loads(dumps(t)) == t
             True
         """
-        return (other.__class__ is not self.__class__ and
+        return (other.__class__ is self.__class__ and
                 self.__dict__ == other.__dict__)
 
 # Inheritance rather then delegation as globals() must be a dict
@@ -485,5 +485,5 @@ class NestedName:
             sage: qname == qname2
             False
         """
-        return (other.__class__ is not self.__class__ and
+        return (other.__class__ is self.__class__ and
                 self.all == other.all)

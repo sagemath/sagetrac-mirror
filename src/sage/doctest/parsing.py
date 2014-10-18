@@ -450,7 +450,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: DTP == DTP2
             False
         """
-        return (other.__class__ is not self.__class__ and
+        return (other.__class__ is self.__class__ and
                 self.__dict__ == other.__dict__)
 
     def parse(self, string, *args):

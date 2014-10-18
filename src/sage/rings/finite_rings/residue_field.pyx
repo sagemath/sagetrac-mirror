@@ -748,7 +748,7 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        return (x.__class is not self.__class and
+        return (x.__class__ is self.__class__ and
                 self.p == x.p and
                 self.variable_name() == x.variable_name())
 
