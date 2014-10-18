@@ -93,7 +93,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         return self._factory_data[0].reduce_data(self)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Compare ``self`` with ``other``.
 
@@ -106,9 +106,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: copy(K) == K
             True
         """
-        if not isinstance(other, FiniteField_prime_modn):
-            return cmp(type(self), type(other))
-        return cmp(self.__char, other.__char)
+        return isinstance(other, FiniteField_prime_modn) and \
+                self.__char == other.__char
 
     def __richcmp__(left, right, op):
         r"""

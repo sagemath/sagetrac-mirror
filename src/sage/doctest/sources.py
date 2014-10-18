@@ -124,7 +124,7 @@ class DocTestSource(object):
         """
         self.options = options
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison is just by comparison of attributes.
 
@@ -141,9 +141,8 @@ class DocTestSource(object):
             sage: FDS == FDS2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        return isinstance(other, type(self)) and \
+                self.__dict__ == other.__dict__
 
     def _process_doc(self, doctests, doc, namespace, start):
         """

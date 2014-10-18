@@ -272,7 +272,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         """
         return self.fundamental_weights()[i]
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -283,11 +283,8 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             sage: e1 == e2
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.root_system != other.root_system:
-            return cmp(self.root_system, other.root_system)
-        return 0
+        return self.__class__ == other.__class__ and \
+               self.root_system == other.root_system
 
     def from_vector_notation(self, weight, style="lattice"):
         """

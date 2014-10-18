@@ -1296,34 +1296,6 @@ class LinearCode(module.Module):
             f = CP/CP(1,s)
             return f(t,sqrt(q))
 
-    def __cmp__(self, right):
-        r"""
-        Returns True if the generator matrices of `self` and `right` are
-        equal.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G = MS([1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1])
-            sage: G
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-            sage: D = LinearCode(G)
-            sage: C == D
-            True
-
-            sage: Cperp = C.dual_code()
-            sage: Cperpperp = Cperp.dual_code()
-            sage: C == Cperpperp
-            True
-        """
-        if not isinstance(right, LinearCode):
-            return cmp(type(self), type(right))
-        return cmp(self.__gen_mat, right.__gen_mat)
-
     def check_mat(self):
         r"""
         Returns the check matrix of ``self``.
@@ -1586,6 +1558,22 @@ class LinearCode(module.Module):
             sage: C2 = C1.extended_code()
             sage: C3 = C2.punctured([7])
             sage: C1 == C3
+            True
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G = MS([1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1])
+            sage: G
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+            sage: D = LinearCode(G)
+            sage: C1 == D
+            True
+
+            sage: Cperp = C1.dual_code()
+            sage: Cperpperp = Cperp.dual_code()
+            sage: C1 == Cperpperp
             True
 
         TESTS:

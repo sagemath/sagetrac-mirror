@@ -328,18 +328,12 @@ class Face(SageObject):
             sage: f == g
             True
         """
-        return (isinstance(other, Face) and
-                self.vector() == other.vector() and
-                self.type() == other.type() )
+        return isinstance(other, Face) and \
+                self.vector() == other.vector() and \
+                self.type() == other.type()
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         r"""
-        Compare self and other, returning -1, 0, or 1, depending on if
-        self < other, self == other, or self > other, respectively.
-
-        The vectors of the faces are first compared,
-        and the types of the faces are compared if the vectors are equal.
-
         EXAMPLES::
 
             sage: from sage.combinat.e_one_star import Face
@@ -350,17 +344,25 @@ class Face(SageObject):
             sage: Face([-2,1,0], 2) < Face([-2,1,0],2)
             False
         """
-        v1 = self.vector()
-        v2 = other.vector()
-        t1 = self.type()
-        t2 = other.type()
+        return self.vector() < other.vector() or \
+                (self.vector() == other.vector() and
+                 self.type() < other.type())
 
-        if v1 < v2:
-            return -1
-        elif v1 > v2:
-            return 1
-        else:
-            return t1.__cmp__(t2)
+    def __le__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face
+            sage: Face([-2,1,0], 2) <= Face([-1,2,2],3)
+            True
+            sage: Face([-2,1,0], 2) <= Face([-2,1,0],3)
+            True
+            sage: Face([-2,1,0], 2) <= Face([-2,1,0],2)
+            True
+        """
+        return self.vector() <= other.vector() or \
+                (self.vector() == other.vector() and
+                 self.type() <= other.type())
 
     def __hash__(self):
         r"""

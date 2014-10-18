@@ -1057,7 +1057,7 @@ class BranchingRule(SageObject):
         except Exception:
             return self._f(x.to_vector())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Two branching rules with the same source and target Cartan types are
         considered equal if they are the same as mappings from the weight
@@ -1088,25 +1088,21 @@ class BranchingRule(SageObject):
             sage: [A2(f).branch(A2,rule=b1) == A2(f).branch(A2,rule=b2) for f in A2.fundamental_weights()]
             [True, True]
         """
-        c = cmp(type(self), type(other))
-        if c:
-            return c
+        if not isinstance(other, type(self)):
+            return False
         Rspace = RootSystem(self._R).ambient_space()
         Rspace_other = RootSystem(other._R).ambient_space()
-        c = cmp(Rspace, Rspace_other)
-        if c:
-            return c
+        if Rspace != Rspace_other:
+            return False
         Sspace = RootSystem(self._S).ambient_space()
         Sspace_other = RootSystem(other._S).ambient_space()
-        c = cmp(Sspace, Sspace_other)
-        if c:
-            return c
+        if Sspace != Sspace_other:
+            return False
         for v in Rspace.fundamental_weights():
             w = list(v.to_vector())
-            c = cmp(Sspace(self(w)), Sspace(other(w)))
-            if c:
-                return c
-        return 0
+            if Sspace(self(w)) != Sspace(other(w)):
+                return False
+        return True
 
     def __mul__(self, other):
         """

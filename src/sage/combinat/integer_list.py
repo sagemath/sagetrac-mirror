@@ -1009,7 +1009,7 @@ class IntegerListsLex(Parent):
         """
         return self.element_class(self, lst)
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
         Compares two different :class:`IntegerListsLex`.
 
@@ -1025,7 +1025,7 @@ class IntegerListsLex(Parent):
             sage: C == D
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(x)
 
     def _repr_(self):
         """

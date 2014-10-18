@@ -116,7 +116,7 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison by __dict__.
 
@@ -128,10 +128,8 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__,other.__dict__)
-
+        return isinstance(other, type(self)) and \
+                self.__dict__ == other.__dict__
 
 def skipdir(dirname):
     """

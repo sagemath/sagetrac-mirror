@@ -1009,7 +1009,7 @@ class Set_object_union(Set_object):
         self.__Y = Y
         Set_object.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1037,14 +1037,10 @@ class Set_object_union(Set_object):
             sage: Set(ZZ).union(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
-        if not isinstance(right, Set_object_union):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
+        return is_Set(right) and \
+                isinstance(right, Set_object_union) and \
+                (self.__X == right.__X and self.__Y == right.__Y or \
+                 self.__X == right.__Y and self.__Y == right.__X)
 
     def _repr_(self):
         r"""
@@ -1144,7 +1140,7 @@ class Set_object_intersection(Set_object):
         Set_object.__init__(self, self)
 
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1172,14 +1168,10 @@ class Set_object_intersection(Set_object):
             sage: Set(ZZ).intersection(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
-        if not isinstance(right, Set_object_intersection):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
+        return is_Set(right) and \
+                isinstance(right, Set_object_intersection) and \
+                (self.__X == right.__X and self.__Y == right.__Y or \
+                 self.__X == right.__Y and self.__Y == right.__X)
 
     def _repr_(self):
         """
@@ -1298,7 +1290,7 @@ class Set_object_difference(Set_object):
         Set_object.__init__(self, self)
 
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1330,13 +1322,9 @@ class Set_object_difference(Set_object):
             sage: X == Set(QQ).difference(Set(ZZ))
             True
         """
-        if not is_Set(right):
-            return -1
-        if not isinstance(right, Set_object_difference):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y:
-            return 0
-        return -1
+        return is_Set(right) and \
+                isinstance(right, Set_object_difference) and \
+                self.__X == right.__X and self.__Y == right.__Y
 
     def _repr_(self):
         """
@@ -1456,7 +1444,7 @@ class Set_object_symmetric_difference(Set_object):
         Set_object.__init__(self, self)
 
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1478,14 +1466,10 @@ class Set_object_symmetric_difference(Set_object):
             True
 
         """
-        if not is_Set(right):
-            return -1
-        if not isinstance(right, Set_object_symmetric_difference):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
+        return is_Set(right) and \
+                isinstance(right, Set_object_symmetric_difference) and \
+                (self.__X == right.__X and self.__Y == right.__Y or \
+                 self.__X == right.__Y and self.__Y == right.__X)
 
     def _repr_(self):
         """

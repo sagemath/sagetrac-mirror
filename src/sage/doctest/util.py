@@ -175,7 +175,7 @@ class Timer:
         """
         return str(self.__dict__)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -188,9 +188,8 @@ class Timer:
             sage: loads(dumps(t)) == t
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        return isinstance(other, type(self)) and \
+                self.__dict__ == other.__dict__
 
 # Inheritance rather then delegation as globals() must be a dict
 class RecordingDict(dict):
@@ -468,7 +467,7 @@ class NestedName:
         """
         return '.'.join(a for a in self.all if a is not None)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison is just comparison of the underlying lists.
 
@@ -486,6 +485,5 @@ class NestedName:
             sage: qname == qname2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.all, other.all)
+        return isinstance(other, type(self)) and \
+                self.all == other.all

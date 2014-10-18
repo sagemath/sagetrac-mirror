@@ -153,7 +153,7 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return " \\times ".join(x._latex_() for x in self.component_types())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES:::
 
@@ -168,8 +168,26 @@ class CartanType(SageObject, CartanType_abstract):
             False
         """
         if isinstance(other, CartanType_simple):
-            return 1
-        return cmp(self._types, other._types)
+            return False
+        return self._types == other._types
+
+    def __ne__(self, other):
+        """
+        EXAMPLES:::
+
+            sage: ct1 = CartanType(['A',1],['B',2])
+            sage: ct2 = CartanType(['B',2],['A',1])
+            sage: ct3 = CartanType(['A',4])
+            sage: ct1 != ct1
+            False
+            sage: ct1 != ct2
+            True
+            sage: ct1 != ct3
+            True
+        """
+        if isinstance(other, CartanType_simple):
+            return True
+        return self._types != other._types
 
     def component_types(self):
         """

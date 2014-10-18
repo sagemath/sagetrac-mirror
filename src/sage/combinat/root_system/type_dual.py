@@ -267,29 +267,23 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
         res = res.replace("=?=", "=>=")
         return res
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
             sage: B41     = CartanType(['B', 4, 1])
             sage: B41dual = CartanType(['B', 4, 1]).dual()
             sage: F41dual = CartanType(['F', 4, 1]).dual()
-            sage: cmp(F41dual, F41dual)
-            0
-
-        Whether ``cmp()`` returns 1 or -1 doesn't matter, just check
-        that the following are non-zero::
-
-            sage: cmp(F41dual, B41dual) != 0
+            sage: F41dual == F41dual
             True
-            sage: cmp(B41dual, F41dual) * cmp(F41dual, B41dual) < 0
-            True
-            sage: cmp(B41dual, B41) != 0
-            True
+            sage: F41dual == B41dual
+            False
+            sage: B41dual == B41
+            False
         """
         if other.__class__ != self.__class__:
-            return cmp(self.__class__, other.__class__)
-        return cmp(self._dual, other._dual)
+            return False
+        return self._dual == other._dual
 
     def dual(self):
         """

@@ -927,34 +927,6 @@ class AbelianStratum(SageObject):
         return (self._marked_separatrix != other._marked_separatrix or
                 self._zeroes != other._zeroes)
 
-    def __cmp__(self, other):
-        r"""
-        The order is given by the natural:
-
-        self < other iff adherance(self) c adherance(other)
-
-        TESTS::
-
-            sage: a3 = AbelianStratum(3,2,1)
-            sage: a3_out = AbelianStratum(3,2,1,marked_separatrix='out')
-            sage: a3_in = AbelianStratum(3,2,1,marked_separatrix='in')
-            sage: a3 == a3_out
-            False
-            sage: a3 == a3_in
-            False
-            sage: a3_out == a3_in
-            False
-        """
-        if (not isinstance(self, type(other)) or
-            self._marked_separatrix != other._marked_separatrix):
-            raise TypeError("the other must be a stratum with same marking")
-
-        if self._zeroes < other._zeroes:
-            return 1
-        elif self._zeroes > other._zeroes:
-            return -1
-        return 0
-
     def connected_components(self):
         """
         Lists the connected components of the Stratum.
@@ -1382,7 +1354,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         """
         return self.representative(reduced=reduced).rauzy_diagram()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         TESTS::
 
@@ -1412,14 +1384,8 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         if not isinstance(other, CCA):
             raise TypeError("other must be a connected component")
 
-        if isinstance(self, type(other)):
-            if self._parent._zeroes > other._parent._zeroes:
-                return 1
-            elif self._parent._zeroes < other._parent._zeroes:
-                return -1
-            return 0
-
-        return cmp(type(self), type(other))
+        return isinstance(other, type(self)) and \
+            self._parent._zeroes == other._parent._zeroes
 
 CCA = ConnectedComponentOfAbelianStratum
 

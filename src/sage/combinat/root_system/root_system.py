@@ -461,7 +461,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.cartan_type().is_irreducible()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -472,11 +472,8 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: r1 == r2
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self._cartan_type != other._cartan_type:
-            return cmp(self._cartan_type, other._cartan_type)
-        return 0
+        return self.__class__ == other.__class__ and \
+               self._cartan_type == other._cartan_type
 
     def root_lattice(self):
         """

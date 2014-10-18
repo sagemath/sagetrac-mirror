@@ -501,7 +501,7 @@ class GroupAlgebra(CombinatorialFreeModule):
     # I don't know if that means "is canonically isomorphic to a prime field"
     # or "is identical to a prime field".
 
-    def __cmp__(self, other) :
+    def __eq__(self, other) :
         r"""
         Compare two algebras self and other. They are considered equal if and only
         if their base rings and their groups coincide.
@@ -521,14 +521,9 @@ class GroupAlgebra(CombinatorialFreeModule):
             sage: A == A
             True
         """
-        c = cmp(type(self), type(other))
-
-        if c == 0 :
-            c = cmp(self._group, other._group)
-        if c == 0 :
-            c = cmp(self.base_ring(), other.base_ring())
-
-        return c
+        return isinstance(other, type(self)) and \
+                self._group == other._group and \
+                self.base_ring() == other.base_ring()
 
     def random_element(self, n=2):
         r"""

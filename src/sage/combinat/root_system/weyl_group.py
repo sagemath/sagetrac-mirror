@@ -792,32 +792,10 @@ class WeylGroupElement(MatrixGroupElement_gap):
             True
             sage: s[1] == s[2]
             False
-
-        Note: this implementation of :meth:`__eq__` is not much faster
-        than :meth:`__cmp__`. But it turned out to be useful for
-        subclasses overriding __cmp__ with something slow for specific
-        purposes.
         """
         return self.__class__ == other.__class__ and \
                self._parent   == other._parent   and \
                self.__matrix  == other.__matrix
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',3])
-            sage: s = W.simple_reflections()
-            sage: s[1] == s[1]
-            True
-            sage: s[1] == s[2]
-            False
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self._parent.cartan_type() != other._parent.cartan_type():
-            return cmp(self._parent.cartan_type(), other._parent.cartan_type())
-        return cmp(self.matrix(), other.matrix())
 
     def action(self, v):
         """

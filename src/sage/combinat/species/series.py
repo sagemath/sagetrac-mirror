@@ -87,7 +87,7 @@ class LazyPowerSeriesRing(Algebra):
         """
         return "Lazy Power Series Ring over %s"%self.base_ring()
 
-    def __cmp__(self, x):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -98,9 +98,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: LZ == LQ
             False
         """
-        if self.__class__ is not x.__class__:
-            return cmp(self.__class__, x.__class__)
-        return cmp(self.base_ring(), x.base_ring())
+        return self.__class__ == other.__class__ and \
+               self.base_ring() == other.base_ring()
 
     def _coerce_impl(self, x):
         """

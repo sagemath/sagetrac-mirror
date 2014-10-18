@@ -1409,7 +1409,7 @@ class QuaternionOrder(Algebra):
         """
         return self.__basis[n]
 
-    def __cmp__(self, R):
+    def __eq__(self, R):
         """
         Compare orders self and other.  Two orders are equal if they
         have the same basis and are in the same quaternion algebra.
@@ -1421,15 +1421,12 @@ class QuaternionOrder(Algebra):
             True
             sage: R == QuaternionAlgebra(-1,-1).maximal_order()
             False
-            sage: R==5
+            sage: R == 5
             False
         """
-        if not isinstance(R, QuaternionOrder):
-            return cmp(type(self), type(R))
-        c = cmp(self.__quaternion_algebra, R.__quaternion_algebra)
-        if c: return c
-        return cmp(self.__basis, R.__basis)
-
+        return isinstance(R, QuaternionOrder) and \
+                self.__quaternion_algebra == R.__quaternion_algebra and \
+                self.__basis == R.__basis
 
     def basis(self):
         """
@@ -2033,13 +2030,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         return self.__basis
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Compare this fractional quaternion ideal to ``right``. If
-        ``right`` is not a fractional quaternion ideal a TypeError is
-        raised.  If the fractional ideals are in different ambient
-        quaternion algebras, then the quaternion algebras themselves
-        are compared.
+        Compare this fractional quaternion ideal to ``right``.
 
         INPUT:
 
@@ -2053,9 +2046,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I == 5
             False
         """
-        if not isinstance(right, QuaternionFractionalIdeal_rational):
-            raise TypeError
-        return cmp(self.__basis, right.__basis)
+        return isinstance(right, QuaternionFractionalIdeal_rational) and \
+                self.__basis == right.__basis
 
     def basis_matrix(self):
         """

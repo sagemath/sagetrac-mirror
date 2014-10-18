@@ -359,20 +359,6 @@ class GenericCombinatorialSpecies(SageObject):
         """
         return IsotypesWrapper(self, labels, structure_class=structure_class)
 
-    def __cmp__(self, x):
-        """
-        EXAMPLES::
-
-            sage: S = species.SingletonSpecies()
-            sage: E = species.EmptySetSpecies()
-            sage: S == S
-            True
-            sage: S == E
-            False
-        """
-        return cmp(repr(self), repr(x))
-
-
     def _check(self, n=5):
         """
         Returns True if the number of structures and isomorphism types

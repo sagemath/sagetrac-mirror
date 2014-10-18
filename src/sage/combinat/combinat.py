@@ -1270,7 +1270,7 @@ class CombinatorialClass(Parent):
         """
         raise NotImplementedError
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
         Compares two different combinatorial classes. For now, the
         comparison is done just on their repr's.
@@ -1284,7 +1284,7 @@ class CombinatorialClass(Parent):
             sage: p5 == p6
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(x)
 
     def __cardinality_from_iterator(self):
         """

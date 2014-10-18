@@ -723,7 +723,7 @@ class ResidueField_generic(Field):
             OK = OK.ring_of_integers()
         return self._internal_coerce_map_from(OK).section()
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
         Compares two residue fields: they are equal iff the primes
         defining them are equal and they have the same variable name.
@@ -748,12 +748,9 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        c = cmp(type(self), type(x))
-        if c: return c
-        c = cmp(self.p, x.p)
-        if c: return c
-        c = cmp(self.variable_name(), x.variable_name())
-        return c
+        return isinstance(x, type(self)) and \
+                self.p == x.p and \
+                self.variable_name() == x.variable_name()
 
     def __hash__(self):
         r"""
