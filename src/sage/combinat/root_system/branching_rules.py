@@ -1088,7 +1088,7 @@ class BranchingRule(SageObject):
             sage: [A2(f).branch(A2,rule=b1) == A2(f).branch(A2,rule=b2) for f in A2.fundamental_weights()]
             [True, True]
         """
-        if not isinstance(other, type(self)):
+        if other.__class__ is not self.__class__:
             return False
         Rspace = RootSystem(self._R).ambient_space()
         Rspace_other = RootSystem(other._R).ambient_space()

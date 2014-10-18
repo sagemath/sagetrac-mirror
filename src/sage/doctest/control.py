@@ -128,7 +128,7 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        return (isinstance(other, type(self)) and
+        return (other.__class__ is not self.__class__ and
                 self.__dict__ == other.__dict__)
 
 def skipdir(dirname):

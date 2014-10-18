@@ -141,7 +141,7 @@ class DocTestSource(object):
             sage: FDS == FDS2
             True
         """
-        return (isinstance(other, type(self)) and
+        return (other.__class__ is not self.__class__ and
                 self.__dict__ == other.__dict__)
 
     def _process_doc(self, doctests, doc, namespace, start):
