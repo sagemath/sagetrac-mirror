@@ -657,23 +657,19 @@ class FSMFourier(Transducer):
                 b_0 = self.parent._FC_b_direct_(0)
                 ones = vector(1 for _ in b_0)
                 w_k = vector(field_to_CIF(c) for c in self.vectors_w()[k])
-
-                result = w_k * (
-                    b_0
-                    - Delta_epsilon[0] * ones
-                    - M_epsilon[0] * b_0)
-                if k == 0:
-                    result += self.a() * self.coefficient_lambda()
+                
                 if ell == 0:
                     raise NotImplementedError(
                         "Zeroth Fourier coefficient is not yet "
                         "implemented")
 
                 m = s.abs().upper().ceil() + s.parent().precision()
-                result -= w_k * self.parent._H_m_rhs_(s, m)
-                if common_period.divides(ell):
-                    result += CIF(log(q) * w_k * ones * self.a() * \
-                        common_period / (2 * ell * pi * I))
+                result = -w_k * self.parent._H_m_rhs_(s, m)
+                if k == 0:
+                    result += self.a() * self.coefficient_lambda()
+                if common_period.divides(ell) and k == 0:
+                    result +=   self.coefficient_lambda() * self.a() / \
+                       chi_ell
 
                 return result
 
