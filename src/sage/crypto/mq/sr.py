@@ -648,8 +648,8 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr1 == sr2
             False
         """
-        return (self.n, self.r, self.c, self.e, self._postfix, self._order, self._allow_zero_inversions, self._aes_mode, self._gf2, self._star) \
-                == (other.n, other.r, other.c, other.e, other._postfix, other._order, other._allow_zero_inversions, other._aes_mode, other._gf2, other._star)
+        return ((self.n, self.r, self.c, self.e, self._postfix, self._order, self._allow_zero_inversions, self._aes_mode, self._gf2, self._star)
+                == (other.n, other.r, other.c, other.e, other._postfix, other._order, other._allow_zero_inversions, other._aes_mode, other._gf2, other._star))
 
     def sub_bytes(self, d):
         r"""

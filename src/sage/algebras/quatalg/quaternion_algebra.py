@@ -1424,9 +1424,9 @@ class QuaternionOrder(Algebra):
             sage: R == 5
             False
         """
-        return isinstance(R, QuaternionOrder) and \
-                self.__quaternion_algebra == R.__quaternion_algebra and \
-                self.__basis == R.__basis
+        return (isinstance(R, QuaternionOrder) and
+                self.__quaternion_algebra == R.__quaternion_algebra and
+                self.__basis == R.__basis)
 
     def basis(self):
         """
@@ -2046,8 +2046,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I == 5
             False
         """
-        return isinstance(right, QuaternionFractionalIdeal_rational) and \
-                self.__basis == right.__basis
+        return (isinstance(right, QuaternionFractionalIdeal_rational) and
+                self.__basis == right.__basis)
 
     def basis_matrix(self):
         """

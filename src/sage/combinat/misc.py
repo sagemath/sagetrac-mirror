@@ -71,10 +71,10 @@ class DoublyLinkedList():
             sage: dll == dll2
             False
         """
-        return isinstance(other, DoublyLinkedList) and \
-               self.l == other.l and \
-               self.next_value == other.next_value and \
-               self.prev_value == other.prev_value
+        return (isinstance(other, DoublyLinkedList) and
+                self.l == other.l and
+                self.next_value == other.next_value and
+                self.prev_value == other.prev_value)
 
     def __repr__(self):
         """

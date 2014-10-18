@@ -106,8 +106,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: copy(K) == K
             True
         """
-        return isinstance(other, FiniteField_prime_modn) and \
-                self.__char == other.__char
+        return (isinstance(other, FiniteField_prime_modn) and
+                self.__char == other.__char)
 
     def __richcmp__(left, right, op):
         r"""

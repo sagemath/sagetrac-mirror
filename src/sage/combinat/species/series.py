@@ -98,8 +98,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: LZ == LQ
             False
         """
-        return self.__class__ == other.__class__ and \
-               self.base_ring() == other.base_ring()
+        return (self.__class__ == other.__class__ and
+                self.base_ring() == other.base_ring())
 
     def _coerce_impl(self, x):
         """

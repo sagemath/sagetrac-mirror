@@ -1037,10 +1037,10 @@ class Set_object_union(Set_object):
             sage: Set(ZZ).union(Set(QQ)) == Set(QQ)
             False
         """
-        return is_Set(right) and \
-                isinstance(right, Set_object_union) and \
-                (self.__X == right.__X and self.__Y == right.__Y or \
-                 self.__X == right.__Y and self.__Y == right.__X)
+        return (is_Set(right) and
+                isinstance(right, Set_object_union) and
+                (self.__X == right.__X and self.__Y == right.__Y or
+                 self.__X == right.__Y and self.__Y == right.__X))
 
     def _repr_(self):
         r"""
@@ -1168,10 +1168,10 @@ class Set_object_intersection(Set_object):
             sage: Set(ZZ).intersection(Set(QQ)) == Set(QQ)
             False
         """
-        return is_Set(right) and \
-                isinstance(right, Set_object_intersection) and \
-                (self.__X == right.__X and self.__Y == right.__Y or \
-                 self.__X == right.__Y and self.__Y == right.__X)
+        return (is_Set(right) and
+                isinstance(right, Set_object_intersection) and
+                (self.__X == right.__X and self.__Y == right.__Y or
+                 self.__X == right.__Y and self.__Y == right.__X))
 
     def _repr_(self):
         """
@@ -1322,9 +1322,9 @@ class Set_object_difference(Set_object):
             sage: X == Set(QQ).difference(Set(ZZ))
             True
         """
-        return is_Set(right) and \
-                isinstance(right, Set_object_difference) and \
-                self.__X == right.__X and self.__Y == right.__Y
+        return (is_Set(right) and
+                isinstance(right, Set_object_difference) and
+                self.__X == right.__X and self.__Y == right.__Y)
 
     def _repr_(self):
         """
@@ -1466,10 +1466,10 @@ class Set_object_symmetric_difference(Set_object):
             True
 
         """
-        return is_Set(right) and \
-                isinstance(right, Set_object_symmetric_difference) and \
-                (self.__X == right.__X and self.__Y == right.__Y or \
-                 self.__X == right.__Y and self.__Y == right.__X)
+        return (is_Set(right) and
+                isinstance(right, Set_object_symmetric_difference) and
+                (self.__X == right.__X and self.__Y == right.__Y or
+                 self.__X == right.__Y and self.__Y == right.__X))
 
     def _repr_(self):
         """

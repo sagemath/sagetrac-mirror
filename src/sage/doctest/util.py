@@ -188,8 +188,8 @@ class Timer:
             sage: loads(dumps(t)) == t
             True
         """
-        return isinstance(other, type(self)) and \
-                self.__dict__ == other.__dict__
+        return (isinstance(other, type(self)) and
+                self.__dict__ == other.__dict__)
 
 # Inheritance rather then delegation as globals() must be a dict
 class RecordingDict(dict):
@@ -485,5 +485,5 @@ class NestedName:
             sage: qname == qname2
             False
         """
-        return isinstance(other, type(self)) and \
-                self.all == other.all
+        return (isinstance(other, type(self)) and
+                self.all == other.all)

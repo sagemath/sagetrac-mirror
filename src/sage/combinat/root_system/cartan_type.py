@@ -2231,9 +2231,9 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             sage: ct1 == ct3
             False
         """
-        return self.__class__ == other.__class__ and \
-               self.letter == other.letter and \
-               self.n == other.n
+        return (self.__class__ == other.__class__ and
+                self.letter == other.letter and
+                self.n == other.n)
 
     def __ne__(self, other):
         """
@@ -2246,9 +2246,9 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             sage: ct1 != ct3
             True
         """
-        return self.__class__ != other.__class__ or \
-               self.letter != other.letter or \
-               self.n != other.n
+        return (self.__class__ != other.__class__ or
+                self.letter != other.letter or
+                self.n != other.n)
 
     def __hash__(self):
         """

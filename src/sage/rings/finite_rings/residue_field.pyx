@@ -748,9 +748,9 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        return isinstance(x, type(self)) and \
-                self.p == x.p and \
-                self.variable_name() == x.variable_name()
+        return (isinstance(x, type(self)) and
+                self.p == x.p and
+                self.variable_name() == x.variable_name())
 
     def __hash__(self):
         r"""

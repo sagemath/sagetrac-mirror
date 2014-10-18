@@ -1940,8 +1940,8 @@ class RFunction(ExpectFunction):
             sage: r.mean == r.lr
             False
         """
-        return isinstance(other, RFunction) and \
-            self._name == other._name
+        return (isinstance(other, RFunction) and
+                self._name == other._name)
 
     def _sage_doc_(self):
         """

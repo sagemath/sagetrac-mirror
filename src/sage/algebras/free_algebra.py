@@ -496,10 +496,10 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
 
         """
-        return isinstance(other, FreeAlgebra_generic) and \
-                self.base_ring() == other.base_ring() and \
-                self.__ngens == other.__ngens and \
-                self.variable_names() == other.variable_names()
+        return (isinstance(other, FreeAlgebra_generic) and
+                self.base_ring() == other.base_ring() and
+                self.__ngens == other.__ngens and
+                self.variable_names() == other.variable_names())
 
     def _repr_(self):
         """

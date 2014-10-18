@@ -328,9 +328,9 @@ class Face(SageObject):
             sage: f == g
             True
         """
-        return isinstance(other, Face) and \
-                self.vector() == other.vector() and \
-                self.type() == other.type()
+        return (isinstance(other, Face) and
+                self.vector() == other.vector() and
+                self.type() == other.type())
 
     def __lt__(self, other):
         r"""
@@ -344,9 +344,9 @@ class Face(SageObject):
             sage: Face([-2,1,0], 2) < Face([-2,1,0],2)
             False
         """
-        return self.vector() < other.vector() or \
+        return (self.vector() < other.vector() or
                 (self.vector() == other.vector() and
-                 self.type() < other.type())
+                 self.type() < other.type()))
 
     def __le__(self, other):
         r"""
@@ -360,9 +360,9 @@ class Face(SageObject):
             sage: Face([-2,1,0], 2) <= Face([-2,1,0],2)
             True
         """
-        return self.vector() <= other.vector() or \
+        return (self.vector() <= other.vector() or
                 (self.vector() == other.vector() and
-                 self.type() <= other.type())
+                 self.type() <= other.type()))
 
     def __hash__(self):
         r"""

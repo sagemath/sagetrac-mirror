@@ -472,8 +472,8 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: r1 == r2
             False
         """
-        return self.__class__ == other.__class__ and \
-               self._cartan_type == other._cartan_type
+        return (self.__class__ == other.__class__ and
+                self._cartan_type == other._cartan_type)
 
     def root_lattice(self):
         """

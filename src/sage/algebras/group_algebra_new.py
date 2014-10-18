@@ -521,9 +521,9 @@ class GroupAlgebra(CombinatorialFreeModule):
             sage: A == A
             True
         """
-        return isinstance(other, type(self)) and \
-                self._group == other._group and \
-                self.base_ring() == other.base_ring()
+        return (isinstance(other, type(self)) and
+                self._group == other._group and
+                self.base_ring() == other.base_ring())
 
     def random_element(self, n=2):
         r"""

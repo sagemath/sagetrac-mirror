@@ -48,8 +48,8 @@ class PariGroup(Group):
         return "PARI group %s of degree %s"%(self.__x, self.__degree)
 
     def __eq__(self, other):
-        return isinstance(other, PariGroup) and \
-                (self.__x, self.__degree) == (other.__x, other.__degree)
+        return (isinstance(other, PariGroup) and
+                (self.__x, self.__degree) == (other.__x, other.__degree))
 
     def _pari_(self):
         return self.__x

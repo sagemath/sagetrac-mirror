@@ -770,8 +770,8 @@ class SwapOperator(SageObject):
             sage: s[0] == s[0]
             True
         """
-        return isinstance(other, SwapOperator) and \
-               self._position == other._position
+        return (isinstance(other, SwapOperator) and
+                self._position == other._position)
 
     def __lt__(self, other):
         r"""
@@ -787,8 +787,8 @@ class SwapOperator(SageObject):
             sage: s[1] < s[2]
             True
         """
-        return isinstance(other, SwapOperator) and \
-               self._position < other._position
+        return (isinstance(other, SwapOperator) and
+                self._position < other._position)
 
     def __repr__(self):
         r"""

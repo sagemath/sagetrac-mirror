@@ -1384,8 +1384,8 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         if not isinstance(other, CCA):
             raise TypeError("other must be a connected component")
 
-        return isinstance(other, type(self)) and \
-            self._parent._zeroes == other._parent._zeroes
+        return (isinstance(other, type(self)) and
+                self._parent._zeroes == other._parent._zeroes)
 
 CCA = ConnectedComponentOfAbelianStratum
 
