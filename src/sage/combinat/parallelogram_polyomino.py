@@ -609,6 +609,105 @@ class ParallelogramPolyomino(ClonableList):
             widths.append( uw[i] - lw[i] )
         return widths
 
+    def degree_convexity(self):
+        r"""
+        Return the degree convexity of a parallelogram polyomino.
+
+        A convex polyomino is said to be k-convex if every pair of its cells 
+        can be connected by a monotone path (path with south and east steps) 
+        with at most k changes of direction.
+        The degree of convexity of a convex polyomino P is the smallest integer
+        k such that P is k-convex.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
+            ....: )
+            sage: pp.degree_convexity()
+            3
+
+            sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
+            sage: pp.degree_convexity()
+            0
+
+            sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
+            sage: pp.degree_convexity()
+            0
+        """
+        l0 = len( self.bounce_path( direction=0 ) )
+        l1 = len( self.bounce_path( direction=1 ) )
+        return min( l0, l1 ) - 1
+
+    def is_flat(self):
+        r"""
+        Return true if the two bounce path join together in the rightmost cell 
+        of the bottom row of P.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
+            ....: )
+            sage: pp.is_flat()
+            False
+
+            sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
+            sage: pp.is_flat()
+            True
+
+            sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
+            sage: pp.is_flat()
+            True
+        """
+        
+        l0 = len( self.bounce_path( direction=0 ) )
+        l1 = len( self.bounce_path( direction=1 ) )
+        return l0 == l1
+
+    def is_k_directed(self, k):
+        r"""
+        Return true if the Polyomino Parallelogram is k-directed.
+
+        A convex polyomino is said to be k-convex if every pair of its cells 
+        can be connected by a monotone path (path with south and east steps) 
+        with at most k changes of direction.
+        The degree of convexity of a convex polyomino P is the smallest integer
+        k such that P is k-convex.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
+            ....: )
+            sage: pp.is_k_directed(3)
+            True
+            sage: pp.is_k_directed(4)
+            True
+            sage: pp.is_k_directed(5)
+            True
+            sage: pp.is_k_directed(0)
+            False
+            sage: pp.is_k_directed(1)
+            False
+            sage: pp.is_k_directed(2)
+            False
+
+            sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
+            sage: pp.degree_convexity()
+            sage: pp.is_k_directed(0)
+            True
+            sage: pp.is_k_directed(1)
+            False
+
+            sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
+            sage: pp.is_k_directed(0)
+            True
+            sage: pp.is_k_directed(1)
+            False
+        """
+        return self.degree_convexity() <= k
+
     def heights(self):
         r"""
         This method return a list of heights of the parallelogram 
