@@ -927,6 +927,106 @@ class AbelianStratum(SageObject):
         return (self._marked_separatrix != other._marked_separatrix or
                 self._zeroes != other._zeroes)
 
+    def __ge__(self, other):
+        r"""
+        TESTS::
+
+            sage: a = AbelianStratum(1,3)
+            sage: b = AbelianStratum(3,1)
+            sage: a >= b
+            True
+            sage: b >= a
+            True
+            sage: c = AbelianStratum(1,3,1,1)
+            sage: a >= c
+            False
+            sage: c >= a
+            True
+            sage: a >= False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
+        """
+        if not isinstance(self, type(other)):
+            raise TypeError("the right member must be a stratum")
+        return (self._marked_separatrix == other._marked_separatrix and
+                self._zeroes >= other._zeroes)
+
+    def __gt__(self, other):
+        r"""
+        TESTS::
+
+            sage: a = AbelianStratum(1,3)
+            sage: b = AbelianStratum(3,1)
+            sage: a > b
+            False
+            sage: b > a
+            False
+            sage: c = AbelianStratum(1,3,1,1)
+            sage: a > c
+            False
+            sage: c > a
+            True
+            sage: a > False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
+        """
+        if not isinstance(self, type(other)):
+            raise TypeError("the right member must be a stratum")
+        return (self._marked_separatrix == other._marked_separatrix and
+                self._zeroes > other._zeroes)
+
+    def __le__(self, other):
+        r"""
+        TESTS::
+
+            sage: a = AbelianStratum(1,3)
+            sage: b = AbelianStratum(3,1)
+            sage: a <= b
+            True
+            sage: b <= a
+            True
+            sage: c = AbelianStratum(1,3,1,1)
+            sage: a <= c
+            True
+            sage: c <= a
+            False
+            sage: a <= False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
+        """
+        if not isinstance(self, type(other)):
+            raise TypeError("the right member must be a stratum")
+        return (self._marked_separatrix == other._marked_separatrix and
+                self._zeroes <= other._zeroes)
+
+    def __lt__(self, other):
+        r"""
+        TESTS::
+
+            sage: a = AbelianStratum(1,3)
+            sage: b = AbelianStratum(3,1)
+            sage: a < b
+            False
+            sage: b < a
+            False
+            sage: c = AbelianStratum(1,3,1,1)
+            sage: a < c
+            True
+            sage: c < a
+            False
+            sage: a < False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
+        """
+        if not isinstance(self, type(other)):
+            raise TypeError("the right member must be a stratum")
+        return (self._marked_separatrix == other._marked_separatrix and
+                self._zeroes < other._zeroes)
+
     def connected_components(self):
         """
         Lists the connected components of the Stratum.
