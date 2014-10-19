@@ -619,6 +619,8 @@ class ParallelogramPolyomino(ClonableList):
         The degree of convexity of a convex polyomino P is the smallest integer
         k such that P is k-convex.
 
+        If the parallelogram polyomino is empty, the function return -1.
+
         EXAMPLES::
         
             sage: pp = ParallelogramPolyomino(
@@ -633,7 +635,7 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
             sage: pp.degree_convexity()
-            0
+            -1
         """
         l0 = len( self.bounce_path( direction=0 ) )
         l1 = len( self.bounce_path( direction=1 ) )
@@ -694,17 +696,16 @@ class ParallelogramPolyomino(ClonableList):
             False
 
             sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
-            sage: pp.degree_convexity()
             sage: pp.is_k_directed(0)
             True
             sage: pp.is_k_directed(1)
-            False
+            True
 
             sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
             sage: pp.is_k_directed(0)
             True
             sage: pp.is_k_directed(1)
-            False
+            True
         """
         return self.degree_convexity() <= k
 
