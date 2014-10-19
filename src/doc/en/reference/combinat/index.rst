@@ -114,6 +114,7 @@ Combinatorics
    :maxdepth: 1
 
    sage/combinat/parallelogram_polyomino
+   sage/combinat/directed_convex_polyomino
 
 **Posets**
 
