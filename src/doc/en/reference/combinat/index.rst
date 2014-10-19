@@ -31,6 +31,7 @@ Combinatorics
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/necklace
    sage/combinat/non_decreasing_parking_function
+   sage/combinat/parallelogram_polyomino
    sage/combinat/parking_functions
    sage/combinat/perfect_matching
    sage/combinat/six_vertex_model
