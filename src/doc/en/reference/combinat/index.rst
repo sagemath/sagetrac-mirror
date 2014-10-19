@@ -108,6 +108,13 @@ Combinatorics
    sage/combinat/hall_polynomial
    sage/combinat/kazhdan_lusztig
 
+**Polyominoes**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/parallelogram_polyomino
+
 **Posets**
 
 .. toctree::
@@ -148,13 +155,6 @@ Combinatorics
 
    tableaux
    sage/combinat/rsk
-
-**Polyominoes**
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/combinat/parallelogram_polyomino
 
 **Trees**
 
