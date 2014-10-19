@@ -3,7 +3,6 @@ Combinatorics
 
 .. automodule:: sage.combinat
 
-
 Comprehensive Module List
 -------------------------
 
@@ -13,4 +12,3 @@ Comprehensive Module List
    module_list
 
 .. include:: ../footer.txt
-
