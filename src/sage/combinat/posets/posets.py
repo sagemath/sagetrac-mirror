@@ -2722,13 +2722,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         Michel Habib and Lhouari Nourine, 1998. Recursively reduces the poset by removing
         closed interval from bottom element to some minimal meet-irreducible element.
         See http://www.lirmm.fr/~nourine/Papiers/dist-recognition.ps.
-        """   
+        """
         if self.cardinality() < 2:
             return True
         if self.cardinality() == 2:
             return self.is_chain()
         if ( not self.is_graded() or not self.is_bounded() or not
-        self.rank() == len([e for e in self if len(self.lower_covers(e))==1]) == 
+        self.rank() == len([e for e in self if len(self.lower_covers(e))==1]) ==
         len([e for e in self if len(self.upper_covers(e))==1]) ):
             return False
         return self._is_distributive_lattice_recursion()

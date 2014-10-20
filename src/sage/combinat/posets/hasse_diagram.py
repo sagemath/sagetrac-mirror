@@ -1348,7 +1348,7 @@ class HasseDiagram(DiGraph):
             False
         """
         from sage.misc.superseded import deprecation
-        deprecation(17173, 'Slow, use function from posets.py or lattices.py')
+        deprecation(17173, 'Slow, use function from posets.py or lattices.py.')
 
         try:
             jn = self.join_matrix()
