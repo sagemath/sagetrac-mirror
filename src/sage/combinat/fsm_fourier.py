@@ -307,16 +307,16 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
     while True:
         N += 2
         factor *= (-s - N + 2)/(M + alpha)
-        assert factor.overlaps(falling_factorial(-s, N - 1)/(M + alpha)**(s + N - 1))
+        #assert factor.overlaps(falling_factorial(-s, N - 1)/(M + alpha)**(s + N - 1))
         N_factorial *= (N - 1)*N
-        assert ZZ(N).factorial() == N_factorial
+        #assert ZZ(N).factorial() == N_factorial
         result -= bernoulli(N)/N_factorial * factor
 
         factor *= (-s - N + 1)
-        assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
+        #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N - 1))
 
         error_factor /= 4*RIF.pi()**2
-        assert error_factor.overlaps(4/(2*RIF.pi())**N)
+        #assert error_factor.overlaps(4/(2*RIF.pi())**N)
         error_bound = error_factor / (sigma + N - 1) * factor.abs()
 
         if result.abs().upper().is_zero():
@@ -337,7 +337,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             return result + error
 
         factor /= (M + alpha)
-        assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
+        #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
 
 
 class FSMFourier(Transducer):
@@ -580,15 +580,18 @@ class FSMFourier(Transducer):
                 self.n_states = len(self.fsm.states())
                 self.parent = parent
 
-            def eigenvectors(self, M, components):
+            def mask(self, n, components):
                 nrows = sum(c.n_states for c in components if c != self)
                 mask = matrix(
-                    nrows, M.ncols(),
+                    nrows, n,
                     [standard_basis[positions[state.label()]]
                      for other in components
                      if other != self
                      for state in other.fsm.iter_states()])
+                return mask
 
+            def eigenvectors(self, M, components):
+                mask = self.mask(M.nrows(), components)
                 def eigenvector(j):
                     eigenvalue = q * alpha**(
                         j * common_period / self.period)
@@ -597,7 +600,7 @@ class FSMFourier(Transducer):
                          [mask]],
                         subdivide=False)
                     kernel = S.right_kernel_matrix()
-                    assert kernel.nrows() == 1
+                    #assert kernel.nrows() == 1
                     if j == 0:
                         #normalize for positive eigenvector
                         return kernel.row(0) / sum(kernel.row(0))
@@ -628,7 +631,7 @@ class FSMFourier(Transducer):
             def coefficient_lambda(self):
                 ones = vector(1 for _ in range(M.nrows()))
                 products = [w*ones for w in self.vectors_w()]
-                assert all(e.is_zero() for e in products[1:])
+                #assert all(e.is_zero() for e in products[1:])
                 return products[0]
 
             @cached_method()
@@ -636,42 +639,76 @@ class FSMFourier(Transducer):
                 p = self.fsm.adjacency_matrix(
                     entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
                 Z = p.parent().gen()
-                assert p(Y=1, Z=q) == 0
+                #assert p(Y=1, Z=q) == 0
                 mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
                     Y=1, Z=q)
+                I = CyclotomicField(4).gen()
                 return I*mu_prime_Z
 
             @cached_method()
             def a(self):
                 return QQ(-I * self.mu_prime()/q)
 
-            def A_k(self, ell, k, CIF=ComplexIntervalField()):
-                """Compute `A_{jk}`."""
+            def w_ell(self, ell):
+                if common_period.divides(ell*self.period):
+                    k = self.period*ell/common_period % self.period
+                    return vector(field_to_CIF(c) for c in self.vectors_w()[k])
+                else:
+                    return vector(0 for _ in self.vectors_w()[0])
 
-                assert common_period.divides(
-                    ell - k*common_period/self.period)
-                I = CIF.gens()[0]
-                pi = CIF.pi()
-                chi_ell = 2*ell*pi*I / (common_period*log(q))
-                s = CIF(1 + chi_ell)
-                b_0 = self.parent._FC_b_direct_(0)
-                ones = vector(1 for _ in b_0)
-                w_k = vector(field_to_CIF(c) for c in self.vectors_w()[k])
-                
-                if ell == 0:
-                    raise NotImplementedError(
-                        "Zeroth Fourier coefficient is not yet "
-                        "implemented")
+            def M_prime(self):
+                I = CyclotomicField(4).gen()
+                return self.parent.adjacency_matrix(entry=lambda t: sum(t.word_out))*I
 
-                m = s.abs().upper().ceil() + s.parent().precision()
-                result = -w_k * self.parent._H_m_rhs_(s, m)
-                if k == 0:
-                    result += self.a() * self.coefficient_lambda()
-                if common_period.divides(ell) and k == 0:
-                    result +=   self.coefficient_lambda() * self.a() / \
-                       chi_ell
+            def vector_v_prime(self, k):
+                mask = self.mask(M.nrows(), components)
+                ones = matrix([1 for _ in self.vectors_w()[0]])
+                eigenvalue = q * alpha**(
+                        k * common_period / self.period)
+                S = matrix.block(CyclotomicField(4*common_period),
+                     [[M - eigenvalue*matrix.identity(M.nrows())],
+                      [ones],
+                      [mask]],
+                     subdivide=False)
+                eigenvector_right = vector(field, self.right_eigenvectors()[k])
+                right_side = - matrix.block(CyclotomicField(4*common_period),
+                                            [[self.M_prime() - self.mu_prime()*matrix.identity(M.nrows())],
+                                             [0*ones],
+                                             [0*mask]],
+                                            subdivide=False) * eigenvector_right
+                v_prime = S.solve_right(right_side)
+                return v_prime
 
-                return result
+            def vector_w_prime(self, k):
+                mask = self.mask(M.nrows(), components)
+                eigenvalue = q * alpha**(
+                        k * common_period / self.period)
+                eigenvector_right = vector(field, self.right_eigenvectors()[k])
+                eigenvector_left = vector(field, self.left_eigenvectors()[k])
+                S = matrix.block(CyclotomicField(4*common_period),
+                     [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
+                      [matrix(eigenvector_right)],
+                      [mask]],
+                     subdivide=False)
+                right_side = - matrix.block(CyclotomicField(4*common_period),
+                                            [[self.M_prime().transpose() - self.mu_prime()*matrix.identity(M.nrows())],
+                                             [matrix(self.vector_v_prime(k))],
+                                             [0*mask]],
+                                            subdivide=False) * eigenvector_left
+                left_prime = S.solve_right(right_side)
+                w_prime = initial_vector*self.vector_v_prime(k)*eigenvector_left \
+                    + initial_vector*eigenvector_right*left_prime
+                return w_prime
+
+            def lambda_ell_prime(self, ell):
+                ones = vector(1 for _ in self.vectors_w()[0])
+                if common_period.divides(ell*self.period):
+                    k = self.period*ell/common_period % self.period
+                    lambda_prime = self.vector_w_prime(k)*ones
+                    return lambda_prime
+                else:
+                    return 0
+                    
 
 
         components = [FCComponent(c, self) for c in self.final_components()]
@@ -699,42 +736,42 @@ class FSMFourier(Transducer):
         annihilated_by_left = matrix(left_eigenvectors).\
             right_kernel_matrix().transpose()
 
-        T = matrix.block([[matrix.column(right_eigenvectors),
-                           annihilated_by_left]],
-                         subdivide=False)
+        #T = matrix.block([[matrix.column(right_eigenvectors),
+        #                   annihilated_by_left]],
+        #                 subdivide=False)
 
-        assert T.is_square()
-        assert T.nrows() == M.nrows()
-        assert T.is_invertible()
+        #assert T.is_square()
+        #assert T.nrows() == M.nrows()
+        #assert T.is_invertible()
 
-        check = T.inverse() * M * T
+        #check = T.inverse() * M * T
         eigenvalues = [q * alpha**(j * common_period/c.period)
                        for c in components
                        for j in range(c.period)]
-        check_dont_care = check.submatrix(len(eigenvalues),
-                                          len(eigenvalues))
-        assert (matrix.block(
-                [[matrix.diagonal(eigenvalues), ZZ(0)],
-                 [ZZ(0), check_dont_care]],
-                     subdivide=False) - check).is_zero()
+        #check_dont_care = check.submatrix(len(eigenvalues),
+        #                                  len(eigenvalues))
+        #assert (matrix.block(
+        #        [[matrix.diagonal(eigenvalues), ZZ(0)],
+        #         [ZZ(0), check_dont_care]],
+        #             subdivide=False) - check).is_zero()
 
-        assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
-                - matrix(left_eigenvectors)).is_zero()
+        #assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
+        #        - matrix(left_eigenvectors)).is_zero()
 
         e_T = sum(c.a()*c.coefficient_lambda()
                   for c in components)
 
-        var('n0')
-        try:
-            assert e_T == self.asymptotic_moments(n0)['expectation']\
-                .coefficient(n0)
-        except NotImplementedError:
-            pass
+        #var('n0')
+        #try:
+        #    assert e_T == self.asymptotic_moments(n0)['expectation']\
+        #        .coefficient(n0)
+        #except NotImplementedError:
+        #    pass
 
         M_epsilon = [self.adjacency_matrix(input=epsilon,
                                            entry=lambda t: 1)
                      for epsilon in range(q)]
-        assert M == sum(M_epsilon)
+        #assert M == sum(M_epsilon)
 
         Delta_epsilon = [self.adjacency_matrix(
                              input=epsilon,
@@ -742,7 +779,7 @@ class FSMFourier(Transducer):
                          for epsilon in range(q)]
         Delta = self.adjacency_matrix(
                              entry=lambda t: sum(t.word_out))
-        assert Delta == sum(Delta_epsilon)
+        #assert Delta == sum(Delta_epsilon)
 
         C_0 = max(self._FC_b_direct_(r).norm(infinity)
                   for r in range(q))
@@ -875,7 +912,7 @@ class FSMFourier(Transducer):
             d.M_epsilon[epsilon] * self._FC_b_recursive_(R)
 
 
-    def _H_m_rhs_(self, s, m):
+    def _H_m_rhs_(self, s, m, rem_poles=False):
         r"""
         Compute `(I - q^{-s}M)\mathbf{H}_m(s)`
 
@@ -949,6 +986,7 @@ class FSMFourier(Transducer):
                 ....:     for k in range(1, 10))
                 True
         """
+        from sage.functions.other import psi1
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
 
         sigma = s.real()
@@ -974,15 +1012,22 @@ class FSMFourier(Transducer):
 
         result = sum(self._FC_b_recursive_(r) * r**(-s)
                      for r in reversed(srange(m, q*m)))
-        result += q**(-s) * sum(
-            D * ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
-            for epsilon, D in enumerate(Delta_epsilon))
+        if rem_poles and (s-1).contains_zero():
+            result += q**(-s) * sum(
+                D * ones * (-CIF(psi1(ZZ(epsilon)/q + int(epsilon==0)).n())#TODO: psi1 of a CIF
+                             - sum((k + epsilon/q + int(epsilon==0))**(-1)
+                                   for k in range(0, m-int(epsilon==0))))
+                for epsilon, D in enumerate(Delta_epsilon))
+        else:
+            result += q**(-s) * sum(
+                D * ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
+                for epsilon, D in enumerate(Delta_epsilon))
 
         N = 1
         factor = -s * q**(-s - 1)
 
         while True:
-            assert factor.overlaps(sage.rings.arith.binomial(-s, N) * q**(-s - N))
+            #assert factor.overlaps(sage.rings.arith.binomial(-s, N) * q**(-s - N))
 
             if result.is_zero():
                 error_acceptable = 0
@@ -1021,6 +1066,30 @@ class FSMFourier(Transducer):
 
             factor *= (-s - N)/(N + 1) / q
             N += 1
+
+    def _H_Res_(self, s):
+        r"""
+        Compute the Residue of `\mathbf{H}` at `s`.
+
+        INPUT:
+
+        ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+
+        OUTPUT:
+
+        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+
+        EXAMPLES:
+        """
+
+        q = len(self.input_alphabet)
+        log_q = CIF(log(q))
+        m = s.abs().upper().ceil() + s.parent().precision()
+
+        if (s-1).contains_zero():
+            return self._H_m_rhs_(s, m, rem_poles=True)/log_q
+        else:
+            return self._H_m_rhs_(s, m)/log_q
 
     # BEGIN_REMOVE_FOR_DOCUMENTATION
     @cached_method(key=lambda self, s, m: (s.real().lower(),
@@ -1134,18 +1203,15 @@ class FSMFourier(Transducer):
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
                 sage: def FourierCoefficientDelange(k):
+                ....:     if k == 0:
+                ....:         return 1/(2*log(2))*(log(2*pi)-1)-3/4
                 ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1) \
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
                 sage: all(FourierCoefficientDelange(k)
                 ....:     in T.FourierCoefficient(k)
-                ....:     for k in range(1, 5))
+                ....:     for k in range(0, 5))
                 True
         """
-
-        if ell == 0:
-            raise NotImplementedError(
-                "Zeroth Fourier coefficient is not yet "
-                "implemented")
 
         q = len(self.input_alphabet)
         log_q = CIF(log(q))
@@ -1153,15 +1219,13 @@ class FSMFourier(Transducer):
         I = CIF.gens()[0]
         chi_ell =  CIF(2*ell*CIF.pi()*I / (data.period*log_q))
 
+        w = sum(c.w_ell(ell) for c in data.components)
+        if all(not _ for _ in w):
+            result = CIF(0)
+        else:
+            result = 1/(1+chi_ell) * w * self._H_Res_(1+chi_ell)
 
-        result = -1/(1 + chi_ell)/log_q * sum(
-            c.A_k(ell, k)
-            for c in data.components
-            for k in range(c.period)
-            if data.period.divides(ell - k*data.period/c.period)
-            )
-
-        if data.period.divides(ell):
-            result += data.e_T/(chi_ell * log_q)
+        if ell == 0:
+            result += -data.e_T/log_q - data.e_T/2 - I*sum(c.lambda_ell_prime(ell) for c in data.components)
 
         return result
