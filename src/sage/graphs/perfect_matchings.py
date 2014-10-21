@@ -1,13 +1,18 @@
-"""
-Perfect Matchings
+r"""
+Perfect Matchings of Graphs
 
-This module contains the following methods:
+This module includes methods for manipulating
+perfect matchings of graphs, especially planar ones.
+
 
 AUTHORS:
 
-- Arvind Ayyer - original implementation
+- Arvind Ayyer (2014-10-11):  original implementation
 
-REFERENCE:
+
+
+EXAMPLES::
+
 
 
 
