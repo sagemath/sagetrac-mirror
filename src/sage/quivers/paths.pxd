@@ -1,6 +1,7 @@
 from sage.structure.element cimport MonoidElement, Element
-from sage.misc.bounded_integer_sequences cimport biseq_t, dealloc_biseq, getitem_biseq, concat_biseq, startswith_biseq, contains_biseq, max_overlap_biseq, slice_biseq, list_to_biseq, biseq_to_list
+from sage.misc.bounded_integer_sequences cimport biseq_t, biseq_dealloc, biseq_getitem, biseq_concat, biseq_startswith, biseq_contains, biseq_max_overlap, biseq_slice, list_to_biseq, biseq_to_list
 from sage.libs.gmp.types cimport *
+from sage.libs.gmp.mpn cimport mpn_cmp
 
 include "sage/ext/python.pxi"
 include "sage/ext/cdefs.pxi"
@@ -9,7 +10,6 @@ include "sage/libs/ntl/decl.pxi"
 include "sage/ext/interrupt.pxi"
 cdef extern from "gmp.h":
     cdef int mp_bits_per_limb
-    int mpn_cmp (mp_limb_t *s1p, mp_limb_t *s2p, mp_size_t n)
 
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)

@@ -133,7 +133,7 @@ cdef class QuiverPath(MonoidElement):
             sage: del p    # indirect doctest
 
         """
-        dealloc_biseq(self._path)
+        biseq_dealloc(self._path)
 
     cdef QuiverPath _new_(self, int start, int end):
         """
@@ -408,19 +408,19 @@ cdef class QuiverPath(MonoidElement):
                 raise ValueError("Slicing only possible for step 1")
             if start==0 and stop==self._path.length:
                 return self
-            init = E[getitem_biseq(self._path, start)][0]
-            end   = E[getitem_biseq(self._path, stop)][0]
+            init = E[biseq_getitem(self._path, start)][0]
+            end   = E[biseq_getitem(self._path, stop)][0]
             OUT = self._new_(init, end)
-            slice_biseq(OUT._path, self._path, start, stop, step)
+            biseq_slice(OUT._path, self._path, start, stop, step)
             return OUT
         if index<0:
             index = self._path.length+index
         if index<0 or index>=self._path.length:
             raise IndexError("list index out of range")
-        init = E[getitem_biseq(self._path, index)][0]
-        end = E[getitem_biseq(self._path, index)][1]
+        init = E[biseq_getitem(self._path, index)][0]
+        end = E[biseq_getitem(self._path, index)][1]
         OUT = self._new_(init, end)
-        slice_biseq(OUT._path, self._path, index, index+1, 1)
+        biseq_slice(OUT._path, self._path, index, index+1, 1)
         return OUT
 
     def __iter__(self):
@@ -477,7 +477,7 @@ cdef class QuiverPath(MonoidElement):
         if self._end != right._start:
             return None
         cdef QuiverPath OUT = self._new_(self._start, right._end)
-        concat_biseq(OUT._path, self._path,right._path)
+        biseq_concat(OUT._path, self._path,right._path)
         return OUT
 
     def __mod__(self, other):
@@ -515,9 +515,9 @@ cdef class QuiverPath(MonoidElement):
 
         # If other is the beginning, return the rest
         cdef QuiverPath OUT
-        if startswith_biseq(cself._path, right._path):
+        if biseq_startswith(cself._path, right._path):
             OUT = cself._new_(right._end, cself._end)
-            slice_biseq(OUT._path, cself._path, right._path.length, cself._path.length, 1)
+            biseq_slice(OUT._path, cself._path, right._path.length, cself._path.length, 1)
             return OUT
         else:
             return None
@@ -572,10 +572,10 @@ cdef class QuiverPath(MonoidElement):
         if self._parent is not P._parent:
             return (None, None, None)
         cdef int i
-        if startswith_biseq(P._path, self._path):
+        if biseq_startswith(P._path, self._path):
             i = 0
         else:
-            i = max_overlap_biseq(self._path, P._path)
+            i = biseq_max_overlap(self._path, P._path)
         if i==-1:
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
@@ -618,7 +618,7 @@ cdef class QuiverPath(MonoidElement):
             raise ValueError("The two paths belong to different quivers")
         if subpath._path.length == 0:
             raise ValueError("We only consider sub-paths of positive length")
-        if contains_biseq(self._path, subpath._path, 0)==-1:
+        if biseq_contains(self._path, subpath._path, 0)==-1:
             return 0
         return 1
 
@@ -653,7 +653,7 @@ cdef class QuiverPath(MonoidElement):
             raise ValueError("The two paths belong to different quivers")
         if subpath._path.length==0:
             return self._start == subpath._start
-        if startswith_biseq(self._path, subpath._path):
+        if biseq_startswith(self._path, subpath._path):
             return 1
         return 0
 
