@@ -1135,6 +1135,8 @@ class ArithmeticSubgroup(group.Group):
             1
             sage: Gamma1(4).dimension_modular_forms(1) # irregular cusp
             1
+            sage: Gamma0(32).dimension_modular_forms(2)
+            8
             sage: Gamma1(64).dimension_modular_forms(1/2)
             5
             sage: Gamma1(40).dimension_modular_forms(3/2)
@@ -1155,6 +1157,8 @@ class ArithmeticSubgroup(group.Group):
 
         if den == 2: # else, k is an integer
             return self.dimension_cusp_forms(k) + self.dimension_eis(k)
+
+        k = ZZ(k)
 
         if not (k % 2):
             # k even
@@ -1207,6 +1211,8 @@ class ArithmeticSubgroup(group.Group):
             4
             sage: Gamma1(64).dimension_cusp_forms(1/2)
             0
+            sage: Gamma0(32).dimension_cusp_forms(2)
+            1
             sage: Gamma0(32).dimension_cusp_forms(9/2)
             10
             sage: Gamma1(31).dimension_cusp_forms(1)
@@ -1235,6 +1241,7 @@ class ArithmeticSubgroup(group.Group):
                 raise NotImplementedError("Computation of dimensions of half-integral weight cusp forms spaces not implemented for arithmetic subgroups other than Gamma0, Gamma1")
 
         k = ZZ(k)
+
         if not (k % 2):
             # k even
 
@@ -1282,6 +1289,8 @@ class ArithmeticSubgroup(group.Group):
             3
             sage: GammaH(33, [4]).dimension_eis(1)
             4
+            sage: Gamma0(32).dimension_eis(2)
+            7
             sage: Gamma1(40).dimension_eis(3/2)
             44
             sage: Gamma1(64).dimension_eis(1/2)
