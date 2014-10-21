@@ -33,48 +33,6 @@ Functions
 
 from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
-def simple_wilson_construction(k,r,m,u,explain_construction=False):
-    r"""
-    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
-
-    INPUT:
-
-    - ``k,r,m`` -- integers
-
-    - ``u`` -- list of positive integers
-
-    - ``explain_construction`` (boolean) -- return a string describing
-      the construction.
-
-    .. TODO::
-
-        As soon as wilson construction accepts an empty master design we should
-        remove this intermediate functions.
-
-    .. SEEALSO::
-
-        :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import simple_wilson_construction
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-
-        sage: OA = simple_wilson_construction(6,7,12,())
-        doctest:1: DeprecationWarning: simple_wilson_construction(k,r,m,u) is
-        deprecated. Use wilson_construction(None,k,r,m,u) (defined in the module
-        orthogonal_arrays).
-        See http://trac.sagemath.org/16559 for details.
-
-        sage: is_orthogonal_array(OA,6,84)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16559, "simple_wilson_construction(k,r,m,u) is deprecated. Use "
-                "wilson_construction(None,k,r,m,u) (defined in the module "
-                "orthogonal_arrays).")
-    return wilson_construction(None,k,r,m,u,False,explain_construction)
-
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
     Return an `OA(k,nm+i)`.
