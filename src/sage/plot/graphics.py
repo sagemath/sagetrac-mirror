@@ -3323,6 +3323,10 @@ class GraphicsArray(SageObject):
         -  ``frame`` - (default: False) draw a frame around the
            image
 
+        - ``ymin`` - starting y value in the rendered figure
+
+        - ``ymax`` - ending y value in the rendered figure
+
         EXAMPLES:
 
         This draws a graphics array with four trig plots and no

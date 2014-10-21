@@ -662,7 +662,9 @@ def plot(funcs, *args, **kwds):
           keywords to the :meth:`~sage.plot.graphics.Graphics.show` method.
           To limit the plot along the vertical axis, ``ymin`` and ``ymax``
           keywords can be provided to either this ``plot`` command or to
-          the ``show`` command.
+          the ``show`` command. Please note that even if they are passed as 
+          ``plot`` command, they will be passed to ``show``too, and so should
+          be regarded as ``show`` arguments.
 
         - For the other keyword options that the ``plot`` function can
           take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`.
@@ -1055,7 +1057,7 @@ def plot(funcs, *args, **kwds):
 
     Regions in which the plot has no values are automatically excluded. The
     regions thus excluded are in addition to the exclusion points present
-    in the ``exclude`` keyword argument.::
+    in the ``exclude`` keyword argument::
 
         sage: set_verbose(-1)
         sage: plot(arcsec, (x, -2, 2))  # [-1, 1] is excluded automatically
@@ -1069,6 +1071,19 @@ def plot(funcs, *args, **kwds):
         sage: plot(arccsc, -2, 2)       # [-1, 1] is excluded automatically
 
         sage: set_verbose(0)
+
+    Note that when displaying multiple plots, different ``ymin`` and ``ymax``
+    for each plot will not work. Parameters of the last plot will override the others::
+
+        sage: p = plot(x^3, ymin=-1, ymax=1)
+        sage: q = plot(exp(x), ymin=0, ymax=4)
+        sage: p+q
+
+    will take ``ymin`` and ``ymax`` from q, while::
+
+        sage: q+p
+
+    will have the parameters of p.
 
     TESTS:
 
