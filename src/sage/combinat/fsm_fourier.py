@@ -779,7 +779,7 @@ class FSMFourier(Transducer):
                          for epsilon in range(q)]
         Delta = self.adjacency_matrix(
                              entry=lambda t: sum(t.word_out))
-        #assert Delta == sum(Delta_epsilon)
+        assert Delta == sum(Delta_epsilon)
 
         C_0 = max(self._FC_b_direct_(r).norm(infinity)
                   for r in range(q))
