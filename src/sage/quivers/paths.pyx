@@ -18,7 +18,7 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from sage.rings.integer_ring import ZZ
 from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
@@ -179,7 +179,7 @@ cdef class QuiverPath(MonoidElement):
         cdef unsigned int l = len(path)
         self._start = start
         self._end   = end
-        list_to_biseq(self._path, path, max(len(parent.quiver().edges()), 1))
+        biseq_init_list(self._path, path, max(len(parent.quiver().edges()), 1))
         if not check:
             return
         Q = parent.quiver()
@@ -263,9 +263,10 @@ cdef class QuiverPath(MonoidElement):
             sage: Q([(1, 1)]) # indirect doctest
             e_1
         """
+        cdef mp_size_t i
         if self._path.length:
             E = self._parent.quiver().edges()
-            return '*'.join([E[e][2] for e in biseq_to_list(self._path)])
+            return '*'.join([E[biseq_getitem(self._path, i)][2] for i in range(self._path.length)])
         return 'e_{0}'.format(self._start)
 
     def __len__(self):
@@ -379,6 +380,8 @@ cdef class QuiverPath(MonoidElement):
         cdef int c = cmp(other._path.length, cself._path.length)
         if c!=0:
             return c
+        if cself._path.length==0:
+            return cmp((cself._start,cself._end), (other._start,other._end))
         return mpn_cmp(cself._path.data.bits, other._path.data.bits, cself._path.data.limbs)
 
     def __getitem__(self, index):
@@ -438,9 +441,10 @@ cdef class QuiverPath(MonoidElement):
         """
         # Return an iterator over an empty tuple for trivial paths, otherwise
         # return an iterator for _path as a list
+        cdef mp_size_t i
         E = self._parent.quiver().edges()
-        for n in biseq_to_list(self._path):
-            yield E[n]
+        for i from 0<=i<self._path.length:
+            yield E[biseq_getitem(self._path, i)]
 
     cpdef MonoidElement _mul_(self, MonoidElement other):
         """
@@ -477,7 +481,7 @@ cdef class QuiverPath(MonoidElement):
         if self._end != right._start:
             return None
         cdef QuiverPath OUT = self._new_(self._start, right._end)
-        biseq_concat(OUT._path, self._path,right._path)
+        biseq_init_concat(OUT._path, self._path,right._path)
         return OUT
 
     def __mod__(self, other):
@@ -716,7 +720,8 @@ cdef class QuiverPath(MonoidElement):
             return Q.element_class(Q, self._end, self._start, [], check=False)
 
         # Reverse all the edges in the path, then reverse the path
-        return Q.element_class(Q, self._end, self._start, biseq_to_list(self._path)[::-1], check=False)
+        cdef mp_size_t i
+        return Q.element_class(Q, self._end, self._start, [biseq_getitem(self._path,i) for i in xrange(self._path.length-1,-1,-1)], check=False)
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
     """
@@ -745,8 +750,8 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,
-          (0, 2L, 1, 4, (2L,)),
-          1L,
+          (0, 4L, 1, 4, (4L,)),
+          2L,
           2))
 
     """
@@ -755,9 +760,9 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
     out._start = start
     out._end   = end
     out._path.itembitsize = itembitsize
-    out._path.mask_item = ((<unsigned int>1)<<itembitsize)-1
+    out._path.mask_item = limb_lower_bits_up(itembitsize)
     out._path.length = length
     if length>0:
-        bitset_init(out._path.data, mp_bits_per_limb)
+        bitset_init(out._path.data, 1)
         bitset_unpickle(out._path.data, bitset_data)
     return out
