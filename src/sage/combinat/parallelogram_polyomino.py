@@ -35,12 +35,15 @@ from copy import deepcopy
 from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.functions.trig import cos, sin
+from sage.functions.other import sqrt
 
 default_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
     , color_line='black', color_point='black'
     , color_bounce_0='red', color_bounce_1='blue'
     , translation=[0,0], rotation=0
+    , mirror=None
 )
 
 ParallelogramPolyominoesOptions = GlobalOptions(
@@ -55,8 +58,8 @@ ParallelogramPolyominoesOptions = GlobalOptions(
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
                 'scale', 'line_size', 'point_size'
-                , 'color_line', 'color_point', 'translation', 
-                'rotation', 'color_bounce_0', 'color_bounce_1'
+                , 'color_line', 'color_point', 'translation', 'mirror'
+                , 'rotation', 'color_bounce_0', 'color_bounce_1'
             ] )
         )
     ),
@@ -85,6 +88,70 @@ ParallelogramPolyominoesOptions = GlobalOptions(
     )
 )
 
+
+class _drawing_tool :
+    def __init__( self, options, XY = lambda v:v ):
+        self._XY = lambda v: XY( [float(v[0]), float(v[1])] )
+        self._translation = options['translation']
+        self._mirror = options['mirror']
+        self._rotation = options['rotation']
+        self._color_line = options['color_line']
+        self._line_size = options['line_size']
+        self._point_size = options['point_size']
+        self._color_point = options['color_point']
+
+    def XY( self, v ):
+        def translate( pos, v ):
+            return [ pos[0]+v[0], pos[1]+v[1] ]
+        def rotate( pos, angle ):
+            [x,y] = pos
+            return [ x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle) ]
+        def mirror( pos,  axe ):
+            if axe is None:
+                return pos
+            n = float( sqrt( axe[0]**2 + axe[1]**2 ) )
+            axe[0] = float(axe[0]/n)
+            axe[1] = float(axe[1]/n)
+            sp = ( pos[0]*axe[0] + pos[1]*axe[1] )
+            sn = ( - pos[0]*axe[1] + pos[1]*axe[0] )
+            return [
+                sp*axe[0] + sn*axe[1] ,
+                sp*axe[1] - sn*axe[0]
+            ]
+        return rotate(
+            mirror( 
+                translate( self._XY( v ), self._translation ),
+                self._mirror 
+            ), self._rotation 
+        )
+    def draw_line( self, v1, v2, color=None, size=None):
+        if color is None:
+            color = self._color_line
+        if size is None:
+            size = self._line_size
+        [x1, y1] = self.XY( v1 )
+        [x2, y2] = self.XY( v2 )
+        return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f,%f);"%(
+            color, size, float(x1), float(y1), float(x2), float(y2)
+        )
+
+    def draw_polyline( self, list_of_vertices, color=None, size=None ):
+        res = ""
+        for i in range( len(list_of_vertices)-1 ):
+            res += self.draw_line(
+                list_of_vertices[i], list_of_vertices[i+1], color, size
+            )
+        return res
+
+    def draw_point( self, p1, color=None, size=None ):
+        if color is None:
+            color = self._color_point
+        if size is None:
+            size = self._point_size
+        [x1, y1] = self.XY( p1 )
+        return "\n  \\filldraw[color=%s] (%f, %f) circle (%spt);"%(
+            color, float(x1), float(y1), size 
+        )
 
 class ParallelogramPolyomino(ClonableList):
     r"""
@@ -1117,53 +1184,32 @@ class ParallelogramPolyomino(ClonableList):
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        def X( x ):
-            return x
-        def Y( y ):
-            return grid_height-1-y
+        drawing_tool = _drawing_tool(
+            tikz_options,
+            XY = lambda v: [ v[0], grid_height-1-v[1] ]
+        )
         res = ""
         if self.size() == 0:
-            res += "\n  \\draw[color_line=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color'], tikz_options['line_size'],
-                X(0),Y(0),
-                X(1),Y(0)
-            )
+            res += drawing_tool.draw_line( [0,0], [1,0] )
             return res 
-        res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-            tikz_options['color_line'], tikz_options['line_size'],
-            X(0),Y(0),
-            X(0),Y(self.lower_heights()[0])
+        res += drawing_tool.draw_line( [0,0], [0, self.lower_heights()[0]] )
+        res += drawing_tool.draw_line( 
+            [ grid_width-1, self.upper_heights()[ grid_width-2 ] ],
+            [ grid_width-1, self.lower_heights()[ grid_width-2 ] ]
         )
-        res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-            tikz_options['color_line'], tikz_options['line_size'],
-            X(grid_width-1), Y(self.upper_heights()[ grid_width-2 ]),
-            X(grid_width-1), Y(self.lower_heights()[ grid_width-2 ])
-        )
-        res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-            tikz_options['color_line'], tikz_options['line_size'],
-            X(0), Y(0), X(self.upper_widths()[0]), Y(0)
-        )
-        res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-            tikz_options['color_line'], tikz_options['line_size'],
-            X(self.lower_widths()[ grid_height-2 ]),
-            Y(grid_height -1),
-            X(self.upper_widths()[ grid_height-2 ]),
-            Y(grid_height -1)
+        res += drawing_tool.draw_line( [0, 0], [self.upper_widths()[0], 0] )
+        res += drawing_tool.draw_line( 
+            [ self.lower_widths()[ grid_height-2 ], grid_height -1 ],
+            [ self.upper_widths()[ grid_height-2 ], grid_height -1 ]
         )
         for w in xrange( 1, grid_width-1 ):
             h1 = self.upper_heights()[w-1]
             h2 = self.lower_heights()[w]
-            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color_line'], tikz_options['line_size'],
-                X(w),Y(h1), X(w),Y(h2)
-            )
+            res += drawing_tool.draw_line( [w, h1], [w,h2] )
         for h in xrange( 1, grid_height-1 ):
             w1 = self.lower_widths()[h-1]
             w2 = self.upper_widths()[h]
-            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color_line'], tikz_options['line_size'],
-                X(w1),Y(h), X(w2),Y(h)
-            )
+            res += drawing_tool.draw_line( [w1, h], [w2, h] )
         return res
 
     def _to_tikz_tree_with_bounce( self, directions=[0,1] ):
@@ -1173,29 +1219,21 @@ class ParallelogramPolyomino(ClonableList):
             return res 
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        def X( x ):
-            return x + .5
-        def Y( y ):
-            return grid_height-1-y - .5
+        drawing_tool = _drawing_tool(
+            tikz_options,
+            XY = lambda v: [ v[0] + .5, grid_height-1-v[1] - .5 ]
+        )
         if 0 in directions :
             for node in self.get_right_nodes():
-                res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-                    tikz_options['color_bounce_0'],
-                    X( node[1] ), Y( node[0] ),
-                    tikz_options['point_size']
+                res += drawing_tool.draw_point(
+                    [node[1], node[0]], tikz_options['color_bounce_0']
                 )
         if 1 in directions :
             for node in self.get_left_nodes():
-                res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-                    tikz_options['color_bounce_1'],
-                    X( node[1] ), Y( node[0] ),
-                    tikz_options['point_size']
+                res += drawing_tool.draw_point(
+                    [node[1], node[0]], tikz_options['color_bounce_1']
                 )
-        res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-            tikz_options['color_point'],
-            X(0), Y(0),
-            tikz_options['point_size']
-        )
+        res += drawing_tool.draw_point( [0, 0] )
         return res
 
     def _to_tikz_bounce( self, directions=[0,1] ):
@@ -1203,10 +1241,10 @@ class ParallelogramPolyomino(ClonableList):
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        def X( x ):
-            return x
-        def Y( y ):
-            return grid_height-1-y
+        drawing_tool = _drawing_tool(
+            tikz_options,
+            XY = lambda v: [ v[0], grid_height-1-v[1] ]
+        )
         def draw_bounce( direction, color ):
             if(
                 len( self.bounce_path( direction ) )  
@@ -1222,10 +1260,10 @@ class ParallelogramPolyomino(ClonableList):
             old = list( pos )
             for e in bp:
                 pos[direction] += e
-                res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                    color, 2*tikz_options['line_size'] + increase_size_line,
-                    X(old[1]),Y(old[0]),
-                    X(pos[1]),Y(pos[0])
+                res += drawing_tool.draw_line(
+                    [ old[1], old[0] ], [ pos[1], pos[0] ],
+                    color=color, 
+                    size=2*tikz_options['line_size'] + increase_size_line,
                 )
                 old[0], old[1] = pos
                 direction = 1-direction
@@ -1249,21 +1287,13 @@ class ParallelogramPolyomino(ClonableList):
             return res 
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        def X( x ):
-            return x + .5
-        def Y( y ):
-            return grid_height-1-y - .5
-        for node in self.get_nodes():
-            res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-                tikz_options['color_point'],
-                X( node[1] ), Y( node[0] ),
-                tikz_options['point_size']
-            )
-        res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-            tikz_options['color_point'],
-            X(0), Y(0),
-            tikz_options['point_size']
+        drawing_tool = _drawing_tool(
+            tikz_options,
+            XY = lambda v: [ v[0] + .5, grid_height-1-v[1] - .5 ]
         )
+        for node in self.get_nodes():
+            res += drawing_tool.draw_point( [node[1], node[0]] )
+        res += drawing_tool.draw_point( [0, 0] )
         return res
 
     def get_node_position_at_row( self, row ):
