@@ -605,16 +605,6 @@ class FSMFourier(Transducer):
                     + initial_vector*eigenvector_right*left_prime
                 return w_prime
 
-            def lambda_ell_prime(self, ell):
-                ones = vector(1 for _ in self.vectors_w()[0])
-                if common_period.divides(ell*self.period):
-                    k = self.period*ell/common_period % self.period
-                    lambda_prime = self.vector_w_prime(k)*ones
-                    return lambda_prime
-                else:
-                    return 0
-                    
-
 
         components = [FCComponent(c, self) for c in self.final_components()]
         common_period = lcm([c.period for c in components])
@@ -1152,6 +1142,8 @@ class FSMFourier(Transducer):
             result = CIF(0)
 
         if ell == 0:
-            result += -data.e_T/log_q - data.e_T/2 - I*sum(c.lambda_ell_prime(ell) for c in data.components)
-
+            ones = vector(1 for _ in self.iter_states())
+            result += -data.e_T/log_q - data.e_T/2 \
+                - I*sum(c.vector_w_prime(0)*ones
+                        for c in data.components)
         return result
