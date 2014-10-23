@@ -981,9 +981,9 @@ class FSMFourier(Transducer):
             factor *= (-s - N)/(N + 1) / q
             N += 1
 
-    def _H_Res_(self, s):
+    def _w_H_Res_(self, w, s):
         r"""
-        Compute the Residue of `\mathbf{H}` at `s`.
+        Compute the Residue of `\mathbf{w}^\top\mathbf{H}` at `s`.
 
         INPUT:
 
@@ -1002,9 +1002,10 @@ class FSMFourier(Transducer):
         m = s.abs().upper().ceil() + s.parent().precision()
 
         if s == 1:
-            return self._H_m_rhs_(s, m, remove_poles=True)/log_q
+            return w * self._H_m_rhs_(s, m, remove_poles=True)/log_q \
+                - self._fourier_coefficient_data_().e_T/2
         else:
-            return self._H_m_rhs_(s, m)/log_q
+            return w * self._H_m_rhs_(s, m)/log_q
 
     # BEGIN_REMOVE_FOR_DOCUMENTATION
     @cached_method(key=lambda self, s, m: (s.real().lower(),
@@ -1135,12 +1136,12 @@ class FSMFourier(Transducer):
 
         w = sum(c.w_ell(ell) for c in data.components)
         if any(w):
-            result = 1/(1+chi_ell) * w * self._H_Res_(1+chi_ell)
+            result = 1/(1+chi_ell) * self._w_H_Res_(w, 1+chi_ell)
         else:
             result = CIF(0)
 
         if ell == 0:
-            result += -data.e_T/log_q - data.e_T/2 \
+            result += -data.e_T/log_q \
                 - self.I*sum(c.vector_w_prime(0)*self.ones
                         for c in data.components)
         return result
