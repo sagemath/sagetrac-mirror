@@ -1082,6 +1082,7 @@ class FSMFourier(Transducer):
         EXAMPLES:
         """
 
+        CIF = s.parent()
         q = len(self.input_alphabet)
         log_q = CIF(log(q))
         m = s.abs().upper().ceil() + s.parent().precision()
