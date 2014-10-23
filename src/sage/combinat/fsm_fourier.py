@@ -993,7 +993,6 @@ class FSMFourier(Transducer):
                 ....:     for k in range(1, 2))
                 True
         """
-        from sage.functions.other import psi1
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
 
         sigma = s.real()
@@ -1021,8 +1020,8 @@ class FSMFourier(Transducer):
                      for r in reversed(srange(m, q*m)))
         if remove_poles and s == 1:
             result += q**(-s) * sum(
-                D * ones * (-CIF(psi1(ZZ(epsilon)/q + int(epsilon==0)).n())#TODO: psi1 of a CIF
-                             - sum((k + epsilon/q + int(epsilon==0))**(-1)
+                D * ones * (-RIF(ZZ(epsilon)/q + int(epsilon == 0)).psi()
+                             - sum((k + ZZ(epsilon)/q + int(epsilon==0))**(-1)
                                    for k in range(0, m-int(epsilon==0))))
                 for epsilon, D in enumerate(Delta_epsilon))
         else:
