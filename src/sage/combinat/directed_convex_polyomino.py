@@ -37,11 +37,15 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.partition import Partition
 from sage.combinat.partition import Partitions
-from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino
+from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino, _drawing_tool
 from sage.functions.other import binomial
 
 default_tikz_options = dict(
-    scale=1, line_size=1, color_line='black', translation=[0,0], rotation=0
+    scale=1, line_size=1, point_size=3.5
+    , color_line='black', color_point='black'
+    , color_bounce_0='red', color_bounce_1='blue'
+    , translation=[0,0], rotation=0
+    , mirror=None
 )
 
 DirectedConvexPolyominoesOptions = GlobalOptions(
@@ -55,7 +59,9 @@ DirectedConvexPolyominoesOptions = GlobalOptions(
         description='the tikz options',
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
-                'scale', 'line_size', 'color_line', 'translation', 'rotation'
+                'scale', 'line_size', 'point_size'
+                , 'color_line', 'color_point', 'translation', 'mirror'
+                , 'rotation', 'color_bounce_0', 'color_bounce_1'
             ] )
         )
     ),
@@ -64,7 +70,7 @@ DirectedConvexPolyominoesOptions = GlobalOptions(
         description='Different tree-like tableaux components to draw',
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
-                'diagram'
+                'diagram', 'bounce_0', 'bounce_1'
             ] )
         )
     ),
@@ -385,6 +391,13 @@ class DirectedConvexPolyomino(ClonableList):
         pp = self.parallelogram_polyomino()
         return Partition( _maximal_partition_cut( pp ) )
 
+    def is_flat( self ):
+        """
+        Return true if the Parallelogram polyomino associated with the directed
+        convex polyomino is flat.
+        """
+        return self.parallelogram_polyomino().is_flat()
+
     def maximal_degree_cut( self ):
         r"""
         If the parallelogram polyomino is flat, return the size of the maximal 
@@ -638,34 +651,34 @@ class DirectedConvexPolyomino(ClonableList):
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        def X( x ):
-            return x
-        def Y( y ):
-            return grid_height-1-y
+        drawing_tool = _drawing_tool(
+            tikz_options,
+            XY = lambda v: [ v[0], grid_height-1-v[1] ]
+        )
         res = ""
         if self.size() == 0:
-            res += "\n  \\draw[color_line=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color'], tikz_options['line_size'],
-                X(0),Y(0),
-                X(1),Y(0)
-            )
+            res += drawing_tool.draw_line( [0,0], [1,0] )
             return res
         def carre( x,y ):
-            res = "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s) -- (%s,%s) -- (%s,%s) -- (%s,%s);"%(
-                tikz_options['color_line'], tikz_options['line_size'],
-                X(x),Y(y),
-                X(x+1),Y(y),
-                X(x+1),Y(y+1),
-                X(x),Y(y+1),
-                X(x),Y(y)
+            res = drawing_tool.draw_polyline(
+                [ [x, y], [x+1, y], [x+1, y+1], [x, y+1], [x, y] ]
             )
             return res
         array = self.get_array()
         for h in range( len(array) ):
             for w in range( len(array[h]) ):
                 if array[h][w] == 1:
-                    res += carre( h, w )
+                    res += carre( w, h )
         return res
+
+    def _to_tikz_bounce( self, directions=[0,1] ):
+        pp = self.parallelogram_polyomino()
+        pp.get_options()[ 'tikz_options' ] = self.get_tikz_options()
+        t = pp.get_options()[ 'tikz_options' ]['translation']
+        t[0] += -.5
+        t[1] += .5
+        pp.get_options()[ 'tikz_options' ]['translation'] = t
+        return pp._to_tikz_bounce( directions=directions )
 
     def to_tikz(self):
         r"""
@@ -677,6 +690,13 @@ class DirectedConvexPolyomino(ClonableList):
         drawing_components = self.get_options()['drawing_components']
         if 'diagram' in  drawing_components :
             res += self._to_tikz_diagram()
+        directions = []
+        if 'bounce_0' in  drawing_components :
+            directions.append(0)
+        if 'bounce_1' in  drawing_components :
+            directions.append(1)
+        if len( directions ) != 0 :
+            res += self._to_tikz_bounce( directions )
         return res
 
     def _latex_(self):
