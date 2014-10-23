@@ -912,16 +912,23 @@ class FSMFourier(Transducer):
             d.M_epsilon[epsilon] * self._FC_b_recursive_(R)
 
 
-    def _H_m_rhs_(self, s, m, rem_poles=False):
+    def _H_m_rhs_(self, s, m, remove_poles=False):
         r"""
-        Compute `(I - q^{-s}M)\mathbf{H}_m(s)`
+        Compute `(I - q^{-s}M)\mathbf{H}_m(s)`.
 
         INPUT:
 
-        - ``s`` -- a
+        -   ``s`` -- a
             :class:`sage.rings.complex_interval.ComplexInterval` element
 
         -   ``m`` -- non-negative integer
+
+        -   ``remove_poles`` -- (default: ``False``) if ``True`` and ``s
+            == 1``, the pole of the zeta functions is removed.
+
+        The function has a pole for ``s == 1``. If ``remove_poles`` is ``True``,
+        the zeroth coefficient of the Laurent series at ``s == 1`` is returned
+        instead.
 
         OUTPUT:
 
@@ -1012,7 +1019,7 @@ class FSMFourier(Transducer):
 
         result = sum(self._FC_b_recursive_(r) * r**(-s)
                      for r in reversed(srange(m, q*m)))
-        if rem_poles and (s-1).contains_zero():
+        if remove_poles and s == 1:
             result += q**(-s) * sum(
                 D * ones * (-CIF(psi1(ZZ(epsilon)/q + int(epsilon==0)).n())#TODO: psi1 of a CIF
                              - sum((k + epsilon/q + int(epsilon==0))**(-1)
@@ -1087,8 +1094,8 @@ class FSMFourier(Transducer):
         log_q = CIF(log(q))
         m = s.abs().upper().ceil() + s.parent().precision()
 
-        if (s-1).contains_zero():
-            return self._H_m_rhs_(s, m, rem_poles=True)/log_q
+        if s == 1:
+            return self._H_m_rhs_(s, m, remove_poles=True)/log_q
         else:
             return self._H_m_rhs_(s, m)/log_q
 
