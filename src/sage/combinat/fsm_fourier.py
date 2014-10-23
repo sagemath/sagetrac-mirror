@@ -1221,10 +1221,10 @@ class FSMFourier(Transducer):
         chi_ell =  CIF(2*ell*CIF.pi()*I / (data.period*log_q))
 
         w = sum(c.w_ell(ell) for c in data.components)
-        if all(not _ for _ in w):
-            result = CIF(0)
-        else:
+        if any(w):
             result = 1/(1+chi_ell) * w * self._H_Res_(1+chi_ell)
+        else:
+            result = CIF(0)
 
         if ell == 0:
             result += -data.e_T/log_q - data.e_T/2 - I*sum(c.lambda_ell_prime(ell) for c in data.components)
