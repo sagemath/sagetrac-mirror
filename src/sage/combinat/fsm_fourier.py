@@ -7,6 +7,7 @@ Fourier Coefficients
     sage: sys.path.append(".")
 
 """
+import itertools
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.functions.log import log
@@ -18,7 +19,9 @@ import sage.rings.arith
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import min_RIF, max_RIF
+from sage.structure.sage_object import SageObject
 
 
 def infinity_vector_norm(v):
@@ -244,7 +247,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         factor /= (M + alpha)
         #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
 
-class FCComponent(SageObject):
+class FSM_Fourier_Component(SageObject):
     """Hold a final component and associated data."""
     def __init__(self, fsm, parent):
         self.fsm = fsm
@@ -252,21 +255,23 @@ class FCComponent(SageObject):
         self.n_states = len(self.fsm.states())
         self.parent = parent
 
-    def mask(self, n, components):
-        nrows = sum(c.n_states for c in components if c != self)
+    def mask(self, n):
+        nrows = sum(c.n_states
+                    for c in self.parent.components if c != self)
         mask = matrix(
             nrows, n,
-            [standard_basis[positions[state.label()]]
-             for other in components
+            [self.parent.standard_basis[
+                    self.parent.positions[state.label()]]
+             for other in self.parent.components
              if other != self
              for state in other.fsm.iter_states()])
         return mask
 
-    def eigenvectors(self, M, components):
-        mask = self.mask(M.nrows(), components)
+    def eigenvectors(self, M):
+        mask = self.mask(self.parent.M.nrows())
         def eigenvector(j):
-            eigenvalue = q * alpha**(
-                j * common_period / self.period)
+            eigenvalue = self.parent.q * self.parent.alpha**(
+                j * self.parent.common_period / self.period)
             S = matrix.block(
                 [[M - eigenvalue*matrix.identity(M.nrows())],
                  [mask]],
@@ -283,19 +288,18 @@ class FCComponent(SageObject):
 
     @cached_method()
     def right_eigenvectors(self):
-        return self.eigenvectors(M, components)
+        return self.eigenvectors(self.parent.M)
 
     @cached_method()
     def left_eigenvectors(self):
-        left_eigenvectors = self.eigenvectors(M.transpose(),
-                                              components)
+        left_eigenvectors = self.eigenvectors(self.parent.M.transpose())
         return [w/(v*w) for v, w
                 in itertools.izip(self.right_eigenvectors(),
                                   left_eigenvectors)]
 
     @cached_method()
     def vectors_w(self):
-        return [(initial_vector*v)*w for v, w
+        return [(self.parent.initial_vector*v)*w for v, w
                 in itertools.izip(self.right_eigenvectors(),
                                   self.left_eigenvectors())]
 
@@ -307,36 +311,38 @@ class FCComponent(SageObject):
 
     @cached_method()
     def mu_prime(self):
+        Y = self.parent.Y
         p = self.fsm.adjacency_matrix(
             entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
         Z = p.parent().gen()
-        assert p(Y=1, Z=q) == 0
+        assert p(Y=1, Z=self.parent.q) == 0
         mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
-            Y=1, Z=q)
+            Y=1, Z=self.parent.q)
         return self.parent.I*mu_prime_Z
 
     @cached_method()
     def a(self):
-        return QQ(-self.parent.I * self.mu_prime()/q)
+        return QQ(-self.parent.I * self.mu_prime()/self.parent.q)
 
     def w_ell(self, ell):
-        if common_period.divides(ell*self.period):
-            k = self.period*ell/common_period % self.period
-            return vector(field_to_CIF(c) for c in self.vectors_w()[k])
+        if self.parent.common_period.divides(ell*self.period):
+            k = self.period*ell/self.parent.common_period % self.period
+            return vector(self.parent.field_to_CIF(c) for c in self.vectors_w()[k])
         else:
-            return vector(0 for _ in self.vectors_w()[0])
+            return vector(0 for _ in self.parent.ones)
 
     def vector_v_prime(self, k):
-        mask = self.mask(M.nrows(), components)
-        eigenvalue = q * alpha**(
-                k * common_period / self.period)
+        M = self.parent.M
+        mask = self.mask(M.nrows())
+        eigenvalue = self.parent.q * self.parent.alpha**(
+                k * self.parent.common_period / self.period)
         S = matrix.block(
              [[M - eigenvalue*matrix.identity(M.nrows())],
               [matrix(self.parent.ones)],
               [mask]],
              subdivide=False)
-        eigenvector_right = vector(field, self.right_eigenvectors()[k])
-        M_prime = self.parent.I*Delta
+        eigenvector_right = vector(self.right_eigenvectors()[k])
+        M_prime = self.parent.I*self.parent.Delta
         right_side = - matrix.block(
                                     [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
                                      [0*matrix(self.parent.ones)],
@@ -346,12 +352,13 @@ class FCComponent(SageObject):
         return v_prime
 
     def vector_w_prime(self, k):
-        mask = self.mask(M.nrows(), components)
-        eigenvalue = q * alpha**(
-                k * common_period / self.period)
-        eigenvector_right = vector(field, self.right_eigenvectors()[k])
-        eigenvector_left = vector(field, self.left_eigenvectors()[k])
-        M_prime = self.parent.I*Delta
+        M = self.parent.M
+        mask = self.mask(M.nrows())
+        eigenvalue = self.parent.q * self.parent.alpha**(
+                k * self.parent.common_period / self.period)
+        eigenvector_right = vector(self.right_eigenvectors()[k])
+        eigenvector_left = vector(self.left_eigenvectors()[k])
+        M_prime = self.parent.I*self.parent.Delta
         S = matrix.block(
              [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
               [matrix(eigenvector_right)],
@@ -363,18 +370,17 @@ class FCComponent(SageObject):
                                      [0*mask]],
                                     subdivide=False) * eigenvector_left
         left_prime = S.solve_right(right_side)
-        w_prime = initial_vector*self.vector_v_prime(k)*eigenvector_left \
-            + initial_vector*eigenvector_right*left_prime
+        w_prime = self.parent.initial_vector*self.vector_v_prime(k)*eigenvector_left \
+            + self.parent.initial_vector*eigenvector_right*left_prime
         return w_prime
 
 
-class FSMFourier(Transducer):
+class FSMFourier(SageObject):
     """
     Fourier coefficients for the sum of output of transducers.
     """
 
-    @cached_method
-    def _fourier_coefficient_data_(self):
+    def __init__(self, transducer):
         r"""
         Return the common data needed for the computation of all
         Fourier coefficients of the periodic fluctuation of the sum of
@@ -419,49 +425,82 @@ class FSMFourier(Transducer):
 
         - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty: 0\le \varepsilon<q\}`.
 
-        - ``components`` -- a list of :class:`FCComponent`, representing the final components.
+        - ``components`` -- a list of :class:`FSM_Fourier_Component`, representing the final components.
 
         EXAMPLES:
 
         -   Binary sum of digits::
 
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: function('f')
                 f
                 sage: var('n')
                 n
                 sage: from fsm_fourier import FSMFourier
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: FSMFourier(T)._fourier_coefficient_data_()
-                FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
-                w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
-                M=[2], M_epsilon=[[1], [1]], Delta=[1],
-                Delta_epsilon=[[0], [1]], C_0=1, C_1=1,
-                components=[<class 'fsm_fourier.FCComponent'>])
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [1]
+                sage: F.common_period
+                1
+                sage: F.T
+                [1]
+                sage: F.w
+                [[(1)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                1/2
+                sage: F.a
+                [1/2]
+                sage: F.M
+                [2]
+                sage: F.M_epsilon
+                [[1], [1]]
+                sage: F.Delta
+                [1]
+                sage: F.Delta_epsilon
+                [[0], [1]]
+                sage: F.C_0
+                1
+                sage: F.C_1
+                1
 
         -   NAF::
 
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(4*n + 1) == f(n) + 1,
                 ....:     f(4*n + 3) == f(n + 1) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-                (
-                           [1/3   1   0]
-                           [1/3   0   1]
-                1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]], [1],
-                1/3, [1/3]
-                )
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [1]
+                sage: F.common_period
+                1
+                sage: F.T
+                [1/3   1   0]
+                [1/3   0   1]
+                [1/3  -1  -1]
+                sage: F.w
+                [[(1/3, 1/3, 1/3)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                1/3
+                sage: F.a
+                [1/3]
 
         -   Abelian complexity of the paperfolding sequence::
 
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(4*n) == f(2*n),
                 ....:     f(4*n+2) == f(2*n+1)+1,
                 ....:     f(16*n+1) == f(8*n+1),
@@ -470,42 +509,62 @@ class FSMFourier(Transducer):
                 ....:     f(16*n+15) == f(2*n+2)+1,
                 ....:     f(1) == 2, f(0) == 0]
                 ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-                (
-                           [1/10    1    0    0    0    0    0    0    0    0]
-                           [1/10    0    1    0    0    0    0    0    0    0]
-                           [1/10    0    0    1    0    0    0    0    0    0]
-                           [1/10    0    0    0    1    0    0    0    0    0]
-                           [1/10    0    0    0    0    1    0    0    0    0]
-                           [1/10    0    0    0    0    0    1    0    0    0]
-                           [1/10    0    0    0    0    0    0    1    0    0]
-                           [1/10    0    0    0    0    0    0    0    1    0]
-                           [1/10    0    0    0    0    0    0    0    0    1]
-                1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1],
-                [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]],
-                [1], 8/13, [8/13]
-                )
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [1]
+                sage: F.common_period
+                1
+                sage: F.T
+                [1/10    1    0    0    0    0    0    0    0    0]
+                [1/10    0    1    0    0    0    0    0    0    0]
+                [1/10    0    0    1    0    0    0    0    0    0]
+                [1/10    0    0    0    1    0    0    0    0    0]
+                [1/10    0    0    0    0    1    0    0    0    0]
+                [1/10    0    0    0    0    0    1    0    0    0]
+                [1/10    0    0    0    0    0    0    1    0    0]
+                [1/10    0    0    0    0    0    0    0    1    0]
+                [1/10    0    0    0    0    0    0    0    0    1]
+                [1/10    0    0   -3   -2   -2   -2   -1   -1   -1]
+                sage: F.w
+                [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                8/13
+                sage: F.a
+                [8/13]
 
         -   Artificial example, one-periodic, 2 states::
 
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(4*n) == f(2*n)+0,
                 ....:     f(4*n+2) == f(n)+1,
                 ....:     f(2*n+1) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-                (
-                           [1/2   1]
-                1, [1], 1, [1/2  -1],
-                [[(1/2, 1/2)]],
-                [1], 1/4, [1/4]
-                )
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [1]
+                sage: F.common_period
+                1
+                sage: F.T
+                [1/2   1]
+                [1/2  -1]
+                sage: F.w
+                [[(1/2, 1/2)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                1/4
+                sage: F.a
+                [1/4]
 
         -   Artificial example, period 3::
 
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(8*n) == f(4*n+3)+3,
                 ....:     f(8*n+4) == f(4*n+3)+1,
                 ....:     f(8*n+2) == f(4*n+3)+2,
@@ -515,69 +574,98 @@ class FSMFourier(Transducer):
                 ....:     f(8*n+3) == f(4*n+1)+2,
                 ....:     f(8*n+7) == f(4*n+1),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-                (
-                              [         1/7               1               1            1            0            0            0]
-                              [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            1            0            0]
-                              [         1/7 -2*zeta12^2 + 2      2*zeta12^2            0            0            1            0]
-                              [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0            1]
-                              [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0           -1]
-                              [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            0            0            0]
-                   1, [3], 3, [         1/7               4               4            0            0            0            0],
-                   [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
-                     (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
-                     (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]],
-                   [1], 7/4, [7/4]
-                )
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [3]
+                sage: F.common_period
+                3
+                sage: F.T
+                [         1/7               1               1            1            0            0            0]
+                [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            1            0            0]
+                [         1/7 -2*zeta12^2 + 2      2*zeta12^2            0            0            1            0]
+                [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0            1]
+                [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0           -1]
+                [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            0            0            0]
+                [         1/7               4               4            0            0            0            0]
+                sage: F.w
+                [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
+                (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
+                (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                7/4
+                sage: F.a
+                [7/4]
 
         -   Artificial example, period 2, vanishing w-vector::
 
-                sage: T = transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(4*n) == f(2*n+1)+1,
                 ....:     f(4*n+1) == f(2*n)+2,
                 ....:     f(4*n+2) == f(2*n+1)+3,
                 ....:     f(4*n+3) == f(2*n)-1,
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-                (
-                           [1/3   0   1]
-                           [1/3   1   0]
-                1, [2], 2, [1/3  -1   0],
-                [[(0, 1/2, 1/2), (0, 0, 0)]],
-                [1], 5/4, [5/4]
-                )
+                ....:     f, n, 2))
+                sage: F.c
+                1
+                sage: F.periods
+                [2]
+                sage: F.common_period
+                2
+                sage: F.T
+                [1/3   0   1]
+                [1/3   1   0]
+                [1/3  -1   0]
+                sage: F.w
+                [[(0, 1/2, 1/2), (0, 0, 0)]]
+                sage: F.coefficient_lambda
+                [1]
+                sage: F.e_T
+                5/4
+                sage: F.a
+                [5/4]
 
         -   Artificial example with two final components of periods `2`
             and `3`, respectively::
 
-                sage: T = FSMFourier([(0, 1, 0, 1), (1, 2, 0, 1),
+                sage: F = FSMFourier(Transducer([(0, 1, 0, 1), (1, 2, 0, 1),
                 ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
                 ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
                 ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
                 ....:     (-3, -1, 0, 3)],
                 ....:     initial_states=[0],
-                ....:     final_states=[0, 1, 2, -3, -2, -1])
-                sage: T._fourier_coefficient_data_()[:8]
-                (
-                              [        1/7              1              1         1/5           1           1]
-                              [          0              0              0         2/5          -2           0]
-                              [          0              0              0         2/5           2           0]
-                              [        2/7              2              2           0           0           0]
-                              [        2/7    -2*zeta12^2 2*zeta12^2 - 2           0           0           0]
-                2, [3, 2], 6, [        2/7 2*zeta12^2 - 2    -2*zeta12^2           0           0           0],
+                ....:     final_states=[0, 1, 2, -3, -2, -1]))
+                sage: F.c
+                2
+                sage: F.periods
+                [3, 2]
+                sage: F.common_period
+                6
+                sage: F.T
+                [        1/7              1              1         1/5           1           1]
+                [          0              0              0         2/5          -2           0]
+                [          0              0              0         2/5           2           0]
+                [        2/7              2              2           0           0           0]
+                [        2/7    -2*zeta12^2 2*zeta12^2 - 2           0           0           0]
+                [        2/7 2*zeta12^2 - 2    -2*zeta12^2           0           0           0]
+                sage: F.w
                 [[(0, 0, 0, 1/6, 1/6, 1/6),
                   (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
                   (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)],
-                 [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]],
-                [1/2, 1/2], 11/8, [5/4, 5/4]
-                )
+                 [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]]
+                sage: F.coefficient_lambda
+                [1/2, 1/2]
+                sage: F.e_T
+                11/8
+                sage: F.a
+                [5/4, 5/4]
         """
 
 
         import collections
-        import itertools
         import operator
 
         from sage.calculus.var import var
@@ -586,121 +674,106 @@ class FSMFourier(Transducer):
         from sage.rings.arith import lcm
         from sage.rings.number_field.number_field import CyclotomicField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.rational_field import QQ
-        from sage.structure.sage_object import SageObject
 
-        FourierCoefficientData = collections.namedtuple(
-            "FourierCoefficientData",
-            ["c", "periods", "period", "T", "w", "coefficient_lambda",
-             "e_T", "a", "M", "M_epsilon", "Delta", "Delta_epsilon",
-             "C_0", "C_1", "components"])
-
-        positions = dict((state.label(), j)
-                         for j, state in enumerate(self.iter_states()))
-        q = len(self.input_alphabet)
-        Y = PolynomialRing(QQ, 'Y').gen()
-        self.ones = vector(1 for _ in self.iter_states())
+        self.transducer = transducer
+        self.positions = dict((state.label(), j)
+                         for j, state in enumerate(transducer.iter_states()))
+        self.q = len(transducer.input_alphabet)
+        self.Y = PolynomialRing(QQ, 'Y').gen()
+        self.ones = vector(1 for _ in transducer.iter_states())
 
 
 
-        components = [FCComponent(c, self) for c in self.final_components()]
-        common_period = lcm([c.period for c in components])
-        field = CyclotomicField(lcm(4, common_period))
-        alpha = field.zeta(common_period)
-        self.I = field.zeta(4)
-        field_to_CIF = field.hom([ComplexIntervalField().zeta(lcm(4, common_period))], check=False)
+        self.components = [FSM_Fourier_Component(c, self)
+                           for c in transducer.final_components()]
+        self.common_period = lcm([c.period
+                                  for c in self.components])
+        self.field = CyclotomicField(lcm(4, self.common_period))
+        self.alpha = self.field.zeta(self.common_period)
+        self.I = self.field.zeta(4)
+        self.field_to_CIF = self.field.hom(
+            [ComplexIntervalField().zeta(lcm(4, self.common_period))], check=False)
         assert self.I**2 == -1
-        assert alpha**common_period == 1
-        assert all(alpha**j != 1 for j in range(1, common_period))
-        assert field_to_CIF(self.I).overlaps(ComplexIntervalField()(0, 1))
-        assert field_to_CIF(alpha).overlaps(ComplexIntervalField()(exp(2*ComplexIntervalField().pi()*ComplexIntervalField()(0, 1)/common_period)))
-        M = self.adjacency_matrix(entry=lambda t: 1)
-        standard_basis = VectorSpace(field, M.nrows()).basis()
+        assert self.alpha**self.common_period == 1
+        assert all(self.alpha**j != 1 for j in range(1, self.common_period))
+        assert self.field_to_CIF(self.I).overlaps(ComplexIntervalField()(0, 1))
+        assert self.field_to_CIF(self.alpha).overlaps(ComplexIntervalField()(exp(2*ComplexIntervalField().pi()*ComplexIntervalField()(0, 1)/self.common_period)))
+        self.M = transducer.adjacency_matrix(entry=lambda t: 1)
+        self.standard_basis = VectorSpace(self.field, self.M.nrows()).basis()
 
-        if len(self.initial_states()) != 1:
+        if len(transducer.initial_states()) != 1:
             raise NotImplementedError(
                 "Transducer does not have a unique initial state.")
-        initial_vector = standard_basis[positions[
-                self.initial_states()[0].label()]]
+        self.initial_vector = self.standard_basis[self.positions[
+                transducer.initial_states()[0].label()]]
 
         right_eigenvectors = list(itertools.chain(
                 *(c.right_eigenvectors()
-                  for c in components)))
+                  for c in self.components)))
 
         left_eigenvectors = list(itertools.chain(
                 *(c.left_eigenvectors()
-                  for c in components)))
+                  for c in self.components)))
 
         annihilated_by_left = matrix(left_eigenvectors).\
             right_kernel_matrix().transpose()
 
-        T = matrix.block([[matrix.column(right_eigenvectors),
-                           annihilated_by_left]],
-                         subdivide=False)
+        self.T = matrix.block([[matrix.column(right_eigenvectors),
+                                annihilated_by_left]],
+                              subdivide=False)
 
-        assert T.is_square()
-        assert T.nrows() == M.nrows()
-        assert T.is_invertible()
+        assert self.T.is_square()
+        assert self.T.nrows() == self.M.nrows()
+        assert self.T.is_invertible()
 
-        check = T.inverse() * M * T
-        eigenvalues = [q * alpha**(j * common_period/c.period)
-                       for c in components
+        check = self.T.inverse() * self.M * self.T
+        eigenvalues = [self.q * self.alpha**(j * self.common_period/c.period)
+                       for c in self.components
                        for j in range(c.period)]
         check_dont_care = check.submatrix(len(eigenvalues),
                                           len(eigenvalues))
         assert (matrix.block(
                 [[matrix.diagonal(eigenvalues), ZZ(0)],
                  [ZZ(0), check_dont_care]],
-                     subdivide=False) - check).is_zero()
+                subdivide=False) - check).is_zero()
 
-        assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
+        assert (self.T.inverse().submatrix(nrows=len(left_eigenvectors))
                 - matrix(left_eigenvectors)).is_zero()
 
-        e_T = sum(c.a()*c.coefficient_lambda()
-                  for c in components)
+        self.e_T = sum(c.a()*c.coefficient_lambda()
+                       for c in self.components)
 
         var('n0')
         try:
-            assert e_T == self.asymptotic_moments(n0)['expectation']\
+            assert self.e_T == transducer.asymptotic_moments(n0)['expectation']\
                 .coefficient(n0)
         except NotImplementedError:
             pass
 
-        M_epsilon = [self.adjacency_matrix(input=epsilon,
-                                           entry=lambda t: 1)
-                     for epsilon in range(q)]
-        assert M == sum(M_epsilon)
+        self.M_epsilon = [transducer.adjacency_matrix(input=epsilon,
+                                                      entry=lambda t: 1)
+                          for epsilon in range(self.q)]
+        assert self.M == sum(self.M_epsilon)
 
-        Delta_epsilon = [self.adjacency_matrix(
-                             input=epsilon,
-                             entry=lambda t: sum(t.word_out))
-                         for epsilon in range(q)]
-        Delta = self.adjacency_matrix(
-                             entry=lambda t: sum(t.word_out))
-        assert Delta == sum(Delta_epsilon)
+        self.Delta_epsilon = [transducer.adjacency_matrix(
+                input=epsilon,
+                entry=lambda t: sum(t.word_out))
+                              for epsilon in range(self.q)]
+        self.Delta = transducer.adjacency_matrix(
+            entry=lambda t: sum(t.word_out))
+        assert self.Delta == sum(self.Delta_epsilon)
 
-        C_0 = max(self._FC_b_direct_(r).norm(infinity)
-                  for r in range(q))
-        C_1 = max(infinity_matrix_norm(d)
-                  for d in Delta_epsilon)
+        self.C_0 = max(self._FC_b_direct_(r).norm(infinity)
+                       for r in range(self.q))
+        self.C_1 = max(infinity_matrix_norm(d)
+                       for d in self.Delta_epsilon)
 
-        return FourierCoefficientData(
-            c=len(components),
-            periods=[c.period for c in components],
-            period=common_period,
-            T=T,
-            w=[c.vectors_w() for c in components],
-            coefficient_lambda=[c.coefficient_lambda()
-                                for c in components],
-            e_T=e_T,
-            a=[c.a() for a in components],
-            M=M,
-            M_epsilon=M_epsilon,
-            Delta=Delta,
-            Delta_epsilon=Delta_epsilon,
-            C_0=C_0,
-            C_1=C_1,
-            components=components)
+        self.c=len(self.components)
+        self.periods=[c.period for c in self.components]
+        self.w=[c.vectors_w() for c in self.components]
+        self.coefficient_lambda=[c.coefficient_lambda()
+                                for c in self.components]
+        self.a=[c.a() for a in self.components]
 
     @cached_method
     def _FC_b_direct_(self, r):
@@ -747,10 +820,9 @@ class FSMFourier(Transducer):
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
-        q = len(self.input_alphabet)
-        expansion = ZZ(r).digits(q)
-        return vector([sum(self(expansion, initial_state=s))
-                       for s in self.iter_states()])
+        expansion = ZZ(r).digits(self.q)
+        return vector([sum(self.transducer(expansion, initial_state=s))
+                       for s in self.transducer.iter_states()])
 
     @cached_method
     def _FC_b_recursive_(self, r):
@@ -780,16 +852,16 @@ class FSMFourier(Transducer):
             f
             sage: var('n')
             n
-            sage: T = transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([
             ....:     f(4*n + 1) == f(n) + 1,
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: [FSMFourier(T)._FC_b_recursive_(r) for r in range(3)]
+            ....:     f, n, 2))
+            sage: [F._FC_b_recursive_(r) for r in range(3)]
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
-            sage: all(FSMFourier(T)._FC_b_recursive_(r) ==
-            ....:     FSMFourier(T)._FC_b_direct_(r) for r in range(8))
+            sage: all(F._FC_b_recursive_(r) ==
+            ....:     F._FC_b_direct_(r) for r in range(8))
             True
 
         .. SEEALSO::
@@ -798,15 +870,13 @@ class FSMFourier(Transducer):
         """
         from sage.modules.free_module_element import vector
 
-        q = len(self.input_alphabet)
-        epsilon = r % q
-        R = (r - epsilon)/ q
+        epsilon = r % self.q
+        R = (r - epsilon)/ self.q
         if R == 0:
             return self._FC_b_direct_(r)
 
-        d = self._fourier_coefficient_data_()
-        return d.Delta_epsilon[epsilon]*self.ones +\
-            d.M_epsilon[epsilon] * self._FC_b_recursive_(R)
+        return self.Delta_epsilon[epsilon]*self.ones +\
+            self.M_epsilon[epsilon] * self._FC_b_recursive_(R)
 
 
     def _H_m_rhs_(self, s, m, remove_poles=False):
@@ -840,13 +910,13 @@ class FSMFourier(Transducer):
                 f
                 sage: var('n')
                 n
-                sage: T = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     f, n, 2))
                 sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: T._H_m_rhs_(CIF(2), 100)
+                sage: F._H_m_rhs_(CIF(2), 100)
                 (0.0050250833316668? + 0.?e-18*I)
 
             Evaluated at `s = 1 + 2k \pi i/\log 2` for `k\neq 0`, the
@@ -854,7 +924,7 @@ class FSMFourier(Transducer):
             have a pole there and the first factor therefore annihilates
             the result::
 
-                sage: result = [T._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for
+                sage: result = [F._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for
                 ....:      k in range(1, 2)]
                 sage: all(value.abs().absolute_diameter() < 1e-12
                 ....:      for value in result)
@@ -871,7 +941,7 @@ class FSMFourier(Transducer):
             matter, as the difference is analytic and thus does not
             contribute to the residue. ::
 
-                sage: T = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:         f(2*n + 1) == f(n) + 1,
                 ....:         f(2*n) == f(n) + 1,
                 ....:         f(0) == -1],
@@ -879,24 +949,24 @@ class FSMFourier(Transducer):
 
             We first check that this is indeed the function `L`::
 
-                sage: all(T._FC_b_recursive_(r)[0] ==
+                sage: all(F._FC_b_recursive_(r)[0] ==
                 ....:     floor(log(r, base=2)) for r in range(1, 9))
                 True
 
             Next, we check that the result agrees with the known values::
 
-                sage: all(T._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
+                sage: all(F._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
                 ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
                 ....:     for k in range(1, 2))
                 True
 
         TESTS::
 
-            sage: T._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False)
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
-            sage: T._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False)
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
@@ -916,14 +986,9 @@ class FSMFourier(Transducer):
                 max_RIF([RIF(N), N/(1 + x)**(sigma + 1)])])
 
 
-        q = ZZ(len(self.input_alphabet))
+        q = ZZ(self.q)
         log_q = log(RIF(q))
         log_m_1 = log(RIF(m - 1))
-
-        Delta_epsilon = self._fourier_coefficient_data_().Delta_epsilon
-        M_epsilon = self._fourier_coefficient_data_().M_epsilon
-        C_0 = self._fourier_coefficient_data_().C_0
-        C_1 = self._fourier_coefficient_data_().C_1
 
         result = sum(self._FC_b_recursive_(r) * r**(-s)
                      for r in reversed(srange(m, q*m)))
@@ -932,11 +997,11 @@ class FSMFourier(Transducer):
                 D * self.ones * (-RIF(ZZ(epsilon)/q + int(epsilon == 0)).psi()
                              - sum((k + ZZ(epsilon)/q + int(epsilon==0))**(-1)
                                    for k in range(0, m-int(epsilon==0))))
-                for epsilon, D in enumerate(Delta_epsilon))
+                for epsilon, D in enumerate(self.Delta_epsilon))
         else:
             result += q**(-s) * sum(
                 D * self.ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
-                for epsilon, D in enumerate(Delta_epsilon))
+                for epsilon, D in enumerate(self.Delta_epsilon))
 
         N = 1
         factor = -s * q**(-s - 1)
@@ -950,9 +1015,9 @@ class FSMFourier(Transducer):
                 error_acceptable = RIF(2) ** (infinity_vector_norm(result).upper().log2()
                                              - result[0].prec())
             error_bound = factor.abs() * \
-                (C_0 * (sigma + N -1) * log_q\
-                     + C_1 * (sigma + N -1) * log_m_1\
-                     + C_1) / \
+                (self.C_0 * (sigma + N -1) * log_q\
+                     + self.C_1 * (sigma + N -1) * log_m_1\
+                     + self.C_1) / \
                 ((sigma + N - 1)**2 \
                      * (m - 1)**(sigma + N - 1)\
                      * log_q) * \
@@ -976,7 +1041,7 @@ class FSMFourier(Transducer):
 
             result += factor * sum(
                 epsilon**N * M
-                for epsilon, M in enumerate(M_epsilon)) \
+                for epsilon, M in enumerate(self.M_epsilon)) \
                 * self._H_m_(s + N, m)
 
             factor *= (-s - N)/(N + 1) / q
@@ -998,13 +1063,12 @@ class FSMFourier(Transducer):
         """
 
         CIF = s.parent()
-        q = len(self.input_alphabet)
-        log_q = CIF(log(q))
+        log_q = log(CIF(self.q))
         m = s.abs().upper().ceil() + s.parent().precision()
 
         if s == 1:
             return w * self._H_m_rhs_(s, m, remove_poles=True)/log_q \
-                - self._fourier_coefficient_data_().e_T/2
+                - self.e_T/2
         else:
             return w * self._H_m_rhs_(s, m)/log_q
 
@@ -1045,11 +1109,9 @@ class FSMFourier(Transducer):
                 sage: FSMFourier(T)._H_m_(CIF(2), 100)
                 (0.0100501666633336? + 0.?e-18*I)
         """
-        q = ZZ(len(self.input_alphabet))
-        M = self._fourier_coefficient_data_().M
-        n = M.nrows()
+        n = self.M.nrows()
 
-        return (matrix.identity(n) - q**(-s)*M).solve_right(
+        return (matrix.identity(n) - ZZ(self.q)**(-s)*self.M).solve_right(
             self._H_m_rhs_(s, m))
 
     def _H_(self, s):
@@ -1130,19 +1192,17 @@ class FSMFourier(Transducer):
                 True
         """
 
-        q = len(self.input_alphabet)
-        log_q = CIF(log(q))
-        data = self._fourier_coefficient_data_()
-        chi_ell =  CIF(2*ell*CIF.pi()*self.I / (data.period*log_q))
+        log_q = CIF(log(CIF(self.q)))
+        chi_ell =  CIF(2*ell*CIF.pi()*self.I / (self.common_period*log_q))
 
-        w = sum(c.w_ell(ell) for c in data.components)
+        w = sum(c.w_ell(ell) for c in self.components)
         if any(w):
             result = 1/(1+chi_ell) * self._w_H_Res_(w, 1+chi_ell)
         else:
             result = CIF(0)
 
         if ell == 0:
-            result += -data.e_T/log_q \
+            result += -self.e_T/log_q \
                 - self.I*sum(c.vector_w_prime(0)*self.ones
-                        for c in data.components)
+                        for c in self.components)
         return result
