@@ -395,16 +395,16 @@ class FSMFourier(Transducer):
                 ....:     f, n, 2)
                 sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
                 (
-                              [         1/7            1            1            1            0            0            0]
-                              [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
-                              [         1/7     -2*zeta3  2*zeta3 + 2            0            0            1            0]
-                              [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0            1]
-                              [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0           -1]
-                              [         1/7      4*zeta3 -4*zeta3 - 4            0            0            0            0]
-                   1, [3], 3, [         1/7            4            4            0            0            0            0],
+                              [         1/7               1               1            1            0            0            0]
+                              [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            1            0            0]
+                              [         1/7 -2*zeta12^2 + 2      2*zeta12^2            0            0            1            0]
+                              [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0            1]
+                              [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0           -1]
+                              [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            0            0            0]
+                   1, [3], 3, [         1/7               4               4            0            0            0            0],
                    [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
-                     (0, 0, 0, 1/24*zeta3, 1/24*zeta3, -1/12*zeta3 - 1/12, 1/12),
-                     (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]],
+                     (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
+                     (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]],
                    [1], 7/4, [7/4]
                 )
 
@@ -438,15 +438,15 @@ class FSMFourier(Transducer):
                 ....:     final_states=[0, 1, 2, -3, -2, -1])
                 sage: T._fourier_coefficient_data_()[:8]
                 (
-                              [        1/7           1           1         1/5           1           1]
-                              [          0           0           0         2/5          -2           0]
-                              [          0           0           0         2/5           2           0]
-                              [        2/7           2           2           0           0           0]
-                              [        2/7    -2*zeta6 2*zeta6 - 2           0           0           0]
-                2, [3, 2], 6, [        2/7 2*zeta6 - 2    -2*zeta6           0           0           0],
+                              [        1/7              1              1         1/5           1           1]
+                              [          0              0              0         2/5          -2           0]
+                              [          0              0              0         2/5           2           0]
+                              [        2/7              2              2           0           0           0]
+                              [        2/7    -2*zeta12^2 2*zeta12^2 - 2           0           0           0]
+                2, [3, 2], 6, [        2/7 2*zeta12^2 - 2    -2*zeta12^2           0           0           0],
                 [[(0, 0, 0, 1/6, 1/6, 1/6),
-                  (0, 0, 0, 1/6, 1/6*zeta6 - 1/6, -1/6*zeta6),
-                  (0, 0, 0, 1/6, -1/6*zeta6, 1/6*zeta6 - 1/6)],
+                  (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
+                  (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)],
                  [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]],
                 [1/2, 1/2], 11/8, [5/4, 5/4]
                 )
@@ -458,13 +458,13 @@ class FSMFourier(Transducer):
         import operator
 
         from sage.calculus.var import var
+        from sage.functions.log import exp
         from sage.modules.free_module import VectorSpace
         from sage.rings.arith import lcm
         from sage.rings.number_field.number_field import CyclotomicField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.rational_field import QQ
         from sage.structure.sage_object import SageObject
-        from sage.symbolic.constants import I
 
         FourierCoefficientData = collections.namedtuple(
             "FourierCoefficientData",
@@ -547,12 +547,11 @@ class FSMFourier(Transducer):
                 assert p(Y=1, Z=q) == 0
                 mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
                     Y=1, Z=q)
-                I = CyclotomicField(4).gen()
-                return I*mu_prime_Z
+                return self.parent.I*mu_prime_Z
 
             @cached_method()
             def a(self):
-                return QQ(-I * self.mu_prime()/q)
+                return QQ(-self.parent.I * self.mu_prime()/q)
 
             def w_ell(self, ell):
                 if common_period.divides(ell*self.period):
@@ -565,15 +564,14 @@ class FSMFourier(Transducer):
                 mask = self.mask(M.nrows(), components)
                 eigenvalue = q * alpha**(
                         k * common_period / self.period)
-                S = matrix.block(CyclotomicField(4*common_period),
+                S = matrix.block(
                      [[M - eigenvalue*matrix.identity(M.nrows())],
                       [matrix(self.parent.ones)],
                       [mask]],
                      subdivide=False)
                 eigenvector_right = vector(field, self.right_eigenvectors()[k])
-                I = CyclotomicField(4).gen()
-                M_prime = I*Delta
-                right_side = - matrix.block(CyclotomicField(4*common_period),
+                M_prime = self.parent.I*Delta
+                right_side = - matrix.block(
                                             [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
                                              [0*matrix(self.parent.ones)],
                                              [0*mask]],
@@ -587,14 +585,13 @@ class FSMFourier(Transducer):
                         k * common_period / self.period)
                 eigenvector_right = vector(field, self.right_eigenvectors()[k])
                 eigenvector_left = vector(field, self.left_eigenvectors()[k])
-                I = CyclotomicField(4).gen()
-                M_prime = I*Delta
-                S = matrix.block(CyclotomicField(4*common_period),
+                M_prime = self.parent.I*Delta
+                S = matrix.block(
                      [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
                       [matrix(eigenvector_right)],
                       [mask]],
                      subdivide=False)
-                right_side = - matrix.block(CyclotomicField(4*common_period),
+                right_side = - matrix.block(
                                             [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
                                              [matrix(self.vector_v_prime(k))],
                                              [0*mask]],
@@ -607,9 +604,15 @@ class FSMFourier(Transducer):
 
         components = [FCComponent(c, self) for c in self.final_components()]
         common_period = lcm([c.period for c in components])
-        field = CyclotomicField(common_period)
-        alpha = field.gen()
-        field_to_CIF = field.hom([ComplexIntervalField().zeta(common_period)], check=False)
+        field = CyclotomicField(lcm(4, common_period))
+        alpha = field.zeta(common_period)
+        self.I = field.zeta(4)
+        field_to_CIF = field.hom([ComplexIntervalField().zeta(lcm(4, common_period))], check=False)
+        assert self.I**2 == -1
+        assert alpha**common_period == 1
+        assert all(alpha**j != 1 for j in range(1, common_period))
+        assert field_to_CIF(self.I).overlaps(ComplexIntervalField()(0, 1))
+        assert field_to_CIF(alpha).overlaps(ComplexIntervalField()(exp(2*ComplexIntervalField().pi()*ComplexIntervalField()(0, 1)/common_period)))
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
 
@@ -1128,8 +1131,7 @@ class FSMFourier(Transducer):
         q = len(self.input_alphabet)
         log_q = CIF(log(q))
         data = self._fourier_coefficient_data_()
-        I = CIF.gens()[0]
-        chi_ell =  CIF(2*ell*CIF.pi()*I / (data.period*log_q))
+        chi_ell =  CIF(2*ell*CIF.pi()*self.I / (data.period*log_q))
 
         w = sum(c.w_ell(ell) for c in data.components)
         if any(w):
@@ -1139,6 +1141,6 @@ class FSMFourier(Transducer):
 
         if ell == 0:
             result += -data.e_T/log_q - data.e_T/2 \
-                - I*sum(c.vector_w_prime(0)*self.ones
+                - self.I*sum(c.vector_w_prime(0)*self.ones
                         for c in data.components)
         return result
