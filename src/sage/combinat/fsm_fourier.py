@@ -476,6 +476,7 @@ class FSMFourier(Transducer):
                          for j, state in enumerate(self.iter_states()))
         q = len(self.input_alphabet)
         Y = PolynomialRing(QQ, 'Y').gen()
+        self.ones = vector(1 for _ in self.iter_states())
 
         class FCComponent(SageObject):
             """Hold a final component and associated data."""
@@ -534,8 +535,7 @@ class FSMFourier(Transducer):
 
             @cached_method()
             def coefficient_lambda(self):
-                ones = vector(1 for _ in range(M.nrows()))
-                products = [w*ones for w in self.vectors_w()]
+                products = [w*self.parent.ones for w in self.vectors_w()]
                 assert all(e.is_zero() for e in products[1:])
                 return products[0]
 
@@ -563,12 +563,11 @@ class FSMFourier(Transducer):
 
             def vector_v_prime(self, k):
                 mask = self.mask(M.nrows(), components)
-                ones = matrix([1 for _ in self.vectors_w()[0]])
                 eigenvalue = q * alpha**(
                         k * common_period / self.period)
                 S = matrix.block(CyclotomicField(4*common_period),
                      [[M - eigenvalue*matrix.identity(M.nrows())],
-                      [ones],
+                      [matrix(self.parent.ones)],
                       [mask]],
                      subdivide=False)
                 eigenvector_right = vector(field, self.right_eigenvectors()[k])
@@ -576,7 +575,7 @@ class FSMFourier(Transducer):
                 M_prime = I*Delta
                 right_side = - matrix.block(CyclotomicField(4*common_period),
                                             [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
-                                             [0*ones],
+                                             [0*matrix(self.parent.ones)],
                                              [0*mask]],
                                             subdivide=False) * eigenvector_right
                 v_prime = S.solve_right(right_side)
@@ -802,8 +801,7 @@ class FSMFourier(Transducer):
             return self._FC_b_direct_(r)
 
         d = self._fourier_coefficient_data_()
-        ones = vector(1 for _ in range(d.M.nrows()))
-        return d.Delta_epsilon[epsilon]*ones +\
+        return d.Delta_epsilon[epsilon]*self.ones +\
             d.M_epsilon[epsilon] * self._FC_b_recursive_(R)
 
 
@@ -923,19 +921,17 @@ class FSMFourier(Transducer):
         C_0 = self._fourier_coefficient_data_().C_0
         C_1 = self._fourier_coefficient_data_().C_1
 
-        ones = vector(1 for _ in range(M_epsilon[0].ncols()))
-
         result = sum(self._FC_b_recursive_(r) * r**(-s)
                      for r in reversed(srange(m, q*m)))
         if remove_poles and s == 1:
             result += q**(-s) * sum(
-                D * ones * (-RIF(ZZ(epsilon)/q + int(epsilon == 0)).psi()
+                D * self.ones * (-RIF(ZZ(epsilon)/q + int(epsilon == 0)).psi()
                              - sum((k + ZZ(epsilon)/q + int(epsilon==0))**(-1)
                                    for k in range(0, m-int(epsilon==0))))
                 for epsilon, D in enumerate(Delta_epsilon))
         else:
             result += q**(-s) * sum(
-                D * ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
+                D * self.ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
                 for epsilon, D in enumerate(Delta_epsilon))
 
         N = 1
@@ -1142,8 +1138,7 @@ class FSMFourier(Transducer):
             result = CIF(0)
 
         if ell == 0:
-            ones = vector(1 for _ in self.iter_states())
             result += -data.e_T/log_q - data.e_T/2 \
-                - I*sum(c.vector_w_prime(0)*ones
+                - I*sum(c.vector_w_prime(0)*self.ones
                         for c in data.components)
         return result
