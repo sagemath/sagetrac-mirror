@@ -897,8 +897,22 @@ class FSMFourier(Transducer):
                 ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
                 ....:     for k in range(1, 2))
                 True
+
+        TESTS::
+
+            sage: T._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: remove_poles must be set if and only if s == 1.
+            sage: T._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: remove_poles must be set if and only if s == 1.
         """
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
+        if remove_poles != (s == 1):
+            raise ValueError("remove_poles must be set if "
+                             "and only if s == 1.")
 
         sigma = s.real()
         CIF = s.parent()
