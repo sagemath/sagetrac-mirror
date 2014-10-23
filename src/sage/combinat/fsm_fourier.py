@@ -561,10 +561,6 @@ class FSMFourier(Transducer):
                 else:
                     return vector(0 for _ in self.vectors_w()[0])
 
-            def M_prime(self):
-                I = CyclotomicField(4).gen()
-                return self.parent.adjacency_matrix(entry=lambda t: sum(t.word_out))*I
-
             def vector_v_prime(self, k):
                 mask = self.mask(M.nrows(), components)
                 ones = matrix([1 for _ in self.vectors_w()[0]])
@@ -576,8 +572,10 @@ class FSMFourier(Transducer):
                       [mask]],
                      subdivide=False)
                 eigenvector_right = vector(field, self.right_eigenvectors()[k])
+                I = CyclotomicField(4).gen()
+                M_prime = I*Delta
                 right_side = - matrix.block(CyclotomicField(4*common_period),
-                                            [[self.M_prime() - self.mu_prime()*matrix.identity(M.nrows())],
+                                            [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
                                              [0*ones],
                                              [0*mask]],
                                             subdivide=False) * eigenvector_right
@@ -590,13 +588,15 @@ class FSMFourier(Transducer):
                         k * common_period / self.period)
                 eigenvector_right = vector(field, self.right_eigenvectors()[k])
                 eigenvector_left = vector(field, self.left_eigenvectors()[k])
+                I = CyclotomicField(4).gen()
+                M_prime = I*Delta
                 S = matrix.block(CyclotomicField(4*common_period),
                      [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
                       [matrix(eigenvector_right)],
                       [mask]],
                      subdivide=False)
                 right_side = - matrix.block(CyclotomicField(4*common_period),
-                                            [[self.M_prime().transpose() - self.mu_prime()*matrix.identity(M.nrows())],
+                                            [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
                                              [matrix(self.vector_v_prime(k))],
                                              [0*mask]],
                                             subdivide=False) * eigenvector_left
