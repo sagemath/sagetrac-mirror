@@ -951,7 +951,7 @@ class FSMFourier(Transducer):
             the result::
 
                 sage: result = [T._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for
-                ....:      k in range(1, 10)]
+                ....:      k in range(1, 2)]
                 sage: all(value.abs().absolute_diameter() < 1e-12
                 ....:      for value in result)
                 True
@@ -983,7 +983,7 @@ class FSMFourier(Transducer):
 
                 sage: all(T._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
                 ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
-                ....:     for k in range(1, 10))
+                ....:     for k in range(1, 2))
                 True
         """
         from sage.functions.other import psi1
