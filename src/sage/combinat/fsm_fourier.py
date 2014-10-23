@@ -244,6 +244,129 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         factor /= (M + alpha)
         #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
 
+class FCComponent(SageObject):
+    """Hold a final component and associated data."""
+    def __init__(self, fsm, parent):
+        self.fsm = fsm
+        self.period = fsm.graph().period()
+        self.n_states = len(self.fsm.states())
+        self.parent = parent
+
+    def mask(self, n, components):
+        nrows = sum(c.n_states for c in components if c != self)
+        mask = matrix(
+            nrows, n,
+            [standard_basis[positions[state.label()]]
+             for other in components
+             if other != self
+             for state in other.fsm.iter_states()])
+        return mask
+
+    def eigenvectors(self, M, components):
+        mask = self.mask(M.nrows(), components)
+        def eigenvector(j):
+            eigenvalue = q * alpha**(
+                j * common_period / self.period)
+            S = matrix.block(
+                [[M - eigenvalue*matrix.identity(M.nrows())],
+                 [mask]],
+                subdivide=False)
+            kernel = S.right_kernel_matrix()
+            assert kernel.nrows() == 1
+            if j == 0:
+                #normalize for positive eigenvector
+                return kernel.row(0) / sum(kernel.row(0))
+            else:
+                return kernel.row(0)
+
+        return [eigenvector(j) for j in range(self.period)]
+
+    @cached_method()
+    def right_eigenvectors(self):
+        return self.eigenvectors(M, components)
+
+    @cached_method()
+    def left_eigenvectors(self):
+        left_eigenvectors = self.eigenvectors(M.transpose(),
+                                              components)
+        return [w/(v*w) for v, w
+                in itertools.izip(self.right_eigenvectors(),
+                                  left_eigenvectors)]
+
+    @cached_method()
+    def vectors_w(self):
+        return [(initial_vector*v)*w for v, w
+                in itertools.izip(self.right_eigenvectors(),
+                                  self.left_eigenvectors())]
+
+    @cached_method()
+    def coefficient_lambda(self):
+        products = [w*self.parent.ones for w in self.vectors_w()]
+        assert all(e.is_zero() for e in products[1:])
+        return products[0]
+
+    @cached_method()
+    def mu_prime(self):
+        p = self.fsm.adjacency_matrix(
+            entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
+        Z = p.parent().gen()
+        assert p(Y=1, Z=q) == 0
+        mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
+            Y=1, Z=q)
+        return self.parent.I*mu_prime_Z
+
+    @cached_method()
+    def a(self):
+        return QQ(-self.parent.I * self.mu_prime()/q)
+
+    def w_ell(self, ell):
+        if common_period.divides(ell*self.period):
+            k = self.period*ell/common_period % self.period
+            return vector(field_to_CIF(c) for c in self.vectors_w()[k])
+        else:
+            return vector(0 for _ in self.vectors_w()[0])
+
+    def vector_v_prime(self, k):
+        mask = self.mask(M.nrows(), components)
+        eigenvalue = q * alpha**(
+                k * common_period / self.period)
+        S = matrix.block(
+             [[M - eigenvalue*matrix.identity(M.nrows())],
+              [matrix(self.parent.ones)],
+              [mask]],
+             subdivide=False)
+        eigenvector_right = vector(field, self.right_eigenvectors()[k])
+        M_prime = self.parent.I*Delta
+        right_side = - matrix.block(
+                                    [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
+                                     [0*matrix(self.parent.ones)],
+                                     [0*mask]],
+                                    subdivide=False) * eigenvector_right
+        v_prime = S.solve_right(right_side)
+        return v_prime
+
+    def vector_w_prime(self, k):
+        mask = self.mask(M.nrows(), components)
+        eigenvalue = q * alpha**(
+                k * common_period / self.period)
+        eigenvector_right = vector(field, self.right_eigenvectors()[k])
+        eigenvector_left = vector(field, self.left_eigenvectors()[k])
+        M_prime = self.parent.I*Delta
+        S = matrix.block(
+             [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
+              [matrix(eigenvector_right)],
+              [mask]],
+             subdivide=False)
+        right_side = - matrix.block(
+                                    [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
+                                     [matrix(self.vector_v_prime(k))],
+                                     [0*mask]],
+                                    subdivide=False) * eigenvector_left
+        left_prime = S.solve_right(right_side)
+        w_prime = initial_vector*self.vector_v_prime(k)*eigenvector_left \
+            + initial_vector*eigenvector_right*left_prime
+        return w_prime
+
 
 class FSMFourier(Transducer):
     """
@@ -478,128 +601,6 @@ class FSMFourier(Transducer):
         Y = PolynomialRing(QQ, 'Y').gen()
         self.ones = vector(1 for _ in self.iter_states())
 
-        class FCComponent(SageObject):
-            """Hold a final component and associated data."""
-            def __init__(self, fsm, parent):
-                self.fsm = fsm
-                self.period = fsm.graph().period()
-                self.n_states = len(self.fsm.states())
-                self.parent = parent
-
-            def mask(self, n, components):
-                nrows = sum(c.n_states for c in components if c != self)
-                mask = matrix(
-                    nrows, n,
-                    [standard_basis[positions[state.label()]]
-                     for other in components
-                     if other != self
-                     for state in other.fsm.iter_states()])
-                return mask
-
-            def eigenvectors(self, M, components):
-                mask = self.mask(M.nrows(), components)
-                def eigenvector(j):
-                    eigenvalue = q * alpha**(
-                        j * common_period / self.period)
-                    S = matrix.block(
-                        [[M - eigenvalue*matrix.identity(M.nrows())],
-                         [mask]],
-                        subdivide=False)
-                    kernel = S.right_kernel_matrix()
-                    assert kernel.nrows() == 1
-                    if j == 0:
-                        #normalize for positive eigenvector
-                        return kernel.row(0) / sum(kernel.row(0))
-                    else:
-                        return kernel.row(0)
-
-                return [eigenvector(j) for j in range(self.period)]
-
-            @cached_method()
-            def right_eigenvectors(self):
-                return self.eigenvectors(M, components)
-
-            @cached_method()
-            def left_eigenvectors(self):
-                left_eigenvectors = self.eigenvectors(M.transpose(),
-                                                      components)
-                return [w/(v*w) for v, w
-                        in itertools.izip(self.right_eigenvectors(),
-                                          left_eigenvectors)]
-
-            @cached_method()
-            def vectors_w(self):
-                return [(initial_vector*v)*w for v, w
-                        in itertools.izip(self.right_eigenvectors(),
-                                          self.left_eigenvectors())]
-
-            @cached_method()
-            def coefficient_lambda(self):
-                products = [w*self.parent.ones for w in self.vectors_w()]
-                assert all(e.is_zero() for e in products[1:])
-                return products[0]
-
-            @cached_method()
-            def mu_prime(self):
-                p = self.fsm.adjacency_matrix(
-                    entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
-                Z = p.parent().gen()
-                assert p(Y=1, Z=q) == 0
-                mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
-                    Y=1, Z=q)
-                return self.parent.I*mu_prime_Z
-
-            @cached_method()
-            def a(self):
-                return QQ(-self.parent.I * self.mu_prime()/q)
-
-            def w_ell(self, ell):
-                if common_period.divides(ell*self.period):
-                    k = self.period*ell/common_period % self.period
-                    return vector(field_to_CIF(c) for c in self.vectors_w()[k])
-                else:
-                    return vector(0 for _ in self.vectors_w()[0])
-
-            def vector_v_prime(self, k):
-                mask = self.mask(M.nrows(), components)
-                eigenvalue = q * alpha**(
-                        k * common_period / self.period)
-                S = matrix.block(
-                     [[M - eigenvalue*matrix.identity(M.nrows())],
-                      [matrix(self.parent.ones)],
-                      [mask]],
-                     subdivide=False)
-                eigenvector_right = vector(field, self.right_eigenvectors()[k])
-                M_prime = self.parent.I*Delta
-                right_side = - matrix.block(
-                                            [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
-                                             [0*matrix(self.parent.ones)],
-                                             [0*mask]],
-                                            subdivide=False) * eigenvector_right
-                v_prime = S.solve_right(right_side)
-                return v_prime
-
-            def vector_w_prime(self, k):
-                mask = self.mask(M.nrows(), components)
-                eigenvalue = q * alpha**(
-                        k * common_period / self.period)
-                eigenvector_right = vector(field, self.right_eigenvectors()[k])
-                eigenvector_left = vector(field, self.left_eigenvectors()[k])
-                M_prime = self.parent.I*Delta
-                S = matrix.block(
-                     [[M.transpose() - eigenvalue*matrix.identity(M.nrows())],
-                      [matrix(eigenvector_right)],
-                      [mask]],
-                     subdivide=False)
-                right_side = - matrix.block(
-                                            [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
-                                             [matrix(self.vector_v_prime(k))],
-                                             [0*mask]],
-                                            subdivide=False) * eigenvector_left
-                left_prime = S.solve_right(right_side)
-                w_prime = initial_vector*self.vector_v_prime(k)*eigenvector_left \
-                    + initial_vector*eigenvector_right*left_prime
-                return w_prime
 
 
         components = [FCComponent(c, self) for c in self.final_components()]
