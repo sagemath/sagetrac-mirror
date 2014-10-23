@@ -600,7 +600,7 @@ class FSMFourier(Transducer):
                          [mask]],
                         subdivide=False)
                     kernel = S.right_kernel_matrix()
-                    #assert kernel.nrows() == 1
+                    assert kernel.nrows() == 1
                     if j == 0:
                         #normalize for positive eigenvector
                         return kernel.row(0) / sum(kernel.row(0))
@@ -631,7 +631,7 @@ class FSMFourier(Transducer):
             def coefficient_lambda(self):
                 ones = vector(1 for _ in range(M.nrows()))
                 products = [w*ones for w in self.vectors_w()]
-                #assert all(e.is_zero() for e in products[1:])
+                assert all(e.is_zero() for e in products[1:])
                 return products[0]
 
             @cached_method()
@@ -639,7 +639,7 @@ class FSMFourier(Transducer):
                 p = self.fsm.adjacency_matrix(
                     entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
                 Z = p.parent().gen()
-                #assert p(Y=1, Z=q) == 0
+                assert p(Y=1, Z=q) == 0
                 mu_prime_Z = (- p.derivative(Y)/p.derivative(Z))(
                     Y=1, Z=q)
                 I = CyclotomicField(4).gen()
@@ -736,42 +736,42 @@ class FSMFourier(Transducer):
         annihilated_by_left = matrix(left_eigenvectors).\
             right_kernel_matrix().transpose()
 
-        #T = matrix.block([[matrix.column(right_eigenvectors),
-        #                   annihilated_by_left]],
-        #                 subdivide=False)
+        T = matrix.block([[matrix.column(right_eigenvectors),
+                           annihilated_by_left]],
+                         subdivide=False)
 
-        #assert T.is_square()
-        #assert T.nrows() == M.nrows()
-        #assert T.is_invertible()
+        assert T.is_square()
+        assert T.nrows() == M.nrows()
+        assert T.is_invertible()
 
-        #check = T.inverse() * M * T
+        check = T.inverse() * M * T
         eigenvalues = [q * alpha**(j * common_period/c.period)
                        for c in components
                        for j in range(c.period)]
-        #check_dont_care = check.submatrix(len(eigenvalues),
-        #                                  len(eigenvalues))
-        #assert (matrix.block(
-        #        [[matrix.diagonal(eigenvalues), ZZ(0)],
-        #         [ZZ(0), check_dont_care]],
-        #             subdivide=False) - check).is_zero()
+        check_dont_care = check.submatrix(len(eigenvalues),
+                                          len(eigenvalues))
+        assert (matrix.block(
+                [[matrix.diagonal(eigenvalues), ZZ(0)],
+                 [ZZ(0), check_dont_care]],
+                     subdivide=False) - check).is_zero()
 
-        #assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
-        #        - matrix(left_eigenvectors)).is_zero()
+        assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
+                - matrix(left_eigenvectors)).is_zero()
 
         e_T = sum(c.a()*c.coefficient_lambda()
                   for c in components)
 
-        #var('n0')
-        #try:
-        #    assert e_T == self.asymptotic_moments(n0)['expectation']\
-        #        .coefficient(n0)
-        #except NotImplementedError:
-        #    pass
+        var('n0')
+        try:
+            assert e_T == self.asymptotic_moments(n0)['expectation']\
+                .coefficient(n0)
+        except NotImplementedError:
+            pass
 
         M_epsilon = [self.adjacency_matrix(input=epsilon,
                                            entry=lambda t: 1)
                      for epsilon in range(q)]
-        #assert M == sum(M_epsilon)
+        assert M == sum(M_epsilon)
 
         Delta_epsilon = [self.adjacency_matrix(
                              input=epsilon,
