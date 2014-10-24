@@ -42,7 +42,8 @@ numpy_include_dirs = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include
 numpy_depends = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include/numpy/_numpyconfig.h']
 
 flint_depends = [SAGE_INC + '/flint/flint.h']
-singular_depends = [SAGE_INC + '/libsingular.h', SAGE_INC + '/givaro/givconfig.h']
+singular_depends = [SAGE_INC + '/libsingular.h']
+givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 
 #########################################################
 ### M4RI flags
@@ -57,8 +58,7 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
     m4ri_extra_compile_args.extend( [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()] )
     break
 
-singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
-
+singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Givaro flags
@@ -158,6 +158,9 @@ ext_modules = [
     Extension('sage.categories.action',
               sources = ['sage/categories/action.pyx']),
 
+    Extension('sage.categories.category_cy_helper',
+              sources = ['sage/categories/category_cy_helper.pyx']),
+
     Extension('sage.categories.category_singleton',
               sources = ['sage/categories/category_singleton.pyx']),
 
@@ -254,6 +257,9 @@ ext_modules = [
 
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
+
+    Extension('sage.combinat.designs.designs_pyx',
+              sources=['sage/combinat/designs/designs_pyx.pyx']),
 
     ################################
     ##
@@ -713,7 +719,7 @@ ext_modules = [
                            'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx', BLAS, BLAS2],
               language = 'c++',
               extra_compile_args = givaro_extra_compile_args,
-              depends = [SAGE_INC + '/givaro/givconfig.h']),
+              depends = givaro_depends),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
               sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
@@ -773,10 +779,10 @@ ext_modules = [
 
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
-              libraries = singular_libs,
+              libraries = ['givaro'] + singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
+              depends = singular_depends + givaro_depends,
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.libs.singular.polynomial',
@@ -784,24 +790,21 @@ ext_modules = [
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.libs.singular.ring',
               sources = ['sage/libs/singular/ring.pyx'],
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.libs.singular.groebner_strategy',
               sources = ['sage/libs/singular/groebner_strategy.pyx'],
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.libs.singular.function',
               sources = ['sage/libs/singular/function.pyx'],
@@ -816,8 +819,7 @@ ext_modules = [
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/%s"%s for s in ["symmetrica.pyx"]],
@@ -1012,6 +1014,9 @@ ext_modules = [
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
 
+    Extension('sage.matrix.echelon_matrix',
+              sources = ['sage/matrix/echelon_matrix.pyx']),
+
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx'],
               libraries=[BLAS, BLAS2, 'gmp'],
@@ -1111,8 +1116,7 @@ ext_modules = [
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
@@ -1421,6 +1425,11 @@ ext_modules = [
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.backends.cvxopt_backend",
+              ["sage/numerical/backends/cvxopt_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["stdc++"]),
+
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"],
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
@@ -1496,6 +1505,10 @@ ext_modules = [
     ## sage.rings
     ##
     ################################
+
+    Extension('sage.rings.sum_of_squares',
+              sources = ['sage/rings/sum_of_squares.pyx'],
+              libraries = ['m']),
 
     Extension('sage.rings.bernmm',
               sources = ['sage/rings/bernmm.pyx',
@@ -1794,8 +1807,7 @@ ext_modules = [
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
@@ -1810,11 +1822,13 @@ ext_modules = [
               libraries = singular_libs,
               language="c++",
               include_dirs = [SAGE_INC + '/singular', SAGE_INC + '/factory'],
-              depends = singular_depends,
-              extra_compile_args = givaro_extra_compile_args),
+              depends = singular_depends),
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),
+
+    Extension('sage.rings.polynomial.polynomial_number_field',
+              sources = ['sage/rings/polynomial/polynomial_number_field.pyx']),
 
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']),
