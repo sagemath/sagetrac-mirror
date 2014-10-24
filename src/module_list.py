@@ -2207,6 +2207,12 @@ if is_package_installed('arb'):
                  language = "c",
                  libraries = ['arb', 'mpfi', 'mpfr'],
                  include_dirs = [SAGE_INC + '/flint'],
+                 depends = flint_depends),
+       Extension("sage.combinat.fsm_fourier",
+                 ["sage/combinat/fsm_fourier.pyx"],
+                 language = "c",
+                 libraries = ['arb', 'mpfi', 'mpfr'],
+                 include_dirs = [SAGE_INC + '/flint'],
                  depends = flint_depends)
        ])
 
