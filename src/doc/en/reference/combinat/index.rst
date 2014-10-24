@@ -64,6 +64,7 @@ Combinatorics
 
    sage/combinat/finite_state_machine
    sage/combinat/finite_state_machine_generators
+   sage/combinat/fsm_fourier
 
 **Integer Lists/Matrices/Vectors**
 

@@ -1,11 +1,6 @@
 """
 Fourier Coefficients
 
-::
-
-    sage: import sys
-    sage: sys.path.append(".")
-
 """
 import itertools
 
@@ -40,7 +35,7 @@ def infinity_vector_norm(v):
 
     EXAMPLES::
 
-        sage: from fsm_fourier import infinity_vector_norm
+        sage: from sage.combinat.fsm_fourier import infinity_vector_norm
         sage: a = RIF(1, 4)
         sage: b = RIF(-3, -2)
         sage: infinity_vector_norm(vector([a, b])).endpoints()
@@ -81,7 +76,7 @@ def infinity_matrix_norm(A):
 
     EXAMPLES::
 
-        sage: from fsm_fourier import infinity_matrix_norm
+        sage: from sage.combinat.fsm_fourier import infinity_matrix_norm
         sage: M = matrix([[1, 2], [-5, -1]])
         sage: infinity_matrix_norm(M)
         6
@@ -121,7 +116,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     -   ::
 
-            sage: from fsm_fourier import _hurwitz_zeta_
+            sage: from sage.combinat.fsm_fourier import _hurwitz_zeta_
             sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
             0.097483848201852? + 0.?e-19*I
 
@@ -270,14 +265,14 @@ class FSM_Fourier_Component(SageObject):
         f
         sage: var('n')
         n
-        sage: from fsm_fourier import FSMFourier
+        sage: from sage.combinat.fsm_fourier import FSMFourier
         sage: F = FSMFourier(transducers.Recursion([
         ....:     f(2*n + 1) == f(n) + 1,
         ....:     f(2*n) == f(n),
         ....:     f(0) == 0],
         ....:     f, n, 2)) # indirect doctest
         sage: F.components[0]
-        <class 'fsm_fourier.FSM_Fourier_Component'>
+        <class 'sage.combinat.fsm_fourier.FSM_Fourier_Component'>
         sage: F.components[0].period
         1
     """
@@ -301,14 +296,14 @@ class FSM_Fourier_Component(SageObject):
             f
             sage: var('n')
             n
-            sage: from fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: F = FSMFourier(transducers.Recursion([
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2)) # indirect doctest
             sage: F.components[0]
-            <class 'fsm_fourier.FSM_Fourier_Component'>
+            <class 'sage.combinat.fsm_fourier.FSM_Fourier_Component'>
             sage: F.components[0].period
             1
         """
@@ -333,6 +328,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -379,6 +375,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -433,6 +430,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -472,6 +470,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -506,6 +505,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -540,6 +540,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -571,6 +572,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -606,6 +608,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
@@ -634,6 +637,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
@@ -668,6 +672,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
@@ -713,6 +718,7 @@ class FSM_Fourier_Component(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
@@ -826,7 +832,7 @@ class FSMFourier(SageObject):
                 f
                 sage: var('n')
                 n
-                sage: from fsm_fourier import FSMFourier
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
@@ -1184,7 +1190,7 @@ class FSMFourier(SageObject):
         self.e_T = sum(c.a()*c.coefficient_lambda()
                        for c in self.components)
 
-        var('n0')
+        n0 = var('n0')
         try:
             assert self.e_T == transducer.asymptotic_moments(n0)['expectation']\
                 .coefficient(n0)
@@ -1241,6 +1247,7 @@ class FSMFourier(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: function('f')
             f
             sage: var('n')
@@ -1289,6 +1296,7 @@ class FSMFourier(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: function('f')
             f
             sage: var('n')
@@ -1347,6 +1355,7 @@ class FSMFourier(SageObject):
         -   One state, always ``1``: this corresponds to the Riemann zeta
             function (minus the first 99 summands, multiplied by 2). ::
 
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: function('f')
                 f
                 sage: var('n')
@@ -1500,7 +1509,9 @@ class FSMFourier(SageObject):
 
         A :class:`sage.rings.complex_interval.ComplexInterval` element.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: function('f')
             f
             sage: var('n')
@@ -1526,12 +1537,10 @@ class FSMFourier(SageObject):
         else:
             return w * self._H_m_rhs_(s, m)/log_q
 
-    # BEGIN_REMOVE_FOR_DOCUMENTATION
     @cached_method(key=lambda self, s, m: (s.real().lower(),
                                            s.real().upper(),
                                            s.imag().lower(),
                                            s.imag().upper(), m))
-    # END_REMOVE_FOR_DOCUMENTATION
     def _H_m_(self, s, m):
         r"""
         Compute `\mathbf{H}_m(s)`.
@@ -1551,6 +1560,7 @@ class FSMFourier(SageObject):
         -   One state, always ``1``: this corresponds to the Riemann
             zeta function (minus the first 99 summands). ::
 
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: function('f')
                 f
                 sage: var('n')
@@ -1585,6 +1595,7 @@ class FSMFourier(SageObject):
         -   One state, always ``1``: this is the Riemann
             zeta function. ::
 
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: function('f')
                 f
                 sage: var('n')
@@ -1625,11 +1636,12 @@ class FSMFourier(SageObject):
 
         -   Binary sum of digits::
 
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: function('f')
                 f
                 sage: var('n')
                 n
-                sage: from fsm_fourier import FSMFourier
+                sage: from sage.combinat.fsm_fourier import FSMFourier
                 sage: T = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
