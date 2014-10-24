@@ -1,6 +1,16 @@
 """
 Fourier Coefficients
 
+.. autofunction:: _hurwitz_zeta_
+.. automethod:: FSM_Fourier_Component.__init__
+.. automethod:: FSMFourier.__init__
+.. automethod:: FSMFourier._FC_b_direct_
+.. automethod:: FSMFourier._FC_b_recursive_
+.. automethod:: FSMFourier._H_m_rhs_
+.. automethod:: FSMFourier._w_H_Res_
+.. automethod:: FSMFourier._H_m_
+.. automethod:: FSMFourier._H_
+
 """
 import itertools
 
@@ -44,7 +54,7 @@ def infinity_vector_norm(v):
         (2.00000000000000, 4.00000000000000)
 
     Note that the
-    :meth:`sage.rings.modules.free_module_element.FreeModuleElement.norm`
+    :meth:`sage.modules.free_module_element.FreeModuleElement.norm`
     method is inadequate, as it uses the Python max instead of
     :func:`~sage.rings.real_mpfi.max_RIF`::
 
@@ -103,7 +113,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     -   ``s`` -- a :class:`ComplexIntervalFieldElement`
 
-    -   ``alpha`` -- a :class:`RealIntervalFieldElement`
+    -   ``alpha`` -- a :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`
 
     -   ``m`` -- a positive integer
 
@@ -114,7 +124,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     EXAMPLES:
 
-    -   ::
+    -   Simple example::
 
             sage: from sage.combinat.fsm_fourier import _hurwitz_zeta_
             sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
@@ -144,7 +154,7 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
             True
 
     -   Debugging output can be enabled using
-        :func:`~sage.misc.misc.set_verbose`. To test it, We use a
+        :func:`~sage.misc.misc.set_verbose`. To test it, we use a
         large imaginary part because convergence is worse in those
         cases::
 
@@ -255,7 +265,8 @@ class FSM_Fourier_Component(SageObject):
     - ``fsm`` -- the final component as a
       :class:`~sage.combinat.finite_state_machine.Transducer`.
 
-    - ``parent`` -- an instance of :class:`FSMFourier` holding all
+    - ``parent`` -- an instance of
+      :class:`~sage.combinat.fsm_fourier.FSMFourier` holding all
       relevant data for the full transducer.
 
     EXAMPLES::
@@ -286,7 +297,7 @@ class FSM_Fourier_Component(SageObject):
         - ``fsm`` -- the final component as a
           :class:`~sage.combinat.finite_state_machine.Transducer`.
 
-        - ``parent`` -- an instance of :class:`FSMFourier`` holding all
+        - ``parent`` -- an instance of :class:`FSMFourier` holding all
           relevant data for the full transducer.
 
         EXAMPLE::
@@ -761,7 +772,7 @@ class FSMFourier(SageObject):
     INPUT:
 
     - ``transducer`` -- a
-      :class:`sage.combinat.finite_state_machine.Transducer`.
+      :class:`~sage.combinat.finite_state_machine.Transducer`.
 
     The object stores various data (in particular, eigenvectors and
     their derivatives, final components) and provides the method
@@ -782,11 +793,13 @@ class FSMFourier(SageObject):
         INPUT:
 
         - ``transducer`` -- a
-          :class:`sage.combinat.finite_state_machine.Transducer`.
+          :class:`~sage.combinat.finite_state_machine.Transducer`.
 
         OUTPUT:
 
         Nothing.
+
+        .. TODO:: move the following lines to proper documentation of the attributes.
 
         A :class:`namedtuple` consisting of:
 
@@ -1241,8 +1254,9 @@ class FSMFourier(SageObject):
         starting in state ``s`` where ``q`` is the length of the input
         alphabet.
 
-        In contrast to :meth:`_FC_b_recursive_`, the values are computed
-        directly via :meth:`.__call__`.
+        In contrast to :meth:`_FC_b_recursive_`, the values are
+        computed directly via
+        :meth:`sage.combinat.finite_state_machine.FiniteStateMachine.__call__`.
 
         EXAMPLES::
 
@@ -1335,7 +1349,7 @@ class FSMFourier(SageObject):
         INPUT:
 
         -   ``s`` -- a
-            :class:`sage.rings.complex_interval.ComplexInterval` element
+            :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` element
 
         -   ``m`` -- non-negative integer
 
@@ -1348,7 +1362,9 @@ class FSMFourier(SageObject):
 
         OUTPUT:
 
-        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+        A
+        :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement`
+        element.
 
         EXAMPLES:
 
@@ -1503,11 +1519,11 @@ class FSMFourier(SageObject):
 
         INPUT:
 
-        ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+        ``s`` -- a :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` element
 
         OUTPUT:
 
-        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+        A :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` element.
 
         EXAMPLES::
 
@@ -1547,13 +1563,13 @@ class FSMFourier(SageObject):
 
         INPUT:
 
-        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+        -   ``s`` -- a :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` element
 
         -   ``m`` -- non-negative integer
 
         OUTPUT:
 
-        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+        A :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` element.
 
         EXAMPLES:
 
@@ -1584,11 +1600,15 @@ class FSMFourier(SageObject):
 
         INPUT:
 
-        -   ``s`` -- a :class:`sage.rings.complex_interval.ComplexInterval` element
+        - ``s`` -- a
+          :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement`
+          element
 
         OUTPUT:
 
-        A :class:`sage.rings.complex_interval.ComplexInterval` element.
+        A
+        :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement`
+        element.
 
         EXAMPLES:
 
