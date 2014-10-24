@@ -612,11 +612,11 @@ class FSMFourier(SageObject):
                 sage: F.a
                 [7/4]
                 sage: F.FourierCoefficient(0) # long time
-                0.8794486773901? + 0.?e-14*I
+                0.8794486773901? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
                 0.000330400039? + 0.002040223215?*I
                 sage: F.FourierCoefficient(43) # long time
-                0.0001789628369? + 3.8774734?e-6*I
+                0.000178962837? + 3.877474?e-6*I
 
         -   Artificial example, period 2, vanishing w-vector::
 
@@ -648,7 +648,7 @@ class FSMFourier(SageObject):
                 sage: F.FourierCoefficient(0) # long time
                 -1.5912428334793? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
-                -0.0002650957054? - 0.0001002936380?*I
+                -0.000265095706? - 0.0001002936380?*I
                 sage: F.FourierCoefficient(43) # long time
                 0
 
@@ -687,15 +687,15 @@ class FSMFourier(SageObject):
                 sage: F.a
                 [5/4, 5/4]
                 sage: F.FourierCoefficient(0) # long time
-                -2.1863500631078? + 0.?e-14*I
+                -2.1863500631078? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
-                -0.0024222079519? + 0.0010332514417?*I
+                -0.002422207952? + 0.001033251442?*I
                 sage: F.FourierCoefficient(43) # long time
                 0
                 sage: F.FourierCoefficient(44) # long time
-                0.0002142083798? - 0.0004539668075?*I
+                0.000214208380? - 0.000453966808?*I
                 sage: F.FourierCoefficient(45) # long time
-                -0.0005573382643? - 0.0005531638345?*I
+                -0.0005573382643? - 0.000553163835?*I
 
         -   Ternary sum of digits::
 
