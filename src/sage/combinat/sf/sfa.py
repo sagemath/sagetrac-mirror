@@ -1351,6 +1351,121 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                                distinct=True)
             return self(r)
 
+        def stable_dual_grothendieck(self, lam_mu, definition="jacobi"):
+            r"""
+            Return the stable dual Grothendieck function corresponding
+            to the skew partition ``lam_mu``.
+
+            TODO: doc
+            """
+            lam, mu = lam_mu
+            from sage.matrix.matrix_space import MatrixSpace
+            # BEWARE: neither jacobi nor dual-jacobi are proven for
+            # skew!
+            if definition == "jacobi-dual":
+                from sage.matrix.constructor import matrix
+                from sage.functions.other import binomial
+                Sym = self.realization_of()
+                R = Sym.base_ring()
+                e = Sym.e()
+                Pars = e.basis().keys()
+                def e_with_tail(n, p):
+                    minpn = min(p, n) if p >= 0 else n
+                    return e.sum_of_terms(( (Pars([n-k]), R(binomial(p, k)))
+                                            for k in range(minpn + 1) ))
+                lam_conj = lam.conjugate()
+                mu_conj = mu.conjugate()
+                l = max(len(lam_conj), len(mu_conj))
+                MS = MatrixSpace(e, l, l)
+                MC = MS._get_matrix_class()
+                A = MC(MS, [e_with_tail(lam_conj.get_part(i) - i
+                                        - mu_conj.get_part(j) + j,
+                                        lam_conj.get_part(i)
+                                        - mu_conj.get_part(j) - 1)
+                            for i in range(l) for j in range(l)],
+                       copy=False, coerce=False)
+                return self(A.det())
+            elif definition == "jacobi":
+                from sage.matrix.constructor import matrix
+                from sage.functions.other import binomial
+                Sym = self.realization_of()
+                R = Sym.base_ring()
+                h = Sym.h()
+                Pars = h.basis().keys()
+                def h_with_tail(n, p):
+                    return h.sum_of_terms(( (Pars([n-k]), R(binomial(p - 1 + k, k)))
+                                            for k in range(n + 1) ))
+                l = max(len(lam), len(mu))
+                MS = MatrixSpace(h, l, l)
+                MC = MS._get_matrix_class()
+                A = MC(MS, [h_with_tail(lam.get_part(i) - i
+                                        - mu.get_part(j) + j,
+                                        i - mu.get_part(l-1-j)) # This is the questionable part.
+                            for i in range(l) for j in range(l)],
+                       copy=False, coerce=False)
+                return self(A.det())
+            elif definition == "genfun":
+                pass # do this one too
+
+        def sgcheck(self, n, mu=None):
+            # check that jacobi and jacobi-dual give the same functions,
+            # for mu given.
+            # seems to work for mu == [].
+            if mu is None:
+                mu = Partitions()([])
+            for lam in Partitions(n):
+                a = self.stable_dual_grothendieck([lam, mu], definition="jacobi")
+                b = self.stable_dual_grothendieck([lam, mu], definition="jacobi-dual")
+                if a != b:
+                    print lam
+                    print a
+                    print b
+                    return False
+            return True
+
+        def scheck1(self, n, offseth=0, offsetv=0, definition="jacobi"):
+            # check multiplicativity for disconnected skew
+            # diagrams.
+            # seems to work for jacobi-dual.
+            for k in range(n):
+                for lam in Partitions(k):
+                    lenlam = len(lam) + offsetv
+                    lamex = lam[:] + [0] * offsetv
+                    for mu in Partitions(n-k):
+                        off = offseth + mu.get_part(0)
+                        lamoff = [g + off for g in lamex]
+                        outpar = Partitions()(lamoff + mu[:])
+                        inpar = Partitions()([off] * lenlam)
+                        a = self.stable_dual_grothendieck([lam, Partitions()([])], definition=definition)
+                        b = self.stable_dual_grothendieck([mu, Partitions()([])], definition=definition)
+                        ab = a * b
+                        c = self.stable_dual_grothendieck([outpar, inpar], definition=definition)
+                        if ab != c:
+                            print k, lam, mu
+                            print ab
+                            print c
+                            return False
+            return True
+
+        def scheck2(self, n, offseth=0, offsetv=0, definition="jacobi"):
+            # check invariance under 180-rotation.
+            # seems to work for jacobi-dual.
+            Par0 = Partitions()([])
+            for lam in Partitions(n):
+                width = lam.get_part(0) + offseth
+                height = len(lam) + offsetv
+                rectangle = Partitions()([width] * height)
+                a = self.stable_dual_grothendieck([rectangle, lam], definition=definition)
+                lamcheck = [width] * offsetv + [width - i for i in reversed(lam[:])]
+                lamcheck = Partitions()(lamcheck)
+                b = self.stable_dual_grothendieck([lamcheck, Par0], definition=definition)
+                if a != b:
+                    print lam
+                    print a
+                    print b
+                    return False
+            return True
+
     class ElementMethods:
 
         def degree_negation(self):
