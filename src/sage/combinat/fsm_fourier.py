@@ -255,7 +255,8 @@ class FSM_Fourier_Component(SageObject):
         self.n_states = len(self.fsm.states())
         self.parent = parent
 
-    def mask(self, n):
+    def mask(self):
+        n = self.parent.M.nrows()
         nrows = sum(c.n_states
                     for c in self.parent.components if c != self)
         mask = matrix(
@@ -268,7 +269,7 @@ class FSM_Fourier_Component(SageObject):
         return mask
 
     def eigenvectors(self, M):
-        mask = self.mask(self.parent.M.nrows())
+        mask = self.mask()
         def eigenvector(j):
             eigenvalue = self.parent.q * self.parent.alpha**(
                 j * self.parent.common_period / self.period)
@@ -333,7 +334,7 @@ class FSM_Fourier_Component(SageObject):
 
     def vector_v_prime(self, k):
         M = self.parent.M
-        mask = self.mask(M.nrows())
+        mask = self.mask()
         eigenvalue = self.parent.q * self.parent.alpha**(
                 k * self.parent.common_period / self.period)
         S = matrix.block(
@@ -353,7 +354,7 @@ class FSM_Fourier_Component(SageObject):
 
     def vector_w_prime(self, k):
         M = self.parent.M
-        mask = self.mask(M.nrows())
+        mask = self.mask()
         eigenvalue = self.parent.q * self.parent.alpha**(
                 k * self.parent.common_period / self.period)
         eigenvector_right = vector(self.right_eigenvectors()[k])
