@@ -27,15 +27,16 @@ from sage.structure.sage_object import SageObject
 def infinity_vector_norm(v):
     """
     Compute the infinity norm of a vector of
-    :class:`~sage.rings.real_interval` elements.
+    :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`.
 
     INPUT:
 
-    - ``v`` -- a vector of :class:`~sage.rings.real_interval` elements.
+    - ``v`` -- a vector of
+      :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`.
 
     OUTPUT:
 
-    A :class:`~sage.rings.real_interval` element.
+    A :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` element.
 
     EXAMPLES::
 
@@ -50,7 +51,7 @@ def infinity_vector_norm(v):
     Note that the
     :meth:`sage.rings.modules.free_module_element.FreeModuleElement.norm`
     method is inadequate, as it uses the Python max instead of
-    :func:`max_RIF`::
+    :func:`~sage.rings.real_mpfi.max_RIF`::
 
         sage: vector([a, b]).norm(infinity).endpoints()
         (1.00000000000000, 4.00000000000000)
@@ -105,16 +106,16 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     INPUT:
 
-    -   ``s`` -- a :class:`ComplexIntervalField` element
+    -   ``s`` -- a :class:`ComplexIntervalFieldElement`
 
-    -   ``alpha`` -- a :class:`RealIntervalField` element
+    -   ``alpha`` -- a :class:`RealIntervalFieldElement`
 
     -   ``m`` -- a positive integer
 
 
     OUTPUT:
 
-    A :class:`ComplexIntervalField` element in the same ring as ``s``.
+    A :class:`ComplexIntervalFieldElement` in the same field as ``s``.
 
     EXAMPLES:
 
@@ -248,14 +249,99 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
 
 class FSM_Fourier_Component(SageObject):
-    """Hold a final component and associated data."""
+    r"""
+    Final component of a
+    :class:`~sage.combinat.finite_state_machine.Transducer` and its
+    associated data for computing the Fourier coefficients of the
+    fluctuations of the sum of output.
+
+    INPUT:
+
+    - ``fsm`` -- the final component as a
+      :class:`~sage.combinat.finite_state_machine.Transducer`.
+
+    - ``parent`` -- an instance of :class:`FSMFourier` holding all
+      relevant data for the full transducer.
+
+    EXAMPLES::
+
+        sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+        sage: function('f')
+        f
+        sage: var('n')
+        n
+        sage: from fsm_fourier import FSMFourier
+        sage: F = FSMFourier(transducers.Recursion([
+        ....:     f(2*n + 1) == f(n) + 1,
+        ....:     f(2*n) == f(n),
+        ....:     f(0) == 0],
+        ....:     f, n, 2)) # indirect doctest
+        sage: F.components[0]
+        <class 'fsm_fourier.FSM_Fourier_Component'>
+        sage: F.components[0].period
+        1
+    """
+
     def __init__(self, fsm, parent):
+        r"""
+        Initialize the :class:`FSM_Fourier_Component`.
+
+        INPUT:
+
+        - ``fsm`` -- the final component as a
+          :class:`~sage.combinat.finite_state_machine.Transducer`.
+
+        - ``parent`` -- an instance of :class:`FSMFourier`` holding all
+          relevant data for the full transducer.
+
+        EXAMPLE::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: from fsm_fourier import FSMFourier
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2)) # indirect doctest
+            sage: F.components[0]
+            <class 'fsm_fourier.FSM_Fourier_Component'>
+            sage: F.components[0].period
+            1
+        """
         self.fsm = fsm
         self.period = fsm.graph().period()
         self.n_states = len(self.fsm.states())
         self.parent = parent
 
     def mask(self):
+        r"""
+        Return a matrix whose rows consist of the incidence
+        vectors of the states contained in the other final components
+        of ``self.parent`` than self.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A matrix.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: FC = FSMFourier(T).components[0]
+            sage: FC.mask()
+            [0 0 1]
+        """
         n = self.parent.M.nrows()
         nrows = sum(c.n_states
                     for c in self.parent.components if c != self)
@@ -269,6 +355,44 @@ class FSM_Fourier_Component(SageObject):
         return mask
 
     def eigenvectors(self, M):
+        r"""
+        Determine the dominant eigenvectors of the given full
+        adjacency matrix where all coordinates corresponding to final
+        components other than self vanish.
+
+        INPUT:
+
+        - ``M`` -- a matrix.
+
+        OUTPUT:
+
+        A list of vectors, the `k`-th entry is the eigenvector to
+        the eigenvalue `q \exp(2\pi i k/p_j)` where `p_j` is
+        the period of this component.
+
+        The first eigenvector (to the positive eigenvalue) is
+        normalized such that its entries sum up to one.
+
+        This method is called by :meth:`.right_eigenvectors` with
+        ``M = self.parent.M`` and by :meth:`.left_eigenvectors`
+        with ``M = self.parent.M.transpose()``.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.eigenvectors(F.M)
+            [(1/3, 2/3, 0)]
+
+        .. SEEALSO::
+
+            :meth:`.right_eigenvectors`, :meth:`.left_eigenvectors`
+        """
         mask = self.mask()
         def eigenvector(j):
             eigenvalue = self.parent.q * self.parent.alpha**(
@@ -289,10 +413,79 @@ class FSM_Fourier_Component(SageObject):
 
     @cached_method()
     def right_eigenvectors(self):
+        r"""
+        Determine the dominant right eigenvectors of the full
+        adjacency matrix where all coordinates corresponding to final
+        components other than self vanish.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A list of vectors, the `k`-th entry is the eigenvector to
+        the eigenvalue `q \exp(2\pi i k/p_j)` where `p_j` is
+        the period of this component.
+
+        The first eigenvector (to the positive eigenvalue) is
+        normalized such that its entries sum up to one.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.right_eigenvectors()
+            [(1/3, 2/3, 0)]
+
+        .. SEEALSO::
+
+            :meth:`.eigenvectors`, :meth:`.left_eigenvectors`
+        """
         return self.eigenvectors(self.parent.M)
 
     @cached_method()
     def left_eigenvectors(self):
+        r"""
+        Determine the dominant left eigenvectors of the full
+        adjacency matrix where all coordinates corresponding to final
+        components other than self vanish.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A list of vectors, the `k`-th entry is the eigenvector to
+        the eigenvalue `q \exp(2\pi i k/p_j)` where `p_j` is
+        the period of this component.
+
+        The eigenvectors are normalized such that their product
+        with the corresponding right eigenvectors computed by
+        :meth:`.right_eigenvectors` is `1`.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.left_eigenvectors()
+            [(0, 3/2, 0)]
+
+        .. SEEALSO::
+
+            :meth:`.eigenvectors`, :meth:`.right_eigenvectors`
+        """
         left_eigenvectors = self.eigenvectors(self.parent.M.transpose())
         return [w/(v*w) for v, w
                 in itertools.izip(self.right_eigenvectors(),
@@ -300,18 +493,94 @@ class FSM_Fourier_Component(SageObject):
 
     @cached_method()
     def vectors_w(self):
+        r"""
+        Compute `w_{jk}` for `0\le k< p_j`.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A list of vectors.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.vectors_w()
+            [(0, 1/2, 0)]
+
+        .. SEEALSO::
+
+            :meth:`.left_eigenvectors`, :meth:`.right_eigenvectors`
+        """
         return [(self.parent.initial_vector*v)*w for v, w
                 in itertools.izip(self.right_eigenvectors(),
                                   self.left_eigenvectors())]
 
     @cached_method()
     def coefficient_lambda(self):
+        r"""
+        Compute `\lambda_j`.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        An element of a cyclotomic field representing the value
+        `\lambda_j`.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.coefficient_lambda()
+            1/2
+        """
         products = [w*self.parent.ones for w in self.vectors_w()]
         assert all(e.is_zero() for e in products[1:])
         return products[0]
 
     @cached_method()
     def mu_prime(self):
+        r"""
+        Compute `\mu_{j0}'(0)`, the derivative of the dominant positive
+        eigenvector of `M(t)` corresponding to ``self`` at `t=0`.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        An element of a cyclotomic field representing the value
+        `\mu'_{j0}(0)`.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.mu_prime()
+            0
+        """
         Y = self.parent.Y
         p = self.fsm.adjacency_matrix(
             entry=lambda t:Y**sum(t.word_out)).charpoly('Z')
@@ -323,9 +592,61 @@ class FSM_Fourier_Component(SageObject):
 
     @cached_method()
     def a(self):
+        r"""
+        Compute the constant `a_{j}`.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        An element of a cyclotomic field representing the value
+        `a_j`.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.a()
+            0
+        """
         return QQ(-self.parent.I * self.mu_prime()/self.parent.q)
 
     def w_ell(self, ell):
+        r"""
+        Compute the left eigenvector to the eigenvalue
+        `\exp(2\pi i \ell/p)` to `M(0)` if the former is an eigenvalue
+        of `M(0)`. Otherwise, return the zero vector.
+
+        INPUT:
+
+        - ``ell`` -- an integer.
+
+        OUTPUT:
+
+        A vector over a complex interval field or the zero vector.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
+            ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2, 3])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.w_ell(0)
+            (0, 0.50000000000000000?, 0, 0)
+            sage: FC.w_ell(1)
+            (0, 0, 0, 0)
+        """
         if self.parent.common_period.divides(ell*self.period):
             k = self.period*ell/self.parent.common_period % self.period
             return vector(self.parent.field_to_CIF(c) for c in self.vectors_w()[k])
@@ -333,6 +654,31 @@ class FSM_Fourier_Component(SageObject):
             return vector(0 for _ in self.parent.ones)
 
     def vector_v_prime(self, k):
+        r"""
+        Compute the derivative `v_{jk}'(0)`, the right
+        eigenvector to the `k`-th dominant eigenvalue.
+
+        INPUT:
+
+        - ``k`` -- a non-negative integer.
+
+        OUTPUT:
+
+        A vector.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
+            ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2, 3])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.vector_v_prime(0)
+            (0, 0, 0, 0)
+        """
         M = self.parent.M
         mask = self.mask()
         eigenvalue = self.parent.q * self.parent.alpha**(
@@ -353,6 +699,31 @@ class FSM_Fourier_Component(SageObject):
         return v_prime
 
     def vector_w_prime(self, k):
+        r"""
+        Compute the derivative `w_{jk}'(0)`, the left
+        eigenvector to the `k`-th dominant eigenvalue.
+
+        INPUT:
+
+        - ``k`` -- a non-negative integer.
+
+        OUTPUT:
+
+        A vector.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+            ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
+            ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
+            ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0, 1, 2, 3])
+            sage: F = FSMFourier(T)
+            sage: FC = F.components[0]
+            sage: FC.vector_w_prime(0)
+            (0, 0, 0, 0)
+        """
         M = self.parent.M
         mask = self.mask()
         eigenvalue = self.parent.q * self.parent.alpha**(
@@ -378,20 +749,38 @@ class FSM_Fourier_Component(SageObject):
 
 class FSMFourier(SageObject):
     """
-    Fourier coefficients for the sum of output of transducers.
+    Compute Fourier coefficients of the periodic fluctuation of the
+    summatory function of the sum of output of transducers.
+
+    INPUT:
+
+    - ``transducer`` -- a
+      :class:`sage.combinat.finite_state_machine.Transducer`.
+
+    The object stores various data (in particular, eigenvectors and
+    their derivatives, final components) and provides the method
+    :meth:`FourierCoefficient` to actually compute single Fourier
+    coefficients.
+
+    EXAMPLES:
+
+    .. TODO:: move examples from :meth:`__init__`.
     """
 
     def __init__(self, transducer):
         r"""
-        Return the common data needed for the computation of all
+        Initialize the the common data needed for the computation of all
         Fourier coefficients of the periodic fluctuation of the sum of
         output.
 
         INPUT:
 
-        Nothing.
+        - ``transducer`` -- a
+          :class:`sage.combinat.finite_state_machine.Transducer`.
 
         OUTPUT:
+
+        Nothing.
 
         A :class:`namedtuple` consisting of:
 
@@ -1112,6 +1501,19 @@ class FSMFourier(SageObject):
         A :class:`sage.rings.complex_interval.ComplexInterval` element.
 
         EXAMPLES:
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(2*n + 1) == f(n),
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 1],
+            ....:     f, n, 2))
+            sage: F.w
+            [[(1)]]
+            sage: F._w_H_Res_(F.w[0][0], CIF(1))
+            1.00000000000000? + 0.?e-17*I
         """
 
         CIF = s.parent()
@@ -1213,11 +1615,11 @@ class FSMFourier(SageObject):
 
         INPUT:
 
-        -   `ell` -- an integer.
+        -   ``ell`` -- an integer.
 
         OUTPUT:
 
-        A :class:`ComplexIntervalField` element.
+        A :class:`ComplexIntervalFieldElement` element.
 
         EXAMPLES:
 
@@ -1236,7 +1638,7 @@ class FSMFourier(SageObject):
                 sage: def FourierCoefficientDelange(k):
                 ....:     if k == 0:
                 ....:         return 1/(2*log(2))*(log(2*pi)-1)-3/4
-                ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1) \
+                ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1)
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
                 sage: all(FourierCoefficientDelange(k)
                 ....:     in T.FourierCoefficient(k)
