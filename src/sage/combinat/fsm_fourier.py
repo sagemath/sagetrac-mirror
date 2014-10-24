@@ -365,7 +365,7 @@ class FSM_Fourier_Component(SageObject):
               [mask]],
              subdivide=False)
         right_side = - matrix.block(
-                                    [[M_prime - self.mu_prime()*matrix.identity(M.nrows())],
+                                    [[M_prime.transpose() - self.mu_prime()*matrix.identity(M.nrows())],
                                      [matrix(self.vector_v_prime(k))],
                                      [0*mask]],
                                     subdivide=False) * eigenvector_left
