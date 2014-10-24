@@ -1188,7 +1188,7 @@ class FSMFourier(SageObject):
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
                 sage: all(FourierCoefficientDelange(k)
                 ....:     in T.FourierCoefficient(k)
-                ....:     for k in range(0, 5))
+                ....:     for k in range(0, 5)) # long time
                 True
         """
 
