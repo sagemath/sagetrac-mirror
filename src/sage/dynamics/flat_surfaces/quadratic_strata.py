@@ -740,6 +740,33 @@ class QuadraticStratumComponent(StratumComponent):
         """
         return OrStrCC(self)
 
+    def lyapunov_exponents_H_plus(self, **kargs):
+        r"""
+        Compute the H^+ Lyapunov exponents.
+
+        EXAMPLES::
+            sage: R = QuadraticStratum([3,3,3,-1]).regular_component()
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        return(self.permutation_representative().lyapunov_exponents_H_plus(**kargs))
+
+    def lyapunov_exponents(self, **kargs):
+        r"""
+        Compute the H^+ Lyapunov exponents.
+
+        EXAMPLES::
+            sage: R = QuadraticStratum([3,3,3,-1]).regular_component()
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        return(self.orientable_cover().lyapunov_exponents(**kargs))
+
+
+
+
 
 QSC = QuadraticStratumComponent
 
@@ -754,7 +781,7 @@ class StratumComponentCover(SageObject):
 
     And an attribute
 
-    -  ._cover_stratum
+    -  ._cover_stratum_comp
 
     There may be
 
@@ -803,7 +830,7 @@ class StratumComponentCover(SageObject):
             sage: a_odd._repr_()
             'H_3(4)^odd'
         """
-        return str(self._cover_stratum) + "-> (" + self._name + ") " + str(self._stratum_comp)
+        return str(self._cover_stratum_comp) + "-> (" + self._name + ") " + str(self._stratum_comp)
 
     def stratum(self):
         r"""
@@ -833,10 +860,10 @@ class OrientableStratumComponentCover(StrCC):
 
     def __init__(self, _stratum_comp):
         self._stratum_comp = _stratum_comp
-        self._cover_stratum = _stratum_comp.orientation_cover_component()
+        self._cover_stratum_comp = _stratum_comp.orientation_cover_component()
 
-    def cover_permutations_representatives(self, left_degree=None, reduced=True, alphabet=None, relabel=True):
-        stratum_rep = self._stratum.permutation_representative(left_degree, reduced, alphabet, relabel)
+    def cover_permutations_representatives(self, reduced=True, alphabet=None, relabel=True):
+        stratum_rep = self._stratum_comp.permutation_representative(reduced, alphabet, relabel)
         cover_rep = {}
 
         for l in stratum_rep.letters():
@@ -845,7 +872,7 @@ class OrientableStratumComponentCover(StrCC):
             else:
                 cover_rep[l] = Permutation('(2)')
 
-    def lyapunov_exponents_H_plus(self, **kargs):
+    def lyapunov_exponents_H_plus(self, nb_vectors = None, **kargs):
         r"""
         Compute the H^+ Lyapunov exponents in  the covering locus.
 
@@ -853,27 +880,7 @@ class OrientableStratumComponentCover(StrCC):
         might be significantly faster if ``nb_vectors=1`` (or if it is not
         provided but genus is 1).
 
-        INPUT:
-
-        - ``nb_vectors`` -- the number of exponents to compute. The number of
-          vectors must not exceed the dimension of the space!
-
-         - ``nb_experiments`` -- the number of experiments to perform. It might
-           be around 100 (default value) in order that the estimation of
-           confidence interval is accurate enough.
-
-         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
-           algorithm to perform for each experiments. The default is 2^15=32768
-           which is rather small but provide a good compromise between speed and
-           quality of approximation.
-
-        - ``verbose`` -- if ``True`` provide additional informations rather than
-          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
-          intervals, ...)
-
-        - ``output_file`` -- if provided (as a file object or a string) output
-          the additional information in the given file rather than on the
-          standard output.
+        For inputs see source file interval_exchanges.py
 
         EXAMPLES::
             sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
@@ -881,7 +888,27 @@ class OrientableStratumComponentCover(StrCC):
             [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
 
         """
+        kargs["nb_vectors"] = self._stratum_comp.genus() if nb_vectors == None else nb_vectors
         return(self._stratum_comp.permutation_representative().lyapunov_exponents_H_plus(**kargs))
+
+    def lyapunov_exponents(self, nb_vectors = None, **kargs):
+        r"""
+        Compute the all Lyapunov exponents in  the covering locus.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        kargs["nb_vectors"] = self._cover_stratum_comp.genus() if nb_vectors == None else nb_vectors
+        perm = self._stratum_comp.permutation_representative()
+        sigma = {}
+        for a in perm.alphabet():
+            sigma[a] = [1,0] if perm.label_double(a) else [0,1]
+        kargs["sigma"] = sigma
+        return(perm.lyapunov_exponents_H_plus(**kargs))
+
 
 OrStrCC = OrientableStratumComponentCover
 

@@ -2266,6 +2266,7 @@ class OrientablePermutationIET(PermutationIET):
                 return len(s)//2 - 1
 
     def profile(self):
+        #buggy separatrix_diagram !
         r"""
         Returns the profile of the permutation
 

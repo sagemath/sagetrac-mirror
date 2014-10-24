@@ -510,6 +510,9 @@ class StratumComponent(SageObject):
 
         return cmp(type(self),type(other))
 
+    def genus(self):
+        return self._stratum.genus()
+
 #
 # Strata (family of strata)
 #

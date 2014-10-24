@@ -177,9 +177,130 @@ class ReducedPermutation(SageObject) :
             for aux in xrange(k + 1, len(self[i])):
                 if self[i][aux] == label:
                     return True
-                return False
+            return False
 
         return double_line(0) or double_line(1)
+
+    
+    def lyapunov_exponents_H_plus(self, nb_vectors=None, nb_experiments=100,
+                                  nb_iterations=32768, return_speed=False, verbose=False, output_file=None, lengths=None, sigma=None):
+        r"""
+        Compute the H^+ Lyapunov exponents in  the covering locus.
+
+        It calls the C-library lyap_exp interfaced with Cython. The computation
+        might be significantly faster if ``nb_vectors=1`` (or if it is not
+        provided but genus is 1).
+
+        INPUT:
+
+        - ``nb_vectors`` -- the number of exponents to compute. The number of
+          vectors must not exceed the dimension of the space!
+
+         - ``nb_experiments`` -- the number of experiments to perform. It might
+           be around 100 (default value) in order that the estimation of
+           confidence interval is accurate enough.
+
+         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
+           algorithm to perform for each experiments. The default is 2^15=32768
+           which is rather small but provide a good compromise between speed and
+           quality of approximation.
+
+        - ``verbose`` -- if ``True`` provide additional informations rather than
+          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
+          intervals, ...)
+
+        - ``output_file`` -- if provided (as a file object or a string) output
+          the additional information in the given file rather than on the
+          standard output.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        n = len(self)
+
+        if nb_vectors is None:
+            nb_vectors = self.stratum().genus()
+
+        if output_file is None:
+            from sys import stdout
+            output_file = stdout
+        elif isinstance(output_file, str):
+            output_file = open(output_file, "w")
+
+        if sigma == None or sigma == []: sigma = [0]*len(self)        #look at the trivial cover
+        if isinstance(sigma, dict):
+            sigma = map(lambda x : sigma[self._alphabet.unrank(x)], range(n))
+        if isinstance(sigma, list) and isinstance(sigma[0], list):
+            sigma = reduce(lambda x,y: x+y, sigma)
+
+
+        nb_vectors = int(nb_vectors)
+        nb_experiments = int(nb_experiments)
+        nb_iterations = int(nb_iterations)
+
+        if verbose:
+            output_file.write("Stratum : " + str(self.stratum()))
+            output_file.write("\n")
+
+        if nb_vectors < 0 :     raise ValueError("the number of vectors must be positive")
+        if nb_vectors == 0:     return []
+        if nb_experiments <= 0: raise ValueError("the number of experiments must be positive")
+        if nb_iterations <= 0 : raise ValueError("the number of iterations must be positive")
+        if len(sigma) %n != 0 : raise ValueError("you must give a permutation for each interval")
+        
+        #Translate our structure to the C structure"
+        k = len(self[0])
+        def convert((i,j)):
+            return(j + i*k)
+
+        gp, twin = range(2*n), range(2*n)
+
+        for i in range(2):
+            for j in range(len(self[i])):
+                gp[convert((i,j))] = int(self._alphabet.rank(self[i][j]))
+                if isinstance(self._twin[i][j], int):
+                       twin[convert((i,j))] = int(convert((1-i, self._twin[i][j])))
+                else:
+                       twin[convert((i,j))] = int(convert(self._twin[i][j]))
+
+
+        if lengths != None:
+            lengths = map(int, lengths)
+        sigma = map(int, sigma)
+
+        t0 = time.time()
+        res = lekz.lyapunov_exponents_H_plus_cyclic_cover(
+            gp, int(k), twin, sigma, int(len(sigma)/n), 
+            nb_vectors, nb_experiments, nb_iterations)
+        t1 = time.time()
+
+        res_final = []
+
+        m,d = mean_and_std_dev(res[0])
+        lexp = m
+
+        if verbose:
+            from math import log, floor, sqrt
+            output_file.write("sample of %d experiments\n"%nb_experiments)
+            output_file.write("%d iterations (~2^%d)\n"%(
+                    nb_iterations,
+                    floor(log(nb_iterations) / log(2))))
+            output_file.write("ellapsed time %s\n"%time.strftime("%H:%M:%S",time.gmtime(t1-t0)))
+            output_file.write("Lexp Rauzy-Zorich: %f (std. dev. = %f, conf. rad. 0.01 = %f)\n"%(
+                    m,d, 2.576*d/sqrt(nb_experiments)))
+        for i in xrange(1,nb_vectors+1):
+            m,d = mean_and_std_dev(res[i])
+            if verbose:
+                output_file.write("theta%d           : %f (std. dev. = %f, conf. rad. 0.01 = %f)\n"%(
+                    i,m,d, 2.576*d/sqrt(nb_experiments)))
+            res_final.append(m)
+
+        if return_speed: return (lexp, res_final)
+        else: return res_final
+
 
 
 
@@ -581,116 +702,6 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
             sage: d = p.rauzy_diagram()
         """
         return ReducedRauzyDiagram(self, **kargs)
-    
-    def lyapunov_exponents_H_plus(self, nb_vectors=None, nb_experiments=10,
-                                  nb_iterations=32768, return_speed=False, verbose=False, output_file=None, lengths=None):
-        r"""
-        Compute the H^+ Lyapunov exponents in  the covering locus.
-
-        It calls the C-library lyap_exp interfaced with Cython. The computation
-        might be significantly faster if ``nb_vectors=1`` (or if it is not
-        provided but genus is 1).
-
-        INPUT:
-
-        - ``nb_vectors`` -- the number of exponents to compute. The number of
-          vectors must not exceed the dimension of the space!
-
-         - ``nb_experiments`` -- the number of experiments to perform. It might
-           be around 100 (default value) in order that the estimation of
-           confidence interval is accurate enough.
-
-         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
-           algorithm to perform for each experiments. The default is 2^15=32768
-           which is rather small but provide a good compromise between speed and
-           quality of approximation.
-
-        - ``verbose`` -- if ``True`` provide additional informations rather than
-          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
-          intervals, ...)
-
-        - ``output_file`` -- if provided (as a file object or a string) output
-          the additional information in the given file rather than on the
-          standard output.
-
-        EXAMPLES::
-            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
-            sage: R.lyapunov_exponents_H_plus()
-            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
-
-        """
-        if nb_vectors is None:
-            nb_vectors = self.stratum().genus()
-
-        if output_file is None:
-            from sys import stdout
-            output_file = stdout
-        elif isinstance(output_file, str):
-            output_file = open(output_file, "w")
-
-        nb_vectors = int(nb_vectors)
-        nb_experiments = int(nb_experiments)
-        nb_iterations = int(nb_iterations)
-
-        if verbose:
-            output_file.write("Stratum : " + str(self.stratum()))
-            output_file.write("\n")
-
-        if nb_vectors <= 0:
-            raise ValueError("the number of vectors must be positive")
-        if nb_experiments <= 0:
-            raise ValueError("the number of experiments must be positive")
-        if nb_iterations <= 0:
-            raise ValueError("the number of iterations must be positive")
-
-        #Translate our structure to the C structure"
-        k = len(self[0])
-        def convert((i,j)):
-            return(j + i*k)
-
-        n = len(self)
-        gp, twin = range(2*n), range(2*n)
-
-        for i in range(2):
-            for j in range(len(self[i])):
-                gp[convert((i,j))] = int(self._alphabet.rank(self[i][j]))
-                twin[convert((i,j))] = int(convert(self._twin[i][j]))
-
-        sigma = [int(0)]*n        #look at the trivial cover
-
-        if lengths != None:
-            lengths = map(int, lengths)
-
-        t0 = time.time()
-        res = lekz.lyapunov_exponents_H_plus_cyclic_cover(
-            gp, int(k), twin, sigma, int(1), 
-            nb_vectors, nb_experiments, nb_iterations)
-        t1 = time.time()
-
-        res_final = []
-
-        m,d = mean_and_std_dev(res[0])
-        lexp = m
-
-        if verbose:
-            from math import log, floor, sqrt
-            output_file.write("sample of %d experiments\n"%nb_experiments)
-            output_file.write("%d iterations (~2^%d)\n"%(
-                    nb_iterations,
-                    floor(log(nb_iterations) / log(2))))
-            output_file.write("ellapsed time %s\n"%time.strftime("%H:%M:%S",time.gmtime(t1-t0)))
-            output_file.write("Lexp Rauzy-Zorich: %f (std. dev. = %f, conf. rad. 0.01 = %f)\n"%(
-                    m,d, 2.576*d/sqrt(nb_experiments)))
-        for i in xrange(1,nb_vectors+1):
-            m,d = mean_and_std_dev(res[i])
-            if verbose:
-                output_file.write("theta%d           : %f (std. dev. = %f, conf. rad. 0.01 = %f)\n"%(
-                    i,m,d, 2.576*d/sqrt(nb_experiments)))
-            res_final.append(m)
-
-        if return_speed: return (lexp, res_final)
-        else: return res_final
-
 
 def labelize_flip(couple):
     r"""
