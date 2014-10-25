@@ -851,22 +851,17 @@ class FSMFourier(SageObject):
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [1]
                 sage: F.common_period
                 1
-                sage: F.T
-                [1]
-                sage: F.w
-                [[(1)]]
-                sage: F.coefficient_lambda
-                [1]
+                sage: [FC] = F.components
+                sage: FC.vectors_w()
+                [(1)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 1/2
-                sage: F.a
-                [1/2]
+                sage: FC.a()
+                1/2
                 sage: F.M
                 [2]
                 sage: F.M_epsilon
@@ -888,24 +883,17 @@ class FSMFourier(SageObject):
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [1]
                 sage: F.common_period
                 1
-                sage: F.T
-                [1/3   1   0]
-                [1/3   0   1]
-                [1/3  -1  -1]
-                sage: F.w
-                [[(1/3, 1/3, 1/3)]]
-                sage: F.coefficient_lambda
-                [1]
+                sage: [FC] = F.components
+                sage: FC.vectors_w()
+                [(1/3, 1/3, 1/3)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 1/3
-                sage: F.a
-                [1/3]
+                sage: FC.a()
+                1/3
                 sage: F.FourierCoefficient(0) # long time
                 0.4478541793943? + 0.?e-16*I
                 sage: F.FourierCoefficient(42) # long time
@@ -923,31 +911,17 @@ class FSMFourier(SageObject):
                 ....:     f(1) == 2, f(0) == 0]
                 ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [1]
+                sage: [FC] = F.components
                 sage: F.common_period
                 1
-                sage: F.T
-                [1/10    1    0    0    0    0    0    0    0    0]
-                [1/10    0    1    0    0    0    0    0    0    0]
-                [1/10    0    0    1    0    0    0    0    0    0]
-                [1/10    0    0    0    1    0    0    0    0    0]
-                [1/10    0    0    0    0    1    0    0    0    0]
-                [1/10    0    0    0    0    0    1    0    0    0]
-                [1/10    0    0    0    0    0    0    1    0    0]
-                [1/10    0    0    0    0    0    0    0    1    0]
-                [1/10    0    0    0    0    0    0    0    0    1]
-                [1/10    0    0   -3   -2   -2   -2   -1   -1   -1]
-                sage: F.w
-                [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]]
-                sage: F.coefficient_lambda
-                [1]
+                sage: FC.vectors_w()
+                [(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 8/13
-                sage: F.a
-                [8/13]
+                sage: FC.a()
+                8/13
                 sage: F.FourierCoefficient(0) # long time
                 1.5308151287593? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
@@ -961,23 +935,17 @@ class FSMFourier(SageObject):
                 ....:     f(2*n+1) == f(n),
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [1]
+                sage: [FC] = F.components
                 sage: F.common_period
                 1
-                sage: F.T
-                [1/2   1]
-                [1/2  -1]
-                sage: F.w
-                [[(1/2, 1/2)]]
-                sage: F.coefficient_lambda
-                [1]
+                sage: FC.vectors_w()
+                [(1/2, 1/2)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 1/4
-                sage: F.a
-                [1/4]
+                sage: FC.a()
+                1/4
                 sage: F.FourierCoefficient(0) # long time
                 -0.20319811602320? + 0.?e-16*I
                 sage: F.FourierCoefficient(42) # long time
@@ -996,30 +964,19 @@ class FSMFourier(SageObject):
                 ....:     f(8*n+7) == f(4*n+1),
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [3]
+                sage: [FC] = F.components
                 sage: F.common_period
                 3
-                sage: F.T
-                [         1/7               1               1            1            0            0            0]
-                [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            1            0            0]
-                [         1/7 -2*zeta12^2 + 2      2*zeta12^2            0            0            1            0]
-                [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0            1]
-                [         1/7     -4*zeta12^2  4*zeta12^2 - 4            0            0            0           -1]
-                [         1/7  4*zeta12^2 - 4     -4*zeta12^2            0            0            0            0]
-                [         1/7               4               4            0            0            0            0]
-                sage: F.w
-                [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
+                sage: FC.vectors_w()
+                [(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
                 (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
-                (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]]
-                sage: F.coefficient_lambda
-                [1]
+                (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 7/4
-                sage: F.a
-                [7/4]
+                sage: FC.a()
+                7/4
                 sage: F.FourierCoefficient(0) # long time
                 0.8794486773901? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
@@ -1036,24 +993,17 @@ class FSMFourier(SageObject):
                 ....:     f(4*n+3) == f(2*n)-1,
                 ....:     f(0) == 0],
                 ....:     f, n, 2))
-                sage: F.c
-                1
-                sage: F.periods
-                [2]
+                sage: [FC] = F.components
                 sage: F.common_period
                 2
-                sage: F.T
-                [1/3   0   1]
-                [1/3   1   0]
-                [1/3  -1   0]
-                sage: F.w
-                [[(0, 1/2, 1/2), (0, 0, 0)]]
-                sage: F.coefficient_lambda
-                [1]
+                sage: FC.vectors_w()
+                [(0, 1/2, 1/2), (0, 0, 0)]
+                sage: FC.coefficient_lambda()
+                1
                 sage: F.e_T
                 5/4
-                sage: F.a
-                [5/4]
+                sage: FC.a()
+                5/4
                 sage: F.FourierCoefficient(0) # long time
                 -1.5912428334793? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
@@ -1071,30 +1021,27 @@ class FSMFourier(SageObject):
                 ....:     (-3, -1, 0, 3)],
                 ....:     initial_states=[0],
                 ....:     final_states=[0, 1, 2, -3, -2, -1]))
-                sage: F.c
+                sage: [FC0, FC1] = F.components
+                sage: FC0.period
+                3
+                sage: FC1.period
                 2
-                sage: F.periods
-                [3, 2]
                 sage: F.common_period
                 6
-                sage: F.T
-                [        1/7              1              1         1/5           1           1]
-                [          0              0              0         2/5          -2           0]
-                [          0              0              0         2/5           2           0]
-                [        2/7              2              2           0           0           0]
-                [        2/7    -2*zeta12^2 2*zeta12^2 - 2           0           0           0]
-                [        2/7 2*zeta12^2 - 2    -2*zeta12^2           0           0           0]
-                sage: F.w
-                [[(0, 0, 0, 1/6, 1/6, 1/6),
+                sage: FC0.vectors_w()
+                [(0, 0, 0, 1/6, 1/6, 1/6),
                   (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
-                  (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)],
-                 [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]]
-                sage: F.coefficient_lambda
-                [1/2, 1/2]
+                  (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)]
+                sage: FC1.vectors_w()
+                [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]
+                sage: FC0.coefficient_lambda()
+                1/2
+                sage: FC1.coefficient_lambda()
+                1/2
                 sage: F.e_T
                 11/8
-                sage: F.a
-                [5/4, 5/4]
+                sage: [FC0.a(), FC1.a()]
+                [3/2, 5/4]
                 sage: F.FourierCoefficient(0) # long time
                 -2.1863500631078? + 0.?e-15*I
                 sage: F.FourierCoefficient(42) # long time
@@ -1167,39 +1114,6 @@ class FSMFourier(SageObject):
         self.initial_vector = self.standard_basis[self.positions[
                 transducer.initial_states()[0].label()]]
 
-        right_eigenvectors = list(itertools.chain(
-                *(c.right_eigenvectors()
-                  for c in self.components)))
-
-        left_eigenvectors = list(itertools.chain(
-                *(c.left_eigenvectors()
-                  for c in self.components)))
-
-        annihilated_by_left = matrix(left_eigenvectors).\
-            right_kernel_matrix().transpose()
-
-        self.T = matrix.block([[matrix.column(right_eigenvectors),
-                                annihilated_by_left]],
-                              subdivide=False)
-
-        assert self.T.is_square()
-        assert self.T.nrows() == self.M.nrows()
-        assert self.T.is_invertible()
-
-        check = self.T.inverse() * self.M * self.T
-        eigenvalues = [self.q * self.alpha**(j * self.common_period/c.period)
-                       for c in self.components
-                       for j in range(c.period)]
-        check_dont_care = check.submatrix(len(eigenvalues),
-                                          len(eigenvalues))
-        assert (matrix.block(
-                [[matrix.diagonal(eigenvalues), ZZ(0)],
-                 [ZZ(0), check_dont_care]],
-                subdivide=False) - check).is_zero()
-
-        assert (self.T.inverse().submatrix(nrows=len(left_eigenvectors))
-                - matrix(left_eigenvectors)).is_zero()
-
         self.e_T = sum(c.a()*c.coefficient_lambda()
                        for c in self.components)
 
@@ -1227,13 +1141,6 @@ class FSMFourier(SageObject):
                        for r in range(self.q))
         self.C_1 = max(infinity_matrix_norm(d)
                        for d in self.Delta_epsilon)
-
-        self.c=len(self.components)
-        self.periods=[c.period for c in self.components]
-        self.w=[c.vectors_w() for c in self.components]
-        self.coefficient_lambda=[c.coefficient_lambda()
-                                for c in self.components]
-        self.a=[c.a() for a in self.components]
 
     @cached_method
     def _FC_b_direct_(self, r):
@@ -1537,9 +1444,9 @@ class FSMFourier(SageObject):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 1],
             ....:     f, n, 2))
-            sage: F.w
-            [[(1)]]
-            sage: F._w_H_Res_(F.w[0][0], CIF(1))
+            sage: w = F.components[0].vectors_w(); w
+            [(1)]
+            sage: F._w_H_Res_(w[0], CIF(1))
             1.00000000000000? + 0.?e-17*I
         """
 
