@@ -781,27 +781,239 @@ class FSMFourier(SageObject):
 
     EXAMPLES:
 
+    -   Binary sum of digits::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: F.common_period
+            1
+            sage: [FC] = F.components
+            sage: FC.vectors_w()
+            [(1)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            1/2
+            sage: FC.a()
+            1/2
+            sage: F.M
+            [2]
+            sage: F.M_epsilon
+            [[1], [1]]
+            sage: F.Delta
+            [1]
+            sage: F.Delta_epsilon
+            [[0], [1]]
+            sage: F.C_0
+            1
+            sage: F.C_1
+            1
+
+    -   NAF::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(4*n + 1) == f(n) + 1,
+            ....:     f(4*n + 3) == f(n + 1) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: F.common_period
+            1
+            sage: [FC] = F.components
+            sage: FC.vectors_w()
+            [(1/3, 1/3, 1/3)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            1/3
+            sage: FC.a()
+            1/3
+            sage: F.FourierCoefficient(0) # long time
+            0.4478541793943? + 0.?e-16*I
+            sage: F.FourierCoefficient(42) # long time
+            -9.0701442?e-6 + 0.0001189561459?*I
+
+    -   Abelian complexity of the paperfolding sequence::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(4*n) == f(2*n),
+            ....:     f(4*n+2) == f(2*n+1)+1,
+            ....:     f(16*n+1) == f(8*n+1),
+            ....:     f(16*n+5) == f(4*n+1)+2,
+            ....:     f(16*n+11) == f(4*n+3)+2,
+            ....:     f(16*n+15) == f(2*n+2)+1,
+            ....:     f(1) == 2, f(0) == 0]
+            ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
+            ....:     f, n, 2))
+            sage: [FC] = F.components
+            sage: F.common_period
+            1
+            sage: FC.vectors_w()
+            [(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            8/13
+            sage: FC.a()
+            8/13
+            sage: F.FourierCoefficient(0) # long time
+            1.5308151287593? + 0.?e-15*I
+            sage: F.FourierCoefficient(42) # long time
+            9.380157?e-7 + 0.0001569568848?*I
+
+    -   Artificial example, one-periodic, 2 states::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(4*n) == f(2*n)+0,
+            ....:     f(4*n+2) == f(n)+1,
+            ....:     f(2*n+1) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: [FC] = F.components
+            sage: F.common_period
+            1
+            sage: FC.vectors_w()
+            [(1/2, 1/2)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            1/4
+            sage: FC.a()
+            1/4
+            sage: F.FourierCoefficient(0) # long time
+            -0.20319811602320? + 0.?e-16*I
+            sage: F.FourierCoefficient(42) # long time
+            -0.0000280287200? + 0.0000741203739?*I
+
+    -   Artificial example, period 3::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(8*n) == f(4*n+3)+3,
+            ....:     f(8*n+4) == f(4*n+3)+1,
+            ....:     f(8*n+2) == f(4*n+3)+2,
+            ....:     f(8*n+6) == f(4*n+3)-1,
+            ....:     f(8*n+1) == f(4*n)+5,
+            ....:     f(8*n+5) == f(4*n+2)+1,
+            ....:     f(8*n+3) == f(4*n+1)+2,
+            ....:     f(8*n+7) == f(4*n+1),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: [FC] = F.components
+            sage: F.common_period
+            3
+            sage: FC.vectors_w()
+            [(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
+            (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
+            (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            7/4
+            sage: FC.a()
+            7/4
+            sage: F.FourierCoefficient(0) # long time
+            0.8794486773901? + 0.?e-15*I
+            sage: F.FourierCoefficient(42) # long time
+            0.000330400039? + 0.002040223215?*I
+            sage: F.FourierCoefficient(43) # long time
+            0.000178962837? + 3.877474?e-6*I
+
+    -   Artificial example, period 2, vanishing w-vector::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(4*n) == f(2*n+1)+1,
+            ....:     f(4*n+1) == f(2*n)+2,
+            ....:     f(4*n+2) == f(2*n+1)+3,
+            ....:     f(4*n+3) == f(2*n)-1,
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: [FC] = F.components
+            sage: F.common_period
+            2
+            sage: FC.vectors_w()
+            [(0, 1/2, 1/2), (0, 0, 0)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            5/4
+            sage: FC.a()
+            5/4
+            sage: F.FourierCoefficient(0) # long time
+            -1.5912428334793? + 0.?e-15*I
+            sage: F.FourierCoefficient(42) # long time
+            -0.000265095706? - 0.0001002936380?*I
+            sage: F.FourierCoefficient(43) # long time
+            0
+
+    -   Artificial example with two final components of periods `2`
+        and `3`, respectively::
+
+            sage: F = FSMFourier(Transducer([(0, 1, 0, 1), (1, 2, 0, 1),
+            ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
+            ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
+            ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
+            ....:     (-3, -1, 0, 3)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2, -3, -2, -1]))
+            sage: [FC0, FC1] = F.components
+            sage: FC0.period
+            3
+            sage: FC1.period
+            2
+            sage: F.common_period
+            6
+            sage: FC0.vectors_w()
+            [(0, 0, 0, 1/6, 1/6, 1/6),
+              (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
+              (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)]
+            sage: FC1.vectors_w()
+            [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]
+            sage: FC0.coefficient_lambda()
+            1/2
+            sage: FC1.coefficient_lambda()
+            1/2
+            sage: F.e_T
+            11/8
+            sage: [FC0.a(), FC1.a()]
+            [3/2, 5/4]
+            sage: F.FourierCoefficient(0) # long time
+            -2.1863500631078? + 0.?e-15*I
+            sage: F.FourierCoefficient(42) # long time
+            -0.002422207952? + 0.001033251442?*I
+            sage: F.FourierCoefficient(43) # long time
+            0
+            sage: F.FourierCoefficient(44) # long time
+            0.000214208380? - 0.000453966808?*I
+            sage: F.FourierCoefficient(45) # long time
+            -0.0005573382643? - 0.000553163835?*I
+
+    -   Ternary sum of digits::
+
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(3*n + 2) == f(n) + 2,
+            ....:     f(3*n + 1) == f(n) + 1,
+            ....:     f(3*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 3))
+            sage: F.common_period
+            1
+            sage: F.e_T
+            1
+            sage: F.FourierCoefficient(0) # long time
+            -0.2373314270632? + 0.?e-17*I
+            sage: F.FourierCoefficient(42) # long time
+            0.0001516409849? + 0.0000541593062?*I
     .. TODO:: move examples from :meth:`__init__`.
     """
-
-    def __init__(self, transducer):
-        r"""
-        Initialize the the common data needed for the computation of all
-        Fourier coefficients of the periodic fluctuation of the sum of
-        output.
-
-        INPUT:
-
-        - ``transducer`` -- a
-          :class:`~sage.combinat.finite_state_machine.Transducer`.
-
-        OUTPUT:
-
-        Nothing.
-
-        .. TODO:: move the following lines to proper documentation of the attributes.
-
-        A :class:`namedtuple` consisting of:
 
         - ``c`` -- number of final components.
 
@@ -836,239 +1048,65 @@ class FSMFourier(SageObject):
 
         - ``components`` -- a list of :class:`FSM_Fourier_Component`, representing the final components.
 
+
+    def __init__(self, transducer):
+        r"""
+        Initialize the the common data needed for the computation of all
+        Fourier coefficients of the periodic fluctuation of the sum of
+        output.
+
+        INPUT:
+
+        - ``transducer`` -- a
+          :class:`~sage.combinat.finite_state_machine.Transducer`.
+
+        OUTPUT:
+
+        Nothing.
+
+        .. TODO:: move the following lines to proper documentation of the attributes.
+
+        A :class:`namedtuple` consisting of:
+
+
         EXAMPLES:
 
-        -   Binary sum of digits::
+        Binary sum of digits::
 
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: function('f')
-                f
-                sage: var('n')
-                n
-                sage: from sage.combinat.fsm_fourier import FSMFourier
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(2*n + 1) == f(n) + 1,
-                ....:     f(2*n) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 2))
-                sage: F.common_period
-                1
-                sage: [FC] = F.components
-                sage: FC.vectors_w()
-                [(1)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                1/2
-                sage: FC.a()
-                1/2
-                sage: F.M
-                [2]
-                sage: F.M_epsilon
-                [[1], [1]]
-                sage: F.Delta
-                [1]
-                sage: F.Delta_epsilon
-                [[0], [1]]
-                sage: F.C_0
-                1
-                sage: F.C_1
-                1
-
-        -   NAF::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(4*n + 1) == f(n) + 1,
-                ....:     f(4*n + 3) == f(n + 1) + 1,
-                ....:     f(2*n) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 2))
-                sage: F.common_period
-                1
-                sage: [FC] = F.components
-                sage: FC.vectors_w()
-                [(1/3, 1/3, 1/3)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                1/3
-                sage: FC.a()
-                1/3
-                sage: F.FourierCoefficient(0) # long time
-                0.4478541793943? + 0.?e-16*I
-                sage: F.FourierCoefficient(42) # long time
-                -9.0701442?e-6 + 0.0001189561459?*I
-
-        -   Abelian complexity of the paperfolding sequence::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(4*n) == f(2*n),
-                ....:     f(4*n+2) == f(2*n+1)+1,
-                ....:     f(16*n+1) == f(8*n+1),
-                ....:     f(16*n+5) == f(4*n+1)+2,
-                ....:     f(16*n+11) == f(4*n+3)+2,
-                ....:     f(16*n+15) == f(2*n+2)+1,
-                ....:     f(1) == 2, f(0) == 0]
-                ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
-                ....:     f, n, 2))
-                sage: [FC] = F.components
-                sage: F.common_period
-                1
-                sage: FC.vectors_w()
-                [(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                8/13
-                sage: FC.a()
-                8/13
-                sage: F.FourierCoefficient(0) # long time
-                1.5308151287593? + 0.?e-15*I
-                sage: F.FourierCoefficient(42) # long time
-                9.380157?e-7 + 0.0001569568848?*I
-
-        -   Artificial example, one-periodic, 2 states::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(4*n) == f(2*n)+0,
-                ....:     f(4*n+2) == f(n)+1,
-                ....:     f(2*n+1) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 2))
-                sage: [FC] = F.components
-                sage: F.common_period
-                1
-                sage: FC.vectors_w()
-                [(1/2, 1/2)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                1/4
-                sage: FC.a()
-                1/4
-                sage: F.FourierCoefficient(0) # long time
-                -0.20319811602320? + 0.?e-16*I
-                sage: F.FourierCoefficient(42) # long time
-                -0.0000280287200? + 0.0000741203739?*I
-
-        -   Artificial example, period 3::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(8*n) == f(4*n+3)+3,
-                ....:     f(8*n+4) == f(4*n+3)+1,
-                ....:     f(8*n+2) == f(4*n+3)+2,
-                ....:     f(8*n+6) == f(4*n+3)-1,
-                ....:     f(8*n+1) == f(4*n)+5,
-                ....:     f(8*n+5) == f(4*n+2)+1,
-                ....:     f(8*n+3) == f(4*n+1)+2,
-                ....:     f(8*n+7) == f(4*n+1),
-                ....:     f(0) == 0],
-                ....:     f, n, 2))
-                sage: [FC] = F.components
-                sage: F.common_period
-                3
-                sage: FC.vectors_w()
-                [(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
-                (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
-                (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                7/4
-                sage: FC.a()
-                7/4
-                sage: F.FourierCoefficient(0) # long time
-                0.8794486773901? + 0.?e-15*I
-                sage: F.FourierCoefficient(42) # long time
-                0.000330400039? + 0.002040223215?*I
-                sage: F.FourierCoefficient(43) # long time
-                0.000178962837? + 3.877474?e-6*I
-
-        -   Artificial example, period 2, vanishing w-vector::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(4*n) == f(2*n+1)+1,
-                ....:     f(4*n+1) == f(2*n)+2,
-                ....:     f(4*n+2) == f(2*n+1)+3,
-                ....:     f(4*n+3) == f(2*n)-1,
-                ....:     f(0) == 0],
-                ....:     f, n, 2))
-                sage: [FC] = F.components
-                sage: F.common_period
-                2
-                sage: FC.vectors_w()
-                [(0, 1/2, 1/2), (0, 0, 0)]
-                sage: FC.coefficient_lambda()
-                1
-                sage: F.e_T
-                5/4
-                sage: FC.a()
-                5/4
-                sage: F.FourierCoefficient(0) # long time
-                -1.5912428334793? + 0.?e-15*I
-                sage: F.FourierCoefficient(42) # long time
-                -0.000265095706? - 0.0001002936380?*I
-                sage: F.FourierCoefficient(43) # long time
-                0
-
-        -   Artificial example with two final components of periods `2`
-            and `3`, respectively::
-
-                sage: F = FSMFourier(Transducer([(0, 1, 0, 1), (1, 2, 0, 1),
-                ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
-                ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
-                ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
-                ....:     (-3, -1, 0, 3)],
-                ....:     initial_states=[0],
-                ....:     final_states=[0, 1, 2, -3, -2, -1]))
-                sage: [FC0, FC1] = F.components
-                sage: FC0.period
-                3
-                sage: FC1.period
-                2
-                sage: F.common_period
-                6
-                sage: FC0.vectors_w()
-                [(0, 0, 0, 1/6, 1/6, 1/6),
-                  (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
-                  (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)]
-                sage: FC1.vectors_w()
-                [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]
-                sage: FC0.coefficient_lambda()
-                1/2
-                sage: FC1.coefficient_lambda()
-                1/2
-                sage: F.e_T
-                11/8
-                sage: [FC0.a(), FC1.a()]
-                [3/2, 5/4]
-                sage: F.FourierCoefficient(0) # long time
-                -2.1863500631078? + 0.?e-15*I
-                sage: F.FourierCoefficient(42) # long time
-                -0.002422207952? + 0.001033251442?*I
-                sage: F.FourierCoefficient(43) # long time
-                0
-                sage: F.FourierCoefficient(44) # long time
-                0.000214208380? - 0.000453966808?*I
-                sage: F.FourierCoefficient(45) # long time
-                -0.0005573382643? - 0.000553163835?*I
-
-        -   Ternary sum of digits::
-
-                sage: F = FSMFourier(transducers.Recursion([
-                ....:     f(3*n + 2) == f(n) + 2,
-                ....:     f(3*n + 1) == f(n) + 1,
-                ....:     f(3*n) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 3))
-                sage: F.common_period
-                1
-                sage: F.e_T
-                1
-                sage: F.FourierCoefficient(0) # long time
-                -0.2373314270632? + 0.?e-17*I
-                sage: F.FourierCoefficient(42) # long time
-                0.0001516409849? + 0.0000541593062?*I
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: F.common_period
+            1
+            sage: [FC] = F.components
+            sage: FC.vectors_w()
+            [(1)]
+            sage: FC.coefficient_lambda()
+            1
+            sage: F.e_T
+            1/2
+            sage: FC.a()
+            1/2
+            sage: F.M
+            [2]
+            sage: F.M_epsilon
+            [[1], [1]]
+            sage: F.Delta
+            [1]
+            sage: F.Delta_epsilon
+            [[0], [1]]
+            sage: F.C_0
+            1
+            sage: F.C_1
+            1
         """
 
 
