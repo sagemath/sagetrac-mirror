@@ -1012,42 +1012,41 @@ class FSMFourier(SageObject):
             -0.2373314270632? + 0.?e-17*I
             sage: F.FourierCoefficient(42) # long time
             0.0001516409849? + 0.0000541593062?*I
-    .. TODO:: move examples from :meth:`__init__`.
     """
 
-        - ``c`` -- number of final components.
+    common_period = None
+    """`p`, the least common multiple of the periods
+    of the final components"""
 
-        - ``periods`` -- list of periods of the final components.
+    e_T = None
+    """The constant `e_{\mathcal{T}}`, the coefficient of
+    the main term of the expectation."""
 
-        - ``period`` -- least common multiple of the periods.
+    M = None
+    """`M(0)`, the adjacency matrix of the transducer."""
 
-        - ``T`` -- eigenvector matrix.
+    M_epsilon = None
+    """`(M_\varepsilon)_{0\le \varepsilon < q}`, the list of
+    transition matrices."""
 
-        - ``w`` -- list of lists of vectors `\mathbf{w}_{jk}`.
+    Delta = None
+    """`\Delta(0)`, the output matrix."""
 
-        - ``coefficient_lambda`` -- list of coefficients `\lambda_j`.
+    Delta_epsilon = None
+    """`(Delta_\varepsilon)_{0\le\varepsilon <q}`, the list of
+    partial of partial output matrices."""
 
-        - ``e_T`` -- constant `e_{\mathcal{T}}`, the coefficient of
-          the main term of the expectation.
+    C_0 = None
+    """`C_0 = \max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`, used
+    in the bound of the Dirichlet series."""
 
-        - ``a`` -- list of constants `a_j`.
+    C_1 = None
+    """`C_1 = \max\{\|\Delta_\varepsilon\|_\infty: 0\le \varepsilon<q\}`,
+    used in the bound of the Dirichlet series."""
 
-        - ``M`` -- adjacency matrix `M`.
-
-        - ``M_epsilon`` -- list of partial adjacency matrices
-          `M_\varepsilon`.
-
-        - ``Delta`` -- output matrix `\Delta`.
-
-        - ``Delta_epsilon`` -- list of partial output matrices
-          `\Delta_\varepsilon`.
-
-        - ``C_0`` -- `\max\{\|\mathbf{b}(r)\|_\infty: 0\le r<q\}`.
-
-        - ``C_1`` -- `\max\{\|\Delta_\varepsilon\|_\infty: 0\le \varepsilon<q\}`.
-
-        - ``components`` -- a list of :class:`FSM_Fourier_Component`, representing the final components.
-
+    components = None
+    """A list of :class:`FSM_Fourier_Component`, representing the
+    final components."""
 
     def __init__(self, transducer):
         r"""
@@ -1063,11 +1062,6 @@ class FSMFourier(SageObject):
         OUTPUT:
 
         Nothing.
-
-        .. TODO:: move the following lines to proper documentation of the attributes.
-
-        A :class:`namedtuple` consisting of:
-
 
         EXAMPLES:
 
