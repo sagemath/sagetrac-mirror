@@ -141,7 +141,7 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
 
             sage: from sage.combinat.fsm_fourier import _hurwitz_zeta_
             sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
-            0.097483848201852? + 0.?e-19*I
+            0.097483848201852? + 0.?e-17*I
 
     -   Compare with well-known value `\zeta(2)=\zeta(2, 1)=\pi^2/6`::
 
@@ -174,16 +174,14 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
             sage: set_verbose(2)
             sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
             verbose 1 (...) _hurwitz_zeta_(1 + 144.2695040888963?*I, 1, 0): M = 172
-            verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 2.2204460492503131?e-16, result = 2.125571548789? + 0.511221280470?*I
-            verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 2.2204460492503131?e-16, result = 2.125575595864? + 0.51121897538?*I
-            verbose 2 (...)     N = 6, error = 3.65215306101?e-6, acceptable_error = 2.2204460492503131?e-16, result = 2.125575660430? + 0.511218933060?*I
-            verbose 2 (...)     N = 8, error = 4.83820940904?e-8, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661484? + 0.511218932225?*I
-            verbose 2 (...)     N = 10, error = 6.84787778802?e-10, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.511218932208?*I
-            verbose 2 (...)     N = 12, error = 1.011644165731?e-11, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 16, error = 2.40250320318?e-15, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 2 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
-            verbose 1 (...)     N = 18, error = 3.81730778323?e-17, acceptable_error = 2.2204460492503131?e-16, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 3.41199291042927e-13, result = 2.125571548789? + 0.511221280470?*I
+            verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 3.41254802194158e-13, result = 2.125575595864? + 0.51121897538?*I
+            verbose 2 (...)     N = 6, error = 3.65215306101?e-6, acceptable_error = 3.41351946708813e-13, result = 2.125575660430? + 0.511218933060?*I
+            verbose 2 (...)     N = 8, error = 4.83820940904?e-8, acceptable_error = 3.41407457860044e-13, result = 2.125575661484? + 0.511218932225?*I
+            verbose 2 (...)     N = 10, error = 6.84787778802?e-10, acceptable_error = 3.41504602374699e-13, result = 2.125575661501? + 0.511218932208?*I
+            verbose 2 (...)     N = 12, error = 1.011644165731?e-11, acceptable_error = 3.41560113525930e-13, result = 2.125575661501? + 0.51121893221?*I
+            verbose 2 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 3.41615624677161e-13, result = 2.125575661501? + 0.51121893221?*I
+            verbose 1 (...)     N = 14, error = 1.54088223831?e-13, acceptable_error = 3.41615624677161e-13, result = 2.125575661501? + 0.51121893221?*I
             2.125575661501? + 0.51121893221?*I
             sage: set_verbose(0)
 
@@ -1104,7 +1102,7 @@ class FSMFourier(SageObject):
             sage: FC.a()
             1/3
             sage: F.FourierCoefficient(0) # long time
-            0.4478541793943? + 0.?e-16*I
+            0.4478541793943? + 0.?e-14*I
             sage: F.FourierCoefficient(42) # long time
             -9.0701442?e-6 + 0.0001189561459?*I
 
@@ -1132,7 +1130,7 @@ class FSMFourier(SageObject):
             sage: FC.a()
             8/13
             sage: F.FourierCoefficient(0) # long time
-            1.5308151287593? + 0.?e-15*I
+            1.5308151287593? + 0.?e-13*I
             sage: F.FourierCoefficient(42) # long time
             9.38016?e-7 + 0.000156956885?*I
 
@@ -1156,7 +1154,7 @@ class FSMFourier(SageObject):
             sage: FC.a()
             1/4
             sage: F.FourierCoefficient(0) # long time
-            -0.2031981160232? + 0.?e-16*I
+            -0.2031981160232? + 0.?e-14*I
             sage: F.FourierCoefficient(42) # long time
             -0.0000280287200? + 0.0000741203738?*I
 
@@ -1187,9 +1185,9 @@ class FSMFourier(SageObject):
             sage: FC.a()
             7/4
             sage: F.FourierCoefficient(0) # long time
-            0.879448677390? + 0.?e-15*I
+            0.879448677390? + 0.?e-13*I
             sage: F.FourierCoefficient(42) # long time
-            0.000330400038? + 0.002040223214?*I
+            0.00033040004? + 0.002040223214?*I
             sage: F.FourierCoefficient(43) # long time
             0.000178962837? + 3.877474?e-6*I
 
@@ -1214,7 +1212,7 @@ class FSMFourier(SageObject):
             sage: FC.a()
             5/4
             sage: F.FourierCoefficient(0) # long time
-            -1.5912428334793? + 0.?e-15*I
+            -1.5912428334793? + 0.?e-13*I
             sage: F.FourierCoefficient(42) # long time
             -0.000265095706? - 0.000100293638?*I
             sage: F.FourierCoefficient(43) # long time
@@ -1252,13 +1250,13 @@ class FSMFourier(SageObject):
             sage: [FC0.a(), FC1.a()]
             [3/2, 5/4]
             sage: F.FourierCoefficient(0) # long time
-            -2.1863500631078? + 0.?e-15*I
+            -2.1863500631078? + 0.?e-13*I
             sage: F.FourierCoefficient(42) # long time
-            -0.002422207952? + 0.001033251442?*I
+            -0.00242220796? + 0.00103325145?*I
             sage: F.FourierCoefficient(43) # long time
             0
             sage: F.FourierCoefficient(44) # long time
-            0.000214208380? - 0.000453966808?*I
+            0.000214208380? - 0.00045396681?*I
             sage: F.FourierCoefficient(45) # long time
             -0.0005573382643? - 0.000553163835?*I
 
@@ -1275,7 +1273,7 @@ class FSMFourier(SageObject):
             sage: F.e_T
             1
             sage: F.FourierCoefficient(0) # long time
-            -0.2373314270632? + 0.?e-17*I
+            -0.2373314270632? + 0.?e-15*I
             sage: F.FourierCoefficient(42) # long time
             0.0001516409849? + 0.000054159307?*I
     """
@@ -1761,7 +1759,7 @@ class FSMFourier(SageObject):
             sage: w = F.components[0].vectors_w(); w
             [(1)]
             sage: F._w_H_Res_(w[0], CIF(1))
-            1.00000000000000? + 0.?e-17*I
+            1.00000000000000? + 0.?e-15*I
         """
 
         CIF = s.parent()
