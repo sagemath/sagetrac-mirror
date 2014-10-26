@@ -781,9 +781,6 @@ cdef class FSMFourierCache(SageObject):
 
     - ``parent`` -- a :class:`FSMFourier` instance.
 
-    - ``CIF`` -- a :class:`ComplexIntervalField`, indicating the precision
-       for the floating point operations.
-
     OUTPUT:
 
     None.
@@ -808,16 +805,13 @@ cdef class FSMFourierCache(SageObject):
     cdef unsigned long n
     cdef object parent
 
-    def __init__(self, parent, CIF):
+    def __init__(self, parent):
         """
         Initialize the class.
 
         INPUT:
 
         - ``parent`` -- a :class:`FSMFourier` instance.
-
-        - ``CIF`` -- a :class:`ComplexIntervalField`, indicating the precision
-          for the floating point operations.
 
         OUTPUT:
 
@@ -837,11 +831,11 @@ cdef class FSMFourierCache(SageObject):
 
         self.parent = parent
         self.n = self.parent.M.nrows()
-        self.precision = CIF.precision()
+        self.precision = self.parent.CIF.precision()
         self.q = self.parent.q
 
-        MS_n = MatrixSpace(CIF, self.n, self.n)
-        MS_1 = MatrixSpace(CIF, self.n, 1)
+        MS_n = MatrixSpace(self.parent.CIF, self.n, self.n)
+        MS_1 = MatrixSpace(self.parent.CIF, self.n, 1)
 
         self.Delta_epsilon_ones = <acb_mat_t*> malloc(
             self.q * sizeof(acb_mat_t))
@@ -931,7 +925,7 @@ cdef class FSMFourierCache(SageObject):
                 if R == 0:
                     matrix_to_acb_mat(
                         self.bb[0],
-                        matrix(ComplexIntervalField(self.precision),
+                        matrix(self.parent.CIF,
                                self.parent.b0()).transpose())
                 else:
                     acb_mat_mul(self.bb[R],
@@ -1032,6 +1026,10 @@ class FSMFourier(SageObject):
 
     - ``transducer`` -- a
       :class:`~sage.combinat.finite_state_machine.Transducer`.
+
+    - ``CIF`` -- a
+      :class:`~sage.rings.complex_interval_field.ComplexIntervalField_class`,
+      indicating the precision for the floating point operations.
 
     The object stores various data (in particular, eigenvectors and
     their derivatives, final components) and provides the method
@@ -1255,22 +1253,24 @@ class FSMFourier(SageObject):
             sage: F.FourierCoefficient(45)
             -0.0005573382643? - 0.000553163835?*I
 
-    -   Ternary sum of digits::
+    -   Ternary sum of digits, with high precision::
 
             sage: F = FSMFourier(transducers.Recursion([
             ....:     f(3*n + 2) == f(n) + 2,
             ....:     f(3*n + 1) == f(n) + 1,
             ....:     f(3*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 3))
+            ....:     f, n, 3), ComplexIntervalField(200))
             sage: F.common_period
             1
             sage: F.e_T
             1
             sage: F.FourierCoefficient(0)
-            -0.2373314270632? + 0.?e-15*I
+            -0.23733142706319409139996985552948551198247848839875752890?
+            + 0.?e-57*I
             sage: F.FourierCoefficient(42)
-            0.0001516409849? + 0.000054159307?*I
+            0.000151640984887988283825448153753614629500867823400070268?
+            + 0.000054159306153387140043462960871097923443501309058799584?*I
     """
 
     common_period = None
@@ -1317,6 +1317,10 @@ class FSMFourier(SageObject):
 
         - ``transducer`` -- a
           :class:`~sage.combinat.finite_state_machine.Transducer`.
+
+        - ``CIF`` -- a
+          :class:`~sage.rings.complex_interval_field.ComplexIntervalField_class`,
+          indicating the precision for the floating point operations.
 
         OUTPUT:
 
@@ -1374,6 +1378,7 @@ class FSMFourier(SageObject):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         self.transducer = transducer
+        self.CIF = CIF
         self.positions = dict((state.label(), j)
                          for j, state in enumerate(transducer.iter_states()))
         self.q = len(transducer.input_alphabet)
@@ -1390,12 +1395,12 @@ class FSMFourier(SageObject):
         self.alpha = self.field.zeta(self.common_period)
         self.I = self.field.zeta(4)
         self.field_to_CIF = self.field.hom(
-            [ComplexIntervalField().zeta(lcm(4, self.common_period))], check=False)
+            [CIF.zeta(lcm(4, self.common_period))], check=False)
         assert self.I**2 == -1
         assert self.alpha**self.common_period == 1
         assert all(self.alpha**j != 1 for j in range(1, self.common_period))
-        assert self.field_to_CIF(self.I).overlaps(ComplexIntervalField()(0, 1))
-        assert self.field_to_CIF(self.alpha).overlaps(ComplexIntervalField()(exp(2*ComplexIntervalField().pi()*ComplexIntervalField()(0, 1)/self.common_period)))
+        assert self.field_to_CIF(self.I).overlaps(CIF(0, 1))
+        assert self.field_to_CIF(self.alpha).overlaps(CIF(exp(2*CIF.pi()*CIF(0, 1)/self.common_period)))
         self.M = transducer.adjacency_matrix(entry=lambda t: 1)
         self.standard_basis = VectorSpace(self.field, self.M.nrows()).basis()
 
@@ -1428,7 +1433,7 @@ class FSMFourier(SageObject):
             entry=lambda t: sum(t.word_out))
         assert self.Delta == sum(self.Delta_epsilon)
 
-        self.cache = FSMFourierCache(self, CIF)
+        self.cache = FSMFourierCache(self)
 
         self.C_0 = max(self.cache.b(r).norm(infinity)
                        for r in range(self.q))
@@ -1732,7 +1737,7 @@ class FSMFourier(SageObject):
             self._H_m_rhs_(s, m))
 
     @cached_method
-    def FourierCoefficient(self, ell, CIF=ComplexIntervalField()):
+    def FourierCoefficient(self, ell):
         """
         Compute the `\ell`-th Fourier coefficient of the fluctuation
         of the summatory function of the sum of outputs.
@@ -1771,6 +1776,7 @@ class FSMFourier(SageObject):
                 True
         """
 
+        CIF = self.CIF
         log_q = CIF(log(CIF(self.q)))
         chi_ell =  CIF(2*ell*CIF.pi()*self.I / (self.common_period*log_q))
 
