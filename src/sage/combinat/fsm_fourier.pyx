@@ -4,8 +4,6 @@ Fourier Coefficients
 .. autofunction:: _hurwitz_zeta_
 .. automethod:: FSM_Fourier_Component.__init__
 .. automethod:: FSMFourier.__init__
-.. automethod:: FSMFourier._FC_b_direct_
-.. automethod:: FSMFourier._FC_b_recursive_
 .. automethod:: FSMFourier._H_m_rhs_
 .. automethod:: FSMFourier._w_H_Res_
 .. automethod:: FSMFourier._H_m_
@@ -934,7 +932,7 @@ cdef class FSMFourierCache(SageObject):
                     matrix_to_acb_mat(
                         self.bb[0],
                         matrix(ComplexIntervalField(self.precision),
-                               self.parent._FC_b_direct_(0)).transpose())
+                               self.parent.b0()).transpose())
                 else:
                     acb_mat_mul(self.bb[R],
                                 self.M_epsilon[epsilon],
@@ -975,9 +973,6 @@ cdef class FSMFourierCache(SageObject):
             sage: cache = F.cache
             sage: [cache.b(r) for r in range(3)]
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
-            sage: all(cache.b(r) ==
-            ....:     F._FC_b_direct_(r) for r in range(8))
-            True
         """
         self.compute_b(r+1)
         return acb_mat_to_matrix(self.bb[r], self.precision).column(0)
@@ -1433,37 +1428,30 @@ class FSMFourier(SageObject):
             entry=lambda t: sum(t.word_out))
         assert self.Delta == sum(self.Delta_epsilon)
 
-        self.C_0 = max(self._FC_b_direct_(r).norm(infinity)
+        self.cache = FSMFourierCache(self, CIF)
+
+        self.C_0 = max(self.cache.b(r).norm(infinity)
                        for r in range(self.q))
         self.C_1 = max(infinity_matrix_norm(d)
                        for d in self.Delta_epsilon)
 
-        self.cache = FSMFourierCache(self, CIF)
         self.error_acceptable = ZZ(2)**(-2*CIF.precision())
 
 
     @cached_method
-    def _FC_b_direct_(self, r):
+    def b0(self):
         r"""
-
-        Compute `\mathbf{b}(r)`, whose ``s`` th component is the
-        output of ``self`` when reading the ``q``-ary expansion of
-        ``r`` starting in state ``s``.
+        Compute `\mathbf{b}(0)`, the vector of final output sums.
 
         INPUT:
 
-        -   ``r`` -- non-negative integer, the input to read
+        None.
 
         OUTPUT:
 
         A vector whose ``s``-th component is the sum of the output of
-        ``self`` when reading the ``q``-ary expansion of ``r``
-        starting in state ``s`` where ``q`` is the length of the input
-        alphabet.
+        ``self`` when reading the empty word.
 
-        In contrast to :meth:`_FC_b_recursive_`, the values are
-        computed directly via
-        :meth:`sage.combinat.finite_state_machine.FiniteStateMachine.__call__`.
 
         EXAMPLES::
 
@@ -1479,75 +1467,13 @@ class FSMFourier(SageObject):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: [FSMFourier(T)._FC_b_direct_(r) for r in range(3)]
-            [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
-
-        .. SEEALSO::
-
-            :meth:`_FC_b_recursive_`
+            sage: FSMFourier(T).b0()
+            (0, 1, 1)
         """
         from sage.modules.free_module_element import vector
-        from sage.rings.integer_ring import ZZ
 
-        expansion = ZZ(r).digits(self.q)
-        return vector([sum(self.transducer(expansion, initial_state=s))
+        return vector([sum(self.transducer([], initial_state=s))
                        for s in self.transducer.iter_states()])
-
-    @cached_method
-    def _FC_b_recursive_(self, r):
-        r"""
-        Compute `\mathbf{b}(r)`, whose ``s`` th component is the
-        output of ``self`` when reading the ``q``-ary expansion of
-        ``r`` starting in state ``s``.
-
-        INPUT:
-
-        -   ``r`` -- non-negative integer, the input to read
-
-        OUTPUT:
-
-        A vector whose ``s``-th component is the sum of the output of
-        ``self`` when reading the ``q``-ary expansion of ``r``
-        starting in state ``s`` where ``q`` is the length of the input
-        alphabet.
-
-        In contrast to :meth:`_FC_b_direct_`, the values are computed
-        recursively.
-
-        EXAMPLES::
-
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-            sage: from sage.combinat.fsm_fourier import FSMFourier
-            sage: function('f')
-            f
-            sage: var('n')
-            n
-            sage: F = FSMFourier(transducers.Recursion([
-            ....:     f(4*n + 1) == f(n) + 1,
-            ....:     f(4*n + 3) == f(n + 1) + 1,
-            ....:     f(2*n) == f(n),
-            ....:     f(0) == 0],
-            ....:     f, n, 2))
-            sage: [F._FC_b_recursive_(r) for r in range(3)]
-            [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
-            sage: all(F._FC_b_recursive_(r) ==
-            ....:     F._FC_b_direct_(r) for r in range(8))
-            True
-
-        .. SEEALSO::
-
-            :meth:`_FC_b_direct_`
-        """
-        from sage.modules.free_module_element import vector
-
-        epsilon = r % self.q
-        R = (r - epsilon)/ self.q
-        if R == 0:
-            return self._FC_b_direct_(r)
-
-        return self.Delta_epsilon[epsilon]*self.ones +\
-            self.M_epsilon[epsilon] * self._FC_b_recursive_(R)
-
 
     def _H_m_rhs_(self, s, m, remove_poles=False):
         r"""
@@ -1620,13 +1546,7 @@ class FSMFourier(SageObject):
                 ....:         f(0) == -1],
                 ....:         f, n, 2))
 
-            We first check that this is indeed the function `L`::
-
-                sage: all(F._FC_b_recursive_(r)[0] ==
-                ....:     floor(log(r, base=2)) for r in range(1, 9))
-                True
-
-            Next, we check that the result agrees with the known values::
+            We check that the result agrees with the known values::
 
                 sage: all(F._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
                 ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
@@ -1666,8 +1586,6 @@ class FSMFourier(SageObject):
         log_m_1 = log(RIF(m - 1))
 
         cache = self.cache
-        #result = sum(self._FC_b_recursive_(r) * r**(-s)
-        #             for r in reversed(srange(m, q*m)))
         result = cache.partial_dirichlet(
             m, q*m, s)
 
@@ -1812,50 +1730,6 @@ class FSMFourier(SageObject):
 
         return (matrix.identity(n) - ZZ(self.q)**(-s)*self.M).solve_right(
             self._H_m_rhs_(s, m))
-
-    def _H_(self, s):
-        r"""
-        Compute `\mathbf{H}_1(s)`.
-
-        INPUT:
-
-        - ``s`` -- a
-          :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement`
-          element
-
-        OUTPUT:
-
-        A
-        :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement`
-        element.
-
-        EXAMPLES:
-
-        -   One state, always ``1``: this is the Riemann
-            zeta function. ::
-
-                sage: from sage.combinat.fsm_fourier import FSMFourier
-                sage: function('f')
-                f
-                sage: var('n')
-                n
-                sage: T = transducers.Recursion([
-                ....:     f(2*n + 1) == f(n),
-                ....:     f(2*n) == f(n),
-                ....:     f(0) == 1],
-                ....:     f, n, 2)
-                sage: result = FSMFourier(T)._H_(CIF(2))
-                sage: result
-                (1.644934066848226? + 0.?e-18*I)
-                sage: result[0].overlaps(CIF(pi^2/6))
-                True
-        """
-        m = s.abs().upper().ceil() + s.parent().precision()
-        result = self._H_m_(s, m)
-        result += sum(self._FC_b_recursive_(r) * r**(-s)
-                      for r in reversed(srange(1, m)))
-
-        return result
 
     @cached_method
     def FourierCoefficient(self, ell, CIF=ComplexIntervalField()):
