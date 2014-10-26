@@ -3,11 +3,11 @@ Fourier Coefficients
 
 .. autofunction:: _hurwitz_zeta_
 .. automethod:: FSM_Fourier_Component.__init__
+.. automethod:: FSMFourierCache.__init__
 .. automethod:: FSMFourier.__init__
 .. automethod:: FSMFourier._H_m_rhs_
 .. automethod:: FSMFourier._w_H_Res_
 .. automethod:: FSMFourier._H_m_
-.. automethod:: FSMFourier._H_
 
 """
 from libc.stdlib cimport malloc, realloc, free
@@ -165,9 +165,7 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
             True
 
     -   Debugging output can be enabled using
-        :func:`~sage.misc.misc.set_verbose`. To test it, we use a
-        large imaginary part because convergence is worse in those
-        cases::
+        :func:`~sage.misc.misc.set_verbose`. ::
 
             sage: set_verbose(2)
             sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
@@ -1184,7 +1182,7 @@ class FSMFourier(SageObject):
             sage: F.FourierCoefficient(43)
             0.000178962837? + 3.877474?e-6*I
 
-    -   Artificial example, period 2, vanishing w-vector::
+    -   Artificial example, period 2, vanishing `\mathbf{w}`-vector::
 
             sage: F = FSMFourier(transducers.Recursion([
             ....:     f(4*n) == f(2*n+1)+1,
@@ -1760,7 +1758,7 @@ class FSMFourier(SageObject):
                 sage: var('n')
                 n
                 sage: from sage.combinat.fsm_fourier import FSMFourier
-                sage: T = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
@@ -1771,7 +1769,7 @@ class FSMFourier(SageObject):
                 ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1)
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
                 sage: all(FourierCoefficientDelange(k)
-                ....:     in T.FourierCoefficient(k)
+                ....:     in F.FourierCoefficient(k)
                 ....:     for k in [0, 1, 42])
                 True
         """
