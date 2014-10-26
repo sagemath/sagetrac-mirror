@@ -1096,9 +1096,9 @@ class FSMFourier(SageObject):
             1/3
             sage: FC.a()
             1/3
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             0.4478541793943? + 0.?e-14*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             -9.0701442?e-6 + 0.0001189561459?*I
 
     -   Abelian complexity of the paperfolding sequence::
@@ -1124,9 +1124,9 @@ class FSMFourier(SageObject):
             8/13
             sage: FC.a()
             8/13
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             1.5308151287593? + 0.?e-13*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             9.38016?e-7 + 0.000156956885?*I
 
     -   Artificial example, one-periodic, 2 states::
@@ -1148,9 +1148,9 @@ class FSMFourier(SageObject):
             1/4
             sage: FC.a()
             1/4
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             -0.2031981160232? + 0.?e-14*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             -0.0000280287200? + 0.0000741203738?*I
 
     -   Artificial example, period 3::
@@ -1179,11 +1179,11 @@ class FSMFourier(SageObject):
             7/4
             sage: FC.a()
             7/4
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             0.879448677390? + 0.?e-13*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             0.00033040004? + 0.002040223214?*I
-            sage: F.FourierCoefficient(43) # long time
+            sage: F.FourierCoefficient(43)
             0.000178962837? + 3.877474?e-6*I
 
     -   Artificial example, period 2, vanishing w-vector::
@@ -1206,11 +1206,11 @@ class FSMFourier(SageObject):
             5/4
             sage: FC.a()
             5/4
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             -1.5912428334793? + 0.?e-13*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             -0.000265095706? - 0.000100293638?*I
-            sage: F.FourierCoefficient(43) # long time
+            sage: F.FourierCoefficient(43)
             0
 
     -   Artificial example with two final components of periods `2`
@@ -1244,15 +1244,15 @@ class FSMFourier(SageObject):
             11/8
             sage: [FC0.a(), FC1.a()]
             [3/2, 5/4]
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             -2.1863500631078? + 0.?e-13*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             -0.00242220796? + 0.00103325145?*I
-            sage: F.FourierCoefficient(43) # long time
+            sage: F.FourierCoefficient(43)
             0
-            sage: F.FourierCoefficient(44) # long time
+            sage: F.FourierCoefficient(44)
             0.000214208380? - 0.00045396681?*I
-            sage: F.FourierCoefficient(45) # long time
+            sage: F.FourierCoefficient(45)
             -0.0005573382643? - 0.000553163835?*I
 
     -   Ternary sum of digits::
@@ -1267,9 +1267,9 @@ class FSMFourier(SageObject):
             1
             sage: F.e_T
             1
-            sage: F.FourierCoefficient(0) # long time
+            sage: F.FourierCoefficient(0)
             -0.2373314270632? + 0.?e-15*I
-            sage: F.FourierCoefficient(42) # long time
+            sage: F.FourierCoefficient(42)
             0.0001516409849? + 0.000054159307?*I
     """
 
@@ -1767,7 +1767,7 @@ class FSMFourier(SageObject):
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
                 sage: all(FourierCoefficientDelange(k)
                 ....:     in T.FourierCoefficient(k)
-                ....:     for k in range(0, 5)) # long time
+                ....:     for k in [0, 1, 42])
                 True
         """
 
