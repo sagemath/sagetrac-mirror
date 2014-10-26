@@ -12,21 +12,31 @@ Fourier Coefficients
 .. automethod:: FSMFourier._H_
 
 """
+from libc.stdlib cimport malloc, realloc, free
 import itertools
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.functions.log import log
+from sage.libs.arb.acb cimport *
+from sage.libs.arb.acb_mat cimport *
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix_acb_dense cimport (
+    matrix_to_acb_mat, acb_mat_to_matrix)
+from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import srange, verbose
 from sage.modules.free_module_element import vector
+from sage.modules.free_module_element cimport FreeModuleElement_generic_dense
 import sage.rings.arith
+from sage.rings.complex_interval cimport ComplexIntervalFieldElement
+from sage.rings.complex_interval_acb cimport ComplexIntervalFieldElement_to_acb
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import min_RIF, max_RIF
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject
+
 
 
 def infinity_vector_norm(v):
@@ -763,6 +773,259 @@ class FSM_Fourier_Component(SageObject):
             + self.parent.initial_vector*eigenvector_right*left_prime
         return w_prime
 
+cdef class FSMFourierCache(SageObject):
+    r"""
+    Compute and cache `\mathbf{b}(r)` for increased performance
+    and compute partial sums of the Dirichlet series `\mathbf{H}(s)`.
+
+    INPUT:
+
+    - ``parent`` -- a :class:`FSMFourier` instance.
+
+    - ``CIF`` -- a :class:`ComplexIntervalField`, indicating the precision
+       for the floating point operations.
+
+    OUTPUT:
+
+    None.
+
+    EXAMPLES::
+
+        sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+        sage: from sage.combinat.fsm_fourier import FSMFourier
+        sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
+        ....:                initial_states=[0],
+        ....:                final_states=[0])
+        sage: FSMFourier(T).cache
+        <type 'sage.combinat.fsm_fourier.FSMFourierCache'>
+    """
+    cdef acb_mat_t *bb
+    cdef unsigned long bb_computed
+    cdef unsigned long bb_allocated
+    cdef acb_mat_t *Delta_epsilon_ones
+    cdef acb_mat_t *M_epsilon
+    cdef unsigned long q
+    cdef unsigned long precision
+    cdef unsigned long n
+    cdef object parent
+
+    def __init__(self, parent, CIF):
+        """
+        Initialize the class.
+
+        INPUT:
+
+        - ``parent`` -- a :class:`FSMFourier` instance.
+
+        - ``CIF`` -- a :class:`ComplexIntervalField`, indicating the precision
+          for the floating point operations.
+
+        OUTPUT:
+
+        None.
+
+        EXAMPLES::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0])
+            sage: FSMFourier(T).cache
+            <type 'sage.combinat.fsm_fourier.FSMFourierCache'>
+        """
+        cdef long epsilon
+
+        self.parent = parent
+        self.n = self.parent.M.nrows()
+        self.precision = CIF.precision()
+        self.q = self.parent.q
+
+        MS_n = MatrixSpace(CIF, self.n, self.n)
+        MS_1 = MatrixSpace(CIF, self.n, 1)
+
+        self.Delta_epsilon_ones = <acb_mat_t*> malloc(
+            self.q * sizeof(acb_mat_t))
+        self.M_epsilon = <acb_mat_t*> malloc(
+            self.q * sizeof(acb_mat_t))
+
+        for epsilon in range(self.q):
+            acb_mat_init(self.M_epsilon[epsilon], self.n, self.n)
+            acb_mat_init(self.Delta_epsilon_ones[epsilon], self.n, 1)
+
+        for epsilon in range(self.q):
+            matrix_to_acb_mat(self.M_epsilon[epsilon],
+                              MS_n(parent.M_epsilon[epsilon]))
+
+            matrix_to_acb_mat(self.Delta_epsilon_ones[epsilon],
+                              MS_1(parent.Delta_epsilon[epsilon] *
+                                   parent.ones))
+        self.bb_allocated = self.q*1024
+        self.bb = <acb_mat_t*> malloc(
+            self.bb_allocated * sizeof(acb_mat_t))
+        self.bb_computed = 0
+
+    def __dealloc__(self):
+        """
+        Deallocate memory.
+        """
+        cdef unsigned long epsilon
+
+        if self.M_epsilon != NULL:
+            for epsilon in range(self.q):
+                if self.M_epsilon[epsilon] != NULL:
+                    acb_mat_clear(self.M_epsilon[epsilon])
+            free(self.M_epsilon)
+
+        if self.Delta_epsilon_ones != NULL:
+            for epsilon in range(self.q):
+                if self.Delta_epsilon_ones[epsilon] != NULL:
+                    acb_mat_clear(self.Delta_epsilon_ones[epsilon])
+            free(self.Delta_epsilon_ones)
+
+        if self.bb != NULL:
+            for epsilon in range(self.bb_computed):
+                if self.bb[epsilon] != NULL:
+                    acb_mat_clear(self.bb[epsilon])
+            free(self.bb)
+
+    cdef void compute_b(self, unsigned long M):
+        r"""
+        Compute and store `\mathbf{b}(r)` for `0\le r< M`.
+
+        INPUT:
+
+        - ``M`` -- a non-negative integer.
+
+        OUTPUT:
+
+        None.
+        """
+        cdef unsigned long r
+        cdef unsigned long epsilon
+        cdef unsigned long R
+        cdef unsigned long new_M
+        cdef unsigned long n
+        cdef bint resize
+
+        if M < self.bb_computed:
+            return
+
+        new_M = (M // self.q) * self.q
+        if new_M < M:
+            new_M += self.q
+
+        resize = False
+        while new_M > self.bb_allocated:
+            self.bb_allocated *= self.q
+            resize = True
+
+        if resize:
+            self.bb = <acb_mat_t *> realloc(
+                self.bb,
+                self.bb_allocated * sizeof(acb_mat_t))
+
+        for r in range(self.bb_computed//self.q, new_M//self.q):
+            for epsilon in range(self.q):
+                R = r*self.q + epsilon
+                acb_mat_init(self.bb[R], self.n, 1)
+                if R == 0:
+                    matrix_to_acb_mat(
+                        self.bb[0],
+                        matrix(ComplexIntervalField(self.precision),
+                               self.parent._FC_b_direct_(0)).transpose())
+                else:
+                    acb_mat_mul(self.bb[R],
+                                self.M_epsilon[epsilon],
+                                self.bb[r],
+                                self.precision)
+                    acb_mat_add(self.bb[R],
+                                self.bb[R],
+                                self.Delta_epsilon_ones[epsilon],
+                                self.precision)
+        self.bb_computed = new_M
+
+    cpdef b(self, unsigned long r):
+        r"""
+        Compute or retrieve `\mathbf{b}(r)`.
+
+        INPUT:
+
+        - ``r`` -- a non-negative integer.
+
+        OUTPUT:
+
+        A vector of :class:`ComplexIntervalFieldElement`.
+
+        EXAMPLES::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: F = FSMFourier(transducers.Recursion([
+            ....:     f(4*n + 1) == f(n) + 1,
+            ....:     f(4*n + 3) == f(n + 1) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2))
+            sage: cache = F.cache
+            sage: [cache.b(r) for r in range(3)]
+            [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
+            sage: all(cache.b(r) ==
+            ....:     F._FC_b_direct_(r) for r in range(8))
+            True
+        """
+        self.compute_b(r+1)
+        return acb_mat_to_matrix(self.bb[r], self.precision).column(0)
+
+    cdef FreeModuleElement_generic_dense partial_dirichlet(
+        self,
+        unsigned long start,
+        unsigned long end,
+        ComplexIntervalFieldElement s):
+        r"""
+        Compute `\sum_{\mathit{start}\le r<\mathit{end}} \mathbf{b}(r) r^{-s}`.
+
+        INPUT:
+
+        `start` -- a positive integer.
+
+        `end` -- a positive integer.
+
+        `s` -- a :class:`ComplexIntervalFieldElement`.
+
+        OUTPUT:
+
+        A vector of :class:`ComplexIntervalFieldElement`.
+        """
+        cdef unsigned long r;
+        cdef acb_mat_t result;
+        cdef acb_t scalar;
+        cdef acb_t minuss;
+        cdef FreeModuleElement_generic_dense result_vector
+
+        self.compute_b(end)
+
+        acb_mat_init(result, self.n, 1)
+        acb_init(scalar)
+        acb_init(minuss)
+
+        ComplexIntervalFieldElement_to_acb(minuss, -s)
+        for r in range(end-1, start-1, -1):
+            acb_set_ui(scalar, r)
+            acb_pow(scalar, scalar, minuss, self.precision)
+            acb_mat_scalar_addmul_acb(result, self.bb[r],
+                                      scalar, self.precision)
+        result_vector = acb_mat_to_matrix(result, self.precision).column(0)
+
+        acb_clear(minuss)
+        acb_clear(scalar)
+        acb_mat_clear(result)
+
+        return result_vector
 
 class FSMFourier(SageObject):
     """
@@ -1048,7 +1311,7 @@ class FSMFourier(SageObject):
     """A list of :class:`FSM_Fourier_Component`, representing the
     final components."""
 
-    def __init__(self, transducer):
+    def __init__(self, transducer, CIF=ComplexIntervalField()):
         r"""
         Initialize the the common data needed for the computation of all
         Fourier coefficients of the periodic fluctuation of the sum of
@@ -1173,6 +1436,9 @@ class FSMFourier(SageObject):
                        for r in range(self.q))
         self.C_1 = max(infinity_matrix_norm(d)
                        for d in self.Delta_epsilon)
+
+        self.cache = FSMFourierCache(self, CIF)
+
 
     @cached_method
     def _FC_b_direct_(self, r):
@@ -1376,6 +1642,8 @@ class FSMFourier(SageObject):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
         """
+        cdef FSMFourierCache cache
+
         verbose("_H_m_rhs_(%s, %s)" % (s, m), level=1)
         if remove_poles != (s == 1):
             raise ValueError("remove_poles must be set if "
@@ -1395,8 +1663,12 @@ class FSMFourier(SageObject):
         log_q = log(RIF(q))
         log_m_1 = log(RIF(m - 1))
 
-        result = sum(self._FC_b_recursive_(r) * r**(-s)
-                     for r in reversed(srange(m, q*m)))
+        cache = self.cache
+        #result = sum(self._FC_b_recursive_(r) * r**(-s)
+        #             for r in reversed(srange(m, q*m)))
+        result = cache.partial_dirichlet(
+            m, q*m, s)
+
         if remove_poles and s == 1:
             result += q**(-s) * sum(
                 D * self.ones * (-RIF(ZZ(epsilon)/q + int(epsilon == 0)).psi()
