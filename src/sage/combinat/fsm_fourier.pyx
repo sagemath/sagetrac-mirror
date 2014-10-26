@@ -115,7 +115,7 @@ def infinity_matrix_norm(A):
     return max(sum(r) for r in A.apply_map(abs).rows())
 
 
-def _hurwitz_zeta_(s, alpha,  m = 0):
+def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
     r"""
     Compute the truncated Hurwitz zeta function `\sum_{k\ge m} (k+\alpha)^{-s}`.
 
@@ -127,6 +127,9 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
 
     -   ``m`` -- a positive integer
 
+    -   ``max_approximation_error`` -- a non-negative number; an
+        approximation error less than ``max_approximation_error`` is
+        accepted even if it is not small with respect to the result.
 
     OUTPUT:
 
@@ -246,9 +249,9 @@ def _hurwitz_zeta_(s, alpha,  m = 0):
         if result.abs().upper().is_zero():
             error_acceptable = 0
         else:
-            error_acceptable = RIF(2) ** (max(result.real().abs().upper().log2(),
-                                             result.imag().abs().upper().log2()).floor()
-                                         - result.prec())
+            rounding_error = result.real().upper() + result.imag().upper() \
+                - result.real().lower() - result.imag().lower()
+            error_acceptable = max(max_approximation_error, rounding_error/8)
 
         verbose("    N = %d, error = %s, acceptable_error = %s, result = %s" %
                 (N, error_bound, error_acceptable, result), level=2)
@@ -1438,6 +1441,7 @@ class FSMFourier(SageObject):
                        for d in self.Delta_epsilon)
 
         self.cache = FSMFourierCache(self, CIF)
+        self.error_acceptable = ZZ(2)**(-2*CIF.precision())
 
 
     @cached_method
@@ -1677,7 +1681,8 @@ class FSMFourier(SageObject):
                 for epsilon, D in enumerate(self.Delta_epsilon))
         else:
             result += q**(-s) * sum(
-                D * self.ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m)
+                D * self.ones * _hurwitz_zeta_(s, ZZ(epsilon)/q, m,
+                                               self.error_acceptable)
                 for epsilon, D in enumerate(self.Delta_epsilon))
 
         N = 1
@@ -1689,8 +1694,13 @@ class FSMFourier(SageObject):
             if result.is_zero():
                 error_acceptable = 0
             else:
-                error_acceptable = RIF(2) ** (infinity_vector_norm(result).upper().log2()
-                                             - result[0].prec())
+                rounding_error = sum(
+                    c.real().upper() + c.imag().upper()
+                    -c.real().lower()-c.imag().lower()
+                    for c in result)
+                error_acceptable = max(self.error_acceptable,
+                                       rounding_error/8)
+
             error_bound = factor.abs() * \
                 (self.C_0 * (sigma + N -1) * log_q\
                      + self.C_1 * (sigma + N -1) * log_m_1\
