@@ -1131,7 +1131,7 @@ class FSMFourier(SageObject):
             sage: F.FourierCoefficient(0) # long time
             1.5308151287593? + 0.?e-15*I
             sage: F.FourierCoefficient(42) # long time
-            9.380157?e-7 + 0.0001569568848?*I
+            9.38016?e-7 + 0.000156956885?*I
 
     -   Artificial example, one-periodic, 2 states::
 
@@ -1153,9 +1153,9 @@ class FSMFourier(SageObject):
             sage: FC.a()
             1/4
             sage: F.FourierCoefficient(0) # long time
-            -0.20319811602320? + 0.?e-16*I
+            -0.2031981160232? + 0.?e-16*I
             sage: F.FourierCoefficient(42) # long time
-            -0.0000280287200? + 0.0000741203739?*I
+            -0.0000280287200? + 0.0000741203738?*I
 
     -   Artificial example, period 3::
 
@@ -1184,9 +1184,9 @@ class FSMFourier(SageObject):
             sage: FC.a()
             7/4
             sage: F.FourierCoefficient(0) # long time
-            0.8794486773901? + 0.?e-15*I
+            0.879448677390? + 0.?e-15*I
             sage: F.FourierCoefficient(42) # long time
-            0.000330400039? + 0.002040223215?*I
+            0.000330400038? + 0.002040223214?*I
             sage: F.FourierCoefficient(43) # long time
             0.000178962837? + 3.877474?e-6*I
 
@@ -1213,7 +1213,7 @@ class FSMFourier(SageObject):
             sage: F.FourierCoefficient(0) # long time
             -1.5912428334793? + 0.?e-15*I
             sage: F.FourierCoefficient(42) # long time
-            -0.000265095706? - 0.0001002936380?*I
+            -0.000265095706? - 0.000100293638?*I
             sage: F.FourierCoefficient(43) # long time
             0
 
@@ -1274,7 +1274,7 @@ class FSMFourier(SageObject):
             sage: F.FourierCoefficient(0) # long time
             -0.2373314270632? + 0.?e-17*I
             sage: F.FourierCoefficient(42) # long time
-            0.0001516409849? + 0.0000541593062?*I
+            0.0001516409849? + 0.000054159307?*I
     """
 
     common_period = None
@@ -1798,7 +1798,7 @@ class FSMFourier(SageObject):
                 ....:     f(0) == 1],
                 ....:     f, n, 2)
                 sage: FSMFourier(T)._H_m_(CIF(2), 100)
-                (0.0100501666633336? + 0.?e-18*I)
+                (0.010050166663334? + 0.?e-18*I)
         """
         n = self.M.nrows()
 
