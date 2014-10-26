@@ -31,25 +31,25 @@ the method :meth:`~FSMFourier.FourierCoefficient`.
     :meth:`~FSMFourier.FourierCoefficient` | Compute a Fourier Coefficient
     :meth:`~FSMFourier.b0` | Compute the final output word
 
-:class:`FSM_Fourier_Component`
+:class:`FSMFourierComponent`
 ------------------------------
 Data corresponding to a final component of the transducer is stored in
-:class:`FSM_Fourier_Component`. This mainly comprises eigenvectors.
+:class:`FSMFourierComponent`. This mainly comprises eigenvectors.
 
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FSM_Fourier_Component.mu_prime` | Derivative `\mu_{j0}'(0)`
-    :meth:`~FSM_Fourier_Component.a` | Constant `a_j`
-    :meth:`~FSM_Fourier_Component.coefficient_lambda` | Constant `\lambda_j`
-    :meth:`~FSM_Fourier_Component.right_eigenvectors` | Right eigenvectors `\mathbf{v}_{jk}(0)`
-    :meth:`~FSM_Fourier_Component.vector_v_prime` | Derivative of the right eigenvector `\mathbf{v}'_{jk}(0)`
-    :meth:`~FSM_Fourier_Component.left_eigenvectors` | Left eigenvectors
-    :meth:`~FSM_Fourier_Component.vectors_w` | Scaled left eigenvectors `\mathbf{w}_{jk}(0)`
-    :meth:`~FSM_Fourier_Component.vector_w_prime` | Derivative of the left eigenvector `\mathbf{w}'_{jk}(0)`
-    :meth:`~FSM_Fourier_Component.w_ell` | Left eigenvectors to given eigenvalue.
+    :meth:`~FSMFourierComponent.mu_prime` | Derivative `\mu_{j0}'(0)`
+    :meth:`~FSMFourierComponent.a` | Constant `a_j`
+    :meth:`~FSMFourierComponent.coefficient_lambda` | Constant `\lambda_j`
+    :meth:`~FSMFourierComponent.right_eigenvectors` | Right eigenvectors `\mathbf{v}_{jk}(0)`
+    :meth:`~FSMFourierComponent.v_prime` | Derivative of the right eigenvector `\mathbf{v}'_{jk}(0)`
+    :meth:`~FSMFourierComponent.left_eigenvectors` | Left eigenvectors
+    :meth:`~FSMFourierComponent.w` | Scaled left eigenvectors `\mathbf{w}_{jk}(0)`
+    :meth:`~FSMFourierComponent.w_prime` | Derivative of the left eigenvector `\mathbf{w}'_{jk}(0)`
+    :meth:`~FSMFourierComponent.w_ell` | Left eigenvectors to given eigenvalue.
 
 :class:`FSMFourierCache`
 ------------------------
@@ -105,7 +105,9 @@ Classes and Methods
 ===================
 
 .. autofunction:: _hurwitz_zeta_
-.. automethod:: FSM_Fourier_Component.__init__
+.. automethod:: FSMFourierComponent.__init__
+.. automethod:: FSMFourierComponent._eigenvectors_
+.. automethod:: FSMFourierComponent._mask_
 .. automethod:: FSMFourierCache.__init__
 .. automethod:: FSMFourier.__init__
 .. automethod:: FSMFourier._H_m_rhs_
@@ -371,7 +373,7 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
         factor /= (M + alpha)
         #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
 
-class FSM_Fourier_Component(SageObject):
+class FSMFourierComponent(SageObject):
     r"""
     Final component of a
     :class:`~sage.combinat.finite_state_machine.Transducer` and its
@@ -401,14 +403,14 @@ class FSM_Fourier_Component(SageObject):
         ....:     f(0) == 0],
         ....:     f, n, 2)) # indirect doctest
         sage: F.components[0]
-        <class 'sage.combinat.fsm_fourier.FSM_Fourier_Component'>
+        <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
         sage: F.components[0].period
         1
     """
 
     def __init__(self, fsm, parent):
         r"""
-        Initialize the :class:`FSM_Fourier_Component`.
+        Initialize the :class:`FSMFourierComponent`.
 
         INPUT:
 
@@ -432,7 +434,7 @@ class FSM_Fourier_Component(SageObject):
             ....:     f(0) == 0],
             ....:     f, n, 2)) # indirect doctest
             sage: F.components[0]
-            <class 'sage.combinat.fsm_fourier.FSM_Fourier_Component'>
+            <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
             sage: F.components[0].period
             1
         """
@@ -441,7 +443,7 @@ class FSM_Fourier_Component(SageObject):
         self.n_states = len(self.fsm.states())
         self.parent = parent
 
-    def mask(self):
+    def _mask_(self):
         r"""
         Return a matrix whose rows consist of the incidence
         vectors of the states contained in the other final components
@@ -464,22 +466,22 @@ class FSM_Fourier_Component(SageObject):
             ....:                initial_states=[0],
             ....:                final_states=[0, 1, 2])
             sage: FC = FSMFourier(T).components[0]
-            sage: FC.mask()
+            sage: FC._mask_()
             [0 0 1]
         """
         n = self.parent.M.nrows()
         nrows = sum(c.n_states
                     for c in self.parent.components if c != self)
-        mask = matrix(
+        _mask_ = matrix(
             nrows, n,
             [self.parent.standard_basis[
                     self.parent.positions[state.label()]]
              for other in self.parent.components
              if other != self
              for state in other.fsm.iter_states()])
-        return mask
+        return _mask_
 
-    def eigenvectors(self, M):
+    def _eigenvectors_(self, M):
         r"""
         Determine the dominant eigenvectors of the given full
         adjacency matrix where all coordinates corresponding to final
@@ -512,14 +514,14 @@ class FSM_Fourier_Component(SageObject):
             ....:                final_states=[0, 1, 2])
             sage: F = FSMFourier(T)
             sage: FC = F.components[0]
-            sage: FC.eigenvectors(F.M)
+            sage: FC._eigenvectors_(F.M)
             [(1/3, 2/3, 0)]
 
         .. SEEALSO::
 
             :meth:`.right_eigenvectors`, :meth:`.left_eigenvectors`
         """
-        mask = self.mask()
+        mask = self._mask_()
         def eigenvector(j):
             eigenvalue = self.parent.q * self.parent.alpha**(
                 j * self.parent.common_period / self.period)
@@ -572,9 +574,9 @@ class FSM_Fourier_Component(SageObject):
 
         .. SEEALSO::
 
-            :meth:`.eigenvectors`, :meth:`.left_eigenvectors`
+            :meth:`.left_eigenvectors`
         """
-        return self.eigenvectors(self.parent.M)
+        return self._eigenvectors_(self.parent.M)
 
     @cached_method()
     def left_eigenvectors(self):
@@ -612,15 +614,15 @@ class FSM_Fourier_Component(SageObject):
 
         .. SEEALSO::
 
-            :meth:`.eigenvectors`, :meth:`.right_eigenvectors`
+            :meth:`.right_eigenvectors`
         """
-        left_eigenvectors = self.eigenvectors(self.parent.M.transpose())
+        left_eigenvectors = self._eigenvectors_(self.parent.M.transpose())
         return [w/(v*w) for v, w
                 in itertools.izip(self.right_eigenvectors(),
                                   left_eigenvectors)]
 
     @cached_method()
-    def vectors_w(self):
+    def w(self):
         r"""
         Compute `w_{jk}` for `0\le k< p_j`.
 
@@ -642,7 +644,7 @@ class FSM_Fourier_Component(SageObject):
             ....:                final_states=[0, 1, 2])
             sage: F = FSMFourier(T)
             sage: FC = F.components[0]
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(0, 1/2, 0)]
 
         .. SEEALSO::
@@ -680,7 +682,7 @@ class FSM_Fourier_Component(SageObject):
             sage: FC.coefficient_lambda()
             1/2
         """
-        products = [w*self.parent.ones for w in self.vectors_w()]
+        products = [w*self.parent.ones for w in self.w()]
         assert all(e.is_zero() for e in products[1:])
         return products[0]
 
@@ -782,11 +784,11 @@ class FSM_Fourier_Component(SageObject):
         """
         if self.parent.common_period.divides(ell*self.period):
             k = self.period*ell/self.parent.common_period % self.period
-            return vector(self.parent.field_to_CIF(c) for c in self.vectors_w()[k])
+            return vector(self.parent.field_to_CIF(c) for c in self.w()[k])
         else:
             return vector(0 for _ in self.parent.ones)
 
-    def vector_v_prime(self, k):
+    def v_prime(self, k):
         r"""
         Compute the derivative `v_{jk}'(0)`, the right
         eigenvector to the `k`-th dominant eigenvalue.
@@ -810,11 +812,11 @@ class FSM_Fourier_Component(SageObject):
             ....:                final_states=[0, 1, 2, 3])
             sage: F = FSMFourier(T)
             sage: FC = F.components[0]
-            sage: FC.vector_v_prime(0)
+            sage: FC.v_prime(0)
             (0, 0, 0, 0)
         """
         M = self.parent.M
-        mask = self.mask()
+        mask = self._mask_()
         eigenvalue = self.parent.q * self.parent.alpha**(
                 k * self.parent.common_period / self.period)
         S = matrix.block(
@@ -832,7 +834,7 @@ class FSM_Fourier_Component(SageObject):
         v_prime = S.solve_right(right_side)
         return v_prime
 
-    def vector_w_prime(self, k):
+    def w_prime(self, k):
         r"""
         Compute the derivative `w_{jk}'(0)`, the left
         eigenvector to the `k`-th dominant eigenvalue.
@@ -856,11 +858,11 @@ class FSM_Fourier_Component(SageObject):
             ....:                final_states=[0, 1, 2, 3])
             sage: F = FSMFourier(T)
             sage: FC = F.components[0]
-            sage: FC.vector_w_prime(0)
+            sage: FC.w_prime(0)
             (0, 0, 0, 0)
         """
         M = self.parent.M
-        mask = self.mask()
+        mask = self._mask_()
         eigenvalue = self.parent.q * self.parent.alpha**(
                 k * self.parent.common_period / self.period)
         eigenvector_right = vector(self.right_eigenvectors()[k])
@@ -873,11 +875,11 @@ class FSM_Fourier_Component(SageObject):
              subdivide=False)
         right_side = - matrix.block(
                                     [[M_prime.transpose() - self.mu_prime()*matrix.identity(M.nrows())],
-                                     [matrix(self.vector_v_prime(k))],
+                                     [matrix(self.v_prime(k))],
                                      [0*mask]],
                                     subdivide=False) * eigenvector_left
         left_prime = S.solve_right(right_side)
-        w_prime = self.parent.initial_vector*self.vector_v_prime(k)*eigenvector_left \
+        w_prime = self.parent.initial_vector*self.v_prime(k)*eigenvector_left \
             + self.parent.initial_vector*eigenvector_right*left_prime
         return w_prime
 
@@ -1163,7 +1165,7 @@ class FSMFourier(SageObject):
             sage: F.common_period
             1
             sage: [FC] = F.components
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(1)]
             sage: FC.coefficient_lambda()
             1
@@ -1195,7 +1197,7 @@ class FSMFourier(SageObject):
             sage: F.common_period
             1
             sage: [FC] = F.components
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(1/3, 1/3, 1/3)]
             sage: FC.coefficient_lambda()
             1
@@ -1223,7 +1225,7 @@ class FSMFourier(SageObject):
             sage: [FC] = F.components
             sage: F.common_period
             1
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]
             sage: FC.coefficient_lambda()
             1
@@ -1247,7 +1249,7 @@ class FSMFourier(SageObject):
             sage: [FC] = F.components
             sage: F.common_period
             1
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(1/2, 1/2)]
             sage: FC.coefficient_lambda()
             1
@@ -1276,7 +1278,7 @@ class FSMFourier(SageObject):
             sage: [FC] = F.components
             sage: F.common_period
             3
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
             (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
             (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]
@@ -1305,7 +1307,7 @@ class FSMFourier(SageObject):
             sage: [FC] = F.components
             sage: F.common_period
             2
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(0, 1/2, 1/2), (0, 0, 0)]
             sage: FC.coefficient_lambda()
             1
@@ -1337,11 +1339,11 @@ class FSMFourier(SageObject):
             2
             sage: F.common_period
             6
-            sage: FC0.vectors_w()
+            sage: FC0.w()
             [(0, 0, 0, 1/6, 1/6, 1/6),
               (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
               (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)]
-            sage: FC1.vectors_w()
+            sage: FC1.w()
             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]
             sage: FC0.coefficient_lambda()
             1/2
@@ -1413,7 +1415,7 @@ class FSMFourier(SageObject):
     used in the bound of the Dirichlet series."""
 
     components = None
-    """A list of :class:`FSM_Fourier_Component`, representing the
+    """A list of :class:`FSMFourierComponent`, representing the
     final components."""
 
     def __init__(self, transducer, CIF=ComplexIntervalField()):
@@ -1453,7 +1455,7 @@ class FSMFourier(SageObject):
             sage: F.common_period
             1
             sage: [FC] = F.components
-            sage: FC.vectors_w()
+            sage: FC.w()
             [(1)]
             sage: FC.coefficient_lambda()
             1
@@ -1496,7 +1498,7 @@ class FSMFourier(SageObject):
 
 
 
-        self.components = [FSM_Fourier_Component(c, self)
+        self.components = [FSMFourierComponent(c, self)
                            for c in transducer.final_components()]
         self.common_period = lcm([c.period
                                   for c in self.components])
@@ -1788,7 +1790,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 1],
             ....:     f, n, 2))
-            sage: w = F.components[0].vectors_w(); w
+            sage: w = F.components[0].w(); w
             [(1)]
             sage: F._w_H_Res_(w[0], CIF(1))
             1.00000000000000? + 0.?e-15*I
@@ -1897,6 +1899,6 @@ class FSMFourier(SageObject):
 
         if ell == 0:
             result += -self.e_T/log_q \
-                - self.I*sum(c.vector_w_prime(0)*self.ones
+                - self.I*sum(c.w_prime(0)*self.ones
                         for c in self.components)
         return result
