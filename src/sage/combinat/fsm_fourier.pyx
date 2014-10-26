@@ -71,17 +71,17 @@ Example
     f
     sage: var('n')
     n
-    sage: from sage.combinat.fsm_fourier import FSMFourier
+    sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
     sage: T = transducers.Recursion([
     ....:     f(2*n + 1) == f(n) + 1,
     ....:     f(2*n) == f(n),
     ....:     f(0) == 0],
     ....:     f, n, 2)
     sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-    sage: F = FSMFourier(T)
-    sage: F.FourierCoefficient(0)
+    sage: F = FSMFourier(T) # optional - arb
+    sage: F.FourierCoefficient(0) # optional - arb
     -0.1455994557084? + 0.?e-16*I
-    sage: F.FourierCoefficient(10)
+    sage: F.FourierCoefficient(10) # optional - arb
     0.0016818573864? + 0.0003201978624?*I
 
 AUTHORS:
@@ -166,12 +166,12 @@ def infinity_vector_norm(v):
 
     EXAMPLES::
 
-        sage: from sage.combinat.fsm_fourier import infinity_vector_norm
+        sage: from sage.combinat.fsm_fourier import infinity_vector_norm # optional - arb
         sage: a = RIF(1, 4)
         sage: b = RIF(-3, -2)
-        sage: infinity_vector_norm(vector([a, b])).endpoints()
+        sage: infinity_vector_norm(vector([a, b])).endpoints() # optional - arb
         (2.00000000000000, 4.00000000000000)
-        sage: infinity_vector_norm(vector([b, a])).endpoints()
+        sage: infinity_vector_norm(vector([b, a])).endpoints() # optional - arb
         (2.00000000000000, 4.00000000000000)
 
     Note that the
@@ -207,14 +207,14 @@ def infinity_matrix_norm(A):
 
     EXAMPLES::
 
-        sage: from sage.combinat.fsm_fourier import infinity_matrix_norm
+        sage: from sage.combinat.fsm_fourier import infinity_matrix_norm # optional - arb
         sage: M = matrix([[1, 2], [-5, -1]])
-        sage: infinity_matrix_norm(M)
+        sage: infinity_matrix_norm(M) # optional - arb
         6
         sage: M.norm(infinity)
         6.0
         sage: M = matrix([[0]], sparse=True)
-        sage: infinity_matrix_norm(M)
+        sage: infinity_matrix_norm(M) # optional - arb
         0
         sage: M.norm(infinity)
         Traceback (most recent call last):
@@ -250,38 +250,38 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
 
     -   Simple example::
 
-            sage: from sage.combinat.fsm_fourier import _hurwitz_zeta_
-            sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10)
+            sage: from sage.combinat.fsm_fourier import _hurwitz_zeta_ # optional - arb
+            sage: _hurwitz_zeta_(CIF(2), RIF(3/4), 10) # optional - arb
             0.097483848201852? + 0.?e-17*I
 
     -   Compare with well-known value `\zeta(2)=\zeta(2, 1)=\pi^2/6`::
 
-            sage: _hurwitz_zeta_(CIF(2), 1)
+            sage: _hurwitz_zeta_(CIF(2), 1) # optional - arb
             1.64493406684823? + 0.?e-17*I
-            sage: (_hurwitz_zeta_(CIF(2), 1) - CIF(pi)^2/6).abs()<10^(-13)
+            sage: (_hurwitz_zeta_(CIF(2), 1) - CIF(pi)^2/6).abs()<10^(-13) # optional - arb
             True
-            sage: _hurwitz_zeta_(CIF(2*pi*I/log(2)), 1)
+            sage: _hurwitz_zeta_(CIF(2*pi*I/log(2)), 1) # optional - arb
             1.598734526809? + 0.278338669639?*I
 
     -   There is a singularity at `s=1`. ::
 
-            sage: _hurwitz_zeta_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)), 1)
+            sage: _hurwitz_zeta_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)), 1) # optional - arb
             Traceback (most recent call last):
             ...
             ZeroDivisionError: zeta is singular at 1.
 
     -   Checking the function for non-positive integers::
 
-            sage: zeta(-1) in _hurwitz_zeta_(CIF(-1), 1)
+            sage: zeta(-1) in _hurwitz_zeta_(CIF(-1), 1) # optional - arb
             True
-            sage: zeta(0) in _hurwitz_zeta_(CIF(0), 1)
+            sage: zeta(0) in _hurwitz_zeta_(CIF(0), 1) # optional - arb
             True
 
     -   Debugging output can be enabled using
         :func:`~sage.misc.misc.set_verbose`. ::
 
             sage: set_verbose(2)
-            sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1)
+            sage: _hurwitz_zeta_(CIF(1+100/log(2)*I), 1) # optional - arb
             verbose 1 (...) _hurwitz_zeta_(1 + 144.2695040888963?*I, 1, 0): M = 172
             verbose 2 (...)     N = 2, error = 0.0352354068797?, acceptable_error = 3.41199291042927e-13, result = 2.125571548789? + 0.511221280470?*I
             verbose 2 (...)     N = 4, error = 0.000310532577681?, acceptable_error = 3.41254802194158e-13, result = 2.125575595864? + 0.51121897538?*I
@@ -297,16 +297,16 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
     -   The current implementation does not work well with negative real
         values, all precision is lost::
 
-            sage: _hurwitz_zeta_(CIF(-15+I), 1)
+            sage: _hurwitz_zeta_(CIF(-15+I), 1) # optional - arb
             0.?e12 + 0.?e12*I
-            sage: hurwitz_zeta(ComplexField(200)(-15 + I), 1)
+            sage: hurwitz_zeta(ComplexField(200)(-15 + I), 1) # optional - arb
             0.66621329305522618549073659441004805750538410627754288912677
             - 0.84614995218731390314834131849322502368334938802936485299779*I
 
         A work-around is to start with higher precision; however, we have
         to clear the cache first::
 
-            sage: _hurwitz_zeta_(ComplexIntervalField(200)(-15 + I), 1)
+            sage: _hurwitz_zeta_(ComplexIntervalField(200)(-15 + I), 1) # optional - arb
             0.66621329305522618549073660?
             - 0.8461499521873139031483414?*I
     """
@@ -396,15 +396,15 @@ class FSMFourierComponent(SageObject):
         f
         sage: var('n')
         n
-        sage: from sage.combinat.fsm_fourier import FSMFourier
-        sage: F = FSMFourier(transducers.Recursion([
+        sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+        sage: F = FSMFourier(transducers.Recursion([ # indirect doctest; optional - arb
         ....:     f(2*n + 1) == f(n) + 1,
         ....:     f(2*n) == f(n),
         ....:     f(0) == 0],
-        ....:     f, n, 2)) # indirect doctest
-        sage: F.components[0]
+        ....:     f, n, 2))
+        sage: F.components[0] # optional - arb
         <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
-        sage: F.components[0].period
+        sage: F.components[0].period # optional - arb
         1
     """
 
@@ -427,15 +427,15 @@ class FSMFourierComponent(SageObject):
             f
             sage: var('n')
             n
-            sage: from sage.combinat.fsm_fourier import FSMFourier
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: F = FSMFourier(transducers.Recursion([ # indirect doctest; optional - arb
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)) # indirect doctest
-            sage: F.components[0]
+            ....:     f, n, 2))
+            sage: F.components[0] # optional - arb
             <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
-            sage: F.components[0].period
+            sage: F.components[0].period # optional - arb
             1
         """
         self.fsm = fsm
@@ -459,14 +459,14 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: FC = FSMFourier(T).components[0]
-            sage: FC._mask_()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: FC = FSMFourier(T).components[0] # optional - arb
+            sage: FC._mask_() # optional - arb
             [0 0 1]
         """
         n = self.parent.M.nrows()
@@ -506,15 +506,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC._eigenvectors_(F.M)
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC._eigenvectors_(F.M) # optional - arb
             [(1/3, 2/3, 0)]
 
         .. SEEALSO::
@@ -561,15 +561,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.right_eigenvectors()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.right_eigenvectors() # optional - arb
             [(1/3, 2/3, 0)]
 
         .. SEEALSO::
@@ -601,15 +601,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.left_eigenvectors()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.left_eigenvectors() # optional - arb
             [(0, 3/2, 0)]
 
         .. SEEALSO::
@@ -636,15 +636,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.w()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.w() # optional - arb
             [(0, 1/2, 0)]
 
         .. SEEALSO::
@@ -671,15 +671,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.coefficient_lambda()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.coefficient_lambda() # optional - arb
             1/2
         """
         products = [w*self.parent.ones for w in self.w()]
@@ -703,15 +703,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.mu_prime()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.mu_prime() # optional - arb
             0
         """
         Y = self.parent.Y
@@ -739,15 +739,15 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 2, 0, 0), (2, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.a()
+            ....:                final_states=[0, 1, 2]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.a() # optional - arb
             0
         """
         return QQ(-self.parent.I * self.mu_prime()/self.parent.q)
@@ -768,18 +768,18 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
             ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2, 3])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.w_ell(0)
+            ....:                final_states=[0, 1, 2, 3]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.w_ell(0) # optional - arb
             (0, 0.50000000000000000?, 0, 0)
-            sage: FC.w_ell(1)
+            sage: FC.w_ell(1) # optional - arb
             (0, 0, 0, 0)
         """
         if self.parent.common_period.divides(ell*self.period):
@@ -803,16 +803,16 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
             ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2, 3])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.v_prime(0)
+            ....:                final_states=[0, 1, 2, 3]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.v_prime(0) # optional - arb
             (0, 0, 0, 0)
         """
         M = self.parent.M
@@ -849,16 +849,16 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
             ....:                 (1, 1, 0, 0), (1, 1, 1, 0),
             ....:                 (2, 3, 0, 0), (2, 3, 1, 0),
             ....:                 (3, 2, 0, 0), (3, 2, 1, 0)],
             ....:                initial_states=[0],
-            ....:                final_states=[0, 1, 2, 3])
-            sage: F = FSMFourier(T)
-            sage: FC = F.components[0]
-            sage: FC.w_prime(0)
+            ....:                final_states=[0, 1, 2, 3]) # optional - arb
+            sage: F = FSMFourier(T) # optional - arb
+            sage: FC = F.components[0] # optional - arb
+            sage: FC.w_prime(0) # optional - arb
             (0, 0, 0, 0)
         """
         M = self.parent.M
@@ -899,11 +899,11 @@ cdef class FSMFourierCache(SageObject):
     EXAMPLES::
 
         sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-        sage: from sage.combinat.fsm_fourier import FSMFourier
+        sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
         sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
         ....:                initial_states=[0],
         ....:                final_states=[0])
-        sage: FSMFourier(T).cache
+        sage: FSMFourier(T).cache # optional - arb
         <type 'sage.combinat.fsm_fourier.FSMFourierCache'>
     """
     cdef acb_mat_t *bb
@@ -931,11 +931,11 @@ cdef class FSMFourierCache(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
             ....:                initial_states=[0],
             ....:                final_states=[0])
-            sage: FSMFourier(T).cache
+            sage: FSMFourier(T).cache # optional - arb
             <type 'sage.combinat.fsm_fourier.FSMFourierCache'>
         """
         cdef long epsilon
@@ -1064,19 +1064,19 @@ cdef class FSMFourierCache(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: function('f')
             f
             sage: var('n')
             n
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(4*n + 1) == f(n) + 1,
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: cache = F.cache
-            sage: [cache.b(r) for r in range(3)]
+            sage: cache = F.cache # optional - arb
+            sage: [cache.b(r) for r in range(3)] # optional - arb
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
         """
         self.compute_b(r+1)
@@ -1156,63 +1156,63 @@ class FSMFourier(SageObject):
             f
             sage: var('n')
             n
-            sage: from sage.combinat.fsm_fourier import FSMFourier
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: F.common_period
+            sage: F.common_period # optional - arb
             1
-            sage: [FC] = F.components
-            sage: FC.w()
+            sage: [FC] = F.components # optional - arb
+            sage: FC.w() # optional - arb
             [(1)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             1/2
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             1/2
-            sage: F.M
+            sage: F.M # optional - arb
             [2]
-            sage: F.M_epsilon
+            sage: F.M_epsilon # optional - arb
             [[1], [1]]
-            sage: F.Delta
+            sage: F.Delta # optional - arb
             [1]
-            sage: F.Delta_epsilon
+            sage: F.Delta_epsilon # optional - arb
             [[0], [1]]
-            sage: F.C_0
+            sage: F.C_0 # optional - arb
             1
-            sage: F.C_1
+            sage: F.C_1 # optional - arb
             1
 
     -   NAF::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([  # optional - arb
             ....:     f(4*n + 1) == f(n) + 1,
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: F.common_period
+            sage: F.common_period # optional - arb
             1
-            sage: [FC] = F.components
-            sage: FC.w()
+            sage: [FC] = F.components # optional - arb
+            sage: FC.w() # optional - arb
             [(1/3, 1/3, 1/3)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             1/3
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             1/3
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             0.4478541793943? + 0.?e-14*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             -9.0701442?e-6 + 0.0001189561459?*I
 
     -   Abelian complexity of the paperfolding sequence::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(4*n) == f(2*n),
             ....:     f(4*n+2) == f(2*n+1)+1,
             ....:     f(16*n+1) == f(8*n+1),
@@ -1222,49 +1222,49 @@ class FSMFourier(SageObject):
             ....:     f(1) == 2, f(0) == 0]
             ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
             ....:     f, n, 2))
-            sage: [FC] = F.components
-            sage: F.common_period
+            sage: [FC] = F.components # optional - arb
+            sage: F.common_period # optional - arb
             1
-            sage: FC.w()
+            sage: FC.w() # optional - arb
             [(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             8/13
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             8/13
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             1.5308151287593? + 0.?e-13*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             9.38016?e-7 + 0.000156956885?*I
 
     -   Artificial example, one-periodic, 2 states::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(4*n) == f(2*n)+0,
             ....:     f(4*n+2) == f(n)+1,
             ....:     f(2*n+1) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: [FC] = F.components
-            sage: F.common_period
+            sage: [FC] = F.components # optional - arb
+            sage: F.common_period # optional - arb
             1
-            sage: FC.w()
+            sage: FC.w() # optional - arb
             [(1/2, 1/2)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             1/4
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             1/4
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             -0.2031981160232? + 0.?e-14*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             -0.0000280287200? + 0.0000741203738?*I
 
     -   Artificial example, period 3::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(8*n) == f(4*n+3)+3,
             ....:     f(8*n+4) == f(4*n+3)+1,
             ....:     f(8*n+2) == f(4*n+3)+2,
@@ -1275,111 +1275,111 @@ class FSMFourier(SageObject):
             ....:     f(8*n+7) == f(4*n+1),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: [FC] = F.components
-            sage: F.common_period
+            sage: [FC] = F.components # optional - arb
+            sage: F.common_period # optional - arb
             3
-            sage: FC.w()
+            sage: FC.w() # optional - arb
             [(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
             (0, 0, 0, 1/24*zeta12^2 - 1/24, 1/24*zeta12^2 - 1/24, -1/12*zeta12^2, 1/12),
             (0, 0, 0, -1/24*zeta12^2, -1/24*zeta12^2, 1/12*zeta12^2 - 1/12, 1/12)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             7/4
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             7/4
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             0.879448677390? + 0.?e-13*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             0.00033040004? + 0.002040223214?*I
-            sage: F.FourierCoefficient(43)
+            sage: F.FourierCoefficient(43) # optional - arb
             0.000178962837? + 3.877474?e-6*I
 
     -   Artificial example, period 2, vanishing `\mathbf{w}`-vector::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(4*n) == f(2*n+1)+1,
             ....:     f(4*n+1) == f(2*n)+2,
             ....:     f(4*n+2) == f(2*n+1)+3,
             ....:     f(4*n+3) == f(2*n)-1,
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: [FC] = F.components
-            sage: F.common_period
+            sage: [FC] = F.components # optional - arb
+            sage: F.common_period # optional - arb
             2
-            sage: FC.w()
+            sage: FC.w() # optional - arb
             [(0, 1/2, 1/2), (0, 0, 0)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             5/4
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             5/4
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             -1.5912428334793? + 0.?e-13*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             -0.000265095706? - 0.000100293638?*I
-            sage: F.FourierCoefficient(43)
+            sage: F.FourierCoefficient(43) # optional - arb
             0
 
     -   Artificial example with two final components of periods `2`
         and `3`, respectively::
 
-            sage: F = FSMFourier(Transducer([(0, 1, 0, 1), (1, 2, 0, 1),
+            sage: F = FSMFourier(Transducer([(0, 1, 0, 1), (1, 2, 0, 1), # optional - arb
             ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
             ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
             ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
             ....:     (-3, -1, 0, 3)],
             ....:     initial_states=[0],
             ....:     final_states=[0, 1, 2, -3, -2, -1]))
-            sage: [FC0, FC1] = F.components
-            sage: FC0.period
+            sage: [FC0, FC1] = F.components # optional - arb
+            sage: FC0.period # optional - arb
             3
-            sage: FC1.period
+            sage: FC1.period # optional - arb
             2
-            sage: F.common_period
+            sage: F.common_period # optional - arb
             6
-            sage: FC0.w()
+            sage: FC0.w() # optional - arb
             [(0, 0, 0, 1/6, 1/6, 1/6),
               (0, 0, 0, 1/6, 1/6*zeta12^2 - 1/6, -1/6*zeta12^2),
               (0, 0, 0, 1/6, -1/6*zeta12^2, 1/6*zeta12^2 - 1/6)]
-            sage: FC1.w()
+            sage: FC1.w() # optional - arb
             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]
-            sage: FC0.coefficient_lambda()
+            sage: FC0.coefficient_lambda() # optional - arb
             1/2
-            sage: FC1.coefficient_lambda()
+            sage: FC1.coefficient_lambda() # optional - arb
             1/2
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             11/8
-            sage: [FC0.a(), FC1.a()]
+            sage: [FC0.a(), FC1.a()] # optional - arb
             [3/2, 5/4]
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             -2.1863500631078? + 0.?e-13*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             -0.00242220796? + 0.00103325145?*I
-            sage: F.FourierCoefficient(43)
+            sage: F.FourierCoefficient(43) # optional - arb
             0
-            sage: F.FourierCoefficient(44)
+            sage: F.FourierCoefficient(44) # optional - arb
             0.000214208380? - 0.00045396681?*I
-            sage: F.FourierCoefficient(45)
+            sage: F.FourierCoefficient(45) # optional - arb
             -0.0005573382643? - 0.000553163835?*I
 
     -   Ternary sum of digits, with high precision::
 
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(3*n + 2) == f(n) + 2,
             ....:     f(3*n + 1) == f(n) + 1,
             ....:     f(3*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 3), ComplexIntervalField(200))
-            sage: F.common_period
+            sage: F.common_period # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             1
-            sage: F.FourierCoefficient(0)
+            sage: F.FourierCoefficient(0) # optional - arb
             -0.23733142706319409139996985552948551198247848839875752890?
             + 0.?e-57*I
-            sage: F.FourierCoefficient(42)
+            sage: F.FourierCoefficient(42) # optional - arb
             0.000151640984887988283825448153753614629500867823400070268?
             + 0.000054159306153387140043462960871097923443501309058799584?*I
     """
@@ -1446,34 +1446,34 @@ class FSMFourier(SageObject):
             f
             sage: var('n')
             n
-            sage: from sage.combinat.fsm_fourier import FSMFourier
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: F = FSMFourier(transducers.Recursion([  # optional - arb
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2))
-            sage: F.common_period
+            sage: F.common_period # optional - arb
             1
-            sage: [FC] = F.components
-            sage: FC.w()
+            sage: [FC] = F.components # optional - arb
+            sage: FC.w() # optional - arb
             [(1)]
-            sage: FC.coefficient_lambda()
+            sage: FC.coefficient_lambda() # optional - arb
             1
-            sage: F.e_T
+            sage: F.e_T # optional - arb
             1/2
-            sage: FC.a()
+            sage: FC.a() # optional - arb
             1/2
-            sage: F.M
+            sage: F.M # optional - arb
             [2]
-            sage: F.M_epsilon
+            sage: F.M_epsilon # optional - arb
             [[1], [1]]
-            sage: F.Delta
+            sage: F.Delta # optional - arb
             [1]
-            sage: F.Delta_epsilon
+            sage: F.Delta_epsilon # optional - arb
             [[0], [1]]
-            sage: F.C_0
+            sage: F.C_0 # optional - arb
             1
-            sage: F.C_1
+            sage: F.C_1 # optional - arb
             1
         """
 
@@ -1572,7 +1572,7 @@ class FSMFourier(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: function('f')
             f
             sage: var('n')
@@ -1583,7 +1583,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: FSMFourier(T).b0()
+            sage: FSMFourier(T).b0() # optional - arb
             (0, 1, 1)
         """
         from sage.modules.free_module_element import vector
@@ -1620,18 +1620,18 @@ class FSMFourier(SageObject):
         -   One state, always ``1``: this corresponds to the Riemann zeta
             function (minus the first 99 summands, multiplied by 2). ::
 
-                sage: from sage.combinat.fsm_fourier import FSMFourier
+                sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
                 sage: function('f')
                 f
                 sage: var('n')
                 n
-                sage: F = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([ # optional - arb
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     f, n, 2))
                 sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-                sage: F._H_m_rhs_(CIF(2), 100)
+                sage: F._H_m_rhs_(CIF(2), 100) # optional - arb
                 (0.0050250833316668? + 0.?e-18*I)
 
             Evaluated at `s = 1 + 2k \pi i/\log 2` for `k\neq 0`, the
@@ -1639,12 +1639,12 @@ class FSMFourier(SageObject):
             have a pole there and the first factor therefore annihilates
             the result::
 
-                sage: result = [F._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for
+                sage: result = [F._H_m_rhs_(CIF(1+2*k*pi*I/log(2)), 30)[0] for  # optional - arb
                 ....:      k in range(1, 2)]
-                sage: all(value.abs().absolute_diameter() < 1e-12
+                sage: all(value.abs().absolute_diameter() < 1e-12  # optional - arb
                 ....:      for value in result)
                 True
-                sage: all(value.contains_zero() for value in result)
+                sage: all(value.contains_zero() for value in result) # optional - arb
                 True
 
         -   One state, one for every input digit, but subtract one at the
@@ -1656,7 +1656,7 @@ class FSMFourier(SageObject):
             matter, as the difference is analytic and thus does not
             contribute to the residue. ::
 
-                sage: F = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([ # optional - arb
                 ....:         f(2*n + 1) == f(n) + 1,
                 ....:         f(2*n) == f(n) + 1,
                 ....:         f(0) == -1],
@@ -1664,18 +1664,18 @@ class FSMFourier(SageObject):
 
             We check that the result agrees with the known values::
 
-                sage: all(F._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)),
+                sage: all(F._H_m_rhs_(CIF(1 + 2*k*pi*I/log(2)), # optional - arb
                 ....:         30)[0].overlaps(CIF(log(2)/(2*pi*I*k)))
                 ....:     for k in range(1, 2))
                 True
 
         TESTS::
 
-            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False) # optional - arb
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
-            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False)
+            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False) # optional - arb
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
@@ -1780,19 +1780,19 @@ class FSMFourier(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: function('f')
             f
             sage: var('n')
             n
-            sage: F = FSMFourier(transducers.Recursion([
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
             ....:     f(2*n + 1) == f(n),
             ....:     f(2*n) == f(n),
             ....:     f(0) == 1],
             ....:     f, n, 2))
-            sage: w = F.components[0].w(); w
+            sage: w = F.components[0].w(); w # optional - arb
             [(1)]
-            sage: F._w_H_Res_(w[0], CIF(1))
+            sage: F._w_H_Res_(w[0], CIF(1)) # optional - arb
             1.00000000000000? + 0.?e-15*I
         """
 
@@ -1829,7 +1829,7 @@ class FSMFourier(SageObject):
         -   One state, always ``1``: this corresponds to the Riemann
             zeta function (minus the first 99 summands). ::
 
-                sage: from sage.combinat.fsm_fourier import FSMFourier
+                sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
                 sage: function('f')
                 f
                 sage: var('n')
@@ -1838,8 +1838,8 @@ class FSMFourier(SageObject):
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
-                ....:     f, n, 2)
-                sage: FSMFourier(T)._H_m_(CIF(2), 100)
+                ....:     f, n, 2) # optional - arb
+                sage: FSMFourier(T)._H_m_(CIF(2), 100) # optional - arb
                 (0.010050166663334? + 0.?e-18*I)
         """
         n = self.M.nrows()
@@ -1865,13 +1865,12 @@ class FSMFourier(SageObject):
 
         -   Binary sum of digits::
 
-                sage: from sage.combinat.fsm_fourier import FSMFourier
+                sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
                 sage: function('f')
                 f
                 sage: var('n')
                 n
-                sage: from sage.combinat.fsm_fourier import FSMFourier
-                sage: F = FSMFourier(transducers.Recursion([
+                sage: F = FSMFourier(transducers.Recursion([ # optional - arb
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
@@ -1881,7 +1880,7 @@ class FSMFourier(SageObject):
                 ....:         return 1/(2*log(2))*(log(2*pi)-1)-3/4
                 ....:     return CC(I/(2*k*pi)*(1 + 2*k*pi*I/log(2))^(-1)
                 ....:            *zeta(CC(2*k*pi*I/log(2))))
-                sage: all(FourierCoefficientDelange(k)
+                sage: all(FourierCoefficientDelange(k) # optional - arb
                 ....:     in F.FourierCoefficient(k)
                 ....:     for k in [0, 1, 42])
                 True
