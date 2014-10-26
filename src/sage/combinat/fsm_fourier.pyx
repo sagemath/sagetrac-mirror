@@ -1,5 +1,108 @@
-"""
+r"""
 Fourier Coefficients
+
+Introduction
+============
+
+Let `T` be a complete deterministic transducer reading the `q`-ary
+digit expansion of a random integer `n` with `0\le n<N`.
+
+Then the expected sum of the output labels of the transducer is
+`e_T \log_q N + \Phi(\log_q N) + o(N)` for some periodic fluctuation
+`\Phi` and some constant `e_T`.
+
+This module computes the Fourier Coefficients of `\Phi`, following
+[HKP2014]_.
+
+Contents
+========
+
+:class:`FSMFourier`
+-------------------
+The class :class:`FSMFourier` is the main class of this module, it
+precomputes values needed for all Fourier coefficients and then offers
+the method :meth:`~FSMFourier.FourierCoefficient`.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FSMFourier.FourierCoefficient` | Compute a Fourier Coefficient
+    :meth:`~FSMFourier.b0` | Compute the final output word
+
+:class:`FSM_Fourier_Component`
+------------------------------
+Data corresponding to a final component of the transducer is stored in
+:class:`FSM_Fourier_Component`. This mainly comprises eigenvectors.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FSM_Fourier_Component.mu_prime` | Derivative `\mu_{j0}'(0)`
+    :meth:`~FSM_Fourier_Component.a` | Constant `a_j`
+    :meth:`~FSM_Fourier_Component.coefficient_lambda` | Constant `\lambda_j`
+    :meth:`~FSM_Fourier_Component.right_eigenvectors` | Right eigenvectors `\mathbf{v}_{jk}(0)`
+    :meth:`~FSM_Fourier_Component.vector_v_prime` | Derivative of the right eigenvector `\mathbf{v}'_{jk}(0)`
+    :meth:`~FSM_Fourier_Component.left_eigenvectors` | Left eigenvectors
+    :meth:`~FSM_Fourier_Component.vectors_w` | Scaled left eigenvectors `\mathbf{w}_{jk}(0)`
+    :meth:`~FSM_Fourier_Component.vector_w_prime` | Derivative of the left eigenvector `\mathbf{w}'_{jk}(0)`
+    :meth:`~FSM_Fourier_Component.w_ell` | Left eigenvectors to given eigenvalue.
+
+:class:`FSMFourierCache`
+------------------------
+This is a mostly internal class speeding up some of the computation.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FSMFourierCache.b` | Compute `\mathbf{b}(r)`.
+
+Example
+=======
+
+::
+
+    sage: function('f')
+    f
+    sage: var('n')
+    n
+    sage: from sage.combinat.fsm_fourier import FSMFourier
+    sage: T = transducers.Recursion([
+    ....:     f(2*n + 1) == f(n) + 1,
+    ....:     f(2*n) == f(n),
+    ....:     f(0) == 0],
+    ....:     f, n, 2)
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: F = FSMFourier(T)
+    sage: F.FourierCoefficient(0)
+    -0.1455994557084? + 0.?e-16*I
+    sage: F.FourierCoefficient(10)
+    0.0016818573864? + 0.0003201978624?*I
+
+AUTHORS:
+
+- Clemens Heuberger (2014-08-14--2014-10-13): initial version
+- Sara Kropf (2014-10-13--2014-10-21): corrections and 0th Fourier Coefficient
+- Clemens Heuberger (2014-10-23--2014-10-26): Optimization and Preparation for Sage
+
+ACKNOWLEDGEMENT:
+
+- Clemens Heuberger and Sara Kropf are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+.. TODO::
+
+    The following private and special methods are included now for
+    proofreading, they should be excluded. Furthermore, this module cannot
+    be shown in the documentation as it depends on arb.
+
+Classes and Methods
+===================
 
 .. autofunction:: _hurwitz_zeta_
 .. automethod:: FSM_Fourier_Component.__init__
@@ -8,8 +111,16 @@ Fourier Coefficients
 .. automethod:: FSMFourier._H_m_rhs_
 .. automethod:: FSMFourier._w_H_Res_
 .. automethod:: FSMFourier._H_m_
-
 """
+#*****************************************************************************
+# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#               2014 Sara Kropf <sara.kropf@aau.at>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                http://www.gnu.org/licenses/
+#*****************************************************************************
 from libc.stdlib cimport malloc, realloc, free
 import itertools
 
