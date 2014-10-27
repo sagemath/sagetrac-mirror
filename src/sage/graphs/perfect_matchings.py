@@ -77,5 +77,4 @@ def perfect_matchings(G):
         PP += P
     return PP
 
-def 
     
