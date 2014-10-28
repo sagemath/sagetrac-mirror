@@ -673,11 +673,12 @@ class DirectedConvexPolyomino(ClonableList):
 
     def _to_tikz_bounce( self, directions=[0,1] ):
         pp = self.parallelogram_polyomino()
-        pp.get_options()[ 'tikz_options' ] = self.get_tikz_options()
+        pp.get_options()[ 'tikz_options' ] = deepcopy(
+            self.get_tikz_options()
+        )
         t = pp.get_options()[ 'tikz_options' ]['translation']
         t[0] += -.5
         t[1] += .5
-        pp.get_options()[ 'tikz_options' ]['translation'] = t
         return pp._to_tikz_bounce( directions=directions )
 
     def to_tikz(self):
