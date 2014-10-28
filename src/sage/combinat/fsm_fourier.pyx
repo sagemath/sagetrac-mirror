@@ -1100,6 +1100,23 @@ cdef class FSMFourierCache(SageObject):
         OUTPUT:
 
         A list of doubles.
+
+        EXAMPLES::
+
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: T = transducers.Recursion([
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2)
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: F = FSMFourier(T) # optional - arb
+            sage: F.cache.fluctuation_empirical(10, 12)
+            [0.03903595255631864, 0.08846600886316947]
         """
         cdef long initial
         cdef double *values
