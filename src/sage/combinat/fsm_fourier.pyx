@@ -145,7 +145,9 @@ from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfi import min_RIF, max_RIF
+from sage.rings.real_arb cimport arb_to_mpfi
+from sage.rings.real_mpfi import min_RIF, max_RIF, RealIntervalField
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
 from sage.structure.sage_object cimport SageObject
 
 
@@ -1081,6 +1083,59 @@ cdef class FSMFourierCache(SageObject):
         """
         self.compute_b(r+1)
         return acb_mat_to_matrix(self.bb[r], self.precision).column(0)
+
+    cpdef fluctuation_empirical(self, unsigned long start,
+                                unsigned long end):
+        r"""
+        Compute empirical fluctuation `\frac1n\sum_{0\le k<n} T(k) -
+        e_T\log_q(n)` of the sum of outputs for `n`values in the given
+        interval.
+
+        INPUT:
+
+        - ``start`` -- a non-negative integer
+
+        - ``end`` -- a non-negative integer
+
+        OUTPUT:
+
+        A list of doubles.
+        """
+        cdef long initial
+        cdef double *values
+        cdef double sum
+        cdef long i
+        cdef RealIntervalFieldElement current
+        cdef double e_T
+        cdef list result
+        cdef long precision
+        cdef long q
+
+        initial = self.parent.positions[
+            self.parent.transducer.initial_states()[0].label()]
+        sum = 0
+        e_T = self.parent.e_T
+        q = self.parent.q
+        self.compute_b(end)
+        values = <double*> malloc((end-start) * sizeof(double))
+        current = RealIntervalField()(0)
+        precision = current.parent().precision()
+
+        for i in range(end):
+            arb_to_mpfi(
+                current.value,
+                &acb_mat_entry(self.bb[i],
+                              initial,
+                              0).real,
+                precision)
+            sum += current.center()
+            if i >= start:
+                values[i - start] = sum/i - e_T * log(i, base=q)
+
+        result = [values[i] for i in range(end-start)]
+
+        free(values)
+        return result
 
     cdef FreeModuleElement_generic_dense partial_dirichlet(
         self,
