@@ -414,7 +414,7 @@ cdef class QuiverPath(MonoidElement):
             init = E[biseq_getitem(self._path, start)][0]
             end   = E[biseq_getitem(self._path, stop)][0]
             OUT = self._new_(init, end)
-            biseq_slice(OUT._path, self._path, start, stop, step)
+            biseq_init_slice(OUT._path, self._path, start, stop, step)
             return OUT
         if index<0:
             index = self._path.length+index
@@ -423,7 +423,7 @@ cdef class QuiverPath(MonoidElement):
         init = E[biseq_getitem(self._path, index)][0]
         end = E[biseq_getitem(self._path, index)][1]
         OUT = self._new_(init, end)
-        biseq_slice(OUT._path, self._path, index, index+1, 1)
+        biseq_init_slice(OUT._path, self._path, index, index+1, 1)
         return OUT
 
     def __iter__(self):
@@ -521,7 +521,7 @@ cdef class QuiverPath(MonoidElement):
         cdef QuiverPath OUT
         if biseq_startswith(cself._path, right._path):
             OUT = cself._new_(right._end, cself._end)
-            biseq_slice(OUT._path, cself._path, right._path.length, cself._path.length, 1)
+            biseq_init_slice(OUT._path, cself._path, right._path.length, cself._path.length, 1)
             return OUT
         else:
             return None

@@ -3,7 +3,7 @@ Sequences of bounded integers
 
 AUTHORS:
 
-- Simon King (2014): initial version
+- Simon King, Jeroen Demeyer (2014-10): initial version
 
 This module provides :class:`BoundedIntegerSequence`, which implements
 sequences of bounded integers and is for many (but not all) operations faster
@@ -19,7 +19,7 @@ Cython modules:
   Allocate memory (filled with zero) for a bounded integer sequence
   of length l with items fitting in itemsize bits.
 
-- ``cdef void biseq_dealloc(biseq_t S)``
+- ``cdef inline void biseq_dealloc(biseq_t S)``
 
    Free the data stored in ``S``.
 
@@ -27,7 +27,7 @@ Cython modules:
 
   Copy S to the unallocated bitset R.
 
-- ``cdef bint biseq_init_list(biseq_t R, list data, unsigned int bound) except -1``
+- ``cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1``
 
   Convert a list to a bounded integer sequence, which must not be allocated.
 
@@ -41,33 +41,42 @@ Cython modules:
   Is ``S1=S2+something``? Does not check whether the sequences have the same
   bound!
 
-- ``cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2``
+- ``cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2``
 
   Returns the position *in ``S1``* of ``S2`` as a subsequence of
   ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
   whether the sequences have the same bound!
 
-- ``cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0``
+- ``cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0``
 
   Returns the minimal *positive* integer ``i`` such that ``S2`` starts with
   ``S1[i:]``.  This function will *not* test whether ``S2`` starts with ``S1``!
 
-- ``cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2``
+- ``cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2``
 
   Returns the position *in S* of the item in ``S[start:]``, or ``-1`` if
   ``S[start:]`` does not contain the item.
 
-- ``cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index)``
+- ``cdef size_t biseq_getitem(biseq_t S, mp_size_t index)``
 
   Returns ``S[index]``, without checking margins.
 
-- ``cdef biseq_item_t biseq_getitem_py(biseq_t S, mp_size_t index)``
+- ``cdef size_t biseq_getitem_py(biseq_t S, mp_size_t index)``
 
   Returns ``S[index]`` as Python ``int`` or ``long``, without checking margins.
 
-- ``cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1``
+- ``cdef biseq_inititem(biseq_t S, mp_size_t index, size_t item)``
 
-  Fills ``R`` with ``S[start:stop:step]``
+  Set ``S[index] = item``, without checking margins and assuming that ``S[index]``
+  has previously been zero.
+
+- ``cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)``
+
+    Set ``S[index] = 0``, without checking margins.
+
+- ``cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1``
+
+  Initialises ``R`` with ``S[start:stop:step]``.
 
 """
 #*****************************************************************************
@@ -85,7 +94,6 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include 'sage/data_structures/bitset.pxi'
 
-from libc.stdint cimport SIZE_MAX
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.libs.flint.flint cimport FLINT_BIT_COUNT as BIT_COUNT
@@ -121,7 +129,7 @@ cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     R.itembitsize = itemsize
     R.mask_item = limb_lower_bits_up(itemsize)
 
-cdef void biseq_dealloc(biseq_t S):
+cdef inline void biseq_dealloc(biseq_t S):
     """
     Deallocate the memory used by S.
     """
@@ -138,7 +146,7 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
 # Conversion
 #
 
-cdef bint biseq_init_list(biseq_t R, list data, mp_limb_t bound) except -1:
+cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     """
     Convert a list into a bounded integer sequence and write the result
     into ``R``, which must not be initialised.
@@ -147,38 +155,19 @@ cdef bint biseq_init_list(biseq_t R, list data, mp_limb_t bound) except -1:
 
     - ``data`` -- a list of integers
 
-    - ``bound`` -- a number which is the maximal number which can be
-      represented
+    - ``bound`` -- a number which is the maximal value of an item
     """
+    cdef mp_size_t index = 0
     cdef mp_limb_t item_limb
-    cdef mp_limb_t tmp_limb1, tmp_limb2
-    cdef mp_bitcnt_t offset_mod
-    cdef mp_size_t offset_div
-    cdef mp_size_t offset = 0
 
-    if not (bound <= SIZE_MAX):
-        raise OverflowError("bound can be at most %s" % SIZE_MAX)
-    bound |= 1  # A bound of 0 should become 1
-    biseq_init(R, len(data), BIT_COUNT(bound))
+    biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
     for item in data:
         item_limb = item
-        #if item_limb > bound:
-        #    raise ValueError("list item %r larger than %s"%(item, bound) )
-        item_limb &= R.mask_item
-        offset_mod = offset % GMP_LIMB_BITS
-        offset_div = offset // GMP_LIMB_BITS
-        if offset_mod:
-            tmp_limb2 = mpn_lshift(&tmp_limb1, &item_limb, 1, offset_mod)
-            if tmp_limb2:
-                # This can only happen, if offset_div is small enough to not
-                # write out of bounds, since initially we have allocated
-                # enough memory.
-                R.data.bits[offset_div+1] = tmp_limb2
-            R.data.bits[offset_div] |= tmp_limb1
-        else:
-            R.data.bits[offset_div] = item_limb
-        offset += R.itembitsize
+        if item_limb > bound:
+            raise ValueError("list item {} larger than {}".format(item, bound) )
+        biseq_inititem(R, index, item_limb)
+        index += 1
 
 #
 # Arithmetics
@@ -215,10 +204,12 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     """
     if S2.length > S1.length:
         return False
+    if S2.length == 0:
+        return True
     return mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
 
 
-cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
     Tests if the bounded integer sequence ``S1[start:]`` contains a sub-sequence ``S2``
 
@@ -243,69 +234,30 @@ cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
         return -1
     if S2.length==0:
         return start
-    cdef bitset_t tmp
-    bitset_init(tmp, S2.data.size+GMP_LIMB_BITS)
-    cdef mp_size_t index = 0
-    cdef mp_bitcnt_t n = 0
-    cdef mp_size_t limb_index, bit_index
-    cdef mp_bitcnt_t offset = S2.data.size % GMP_LIMB_BITS
-    for index from start <= index <= S1.length-S2.length:
-        limb_index = n // GMP_LIMB_BITS
-        bit_index = n % GMP_LIMB_BITS
-        # We shift a part of S1 (with length S2) by bit_index, and compare
-        # with S2.
-        if bit_index:
-            if offset+bit_index>GMP_LIMB_BITS:
-                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs+1, bit_index)
-            else:
-                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs, bit_index)
-        else:
-            mpn_copyi(tmp.bits, S1.data.bits+limb_index, S2.data.limbs)
-        if mpn_equal_bits(tmp.bits, S2.data.bits, S2.data.size):
-            bitset_free(tmp)
+    cdef mp_bitcnt_t offset = 0
+    cdef mp_size_t index
+    for index from start <= index < S1.length-S2.length:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
             return index
-        n += S1.itembitsize
-    bitset_free(tmp)
+        offset += S1.itembitsize
+    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
+        return index
     return -1
 
-cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
+cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
     Returns the position in S of an item in S[start:], or -1 if S[start:] does
     not contain the item.
 
     """
-    cdef mp_size_t limb_index, max_limbs
-    cdef mp_bitcnt_t bit_index, local_index
-    if S.length==0:
-        return -1
-    max_limbs = S.data.limbs - 1
-    cdef mp_size_t n
-    cdef mp_limb_t tmp_limb
-    limb_index = 0
-    bit_index = 0   # This is the index mod GMP_LIMB_BITS in S.data
-    local_index = 0 # This is the index in tmp_limb
-    tmp_limb = S.data.bits[0]
-    item &= S.mask_item
-    for n from 0<=n<S.length:
-        if local_index+S.itembitsize > GMP_LIMB_BITS:
-            local_index = 0
-            # tmp_limb[0] can not provide the next item, we need to get new stuff
-            tmp_limb = S.data.bits[limb_index]>>bit_index
-            if bit_index and limb_index < max_limbs:
-                # We fill the rest of tmp_limb
-                tmp_limb |= (S.data.bits[limb_index+1]) << (GMP_LIMB_BITS - bit_index)
-        local_index += S.itembitsize
-        if item == tmp_limb&S.mask_item:
-            return n
-        tmp_limb>>=S.itembitsize
-        bit_index += S.itembitsize
-        if bit_index>=GMP_LIMB_BITS:
-            bit_index -= GMP_LIMB_BITS
-            preinc(limb_index)
+    cdef mp_size_t index
+    for index from 0 <= index < S.length:
+        if biseq_getitem(S, index) == item:
+            return index
     return -1
 
 
-cdef inline biseq_item_t biseq_getitem(biseq_t S, mp_size_t index):
+cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
     """
     Get item S[index], without checking margins.
 
@@ -330,10 +282,45 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
-
-cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
     """
-    Create the slice S[start:stop:step] as bounded integer sequence.
+    Set ``S[index] = item``, without checking margins.
+
+    Note that it is assumed that ``S[index] == 0`` before the assignment.
+    """
+    cdef mp_bitcnt_t limb_index, bit_index
+    bit_index = (<mp_bitcnt_t>index) * S.itembitsize
+    limb_index = bit_index // GMP_LIMB_BITS
+    bit_index %= GMP_LIMB_BITS
+
+    S.data.bits[limb_index] |= (item << bit_index)
+    # Have some bits been shifted out of bound?
+    if bit_index + S.itembitsize > GMP_LIMB_BITS:
+        # Our item is stored using 2 limbs, add the part from the upper limb
+        S.data.bits[limb_index+1] |= (item >> (GMP_LIMB_BITS - bit_index))
+
+cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
+    """
+    Set ``S[index] = 0``, without checking margins.
+
+    In contrast to ``biseq_inititem``, the previous content of ``S[index]``
+    will be erased.
+    """
+    cdef mp_bitcnt_t limb_index, bit_index
+    bit_index = (<mp_bitcnt_t>index) * S.itembitsize
+    limb_index = bit_index // GMP_LIMB_BITS
+    bit_index %= GMP_LIMB_BITS
+
+    S.data.bits[limb_index] &= ~(S.mask_item << bit_index)
+    # Have some bits been shifted out of bound?
+    if bit_index + S.itembitsize > GMP_LIMB_BITS:
+        # Our item is stored using 2 limbs, add the part from the upper limb
+        S.data.bits[limb_index+1] &= ~(S.mask_item >> (GMP_LIMB_BITS - bit_index))
+
+cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
+    """
+    Create the slice S[start:stop:step] as bounded integer sequence and write
+    the result to ``R``, which must not be initialised.
 
     """
     cdef mp_size_t length, total_shift, n
@@ -350,63 +337,19 @@ cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int
         else:
             length = ((stop-start+1)//step)+1
     biseq_init(R, length, S.itembitsize)
-    cdef mp_size_t offset_mod, offset_div
     total_shift = start*S.itembitsize
     if step==1:
         # Slicing essentially boils down to a shift operation.
-        offset_mod = total_shift % GMP_LIMB_BITS
-        offset_div = total_shift // GMP_LIMB_BITS
-        if offset_mod:
-            mpn_rshift(R.data.bits, S.data.bits+offset_div, R.data.limbs, offset_mod)
-            # Perhaps the last to-be-moved item partially belongs to the next
-            # limb of S?
-            if (R.data.size % GMP_LIMB_BITS)+offset_mod>GMP_LIMB_BITS:
-                R.data.bits[R.data.limbs-1] |= (S.data.bits[offset_div+R.data.limbs]<<(GMP_LIMB_BITS-offset_mod))
-        else:
-            mpn_copyi(R.data.bits, S.data.bits+offset_div, R.data.limbs)
-        # Perhaps the last few bits of the last limb have to be set to zero?
-        offset_mod = (length*S.itembitsize) % GMP_LIMB_BITS
-        if offset_mod:
-            R.data.bits[R.data.limbs-1] &= ((<mp_limb_t>1)<<offset_mod) - 1
+        bitset_rshift(R.data, S.data, total_shift)
         return True
-    # Now for the difficult case: 
-    #
-    # Convention for variable names: We move data from *_src to *_tgt
-    # tmp_limb is used to temporarily store the data that we move/shift
-    cdef mp_limb_t tmp_limb
-    cdef mp_limb_t tmp_limb2
-    cdef mp_size_t offset_div_src, max_limb
-    cdef mp_bitcnt_t offset_mod_src
-    cdef mp_size_t offset_src = total_shift
-    cdef mp_bitcnt_t bitstep = step*S.itembitsize
-    cdef mp_bitcnt_t offset_mod_tgt
-    cdef mp_size_t offset_div_tgt
-    cdef mp_size_t offset_tgt = 0
+    # In the general case, we move item by item.
+    cdef mp_size_t src_index = start
+    cdef mp_size_t tgt_index = 0
     for n from length>=n>0:
-        offset_div_src = offset_src // GMP_LIMB_BITS
-        offset_mod_src = offset_src % GMP_LIMB_BITS
-        offset_div_tgt = offset_tgt // GMP_LIMB_BITS
-        offset_mod_tgt = offset_tgt % GMP_LIMB_BITS
-        # put data from src to tmp_limb.
-        if offset_mod_src:
-            tmp_limb = ((S.data.bits[offset_div_src])>>offset_mod_src)
-            if (offset_mod_src+S.itembitsize > GMP_LIMB_BITS):
-                tmp_limb |= (S.data.bits[offset_div_src+1]) << (GMP_LIMB_BITS - offset_mod_src)
-            tmp_limb &= S.mask_item
-        else:
-            tmp_limb = S.data.bits[offset_div_src] & S.mask_item
-        # put data from tmp_limb to tgt
-        if offset_mod_tgt:
-            tmp_limb2 = mpn_lshift(&tmp_limb, &tmp_limb, 1, offset_mod_tgt)
-            if tmp_limb2:
-                R.data.bits[offset_div_tgt+1] = tmp_limb2
-            R.data.bits[offset_div_tgt]  |= tmp_limb
-        else:
-            R.data.bits[offset_div_tgt] = tmp_limb
-        offset_tgt += S.itembitsize
-        offset_src += bitstep
+        biseq_inititem(R, postinc(tgt_index), biseq_getitem(S, src_index))
+        src_index += step
 
-cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
+cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
     """
     Returns the smallest **positive** integer ``i`` such that ``S2`` starts with ``S1[i:]``.
 
@@ -424,53 +367,25 @@ cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
     tested.
 
     """
-    # Idea: We store the maximal possible tail of S1 in a temporary bitset,
-    # and then rightshift it (taking care that the number of to-be-shifted
-    # limbs will decrease over time), comparing with the initial part of S2
-    # after each step.
     if S1.length == 0:
         raise ValueError("First argument must be of positive length")
-    cdef bitset_t tmp
-    cdef mp_size_t limb_index
-    cdef mp_bitcnt_t bit_index, n
-    cdef mp_size_t index, i, start_index
+    cdef mp_size_t index, start_index
     if S2.length>=S1.length:
         start_index = 1
     else:
         start_index = S1.length-S2.length
     if start_index == S1.length:
         return -1
-    n = S1.itembitsize*start_index
-    ## Initilise the temporary bitset
-    # Allocate an additional limb, to cope with shifting accross limb borders
-    bitset_init(tmp, (GMP_LIMB_BITS+S1.data.size)-n)
-    cdef mp_size_t nlimbs = tmp.limbs # number of to-be-shifted limbs
-    limb_index = n // GMP_LIMB_BITS
-    bit_index  = n % GMP_LIMB_BITS
-    if bit_index==0:
-        mpn_copyi(tmp.bits, S1.data.bits+limb_index, predec(nlimbs))
-    else:
-        if ((S1.data.size-n) % GMP_LIMB_BITS)+bit_index>GMP_LIMB_BITS:
-            # Need to shift an additional limb
-            mpn_rshift(tmp.bits, S1.data.bits+limb_index, nlimbs, bit_index)
-        else:
-            mpn_rshift(tmp.bits, S1.data.bits+limb_index, predec(nlimbs), bit_index)
-    cdef mp_bitcnt_t remaining_size = S1.data.size - n
-    n = 0  # This now counts how many bits of the highest limb of tmp we have shifted.
-    for index from start_index<=index<S1.length:
-        if mpn_equal_bits(tmp.bits, S2.data.bits, remaining_size):
-            bitset_free(tmp)
+    cdef mp_bitcnt_t offset = S1.itembitsize*start_index
+    cdef mp_bitcnt_t overlap = (S1.length-start_index)*S1.itembitsize
+    for index from start_index<=index<S1.length-1:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
             return index
-        remaining_size -= S1.itembitsize
-        if n>=GMP_LIMB_BITS:
-            mpn_rshift(tmp.bits, tmp.bits, predec(nlimbs), S1.itembitsize)
-            n = 0
-        else:
-            mpn_rshift(tmp.bits, tmp.bits, nlimbs, S1.itembitsize)
-            n += S1.itembitsize
-    bitset_free(tmp)
+        overlap -= S1.itembitsize
+        offset  += S1.itembitsize
+    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
+        return index
     return -1
-
 
 ###########################################
 # A cdef class that wraps the above, and
@@ -484,10 +399,9 @@ cdef class BoundedIntegerSequence:
     INPUT:
 
     - ``bound``, non-negative integer. When zero, a :class:`ValueError`
-      will be raised. Otherwise, the given bound is replaced by the next
-      power of two that is greater than the given bound.
-    - ``data``, a list of integers. The given integers will be truncated
-      to be less than the bound.
+      will be raised. Otherwise, the given bound is replaced by the
+      power of two that is at least the given bound.
+    - ``data``, a list of integers.
 
     EXAMPLES:
 
@@ -502,22 +416,21 @@ cdef class BoundedIntegerSequence:
         <2, 7, 20>
 
     Each bounded integer sequence has a bound that is a power of two, such
-    that all its item are less than this bound (they are in fact truncated)::
+    that all its item are less than this bound::
 
         sage: S.bound()
         32
         sage: BoundedIntegerSequence(16, [2, 7, 20])
-        <2, 7, 4>
+        Traceback (most recent call last):
+        ...
+        ValueError: list item 20 larger than 15
 
     Bounded integer sequences are iterable, and we see that we can recover the
-    originally given list, modulo the bound::
+    originally given list::
 
         sage: L = [randint(0,31) for i in range(5000)]
         sage: S = BoundedIntegerSequence(32, L)
         sage: list(L) == L
-        True
-        sage: S16 = BoundedIntegerSequence(16, L)
-        sage: list(S16) == [x%S16.bound() for x in L]
         True
 
     Getting items and slicing works in the same way as for lists. Note,
@@ -550,13 +463,7 @@ cdef class BoundedIntegerSequence:
         True
         sage: S[200:400] in S
         True
-
-    Note, however, that containment of items will test for congruence modulo
-    the bound of the sequence. Thus, we have::
-
         sage: S[200]+S.bound() in S
-        True
-        sage: L[200]+S.bound() in L
         False
 
     Bounded integer sequences are immutable, and thus copies are
@@ -629,17 +536,21 @@ cdef class BoundedIntegerSequence:
         Traceback (most recent call last):
         ...
         OverflowError: can't convert negative value to mp_limb_t
-        sage: BoundedIntegerSequence(1, [2, 7, 0])
-        <0, 1, 0>
-        sage: BoundedIntegerSequence(0, [2, 7, 0])
+        sage: BoundedIntegerSequence(1, [0, 0, 0])
+        <0, 0, 0>
+        sage: BoundedIntegerSequence(1, [0, 1, 0])
         Traceback (most recent call last):
         ...
-        ValueError: Positive bound expected
+        ValueError: list item 1 larger than 0
+        sage: BoundedIntegerSequence(0, [0, 1, 0])
+        Traceback (most recent call last):
+        ...
+        ValueError: positive bound expected
         sage: BoundedIntegerSequence(2, [])
         <>
         sage: BoundedIntegerSequence(2, []) == BoundedIntegerSequence(4, []) # The bounds differ
         False
-        sage: BoundedIntegerSequence(16, [2, 7, 20])[1:1]
+        sage: BoundedIntegerSequence(16, [2, 7, 4])[1:1]
         <>
 
     """
@@ -680,7 +591,7 @@ cdef class BoundedIntegerSequence:
         """
         biseq_dealloc(self.data)
 
-    def __init__(self, mp_limb_t bound, list data):
+    def __init__(self, bound, data):
         """
         INPUT:
 
@@ -698,37 +609,54 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: list(S) == L
             True
-
-        The given data are truncated according to the bound::
-
-            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9]); S
+            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,4,9]); S
             <4, 1, 6, 2, 7, 4, 9>
             sage: S.bound()
             16
-            sage: S = BoundedIntegerSequence(11, L)
-            sage: [x%S.bound() for x in L] == list(S)
-            True
 
-        Non-positive bounds result in errors::
+        Non-positive bounds or bounds which are too large result in errors::
 
             sage: BoundedIntegerSequence(-1, L)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to mp_limb_t
+            ValueError: positive bound expected
             sage: BoundedIntegerSequence(0, L)
             Traceback (most recent call last):
             ...
-            ValueError: Positive bound expected
+            ValueError: positive bound expected
+            sage: BoundedIntegerSequence(2^64+1, L)
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
 
-        We are testing the corner case of the maximal possible bound::
+        We are testing the corner case of the maximal possible bound
+        on a 32-bit system::
 
-            sage: S = BoundedIntegerSequence(2^32-1, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: S = BoundedIntegerSequence(2^32, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
             sage: S
             <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
+        Items that are too large::
+
+            sage: BoundedIntegerSequence(100, [2^256])
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
+            sage: BoundedIntegerSequence(100, [200])
+            Traceback (most recent call last):
+            ...
+            ValueError: list item 200 larger than 99
+
+        Bounds that are too large::
+
+            sage: BoundedIntegerSequence(2^256, [200])
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
+
         """
-        if bound==0:
-            raise ValueError("Positive bound expected")
+        if bound <= 0:
+            raise ValueError("positive bound expected")
         biseq_init_list(self.data, data, bound-1)
 
     def __copy__(self):
@@ -738,7 +666,7 @@ cdef class BoundedIntegerSequence:
         EXAMPLES::
 
             sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
-            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9])
+            sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: copy(S) is S
             True
 
@@ -889,31 +817,9 @@ cdef class BoundedIntegerSequence:
         """
         if self.data.length==0:
             return
-        cdef mp_size_t limb_index, max_limbs
-        cdef mp_bitcnt_t bit_index, local_index
-        max_limbs = self.data.data.limbs-1
-        cdef mp_size_t n
-        cdef mp_limb_t tmp_limb
-        limb_index = 0
-        bit_index = 0   # This is the index mod GMP_LIMB_BITS in self.data.data
-        local_index = 0 # This is the index in tmp_limb
-        tmp_limb = self.data.data.bits[0]
-        for n from self.data.length>=n>0:
-            if local_index+self.data.itembitsize > GMP_LIMB_BITS:
-                local_index = 0
-                # tmp_limb can not provide the next item, we need to get new stuff
-                tmp_limb = self.data.data.bits[limb_index]>>bit_index
-                if bit_index and limb_index < max_limbs:
-                    # We fill the rest of tmp_limb
-                    tmp_limb |= self.data.data.bits[limb_index+1] << (GMP_LIMB_BITS - bit_index)
-            local_index += self.data.itembitsize
-            yield <biseq_item_t>(tmp_limb&self.data.mask_item)
-            tmp_limb>>=self.data.itembitsize
-            bit_index += self.data.itembitsize
-            if bit_index>=GMP_LIMB_BITS:
-                bit_index -= GMP_LIMB_BITS
-                preinc(limb_index)
-
+        cdef mp_size_t index
+        for index from 0 <= index < self.data.length:
+            yield biseq_getitem_py(self.data, index)
 
     def __getitem__(self, index):
         """
@@ -981,6 +887,13 @@ cdef class BoundedIntegerSequence:
             sage: B[8:]
             <17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
+        ::
+
+            sage: B1 = BoundedIntegerSequence(8, [0,7])
+            sage: B2 = BoundedIntegerSequence(8, [2,1,4])
+            sage: B1[0:1]+B2
+            <0, 2, 1, 4>
+
         """
         cdef BoundedIntegerSequence out
         cdef Py_ssize_t start, stop, step, slicelength
@@ -989,7 +902,7 @@ cdef class BoundedIntegerSequence:
             if start==0 and stop==self.data.length and step==1:
                 return self
             out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-            biseq_slice(out.data, self.data, start, stop, step)
+            biseq_init_slice(out.data, self.data, start, stop, step)
             return out
         cdef Py_ssize_t ind
         try:
@@ -1020,13 +933,14 @@ cdef class BoundedIntegerSequence:
             sage: BoundedIntegerSequence(51, [2, 7, 20]) in S
             False
 
-        Note that the items are compared up to congruence modulo the bound of
-        the sequence. Thus we have::
+        ::
 
             sage: 6+S.bound() in S
-            True
-            sage: S.index(6) == S.index(6+S.bound())
-            True
+            False
+            sage: S.index(6+S.bound())
+            Traceback (most recent call last):
+            ...
+            ValueError: BoundedIntegerSequence.index(x): x(=38) not in sequence
 
         TESTS:
 
@@ -1049,8 +963,8 @@ cdef class BoundedIntegerSequence:
 
         ::
 
-            sage: S1 = BoundedIntegerSequence(3,[1,3])
-            sage: S2 = BoundedIntegerSequence(3,[0])
+            sage: S1 = BoundedIntegerSequence(4, [1,3])
+            sage: S2 = BoundedIntegerSequence(4, [0])
             sage: S2 in S1
             False
 
@@ -1075,7 +989,7 @@ cdef class BoundedIntegerSequence:
         NOTE:
 
         A conversion to a list is also possible by iterating over the
-        sequence, which actually is faster.
+        sequence.
 
         EXAMPLES::
 
@@ -1137,7 +1051,7 @@ cdef class BoundedIntegerSequence:
         EXAMPLES::
 
             sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
-            sage: S = BoundedIntegerSequence(21, [4,1,6,2,6,20,9])
+            sage: S = BoundedIntegerSequence(21, [4,1,6,2,6,20,9,0])
             sage: S.index(6)
             2
             sage: S.index(5)
@@ -1161,12 +1075,12 @@ cdef class BoundedIntegerSequence:
             Traceback (most recent call last):
             ...
             ValueError: Not a sub-sequence
-
-        Note that items are compared up to congruence modulo the bound of the
-        sequence::
-
-            sage: S.index(6) == S.index(6+S.bound())
-            True
+            sage: S.index(0)
+            7
+            sage: S.index(S.bound())
+            Traceback (most recent call last):
+            ...
+            ValueError: BoundedIntegerSequence.index(x): x(=32) not in sequence
 
         TESTS::
 
@@ -1177,9 +1091,9 @@ cdef class BoundedIntegerSequence:
             11
 
         """
-        cdef int out
+        cdef mp_size_t out
         if not isinstance(other, BoundedIntegerSequence):
-            if other<0:
+            if other<0 or (<mp_limb_t>other)&self.data.mask_item!=other:
                 raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
             try:
                 out = biseq_index(self.data, <mp_limb_t>other, 0)
@@ -1274,7 +1188,7 @@ cdef class BoundedIntegerSequence:
         """
         if other.startswith(self):
             return self
-        cdef int i = biseq_max_overlap(self.data, other.data)
+        cdef mp_size_t i = biseq_max_overlap(self.data, other.data)
         if i==-1:
             return None
         return self[i:]
