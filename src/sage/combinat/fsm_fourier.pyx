@@ -1116,7 +1116,34 @@ cdef class FSMFourierCache(SageObject):
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: F = FSMFourier(T) # optional - arb
             sage: F.cache.fluctuation_empirical(10, 12)
-            [0.03903595255631864, 0.08846600886316947]
+            [-0.1609640474436813, -0.18426126386410324]
+
+        The following transducer has sum of output `1` for all input. ::
+
+            sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0])
+            sage: T.state(0).final_word_out = 1
+            sage: [T(i.bits()) for i in srange(3)]
+            [[1], [0, 1], [0, 0, 1]]
+            sage: F = FSMFourier(T) # optional - arb
+            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb
+            [1.0, 1.0, 1.0]
+
+        The following transducer has sum of output `\lfloor\log n\rfloor` for input `n`. ::
+
+            sage: T = Transducer([(0, 0, 0, 1), (0, 0, 1, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0])
+            sage: T.state(0).final_word_out = -1
+            sage: [sum(T(i.bits())) for i in srange(5)]
+            [-1, 0, 1, 1, 2]
+            sage: F = FSMFourier(T) # optional - arb
+            sage: F.e_T # optional - arb
+            1
+            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb
+            [-1.0, -1.5, -1.5849625007211563]
+
         """
         cdef long initial
         cdef double *values
@@ -1139,6 +1166,8 @@ cdef class FSMFourierCache(SageObject):
         precision = current.parent().precision()
 
         for i in range(end):
+            if i >= start:
+                values[i - start] = sum/i - e_T * log(i, base=q)
             arb_to_mpfi(
                 current.value,
                 &acb_mat_entry(self.bb[i],
@@ -1146,8 +1175,6 @@ cdef class FSMFourierCache(SageObject):
                               0).real,
                 precision)
             sum += current.center()
-            if i >= start:
-                values[i - start] = sum/i - e_T * log(i, base=q)
 
         result = [values[i] for i in range(end-start)]
 
