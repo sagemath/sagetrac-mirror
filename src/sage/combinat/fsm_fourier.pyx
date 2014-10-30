@@ -61,6 +61,7 @@ This is a mostly internal class speeding up some of the computation.
     :delim: |
 
     :meth:`~FSMFourierCache.b` | Compute `\mathbf{b}(r)`.
+    :meth:`~FSMFourierCache.fluctuation_empirical` | Compute the fluctuation empirically.
 
 Example
 =======
@@ -1087,9 +1088,9 @@ cdef class FSMFourierCache(SageObject):
     cpdef fluctuation_empirical(self, unsigned long start,
                                 unsigned long end):
         r"""
-        Compute empirical fluctuation `\frac1n\sum_{0\le k<n} T(k) -
-        e_T\log_q(n)` of the sum of outputs for `n`values in the given
-        interval.
+        Compute empirical fluctuation
+        `\frac1n\sum_{0\le k<n} T(k) - e_T\log_q(n)` of the sum of
+        outputs for `n` in the given interval.
 
         INPUT:
 
