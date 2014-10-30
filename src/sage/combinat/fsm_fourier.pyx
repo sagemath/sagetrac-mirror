@@ -1116,7 +1116,7 @@ cdef class FSMFourierCache(SageObject):
             ....:     f, n, 2)
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_empirical(10, 12)
+            sage: F.cache.fluctuation_empirical(10, 12) # optional - arb
             [-0.1609640474436813, -0.18426126386410324]
 
         The following transducer has sum of output `1` for all input. ::
@@ -1147,7 +1147,7 @@ cdef class FSMFourierCache(SageObject):
 
         The parameter ``start`` must be positive::
 
-            sage: F.cache.fluctuation_empirical(0, 2)
+            sage: F.cache.fluctuation_empirical(0, 2) # optional - arb
             Traceback (most recent call last):
             ...
             ValueError: start must be positive.
