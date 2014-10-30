@@ -1093,7 +1093,7 @@ cdef class FSMFourierCache(SageObject):
 
         INPUT:
 
-        - ``start`` -- a non-negative integer
+        - ``start`` -- a positive integer
 
         - ``end`` -- a non-negative integer
 
@@ -1144,6 +1144,12 @@ cdef class FSMFourierCache(SageObject):
             sage: F.cache.fluctuation_empirical(1, 4) # optional - arb
             [-1.0, -1.5, -1.5849625007211563]
 
+        The parameter ``start`` must be positive::
+
+            sage: F.cache.fluctuation_empirical(0, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: start must be positive.
         """
         cdef long initial
         cdef double *values
@@ -1164,6 +1170,9 @@ cdef class FSMFourierCache(SageObject):
         values = <double*> malloc((end-start) * sizeof(double))
         current = RealIntervalField()(0)
         precision = current.parent().precision()
+
+        if start <= 0:
+            raise ValueError("start must be positive.")
 
         for i in range(end):
             if i >= start:
