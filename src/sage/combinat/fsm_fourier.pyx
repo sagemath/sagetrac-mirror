@@ -62,6 +62,7 @@ This is a mostly internal class speeding up some of the computation.
 
     :meth:`~FSMFourierCache.b` | Compute `\mathbf{b}(r)`.
     :meth:`~FSMFourierCache.fluctuation_empirical` | Compute the fluctuation empirically.
+    :meth:`~FSMFourierCache.fluctuation_fourier` | Compute the fluctuation via an the Fourier series.
 
 Example
 =======
@@ -143,6 +144,7 @@ import sage.rings.arith
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.complex_interval_acb cimport ComplexIntervalFieldElement_to_acb
 from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.functions.other import ceil
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -1190,6 +1192,75 @@ cdef class FSMFourierCache(SageObject):
 
         free(values)
         return result
+
+    cpdef fluctuation_fourier(self,
+                              double start,
+                              double end,
+                              unsigned long resolution):
+        r"""
+        Computes the periodic fluctuation by using Fourier coefficients,
+        using ``resolution`` points per period.
+
+        INPUT:
+
+        - ``start`` -- a double, start of the interval
+
+        - ``end`` -- a double, end of the interval
+
+        - ``resolution`` -- a positive integer, number of points per
+          period interval.
+
+        OUTPUT:
+
+        A list of pairs of doubles, consisting of pairs `(x, \Phi_1(x))`.
+
+        The periodic fluctuation is approximated by the ``resolution``-th
+        Fourier polynomial.
+
+        .. WARNING::
+
+            The output of the transducer is assumed to be real, i.e.,
+            the `-j`-th Fourier coefficient is the complex conjugate
+            of the `j`-th Fourier coefficient.
+
+        EXAMPLES:
+
+        The following transducer has sum of output `1` for all input. ::
+
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0])
+            sage: T.state(0).final_word_out = 1
+            sage: [T(i.bits()) for i in srange(3)]
+            [[1], [0, 1], [0, 0, 1]]
+            sage: F = FSMFourier(T) # optional - arb
+            sage: F.cache.fluctuation_fourier(2, 3, 2) # optional - arb; rel tolerance 1e-10
+            [(2.0, 0.9999999999999978), (2.5, 0.9999999999999991)]
+        """
+        cdef double c0
+        cdef long i
+        cdef unsigned long period
+
+        import sage.parallel.ncpus
+        import sage.gsl.fft
+
+        period = self.parent.common_period
+
+        c0 = self.parent.FourierCoefficient(0).real().center()
+        self.parent.FourierCoefficient.precompute(
+            range(resolution),
+            sage.parallel.ncpus.ncpus())
+
+        fft = sage.gsl.fft.FastFourierTransform(resolution)
+        for j in range(resolution):
+            fft[j] = self.parent.FourierCoefficient(j).center()
+
+        fft.backward_transform()
+
+        return [((<double>i*period)/resolution, 2*fft[i % resolution][0] - c0)
+                for i in range(ceil(start/period * resolution),
+                               ceil(end/period * resolution))]
 
     cdef FreeModuleElement_generic_dense partial_dirichlet(
         self,
