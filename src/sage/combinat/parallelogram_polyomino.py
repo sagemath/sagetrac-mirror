@@ -141,7 +141,7 @@ class _drawing_tool:
             size = self._line_size
         [x1, y1] = self.XY(v1)
         [x2, y2] = self.XY(v2)
-        return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);"%(
+        return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);" % (
             color, size, float(x1), float(y1), float(x2), float(y2)
         )
 
@@ -165,7 +165,7 @@ class _drawing_tool:
         if size is None:
             size = self._point_size
         [x1, y1] = self.XY(p1)
-        return "\n  \\filldraw[color=%s] (%f, %f) circle (%spt);"%(
+        return "\n  \\filldraw[color=%s] (%f, %f) circle (%spt);" % (
             color, float(x1), float(y1), size
         )
 
@@ -257,7 +257,7 @@ class ParallelogramPolyomino(ClonableList):
             )
         if len(upper_path) != len(lower_path):
             raise ValueError(
-                "Lower upper paht have different size (%s != %s)."%(
+                "Lower upper paht have different size (%s != %s)." % (
                     len(upper_path), len(lower_path)
                 )
             )
@@ -352,7 +352,7 @@ class ParallelogramPolyomino(ClonableList):
         if check:
             if not isinstance(value, (list, tuple)):
                 raise ValueError(
-                    "Value %s must be a list or a tuple."%(value)
+                    "Value %s must be a list or a tuple." % (value)
                 )
             self.check()
         self._options = None
@@ -1005,9 +1005,9 @@ class ParallelogramPolyomino(ClonableList):
 
         def __repr__(self):
             if self.is_outside():
-                return "The (outside) row %s of the parallelogram"%(self.row)
+                return "The (outside) row %s of the parallelogram" % (self.row)
             else:
-                return "The row %s of the parallelogram polyomino"%(self.row)
+                return "The row %s of the parallelogram polyomino" % (self.row)
 
     def __getitem__(self, row):
         r"""
@@ -1569,7 +1569,7 @@ class ParallelogramPolyomino(ClonableList):
         """
         latex.add_package_to_preamble_if_available("tikz")
         tikz_options = self.get_tikz_options()
-        res = "\n\\begin{tikzpicture}[scale=%s]"%(tikz_options['scale'])
+        res = "\n\\begin{tikzpicture}[scale=%s]" % (tikz_options['scale'])
         res += self.to_tikz()
         res += "\n\\end{tikzpicture}"
         return res
@@ -1655,7 +1655,9 @@ class ParallelogramPolyominoes_size(
         """
         if el.size() != self.size():
             raise ValueError(
-                "The parallelogram polyomino have a Wrong size: %s"%(el.size())
+                "The parallelogram polyomino have a Wrong size: %s" % (
+                    el.size()
+                )
             )
 
     def cardinality(self):
