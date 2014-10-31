@@ -1102,7 +1102,8 @@ cdef class FSMFourierCache(SageObject):
 
         OUTPUT:
 
-        A list of doubles.
+        A list of pairs of doubles, the first entry is `\log_q(n)`,
+        the second the empirical fluctuation at this point.
 
         EXAMPLES::
 
@@ -1118,8 +1119,9 @@ cdef class FSMFourierCache(SageObject):
             ....:     f, n, 2)
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_empirical(10, 12) # optional - arb
-            [-0.1609640474436813, -0.18426126386410324]
+            sage: F.cache.fluctuation_empirical(10, 12) # optional - arb; tolerance 1e-12
+            [(3.3219280948873626, -0.1609640474436813),
+             (3.4594316186372978, -0.18426126386410324)]
 
         The following transducer has sum of output `1` for all input. ::
 
@@ -1130,8 +1132,8 @@ cdef class FSMFourierCache(SageObject):
             sage: [T(i.bits()) for i in srange(3)]
             [[1], [0, 1], [0, 0, 1]]
             sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb
-            [1.0, 1.0, 1.0]
+            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb; tolerance 1e-12
+            [(0.0, 1.0), (1.0, 1.0), (1.5849625007211563, 1.0)]
 
         The following transducer has sum of output `\lfloor\log n\rfloor` for input `n`. ::
 
@@ -1144,8 +1146,10 @@ cdef class FSMFourierCache(SageObject):
             sage: F = FSMFourier(T) # optional - arb
             sage: F.e_T # optional - arb
             1
-            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb
-            [-1.0, -1.5, -1.5849625007211563]
+            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb; tolerance 1e-12
+            [(0.0, -1.0),
+             (1.0, -1.5),
+             (1.5849625007211563, -1.5849625007211563)]
 
         The parameter ``start`` must be positive::
 
@@ -1163,6 +1167,7 @@ cdef class FSMFourierCache(SageObject):
         cdef list result
         cdef long precision
         cdef long q
+        cdef double log_q
 
         initial = self.parent.positions[
             self.parent.transducer.initial_states()[0].label()]
@@ -1188,7 +1193,9 @@ cdef class FSMFourierCache(SageObject):
                 precision)
             sum += current.center()
 
-        result = [values[i] for i in range(end-start)]
+        log_q = log(q)
+        result = [(log(<double> i)/log_q, values[i-start])
+                  for i in range(start, end)]
 
         free(values)
         return result
