@@ -282,14 +282,9 @@ class Hypergeometric(BuiltinFunction):
         co = reduce(lambda x, y: coercion_model.canonical_coercion(x, y)[0],
                     a + b + (z,))
 
-        from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
-        try:
-            res = max_to_sr(maxima_lib.hgfred(a,b,z).ecl())
-        except (RuntimeError,TypeError):
-            pass
-        else:
-            if SR(res).is_numeric() or isinstance(res, Expression):
-                return res
+        res = closed_form(hypergeometric(a,b,z,hold=True))
+        if SR(res).is_numeric() or isinstance(res, Expression):
+            return res
         if is_inexact(co) and not isinstance(co, Expression):
             from sage.structure.coerce import parent
             return self._evalf_(a, b, z, parent=parent(co))
@@ -681,7 +676,7 @@ class Hypergeometric(BuiltinFunction):
                             term *= z ** k
                             term /= rising_factorial(aaa - m, k)
                             F = hypergeometric([c + k for c in aaaa],
-                                               [c + k for c in bbbb], z)
+                                               [c + k for c in bbbb], z, hold=True)
                             unique = []
                             counts = []
                             for c, f in F._deflated():
