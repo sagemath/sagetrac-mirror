@@ -29,6 +29,8 @@ the method :meth:`~FSMFourier.FourierCoefficient`.
     :delim: |
 
     :meth:`~FSMFourier.FourierCoefficient` | Compute a Fourier Coefficient
+    :meth:`~FSMFourier.plot_fluctuation` | Generate a plot of the fluctuation
+    :meth:`~FSMFourier.plot_fluctuation_asymptote` | Generate an asymptote plot of the fluctuation
     :meth:`~FSMFourier.b0` | Compute the final output word
 
 :class:`FSMFourierComponent`
@@ -2088,3 +2090,161 @@ class FSMFourier(SageObject):
                 - self.I*sum(c.w_prime(0)*self.ones
                         for c in self.components)
         return result
+
+    def plot_fluctuation(self, start, end, resolution):
+        r"""
+        Plot periodic fluctuation.
+
+        INPUT:
+
+        - ``start`` -- a double, start of the plotting interval.
+
+        - ``end`` -- a double, end of the plotting interval.
+
+        - ``resolution`` -- a positive integer, number of points per
+          period interval.
+
+        OUTPUT:
+
+        A plot.
+
+        .. WARNING::
+
+            The output of the transducer is assumed to be real, i.e.,
+            the `-j`-th Fourier coefficient is the complex conjugate
+            of the `j`-th Fourier coefficient.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2)) #
+            sage: F.plot_fluctuation(8, 9, 2) # optional - arb
+            Graphics object consisting of 2 graphics primitives
+
+        .. SEEALSO::
+
+            :meth:`plot_fluctuation_asymptote`
+        """
+        from sage.plot.plot import list_plot
+
+        empirical = self.cache.fluctuation_empirical(
+            self.q ** start,
+            self.q ** end)
+
+        fourier = self.cache.fluctuation_fourier(start, end, resolution)
+
+        return list_plot(empirical, color='blue') + \
+            list_plot(fourier, plotjoined=True, color='red')
+
+
+    def plot_fluctuation_asymptote(self, prefix, start, end,
+                                   width=4, resolution=1200):
+        r"""
+        Provide `asymptote <http://asymptote.sourceforge.net>`_  files
+        for the periodic fluctuation.
+
+        INPUT:
+
+        - ``prefix`` -- a string, filename for asymptote files. Three
+          files are generated: a ``.asy``, an ``-empirical.dat`` and a
+          ``-fourier.dat`` file; the latter two are read by asymptote
+          when compiling the ``.asy`` file.
+
+        - ``start`` -- a double, start of the plotting interval.
+
+        - ``end`` -- a double, end of the plotting interval.
+
+        - ``width`` -- (default: 4) a double giving
+          the width in inches for the plotting area (excluding
+          labels).
+
+        - ``resolution`` -- (default: 1200) a positive integer, number
+          of points per inch.
+
+        OUTPUT:
+
+        None.
+
+        .. WARNING::
+
+            The output of the transducer is assumed to be real, i.e.,
+            the `-j`-th Fourier coefficient is the complex conjugate
+            of the `j`-th Fourier coefficient.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
+            ....:     f(2*n + 1) == f(n) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2)) #
+            sage: dir = tmp_dir()
+            sage: F.plot_fluctuation_asymptote( # optional - arb
+            ....:     dir + "test", 8, 9, resolution=2)
+
+        .. SEEALSO::
+
+            :meth:`plot_fluctuation`
+        """
+        template = r'''
+import graph;
+locale("C");
+size(0, 2inch, false);
+unitsize(%ginch, 0);
+
+file in = input("%s-empirical.dat").line();
+real[][] a=in.dimension(0,0);
+a=transpose(a);
+real[] x=a[0];
+real[] y=a[1];
+int i;
+for(i=0; i<x.length; ++i) {
+  draw((x[i],y[i]), blue);
+}
+
+file in = input("%s-fourier.dat").line();
+real[][] a=in.dimension(0,0);
+a=transpose(a);
+real[] x=a[0];
+real[] y=a[1];
+draw(graph(x,y), red+0.25bp);
+
+xaxis(Bottom, RightTicks("$%%f$", Step=1, step=0.25));
+yaxis(Left,RightTicks(trailingzero));
+'''
+
+        from sage.plot.plot import list_plot
+        periods = (end-start)/self.common_period
+        width_per_period = width/periods
+        points_per_period = width_per_period * resolution
+
+        empirical = self.cache.fluctuation_empirical(
+            self.q ** start,
+            self.q ** end)
+
+        fourier = self.cache.fluctuation_fourier(start,
+                                                 end,
+                                                 points_per_period)
+
+        with open("%s-empirical.dat" % prefix, "w") as f:
+            for x, y in empirical:
+                f.write("%g %g\n" % (x, y))
+        with open("%s-fourier.dat" % prefix, "w") as f:
+            for x, y in fourier:
+                f.write("%g %g\n" % (x, y))
+        with open("%s.asy" % prefix, "w") as f:
+                f.write(template % ((<double> width)/(end-start),
+                                    prefix, prefix))
