@@ -269,9 +269,22 @@ class Hypergeometric(BuiltinFunction):
             1
             sage: hypergeometric([-2,-1],[3],-1)
             1/3
+            sage: P = lambda n: hypergeometric([-n,-n+1],[2], 1/x)
+            sage: [expand(x^k*P(k)) for k in (0..5)]
+            [1,
+             x,
+             x^2 + x,
+             x^3 + 3*x^2 + x,
+             x^4 + 6*x^3 + 6*x^2 + x,
+             x^5 + 10*x^4 + 20*x^3 + 10*x^2 + x]
             sage: (a,z) = var('a,z')
             sage: hypergeometric([a^2,a+1/2],[3/2],z^2)
             hypergeometric((a^2, a + 1/2), (3/2,), z^2)
+            
+        TESTS::
+        
+            sage: hypergeometric([-2,-1],[2],-1).n()   # :trac:`17066`
+            0.000000000000000
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
             raise ValueError('First two parameters must be of type list.')
