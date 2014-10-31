@@ -226,6 +226,25 @@ class DirectedConvexPolyomino(ClonableList):
         """
         return ClonableList.__getitem__( self, 0 )
 
+    def pp( self ):
+        r"""
+        Return the minimal parallelogram polyomino that contain the directed 
+        convex polyomino.
+
+        It is a shortcut for parallelogram_polyomino().
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: pp == dcp.pp()
+            True
+        """
+        return self.parallelogram_polyomino()
+
     def cut( self ):
         """
         Return the partition to remove form the parallelogram polyomino of
@@ -641,11 +660,28 @@ class DirectedConvexPolyomino(ClonableList):
     def get_tikz_options(self):
         return self.get_options()['tikz_options']
 
-    def width( self ):
+    def width(self):
         return self.parallelogram_polyomino().width()
 
-    def height( self ):
+    @cached_method
+    def widths(self):
+        res = []
+        for line in self.get_array():
+            res.append(sum(line))
+        return res
+
+    def height(self):
         return self.parallelogram_polyomino().height()
+
+    @cached_method
+    def heights(self):
+        width = self.width()
+        res = [0 for i in range(width)]
+        array = self.get_array()
+        for h in range(len(array)):
+            for w in range(width):
+                res[w] += array[h][w]
+        return res
 
     def _to_tikz_diagram(self):
         tikz_options = self.get_tikz_options()
