@@ -109,6 +109,7 @@ Classes and Methods
 ===================
 
 .. autofunction:: _hurwitz_zeta_
+.. autofunction:: _reduce_resolution_
 .. automethod:: FSMFourierComponent.__init__
 .. automethod:: FSMFourierComponent._eigenvectors_
 .. automethod:: FSMFourierComponent._mask_
@@ -132,6 +133,7 @@ import itertools
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.functions.log import log
+from sage.functions.other import floor
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
 from sage.matrix.constructor import matrix
@@ -379,6 +381,73 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
 
         factor /= (M + alpha)
         #assert factor.overlaps(falling_factorial(-s, N)/(M + alpha)**(s + N))
+
+def _reduce_resolution_(data, x_min, x_max, resolution):
+    r"""
+    Reduce a list of pairs `(x, y)` to a list of triples `(x,
+    y_\mathrm{min}, y_\mathrm{max})` corresponding to
+    ``resolution`` equidistant `x` values.
+
+    INPUT:
+
+    - ``data`` -- a list (or iterable) of pairs of doubles.
+
+    - ``x_min`` -- a double, start of the interval.
+
+    - ``x_max`` -- a double, end of the interval.
+
+    - ``resolution`` -- a positive integer, the number of points
+      in `x` direction.
+
+    OUTPUT:
+
+    A list of triples of doubles.
+
+    Each `(x, y)` is mapped to some
+    `(x', y_\mathrm{min}, y_\mathrm{max})`
+    such that `y_\mathrm{min}\le y\le y_\mathrm{max}` and
+    `0\le x-x'< (x_\mathrm{max}-x_\mathrm{min})/\mathit{resolution}`.
+
+    A list plot of the original list thus corresponds to the line
+    segments defined by the output.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.fsm_fourier import _reduce_resolution_ # optional - arb
+        sage: _reduce_resolution_(((i/10, i) for i in range(10)), # optional - arb
+        ....:                    0, 1, 2)
+        [(0.0, 0, 4), (0.5, 5, 9)]
+
+    TESTS::
+
+        sage: _reduce_resolution_([(1, 10)],  # optional - arb
+        ....:                    0, 1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: x values must be >= x_min and < x_max.
+        sage: _reduce_resolution_([(-1, 10)],  # optional - arb
+        ....:                    0, 1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: x values must be >= x_min and < x_max.
+    """
+    result = [None for _ in range(resolution)]
+    f = (<double> resolution)/(x_max-x_min)
+
+    for (x, y) in data:
+        if x < x_min or x >= x_max:
+            raise ValueError(
+                "x values must be >= x_min and < x_max.")
+        i = floor((x - x_min)*f)
+        current = result[i]
+        if current is None:
+            result[i] = (y, y)
+        else:
+            result[i] = (min(y, current[0]), max(y, current[0]))
+    return [(x_min + (<double> i)/f, y[0], y[1])
+            for i, y in enumerate(result)
+            if y is not None]
+
 
 class FSMFourierComponent(SageObject):
     r"""
