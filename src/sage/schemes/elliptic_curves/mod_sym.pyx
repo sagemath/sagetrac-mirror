@@ -2435,7 +2435,7 @@ cdef class ModularSymbolNumerical:
             if y*2 > m:
                 y -= m
             x = (1-y*a) / m
-            verbose("smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m) )
+            verbose("    smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4 )
             # make the cusp -x/y movable.
             Q = llgcd(y, N)
             if llgcd(Q, N/Q) != 1:
@@ -2449,7 +2449,6 @@ cdef class ModularSymbolNumerical:
             if llgcd(Q, N/Q) != 1: # still bad ex: N=36 a=2, m=5
                 res = self.symbol_ioo_to_r(r, sign=sign)
             else:
-                verbose("now x=%s, y=%s"%(x,y))
                 r2 = Rational( (-1,1) )
                 if x < 0:
                     r2 = -r2
@@ -2458,7 +2457,6 @@ cdef class ModularSymbolNumerical:
                     r2 = -r2
                     y = -y
                 r2 = Rational( (x, y) )
-                verbose("now r = %s"%r2)
                 verbose("Move to the cusp %s "%r2, level=1)
                 res = self.symbol_r_to_rr(r, r2, sign=sign)
                 res += self.symbol_movable(r2, sign=sign)
