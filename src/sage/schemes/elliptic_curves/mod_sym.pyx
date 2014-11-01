@@ -822,7 +822,7 @@ cdef class ModularSymbolNumerical:
         # find the best curve to compare it too.
         # if the curve is in the database,
         # we can compare to the X_0-optimal curve
-        isog =  E.isogeny_class(use_tuple=False)
+        isog =  E.isogeny_class()
         if N <= CremonaDatabase().largest_conductor() :
             E0 = E.optimal_curve()
         # otherwise, we take a "maximal" curve
@@ -2449,7 +2449,16 @@ cdef class ModularSymbolNumerical:
             if llgcd(Q, N/Q) != 1: # still bad ex: N=36 a=2, m=5
                 res = self.symbol_ioo_to_r(r, sign=sign)
             else:
-                r2 = - Rational( (x, y) )
+                verbose("now x=%s, y=%s"%(x,y))
+                r2 = Rational( (-1,1) )
+                if x < 0:
+                    r2 = -r2
+                    x = -x
+                if y < 0:
+                    r2 = -r2
+                    y = -y
+                r2 = Rational( (x, y) )
+                verbose("now r = %s"%r2)
                 verbose("Move to the cusp %s "%r2, level=1)
                 res = self.symbol_r_to_rr(r, r2, sign=sign)
                 res += self.symbol_movable(r2, sign=sign)
@@ -2554,18 +2563,18 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve('5077a1')
             sage: m = ModularSymbolNumerical(E)
             sage: m.all_symbols(7)
-            {6/7: 3, 5/7: 0, 4/7: -3, 3/7: -3, 2/7: 0, 1/7: 3}
+            {1/7: 3, 2/7: 0, 3/7: -3, 4/7: -3, 5/7: 0, 6/7: 3}
             sage: [m(a/7) for a in [1..6]]
             [3, 0, -3, -3, 0, 3]
             sage: m.all_symbols(3,-1)
-            {2/3: -4, 1/3: 4}
+            {1/3: 4, 2/3: -4}
 
             sage: E = EllipticCurve('11a1')
             sage: m = ModularSymbolNumerical(E)
             sage: m.all_symbols(12)
-            {5/12: -23/10, 7/12: -23/10, 1/12: 1/5, 11/12: 1/5}
+            {1/12: 1/5, 5/12: -23/10, 7/12: -23/10, 11/12: 1/5}
             sage: m.all_symbols(12, -1)
-            {5/12: 1/2, 7/12: -1/2, 1/12: 0, 11/12: 0}
+            {1/12: 0, 5/12: 1/2, 7/12: -1/2, 11/12: 0}
 
 
             sage: E = EllipticCurve('20a1')
@@ -2713,7 +2722,13 @@ def _test_init(E):
         0.7294083084692478])
 
         sage: _test_init(EllipticCurve("14a6")) # abs tol 1e-8
-        ({1: 1, 2: 1, 14: -1, 7: -1}, [1, -1, -2, 18, 0], [9, 1, 9, 1], [0.16511182967224025, 0.6627456198412432, 0.16511182967224025, 0.6627456198412432])
+        ({1: 1, 2: 1, 7: -1, 14: -1},
+         [1, -1, -2, 18, 0],
+         [9, 1, 9, 1],
+         [0.16511182967224025,
+          0.6627456198412432,
+          0.16511182967224025,
+          0.6627456198412432])
 
         sage: _test_init(EllipticCurve("20a1")) # abs tol 1e-8
         ({1: 1, 2: -1, 4: -1, 5: 1, 10: -1, 20: -1},
@@ -2733,7 +2748,22 @@ def _test_init(E):
         sage: E.conductor().factor()
         2^4 * 3449767
         sage: _test_init(E) # abs tol 1e-8
-        ({1: 1, 2: -1, 4: -1, 3449767: 1, 8: -1, 6899534: -1, 16: -1, 27598136: -1, 55196272: -1, 13799068: -1}, [1, 0, 0, 2, 0], [4, 4, 2, 2], [0.15583810484385163, 0.14150261234359426, 0.31167620968770327, 0.28300522468718853])
+        ({1: 1,
+          2: -1,
+          4: -1,
+          8: -1,
+          16: -1,
+          3449767: 1,
+          6899534: -1,
+          13799068: -1,
+          27598136: -1,
+          55196272: -1},
+         [1, 0, 0, 2, 0],
+         [4, 4, 2, 2],
+         [0.15583810484385163,
+          0.14150261234359426,
+          0.31167620968770327,
+          0.28300522468718853])
      """
     M = ModularSymbolNumerical(E)
     e = M._epsQs

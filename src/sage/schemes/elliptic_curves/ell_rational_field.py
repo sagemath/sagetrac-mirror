@@ -1168,8 +1168,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E=EllipticCurve('121b1')
             sage: M=E.modular_symbol()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
-            sage: M(1/7)
-            -1
+            sage: M(1/7)  
+            -1/2
+            sage: M = E.modular_symbol(method="num")
+            sage: M(1/7)  # correct value
+            1/2
+
 
         ::
 
