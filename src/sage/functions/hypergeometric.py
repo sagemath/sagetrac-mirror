@@ -293,9 +293,13 @@ class Hypergeometric(BuiltinFunction):
                     a + b + (z,))
 
         if any((c in ZZ) and (c <= 0) for c in a):
-            res = closed_form(hypergeometric(a,b,z,hold=True))
-            if SR(res).is_numeric() or isinstance(res, Expression):
-                return res
+            try:
+                res = closed_form(hypergeometric(a,b,z,hold=True))
+                if SR(res).is_numeric() or isinstance(res, Expression):
+                    return res
+            except ValueError:
+                pass
+        
         if is_inexact(co) and not isinstance(co, Expression):
             from sage.structure.coerce import parent
             return self._evalf_(a, b, z, parent=parent(co))
@@ -445,28 +449,32 @@ class Hypergeometric(BuiltinFunction):
 
             EXAMPLES::
 
+                sage: (hypergeometric([0], [], Infinity)
+                ....:  .is_termwise_finite())  # ambiguous
+                False
+                sage: hypergeometric([1], [2], Infinity).is_termwise_finite()
+                False
                 sage: hypergeometric([2], [3, 4], 5).is_termwise_finite()
                 True
                 sage: hypergeometric([2], [-3, 4], 5).is_termwise_finite()
                 False
-                sage: hypergeometric([-2], [-3, 4], 5, hold=True).is_termwise_finite()
-                True
-                sage: hypergeometric([-3], [-3, 4],
-                ....:          5, hold=True).is_termwise_finite()  # ambiguous
-                False
 
+            Sage simplifies hypergeometric calls instantly if the first argument
+            contains a nonpositive integer. To test this function with such
+            arguments we must add ``hold=True`` here::
+            
                 sage: hypergeometric([0], [-1], 5, hold=True).is_termwise_finite()
                 True
-                sage: hypergeometric([0], [0],
-                ....:          5, hold=True).is_termwise_finite()  # ambiguous
-                False
-                sage: hypergeometric([1], [2], Infinity).is_termwise_finite()
+                sage: hypergeometric([0], [0], 5,
+                ....:          hold=True).is_termwise_finite()  # ambiguous
                 False
                 sage: (hypergeometric([0], [0], Infinity, hold=True)
                 ....:  .is_termwise_finite())  # ambiguous
                 False
-                sage: (hypergeometric([0], [], Infinity, hold=True)
-                ....:  .is_termwise_finite())  # ambiguous
+                sage: hypergeometric([-2], [-3, 4], 5, hold=True).is_termwise_finite()
+                True
+                sage: hypergeometric([-3], [-3, 4], 5,
+                ....:          hold=True).is_termwise_finite()  # ambiguous
                 False
             """
             if z == 0:
@@ -495,6 +503,11 @@ class Hypergeometric(BuiltinFunction):
 
                 sage: hypergeometric([1, 2], [3, 4], x).is_terminating()
                 False
+                
+            Sage simplifies hypergeometric calls instantly if the first argument
+            contains a nonpositive integer. To test this function with such
+            arguments we must add ``hold=True`` here::
+            
                 sage: hypergeometric([1, -2], [3, 4], x, hold=True).is_terminating()
                 True
                 sage: hypergeometric([1, -2], [], x, hold=True).is_terminating()
@@ -549,6 +562,11 @@ class Hypergeometric(BuiltinFunction):
                 False
                 sage: hypergeometric([2, 3], [6], 1).is_absolutely_convergent()
                 True
+                
+            Sage simplifies hypergeometric calls instantly if the first argument
+            contains a nonpositive integer. To test this function with such
+            arguments we must add ``hold=True`` here::
+            
                 sage: hypergeometric([-2, 3], [4],
                 ....:             5, hold=True).is_absolutely_convergent()
                 True
@@ -593,8 +611,10 @@ class Hypergeometric(BuiltinFunction):
             """
             Generate the terms of ``self`` (optionally only ``n`` terms).
 
-            EXAMPLES::
-
+            Sage simplifies hypergeometric calls instantly if the first argument
+            contains a nonpositive integer. To test this function with such
+            arguments we must add ``hold=True`` here::
+            
                 sage: list(hypergeometric([-2, 1], [3, 4], x, hold=True).terms())
                 [1, -1/6*x, 1/120*x^2]
                 sage: list(hypergeometric([-2, 1], [3, 4], x, hold=True).terms(2))
@@ -730,10 +750,6 @@ def closed_form(hyp):
         3/16*cosh(4) - 3/64*sinh(4)
         sage: closed_form(hypergeometric([], [-3/2], 4))
         19/3*cosh(4) - 4*sinh(4)
-        sage: closed_form(hypergeometric([-3, 1], [var('a')], z, hold=True))
-        -3*z/a + 6*z^2/((a + 1)*a) - 6*z^3/((a + 2)*(a + 1)*a) + 1
-        sage: closed_form(hypergeometric([-3, 1/3], [-4], z, hold=True))
-        7/162*z^3 + 1/9*z^2 + 1/4*z + 1
         sage: closed_form(hypergeometric([], [], z))
         e^z
         sage: closed_form(hypergeometric([a], [], z))
@@ -758,6 +774,15 @@ def closed_form(hyp):
         -2*((z - 1)*log(-z + 1)/z - 1)/z
         sage: closed_form(hypergeometric([1, 1, 1], [2, 2], x))
         hypergeometric((1, 1, 1), (2, 2), x)
+        
+    Sage simplifies hypergeometric calls instantly if the first argument
+    contains a nonpositive integer. To test this function with such
+    arguments we must add ``hold=True`` here::
+    
+        sage: closed_form(hypergeometric([-3, 1], [var('a')], z, hold=True))
+        -3*z/a + 6*z^2/((a + 1)*a) - 6*z^3/((a + 2)*(a + 1)*a) + 1
+        sage: closed_form(hypergeometric([-3, 1/3], [-4], z, hold=True))
+        7/162*z^3 + 1/9*z^2 + 1/4*z + 1
     """
     if hyp.is_terminating():
         return sum(hyp.terms())
