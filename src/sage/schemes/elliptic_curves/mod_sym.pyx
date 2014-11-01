@@ -27,7 +27,7 @@ Dirichlet characters and for the computation of `p`-adic L-functions.
 ALGORITHM:
 
 The implementation of modular symbols in ec lib and directly in sage
-uses the algorithm described in Cremona's book [Cre]_ and Stein's
+uses the algorithm described in Cremona's book [Crem]_ and Stein's
 book [Ste]_. First the space of all
 modular symbols of the given level is computed, then the space
 corresponding to the given newform is determined. Even if these initial
@@ -62,7 +62,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Cre] John Cremona, Algorithms for modular elliptic curves,
+.. [Crem] John Cremona, Algorithms for modular elliptic curves,
    Cambridge University Press, 1997.
 
 .. [Ste] William Stein, Modular forms, a computational approach,
