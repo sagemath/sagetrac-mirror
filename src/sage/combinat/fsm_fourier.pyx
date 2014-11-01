@@ -2278,10 +2278,15 @@ file in = input("%s-empirical.dat").line();
 real[][] a=in.dimension(0,0);
 a=transpose(a);
 real[] x=a[0];
-real[] y=a[1];
+real[] y_min=a[1];
+real[] y_max=a[2];
 int i;
 for(i=0; i<x.length; ++i) {
-  draw((x[i],y[i]), blue);
+  if (y_min[i] < y_max[i]) {
+    draw((x[i],y_min[i])--(x[i],y_max[i]), blue);
+  } else {
+    draw((x[i],y_min[i]), blue);
+  }
 }
 
 file in = input("%s-fourier.dat").line();
@@ -2300,17 +2305,21 @@ yaxis(Left,RightTicks(trailingzero));
         width_per_period = width/periods
         points_per_period = width_per_period * resolution
 
-        empirical = self.cache.fluctuation_empirical(
-            self.q ** start,
-            self.q ** end)
+        empirical = _reduce_resolution_(
+            self.cache.fluctuation_empirical(
+                self.q ** start,
+                self.q ** end),
+            start,
+            end,
+            int(resolution * width))
 
         fourier = self.cache.fluctuation_fourier(start,
                                                  end,
                                                  points_per_period)
 
         with open("%s-empirical.dat" % prefix, "w") as f:
-            for x, y in empirical:
-                f.write("%g %g\n" % (x, y))
+            for x, y, z in empirical:
+                f.write("%g %g %g\n" % (x, y, z))
         with open("%s-fourier.dat" % prefix, "w") as f:
             for x, y in fourier:
                 f.write("%g %g\n" % (x, y))
