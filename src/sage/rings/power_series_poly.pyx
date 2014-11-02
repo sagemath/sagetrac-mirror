@@ -15,6 +15,7 @@ import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
+from polynomial.polynomial_element import Polynomial_generic_dense
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -602,17 +603,58 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the product of two power series.
 
+        If the underlying polynomial ring is Polynomial_generic_dense use a
+        truncated multiplication algorithm.
+
         EXAMPLES::
 
             sage: k.<w> = ZZ[[]]
             sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
             19*w^10 + 323*w^11 + O(w^12)
+
+            sage: O(w)*O(w)
+            O(w^2)
+            sage: O(w^2)*(w^3+O(w^5))
+            O(w^5)
+            sage: O(w) * (1+w)
+            O(w^1)
+            sage: L.<t> = QQ[I][[]]
+            sage: p1 = L.random_element(50)
+            sage: p2 = L.random_element(50)
+            sage: p1*p2 == p1.polynomial()*p2.polynomial()+O(t^50)
+            True
+
+        TESTS::
+
+            sage: K.<w> = Qp(3)[[]]
+            sage: f = 3^2*w + O(w^3)
+            sage: g = O(3)*w
+            sage: fg = f*g
+            sage: fg
+            0
+            sage: fg == 0
+            False
+            sage: fg.polynomial()
+            (O(3^3))*w^2
         """
         prec = self._mul_prec(right_r)
+        if prec == 0:
+            return self._parent(self._parent.one_element(), prec=0)
+
+        # Avoid the case prec=+Infinity in the Polynomial_generic_dense case
+        if prec == infinity or not IS_INSTANCE(self.__f, Polynomial_generic_dense):
+            return PowerSeries_poly(self._parent,
+                                    self.__f * (<PowerSeries_poly>right_r).__f,
+                                    prec = prec,
+                                    check = True)
+        # check, since truncation may be needed
+
+        # If the underlying polynomial ring is
+        # Polynomial_generic_dense use a truncated multiplication.
         return PowerSeries_poly(self._parent,
-                                self.__f * (<PowerSeries_poly>right_r).__f,
+                                self.__f._mul_trunc((<PowerSeries_poly>right_r).__f, prec),
                                 prec = prec,
-                                check = True)  # check, since truncation may be needed
+                                check = True)
 
     cpdef RingElement _imul_(self, RingElement right_r):
         """
