@@ -435,6 +435,10 @@ def _reduce_resolution_(data, x_min, x_max, resolution):
     f = (<double> resolution)/(x_max-x_min)
 
     for (x, y) in data:
+        if x < x_min and x > x_min - 1/f:
+            # Allow undershooting x_min by one pixel in order to be
+            # more robust against numerical noise.
+            x = x_min
         if x < x_min or x >= x_max:
             raise ValueError(
                 "x values must be >= x_min and < x_max.")
