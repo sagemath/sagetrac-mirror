@@ -99,3 +99,11 @@ Automaton Minimise (Automaton a, bool verb);
 
 void DeleteVertexOP (Automaton *a, int e);
 Automaton DeleteVertex (Automaton a, int e);
+
+//détermine si les langages des automates sont les mêmes
+//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//if minimized is true, the automaton a1 and a2 are assumed to be minimal.
+bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized);
+
+//détermine si le langage de l'automate est vide
+bool emptyLangage (Automaton a);

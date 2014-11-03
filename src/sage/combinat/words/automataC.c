@@ -334,6 +334,126 @@ bool equalsAutomaton (Automaton a1, Automaton a2)
 	return true;
 }
 
+//utilisé par equalsLangages
+//détermine si les langages des états e1 de a1 et e2 de a2 sont les mêmes
+bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2)
+{
+	if (a1.e[e1].final & 2 && a2.e[e2].final & 2)
+		return true;
+	//indique que le sommet a été vu
+	a1.e[e1].final |= 2;
+	a2.e[e2].final |= 2;
+	//parcours les fils de e1 dans a1
+	int i;
+	for (i=0;i<a1.na;i++)
+	{
+		if (a1.e[e1].f[i] != -1)
+		{//cette arête dans a1 existe
+			if (a1toa2.e[i] != -1)
+			{//cette lettre correspond à une lettre dans a2
+				if (a2.e[e2].f[a1toa2.e[i]] == -1)
+				{//cette arête ne correspond pas à une arête dans a2
+					return false;
+				}
+				equalsLangages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]]);
+			}else
+			{
+				return false;
+			}
+		}
+	}
+	//parcours les fils de e2 dans a2 (pour vérifier qu'il n'y a pas de transition en plus)
+	for (i=0;i<a2.na;i++)
+	{
+		if (a2.e[e2].f[i] != -1)
+		{//cette arête dans a2 existe
+			if (a2toa1.e[i] != -1)
+			{//cette lettre correspond à une lettre dans a1
+				if (a1.e[e1].f[a2toa1.e[i]] == -1)
+				{//cette arête ne correspond pas à une arête dans a1
+					return false;
+				}
+			}else
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+//détermine si les langages des automates sont les mêmes
+//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//if minimized is true, the automaton a1 and a2 are assumed to be minimal.
+bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
+{
+	int i;
+	if (!minimized)
+	{
+		//minimise les automates
+		Automaton a3 = Minimise(*a1, false);
+		FreeAutomaton(a1);
+		*a1 = a3;
+		a3 = Minimise(*a2, false);
+		FreeAutomaton(a2);
+		*a2 = a3;
+	}
+	//inverse le dictionnaire
+	Dict a2toa1 = NewDict(a2->na);
+	for (i=0;i<a1toa2.n;i++)
+	{
+		a2toa1.e[a1toa2.e[i]] = i;
+	}
+	//
+	bool res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i);
+	//remet les états finaux
+	for (i=0;i<a1->n;i++)
+	{
+		a1->e[i].final &= 1;
+	}
+	for (i=0;i<a2->n;i++)
+	{
+		a2->e[i].final &= 1;
+	}
+	return res;
+}
+
+//utilisé par emptyLangage
+//détermine si le langage de l'état e est vide
+bool emptyLangage_rec (Automaton a, int e)
+{
+	if (a.e[e].final)
+		return false;
+	//indique que le sommet a été vu
+	a.e[e].final |= 2;
+	//parcours les fils
+	int i;
+	for (i=0;i<a.na;i++)
+	{
+		if (a.e[e].f[i] != -1)
+		{
+			if (a.e[a.e[e].f[i]].final & 2)
+				continue; //ce fils a déjà été vu
+			if (!emptyLangage_rec(a, a.e[e].f[i]))
+				return false;
+		}
+	}
+	return true;
+}
+
+//détermine si le langage de l'automate est vide
+bool emptyLangage (Automaton a)
+{
+	bool res = emptyLangage_rec(a, a.i);
+	//remet les états finaux
+	int i;
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final &= 1;
+	}
+	return res;
+}
+
 inline int contract (int i1, int i2, int n1)
 {
 	return i1+n1*i2;
