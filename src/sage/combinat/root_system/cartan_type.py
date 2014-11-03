@@ -1573,17 +1573,17 @@ class CartanType_crystallographic(CartanType_abstract):
         EXAMPLES::
 
             sage: CartanType(['A',5]).index_set_bipartition()
-            (set([1, 3, 5]), set([2, 4]))
+            ({1, 3, 5}, {2, 4})
 
             sage: CartanType(['A',2,1]).index_set_bipartition()
             Traceback (most recent call last):
             ...
-            AssertionError: The Dynkin diagram should be bipartite
-
+            ValueError: the Dynkin diagram must be bipartite
         """
         from sage.graphs.graph import Graph
         G = Graph(self.dynkin_diagram())
-        assert G.is_bipartite(), "The Dynkin diagram should be bipartite"
+        if not G.is_bipartite():
+            raise ValueError("the Dynkin diagram must be bipartite")
         return G.bipartite_sets()
 
 
@@ -1859,9 +1859,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         if m is None:
             m = self.cartan_matrix()
-        assert self.index_set() == tuple(range(m.ncols()))
+        if self.index_set() != tuple(range(m.ncols())):
+            raise NotImplementedError("the Cartan matrix currently must be indexed by [0,1,...,{}]".format(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
-        assert(len(annihilator_basis) == 1)
+        if len(annihilator_basis) != 1:
+            raise ValueError("the kernel is not 1 dimensional")
         assert(all(coef > 0 for coef in annihilator_basis[0]))
 
         return Family(dict((i,annihilator_basis[0][i])for i in self.index_set()))
@@ -2374,6 +2376,42 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         """
         return self.letter
 
+    @cached_method
+    def opposition_automorphism(self):
+        r"""
+        Returns the opposition automorphism
+
+        The *opposition automorphism* is the automorphism
+        `i \mapsto i^*` of the vertices Dynkin diagram such that,
+        for `w_0` the longest element of the Weyl group, and any
+        simple root `\alpha_i`, one has `\alpha_{i^*} = -w_0(\alpha_i)`.
+
+        The automorphism is returned as a :class:`Family`.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A', 5])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
+
+            sage: ct = CartanType(['D', 4])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 4}
+
+            sage: ct = CartanType(['D', 5])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 5, 5: 4}
+
+            sage: ct = CartanType(['C', 4])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 4}
+        """
+        Q = self.root_system().root_lattice()
+        W = Q.weyl_group()
+        w0 = W.long_element()
+        alpha = Q.simple_roots()
+        d = {i: (w0.action(alpha[i])).leading_support() for i in self.index_set()}
+        return Family(d)
 
 ##########################################################################
 class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_affine):

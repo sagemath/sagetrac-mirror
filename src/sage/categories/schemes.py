@@ -10,9 +10,10 @@ Schemes
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base
-from sets_cat import Sets
+from sage.categories.homsets import HomsetsCategory
+from sage.categories.sets_cat import Sets
 
 class Schemes(Category):
     """
@@ -144,19 +145,21 @@ class Schemes(Category):
             raise TypeError("No way to create an object or morphism in %s from %s"%(self, x))
 
 
-    class HomCategory(HomCategory):
+    class Homsets(HomsetsCategory):
         def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: Schemes().hom_category().extra_super_categories()
+                sage: Schemes().Homsets().extra_super_categories()
                 []
-                sage: Schemes().hom_category().super_categories()
-                [Category of hom sets in Category of sets]
+                sage: Schemes().Homsets().super_categories()
+                [Category of objects]
 
-            FIXME: what category structure is there on Homsets of schemes?
-            The result above is wrong, and should be fixed during the next
-            homsets overhaul.
+            .. TODO::
+
+                 What category structure is there on Homsets of schemes?
+
+            .. TODO:: check that the result above is correct now
             """
             return []
 
@@ -206,8 +209,8 @@ class Schemes_over_base(Category_over_base):
             Category of schemes over Integer Ring
         """
         # To work around the name of the class (schemes_over_base)
-        from sage.schemes.generic.spec import is_Spec
-        if is_Spec(self.base_scheme()):
+        from sage.schemes.generic.scheme import is_AffineScheme
+        if is_AffineScheme(self.base_scheme()):
             return "schemes over %s" % self.base_scheme().coordinate_ring()
         else:
             return "schemes over %s" % self.base_scheme()
