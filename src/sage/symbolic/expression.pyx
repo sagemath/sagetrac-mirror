@@ -9329,18 +9329,10 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((x-z)^2==2, x)
             [x == z - sqrt(2), x == z + sqrt(2)]
 
-        There is still room for improvement::
-
-            sage: assume(x, 'integer')
-            sage: assume(z, 'integer')
-            sage: solve((x-z)^2==2, x)
-            [x == z - sqrt(2), x == z + sqrt(2)]
-
-            sage: forget()
-
         In some cases it may be worthwhile to directly use ``to_poly_solve``
         if one suspects some answers are being missed::
 
+            sage: forget()
             sage: solve(cos(x)==0, x)
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve=True)
@@ -9500,7 +9492,7 @@ cdef class Expression(CommutativeRingElement):
         def has_integer_assumption(v):
             from sage.symbolic.assumptions import assumptions, GenericDeclaration
             alist = assumptions()
-            return any(a.has(v) and isinstance(a, GenericDeclaration) and
+            return any(isinstance(a, GenericDeclaration) and a.has(v) and 
                        a._assumption in ['even','odd','integer','integervalued']
                 for a in alist) 
         if len(ex.variables()) and all(has_integer_assumption(var) for var in ex.variables()):
