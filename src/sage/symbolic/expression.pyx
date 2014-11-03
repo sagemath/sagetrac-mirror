@@ -10253,7 +10253,7 @@ cdef class Expression(CommutativeRingElement):
             x^2 + y^2 + z^2 + I <= (I + 1)
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self.operator()(self.lhs() + x, self.rhs() + x)
 
     def subtract_from_both_sides(self, x):
@@ -10270,7 +10270,7 @@ cdef class Expression(CommutativeRingElement):
             sqrt(3)*x*sin(x) + sqrt(2) - cos(sin(x)) > 0
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self.operator()(self.lhs() - x, self.rhs() - x)
 
     def multiply_both_sides(self, x, checksign=None):
@@ -10319,7 +10319,7 @@ cdef class Expression(CommutativeRingElement):
             -x^3 - 1 <= -2*sqrt(3)
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self.operator()(self.lhs() * x, self.rhs() * x)
 
 
@@ -10345,7 +10345,7 @@ cdef class Expression(CommutativeRingElement):
             (x^3 + theta)/theta < sin(theta*x)/theta
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self.operator()(self.lhs() / x, self.rhs() / x)
 
 
