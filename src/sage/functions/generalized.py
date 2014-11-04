@@ -54,7 +54,11 @@ Kronecker delta function::
 from sage.symbolic.function import BuiltinFunction
 from sage.rings.all import ComplexIntervalField, ZZ
 
-class FunctionDiracDelta(BuiltinFunction):
+class GeneralizedFunction(BuiltinFunction):
+    def _evalf_(self, *args, **kwds):
+        return self.gen_eval(*args)
+
+class FunctionDiracDelta(GeneralizedFunction):
     r"""
     The Dirac delta (generalized) function, `\delta(x)` (``dirac_delta(x)``).
 
@@ -141,20 +145,22 @@ class FunctionDiracDelta(BuiltinFunction):
             sage: dirac_delta(x).subs(x=1)
             0
         """
+        return self.gen_eval(x)
+    
+    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
                 if bool(approx_x.real() == 0):  # x is zero
                     return None
                 else:
-                    return 0
-        except Exception:                     # x is symbolic
+                    return ZZ(0)
+        except TypeError:                     # x is symbolic
             pass
-        return None
 
 dirac_delta = FunctionDiracDelta()
 
-class FunctionHeaviside(BuiltinFunction):
+class FunctionHeaviside(GeneralizedFunction):
     r"""
     The Heaviside step function, `H(x)` (``heaviside(x)``).
 
@@ -244,6 +250,9 @@ class FunctionHeaviside(BuiltinFunction):
             sage: t.subs(x=1)
             2
         """
+        return self.gen_eval(x)
+
+    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -251,12 +260,11 @@ class FunctionHeaviside(BuiltinFunction):
                     return None
                 # Now we have a non-zero real
                 if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return 1
+                    return ZZ(1)
                 else:
-                    return 0
-        except Exception:                     # x is symbolic
+                    return ZZ(0)
+        except TypeError:                     # x is symbolic
             pass
-        return None
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -271,7 +279,7 @@ class FunctionHeaviside(BuiltinFunction):
 
 heaviside = FunctionHeaviside()
 
-class FunctionUnitStep(BuiltinFunction):
+class FunctionUnitStep(GeneralizedFunction):
     r"""
     The unit step function, `\mathrm{u}(x)` (``unit_step(x)``).
 
@@ -353,19 +361,21 @@ class FunctionUnitStep(BuiltinFunction):
             sage: unit_step(x).subs(x=0)
             1
         """
+        return self.gen_eval(x)
+
+    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
                 if bool(approx_x.real() == 0):  # x is zero
-                    return 1
+                    return ZZ(1)
                 # Now we have a non-zero real
                 if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return 1
+                    return ZZ(1)
                 else:
-                    return 0
-        except Exception:                     # x is symbolic
+                    return ZZ(0)
+        except TypeError:                     # x is symbolic
             pass
-        return None
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -380,7 +390,7 @@ class FunctionUnitStep(BuiltinFunction):
 
 unit_step = FunctionUnitStep()
 
-class FunctionSignum(BuiltinFunction):
+class FunctionSignum(GeneralizedFunction):
     r"""
     The signum or sgn function `\mathrm{sgn}(x)` (``sgn(x)``).
 
@@ -489,6 +499,9 @@ class FunctionSignum(BuiltinFunction):
             return x.sign()
         if hasattr(x,'sgn'): # or a sgn method
             return x.sgn()
+        return self.gen_eval(x)
+    
+    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -499,9 +512,8 @@ class FunctionSignum(BuiltinFunction):
                     return ZZ(1)
                 else:
                     return ZZ(-1)
-        except Exception:                     # x is symbolic
+        except TypeError:                     # x is symbolic
             pass
-        return None
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -518,7 +530,7 @@ class FunctionSignum(BuiltinFunction):
 sgn = FunctionSignum()
 sign = sgn
 
-class FunctionKroneckerDelta(BuiltinFunction):
+class FunctionKroneckerDelta(GeneralizedFunction):
     r"""
     The Kronecker delta function `\delta_{m,n}` (``kronecker_delta(m, n)``).
 
@@ -598,19 +610,21 @@ class FunctionKroneckerDelta(BuiltinFunction):
         if bool(repr(m) > repr(n)):
             return kronecker_delta(n, m)
 
+        return self.gen_eval(m, n)
+
+    def gen_eval(self, m, n):
         x = m - n
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
                 if bool(approx_x.real() == 0):  # x is zero
-                    return 1
+                    return ZZ(1)
                 else:
-                    return 0
+                    return ZZ(0)
             else:
-                return 0            # x is complex
-        except Exception:                     # x is symbolic
+                return ZZ(0)            # x is complex
+        except TypeError:                     # x is symbolic
             pass
-        return None
 
     def _derivative_(self, *args, **kwds):
         """
