@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 r"""
 Graphics objects
 
@@ -3341,7 +3341,7 @@ class GraphicsArray(SageObject):
         if filename is None:
             filename = graphics_filename()
 
-        #glist is a list of Graphics objects:
+        # glist is a list of Graphics objects:
         glist = self._glist
         rows = self._rows
         cols = self._cols
@@ -3349,17 +3349,19 @@ class GraphicsArray(SageObject):
         if rows == 0 or cols == 0:
             glist = [Graphics()]
             rows = cols = dims = 1
-        #make a blank matplotlib Figure:
+        # make a blank matplotlib Figure:
         from matplotlib.figure import Figure
         figure = Figure(self._figsize)
         global do_verify
         do_verify = True
-        for i,g in zip(range(1, dims+1), glist):
-            subplot = figure.add_subplot(rows, cols, i)
+        for i, g in enumerate(glist[:-1]):
+            subplot = figure.add_subplot(rows, cols, i + 1)
             g.matplotlib(filename, figure=figure, sub=subplot,
-                         verify=do_verify, axes = axes, **kwds)
+                         verify=do_verify, axes=axes, **kwds)
+        g = glist[-1]
+        subplot = figure.add_subplot(rows, cols, dims)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-               verify=do_verify, axes = axes, **kwds)
+               verify=do_verify, axes=axes, **kwds)
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
