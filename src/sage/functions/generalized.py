@@ -54,11 +54,7 @@ Kronecker delta function::
 from sage.symbolic.function import BuiltinFunction
 from sage.rings.all import ComplexIntervalField, ZZ
 
-class GeneralizedFunction(BuiltinFunction):
-    def _evalf_(self, *args, **kwds):
-        return self.gen_eval(*args)
-
-class FunctionDiracDelta(GeneralizedFunction):
+class FunctionDiracDelta(BuiltinFunction):
     r"""
     The Dirac delta (generalized) function, `\delta(x)` (``dirac_delta(x)``).
 
@@ -145,9 +141,6 @@ class FunctionDiracDelta(GeneralizedFunction):
             sage: dirac_delta(x).subs(x=1)
             0
         """
-        return self.gen_eval(x)
-    
-    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -157,10 +150,13 @@ class FunctionDiracDelta(GeneralizedFunction):
                     return ZZ(0)
         except TypeError:                     # x is symbolic
             pass
+        
+    def _evalf_(self, *args, **kwds):
+        return self._eval_(*args, **kwds)
 
 dirac_delta = FunctionDiracDelta()
 
-class FunctionHeaviside(GeneralizedFunction):
+class FunctionHeaviside(BuiltinFunction):
     r"""
     The Heaviside step function, `H(x)` (``heaviside(x)``).
 
@@ -250,9 +246,6 @@ class FunctionHeaviside(GeneralizedFunction):
             sage: t.subs(x=1)
             2
         """
-        return self.gen_eval(x)
-
-    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -265,6 +258,9 @@ class FunctionHeaviside(GeneralizedFunction):
                     return ZZ(0)
         except TypeError:                     # x is symbolic
             pass
+
+    def _evalf_(self, *args, **kwds):
+        return self._eval_(*args, **kwds)
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -279,7 +275,7 @@ class FunctionHeaviside(GeneralizedFunction):
 
 heaviside = FunctionHeaviside()
 
-class FunctionUnitStep(GeneralizedFunction):
+class FunctionUnitStep(BuiltinFunction):
     r"""
     The unit step function, `\mathrm{u}(x)` (``unit_step(x)``).
 
@@ -361,9 +357,6 @@ class FunctionUnitStep(GeneralizedFunction):
             sage: unit_step(x).subs(x=0)
             1
         """
-        return self.gen_eval(x)
-
-    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -376,6 +369,9 @@ class FunctionUnitStep(GeneralizedFunction):
                     return ZZ(0)
         except TypeError:                     # x is symbolic
             pass
+
+    def _evalf_(self, *args, **kwds):
+        return self._eval_(*args, **kwds)
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -390,7 +386,7 @@ class FunctionUnitStep(GeneralizedFunction):
 
 unit_step = FunctionUnitStep()
 
-class FunctionSignum(GeneralizedFunction):
+class FunctionSignum(BuiltinFunction):
     r"""
     The signum or sgn function `\mathrm{sgn}(x)` (``sgn(x)``).
 
@@ -499,9 +495,6 @@ class FunctionSignum(GeneralizedFunction):
             return x.sign()
         if hasattr(x,'sgn'): # or a sgn method
             return x.sgn()
-        return self.gen_eval(x)
-    
-    def gen_eval(self, x):
         try:
             approx_x = ComplexIntervalField()(x)
             if bool(approx_x.imag() == 0):      # x is real
@@ -514,6 +507,9 @@ class FunctionSignum(GeneralizedFunction):
                     return ZZ(-1)
         except TypeError:                     # x is symbolic
             pass
+
+    def _evalf_(self, *args, **kwds):
+        return self._eval_(*args, **kwds)
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -530,7 +526,7 @@ class FunctionSignum(GeneralizedFunction):
 sgn = FunctionSignum()
 sign = sgn
 
-class FunctionKroneckerDelta(GeneralizedFunction):
+class FunctionKroneckerDelta(BuiltinFunction):
     r"""
     The Kronecker delta function `\delta_{m,n}` (``kronecker_delta(m, n)``).
 
@@ -610,9 +606,6 @@ class FunctionKroneckerDelta(GeneralizedFunction):
         if bool(repr(m) > repr(n)):
             return kronecker_delta(n, m)
 
-        return self.gen_eval(m, n)
-
-    def gen_eval(self, m, n):
         x = m - n
         try:
             approx_x = ComplexIntervalField()(x)
@@ -625,6 +618,9 @@ class FunctionKroneckerDelta(GeneralizedFunction):
                 return ZZ(0)            # x is complex
         except TypeError:                     # x is symbolic
             pass
+
+    def _evalf_(self, *args, **kwds):
+        return self._eval_(*args, **kwds)
 
     def _derivative_(self, *args, **kwds):
         """
