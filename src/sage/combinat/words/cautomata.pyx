@@ -67,6 +67,7 @@ cdef extern from "automataC.h":
     Automaton DeleteVertex (Automaton a, int e)
     bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
     bool emptyLangage (Automaton a)
+    void AddEtat (Automaton *a, bool final)
     void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -400,10 +401,18 @@ cdef class FastAutomaton:
                 raise ValueError("%d is not a state !"%f)
             self.a.e[f].final = 1
     
+    def set_final_state (self, int e, final=True):
+        self.a.e[e].final = final
+    
     def succ (self, int i, int j):
         if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
             return -1
         return self.a.e[i].f[j]
+    
+    def set_succ (self, int i, int j, int k):
+        if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
+            raise ValueError("set_succ(%s, %s) : index out of bounds !"%(i,j))
+        self.a.e[i].f[j] = k
     
     def emonde_inf (self, verb=False):
         sig_on()
@@ -710,5 +719,11 @@ cdef class FastAutomaton:
         sig_off()
         return Bool(res)
 
+    def add_state (self, bool final):
+        sig_on()
+        AddEtat(self.a, final)
+        sig_off()
 
+    def n_states (self):
+        return self.a.n
 

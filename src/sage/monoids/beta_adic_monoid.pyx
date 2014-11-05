@@ -1815,6 +1815,93 @@ class BetaAdicMonoid(Monoid_class):
         ssd = ssd.emonde0_simplify()
         return ssd
     
+    
+    def reduced_words_automaton2 (self, step=100, verb=False):
+        r"""
+        Compute the reduced words automaton of the beta-adic monoid (without considering the automaton of authorized words).
+        See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
+        Use fast C-functions but works only for algebraic integer.
+        (Consider using reduced_words_automaton() if you're not in this case.)
+        
+        INPUT: 
+        
+        - ``verb`` - bool (default: ``False``)
+          If True, print informations for debugging.
+        
+        OUTPUT:
+
+        FastAutomaton.
+        """
+        
+        #compute the relations automaton
+        Cd = list(set([c-c2 for c in self.C for c2 in self.C]))
+        Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.C[j]-self.C[i] for i in range(len(self.C)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
+        arel = self.relations_automaton3(Cd=Cd, ext=False)
+        arel = arel.emonde()
+        if verb:
+            print "arel = %s"%arel
+        if step == 1:
+            return arel
+        
+        #add a new state
+        cdef int ne, ei
+        ei = arel.initial_state()
+        ne = arel.n_states() #new added state
+        arel.add_state(True)
+        arel.set_final_state(ei, final=False) #it is the new final state
+        if step == 2:
+            return arel
+        
+        #add edges from the new state (copy edges from the initial state)
+        for j in range(len(Cd)):
+            arel.set_succ(ne, j, arel.succ(ei, j))
+        if step == 3:
+            return arel
+        
+        #suppress some edges from the initial state
+        for j in Cdp:
+            arel.set_succ(ei, j, -1)
+        if step == 4:
+            return arel
+            
+        #change edges that point to the initial state : make them point to the new state
+        for e in arel.states():
+            if e != ei:
+                for j in range(len(Cd)):
+                    if arel.succ(e, j) == ei:
+                        arel.set_succ(e, j, ne)
+        if step == 5:
+            return arel
+        
+        #project, determinise and take the complementary
+        d = {}
+        for a in self.C:
+            for b in self.C:
+                if not d.has_key(a-b):
+                    d[a-b] = []
+                d[a-b].append((a,b))
+        if verb:
+            print d
+        arel = arel.duplicate(d) #replace differences with couples
+        d = {}
+        for j in self.C:
+            for i in self.C:
+                d[(i,j)] = i
+        if verb:
+            print d
+            print arel
+        arel = arel.determinise_proj(d, noempty=False, nof=True) #, verb=True) #project on the first value of the couple, determinise and take the complementary
+        if verb:
+            print arel
+        arel = arel.emonde()
+        arel = arel.emonde_inf()
+        if step == 10:
+            return arel
+        return arel.minimise()
+    
+    
+    
+    
     def reduced_words_automaton (self, ss=None, Iss=None, ext=False, verb=False, step=None, arel=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid (with or without subshift).
