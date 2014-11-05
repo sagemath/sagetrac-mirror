@@ -40,6 +40,20 @@ from sage.modular.jacobi.classical import (
 )
 
 def test_classical_jacobi_forms():
+    r"""
+    Test classical Jacobi forms for correctness.  See individual tests
+    for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+       sage: from sage.modular.jacobi.test_classical import test_classical_jacobi_forms
+       sage: test_classical_jacobi_forms()
+       <generator object ...>
+    """
     prec = 10
     k_mod = 6
 
@@ -62,6 +76,15 @@ def _test_classical_jacobi_forms(k, m, k_mod, prec):
     - `k_mod` -- An integer.
 
     - ``prec`` -- An integer.
+
+    .. NOTE:
+
+    This is a test to be used by nosetest.
+
+    EXAMPLES::
+
+       sage: from sage.modular.jacobi.test_classical import _test_classical_jacobi_forms
+       sage: _test_classical_jacobi_forms(4,1,4,3)
     """
     P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
     q = P.gen(0)

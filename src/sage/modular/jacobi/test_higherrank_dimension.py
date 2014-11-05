@@ -32,16 +32,51 @@ from sage.all import (prod, zero_vector, matrix,
 import operator
 
 def _test_set__quadratic_forms():
+    r"""
+    A set of quadratic forms used in subsequent tests.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import _test_set__quadratic_forms
+        sage: _test_set__quadratic_forms()
+        [Quadratic form...]
+    """
     return [QuadraticForm(matrix([[14]])),
             QuadraticForm(-matrix(2, [2, 1, 1, 2])),
             QuadraticForm(-matrix(2, [2, 0, 0, 2])),
             QuadraticForm(-matrix(2, [2, 0, 0, 4])),
             QuadraticForm(matrix(3, [2,1,1, 1,2,1, 1,1,2]))]
-def test__discrimant_form():
+
+def test__discriminant_form():
+    r"""
+    Test discriminant forms.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import test__discriminant_form
+        sage: test__discriminant_form()
+        <generator object ...>
+    """
     for L in _test_set__quadratic_forms():
         yield (_test__discriminant_form, L)
 
 def _test__discriminant_form(L):
+    r"""
+    Test discriminant forms.  See individual tests for more details.
+
+    INPUT:
+
+    - `L` -- A quadratic form.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import _test__discriminant_form
+        sage: _test__discriminant_form(QuadraticForm(ZZ,1,[1]))
+    """
     from sage.modular.jacobi.higherrank_dimension import _discriminant_form
 
     (eds, quad, bil) = _discriminant_form(L)
@@ -63,7 +98,6 @@ def _test__discriminant_form(L):
                 w = l*[0]
                 for b in range(eds[ix]):
                     w[ix] = b
-                    print w
                     if bil(*(v+w)) not in ZZ: break
                 else:
                     raise AssertionError()
@@ -77,10 +111,31 @@ def _test__discriminant_form(L):
                     assert bil(*(v+w)) in ZZ
 
 def test__discriminant_form_pmone():
+    r"""
+    Test meth:`discriminant_form_pmone`.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import test__discriminant_form_pmone
+        sage: test__discriminant_form_pmone()
+        <generator object ...>
+    """
     for L in _test_set__quadratic_forms():
         yield (_test__discriminant_form_pmone, L)
 
 def _test__discriminant_form_pmone(L):
+    r"""
+    Test meth:`discriminant_form_pmone`.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import _test__discriminant_form_pmone
+        sage: _test__discriminant_form_pmone(QuadraticForm(ZZ,1,[1]))
+    """
     from sage.modular.jacobi.higherrank_dimension import (_discriminant_form,
                                                           _discriminant_form_pmone)
 
@@ -97,10 +152,31 @@ def _test__discriminant_form_pmone(L):
                    if y != x)
 
 def test__weil_representation():
+    r"""
+    Test Weil representation.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import test__weil_representation
+        sage: test__weil_representation()
+        <generator object ...>
+    """
     for L in _test_set__quadratic_forms():
         yield (_test__weil_representation, L)
 
 def _test__weil_representation(L):
+    r"""
+    Test Weil representation.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank_dimension import _test__weil_representation
+        sage: _test__weil_representation(QuadraticForm(ZZ,1,[1]))
+    """
     from sage.modular.jacobi.higherrank_dimension import (_discriminant_form,
                                                           _discriminant_form_pmone,
                                                           _weil_representation)

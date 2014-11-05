@@ -49,6 +49,15 @@ from sage.modular.jacobi.higherrank import (
 
 
 def _test_set__jacobi_m():
+    r"""
+    A set of quadratic forms used in subsequent tests.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_set__jacobi_m
+        sage: _test_set__jacobi_m()
+        [Quadratic form...]
+    """
     return [QuadraticForm(matrix([[2]])),
             QuadraticForm(matrix([[8]])),
             QuadraticForm(matrix(2, [2, 0, 0, 2])),
@@ -57,7 +66,21 @@ def _test_set__jacobi_m():
 
 
 def test_higherrank_jacobi_reduce_fe_index():
-     for m in _test_set__jacobi_m():
+    r"""
+    Test reduction of Fourier expansion indices in the case of higher
+    rank Jacobi indices.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import test_higherrank_jacobi_reduce_fe_index
+        sage: test_higherrank_jacobi_reduce_fe_index()
+        <generator object ...>
+    """
+    for m in _test_set__jacobi_m():
         r_classes = higherrank_jacobi_r_classes(m)[0]
         m_span = m.matrix().row_module()
         m_adj = QuadraticForm(2 * m.matrix().adjoint())
@@ -71,6 +94,27 @@ def test_higherrank_jacobi_reduce_fe_index():
                        (n, r), m, r_classes, m_adj, m_span)
 
 def _test_higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span):
+    r"""
+    Test invariants of the of the reduction of Fourier expansion
+    indices.
+
+    INPUT:
+
+    - `(n,r)` -- A pair of an integer `n` and a tuple `r` of integers.
+
+    - `m` -- A quadratic form.
+
+    - ``r_classes`` -- See meth:`sage.modular.jacobi.higherrank.higherrank_jacobi_r_classes`.
+
+    - ``m_adj`` -- A quadratic form.
+
+    - ``m_span`` -- A module over the integers.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_reduce_fe_index
+    sage: _test_higherrank_jacobi_reduce_fe_index((1,(0,)), QuadraticForm(ZZ,1,[1]), [[(0,)], [(1,), (-1,)]], QuadraticForm(ZZ,1,[1]), span([vector([2])]))
+    """
     from sage.modular.jacobi.higherrank import higherrank_jacobi_reduce_fe_index
 
     ((nred, rred), s) = higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
@@ -85,6 +129,21 @@ def _test_higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
     assert 2*m.det()*n - m_adj(r) == 2*m.det()*nred - m_adj(rred)
 
 def test__higherrank_jacobi_reduce_fe_index__r():
+    r"""
+    Test reduction of the second component of Fourier expansion
+    indices in the case of higher rank Jacobi indices.  See individual
+    tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import test__higherrank_jacobi_reduce_fe_index__r
+        sage: test__higherrank_jacobi_reduce_fe_index__r()
+        <generator object ...>
+    """
     for m in _test_set__jacobi_m():
         r_classes = higherrank_jacobi_r_classes(m)[0]
         m_span = m.matrix().row_module()
@@ -95,6 +154,23 @@ def test__higherrank_jacobi_reduce_fe_index__r():
                r, r_classes, m_span)
 
 def _test__higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span):
+    r"""
+    Test invariants of the of the reduction of Fourier expansion
+    indices.
+
+    INPUT:
+
+    - `r` -- A tuple `r` of integers.
+
+    - ``r_classes`` -- See meth:`sage.modular.jacobi.higherrank.higherrank_jacobi_r_classes`.
+
+    - ``m_span`` -- A module over the integers.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test__higherrank_jacobi_reduce_fe_index__r
+    sage: _test__higherrank_jacobi_reduce_fe_index__r((0,), [[(0,)], [(1,), (-1,)]], span([vector([2])]))
+    """
     from sage.modular.jacobi.higherrank import _higherrank_jacobi_reduce_fe_index__r
 
     (rred, s) = _higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span)
@@ -107,11 +183,40 @@ def _test__higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span):
                for r_class in r_classes)
 
 def test_higherrank_jacobi_r_classes():
+    r"""
+    Test computation of equivalence classes of second components of
+    Fourier expansion indices in the case of higher rank Jacobi
+    indices.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import test_higherrank_jacobi_r_classes
+        sage: test_higherrank_jacobi_r_classes()
+        <generator object ...>
+    """
     for m in _test_set__jacobi_m():
         yield (_test_higherrank_jacobi_r_classes,
                m)
 
 def _test_higherrank_jacobi_r_classes(m):
+    r"""
+    Test computation of equivalence classes of second components of
+    Fourier expansion indices in the case of higher rank Jacobi
+    indices.
+
+    INPUT:
+
+    - `m` -- A quadratic form.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_r_classes
+        sage: _test_higherrank_jacobi_r_classes(QuadraticForm(ZZ,1,[1]))
+    """
     from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
 
     (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
@@ -152,11 +257,38 @@ def _test_higherrank_jacobi_r_classes(m):
             )
 
 def test__complete_set_of_restriction_vectors():
+    r"""
+    Test restriction vectors in the case of higher
+    rank Jacobi indices.  See individual tests for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import test__complete_set_of_restriction_vectors
+        sage: test__complete_set_of_restriction_vectors()
+        <generator object ...>
+    """
     for m in _test_set__jacobi_m():
         yield (_test__complete_set_of_restriction_vectors,
                m)
 
 def _test__complete_set_of_restriction_vectors(m):
+    r"""
+    Test restriction vectors in the case of higher
+    rank Jacobi indices.
+
+    INPUT:
+
+    - `m` -- A quadratic form.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test__complete_set_of_restriction_vectors
+        sage: _test__complete_set_of_restriction_vectors(QuadraticForm(ZZ,1,[1]))
+    """
     m_span = m.matrix().row_module()
     (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
     rst_vectors = _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span)
@@ -206,6 +338,20 @@ def _test__complete_set_of_restriction_vectors(m):
     assert rst_matrix_odd.rank() == len(r_classes) - pm_fixed_point_size
 
 def test_higherrank_jacobi_forms():
+    r"""
+    Test Jacobi forms with higher rank indices.  See individual tests
+    for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import test_higherrank_jacobi_forms
+        sage: test_higherrank_jacobi_forms()
+        <generator object ...>
+    """
     for m in _test_set__jacobi_m():
         for k in [8, 11, 19, 20]:
             prec = 5
@@ -216,6 +362,27 @@ def test_higherrank_jacobi_forms():
                    k, m, 6, prec, jforms)
 
 def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
+    r"""
+    Test Jacobi forms with higher rank indices by restricting them to
+    scalar Jacobi indices.
+
+    INPUT:
+
+    - `k` -- An integer.
+
+    - `m` -- A qudratic form.
+
+    - ``prec`` -- An integer.
+
+    - ``jforms`` -- A list of dictionaries, representing Jacobi forms.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_forms__restriction
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_forms
+        sage: jforms = higherrank_jacobi_forms(4,QuadraticForm(ZZ,1,[1]),3)
+        sage: _test_higherrank_jacobi_forms__restriction(4,QuadraticForm(ZZ,1,[1]),3,jforms)
+    """
     r_classes = higherrank_jacobi_r_classes(m)[0]
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
     m_span = m.matrix().row_module()
@@ -248,12 +415,35 @@ def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
     ## there is a non trivial restriction for each phi
     assert all(nmb != 0 for nmb in nmb_nonzero_rsts)
 
-def _restrict_jacobi_form(k, phi, s, indices_red, indices_rest):
+def _restrict_jacobi_form(k, phi, s, indices_red, indices_rst):
+    """
+    Restrict a Jacobi forms along `s`.
+
+    INPUT:
+
+    - `k` -- An integer.
+
+    - ``phi`` -- A dictionary, representing the Fourier expansion of a
+                 Jacobi form.
+
+    - `s` -- A tuple of integers.
+
+    - ``indices_red`` -- Reductions of Fourier indices of ``phi``.
+
+    - ``indices_rst`` -- A list of Fourier indices of the restriction.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_forms__restriction
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_forms
+        sage: jforms = higherrank_jacobi_forms(4,QuadraticForm(ZZ,1,[1]),3)
+        sage: _test_higherrank_jacobi_forms__restriction(4,QuadraticForm(ZZ,1,[1]),3,jforms) ## indirect test
+    """
     phi_rst = dict()
 
     for ((n,r), (nrred, sign)) in indices_red:
         r_rst = s.dot_product(vector(r))
-        if (n, r_rst) in indices_rest:
+        if (n, r_rst) in indices_rst:
             try:
                 phi_rst[(n, r_rst)] += sign**k * phi[nrred]
             except KeyError:
@@ -262,6 +452,29 @@ def _restrict_jacobi_form(k, phi, s, indices_red, indices_rest):
     return phi_rst
 
 def _test_higherrank_jacobi_forms__multiplication(k, m, k_mod, prec, jforms):
+    r"""
+    Test Jacobi forms with higher rank indices by taking products with
+    modular forms.
+
+    INPUT:
+
+    - `k` -- An integer.
+
+    - `m` -- A qudratic form.
+
+    - ``k_mod`` -- An integer.
+
+    - ``prec`` -- An integer.
+
+    - ``jforms`` -- A list of dictionaries, representing Jacobi forms.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_forms__multiplication
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_forms
+        sage: jforms = higherrank_jacobi_forms(4,QuadraticForm(ZZ,1,[1]),3)
+        sage: _test_higherrank_jacobi_forms__multiplication(4,QuadraticForm(ZZ,1,[1]),4,3,jforms)
+    """
     l = m.dim()
     (r_classes, _) = higherrank_jacobi_r_classes(m)
     m_adj = QuadraticForm(2 * m.matrix().adjoint())

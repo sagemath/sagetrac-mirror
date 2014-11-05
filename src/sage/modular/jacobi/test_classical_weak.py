@@ -4,6 +4,7 @@ Tests for classical_weak.py.
 AUTHOR:
 
 - Martin Raum
+
 """
 
 #===============================================================================
@@ -42,6 +43,20 @@ from sage.modular.jacobi.classical_weak import (
 )
 
 def test_classical_weak_jacobi_forms():
+    r"""
+    Test classical weak Jacobi forms for correctness.  See individual tests
+    for more details.
+
+    .. NOTE:
+
+    This is a test generator to be used by nosetest.
+
+    TESTS::
+
+       sage: from sage.modular.jacobi.test_classical_weak import test_classical_weak_jacobi_forms
+       sage: test_classical_weak_jacobi_forms()
+       <generator object ...>
+    """
     prec = 20
 
     for k in [10, 11, 15, 18]:
@@ -65,6 +80,9 @@ def test_classical_weak_jacobi_forms():
 
 def _test_classical_weak_jacobi_forms__taylor_coefficients(k, m, prec):
     r"""
+    Test classical weak Jacobi forms by inspecting their Taylor
+    coefficients.
+
     INPUT:
     
     - `k -- An integer.
@@ -73,6 +91,11 @@ def _test_classical_weak_jacobi_forms__taylor_coefficients(k, m, prec):
 
     - ``prec`` -- A non-negative integer that corresponds to a precision of
                   the q-expansion.
+
+    TESTS::
+
+       sage: from sage.modular.jacobi.test_classical_weak import _test_classical_weak_jacobi_forms__taylor_coefficients
+       sage: _test_classical_weak_jacobi_forms__taylor_coefficients(4,1,3)
     """
     jacobi_forms = classical_weak_jacobi_forms(k, m, prec)
     taylor_expansions = _classical_weak_jacobi_taylor_coefficients(k, m)
@@ -100,6 +123,13 @@ def _taylor_coefficients(expansion, k, m, prec) :
     OUTPUT:
 
     A list of power series in `q`.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _taylor_coefficients
+        sage: phi = {(0,0): 40, (0,1): 0, (1,0): 5040, (1,1): 2240}
+        sage: _taylor_coefficients(phi, 4, 1, 2)
+        [1 + 240*q + O(q^2), q + O(q^2)]
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen(0)
 
@@ -138,27 +168,52 @@ def _predicted_taylor_coefficients(fs, prec) :
     OUPUT:
 
     - A list of power series.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _predicted_taylor_coefficients
+        sage: e4 = EisensteinForms(1,4).0.qexp
+        sage: _predicted_taylor_coefficients([e4,lambda prec: e4(prec)-e4(prec)], 2)
+        [1 + 240*q + O(q^2), q + O(q^2)]
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen(0)
 
     diff = lambda f: f.derivative().shift(1)
     normalize = lambda f: f / gcd(f.list()) if f != 0 else f
-    diffnorm = lambda f,l: normalize(reduce(lambda a, g: g(a), l*[diff], f))
 
     taylor_coefficients = list()
     allf = R(0)
     for f in fs :
-        allf = f(prec) + diffnorm(allf, 1)            
+        allf = f(prec) + normalize(diff(allf))
         taylor_coefficients.append(allf)
 
     return taylor_coefficients
 
 def _test_classical_weak_jacobi_forms__taylor_coefficient_modularity(nu_bound, k, m, prec):
+    r"""
+    Test that the corrected taylor coefficients of classical weak
+    Jacobi forms are modular.
+
+    INPUT:
+
+    - ``nu_bound`` -- An integer.
+
+    - `k` -- An integer.
+
+    - `m` -- An integer.
+
+    - ``prec`` -- An integer.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _test_classical_weak_jacobi_forms__taylor_coefficient_modularity
+        sage: _test_classical_weak_jacobi_forms__taylor_coefficient_modularity(2,4,1,2)
+    """
     assert k % 2 == 0
 
     phis = classical_weak_jacobi_forms(k, m, prec)
 
-    fss = [[_corrected_taylor_expansions(nu, phi, k, m, prec) for phi in phis]
+    fss = [[_corrected_taylor_coefficient(nu, phi, k, m, prec) for phi in phis]
            for nu in range(0,nu_bound,2)]
     fss_vec = [ [vector(f.padded_list(prec)) for f in fs] for fs in fss ]
 
@@ -169,8 +224,7 @@ def _test_classical_weak_jacobi_forms__taylor_coefficient_modularity(nu_bound, k
                for (fs_vec, mf_span) in zip(fss_vec, mf_spans)
                for f_vec in fs_vec)
 
-
-def _corrected_taylor_expansions(nu, phi, k, m, prec):
+def _corrected_taylor_coefficient(nu, phi, k, m, prec):
     r"""
     Return the ``2 nu``-th corrected Taylor coefficient.
 
@@ -193,6 +247,13 @@ def _corrected_taylor_expansions(nu, phi, k, m, prec):
     ..TODO:
 
     Implement this for odd Taylor coefficients.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _corrected_taylor_coefficient
+        sage: phi = {(0,0): 40, (0,1): 0, (1,0): 5040, (1,1): 2240}
+        sage: _corrected_taylor_coefficient(2,phi,4,1,2)
+        0
     """
     assert nu % 2 == 0
 
@@ -223,6 +284,11 @@ def _test_classical_weak_jacobi_forms__multiplication(k, m, k_mod, prec):
     - `k_mod` -- An integer.
 
     - ``prec`` -- An integer.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _test_classical_weak_jacobi_forms__multiplication
+        sage: _test_classical_weak_jacobi_forms__multiplication(4,1,4,2)
     """
     P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
     q = P.gen(0)
@@ -250,6 +316,24 @@ def _test_classical_weak_jacobi_forms__multiplication(k, m, k_mod, prec):
             assert phi2_vec in psi_span
 
 def _test_classical_weak_jacobi_forms__torsion_point(torsion_point, k, m, prec):
+    r"""
+    Check that weak Jacobi forms evaluated at torsion points are modular.
+
+    INPUT:
+
+    - ``torsion_point`` - A rational.
+
+    - `k` -- An integer.
+
+    - `m -- A positive integer.
+
+    - ``prec`` -- An integer.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _test_classical_weak_jacobi_forms__torsion_point
+        sage: _test_classical_weak_jacobi_forms__torsion_point(0,4,1,2)
+    """
     jforms = classical_weak_jacobi_forms(k, m, prec)
     fs = [_eval_at_torsion_point(torsion_point, phi, k, m, prec) for phi in jforms]
     fs_vec = [vector(f.padded_list(prec)) for f in fs]
@@ -280,6 +364,13 @@ def _eval_at_torsion_point(torsion_point, phi, k, m, prec) :
     OUPUT:
 
     - A power series.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.test_classical_weak import _eval_at_torsion_point
+        sage: phi = {(0,0): 40, (0,1): 0, (1,0): 5040, (1,1): 2240}
+        sage: _eval_at_torsion_point(0,phi,4,1,2)
+        40 + 9600*q
     """
     from sage.rings.all import CyclotomicField
 
