@@ -32,5 +32,5 @@ InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb);
 void freeInfoBetaAdic (InfoBetaAdic iba);
 
 //calcule l'automate des relations
-Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb);
+Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb);
 

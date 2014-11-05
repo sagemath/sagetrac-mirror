@@ -652,7 +652,7 @@ cdef class FastAutomaton:
         DeleteVertexOP(self.a, i)
         sig_off()
     
-    def spectral_radius (self, verb=False):
+    def spectral_radius (self, only_non_trivial=False, verb=False):
         sig_on()
         a = self.minimise()
         if verb:
@@ -662,7 +662,7 @@ cdef class FastAutomaton:
             print "%s composantes fortement connexes."%len(l)
         r = 0 #valeur propre maximale trouvée
         for c in l:
-            if len(c) > 1:
+            if not only_non_trivial or len(c) > 1:
                 if verb:
                     print "composante ayant %s états..."%len(c)
                 b = a.sub_automaton(c)
@@ -695,7 +695,7 @@ cdef class FastAutomaton:
         sig_on()
         res = emptyLangage(self.a[0])
         sig_off()
-        return res
+        return Bool(res)
     
     def equals_langages (self, FastAutomaton a2, minimized=False):
         sig_on()
@@ -708,6 +708,7 @@ cdef class FastAutomaton:
                     break
         res = equalsLangages(self.a, a2.a, d, minimized)
         sig_off()
-        return res
-    
-    
+        return Bool(res)
+
+
+

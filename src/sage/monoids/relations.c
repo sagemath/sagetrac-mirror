@@ -152,7 +152,7 @@ bool keep (Element e)
 	int i;
 	for (i=0;i<iba.na;i++)
 	{
-		if (cnorm(eval(e, i)) >= iba.cM[i])
+		if (cnorm(eval(e, i)) + .0000001 > iba.cM[i])
 			return false;
 	}
 }
@@ -183,6 +183,17 @@ Element zeroElement ()
 		e.c[i] = 0;
 	}
 	return e;
+}
+
+bool isNull (Element e)
+{
+	int i;
+	for (i=0;i<iba.n;i++)
+	{
+		if (e.c[i] != 0)
+			return false;
+	}
+	return true;
 }
 
 bool equalsElements (Element e, Element f)
@@ -278,7 +289,7 @@ int indElement (Element e)
 }
 
 //calcule l'automate des relations
-Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
+Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
 {
 	int i,j;
 	
@@ -313,7 +324,7 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 		printf("parcours...\n");
 	int n = 1; //nombre d'éléments sur la pile
 	compteur = 0; //nombre d'états de l'automate
-	//état initial
+	//état initial 
 	pile[0] = zeroElement();
 	inHash(pile[0]); //ajoute l'élément à la table de hachage
 	Element e = NewElement(iba.n);
@@ -345,10 +356,12 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 				//teste si l'élément a déjà été vu et l'ajoute si non
 				if (!inHash(s))
 				{ //l'élement est nouveau et a été ajouté à la table de hachage
+					/*
 					if (isvide && !vide)
 					{ //l'automate n'est pas trivial
 						return NewAutomaton(1,0);
 					}
+					*/
 					//empile
 					pile[n] = NewElement(iba.n);
 					copy(s, pile[n]);
@@ -356,6 +369,16 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 					if (n > npile)
 					{
 						printf("Erreur : dépassement de la pile !!!\n");
+					}
+				}else
+				{//on retombe sur un état déjà vu
+					if (isvide)
+					{
+						//if (!isNull(e) && 
+						if (ext || isNull(s))
+						{ //l'automate émondé inf ou émondé n'est pas vide
+							return NewAutomaton(1,0);
+						}
 					}
 				}
 			}

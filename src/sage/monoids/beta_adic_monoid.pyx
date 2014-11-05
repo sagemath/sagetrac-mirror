@@ -96,7 +96,7 @@ cdef extern from "relations.h":
     
     InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb)
     void freeInfoBetaAdic (InfoBetaAdic iba)
-    Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
+    Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
 
 cdef getElement (e, Element r, int n):
     cdef j
@@ -152,7 +152,7 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
     if Cd is None:
         Cd = Set([c-c2 for c in C for c2 in C])
     else:
-        Cd = [c.lift()(1/b) for c in Cd]
+        Cd = [K(c).lift()(1/b) for c in Cd]
     if verb: print "Cd = %s"%Cd
     m = dict([])
     for p in parch:
@@ -364,6 +364,8 @@ cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose
     if add_letters:
         C = set(self.C)
         C.update(a.Alphabet())
+    else:
+        C = a.Alphabet()
     C = list(C)
     
     b = NewBetaAdic(len(C))
@@ -754,7 +756,7 @@ class BetaAdicMonoid(Monoid_class):
           Default values: between ``5`` and ``16`` depending on the number of generators.
         
         - ``place`` - place of the number field of beta (default: ``None``)
-          The place we should use to evaluate elements of the number field.
+          The place used to evaluate elements of the number field.
         
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
@@ -1468,18 +1470,29 @@ class BetaAdicMonoid(Monoid_class):
         res.emonde()
         return res
     
-    def relations_automaton3 (self, isvide=False, Cd=None, verb=False):
+    def relations_automaton3 (self, isvide=False, Cd=None, ext=False, verb=False):
+        r"""
+            Compute the relation automaton of the beta-adic monoid.
+            For beta algebraic integer only.
+            If isvide is True, it only checks if the automaton is trivial or not.
+            Cd is the set of differences A-B where A and B are the alphabets to compare.
+            ext : automate des relations à l'infini ou pas.
+        """
         if Cd is None:
             Cd = Set([c-c2 for c in self.C for c2 in self.C])
         Cd = list(Cd)
+        sig_on()
         cdef InfoBetaAdic ib
         ib = initInfoBetaAdic(self, Cd=Cd, verb=verb)
         cdef Automate a
-        a = RelationsAutomaton(ib, isvide, verb)
+        a = RelationsAutomaton(ib, isvide, ext, verb)
         r = FastAutomaton(None)
         r.a[0] = a
         r.A = Cd
         freeInfoBetaAdic(ib)
+        sig_off()
+        if isvide:
+            return a.na != 0
         return r
     
     def critical_exponent_aprox (self, niter=10, verb=False):
@@ -1722,8 +1735,8 @@ class BetaAdicMonoid(Monoid_class):
 
                 sage: m = BetaAdicMonoid(1/(1+I), {0,1})
                 sage: import sage.combinat.words.cautomata
-				sage: from sage.combinat.words.cautomata import FastAutomaton
-				sage: ss0 = FastAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
+                sage: from sage.combinat.words.cautomata import FastAutomaton
+                sage: ss0 = FastAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
                 sage: ss1 = FastAutomaton([(0,1,1)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
                 sage: ssi = m.intersection2(ss0, ss1)
                 sage: m.plot2(tss = ssi)     # long time
@@ -2228,7 +2241,43 @@ class BetaAdicMonoid(Monoid_class):
             print "Zero is an inner point iff the %s has non-empty interior."%self
             self.ss = ss
         
-        
+    #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
+    def adherence (self, C, tss=None, verb=False):
+        if verb:
+            print "Calcul de l'automate des relations..."
+        Cd = [c1-c2 for c1 in self.C for c2 in C]
+        if verb:
+            print "Cd=%s"%Cd
+        a = self.relations_automaton3(Cd=Cd, ext=True)
+        if verb:
+            print " -> %s"%a
+        a = a.emonde_inf()
+        if verb:
+            print " Après émondation : %s"%a
+        d={}
+        for c1 in self.C:
+            for c2 in C:
+                if not d.has_key(c1-c2):
+                    d[c1-c2] = []
+                d[c1-c2].append((c1,c2))
+        if verb:
+            print d
+        a2 = a.duplicate(d, verb=verb)
+        if verb:
+            print a2.Alphabet()
+            print a2
+            print "déterminise..."
+        d={}
+        for c1,c2 in a2.Alphabet():
+            d[(c1,c2)] = c2
+        a2 = a2.determinise_proj(d, verb=verb)
+        if verb:
+            print " -> %s"%a2
+        #a2 = a2.emonde()
+        a2 = a2.emonde_inf()
+        if verb:
+            print "Après simplification : %s"%a2
+        return a2    
         
         
         
