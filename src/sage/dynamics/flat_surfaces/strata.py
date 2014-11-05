@@ -458,6 +458,12 @@ class StratumComponent(SageObject):
         """
         return self._stratum
 
+    def genus(self):
+        r"""
+        Return genus of the corresponding stratum
+        """
+        return self.stratum().genus()
+
     def __eq__(self,other):
         r"""
         Equality test
