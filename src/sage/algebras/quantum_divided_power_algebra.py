@@ -62,8 +62,8 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
             sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
             sage: A = UnivariateQuantumDividedPowerAlgebra(Zmod(9), Zmod(9)(2)); A
-            The quantum divided power algebra over Ring of integers modulo 9
-             with quantum parameter 1
+            The quantum divided power algebra over
+             Ring of integers modulo 9 with quantum parameter 2
 
         If you want to implement an algebra which needs not be
         imported in order to be called, you need to add a
