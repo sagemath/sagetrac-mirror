@@ -57,7 +57,7 @@ SageJmolManager.prototype.ready_callback = function (name, applet) {
     console.log('Jmol applet has launched ' + name);
     this._applets[name] = applet;
     this._lru_names.push(name);
-    Jmol.script(applet, "set platformSpeed 6;");
+    Jmol.script(applet, "set platformSpeed 8;");
     this.enforce_limit();
     jQuery('#'+name).parent().append('<div id="'+name+'_hint">Right-click to get options menu.</div>');
 };
