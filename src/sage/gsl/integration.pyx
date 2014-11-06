@@ -212,6 +212,13 @@ def numerical_integral(func, a, b=None,
         Traceback (most recent call last):
         ...
         TypeError: unable to simplify to float approximation
+     
+     :trac:`16788`::
+        
+        sage: numerical_integral(sin(x^2)/(x^2), 1,infinity, max_points=10^10)
+        Traceback (most recent call last):
+        ...
+        ValueError: could not allocate workspace: max_points too big
    """
 
    import inspect
@@ -235,7 +242,6 @@ def numerical_integral(func, a, b=None,
         return (((<double>b - <double>a) * <double>func), 0.0)
 
    cdef gsl_function F
-   cdef gsl_integration_workspace* W
    W=NULL
 
    if not isinstance(func, FastDoubleFunc):
@@ -295,22 +301,23 @@ def numerical_integral(func, a, b=None,
 
    elif algorithm=="qag":
       from sage.rings.infinity import Infinity
+      W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
+      if W == NULL:
+          raise ValueError('could not allocate workspace: max_points too big')
+
       if a is -Infinity and b is +Infinity:
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
 
       elif a is -Infinity:
          _b=b
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
 
       elif b is +Infinity:
          _a=a
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
@@ -318,7 +325,6 @@ def numerical_integral(func, a, b=None,
       else:
          _a=a
          _b=b
-         W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
          sig_off()
