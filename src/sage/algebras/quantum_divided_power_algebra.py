@@ -53,6 +53,26 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
     isomorphic to the polynomial ring `R[t]` by the algebra
     isomorphism which sends every `t_i` to `t^i / i!_q`.
 
+    .. NOTE::
+
+        Due to this being a toy implementation, the univariate
+        quantum divided power algebra is not available in the
+        global namespace for immediate interactive use. Instead,
+        it needs to be explicitly imported before using::
+
+            sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
+            sage: A = UnivariateQuantumDividedPowerAlgebra(Zmod(9), Zmod(9)(2)); A
+            The quantum divided power algebra over Ring of integers modulo 9
+             with quantum parameter 1
+
+        If you want to implement an algebra which needs not be
+        imported in order to be called, you need to add a
+        ``lazy_import`` statement to ``src/sage/algebras/all.py``.
+        In the case of the univariate quantum divided power
+        algebra, it would look as follows::
+
+            lazy_import('sage.algebras.quantum_divided_power_algebra', 'UnivariateQuantumDividedPowerAlgebra')
+
     INPUT:
 
     - ``R`` (default: `\ZZ`): base ring (a commutative ring).
@@ -67,7 +87,7 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: from sage.algebras.all import UnivariateQuantumDividedPowerAlgebra
+        sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
         sage: A = UnivariateQuantumDividedPowerAlgebra(ZZ, 1); A
         The quantum divided power algebra over Integer Ring
          with quantum parameter 1
@@ -163,7 +183,7 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateQuantumDividedPowerAlgebra
+            sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
             sage: A = UnivariateQuantumDividedPowerAlgebra(ZZ)
             sage: A.one()
             B[0]
@@ -190,7 +210,7 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateQuantumDividedPowerAlgebra
+            sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
             sage: A = UnivariateQuantumDividedPowerAlgebra(ZZ)
             sage: B = A.basis()
             sage: B[2]*B[3]
@@ -214,7 +234,7 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateQuantumDividedPowerAlgebra
+            sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
             sage: A = UnivariateQuantumDividedPowerAlgebra(ZZ)
             sage: A.degree_on_basis(3)
             3
@@ -234,7 +254,7 @@ class UnivariateQuantumDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateQuantumDividedPowerAlgebra
+            sage: from sage.algebras.quantum_divided_power_algebra import UnivariateQuantumDividedPowerAlgebra
             sage: A = UnivariateQuantumDividedPowerAlgebra(ZZ)
             sage: A.algebra_generators()
             Family (Non negative integers)

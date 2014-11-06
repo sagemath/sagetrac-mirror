@@ -67,6 +67,26 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
     map :meth:`from_shuffle_algebra`) sends `t_i` to the word
     `x x \cdots x` (with `i` factors `x`).
 
+    .. NOTE::
+
+        Due to this being a toy implementation (and essentially a
+        particular case of the shuffle algebra), the univariate
+        divided power algebra is not available in the global
+        namespace for immediate interactive use. Instead, it
+        needs to be explicitly imported before using::
+
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
+            sage: A = UnivariateDividedPowerAlgebra(Zmod(9)); A
+            The divided power algebra over Ring of integers modulo 9
+
+        If you want to implement an algebra which needs not be
+        imported in order to be called, you need to add a
+        ``lazy_import`` statement to ``src/sage/algebras/all.py``.
+        In the case of the univariate divided power algebra, it
+        would look as follows::
+
+            lazy_import('sage.algebras.divided_power_algebra', 'UnivariateDividedPowerAlgebra')
+
     INPUT:
 
     - ``R``: base ring (a commutative ring).
@@ -78,7 +98,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+        sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
         sage: A = UnivariateDividedPowerAlgebra(ZZ); A
         The divided power algebra over Integer Ring
         sage: TestSuite(A).run()
@@ -117,7 +137,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: A.one()
             B[0]
@@ -144,7 +164,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: B = UnivariateDividedPowerAlgebra(ZZ).basis()
             sage: B[3]*B[4]
             35*B[7]
@@ -161,7 +181,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: B = A.basis()
             sage: A.coproduct(B[4])
@@ -180,7 +200,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: B = A.basis()
             sage: A.counit(B[3])
@@ -200,7 +220,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: B = A.basis()
             sage: A.antipode(B[4]+B[5])
@@ -229,7 +249,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: A.degree_on_basis(3)
             3
@@ -249,7 +269,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(ZZ)
             sage: A.algebra_generators()
             Family (Non negative integers)
@@ -268,7 +288,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(QQ)
             sage: A_bas = A.basis()
             sage: tosh_x = A.to_shuffle_algebra()
@@ -298,7 +318,7 @@ class UnivariateDividedPowerAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.algebras.all import UnivariateDividedPowerAlgebra
+            sage: from sage.algebras.divided_power_algebra import UnivariateDividedPowerAlgebra
             sage: A = UnivariateDividedPowerAlgebra(QQ)
             sage: frosh_x = A.from_shuffle_algebra()
             sage: ShA_x = ShuffleAlgebra(QQ, 'x')
