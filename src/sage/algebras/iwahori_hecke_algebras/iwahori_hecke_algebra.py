@@ -2287,6 +2287,6 @@ def IwahoriHeckeAlgebraT(W, q1, q2=-1, base_ring=None, prefix="T"):
     q2 = base_ring(q2)
     return IwahoriHeckeAlgebra(W, q1=q1, q2=q2, base_ring=base_ring).T(prefix=prefix)
 
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
-                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra().T)
+#from sage.structure.sage_object import register_unpickle_override
+#register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
+#                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra().T)

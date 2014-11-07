@@ -1333,7 +1333,7 @@ class K_kSchur(CombinatorialFreeModule):
             1
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
-        from sage.algebras.iwahori_hecke_algebra.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+        from sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
         W = WeylGroup(['A',self.k,1])
         H = IwahoriHeckeAlgebra(W, 0, base_ring = self.base_ring()).T()
         Hgens = H.algebra_generators()
