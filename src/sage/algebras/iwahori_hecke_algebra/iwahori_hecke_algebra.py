@@ -2289,4 +2289,4 @@ def IwahoriHeckeAlgebraT(W, q1, q2=-1, base_ring=None, prefix="T"):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
-                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebraT)
+                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra().T)
