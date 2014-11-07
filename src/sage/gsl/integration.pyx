@@ -218,7 +218,7 @@ def numerical_integral(func, a, b=None,
         sage: numerical_integral(sin(x^2)/(x^2), 1,infinity, max_points=10^10)
         Traceback (most recent call last):
         ...
-        ValueError: could not allocate workspace: max_points too big
+        MemoryError: could not allocate workspace: max_points too big
    """
 
    import inspect
@@ -303,7 +303,7 @@ def numerical_integral(func, a, b=None,
       from sage.rings.infinity import Infinity
       W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
       if W == NULL:
-          raise ValueError('could not allocate workspace: max_points too big')
+          raise MemoryError('could not allocate workspace: max_points too big')
 
       if a is -Infinity and b is +Infinity:
          sig_on()
