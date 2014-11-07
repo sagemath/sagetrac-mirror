@@ -8,7 +8,7 @@ Nil-Coxeter Algebra
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+from sage.algebras.iwahori_hecke_algebra.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.misc_c import prod
 from sage.rings.rational_field import QQ
