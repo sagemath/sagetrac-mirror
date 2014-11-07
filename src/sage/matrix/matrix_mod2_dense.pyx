@@ -149,7 +149,7 @@ def free_m4ri():
 
 
 
-cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
+cdef class Matrix_mod2_dense(Matrix_mod_dense):
     """
     Dense matrix over GF(2).
     """
@@ -430,6 +430,16 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         mzd_write_bit(self._entries, i, j, int(value))
+
+    # this exists for compatibility with matrix_modn_dense
+    cdef int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Get the (i,j) entry of self as an int.
+        """
+        if mzd_read_bit(self._entries, i, j):
+            return 1
+        else:
+            return 0
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         if mzd_read_bit(self._entries, i, j):

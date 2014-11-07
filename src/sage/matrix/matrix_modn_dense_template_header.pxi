@@ -4,9 +4,9 @@ Dense Matrix Template for C/C++ Library Interfaces
 
 from sage.ext.mod_int cimport *
 
-cimport matrix_dense
+from matrix_mod_dense cimport Matrix_mod_dense
 
-cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
+cdef class Matrix_modn_dense_template(Matrix_mod_dense):
     cdef celement **_matrix
     cdef celement *_entries
     cdef mod_int p
