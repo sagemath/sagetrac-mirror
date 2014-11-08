@@ -327,7 +327,7 @@ from sage.calculus.calculus import maxima
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
-from sage.symbolic.expression import Expression
+from sage.symbolic.expression import is_Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.coerce import parent
 
@@ -1369,21 +1369,9 @@ gegenbauer = ultraspherical
 
 # def laguerre(n,x):
 #     """
-#     Return the Laguerre polynomial for integers `n > -1`.
-# 
-#     REFERENCE:
-# 
-#     - [ASHandbook]_ 22.5.16, page 778 and page 789.
 # 
 #     EXAMPLES::
 # 
-#         sage: x = PolynomialRing(QQ, 'x').gen()
-#         sage: laguerre(2,x)
-#         1/2*x^2 - 2*x + 1
-#         sage: laguerre(3,x)
-#         -1/6*x^3 + 3/2*x^2 - 3*x + 1
-#         sage: laguerre(2,2)
-#         -1
 #     """
 #     _init()
 #     return sage_eval(maxima.eval('laguerre(%s,x)'%ZZ(n)), locals={'x':x})
@@ -1415,6 +1403,11 @@ gegenbauer = ultraspherical
 #     return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
 
 class Func_laguerre(OrthogonalPolynomial):
+    """
+    REFERENCE:
+ 
+    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    """
     def __init__(self):
         r"""
         Init method for the Laguerre polynomials.
@@ -1433,6 +1426,9 @@ class Func_laguerre(OrthogonalPolynomial):
         Return an evaluation or call super.
         
         EXAMPLES::
+        
+            sage: laguerre(99,x,hold=True)
+            laguerre(99, x)
         """        
         if not kwds.get('hold', False):
             ret = self._eval_(n, x, *args, **kwds)
@@ -1447,6 +1443,20 @@ class Func_laguerre(OrthogonalPolynomial):
         
         EXAMPLES::
             
+            sage: x = PolynomialRing(QQ, 'x').gen()
+            sage: laguerre(2,x)
+            1/2*x^2 - 2*x + 1
+            sage: laguerre(3,x)
+            -1/6*x^3 + 3/2*x^2 - 3*x + 1
+            sage: laguerre(2,2)
+            -1
+        
+        TESTS::
+        
+            sage: laguerre(-9,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot eval laguerre(n,x): n must be nonnegative
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
@@ -1468,7 +1478,7 @@ class Func_laguerre(OrthogonalPolynomial):
             sage: laguerre(0, 0)
             1
             sage: laguerre(1, x)
-            1-x
+            -x + 1
         """
         if n == 0:
             return ZZ(1)
@@ -1480,17 +1490,14 @@ class Func_laguerre(OrthogonalPolynomial):
         """
         P = parent(x)
         if not is_PolynomialRing(P):
-            R = PolynomialRing(ZZ, 'x')
-            pol = R([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
-            pol = sum([b*x**a for (a,b) in enumerate(pol)])
-            return pol
+            return sum([binomial(n,k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
         else:
             if x == P.gen():
-                return P([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
+                return P([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
             else:
-                R = PolynomialRing(ZZ, 'x')
-                pol = R([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
-                pol = pol.subs({pol.parent().gen():arg})
+                R = PolynomialRing(QQ, 'x')
+                pol = R([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+                pol = pol.subs({pol.parent().gen():x})
                 pol = pol.change_ring(P.base_ring())
                 return pol
 
@@ -1498,6 +1505,17 @@ class Func_laguerre(OrthogonalPolynomial):
         """
         EXAMPLES::
             
+            sage: laguerre(100,RealField(300)(pi))
+            -0.638322077840648311606324...
+            sage: laguerre(10,1+I)
+            142511/113400*I + 95867/22680
+            
+        TESTS::
+        
+            sage: laguerre(1/2,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: index value n must be nonnegative integer
         """
         if not n in ZZ or n<0:
             raise ValueError("index value n must be nonnegative integer")
@@ -1508,6 +1526,17 @@ class Func_laguerre(OrthogonalPolynomial):
         Return the derivative of `laguerre(n,x)`.
   
         EXAMPLES:: 
+        
+            sage: n=var('n')
+            sage: diff(laguerre(n,x), x)
+            -gen_laguerre(n-1,1,x)
+            
+        TESTS::
+        
+            sage: diff(laguerre(x,x))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
         """
         diff_param = kwds['diff_param'] 
         if diff_param == 0:  
@@ -1516,5 +1545,147 @@ class Func_laguerre(OrthogonalPolynomial):
             return -gen_laguerre(n-1,1,x)
          
 laguerre = Func_laguerre()
-gen_laguerre = Func_laguerre()
 
+class Func_gen_laguerre(OrthogonalPolynomial):
+    """
+    REFERENCE:
+ 
+    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    """
+    def __init__(self):
+        r"""
+        Init method for the Laguerre polynomials.
+
+        EXAMPLES::
+
+            sage: loads(dumps(laguerre))
+            laguerre
+        """
+        OrthogonalPolynomial.__init__(self, "laguerre", nargs=2, latex_name=r"L",
+                conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
+                    'maple':'LaguerreL'})
+
+    def __call__(self, n, x, *args, **kwds):
+        r"""
+        Return an evaluation or call super.
+        
+        EXAMPLES::
+        
+            sage: laguerre(99,x,hold=True)
+            laguerre(99, x)
+        """        
+        if not kwds.get('hold', False):
+            ret = self._eval_(n, x, *args, **kwds)
+            if ret is not None:
+                return ret
+
+        return super(OrthogonalPolynomial,self).__call__(n, x, *args, **kwds)
+
+    def _eval_(self, n, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Laguerre polynomial expression.
+        
+        EXAMPLES::
+            
+            sage: x = PolynomialRing(QQ, 'x').gen()
+            sage: laguerre(2,x)
+            1/2*x^2 - 2*x + 1
+            sage: laguerre(3,x)
+            -1/6*x^3 + 3/2*x^2 - 3*x + 1
+            sage: laguerre(2,2)
+            -1
+        
+        TESTS::
+        
+            sage: laguerre(-9,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot eval laguerre(n,x): n must be nonnegative
+        """
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+        if n in ZZ:
+            if n < 0:
+                raise ValueError("cannot eval laguerre(n,x): n must be nonnegative")
+            return self._pol_laguerre(n, x)
+
+        if SR(x).is_numeric() and SR(n).is_numeric():
+            return self._evalf_(n, x, **kwds)
+
+    def _eval_special_values_(self, n, x):
+        """
+        Special values known.
+        
+        EXAMPLES::
+            
+            sage: laguerre(0, 0)
+            1
+            sage: laguerre(1, x)
+            -x + 1
+        """
+        if n == 0:
+            return ZZ(1)
+        if n == 1:
+            return ZZ(1) - x
+    
+    def _pol_laguerre(self, n, x):
+        """
+        """
+        P = parent(x)
+        if not is_PolynomialRing(P):
+            return sum([binomial(n,k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
+        else:
+            if x == P.gen():
+                return P([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+            else:
+                R = PolynomialRing(QQ, 'x')
+                pol = R([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+                pol = pol.subs({pol.parent().gen():x})
+                pol = pol.change_ring(P.base_ring())
+                return pol
+
+    def _evalf_(self, n, x, **kwds):
+        """
+        EXAMPLES::
+            
+            sage: laguerre(100,RealField(300)(pi))
+            -0.638322077840648311606324...
+            sage: laguerre(10,1+I)
+            142511/113400*I + 95867/22680
+            
+        TESTS::
+        
+            sage: laguerre(1/2,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: index value n must be nonnegative integer
+        """
+        if not n in ZZ or n<0:
+            raise ValueError("index value n must be nonnegative integer")
+        return self._pol_laguerre(n, x)
+
+    def _derivative_(self, n, x, *args,**kwds):
+        """
+        Return the derivative of `laguerre(n,x)`.
+  
+        EXAMPLES:: 
+        
+            sage: n=var('n')
+            sage: diff(laguerre(n,x), x)
+            -gen_laguerre(n-1,1,x)
+            
+        TESTS::
+        
+            sage: diff(laguerre(x,x))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param'] 
+        if diff_param == 0:  
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else:
+            return -gen_laguerre(n-1,1,x)
+         
+gen_laguerre = Func_gen_laguerre()
