@@ -318,14 +318,16 @@ AUTHORS:
 import warnings
 
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, CC
+from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.calculus.calculus import maxima
 
-
+from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
-from sage.symbolic.expression import is_Expression
+from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.coerce import parent
 
@@ -1432,7 +1434,7 @@ class Func_laguerre(OrthogonalPolynomial):
         
         EXAMPLES::
         """        
-        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
+        if not kwds.get('hold', False):
             ret = self._eval_(n, x, *args, **kwds)
             if ret is not None:
                 return ret
@@ -1450,6 +1452,9 @@ class Func_laguerre(OrthogonalPolynomial):
         if ret is not None:
             return ret
         if n in ZZ:
+            if n < 0:
+                raise ValueError("cannot eval laguerre(n,x): n must be nonnegative")
+            return self._pol_laguerre(n, x)
 
         if SR(x).is_numeric() and SR(n).is_numeric():
             return self._evalf_(n, x, **kwds)
@@ -1460,31 +1465,43 @@ class Func_laguerre(OrthogonalPolynomial):
         
         EXAMPLES::
             
-            sage: legendre_P(0, 0)
+            sage: laguerre(0, 0)
             1
-            sage: legendre_P(1, x)
-            x
+            sage: laguerre(1, x)
+            1-x
         """
-        if n == 0 or n == -1:
+        if n == 0:
             return ZZ(1)
         if n == 1:
             return ZZ(1) - x
     
+    def _pol_laguerre(self, n, x):
+        """
+        """
+        P = parent(x)
+        if not is_PolynomialRing(P):
+            R = PolynomialRing(ZZ, 'x')
+            pol = R([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
+            pol = sum([b*x**a for (a,b) in enumerate(pol)])
+            return pol
+        else:
+            if x == P.gen():
+                return P([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
+            else:
+                R = PolynomialRing(ZZ, 'x')
+                pol = R([binomial(n,k)*(-1)^k/factorial(k) for k in xrange(n+1)])
+                pol = pol.subs({pol.parent().gen():arg})
+                pol = pol.change_ring(P.base_ring())
+                return pol
+
     def _evalf_(self, n, x, **kwds):
         """
         EXAMPLES::
             
         """
-        if real_parent.prec() <= 53:
-            from scipy.special import eval_legendre
-            if real_parent is RR:
-                return RR(eval_legendre(float(n), float(x)))
-            else:
-                return real_parent(eval_legendre(float(n), complex(x)))
-        else:
-            import mpmath
-            from sage.libs.mpmath.all import call as mpcall   
-            return mpcall(mpmath.legenp, n, 0, x, parent=real_parent, prec=real_parent.prec())
+        if not n in ZZ or n<0:
+            raise ValueError("index value n must be nonnegative integer")
+        return self._pol_laguerre(n, x)
 
     def _derivative_(self, n, x, *args,**kwds):
         """
@@ -1499,4 +1516,5 @@ class Func_laguerre(OrthogonalPolynomial):
             return -gen_laguerre(n-1,1,x)
          
 laguerre = Func_laguerre()
+gen_laguerre = Func_laguerre()
 
