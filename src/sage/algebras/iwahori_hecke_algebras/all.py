@@ -1,3 +1,3 @@
 from sage.misc.lazy_import import lazy_import
 
-from iwahori_hecke_algebra import IwahoriHeckeAlgebra
+lazy_import('sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra',IwahoriHeckeAlgebra)
