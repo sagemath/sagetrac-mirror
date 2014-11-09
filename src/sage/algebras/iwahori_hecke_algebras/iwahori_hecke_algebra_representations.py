@@ -242,7 +242,7 @@ class IwahoriHeckeAlgebraAction(Action):
 ##       Kazhdan-Lusztig cell representations of Iwahori-Hecke algebras      ##
 ###############################################################################
 
-class LeftCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation)
+class LeftCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation):
     pass
 
 class RightCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation)
