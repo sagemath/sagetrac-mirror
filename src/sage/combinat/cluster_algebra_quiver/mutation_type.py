@@ -272,7 +272,7 @@ def _check_special_BC_cases(dg, n, check_letter_list, check_twist_list,
         if not mut_type == 'unknown':
             mut_type, conn_verts = mut_type
     else:
-        # when conn_vert_list == False, the output of _connected_mutation_type _AAtildeD is simply 'unknown' or the mutation type.
+        # when conn_vert_list is False, the output of _connected_mutation_type _AAtildeD is simply 'unknown' or the mutation type.
         # no 'connecting vertices' need to be computed.
         mut_type = _connected_mutation_type_AAtildeD( dg, ret_conn_vert = False )
         conn_verts = []
@@ -1128,8 +1128,8 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         else:
             long_cycle = [ cycle, ['A',n-1,1] ]
     # if we haven't found a "long_cycle", we are in finite type A
-    if long_cycle == False:
-        long_cycle = [ [], QuiverMutationType(['A',n]) ]
+    if not long_cycle:
+        long_cycle = [[], QuiverMutationType(['A', n])]
 
     # The 'connected vertices' are now computed.
     # Attention: 0-1-2 in type A_3 has connecting vertices 0 and 2, while in type D_3 it has connecting vertex 1;

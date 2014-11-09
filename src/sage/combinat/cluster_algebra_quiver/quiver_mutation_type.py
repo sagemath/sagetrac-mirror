@@ -1491,7 +1491,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type GaRo (Gale-Robinson)
         elif letter == 'GaRo':
-            if twist == None and type(rank) is list and len(rank) == 3 and all( rank[i] in ZZ for i in [0,1,2] ) and rank[0] > 0 and rank[1] > 0 and rank[2] > rank[1] and rank[2] <= rank[0]/2:
+            if twist is None and type(rank) is list and len(rank) == 3 and all( rank[i] in ZZ for i in [0, 1, 2] ) and rank[0] > 0 and rank[1] > 0 and rank[2] > rank[1] and rank[2] <= rank[0]/2:
                 N, r, s = rank
                 self._rank = N
                 self._digraph.allow_multiple_edges(True)
@@ -1577,7 +1577,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                                 
         # type P1 (primitive period 1)
         elif letter == 'P1':
-            if twist == None and type(rank) is list and len(rank) ==2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1]) and rank[1] <= rank[0]/2:
+            if twist is None and type(rank) is list and len(rank) ==2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1]) and rank[1] <= rank[0]/2:
                 N, k = rank
                 self._rank = N
                 zero_again = False
