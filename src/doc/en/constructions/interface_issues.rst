@@ -451,7 +451,7 @@ and orthogonal polynomials
    :math:`n > -1`.
 
 -  laguerre (n, x), gen\_laguerre (n, a, x) - the (generalized)
-   Laguerre poly. for :math:`n > -1`.
+   Laguerre poly.
 
 -  legendre\_P (n, x), legendre\_Q (n, x), gen\_legendre\_P (n, x),
    gen\_legendre\_Q (n, x) - the (generalized) Legendre function of
