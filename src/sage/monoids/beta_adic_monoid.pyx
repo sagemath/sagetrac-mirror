@@ -2329,10 +2329,18 @@ class BetaAdicMonoid(Monoid_class):
             self.ss = ss
         
     #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
-    def adherence (self, C, tss=None, verb=False):
+    def adherence (self, tss=None, C=None, verb=False):
+        if tss is None:
+            if hasattr(self, 'tss'):
+                tss = self.tss
+            else:
+                tss = self.default_ss()
+        if C is None:
+            C = list(self.C)
+        C2 = list(self.C)
         if verb:
             print "Calcul de l'automate des relations..."
-        Cd = [c1-c2 for c1 in self.C for c2 in C]
+        Cd = [c1-c2 for c1 in C2 for c2 in C]
         if verb:
             print "Cd=%s"%Cd
         a = self.relations_automaton3(Cd=Cd, ext=True)
@@ -2342,7 +2350,7 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print " Après émondation : %s"%a
         d={}
-        for c1 in self.C:
+        for c1 in C2:
             for c2 in C:
                 if not d.has_key(c1-c2):
                     d[c1-c2] = []
@@ -2353,6 +2361,11 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print a2.Alphabet()
             print a2
+        ap = tss.product(FastAutomaton(self.default_ss()), verb=verb)
+        a2 = ap.intersection(a2)
+        a2 = a2.emonde_inf()
+        a2 = a2.minimise()
+        if verb:
             print "déterminise..."
         d={}
         for c1,c2 in a2.Alphabet():
@@ -2364,7 +2377,7 @@ class BetaAdicMonoid(Monoid_class):
         a2 = a2.emonde_inf()
         if verb:
             print "Après simplification : %s"%a2
-        return a2    
+        return a2.minimise()
         
         
         

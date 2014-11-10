@@ -107,3 +107,13 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized);
 
 //détermine si le langage de l'automate est vide
 bool emptyLangage (Automaton a);
+
+//determine if the automaton is complete (i.e. with his hole state)
+bool IsCompleteAutomaton (Automaton a);
+
+//complete the automaton (i.e. add a hole state if necessary)
+void CompleteAutomaton (Automaton *a);
+
+
+
+

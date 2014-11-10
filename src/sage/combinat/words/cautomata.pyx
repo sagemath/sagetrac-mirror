@@ -68,6 +68,8 @@ cdef extern from "automataC.h":
     bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
     bool emptyLangage (Automaton a)
     void AddEtat (Automaton *a, bool final)
+    bool IsCompleteAutomaton (Automaton a)
+    void CompleteAutomaton (Automaton *a)
     void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -148,7 +150,7 @@ cdef imagProductDict (dict d, list A1, list A2, list Av=[]):
                     i+=1
     return dv
 
-cdef Dict getProductDict (dict d, list A1, list A2, dict dv=None):
+cdef Dict getProductDict (dict d, list A1, list A2, dict dv=None, verb=True):
     cdef Dict r
     d1 = {}
     d2 = {}
@@ -156,15 +158,22 @@ cdef Dict getProductDict (dict d, list A1, list A2, dict dv=None):
     n1 = len(A1)
     for i in range(n1):
         d1[A1[i]] = i
+    if verb:
+        print d1
     n2 = len(A2)
     for i in range(n2):
         d2[A2[i]] = i
+    if verb:
+        print d2
     if dv is None:
         dv = imagProductDict(d, A1, A2)
     r = NewDict(n1*n2)
     Keys = d.keys()
+    if verb:
+        print "Keys=%s"%Keys
     for (a1,a2) in Keys:
-        r.e[d1[a1]+d2[a2]*n1] = dv[d[(a1,a2)]]
+        if d1.has_key(a1) and d2.has_key(a2):
+            r.e[d1[a1]+d2[a2]*n1] = dv[d[(a1,a2)]]
     return r
 
 def TestAutomaton (a):
@@ -463,7 +472,7 @@ cdef class FastAutomaton:
         if verb:
             print "Av=%s"%Av
             print "dv=%s"%dv
-        dC = getProductDict(d, self.A, b.A, dv=dv)
+        dC = getProductDict(d, self.A, b.A, dv=dv, verb=verb)
         if verb:
             print "dC="
             printDict(dC)
@@ -482,6 +491,90 @@ cdef class FastAutomaton:
         if verb:
             print "d=%s"%d
         return self.product(a, d, verb=verb)
+    
+    #determine if the automaton is complete (i.e. with his hole state)
+    def is_complete (self):
+        sig_on()
+        res = IsCompleteAutomaton(self.a[0])
+        sig_off()
+        return res
+    
+    #give a complete automaton (i.e. with his hole state)
+    def complete (self):
+        sig_on()
+        CompleteAutomaton(self.a)
+        sig_off()
+    
+    def union (self, FastAutomaton a, verb=False):
+        #complete the automata
+        sig_on()
+        CompleteAutomaton(self.a)
+        CompleteAutomaton(a.a)
+        sig_off()
+        
+        #make the product
+        d = {}
+        for l in self.A:
+            if l in a.A:
+                d[(l,l)] = l
+        
+        cdef Automaton ap
+        cdef Dict dC
+        r = FastAutomaton(None)
+        Av = []
+        sig_on()
+        dv = imagProductDict(d, self.A, a.A, Av=Av)
+        sig_off()
+        if verb:
+            print "Av=%s"%Av
+            print "dv=%s"%dv
+        sig_on()
+        dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
+        sig_off()
+        if verb:
+            print "dC="
+            printDict(dC)
+        sig_on()
+        ap = Product(self.a[0], a.a[0], dC)
+        FreeDict(dC)
+        sig_off()
+        
+        #set final states
+        cdef int i,j
+        cdef n1 = self.a.n
+        for i in range(n1):
+            for j in range(a.a.n):
+                ap.e[i+n1*j].final = self.a.e[i].final or a.a.e[j].final
+        
+        r.a[0] = ap
+        r.A = Av
+        #if verb:
+        #    print r
+        #r = r.emonde()
+        #r = r.minimise()
+        return r.emonde().minimise()
+    
+    #return the automaton recognizing the langage shifted
+    def shift (self, verb=False):
+        #détermine la liste des successeurs de l'état initial
+        cdef int i
+        cdef int e
+        l = set()
+        for j in range(self.a.na):
+            e = self.a.e[self.a.i].f[j]
+            if e != -1:
+                l.add(e)
+        l = list(l)
+        if verb:
+            print "états à considérer : %s"%l
+        #calcule l'union des automates
+        a = self.copy()
+        a.set_initial_state(l[0])
+        for i in range(1, len(l)):
+            b = self.copy()
+            b.set_initial_state(l[i])
+            a = a.union(b)
+        return a
         
     def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
         sig_on()

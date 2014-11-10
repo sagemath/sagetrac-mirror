@@ -317,6 +317,43 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 	system(tamp);
 }
 
+//determine if the automaton is complete (i.e. with his hole state)
+bool IsCompleteAutomaton (Automaton a)
+{
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] == -1)
+				return false;
+		}
+	}
+	return true;
+}
+
+//complete the automaton (i.e. add a hole state if necessary)
+void CompleteAutomaton (Automaton *a)
+{
+	int ne = a->n; //nouvel état
+	AddEtat(a, false); //ajoute l'état puits
+	int i,j;
+	for (i=0;i<ne;i++)
+	{
+		for (j=0;j<a->na;j++)
+		{
+			if (a->e[i].f[j] == -1)
+				a->e[i].f[j] = ne;
+		}
+	}
+	for (j=0;j<a->na;j++)
+	{
+		a->e[ne].f[j] = ne;
+	}
+	if (a->i == -1)
+		a->i = ne;
+}
+
 //détermine si les automates sont les mêmes (différents si états permutés)
 bool equalsAutomaton (Automaton a1, Automaton a2)
 {
