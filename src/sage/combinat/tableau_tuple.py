@@ -1383,52 +1383,29 @@ class StandardTableauTuple(TableauTuple):
                     pass
         raise ValueError( '%s must be contained in the tableaux' % k )
 
-    def content(self, k, multicharge):
+    def content(self, k):
         r"""
-        Return the content ``k`` in ``self``.
+        Return the content of the integer ``k`` in the tableau ``self``.
 
-        The content of `k` in a standard tableau. That is, if
-        `k` appears in row `r` and column `c` of the tableau then we
-        return `c-r` + ``multicharge[k]``.
-
-        The ``multicharge`` = `[m_1, \ldots, m_l]` determines the dominant
-        weight
-
-        .. MATH::
-
-            \Lambda = \sum_{i=1}^l \Lambda_{a_i}
-
-        of the affine special linear group. In the combinatorics, the
-        ``muticharge`` simply offsets the contents in each component so that
-        the cell `(k, r, c)` has content `a_k+c-r`.
-
-        INPUT:
-
-        - ``k`` -- An integer with `1 \leq k \leq n`
-
-        - ``multicharge`` -- a sequence of integers of length `l`.
-
-        Here `l` is the :meth:`~TableauTuple.level` and `n` is the
-        :meth:`~TableauTuple.size` of ``self``.
+        If `k` appears in row `r` and column `c` of the `k`th component of theh
+        tableau `self` then the content of `k` in `self` is `(k,c-r)`.
 
         EXAMPLES::
 
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,0])
-            -1
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,1])
-            0
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,2])
-            1
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(6,[0,2])
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3)
+            (1, -1)
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(5)
+            (0, 0)
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(6)
             Traceback (most recent call last):
             ...
             ValueError: 6 must be contained in the tableaux
 
         """
-        for l in range(len(self)):
-            for row in range(len(self[l])):
+        for comp in range(len(self)):
+            for row in range(len(self[comp])):
                 try:
-                    return multicharge[l]-row+self[l][row].index(k)
+                    return (comp, self[comp][row].index(k)-row)
                 except ValueError:
                     ValueError
         raise ValueError( '%s must be contained in the tableaux' % k )

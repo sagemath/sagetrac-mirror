@@ -3528,15 +3528,11 @@ class StandardTableau(SemistandardTableau):
 
 
 
-    def content(self, k, multicharge=[0]):
+    def content(self, k):
         """
         Returns the content of ``k`` in a standard tableau. That is, if
         ``k`` appears in row `r` and column `c` of the tableau then we
         return `c-r`.
-
-        The ``multicharge`` is a list of length 1 which gives an offset for
-        all of the contents. It is included mainly for compatibility with
-        :class:`TableauTuple`.
 
         EXAMPLES::
 
@@ -3550,7 +3546,7 @@ class StandardTableau(SemistandardTableau):
         """
         for r in range(len(self)):
           try:
-            return self[r].index(k) - r + multicharge[0]
+            return self[r].index(k) - r
           except ValueError:
             pass
         raise ValueError("%d does not appear in tableau"%k)

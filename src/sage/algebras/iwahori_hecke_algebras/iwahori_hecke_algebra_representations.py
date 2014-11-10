@@ -110,9 +110,11 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         from sage.algebras.iwahori_hecke_algebras.iwhaori_hecke_algebra import IwhaoriHeckeAlgebra
         self._algebra=HeckeAlgebra
 
-        self._qsum=q1+q2
-        self._qprod=q1+q2
-        pass
+        # Used when multiplying generators: minor speed-up as it avoids the
+        # need to constantly add and multiply the parameters when applying the
+        # quadratic relation: T^2 = (q1+q2)T - q1*q2
+        self._q_sum = q1+q2
+        self._q_prod = -q1*q2
 
     def hecke_algebra_action(self, H):
         r"""
@@ -193,7 +195,7 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
             if verbose: print 'Checking relations on ({term})'.format(term=self(t))
             for r in range(1,self.size()):
                 # check quadratic relations on self(t)
-                assert self(t).T(r,r)==self._qsum*self(t).T(r)+self._qprod*self(t), (
+                assert self(t).T(r,r)==self._q_sum*self(t).T(r)+self._q_prod*self(t), (
                         'Quadratic relation failed for T_{r} on {term}'.format(r=r,term=self(t))
                 )
             if r<self.size()-1:
@@ -292,9 +294,9 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
           for r in range(1,len(shape)+1):
               param.append('Q%s'%r)
           R=PolynomialRing(IntegerRing(),param)
-          q1=R.gen(0)
-          q2=R.gen(1)
-          Q=[R.gen(r+2) for r in range(len(shape))]
+          self._q1=R.gen(0)
+          self._q2=R.gen(1)
+          self._Q=[R.gen(r+2) for r in range(len(shape))]
         else:
             pass
         R=FractionField(R)
