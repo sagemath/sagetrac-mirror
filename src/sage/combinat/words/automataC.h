@@ -15,7 +15,7 @@ void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il
 Automaton NewAutomaton (int n, int na);
 void FreeAutomaton (Automaton *a);
 Automaton CopyAutomaton (Automaton a);
-void init (Automaton a);
+void init (Automaton *a);
 void printAutomaton (Automaton a);
 void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy);
 bool equalsAutomaton (Automaton a1, Automaton a2); //détermine si les automates sont les mêmes (différents si états permutés)
@@ -114,6 +114,7 @@ bool IsCompleteAutomaton (Automaton a);
 //complete the automaton (i.e. add a hole state if necessary)
 void CompleteAutomaton (Automaton *a);
 
-
+//copy the automaton with a new bigger alphabet
+Automaton BiggerAlphabet (Automaton a, Dict d, int nna);
 
 

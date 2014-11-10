@@ -224,16 +224,16 @@ Automaton CopyAutomaton (Automaton a)
 	return r;
 }
 
-void init (Automaton a)
+void init (Automaton *a)
 {
 	int i,j;
-	a.i = -1;
-	for (i=0;i<a.n;i++)
+	a->i = -1;
+	for (i=0;i<a->n;i++)
 	{
-		a.e[i].final = false;
-		for (j=0;j<a.na;j++)
+		a->e[i].final = false;
+		for (j=0;j<a->na;j++)
 		{
-			a.e[i].f[j] = -1;
+			a->e[i].f[j] = -1;
 		}
 	}
 }
@@ -543,6 +543,7 @@ void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d
 
 Automaton Product(Automaton a1, Automaton a2, Dict d)
 {
+	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
 	//compte le nombre de lettres de l'alphabet final
 	int i, na=0;
 	for (i=0;i<d.n;i++)
@@ -551,7 +552,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d)
 			na = d.e[i]+1;
 	}
 	Automaton r = NewAutomaton(a1.n*a2.n, na);
-	init(r);
+	init(&r);
 	if (a1.i == -1 || a2.i == -1)
 	{
 		r.i = -1;
@@ -2272,6 +2273,28 @@ Automaton DeleteVertex (Automaton a, int e)
 		r.e[i].final = a.e[i+(i>=e)].final;
 	}
 	r.i = a.i - (a.i>=e);
+	return r;
+}
+
+Automaton BiggerAlphabet (Automaton a, Dict d, int nna)
+{
+	if (d.n != a.na)
+	{
+		printf("BA Error : the dictionnary must be of the same size as the previous alphabet.\n");
+		return NewAutomaton(0,0);
+	}
+	Automaton r = NewAutomaton(a.n, nna);
+	init(&r);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			r.e[i].f[d.e[j]] = a.e[i].f[j];
+			r.e[i].final = a.e[i].final;
+		}
+	}
+	r.i = a.i;
 	return r;
 }
 

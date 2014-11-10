@@ -41,7 +41,7 @@ cdef extern from "automataC.h":
     Automaton NewAutomaton (int n, int na)
     void FreeAutomaton (Automaton *a)
     Automaton CopyAutomaton (Automaton a)
-    void init (Automaton a)
+    void init (Automaton *a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
     Automaton Product(Automaton a1, Automaton a2, Dict d)
@@ -70,6 +70,7 @@ cdef extern from "automataC.h":
     void AddEtat (Automaton *a, bool final)
     bool IsCompleteAutomaton (Automaton a)
     void CompleteAutomaton (Automaton *a)
+    Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
     void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -261,7 +262,7 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
     cdef int n = len(V)
     cdef int na = len(A)
     r = NewAutomaton(n, na)
-    init(r)
+    init(&r)
     for i in range(na):
         da[A[i]] = i
     for i in range(n):
@@ -409,6 +410,9 @@ cdef class FastAutomaton:
             if f < 0 or f >= self.a.n:
                 raise ValueError("%d is not a state !"%f)
             self.a.e[f].final = 1
+    
+    def is_final (self, e):
+        return Bool(self.a.e[e].final)
     
     def set_final_state (self, int e, final=True):
         self.a.e[e].final = final
@@ -570,9 +574,11 @@ cdef class FastAutomaton:
         #calcule l'union des automates
         a = self.copy()
         a.set_initial_state(l[0])
+        a = a.emonde().minimise()
         for i in range(1, len(l)):
             b = self.copy()
             b.set_initial_state(l[i])
+            b = b.emonde().minimise()
             a = a.union(b)
         return a
         
@@ -819,4 +825,24 @@ cdef class FastAutomaton:
 
     def n_states (self):
         return self.a.n
+
+    def bigger_alphabet (self, list nA):
+        cdef Dict d
+        d = NewDict(self.a.na)
+        for i in range(self.a.na):
+            d.e[i] = nA.index(self.A[i])
+        r = FastAutomaton(None)
+        sig_on()
+        r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
+        sig_off()
+        r.A = nA
+        return r
+
+
+
+
+
+
+
+
 

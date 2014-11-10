@@ -2329,7 +2329,7 @@ class BetaAdicMonoid(Monoid_class):
             self.ss = ss
         
     #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
-    def adherence (self, tss=None, C=None, verb=False):
+    def adherence (self, tss=None, C=None, ext=False, verb=False, step=None):
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
@@ -2340,13 +2340,17 @@ class BetaAdicMonoid(Monoid_class):
         C2 = list(self.C)
         if verb:
             print "Calcul de l'automate des relations..."
-        Cd = [c1-c2 for c1 in C2 for c2 in C]
+        Cd = list(set([c1-c2 for c1 in C2 for c2 in C]))
         if verb:
             print "Cd=%s"%Cd
-        a = self.relations_automaton3(Cd=Cd, ext=True)
+        a = self.relations_automaton3(Cd=Cd, ext=ext)
+        if step == 1:
+            return a
         if verb:
             print " -> %s"%a
         a = a.emonde_inf()
+        if step == 2:
+            return a
         if verb:
             print " Après émondation : %s"%a
         d={}
@@ -2361,25 +2365,75 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print a2.Alphabet()
             print a2
+        if step == 3:
+            return a2
         ap = tss.product(FastAutomaton(self.default_ss()), verb=verb)
+        if step == 4:
+            return ap
         a2 = ap.intersection(a2)
-        a2 = a2.emonde_inf()
+        if step == 5:
+            return a2
+        if ext:
+            a2 = a2.emonde_inf()
+        else:
+            a2 = a2.emonde()
+        if step == 6:
+            return a2
         a2 = a2.minimise()
+        if step == 7:
+            return a2
         if verb:
             print "déterminise..."
         d={}
         for c1,c2 in a2.Alphabet():
             d[(c1,c2)] = c2
         a2 = a2.determinise_proj(d, verb=verb)
+        if step == 8:
+            return a2
         if verb:
             print " -> %s"%a2
-        #a2 = a2.emonde()
-        a2 = a2.emonde_inf()
+        if ext:
+            a2 = a2.emonde_inf()
+        else:
+            a2 = a2.emonde()
+        if step == 9:
+            return a2
         if verb:
             print "Après simplification : %s"%a2
         return a2.minimise()
         
+    #donne l'automate décrivant le translaté de +t, avec les chiffres C
+    def move (self, t, FastAutomaton tss=None, list C=None, step=None):
+        if tss is None:
+            if hasattr(self, 'tss'):
+                tss = FastAutomaton(self.tss)
+            else:
+                tss = FastAutomaton(self.default_ss())
+        if C is None:
+            C = list(set(self.C))
         
+        A = tss.Alphabet()
+        nA = list(set([a+t2 for a in A for t2 in [0,t]]))
+        a = tss.bigger_alphabet(nA)
         
+        #add a new state
+        cdef int ne, ei
+        ei = a.initial_state()
+        ne = a.n_states() #new added state
+        a.add_state(a.is_final(ei))
+        a.set_initial_state(ne) #it is the new initial state
+        if step == 2:
+            return a
         
-        
+        #add edges from the new state (copy edges from the initial state and move them)
+        cdef s
+        for j in range(len(A)):
+            a.set_succ(ne, nA.index(A[j] + t), tss.succ(ei, j))
+        if step == 3:
+            return a
+
+        #compute the adherence of the new automaton
+        return BetaAdicMonoid(self.b, nA).adherence(tss=a, C=C)
+
+
+
