@@ -599,7 +599,7 @@ def xydata_from_point_list(points):
     return xdata, ydata
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, fillxmin=None, fillxmax=None, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
          __original_opts=True, aspect_ratio='automatic')
 def plot(funcs, *args, **kwds):
@@ -779,6 +779,12 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
+
+    - ``fillxmin`` - (Default: None) Starting x value to fill the area between the function and the x-axis.
+      If ``fillxmin`` is not defined, it is set to ``xmin``
+
+    - ``fillxmax`` - (Default: None) End x value to fill the area between the function and the x-axis.
+      If ``fillmax`` is not defined, it is set to ``xmax``.
 
     .. note::
 
@@ -1232,6 +1238,15 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 3 graphics primitives
 
         sage: set_verbose(0)
+
+    Check that :trac:`14599` is fixed:
+
+       sage: f = 5
+       sage: p = plot(f, fill=True, fillxmin=5, fillxmax=1)
+       Traceback (most recent call last):
+       ...
+       ValueError: fillxmin must be lesser than fillxmax, got fillxmin = 5, fillxmax = 1
+
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1479,10 +1494,26 @@ def _plot(funcs, xrange, parametric=False,
     fillcolor = options.pop('fillcolor', 'automatic')
     fillalpha = options.pop('fillalpha', 0.5)
 
+    fillxmin = options.pop('fillxmin', None)
+    fillxmax = options.pop('fillxmax', None)
+
     # TODO: Use matplotlib's fill and fill_between commands.
     if fill is not False and fill is not None:
+        if fillxmin is None:
+            fillxmin = xmin
+        if fillxmax is None:
+            fillxmax = xmax
+
+        data_to_fill = data
+
+        if fillxmin >= fillxmax:
+            raise ValueError('fillxmin must be lesser than fillxmax, got fillxmin = {0}, fillxmax = {1}'.format(fillxmin,fillxmax))
+
+        if fillxmin != xmin or fillxmax != xmax:
+            data_to_fill = [el for el in data if el[0] >= fillxmin and el[0] <= fillxmax]
+
         if parametric:
-            filldata = data
+            filldata = data_to_fill
         else:
             if fill == 'axis' or fill is True:
                 base_level = 0
@@ -1506,7 +1537,7 @@ def _plot(funcs, xrange, parametric=False,
                 filldata = generate_plot_points(fill_f, xrange, plot_points, adaptive_tolerance, \
                                                 adaptive_recursion, randomize)
                 filldata.reverse()
-                filldata += data
+                filldata += data_to_fill
             else:
                 try:
                     base_level = float(fill)
@@ -1517,9 +1548,9 @@ def _plot(funcs, xrange, parametric=False,
                 filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
                                                 adaptive_recursion, randomize)
                 filldata.reverse()
-                filldata += data
+                filldata += data_to_fill
             if not hasattr(fill, '__call__') and not polar:
-                filldata = [(data[0][0], base_level)] + data + [(data[-1][0], base_level)]
+                filldata = [(data_to_fill[0][0], base_level)] + data_to_fill + [(data_to_fill[-1][0], base_level)]
 
         if fillcolor == 'automatic':
             fillcolor = (0.5, 0.5, 0.5)
