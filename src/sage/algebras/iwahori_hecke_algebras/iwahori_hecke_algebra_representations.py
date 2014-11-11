@@ -16,13 +16,12 @@ EXAMPLES::
 """
 
 #*****************************************************************************
-#    Copyright (C) 2014 Andrew Mathas <andrew.mathas@sydney.edu.au>
+#    Copyright (C) 2014 Andrew Mathas <andrew mathas at sydney edu au>
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version. See http://www.gnu.org/licenses/
-#    for more details.
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  The full text of the GPL is available at: http://www.gnu.org/licenses/.
+#
 #*****************************************************************************
 
 
@@ -36,6 +35,7 @@ from sage.rings.fraction_field import FractionField_generic
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 import operator
 
 class IwahoriHeckeAlgebraRepresentations(object):
@@ -106,9 +106,17 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         sage: SeminormalRepresentation([3,2,2], prefix='v').an_element()
         3*v(1,2,7/3,5/4,6) + 2*v(1,3,7/2,5/4,6) + 2*v(1,4,7/2,5/3,6)
     """
-    def __init__(self, R, basis_keys, prefix, q1,q2, module_action="left"):
+    def __init__(self, R, basis_keys, prefix, q1,q2, is_hecke_representation=false, module_action="left"):
         from sage.algebras.iwahori_hecke_algebras.iwhaori_hecke_algebra import IwhaoriHeckeAlgebra
-        self._algebra=HeckeAlgebra
+
+        # in order to allow the corresponding Hecke algebra to act directly on
+        # this module we need to know when something belongs to this algebra
+        if is_hecke_representation:
+            self._algebra=IwahoriHeckeAlgebra(R,q1=q1,q2=q2)
+        else:
+            # if this is not a hecke algebra rep then we need fake iterable so
+            # that a in self._algebra will always fail.
+            self._algebra=[]
 
         # Used when multiplying generators: minor speed-up as it avoids the
         # need to constantly add and multiply the parameters when applying the
@@ -116,34 +124,21 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         self._q_sum = q1+q2
         self._q_prod = -q1*q2
 
-    def hecke_algebra_action(self, H):
-        r"""
-        Return the action of the Hecke algebra `H` upon `self`.
-        """
-        return IwahoriHeckeAlgebraAction(H,self)
+        if module_action=="left":
+            self.Element.L=self.Element._L_left
+            self.Element.T=self.Element._T_left
+        elif module_action=="right":
+            self.Element.L=self.Element._L_right
+            self.Element.T=self.Element._T_right
+        elif module_action=="bimodule":
+            self.Element.L_left=self.Element._L_left
+            self.Element.T_left=self.Element._T_left
+            self.Element.L_right=self.Element._L_right
+            self.Element.T_right=self.Element._T_right
+        else:
+            raise ValueError('module_action must be left, right or bimodule!')
 
-    def _get_action_(self, H, op, self_on_left):
-        print 'H=%s, op=%s, self_on_left=%s'%(H,op,self_on_left)
-        if is_Algebra(H) and op==operator.mul and self_on_left:
-            return self.hecke_algebra_action(H)
-        return None
-
-    def character(self, *arg):
-        r"""
-        Return the trace of `T_w` acting on the representation, where `w` is the
-        permutation corresponding to the (reduced) expression given by `*arg`.
-
-        EXAMPLES::
-
-                sage: SeminormalRepresentation([3,2,1]).character()
-                16
-                sage: SeminormalRepresentation([3,2,1]).character(1)
-                (-8*q^7 + 8*q^9)/q^8
-        """
-        trace=0
-        for t in self._basis_keys:
-            trace+=self(t).T(*arg).coefficient(t)
-        return trace
+    ## computing the action of the generators ---------------------------
 
     @cached_method
     def _Tr_matrix(self,r):
@@ -172,14 +167,61 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         """
         return prod(self._Tr_matrix(r) for r in arg)
 
-    def _T_on_basis(self, b, r):
+    def _L_on_basis(self, b, r):
         r"""
-        Returns the result of `T_r` acting on `self(b)`.
+        Returns the result of `L_r` acting on `b`.
         """
         raise NotImplementedError('the action on the basis has not been implemented yet!')
 
-    def action(self, a):
-        return sum(c*self.T_matrix( *w.reduced_word() ) for (w,c) in a.to_T_basis())
+    def _T_on_basis(self, b, r):
+        r"""
+        Returns the result of `T_r` acting on `b`.
+        """
+        raise NotImplementedError('the action on the basis has not been implemented yet!')
+
+    def character(self, *arg):
+        r"""
+        Return the trace of `T_w` acting on the representation, where `w` is the
+        permutation corresponding to the (reduced) expression given by `*arg`.
+
+        EXAMPLES::
+
+                sage: SeminormalRepresentation([3,2,1]).character()
+                16
+                sage: SeminormalRepresentation([3,2,1]).character(1)
+                (-8*q^7 + 8*q^9)/q^8
+        """
+        trace=0
+        for t in self._basis_keys:
+            trace+=self(t).T(*arg).coefficient(t)
+        return trace
+
+    ## Hecke algebra action ---------------------------
+
+    def hecke_algebra_action(self, H):
+        r"""
+        Return the action of the Hecke algebra `H` upon `self`.
+        """
+        return IwahoriHeckeAlgebraAction(H,self)
+
+    def _get_action_(self, H, op, self_on_left):
+        r"""
+
+        TODO: bimodule action!
+
+        """
+        print 'H=%s, op=%s, self_on_left=%s'%(H,op,self_on_left)
+        if is_Algebra(H) and op==operator.mul and self_on_left:
+            return self.hecke_algebra_action(H)
+        return None
+
+    def action(self,a):
+        if not a in self._algebra:
+            raise ValueError('%{a} does not act on {rep}'.format{a=a,rep=self}
+
+        return self.parent().sum(c*self.T( *w.reduced_word() ) for (w,c) in a.to_T_basis)
+
+    ## check that the algebra's relations are satisfied on the representation ---------------------------
 
     def check_relations(self, verbose=False):
         r"""
@@ -212,6 +254,9 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
 
 
     class Element(CombinatorialFreeModule.Element):
+        r"""
+        Element methods.
+        """
 
         def _Tr(self,r):
             r"""
@@ -226,7 +271,22 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
 
             return self.parent().sum(coeff*self.parent()._T_on_basis(b,r) for (b,coeff) in self)
 
-        def T(self,*args):
+        def _T_left(self,*args):
+            r"""
+            Compute the action of `T_w` on self, where `w` is the permutation
+            corresponding to the (reduced) word `*args`.
+
+            EXAMPLES::
+
+                sage: SeminormalRepresentation([2,2]).an_element().T(1)
+                2*q*f(1,2/3,4) + (2/(-q))*f(1,3/2,4)
+            """
+            v=self
+            for r in args[::-1]:
+                v=v._Tr(r)
+            return v
+
+        def _T_right(self,*args):
             r"""
             Compute the action of `T_w` on self, where `w` is the permutation
             corresponding to the (reduced) word `*args`.
@@ -240,11 +300,6 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
             for r in args:
                 v=v._Tr(r)
             return v
-
-        def action(self,a):
-            return self.parent().sum(c*self.T( *w.reduced_word() ) for (w,c) in a.to_T_basis)
-
-
 
 class IwahoriHeckeAlgebraAction(Action):
     r"""
@@ -279,31 +334,19 @@ class RightCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation):
 
 class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
     @staticmethod
-    def __classcall__(cls, shape, q1=None, q2=None, charge=None, Q=None, prefix='f'):
+    def __classcall__(cls, shape, *args, **kwargs):
         """
         Magic to allow class to accept a list (which is not hashable) instead
-        of a composition (which apparently is).
+        of a :class:`PartitionTuple`, which apparently is.
 
         EXAMPLES::
 
             sage: SeminormalRepresentation([3,2,1])    # indirect doctest
             SeminormalRepresentation([3,2,1])
         """
-        if q1 is None and q2 is None and charge is None and Q is None:
-          param=['u','v']
-          for r in range(1,len(shape)+1):
-              param.append('Q%s'%r)
-          R=PolynomialRing(IntegerRing(),param)
-          self._q1=R.gen(0)
-          self._q2=R.gen(1)
-          self._Q=[R.gen(r+2) for r in range(len(shape))]
-        else:
-            pass
-        R=FractionField(R)
-        return super(SeminormalRepresentation, cls).__classcall__(cls, 
-                     PartitionTuple(shape), q1, q2, Q, prefix)
+        return super(SeminormalRepresentation, cls).__classcall__(cls, PartitionTuple(shape), *args, **kwargs)
 
-    def __init__(self, shape, prefix):
+    def __init__(self, q1, q2=-1, charge=None, degenerate=False, prefix='M', **kwargs):
         r"""
         Initialisation of a seminormal representation of the symmetric group
         indexed by the partition `shape` and where the basis elements are
@@ -314,6 +357,23 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
             sage: SeminormalRepresentation([3,2,1])    # indirect doctest
             SeminormalRepresentation([3,2,1])
         """
+        self._shape=shape
+        self._prefix=prefix
+        self._degenerate=degenerate
+
+        # create shortcuts for the appropriate content function
+        if self._degenerate:
+            if len(shape.components())==1:
+                self._tableau_content=_degenerate_content_level_one
+            else:
+                self._tableau_content=_degenerate_content
+            else:
+        else:
+            if len(shape.components())==1:
+                self._tableau_content=_nondegenerate_content_level_one
+            else:
+                self._tableau_content=_nondegenerate_content
+
         # We need to build the base ring that splits our module. It needs to
         # contain the inverses and square roots of the quantum integers [k]_q,
         # for 0\le k\le n. To achieve this we start with the ring of Laurent
@@ -321,8 +381,17 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
         # square roots that we need. At the end we throw in a square of -1. We
         # don't use the ComplexField() because this seems to drag along with it
         # unwanted precision when printing.
-        self._shape=shape
-        self._prefix=prefix
+
+        if q1 is None and q2==-1 and charge is None and Q is None:
+          param=['u','v']
+          for r in range(1,len(shape)+1):
+              param.append('Q%s'%r)
+          R=PolynomialRing(IntegerRing(),param)
+          self._q1=R.gen(0)
+          self._q2=R.gen(1)
+          self._Q=[R.gen(r+2) for r in range(len(shape))]
+        else:
+            pass
         Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
         self.q=Fq.gen()
         roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
@@ -340,7 +409,9 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
         for k in range(1,shape.size()):
             self.__quantum_integer_root[k+1]=F.gen(k)
         self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
-        CombinatorialFreeModule.__init__(self,F,shape.standard_tableaux(), prefix='f')
+        super(SeminormalRepresentation_generic,self).__init__(R=F,
+                basis_keys=shape.standard_tableau, q1=self._q1,
+                q2=self._q2, **kwargs);
 
     def shape(self):
         r"""
@@ -413,8 +484,34 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
         """
         return self.monomial(self._basis_keys(t))
 
+    def _degenerate_content(self, t, r):
+        r"""
+        Return the content of the integer `r` in the tableau `t` in the degenerate case.
+        """
+        c=t.content(r)
+        return self._quantum_integer(self._charge[c[0]]+c[1])
+
+    def _degenerate_content_level_one(self, t, r):
+        r"""
+        Return the content of the integer `r` in the tableau `t` in the degenerate case.
+        """
+        return self._quantum_integer(t.content(r))
+
+    def _nondegenerate_content(self, t, r):
+        r"""
+        Return the content of the integer `r` in the tableau `t` in the degenerate case.
+        """
+        c=t.content(r)
+        return self._Q[c[0]]*self._q_prod**c[1]
+
+    def _nondegenerate_content_level_one(self, t, r):
+        r"""
+        Return the content of the integer `r` in the tableau `t` in the degenerate case.
+        """
+        return self._q_prod**t.content(r)
+
 class SeminormalRepresentation(SeminormalRepresentation_generic):
-    def __init__(self, shape, prefix='v'):
+    def __init__(self, shape, prefix='v', **kwargs):
         r"""
         Initialisation of a seminormal representation of the symmetric group
         indexed by the partition `shape` and where the basis elements are
@@ -739,6 +836,13 @@ class SpechtModuleWithMurphyBasis(SeminormalRepresentation_generic):
                 mtabr += specht._specialise_coeff(c) * self.parent().monomial(s)
 
            return mtabr
+
+    @cached_method
+    def _murphy(self,tab):
+        r"""
+        Return the Murphy basis element indexed by the tableau `tab` as a linear
+        combination of seminormal basis elements.
+        """
 
 
 class SeminormalRepresentation_Alternating(SeminormalRepresentation_generic):
