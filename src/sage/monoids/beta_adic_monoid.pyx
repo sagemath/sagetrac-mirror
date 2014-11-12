@@ -106,7 +106,7 @@ cdef getElement (e, Element r, int n):
 
 cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
     #compute all the data in sage
-    K = NumberField((1/self.b).minpoly(), 'b')
+    K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(self.b))
     b = K.gen()
     C = [c.lift()(1/b) for c in self.C]
     if verb:
@@ -2329,15 +2329,16 @@ class BetaAdicMonoid(Monoid_class):
             self.ss = ss
         
     #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
-    def adherence (self, tss=None, C=None, ext=False, verb=False, step=None):
+    def adherence (self, tss=None, C=None, C2=None, ext=False, verb=False, step=None):
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
             else:
                 tss = self.default_ss()
         if C is None:
-            C = list(self.C)
-        C2 = list(self.C)
+            C = list(set(self.C))
+        if C2 is None:
+            C2 = list(set(tss.Alphabet()))
         if verb:
             print "Calcul de l'automate des relations..."
         Cd = list(set([c1-c2 for c1 in C2 for c2 in C]))
@@ -2413,7 +2414,8 @@ class BetaAdicMonoid(Monoid_class):
             C = list(set(self.C))
         
         A = tss.Alphabet()
-        nA = list(set([a+t2 for a in A for t2 in [0,t]]))
+        k = self.b.parent()
+        nA = list(set([k(a+t2) for a in A for t2 in [0,t]]))
         a = tss.bigger_alphabet(nA)
         
         #add a new state
@@ -2433,7 +2435,7 @@ class BetaAdicMonoid(Monoid_class):
             return a
 
         #compute the adherence of the new automaton
-        return BetaAdicMonoid(self.b, nA).adherence(tss=a, C=C)
+        return self.adherence(tss=a, C=C, C2=nA)
 
 
 
