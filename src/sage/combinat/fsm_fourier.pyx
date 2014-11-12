@@ -409,7 +409,7 @@ def _reduce_resolution_(data, x_min, x_max, resolution):
     such that `y_\mathrm{min}\le y\le y_\mathrm{max}` and
     `0\le x-x'< (x_\mathrm{max}-x_\mathrm{min})/\mathit{resolution}`.
 
-    A list plot of the original list thus corresponds to the line
+    A list plot of the original list thus corresponds to plot of the vertical line
     segments defined by the output.
 
     EXAMPLE::
@@ -418,6 +418,18 @@ def _reduce_resolution_(data, x_min, x_max, resolution):
         sage: _reduce_resolution_(((i/10, i) for i in range(10)), # optional - arb
         ....:                    0, 1, 2)
         [(0.0, 0, 4), (0.5, 5, 9)]
+
+        sage: _reduce_resolution_(((1 - i/10, i) for i in range(1, 11)), # optional - arb
+        ....:                    0, 1, 2)
+        [(0.0, 6, 10), (0.5, 1, 5)]
+
+        sage: _reduce_resolution_(((0, 2), (0.2, 1), (0.4, 0), # optional - arb
+        ....:                      (0.6, 1.5), (0.8, 3)), 0, 1, 2)
+        [(0.0, 0, 2), (0.5, 1.50000000000000, 3)]
+
+        sage: _reduce_resolution_([(0, 10)],  # optional - arb
+        ....:                    0, 1, 2)
+        [(0.0, 10, 10)]
 
     TESTS::
 
@@ -448,7 +460,7 @@ def _reduce_resolution_(data, x_min, x_max, resolution):
         if current is None:
             result[i] = (y, y)
         else:
-            result[i] = (min(y, current[0]), max(y, current[0]))
+            result[i] = (min(y, current[0]), max(y, current[1]))
     return [(x_min + (<double> i)/f, y[0], y[1])
             for i, y in enumerate(result)
             if y is not None]
