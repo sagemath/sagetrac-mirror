@@ -241,7 +241,6 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_di
 
 import pexpect
 
-from sage.misc.cite import cite
 from sage.misc.misc import verbose, DOT_SAGE
 from sage.misc.pager import pager
 
@@ -279,11 +278,12 @@ class Maple(Expect):
                         server_tmpdir = server_tmpdir,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=1)  # very important that this is 1
+                        eval_using_file_cutoff=1,  # very important that this is 1
         # It's very important to use file i/o for everything,
         # since maple stupid command line interface always
         # dumps you into the editor when an error occurs,
         # and I can find no way to turn it off!!
+                        citation = "maple")
 
     def _function_class(self):
         """
@@ -541,8 +541,6 @@ connection to a server running Maple; for hints, type
             sage: maple._eval_line('2+2')  # optional - maple
             '4'
         """
-        cite("maple")
-
         line += ';'
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,

@@ -819,6 +819,9 @@ If this all works, you can then make calls like:
             5
 
         """
+        if self._citation:
+            cite(self._citation)
+
         if allow_use_file and wait_for_prompt and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
             return self._eval_line_using_file(line)
         try:
@@ -1204,8 +1207,6 @@ If this all works, you can then make calls like:
         -  ``**kwds``     -- All other arguments are passed onto the _eval_line
                              method. An often useful example is reformat=False.
         """
-        cite(self._citation)
-
         if synchronize:
             try:
                 self._synchronize()

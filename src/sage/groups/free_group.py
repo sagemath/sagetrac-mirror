@@ -69,7 +69,7 @@ from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
-
+from sage.misc.cite import cite
 
 def is_FreeGroup(x):
     """

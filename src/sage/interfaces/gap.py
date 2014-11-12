@@ -575,6 +575,8 @@ class Gap_generic(Expect):
 
 
     def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):
+        cite("gap")
+
         if self._expect is None: # interface is down
             self._start()
         E = self._expect
@@ -1348,8 +1350,6 @@ class Gap(Gap_generic):
         self._eval_line("$SAGE.StopInteract();")
 
     def _eval_line_using_file(self, line):
-        cite("gap")
-
         i = line.find(':=')
         if i != -1:
             j = line.find('"')

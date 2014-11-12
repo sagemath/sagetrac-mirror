@@ -104,7 +104,7 @@ from sage.misc.misc import get_verbose
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
-from sage.misc.citation_cython import cite
+from sage.misc.cite import cite
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """

@@ -124,7 +124,8 @@ class Mupad(Expect):
                         server_tmpdir = server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        logfile = None)
+                        logfile = None,
+                        citation = "mupad")
 
 
 

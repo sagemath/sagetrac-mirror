@@ -32,23 +32,6 @@ class CitationItem( SageObject, UniqueRepresentation ):
         True
     """
 
-    def re(self):
-        r"""
-        Regular expressions matching modules which can be cited using
-        this item.
-
-        OUTPUT:
-
-        A list of compiled regular expressions.
-
-        EXAMPLES::
-
-            sage: from sage.misc.citation_items.axiom import *
-            sage: [r.pattern for r in Axiom_CitationItem().re()]
-            [...'^sage.interfaces.axiom'...]
-        """
-        return [re.compile(s) for s in self._re]
-
     def _latex_citation_label(self):
         r"""
         A LaTeX citation label which can be used in combination with

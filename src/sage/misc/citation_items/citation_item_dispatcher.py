@@ -11,9 +11,9 @@ AUTHOR:
 
 EXAMPLES::
 
-    sage: from sage.misc.citation.citation_item_dispatcher import get_citation_item
+    sage: from sage.misc.citation_items.citation_item_dispatcher import get_citation_item
     sage: get_citation_item("singular")
-    singular
+    Singular
 """
 
 def get_citation_item(item_str):
@@ -34,43 +34,43 @@ def get_citation_item(item_str):
         sage: get_citation_item("ecm")
         ECM
     """
-    return citation_items[item_str.lower_case()]()
+    return citation_items_by_string[item_str.lower()]()
 
-import sage.misc.citation_items as citation_items_module
-citation_items = {
-    "axiom" : citation_items_module.axiom.Axiom_CitationItem,
-    "ecm" : citation_items_module.ecm.ECM_CitationItem,
-    "flint" : citation_items_module.flint.FLINT_CitationItem,
-    "frobby" : citation_items_module.frobby.Frobby_CitationItem,
-    "gap" : citation_items_module.gap.GAP_CitationItem,
-    "gfan" : citation_items_module.gfan.gfan_CitationItem,
-    "ginac" : citation_items_module.ginac.ginac_CitationItem,
-    "givaro" : citation_items_module.givaro.Givaro_CitationItem,
-    "gmp" : citation_items_module.gmp.GMP_CitationItem,
-    "kash" : citation_items_module.kash.KASH_CitationItem,
-    "lie" : citation_items_module.lie.LiE_CitationItem,
-    "linbox" : citation_items_module.linbox.Linbox_CitationItem,
-    "m4ri" : citation_items_module.m4ri.M4RI_CitationItem,
-    "macaulay2" : citation_items_module.macaulay2.Macaulay2_CitationItem,
-    "magma" : citation_items_module.magma.Magma_CitationItem,
-    "maple" : citation_items_module.maple.Maple_CitationItem,
-    "mathematica" : citation_items_module.mathematica.Mathematica_CitationItem,
-    "matlab" : citation_items_module.matlab.matlab_CitationItem,
-    "maxima" : citation_items_module.maxima.Maxima_CitationItem,
-    "mpfi" : citation_items_module.mpfi.MPFI_CitationItem,
-    "mpfr" : citation_items_module.mpfr.MPFR_CitationItem,
-    "mupad" : citation_items_module.mupad.MuPAD_CitationItem,
-    "mwrank" : citation_items_module.mwrank.mwrank_CitationItem,
-    "ntl" : citation_items_module.ntl.NTL_CitationItem,
-    "numpy" : citation_items_module.numpy.numpy_CitationItem,
-    "octave" : citation_items_module.octave.Octave_CitationItem,
-    "pari" : citation_items_module.pari.PARI_CitationItem,
-    "polybori" : citation_items_module.polybori.PolyBoRi_CitationItem,
-    "povray" : citation_items_module.povray.povray_CitationItem,
-    "qsieve" : citation_items_module.qsieve.qsieve_CitationItem,
-    "r" : citation_items_module.r.R_CitationItem,
-    "scipy" : citation_items_module.scipy.scipy_CitationItem,
-    "singular" : citation_items_module.singular.Singular_CitationItem,
-    "symmetrica" : citation_items_module.symmetrica.Symmetrica_CitationItem,
-    "tachyon" : citation_items_module.tachyon.Tachyon_CitationItem
+import sage.misc.citation_items.all as citation_items
+citation_items_by_string = {
+    "axiom" : citation_items.Axiom_CitationItem,
+    "ecm" : citation_items.ECM_CitationItem,
+    "flint" : citation_items.FLINT_CitationItem,
+    "frobby" : citation_items.Frobby_CitationItem,
+    "gap" : citation_items.GAP_CitationItem,
+    "gfan" : citation_items.gfan_CitationItem,
+    "ginac" : citation_items.ginac_CitationItem,
+    "givaro" : citation_items.Givaro_CitationItem,
+    "gmp" : citation_items.GMP_CitationItem,
+    "kash" : citation_items.KASH_CitationItem,
+    "lie" : citation_items.LiE_CitationItem,
+    "linbox" : citation_items.Linbox_CitationItem,
+    "m4ri" : citation_items.M4RI_CitationItem,
+    "macaulay2" : citation_items.Macaulay2_CitationItem,
+    "magma" : citation_items.Magma_CitationItem,
+    "maple" : citation_items.Maple_CitationItem,
+    "mathematica" : citation_items.Mathematica_CitationItem,
+    "matlab" : citation_items.matlab_CitationItem,
+    "maxima" : citation_items.Maxima_CitationItem,
+    "mpfi" : citation_items.MPFI_CitationItem,
+    "mpfr" : citation_items.MPFR_CitationItem,
+    "mupad" : citation_items.MuPAD_CitationItem,
+    "mwrank" : citation_items.mwrank_CitationItem,
+    "ntl" : citation_items.NTL_CitationItem,
+    "numpy" : citation_items.numpy_CitationItem,
+    "octave" : citation_items.Octave_CitationItem,
+    "pari" : citation_items.PARI_CitationItem,
+    "polybori" : citation_items.PolyBoRi_CitationItem,
+    "povray" : citation_items.povray_CitationItem,
+    "qsieve" : citation_items.qsieve_CitationItem,
+    "r" : citation_items.R_CitationItem,
+    "scipy" : citation_items.scipy_CitationItem,
+    "singular" : citation_items.Singular_CitationItem,
+    "symmetrica" : citation_items.Symmetrica_CitationItem,
+    "tachyon" : citation_items.Tachyon_CitationItem
 }

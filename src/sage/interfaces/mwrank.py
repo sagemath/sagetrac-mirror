@@ -19,7 +19,6 @@ Interface to mwrank
 
 import os, weakref
 from expect import Expect
-from sage.misc.cite import cite
 
 instances={}
 def Mwrank(options="", server=None, server_tmpdir=None):
@@ -192,7 +191,8 @@ class Mwrank_class(Expect):
                         server_tmpdir = server_tmpdir,
                         maxread = 10000,
                         restart_on_ctrlc = True,
-                        verbose_start = False)
+                        verbose_start = False,
+                        citation = "mwrank")
 
     def __getattr__(self, attrname):
         """
@@ -307,8 +307,6 @@ class Mwrank_class(Expect):
             sage: mwrank.eval((12, 3, 4, 5, 6))
             'Curve [12,3,4,5,6] :...'
         """
-        cite("mwrank")
-
         if self._expect is not None and not self._expect.isalive():
             # if mwrank is interrupted twice in rapid succession,
             # then it doesn't restart correctly, and we're left with:

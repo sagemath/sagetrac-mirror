@@ -322,7 +322,8 @@ class Magma(Expect):
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        citation="magma")
         # We use "-n" above in the Magma startup command so
         # local user startup configuration is not read.
 
@@ -383,8 +384,6 @@ class Magma(Expect):
             sage: magma._read_in_file_command('file.m')
             'load "file.m";'
         """
-        cite("magma")
-
         return 'load "%s";'%filename
 
     def _post_process_from_file(self, s):
@@ -524,8 +523,6 @@ class Magma(Expect):
             '[ 3, 5 ]'
 
         """
-        cite("magma")
-
         x = self._preparse(x)
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':

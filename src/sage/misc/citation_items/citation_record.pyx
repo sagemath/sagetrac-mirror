@@ -27,10 +27,18 @@ EXAMPLES::
     Print BibTeX code by calling method print_bibtex().
     \cite{software-ecm, software-pari}
     sage: rec.print_bibtex()
-    @Misc{software-ecm,
-        Author = {Charron, T. and Daminelli, N. and Granlund, Torbjorn and Leyland, P., and Zimmermann, Paul},
-        Title = {{P. The ECMNET Project}},
-        Howpublished = {{\url{http://www.loria.fr/∼zimmerma/ecmnet/}}},
+    @InProceedings{software-ecm,
+        author =         {Zimmermann, Paul and Dodson, Bruce},
+        title =          {20 years of {ECM}},
+        booktitle =      {Proceedings of the 7th Algorithmic Number Theory Symposium
+        (ANTS VII)},
+        pages =  {525--542},
+        year =   2006,
+        editor =         {Hess, F. and Pauli, S. and Pohst, M.},
+        volume =         4076,
+        series =         {{LNCS}},
+        address =        {Berlin Heidelberg},
+        publisher =      {{Springer}}
         }
     <BLANKLINE>
     @misc{software-pari,
@@ -40,7 +48,6 @@ EXAMPLES::
         note = {{Version~2.5.5}},
         howpublished          = {{\url{http://pari.math.u-bordeaux.fr}}},
         }
-
 """
 
 ###########################################################################
@@ -81,10 +88,18 @@ class CitationRecord( SageObject, list ):
                 howpublished          = {{\url{http://pari.math.u-bordeaux.fr}}},
                 }
             <BLANKLINE>
-            @Misc{software-ecm,
-                Author = {Charron, T. and Daminelli, N. and Granlund, Torbjorn and Leyland, P., and Zimmermann, Paul},
-                Title = {{P. The ECMNET Project}},
-                Howpublished = {{\url{http://www.loria.fr/∼zimmerma/ecmnet/}}},
+            @InProceedings{software-ecm,
+                author =         {Zimmermann, Paul and Dodson, Bruce},
+                title =          {20 years of {ECM}},
+                booktitle =      {Proceedings of the 7th Algorithmic Number Theory Symposium
+                (ANTS VII)},
+                pages =  {525--542},
+                year =   2006,
+                editor =         {Hess, F. and Pauli, S. and Pohst, M.},
+                volume =         4076,
+                series =         {{LNCS}},
+                address =        {Berlin Heidelberg},
+                publisher =      {{Springer}}
                 }
         """
         return "\n\n".join(item.bibtex() for item in self)
@@ -111,10 +126,18 @@ class CitationRecord( SageObject, list ):
                 howpublished          = {{\url{http://pari.math.u-bordeaux.fr}}},
                 }
             <BLANKLINE>
-            @Misc{software-ecm,
-                Author = {Charron, T. and Daminelli, N. and Granlund, Torbjorn and Leyland, P., and Zimmermann, Paul},
-                Title = {{P. The ECMNET Project}},
-                Howpublished = {{\url{http://www.loria.fr/∼zimmerma/ecmnet/}}},
+            @InProceedings{software-ecm,
+                author =       {Zimmermann, Paul and Dodson, Bruce},
+                title =        {20 years of {ECM}},
+                booktitle =    {Proceedings of the 7th Algorithmic Number Theory Symposium
+                (ANTS VII)},
+                pages =        {525--542},
+                year =         2006,
+                editor =       {Hess, F. and Pauli, S. and Pohst, M.},
+                volume =       4076,
+                series =       {{LNCS}},
+                address =      {Berlin Heidelberg},
+                publisher =    {{Springer}}
                 }
         """
         print self.bibtex()

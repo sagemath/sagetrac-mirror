@@ -17,4 +17,3 @@ class Macaulay2_CitationItem( CitationItem ):
     howpublished = {{\ulr{http://www.math.uiuc.edu/Macaulay2}},
 }
     """
-o

@@ -552,7 +552,8 @@ class Maxima(MaximaAbstract, Expect):
                         verbose_start = False,
                         init_code = init_code,
                         logfile = logfile,
-                        eval_using_file_cutoff=eval_using_file_cutoff)
+                        eval_using_file_cutoff=eval_using_file_cutoff,
+                        citation = "maxima")
         # Must match what is in the file local/bin/sage-maxima.lisp
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
@@ -619,6 +620,9 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('t')
             '9'
         """
+        if self._citation:
+            cite(self._citation)
+
         self._sendstr(str)
         os.write(self._expect.child_fd, os.linesep)
 

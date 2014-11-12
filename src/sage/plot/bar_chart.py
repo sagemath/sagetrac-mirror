@@ -22,6 +22,7 @@ from sage.plot.primitive import GraphicPrimitive
 from sage.plot.plot import minmax_data
 from sage.plot.graphics import Graphics
 from sage.misc.decorators import options, rename_keyword
+from sage.misc.cite import cite
 
 #TODO: make bar_chart more general
 class BarChart(GraphicPrimitive):

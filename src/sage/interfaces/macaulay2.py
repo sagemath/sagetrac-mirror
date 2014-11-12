@@ -99,7 +99,6 @@ import os
 from expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
 
 from sage.misc.multireplace import multiple_replace
-from sage.misc.cite import cite
 
 import re
 
@@ -185,7 +184,8 @@ class Macaulay2(Expect):
                         script_subdirectory = script_subdirectory,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=500)
+                        eval_using_file_cutoff=500,
+                        citation="macaulay2")
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide
     # garbage collection; since expect automatically reuses variable names,
@@ -259,8 +259,6 @@ class Macaulay2(Expect):
             sage: macaulay2.eval("2+2") #optional
             4
         """
-        cite("macaulay2")
-
         code = code.strip()
         # TODO: in some cases change toExternalString to toString??
         ans = Expect.eval(self, code, strip=strip, **kwds).strip('\n')

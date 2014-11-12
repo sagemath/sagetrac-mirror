@@ -19,7 +19,7 @@ same code was provided without the citations statement.
     1/3
     The computation used the following components.
     Access them as a list by calling latest_citations().
-        ginac, Maxima
+        GMP, ginac, Maxima
 
 As the statement tells us, we can access the citation items as a list
 of :class:`~sage.misc.citation_items.citation_item.CitationItem`'s.
@@ -29,10 +29,10 @@ allow for automatically generating Bibtex code.
 ::
 
     sage: latest_citations()
-    [ginac, Maxima]
+    [GMP, ginac, Maxima]
     sage: latest_citations().print_latex_citation()
     Print BibTeX code by calling method print_bibtex().
-    \cite{software-ginac, software-maxima}
+    \cite{software-gmp, software-ginac, software-maxima}
 
 For certain purposes, it is desirable to only record citations of some
 parts of the computation.  This can be achieved by passing a list,
@@ -44,22 +44,22 @@ which will be extended by citation items for invoked components.
     sage: with citations(record):
     ...       K = QuadraticField(-3, 'a')
     sage: record
-    [GAP, GMP, MPFI, MPFR, NTL]
+    [GMP, MPFR, MPFI, NTL]
     sage: record.print_latex_citation()
     Print BibTeX code by calling method print_bibtex().
-    \cite{software-gap, software-gmp, software-mpfi, software-mpfr, software-ntl}
+    \cite{software-gmp, software-mpfr, software-mpfi, software-ntl}
     sage: with citations(record):
     ...       integrate(y^2, y, 0, 1)
     1/3
     sage: record
-    [GAP, GMP, MPFI, MPFR, NTL, ginac, Maxima]
+    [GMP, MPFR, MPFI, NTL, ginac, Maxima]
 
 As an alternative way to access citations, we provide an eval like statement.
 
 ::
 
     sage: eval_citations("integrate(y^2, y, 0, 10)")
-    [ginac, Maxima]
+    [GMP, ginac, Maxima]
 
 AUTHORS:
 
@@ -76,7 +76,7 @@ AUTHORS:
 from contextlib import contextmanager
 from sage.misc.all import tmp_filename
 from sage.misc.citation_items.all import CitationRecord
-from sage.misc.citation_cython import citation_enable, citation_disable
+from sage.misc.cite import citation_enable, citation_disable
 import os, re, sys
 
 
@@ -93,9 +93,9 @@ def latest_citations():
         ...       h = ((a+1)^2).expand()
         The computation used the following components.
         Access them as a list by calling latest_citations().
-            ginac, GMP
+            GMP, ginac
         sage: latest_citations()
-        [ginac, GMP]
+        [GMP, ginac]
     """
     return _latest_citations
 
@@ -121,9 +121,9 @@ def citations(record = None):
         [Ideal (z^2 + y, x^2 + y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
         The computation used the following components.
         Access them as a list by calling latest_citations().
-            Macaulay2, Singular
+            GMP, Singular
         sage: latest_citations()
-        [Macaulay2, Singular]
+        [GMP, Singular]
 
     ::
 
@@ -174,7 +174,7 @@ def eval_citations(cmd, locals = None):
 
         sage: s = eval_citations( "integrate(x^2, x)" ); #priming coercion model
         sage: eval_citations('integrate(x^2, x)')
-        [ginac, Maxima]
+        [GMP, ginac, Maxima]
     """
     import inspect
     from sage.misc.all import sage_eval

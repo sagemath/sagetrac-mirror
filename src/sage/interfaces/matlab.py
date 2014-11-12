@@ -151,8 +151,6 @@ import os
 
 from expect import Expect, ExpectElement
 
-from sage.misc.cite import cite
-
 
 #import sage.matrix.matrix_space
 
@@ -183,7 +181,8 @@ class Matlab(Expect):
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        citation= "matlab")
 
     def __reduce__(self):
         return reduce_load_Matlab, tuple([])
@@ -204,8 +203,6 @@ class Matlab(Expect):
             sage: sm = matlab.sage2matlab_matrix_string(m)
             sage: m = matlab(sm)  # optional - matlab
         """
-        cite("matlab")
-
         return "eval(fileread('{0}'));".format(filename)
 
     def _quit_string(self):
@@ -248,8 +245,6 @@ for hints on how to do that).
         """
         Set the variable var to the given value.
         """
-        cite("matlab")
-
         cmd = '{0}={1};'.format(var, value)
         out = self.eval(cmd)
         if out.find("error") != -1:

@@ -1,3 +1,5 @@
+cpdef citation_add_record(record)
+cpdef citation_remove_record(record)
 cpdef citation_enable(record = *)
 cpdef citation_disable(record = *)
 cpdef cite(char* item_str)

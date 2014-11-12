@@ -70,6 +70,8 @@ from sage.symbolic.ring import SR, var
 
 from sage.libs.ecl import *
 
+from sage.misc.cite import cite
+
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
   MaximaAbstractElementFunction)
@@ -409,6 +411,8 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib._eval_line('randvar')
             'sin(y)+cos(x)'
         """
+        cite("maxima")
+
         result = ''
         while line:
             ind_dollar=line.find("$")
@@ -456,6 +460,8 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.lisp("(+ 2 17)")
             <ECL: 19>
         """
+        cite("maxima")
+
         return ecl_eval(cmd)
 
     def set(self, var, value):
@@ -566,6 +572,8 @@ class MaximaLib(MaximaAbstract):
             '_SAGE_VAR_x+cos(19)'
             sage: maxima_lib.clear('m')
         """
+        cite("maxima")
+
         name = self._next_var_name() if name is None else name
         try:
             if isinstance(value,EclObject):
@@ -776,6 +784,8 @@ class MaximaLib(MaximaAbstract):
             True
 
         """
+        cite("maxima")
+
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
         except RuntimeError as error:
@@ -861,6 +871,8 @@ class MaximaLib(MaximaAbstract):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
         """
+        cite("maxima")
+
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
         except RuntimeError as error:
@@ -930,6 +942,8 @@ class MaximaLib(MaximaAbstract):
             1/3
 
         """
+        cite("maxima")
+
         try:
             L=[sr_to_max(SR(a)) for a in [expr,v,a]]
             if dir == "plus":
@@ -954,6 +968,8 @@ class MaximaLib(MaximaAbstract):
             sage: limit(f, x = I, taylor=True)
             (-I + 1)^I
         """
+        cite("maxima")
+
         L=[sr_to_max(SR(a)) for a in [expr,v,a]]
         if dir == "plus":
             L.append(max_plus)
