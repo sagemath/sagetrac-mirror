@@ -1509,12 +1509,15 @@ def _plot(funcs, xrange, parametric=False,
         if fillxmin >= fillxmax:
             raise ValueError('fillxmin must be lesser than fillxmax, got fillxmin = {0}, fillxmax = {1}'.format(fillxmin,fillxmax))
 
-        if fillxmin != xmin or fillxmax != xmax:
-            data_to_fill = [el for el in data if el[0] >= fillxmin and el[0] <= fillxmax]
-
         if parametric:
+            if fillxmin != xmin or fillxmax != xmax:
+                data_to_fill = [el for el in data if el[1] >= fillxmin and el[1] <= fillxmax]
+
             filldata = data_to_fill
         else:
+            if fillxmin != xmin or fillxmax != xmax:
+                data_to_fill = [el for el in data if el[0] >= fillxmin and el[0] <= fillxmax]
+
             if fill == 'axis' or fill is True:
                 base_level = 0
             elif fill == 'min':
