@@ -1042,6 +1042,15 @@ def plot(funcs, *args, **kwds):
         sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
         Graphics object consisting of 3 graphics primitives
 
+    An example how to fill some part of a plot::
+
+        sage: p1 = plot(x*x*x, xmin=0, xmax=4, fill='min', fillxmax=2)
+        sage: p2 = plot(exp(x), xmin=0, xmax=4, fill=True, fillxmin=1, fillxmax=3)
+        sage: p3 = plot(3, xmin=0, xmax=4, fill=True, fillxmax=2)
+        sage: p4 = plot(3, xmin=0, xmax=4, fill=True, fillxmin=2)
+        sage: p5 = plot((x*x,x), xmin=0, xmax=1, parametric=True, fill=True, fillxmin=0.5,fillxmax=1)
+        sage: graphics_array([p1,p2,p3,p4,p5]).show() # long time
+
     A example about the growth of prime numbers::
 
         sage: plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red')
