@@ -53,6 +53,7 @@ cdef class CoinBackend(GenericBackend):
         Destructor function
         """
         del self.si
+        del self.model
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         r"""
@@ -743,32 +744,37 @@ cdef class CoinBackend(GenericBackend):
         cdef OsiSolverInterface * si = self.si
 
         cdef CbcModel * model
-        model = new CbcModel(si[0])
-        model.setLogLevel(self.model.logLevel())
+        try:
+            model = new CbcModel(si[0])
+            model.setLogLevel(self.model.logLevel())
 
-        # multithreading
-        import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
+            # multithreading
+            import multiprocessing
+            model.setNumberThreads(multiprocessing.cpu_count())
 
-        model.branchAndBound()
+            model.branchAndBound()
 
-        if model.solver().isAbandoned():
-            raise MIPSolverException("CBC : The solver has abandoned!")
+            if model.solver().isAbandoned():
+                raise MIPSolverException("CBC : The solver has abandoned!")
 
-        elif model.solver().isProvenPrimalInfeasible() or model.solver().isProvenDualInfeasible():
-            raise MIPSolverException("CBC : The problem or its dual has been proven infeasible!")
+            elif model.solver().isProvenPrimalInfeasible() or model.solver().isProvenDualInfeasible():
+                raise MIPSolverException("CBC : The problem or its dual has been proven infeasible!")
 
-        elif (model.solver().isPrimalObjectiveLimitReached() or model.solver().isDualObjectiveLimitReached()):
-            raise MIPSolverException("CBC : The objective limit has been reached for the problem or its dual!")
+            elif (model.solver().isPrimalObjectiveLimitReached() or model.solver().isDualObjectiveLimitReached()):
+                raise MIPSolverException("CBC : The objective limit has been reached for the problem or its dual!")
 
-        elif model.solver().isIterationLimitReached():
-            raise MIPSolverException("CBC : The iteration limit has been reached!")
+            elif model.solver().isIterationLimitReached():
+                raise MIPSolverException("CBC : The iteration limit has been reached!")
 
-        elif not model.solver().isProvenOptimal():
-            raise MIPSolverException("CBC : Unknown error")
+            elif not model.solver().isProvenOptimal():
+                raise MIPSolverException("CBC : Unknown error")
 
-        del self.model
-        self.model = model
+            del self.model
+            self.model = model
+            model = NULL
+        finally:
+            if model:
+                del model
 
     cpdef get_objective_value(self):
         r"""
