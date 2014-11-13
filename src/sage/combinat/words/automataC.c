@@ -333,25 +333,38 @@ bool IsCompleteAutomaton (Automaton a)
 }
 
 //complete the automaton (i.e. add a hole state if necessary)
-void CompleteAutomaton (Automaton *a)
+//return true iff a state was added
+bool CompleteAutomaton (Automaton *a)
 {
 	int ne = a->n; //nouvel état
-	AddEtat(a, false); //ajoute l'état puits
 	int i,j;
+	bool add_etat = false;
 	for (i=0;i<ne;i++)
 	{
 		for (j=0;j<a->na;j++)
 		{
 			if (a->e[i].f[j] == -1)
+			{
 				a->e[i].f[j] = ne;
+				add_etat = true;
+			}
 		}
 	}
+	if (a->i == -1)
+	{
+		a->i = ne;
+		add_etat = true;
+	}
+	if (!add_etat)
+		return false;
+	AddEtat(a, false); //ajoute l'état puits
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;
 	}
 	if (a->i == -1)
 		a->i = ne;
+	return true;
 }
 
 //détermine si les automates sont les mêmes (différents si états permutés)

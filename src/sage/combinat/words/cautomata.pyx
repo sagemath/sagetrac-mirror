@@ -69,7 +69,7 @@ cdef extern from "automataC.h":
     bool emptyLangage (Automaton a)
     void AddEtat (Automaton *a, bool final)
     bool IsCompleteAutomaton (Automaton a)
-    void CompleteAutomaton (Automaton *a)
+    bool CompleteAutomaton (Automaton *a)
     Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
     void Test ()
 
@@ -501,13 +501,14 @@ cdef class FastAutomaton:
         sig_on()
         res = IsCompleteAutomaton(self.a[0])
         sig_off()
-        return res
+        return Bool(res)
     
     #give a complete automaton (i.e. with his hole state)
     def complete (self):
         sig_on()
-        CompleteAutomaton(self.a)
+        res = CompleteAutomaton(self.a)
         sig_off()
+        return Bool(res)
     
     def union (self, FastAutomaton a, verb=False):
         #complete the automata
@@ -837,8 +838,34 @@ cdef class FastAutomaton:
         sig_off()
         r.A = nA
         return r
-
-
+    
+    def complementaryOP (self):
+        self.complete()
+        cdef i
+        for i in range(self.a.n):
+            self.a.e[i].final = not self.a.e[i].final
+            
+    def included (self, FastAutomaton a, bool verb=False, step=None):
+        d = {}
+        for l in self.A:
+            if l in a.A:
+                d[(l,l)] = l
+        if verb:
+            print "d=%s"%d
+        a.complete()
+        cdef FastAutomaton p = self.product(a, d, verb=verb)
+        
+        #set final states
+        cdef int i,j
+        cdef n1 = self.a.n
+        for i in range(n1):
+            for j in range(a.a.n):
+                p.a.e[i+n1*j].final = self.a.e[i].final and not a.a.e[j].final
+        
+        if step == 1:
+            return p;
+        
+        return p.has_empty_langage()
 
 
 

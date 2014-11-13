@@ -112,7 +112,7 @@ bool emptyLangage (Automaton a);
 bool IsCompleteAutomaton (Automaton a);
 
 //complete the automaton (i.e. add a hole state if necessary)
-void CompleteAutomaton (Automaton *a);
+bool CompleteAutomaton (Automaton *a);
 
 //copy the automaton with a new bigger alphabet
 Automaton BiggerAlphabet (Automaton a, Dict d, int nna);
