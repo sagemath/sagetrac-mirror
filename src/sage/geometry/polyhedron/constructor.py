@@ -239,7 +239,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     INPUT:
 
-    - ``vertices`` -- list of point. Each point can be specified as
+    - ``vertices`` -- list of points. Each point can be specified as
       any iterable container of ``base_ring`` elements. If ``rays`` or
       ``lines`` are specified but no ``vertices``, the origin is
       taken to be the single vertex.
@@ -252,11 +252,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     - ``ieqs`` -- list of inequalities. Each line can be specified as any
       iterable container of ``base_ring`` elements. An entry equal to
-      ``[-1,7,3,4]`` represents the inequality `7x_1+3x_2+4x_3\geq 1`.
+      ``[-1,7,3,4]`` represents the inequality `7x_1+3x_2+4x_3 \geq 1`.
 
     - ``eqns`` -- list of equalities. Each line can be specified as
       any iterable container of ``base_ring`` elements. An entry equal to
-      ``[-1,7,3,4]`` represents the equality `7x_1+3x_2+4x_3= 1`.
+      ``[-1,7,3,4]`` represents the equality `7x_1+3x_2+4x_3 = 1`.
 
     - ``base_ring`` -- a sub-field of the reals implemented in
       Sage. The field over which the polyhedron will be defined. For
@@ -295,6 +295,12 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     OUTPUT:
 
     The polyhedron defined by the input data.
+
+    .. WARNING::
+
+        If ``vertices`` is provided as the empty list, the code
+        assumes that the origin is to be the single vertex. This
+        probably ought to be fixed.
 
     EXAMPLES:
 
@@ -353,6 +359,27 @@ def Polyhedron(vertices=None, rays=None, lines=None,
          A vertex at (0, 31/2, 31/2, 0, 0, 0), A vertex at (0, 31/2, 0, 0, 31/2, 0),
          A vertex at (0, 0, 0, 31/2, 31/2, 0))
 
+    TESTS:
+
+    There are two polyhedra in `\QQ^0`: the single point and the
+    empty polytope. Checking that they are correctly told apart::
+
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ); P
+        The empty polyhedron in QQ^0
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[], base_ring=QQ); P
+        A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+        sage: P.Vrepresentation()
+        (A vertex at (),)
+        sage: P = Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ); P
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+         of 1 vertex and 2 lines
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="cdd"); P
+        The empty polyhedron in QQ^0
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="ppl"); P
+        The empty polyhedron in QQ^0
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="field"); P
+        The empty polyhedron in QQ^0
+
     .. NOTE::
 
       * Once constructed, a ``Polyhedron`` object is immutable.
@@ -362,6 +389,9 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         input data - the results can depend upon the tolerance
         setting of cdd.
     """
+    got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
+    got_Hrep = not ((ieqs is None) and (eqns is None))
+
     # Clean up the arguments
     vertices = _make_listlist(vertices)
     rays     = _make_listlist(rays)
@@ -369,15 +399,24 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     ieqs     = _make_listlist(ieqs)
     eqns     = _make_listlist(eqns)
 
-    got_Vrep = (len(vertices+rays+lines) > 0)
-    got_Hrep = (len(ieqs+eqns) > 0)
-
     if got_Vrep and got_Hrep:
         raise ValueError('You cannot specify both H- and V-representation.')
     elif got_Vrep:
         deduced_ambient_dim = _common_length_of(vertices, rays, lines)[1]
+        if deduced_ambient_dim is None:
+            if ambient_dim is not None:
+                deduced_ambient_dim = ambient_dim
+            else:
+                deduced_ambient_dim = 0
     elif got_Hrep:
-        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1] - 1
+        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1]
+        if deduced_ambient_dim is None:
+            if ambient_dim is not None:
+                deduced_ambient_dim = ambient_dim
+            else:
+                deduced_ambient_dim = 0
+        else:
+            deduced_ambient_dim -= 1
     else:
         if ambient_dim is None:
             deduced_ambient_dim = 0
