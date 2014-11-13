@@ -21,12 +21,25 @@ To compute a basis of weight `k` and index `m` Jacobi forms, we call
     sage: m = QuadraticForm(ZZ, 2, [1,1,1])
     sage: jforms = higherrank_jacobi_forms(10, m, 5)
     sage: jforms
-    [{(4, (1, 1)): -7165440, (2, (1, 1)): -12672, (1, (0, 0)): 0,
-      (3, (0, 0)): -1416960, (2, (0, 0)): -59130, (4, (0, 0)): -14346720,
-      (3, (1, 1)): -558045, (1, (1, 1)): -45, (0, (0, 0)): 1},
-     {(4, (1, 1)): -155/3, (2, (1, 1)): 5/3, (1, (0, 0)): 1,
-      (3, (0, 0)): 90, (2, (0, 0)): -15, (4, (0, 0)): -248,
-      (3, (1, 1)): -4/3, (1, (1, 1)): -1/6, (0, (0, 0)): 0}]
+    [{(0, (0, 0)): 1,
+      (1, (0, 0)): 0,
+      (1, (1, 1)): -45,
+      (2, (0, 0)): -59130,
+      (2, (1, 1)): -12672,
+      (3, (0, 0)): -1416960,
+      (3, (1, 1)): -558045,
+      (4, (0, 0)): -14346720,
+      (4, (1, 1)): -7165440},
+     {(0, (0, 0)): 0,
+      (1, (0, 0)): 1,
+      (1, (1, 1)): -1/6,
+      (2, (0, 0)): -15,
+      (2, (1, 1)): 5/3,
+      (3, (0, 0)): 90,
+      (3, (1, 1)): -4/3,
+      (4, (0, 0)): -248,
+      (4, (1, 1)): -155/3}]
+
 
 Fourier expansions are represented as dictionaries.  They are similar to the ones used for classical Jacobi forms.  Fourier
 coefficients of Jacobi forms are index by pairs `(n,r)`, where `n` is an integer and `r` is a tuple.  The notion of reduced `r` depends on a choice and is dictated by the following output::

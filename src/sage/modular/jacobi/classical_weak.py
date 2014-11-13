@@ -21,7 +21,11 @@ forms, we call ``classical_weak_jacobi_forms``.  This compute weight
     sage: from sage.modular.jacobi.all import *
     sage: jforms = classical_weak_jacobi_forms(9, 2, 5)
     sage: jforms
-    [{(0, 1): 660, (3, 1): -3699449160, (4, 1): -56862841860, (1, 1): -172260, (2, 1): -89901900}]
+    [{(0, 1): 660,
+      (1, 1): -172260,
+      (2, 1): -89901900,
+      (3, 1): -3699449160,
+      (4, 1): -56862841860}]
 
 
 Fourier expansions are represented as dictionaries.  Fourier
@@ -189,8 +193,17 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
 
         sage: from sage.modular.jacobi.all import *
         sage: classical_weak_jacobi_forms(2, 1, 5)
-        [{(0, 1): 2, (0, 0): -4, (3, 0): -106016, (3, 1): 67024, (2, 1): 8238, (2, 0): -14512, (1, 0): -984, (4, 1): 385026, (1, 1): 496, (4, 0): -574488}]
-    
+        [{(0, 0): -4,
+          (0, 1): 2,
+          (1, 0): -984,
+          (1, 1): 496,
+          (2, 0): -14512,
+          (2, 1): 8238,
+          (3, 0): -106016,
+          (3, 1): 67024,
+          (4, 0): -574488,
+          (4, 1): 385026}]
+
     TESTS:
 
     See ``test_classical_weak.py``.
@@ -198,9 +211,9 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     if algorithm != "skoruppa":
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
     factory = ClassicalWeakJacobiFormsFactory(m, prec)
-    
+
     return [ factory.from_taylor_expansion(fs, k, is_integral=True)
-             for fs in _classical_weak_jacobi_taylor_coefficients(k, m) ]
+            for fs in _classical_weak_jacobi_taylor_coefficients(k, m)]
 
 @cached_function
 def _classical_weak_jacobi_taylor_coefficients(k, m) :
