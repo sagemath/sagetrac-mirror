@@ -464,10 +464,10 @@ class Magma(Expect):
         EXAMPLES::
 
             sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/devel/sage-main/sage'
+            '/Users/was/s/src/sage'
             sage: magma.chdir('..')             # optional - magma
             sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/devel/sage-main'
+            '/Users/was/s/src'
         """
         self.eval('ChangeDirectory("%s")'%dir, strip=False)
 
@@ -1890,7 +1890,7 @@ class MagmaElement(ExpectElement):
         Return Sage version of this object. Use self.sage() to get the Sage
         version.
 
-        Edit devel/ext/magma/sage.m to add functionality.
+        Edit src/ext/magma/sage/basic.m to add functionality.
 
         EXAMPLES: Enumerated Sets::
 

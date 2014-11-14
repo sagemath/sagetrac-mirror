@@ -4076,7 +4076,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         else:
             return bin_op(self, exponent, operator.pow)
 
-    def log(self, base='e'):
+    def log(self, base=None):
         """
         Return the logarithm of ``self`` to the ``base``.
 
@@ -4087,7 +4087,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.693147180559945
             sage: log(RR(2))
             0.693147180559945
-            sage: log(RR(2),e)
+            sage: log(RR(2), "e")
+            0.693147180559945
+            sage: log(RR(2), e)
             0.693147180559945
 
         ::
@@ -4110,11 +4112,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef RealNumber x
         if self < 0:
-            if base is 'e':
+            if base is None or base == 'e':
                 return self._complex_number_().log()
             else:
                 return self._complex_number_().log(base)
-        if base == 'e':
+        if base is None or base == 'e':
             x = self._new()
             if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
             mpfr_log(x.value, self.value, (<RealField_class>self._parent).rnd)
