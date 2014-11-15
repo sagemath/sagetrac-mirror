@@ -152,7 +152,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  #endif /* RISCOS */
  #if SEP == '/' /* Special case for Unix filename syntax */
              if (n > 1)
-@@ -1691,12 +1688,146 @@
+@@ -1691,12 +1688,142 @@
  #endif /* Unix */
          }
  #endif /* All others */
@@ -208,10 +208,6 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
 +        unsigned int mask = umask(0777); umask(mask);
 +        arg_stat.st_mode = 0666 & ~mask;
 +        arg_stat.st_uid = 0;
-+        /* Only keep group bit if the current group ID is the same as
-+         * the group of "parent" */
-+        if (getgid() != parent_stat.st_gid)
-+            arg_stat.st_mode &= 0707;
 +    }
 +
 +    if (stat(Py_GetProgramFullPath(), &program_stat) == 0) {
