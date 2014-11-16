@@ -360,7 +360,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
                                 G = gcd_pEX.lift_to_poly_QQ(R)
                                 if (h1 % G).is_zero() and (h2 % G).is_zero():
                                     return G.monic()
-                            except (ValueError, RuntimeError):
+                            except (ArithmeticError, RuntimeError):
                                 # Rational reconstruction failed.
                                 # either lift_to_poly_QQ failed or
                                 # ~gcd_pEX.leading_coefficient() does not exists
