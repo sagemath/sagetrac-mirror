@@ -267,15 +267,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Join of Category of unique factorization domains and Category of commutative algebras over Integer Ring
+            Join of Category of unique factorization domains and
+                    Category of commutative algebras over euclidean domains
             sage: category(GF(7)['x'])
-            Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 7
-
+            Join of Category of euclidean domains and
+                    Category of commutative algebras over (finite fields and
+                        subquotients of monoids and quotients of semigroups)
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring,False)
+            category = polynomial_default_category(base_ring.category(),False)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -468,6 +470,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
+
+    def some_elements(self):
+        r"""
+        Return a list of polynomials.
+
+        This is typically used for running generic tests.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.some_elements()
+            [x, 0, 1, 1/2, x^2 + 2*x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+        """
+        # the comments in the following lines describe the motivation for
+        # adding these elements, they are not accurate over all rings and in
+        # all contexts
+        R = self.base_ring()
+        # Doing things this way is a little robust against rings where
+        #    2 might not convert in
+        one = R.one()
+        return [self.gen(),
+            self.zero(), self(one), self(R.an_element()), # elements of the base ring
+            self([one,2*one,one]), # a square
+            self([0,0,0,one]), # a power but not a square
+            self([-one,0,one]), # a reducible element
+            self([one,0,one]), # an irreducible element
+            self([2*one,0,2*one]), # an element with non-trivial content
+        ]
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
@@ -1378,7 +1408,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring,False)
+            category = polynomial_default_category(base_ring.category(),False)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 
@@ -1916,21 +1946,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         - ``algorithm`` -- string: algorithm to use, or ``None``
 
           - ``'random'``: try random polynomials until an irreducible
-            one is found.  This is currently the only algorithm
-            available over non-prime finite fields.
+            one is found.
+
+          - ``'first_lexicographic'``: try polynomials in
+            lexicographic order until an irreducible one is found.
 
         OUTPUT:
 
         A monic irreducible polynomial of degree `n` in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
             x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+            sage: GF(19)['x'].irreducible_element(21, algorithm="first_lexicographic")
+            x^21 + x + 5
+            sage: GF(5**2, 'a')['x'].irreducible_element(17, algorithm="first_lexicographic")
+            x^17 + a*x + 4*a + 3
 
         AUTHORS:
 
         - Peter Bruin (June 2013)
+        - Jean-Pierre Flori (May 2014)
         """
         if n < 1:
             raise ValueError("degree must be at least 1")
@@ -1938,6 +1975,11 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if algorithm is None or algorithm == "random":
             while True:
                 f = self.gen()**n + self.random_element(n - 1)
+                if f.is_irreducible():
+                    return f
+        elif algorithm == "first_lexicographic":
+            for g in self.polynomials(max_degree=n-1):
+                f = self.gen()**n + g
                 if f.is_irreducible():
                     return f
         else:
@@ -2218,8 +2260,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             ``RuntimeError`` if it is not found.
 
           - ``'first_lexicographic'``: return the lexicographically
-            smallest irreducible polynomial of degree `n`.  Only
-            implemented for `p = 2`.
+            smallest irreducible polynomial of degree `n`.
 
           - ``'minimal_weight'``: return an irreducible polynomial of
             degree `n` with minimal number of non-zero coefficients.
@@ -2280,7 +2321,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             if p == 2:
                 return self(GF2X_BuildIrred_list(n))
             else:
-                raise NotImplementedError("'first_lexicographic' option only implemented for p = 2")
+                # Fallback to PolynomialRing_dense_finite_field.irreducible_element
+                pass
         elif algorithm == "minimal_weight":
             if p == 2:
                 return self(GF2X_BuildSparseIrred_list(n))
