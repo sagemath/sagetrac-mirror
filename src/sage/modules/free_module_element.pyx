@@ -1759,7 +1759,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         Lift to a congruent, centered vector.
 
-        INPUT: 
+        INPUT:
 
             - ``self`` A vector with coefficients in `Integers(n)`.
 
