@@ -1,0 +1,35 @@
+= BLAD =
+
+== Description ==
+
+BLAD ("Bibliothèques Lilloises d'Algèbre Différentielle") :
+the Diffential Algebra Libraries from Lille
+
+BLAD is an acronym standing for Bibliothèques Lilloises d'Algèbre
+Différentielle. BLAD is a free software protected by the Lesser
+General Public License. It is being developed in the C programming
+language by François Boulier. It relies on the GMP library. If required,
+it may also rely on the MPFR library.
+
+http://www.lifl.fr/~boulier/BLAD/
+
+== License ==
+
+Lesser General Public License
+
+== SPKG Maintainers ==
+
+* François Boulier
+* Some minor help from Charles Bouillaguet
+
+== Upstream Contact ==
+
+François Boulier (Francois.Boulier [at] univ-lille1.fr)
+
+== Dependencies ==
+
+* GMP
+* MPFR
+
+== Special Update/Build Instructions ==
+

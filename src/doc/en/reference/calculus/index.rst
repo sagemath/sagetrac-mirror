@@ -20,6 +20,7 @@ Symbolic Calculus
    sage/symbolic/complexity_measures
    sage/calculus/wester
    sage/calculus/desolvers
+   sage/calculus/DifferentialAlgebra
    sage/gsl/dwt
    sage/gsl/dft
    sage/gsl/fft

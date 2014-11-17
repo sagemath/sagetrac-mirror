@@ -2138,6 +2138,16 @@ ext_modules = [
 
 from sage.misc.package import is_package_installed
 
+if is_package_installed('blad') and is_package_installed('bmi'):
+    ext_modules.append(
+        Extension('sage.calculus.DifferentialAlgebra',
+                  sources = ["sage/calculus/DifferentialAlgebra.pyx"],
+                  #language = 'c',
+                  libraries = ["blad","bmi"],
+                  depends = [SAGE_INC + "blad.h", SAGE_INC + "bmi.h"]),
+        )
+
+
 if is_package_installed('fes'):
     ext_modules.extend([
        Extension("sage.libs.fes",

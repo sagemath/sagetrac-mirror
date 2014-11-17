@@ -1,0 +1,33 @@
+= BMI =
+
+== Description ==
+
+BMI : The BLAD Multiple Interfaces
+
+The BLAD - MULTIPLE - INTERFACES library is a C library which implements
+interfaces between the BLAD libraries, and various computer algebra systems
+such as MAPLE and SAGE.
+
+http://www.lifl.fr/~boulier/BMI
+
+== License ==
+
+Lesser General Public License
+
+== SPKG Maintainers ==
+
+* François Boulier
+* Some minor help from Charles Bouillaguet
+
+== Upstream Contact ==
+
+François Boulier (Francois.Boulier [at] univ-lille1.fr)
+
+== Dependencies ==
+
+* GMP
+* MPFR
+* BLAD
+
+== Special Update/Build Instructions ==
+

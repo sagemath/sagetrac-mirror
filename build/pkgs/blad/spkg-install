@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring BLAD."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building BLAD."
+    exit 1
+fi
+
+$MAKE -j1 install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing BLAD."
+    exit 1
+fi
+

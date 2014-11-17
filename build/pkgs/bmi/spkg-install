@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+cd src
+
+CFLAGS="-Werror $CFLAGS"; export CFLAGS
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-blad="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring BMI."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building BMI."
+    exit 1
+fi
+
+$MAKE -j1 install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing BMI."
+    exit 1
+fi
+
