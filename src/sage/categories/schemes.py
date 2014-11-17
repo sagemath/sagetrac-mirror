@@ -44,6 +44,18 @@ class Schemes(Category):
     TESTS::
 
         sage: TestSuite(Schemes()).run()
+
+    Check that ``Schemes().Homsets()`` has the correct supercategories
+    (see :trac:`17359`)::
+
+        sage: Schemes().Homsets().extra_super_categories()
+        [Category of homsets]
+        sage: Schemes().Homsets().all_super_categories()
+        [Category of homsets of schemes,
+         Category of homsets,
+         Category of sets,
+         Category of sets with partial maps,
+         Category of objects]
     """
 
     @staticmethod
@@ -143,26 +155,6 @@ class Schemes(Category):
             return A.hom(x)
         else:
             raise TypeError("No way to create an object or morphism in %s from %s"%(self, x))
-
-
-    class Homsets(HomsetsCategory):
-        def extra_super_categories(self):
-            """
-            EXAMPLES::
-
-                sage: Schemes().Homsets().extra_super_categories()
-                []
-                sage: Schemes().Homsets().super_categories()
-                [Category of objects]
-
-            .. TODO::
-
-                 What category structure is there on Homsets of schemes?
-
-            .. TODO:: check that the result above is correct now
-            """
-            return []
-
 
 
 #############################################################
