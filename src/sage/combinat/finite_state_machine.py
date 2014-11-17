@@ -7210,9 +7210,9 @@ class FiniteStateMachine(SageObject):
                                        initial_states=new_initial_states)
 
         for state in F.states():
-            if all([s.is_final for s in state.label()]):
+            if all(s.is_final for s in state.label()):
                 state.is_final = True
-            state.color = tuple([s.color for s in state.label()])
+            state.color = tuple(s.color for s in state.label())
 
         return F
 
@@ -7655,7 +7655,7 @@ class FiniteStateMachine(SageObject):
             if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
-            if all([item == first_item for item in first_letters]):
+            if all(item == first_item for item in first_letters):
                 return (first_item,)
             return tuple()
 

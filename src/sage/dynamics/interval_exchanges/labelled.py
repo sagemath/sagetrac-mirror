@@ -723,7 +723,7 @@ def LabelledPermutationsIET_iterator(nintervals=None,
 
         alphabet = Alphabet(alphabet)
         g = lambda x: [alphabet.unrank(k-1) for k in x]
-        P = [g(x) for x in Permutations(nintervals])
+        P = [g(x) for x in Permutations(nintervals)]
         return imap(f,product(P,P))
     else:
         return ifilter(

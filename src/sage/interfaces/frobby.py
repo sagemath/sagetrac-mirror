@@ -153,8 +153,8 @@ class Frobby:
         lines.pop(0)
         resul=0
         for l in lines:
-            lis=[int(x) for x in l.split(])
-            resul+=lis[0]+prod([ring.gen(i)**lis[i+1] for i in range(len(lis)-1)])
+            lis = [int(x) for x in l.split()]
+            resul += lis[0] + prod(ring.gen(i)**lis[i+1] for i in range(len(lis)-1))
         return resul
 
     def associated_primes(self, monomial_ideal):
@@ -184,7 +184,7 @@ class Frobby:
         lines.pop(0)
         if lines[-1]=='':
             lines.pop(-1)
-        lists=[[int(x) for x in a.split(]) for a in lines]
+        lists=[[int(x) for x in a.split()] for a in lines]
         def to_monomial(exps):
             return [v ** e for v, e in zip(monomial_ideal.ring().gens(), exps) if e != 0]
         return [monomial_ideal.ring().ideal(to_monomial(a)) for a in lists]
@@ -337,7 +337,7 @@ class Frobby:
                 RuntimeError: Format error: encountered non-number.
         """
         try:
-            ints = [int(x) for x in string.split(])
+            ints = [int(x) for x in string.split()]
         except ValueError:
             raise RuntimeError("Format error: encountered non-number.")
         if len(ints) < 2:

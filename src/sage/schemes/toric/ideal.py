@@ -251,7 +251,7 @@ class ToricIdeal(MPolynomialIdeal):
         if polynomial_ring:
             if (names!='z') or (base_ring is not QQ):
                 raise ValueError('You must not specify both variable names and a polynomial ring.')
-            self._names = [str(x) for x in polynomial_ring.gens(])
+            self._names = [str(x) for x in polynomial_ring.gens()]
             self._base_ring = polynomial_ring.base_ring()
             ring = polynomial_ring
         else:

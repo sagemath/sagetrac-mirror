@@ -173,7 +173,8 @@ class FiniteMeetSemilattice(FinitePoset):
 
         """
         if y is not None: # Handle basic case fast
-            i, j = [self._element_to_vertex(x) for x in (x,y])
+            i = self._element_to_vertex(x) 
+            j = self._element_to_vertex(y) 
             return self._vertex_to_element(self._hasse_diagram._meet[i,j])
         L = [self._element_to_vertex(x) for x in x]
         m = self.cardinality()-1 # m = top element
@@ -337,7 +338,8 @@ class FiniteJoinSemilattice(FinitePoset):
 
         """
         if y is not None: # Handle basic case fast
-            i, j = [self._element_to_vertex(x) for x in (x,y])
+            i = self._element_to_vertex(x) 
+            j = self._element_to_vertex(y) 
             return self._vertex_to_element(self._hasse_diagram._join[i,j])
         L = [self._element_to_vertex(x) for x in x]
         j = 0 # j = bottom element

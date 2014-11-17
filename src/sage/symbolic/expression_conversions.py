@@ -478,7 +478,7 @@ class InterfaceInit(Converter):
             sage: m.tuple(t)
             '[3,4,exp(_SAGE_VAR_x)]'
         """
-        x = [self(x) for x in ex.operands(])
+        x = [self(x) for x in ex.operands()]
         X = ','.join(x)
         return str(self.interface._left_list_delim()) + X + str(self.interface._right_list_delim())
 
@@ -759,7 +759,7 @@ class AlgebraicConverter(Converter):
                 expt = Rational(expt)
                 return self.field(base**expt)
             else:
-                return reduce(operator, [self(x) for x in ex.operands(]))
+                return reduce(operator, [self(x) for x in ex.operands()])
         except TypeError:
             pass
 
@@ -1281,7 +1281,7 @@ class FastFloatConverter(Converter):
             1.41421356237309...
         """
         f = operator
-        g = [self(x) for x in ex.operands(])
+        g = [self(x) for x in ex.operands()]
         try:
             return f(*g)
         except TypeError:
@@ -1582,7 +1582,7 @@ class RingConverter(Converter):
             sage: R(cos(2))
             -0.4161468365471424?
         """
-        res =  operator(*[self(x) for x in ex.operands(]))
+        res =  operator(*[self(x) for x in ex.operands()])
         if res.parent() is not self.ring:
             raise TypeError
         else:
@@ -1657,7 +1657,7 @@ class SubstituteFunction(Converter):
             sage: s.arithmetic(f, f.operator())
             x*bar(x) + pi/bar(x)
         """
-        return reduce(operator, [self(x) for x in ex.operands(]))
+        return reduce(operator, [self(x) for x in ex.operands()])
 
     def composition(self, ex, operator):
         """
@@ -1680,9 +1680,9 @@ class SubstituteFunction(Converter):
             bar(sin(x))
         """
         if operator == self.original:
-            return self.new(*[self(x) for x in ex.operands(]))
+            return self.new(*[self(x) for x in ex.operands()])
         else:
-            return operator(*[self(x) for x in ex.operands(]))
+            return operator(*[self(x) for x in ex.operands()])
 
     def derivative(self, ex, operator):
         """
@@ -1707,6 +1707,6 @@ class SubstituteFunction(Converter):
 
         """
         if operator.function() == self.original:
-            return operator.change_function(self.new)(*[self(x) for x in ex.operands(]))
+            return operator.change_function(self.new)(*[self(x) for x in ex.operands()])
         else:
-            return operator(*[self(x) for x in ex.operands(]))
+            return operator(*[self(x) for x in ex.operands()])

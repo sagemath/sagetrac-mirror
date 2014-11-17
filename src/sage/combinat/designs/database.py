@@ -2159,12 +2159,11 @@ def QDM_33_6_1_1_1():
           [10,  7, 28, 13, 19,   0],
           [ 5, 20, 14, 23, 26,None]]
 
-    times4 = lambda x : None if x is None else 4*x
     for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        a,b,c,d,e,f = (None if x is None else G(x) for x in R)
         for i in range(5):
             Mb.append([a,b,c,d,e,f])
-            a,b,c,d,e,f = [times4(x) for x in [e,a,b,c,d,f]]
+            a,b,c,d,e,f = (None if x is None else 4*x for x in [e,a,b,c,d,f])
 
     return G, Mb
 
@@ -3766,7 +3765,7 @@ def DM_60_6_1():
     onezero = G((1,0))
 
     for R in zip(*M60):
-        a,b,c,d,e,f = [G(x) for x in R]
+        a,b,c,d,e,f = (G(x) for x in R)
         M60b.append([a,b,c,d,e,f])
         M60b.append([c,a,b,e,f,d])
         M60b.append([b,c,a,f,d,e])

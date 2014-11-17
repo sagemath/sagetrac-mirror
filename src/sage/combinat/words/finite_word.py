@@ -3008,7 +3008,7 @@ class FiniteWord_class(Word_class):
         -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
             Ser. A 13:90–99, 1972.
         """
-        return max([FiniteWord_class.order(x) for x in self.factor_iterator(]))
+        return max(FiniteWord_class.order(x) for x in self.factor_iterator())
 
     def is_overlap(self):
         r"""

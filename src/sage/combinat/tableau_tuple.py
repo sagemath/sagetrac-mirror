@@ -2959,9 +2959,9 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             return self.shape()==t.shape()
         elif t in StandardTableauTuples():
             if all(s in Tableaux() for s in t):
-                return [[len(x) for x in s] for s in t]==self.shape()
+                return [[len(x) for x in s] for s in t] == self.shape()
             else:
-                return list(self.shape())==sum(map(len,t))
+                return list(self.shape()) == sum(len(xx) for xx in t)
         else:
             return False
 

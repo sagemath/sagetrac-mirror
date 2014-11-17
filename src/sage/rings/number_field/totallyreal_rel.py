@@ -892,7 +892,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[s[0], Px([QQ(x) for x in s[1].list(])), s[2]] for s in S]
+        return [[s[0], Px([QQ(x) for x in s[1].list()]), s[2]] for s in S]
 
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                                      return_pari_objects=True):
@@ -1011,6 +1011,6 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px([QQ(x) for x in s[1].list(]))]
+        return [[ZZ(s[0]), Px([QQ(x) for x in s[1].list()])]
                 for s in S]
 

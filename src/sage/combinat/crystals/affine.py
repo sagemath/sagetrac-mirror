@@ -164,7 +164,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.list()
             [[[1]], [[2]], [[3]]]
         """
-        return list(map( self.retract, self.classical_crystal.list() ))
+        return [self.retract(x) for x in self.classical_crystal.list()]
 
     def lift(self, affine_elt):
         """

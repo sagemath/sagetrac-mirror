@@ -1324,7 +1324,7 @@ class NumberField_relative(NumberField_generic):
                 if not self.relative_degree() == other.relative_degree():
                     return False
                 R = PolynomialRing(o_base_field, 'x')
-                F = R([base_isom(x) for x in self.relative_polynomial(]))
+                F = R([base_isom(x) for x in self.relative_polynomial()])
                 return len(F.roots(other)) > 0
             raise ValueError("base_isom is not a homomorphism from self's base_field to other's base_field")
         raise ValueError("other must be a relative number field.")

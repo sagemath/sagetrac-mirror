@@ -1254,7 +1254,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         if eliminate_linear_variables:
             T, reductors = self.eliminate_linear_variables(return_reductors=True)
             if T.variables() != ():
-                R_solving = BooleanPolynomialRing( T.nvariables(), [str(x) for x in list(T.variables(])) )
+                R_solving = BooleanPolynomialRing( T.nvariables(), [str(x) for x in list(T.variables())] )
             S = PolynomialSequence( R_solving, [ R_solving(f) for f in T] )
 
         if S != []:

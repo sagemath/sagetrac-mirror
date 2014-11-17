@@ -811,7 +811,7 @@ class SetPartition(ClonableArray):
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
             mins = [min(x) for x in sub_parts]
-            over_max = max([max(x) for x in sub_parts]) + 1
+            over_max = max(max(x) for x in sub_parts) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:
                 m = min(mins)
@@ -843,7 +843,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum([list(x) for x in x], [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum([list(xx) for xx in x], [])) for x in CartesianProduct(*L)]
 
     def coarsenings(self):
         """
@@ -1019,7 +1019,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), [Set(x) for x in x], Set([]) )
+        base_set = reduce( lambda x,y: x.union(y), [Set(s) for s in x], Set([]) )
         if len(base_set) != sum(map(len, x)):
             return False
 

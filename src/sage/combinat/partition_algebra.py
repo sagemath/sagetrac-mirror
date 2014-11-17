@@ -1794,7 +1794,7 @@ def to_set_partition(l,k=None):
         if l == []:
             return Set([])
         else:
-            k = max( [max( [abs(x) for x in x] ) for x in l] )
+            k = max( max( abs(y) for y in x ) for x in l )
 
     to_be_added = Set( range(1, k+1) + [-1*x for x in range(1, k+1)] )
 

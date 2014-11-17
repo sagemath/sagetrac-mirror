@@ -353,9 +353,9 @@ def weight(rg, t=None):
         t = polygen(ZZ, 't')
 
     nu = rg + [ [] ]
-    l = 1 + max( [len(x) for x in nu] )
+    l = 1 + max( len(x) for x in nu )
     nu = [ list(mu) + [0]*l for mu in nu ]
-    res = t**int(sum( [ i*(i-1)/2 for i in rg[-1] ] ))
+    res = t**int(sum( i*(i-1)/2 for i in rg[-1] ))
     for k in range(1, len(nu)-1):
         sa = 0
         for i in range( max( len(rg[k]), len(rg[k-1])) ):

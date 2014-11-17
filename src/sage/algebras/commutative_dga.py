@@ -973,7 +973,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         if n == 0:
             return ((0,)*len(self._degrees),)
         if self.base_ring().characteristic() == 2:
-            return [tuple(x) for x in WeightedIntegerVectors(n, self._degrees])
+            return [tuple(x) for x in WeightedIntegerVectors(n, self._degrees)]
 
         even_degrees = []
         odd_degrees = []
@@ -984,9 +984,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 odd_degrees.append(a)
 
         if not even_degrees: # No even generators.
-            return [tuple(x) for x in exterior_algebra_basis(n, tuple(odd_degrees] ))
+            return [tuple(x) for x in exterior_algebra_basis(n, tuple(odd_degrees))]
         if not odd_degrees: # No odd generators.
-            return [tuple(x) for x in WeightedIntegerVectors(n, tuple(even_degrees] ))
+            return [tuple(x) for x in WeightedIntegerVectors(n, tuple(even_degrees))]
 
         # General case: both even and odd generators.
         result = []

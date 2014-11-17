@@ -950,7 +950,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: type(s.to_list())
             <type 'list'>
         """
-        return [list(x) for x in list(self])
+        return [list(x) for x in list(self)]
 
     def to_dag(self):
         """

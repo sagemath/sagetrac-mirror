@@ -507,7 +507,7 @@ class Permutation(CombinatorialObject, Element):
             cycles[-1] = cycles[-1][:-1]
             cycle_list = []
             for c in cycles:
-                cycle_list.append([int(x) for x in c.split(","]))
+                cycle_list.append([int(x) for x in c.split(",")])
 
             return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
 
@@ -527,7 +527,7 @@ class Permutation(CombinatorialObject, Element):
              all(isinstance(x, tuple) for x in l)):
             if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
-                    n = max( [max(x) for x in l] )
+                    n = max( max(x) for x in l )
                     return from_cycles(n, [list(x) for x in l])
                 else:
                     n = max(l)
@@ -2455,7 +2455,7 @@ class Permutation(CombinatorialObject, Element):
         for d in descents:
             pp = p[:d] + [p[d+1], p[d]] + p[d+2:]
             z = lambda x: x + [d+1]
-            rws += (list(map(z, P(pp).reduced_words())))
+            rws += [z(x) for x in P(pp).reduced_words()]
 
         return rws
 
@@ -5148,7 +5148,7 @@ class Permutations_mset(Permutations):
         mset = self.mset
         n = len(self.mset)
         lmset = list(mset)
-        mset_list = sorted([lmset.index(x) for x in lmset])
+        mset_list = sorted(lmset.index(x) for x in lmset)
 
         yield self.element_class(self, [lmset[x] for x in mset_list])
 
@@ -5318,7 +5318,7 @@ class Permutations_set(Permutations):
         s = self._set
         n = len(s)
         lset = list(s)
-        set_list = sorted([lset.index(x) for x in lset])
+        set_list = sorted(lset.index(x) for x in lset)
 
         yield self.element_class(self, [lset[x] for x in set_list])
 
@@ -7122,7 +7122,7 @@ class CyclicPermutationsOfPartition(Permutations):
                 sage: elt = CP[0]
                 sage: elt.check()
             """
-            if [sorted(x) for x in self] != list(map(sorted, self.parent().partition)):
+            if [sorted(x) for x in self] != [sorted(x) for x in self.parent().partition]:
                 raise ValueError("Invalid cyclic permutation of the partition"%self.parent().partition)
 
     def _repr_(self):

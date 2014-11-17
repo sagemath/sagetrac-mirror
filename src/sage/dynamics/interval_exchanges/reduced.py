@@ -511,7 +511,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: iet.GeneralizedPermutation(p.list(),reduced=True) == p
             True
         """
-        a0 = [self._alphabet.unrank(x) for x in range(0,len(self]))
+        a0 = [self._alphabet.unrank(x) for x in range(0,len(self))]
         a1 = [self._alphabet.unrank(x) for x in self._twin[1]]
         return [a0,a1]
 
@@ -1458,11 +1458,11 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip([self.alphabet().unrank(x) for x in range(0,len(self])), self._flips[0])
+            a0 = zip([self.alphabet().unrank(x) for x in range(0,len(self))], self._flips[0])
             a1 = zip([self.alphabet().unrank(x) for x in self._twin[1]], self._flips[1])
 
         else:
-            a0 = [self.alphabet().unrank(x) for x in range(0,len(self]))
+            a0 = [self.alphabet().unrank(x) for x in range(0,len(self))]
             a1 = [self.alphabet().unrank(x) for x in self._twin[1]]
 
         return [a0,a1]

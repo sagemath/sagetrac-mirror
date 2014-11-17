@@ -1827,7 +1827,6 @@ class RCTypeA2Dual(RCTypeA2Even):
             yield []
             return
 
-        half = lambda x: QQ(x) / QQ(2)
         pos = 0
         length = len(container)
         ret_part = [-1] * length
@@ -1841,7 +1840,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 pos += 1
 
             if pos == length:
-                yield [half(x) for x in ret_part[:]]
+                yield [QQ(x) / QQ(2)  for x in ret_part]
                 pos -= 1
 
     def to_virtual(self, rc):

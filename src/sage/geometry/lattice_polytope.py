@@ -683,7 +683,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._vertices = PointCollection((p0, ), N)
         elif self._dim == self.ambient_dim():
             if compute_vertices:
-                points = [N(x) for x in read_palp_matrix(self.poly_x("v"].columns()))
+                points = [N(x) for x in read_palp_matrix(self.poly_x("v")).columns()]
                 for point in points:
                     point.set_immutable()
                 self._vertices = PointCollection(points, N)
@@ -5006,7 +5006,7 @@ def _palp_canonical_order(V, PM_max, permutations):
     Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
           for k in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
-    vertices = [V.module()(x) for x in Vmin[0].columns(])
+    vertices = [V.module()(x) for x in Vmin[0].columns()]
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
@@ -5339,7 +5339,7 @@ def all_points(polytopes):
             raise RuntimeError("Cannot read points of a polytope!"
                                                         +"\nPolytope: %s" % p)
         M = p.lattice()
-        points = [M(x) for x in points.columns(])
+        points = [M(x) for x in points.columns()]
         for point in points:
             point.set_immutable()
         p._points = PointCollection(points, M)

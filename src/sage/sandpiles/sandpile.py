@@ -4115,14 +4115,14 @@ class SandpileDivisor(dict):
         a = a.split('\n')
         # a starts with two numbers. We are interested in the first one
         num_homog = int(a[0].split()[0])
-        homog = [[int(x) for x in i.split(]) for i in a[1:-1]]
+        homog = [[int(x) for x in i.split()] for i in a[1:-1]]
         ## second, the inhomogeneous points
         zinhom_file = open(lin_sys_zinhom,'r')
         b = zinhom_file.read()
         zinhom_file.close()
         b = b.split('\n')
         num_inhomog = int(b[0].split()[0])
-        inhomog = [[int(x) for x in i.split(]) for i in b[1:-1]]
+        inhomog = [[int(x) for x in i.split()] for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 

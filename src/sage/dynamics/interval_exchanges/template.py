@@ -475,7 +475,7 @@ class Permutation(SageObject):
             sage: p.letters()
             [0, 1]
         """
-        return [self._alphabet.unrank(x) for x in range(len(self]))
+        return [self._alphabet.unrank(x) for x in range(len(self))]
 
     def left_right_inverse(self):
         r"""

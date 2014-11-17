@@ -1061,7 +1061,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 for i,x2 in enumerate(B2):
                     count[i][x2] += 1
 
-            new_parallel_classes.extend([list(x) for x in izip(*copies_of_OA1]))
+            new_parallel_classes.extend([list(x) for x in izip(*copies_of_OA1)])
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1

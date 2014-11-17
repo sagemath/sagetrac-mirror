@@ -750,7 +750,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
 
             logs = []
             for idx in xmrange(len(sgs)*[n]):
-                y = prod( [operator.pow(x) for x in sgs, idx] )
+                y = prod( [operator.pow(s, i) for s,i in zip(sgs, idx)] )
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:
                     logs.append(L)

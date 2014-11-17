@@ -424,7 +424,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
         #Construction of the steps
         from sage.structure.element import Vector
-        if all([isinstance(x, Vector) for x in steps]):
+        if all(isinstance(x, Vector) for x in steps):
             vsteps = steps
         else:
             try:
@@ -1585,7 +1585,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [[RR(x) for x in x] for x in pts]
+        pts = [[RR(xx) for xx in x] for x in pts]
 
         #Inside
         if fill and self.is_closed():
@@ -1680,7 +1680,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [[RR(x) for x in x] for x in pts]
+        pts = [[RR(xx) for xx in x] for x in pts]
 
         images = [line(pts[:i]) for i in range(1,len(pts)+1)]
 

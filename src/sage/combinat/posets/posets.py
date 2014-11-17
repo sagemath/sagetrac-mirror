@@ -1599,7 +1599,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
         for u,v,l in self._hasse_diagram.edge_iterator():
-            yield [self._vertex_to_element(x) for x in (u,v])
+            yield [self._vertex_to_element(x) for x in (u,v)]
 
     def relations(self):
         r"""
@@ -1898,7 +1898,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.compare_elements(1,2)
 
         """
-        i, j = [self._element_to_vertex(x) for x in (x,y])
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
         if i == j:
             return 0
         elif self._hasse_diagram.is_less_than(i, j):
@@ -1922,7 +1923,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P(2) in P.minimal_elements()
             True
         """
-        return [self._vertex_to_element(x) for x in self._hasse_diagram.minimal_elements(])
+        return [self._vertex_to_element(x) for x in self._hasse_diagram.minimal_elements()]
 
     def maximal_elements(self):
         """
@@ -1934,7 +1935,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.maximal_elements()
             [4]
         """
-        return [self._vertex_to_element(x) for x in self._hasse_diagram.maximal_elements(])
+        return [self._vertex_to_element(x) for x in self._hasse_diagram.maximal_elements()]
 
     def bottom(self):
         """
@@ -2438,7 +2439,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.covers(Q(1),Q(4))
             False
         """
-        return self._hasse_diagram.has_edge(*[self._element_to_vertex(x) for x in (x,y]))
+        return self._hasse_diagram.has_edge(self._element_to_vertex(x),
+                                            self._element_to_vertex(y))
 
     def upper_covers_iterator(self,y):
         """
@@ -2538,7 +2540,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: sum([Q.mobius_function(Q(0),v) for v in Q])
             0
         """
-        i,j = [self._element_to_vertex(x) for x in (x,y])
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
         return self._hasse_diagram.mobius_function(i,j)
 
     def mobius_function_matrix(self, ring = ZZ, sparse = False):
@@ -3590,9 +3593,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: B.order_filter([3,8])
             [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        vertices = sorted(map(self._element_to_vertex,elements))
-        of = self._hasse_diagram.order_filter(vertices)
-        return [self._vertex_to_element(x) for x in of]
+        vertices = sorted(self._element_to_vertex(e) for e in elements)
+        return [self._vertex_to_element(v) 
+                for v in self._hasse_diagram.order_filter(vertices)]
 
     def order_ideal(self,elements):
         """
@@ -3610,9 +3613,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: B.order_ideal(iter(range(4, 9)))
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
         """
-        vertices = [self._element_to_vertex(x) for x in elements]
-        oi = self._hasse_diagram.order_ideal(vertices)
-        return [self._vertex_to_element(x) for x in oi]
+        vertices = [self._element_to_vertex(e) for e in elements]
+        return [self._vertex_to_element(v) 
+                for v in self._hasse_diagram.order_ideal(vertices)]
 
     def interval(self, x, y):
         """
@@ -3640,8 +3643,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.interval("a","d")
             [a, b, c, d]
         """
-        return list(map(self._vertex_to_element,self._hasse_diagram.interval(
-                self._element_to_vertex(x),self._element_to_vertex(y))))
+        return [self._vertex_to_element(v) 
+                for v in self._hasse_diagram.interval(self._element_to_vertex(x), 
+                                                      self._element_to_vertex(y))]
 
     def closed_interval(self, x, y):
         """
@@ -3678,8 +3682,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.open_interval("a","d")
             [b, c]
         """
-        return list(map(self._vertex_to_element,self._hasse_diagram.open_interval(
-                self._element_to_vertex(x),self._element_to_vertex(y))))
+        return [self._vertex_to_element(v) 
+                for v in self._hasse_diagram.open_interval(self._element_to_vertex(x),
+                                                           self._element_to_vertex(y))]
 
     def comparability_graph(self):
         r"""

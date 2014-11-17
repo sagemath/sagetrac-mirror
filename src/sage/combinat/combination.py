@@ -284,7 +284,7 @@ class Combinations_set(Combinations_mset):
             sage: range(c.cardinality()) == map(c.rank, c)
             True
         """
-        x = [self.mset.index(x) for x in x]
+        x = [self.mset.index(xx) for xx in x]
         r = 0
         n = len(self.mset)
         for i in range(len(x)):
@@ -461,7 +461,7 @@ class Combinations_setk(Combinations_msetk):
             sage: range(c.cardinality()) == map(c.rank, c.list())
             True
         """
-        x = [self.mset.index(x) for x in x]
+        x = [self.mset.index(xx) for xx in x]
         return rank(x, len(self.mset))
 
 

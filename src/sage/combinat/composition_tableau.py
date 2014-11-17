@@ -733,7 +733,7 @@ class CompositionTableaux_shape(CompositionTableaux):
             sage: [[2],[3,2]] in CompositionTableaux([1,2])
             False
         """
-        return CompositionTableaux.__contains__(self, x) and [len(x) for x in x] == self.shape
+        return CompositionTableaux.__contains__(self, x) and [len(xx) for xx in x] == self.shape
 
     def _repr_(self):
         r"""

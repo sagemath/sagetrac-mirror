@@ -364,7 +364,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         for i in xrange(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
-            M.append([xor(x) for x in p, c[i]])
+            M.append([xor(x ,y) for x,y in zip(p, c[i])])
             x0 = x1
         return M
 

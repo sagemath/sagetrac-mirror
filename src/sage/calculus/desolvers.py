@@ -1709,10 +1709,8 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     res = outfile.readlines()
     outfile.close()
     for i in range(len(res)):
-        l=res[i]
-        l = l.split(' ')
-        l = filter(lambda a: len(a) > 2, l)
-        res[i] = [RealField(ceil(digits*log(10(x) for x in 2]),l))
+        l = [a for a in res[i].split(' ') if len(a) > 2]
+        res[i] = [RealField(ceil(digits*log(10,2)))(a) for a in l]
     shutil.rmtree(tempdir)
     return res
 

@@ -680,7 +680,7 @@ def FaceFan(polytope, lattice=None):
             raise interior_point_error
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
-        rays = [vector(x) for x in polytope.vertices(])
+        rays = [vector(x) for x in polytope.vertices()]
         if lattice is None:
             # Since default lattice polytopes are in the M lattice,
             # treat polyhedra as being there as well.
@@ -1147,7 +1147,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: sage_input(fan)
             Fan(cones=[[0, 1], [2]], rays=[(1, 0), (1, 1), (-1, -1)])
        """
-        cones = [[ZZ(x) for x in c.ambient_ray_indices(]) for c in self.generating_cones()]
+        cones = [[ZZ(x) for x in c.ambient_ray_indices()] for c in self.generating_cones()]
         rays = [sib(tuple(r)) for r in self.rays()]
         return sib.name('Fan')(cones=cones, rays=rays)
 

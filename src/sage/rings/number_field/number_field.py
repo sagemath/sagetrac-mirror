@@ -6939,7 +6939,7 @@ class NumberField_absolute(NumberField_generic):
             True
 
         """
-        B = [self(x) for x in self._pari_integral_basis(v=v])
+        B = [self(x) for x in self._pari_integral_basis(v=v)]
 
         import sage.rings.number_field.order as order
         return order.absolute_order_from_module_generators(B,
@@ -7815,7 +7815,7 @@ class NumberField_absolute(NumberField_generic):
         # f is the minimal polynomial of a over L
         f = L['x'](coeffs_in_L + [1])
         # sanity check...
-        mp_in_self = self['x']([L_into_self(x) for x in f.coeffs(]))
+        mp_in_self = self['x']([L_into_self(x) for x in f.coeffs()])
         assert mp_in_self(a) == 0
 
         if structure is None:

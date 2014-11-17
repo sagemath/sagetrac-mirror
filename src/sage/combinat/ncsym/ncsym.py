@@ -746,7 +746,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                     6*m[1, 1, 1]
                 """
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
-                c = lambda la: prod([factorial(x) for x in la.to_exp(]))
+                c = lambda la: prod([factorial(x) for x in la.to_exp()])
                 return m.sum_of_terms([(i.shape(), coeff*c(i.shape())) for (i, coeff) in self])
 
     m = monomial
@@ -977,7 +977,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             """
             P = SetPartitions()
             m = self.realization_of().m()
-            coeff = lambda B: prod([factorial(x) for x in B.shape(]), self.base_ring().one())
+            coeff = lambda B: prod([factorial(x) for x in B.shape()], self.base_ring().one())
             return m.sum_of_terms([(P(B), coeff(A.inf(B))) for B in SetPartitions(A.size())], distinct=True)
 
         @cached_method
