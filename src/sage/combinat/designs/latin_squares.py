@@ -543,7 +543,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
     if compare:
         from sage.misc.misc import SAGE_SHARE
         handbook_file = open(SAGE_SHARE+"/combinatorial_designs/MOLS_table.txt",'r')
-        hb = map(int,handbook_file.readlines()[9].split(','))
+        hb = list(map(int,handbook_file.readlines()[9].split(',')))
         handbook_file.close()
 
     # choose an appropriate width (needs to be >= 3 because "+oo" should fit)

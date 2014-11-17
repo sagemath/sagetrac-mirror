@@ -643,7 +643,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        return map(len, self._blocks)
+        return list(map(len, self._blocks))
 
     def degree(self, p=None):
         r"""
@@ -1512,7 +1512,7 @@ class IncidenceStructure(object):
         """
         from sage.graphs.graph import Graph
         blocks = self.blocks()
-        blocks_sets = map(frozenset,blocks)
+        blocks_sets = list(map(frozenset,blocks))
         g = Graph([range(self.num_blocks()),lambda x,y : len(blocks_sets[x]&blocks_sets[y])],loops = False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 
@@ -1627,7 +1627,7 @@ class IncidenceStructure(object):
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
             cx, cy = pos[Set(s)]
-            s = map(lambda x: pos[x], s)
+            s = [pos[x] for x in s]
             s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:
@@ -1776,7 +1776,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             Group Divisible Design on 40 points of type 10^4
         """
         from string import join
-        group_sizes = map(len, self._groups)
+        group_sizes = list(map(len, self._groups))
 
         gdd_type = ["{}^{}".format(s,group_sizes.count(s))
                     for s in sorted(set(group_sizes))]

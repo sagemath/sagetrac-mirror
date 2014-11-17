@@ -4478,7 +4478,7 @@ class Polyhedron_base(Element):
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 
-        vertices = map(pivot, self.vertices())
-        rays = map(pivot, self.rays())
-        lines = map(pivot, self.lines())
+        vertices = list(map(pivot, self.vertices()))
+        rays = list(map(pivot, self.rays()))
+        lines = list(map(pivot, self.lines()))
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())

@@ -259,7 +259,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
         vertex_to_index[v] = i+1
 
     from sage.combinat.permutation import Permutation
-    p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
+    p2 = Permutation([vertex_to_index[x] for x in second_permutation])
     p2 = p2.inverse()
 
     g = Graph(name="Permutation graph for "+str(second_permutation))
@@ -482,7 +482,7 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
         assert len(OA) == n**2
         assert n == 0 or k == len(OA[0])
 
-    OA = map(tuple,OA)
+    OA = list(map(tuple,OA))
 
     d = [[[] for j in range(n)] for i in range(k)]
     for R in OA:

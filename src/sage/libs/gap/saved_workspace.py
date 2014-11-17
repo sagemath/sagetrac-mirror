@@ -31,7 +31,7 @@ def timestamp():
     if len(files) == 0:
         print('Unable to find LibGAP files.')
         return float('inf')
-    return max(map(os.path.getmtime, files))
+    return max(list(map(os.path.getmtime, files)))
 
 
 def workspace():

@@ -364,7 +364,7 @@ class Hypergeometric(BuiltinFunction):
                 ....:               vars=[x, y])(3, 4)
                 hypergeometric((4,), (), 3)
             """
-            return etb.call(self, *map(etb.var, etb._vars))
+            return etb.call(self, *list(map(etb.var, etb._vars)))
 
         def sorted_parameters(cls, self, a, b, z):
             """

@@ -526,7 +526,7 @@ class Problem(SageObject):
             ((1, 1), (-1, 1))
         """
         rows = [a.change_ring(self._field) for a in self._A.rows()]
-        map(lambda a: a.set_immutable(), rows)
+        list(map(lambda a: a.set_immutable(), rows))
         return tuple(rows)
 
     @cached_method

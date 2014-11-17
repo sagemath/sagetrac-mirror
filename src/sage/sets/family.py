@@ -573,7 +573,7 @@ class FiniteFamily(AbstractFamily):
         try:
             return hash(frozenset(self._dictionary.items()))
         except (TypeError, ValueError):
-            return hash(frozenset(list(self.keys()) + map(repr, self.values())))
+            return hash(frozenset(list(self.keys()) + list(map(repr, self.values()))))
 
     def keys(self):
         """

@@ -240,7 +240,7 @@ def from_gap_list(G, src):
 
     # src is a list of list of strings. Each string is a list of
     # integers separated by ','
-    src = [G([tuple(map(lambda x:G._domain_from_gap[int(x)],cycle.split(",")))
+    src = [G([tuple([G._domain_from_gap[int(x)] for x in cycle.split(",")])
                  for cycle in g])
            for g in src]
 
