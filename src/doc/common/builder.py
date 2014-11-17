@@ -225,6 +225,8 @@ class DocBuilder(object):
         self.latex()
         tex_dir = self._output_dir('latex')
         pdf_dir = self._output_dir('pdf')
+        import CJKsupport
+        CJKsupport.enable_if_necessary(self.lang, tex_dir)
         if subprocess.call("cd '%s' && $MAKE all-pdf && mv -f *.pdf '%s'"%(tex_dir, pdf_dir), shell=True):
             raise RuntimeError("failed to run $MAKE all-pdf in %s"%tex_dir)
 
