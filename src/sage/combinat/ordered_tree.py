@@ -789,7 +789,7 @@ class OrderedTrees_size(OrderedTrees):
             return
         else:
             for c in Compositions(self._size-1):
-                for lst in CartesianProduct(*(list(map(self.__class__, c)))):
+                for lst in CartesianProduct(*([self.__class__(x) for x in c])):
                     yield self._element_constructor_(lst)
 
     @lazy_attribute

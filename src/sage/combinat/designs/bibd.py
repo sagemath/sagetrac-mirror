@@ -324,7 +324,7 @@ def steiner_triple_system(n):
         raise EmptySetError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
     from sage.sets.set import Set
-    sts = Set([Set(list(map(T,x))) for x in sts])
+    sts = Set([Set([T(x) for x in x]) for x in sts])
 
     return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
 
@@ -537,7 +537,7 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
     Gset = set(G)
     p_to_i = {g:i for i,g in enumerate(Gset)}
     for b in D:
-        b = list(map(G,b))
+        b = [G(x) for x in b]
         S = block_stabilizer(G,b)
         GG = Gset.copy()
         while GG:

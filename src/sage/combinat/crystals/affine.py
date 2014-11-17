@@ -114,7 +114,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
         self.classical_crystal = classical_crystal;
-        self.module_generators = list(map( self.retract, self.classical_crystal.module_generators ))
+        self.module_generators = [self.retract(x) for x in self.classical_crystal.module_generators ]
         self.element_class._latex_ = lambda x: x.lift()._latex_()
 
     def _repr_(self):

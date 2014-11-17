@@ -578,7 +578,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = list(map(ZZ, qc)) # lift to ZZ so we can define F
+                qcZZ = [ZZ(x) for x in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = M(f)
                 G.append((k, f.change_ring(self.base_ring()), F))
@@ -721,7 +721,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = list(map(ZZ, qc)) # lift to ZZ so we can define F
+                qcZZ = [ZZ(x) for x in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = S(f)
                 G.append((k, f.change_ring(self.base_ring()), F))

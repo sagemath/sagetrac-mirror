@@ -338,7 +338,7 @@ class RightAngledArtinGroup(FinitelyPresentedGroup):
         pos = 0
         G = self._graph
         v = G.vertices()
-        w = list(map(list, word)) # Make a (2 level) deep copy
+        w = [list(x) for x in word] # Make a (2 level) deep copy
         while pos < len(w):
             comm_set = [w[pos][0]] # The current set of totally commuting elements
             i = pos + 1

@@ -191,7 +191,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
     Glist = list(G)
 
-    D = [list(map(G,d)) for d in D]
+    D = [[G(x) for x in d] for d in D]
 
     # Check v (and define it if needed)
     if v is None:

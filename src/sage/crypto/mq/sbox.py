@@ -310,7 +310,7 @@ class SBox(SageObject):
                 X = list(reversed(X))
             else:
                 X = list(X)
-            X = ZZ(list(map(ZZ,X)),2)
+            X = ZZ([ZZ(x) for x in X],2)
             out =  self.to_bits(self._S[X], self.n)
             if self._big_endian:
                 out = list(reversed(out))
@@ -322,7 +322,7 @@ class SBox(SageObject):
             if len(X) == self.m:
                 if self._big_endian:
                     X = list(reversed(X))
-                X = ZZ(list(map(ZZ,X)),2)
+                X = ZZ([ZZ(x) for x in X],2)
                 out =  self._S[X]
                 return self.to_bits(out,self.n)
         except TypeError:
@@ -438,7 +438,7 @@ class SBox(SageObject):
         """
         A = self.difference_distribution_matrix().__copy__()
         A[0,0] = 0
-        return max(list(map(abs, A.list())))
+        return max([abs(x) for x in A.list(]))
 
     def maximal_difference_probability(self):
         r"""
@@ -532,7 +532,7 @@ class SBox(SageObject):
         """
         A = self.linear_approximation_matrix().__copy__()
         A[0,0] = 0
-        return max(list(map(abs, A.list())))
+        return max([abs(x) for x in A.list(]))
 
     def maximal_linear_bias_relative(self):
         """

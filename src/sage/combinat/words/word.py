@@ -198,7 +198,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         elif isinstance(RSK_data, (tuple, list)) and len(RSK_data) == 2 and \
             all([isinstance(x, (list, tuple)) for x in RSK_data]):
             from sage.combinat.rsk import RSK_inverse
-            P,Q = list(map(Tableau, RSK_data))
+            P,Q = [Tableau(x) for x in RSK_data]
             return RSK_inverse(P, Q, 'word')
         raise ValueError("Invalid input. Must be a pair of tableaux")
 

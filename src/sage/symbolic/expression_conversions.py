@@ -256,7 +256,7 @@ class Converter(object):
 
         len_d = len(d)
         if len_d == 0:
-            repr_n = list(map(repr, n))
+            repr_n = [repr(x) for x in n]
             if len(n) == 2 and "-1" in repr_n:
                 a = n[0] if repr_n[1] == "-1" else n[1]
                 return FakeExpression([a], _operator.neg)
@@ -478,7 +478,7 @@ class InterfaceInit(Converter):
             sage: m.tuple(t)
             '[3,4,exp(_SAGE_VAR_x)]'
         """
-        x = list(map(self, ex.operands()))
+        x = [self(x) for x in ex.operands(])
         X = ','.join(x)
         return str(self.interface._left_list_delim()) + X + str(self.interface._right_list_delim())
 
@@ -570,7 +570,7 @@ class InterfaceInit(Converter):
         if hasattr(operator, self.name_init + "evaled_"):
             return getattr(operator, self.name_init + "evaled_")(*ops)
         else:
-            ops = list(map(self, ops))
+            ops = [self(x) for x in ops]
         try:
             op = getattr(operator, self.name_init)()
         except (TypeError, AttributeError):
@@ -759,7 +759,7 @@ class AlgebraicConverter(Converter):
                 expt = Rational(expt)
                 return self.field(base**expt)
             else:
-                return reduce(operator, list(map(self, ex.operands())))
+                return reduce(operator, [self(x) for x in ex.operands(]))
         except TypeError:
             pass
 
@@ -1257,7 +1257,7 @@ class FastFloatConverter(Converter):
         if operator is _operator.pow and operands[1] == Rational(((1,2))):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
-        fops = list(map(self, operands))
+        fops = [self(x) for x in operands]
         return reduce(operator, fops)
 
     def composition(self, ex, operator):
@@ -1281,7 +1281,7 @@ class FastFloatConverter(Converter):
             1.41421356237309...
         """
         f = operator
-        g = list(map(self, ex.operands()))
+        g = [self(x) for x in ex.operands(])
         try:
             return f(*g)
         except TypeError:
@@ -1571,7 +1571,7 @@ class RingConverter(Converter):
             base = self(base)
             return base ** expt
         else:
-            return reduce(operator, list(map(self, operands)))
+            return reduce(operator, [self(x) for x in operands])
 
     def composition(self, ex, operator):
         """
@@ -1582,7 +1582,7 @@ class RingConverter(Converter):
             sage: R(cos(2))
             -0.4161468365471424?
         """
-        res =  operator(*list(map(self, ex.operands())))
+        res =  operator(*[self(x) for x in ex.operands(]))
         if res.parent() is not self.ring:
             raise TypeError
         else:
@@ -1657,7 +1657,7 @@ class SubstituteFunction(Converter):
             sage: s.arithmetic(f, f.operator())
             x*bar(x) + pi/bar(x)
         """
-        return reduce(operator, list(map(self, ex.operands())))
+        return reduce(operator, [self(x) for x in ex.operands(]))
 
     def composition(self, ex, operator):
         """
@@ -1680,9 +1680,9 @@ class SubstituteFunction(Converter):
             bar(sin(x))
         """
         if operator == self.original:
-            return self.new(*list(map(self, ex.operands())))
+            return self.new(*[self(x) for x in ex.operands(]))
         else:
-            return operator(*list(map(self, ex.operands())))
+            return operator(*[self(x) for x in ex.operands(]))
 
     def derivative(self, ex, operator):
         """
@@ -1707,6 +1707,6 @@ class SubstituteFunction(Converter):
 
         """
         if operator.function() == self.original:
-            return operator.change_function(self.new)(*list(map(self,ex.operands())))
+            return operator.change_function(self.new)(*[self(x) for x in ex.operands(]))
         else:
-            return operator(*list(map(self, ex.operands())))
+            return operator(*[self(x) for x in ex.operands(]))

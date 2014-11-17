@@ -1961,7 +1961,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             return x
         return QQbar(x)
 
-    numbers = list(map(mk_algebraic, numbers))
+    numbers = [mk_algebraic(x) for x in numbers]
 
     for v in numbers:
         if minimal:

@@ -3607,7 +3607,7 @@ class Graph(GenericGraph):
             b = bound
         else:
             try:
-                b = dict(zip(vertices,list(map(bound, vertices))))
+                b = dict(zip(vertices,[bound(x) for x in vertices]))
 
             except TypeError:
                 b = dict(zip(vertices, [bound]*n))
@@ -6413,7 +6413,7 @@ class Graph(GenericGraph):
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], list(map(relabel,x[1]))) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x[0], [relabel(x) for x in x[1]]) if isinstance(x,tuple) else id_label[x]
 
         return relabel(D)
 

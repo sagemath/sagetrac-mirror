@@ -291,7 +291,7 @@ class Hrep2Vrep(PivotedInequalities):
             sage: H.vertices
             [(-1/2)]
         """
-        R = list(map(self._unpivot_ray, DD.R))
+        R = [self._unpivot_ray(x) for x in DD.R]
 
         line1, L0 = self._split_linear_subspace()
         if line1:
@@ -304,7 +304,7 @@ class Hrep2Vrep(PivotedInequalities):
             L1 = []
             R1 = [r / r[0] for r in R if r[0] > 0]
             DD0 = DD.first_coordinate_plane()
-            R0 = list(map(self._unpivot_ray, DD0.R))
+            R0 = [self._unpivot_ray(x) for x in DD0.R]
 
         vertices = []
         for v in R1 + L1:
@@ -491,7 +491,7 @@ class Vrep2Hrep(PivotedInequalities):
         def is_trivial(ray):
             # trivial Hrep output 1 >= 0
             return ray[0] > 0 and all(r == 0 for r in ray[1:])
-        ieqs = list(map(self._unpivot_ray, DD.R))
+        ieqs = [self._unpivot_ray(x) for x in DD.R]
         self.inequalities = [r for r in ieqs if not is_trivial(r)]
         self.equations = self._linear_subspace.matrix().rows()
 

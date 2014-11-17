@@ -146,7 +146,7 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition([])
             []
         """
-        P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), list(map(Set, parts)), Set([])) )
+        P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), [Set(x) for x in parts], Set([])) )
         return P.element_class(P, parts)
 
     def __init__(self, parent, s):
@@ -159,7 +159,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, list(map(Set, s)))
+        ClonableArray.__init__(self, parent, [Set(x) for x in s])
 
     def check(self):
         """
@@ -189,7 +189,7 @@ class OrderedSetPartition(ClonableArray):
             sage: y.to_composition()
             [2, 1, 2]
         """
-        return Composition(list(map(len, self)))
+        return Composition([len(x) for x in self])
 
 class OrderedSetPartitions(Parent, UniqueRepresentation):
     """
@@ -501,7 +501,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and list(map(len, x)) == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(x) for x in x] == self.c
 
     def cardinality(self):
         r"""

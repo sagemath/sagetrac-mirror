@@ -75,7 +75,7 @@ def _MOLS_from_string(s,k):
     for i,l in enumerate(s.split()):
         l = [ord(x) - 97 for x in l]
         matrices[i%k].append(l)
-    return list(map(Matrix, matrices))
+    return [Matrix(x) for x in matrices]
 
 def MOLS_10_2():
     r"""
@@ -331,7 +331,7 @@ def OA_7_18():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
-    M = [G(list(map(int,xxx))) for xxx in M.split()]
+    M = [G([int(x) for x in xxx]) for xxx in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(7)]
 
     Mb = []
@@ -2164,7 +2164,7 @@ def QDM_33_6_1_1_1():
         a,b,c,d,e,f = [None if x is None else G(x) for x in R]
         for i in range(5):
             Mb.append([a,b,c,d,e,f])
-            a,b,c,d,e,f = list(map(times4,[e,a,b,c,d,f]))
+            a,b,c,d,e,f = [times4(x) for x in [e,a,b,c,d,f]]
 
     return G, Mb
 
@@ -3098,7 +3098,7 @@ def DM_24_8_1():
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
-    G = cartesian_product(list(map(AdditiveCyclic,[2,2,6])))
+    G = cartesian_product([AdditiveCyclic(x) for x in [2,2,6]])
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
@@ -3322,7 +3322,7 @@ def DM_39_6_1():
         [-1,-16,-22,-17,-38,-23]]
 
     for R in zip(*M):
-        a,b,c,d,e,f = list(map(G,R))
+        a,b,c,d,e,f = [G(x) for x in R]
         for i in range(3):
             Mb.append([ a, b, c, d, e, f])
             Mb.append([-a,-b,-c,-d,-e,-f])
@@ -3766,7 +3766,7 @@ def DM_60_6_1():
     onezero = G((1,0))
 
     for R in zip(*M60):
-        a,b,c,d,e,f = list(map(G,R))
+        a,b,c,d,e,f = [G(x) for x in R]
         M60b.append([a,b,c,d,e,f])
         M60b.append([c,a,b,e,f,d])
         M60b.append([b,c,a,f,d,e])

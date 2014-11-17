@@ -2071,7 +2071,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)(list(map(R.coordinates, self.basis())))
+        M = MatrixSpace(ZZ,n)([R.coordinates(x) for x in self.basis(]))
 
         D = M.hermite_form()
         d = [D[i,i] for i in range(n)]
@@ -2209,7 +2209,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         M = diagonal_matrix(ZZ, invs)
         if subgp_gens:
-            Units = Matrix(ZZ, list(map(self.ideallog, subgp_gens)))
+            Units = Matrix(ZZ, [self.ideallog(x) for x in subgp_gens])
             M = M.stack(Units)
 
         A, U, V = M.smith_form()
@@ -2628,7 +2628,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         # reduce the resulting logarithm of x so it is lexicographically
         # minimal.
 
-        mat = matrix(ZZ, list(map(self.ideallog, gens))).augment(identity_matrix(ZZ, len(gens)))
+        mat = matrix(ZZ, [self.ideallog(x) for x in gens]).augment(identity_matrix(ZZ, len(gens)))
         mat = mat.stack( diagonal_matrix(ZZ, invs).augment(zero_matrix(ZZ, len(invs), len(gens))))
         hmat = mat.hermite_form()
         A = hmat[0:len(invs), 0:len(invs)]

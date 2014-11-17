@@ -348,8 +348,8 @@ class MatlabElement(ExpectElement):
         matlab = self.parent()
         entries = matlab.strip_answer(matlab.eval("mat2str({0})".format(self.name())))
         entries = entries.strip()[1:-1].replace(';', ' ')
-        entries = list(map(R, entries.split(' ')))
-        nrows, ncols = list(map(int, str(self.size()).strip().split()))
+        entries = [R(x) for x in entries.split(' '])
+        nrows, ncols = [int(x) for x in str(self.size(].strip().split()))
         m = matrix(R, nrows, ncols, entries)
         return m
 

@@ -1357,7 +1357,7 @@ def BrouwerHaemersGraph():
     V = VectorSpace(F,d)
     M = Matrix(F,identity_matrix(d))
     M[1,1]=-1
-    G = Graph([list(map(tuple,V)), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G = Graph([[tuple(x) for x in V], lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
@@ -3471,7 +3471,7 @@ def McLaughlinGraph():
     from sage.sets.set import Set
 
     blocks = WittDesign(23).blocks()
-    blocks = list(map(Set, blocks))
+    blocks = [Set(x) for x in blocks]
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
     g = Graph()

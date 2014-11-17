@@ -507,7 +507,7 @@ class Permutation(CombinatorialObject, Element):
             cycles[-1] = cycles[-1][:-1]
             cycle_list = []
             for c in cycles:
-                cycle_list.append(list(map(int, c.split(","))))
+                cycle_list.append([int(x) for x in c.split(","]))
 
             return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
 
@@ -517,7 +517,7 @@ class Permutation(CombinatorialObject, Element):
             return RSK_inverse(*l, output='permutation')
         elif isinstance(l, (tuple, list)) and len(l) == 2 and \
             all(isinstance(x, list) for x in l):
-            P,Q = list(map(tableau.Tableau, l))
+            P,Q = [tableau.Tableau(x) for x in l]
             return RSK_inverse(P, Q, 'permutation')
 
         # if it's a tuple or nonempty list of tuples, also assume cycle
@@ -527,8 +527,8 @@ class Permutation(CombinatorialObject, Element):
              all(isinstance(x, tuple) for x in l)):
             if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
-                    n = max( list(map(max, l)) )
-                    return from_cycles(n, list(map(list, l)))
+                    n = max( [max(x) for x in l] )
+                    return from_cycles(n, [list(x) for x in l])
                 else:
                     n = max(l)
                     l = [list(l)]
@@ -4901,7 +4901,7 @@ class Permutations(Parent, UniqueRepresentation):
                     return Permutations_nk(n,k)
             else:
                 #In this case, we have that n is a list
-                if list(map(n.index, n)) == range(len(n)):
+                if [n.index(x) for x in n] == range(len(n)):
                     if k is None:
                         return Permutations_set(n)
                     else:
@@ -5602,7 +5602,7 @@ class Arrangements(Permutations):
             True
         """
         mset = tuple(mset)
-        if list(map(mset.index, mset)) == range(len(mset)):
+        if [mset.index(x) for x in mset] == range(len(mset)):
             return Arrangements_setk(mset, k)
         return Arrangements_msetk(mset, k)
 
@@ -7012,7 +7012,7 @@ class CyclicPermutations(Permutations_mset):
             content = [1]*len(self.mset)
         else:
             content = [0]*len(self.mset)
-            index_list = list(map(self.mset.index, self.mset))
+            index_list = [self.mset.index(x) for x in self.mset]
             for i in index_list:
                 content[i] += 1
 
@@ -7122,7 +7122,7 @@ class CyclicPermutationsOfPartition(Permutations):
                 sage: elt = CP[0]
                 sage: elt.check()
             """
-            if list(map(sorted, self)) != list(map(sorted, self.parent().partition)):
+            if [sorted(x) for x in self] != list(map(sorted, self.parent().partition)):
                 raise ValueError("Invalid cyclic permutation of the partition"%self.parent().partition)
 
     def _repr_(self):
@@ -7132,7 +7132,7 @@ class CyclicPermutationsOfPartition(Permutations):
             sage: CyclicPermutationsOfPartition([[1,2,3,4],[5,6,7]])
             Cyclic permutations of partition [[1, 2, 3, 4], [5, 6, 7]]
         """
-        return "Cyclic permutations of partition %s"%list(map(list, self.partition))
+        return "Cyclic permutations of partition %s"%[list(x) for x in self.partition]
 
     def __iter__(self, distinct=False):
         """

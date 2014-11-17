@@ -4412,7 +4412,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).degree()
             0
         """
-        return max( list(map( sum, self._monomial_coefficients )) + [0] )
+        return max( [sum(x) for x in self._monomial_coefficients ] + [0] )
 
     def restrict_degree(self, d, exact = True):
         r"""

@@ -262,7 +262,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp.outer()
             [3, 2, 1]
         """
-        skp = list(map(_Partitions, skp))
+        skp = [_Partitions(x) for x in skp]
         if skp not in SkewPartitions():
             raise ValueError("invalid skew partition: %s"%skp)
         return SkewPartitions()(skp)
@@ -311,7 +311,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: print SkewPartition([[3,2,1],[2,1]])._repr_lists()
             [[3, 2, 1], [2, 1]]
         """
-        return repr(list(map(list, self)))
+        return repr([list(x) for x in self])
 
     def _latex_(self):
         r"""
@@ -950,7 +950,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: type(s.to_list())
             <type 'list'>
         """
-        return list(map(list, list(self)))
+        return [list(x) for x in list(self])
 
     def to_dag(self):
         """

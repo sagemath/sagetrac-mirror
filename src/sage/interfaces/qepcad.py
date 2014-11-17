@@ -1179,7 +1179,7 @@ class Qepcad:
                    = x - 1
         """
         name = name.replace('_', '-')
-        args = list(map(str, args))
+        args = [str(x) for x in args]
         pre_phase = self.phase()
         result = self._eval_line('%s %s'%(name, ' '.join(args)))
         post_phase = self.phase()
@@ -1669,9 +1669,9 @@ class qepcad_formula_factory:
             sage: qf._combine_formulas([x^2 == 0, y < 17])
             (['x^2 = 0', 'y < 17'], frozenset({'x', 'y'}))
         """
-        formulas = list(map(self.atomic, formulas))
-        formulas = list(map(self.atomic, formulas))
-        formula_strs = list(map(repr, formulas))
+        formulas = [self.atomic(x) for x in formulas]
+        formulas = [self.atomic(x) for x in formulas]
+        formula_strs = [repr(x) for x in formulas]
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars

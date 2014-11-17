@@ -811,7 +811,7 @@ class ModularForm_abstract(ModuleElement):
 
         # compute the requested embedding
         emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
-        s = 'coeff = %s;'% list(map(emb, coeffs))
+        s = 'coeff = %s;'% [emb(x) for x in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)

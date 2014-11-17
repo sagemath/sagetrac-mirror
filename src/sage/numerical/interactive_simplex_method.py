@@ -517,7 +517,7 @@ class LPProblem(SageObject):
             prefix = x
             x = ["{}{:d}".format(x, i) for i in range(1, n+1)]
         else:
-            x = list(map(str, x))
+            x = [str(x) for x in x]
             if len(x) != n:
                 raise ValueError("A and x have incompatible dimensions")
         R = PolynomialRing(base_ring, x, order="neglex")
@@ -914,8 +914,8 @@ class LPProblem(SageObject):
             R = QQ
         else:
             R = RDF
-            ieqs = [list(map(R, ieq)) for ieq in ieqs]
-            eqns = [list(map(R, eqn)) for eqn in eqns]
+            ieqs = [[R(x) for x in ieq] for ieq in ieqs]
+            eqns = [[R(x) for x in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
 
     def is_bounded(self):
@@ -1111,7 +1111,7 @@ class LPProblem(SageObject):
         xmax = FP.xmax()
         ymin = FP.ymin()
         ymax = FP.ymax()
-        xmin, xmax, ymin, ymax = list(map(QQ, [xmin, xmax, ymin, ymax]))
+        xmin, xmax, ymin, ymax = [QQ(x) for x in [xmin, xmax, ymin, ymax]]
         start = self.optimal_solution()
         start = vector(QQ, start.n() if start is not None
                             else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
@@ -1182,14 +1182,14 @@ class LPProblem(SageObject):
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
         if ymax is None:
-            ymax = max(list(map(abs, b)) + [v[1] for v in F.vertices()])
+            ymax = max([abs(x) for x in b] + [v[1] for v in F.vertices()])
         if ymin is None:
             ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
         if xmax is None:
             xmax = max([1.5*ymax] + [v[0] for v in F.vertices()])
         if xmin is None:
             xmin = min([-xmax/4.0] + [v[0] for v in F.vertices()])
-        xmin, xmax, ymin, ymax = list(map(QQ, [xmin, xmax, ymin, ymax]))
+        xmin, xmax, ymin, ymax = [QQ(x) for x in [xmin, xmax, ymin, ymax]]
         pad = max(xmax - xmin, ymax - ymin) / 20
         ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
                 (ymax, 0, -1), (- ymin, 0, 1)]
@@ -1211,7 +1211,7 @@ class LPProblem(SageObject):
                 ieqs = [[-bi] + list(Ai), [bi+pad*Ai.norm().n()] + list(-Ai)]
             else:
                 continue
-            ieqs = [list(map(QQ, ieq)) for ieq in ieqs]
+            ieqs = [[QQ(x) for x in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         # Same for variables, but no legend
@@ -1226,7 +1226,7 @@ class LPProblem(SageObject):
                 ieqs = [[0] + list(ni), [pad] + list(-ni)]
             else:
                 continue
-            ieqs = [list(map(QQ, ieq)) for ieq in ieqs]
+            ieqs = [[QQ(x) for x in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         if F.vertices():
@@ -1403,12 +1403,12 @@ class LPProblemStandardForm(LPProblem):
             slack_variables = ["{}{:d}".format(slack_variables, i)
                                for i in range(n + 1, n + m + 1)]
         else:
-            slack_variables = list(map(str, slack_variables))
+            slack_variables = [str(x) for x in slack_variables]
             if len(slack_variables) != m:
                 raise ValueError("wrong number of slack variables")
         if auxiliary_variable is None:
            auxiliary_variable = self._prefix + "0"
-        names = [str(auxiliary_variable)] + list(map(str, self.x())) + slack_variables
+        names = [str(auxiliary_variable)] + [str(x) for x in self.x(]) + slack_variables
         if names[0] == names[1]:
             names.pop(0)
         R = PolynomialRing(self.base_ring(), names, order="neglex")
@@ -1617,8 +1617,8 @@ class LPProblemStandardForm(LPProblem):
                 i = B.index(xj)
                 c -= cj * A[i]
                 v += cj * b[i]
-        B = list(map(self._R, B))
-        N = list(map(self._R, N))
+        B = [self._R(x) for x in B]
+        N = [self._R(x) for x in N]
         return LPDictionary(A, b, c, v, B, N, self._objective)
 
     def final_dictionary(self):
@@ -3337,7 +3337,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             if show_ratios:
                 if ratios and ratios[0][1] == x_B[i]:
                     entries.append(ratios.pop(0)[0])
-            terms = list(map(latex, entries))
+            terms = [latex(x) for x in entries]
             if leaving is not None and i == l:
                 for j, t in enumerate(terms):
                     if j == m + 2:
@@ -3350,7 +3350,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         top = "\n".join(lines)
 
         def make_line(header, terms):
-            terms = list(map(latex, terms))
+            terms = [latex(x) for x in terms]
             if entering is not None:
                 t = terms[k]
                 if not generate_real_LaTeX:

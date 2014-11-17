@@ -226,7 +226,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         L = self.number_field()
         K = L.absolute_field('a')
         to_L = K.structure()[0]
-        return L.ideal(list(map(to_L, id.gens())))
+        return L.ideal([to_L(x) for x in id.gens(]))
 
     def free_module(self):
         r"""
@@ -529,7 +529,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         F = self.number_field()
         abs_ideal = self.absolute_ideal()
         to_F = abs_ideal.number_field().structure()[0]
-        factor_list = [(F.ideal(list(map(to_F, p.gens()))), e) for p, e in abs_ideal.factor()]
+        factor_list = [(F.ideal([to_F(x) for x in p.gens(])), e) for p, e in abs_ideal.factor()]
         # sorting and simplification will already have been done
         return Factorization(factor_list, sort=False, simplify=False)
 

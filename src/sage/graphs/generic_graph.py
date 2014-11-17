@@ -3455,7 +3455,7 @@ class GenericGraph(GenericGraph_pyx):
         def vertices_to_edges(x):
             return [(u[0], u[1], self.edge_label(u[0], u[1]))
                     for u in zip(x, x[1:] + [x[0]])]
-        return list(map(vertices_to_edges, cycle_basis_v))
+        return [vertices_to_edges(x) for x in cycle_basis_v]
 
 
     ### Planarity
@@ -4643,7 +4643,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.graph import Graph
         B, C = self.blocks_and_cut_vertices()
-        B = list(map(tuple, B))
+        B = [tuple(x) for x in B]
         G = Graph()
         for bloc in B:
             G.add_vertex(('B', bloc))
@@ -7640,7 +7640,7 @@ class GenericGraph(GenericGraph_pyx):
         # which could be .. graphs !
         if not self.is_directed():
             from sage.graphs.graph import Graph
-            flow_graphs = list(map(Graph, flow_graphs))
+            flow_graphs = [Graph(x) for x in flow_graphs]
 
         return flow_graphs
 
@@ -17953,10 +17953,10 @@ class GenericGraph(GenericGraph_pyx):
                 G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 self_vertices = sum(partition,[])
                 G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
-                if list(map(len, partition)) != list(map(len, partition2)):
+                if [len(x) for x in partition] != [len(x) for x in partition2]:
                     return (False, None) if certify else False
                 multilabel = (lambda e:e) if edge_labels else (lambda e:[[None, el[1]] for el in e])
-                if list(map(multilabel, G_edge_labels)) != list(map(multilabel, G2_edge_labels)):
+                if [multilabel(x) for x in G_edge_labels] != [multilabel(x) for x in G2_edge_labels]:
                     return (False, None) if certify else False
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
