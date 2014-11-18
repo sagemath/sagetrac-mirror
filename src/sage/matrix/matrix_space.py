@@ -494,15 +494,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: Mat(QQ,3,5).change_ring(GF(7))
             Full MatrixSpace of 3 by 5 dense matrices over Finite Field of size 7
         """
-        try:
-            return self.__change_ring[R]
-        except AttributeError:
-            self.__change_ring = {}
-        except KeyError:
-            pass
-        M = MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
-        self.__change_ring[R] = M
-        return M
+        return MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
 
     def base_extend(self, R):
         """
