@@ -106,7 +106,7 @@ cdef getElement (e, Element r, int n):
 
 cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
     #compute all the data in sage
-    K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(self.b))
+    K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
     b = K.gen()
     C = [c.lift()(1/b) for c in self.C]
     if verb:
@@ -502,7 +502,7 @@ class BetaAdicMonoid(Monoid_class):
                 else:
                     return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
         
-    def default_ss (self):
+    def default_ss (self, C=None):
         r"""
         Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
 
@@ -512,7 +512,8 @@ class BetaAdicMonoid(Monoid_class):
             sage: m.default_ss()
             Finite automaton with 1 states
         """
-        C = self.C
+        if C is None:
+            C = self.C
         ss = Automaton()
         ss.allow_multiple_edges(True)
         ss.allow_loops(True)
@@ -2345,15 +2346,18 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print "Cd=%s"%Cd
         a = self.relations_automaton3(Cd=Cd, ext=ext)
-        if step == 1:
-            return a
         if verb:
             print " -> %s"%a
-        a = a.emonde_inf()
-        if step == 2:
+        if step == 1:
             return a
+        if ext:
+            a = a.emonde_inf()
+        else:
+            a = a.emonde()
         if verb:
             print " Après émondation : %s"%a
+        if step == 2:
+            return a
         d={}
         for c1 in C2:
             for c2 in C:
@@ -2368,7 +2372,7 @@ class BetaAdicMonoid(Monoid_class):
             print a2
         if step == 3:
             return a2
-        ap = tss.product(FastAutomaton(self.default_ss()), verb=verb)
+        ap = tss.product(FastAutomaton(self.default_ss(C=C)), verb=verb)
         if step == 4:
             return ap
         a2 = ap.intersection(a2)
@@ -2407,7 +2411,10 @@ class BetaAdicMonoid(Monoid_class):
     def move (self, t, FastAutomaton tss=None, list C=None, step=None):
         if tss is None:
             if hasattr(self, 'tss'):
-                tss = FastAutomaton(self.tss)
+                if isinstance(self.tss, FastAutomaton):
+                    tss = self.tss
+                else:
+                    tss = FastAutomaton(self.tss)
             else:
                 tss = FastAutomaton(self.default_ss())
         if C is None:

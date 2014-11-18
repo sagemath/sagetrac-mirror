@@ -107,6 +107,9 @@ void initHash ()
 void freeInfoBetaAdic (InfoBetaAdic iba)
 {
 	int i;
+	free(pile);
+	free(thash);
+	free(iba.cM);
 	for (i=0;i<iba.ncmax;i++)
 	{
 		FreeElement(iba.c[i]);

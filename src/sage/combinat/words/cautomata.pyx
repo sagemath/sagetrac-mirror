@@ -40,7 +40,7 @@ cdef extern from "automataC.h":
     
     Automaton NewAutomaton (int n, int na)
     void FreeAutomaton (Automaton *a)
-    Automaton CopyAutomaton (Automaton a)
+    Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
     void init (Automaton *a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
@@ -559,6 +559,62 @@ cdef class FastAutomaton:
         #r = r.minimise()
         return r.emonde().minimise()
     
+    #split the automaton with respect to a
+    def split (self, FastAutomaton a, verb=False):
+        #complete the automaton a
+        sig_on()
+        CompleteAutomaton(a.a)
+        sig_off()
+        
+        #make the product
+        d = {}
+        for l in self.A:
+            if l in a.A:
+                d[(l,l)] = l
+        
+        cdef Automaton ap
+        cdef Dict dC
+        r = FastAutomaton(None)
+        r2 = FastAutomaton(None)
+        Av = []
+        sig_on()
+        dv = imagProductDict(d, self.A, a.A, Av=Av)
+        sig_off()
+        if verb:
+            print "Av=%s"%Av
+            print "dv=%s"%dv
+        sig_on()
+        dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
+        sig_off()
+        if verb:
+            print "dC="
+            printDict(dC)
+        sig_on()
+        ap = Product(self.a[0], a.a[0], dC)
+        FreeDict(dC)
+        sig_off()
+        
+        #set final states for the intersection
+        cdef int i,j
+        cdef n1 = self.a.n
+        for i in range(n1):
+            for j in range(a.a.n):
+                ap.e[i+n1*j].final = self.a.e[i].final and a.a.e[j].final
+        
+        #complementary of a in self
+        cdef Automaton ap2
+        ap2 = CopyAutomaton(ap, ap.n, ap.na)
+        #set final states
+        for i in range(n1):
+            for j in range(a.a.n):
+                ap2.e[i+n1*j].final = self.a.e[i].final and not a.a.e[j].final
+        
+        r.a[0] = ap
+        r.A = Av
+        r2.a[0] = ap2
+        r2.A = Av
+        return [r.emonde().minimise(), r2.emonde().minimise()]
+    
     #return the automaton recognizing the langage shifted
     def shift (self, verb=False):
         #détermine la liste des successeurs de l'état initial
@@ -582,6 +638,26 @@ cdef class FastAutomaton:
             b = b.emonde().minimise()
             a = a.union(b)
         return a
+    
+    #modify the automaton to recognize the langage shifted by a (letter given by its index)
+    def shift1OP (self, int a, verb=False):
+        if self.a.i != -1:
+            self.a.i = self.a.e[self.a.i].f[a]
+    
+    def unshift1 (self, int a):
+        r = FastAutomaton(None)
+        sig_on()
+        cdef Automaton aut
+        aut = CopyAutomaton(self.a[0], self.a.n+1, self.a.na)
+        cdef int i
+        cdef int ne = self.a.n
+        for i in range(aut.na):
+            aut.e[ne].f[i] = -1
+        aut.e[ne].f[a] = self.a.i
+        aut.i = ne
+        r.a[0] = aut
+        r.A = self.A
+        return r
         
     def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
         sig_on()
@@ -795,7 +871,7 @@ cdef class FastAutomaton:
     def copy (self):
         sig_on()
         r = FastAutomaton(None)
-        r.a[0] = CopyAutomaton(self.a[0])
+        r.a[0] = CopyAutomaton(self.a[0], self.a.n, self.a.na)
         r.A = self.A
         sig_off()
         return r

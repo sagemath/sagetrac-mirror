@@ -208,9 +208,10 @@ void ReallocAutomaton (Automaton *a, int n)
 	*/
 }
 
-Automaton CopyAutomaton (Automaton a)
+Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
 {
-	Automaton r = NewAutomaton(a.n, a.na);
+	//a.n, a.na
+	Automaton r = NewAutomaton(nalloc, naalloc);
 	int i,j;
 	for (i=0;i<a.n;i++)
 	{
@@ -494,6 +495,8 @@ bool emptyLangage_rec (Automaton a, int e)
 //détermine si le langage de l'automate est vide
 bool emptyLangage (Automaton a)
 {
+	if (a.i == -1)
+		return true;
 	bool res = emptyLangage_rec(a, a.i);
 	//remet les états finaux
 	int i;
