@@ -161,34 +161,7 @@ for l in init_code:
 # This returns an EclObject
 maxima_eval=ecl_eval("""
 (defun maxima-eval( form )
-    (let ((result (catch 'macsyma-quit (cons 'maxima_eval (meval form)))))
-        ;(princ (list "result=" result))
-        ;(terpri)
-        ;(princ (list "$error=" $error))
-        ;(terpri)
-        (cond
-            ((and (consp result) (eq (car result) 'maxima_eval)) (cdr result))
-            ((eq result 'maxima-error)
-                (let ((the-jig (process-error-argl (cddr $error))))
-                    (mapc #'set (car the-jig) (cadr the-jig))
-                    (error (concatenate 'string
-                        "Error executing code in Maxima: "
-                        (with-output-to-string (stream)
-                           (apply #'mformat stream (cadr $error)
-                             (caddr the-jig)))))
-                ))
-            (t
-                (let ((the-jig (process-error-argl (cddr $error))))
-                    (mapc #'set (car the-jig) (cadr the-jig))
-                    (error (concatenate 'string "Maxima condition. result:"
-                        (princ-to-string result) "$error:"
-                        (with-output-to-string (stream)
-                            (apply #'mformat stream (cadr $error)
-                              (caddr the-jig)))))
-                ))
-        )
-    )
-)
+    (with-$error (meval form)))
 """)
 
 ## Number of instances of this interface
@@ -848,7 +821,7 @@ class MaximaLib(MaximaAbstract):
             sage: sum(1/(m^4 + 2*m^3 + 3*m^2 + 2*m)^2, m, 0, infinity)
             Traceback (most recent call last):
             ...
-            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+            RuntimeError: ECL says: Zero to negative power computed.
 
         Similar situation for :trac:`12410`::
 
@@ -856,7 +829,7 @@ class MaximaLib(MaximaAbstract):
             sage: sum(1/x*(-1)^x, x, 0, oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+            RuntimeError: ECL says: Zero to negative power computed.
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
