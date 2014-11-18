@@ -43,7 +43,7 @@ class FiniteDimensionalAlgebra(Algebra):
       ``True``, then methods requiring associativity assume this
       without checking
 
-    - ``category`` -- (default: ``FiniteDimensionalAlgebrasWithBasis(k)``)
+    - ``category`` -- (default: ``FiniteDimensionalAlgebrasWithBasis(k.category())``)
       the category to which this algebra belongs
 
     The list ``table`` must have the following form: there exists a
@@ -104,7 +104,7 @@ class FiniteDimensionalAlgebra(Algebra):
         self._assume_associative = assume_associative
         # No further validity checks necessary!
         if category is None:
-            category = FiniteDimensionalAlgebrasWithBasis(k)
+            category = FiniteDimensionalAlgebrasWithBasis(k.category())
         Algebra.__init__(self, base_ring=k, names=names, category=category)
 
     def _repr_(self):
@@ -171,7 +171,7 @@ class FiniteDimensionalAlgebra(Algebra):
             Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
         if isinstance(B, FiniteDimensionalAlgebra):
-            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
+            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring().category()).or_subcategory(category)
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra_morphism import FiniteDimensionalAlgebraHomset
             return FiniteDimensionalAlgebraHomset(self, B, category=category)
         return super(FiniteDimensionalAlgebra, self)._Hom_(B, category)
