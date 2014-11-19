@@ -39,13 +39,21 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.list_clone import ClonableArray
+from sage.categories.category import Category
+from sage.categories.classes_of_combinatorial_structures import \
+    ClassesOfCombinatorialStructures
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.sets.non_negative_integers import NonNegativeIntegers
+
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
@@ -2874,11 +2882,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 
 
@@ -2955,7 +2958,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
 #################################################################
 # Enumerated set of all binary trees
 #################################################################
-class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
+class BinaryTrees_all(BinaryTrees, DisjointUnionEnumeratedSets):
 
     def __init__(self):
         """
@@ -2980,7 +2983,29 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
-            facade=True, keepkey = False)
+            facade=True, keepkey = False,
+            category=Category.join([ClassesOfCombinatorialStructures(),
+                                    InfiniteEnumeratedSets()]))
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: BinaryTrees().graded_component(4)
+            Binary trees of size 4
+
+        """
+        return BinaryTrees_size(n)
+
+    def grading(self, T):
+        """
+        TESTS::
+
+            sage: BinaryTree([[],[]]).grade()
+            3
+
+        """
+        return T.node_number()
 
     def _repr_(self):
         """
@@ -3077,8 +3102,30 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category = FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(
+            category=ClassesOfCombinatorialStructures.GradedComponents()
+        )
         self._size = size
+
+    def grade(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(3).grade()
+            3
+
+        """
+        return self._size
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(3).ambient()
+            Binary trees
+
+        """
+        return BinaryTrees_all()
 
     def _repr_(self):
         """
@@ -3194,7 +3241,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: S = BinaryTrees(3)
             sage: S.element_class
             <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
-            sage: S.first().__class__ == BinaryTrees().first().__class__
+            sage: S.first().__class__ == BinaryTrees(5).first().__class__
             True
         """
         return self._parent_for.element_class

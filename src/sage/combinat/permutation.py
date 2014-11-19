@@ -225,6 +225,9 @@ Classes and methods
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
+from sage.categories.category import Category
+from sage.categories.classes_of_combinatorial_structures import \
+    ClassesOfCombinatorialStructures
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -774,6 +777,8 @@ class Permutation(CombinatorialObject, Element):
             5
         """
         return len(self)
+
+    grade = size
 
     def cycle_string(self, singletons=False):
         """
@@ -5658,8 +5663,31 @@ class StandardPermutations_all(Permutations):
 
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
+
         """
-        Permutations.__init__(self, category=InfiniteEnumeratedSets())
+        Permutations.__init__(self, category=Category.join(
+                [ClassesOfCombinatorialStructures(), InfiniteEnumeratedSets()])
+        )
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: Permutations(4) == Permutations().graded_component(4)
+            True
+
+        """
+        return StandardPermutations_n(n)
+
+    def grading(self, sig):
+        """
+        TESTS::
+
+            sage: Permutation([1,3,2,4]).grade()
+            4
+
+        """
+        return len(sig)
 
     def _repr_(self):
         """
@@ -5731,7 +5759,29 @@ class StandardPermutations_n(Permutations):
             sage: TestSuite(SP).run()
         """
         self.n = n
-        Permutations.__init__(self, category=FiniteEnumeratedSets())
+        Permutations.__init__(self,
+                              category=ClassesOfCombinatorialStructures.\
+                                       GradedComponents())
+
+    def grade(self):
+        """
+        TESTS::
+
+            sage: Permutations(4).grade()
+            4
+
+        """
+        return self.n
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Permutations(4).ambient()
+            Standard permutations
+
+        """
+        return Permutations()
 
     def __call__(self, x):
         """

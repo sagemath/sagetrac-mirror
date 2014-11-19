@@ -28,9 +28,12 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from itertools import imap
+from sage.categories.classes_of_combinatorial_structures import \
+    ClassesOfCombinatorialStructures
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.structures import StructuresClass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -226,9 +229,8 @@ class Composition(CombinatorialObject, Element):
         TESTS::
 
             sage: parent(list(Compositions(1))[0].conjugate())
-            Compositions of 1
-            sage: parent(list(Compositions(0))[0].conjugate())
-            Compositions of 0
+            Compositions of non-negative integers
+
         """
         comp = self
         if comp == []:
@@ -1609,28 +1611,22 @@ class Compositions(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()
         """
         if is_infinite:
-            Parent.__init__(self, category=InfiniteEnumeratedSets())
+            Parent.__init__(self, category=ClassesOfCombinatorialStructures())
         else:
-            Parent.__init__(self, category=FiniteEnumeratedSets())
+            Parent.__init__(self, category=ClassesOfCombinatorialStructures.\
+                                           GradedComponents())
 
     Element = Composition
 
     def _element_constructor_(self, lst):
         """
-        Construct an element with ``self`` as parent.
-
         EXAMPLES::
 
             sage: P = Compositions()
             sage: P([3,3,1]) # indirect doctest
             [3, 3, 1]
         """
-        if isinstance(lst, Composition):
-            lst = list(lst)
-        elt = self.element_class(self, lst)
-        if elt not in self:
-            raise ValueError("%s not in %s"%(elt, self))
-        return elt
+        return self.ambient()._element_constructor_(lst)
 
     def __contains__(self, x):
         """
@@ -1800,8 +1796,29 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: TestSuite(C).run()
+
         """
         Compositions.__init__(self, True)
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: Compositions().graded_component(42) == Compositions(42)
+            True
+
+        """
+        return Compositions_n(n)
+
+    def grading(self, I):
+        """
+        TESTS::
+
+            sage: Composition([1,2,1]).grade()
+            4
+
+        """
+        return sum(I[:])
 
     def _repr_(self):
         """
@@ -1847,6 +1864,24 @@ class Compositions_all(Compositions):
                 yield self.element_class(self, list(c))
             n += 1
 
+
+    def _element_constructor_(self, lst):
+        """
+        Construct an element with ``self`` as parent.
+
+        EXAMPLES::
+
+            sage: P = Compositions()
+            sage: P([3,3,1]) # indirect doctest
+            [3, 3, 1]
+        """
+        if isinstance(lst, Composition):
+            lst = list(lst)
+        elt = self.element_class(self, lst)
+        if elt not in self:
+            raise ValueError("%s not in %s"%(elt, self))
+        return elt
+
 class Compositions_n(Compositions):
     """
     Class of compositions of a fixed `n`.
@@ -1867,6 +1902,26 @@ class Compositions_n(Compositions):
             True
         """
         return super(Compositions_n, cls).__classcall__(cls, Integer(n))
+
+    def grade(self):
+        """
+        TESTS::
+
+            sage: Compositions(4).grade()
+            4
+
+        """
+        return self.n
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Compositions(4).ambient()
+            Compositions of non-negative integers
+
+        """
+        return Compositions_all()
 
     def __init__(self, n):
         """
@@ -1962,13 +2017,17 @@ class Compositions_n(Compositions):
             sage: Compositions(0).list()
             [[]]
         """
-        if self.n == 0:
-            yield self.element_class(self, [])
-            return
+        def nested(k):
+            # little trick to avoid to create too many object *Composition*:
+            ## That avoid the trip: Composition(... list(Composition(list(Composition([1])) + [2])) + ...)
+            if k == 0: yield ()
+            else:
+                for i in range(1, k+1):
+                    for I in nested(k-i):
+                        yield (i,) + I
 
-        for i in range(1,self.n+1):
-            for c in Compositions_n(self.n-i):
-                yield self.element_class(self, [i]+list(c))
+        return imap(self._element_constructor_, nested(self.grade()))
+
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
