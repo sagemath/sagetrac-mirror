@@ -505,7 +505,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._inverse_base_ring_generators = {}
 
         # finally attach the representations that are defined for this algebra 
-        self.representations=IHReps.IwahoriHeckeAlgebraRepresentations()
+        self.representations=IHReps.HeckeAlgebraRepresentations()
         if W.is_finite() and self._cartan_type[0] in ['A','B']:
            self.representations.SpechtModuleWithMurphyBasis=\
                    lambda mu: IHReps.SpechtModuleWithMurphyBasis(q1=self._q1, q2=self._q2, shape=mu)

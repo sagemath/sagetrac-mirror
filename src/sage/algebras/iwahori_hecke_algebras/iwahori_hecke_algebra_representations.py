@@ -29,16 +29,19 @@ from sage.algebras.algebra import is_Algebra
 from sage.categories.action import Action
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition_tuple import PartitionTuple
+from sage.combinat.permutation import Permutation
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.fraction_field import FractionField
-from sage.rings.fraction_field import FractionField_generic
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import RationalField
 
 import operator
 
-class IwahoriHeckeAlgebraRepresentations(object):
+class HeckeAlgebraRepresentations(object):
     r"""
     This is a shortcut that returns the possible representations of this
     algebra.
@@ -55,9 +58,9 @@ class IwahoriHeckeAlgebraRepresentations(object):
     """
     pass
 
-class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
+class HeckeAlgebraRepresentation(CombinatorialFreeModule):
     r"""
-    Implement a particular seminormal representation of the Iwahori-Hecke algebras of type A that 
+    Implement a particular seminormal representation of the Iwahori-Hecke algebras of type A that
     restricts well to the alternating group. This module has a basis $\{f_t\}$ indexed by
     the set of standard tableaux of the corresponding shape. If $1\le r\le n$
     then the action of `T_r` on the basis element `f_t` is given by
@@ -106,17 +109,22 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         sage: SeminormalRepresentation([3,2,2], prefix='v').an_element()
         3*v(1,2,7/3,5/4,6) + 2*v(1,3,7/2,5/4,6) + 2*v(1,4,7/2,5/3,6)
     """
-    def __init__(self, R, basis_keys, prefix, q1,q2, is_hecke_representation=false, module_action="left"):
-        from sage.algebras.iwahori_hecke_algebras.iwhaori_hecke_algebra import IwhaoriHeckeAlgebra
+    def __init__(self, base_ring, basis_keys, prefix, q1, q2, is_hecke_representation=False, module_action="left"):
+        from sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 
         # in order to allow the corresponding Hecke algebra to act directly on
         # this module we need to know when something belongs to this algebra
         if is_hecke_representation:
             self._algebra=IwahoriHeckeAlgebra(R,q1=q1,q2=q2)
         else:
-            # if this is not a hecke algebra rep then we need fake iterable so
-            # that a in self._algebra will always fail.
+            # if this is not a Hecke algebra rep then we still need self._algebra
+            # to be an iterable object so that `a in self._algebra` is valid
+            # syntax (and returns false)
             self._algebra=[]
+
+        # check that q1 and q2 belong to the base ring
+        if not (q1 in base_ring and q2 in base_ring):
+            raise ValueError('q1={}, q2={} must be in the same ring as charge={}'.format(q1,q2,charge))
 
         # Used when multiplying generators: minor speed-up as it avoids the
         # need to constantly add and multiply the parameters when applying the
@@ -125,18 +133,20 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         self._q_prod = -q1*q2
 
         if module_action=="left":
-            self.Element.L=self.Element._L_left
-            self.Element.T=self.Element._T_left
+            self.Element.T=self.Element._T_left_action
         elif module_action=="right":
-            self.Element.L=self.Element._L_right
-            self.Element.T=self.Element._T_right
+            self.Element.T=self.Element._T_right_action
         elif module_action=="bimodule":
-            self.Element.L_left=self.Element._L_left
-            self.Element.T_left=self.Element._T_left
-            self.Element.L_right=self.Element._L_right
-            self.Element.T_right=self.Element._T_right
+            self.Element.T_left=self.Element._T_left_action
+            self.Element.T_right=self.Element._T_right_action
         else:
             raise ValueError('module_action must be left, right or bimodule!')
+
+        super(HeckeAlgebraRepresentation,self).__init__(
+                       R=base_ring,
+                       basis_keys=basis_keys,
+                       prefix=prefix
+        )
 
     ## computing the action of the generators ---------------------------
 
@@ -167,17 +177,11 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
         """
         return prod(self._Tr_matrix(r) for r in arg)
 
-    def _L_on_basis(self, b, r):
-        r"""
-        Returns the result of `L_r` acting on `b`.
-        """
-        raise NotImplementedError('the action on the basis has not been implemented yet!')
-
+    @abstract_method
     def _T_on_basis(self, b, r):
         r"""
         Returns the result of `T_r` acting on `b`.
         """
-        raise NotImplementedError('the action on the basis has not been implemented yet!')
 
     def character(self, *arg):
         r"""
@@ -217,9 +221,9 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
 
     def action(self,a):
         if not a in self._algebra:
-            raise ValueError('%{a} does not act on {rep}'.format{a=a,rep=self}
+            raise ValueError('%{a} does not act on {rep}'.format(a=a,rep=self))
 
-        return self.parent().sum(c*self.T( *w.reduced_word() ) for (w,c) in a.to_T_basis)
+        return self.parent().sum(c*self.T( *w.reduced_word() ) for (w,c) in a.to_T_basis())
 
     ## check that the algebra's relations are satisfied on the representation ---------------------------
 
@@ -252,7 +256,6 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
                 )
         return True
 
-
     class Element(CombinatorialFreeModule.Element):
         r"""
         Element methods.
@@ -271,7 +274,7 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
 
             return self.parent().sum(coeff*self.parent()._T_on_basis(b,r) for (b,coeff) in self)
 
-        def _T_left(self,*args):
+        def _T_left_action(self,*args):
             r"""
             Compute the action of `T_w` on self, where `w` is the permutation
             corresponding to the (reduced) word `*args`.
@@ -286,7 +289,7 @@ class IwahoriHeckeAlgebraRepresentation(CombinatorialFreeModule):
                 v=v._Tr(r)
             return v
 
-        def _T_right(self,*args):
+        def _T_right_action(self,*args):
             r"""
             Compute the action of `T_w` on self, where `w` is the permutation
             corresponding to the (reduced) word `*args`.
@@ -318,23 +321,38 @@ class IwahoriHeckeAlgebraAction(Action):
         return v.action(a)
 
 
-###############################################################################
-##       Kazhdan-Lusztig cell representations of Iwahori-Hecke algebras      ##
-###############################################################################
+##################################################################
+##  Kazhdan-Lusztig cell representations of Iwahori-Hecke algebras
+##################################################################
 
-class LeftCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation):
+class LeftCellRepresentationOfHeckeAlgebra(HeckeAlgebraRepresentation):
     pass
 
-class RightCellRepresentationOfHeckeAlgebra(IwahoriHeckeAlgebraRepresentation):
+class RightCellRepresentationOfHeckeAlgebra(HeckeAlgebraRepresentation):
     pass
 
-###############################################################################
-##     Seminormal representations of (cyclotomic) Iwahori-Hecke algebras     ##
-###############################################################################
+############################################################
+## Seminormal representations of (cyclotomic) Hecke algebras
+############################################################
 
-class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
+class __SeminormalRepresentation_generic__(HeckeAlgebraRepresentation):
+    r"""
+    This is a private class that implements the broad skeleton of the seminormal
+    representations of the (cyclotomic) Hecke algebras of type A. The derived 
+    classes of this class need to::
+
+    - define the `base_ring` for the representation and set q1 and q1
+    - define the `charge`, which determines the eigenvalues of $L_1$.
+    - define a `prefix` for printing the basis elements
+    - implement the four methods::
+        - _degenerate_rho_and_beta
+        - _degenerate_rho_and_beta_level_one
+        - _nondegenerate_rho_and_beta
+        - _nondegenerate_rho_and_beta_level_one
+
+    """
     @staticmethod
-    def __classcall__(cls, shape, *args, **kwargs):
+    def __classcall__(cls, shape, q1=None, q2=-1, charge=None, degenerate=False, prefix='?', **kwargs):
         """
         Magic to allow class to accept a list (which is not hashable) instead
         of a :class:`PartitionTuple`, which apparently is.
@@ -344,9 +362,17 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
             sage: SeminormalRepresentation([3,2,1])    # indirect doctest
             SeminormalRepresentation([3,2,1])
         """
-        return super(SeminormalRepresentation, cls).__classcall__(cls, PartitionTuple(shape), *args, **kwargs)
+        try:
+            shape=PartitionTuple(shape)
+            if charge is not None and len(charge)!=shape.level():
+                raise ValueError('the shape and charge have different lengths')
+        except (TypeError, ValueError):
+             raise ValueError('the shape must be a partition or partition tuple')
 
-    def __init__(self, q1, q2=-1, charge=None, degenerate=False, prefix='M', **kwargs):
+        return super(__SeminormalRepresentation_generic__, cls).__classcall__(cls, shape=PartitionTuple(shape),
+                           q1=q1, q2=q2, charge=charge, degenerate=degenerate, **kwargs)
+
+    def __init__(self, shape, prefix, degenerate, base_ring, **kwargs):
         r"""
         Initialisation of a seminormal representation of the symmetric group
         indexed by the partition `shape` and where the basis elements are
@@ -357,61 +383,63 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
             sage: SeminormalRepresentation([3,2,1])    # indirect doctest
             SeminormalRepresentation([3,2,1])
         """
-        self._shape=shape
-        self._prefix=prefix
-        self._degenerate=degenerate
+        self._shape=shape            # shape of the partition defining the representation
+        self._degenerate=degenerate  # true/false depending on whether we use a
+                                     # degenerate or non-degenerate seminormal form.
 
-        # create shortcuts for the appropriate content function
         if self._degenerate:
-            if len(shape.components())==1:
-                self._tableau_content=_degenerate_content_level_one
-            else:
-                self._tableau_content=_degenerate_content
-            else:
-        else:
-            if len(shape.components())==1:
-                self._tableau_content=_nondegenerate_content_level_one
-            else:
-                self._tableau_content=_nondegenerate_content
+            self.__quantum_integers={0:0} # quick look up table for quantum integers
+            for k in range(shape.size()):
+                self.__quantum_integers[k+1]=self._q2+self._q2/self._q1*self.__quantum_integers[k]
+                self.__quantum_integers[-k-1]=self._q1+self._q1/self._q2*self.__quantum_integers[-k]
 
-        # We need to build the base ring that splits our module. It needs to
-        # contain the inverses and square roots of the quantum integers [k]_q,
-        # for 0\le k\le n. To achieve this we start with the ring of Laurent
-        # polynomials and successively extend this ring by throwing in the
-        # square roots that we need. At the end we throw in a square of -1. We
-        # don't use the ComplexField() because this seems to drag along with it
-        # unwanted precision when printing.
-
-        if q1 is None and q2==-1 and charge is None and Q is None:
-          param=['u','v']
-          for r in range(1,len(shape)+1):
-              param.append('Q%s'%r)
-          R=PolynomialRing(IntegerRing(),param)
-          self._q1=R.gen(0)
-          self._q2=R.gen(1)
-          self._Q=[R.gen(r+2) for r in range(len(shape))]
+            # use the degenerate content functions
+            if shape.level()==1:
+                self._tableau_content=self._degenerate_content_level_one
+                self._rho_and_beta=self._degenerate_rho_and_beta_level_one
+            else:
+                self._tableau_content=self._degenerate_content
+                self._rho_and_beta=self._degenerate_rho_and_beta
         else:
-            pass
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
-        self.q=Fq.gen()
-        roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
-        roots[0]='I'
-        poly_ring=PolynomialRing(Fq,roots)
-        relations=[poly_ring.gen(0)**2+1]
-        self.__quantum_integer={0:0, 1:1}       # dictionary of positive quantum integers
-        self.__quantum_integer_root={0:0, 1:1}  # dictionary of square roots of positive quantum integers
-        qint=1                                  # a quantum integer in waiting
-        for k in range(1,shape.size()):
-            qint+=self.q**(2*k)                 # now equal to 1+q^2+...+q^2k = [k+1]_{q^2}
-            self.__quantum_integer[k+1]=qint    # we remember these because we need them later
-            relations.append(poly_ring.gen(k)**2-qint)
-        F=poly_ring.quotient(poly_ring.ideal(relations),roots)
-        for k in range(1,shape.size()):
-            self.__quantum_integer_root[k+1]=F.gen(k)
-        self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
-        super(SeminormalRepresentation_generic,self).__init__(R=F,
-                basis_keys=shape.standard_tableau, q1=self._q1,
-                q2=self._q2, **kwargs);
+            self.__quantum_integers={0:1, 1: self._q2, -1: self._q1} # quick look up table for quantum integers
+            for k in range(1,shape.size()):
+                self.__quantum_integers[k+1]=self._q2/self._q1*self.__quantum_integers[k]
+                self.__quantum_integers[-k-1]=self._q1/self._q2*self.__quantum_integers[-k]
+
+            # use the non-degenerate algebra action
+            self._T_on_basis=self._nondegenerate_T_on_basis
+
+            # use the non-degenerate content functions
+            if shape.level()==1:
+                self._tableau_content=self._nondegenerate_content_level_one
+                self._rho_and_beta=self._nondegenerate_rho_and_beta_level_one
+            else:
+                self._tableau_content=self._nondegenerate_content
+                self._rho_and_beta=self._nondegenerate_rho_and_beta
+
+        super(__SeminormalRepresentation_generic__,self).__init__(
+                    base_ring=base_ring,                  # coefficient field for representation
+                    basis_keys=shape.standard_tableaux(), # indexing set for basis
+                    prefix=prefix,                        # prefix for printing basis
+                    **kwargs                              # anything used upstream
+        )
+
+    def check_relations(self, verbose):
+        r"""
+        Return `True` if the action of the algebra of the representation `self`
+        repects all of the algebras relations and `False` otherwise.
+
+        """
+        # we only need to check the relations involving L_1,...,L_n are the
+        # remaining relations are verified by HeckeAlgebraRepresentation.
+        for t in self._basis_keys:
+            if verbose: print 'Checking cyclotomic relations on ({term})'.format(term=self(t))
+            for r in range(1,self.size()+1):
+                # check quadratic relations on self(t)
+                assert self(t).L(r)==self._tableau_content(t,r)*self(t), (
+                        'L_{r} is not acting with the expected eigenvalue on {term}'.format(r=r,term=self(t))
+                )
+        return super(__SeminormalRepresentation_generic__,self).check_relations(verbose)
 
     def shape(self):
         r"""
@@ -435,18 +463,15 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
         """
         return self._shape.size()
 
-    def _quantum_integer(self,d):
+    def charge(self):
+        return self._charge
+
+    def is_degenerate(self):
         r"""
-        Return the quantum integer `[d]_{q^2}=1+q^2+\dots+q^{2d-2}`, where `d\ge0`.
-
-        EXAMPLES::
-
-        sage: SeminormalRepresentation([3,2])._quantum_integer(3)
-        1 + q^2 + q^4
-        sage: SeminormalRepresentation([3,2])._quantum_integer(-3)
-        -q^-6 - q^-4 - q^-2
+        Return `True` if this is a degenerate seminormal representation and
+        `False` otherwise.
         """
-        return self.__quantum_integer[d] if d>=0 else -self.q**(2*d)*self.__quantum_integer[-d]
+        return self._degenerate
 
     def _repr_(self):
         r"""
@@ -457,26 +482,29 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
             sage: SeminormalRepresentation([3,2,1])    # indirect doctest
             SeminormalRepresentation([3,2,1])
         """
-        return 'SeminormalRepresentation([%s])' % self._shape._repr_compact_high()
+        if self._degenerate:
+            return 'SeminormalRepresentation([{}], degenerate=True)'.format(self._shape._repr_compact_high())
+        else:
+            return 'SeminormalRepresentation([{}])'.format(self._shape._repr_compact_high())
 
-    def _repr_term(self,t):
+    def _repr_term(self,tab):
         r"""
         Override the default printing of terms so that compact tableaux are
         used.
 
         EXAMPLES::
 
-            sage: SeminormalRepresentation([2,1]).an_element()
+            sage: SeminormalRepresentation([2,1]).an_element()  # indirect doctest
             2*f(1,2/3) + 2*f(1,3/2)
             sage: SeminormalRepresentation([2,1], prefix='v').an_element()
             2*v(1,2/3) + 2*v(1,3/2)
         """
-        return '%s(%s)' % ( self._prefix, t._repr_compact() )
+        return '{prefix}({tab})'.format(prefix=self._prefix, tab=tab._repr_compact() )
 
     def _element_constructor_(self,t):
         r"""
         We override the fault element constructor in order to coerce lists into standard tableaux.
-        
+
         EXAMPLES::
 
             sage: SeminormalRepresentation([3,2])([[1,2,3],[4,5]])
@@ -510,46 +538,6 @@ class SeminormalRepresentation_generic(IwahoriHeckeAlgebraRepresentation):
         """
         return self._q_prod**t.content(r)
 
-class SeminormalRepresentation(SeminormalRepresentation_generic):
-    def __init__(self, shape, prefix='v', **kwargs):
-        r"""
-        Initialisation of a seminormal representation of the symmetric group
-        indexed by the partition `shape` and where the basis elements are
-        labelled by `prefix`.
-
-        EXAMPLES::
-
-            sage: SeminormalRepresentation([3,2,1])    # indirect doctest
-            SeminormalRepresentation([3,2,1])
-        """
-        # We need to build the base ring that splits our module. It needs to
-        # contain the inverses and square roots of the quantum integers [k]_q,
-        # for 0\le k\le n. To achieve this we start with the ring of Laurent
-        # polynomials and successively extend this ring by throwing in the
-        # square roots that we need. At the end we throw in a square of -1. We
-        # don't use the ComplexField() because this seems to drag along with it
-        # unwanted precision when printing.
-        self._shape=shape
-        self._prefix=prefix
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
-        self.q=Fq.gen()
-        roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
-        roots[0]='I'
-        poly_ring=PolynomialRing(Fq,roots)
-        relations=[poly_ring.gen(0)**2+1]
-        self.__quantum_integer={0:0, 1:1}       # dictionary of positive quantum integers
-        self.__quantum_integer_root={0:0, 1:1}  # dictionary of square roots of positive quantum integers
-        qint=1                                  # a quantum integer in waiting
-        for k in range(1,shape.size()):
-            qint+=self.q**(2*k)                 # now equal to 1+q^2+...+q^2k = [k+1]_{q^2}
-            self.__quantum_integer[k+1]=qint    # we remember these because we need them later
-            relations.append(poly_ring.gen(k)**2-qint)
-        F=poly_ring.quotient(poly_ring.ideal(relations),roots)
-        for k in range(1,shape.size()):
-            self.__quantum_integer_root[k+1]=F.gen(k)
-        self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
-        CombinatorialFreeModule.__init__(self,F,shape.standard_tableaux(), prefix='f')
-
     @cached_method
     def _T_on_basis(self,tab,r):
         r"""
@@ -584,20 +572,89 @@ class SeminormalRepresentation(SeminormalRepresentation_generic):
              (q^2/(-q-q^3-q^5))*f(1,2,3/4,5/6) + (q^2*r2*r4*I/(1+q^2+q^4))*f(1,2,4/3,5/6)
         """
         rtab=tab.symmetric_group_action_on_entries( Permutation((r,r+1)) )
-        d=tab.content(r)-tab.content(r+1)
-        denom=1/(self.q**(2*d+1)*self._quantum_integer(-d))
-        if abs(d)==1:  # r and r+1 in same row or column <=> rtab is not standard
-            return self.term(tab,denom)
-        else:
-            if d>0:
-                coeff=1/self._quantum_integer(d)
-                coeff*=self.I*self._quantum_integer_root(d+1)*self._quantum_integer_root(d-1)
-            else:
-                coeff=1/self._quantum_integer(-d)
-                coeff*=-self.I*self._quantum_integer_root(-d+1)*self._quantum_integer_root(-d-1)
-            return self.sum_of_terms([(tab,denom), (rtab,coeff)],distinct=True)
+        c = tab.content(r)     # content of r
+        d = tab.content(r+1)   # content of r+1
+        rho, beta = self._rho_and_beta(c, d)
+        if rtab.is_standard():  # r and r+1 in different row or column <=> rtab is standard
+            return self.sum_of_terms([(tab,rho), (rtab,beta)],distinct=True)
+        else:                   # r and r+1 in same different row or column <=> rtab is not standard
+            return self.term(tab,rho)
 
-class SeminormalRepresentation_Orthogonal(SeminormalRepresentation_generic):
+    class Element(HeckeAlgebraRepresentation.Element):
+
+        def L(self, *arg):
+            r"""
+            Return the action of `L(r_1, r_2,...)` on the module element `self`.
+            """
+            return self.parent().sum_of_terms(
+                       [(tab,c*prod([self._tableau_content(tab,r) for r in arg])) for tab,c in self],
+                       distinct=True)
+
+
+class SeminormalRepresentation(__SeminormalRepresentation_generic__):
+    def __init__(self, shape, q1, q2, charge, **kwargs):
+        r"""
+        Initialisation of a seminormal representation of the symmetric group
+        indexed by the partition `shape` and where the basis elements are
+        labelled by `prefix`.
+
+        EXAMPLES::
+
+            sage: SeminormalRepresentation([3,2,1])    # indirect doctest
+            SeminormalRepresentation([3,2,1])
+        """
+        if q1 is None:
+            if q2 is None:
+                # the generic relation (T_r-u)(T_r-v)=0
+                F=FractionField(PolynomialRing(IntegerRing(),'u,v'))
+                q1,q2=F.gens()
+            else:
+                # the default parameters for the relation (T_r-q)(T_r+1)=0
+                F=FractionField(PolynomialRing(IntegerRing(),'q'))
+                q1=F.gen()
+        else:
+            F=FractionField(q1.parent())
+            if q2 not in F and q1 in q2.parent():
+                F=FractionField(q2.parent())
+            else:
+                raise ValueError('q1={} and q2={} do not belong to a common ring'.format(q1,q2))
+
+        if charge is None:
+            if shape.level()==1:
+                self._charge=[1]
+                base_ring=F
+            else:
+                base_ring=PolynomialRing(F,['Q%s'%(r+1) for r in range(shape.level())])
+                self._charge=base_ring.gens()
+        else:
+            self._charge=charge
+            base_ring=self._charge[-1].parent()
+
+        super(SeminormalRepresentation,self).__init__(
+                shape=shape,                       # for creating the indexing set of the basis
+                q1=q1, q2=q2, base_ring=base_ring, # set the representations parameters upstream
+                prefix='v',                        # seminormal basis prints as v(...)
+                **kwargs
+        )
+
+        def _degenerate_rho_and_beta_level_one(self, c, d):
+            return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
+
+        def _nondegenerate_rho_and_beta_level_one(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
+        def _degenerate_rho_and_beta(self, c, d):
+            return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
+
+        def _nondegenerate_rho_and_beta(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
+
+class SeminormalRepresentation_Orthogonal(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix='y'):
         r"""
         Initialisation of a seminormal representation of the symmetric group
@@ -618,7 +675,7 @@ class SeminormalRepresentation_Orthogonal(SeminormalRepresentation_generic):
         # unwanted precision when printing.
         self._shape=shape
         self._prefix=prefix
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
+        Fq=FractionField(PolynomialRing(IntegerRing(),'q'))
         self.q=Fq.gen()
         roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
         roots[0]='I'
@@ -637,6 +694,22 @@ class SeminormalRepresentation_Orthogonal(SeminormalRepresentation_generic):
         self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
         CombinatorialFreeModule.__init__(self,F,shape.standard_tableaux(), prefix='f')
 
+        def _degenerate_rho_and_beta_level_one(self, c, d):
+            return -1/self.__quantum_integer(c-d), self.__quantum_integer_root(c-d+1)/self.__quantum_integer(c-d)
+
+        def _nondegenerate_rho_and_beta_level_one(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
+        def _degenerate_rho_and_beta(self, c, d):
+            return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
+
+        def _nondegenerate_rho_and_beta(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
     def _quantum_integer_root(self,d):
         r"""
         Return the square root of the quantum integer `[d]_{q^2}`. These square
@@ -652,7 +725,7 @@ class SeminormalRepresentation_Orthogonal(SeminormalRepresentation_generic):
         """
         return self.__quantum_integer_root[d] if d>=0 else -self.q**(2*d)*self.__quantum_integer_root[-d]
 
-class SeminormalRepresentation_Murphy(SeminormalRepresentation_generic):
+class SeminormalRepresentation_Murphy(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix):
         r"""
         Initialisation of a seminormal representation of the symmetric group
@@ -673,7 +746,7 @@ class SeminormalRepresentation_Murphy(SeminormalRepresentation_generic):
         # unwanted precision when printing.
         self._shape=shape
         self._prefix=prefix
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
+        Fq=FractionField(PolynomialRing(IntegerRing(),'q'))
         self.q=Fq.gen()
         roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
         roots[0]='I'
@@ -692,54 +765,27 @@ class SeminormalRepresentation_Murphy(SeminormalRepresentation_generic):
         self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
         CombinatorialFreeModule.__init__(self,F,shape.standard_tableaux(), prefix='f')
 
-    @cached_method
-    def _T_on_basis(self,tab,r):
-        r"""
-        Compute the action of `T_r` on the basis element `f_tab`, where the action
-        of `T_r` is as follows:
-
-        .. MATH::
-
-           f_t T_r = \frac{-q^{-1}}{[d]}f_t + \alpha_d f_s
-
-        where $d=c_r(t)-c_{r+1}(t)$  is the axial distance from $r$ to $r+1$ in `t` and
-
-        .. MATH::
-
-           \alpha_d = \begin{cases}
-                         \frac{\sqrt{-1}\sqrt{[d+1]}\sqrt{[d-1]}}{[d]},&\text{if }d>0,\\
-                        -\frac{\sqrt{-1}\sqrt{[-d+1]}\sqrt{[-d-1]}}{[d]},&\text{if }d<0.
-           \end{cases}
-
-         The whole point of choosing this particular basis is that if the module
-         is indexed by a self-conjugate partition then it splits when it is
-         restricted to the alternating Hecke algebra.
-
-         EXAMPLES::
-
-             sage: rep=SeminormalRepresentation([3,2,1])
-             sage: rep([[1,2,3],[4,5],[6]]).T(1)   # indirect doctest
-             q*f(1,2,3/4,5/6)
-             sage: rep([[1,2,3],[4,5],[6]]).T(1,2)
-             q^2*f(1,2,3/4,5/6)
-             sage: rep([[1,2,3],[4,5],[6]]).T(1,2,3)
-             (q^2/(-q-q^3-q^5))*f(1,2,3/4,5/6) + (q^2*r2*r4*I/(1+q^2+q^4))*f(1,2,4/3,5/6)
-        """
-        rtab=tab.symmetric_group_action_on_entries( Permutation((r,r+1)) )
-        d=tab.content(r)-tab.content(r+1)
-        denom=1/(self.q**(2*d+1)*self._quantum_integer(-d))
-        if abs(d)==1:  # r and r+1 in same row or column <=> rtab is not standard
-            return self.term(tab,denom)
-        else:
-            if d>0:
-                coeff=1/self._quantum_integer(d)
-                coeff*=self.I*self._quantum_integer_root(d+1)*self._quantum_integer_root(d-1)
+        def _degenerate_rho_and_beta_level_one(self, c, d):
+            if c>d:
+                return -1/self.__quantum_integer(c-d), 1
             else:
-                coeff=1/self._quantum_integer(-d)
-                coeff*=-self.I*self._quantum_integer_root(-d+1)*self._quantum_integer_root(-d-1)
-            return self.sum_of_terms([(tab,denom), (rtab,coeff)],distinct=True)
+                beta= self.__quantum_integer_root(c-d+1)*self.__quantum_integer_root(c-d+1)/self.__quantum_integer(c-d)**2
+                return -1/self.__quantum_integer(c-d), beta
 
-class SpechtModuleWithMurphyBasis(SeminormalRepresentation_generic):
+        def _nondegenerate_rho_and_beta_level_one(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
+        def _degenerate_rho_and_beta(self, c, d):
+            return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
+
+        def _nondegenerate_rho_and_beta(self, c, d):
+            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            return rho, beta
+
+class SpechtModuleWithMurphyBasis(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix='m'):
         r"""
         Initialisation of a seminormal representation of the symmetric group
@@ -762,7 +808,7 @@ class SpechtModuleWithMurphyBasis(SeminormalRepresentation_generic):
         self._prefix=prefix
         self._generic_seminormalform=SeminormalRepresentation_murphy(shape)
         self._generic_Murphy=lambda t: self._generic_seminormalform().gen().T( *t.reduced_word())
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
+        Fq=FractionField(PolynomialRing(IntegerRing(),'q'))
         self.q=Fq.gen()
         roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
         roots[0]='I'
@@ -817,7 +863,7 @@ class SpechtModuleWithMurphyBasis(SeminormalRepresentation_generic):
         rtab=tab.symmetric_group_action_on_entries( Permutation((r,r+1)) )
         d=tab.content(r)-tab.content(r+1)
         if rtab.is_standard():
-            if d>0: 
+            if d>0:
                 # tab dominates rtab => m_tab T_r = m_{rtab}
                 return self.monomial(rtab)
             else:
@@ -844,8 +890,7 @@ class SpechtModuleWithMurphyBasis(SeminormalRepresentation_generic):
         combination of seminormal basis elements.
         """
 
-
-class SeminormalRepresentation_Alternating(SeminormalRepresentation_generic):
+class SeminormalRepresentation_Alternating(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix='a'):
         r"""
         Initialisation of a seminormal representation of the symmetric group
@@ -866,7 +911,7 @@ class SeminormalRepresentation_Alternating(SeminormalRepresentation_generic):
         # unwanted precision when printing.
         self._shape=shape
         self._prefix=prefix
-        Fq=FractionField(PolynomialRing(IntegerRing(),'q')) 
+        Fq=FractionField(PolynomialRing(IntegerRing(),'q'))
         self.q=Fq.gen()
         roots=['r%d'%(d+1) for d in range(0,shape.size())] # names for the square roots
         roots[0]='I'
@@ -900,52 +945,24 @@ class SeminormalRepresentation_Alternating(SeminormalRepresentation_generic):
         """
         return self.__quantum_integer_root[d] if d>=0 else -self.q**(2*d)*self.__quantum_integer_root[-d]
 
-    @cached_method
-    def _T_on_basis(self,tab,r):
-        r"""
-        Compute the action of `T_r` on the basis element `f_tab`, where the action
-        of `T_r` is as follows:
-
-        .. MATH::
-
-           f_t T_r = \frac{-q^{-1}}{[d]}f_t + \alpha_d f_s
-
-        where $d=c_r(t)-c_{r+1}(t)$  is the axial distance from $r$ to $r+1$ in `t` and
-
-        .. MATH::
-
-           \alpha_d = \begin{cases}
-                         \frac{\sqrt{-1}\sqrt{[d+1]}\sqrt{[d-1]}}{[d]},&\text{if }d>0,\\
-                        -\frac{\sqrt{-1}\sqrt{[-d+1]}\sqrt{[-d-1]}}{[d]},&\text{if }d<0.
-           \end{cases}
-
-         The whole point of choosing this particular basis is that if the module
-         is indexed by a self-conjugate partition then it splits when it is
-         restricted to the alternating Hecke algebra.
-
-         EXAMPLES::
-
-             sage: rep=SeminormalRepresentation([3,2,1])
-             sage: rep([[1,2,3],[4,5],[6]]).T(1)   # indirect doctest
-             q*f(1,2,3/4,5/6)
-             sage: rep([[1,2,3],[4,5],[6]]).T(1,2)
-             q^2*f(1,2,3/4,5/6)
-             sage: rep([[1,2,3],[4,5],[6]]).T(1,2,3)
-             (q^2/(-q-q^3-q^5))*f(1,2,3/4,5/6) + (q^2*r2*r4*I/(1+q^2+q^4))*f(1,2,4/3,5/6)
-        """
-        rtab=tab.symmetric_group_action_on_entries( Permutation((r,r+1)) )
-        d=tab.content(r)-tab.content(r+1)
-        denom=1/(self.q**(2*d+1)*self._quantum_integer(-d))
-        if abs(d)==1:  # r and r+1 in same row or column <=> rtab is not standard
-            return self.term(tab,denom)
+    def _degenerate_rho_and_beta_level_one(self, c, d):
+        rho=1/(self.q**(2*d+1)*self._quantum_integer(-d))
+        if d>0:
+            beta=1/self._quantum_integer(d)
+            beta*=self.I*self._quantum_integer_root(d+1)*self._quantum_integer_root(d-1)
         else:
-            if d>0:
-                coeff=1/self._quantum_integer(d)
-                coeff*=self.I*self._quantum_integer_root(d+1)*self._quantum_integer_root(d-1)
-            else:
-                coeff=1/self._quantum_integer(-d)
-                coeff*=-self.I*self._quantum_integer_root(-d+1)*self._quantum_integer_root(-d-1)
-            return self.sum_of_terms([(tab,denom), (rtab,coeff)],distinct=True)
+            beta=1/self._quantum_integer(-d)
+            beta*=-self.I*self._quantum_integer_root(-d+1)*self._quantum_integer_root(-d-1)
+        return rho, beta
+
+    def _degenerate_rho_and_beta(self, c, d):
+        pass
+
+    def _nondegenerate_rho_and_beta_level_one(self, c, d):
+        pass
+
+    def _nondegenerate_rho_and_beta(self, c, d):
+        pass
 
     def tau_character(self, *arg):
         r"""
@@ -955,7 +972,7 @@ class SeminormalRepresentation_Alternating(SeminormalRepresentation_generic):
         the permutation corresponding to the  (reduced) expression `*arg`.
 
         In fact, if `w` is a minimal length coset representative then this
-        character value is zero unless `w` belongs to the 
+        character value is zero unless `w` belongs to the
         conjugacy class of the symmetric group that splits when restricted to
         the alternating group.
 
