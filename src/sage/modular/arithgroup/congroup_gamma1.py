@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_1(N)`
 """
@@ -19,6 +20,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import prod
 from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
+from sage.rings.rational_field import frac, QQ
 from sage.modular.dirichlet import DirichletGroup
 
 # Just for now until we make an SL_2 group type.
@@ -343,7 +345,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -352,9 +354,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         EXAMPLES::
 
@@ -366,6 +369,20 @@ class Gamma1_class(GammaH_class):
             32
             sage: G.dimension_modular_forms(2, eps, algorithm="Quer")
             32
+
+        Examples with half-integral weights: ::
+
+            sage: Gamma1(44).dimension_modular_forms(3/2)
+            50
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_modular_forms(9/2, G.1*G.2)
+            102
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_modular_forms(1/2, H.0^2)
+            3
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_modular_forms(3/2, K.0*K.1^9)
+            15
         """
 
         return self.dimension_cusp_forms(k, eps, algorithm) + self.dimension_eis(k, eps, algorithm)
@@ -378,7 +395,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -387,9 +404,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         EXAMPLES:
 
@@ -416,25 +434,55 @@ class Gamma1_class(GammaH_class):
             [0, 0, 1, 0, 3, 0, 5, 0, 7, 0]
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
+
+        Examples with half-integral weights: ::
+
+            sage: Gamma1(44).dimension_cusp_forms(3/2)
+            12
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_cusp_forms(9/2, G.1*G.2)
+            94
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_cusp_forms(1/2, H.0^2)
+            0
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_cusp_forms(3/2, K.0*K.1^9)
+            5
         """
 
         from all import Gamma0
+        k = QQ(k)
+        den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")
+        num = k.numerator()
+        N = self.level()
+        if den == 2 and N%4 !=0:
+            raise TypeError("The level must be divisible by 4")
 
         # first deal with special cases
+
+        if k <= 0:
+            return ZZ(0)
 
         if eps is None:
             return GammaH_class.dimension_cusp_forms(self, k)
 
-        N = self.level()
-        if eps.base_ring().characteristic() != 0:
+        K = eps.base_ring()
+
+        if K.characteristic() != 0:
             raise ValueError
 
-        eps = DirichletGroup(N, eps.base_ring())(eps)
+        eps = DirichletGroup(N, K)(eps)
 
-        if eps.is_trivial():
+        if eps.is_trivial() and den == 1:
             return Gamma0(N).dimension_cusp_forms(k)
 
-        if (k <= 0) or ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+        if den == 1:
+            if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+                return ZZ(0)
+
+        if den == 2 and eps.is_odd():
             return ZZ(0)
 
         if k == 1:
@@ -450,18 +498,26 @@ class Gamma1_class(GammaH_class):
         # now the main part
 
         if algorithm == "Quer":
-            n = eps.order()
-            dim = ZZ(0)
-            for d in n.divisors():
-                G = GammaH_constructor(N,(eps**d).kernel())
-                dim = dim + moebius(d)*G.dimension_cusp_forms(k)
-            return dim//phi(n)
+            if den == 2:
+                raise NotImplementedError("Computation of dimensions of spaces of half-integral weight cusp forms is only implemented using Cohen--Oesterle algorithm")
+            else:
+                n = eps.order()
+                dim = ZZ(0)
+                for d in n.divisors():
+                    G = GammaH_constructor(N,(eps**d).kernel())
+                    dim = dim + moebius(d)*G.dimension_cusp_forms(k)
+                return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
-            K = eps.base_ring()
-            from sage.modular.dims import CohenOesterle
-            from all import Gamma0
-            return ZZ( K(Gamma0(N).index() * (k-1)/ZZ(12)) + CohenOesterle(eps,k) )
+
+            from sage.modular.dims import SerreStark, CohenOesterle
+            if k == frac(1,2):
+                return SerreStark(eps, cusp_space=True)
+            aux_dim = K(Gamma0(N).index()*(k-1)/ZZ(12)) + CohenOesterle(eps, k)
+            if k == frac(3,2):
+                return ZZ(aux_dim + SerreStark(eps))
+            else:
+                return ZZ(aux_dim)
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
             raise ValueError("Unrecognised algorithm in dimension_cusp_forms")
@@ -475,7 +531,7 @@ class Gamma1_class(GammaH_class):
 
         INPUT:
 
-        - ``k`` - an integer (default: 2), the weight.
+        - ``k`` - an integer, or half an integer (default: 2), the weight.
 
         - ``eps`` - either None or a Dirichlet character modulo N, where N is
           the level of this group. If this is None, then the dimension of the
@@ -484,9 +540,10 @@ class Gamma1_class(GammaH_class):
 
         - ``algorithm`` -- either "CohenOesterle" (the default) or "Quer". This
           specifies the method to use in the case of nontrivial character:
-          either the Cohen--Oesterle formula as described in Stein's book, or
-          by Moebius inversion using the subgroups GammaH (a method due to
-          Jordi Quer).
+          either the Cohen--Oesterle formula as described in Stein's book (in
+          the case of half-integral weight see the articles of Cohen--Oesterle
+          and Serre--Stark), or by Moebius inversion using the subgroups GammaH
+          (a method due to Jordi Quer).
 
         AUTHORS:
 
@@ -495,6 +552,8 @@ class Gamma1_class(GammaH_class):
         - Jordi Quer - algorithm based on GammaH subgroups
 
         - David Loeffler (2009) - code refactoring
+
+        - Nicolás Sirolli (2014) - half-integral weights
 
         EXAMPLES:
 
@@ -511,44 +570,79 @@ class Gamma1_class(GammaH_class):
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
             sage: [Gamma1(48).dimension_eis(3,eps,algorithm="Quer") for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
+
+        Examples with half-integral weights: ::
+
+            sage: Gamma1(44).dimension_eis(3/2)
+            38
+            sage: G = DirichletGroup(156)
+            sage: Gamma1(156).dimension_eis(9/2, G.1*G.2)
+            8
+            sage: H = DirichletGroup(64)
+            sage: Gamma1(64).dimension_eis(1/2, H.0^2)
+            3
+            sage: K = DirichletGroup(108)
+            sage: Gamma1(108).dimension_eis(3/2, K.0*K.1^9)
+            10
         """
         from all import Gamma0
+        k = QQ(k)
+        den = abs(k.denominator())
+        if den > 2:
+            raise TypeError("The weight must be an integer or half an integer")
+        num = k.numerator()
+        N = self.level()
+        if den == 2 and N%4 !=0:
+            raise TypeError("The level must be divisible by 4")
 
         # first deal with special cases
 
         if eps is None:
             return GammaH_class.dimension_eis(self, k)
 
-        N = self.level()
         eps = DirichletGroup(N)(eps)
 
-        if eps.is_trivial():
+        if eps.is_trivial() and den == 1:
             return Gamma0(N).dimension_eis(k)
 
         # Note case of k = 0 and trivial character already dealt with separately, so k <= 0 here is valid:
-        if (k <= 0) or ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+        if k <= 0:
+            return ZZ(0)
+
+        if den == 1:
+            if ((k % 2) == 1 and eps.is_even()) or ((k%2) == 0 and eps.is_odd()):
+                return ZZ(0)
+
+        if den == 2 and eps.is_odd():
             return ZZ(0)
 
         if algorithm == "Quer":
-            n = eps.order()
-            dim = ZZ(0)
-            for d in n.divisors():
-                G = GammaH_constructor(N,(eps**d).kernel())
-                dim = dim + moebius(d)*G.dimension_eis(k)
-            return dim//phi(n)
+            if den == 2:
+                raise NotImplementedError("Computation of dimensions of spaces of half integral weight Einsenstein series forms is only implemented using Cohen--Oesterle algorithm")
+            else:
+                n = eps.order()
+                dim = ZZ(0)
+                for d in n.divisors():
+                    G = GammaH_constructor(N,(eps**d).kernel())
+                    dim = dim + moebius(d)*G.dimension_eis(k)
+                return dim//phi(n)
 
         elif algorithm == "CohenOesterle":
-            from sage.modular.dims import CohenOesterle
-            K = eps.base_ring()
-            j = 2-k
-            # We use the Cohen-Oesterle formula in a subtle way to
-            # compute dim M_k(N,eps) (see Ch. 6 of William Stein's book on
-            # computing with modular forms).
-            alpha = -ZZ( K(Gamma0(N).index()*(j-1)/ZZ(12)) + CohenOesterle(eps,j) )
-            if k == 1:
-                return alpha
+            if k == frac(1,2):
+                from sage.modular.dims import SerreStark
+                return SerreStark(eps) - self.dimension_cusp_forms(k, eps)
             else:
-                return alpha - self.dimension_cusp_forms(k, eps)
+                from sage.modular.dims import CohenOesterle
+                K = eps.base_ring()
+                j = 2-k
+                # We use the Cohen-Oesterle formula in a subtle way to
+                # compute dim M_k(N,eps) (see Ch. 6 of William Stein's book on
+                # computing with modular forms).
+                alpha = -ZZ( K(Gamma0(N).index()*(j-1)/ZZ(12)) + CohenOesterle(eps,j) )
+                if k == 1:
+                    return alpha
+                else:
+                    return alpha - self.dimension_cusp_forms(k, eps)
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
             raise ValueError("Unrecognised algorithm in dimension_eis")
