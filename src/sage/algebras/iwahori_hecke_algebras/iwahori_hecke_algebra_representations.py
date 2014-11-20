@@ -41,7 +41,7 @@ from sage.rings.rational_field import RationalField
 
 import operator
 
-class HeckeAlgebraRepresentations(object):
+class IwahoriHeckeAlgebraRepresentations(object):
     r"""
     This is a shortcut that returns the possible representations of this
     algebra.
@@ -109,7 +109,7 @@ class HeckeAlgebraRepresentation(CombinatorialFreeModule):
         sage: SeminormalRepresentation([3,2,2], prefix='v').an_element()
         3*v(1,2,7/3,5/4,6) + 2*v(1,3,7/2,5/4,6) + 2*v(1,4,7/2,5/3,6)
     """
-    def __init__(self, base_ring, basis_keys, prefix, q1, q2, is_hecke_representation=False, module_action="left"):
+    def __init__(self, base_ring, basis_keys, prefix, q1, q2, is_hecke_representation=True, module_action="left"):
         from sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 
         # in order to allow the corresponding Hecke algebra to act directly on
@@ -148,7 +148,7 @@ class HeckeAlgebraRepresentation(CombinatorialFreeModule):
                        prefix=prefix
         )
 
-    ## computing the action of the generators ---------------------------
+    ## computin the action of the generators ---------------------------
 
     @cached_method
     def _Tr_matrix(self,r):
@@ -182,6 +182,7 @@ class HeckeAlgebraRepresentation(CombinatorialFreeModule):
         r"""
         Returns the result of `T_r` acting on `b`.
         """
+        pass
 
     def character(self, *arg):
         r"""
@@ -375,8 +376,8 @@ class __SeminormalRepresentation_generic__(HeckeAlgebraRepresentation):
     def __init__(self, shape, prefix, degenerate, base_ring, **kwargs):
         r"""
         Initialisation of a seminormal representation of the symmetric group
-        indexed by the partition `shape` and where the basis elements are
-        labelled by `prefix`.
+        indexed by the partition `shape` and with the basis elements labelled by
+        `prefix`.
 
         EXAMPLES::
 
@@ -387,42 +388,49 @@ class __SeminormalRepresentation_generic__(HeckeAlgebraRepresentation):
         self._degenerate=degenerate  # true/false depending on whether we use a
                                      # degenerate or non-degenerate seminormal form.
 
-        if self._degenerate:
-            self.__quantum_integers={0:0} # quick look up table for quantum integers
-            for k in range(shape.size()):
-                self.__quantum_integers[k+1]=self._q2+self._q2/self._q1*self.__quantum_integers[k]
-                self.__quantum_integers[-k-1]=self._q1+self._q1/self._q2*self.__quantum_integers[-k]
-
-            # use the degenerate content functions
-            if shape.level()==1:
-                self._tableau_content=self._degenerate_content_level_one
-                self._rho_and_beta=self._degenerate_rho_and_beta_level_one
-            else:
-                self._tableau_content=self._degenerate_content
-                self._rho_and_beta=self._degenerate_rho_and_beta
-        else:
-            self.__quantum_integers={0:1, 1: self._q2, -1: self._q1} # quick look up table for quantum integers
-            for k in range(1,shape.size()):
-                self.__quantum_integers[k+1]=self._q2/self._q1*self.__quantum_integers[k]
-                self.__quantum_integers[-k-1]=self._q1/self._q2*self.__quantum_integers[-k]
-
-            # use the non-degenerate algebra action
-            self._T_on_basis=self._nondegenerate_T_on_basis
-
-            # use the non-degenerate content functions
-            if shape.level()==1:
-                self._tableau_content=self._nondegenerate_content_level_one
-                self._rho_and_beta=self._nondegenerate_rho_and_beta_level_one
-            else:
-                self._tableau_content=self._nondegenerate_content
-                self._rho_and_beta=self._nondegenerate_rho_and_beta
+        # Iwahori-Hecke algebras are currently only implemented in type A (level 1)
+        # and in type B (level 2) in the equal parameter case
+        level=self._shape.level()
+        is_hecke_rep=level==1 or (level==2 and kwargs['q1']==charge[0] and kwargs['q2']==charge[1])
 
         super(__SeminormalRepresentation_generic__,self).__init__(
                     base_ring=base_ring,                  # coefficient field for representation
                     basis_keys=shape.standard_tableaux(), # indexing set for basis
                     prefix=prefix,                        # prefix for printing basis
+                    is_hecke_representation=is_hecke_rep  # is a representation of an Iwahori-Hecke algebra
                     **kwargs                              # anything used upstream
         )
+
+        print 'Inside generic:\n{}'.format(self.__dict__)
+#        if self._degenerate:
+#            # use the degenerate content functions
+#            if shape.level()==1:
+#                self._tableau_content=self._degenerate_content_level_one
+#                self._rho_and_beta=self._degenerate_rho_and_beta_level_one
+#            else:
+#                self._tableau_content=self._degenerate_content
+#                self._rho_and_beta=self._degenerate_rho_and_beta
+#        else:
+#            # use the non-degenerate content functions
+#            if shape.level()==1:
+#                self._tableau_content=self._nondegenerate_content_level_one
+#                self._rho_and_beta=self._nondegenerate_rho_and_beta_level_one
+#            else:
+#                self._tableau_content=self._nondegenerate_content
+#                self._rho_and_beta=self._nondegenerate_rho_and_beta
+#
+#        if not hasattr(self,'__quantum_integers'):
+#            self.__quantum_integers={0:0} # quick look up table for quantum integers
+#            if self._degenerate:
+#                self.__quantum_integers={0:0} # quick look up table for quantum integers
+#                for k in range(shape.size()):
+#                    self.__quantum_integers[k+1]=self._q2+self._q2/self._q1*self.__quantum_integers[k]
+#                    self.__quantum_integers[-k-1]=self._q1+self._q1/self._q2*self.__quantum_integers[-k]
+#            else:
+#                self.__quantum_integers={0:1, 1: self._q2, -1: self._q1} # quick look up table for quantum integers
+#                for k in range(1,shape.size()):
+#                    self.__quantum_integers[k+1]=self._q2/self._q1*self.__quantum_integers[k]
+#                    self.__quantum_integers[-k-1]=self._q1/self._q2*self.__quantum_integers[-k]
 
     def check_relations(self, verbose):
         r"""
@@ -465,6 +473,19 @@ class __SeminormalRepresentation_generic__(HeckeAlgebraRepresentation):
 
     def charge(self):
         return self._charge
+
+
+    def generator(self):
+        r"""
+        Returna generator, as a module for the Hecke algebra, of the Specht module `self`.
+
+        EXAMPLES::
+
+            sage: SeminormalRepresentation([3,2]).generator()
+        """
+        return self.monomial(self._shape.initial_tableau())
+
+    gen=generator  # for compatibility with the common sage shorthand
 
     def is_degenerate(self):
         r"""
@@ -530,13 +551,41 @@ class __SeminormalRepresentation_generic__(HeckeAlgebraRepresentation):
         Return the content of the integer `r` in the tableau `t` in the degenerate case.
         """
         c=t.content(r)
-        return self._Q[c[0]]*self._q_prod**c[1]
+        return self._charge[c[0]]*self._q_prod**c[1]
 
     def _nondegenerate_content_level_one(self, t, r):
         r"""
         Return the content of the integer `r` in the tableau `t` in the degenerate case.
         """
         return self._q_prod**t.content(r)
+
+    @abstract_method
+    def _nondegenerate_rho_and_beta_level_one(self, c, d):
+        r"""
+        some doc
+        """
+        pass
+
+    @abstract_method
+    def _nondegenerate_rho_and_beta(self, c, d):
+        r"""
+        some doc
+        """
+        pass
+
+    @abstract_method
+    def _degenerate_rho_and_beta_level_one(self, c, d):
+        r"""
+        some doc
+        """
+        pass
+
+    @abstract_method
+    def _degenerate_rho_and_beta(self, c, d):
+        r"""
+        some doc
+        """
+        pass
 
     @cached_method
     def _T_on_basis(self,tab,r):
@@ -630,27 +679,29 @@ class SeminormalRepresentation(__SeminormalRepresentation_generic__):
             self._charge=charge
             base_ring=self._charge[-1].parent()
 
+        print 'Before super:\n{}'.format(self.__dict__)
         super(SeminormalRepresentation,self).__init__(
                 shape=shape,                       # for creating the indexing set of the basis
                 q1=q1, q2=q2, base_ring=base_ring, # set the representations parameters upstream
                 prefix='v',                        # seminormal basis prints as v(...)
                 **kwargs
         )
+        print 'After super:\n{}'.format(self.__dict__)
 
         def _degenerate_rho_and_beta_level_one(self, c, d):
             return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
 
         def _nondegenerate_rho_and_beta_level_one(self, c, d):
-            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
-            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            rho  = (self._q1-self._q2)*self._q1**c/(self._q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self._q1**c-self._q2**d)
             return rho, beta
 
         def _degenerate_rho_and_beta(self, c, d):
             return -1/self.__quantum_integer(c-d), self.__quantum_integer(c-d+1)/self.__quantum_integer(c-d)
 
         def _nondegenerate_rho_and_beta(self, c, d):
-            rho  = (self._q1-self._q2)*self._q1**c/(self.__q1**c-self._q2**d)
-            beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
+            rho  = (self._q1-self._q2)*self._q1**c/(self._q1**c-self._q2**d)
+            beta = ( self._q1**(c+1)-self._q2**d)/(self._q1**c-self._q2**d)
             return rho, beta
 
 
@@ -785,6 +836,20 @@ class SeminormalRepresentation_Murphy(__SeminormalRepresentation_generic__):
             beta = ( self._q1**(c+1)-self._q2**d)/(self.__q1**c-self._q2**d)
             return rho, beta
 
+    @cached_method
+    def _murphy(self,tab):
+        r"""
+        Return the Murphy basis element indexed by the tableau `tab` as a linear
+        combination of seminormal basis elements.
+        """
+        initial_tableau=self._shape.initial_tableau()
+        if tab==initial_tableau: 
+            return self.monomial(initial_tableau)
+        else:
+            r=tab.reduced_row_word()[-1]
+            s=tab.symmetric_group_action_on_entries( Permutation((r,r+1)) )
+            return self._murphy(s).T(r)
+
 class SpechtModuleWithMurphyBasis(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix='m'):
         r"""
@@ -826,6 +891,19 @@ class SpechtModuleWithMurphyBasis(__SeminormalRepresentation_generic__):
             self.__quantum_integer_root[k+1]=F.gen(k)
         self.I=F.gen(0)                         # I=sqrt(-1). We don't use CC as we want issues with precision
         CombinatorialFreeModule.__init__(self,F,shape.standard_tableaux(), prefix='m')
+
+    @cached_method
+    def _seminormal(self, tab):
+        r"""
+        Return the seminormal basis element indexed by the tableau `tab` as a
+        linearcombination of Murphy basis elements.
+
+        EXAMPES::
+
+        TODO: problematic because, in general, the coefficients will not belong
+        to the current base-ring.
+        """
+        pass
 
     @cached_method
     def _T_on_basis(self,tab,r):
@@ -882,13 +960,6 @@ class SpechtModuleWithMurphyBasis(__SeminormalRepresentation_generic__):
                 mtabr += specht._specialise_coeff(c) * self.parent().monomial(s)
 
            return mtabr
-
-    @cached_method
-    def _murphy(self,tab):
-        r"""
-        Return the Murphy basis element indexed by the tableau `tab` as a linear
-        combination of seminormal basis elements.
-        """
 
 class SeminormalRepresentation_Alternating(__SeminormalRepresentation_generic__):
     def __init__(self, shape, prefix='a'):
