@@ -1327,7 +1327,7 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
     
     # bitset_unpickle assumes that out.data.data is initialised.
     bitset_init(out.data.data, GMP_LIMB_BITS)
-    bitset_unpickle(out.data.data, bitset_data)
+    if bitset_data: bitset_unpickle(out.data.data, bitset_data)
     return out
 
 def _biseq_stresstest():
