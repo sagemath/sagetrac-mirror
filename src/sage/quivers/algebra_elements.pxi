@@ -185,6 +185,9 @@ cdef inline path_term_t *term_copy_recursive(path_term_t *T) except NULL:
     out.nxt = NULL
     return first
 
+cdef inline long term_hash(path_term_t *T):
+    return (<long>hash(<object>T.coef)+(T.mon.mid<<5)+(T.mon.pos<<10))^bitset_hash(T.mon.path.data)
+
 ########################################
 ##
 ## Multiplication of monomials
@@ -323,116 +326,41 @@ cdef inline bint poly_icopy(path_poly_t *out, path_poly_t *P) except -1:
     out.lead = term_copy_recursive(T)
     return True
 
-cdef str repr_poly(path_poly_t * poly, repr_monomial):
-    cdef list L = []
-    cdef size_t i
-    cdef path_term_t * T = poly.lead
-    while T!=NULL:
-        L.append((([biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)], T.mon.pos, T.mon.mid),<object>(T.coef)))
-        T = T.nxt
-    assert len(L)==poly.nterms, "Term count of polynomial is wrong"
-    return repr_lincomb(L, strip_one=True, repr_monomial = repr_monomial)
-
-########################################
-##
-## Basics homogeneous polynomials
-
-cdef inline path_homog_poly_t *homog_poly_create(int start, int end) except NULL:
-    cdef path_homog_poly_t *out = <path_homog_poly_t*>sage_malloc(sizeof(path_homog_poly_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path polynomial")
-    out.poly = poly_create()
-    out.start = start
-    out.end = end
-    out.nxt = NULL
-    return out
-
-cdef inline path_homog_poly_t *homog_poly_init_poly(int start, int end, path_poly_t *P) except NULL:
-    # The polynomial P will not be copied!
-    cdef path_homog_poly_t *out = <path_homog_poly_t*>sage_malloc(sizeof(path_homog_poly_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path polynomial")
-    out.poly = P
-    out.start = start
-    out.end = end
-    out.nxt = NULL
-    return out
-
-cdef path_homog_poly_t *homog_poly_init_list(int start, int end, list L, path_order_t cmp_terms, unsigned int pos, int mid) except NULL:
-    cdef path_homog_poly_t * out = homog_poly_create(start, end)
-    cdef QuiverPath P
-    for P,coef in L:
-        poly_iadd_term_d(out.poly, term_create(coef, P._path, pos, mid if mid!=-2 else P._path.length), cmp_terms)
-    return out
-
-cdef inline void homog_poly_free(path_homog_poly_t *P):
-    cdef path_homog_poly_t *nxt
-    while P!=NULL:
-        nxt = P.nxt
-        poly_free(P.poly)
-        sage_free(P)
-        P = nxt
-
-cdef inline path_homog_poly_t *homog_poly_copy(path_homog_poly_t *H) except NULL:
-    cdef path_homog_poly_t *out
-    cdef path_homog_poly_t *tmp
-    if H == NULL:
-        raise ValueError("The polynomial to be copied is the NULL pointer")
-    out = homog_poly_create(H.start, H.end)
-    poly_icopy(out.poly, H.poly)
-    tmp = out
-    H = H.nxt
-    while H != NULL:
-        tmp.nxt = homog_poly_create(H.start, H.end)
-        tmp = tmp.nxt
-        poly_icopy(tmp.poly, H.poly)
-        H = H.nxt
-    return out
-
-cdef inline path_homog_poly_t *homog_poly_get_predecessor_of_component(path_homog_poly_t *H, int s, int e):
-    # Search through H.nxt.nxt... and return the pointer C to a component of H
-    # such that either C.nxt.start==s and C.nxt.end==e, or the component for
-    # (s,e) should be inserted between C and C.nxt. Return NULL if H==NULL or
-    # (s,e) should be inserted in front of H.
-    if H == NULL:
-        return NULL
-    if H.start > s:
-        return NULL
-    elif H.start == s and H.end >= e:
-        return NULL
-    while True:
-        if H.nxt == NULL:
-            return H
-        if H.nxt.start == s:
-            if H.nxt.end >= e:
-                return H
-        elif H.nxt.start > s:
-            return H
-        H = H.nxt
-
-cdef str repr_homog_poly(path_homog_poly_t * homog_poly, repr_monomial):
-    cdef list L, L_total
-    cdef size_t i
-    cdef path_term_t * T
-    L_total = []
-    while homog_poly!=NULL:
-        L = []
-        T = homog_poly.poly.lead
-        while T!=NULL:
-            L.append((([biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)],
-                       T.mon.pos, T.mon.mid, homog_poly.start),<object>(T.coef)))
-            T = T.nxt
-        assert len(L)==homog_poly.poly.nterms, "Term count of polynomial is wrong"
-        L_total.extend(L)
-        homog_poly = homog_poly.nxt
-    return repr_lincomb(L_total, strip_one=True, repr_monomial = repr_monomial)
-
 ############################################
 ##
 ## Polynomial arithmetics
 
-# Addition of a term
+# Comparison
 
+cdef inline int poly_cmp(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms):
+    cdef path_term_t *T1 = P1.lead
+    cdef path_term_t *T2 = P2.lead
+    cdef int c
+    while T1 != NULL and T2 != NULL:
+        c = cmp_terms(T1.mon, T2.mon)
+        if c != 0:
+            return c
+        c = cmp(<object>T1.coef, <object>T2.coef)
+        if c != 0:
+            return c
+        T1 = T1.nxt
+        T2 = T2.nxt
+    if T1 == NULL:
+        if T2 == NULL:
+            return 0
+        return -1
+    return 1
+
+cdef inline long poly_hash(path_poly_t *P):
+    cdef path_term_t *T = P.lead
+    cdef long out = 0
+    while T != NULL:
+        out = out<<7 | (out>>(sizeof(long)-7))
+        out += term_hash(T)
+        T = T.nxt
+    return out
+
+# Addition of a term
 cdef inline void term_iadd(path_term_t *T1, path_term_t *T2):
     cdef object coef = <object>(T1.coef) + <object>(T2.coef)
     Py_DECREF(<object>(T1.coef))
@@ -599,23 +527,24 @@ cdef path_poly_t *poly_add(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
             else:
                 T.nxt = term_copy_recursive(T1)
             return out
+
         c = cmp_terms(T1.mon,T2.mon)
         if c == 1:
             if T == NULL:
-                out.lead = term_copy_recursive(T1)
+                out.lead = term_copy(T1)
                 T = out.lead
             else:
-                T.nxt = term_copy_recursive(T1)
+                T.nxt = term_copy(T1)
                 T = T.nxt
             T1 = T1.nxt
             preinc(count1)
             preinc(out.nterms)
         elif c == -1:
             if T == NULL:
-                out.lead = term_copy_recursive(T2)
+                out.lead = term_copy(T2)
                 T = out.lead
             else:
-                T.nxt = term_copy_recursive(T2)
+                T.nxt = term_copy(T2)
                 T = T.nxt
             T2 = T2.nxt
             preinc(count2)
@@ -721,6 +650,7 @@ cdef bint poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *
         else:
             # we add the coefficients and see what happens
             new_coef+=<object>(T1.coef)
+            mon_free(new_mon)
             if new_coef:
                 Py_INCREF(new_coef)
                 Py_DECREF(<object>(T1.coef))
@@ -734,7 +664,6 @@ cdef bint poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *
                     P1.lead = T1
                 else:
                     prev.nxt = T1
-                mon_free(new_mon)
         T2 = T2.nxt
     if prev!=NULL:
         prev.nxt = NULL
@@ -822,6 +751,7 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
         else:
             # we add the coefficients and see what happens
             new_coef+=<object>(T1.coef)
+            mon_free(new_mon)
             if new_coef:
                 Py_INCREF(new_coef)
                 Py_DECREF(<object>(T1.coef))
@@ -835,8 +765,84 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
                     P1.lead = T1
                 else:
                     prev.nxt = T1
-                mon_free(new_mon)
         T2 = T2.nxt
     if prev!=NULL:
         prev.nxt = NULL
     return True
+
+########################################
+##
+## Basics homogeneous polynomials
+
+cdef inline path_homog_poly_t *homog_poly_create(int start, int end) except NULL:
+    cdef path_homog_poly_t *out = <path_homog_poly_t*>sage_malloc(sizeof(path_homog_poly_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path polynomial")
+    out.poly = poly_create()
+    out.start = start
+    out.end = end
+    out.nxt = NULL
+    return out
+
+cdef inline path_homog_poly_t *homog_poly_init_poly(int start, int end, path_poly_t *P) except NULL:
+    # The polynomial P will not be copied!
+    cdef path_homog_poly_t *out = <path_homog_poly_t*>sage_malloc(sizeof(path_homog_poly_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path polynomial")
+    out.poly = P
+    out.start = start
+    out.end = end
+    out.nxt = NULL
+    return out
+
+cdef path_homog_poly_t *homog_poly_init_list(int start, int end, list L, path_order_t cmp_terms, unsigned int pos, int mid) except NULL:
+    cdef path_homog_poly_t * out = homog_poly_create(start, end)
+    cdef QuiverPath P
+    for P,coef in L:
+        poly_iadd_term_d(out.poly, term_create(coef, P._path, pos, mid if mid!=-2 else P._path.length), cmp_terms)
+    return out
+
+cdef inline void homog_poly_free(path_homog_poly_t *P):
+    cdef path_homog_poly_t *nxt
+    while P!=NULL:
+        nxt = P.nxt
+        poly_free(P.poly)
+        sage_free(P)
+        P = nxt
+
+cdef inline path_homog_poly_t *homog_poly_copy(path_homog_poly_t *H) except NULL:
+    cdef path_homog_poly_t *out
+    cdef path_homog_poly_t *tmp
+    if H == NULL:
+        raise ValueError("The polynomial to be copied is the NULL pointer")
+    out = homog_poly_create(H.start, H.end)
+    poly_icopy(out.poly, H.poly)
+    tmp = out
+    H = H.nxt
+    while H != NULL:
+        tmp.nxt = homog_poly_create(H.start, H.end)
+        tmp = tmp.nxt
+        poly_icopy(tmp.poly, H.poly)
+        H = H.nxt
+    return out
+
+cdef inline path_homog_poly_t *homog_poly_get_predecessor_of_component(path_homog_poly_t *H, int s, int e):
+    # Search through H.nxt.nxt... and return the pointer C to a component of H
+    # such that either C.nxt.start==s and C.nxt.end==e, or the component for
+    # (s,e) should be inserted between C and C.nxt. Return NULL if H==NULL or
+    # (s,e) should be inserted in front of H.
+    if H == NULL:
+        return NULL
+    if H.start > s:
+        return NULL
+    elif H.start == s and H.end >= e:
+        return NULL
+    while True:
+        if H.nxt == NULL:
+            return H
+        if H.nxt.start == s:
+            if H.nxt.end >= e:
+                return H
+        elif H.nxt.start > s:
+            return H
+        H = H.nxt

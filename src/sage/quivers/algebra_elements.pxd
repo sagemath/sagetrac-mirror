@@ -16,7 +16,7 @@ Cython types for elements of path algebras
 
 from cpython cimport PyObject
 from sage.data_structures.bounded_integer_sequences cimport *
-from sage.structure.element cimport RingElement, ModuleElement
+from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.quivers.paths cimport QuiverPath
 
 # Type definitions
@@ -52,7 +52,7 @@ ctypedef int (*path_order_t)(path_mon_t*, path_mon_t*)
 # number of terms is directly available.
 cdef struct path_poly_t:
     path_term_t *lead
-    unsigned int nterms
+    size_t nterms
 
 # In path_poly_t, the terms need not to have all the same start and end
 # points. path_homog_poly_t provides a list of "start and end point
@@ -66,4 +66,6 @@ cdef class PathAlgebraElement(RingElement):
     cdef path_homog_poly_t *data
     cdef path_order_t cmp_terms
     cdef dict _monomial_coefficients
+    cpdef dict monomial_coefficients(self)
+    cdef list _sorted_items_for_printing(self)
     cdef inline PathAlgebraElement _new_(self, path_homog_poly_t *h)
