@@ -25,24 +25,15 @@ AUTHOR:
 #*****************************************************************************
 import itertools
 from itertools import imap
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct
-from sage.combinat.structures import Structure, Structures
+from sage.combinat.structures import Structure, Structures, StructuresTrickGC
 from sage.combinat.tools import transitive_ideal
-from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
-from sage.structure.parent import Parent
-from sage.rings.integer import Integer
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.sets.disjoint_union_enumerated_sets import \
-    DisjointUnionEnumeratedSets
-from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.structure.list_clone import ClonableIntArray
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.sets.family import Family
 from sage.sets.set import Set
-from sage.combinat.set_partition_ordered import OrderedSetPartitions, OrderedSetPartition
+from sage.combinat.set_partition_ordered import OrderedSetPartitions, \
+                                                OrderedSetPartition
 from sage.misc.misc import uniq
 from sage.combinat.composition import Composition
 
@@ -70,6 +61,7 @@ def to_pack(li):
         [3, 2, 1, 4]
         sage: to_pack([11,4,1,11,4])
         [3, 2, 1, 3, 2]
+
     """
     l = uniq(li)
     return PackedWord([l.index(i) + 1 for i in li])
@@ -83,6 +75,7 @@ class PackedWord(Structure, ClonableIntArray):
 
         sage: PackedWord()
         []
+
     """
 
     def __init__(self, parent, li=None):
@@ -106,6 +99,7 @@ class PackedWord(Structure, ClonableIntArray):
 
             sage: PackedWord([1,1]).parent()
             Packed words
+
         """
         return PackedWords()
 
@@ -139,6 +133,7 @@ class PackedWord(Structure, ClonableIntArray):
             True
             sage: PackedWord([1,2,3,1,1,3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
+
         """
         import collections
         d = collections.defaultdict(list)
@@ -512,7 +507,7 @@ class PackedWord(Structure, ClonableIntArray):
         return True
 
 
-class PackedWords(Structures):
+class PackedWords(StructuresTrickGC):
     """
     Factory class for packed words.
 
