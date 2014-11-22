@@ -67,7 +67,7 @@ class ClassesOfCombinatorialStructures(Category):
                 G = self.graded_component(grade)
 
                 for elt in G.some_elements():
-                    tester.assertEqual(G.grade(), elt.grade())
+                    tester.assertEqual(G.grade(), self.grading(elt))
 
                 tester.assertEqual(G.ambient().graded_component(grade), G)
 

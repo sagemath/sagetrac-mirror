@@ -203,6 +203,14 @@ class StructuresClass(UniqueRepresentation, Parent):
         def __init__(self, ambient, grading,
                      category=ClassesOfCombinatorialStructures.GradedComponents()):
             """
+            TESTS::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import Compositions
+                sage: Compositions().graded_component(4).ambient()
+                Compositions of integers
+                sage: Compositions().graded_component(4).grade()
+                4
 
             """
             Parent.__init__(self, category=category)
@@ -210,14 +218,51 @@ class StructuresClass(UniqueRepresentation, Parent):
             self._grading_ = grading
 
         def _repr_(self):
+            """
+            TESTS::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import Compositions
+                sage: Compositions().graded_component(4)
+                Compositions of integers of degree 4
+            """
             return repr(self.ambient()) + " of degree " + repr(self.grade())
 
         def ambient(self):
+            """
+            TESTS::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import Compositions
+                sage: Compositions().graded_component(4).ambient()
+                Compositions of integers
+
+            """
             return self._ambient_
 
         def grade(self):
+            """
+            TESTS::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import Compositions
+                sage: Compositions().graded_component(4).grade()
+                4
+
+            """
             return self._grading_
 
         @lazy_attribute
         def _element_constructor_(self, *args, **opts):
+            """
+            TESTS::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import Compositions
+                sage: I = Compositions().graded_component(4)([3,1,3]); I
+                [3, 1, 3]
+                sage: I.parent()
+                Compositions of integers
+
+            """
             return self.ambient()._element_constructor_
