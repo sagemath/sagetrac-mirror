@@ -32,6 +32,7 @@ class _Operations(Structures):
         sage: B, C = BinaryTrees(), Compositions()
         sage: B + C
         Sum of structures : `Binary trees`, `Compositions of non-negative integers`
+
     """
 
     @staticmethod
@@ -44,6 +45,7 @@ class _Operations(Structures):
             sage: B, C = BinaryTrees(), Compositions()
             sage: B + C
             Sum of structures : `Binary trees`, `Compositions of non-negative integers`
+
         """
         return super(Structures, cls).__classcall__(cls, *structures, **options)
 
@@ -58,6 +60,7 @@ class _Operations(Structures):
             sage: BpC = B * C
             sage: BpC._structures
             (Binary trees, Compositions of non-negative integers)
+
         """
         Structures.__init__(self)
         self._structures = structures
@@ -84,6 +87,7 @@ class RestrictedStructures(StructuresWithArguments):
          [[[., .], .], .]]
         sage: _[2].parent()
         Binary trees with grading min=`3`, max=`4`
+
     """
 
     def __init__(self, F, min=None, max=None):
@@ -97,6 +101,7 @@ class RestrictedStructures(StructuresWithArguments):
             sage: B = BinaryTrees()
             sage: RB = B.restricted_structures(min=3, max=4); RB
             Binary trees with grading min=`3`, max=`4`
+
         """
         Structures.__init__(self)
         assert(F in CombinatorialStructures()), "`%s` has to be a class of combinatorial structures"
@@ -114,6 +119,7 @@ class RestrictedStructures(StructuresWithArguments):
             sage: B = BinaryTrees()
             sage: RB = B.restricted_structures(min=3, max=4); RB
             Binary trees with grading min=`3`, max=`4`
+
         """
         # TODO improve the representation
         s = ""
@@ -145,6 +151,7 @@ class RestrictedStructures(StructuresWithArguments):
             Binary trees with grading min=`3`, max=`4`
             sage: RB.graded_component(3).list()[0].parent() is RB
             True
+
         """
         obj = self._F._element_constructor_(*args, **options)
         obj._set_parent(self)
@@ -170,6 +177,7 @@ class RestrictedStructures(StructuresWithArguments):
                  [[., .], [., .]],
                  [[., [., .]], .],
                  [[[., .], .], .]]
+
             """
             ambient = self.ambient()
             F = ambient._F

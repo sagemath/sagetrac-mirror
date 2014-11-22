@@ -55,36 +55,41 @@ from sage.combinat.structures import Structures, Structure
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.rings.integer import Integer
 from sage.structure.list_clone import ClonableIntArray
+from sage.sets.positive_integers import PositiveIntegers
 
 
 class Composition(Structure, ClonableIntArray):
     """
-    A composition could be represented as a vector of integers so one use *ClonableIntArray*
-    to implement our structures.
+    A composition could be represented as a vector of integers so one use
+    *ClonableIntArray* to implement our structures.
 
-    In that example, we choose to use a more general structures: *ElementWrapper*
+    In that example, we choose to use a more general structures:
+    *ElementWrapper*
 
-    The class *Structure* is a simple class use to not (re)define a classcall method.
-    Usually, the classcall is use on elements to avoid explicit parent in argument::
+    The class *Structure* is a simple class use to not (re)define a classcall
+    method. Usually, the classcall is use on elements to avoid explicit parent
+    in argument::
 
         Composition([3,1,2], parent=Compositions())
 
     TESTS::
 
-        sage: from sage.categories.examples.combinatorial_structures_compositions import Composition
+        sage: from sage.categories.examples.\
+              combinatorial_structures_compositions import Composition
         sage: I = Composition([2,1,3]); I
         [2, 1, 3]
         sage: I.parent()
         Compositions of integers
         sage: I.grade()
         6
+
     """
 
     def check(self):
         """
         The check has to be given to specify the structure
         """
-        assert(all(isinstance(i, (int, Integer)) for i in self))
+        assert(all(i in PositiveIntegers() for i in self))
 
     @lazy_class_attribute
     def _auto_parent_(self):
@@ -100,26 +105,30 @@ class Compositions(Structures):
     """
     TESTS::
 
-        sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-        sage: C3 = Compositions(3); C3
+        sage: from sage.categories.examples.\
+              combinatorial_structures_compositions import Compositions
+        sage: C3 = Compositions().graded_component(3); C3
         Compositions of integers of degree 3
         sage: C3.ambient()
         Compositions of integers
-
         sage: TestSuite(Compositions()).run()
+
     """
 
     def grading(self, I):
         """
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Composition, Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Composition, \
+                                                               Compositions
             sage: I = Composition([2,1,3]); I
             [2, 1, 3]
             sage: I.parent().grading(I)
             6
             sage: Compositions().grading(I)
             6
+
         """
         return sum(I)
 
@@ -127,15 +136,18 @@ class Compositions(Structures):
         """
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: Compositions()
             Compositions of integers
-            sage: Compositions(3)
+            sage: Compositions().graded_component(3)
             Compositions of integers of degree 3
+
         """
         return "Compositions of integers"
 
-    # I have to specify *Compositions* is the parent of the elements *Composition*.
+    # I have to specify *Compositions* is the parent of the elements
+    # *Composition*.
     Element = Composition
 
     class GradedComponent(Structures.GradedComponent):
@@ -147,9 +159,12 @@ class Compositions(Structures):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-                sage: Compositions(4).list()
-                [[4], [1, 3], [2, 2], [1, 1, 2], [3, 1], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import Compositions
+                sage: Compositions().graded_component(4).list()
+                [[4], [1, 3], [2, 2], [1, 1, 2], [3, 1], [1, 2, 1],
+                 [2, 1, 1], [1, 1, 1, 1]]
+
             """
             def nested(k):
                 # little trick to avoid to create too many object *Composition*:
