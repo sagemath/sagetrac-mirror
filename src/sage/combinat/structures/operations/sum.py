@@ -72,6 +72,7 @@ class Sum(_Operations):
             True
             sage: BpC.graded_component(2).list()[-1].parent() is BpC
             True
+
         """
         obj = F._element_constructor_(*args, **options)
         obj._set_parent(self)

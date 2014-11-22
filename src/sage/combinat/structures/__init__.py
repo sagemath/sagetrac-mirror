@@ -54,6 +54,7 @@ class Structure(Element):
         sage: from sage.categories.examples.combinatorial_structures_compositions import Composition
         sage: Composition([3,1,2,2])
         [3, 1, 2, 2]
+
     """
 
     __metaclass__ = ClasscallMetaclass
@@ -93,8 +94,8 @@ class Structure(Element):
             try:
                 parent = cls._auto_parent_
             except AttributeError:
-                # see:: for example *BinaryTree*
-                raise AttributeError("A *Structure* (%s) must have an attribute *_auto_parent_*" %cls)
+                raise AttributeError("A *Structure* (%s) "%cls +
+                                     "must have an attribute *_auto_parent_*")
         return typecall(cls, parent, *args, **options)
 
 
@@ -106,47 +107,8 @@ class Structures(UniqueRepresentation, Parent):
 
         sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
         sage: TestSuite(Compositions()).run()
+
     """
-
-    __metaclass__ = ClasscallMetaclass
-
-    @staticmethod
-    def __classcall__(cls, grade=None, *args, **options):
-        """
-        This method is a default shortcut of each class of combinatorial structure to obtain
-        directly a graded component
-
-        For example::
-
-            sage: BinaryTrees()
-            Binary trees
-            sage: BinaryTrees(4)
-            Binary trees of size 4
-
-        The first call returns the class of all binary trees and
-        the second returns only binary trees of size 4; that one is equivalent to::
-
-            sage: BinaryTrees().graded_component(4)
-            Binary trees of size 4
-
-        .. WARNING:: if the user define is own method *_init_* with arguments then he has to overload that *_classcall_*
-        method. --> see class *StructuresWithArguments*
-
-        TESTS::
-
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-            sage: Compositions()
-            Compositions of integers
-            sage: Compositions(4)
-            Compositions of integers of degree 4
-            sage: Compositions(0)
-            Compositions of integers of degree 0
-        """
-        self = super(Structures, cls).__classcall__(cls, *args, **options)
-
-        if grade is not None and grade in cls.grading_set():
-            return self.graded_component(grade)
-        else: return self
 
     def __init__(self, category=CombinatorialStructures(), *args, **options):
         """
@@ -176,6 +138,7 @@ class Structures(UniqueRepresentation, Parent):
 
             sage: C.graded_component(18).first().parent()
             Compositions of integers
+
         """
         Parent.__init__(self, category=category)
         self._graded_components = {}
@@ -183,28 +146,34 @@ class Structures(UniqueRepresentation, Parent):
     @staticmethod
     def grading_set():
         """
-        This method should static to be call in classcall... (so that can not be defined by a category).
+        This method should static to be call in classcall... (so that can not be
+        defined by a category).
 
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: Compositions.grading_set()
             Non negative integers
+
         """
         return NonNegativeIntegers()
 
     def _element_constructor_(self, *args, **options):
         """
-        Redefinition of that method to be coherent with the *_classcall_* of *Structure*.
+        Redefinition of that method to be coherent with the *_classcall_* of
+        *Structure*.
 
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: C = Compositions()
             sage: C([3,2,2])
             [3, 2, 2]
             sage: C._element_constructor_([2,2,2])
             [2, 2, 2]
+
         """
         return self.element_class(parent=self, *args, **options)
 
@@ -212,14 +181,17 @@ class Structures(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: C = Compositions()
             sage: C.graded_component(2)
             Compositions of integers of degree 2
             sage: len(C._graded_components) > 0
             True
+
         """
-        # memoization of graded component: that is less fat than UniqueRepresentation...
+        # memoization of graded component: that is less fat than
+        # UniqueRepresentation...
         if self._graded_components.has_key(k):
             return self._graded_components[k]
 
@@ -234,7 +206,8 @@ class Structures(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: I = Compositions()._an_element_(); I
             []
             sage: I.parent()
@@ -247,9 +220,11 @@ class Structures(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
             sage: list(Compositions().some_elements())
             [[1], [2], [3], [4]]
+
         """
         for i in range(1,5):
             if self.graded_component(i).cardinality() > 0:
@@ -262,13 +237,13 @@ class Structures(UniqueRepresentation, Parent):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-                sage: Compositions(4)
-                Compositions of integers of degree 4
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import Compositions
                 sage: Compositions().graded_component(4)
                 Compositions of integers of degree 4
-                sage: Compositions(3).list()
+                sage: Compositions().graded_component(3).list()
                 [[3], [1, 2], [2, 1], [1, 1, 1]]
+
             """
             Parent.__init__(self, category=category)
             self._grade_ = grade
@@ -278,9 +253,10 @@ class Structures(UniqueRepresentation, Parent):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions, \
-                        Composition
-                sage: C4 = Compositions(4)
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import \
+                      Compositions, Composition
+                sage: C4 = Compositions().graded_component(4)
                 sage: I = Composition([2,2,1])
                 sage: I in C4
                 False
@@ -299,9 +275,11 @@ class Structures(UniqueRepresentation, Parent):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-                sage: Compositions(4).ambient()
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import Compositions
+                sage: Compositions().graded_component(4).ambient()
                 Compositions of integers
+
             """
             return self._ambient_
 
@@ -309,9 +287,11 @@ class Structures(UniqueRepresentation, Parent):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-                sage: Compositions(4).grading()
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import Compositions
+                sage: Compositions().graded_component(4).grading()
                 4
+
             """
             return self._grade_
 
@@ -320,13 +300,50 @@ class Structures(UniqueRepresentation, Parent):
             """
             TESTS::
 
-                sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
-                sage: Compositions(4)([1,2,1])
+                sage: from sage.categories.examples.\
+                      combinatorial_structures_compositions import Compositions
+                sage: Compositions().graded_component(4)([1,2,1])
                 [1, 2, 1]
+
             """
             return self.ambient()._element_constructor_
 
     Element = Structure
+
+class StructuresTrickGC(Structures):
+    """
+    This special class allows the trick::
+
+        sage: BinaryTrees(4)
+        Binary trees of size 4
+
+    to avoid::
+
+        sage: BinaryTrees().graded_component(4)
+        Binary trees of size 4
+
+    """
+
+    __metaclass__ = ClasscallMetaclass
+
+    @staticmethod
+    def __classcall__(cls, grade=None, *args, **options):
+        """
+        TESTS::
+
+            sage: from sage.categories.examples.\
+                  combinatorial_structures_compositions import Compositions
+            sage: from sage.combinat.structures import StructuresTrickGC
+            sage: class C(Compositions, StructuresTrickGC): pass
+            sage: C(42)
+            Compositions of integers of degree 42
+
+        """
+        self = super(Structures, cls).__classcall__(cls, *args, **options)
+
+        if grade is not None and grade in cls.grading_set():
+            return self.graded_component(grade)
+        else: return self
 
 class StructuresWithArguments(Structures):
     """
