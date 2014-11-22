@@ -50,6 +50,17 @@ Check lazy import of ``interacts``::
     <type 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
+
+Check that Cython source code appears in tracebacks::
+
+    sage: try:
+    ....:     1/0
+    ....: except ZeroDivisionError as E:
+    ....:     import traceback
+    ....:     traceback.print_tb(sys.exc_info()[2])
+      File "<doctest...
+      File "sage/rings/integer_ring.pyx", line ...
+        raise ZeroDivisionError('Rational division by zero')
 """
 
 #*****************************************************************************
@@ -188,6 +199,11 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(sage.env.SAGE_SRC)
+
+
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -196,25 +212,10 @@ _init_qqbar()
 # when they are first needed.
 ###########################################################
 
-###################################################################
-
-# maximize memory resources
-#try:
-#    import resource   # unix only...
-#    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except Exception:
-#    pass
-
-# very useful 2-letter shortcuts
 CC = ComplexField()
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
-# NOTE: QQ, RR, and ZZ are used by the pre-parser, and should not be
-# overwritten by the user, unless they want to change the meaning of
-# int and real in the interpreter (which is a potentially valid thing
-# to do, and doesn't mess up anything else in the Sage library).
-
 
 true = True
 false = False

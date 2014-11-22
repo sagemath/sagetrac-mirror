@@ -1,0 +1,179 @@
+Fix filename handling in IPython tracebacks
+
+* Only replace filename by the value of __file__ if the latter is an
+  existing text file (this fixes tracebacks for Cython files).
+* When making a relative filename absolute, try to make it absolute
+  w.r.t. the sys.path entries instead of the current working directory.
+* Still try to display source lines for binary files, you never know
+  what linecache got from that file. Skip only the reading of names,
+  but display the traceback as usual.
+
+See also downstream Sage ticket
+http://trac.sagemath.org/ticket/17382
+
+diff -ru a/IPython/core/ultratb.py b/IPython/core/ultratb.py
+--- a/IPython/core/ultratb.py	2014-11-22 23:43:56.903915972 +0100
++++ b/IPython/core/ultratb.py	2014-11-22 23:44:05.877034208 +0100
+@@ -232,6 +232,27 @@
+             inspect.findsource = save_findsource
+     return wrapped
+ 
++
++def is_text_file(filename):
++    """
++    Determine whether the file ``filename`` is a text file. We check
++    this by reading at most 4096 bytes and checking for a 0 byte.
++    
++    If an error occurs (in particular, if ``filename`` is not a string)
++    or if the file is empty, return False.
++    """
++    try:
++        f = open(filename, 'rb')
++        text = f.read(4096)
++        f.close()
++    except Exception:
++        return False
++
++    if not text:
++        return False
++    return b'\0' not in text
++
++
+ def fix_frame_records_filenames(records):
+     """Try to fix the filenames in each record from inspect.getinnerframes().
+ 
+@@ -243,10 +264,8 @@
+         # Look inside the frame's globals dictionary for __file__, which should
+         # be better.
+         better_fn = frame.f_globals.get('__file__', None)
+-        if isinstance(better_fn, str):
+-            # Check the type just in case someone did something weird with
+-            # __file__. It might also be None if the error occurred during
+-            # import.
++        if is_text_file(better_fn):
++            # Only replace if better_fn is actually a readable text file.
+             filename = better_fn
+         fixed_records.append((frame, filename, line_no, func_name, lines, index))
+     return fixed_records
+@@ -808,15 +827,21 @@
+             #print '*** record:',file,lnum,func,lines,index  # dbg
+             if not file:
+                 file = '?'
+-            elif not(file.startswith(str("<")) and file.endswith(str(">"))):
+-                # Guess that filenames like <string> aren't real filenames, so
+-                # don't call abspath on them.                    
+-                try:
+-                    file = abspath(file)
+-                except OSError:
+-                    # Not sure if this can still happen: abspath now works with
+-                    # file names like <string>
+-                    pass
++            elif file.startswith(str("<")) and file.endswith(str(">")):
++                # Not a real filename, no problem...
++                pass
++            elif not os.path.isabs(file):
++                # Try to make the filename absolute by trying all
++                # sys.path entries (similar to linecache)
++                for dirname in sys.path:
++                    try:
++                        fullname = os.path.join(dirname, file)
++                        if os.path.exists(fullname):
++                            file = os.path.abspath(fullname)
++                            break
++                    except Exception:
++                        pass
++
+             file = py3compat.cast_unicode(file, util_path.fs_encoding)
+             link = tpl_link % file
+             args, varargs, varkw, locals = inspect.getargvalues(frame)
+@@ -849,11 +876,7 @@
+                     # disabled.
+                     call = tpl_call_fail % func
+             
+-            # Don't attempt to tokenize binary files.
+-            if file.endswith(('.so', '.pyd', '.dll')):
+-                frames.append('%s %s\n' % (link,call))
+-                continue
+-            elif file.endswith(('.pyc','.pyo')):
++            if file.endswith(('.pyc','.pyo')):
+                 # Look up the corresponding source file.
+                 file = openpy.source_from_cache(file)
+ 
+@@ -864,41 +887,43 @@
+ 
+             # Build the list of names on this line of code where the exception
+             # occurred.
+-            try:
+-                names = []
+-                name_cont = False
+-                
+-                for token_type, token, start, end, line in generate_tokens(linereader):
+-                    # build composite names
+-                    if token_type == tokenize.NAME and token not in keyword.kwlist:
+-                        if name_cont:
+-                            # Continuation of a dotted name
+-                            try:
+-                                names[-1].append(token)
+-                            except IndexError:
++            names = []
++            # Don't attempt to tokenize binary files.
++            if is_text_file(file):
++                try:
++                    name_cont = False
++                    
++                    for token_type, token, start, end, line in generate_tokens(linereader):
++                        # build composite names
++                        if token_type == tokenize.NAME and token not in keyword.kwlist:
++                            if name_cont:
++                                # Continuation of a dotted name
++                                try:
++                                    names[-1].append(token)
++                                except IndexError:
++                                    names.append([token])
++                                name_cont = False
++                            else:
++                                # Regular new names.  We append everything, the caller
++                                # will be responsible for pruning the list later.  It's
++                                # very tricky to try to prune as we go, b/c composite
++                                # names can fool us.  The pruning at the end is easy
++                                # to do (or the caller can print a list with repeated
++                                # names if so desired.
+                                 names.append([token])
+-                            name_cont = False
+-                        else:
+-                            # Regular new names.  We append everything, the caller
+-                            # will be responsible for pruning the list later.  It's
+-                            # very tricky to try to prune as we go, b/c composite
+-                            # names can fool us.  The pruning at the end is easy
+-                            # to do (or the caller can print a list with repeated
+-                            # names if so desired.
+-                            names.append([token])
+-                    elif token == '.':
+-                        name_cont = True
+-                    elif token_type == tokenize.NEWLINE:
+-                        break
+-                        
+-            except (IndexError, UnicodeDecodeError):
+-                # signals exit of tokenizer
+-                pass
+-            except tokenize.TokenError as msg:
+-                _m = ("An unexpected error occurred while tokenizing input\n"
+-                      "The following traceback may be corrupted or invalid\n"
+-                      "The error message is: %s\n" % msg)
+-                error(_m)
++                        elif token == '.':
++                            name_cont = True
++                        elif token_type == tokenize.NEWLINE:
++                            break
++                            
++                except (IndexError, UnicodeDecodeError):
++                    # signals exit of tokenizer
++                    pass
++                except tokenize.TokenError as msg:
++                    _m = ("An unexpected error occurred while tokenizing input\n"
++                          "The following traceback may be corrupted or invalid\n"
++                          "The error message is: %s\n" % msg)
++                    error(_m)
+ 
+             # Join composite names (e.g. "dict.fromkeys")
+             names = ['.'.join(n) for n in names]
