@@ -217,6 +217,7 @@ Behind the scenes what happens is the following::
 import os
 import re
 import base64
+import traceback
 
 implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
@@ -826,14 +827,14 @@ def preparse_calculus(code):
         sage: preparse_calculus(";f(1)=x;")
         ';__tmp__=var("1"); f = symbolic_expression(x).function(1);'
 
-        sage: from sage.misc.preparser import preparse_file
-        sage: preparse_file("f(1)=x")
+        sage: from sage.misc.preparser import preparse_block
+        sage: preparse_block("f(1)=x")
         Traceback (most recent call last):
         ...
         ValueError: Argument names should be valid python identifiers.
 
-        sage: from sage.misc.preparser import preparse_file
-        sage: preparse_file("f(x,1)=2")
+        sage: from sage.misc.preparser import preparse_block
+        sage: preparse_block("f(x,1)=2")
         Traceback (most recent call last):
         ...
         ValueError: Argument names should be valid python identifiers.
@@ -1028,21 +1029,24 @@ def preparse_generators(code):
 quote_state = None
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
-             numeric_literals=True):
+             numeric_literals=True, lineno=""):
     r"""
     Preparses a line of input.
 
     INPUT:
 
-    - ``line`` - a string
+    - ``line`` -- a string
 
-    - ``reset`` - a boolean (default: True)
+    - ``reset`` -- a boolean (default: True)
 
-    - ``do_time`` - a boolean (default: False)
+    - ``do_time`` -- a boolean (default: False)
 
-    - ``ignore_prompts`` - a boolean (default: False)
+    - ``ignore_prompts`` -- a boolean (default: False)
 
-    - ``numeric_literals`` - a boolean (default: True)
+    - ``numeric_literals`` -- a boolean (default: True)
+
+    - ``lineno`` -- a line number to be inserted in the ``#sage_pp#``
+      comment
 
     OUTPUT:
 
@@ -1084,12 +1088,16 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
         '__time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__)); (x,) = R._first_ngens(1)'
     """
+    unpreparsed_line = line
+    if '\n' in unpreparsed_line:
+        raise ValueError("preparse() should be used for single lines, not blocks of code")
+
     global quote_state
     if reset:
         quote_state = None
 
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!']:
+    if len(L) == 0 or L[0] == "#":
         return line
 
     if L.startswith('...'):
@@ -1162,32 +1170,38 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     line = L % literals
 
+    if not quote_state[0] and unpreparsed_line[-1] != '\\':
+        # Add unpreparsed line in comment unless we're inside a string
+        # or the last character was a line continuation
+        line += " #sage_pp#%s:"%lineno + unpreparsed_line
+
     return line
 
 
-######################################################
-## Apply the preparser to an entire file
-######################################################
-
+####################################################################
+# Apply the preparser to a block of code (e.g. an entire file or a
+# doctest)
+#####################################################################
 def preparse_file(contents, globals=None, numeric_literals=True):
+    """
+    Deprecated, use :func:`preparse_block` instead.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(71, 'the function preparse_file() is deprecated, use preparse_block() instead')
+    preparse_block(contents, numeric_literals)
+
+def preparse_block(contents, numeric_literals=True):
     """
     Preparses input, attending to numeric literals and load/attach
     file directives.
 
-    .. note:: Temporarily, if @parallel is in the input, then
-       numeric_literals is always set to False.
-
     INPUT:
 
-    - ``contents`` - a string
+    - ``contents`` -- a string of code to be preparsed.
 
-    - ``globals`` - dict or None (default: None); if given, then
-      arguments to load/attach are evaluated in the namespace of this
-      dict.
-
-    - ``numeric_literals`` - bool (default: True), whether to factor
+    - ``numeric_literals`` -- bool (default: True), whether to factor
       out wrapping of integers and floats, so they don't get created
-      repeatedly inside loops
+      repeatedly inside loops.
 
     OUTPUT:
 
@@ -1195,52 +1209,32 @@ def preparse_file(contents, globals=None, numeric_literals=True):
 
     TESTS::
 
-        sage: from sage.misc.preparser import preparse_file
+        sage: from sage.misc.preparser import preparse_block
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
-        sage: _ = preparse_file(lots_of_numbers)
-        sage: print preparse_file("type(100r), type(100)")
+        sage: _ = preparse_block(lots_of_numbers)
+        sage: print preparse_block("type(100r), type(100)")
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
     if not isinstance(contents, basestring):
         raise TypeError("contents must be a string")
 
-    if globals is None:
-        globals = {}
-
-    # This is a hack, since when we use @parallel to parallelize code,
-    # the numeric literals that are factored out do not get copied
-    # to the subprocesses properly.  See trac #4545.
-    if '@parallel' in contents:
-        numeric_literals = False
+    # Lines to appear before the preparsed contents
+    header_lines = []
 
     if numeric_literals:
         contents, literals, state = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
-        if nums:
-            # Stick the assignments at the top, trying not to shift
-            # the lines down.
-            ix = contents.find('\n')
-            if ix == -1: ix = len(contents)
-            if not re.match(r"^ *(#.*)?$", contents[:ix]):
-                contents = "\n"+contents
-            assignments = ["%s = %s" % x for x in nums.items()]
-            # the preparser recurses on semicolons, so we only attempt
-            # to preserve line numbers if there are a few
-            if len(assignments) < 500:
-                contents = "; ".join(assignments) + contents
-            else:
-                contents = "\n".join(assignments) + "\n\n" + contents
+        header_lines += ["%s = %s" % x for x in nums.items()]
 
-    # The list F contains the preparsed lines so far.
-    F = []
-    # A is the input, as a list of lines.
-    A = contents.splitlines()
-    # We are currently parsing the i-th input line.
-    i = 0
-    while i < len(A):
-        L = A[i]
+    # A is the input, as a list of tuples (lineno, line)
+    A = [(0, line) for line in header_lines]
+    A += enumerate(contents.splitlines(), 1)
+
+    # The string pp contains the preparsed file
+    pp = ""
+    for (i, L) in A:
         do_preparse = True
         for cmd in ['load', 'attach']:
             if L.lstrip().startswith(cmd+' '):
@@ -1249,13 +1243,12 @@ def preparse_file(contents, globals=None, numeric_literals=True):
                 if not s.startswith('('):
                     F.append(' '*j + load_wrap(s, cmd=='attach'))
                     do_preparse = False
-                    continue
         if do_preparse:
-            F.append(preparse(L, reset=(i==0), do_time=True, ignore_prompts=False,
-                              numeric_literals=not numeric_literals))
-        i += 1
+            ppline = preparse(L, reset=(i<=1), do_time=True, ignore_prompts=False,
+                              numeric_literals=not numeric_literals, lineno=i)
+            pp += ppline + '\n'
 
-    return '\n'.join(F)
+    return pp
 
 def implicit_mul(code, level=5):
     """
@@ -1567,31 +1560,37 @@ def handle_encoding_declaration(contents, out):
     out.write("# -*- coding: utf-8 -*-\n")
     return contents
 
-def preparse_file_named_to_stream(name, out):
-    r"""
-    Preparse file named \code{name} (presumably a .sage file), outputting to
-    stream \code{out}.
+def preparse_file_named_to_string(filename, *args, **kwds):
     """
-    name = os.path.abspath(name)
-    contents = open(name).read()
-    contents = handle_encoding_declaration(contents, out)
-    parsed = preparse_file(contents)
-    out.write('#'*70+'\n')
-    out.write('# This file was *autogenerated* from the file %s.\n' % name)
-    out.write('#'*70+'\n')
-    out.write(parsed)
+    Read a file named ``filename`` and return a preparsed version of it.
+    """
+    import linecache
+    linecache.checkcache(filename)
+    code = ''.join(linecache.getlines(filename))
+    header = "#sage_pp_filename#%s\n__file__ = %r\n" % (filename, filename)
+    return header + preparse_block(code, *args, **kwds)
+
+def preparse_file_named_to_stream(name, out):
+    """
+    Preparse the file named ``name`` (presumably a ``.sage`` file),
+    outputting to the stream ``out``.
+    """
+    handle_encoding_declaration(open(name).read(), out)
+    out.write('# This file was *autogenerated* from the file %s.\n' % os.path.abspath(name))
+    out.write(preparse_file_named_to_string(name))
 
 def preparse_file_named(name):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to a
     temporary file.  Returns name of temporary file.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(71, "preparse_file_named() is deprecated, use preparse_file_named_to_stream() instead")
     from sage.misc.misc import tmp_filename
     tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
     out = open(tmpfilename, 'w')
     preparse_file_named_to_stream(name, out)
     out.close()
-    return tmpfilename
 
 def load(filename, globals, attach=False):
     """
@@ -1659,13 +1658,6 @@ def load(filename, globals, attach=False):
         ...
         ValueError: argument (='a.foo') to load or attach must have extension py, pyx, sage, spyx, or m
 
-    A filename given as an expression get evaluated.  This ensures
-    that ``load DATA+'foo.sage'`` works in the Notebook, say::
-
-        sage: t=tmp_filename(ext='.py'); open(t,'w').write("print 'hello world'")
-        sage: sage.misc.preparser.load(t, globals())
-        hello world
-
     We load a file given at a remote URL::
 
         sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
@@ -1721,26 +1713,24 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load(t, globals())
         2
     """
-    if attach:
-        from sage.misc.attached_files import add_attached_file
-
-    try:
-        filename = eval(filename, globals)
-    except Exception:
-        # First check if the file exists. The filename may have spaces in
-        # its name, but more importantly modified_attached_files calls load
-        # with the absolute file path and that may contain spaces in the path
-        # As a side effect, this also allows file names with spaces in
-        # them, but currently I don't see a way to disallow this case.
-        if not os.path.exists(filename) and not os.path.isabs(filename):
+    if not os.path.exists(filename) and not os.path.isabs(filename):
+        # Try to evaluate the filename (seriously?!)
+        try:
+            filename = eval(filename, globals)
+        except Exception:
             # handle multiple input files separated by spaces, which was
             # maybe a bad idea, but which we have to handle for backwards
             # compatibility.
             v = filename.split()
             if len(v) > 1:
+                from sage.misc.superseded import deprecation
+                deprecation(71, "loading/attaching multiple files at once is deprecated, use a loop instead")
                 for file in v:
                     load(file, globals, attach=attach)
                 return
+        else:
+            from sage.misc.superseded import deprecation
+            deprecation(71, "calling load/attach with an unevaluated filename is deprecated, use an explicit eval() instead")
 
     filename = filename.strip()
 
@@ -1756,12 +1746,13 @@ def load(filename, globals, attach=False):
     if not is_loadable_filename(filename):
         raise ValueError('argument (=%r) to load or attach must have extension py, pyx, sage, spyx, or m' % filename)
 
+    from sage.misc.attached_files import add_attached_file, load_attach_path
+
     fpath = os.path.expanduser(filename)
     if os.path.isabs(fpath):
         if not os.path.exists(fpath):
             raise IOError('did not find file %r to load or attach' % filename)
     else:
-        from sage.misc.attached_files import load_attach_path
         for path in load_attach_path():
             fpath = os.path.join(path, filename)
             fpath = os.path.expanduser(fpath)
@@ -1778,23 +1769,18 @@ def load(filename, globals, attach=False):
             code = compile(f.read(), fpath, 'exec')
             exec(code, globals)
     elif fpath.endswith('.sage'):
-        from sage.misc.attached_files import load_attach_mode
-        load_debug_mode, attach_debug_mode = load_attach_mode()
-        if (attach and attach_debug_mode) or ((not attach) and load_debug_mode):
-            # Preparse to a file to enable tracebacks with
-            # code snippets. Use preparse_file_named to make
-            # the file name appear in the traceback as well.
-            # See Trac 11812.
-            if attach:
-                add_attached_file(fpath)
-            with open(preparse_file_named(fpath)) as f:
-                code = compile(f.read(), preparse_file_named(fpath), 'exec')
-                exec(code, globals)
-        else:
-            # Preparse in memory only for speed.
-            if attach:
-                add_attached_file(fpath)
-            exec(preparse_file(open(fpath).read()) + "\n", globals)
+        if attach:
+            add_attached_file(fpath)
+        from sage.misc.temporary_file import tmp_filename
+        pppath = tmp_filename(ext='.py')
+        with open(pppath, 'w+') as f:
+            preparse_file_named_to_stream(fpath, f)
+            f.seek(0)
+            code = compile(f.read(), pppath, 'exec')
+            exec(code, globals)
+        # Remove temporary file (but not if an exception was raised,
+        # since we need this file for the traceback)
+        os.unlink(pppath)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
         if attach:
             add_attached_file(fpath)
@@ -1835,3 +1821,61 @@ def load_wrap(filename, attach=False):
     """
     return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{}"),globals(),{})'.format(
         base64.b64encode(filename), attach)
+
+
+class SageTracebackUnpreparser:
+    def patch_traceback(self):
+        """
+        Monkey-patch the traceback.extract_tb() function to fix
+        tracebacks (undo preparsing and make filenames absolute).
+        """
+        traceback.extract_tb = self.extract_tb
+
+    def extract_tb(self, *args, **kwds):
+        """
+        Extract a traceback and unpreparse it if possible.
+        """
+        etb = self.python_extract_tb(*args, **kwds)
+        etb = [self.unpreparse_frame(*f) for f in etb]
+        return etb
+
+    def unpreparse_frame(self, filename, lineno, function, code):
+        """
+        Handle a single frame of an extracted traceback: make
+        ``filename`` absolute if needed and unpreparse.
+        """
+        # Nothing to unpreparse
+        if code is None or not "#sage_pp" in code:
+            return (filename, lineno, function, code)
+
+        import linecache
+        pplines = linecache.getlines(filename)
+
+        # Find out unpreparsed filename if possible
+        unppfile = None
+        for line in pplines:
+            if re.match("^#sage_pp_filename#", line):
+                unppfile = re.sub("^#sage_pp_filename#", "", line).rstrip()
+                break
+
+        # Unpreparse
+        if unppfile is None:
+            # We have no unpreparsed file, generate a temporary file.
+            # Note that the line numbers do not change.
+            from sage.misc.temporary_file import tmp_filename
+            unppfile = tmp_filename("unpp_", ext=".py")
+            with open(unppfile, "w") as unpp:
+                for line in pplines:
+                    unpp.write(re.sub(".* #sage_pp#([0-9]*):(.*)", "\\2", line))
+        else:
+            # Adjust line number
+            strlineno = re.sub(".* #sage_pp#([0-9]*):(.*)", '\\1', code)
+            if strlineno:
+                lineno = int(strlineno)
+
+        linecache.checkcache(unppfile)
+        code = linecache.getline(unppfile, lineno)
+        return (unppfile, lineno, function, code)
+
+    # Save Python's extract_tb() function as a static method
+    python_extract_tb = staticmethod(traceback.extract_tb)

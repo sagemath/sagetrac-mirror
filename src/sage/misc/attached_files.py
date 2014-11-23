@@ -20,10 +20,9 @@ Check that no file clutter is produced::
     ['foobar.sage']
     sage: detach(src)
 
-In debug mode backtraces contain code snippets. We need to manually
-print the traceback because the python doctest module has special
-support for exceptions and does not match them
-character-by-character::
+Backtraces contain code snippets. We need to manually print the
+traceback because the python doctest module has special support
+for exceptions and does not match them character-by-character::
 
     sage: import traceback
     sage: with open(src, 'w') as f:
@@ -32,19 +31,6 @@ character-by-character::
     ....:     f.write('raise ValueError("third")   # this should appear in the source snippet\n')
     ....:     f.write('# fourth line\n')
 
-    sage: load_attach_mode(attach_debug=False)
-    sage: try:
-    ....:     attach(src)
-    ....: except Exception:
-    ....:     traceback.print_exc()
-    Traceback (most recent call last):
-    ...
-        exec(preparse_file(open(fpath).read()) + "\n", globals)
-      File "<string>", line 3, in <module>
-    ValueError: third
-    sage: detach(src)
-
-    sage: load_attach_mode(attach_debug=True)
     sage: try:
     ....:     attach(src)
     ....: except Exception:
@@ -52,8 +38,8 @@ character-by-character::
     Traceback (most recent call last):
     ...
         exec(code, globals)
-      File ".../foobar.sage....py", line ..., in <module>
-        raise ValueError("third")   # this should appear in the source snippet
+      File "...", line ..., in <module>
+        raise ValueError("third")   # this should appear in the source snippet #sage_pp...
     ValueError: third
     sage: detach(src)
 """
@@ -112,22 +98,15 @@ def load_attach_mode(load_debug=None, attach_debug=None):
     EXAMPLES::
 
         sage: load_attach_mode()
-        (False, True)
+        (True, True)
         sage: load_attach_mode(attach_debug=False)
-        sage: load_attach_mode()
-        (False, False)
-        sage: load_attach_mode(load_debug=True)
-        sage: load_attach_mode()
-        (True, False)
-        sage: load_attach_mode(load_debug=False, attach_debug=True)
+        doctest:...: DeprecationWarning: The load/attach debug mode has been removed
+        See http://trac.sagemath.org/71 for details.
     """
-    global load_debug_mode, attach_debug_mode
     if load_debug is None and attach_debug is None:
-        return (load_debug_mode, attach_debug_mode)
-    if not load_debug is None:
-        load_debug_mode = load_debug
-    if not attach_debug is None:
-        attach_debug_mode = attach_debug
+        return (True, True)
+    from sage.misc.superseded import deprecation
+    deprecation(71, "The load/attach debug mode has been removed")
 
 
 search_paths = []

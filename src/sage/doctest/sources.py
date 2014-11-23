@@ -21,7 +21,7 @@ AUTHORS:
 
 import os, sys, re, random
 import doctest
-from sage.misc.preparser import preparse, load
+from sage.misc.preparser import load
 from sage.misc.lazy_attribute import lazy_attribute
 from parsing import SageDocTestParser
 from util import NestedName
@@ -627,7 +627,7 @@ class FileDocTestSource(DocTestSource):
             sage: doctests[17].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
             sage: doctests[17].examples[10].source
-            'doctests[Integer(17)].examples[Integer(10)].source\n'
+            'doctests[Integer(17)].examples[Integer(10)].source #sage_pp#1:doctests[17].examples[10].source\n'
 
         TESTS:
 

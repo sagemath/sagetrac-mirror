@@ -11,7 +11,7 @@ AUTHOR:
 
 import os, sys, re
 
-from sage.misc.preparser import preparse_file
+from sage.misc.preparser import preparse_file_named_to_string
 from sage.misc.temporary_file import atomic_write
 
 # The spkg/bin/sage script passes the files to be preparsed as
@@ -92,32 +92,18 @@ def do_preparse(f, files_before=[]):
             print "Please delete or move this file manually."
             sys.exit(1)
 
-    # TODO:
-    # I am commenting this "intelligence" out, since, e.g., if I change
-    # the preparser between versions this can cause problems.  This
-    # is an optimization that definitely isn't needed at present, since
-    # preparsing is so fast.
-    # Idea: I could introduce version numbers, though....
-    #if os.path.exists(fname) and os.path.getmtime(fname) >= os.path.getmtime(f):
-    #    return
-
-    # Finally open the file
-    F = open(f).read()
-
     # Check to see if a coding is specified in the .sage file. If it is,
     # then we want to copy it over to the new file and not include it in
     # the preprocessing. If both the first and second line have an
     # encoding declaration, the second line's encoding will get used.
-
-    lines = F.splitlines()
+    lines = open(f).readlines()
     coding = ''
     for num, line in enumerate(lines[:2]):
         if re.search(r"coding[:=]\s*([-\w.]+)", line):
             coding = line + '\n'
-            F = '\n'.join(lines[:num] + lines[(num+1):])
 
-    # Preparse it
-    G = preparse_file(F)
+    # Preparse the file
+    G = preparse_file_named_to_string(f)
 
     # Check for load/attach commands.
     G = do_load_and_attach(G, f, files_before)

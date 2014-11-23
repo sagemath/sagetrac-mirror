@@ -188,7 +188,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 class SageInteractiveShell(SageNativeExecute, InteractiveShell):
     pass
 
-class SageTerminalInteractiveShell(SageNativeExecute, TerminalInteractiveShell):
+class SageTerminalInteractiveShell(SageInteractiveShell, TerminalInteractiveShell):
     pass
 
 
@@ -565,4 +565,7 @@ class SageTerminalApp(TerminalIPythonApp):
             # something is wrong with the sage library
             self.shell.extension_manager.load_extension(SAGE_EXTENSION)
 
+        # Fix tracebacks
+        from sage.misc.preparser import SageTracebackUnpreparser
+        SageTracebackUnpreparser().patch_traceback()
 

@@ -27,7 +27,7 @@ AUTHORS:
 import re, sys
 import doctest
 import collections
-from sage.misc.preparser import preparse, strip_string_literals
+from sage.misc.preparser import preparse_block, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
@@ -573,7 +573,7 @@ class SageDocTestParser(doctest.DocTestParser):
                     item.sage_source = item.source[6:]
                     if item.sage_source.lstrip().startswith('#'):
                         continue
-                    item.source = preparse(item.sage_source)
+                    item.source = preparse_block(item.sage_source, numeric_literals=False)
             filtered.append(item)
         return filtered
 

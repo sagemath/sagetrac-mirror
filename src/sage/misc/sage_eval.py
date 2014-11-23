@@ -187,7 +187,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     if len(cmds):
         cmd_seq = cmds + '\n_sage_eval_returnval_ = ' + source
         if preparse:
-            cmd_seq = preparser.preparse_file(cmd_seq)
+            cmd_seq = preparser.preparse_block(cmd_seq)
     else:
         if preparse:
             source = preparser.preparse(source)
