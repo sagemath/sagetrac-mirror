@@ -217,7 +217,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
         x = quotient.default_variable()
         if n != quotient.degree(x): raise \
             ValueError('ideal bases require n  = quotient.degree()')
-        R = ZZ_q[x if isinstance(x,basestring) else repr(x)].quotient(quotient, x if isinstance(x,basestring) else repr(x))
+        R = ZZ_q[x].quotient(quotient, x)
         for i in range(m//n):
             A = A.stack(R.random_element().matrix())
 

@@ -77,7 +77,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     - ``base_ring`` -- a ring
     - ``name`` -- a string
-    - ``names`` -- a list or tuple of names, or a comma separated string
+    - ``names`` -- a list or tuple of names (strings), or a comma separated string
     - ``var_array`` -- a list or tuple of names, or a comma separated string
     - ``n`` -- an integer
     - ``sparse`` -- bool (default: False), whether or not elements are sparse
@@ -92,6 +92,14 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     - ``implementation`` -- string or None; selects an implementation in cases
       where Sage includes multiple choices (currently `\ZZ[x]` can be
       implemented with 'NTL' or 'FLINT'; default is 'FLINT')
+
+    REMARK:
+
+    In earlier versions of Sage, the names have not necessarily been
+    strings. Some users provided a symbolic variable instead of a string,
+    and expected that this symbolic variable is the same as the generator
+    of the resulting polynomial ring, which is of course not the case.
+    This common mistake is now deprecated.
 
     .. NOTE::
 
@@ -400,9 +408,19 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: RIF(-2,1)*x
         0.?e1*x
 
+    We test that the common misuse of symbolic expressions and other
+    objects as variable names is now deprecated (:trac:`10483`)::
+
+        sage: x = var('x')
+        sage: R = PolynomialRing(ZZ,[x,singular])
+        doctest:...: DeprecationWarning: Variable name 'x' should be a string, but we obtained <type 'sage.symbolic.expression.Expression'>.
+        In an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'.
+        doctest:...: DeprecationWarning: Variable name 'Singular' should be a string, but we obtained <class 'sage.interfaces.singular.Singular'>.
+        In an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'.
     """
     import sage.rings.polynomial.polynomial_ring as m
-
+    from sage.misc.misc import deprecation
+ 
     if not var_array is None:
         # Make sure arg1 always corresponds to n and arg2 to m
         if arg2 is not None:
@@ -433,8 +451,10 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             arg1 = name
 
     if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+        deprecation("The second argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg1,type(arg1)),'Sage Version 4.6.1')
         arg1 = repr(arg1)
     if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+        deprecation("The third argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg2,type(arg2)),'Sage Version 4.6.1')
         arg2 = repr(arg2)
 
     if not m.ring.is_Ring(base_ring):
@@ -445,12 +465,18 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     R = None
     if isinstance(arg1, (list, tuple)):
+        for foo in arg1:
+            if not isinstance(foo,basestring):
+                deprecation("Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
+        for foo in arg1:
+            if not isinstance(foo,basestring):
+                deprecation("Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
         arg2 = [str(x) for x in arg2]
     if isinstance(arg2, (int, long, Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
-        if not isinstance(arg1, (list, tuple, str)):
+        if not isinstance(arg1, (list, tuple, basestring)):
             raise TypeError("You *must* specify the names of the variables.")
         n = int(arg2)
         names = arg1
@@ -460,7 +486,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         if not ',' in arg1:
             # 1. PolynomialRing(base_ring, name, sparse=False):
             if not arg2 is None:
-                raise TypeError("if second arguments is a string with no commas, then there must be no other non-optional arguments")
+                raise TypeError("if the second argument is a string with no commas, then there must be no other non-optional arguments")
             name = arg1
             R = _single_variate(base_ring, name, sparse, implementation)
         else:

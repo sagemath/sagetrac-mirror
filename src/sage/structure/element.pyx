@@ -1650,7 +1650,7 @@ cdef class RingElement(ModuleElement):
 
         Here we test (scalar * vector) multiplication::
 
-            sage: x, y = var('x, y')
+            sage: x, y = 'x', 'y'
 
             sage: parent(ZZ(1)*vector(ZZ,[1,2]))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -2377,7 +2377,7 @@ cdef class Vector(ModuleElement):
 
         Here we test (vector * vector) multiplication::
 
-            sage: x, y = var('x, y')
+            sage: x, y = 'x', 'y'
 
             sage: parent(vector(ZZ,[1,2])*vector(ZZ,[1,2]))
             Integer Ring

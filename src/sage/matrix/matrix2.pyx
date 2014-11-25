@@ -1850,7 +1850,7 @@ cdef class Matrix(matrix1.Matrix):
         cdef Matrix M  = <Matrix> self
         n  = M._ncols
         R  = M._base_ring
-        S  = PolynomialRing(R, var)
+        S  = PolynomialRing(R, [str(x) for x in var])
 
         # Corner cases
         # N.B.  We already tested for M to be square, hence we do not need to
