@@ -926,8 +926,8 @@ def solve_mod(eqns, modulus, solution_dict = False):
     modulus = Integer(modulus)
     if modulus < 1:
         raise ValueError("the modulus must be a positive integer")
-    vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort(key=repr)
+    vars = [str(x) for x in vars]
+    vars.sort()
 
     if modulus == 1: # degenerate case
         ans = [tuple(Integers(1)(0) for v in vars)]
