@@ -22,34 +22,34 @@ AUTHORS:
 
 - William Stein: first Sage interface
 
-EXAMPLES::
+EXAMPLES:
 
 Use :func:`polytope` to construct cones. The easiest way it to define it by a 
 set of affine inequalities::
 
-    sage: import sage.libs.polymake.polymake as pm
-    sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))
-    sage: p2 = pm.polytope([x < 2, x > -3], coordinates=(x,))
-    sage: p3 = p1.intersection(p2)
-    sage: p3.get_defining_equations()
+    sage: import sage.libs.polymake.polymake as pm    # optional - polymake
+    sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))  # optional - polymake
+    sage: p2 = pm.polytope([x < 2, x > -3], coordinates=(x,))  # optional - polymake
+    sage: p3 = p1.intersection(p2)  # optional - polymake
+    sage: p3.get_defining_equations()  # optional - polymake
     [x > 0, -x + 2 > 0]
-    sage: p3.volume()
+    sage: p3.volume()  # optional - polymake
     2
 
 One can also define lower dimensional polytopes by specifying additional equations::
 
     sage: x,y,z = var('x,y,z')
-    sage: p1 = pm.polytope([x+y+z==1, x> 1/10, y > 1/10, z > 1/10], coordinates = (x,y,z))
-    sage: p1.get_defining_equations()
+    sage: p1 = pm.polytope([x+y+z==1, x> 1/10, y > 1/10, z > 1/10], coordinates = (x,y,z))  # optional - polymake
+    sage: p1.get_defining_equations()  # optional - polymake
     [x + y + z - 1 == 0, x - 1/10 > 0, y - 1/10 > 0, z - 1/10 > 0]
-    sage: p1.is_feasible()
+    sage: p1.is_feasible()  # optional - polymake
     True
-    sage: p1.volume()
+    sage: p1.volume()  # optional - polymake
     0
 
 Doctests from the previous version of this interface::
 
-    sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional - polymake
+    sage: P = pm.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional - polymake
     sage: P.facets()                            # optional - polymake
     [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
     sage: P.vertices()                            # optional - polymake
@@ -58,7 +58,7 @@ Doctests from the previous version of this interface::
     True
     sage: P.n_facets()                            # optional - polymake
     6
-    sage: polymake.cell24()            # optional - polymake
+    sage: pm.cell24()            # optional - polymake
     The 24-cell
     sage: R.<x,y,z> = PolynomialRing(QQ,3)
     sage: f = x^3 + y^3 + z^3 + x*y*z
@@ -66,7 +66,7 @@ Doctests from the previous version of this interface::
     sage: a = [[1] + list(v) for v in e]
     sage: a
     [[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
-    sage: n = polymake.convex_hull(a)       # optional - polymake
+    sage: n = pm.convex_hull(a)       # optional - polymake
     sage: n                                 # optional - polymake
     Convex hull of points [[1, 0, 0, 3], [1, 0, 3, 0], [1, 1, 1, 1], [1, 3, 0, 0]]
     sage: n.facets()                        # optional - polymake
@@ -229,21 +229,45 @@ cdef class Polytope(SageObject):
         self._set_matrix_property("EQUATIONS", matrix(QQ, equalities_coefficients))
 
     def get_defining_equations(self):
+        """
+        Return the defining equations.
+
+        .. TODO::
+
+            avoid using the symbolic ring
+
+        EXAMPLES::
+        """
         ineq_coeffs = self.facets()
         if self._coordinates is None:
             self._coordinates = tuple(SR.symbol() for _ in ineq_coeffs[0])
         homogeneous_coordinates = [1] + list(self._coordinates)
-        ineqs = [sum(c*var for c,var in zip(coeff, homogeneous_coordinates)) > 0
-                    for coeff in ineq_coeffs]
+        ineqs = [sum(c * var
+                     for c, var in zip(coeff, homogeneous_coordinates)) > 0
+                 for coeff in ineq_coeffs]
         eq_coeffs = self.equations()
-        eqs = [sum(c*var for c,var in zip(coeff, homogeneous_coordinates)) == 0
-                    for coeff in eq_coeffs]
+        eqs = [sum(c * var
+                   for c, var in zip(coeff, homogeneous_coordinates)) == 0
+               for coeff in eq_coeffs]
         return eqs + ineqs
 
     def __dealloc__(self):
+        """
+        De-allocate the object.
+        """
         del self._polymake_obj
 
     def _repr_(self):
+        """
+        Return the string representation.
+
+        EXAMPLES::
+
+            sage: import sage.libs.polymake.polymake as pm    # optional - polymake
+            sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))  # optional - polymake
+            sage: p1._repr_()
+            ?
+        """
         return self._name if self._name else 'A Polytope'
 
     def load(self, filename):
@@ -253,7 +277,13 @@ cdef class Polytope(SageObject):
 
     def save(self, filename):
         """
-        Saves this polytope to a file using polymake's representation.
+        Save this polytope to a file using polymake's representation.
+
+        INPUT:
+
+        - filename
+
+        EXAMPLES::
         """
         self._polymake_obj.save(filename)
 
@@ -304,121 +334,160 @@ cdef class Polytope(SageObject):
             raise TypeError("both arguments must be instances of Polytope")
 
     def f_vector(self):
+        """
+        Return the f-vector.
+
+        EXAMPLES::
+        """
         return self._get_vector_property("F_VECTOR")
 
     def h_star_vector(self):
+        """
+        Return the h*-vector.
+
+        EXAMPLES::
+        """
         return self._get_vector_property("H_STAR_VECTOR")
 
     def num_facets(self):
         """
+        Return the number of facets.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.num_facets()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.num_facets()  # optional - polymake
             6
 
 
             sage: m = matrix(QQ,10,4,[1,0,0,0, 1,1/16,1/4,1/16, 1,3/8,1/4,1/32, 1,1/4,3/8,1/32, 1,1/16,1/16,1/4, 1,1/32,3/8,1/4, 1,1/4,1/16,1/16, 1,1/32,1/4,3/8, 1,3/8,1/32,1/4, 1,1/4,1/32,3/8])
-            sage: p = polymake.Polytope('POINTS',m)
-            sage: p.num_facets()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.num_facets()  # optional - polymake
             13
         """
         return self._get_integer_property("N_FACETS")
 
     def num_points(self):
         """
+        Return the number of points.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.num_points()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.num_points()  # optional - polymake
             8
 
             sage: m = matrix(QQ,10,4,[1,0,0,0, 1,1/16,1/4,1/16, 1,3/8,1/4,1/32, 1,1/4,3/8,1/32, 1,1/16,1/16,1/4, 1,1/32,3/8,1/4, 1,1/4,1/16,1/16, 1,1/32,1/4,3/8, 1,3/8,1/32,1/4, 1,1/4,1/32,3/8])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.num_points()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.num_points()  # optional - polymake
             10
         """
         return self._get_integer_property("N_POINTS")
 
     def num_vertices(self):
         """
+        Return the number of vertices.
+
         EXAMPLES::
 
-            sage:
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+            sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.num_vertices()  # optional - polymake
+            ?
         """
         return self._get_integer_property("N_VERTICES")
 
+    # some useful aliases
+
+    n_points = num_points
+    n_vertices = num_vertices
+    n_facets = num_facets
+
     def is_simple(self):
         """
+        Return whether the polytope is simple.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.is_simple()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.is_simple()  # optional - polymake
             True
 
-            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.is_simple()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.is_simple()  # optional - polymake
             True
 
             sage: m = matrix(QQ,10,4,[1,0,0,0, 1,1/16,1/4,1/16, 1,3/8,1/4,1/32, 1,1/4,3/8,1/32, 1,1/16,1/16,1/4, 1,1/32,3/8,1/4, 1,1/4,1/16,1/16, 1,1/32,1/4,3/8, 1,3/8,1/32,1/4, 1,1/4,1/32,3/8])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.is_simple()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.is_simple()  # optional - polymake
             False
         """
         return self._get_bool_property("SIMPLE")
 
     def is_simplicial(self):
         """
+        Return whether the polytope is simplicial.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
-            sage: p = pm.Polytope('POINTS',m)
-            sage: p.is_simplicial()
+            sage: p = pm.Polytope('POINTS',m)  # optional - polymake
+            sage: p.is_simplicial()  # optional - polymake
             True
         """
         return self._get_bool_property("SIMPLICIAL")
 
-    def affine_hull(self):
-        return self._get_vector_list_property("AFFINE_HULL")
-
     def is_bounded(self):
+        """
+        Return whether ``self`` is bounded.
+
+        EXAMPLES::
+        """
         return self._get_bool_property("BOUNDED")
 
     def is_centered(self):
+        """
+        Return whether ``self`` is centered.
+
+        EXAMPLES::
+        """
         return self._get_bool_property("CENTERED")
 
     def is_feasible(self):
+        """
+        Return whether ``self`` is feasible.
+
+        EXAMPLES::
+        """
         return self._get_bool_property("FEASIBLE")
 
-    def is_simple(self):
-        return self._get_bool_property("SIMPLE")
+    def affine_hull(self):
+        """
+        Return the affine hull.
+
+        EXAMPLES::
+        """
+        return self._get_vector_list_property("AFFINE_HULL")
 
     def gale_transform(self):
+        """
+        Return the Gale transform.
+
+        EXAMPLES::
+        """
         return self._get_matrix_property("GALE_TRANSFORM")
- 
-    def n_points(self): 
-        return self._get_integer_property("N_POINTS")
 
     def _points(self):
         return self._get_vector_list_property("POINTS")
-
-    def vertices(self):
-        return self._get_vector_list_property("VERTICES")
-
-    def facets(self):
-        return self._get_vector_list_property("FACETS")
-
-    def n_facets(self):
-        return self._get_integer_property("N_FACETS")
 
     def graph(self):
         return self._get_string_property("GRAPH")
@@ -431,6 +500,16 @@ cdef class Polytope(SageObject):
         #return pm_mat_to_sage(pm_mat)
 
     def volume(self):
+        """
+        Return the volume of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.libs.polymake.polymake as pm    # optional - polymake
+            sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))  # optional - polymake
+            sage: p1.volume()  # optional - polymake
+            3?
+        """
         return self._get_rational_property("VOLUME")
 
     def visual(self):
@@ -438,7 +517,12 @@ cdef class Polytope(SageObject):
         self._polymake_obj.VoidCallPolymakeMethod("VISUAL")
 
     def vertices(self):
+        return self._get_vector_list_property("VERTICES")
+
+    def vertices(self):
         """
+        Return the vertices of ``self``.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
@@ -455,7 +539,12 @@ cdef class Polytope(SageObject):
             return []
 
     def facets(self):
+        return self._get_vector_list_property("FACETS")
+
+    def facets(self):
         """
+        Return the facets of ``self``.
+
         EXAMPLES::
 
             sage: import sage.libs.polymake.polymake as pm  # optional - polymake
@@ -466,12 +555,22 @@ cdef class Polytope(SageObject):
         return self._get_matrix_property("FACETS")
 
     def intersection(self, other):
+        """
+        Return the intersection of ``self`` with ``other``.
+
+        EXAMPLES::
+        """
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
         cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("intersection", s._polymake_obj[0], o._polymake_obj[0])
         return new_Polytope_from_PerlObject(polymake_obj, coordinates=s._coordinates)
 
     def join(self, other):
+        """
+        Return the join of ``self`` with ``other``.
+
+        EXAMPLES::
+        """
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
         cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("join_polytopes", s._polymake_obj[0], o._polymake_obj[0])
@@ -480,18 +579,26 @@ cdef class Polytope(SageObject):
     def __richcmp__(self, other, operation):
         if operation != 2:
             raise NotImplementedError
-        # per the Cython spec, it is possible for some symmetric operations to be called
-        # on the second operand. This means that we cannot even be sure that `self` is 
-        # a Polytope, and we need to cast it. For consistency, we do this cast even in non-special methods.
+        # per the Cython spec, it is possible for some symmetric
+        # operations to be called on the second operand. This means
+        # that we cannot even be sure that `self` is a Polytope, and
+        # we need to cast it. For consistency, we do this cast even in
+        # non-special methods.
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
         return BoolCallPolymakeFunction_PerlObject2("equal_polyhedra", s._polymake_obj[0], o._polymake_obj[0])
 
     def congruent(self, other):
+        """
+        Return whether ``self`` is congruent to ``other``.
+
+        EXAMPLES::
+        """
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
-        # FIXME: we'd like to return the Rational that gives the congruence scale factor,
-        # but I haven't found a way to Cythonize a call to numerator(Rational) etc.
+        # FIXME: we'd like to return the Rational that gives the
+        # congruence scale factor, but I haven't found a way to
+        # Cythonize a call to numerator(Rational) etc.
         return BoolCallPolymakeFunction_PerlObject2("congruent", s._polymake_obj[0], o._polymake_obj[0])
 
     def __reduce__(self):
@@ -505,7 +612,8 @@ cdef class Polytope(SageObject):
             sage: cube2 == cube
             True
         """
-        import tempfile, os
+        import tempfile
+        import os
         # we need to add the extension '.poly', or polymake will do it for us
         with tempfile.NamedTemporaryFile(suffix='.poly', delete=False) as file:
             file.close()
@@ -533,10 +641,12 @@ ZONOTOPE_INPUT_VECTORS: common::Matrix<Scalar, NonSymmetric>
     def _
     """
 
-# Sage's convention is to (also) have a lowercase function for constructing objects
+# Sage's convention is to (also) have a lowercase function for
+# constructing objects
 polytope = Polytope
 
-cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None, name=None):
+cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None,
+                                  name=None):
     cdef Polytope res = Polytope.__new__(Polytope)
     res._polymake_obj = new_PerlObject_from_PerlObject(polymake_obj)
     res._coordinates = coordinates
@@ -545,7 +655,8 @@ cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None, nam
 
 def new_Polytope_from_data(data, coordinates, name):
     cdef Polytope res = Polytope.__new__(Polytope)
-    import tempfile, os
+    import tempfile
+    import os
     with tempfile.NamedTemporaryFile(delete=False) as file:
         file.write(data)
         file.close()
@@ -571,39 +682,51 @@ def new_Polytope_from_function(name, function_name, *args):
 
 def cube(dimension, scale=1):
     """
-    Return a cube of given dimension.  +/-1-coordinates by default.
+    Return a cube of given dimension.
+
+    The cube has +/-1-coordinates by default.
+
+    INPUT:
+
+    - ``scale`` -- default 1
 
     EXAMPLES::
 
-        sage: import sage.libs.polymake.polymake as pm # optional - polymake
-        sage: cube = pm.cube(3)
+        sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+        sage: cube = pm.cube(3)  # optional - polymake
     """
     return new_Polytope_from_function("Cube of dimension %s (scale %s)" % (dimension, scale), "cube", dimension, scale)
 
 def cell24():
     """
+    Return the 24-cell.
+
     EXAMPLES::
 
-        sage: import sage.libs.polymake.polymake as pm # optional - polymake
-        sage: c24 = pm.cell24()
+        sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+        sage: c24 = pm.cell24()  # optional - polymake
     """
     return new_Polytope_from_function("The 24-cell", "create_24_cell")
 
 def birkhoff(n, even=False):
     """
-    Birkhoff polytope
+    Return the Birkhoff polytope.
 
     EXAMPLES::
 
+        sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+        sage: c24 = pm.birkhoff()  # optional - polymake
     """
     return new_Polytope_from_function("%s Birkhoff %s" % ("even" if even else "odd", n), "birkhoff", n, even)
 
 def associahedron(dim):
     """
+    Return the associahedron.
+
     EXAMPLES::
 
-        sage: import sage.libs.polymake.polymake as pm # optional - polymake
-        sage: a3 = pm.associahedron(3)
+        sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+        sage: a3 = pm.associahedron(3)  # optional - polymake
     """
     return new_Polytope_from_function("%s-dimensional associahedron" % dim, "associahedron", dim)
 
@@ -613,12 +736,17 @@ def rand_sphere(dim, npoints):
 
     EXAMPLES::
 
-        sage: import sage.libs.polymake.polymake as pm # optional - polymake
-        sage: s3 = pm.rand_sphere(3,20)
+        sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+        sage: s3 = pm.rand_sphere(3,20)  # optional - polymake
     """
     return new_Polytope_from_function("Random spherical polytope", "rand_sphere", dim, npoints)
 
 def convex_hull(points=[]):
+    """
+    Return the convex hull of the given points.
+
+    EXAMPLES::
+    """
     points.sort()
     return Polytope("POINTS", matrix(QQ, points), name="Convex hull of points %s" % points)
 
