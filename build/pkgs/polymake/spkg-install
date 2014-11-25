@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --with-boost="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+            --with-mpfr="$SAGE_LOCAL" --with-readline="$SAGE_LOCAL" --with-fink=no --without-java
+if [ $? -ne 0 ]; then
+    echo "Failed to configure."
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "Failed to build polymake"
+    exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "Failed to install polymake"
+    exit 1
+fi
+
+
