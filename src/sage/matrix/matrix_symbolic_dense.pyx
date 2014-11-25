@@ -440,7 +440,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         cp = self._maxima_(maxima).charpoly(vname)._sage_().expand()
         cp = [cp.coefficient(vsym, i) for i in range(self.nrows() + 1)]
-        cp = SR[var](cp)
+        cp = SR[str(var)](cp)
 
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We

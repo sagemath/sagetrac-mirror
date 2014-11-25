@@ -599,7 +599,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Coercion from symbolic variables::
 
             sage: x,y,z = var('x,y,z')
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
             sage: R(x)
             x
 
@@ -5270,9 +5270,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             # Trac ticket #11780: Create the polynomial ring over
             # the integers using the (cached) polynomial ring constructor:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            integer_polynomial_ring = PolynomialRing(ZZ,\
-            self.parent().ngens(), self.parent().gens(), order =\
-            self.parent().term_order())
+            integer_polynomial_ring = PolynomialRing(ZZ,
+                                                     self.parent().ngens(),
+                                                     self.parent().gens().variable_names(),
+                                                     order=self.parent().term_order())
             return integer_polynomial_ring(self * self.denominator())
         else:
             return self * self.denominator()

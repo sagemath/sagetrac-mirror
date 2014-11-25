@@ -130,43 +130,13 @@ def is_ParentWithMultiplicativeAbelianGens(x):
     return PY_TYPE_CHECK(x, ParentWithMultiplicativeAbelianGens)
 
 def _certify_names(names):
-    """
-    Test that the argument provides a list of valid variable names.
-
-    INPUT:
-
-    ``names`` - A string or a list or tuple of strings
-
-    OUTPUT:
-
-    A tuple of variable names obtained from ``names``.
-
-    TESTS::
-
-        sage: from sage.structure.parent_gens import _certify_names
-        sage: _certify_names('abc')
-        ('a', 'b', 'c')
-
-    Test that a certain usage is deprecated (trac ticket #10483)::
-
-        sage: _certify_names([singular,gap])
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'Gap' is <class 'sage.interfaces.gap.Gap'>
-        ('Singular', 'Gap')
-
-    """
     v = []
     try:
         names = tuple(names)
     except TypeError:
-        if not isinstance(names, str):
-            from sage.misc.misc import deprecation
-            deprecation("Names must be a string or a list or tuple of strings, but '%s' is %s"%(names,type(names)), 'Sage Version 4.6.1')
         names = [str(names)]
     for N in names:
         if not isinstance(N, str):
-            from sage.misc.misc import deprecation
-            deprecation("Names must be a string or a list or tuple of strings, but '%s' is %s"%(N,type(N)), 'Sage Version 4.6.1')
             N = str(N)
         N = N.strip().strip("'")
         if len(N) == 0:
