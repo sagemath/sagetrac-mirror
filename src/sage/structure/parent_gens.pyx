@@ -150,8 +150,8 @@ def _certify_names(names):
     Test that a certain usage is deprecated (trac ticket #10483)::
 
         sage: _certify_names([singular,gap])
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'Gap' is <class 'sage.interfaces.gap.Gap'>
+        doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
+        doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Gap' is <class 'sage.interfaces.gap.Gap'>
         ('Singular', 'Gap')
 
     """
