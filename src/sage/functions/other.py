@@ -436,7 +436,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify().simplify_radical())
+                    return ceil(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
@@ -598,7 +598,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify().simplify_radical())
+                    return floor(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
@@ -928,6 +928,15 @@ class Function_gamma_inc(BuiltinFunction):
             40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
             sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
             -1.110111598370794007949063502542063148294e-28
+
+        Check that :trac:`17328` is fixed::
+
+            sage: incomplete_gamma(float(-1), float(-1))
+            (-0.8231640121031085+3.141592653589793j)
+            sage: incomplete_gamma(RR(-1), RR(-1))
+            -0.823164012103109 + 3.14159265358979*I
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            1.27309721644711
 
         Check that :trac:`17130` is fixed::
 

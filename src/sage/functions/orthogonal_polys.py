@@ -1476,29 +1476,21 @@ class Func_laguerre(OrthogonalPolynomial):
 
     def _evalf_(self, n, x, **kwds):
         """
+        Return the evaluation of `laguerre(n,x)` with floating point `x`.
+        
         EXAMPLES::
             
             sage: laguerre(100,RealField(300)(pi))
             -0.638322077840648311606324...
             sage: laguerre(10,1.+I)
             4.22694003527337 + 1.25671075837743*I
-            sage: laguerre(1/2,0)
-            1.00000000000000
         """
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
+        the_parent = kwds.get('parent', None)
+        if the_parent is None:
+            the_parent = parent(x)
         import mpmath
         from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.laguerre, n, 0, x, parent=real_parent)
+        return mpcall(mpmath.laguerre, n, 0, x, parent=the_parent)
 
     def _derivative_(self, n, x, *args,**kwds):
         """
@@ -1642,20 +1634,12 @@ class Func_gen_laguerre(OrthogonalPolynomial):
             sage: gen_laguerre(10,1/2,1.+I)
             5.34469635574906 + 5.23754057922902*I
         """
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
+        the_parent = kwds.get('parent', None)
+        if the_parent is None:
+            the_parent = parent(x)
         import mpmath
         from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.laguerre, n, a, x, parent=real_parent)
+        return mpcall(mpmath.laguerre, n, a, x, parent=the_parent)
 
     def _derivative_(self, n, a, x, *args,**kwds):
         """
