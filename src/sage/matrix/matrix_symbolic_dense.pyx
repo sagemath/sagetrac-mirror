@@ -396,6 +396,10 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         """
         Compute the characteristic polynomial of self, using maxima.
 
+        INPUT:
+
+        - ``var`` - (default: 'x') name of variable of charpoly
+
         EXAMPLES::
 
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
@@ -440,7 +444,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         cp = self._maxima_(maxima).charpoly(vname)._sage_().expand()
         cp = [cp.coefficient(vsym, i) for i in range(self.nrows() + 1)]
-        cp = SR[str(var)](cp)
+        cp = SR[var](cp)
 
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We

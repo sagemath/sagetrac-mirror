@@ -176,7 +176,9 @@ def QuotientRing(R, I, names=None):
     With polynomial rings (note that the variable name of the quotient
     ring can be specified as shown below)::
 
-        sage: R.<xx> = QuotientRing(QQ['x'], QQ['x'].ideal(x^2 + 1)); R
+        sage: P.<x> = QQ[]
+        sage: R.<xx> = QuotientRing(P, P.ideal(x^2 + 1))
+        sage: R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
         sage: R.gens(); R.gen()
         (xx,)
@@ -189,7 +191,9 @@ def QuotientRing(R, I, names=None):
 
     ::
 
-        sage: S = QuotientRing(QQ['x'], QQ['x'].ideal(x^2 - 2)); S
+        sage: P.<x> = QQ[]
+        sage: S.<xbar> = QuotientRing(P, P.ideal(x^2 - 2))
+        sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
         sage: xbar = S.gen(); S.gen()
@@ -201,6 +205,9 @@ def QuotientRing(R, I, names=None):
 
     Sage coerces objects into ideals when possible::
 
+        sage: P.<x> = QQ[]
+        sage: R.<xbar> = QuotientRing(P, x^2 + 1)
+        sage: R
         sage: R = QuotientRing(QQ[x], x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
@@ -273,12 +280,12 @@ def QuotientRing(R, I, names=None):
         sage: P.<a,b> = QQ[]
         sage: x = var('x')
         sage: Q = P.quotient(P*[a*b],[x,singular])
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Variable name 'x' should be a string, but we obtained <type 'sage.symbolic.expression.Expression'>.
+        doctest:...: DeprecationWarning: Variable name 'x' should be a string, but we obtained <type 'sage.symbolic.expression.Expression'>.
         In an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'.
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Variable name 'Singular' should be a string, but we obtained <class 'sage.interfaces.singular.Singular'>.
+        doctest:...: DeprecationWarning: Variable name 'Singular' should be a string, but we obtained <class 'sage.interfaces.singular.Singular'>.
         In an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'.
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'x' is <type 'sage.symbolic.expression.Expression'>
-        doctest:...: DeprecationWarning: (Since Sage Version 4.6.1) Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
+        doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'x' is <type 'sage.symbolic.expression.Expression'>
+        doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
     """
     # 1. Not all rings inherit from the base class of rings.
     # 2. We want to support quotients of free algebras by homogeneous two-sided ideals.
@@ -886,7 +893,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.is_noetherian()
             True
 
-            sage: R = QuotientRing(QQ['x'], x^2+1)
+            sage: P.<x> = QQ[]
+            sage: R = QuotientRing(P, x^2+1)
             sage: R.is_noetherian()
             True
 
@@ -924,7 +932,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         ::
 
-            sage: Q = QuotientRing(QQ['x'], x^2 + 1)
+            sage: P.<x> = QQ[]
+            sage: Q = QuotientRing(P, x^2 + 1)
             sage: Q.cover_ring()
             Univariate Polynomial Ring in x over Rational Field
         """
