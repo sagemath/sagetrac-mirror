@@ -281,7 +281,7 @@ Sage example in ./mpoly.tex, line 900::
 
 Sage example in ./mpoly.tex, line 906::
 
-  sage: env.change_ring(QQ[x,y]).plot()
+  sage: env.change_ring(QQ['x,y']).plot()
   Graphics object consisting of 1 graphics primitive
 
 Sage example in ./mpoly.tex, line 933::

@@ -15,7 +15,7 @@ operations with them::
     sage: f = x - a
     sage: g = x^3 - 2*a + 1
     sage: f*(x + a)
-    x^2 - 2
+    x^2 - 2l
     sage: f + g
     x^3 + x - 3*a + 1
     sage: g // f
@@ -150,7 +150,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             sage: x = var('x')
             sage: N = NumberField(x-3, 'a')
             sage: a = N.gen()
-            sage: R = N[x]
+            sage: R = N['x']
             sage: f = R.random_element()
             sage: g1 = R.random_element()
             sage: g2 = g1*R.random_element() + 1
