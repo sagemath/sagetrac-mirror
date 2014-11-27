@@ -2268,7 +2268,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Show the product in the symbolic ring::
 
-            sage: L = SR[x]
+            sage: L = SR['x']
             sage: var('a0,a1,b0,b1')
             (a0, a1, b0, b1)
             sage: L([a0,a1])._mul_karatsuba(L([b0,b1]),0)
@@ -5032,10 +5032,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The following examples show that :trac:`11782` has been fixed::
 
-            sage: x = var('x')
-            sage: ZZ.quo(81)['x'](3*x^2 + 3*x + 3).discriminant()
+            sage: ZZ.quo(81)[x](3*x^2 + 3*x + 3).discriminant()
             54
-            sage: ZZ.quo(9)['x'](2*x^3 + x^2 + x).discriminant()
+            sage: ZZ.quo(9)[x](2*x^3 + x^2 + x).discriminant()
             2
 
         This was fixed by :trac:`15422`::
@@ -6813,7 +6812,7 @@ cdef do_schoolbook_product(x, y):
     Doctested indirectly in _mul_generic and _mul_karatsuba. For the doctest we
     use a ring such that default multiplication calls external libraries::
 
-        sage: K = ZZ[x]
+        sage: K = ZZ['x']
         sage: f = K.random_element(8)
         sage: g = K.random_element(8)
         sage: f*g - f._mul_generic(g)
