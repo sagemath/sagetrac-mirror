@@ -160,13 +160,13 @@ def _certify_names(names):
         names = tuple(names)
     except TypeError:
         if not isinstance(names, str):
-            from sage.misc.misc import deprecation
-            deprecation("Names must be a string or a list or tuple of strings, but '%s' is %s"%(names,type(names)), 'Sage Version 4.6.1')
+            from sage.misc.superseded import deprecation
+            deprecation(10483, "Names must be a string or a list or tuple of strings, but '%s' is %s"%(names,type(names)))
         names = [str(names)]
     for N in names:
         if not isinstance(N, str):
-            from sage.misc.misc import deprecation
-            deprecation("Names must be a string or a list or tuple of strings, but '%s' is %s"%(N,type(N)), 'Sage Version 4.6.1')
+            from sage.misc.superseded import deprecation
+            deprecation(10483, "Names must be a string or a list or tuple of strings, but '%s' is %s"%(N,type(N)))
             N = str(N)
         N = N.strip().strip("'")
         if len(N) == 0:

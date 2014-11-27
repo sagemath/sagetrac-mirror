@@ -301,8 +301,8 @@ def QuotientRing(R, I, names=None):
             raise TypeError, "The variable names must be given by a list or tuple of strings."
         for foo in names:
             if not isinstance(foo,basestring):
-                from sage.misc.misc import deprecation
-                deprecation("Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'."%(foo,type(foo)))
+                from sage.misc.superseded import deprecation
+                deprecation(10483, "Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'."%(foo,type(foo)))
         names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)

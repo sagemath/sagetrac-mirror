@@ -450,12 +450,12 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             arg1 = name
 
     if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
-        from sage.misc.misc import deprecation
-        deprecation("The second argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg1,type(arg1)),'Sage Version 4.6.1')
+        from sage.misc.superseded import deprecation
+        deprecation(10483, "The second argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg1,type(arg1)))
         arg1 = repr(arg1)
     if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
-        from sage.misc.misc import deprecation
-        deprecation("The third argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg2,type(arg2)),'Sage Version 4.6.1')
+        from sage.misc.superseded import deprecation
+        deprecation(10483, "The third argument (%s) should be a string, a list or tuple of strings or an integer, but not %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]"%(arg2,type(arg2)))
         arg2 = repr(arg2)
 
     if not m.ring.is_Ring(base_ring):
@@ -468,14 +468,14 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     if isinstance(arg1, (list, tuple)):
         for foo in arg1:
             if not isinstance(foo,basestring):
-                from sage.misc.misc import deprecation
-                deprecation("Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
+                from sage.misc.superseded import deprecation
+                deprecation(10483, "Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
         for foo in arg1:
             if not isinstance(foo,basestring):
-                from sage.misc.misc import deprecation
-                deprecation("Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
+                from sage.misc.superseded import deprecation
+                deprecation(10483, "Variable name '%s' should be a string, but we obtained %s.\nIn an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'."%(foo,type(foo)))
         arg2 = [str(x) for x in arg2]
     if isinstance(arg2, (int, long, Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
