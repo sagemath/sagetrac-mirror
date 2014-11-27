@@ -2057,7 +2057,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Show the product in the symbolic ring::
 
-            sage: L = SR[x]
+            sage: L = SR['x']
             sage: var('a0,a1,b0,b1')
             (a0, a1, b0, b1)
             sage: L([a0,a1])._mul_generic(L([b0,b1]))
@@ -6600,7 +6600,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Quick tests::
 
-            sage: P.<x> = ZZ[x]
+            sage: P.<x> = ZZ['x']
             sage: (x - 1).is_cyclotomic()
             True
             sage: (x + 1).is_cyclotomic()
