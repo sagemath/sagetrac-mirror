@@ -5574,6 +5574,11 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
+            sage: var('x,y,z,w')
+            (x, y, z, w)
+
+        ::
+
             sage: R = QQ['x,y,z']
             sage: R(x^2 + y)
             x^2 + y
@@ -5604,9 +5609,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
             pi*y^3 + x^3*e + sqrt(2) + I
-            sage: R.<x,y> = CDF[]
+            sage: R = CDF['x,y']
             sage: R(f)
-             2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
+            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::
 
