@@ -12,9 +12,19 @@ from sage.graphs.digraph import DiGraph
 ############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
 ######################################################################################################
 
-def are_triangles_equal (triangleA, triangleB):
+def are_triangles_equal(triangleA, triangleB):
     """
     If triangles are equal (including orientation), return True. Otherwise return False
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import are_triangles_equal
+        sage: are_triangles_equal((1,2,3),[2,3,1])
+        True
+        sage: are_triangles_equal((1,2,3),(1,3,2))
+        False
+        sage: are_triangles_equal([1,1,2],[1,2,1])
+        True
     """
     if (triangleA[0], triangleA[1], triangleA[2]) == (triangleB[0], triangleB[1], triangleB[2]):
         return True
@@ -25,24 +35,51 @@ def are_triangles_equal (triangleA, triangleB):
     else:
         return False
       
-def is_selffolded (t):
+def is_selffolded(t):
     """
-    List of three elements, or a 3-tuple
+    Returns whether a list of three elements or a 3-tuple has only two distinct entries
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import is_selffolded
+        sage: is_selffolded(('ell','r','r'))
+        ('r', 'r', 'ell')
+        sage: is_selffolded([1,1,2])
+        (1, 1, 2)
+        sage: is_selffolded([1,2,1])
+        (1, 1, 2)
+        sage: is_selffolded((1,2,3))
+        False
     """
     if t[0]==t[1] and t[0]!=t[2]:
-        ell = t[2]; radius = t[0]; return (radius, radius, ell);
+        ell = t[2]
+        radius = t[0]
+        return (radius, radius, ell)
     elif t[0]==t[2] and t[0]!=t[1]:
-        ell = t[1]; radius = t[0]; return (radius, radius, ell);
+        ell = t[1]
+        radius = t[0]
+        return (radius, radius, ell)
     elif t[1]==t[2] and t[1]!=t[0]: 
-        ell = t[0]; radius = t[1]; return (radius, radius, ell);
+        ell = t[0]
+        radius = t[1]
+        return (radius, radius, ell)
     else:
         return False
       
-def remove_duplicate_triangles (data):
+def remove_duplicate_triangles(data):
     """
-    In case user inputs duplicate triangles, remove them.
-    We do not allow: spheres with 1, 2, or 3 punctures
-    For example, if user inputs digraph 1 => 2 => 3 => 1, it will turn into 1 ->2 -> 3 ->1
+    In case user accidentally inputs a duplicate triangle, we remove the duplicate.
+    In particular, we do not allow: spheres with 1, 2, or 3 punctures
+    For example, if user inputs triangles 1 => 2 => 3 => 1, it will turn into 1 ->2 -> 3 ->1
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles
+        sage: remove_duplicate_triangles([(1,2,3),(1,2,4),[3,1,2],[2,3,1]])
+        [(1, 2, 3), (1, 2, 4)]
+        sage: thrice_punctured_sphere = [(1,2,3),(3,1,2)]
+        sage: remove_duplicate_triangles(thrice_punctured_sphere)
+        [(1, 2, 3)]
     """
     
     list_triangles = []
@@ -56,36 +93,47 @@ def remove_duplicate_triangles (data):
             list_triangles.append(triangle)
     return list_triangles
 
-def _edges_from_ideal_triangles (list_triangles):
+def _edges_from_ideal_triangles(list_triangles):
     """
+    Returns a list of directed edges from a list of triangles. The order of the list does not matter.
+    
     For each triangle t in list_triangles:
     if t=[a,b,c] has distinct edges, add cycles a->b->c->a
     if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b,
     add the same directed edge between r and b.
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_ideal_triangles
+        sage: _edges_from_ideal_triangles([(1,1,2),(3,4,3),(2,4,0)]) # 2 self-folded triangles and 1 triangle with one vertex
+        [[0, 2], [2, 4], [4, 0], [0, 1], [1, 4], [2, 3], [3, 0]] 
     """
     digraph_edges = []
     selffolded_triangles = []
     
     for t in list_triangles:
         selffolded = is_selffolded (t)
-        if t[0] != t[1] and t[1]!= t[2]:
+        if t[0] != t[1] and t[1] != t[2] and t[0] != t[2]:
             # if t has three distinct edges, add 3 edges for those
             digraph_edges.extend([[t[0],t[1]], [t[1],t[2]], [t[2],t[0]]])
         elif selffolded != False:
-            radius = selffolded[0]; ell = selffolded[2]
-            selffolded_triangles.append([radius,ell]);
+            radius = selffolded[0] 
+            ell = selffolded[2]
+            selffolded_triangles.append([radius,ell])
         else:
             raise ValueError ('A triangle has to have 3 distinct edges or 2 distinct edges')
             break
             
     if DiGraph(digraph_edges).has_loops():
-        raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops.')
-    digraph_edges = remove_two_cycles (digraph_edges) 
+        raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
+    digraph_edges = remove_two_cycles(digraph_edges) 
 
     selffolded_edges =[]
     for t in selffolded_triangles:
-        radius = t[0]; ell = t[1]
-        flagA = False; flagB = False
+        radius = t[0]
+        ell = t[1]
+        flagA = False
+        flagB = False
         for e in digraph_edges:
             if e[0]==ell:
                 selffolded_edges.append([radius, e[1]])
@@ -98,11 +146,19 @@ def _edges_from_ideal_triangles (list_triangles):
     if 2*len(selffolded_triangles) == len(selffolded_edges):
         return digraph_edges + selffolded_edges
     else:
-        raise ValueError ('Incorrect input for self-folded triangles')
-                 
+        raise ValueError('Incorrect input for self-folded triangles')
+        
 def remove_two_cycles(edges):
     """
     Remove two-cycles from a list of edges
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import remove_two_cycles
+        sage: remove_two_cycles([[1,2],[2,3],[3,1],[1,4],[4,3],[3,2],[4,3],[3,2]])
+        [[1, 2], [1, 4], [3, 1], [3, 2], [4, 3], [4, 3]] 
+        sage: remove_two_cycles([[1,2],[2,3],[2,1],[3,2]])
+        []
     """
     edges.sort()
     for e in edges:
@@ -116,8 +172,14 @@ def remove_two_cycles(edges):
         
 def remove_triple_edges(edges):
     """
-    This function is probably not necessary.
+    This function is not necessary if the code works properly.
     Return the list of edges containing at most 2 copies of the same edge
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import remove_triple_edges
+        sage: remove_triple_edges([[1,2],[2,3],[3,4],[2,3],[3,5],[5,2]])
+        [[1, 2], [2, 3], [2, 3], [3, 4], [3, 5], [5, 2]]  
     """
     edges.sort()
     removetripleedge_necessary = False
@@ -128,13 +190,19 @@ def remove_triple_edges(edges):
              print 'triple edge: ', e
              removetripleedge_necessary = True
     if removetripleedge_necessary == True:
-        raise ValueError ('There should not be triple edges from a triangulation. Bug in the code')
+        raise ValueError('There should not be triple edges from a triangulation. Bug in the code')
     return edges      
        
-def _give_weight_to_double_edges (dg):
+def _give_weight_to_double_edges(dg):
     """
     INPUT: digraph
-    If there is a double edge, add weight 1 to each edge
+    Replace every double edge with a single edge of weight 1
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _give_weight_to_double_edges
+        sage: _give_weight_to_double_edges(DiGraph([[1,2],[2,3],[3,4],[2,3],[3,5],[5,2]])).edges()
+        [(1, 2, None), (2, 3, 1), (2, 3, 1), (3, 4, None), (3, 5, None), (5, 2, None)]
     """
     double_edges = dg.multiple_edges()
     dg.delete_edges(double_edges)
@@ -146,35 +214,37 @@ def _give_weight_to_double_edges (dg):
 def _edges_from_triangles(data):
     """
     This function is called by quiver.py
-    We can enter unique triangulation list of tuples or list of lists [ (a,b,c),(a,d,e) ...]
-    Return list of edges from triangulation
-    2-cycles will be erased, e.g. 1->2->1 will be removed
+    Input is a list of tuples or list of lists [ (a,b,c),(a,d,e) ...] of ideal triangles forming an ideal triangulation.
+    Return list of edges from triangulation after 2-cycles are erased, e.g. 1->2->1 are be removed
+    and returns an error if a triple edge appears (which is impossible unless there is a bug in the code)
     
     EXAMPLES::
-        sage: dataA = [ (4, 5, 1), (4, 3, 2), [3, 7, 2], [2, 1, 6]]
-        sage: dataB = [[4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]]
+    
         sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_triangles 
-        sage: _edges_from_triangles(dataA) == _edges_from_triangles(dataB)
-        True
-
+        sage: _edges_from_triangles([(4, 5, 1), (4, 3, 2), [3, 7, 2], [2, 1, 6]])
+        [[1, 4], [1, 6], [2, 1], [2, 4], [3, 7], [4, 3], [4, 5], [5, 1], [6, 2], [7, 2]]
     """
     
     digraph_edges = _edges_from_ideal_triangles ( data )
-    digraph_edges = remove_triple_edges ( digraph_edges ) # I don't think this is necessary
+    digraph_edges = remove_triple_edges ( digraph_edges )
     return digraph_edges
     
-def _get_triangulation_dictionary (T, cluster):
+def _get_triangulation_dictionary(T, cluster):
     """
     This function is called by cluster_seed.py
     Create a triangulation dictonary e.g. if user uses labels 1,2,5, .., then return [(1,x0),(2,x1),(5,x2), ...]
     
     EXAMPLES::
+    
         sage: T = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: S = ClusterSeed(T)
         sage: S._triangulation_dictionary
         [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
+        sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
     """
-    dic = []; list_radius = []; list_ell = []
+    dic = []
+    list_radius = []
+    list_ell = []
     T_user_labels = list(set([edge for triangle in T for edge in triangle])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
     T_user_labels.sort()
         
@@ -197,7 +267,7 @@ def _get_triangulation_dictionary (T, cluster):
 
     return dic
     
-def _get_weighted_edge (edge_label, triangulation_dictionary):
+def _get_weighted_edge(edge_label, triangulation_dictionary):
     """
     access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
     """
@@ -205,7 +275,7 @@ def _get_weighted_edge (edge_label, triangulation_dictionary):
         if td[0] == edge_label:
             return td[1]
             
-def _get_weighted_edges (edges, triangulation_dictionary):
+def _get_weighted_edges(edges, triangulation_dictionary):
     """
     access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
     """
@@ -215,12 +285,13 @@ def _get_weighted_edges (edges, triangulation_dictionary):
         weighted_edges.append(weighted_e)
     return weighted_edges
     
-def _get_weighted_triangulation (T, triangulation_dictionary): 
+def _get_weighted_triangulation(T, triangulation_dictionary): 
     """
     This function is called by cluster_seed.py
     Return the triangulation given by user with weights (e.g. [(x1, x2, x0),(x1,x3,x5), ...)
     
     EXAMPLES::
+    
         sage: T = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: S = ClusterSeed(T)
         sage: S._triangulation_dictionary
@@ -273,7 +344,7 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
     get SUM of the weights of all perfect matchings in "all_matchings"
     """
     
-    G = _snake_graph (T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
+    G = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
     MinMatching = [ GetMinimalMatching ( G ) ]  # Return [ ['minimal PM'],[minimal matching with directions] ]
     tile_flip_max = fibonacci(len(G)+1) # We do not need this upper bound, but we do this to avoid infinite loop in case of a bug in the code
     
@@ -289,12 +360,12 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
             new_matchings_corrected_indices = \
             GetMoreLastFlippedTilesInList(new_matchings, old_current_new_matchings) 
             
-            old_matchings = UniqueList (old_matchings + current_matchings)
+            old_matchings = UniqueList(old_matchings + current_matchings)
             current_matchings = new_matchings_corrected_indices
         else:
             break
             
-    all_matchings = UniqueList (old_matchings + current_matchings) 
+    all_matchings = UniqueList(old_matchings + current_matchings) 
     
     if verbose:
         print "**************** Perfect Matchings and Their Weights: *****************"
@@ -313,9 +384,9 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
         drawing.set_aspect_ratio(1)
         drawing.show(axes=False, figsize=[fig_size*(len(all_matchings)+1), fig_size]) 
     
-    return SumOfMonomialTerms (G, all_matchings, boundary_edges)/ GetDenominator(G)
+    return SumOfMonomialTerms(G, all_matchings, boundary_edges)/ GetDenominator(G)
 
-def UniqueList (in_list):
+def UniqueList(in_list):
     """
     Remove duplicate copies from list
     """
@@ -334,7 +405,7 @@ def UniqueList (in_list):
 ####### BEGINS: FUNCTIONS THAT EXTRACT WEIGHTS OF PERFECT MATCHINGS ######################
 ##########################################################################################    
     
-def PartitionIntoTuples (L):
+def PartitionIntoTuples(L):
     """
     This function acts like Partition[L,2] in Mathematica.
     Partition a list into a list of tuples.
@@ -349,7 +420,7 @@ def PartitionIntoTuples (L):
             ListTuples.append([L[pos],L[pos+1]])
     return ListTuples    
     
-def GetDenominator (G):
+def GetDenominator(G):
     """
     Mathematica: todaslasdiagonales
     Input: snake graph G
@@ -363,7 +434,7 @@ def GetDenominator (G):
         denom *= diagonal
     return denom
     
-def SumOfMonomialTerms (snakegraph, all_matchings, boundary_edges=None):
+def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
     """
     Mathematica: terminoPolinomioSobreListaDeConfig
     
@@ -372,10 +443,10 @@ def SumOfMonomialTerms (snakegraph, all_matchings, boundary_edges=None):
     """
     sumTerms = 0
     for matching in all_matchings:
-        sumTerms += GetMonomialTerm (snakegraph, matching, boundary_edges)
+        sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges)
     return sumTerms
         
-def ExtractWeight (tile, abcd, is_final_tile):
+def ExtractWeight(tile, abcd, is_final_tile):
     """
     Mathematica: rescatePositivo4
     
@@ -414,7 +485,7 @@ def ExtractWeight (tile, abcd, is_final_tile):
             
     return weights
         
-def GetMonomialTerm (partitioned_snakegraph, PM, boundary_edges=None):
+def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
     """
     Mathematica: terminoPolinomio
     
@@ -428,7 +499,7 @@ def GetMonomialTerm (partitioned_snakegraph, PM, boundary_edges=None):
     if boundary_edges == None: 
         boundary_edges = []
     
-    if len(partitioned_snakegraph) == len (PM[1]): # this should always be equal
+    if len(partitioned_snakegraph) == len(PM[1]): # this should always be equal
         total_weight = []
         is_final_tile = False
         for pos in range(0,len(partitioned_snakegraph)):
@@ -438,7 +509,7 @@ def GetMonomialTerm (partitioned_snakegraph, PM, boundary_edges=None):
             tile_weight = ExtractWeight(partitioned_snakegraph[pos], abcd, is_final_tile )
             tile_weights.append(tile_weight)
     else: 
-	    print 'warning: see GetMonomialTerm'
+        print 'warning: see GetMonomialTerm'
 
     #matching_weight = Multiply elements in tile_weights
     matching_weight = 1
@@ -474,7 +545,7 @@ def GetMonomialTerm (partitioned_snakegraph, PM, boundary_edges=None):
                 myarray = 1
             else:
                 myarray = 1/a1
-	        
+                
     if a1 == zn and b1 == xn and c1 == yn: # first case
         if (first_tile_matching[0] == 0 # bottom of the first tile is not marked
         and final_tile_matching[1] == 0): # right of final tile is not marked
@@ -524,21 +595,21 @@ def GetMonomialTerm (partitioned_snakegraph, PM, boundary_edges=None):
 RIGHT = 'RIGHT'
 ABOVE = 'ABOVE'    
       
-def _get_first_final_triangles (T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
+def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
     if (is_arc,is_loop) == (True, True) or (is_arc,is_loop) == (False, False):
-        raise ValueError ('is_arc and is_loop cannot have the same value')
+        raise ValueError('is_arc and is_loop cannot have the same value')
     if is_loop == True:
         if len(crossed_arcs) < 2:
-            raise ValueError ('Since gamma is a loop, user needs to specify at least two crossing arcs.',\
+            raise ValueError('Since gamma is a loop, user needs to specify at least two crossing arcs.',\
             'If gamma only crosses one arc tau, then enter [tau,tau]')
         if crossed_arcs[0]!=crossed_arcs[-1]:
-            raise ValueError ('Since gamma is a loop, user needs to specify a sequence of tau_1, tau_2, ..., tau_d where tau_1=tau_d')
+            raise ValueError('Since gamma is a loop, user needs to specify a sequence of tau_1, tau_2, ..., tau_d where tau_1=tau_d')
     
     # If only one arc tau of T is crossed, then we assign the two triangles
     # that have an edge tau to be first_triangle and final_triangle
     if len(crossed_arcs)==1 or (is_loop==True and len(crossed_arcs)==2):
        [ first_triangle, final_triangle ] = \
-       try_to_find_end_triangles_for_one_crossed_arc (T, crossed_arcs[0], first_triangle, final_triangle, is_arc, is_loop)
+       try_to_find_end_triangles_for_one_crossed_arc(T, crossed_arcs[0], first_triangle, final_triangle, is_arc, is_loop)
     
     # We try to determine first_triangle and final_triangle by tau_1, tau_2 and tau_{d-1} and tau_{d}
     else:
@@ -558,14 +629,14 @@ def _get_first_final_triangles (T,crossed_arcs, first_triangle, final_triangle, 
         final_triangle = try_to_find_end_triangle(T,crossed_arcs, 'Final', is_arc, is_loop, final_triangle)
         
         if is_loop == True:
-            if are_triangles_equal (first_triangle, final_triangle) == False:
-                raise ValueError ('Input error. Gamma is a loop, but first_triangle = ', first_triangle, ' is not equal',\
+            if are_triangles_equal(first_triangle, final_triangle) == False:
+                raise ValueError('Input error. Gamma is a loop, but first_triangle = ', first_triangle, ' is not equal',\
                 ' final_triangle = ', final_triangle) 
     if first_triangle == None or final_triangle == None:
-        raise ValueError ('Error. [first_triangle,final_triangle] = ', [first_triangle,final_triangle])
+        raise ValueError('Error. [first_triangle,final_triangle] = ', [first_triangle,final_triangle])
     return [first_triangle,final_triangle]     
       
-def _list_of_tau_k_and_tau_kplus1 (T, crossed_arcs):
+def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
     """
     If curve is a not a loop, return a list [ (None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
     if tau_k is a radius that is crossed in a counterclockwise direction, then write:
@@ -583,10 +654,10 @@ def _list_of_tau_k_and_tau_kplus1 (T, crossed_arcs):
                 tau_k = (tau_k[0],'clockwise')
         edges.append( (tau_k, tau_kplus1) ) # Gamma crosses triangle_k from tau_k to tau_kplus1
     tau_final = crossed_arcs[-1]
-    edges.append ( (tau_final, None) )
+    edges.append( (tau_final, None) )
     return edges
     
-def _list_triangles_crossed_by_curve (T, crossed_arcs, first_triangle, final_triangle, edges): 
+def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges): 
     """
     Return the list of triangles, in order, crossed by curve
     """
@@ -598,13 +669,13 @@ def _list_triangles_crossed_by_curve (T, crossed_arcs, first_triangle, final_tri
             if are_triangles_equal(triangle_k[0],triangles[k-1]):
                 triangle_k = [triangle_k[1]]
         elif len(triangle_k)!=1:
-            raise ValueError ('Error. _get_triangle for ', tau_k, ' and ', tau_kplus1, ' returns ', triangle_k)    
+            raise ValueError('Error. _get_triangle for ', tau_k, ' and ', tau_kplus1, ' returns ', triangle_k)    
         triangle_k = triangle_k[0]
         triangles.append(triangle_k)  
-    triangles.append (final_triangle)
+    triangles.append(final_triangle)
     return triangles 
       
-def _snake_graph (T,crossed_arcs, first_triangle=None, final_triangle=None, is_arc=True, is_loop=False, first_tile_orientation=1, boundary_edges=None):
+def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_arc=True, is_loop=False, first_tile_orientation=1, boundary_edges=None):
     """
     This function is called by cluster_seed.py
     Mathematica: banda
@@ -669,15 +740,15 @@ def _snake_graph (T,crossed_arcs, first_triangle=None, final_triangle=None, is_a
     if boundary_edges != None and boundary_edges != []:
         for edge in boundary_edges:
             if edge in crossed_arcs:
-                raise ValueError ( edge, ' is both a boundary edge and a crossed arc.')        
+                raise ValueError( edge, ' is both a boundary edge and a crossed arc.')        
             
     end_triangles = _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop)
     first_triangle = end_triangles[0]; final_triangle = end_triangles[1]
     
     if is_loop == True:
         crossed_arcs = crossed_arcs[0:len(crossed_arcs)-1] # If loop, remove tau_final, which is equal to tau_1
-    edges = _list_of_tau_k_and_tau_kplus1 (T, crossed_arcs)
-    triangles = _list_triangles_crossed_by_curve (T, crossed_arcs, first_triangle, final_triangle, edges)
+    edges = _list_of_tau_k_and_tau_kplus1(T, crossed_arcs)
+    triangles = _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges)
     
     tau_first_a = edges[0][1] # The edge tau_k of triangle_0 (as opposed to triangle_1)
     
@@ -695,22 +766,21 @@ def _snake_graph (T,crossed_arcs, first_triangle=None, final_triangle=None, is_a
         rearranged_top_triangle_with_orientation = \
         _rearrange_triangle_for_snakegraph(triangles[k],tau_k_b, tile_orientation) 
    
-		# We glue the next triangle to the RIGHT or ABOVE this current tile
+        # We glue the next triangle to the RIGHT or ABOVE this current tile
         if rearranged_top_triangle_with_orientation[0] == tau_kplus1_a: #actual_diagonal:
-			tile_direction = RIGHT
+            tile_direction = RIGHT
         else:
-			tile_direction = ABOVE
+            tile_direction = ABOVE
    
         top_triangle_of_tile_k = ( 2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction )
-	   
-		# Tile k+1 will have opposite orientation as tile k
+        
+        # Tile k+1 will have opposite orientation as tile k
         tile_orientation = tile_orientation * (-1) 
    
         bottom_triangle_of_tile_kplus1 = \
         ( tile_orientation, _rearrange_triangle_for_snakegraph(triangles[k], tau_kplus1_a ,tile_orientation) )
         
         # tau_kplus1_b
-	   
         out_snakegraph.extend([top_triangle_of_tile_k, bottom_triangle_of_tile_kplus1])    
 
     #tau_d_a = edges[-2][1] # For arc, edge of the penultimate triangle (as opposed to the final triangle which also has edge tau)
@@ -732,9 +802,9 @@ def _snake_graph (T,crossed_arcs, first_triangle=None, final_triangle=None, is_a
     top_triangle_of_tile_d = ( 2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction )   
     out_snakegraph.append(top_triangle_of_tile_d)   
 
-    return PartitionIntoTuples ( out_snakegraph )
+    return PartitionIntoTuples( out_snakegraph )
     
-def _rearrange_triangle_for_snakegraph (triangle, diagonal, s):
+def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
     """
     Mathematica: rot
     
@@ -764,7 +834,7 @@ def _rearrange_triangle_for_snakegraph (triangle, diagonal, s):
         return (z,y,x)
     return (x,y,z)       
     
-def _get_triangle (T, tau_k, tau_k1=None):
+def _get_triangle(T, tau_k, tau_k1=None):
     """
     Return the triangle/s that share an edge with tau_k (and tau_k1 , if given)
     """
@@ -783,45 +853,45 @@ def _get_triangle (T, tau_k, tau_k1=None):
                 
     return triangle_k 
     
-def try_to_find_end_triangles_for_one_crossed_arc (T, tau, first_triangle, final_triangle, is_arc, is_loop):
+def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_triangle, is_arc, is_loop):
     """
     We assume there is only one crossed arc, or the self-folded triangle (ell, r, ell) is the only triangle crossed.
     """
-    triangle0 = _get_triangle (T, tau)    
+    triangle0 = _get_triangle(T, tau)    
 
     if is_loop == True:
-		raise ValueError ('Input error. Gamma crossing only one arc of T means Gamma is contractible to a puncture.')
+        raise ValueError('Input error. Gamma crossing only one arc of T means Gamma is contractible to a puncture.')
    
-	# The case when gamma is an arc
+    # The case when gamma is an arc
     if len(triangle0) == 2: 
-		if first_triangle != None and final_triangle == None:
-			if are_triangles_equal(triangle0[0], first_triangle):
-				final_triangle = triangle0[1]
-			elif are_triangles_equal(triangle0[1], first_triangle):
-				final_triangle = triangle0[0]
-			else:
-				raise ValueError ('Input error. User gives first_triangle = ', first_triangle, ' that does not exist')
-		elif first_triangle == None and final_triangle != None:
-			if are_triangles_equal(triangle0[0], final_triangle):
-				fist_triangle = triangle0[1]
-			elif are_triangles_equal(triangle0[1], final_triangle):
-				first_triangle = triangle0[0]
-			else:
-				raise ValueError ('Input error. User gives final_triangle = ', final_triangle, ' that does not exist')
-		elif first_triangle == None and final_triangle == None:
-			first_triangle = triangle0[0]
-			final_triangle = triangle0[1]
-		   
+        if first_triangle != None and final_triangle == None:
+            if are_triangles_equal(triangle0[0], first_triangle):
+                final_triangle = triangle0[1]
+            elif are_triangles_equal(triangle0[1], first_triangle):
+                final_triangle = triangle0[0]
+            else:
+                raise ValueError('Input error. User gives first_triangle = ', first_triangle, ' that does not exist')
+        elif first_triangle == None and final_triangle != None:
+            if are_triangles_equal(triangle0[0], final_triangle):
+                fist_triangle = triangle0[1]
+            elif are_triangles_equal(triangle0[1], final_triangle):
+                first_triangle = triangle0[0]
+            else:
+                raise ValueError('Input error. User gives final_triangle = ', final_triangle, ' that does not exist')
+        elif first_triangle == None and final_triangle == None:
+            first_triangle = triangle0[0]
+            final_triangle = triangle0[1]
+            
     elif len(triangle0) == 1:
-		raise ValueError ('Input error. Only one triangle ', triangle0[0], ' has edge tau_1=', tau_1)
+        raise ValueError('Input error. Only one triangle ', triangle0[0], ' has edge tau_1=', tau_1)
     elif len(triangle0)==0:
-		raise ValueError ('Input error. No triangle has edge tau_1=', tau_1)
+        raise ValueError('Input error. No triangle has edge tau_1=', tau_1)
     elif len(triangle0)>2:
-		raise ValueError ('Input error. More than 2 triangles ', triangle0[0], ' has edge tau_1=', tau_1)
+        raise ValueError('Input error. More than 2 triangles ', triangle0[0], ' has edge tau_1=', tau_1)
                     
     return [first_triangle, final_triangle]
     
-def try_to_find_end_triangle (T,crossed_arcs, first_or_final, is_arc, is_loop, input_triangle=None):
+def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, input_triangle=None):
     """
     We assume there are at least two crossed arcs
     """
@@ -831,48 +901,48 @@ def try_to_find_end_triangle (T,crossed_arcs, first_or_final, is_arc, is_loop, i
     else:
         tau_1 = crossed_arcs[-1]
         tau_2 = crossed_arcs[-2]
-			    
+        
     triangle1 = _get_triangle(T, tau_1, tau_2)
     N = len(triangle1)
     
     if N == 1:
         triangle1_A = triangle1[0]
-        triangle0 = _get_triangle (T, tau_1);
+        triangle0 = _get_triangle(T, tau_1);
         if len(triangle0) == 1:
-			raise ValueError('Incorrect input. Only one triangle ', triangle0,' has edge ', tau_1)
+            raise ValueError('Incorrect input. Only one triangle ', triangle0,' has edge ', tau_1)
         elif len(triangle0)==2:
-			triangle0.remove(triangle1_A)
-			if is_loop == True and first_or_final == 'Final': # Maybe erase
-			    triangle0 = [triangle1_A] #Maybe erase
-			if input_triangle!=None:
-			    if are_triangles_equal(input_triangle,triangle0[0]):
-			        return input_triangle
-			    else:
-			        raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' but it should be ', triangle0[0])
-			return triangle0[0]
+            triangle0.remove(triangle1_A)
+            if is_loop == True and first_or_final == 'Final': # Maybe erase
+                triangle0 = [triangle1_A] #Maybe erase
+            if input_triangle!=None:
+                if are_triangles_equal(input_triangle,triangle0[0]):
+                    return input_triangle
+                else:
+                    raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' but it should be ', triangle0[0])
+            return triangle0[0]
         elif len(triangle0) > 2 :
-			raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1 )
-			
+            raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1 )
+            
     elif N == 2: 
         if input_triangle!=None:
-            triangle0 = _get_triangle (T, tau_1)
+            triangle0 = _get_triangle(T, tau_1)
             if are_triangles_equal(input_triangle,triangle0[0]) or are_triangles_equal(input_triangle,triangle0[1]):
                 return input_triangle
             else:
-                raise ValueError ('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' which does not exist.')
+                raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' which does not exist.')
         if first_or_final == 'First':
             raise ValueError('In this case user must specify the first triangle = triangle_0 crossed by gamma. '\
             ,'since there are two triangles ', triangle1, ' with edges ', tau_1,' and ', tau_2)
         else:
-            raise ValueError ('In this case user must specify the final triangle = triangle_d crossed by gamma. '\
+            raise ValueError('In this case user must specify the final triangle = triangle_d crossed by gamma. '\
             ,'since there are two triangles ', triangle1, ' with edges ', tau_1,' and ', tau_2)
 
     elif N == 0:
-		raise ValueError ('Incorrect input. There are no triangle with edges ', tau_1, ' and ', tau_2)
+        raise ValueError('Incorrect input. There are no triangle with edges ', tau_1, ' and ', tau_2)
 
     elif N > 3:
-		raise ValueError ('Incorrect input. There are more than 2 triangles ', triangle1 \
-		,  ' with edges ', tau_1, ' and ', tau_2)
+        raise ValueError('Incorrect input. There are more than 2 triangles ', triangle1 \
+        ,  ' with edges ', tau_1, ' and ', tau_2)
     
 #########################################################################################    
 ################### ENDS: FUNCTIONS FOR CONSTRUCTING BAND/SNAKE GRAPH ###################
@@ -882,7 +952,7 @@ def try_to_find_end_triangle (T,crossed_arcs, first_or_final, is_arc, is_loop, i
 ### BEGIN: DRAWING SNAKE GRAPH ###
 ##################################
 
-def _draw_matching (perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1):
+def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1):
     """
     EXAMPLES: 
     perfect_matching looks like
@@ -895,7 +965,7 @@ def _draw_matching (perfect_matching, matching_weight=None, pos=None, xy=(0,0), 
   [(0, 1, 0, 0), 'ABOVE'],
   [(0, 0, 1, 0), 'ABOVE']]]
 
-    Matching of tile  (a,b,c,d) = (floor, right, ceiling, left)
+    Matching of tile (a,b,c,d) = (floor, right, ceiling, left)
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -931,7 +1001,7 @@ def _draw_matching (perfect_matching, matching_weight=None, pos=None, xy=(0,0), 
     return drawing, (x+ 2*white_space,0)
 
 
-def _draw_snake_graph (G, xy=(0,0) ):
+def _draw_snake_graph(G, xy=(0,0) ):
     """
     Returns the plot of the snake graph G
     """
@@ -1019,25 +1089,25 @@ def GetMinimalMatching(G):
     Input: band/snake graph
     """
     # The list of (for each tile in the band/snake graph, the direction of the next tile)
-    graph_directions = snake_graph_tile_directions (G)
+    graph_directions = snake_graph_tile_directions(G)
     initial_matching = [ [ _minimal_matching_first_tile(graph_directions[0]), graph_directions[0]] ]
     
     # Continue assigning minimal matching for the rest of the tiles, except the final tile
     for pos in range(1,len(graph_directions)-1):
        # The edges that we have marked so far (from the previous tile)
        last_marking_in_list = initial_matching[-1][0] 
-       current_tile_mark = _minimal_matching_current_tile (graph_directions[pos-1],graph_directions[pos], last_marking_in_list)
+       current_tile_mark = _minimal_matching_current_tile(graph_directions[pos-1],graph_directions[pos], last_marking_in_list)
        initial_matching.append([ current_tile_mark, graph_directions[pos] ])
     
     last_marking_in_list = initial_matching[-1][0];
     penultimate_direction = graph_directions[-2]
     
-    final_tile = _minimal_matching_final_tile (penultimate_direction, last_marking_in_list)
+    final_tile = _minimal_matching_final_tile(penultimate_direction, last_marking_in_list)
     initial_matching.append([final_tile, graph_directions[-1]])
     initial_matching =  [['minimal PM'],initial_matching] 
     return initial_matching
     
-def snake_graph_tile_directions (G):
+def snake_graph_tile_directions(G):
     """
     Input:
     snake_graph
@@ -1050,7 +1120,7 @@ def snake_graph_tile_directions (G):
         directions.append(direction)
     return directions    
     
-def _minimal_matching_first_tile ( DIR ):
+def _minimal_matching_first_tile( DIR ):
     """
     Mathematica: funAuxA
     
@@ -1066,7 +1136,7 @@ def _minimal_matching_first_tile ( DIR ):
         mark = (1,0,1,0)
     return mark
 
-def _minimal_matching_current_tile (previous_DIR, current_DIR, last_marking_in_list):
+def _minimal_matching_current_tile(previous_DIR, current_DIR, last_marking_in_list):
     """
     Input: 
     [previous_DIR, current_DIR]
@@ -1119,7 +1189,7 @@ def _minimal_matching_current_tile (previous_DIR, current_DIR, last_marking_in_l
         if last_marking_in_list == (0, 0, 0, 0):
             return (1, 0, 0, 0)
 
-def _minimal_matching_final_tile (penultimate_direction, penultimate_tile_mark):
+def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
     """
     Mathematica: funAuxFinDEBanda
     
@@ -1167,7 +1237,7 @@ def FlipAllFlippableTilesInList(input_list_matchings):
     """ 
     list_new_matchings = []
     for matching in input_list_matchings:
-        list_new_matchings = UniqueList (list_new_matchings + FlipAllFlippableTiles(matching))
+        list_new_matchings = UniqueList(list_new_matchings + FlipAllFlippableTiles(matching))
         
     return list_new_matchings
     
@@ -1200,7 +1270,7 @@ def FlipAllFlippableTiles(input_tiles):
     else:
         horizonal_indices = []
         
-	#vertical_tiles_indices = [ positions of list_tile_marks_without_directions that match (0,1,0,1) ]
+    #vertical_tiles_indices = [ positions of list_tile_marks_without_directions that match (0,1,0,1) ]
     if (0,1,0,1) in list_tile_marks_without_directions:
         vertical_indices = [list_tile_marks_without_directions.index( (0,1,0,1) )]
         for pos in range(vertical_indices[0]+1,len(list_tile_marks_without_directions)):
@@ -1224,8 +1294,8 @@ def FlipAllFlippableTiles(input_tiles):
             # new_matching = Replace position current_tile_pos of "tiles" with flipped_current_tile
             new_matching = list(tiles)          
             new_matching[current_tile_pos] = flipped_current_tile
-			
-			# We may need to change the marks of edges that the current tile shares with the tiles before or after
+            
+            # We may need to change the marks of edges that the current tile shares with the tiles before or after
             if current_tile_pos < len(tiles)-1: 
                 next_tile = tiles[current_tile_pos + 1]
                 next_tile_direction = next_tile[1]
@@ -1278,11 +1348,11 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     """
     last_flipped_tiles = current_matching[0]
     if current_matching[1] == to_compare_matching[1]: # If the two input matchings have the same marks {a,b,c,d}
-        last_flipped_tiles = UniqueList (current_matching[0] + to_compare_matching[0])
+        last_flipped_tiles = UniqueList(current_matching[0] + to_compare_matching[0])
         last_flipped_tiles.sort()
     return [ last_flipped_tiles, current_matching[1]]
     
-def GetNextTileMarking (tile,DIR, NextTileMark):
+def GetNextTileMarking(tile,DIR, NextTileMark):
     """
     ([tile,DIR],[a,b,c,d]):
     [1,0,1,0], RIGHT -> return [a, b, c, 1]
@@ -1300,7 +1370,7 @@ def GetNextTileMarking (tile,DIR, NextTileMark):
     if [tile,DIR] == [ (0, 1, 0, 1), ABOVE]:
         return (1, b, c, d)
     
-def GetPreviousTileMarking (DIR, tile, PreviousTileMark):
+def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
     """
     RIGHT, [1,0,1,0] -> return [a, 1, c, d]
     ABOVE, [1,0,1,0] -> return [0, b, c, d]
@@ -1318,7 +1388,7 @@ def GetPreviousTileMarking (DIR, tile, PreviousTileMark):
     if [DIR, tile] == [ABOVE, (0,1,0,1)]:
         return (a, b, 1, d)
 
-def FlipTile (tile_info):
+def FlipTile(tile_info):
     """
     [[1,0,1,0],DIR] -> return [[0, 1, 0, 1], DIR]
     [[[0, 1, 0, 1], DIR]] -> return [[0, 1, 0, 1], DIR]
@@ -1337,7 +1407,7 @@ def FlipTile (tile_info):
 ######### BEGIN: FUNCTIONS THAT DRAW LIFTED POLYGONS #################
 ######################################################################
 
-def _triangle_to_draw (triangle, triangle_type, tau, tau_placement, test_k=None):
+def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
     alpha,beta=None,None
     if triangle[0] == tau: # tau_k of the triangle_k (with edges tau_k and tau_{k+1})
         alpha = triangle[1]; beta = triangle[2]
@@ -1366,7 +1436,7 @@ def _triangle_to_draw (triangle, triangle_type, tau, tau_placement, test_k=None)
     else:
         raise ValueError ('Input error: ', triangle, triangle_type, tau, tau_placement)  
     
-def _lifted_polygon (T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):            
+def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):            
     end_triangles = _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop)
     first_triangle = end_triangles[0]; final_triangle = end_triangles[1]
     
@@ -1404,7 +1474,7 @@ def _lifted_polygon (T, crossed_arcs, first_triangle, final_triangle ,is_arc, is
             triangles_to_draw.append(_triangle_to_draw(triangles[k], 'pyramid', tau, placement, test_k=k) ) 
     return triangles_to_draw
 
-def _draw_lifted_polygon (lifted_polygon, is_arc, is_loop):
+def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
     from sage.plot.arrow import arrow2d
@@ -1499,7 +1569,7 @@ def _draw_lifted_polygon (lifted_polygon, is_arc, is_loop):
     drawing.axes(False); drawing.set_aspect_ratio(1)
     return drawing
     
-def _draw_triangle (triangle,x,y, k):
+def _draw_triangle(triangle,x,y, k):
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
     from sage.plot.text import text 
