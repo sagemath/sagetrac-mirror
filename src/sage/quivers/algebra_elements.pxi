@@ -326,6 +326,14 @@ cdef inline bint poly_icopy(path_poly_t *out, path_poly_t *P) except -1:
     out.lead = term_copy_recursive(T)
     return True
 
+cdef bint poly_is_sane(path_poly_t *P):
+    cdef int count = 0
+    cdef path_term_t *T = P.lead
+    while T != NULL:
+        preinc(count)
+        T = T.nxt
+    return count == P.nterms
+
 ############################################
 ##
 ## Polynomial arithmetics
@@ -636,6 +644,7 @@ cdef bint poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *
             else:
                 prev.nxt = term_create_keep_mon(new_coef, new_mon)
                 prev = prev.nxt
+            prev.nxt = NULL
             preinc(P1.nterms)
         elif c==-1:
             # We need to insert between prev and T1
@@ -665,8 +674,6 @@ cdef bint poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *
                 else:
                     prev.nxt = T1
         T2 = T2.nxt
-    if prev!=NULL:
-        prev.nxt = NULL
     return True
 
 cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, int cutoff) except -1:
@@ -737,6 +744,7 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
             else:
                 prev.nxt = term_create_keep_mon(new_coef, new_mon)
                 prev = prev.nxt
+            prev.nxt = NULL
             preinc(P1.nterms)
         elif c==-1:
             # We need to insert between prev and T1
@@ -766,8 +774,7 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
                 else:
                     prev.nxt = T1
         T2 = T2.nxt
-    if prev!=NULL:
-        prev.nxt = NULL
+    #return poly_is_sane(P1)
     return True
 
 ########################################

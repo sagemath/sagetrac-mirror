@@ -1,4 +1,5 @@
 include "algebra_elements.pxi"
+from sage.misc.cachefunc import cached_method
 
 ## TODO
 # remove inplace changes
@@ -20,6 +21,7 @@ cdef class PathAlgebraElement(RingElement):
     def __dealloc__(self):
         homog_poly_free(self.data)
     def __init__(self, S, data, order="negdegrevlex"):
+        self._hash = -1
         if order=="negdegrevlex":
             self.cmp_terms = negdegrevlex
         elif order=="degrevlex":
@@ -194,20 +196,11 @@ cdef class PathAlgebraElement(RingElement):
 
     ####
     ## Arithmetics
-    # Comparison
-
+    # Hash and Comparison
     def __hash__(self):
-        cdef long out = 0
-        cdef path_homog_poly_t *H = self.data
-        while H != NULL:
-            out = (out<<5) | (out>>(sizeof(long)-5))
-            out += (H.start)<<7
-            out += (H.end)<<11
-            out += poly_hash(H.poly)
-            H = H.nxt
-        if out == -1:
-            return -2
-        return out
+        if self._hash==-1:
+            self._hash = hash(frozenset(self.monomial_coefficients().items()))
+        return self._hash
 
     def __cmp__(left, right):
         """
@@ -408,6 +401,8 @@ cdef class PathAlgebraElement(RingElement):
 
     cpdef RingElement _mul_(self, RingElement  other):
         """
+        Former leaks or bugs...
+
         EXAMPLES::
 
             sage: from sage.quivers.algebra_elements import PathAlgebraElement
@@ -416,17 +411,24 @@ cdef class PathAlgebraElement(RingElement):
             Defining e_0, e_1, e_2, a, b, c, d, e, f
             sage: x = PathAlgebraElement(A, b*e*b*e+4*b*e+e_0)
             sage: y = PathAlgebraElement(A, a*c+5*f*e)
-            sage: x*y   # no leak
-            sage: y*x   # no leak
-            sage: y*y   # no leak
-            sage: x*x   # leak
+            sage: x*y
+            sage: y*x
+            sage: y*y
+            sage: x*x
 
-        BUG::
+        ::
 
             sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
             sage: y = PathAlgebraElement(A, sage_eval('a*c+d*c*b*f', A.gens_dict()))
             sage: x*(y+x) == x*y+x*x
-            False
+            True
+
+        ::
+
+            sage: X = sage_eval('a+2*b+3*c+e_0+e_2', A.gens_dict())
+            sage: x = PathAlgebraElement(A, X)
+            sage: x^3 == PathAlgebraElement(A, X^3)
+            True
 
         """
         cdef PathAlgebraElement right = other
@@ -462,11 +464,15 @@ cdef class PathAlgebraElement(RingElement):
                     # product into out.nxt
                     if out == NULL:
                         while T2 != NULL:
+                            #assert poly_is_sane(out_orig.poly)
+                            #print "out==0, T2!=0", H1.start, H1.end, H2.start,H2.end,
                             poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly, T2.mon.path,
                                            self.cmp_terms, 0, 0, -1)
                             T2 = T2.nxt
                     else:
                         while T2 != NULL:
+                            #assert poly_is_sane(out.nxt.poly)
+                            #print "out!=0, T2!=0", H1.start, H1.end, H2.start, H2.end, 
                             poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly, T2.mon.path,
                                            self.cmp_terms, 0, 0, -1)
                             T2 = T2.nxt                                
@@ -477,6 +483,8 @@ cdef class PathAlgebraElement(RingElement):
             sage_free(out_orig.poly)
             sage_free(out_orig)
             out_orig = tmp
+        if out_orig == NULL:
+            return self._new_(NULL)
         tmp = out_orig
         while tmp.nxt != NULL:
             if tmp.nxt.poly.lead == NULL:

@@ -66,6 +66,7 @@ cdef class PathAlgebraElement(RingElement):
     cdef path_homog_poly_t *data
     cdef path_order_t cmp_terms
     cdef dict _monomial_coefficients
+    cdef long _hash
     cpdef dict monomial_coefficients(self)
     cdef list _sorted_items_for_printing(self)
     cdef inline PathAlgebraElement _new_(self, path_homog_poly_t *h)
