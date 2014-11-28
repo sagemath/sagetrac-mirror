@@ -15,7 +15,7 @@ operations with them::
     sage: f = x - a
     sage: g = x^3 - 2*a + 1
     sage: f*(x + a)
-    x^2 - 2l
+    x^2 - 2
     sage: f + g
     x^3 + x - 3*a + 1
     sage: g // f
@@ -102,10 +102,11 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
 
         EXAMPLES::
 
-            sage: f = QQ[I][x].random_element()
+            sage: P.<x> = QQ[I][]
+            sage: f = P.random_element()
             sage: type(f)
             <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
-            sage: a = QQ[I][x](x)
+            sage: a = P(x)
             sage: a.is_gen()
             True
         """

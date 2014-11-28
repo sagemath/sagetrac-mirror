@@ -206,9 +206,7 @@ def QuotientRing(R, I, names=None):
     Sage coerces objects into ideals when possible::
 
         sage: P.<x> = QQ[]
-        sage: R.<xbar> = QuotientRing(P, x^2 + 1)
-        sage: R
-        sage: R = QuotientRing(QQ[x], x^2 + 1); R
+        sage: R.<xbar> = QuotientRing(P, x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 
@@ -282,10 +280,14 @@ def QuotientRing(R, I, names=None):
         sage: Q = P.quotient(P*[a*b],[x,singular])
         doctest:...: DeprecationWarning: Variable name 'x' should be a string, but we obtained <type 'sage.symbolic.expression.Expression'>.
         In an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'.
+        See http://trac.sagemath.org/10483 for details.
         doctest:...: DeprecationWarning: Variable name 'Singular' should be a string, but we obtained <class 'sage.interfaces.singular.Singular'>.
         In an interactive session, you should use a definition of the form 'Q.<x,y,z>=R.quo(I)'.
+        See http://trac.sagemath.org/10483 for details.
         doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'x' is <type 'sage.symbolic.expression.Expression'>
+        See http://trac.sagemath.org/10483 for details.
         doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
+        See http://trac.sagemath.org/10483 for details.
     """
     # 1. Not all rings inherit from the base class of rings.
     # 2. We want to support quotients of free algebras by homogeneous two-sided ideals.

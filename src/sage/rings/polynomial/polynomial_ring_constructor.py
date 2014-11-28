@@ -389,13 +389,6 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.0 == 0
         True
 
-    We verify that :trac:`13187` is fixed::
-
-        sage: var('t')
-        t
-        sage: PolynomialRing(ZZ, name=t) == PolynomialRing(ZZ, name='t')
-        True
-
     We verify that polynomials with interval coefficients from
     :trac:`7712` and :trac:`13760` are fixed::
 
@@ -415,9 +408,20 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R = PolynomialRing(ZZ,[x,singular])
         doctest:...: DeprecationWarning: Variable name 'x' should be a string, but we obtained <type 'sage.symbolic.expression.Expression'>.
         In an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'.
+        See http://trac.sagemath.org/10483 for details.
         doctest:...: DeprecationWarning: Variable name 'Singular' should be a string, but we obtained <class 'sage.interfaces.singular.Singular'>.
         In an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]'.
-    """
+        See http://trac.sagemath.org/10483 for details.
+
+        sage: var('t')
+        t
+        sage: PolynomialRing(ZZ, name=t) == PolynomialRing(ZZ, name='t')
+        doctest:...: DeprecationWarning: The second argument (t) should be a string, a list or tuple of strings or an integer, but not <type 'sage.symbolic.expression.Expression'>.
+        In an interactive session, you should use a definition of the form 'R.<x,y,z>=QQ[]
+        See http://trac.sagemath.org/10483 for details.
+        True
+
+   """
     import sage.rings.polynomial.polynomial_ring as m
  
     if not var_array is None:

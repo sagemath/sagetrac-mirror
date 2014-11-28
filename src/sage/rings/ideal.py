@@ -964,9 +964,10 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
+            sage: P.<x> = ZZ[]
             sage: I = ZZ.ideal(7)
-            sage: J = ZZ[x].ideal(7,x)
-            sage: K = ZZ[x].ideal(7)
+            sage: J = P.ideal(7,x)
+            sage: K = P.ideal(7)
             sage: I.category()
             Category of ring ideals in Integer Ring
             sage: J.category()
@@ -1141,7 +1142,7 @@ class Ideal_principal(Ideal_generic):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(x)
             sage: I # indirect doctest
             Principal ideal (x) of Univariate Polynomial Ring in x over Integer Ring
@@ -1159,7 +1160,7 @@ class Ideal_principal(Ideal_generic):
         Note that Sage automatically coerces ideals into
         principal ideals during initialization::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(x)
             sage: J = R.ideal(2,x)
             sage: K = R.base_extend(QQ).ideal(2,x)
@@ -1197,7 +1198,7 @@ class Ideal_principal(Ideal_generic):
         Note that the generator belongs to the ring from which the ideal
         was initialized::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(x)
             sage: J = R.base_extend(QQ).ideal(2,x)
             sage: a = I.gen(); a
@@ -1380,8 +1381,9 @@ class Ideal_pid(Ideal_principal):
 
         ::
 
+            sage: R.<x> = ZZ[]
             sage: I = ZZ.ideal(7)
-            sage: J = ZZ[x].ideal(7,x)
+            sage: J = R.ideal(7,x)
             sage: I.gcd(J)
             Traceback (most recent call last):
             ...
@@ -1423,8 +1425,8 @@ class Ideal_pid(Ideal_principal):
             False
             sage: ZZ.ideal(0).is_prime()
             True
-            sage: R.<x>=QQ[]
-            sage: P=R.ideal(x^2+1); P
+            sage: R.<x> = QQ[]
+            sage: P = R.ideal(x^2+1); P
             Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
             sage: P.is_prime()
             True

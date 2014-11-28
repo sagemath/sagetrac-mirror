@@ -5273,7 +5273,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             integer_polynomial_ring = PolynomialRing(ZZ,
                                                      self.parent().ngens(),
-                                                     self.parent().gens().variable_names(),
+                                                     self.parent().variable_names(),
                                                      order=self.parent().term_order())
             return integer_polynomial_ring(self * self.denominator())
         else:

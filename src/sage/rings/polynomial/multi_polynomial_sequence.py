@@ -608,7 +608,7 @@ class PolynomialSequence_generic(Sequence_generic):
         while T in [str(x) for x in Xs]:
             T = T+'T'
         Ts = [T + str(j) for j in range(r)]
-        RR = PolynomialRing(K,d+r,tuple(Xs+Ts))
+        RR = PolynomialRing(K, d+r, [str(var) for var in tuple(Xs+Ts)])
         Vs = list(RR.gens())
         Xs = Vs[0 :d]
         Ts = Vs[d:]
@@ -624,7 +624,8 @@ class PolynomialSequence_generic(Sequence_generic):
 
         # Coerce JJ into `K[T_1,\ldots,T_r]`.
         # Choosing the negdeglex order simply because i find it useful in my work.
-        RRR = PolynomialRing(K,r,tuple(Ts),order='negdeglex')
+        RRR = PolynomialRing(K, r, [str(var) for var in tuple(Ts)],
+                             order='negdeglex')
         return RRR.ideal(JJ.gens())
 
     def coefficient_matrix(self, sparse=True):
