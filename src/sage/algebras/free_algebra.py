@@ -298,6 +298,11 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
+        if not isinstance(arg1[0], basestring):
+            if arg2 == 1:
+                arg1 = str(arg1)
+            else:
+                arg1 = [str(obj) for obj in arg1]
         names = sage.structure.parent_gens.normalize_names(arg2, arg1)
         return base_ring, names
 
