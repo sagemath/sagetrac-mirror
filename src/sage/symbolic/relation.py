@@ -481,7 +481,9 @@ def solve(f, *args, **kwds):
     r"""
     Algebraically solve an equation or system of equations (over the
     complex numbers) for given variables. Inequalities and systems
-    of inequalities are also supported.
+    of inequalities are also supported. In some cases solve may not
+    obtain all solutions, especially an empty result list 
+    does not imply there are no solutions.
 
     INPUT:
 
@@ -491,8 +493,8 @@ def solve(f, *args, **kwds):
     -  ``*args`` - variables to solve for.
 
     -  ``solution_dict`` - bool (default: False); if True or non-zero,
-       return a list of dictionaries containing the solutions. If there
-       are no solutions, return an empty list (rather than a list containing
+       return a list of dictionaries containing some or all solutions. If there
+       are no solutions or none found, return an empty list (rather than a list containing
        an empty dictionary). Likewise, if there's only a single solution,
        return a list containing one dictionary with that solution.
 
