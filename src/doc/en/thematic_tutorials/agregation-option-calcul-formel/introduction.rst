@@ -95,7 +95,16 @@ Premier exemple d'instabilité numérique::
       sage: (1.0 + 10^50) - 10^50
       0.000000000000000
 
-.. TODO:: numerical approx with enough digits
+En exigeant suffisamment de précision::
+
+      sage: x = n(1, digits=49)
+      sage: (x+10^50)-10^50
+      1.000000000000000000000000000000000000000000000000
+
+      sage: x = n(1, digits=48)
+      sage: (x+10^50)-10^50
+      0.000000000000000000000000000000000000000000000000
+
 
 Quelques exemples supplémentaires::
 
@@ -109,7 +118,7 @@ Quelques exemples supplémentaires::
 
 Calcul formel avec des fonctions et constantes usuelles::
 
-      sage: arccos( sin(pi/3))
+      sage: arccos(sin(pi/3))
       arccos(1/2*sqrt(3))
       sage: sqrt(2)
       sqrt(2)
@@ -232,7 +241,7 @@ Calcul formel =
 
 - Calcul symbolique (intégration, ...)
 
-Calcul mathématique =
+Calcul mathématique (computational mathematics) =
 
 - Calcul formel
 
@@ -272,8 +281,8 @@ Idées centrales
 ---------------
 
 - Diviser pour mieux régner
-- Élimination (Gauss, Euclide, Grobner, SGS)
-- Évaluation (Fourrier)
+- Élimination (Gauß, Euclide, Gröbner, SGS)
+- Évaluation (Fourier)
 - Changements de représentation
 
 ***************************
@@ -307,12 +316,11 @@ Quelques systèmes de calcul
 
 Systèmes généralistes:
 
-- Mathematica
-- Maple (http://www.maplesoft.com/)
-- MuPAD (http://www.mupad.org, était pas trop cher)
-- Axiom (http://axiom-developer.org/, libre)
-- Sage (http://www.sagemath.org, libre)
-- Matlab (calcul numérique)
+- `Mathematica <http://www.wolfram.com/mathematica/>`_
+- `Maple <http://www.maplesoft.com/>`_
+- `MuPAD <http://www.mupad.org>`_ (était pas trop cher)
+- `Axiom <http://axiom-developer.org/>`_ (libre)
+- `Sage <http://www.sagemath.org>`_ (libre)
 
 Systèmes spécialisés:
 
@@ -322,6 +330,9 @@ Systèmes spécialisés:
 - Pari, NTL, ... (théorie des nombres)
 - R (statistiques)
 - Macsima (calcul symbolique, libre)
+- `Matlab <http://www.mathworks.fr/products/matlab/>`_ (calcul numérique)
+- `Scilab <http://www.scilab.org/>`_ (calcul numérique)
+- `Python scientifique <http://www.scipy.org/>`_ (calcul numérique)
 
 .. Avantages Maple:
 
@@ -365,7 +376,7 @@ Que se passe-t'il lorsque l'on fait::
 Structures de données
 ^^^^^^^^^^^^^^^^^^^^^
 
-Listes, ensembles et tables d'association
+Listes, ensembles et tables d'association::
 
       sage: liste    = [sin(1+x), 3, sin(1+x)]; liste
 
@@ -384,17 +395,53 @@ Langage de programmation
 
 Exécution conditionnelle, boucles, fonctions, ...
 
+
+Les origines de Sage
+====================
+
+Années 50:
+----------
+
+Début de l'utilisation de l'ordinateur comme outil pour la recherche
+en mathématique:
+
+- Exploration informatique (analogue du télescope des astronomes)
+
+- Démonstration du théorème des quatre couleurs, ...
+
+Années 80-90:
+-------------
+
+- Besoin de mise en commun des développements
+
+- Besoin de langages de programmation de plus haut niveau
+
+- Apparition de systèmes spécialisés libres
+
+- Apparition de systèmes généralistes commerciaux
+
+- Utilisation pour l'enseignement
+
+Années 2000:
+------------
+
+- Besoin d'un système généraliste libre
+
+- Besoin d'un système basé sur un langage de programmation généraliste
+  (écosystème, outils de développements, paradigmes de programmation
+  modernes, ...)
+
+- Besoin d'un système réutilisant et combinant les composants
+  spécialisés libres (ex. Python scientifique)
+
+- 2005: William Stein lance le projet ``Sage``
+
+- 2014: ``Sage`` est développé par 300 enseignants et chercheurs dans
+  le monde entier
+
 *************************
 Modélisation mathématique
 *************************
-
-Le système Sage
-===============
-
-.. TODO:: Résumer ici les grandes lignes du document suivant
-
-http://wiki.sagemath.org/GroupeUtilisateursParis?action=AttachFile&do=get&target=2012-02-16-SageParis.pdf
-
 
 ``Sage`` est orienté objet
 ==========================
@@ -765,7 +812,8 @@ relativement grosses matrices::
     sage: M.rank()                                                     # random
     9278
 
-.. .. TODO:: demonstration de M.visualize_structure()
+    sage: M.visualize_structure('/tmp/structure.png')      # not tested
+    sage: os.system(sage.misc.viewer.png_viewer()+' '+'/tmp/structure.png') # not tested
 
 Définissons donc une matrice à coefficients dans `\ZZ/7\ZZ`::
 
@@ -943,10 +991,10 @@ En résumé
 Complément: Catégories
 ----------------------
 
-Un parent n’a, en général, pas lui-même un parent, mais une *catégorie*
-qui indique ses propriétés::
+Un parent n’a, en général, pas lui-même un parent, mais une
+*catégorie* qui indique ses propriétés::
 
-      sage: QQ.category()
+      sage: C = QQ.category(); C
       Category of quotient fields
 
 De fait ``Sage`` sait que `\QQ` est un corps::
@@ -954,30 +1002,46 @@ De fait ``Sage`` sait que `\QQ` est un corps::
       sage: QQ in Fields()
       True
 
-et donc, par exemple, un groupe additif commutatif (voir
-Figure {fig:premierspas:catégories})::
+et donc, par exemple, un groupe additif commutatif::
 
       sage: QQ in CommutativeAdditiveGroups()
       True
 
-Il en déduit que `\QQ[x]` est un anneau euclidien::
+Voici tous les axiomes satisfaits par `\QQ`::
+
+      sage: C.axioms()
+
+et les catégories de `\QQ`::
+
+      sage: G = C.category_graph()
+      sage: G.set_latex_options(format="dot2tex")
+      sage: view(G, tightpage=True, viewer="pdf")
+
+``Sage`` en déduit que `\QQ[x]` est un anneau euclidien::
 
       sage: QQ['x'].category()
       Category of euclidean domains
 
+En général, il peut combiner des axiomes et des structures::
+
+      sage: Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite()
+      Category of finite groups
+
+Et appliquer par exemple le théorème de Wedderburn::
+
+      sage: Rings().Division() & Sets().Finite()
+      Category of finite fields
+
 Toutes ces propriétés sont utilisées pour calculer rigoureusement et
 plus efficacement sur les éléments de ces ensembles.
-
-.. TODO:: {Un petit morceau du graphe des catégories dans ``Sage``.}
 
 Expressions versus domaines de calcul explicites
 ================================================
 
-Dans cette section, nous donnons quelques exemples typiques pour lesquel
-il est important de contrôler le domaine de calcul. En première lecture,
-on peut passer rapidement sur les exemples plus avancés pour arriver
-directement à la synthèse de fin de section
-{premierpas:expressions\_versus\_domaines\_synthèse}.
+Dans cette section, nous donnons quelques exemples typiques pour
+lesquels il est important de contrôler le domaine de calcul. En
+première lecture, on peut passer rapidement sur les exemples plus
+avancés pour arriver directement à la synthèse de fin de section.
 
 Exemple: simplification d’expressions
 -------------------------------------
@@ -992,8 +1056,8 @@ et cherchons à résoudre l’équation en `x` donnée par
 
       sage: eq =  c * x == 0
 
-L’utilisateur imprudent pourrait être tenté de simplifier cette équation
-par `c` avant de la résoudre::
+L’utilisateur imprudent pourrait être tenté de simplifier cette
+équation par `c` avant de la résoudre::
 
       sage: eq2 = eq / c; eq2
       x == 0
@@ -1259,15 +1323,22 @@ Les avantages de la déclaration explicite du domaine de calcul sont:
    (calculs sur un corps fini ou une extension algébrique de `\QQ`, dans un
    anneau non commutatif...).
 
+*****************
+Travaux pratiques
+*****************
 
-Exercices
-=========
+L'objectif de la séance est de prendre en main le logiciel ``Sage``.
+À vous d'explorer ses fonctionnalités selon vos goûts et connaissances
+préalables, et de préparer une mini-démonstration de trois minutes que
+vous présenterez en fin de séance.
+
+Voici quelques pistes:
 
 * Parcourir le premier chapitre de `Calcul Mathématique avec Sage <http://sagebook.gforge.inria.fr/>`_
 
-* Parcourir le :ref:`tutorial-programming-python`
+* Parcourir le `Tutorial: Comprehensions, Iterators, and Iterables <http://combinat.sagemath.org/doc/thematic_tutorials/tutorial-comprehensions.html>`_
 
-* Parcourir le :ref:`tutorial-comprehensions`
+* Parcourir le `Tutorial: Programming in Python and Sage <http://combinat.sagemath.org/doc/thematic_tutorials/tutorial-programming-python.html>`_
 
 * Faire le maximum de problèmes du `Projet Euler <http://projecteuler.net>`_
 

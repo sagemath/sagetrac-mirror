@@ -11,8 +11,9 @@ Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques
 
 * :ref:`agregation.introduction`
 * :ref:`agregation.tris_et_complexite`
-* :ref:`agregation.groupes_de_permutations`
 * :ref:`agregation.codes_correcteurs`
+* :ref:`agregation.multiplications_rapides`
+* :ref:`agregation.groupes_de_permutations`
 * :ref:`agregation.algebre_lineaire`
 * :ref:`agregation.algebre_lineaire_rapide`
 * :ref:`agregation.programmation_lineaire`

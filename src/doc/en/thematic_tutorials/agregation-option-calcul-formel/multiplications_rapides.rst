@@ -1,9 +1,9 @@
 .. -*- coding: utf-8 -*-
 .. _agregation.multiplications_rapides:
 
-==================================================================================
-Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques: Produits rapides
-==================================================================================
+====================================================================================
+ Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques: Produits rapides
+====================================================================================
 
 .. MODULEAUTHOR:: `Nicolas M. Thiéry <http://Nicolas.Thiery.name/>`_ <Nicolas.Thiery at u-psud.fr>
 
@@ -13,20 +13,54 @@ Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques: Produits ra
 Motivation: «Tout» se ramène aux produits
 *****************************************
 
-Inversion de matrices, pivot de Gauss
-=====================================
+Inversion de matrices, pivot de Gauß
+====================================
 
 .. TOPIC:: Exercice: matrices `2\times 2` génériques
 
-    Soit `M=\begin{pmatrix}a&b\\c&d\end{pmatrix}`
+    Soit `M=\begin{pmatrix}a&b\\c&d\end{pmatrix}`.
 
-    #. Calculer `M^{-1}`
+    #. Calculer `M^{-1}` en utilisant les cofacteurs.
 
-    #. Effectuer pas à pas le pivot de Gauss sur `M`.
+    #. Calculer `M^{-1}` par pivot de Gauß.
 
     #. Généralisation à une matrice par blocs `M=\begin{pmatrix}A&B\\C&D\end{pmatrix}`?
 
-    .. TODO:: Peaufiner
+    Correction avec Sage::
+
+        sage: a,b,c,d = QQ['a,b,c,d'].fraction_field().gens()
+        sage: M = matrix([[a,b],[c,d]]); M
+        [a b]
+        [c d]
+        sage: M^-1
+        [   d/(-b*c + a*d) (-b)/(-b*c + a*d)]
+        [(-c)/(-b*c + a*d)    a/(-b*c + a*d)]
+
+        sage: I2 = matrix(2,2,1); I2
+        [1 0]
+        [0 1]
+        sage: M = M.augment(I2, subdivide=True); M
+        [a b|1 0]
+        [c d|0 1]
+        sage: M[1] = a*M[1] - c *M[0]; M
+        [         a          b|         1          0]
+        [         0 -b*c + a*d|        -c          a]
+        sage: M[1] = M[1]/M[1,1]; M
+        [                a                 b|                1                 0]
+        [                0                 1|(-c)/(-b*c + a*d)    a/(-b*c + a*d)]
+        sage: M[0] = M[0] - b * M[1]; M
+        [                  a                   0|   a*d/(-b*c + a*d) (-a*b)/(-b*c + a*d)]
+        [                  0                   1|  (-c)/(-b*c + a*d)      a/(-b*c + a*d)]
+        sage: M[0] = M[0]/a; M
+        [                1                 0|   d/(-b*c + a*d) (-b)/(-b*c + a*d)]
+        [                0                 1|(-c)/(-b*c + a*d)    a/(-b*c + a*d)]
+
+    ..
+       - Peut-être trop long de faire le pivot de Gauss en exercice?
+       - Donner la formule précise de l'inverse par blocs, et la prouver
+	 en multipliant par M?
+       - Rédiger l'argument pour la complexité; si possible le faire
+	 fonctionner pour w petit?
 
 Méthode de Newton
 =================
@@ -34,21 +68,81 @@ Méthode de Newton
 Approximation numérique de solution de `f(x) = 0`
 -------------------------------------------------
 
-Approximation en série d'une équation implicite `F(G(z)) = 0`
--------------------------------------------------------------
+.. TOPIC:: Exercice
+
+    Soit `f` une fonction suffisamment gentille dont on recherche une
+    racine `a`.
+
+    On suppose que l'on ait une approximation `x` de `a`, et on pose:
+
+    .. MATH::
+
+         N(x) = x - \frac{f(x)}{f'(x)}
+
+    #. Calculer `f(a)` par développement de Taylor de `f` en `x`
+
+    #. Qu'en déduire sur `N(x)-a` par rapport à `x-a`?
+
+    #. Quelle conclusion peut-on en tirer? Sous quelles hypothèses?
+
+
+Pour les détails, voir `l'article de la Wikipedia <http://fr.wikipedia.org/wiki/M%C3%A9thode_de_Newton>`_.
 
 Inversion de séries
 -------------------
 
-Division Euclidienne de polynômes
----------------------------------
+.. TOPIC:: Exercice
 
-*****************************
+    On suppose que `A(z)` est une approximation de l'inverse de `B(z)`:
+
+    #. Que vaut la nouvelle approximation `A(z)(2-A(z)B(z))`?
+
+    #. Conclusion?
+
+Approximation en série d'une équation implicite `F(G(z)) = 0`
+-------------------------------------------------------------
+
+.. TOPIC:: Exercice
+
+    Soit `F(X)` un polynôme à coefficients dans `\QQ[z]`. On cherche
+    une série `A(z)` telle que `F(A(z))=0`.
+
+    On suppose que l'on ait une approximation `H(z)` de `A(z)`.
+
+    #. En vous inspirant de la méthode de Newton usuelle, proposer une
+       meilleure approximation de `A(z)`.
+
+    #. Quelle est la vitesse de convergence?
+
+    #. Quelles opérations sont nécessaires lors d'une itération?
+
+    #. Quel en est le coût?
+
+    #. Quelle est la complexité de cet algorithme?
+
+.. TOPIC:: Exercice
+
+    #. En déduire un algorithme pour calculer la racine carrée d'une série.
+
+    #. Que se passe-t'il si l'on essaye de calculer l'inverse d'une
+       série de cette manière?
+
+Division Euclidienne de polynômes
+=================================
+
+.. TODO:: voir Modern Computer Algebra
+
+
+****************
+Produits rapides
+****************
+
+
 Produits rapides de polynômes
-*****************************
+=============================
 
 Algorithme naïf
-===============
+---------------
 
 Dans la suite, on considère un anneau `K` et deux polynômes dans `K[z]`:
 
@@ -60,7 +154,7 @@ Dans la suite, on considère un anneau `K` et deux polynômes dans `K[z]`:
 
     B = B(z) = b_0 + b_1 z + \cdots + b_n z^m
 
-L'objectif est de calculer les coefficients `c_k` du polynôme `C(z) = A(z)B(z)`
+L'objectif est de calculer les coefficients `c_k` du polynôme `C(z) = A(z)B(z)`.
 
 .. TOPIC:: Algorithme naïf
 
@@ -73,7 +167,7 @@ L'objectif est de calculer les coefficients `c_k` du polynôme `C(z) = A(z)B(z)`
 
 
 Karatsuba
-=========
+---------
 
 .. TOPIC:: Exercice
 
@@ -90,7 +184,7 @@ Nous allons maintenant appliquer les deux principes suivants:
 
 .. TOPIC:: Étape de récurrence
 
-    Supposons pour que `n=m=2l`, et écrivons
+    Supposons que `n=m=2l`, et écrivons
 
     .. MATH:: A = A_0 + A_1 z^l
 
@@ -122,9 +216,8 @@ de degré `2^r` en appliquant récursivement l'étape précédente.
 
 .. TOPIC:: Démonstration
 
-    On supposes d'abord que `n=2^r`, et on ne compte que le nombre
-    `f(r)` de multiplications requises dans `K`.
-    Clairement:
+    On suppose d'abord que `n=2^r`, et on ne compte que le nombre
+    `f(r)` de multiplications requises dans `K`. Clairement:
 
     .. MATH::
 
@@ -156,13 +249,11 @@ de degré `2^r` en appliquant récursivement l'étape précédente.
 
     C'est un principe très général. On l'avait déjà vu avec les tris,
     et on le retrouve par exemple en algèbre linéaire avec la
-    bibliothèque ATLAS:
-
-    ATLAS: Automatically Tuned Linear Algebra Software
+    bibliothèque ATLAS (Automatically Tuned Linear Algebra Software)
 
 .. TOPIC:: En pratique: usage
 
-    L'algorithme de Karatsuba requière des soustractions:
+    L'algorithme de Karatsuba requiert des soustractions:
 
     - Il ne s'applique pas aux polynômes sur des semi-anneaux (par
       exemple `\NN[x]`, algèbre tropicale, ...)
@@ -171,7 +262,7 @@ de degré `2^r` en appliquant récursivement l'étape précédente.
       approché (flottants, ...)
 
 Produit par évaluation
-======================
+----------------------
 
 .. TOPIC:: Remarque stupide
 
@@ -218,10 +309,10 @@ d'utiliser cet isomorphisme pour calculer les produits:
 
 
 Produit par transformée de Fourier Discrète
-===========================================
+-------------------------------------------
 
 Transformée de Fourier Discrète
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. TOPIC:: Proposition
 
@@ -277,38 +368,41 @@ Transformée de Fourier Discrète
     transformation `DFT_\omega` correspond à la décomposition d'un
     polynôme dans ces modules simples.
 
-    Il existe des notions de transformées de Fourier discrète pour
+    Il existe des notions de transformées de Fourier discrètes pour
     d'autres groupes.
 
 Il reste à calculer efficacement la transformée de Fourier discrète.
 
 Transformée de Fourier rapide (FFT: Fast Fourier Transform)
------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. TOPIC:: Diviser pour régner
 
-    Supposons que `P` soit un polynôme de degré `n=2k`.
+    Supposons que `P` soit un polynôme de degré au plus `n=2k`.
 
     Noter que `z^{2k} - 1 = (z^k-1) (z^k+1)`.
 
-    Les racines de `z^k-1` sont les racines `k`-ème de l'unité; on
-    peut donc utiliser la transformée de Fourier discrète pour évaluer
-    `P(z)` dessus. Plus précisément, on calcule
+    Du coup, la moitié des racines `2k`-ièmes sont des racines
+    `k`-èmes de l'unité, racines de `z^k-1=0`. On peut donc utiliser
+    la transformée de Fourier discrète pour évaluer `P(z)`
+    dessus. Plus précisément, on calcule
 
     .. MATH::
 
         P_+(z) = P(z) [ z^k - 1 ]
 
-    (ce calcul est léger!) et on utilise `DFT_{\omega^2}(P_+(z))`.
+    (ce calcul est léger!) et on utilise `DFT_{\omega^2}(P_+(z))` pour
+    retrouver l'évaluation de `P(z)` aux racines `k`-èmes de l'unité.
 
-    Les racines de `z^k-1` sont les racines `k`-ème de l'unité,
-    décalées par un facteur `\omega`. on calcule alors
+    L'autre moitié des racines `2k`-ièmes sont les racines `k`-ème de
+    l'unité décalées par un facteur `\omega`, racines de `z^k+1`. On
+    calcule alors
 
     .. MATH::
 
         P_-(z) = P(z) [ z^k + 1 ]
 
-    et on utilise `DFT_{\omega^2}(P_-(\omega z))`.
+    et on peut donc utiliser `DFT_{\omega^2}(P_-(\omega z))`.
 
 .. TOPIC:: Algorithme de multiplication par FFT
 
@@ -341,9 +435,8 @@ Transformée de Fourier rapide (FFT: Fast Fourier Transform)
     possible, par exemple en caractéristique `2`!
 
 
-**************************
 Produits rapides d'entiers
-**************************
+==========================
 
 Même principe que pour les polynômes; juste plus technique à cause de
 la gestion des retenues. On retrouve le produit par Karatsuba, par
@@ -352,9 +445,8 @@ FFT, ...
 Ce que l'on a remarqué pour les séries s'applique aux calculs sur les
 nombres réels à précision arbitraire.
 
-****************************
 Produits rapides de matrices
-****************************
+============================
 
 .. TOPIC:: Algorithme de Strassen
 
@@ -378,14 +470,14 @@ Produits rapides de matrices
     .. TODO: donner une intuition du principe de fonctionnement
 
 
-**
-TP
-**
+*****************
+Travaux Pratiques
+*****************
 
 Parcourir les exercices suivants et en piocher un pour préparer une
-démonstration courte (5 minutes). Ensuite, jouez avec les exercices
-que vous voulez. En fin de séance (mettons vers 11h45), chacun d'entre
-vous présentera sa démonstration aux autres.
+démonstration courte (5 minutes). Ensuite, jouer avec les exercices de
+votre choix. En fin de séance (vers 11h45), chacun d'entre vous
+présentera sa démonstration aux autres.
 
 .. TOPIC:: Exercice: Karatsuba
 
@@ -417,12 +509,12 @@ vous présentera sa démonstration aux autres.
 
 .. TOPIC:: Transformée de Fourier rapide
 
-    Voir le `sujet de TP <../Jouve/FFT1213.pdf>`_ de l'année dernière.
+    Voir le `sujet de TP <../Notes-Jouve/FFT/FFT.pdf>`_ de l'année dernière.
 
 .. TOPIC:: Exercice: Illustration de Newton numérique
 
-    Réaliser une animation similaire à celle de
-    http://en.wikipedia.org/wiki/Newton%27s_method#Newton-Fourier_method
+    Réaliser une animation similaire à celle de l'`article de la Wikipedia
+    <http://fr.wikipedia.org/wiki/M%C3%A9thode_de_Newton>`_.
 
 .. TOPIC:: Exercice: Convergence de Newton numérique
 
@@ -435,19 +527,19 @@ vous présentera sa démonstration aux autres.
 
 .. TOPIC:: Exercice: Inversion de séries formelle par itération de Newton
 
-    Soit `A(z)` une série formelle dans `K[[z]]` dont on veut calculer
-    l'inverse `B(z)=A^{-1}(z)`. En particulier, on supposera que son
-    terme constant `a_0=A(0)` est inversible dans `K`.
+    Soit `B(z)` une série formelle dans `K[[z]]` dont on veut calculer
+    l'inverse `A(z)=B^{-1}(z)`. En particulier, on supposera que son
+    terme constant `b_0=B(0)` est inversible dans `K`.
 
-    On pose la fonction `F(X,z) = A(z) - 1/X`, de sorte que `B(z)`
-    satisfait l'équation fonctionnelle implicite `F(B(z), z)=0`.
+    On pose la fonction `F(X,z) = B(z) - 1/X`, de sorte que `A(z)`
+    satisfait l'équation fonctionnelle implicite `F(A(z), z)=0`.
 
-    #.  Choisir `B_0(z)` tel que `B_0(z)\equiv B(z) [z]`
+    #.  Choisir `A_0(z)` tel que `A_0(z)\equiv A(z) [z]`
 
-    #.  Supposer que l'on ait trouvé `B_i(z)` tel que
-        `B_i(z)\equiv B(z)[z^k]`.  Appliquer une itération de Newton pour
-        retrouver l'expression de `B_{i+1}` vue en cours, et donner sa
-        précision (i.e. combien de termes de `B(z)` sont obtenus).
+    #.  Supposer que l'on ait trouvé `A_i(z)` tel que
+        `A_i(z)\equiv A(z)[z^k]`.  Appliquer une itération de Newton pour
+        retrouver l'expression de `A_{i+1}` vue en cours, et donner sa
+        précision (i.e. combien de termes de `A(z)` sont obtenus).
 
 .. TOPIC:: Exercice: Comptage des arbres par itération de Newton
 
@@ -482,9 +574,21 @@ vous présentera sa démonstration aux autres.
           précédent pour les calculs d'inverse.
 
 
-*******************
+       ..
+	  sage: F = X - x*X^2
+	  sage: F = 1 + x*X^2 - X
+	  sage: A = 1
+	  sage: def N(A): return A - F.subs(X=A) / Fp.subs(X=A)
+	  sage: taylor(N(A), x, 0, 10)
+	  512*x^10 + 256*x^9 + 128*x^8 + 64*x^7 + 32*x^6 + 16*x^5 + 8*x^4 + 4*x^3 + 2*x^2 + x + 1
+	  sage: taylor(N(N(A)), x, 0, 20)
+	  3392317952*x^20 + 993641216*x^19 + 291057920*x^18 + 85262464*x^17 + 24979584*x^16 + 7319744*x^15 + 2145600*x^14 + 629280*x^13 + 184736*x^12 + 54320*x^11 + 16016*x^10 + 4744*x^9 + 1416*x^8 + 428*x^7 + 132*x^6 + 42*x^5 + 14*x^4 + 5*x^3 + 2*x^2 + x + 1
+	  sage: taylor(N(N(N(A))), x, 0, 20)
+	  6563635312*x^20 + 1767205544*x^19 + 477632784*x^18 + 129644296*x^17 + 35357640*x^16 + 9694844*x^15 + 2674440*x^14 + 742900*x^13 + 208012*x^12 + 58786*x^11 + 16796*x^10 + 4862*x^9 + 1430*x^8 + 429*x^7 + 132*x^6 + 42*x^5 + 14*x^4 + 5*x^3 + 2*x^2 + x + 1
+
+
 Quelques références
-*******************
+===================
 
 .. [MCA 2013] Modern Computer Algebra, Joachim von zur Gathen, Jürgen Gerhard
 
