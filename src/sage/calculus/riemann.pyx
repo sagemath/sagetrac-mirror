@@ -187,8 +187,8 @@ cdef class Riemann_Map:
         sage: cs = complex_cubic_spline(pts)
         sage: mf = lambda x:cs.value(x)
         sage: mfprime = lambda x: cs.derivative(x)
-        sage: m = Riemann_Map([f,ef1,ef2,mf],[fp,ef1p,ef2p,mfprime],0,N = 400) # long time
-        sage: p = m.plot_colored(plot_points = 400) # long time
+        sage: m = Riemann_Map([f,ef1,ef2,mf], [fp,ef1p,ef2p,mfprime], 0, N=100) # long time
+        sage: m.plot_colored(plot_points=100)
 
     ALGORITHM:
 
@@ -947,7 +947,7 @@ cdef class Riemann_Map:
             sage: z2(t) = -2+exp(-I*t); z2p(t) = -I*exp(-I*t)
             sage: z3(t) = 2+exp(-I*t); z3p(t) = -I*exp(-I*t)
             sage: m = Riemann_Map([z1,z2,z3],[z1p,z2p,z3p],0,ncorners=4) # long time
-            sage: p = m.plot_spiderweb(withcolor=True,plot_points=500, thickness = 2.0, min_mag=0.1) # long time
+            sage: p = m.plot_spiderweb(withcolor=True, plot_points=100, thickness = 2.0, min_mag=0.1) # long time
         """
         cdef int k, i
         if self.exterior:
@@ -1046,9 +1046,9 @@ cdef class Riemann_Map:
             sage: m.plot_colored(plot_range=[0,1,.25,.75])
             Graphics object consisting of 1 graphics primitive
 
-        High resolution plot::
+        High resolution plot (adjust ``plot_points`` to your liking)::
 
-            sage: m.plot_colored(plot_points=1000)  # long time (29s on sage.math, 2012)
+            sage: m.plot_colored(plot_points=100)
             Graphics object consisting of 1 graphics primitive
 
         To generate the unit circle map, it's helpful to see what the
