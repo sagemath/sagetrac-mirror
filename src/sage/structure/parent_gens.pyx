@@ -151,7 +151,9 @@ def _certify_names(names):
 
         sage: _certify_names([singular,gap])
         doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Singular' is <class 'sage.interfaces.singular.Singular'>
+        See http://trac.sagemath.org/10483 for details.
         doctest:...: DeprecationWarning: Names must be a string or a list or tuple of strings, but 'Gap' is <class 'sage.interfaces.gap.Gap'>
+        See http://trac.sagemath.org/10483 for details.
         ('Singular', 'Gap')
 
     """

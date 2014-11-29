@@ -506,7 +506,7 @@ class PiecewisePolynomial:
             Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*y], [(1/2, 1), 9/2*y - 2], [(1, 3/2), 1/2*y + 2], [(3/2, 2), -7/2*y + 8]]
 
         """
-        x = QQ[self.default_variable()].gen()
+        x = QQ[str(self.default_variable())].gen()
         def f(x0, x1):
             f0, f1 = self(x0), self(x1)
             return [[(x0,x1),f0+(f1-f0)*(x1-x0)**(-1)*(x-x0)]]
@@ -586,7 +586,7 @@ class PiecewisePolynomial:
             True
         """
         from sage.calculus.calculus import maxima
-        x = QQ[self.default_variable()].gen()
+        x = QQ[str(self.default_variable())].gen()
         crit_pts = []
         for (a,b), f in self.list():
             for root in maxima.allroots(SR(f).diff(x)==0):
@@ -1017,7 +1017,7 @@ class PiecewisePolynomial:
             Graphics object consisting of 4 graphics primitives
         """
         pt = QQ(pt)
-        R = QQ[self.default_variable()]
+        R = QQ[str(self.default_variable())]
         x = R.gen()
         der = self.derivative()
         tanline = (x-pt)*der(pt)+self(pt)

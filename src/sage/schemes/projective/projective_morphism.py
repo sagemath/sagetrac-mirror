@@ -1161,7 +1161,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if R.base_ring().is_field():
             J = R.ideal(F)
         else:
-            S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+            S = PolynomialRing(R.base_ring().fraction_field(), R.variable_names(), R.ngens())
             J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
         if J.dimension() > 0:
             return False
@@ -1320,7 +1320,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if R.base_ring().is_field():
             J = R.ideal(F)
         else:
-            S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+            S = PolynomialRing(R.base_ring().fraction_field(), R.variable_names(), R.ngens())
             J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
         if J.dimension() > 0:
             raise TypeError("Not a morphism.")
@@ -1329,7 +1329,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         #move the ideal to the ring of integers
         if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
+            S = PolynomialRing(R.base_ring().ring_of_integers(), R.variable_names(), R.ngens())
             F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
             J = S.ideal(F)
         else:
@@ -1352,7 +1352,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if check == True:
             index = 0
             while index < len(badprimes):  #figure out which primes are really bad primes...
-                S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
+                S = PolynomialRing(GF(badprimes[index]), R.variable_names(), R.ngens())
                 J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
                 if J.dimension() == 0:
                     badprimes.pop(index)
@@ -2604,7 +2604,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
         #need a lexicographic ordering for elimination
-        R = PolynomialRing(R.base_ring(), N + 1, R.gens(), order='lex')
+        R = PolynomialRing(R.base_ring(), N + 1, R.variable_names(), order='lex')
         BR = R.base_ring()
         I = list(self.domain().defining_polynomials())
         preimages = set()

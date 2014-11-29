@@ -298,7 +298,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        if not isinstance(arg1[0], basestring):
+        if len(arg1) > 0 and not isinstance(arg1[0], basestring):
             if arg2 == 1:
                 arg1 = str(arg1)
             else:

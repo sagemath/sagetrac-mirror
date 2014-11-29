@@ -2184,7 +2184,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         #create new subscheme
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
-            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[AS.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.variable_names()[AS.ngens():])
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative()!= M:

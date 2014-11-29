@@ -2998,6 +2998,7 @@ class LinearCode(module.Module):
             # for names if names2 is also provided. That is, names is not
             # a tuple or a list. Otherwise, PolynomialRing will return error
             names = (names, name2)
+        names = [str(var) for var in names]
         spec = self.spectrum()
         n = self.length()
         R = PolynomialRing(QQ,2,names)
