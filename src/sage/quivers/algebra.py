@@ -5,6 +5,7 @@ Path Algebras
 #*****************************************************************************
 #  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
 #                2013 Simon King <simon.king@uni-jena.de>
+#                2014 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -168,9 +169,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.gens()
             (e_1, e_2, e_3, e_4, a, b, c)
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()},
-                                      remove_zeros=False )
-                     for index in self._semigroup.gens())
+        return tuple(self.gen(i) for i in range(self.ngens()))
 
     @cached_method
     def arrows(self):
@@ -206,6 +205,7 @@ class PathAlgebra(CombinatorialFreeModule):
                                       remove_zeros=False )
                      for index in self._semigroup.idempotents())
 
+    @cached_method
     def gen(self, i):
         """
         Return the `i`-th generator of this algebra.

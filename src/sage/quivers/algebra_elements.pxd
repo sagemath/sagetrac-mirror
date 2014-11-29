@@ -65,8 +65,13 @@ cdef struct path_homog_poly_t:
 cdef class PathAlgebraElement(RingElement):
     cdef path_homog_poly_t *data
     cdef path_order_t cmp_terms
-    cdef dict _monomial_coefficients
     cdef long _hash
+    cpdef ssize_t degree(self) except -2
     cpdef dict monomial_coefficients(self)
+    cpdef list coefficients(self)
+    cpdef list monomials(self)
+    cpdef list support(self)
+    cpdef list terms(self)
+    cpdef object coefficient(self, QuiverPath P)
     cdef list _sorted_items_for_printing(self)
     cdef inline PathAlgebraElement _new_(self, path_homog_poly_t *h)

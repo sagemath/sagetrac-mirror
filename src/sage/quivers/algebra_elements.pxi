@@ -1,5 +1,5 @@
 """
-A Cython implementation of elements of path algebras.
+Boilerplate functions for a cython implementation of elements of path algebras.
 
 AUTHORS:
 
@@ -185,6 +185,58 @@ cdef inline path_term_t *term_copy_recursive(path_term_t *T) except NULL:
     out.nxt = NULL
     return first
 
+cdef inline path_term_t *term_neg(path_term_t *T) except NULL:
+    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path term")
+    cdef object coef = -<object>T.coef
+    out.coef = <PyObject*>coef
+    Py_INCREF(coef)
+    out.mon = mon_copy(T.mon)
+    # out.nxt is supposed to be taken care of externally
+    return out
+
+cdef inline path_term_t *term_neg_recursive(path_term_t *T) except NULL:
+    cdef path_term_t *out = term_neg(T)
+    cdef path_term_t *first = out
+    T = T.nxt
+    while T!=NULL:
+        out.nxt = term_neg(T)
+        out = out.nxt
+        T = T.nxt
+    out.nxt = NULL
+    return first
+
+cdef inline path_term_t *term_scale(path_term_t *T, object coef) except NULL:
+    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path term")
+    cdef object new_coef = coef*<object>T.coef
+    if new_coef:
+        out.coef = <PyObject*>new_coef
+        Py_INCREF(new_coef)
+        out.mon = mon_copy(T.mon)
+    else:
+        out.coef = NULL
+    # out.nxt is supposed to be taken care of externally
+    return out
+
+cdef inline path_term_t *term_scale_recursive(path_term_t *T, object coef) except NULL:
+    cdef path_term_t *out = term_scale(T,coef)
+    cdef path_term_t *first = out
+    T = T.nxt
+    while T!=NULL:
+        out.nxt = term_scale(T, coef)
+        if out.nxt.coef == NULL:
+            print "zwischendurch frei"
+            sage_free(out.nxt)
+            out.nxt = NULL
+        else:
+            out = out.nxt
+        T = T.nxt
+    out.nxt = NULL
+    return first
+
 cdef inline long term_hash(path_term_t *T):
     return (<long>hash(<object>T.coef)+(T.mon.mid<<5)+(T.mon.pos<<10))^bitset_hash(T.mon.path.data)
 
@@ -324,6 +376,38 @@ cdef inline bint poly_icopy(path_poly_t *out, path_poly_t *P) except -1:
     cdef path_term_t *T = P.lead
     out.nterms = P.nterms
     out.lead = term_copy_recursive(T)
+    return True
+
+cdef inline bint poly_icopy_neg(path_poly_t *out, path_poly_t *P) except -1:
+    cdef path_term_t *T = P.lead
+    out.nterms = P.nterms
+    out.lead = term_neg_recursive(T)
+    return True
+
+cdef inline bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except -1:
+    cdef path_term_t *T = P.lead
+    cdef path_term_t *res = term_scale(T, coef)
+    out.nterms = 0
+    out.lead = NULL
+    while res.coef == NULL:
+        sage_free(res)
+        T = T.nxt
+        if T == NULL:
+            return True
+        res = term_scale(T, coef)
+    out.lead = res
+    preinc(out.nterms)
+    T = T.nxt
+    while T != NULL:
+        res.nxt = term_scale(T, coef)
+        if res.nxt.coef == NULL:
+            sage_free(res.nxt)
+        else:
+            res = res.nxt
+            preinc(out.nterms)
+        T = T.nxt
+    if res != NULL:
+        res.nxt = NULL
     return True
 
 cdef bint poly_is_sane(path_poly_t *P):
@@ -512,7 +596,7 @@ cdef path_poly_t *poly_add(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
     cdef size_t count1, count2 # How many terms of P1/P2 have been considered?
     count1 = 0
     count2 = 0
-    cdef coef
+    cdef object coef
     cdef int c
     while True:
         if T1 == NULL:
@@ -559,6 +643,76 @@ cdef path_poly_t *poly_add(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
             preinc(out.nterms)
         else:
             coef = (<object>T1.coef)+(<object>T2.coef)
+            if coef:
+                preinc(out.nterms)
+                if T == NULL:
+                    out.lead = term_create(coef, T1.mon.path, T1.mon.pos, T1.mon.mid)
+                    T = out.lead
+                else:
+                    T.nxt = term_create(coef, T1.mon.path, T1.mon.pos, T1.mon.mid)
+                    T = T.nxt
+            preinc(count1)
+            preinc(count2)
+            T1 = T1.nxt
+            T2 = T2.nxt
+
+# Subtraction of a poly, yielding a new poly and preserving the second argument
+cdef path_poly_t *poly_sub(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms) except NULL:
+    cdef path_poly_t *out = poly_create()
+    cdef path_term_t *T1 = P1.lead
+    cdef path_term_t *T2 = P2.lead
+    cdef path_term_t *T = NULL
+    cdef path_term_t *res
+    cdef size_t count1, count2 # How many terms of P1/P2 have been considered?
+    count1 = 0
+    count2 = 0
+    cdef object coef
+    cdef int c
+    while True:
+        if T1 == NULL:
+            out.nterms += (P2.nterms-count2)
+            if T == NULL:
+                if T2 == NULL:
+                    out.lead = NULL
+                else:
+                    out.lead = term_neg_recursive(T2)
+            else:
+                if T2 == NULL:
+                    T.nxt = NULL
+                else:
+                    T.nxt = term_neg_recursive(T2)
+            return out
+        if T2 == NULL:
+            out.nterms += (P1.nterms-count1)
+            if T == NULL:
+                out.lead = term_copy_recursive(T1)
+            else:
+                T.nxt = term_copy_recursive(T1)
+            return out
+
+        c = cmp_terms(T1.mon,T2.mon)
+        if c == 1:
+            if T == NULL:
+                out.lead = term_copy(T1)
+                T = out.lead
+            else:
+                T.nxt = term_neg(T1)
+                T = T.nxt
+            T1 = T1.nxt
+            preinc(count1)
+            preinc(out.nterms)
+        elif c == -1:
+            if T == NULL:
+                out.lead = term_neg(T2)
+                T = out.lead
+            else:
+                T.nxt = term_neg(T2)
+                T = T.nxt
+            T2 = T2.nxt
+            preinc(count2)
+            preinc(out.nterms)
+        else:
+            coef = (<object>T1.coef)-(<object>T2.coef)
             if coef:
                 preinc(out.nterms)
                 if T == NULL:
@@ -830,6 +984,43 @@ cdef inline path_homog_poly_t *homog_poly_copy(path_homog_poly_t *H) except NULL
         tmp.nxt = homog_poly_create(H.start, H.end)
         tmp = tmp.nxt
         poly_icopy(tmp.poly, H.poly)
+        H = H.nxt
+    return out
+
+cdef inline path_homog_poly_t *homog_poly_neg(path_homog_poly_t *H) except NULL:
+    cdef path_homog_poly_t *out
+    cdef path_homog_poly_t *tmp
+    if H == NULL:
+        raise ValueError("The polynomial to be copied is the NULL pointer")
+    out = homog_poly_create(H.start, H.end)
+    poly_icopy_neg(out.poly, H.poly)
+    tmp = out
+    H = H.nxt
+    while H != NULL:
+        tmp.nxt = homog_poly_create(H.start, H.end)
+        tmp = tmp.nxt
+        poly_icopy_neg(tmp.poly, H.poly)
+        H = H.nxt
+    return out
+
+cdef inline path_homog_poly_t *homog_poly_scale(path_homog_poly_t *H, object coef) except NULL:
+    # The first component may be zero, all other zero components are removed.
+    cdef path_homog_poly_t *out
+    cdef path_homog_poly_t *tmp
+    if H == NULL:
+        raise ValueError("The polynomial to be copied is the NULL pointer")
+    out = homog_poly_create(H.start, H.end)
+    poly_icopy_scale(out.poly, H.poly, coef)
+    tmp = out
+    H = H.nxt
+    while H != NULL:
+        tmp.nxt = homog_poly_create(H.start, H.end)
+        poly_icopy_scale(tmp.nxt.poly, H.poly, coef)
+        if tmp.nxt.poly.nterms == 0:
+            homog_poly_free(tmp.nxt)
+            tmp.nxt = NULL
+        else:
+            tmp = tmp.nxt
         H = H.nxt
     return out
 
