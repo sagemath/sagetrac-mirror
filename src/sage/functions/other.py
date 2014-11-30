@@ -927,7 +927,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None, algorithm=None):
+    def _evalf_(self, x, y, parent=None, algorithm='pari'):
         """
         EXAMPLES::
 
@@ -954,11 +954,11 @@ class Function_gamma_inc(BuiltinFunction):
 
         Check that :trac:`17328` is fixed::
 
-            sage: incomplete_gamma(float(-1), float(-1))
+            sage: gamma_inc(float(-1), float(-1))
             (-0.8231640121031085+3.141592653589793j)
-            sage: incomplete_gamma(RR(-1), RR(-1))
+            sage: gamma_inc(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -986,15 +986,13 @@ class Function_gamma_inc(BuiltinFunction):
 
         if algorithm == 'pari':
             v = ComplexField(prec)(x).gamma_inc(y)
-            if v.is_real():
-                return R(v)
-            else:
-                return C(v)
-
-        parent = ComplexField(parent.precision())
-        R = parent or s_parent(x)
-        import mpmath
-        return mpmath_utils.call(mpmath.gammainc, x, y, parent=R)
+        else:
+            import mpmath
+            v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, y, parent=R))
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
 
 # synonym.
 gamma_inc = Function_gamma_inc()
@@ -1013,9 +1011,9 @@ class Function_gamma_inc_lower(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc_lower(CDF(0,1), 3)
-            -0.158158403295 - 0.51042185393*I
+            -0.1581584032951798 - 0.5104218539302277*I
             sage: gamma_inc_lower(RDF(1), 3)
-            0.950212931632
+            0.950212931632136
             sage: gamma_inc_lower(3,2)
             gamma_inc_lower(3, 2)
             sage: gamma_inc_lower(x,0)
@@ -1058,23 +1056,19 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(0,2)
             +Infinity
         """
-        from sage.rings.infinity import Infinity
-        if not is_inexact(x) and x == 0:
-            return Infinity
-        if not isinstance(x, Expression) and not isinstance(y, Expression) and \
-               (is_inexact(x) or is_inexact(y)):
-            x, y = coercion_model.canonical_coercion(x, y)
-            return self._evalf_(x, y, s_parent(x))
-
         if y == 0:
             return 0
-        if x == 1:
+        if x == 0:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        elif x == 1:
             return 1-exp(-y)
-        if x == Rational(1)/2: #only for x>0
+        elif x == Rational(1)/2: #only for x>0
             return sqrt(pi)*erf(sqrt(y))
-        return None
+        else:
+            return None
 
-    def _evalf_(self, x, y, parent=None, algorithm=None):
+    def _evalf_(self, x, y, parent=None, algorithm='pari'):
         """
         EXAMPLES::
 
@@ -1082,14 +1076,29 @@ class Function_gamma_inc_lower(BuiltinFunction):
             0.646647167633873
             sage: gamma_inc_lower(3,2).n(algorithm='pari')
             0.646647167633873
-            sage: gamma_inc_lower(3,2.).n(200)
-            0.64664716763387308784416518392...
+            sage: gamma_inc_lower(3,2).n(200)
+            0.646647167633873081060005050275155...
             sage: gamma_inc_lower(0,2.)
             +Infinity
         """
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
+            prec = 53
+            C = complex
+        else:
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
         if algorithm == 'pari':
             try:
-                return x.gamma() - x.gamma_inc(y)
+                v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
             except AttributeError:
                 if not (is_ComplexNumber(x)):
                     if is_ComplexNumber(y):
@@ -1097,10 +1106,14 @@ class Function_gamma_inc_lower(BuiltinFunction):
                     else:
                         C = ComplexField()
                         x = C(x)
-                return x.gamma() - x.gamma_inc(y)
-        R = parent or s_parent(x)
-        import mpmath
-        return mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R)
+            v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
+        else:
+            import mpmath
+            v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R))
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
 
 # synonym.
 gamma_inc_lower = Function_gamma_inc_lower()
@@ -1141,19 +1154,19 @@ def gamma(a, *args, **kwds):
     ::
 
         sage: gamma(CDF(0.5,14))
-        -4.05370307804e-10 - 5.77329983455e-10*I
+        -4.0537030780372815e-10 - 5.773299834553605e-10*I
         sage: gamma(CDF(I))
-        -0.154949828302 - 0.498015668118*I
+        -0.15494982830181067 - 0.49801566811835607*I
 
     The gamma function only works with input that can be coerced to the
     Symbolic Ring::
 
         sage: Q.<i> = NumberField(x^2+1)
         sage: gamma(i)
-        doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
-        See http://trac.sagemath.org/7490 for details.
-        -0.154949828301811 - 0.498015668118356*I
-
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot coerce arguments: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Symbolic Ring
+    
     We make an exception for elements of AA or QQbar, which cannot be
     coerced into symbolic expressions to allow this usage::
 
