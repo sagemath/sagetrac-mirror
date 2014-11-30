@@ -3,7 +3,7 @@ A Cython implementation of elements of path algebras.
 
 AUTHORS:
 
-- Simon King (2014)
+- Simon King (2014-12-04)
 
 """
 
@@ -51,6 +51,9 @@ cdef class PathAlgebraElement(RingElement):
             HP = homog_poly_init_list(s,e,L,self.cmp_terms,0,-1)
             HP.nxt = self.data
             self.data = HP
+
+    def __reduce__(self):
+        return path_algebra_element_unpickle, (self._parent, homog_poly_pickle(self.data))
 
     # String representation
     # TODO: Move the following two methods to the parent.
@@ -783,3 +786,19 @@ cdef class PathAlgebraElement(RingElement):
             else:
                 tmp = tmp.nxt
         return self._new_(out_orig)
+
+cpdef PathAlgebraElement path_algebra_element_unpickle(P, list data):
+    cdef PathAlgebraElement out = PY_NEW(P.element_class)
+    out._parent = P
+    order = P.order_string()
+    if order=="negdegrevlex":
+        out.cmp_terms = negdegrevlex
+    elif order=="degrevlex":
+        out.cmp_terms = degrevlex
+    elif order=="revlex":
+        out.cmp_terms = revlex
+    else:
+        raise ValueError("Unknown term order '{}'".format(order))
+    out.data = homog_poly_unpickle(data)
+    out._hash = -1
+    return out

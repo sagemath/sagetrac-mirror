@@ -3,7 +3,7 @@ Boilerplate functions for a cython implementation of elements of path algebras.
 
 AUTHORS:
 
-- Simon King (2014)
+- Simon King (2014-12-04)
 
 """
 
@@ -66,6 +66,34 @@ cdef inline void mon_free(path_mon_t *M):
         return
     biseq_dealloc(M.path)
     sage_free(M)
+    
+# Linearisation
+cdef inline tuple mon_pickle(path_mon_t *M):
+    return (bitset_pickle(M.path.data) if M.path.length>0 else (),
+            M.path.itembitsize, M.path.length, M.pos, M.mid)
+
+cdef path_mon_t *mon_unpickle(tuple data) except NULL:
+    cdef tuple bitset_data
+    cdef mp_bitcnt_t itembitsize
+    cdef mp_size_t length
+    cdef unsigned int Pos
+    cdef int Mid
+    bitset_data, itembitsize, length, Pos, Mid = data
+    cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path term")
+    out.path.itembitsize = itembitsize
+    out.path.mask_item = limb_lower_bits_up(itembitsize)
+    out.path.length = length
+
+    # bitset_unpickle assumes that out.path.data is initialised.
+    bitset_init(out.path.data, GMP_LIMB_BITS)
+    if bitset_data: bitset_unpickle(out.path.data, bitset_data)
+    out.pos = Pos
+    out.mid = Mid
+    out.ref = 1
+    return out
+
 
 ########################################
 ##
@@ -185,60 +213,14 @@ cdef inline path_term_t *term_copy_recursive(path_term_t *T) except NULL:
     out.nxt = NULL
     return first
 
-cdef inline path_term_t *term_neg(path_term_t *T) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
-    cdef object coef = -<object>T.coef
-    out.coef = <PyObject*>coef
-    Py_INCREF(coef)
-    out.mon = mon_copy(T.mon)
-    # out.nxt is supposed to be taken care of externally
-    return out
-
-cdef inline path_term_t *term_neg_recursive(path_term_t *T) except NULL:
-    cdef path_term_t *out = term_neg(T)
-    cdef path_term_t *first = out
-    T = T.nxt
-    while T!=NULL:
-        out.nxt = term_neg(T)
-        out = out.nxt
-        T = T.nxt
-    out.nxt = NULL
-    return first
-
-cdef inline path_term_t *term_scale(path_term_t *T, object coef) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
-    cdef object new_coef = coef*<object>T.coef
-    if new_coef:
-        out.coef = <PyObject*>new_coef
-        Py_INCREF(new_coef)
-        out.mon = mon_copy(T.mon)
-    else:
-        out.coef = NULL
-    # out.nxt is supposed to be taken care of externally
-    return out
-
-cdef inline path_term_t *term_scale_recursive(path_term_t *T, object coef) except NULL:
-    cdef path_term_t *out = term_scale(T,coef)
-    cdef path_term_t *first = out
-    T = T.nxt
-    while T!=NULL:
-        out.nxt = term_scale(T, coef)
-        if out.nxt.coef == NULL:
-            print "zwischendurch frei"
-            sage_free(out.nxt)
-            out.nxt = NULL
-        else:
-            out = out.nxt
-        T = T.nxt
-    out.nxt = NULL
-    return first
-
 cdef inline long term_hash(path_term_t *T):
     return (<long>hash(<object>T.coef)+(T.mon.mid<<5)+(T.mon.pos<<10))^bitset_hash(T.mon.path.data)
+
+cdef inline tuple term_pickle(path_term_t *T):
+    return (<object>T.coef, mon_pickle(T.mon))
+
+cdef inline path_term_t *term_unpickle(object coef, tuple mon_data) except NULL:
+    return term_create_keep_mon(coef, mon_unpickle(mon_data))
 
 ########################################
 ##
@@ -299,6 +281,61 @@ cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) exce
         out.path.data.bits[pT_limbs] |= (T.path.data.bits[T.path.data.limbs-1]<<p_offset)
     bitset_or(out.path.data, out.path.data, p.data)
     return out
+
+########################################
+## Addition and scaling of terms
+
+cdef inline path_term_t *term_neg(path_term_t *T) except NULL:
+    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path term")
+    cdef object coef = -<object>T.coef
+    out.coef = <PyObject*>coef
+    Py_INCREF(coef)
+    out.mon = mon_copy(T.mon)
+    # out.nxt is supposed to be taken care of externally
+    return out
+
+cdef inline path_term_t *term_neg_recursive(path_term_t *T) except NULL:
+    cdef path_term_t *out = term_neg(T)
+    cdef path_term_t *first = out
+    T = T.nxt
+    while T!=NULL:
+        out.nxt = term_neg(T)
+        out = out.nxt
+        T = T.nxt
+    out.nxt = NULL
+    return first
+
+cdef inline path_term_t *term_scale(path_term_t *T, object coef) except NULL:
+    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+    if out==NULL:
+        raise MemoryError("Out of memory while allocating a path term")
+    cdef object new_coef = coef*<object>T.coef
+    if new_coef:
+        out.coef = <PyObject*>new_coef
+        Py_INCREF(new_coef)
+        out.mon = mon_copy(T.mon)
+    else:
+        out.coef = NULL
+    # out.nxt is supposed to be taken care of externally
+    return out
+
+cdef inline path_term_t *term_scale_recursive(path_term_t *T, object coef) except NULL:
+    cdef path_term_t *out = term_scale(T,coef)
+    cdef path_term_t *first = out
+    T = T.nxt
+    while T!=NULL:
+        out.nxt = term_scale(T, coef)
+        if out.nxt.coef == NULL:
+            print "zwischendurch frei"
+            sage_free(out.nxt)
+            out.nxt = NULL
+        else:
+            out = out.nxt
+        T = T.nxt
+    out.nxt = NULL
+    return first
 
 ## Multiplication of terms
 
@@ -417,6 +454,34 @@ cdef bint poly_is_sane(path_poly_t *P):
         preinc(count)
         T = T.nxt
     return count == P.nterms
+
+cdef inline list poly_pickle(path_poly_t *P):
+    cdef list L = []
+    cdef path_term_t *T = P.lead
+    while T != NULL:
+        L.append(term_pickle(T))
+        T = T.nxt
+    return L
+
+cdef bint poly_inplace_unpickle(path_poly_t *P, list data) except -1:
+    cdef tuple term_data
+    cdef object coef
+    cdef path_term_t *T
+    if not data:
+        P.nterms = 0
+        P.lead = NULL
+        return True
+    P.nterms = len(data)
+    coef, term_data = data.pop(0)
+    P.lead = term_unpickle(coef, term_data)
+    T = P.lead
+    for coef, term_data in data:
+        T.nxt = term_unpickle(coef, term_data)
+        T = T.nxt
+    T.nxt = NULL
+    if not poly_is_sane(P):
+        raise RuntimeError("Unpickling doesn't work")
+    return True
 
 ############################################
 ##
@@ -985,6 +1050,28 @@ cdef inline path_homog_poly_t *homog_poly_copy(path_homog_poly_t *H) except NULL
         tmp = tmp.nxt
         poly_icopy(tmp.poly, H.poly)
         H = H.nxt
+    return out
+
+cdef inline list homog_poly_pickle(path_homog_poly_t *H):
+    cdef list L = []
+    while H != NULL:
+        L.append((H.start, H.end, poly_pickle(H.poly)))
+        H = H.nxt
+    return L
+
+cdef path_homog_poly_t *homog_poly_unpickle(list data) except NULL:
+    #ASSUMPTION: data is not empty
+    cdef int start, end
+    cdef list poly_data
+    cdef path_homog_poly_t *out
+    start, end, poly_data = data.pop(0)
+    out = homog_poly_create(start, end)
+    poly_inplace_unpickle(out.poly, poly_data)
+    cdef path_homog_poly_t *tmp = out
+    for start, end, poly_data in data:
+        tmp.nxt = homog_poly_create(start, end)
+        tmp = tmp.nxt
+        poly_inplace_unpickle(tmp.poly, poly_data)
     return out
 
 cdef inline path_homog_poly_t *homog_poly_neg(path_homog_poly_t *H) except NULL:
