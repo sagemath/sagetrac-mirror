@@ -30,6 +30,8 @@ cdef class PathAlgebraElement(RingElement):
         homog_poly_free(self.data)
     def __init__(self, S, data, order="negdegrevlex"):
         self._hash = -1
+        if 'order' in data:
+            order = data.pop('order')
         if order=="negdegrevlex":
             self.cmp_terms = negdegrevlex
         elif order=="degrevlex":
@@ -42,7 +44,7 @@ cdef class PathAlgebraElement(RingElement):
         RingElement.__init__(self, S)
         cdef dict homog = {}
         cdef list L
-        for tmp, c in data.monomial_coefficients().iteritems():
+        for tmp, c in data.iteritems():
             homog.setdefault((tmp.initial_vertex(),tmp.terminal_vertex()),[]).append((tmp,c))
         cdef path_homog_poly_t *HP
         for (s,e),L in sorted(homog.iteritems(), reverse=True):
@@ -148,7 +150,7 @@ cdef class PathAlgebraElement(RingElement):
                 if deg == -1:
                     deg = T.mon.path.length
                 elif deg != T.mon.path.length:
-                    raise ValueError("Element is not homogeneous")
+                    raise ValueError("Element is not homogeneous.")
                 T = T.nxt
             H = H.nxt
         return deg

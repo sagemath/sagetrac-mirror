@@ -21,6 +21,7 @@ Path Algebras
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from algebra_elements import PathAlgebraElement
 
 class PathAlgebra(CombinatorialFreeModule):
     r"""
@@ -110,6 +111,8 @@ class PathAlgebra(CombinatorialFreeModule):
         sage: TestSuite(A).run()
     """
 
+    Element = PathAlgebraElement
+
     ###########################################################################
     #                                                                         #
     # PRIVATE FUNCTIONS                                                       #
@@ -117,7 +120,7 @@ class PathAlgebra(CombinatorialFreeModule):
     #                                                                         #
     ###########################################################################
 
-    def __init__(self, k, P):
+    def __init__(self, k, P, order = "negdegrevlex"):
         """
         Creates a :class:`PathAlgebra` object.  Type ``PathAlgebra?`` for
         more information.
@@ -148,12 +151,16 @@ class PathAlgebra(CombinatorialFreeModule):
         from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
         self._quiver = P.quiver()
         self._semigroup = P
+        self._ordstr = order
         super(PathAlgebra, self).__init__(k, self._semigroup,
                                              prefix='',
-                                             element_class=self.Element,
+                                             #element_class=self.Element,
                                              category=GradedAlgebrasWithBasis(k),
                                              bracket=False)
         self._assign_names(self._semigroup.variable_names())
+
+    def order_string(self):
+        return self._ordstr
 
     @cached_method
     def gens(self):
@@ -184,7 +191,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.arrows()
             (a, b, c)
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()},
+        return tuple(self._from_dict( {index: self.base_ring().one(), 'order': self._ordstr},
                                       remove_zeros=False )
                      for index in self._semigroup.arrows())
 
@@ -201,7 +208,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.idempotents()
             (e_1, e_2, e_3, e_4)
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()},
+        return tuple(self._from_dict( {index: self.base_ring().one(), 'order': self._ordstr},
                                       remove_zeros=False )
                      for index in self._semigroup.idempotents())
 
@@ -225,7 +232,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.gen(5)
             b
         """
-        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one()},
+        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one(), 'order':self._ordstr},
                                 remove_zeros = False )
 
     def ngens(self):
@@ -252,16 +259,16 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: B = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup().algebra(QQ)
             sage: x = A('a') + 1 # indirect doctest
             sage: x
-            a + e_1 + e_2
+            e_1 + a + e_2
             sage: B(x) # indirect doctest
-            a + e_1 + e_2
+            e_1 + a + e_2
             sage: A(1) # indirect doctest
             e_1 + e_2
         """
         from sage.quivers.paths import QuiverPath
         # If it's an element of another path algebra, do a linear combination
         # of the basis
-        if isinstance(x, CombinatorialFreeModuleElement) and isinstance(x.parent(), PathAlgebra):
+        if isinstance(x, PathAlgebraElement) and isinstance(x.parent(), PathAlgebra):
             coeffs = x.monomial_coefficients()
             result = self.zero()
             for key in coeffs:
@@ -395,7 +402,7 @@ class PathAlgebra(CombinatorialFreeModule):
             ValueError: (1, 2, 'b') is not in list
         """
         if index is not None:
-            return self._from_dict( {self._semigroup(index): self.base_ring().one()},
+            return self._from_dict( {self._semigroup(index): self.base_ring().one(), 'order': self._ordstr},
                                     remove_zeros=False )
         return self.zero()
 
@@ -445,6 +452,7 @@ class PathAlgebra(CombinatorialFreeModule):
         """
         return len(self._semigroup(p))
 
+    @cached_method
     def one(self):
         """
         Return the multiplicative identity element.
@@ -458,8 +466,10 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.one()
             e_1 + e_2 + e_3
         """
-        return self.sum_of_monomials([self._semigroup([(v, v)], check=False)
-                                      for v in self._quiver])
+        one = self.base_ring().one()
+        D = dict((index,one) for index in self._semigroup.idempotents())
+        D['order'] = self._ordstr
+        return self._from_dict( D )
 
     ###########################################################################
     #                                                                         #
@@ -575,7 +585,7 @@ class PathAlgebra(CombinatorialFreeModule):
     #                                                                         #
     ###########################################################################
 
-    class Element(CombinatorialFreeModuleElement):
+    class BlaElement(CombinatorialFreeModuleElement):
         def is_homogeneous(self):
             """
             Return ``True`` if and only if this element is homogeneous.
