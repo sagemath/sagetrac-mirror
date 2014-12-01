@@ -270,7 +270,7 @@ Sage example in ./mpoly.tex, line 886::
 
   sage: R.<x,y,t> = QQ[]
   sage: eq = x^2 + (y-t)^2 - 1/2*(t^2+1)
-  sage: fig = add((eq(t=k/5)*QQ['x,y']).plot() for k in (-15..15))
+  sage: fig = add((eq(t=k/5)*QQ[x,y]).plot() for k in (-15..15))
   sage: fig.show(aspect_ratio=1,xmin=-2,xmax=2,ymin=-3,ymax=3)
 
 Sage example in ./mpoly.tex, line 900::
@@ -281,7 +281,7 @@ Sage example in ./mpoly.tex, line 900::
 
 Sage example in ./mpoly.tex, line 906::
 
-  sage: env.change_ring(QQ['x,y']).plot()
+  sage: env.change_ring(QQ[x,y]).plot()
   Graphics object consisting of 1 graphics primitive
 
 Sage example in ./mpoly.tex, line 933::
