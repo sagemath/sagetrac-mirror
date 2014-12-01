@@ -18,6 +18,7 @@ AUTHORS:
 
 include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import repr_lincomb
 
 ## TODO
 # Move representation from pxi to here and repr/latex_monomial to the parent
@@ -55,60 +56,39 @@ cdef class PathAlgebraElement(RingElement):
     def __reduce__(self):
         return path_algebra_element_unpickle, (self._parent, homog_poly_pickle(self.data))
 
-    # String representation
-    # TODO: Move the following two methods to the parent.
-    def _repr_monomial(self, m):
-        # m is [list, pos, mid], where the list gives the nb of arrows, pos
-        # gives the component in the module, and mid gives the length of the
-        # left factor in a two-sided module.
-        cdef list arrows = self._parent._quiver.edge_labels()
-        cdef list L
-        if m[0]:
-            L = [arrows[n] for n in (m[0][:m[2]] if m[2]!=-1 else m[0])]
-            if m[2]!=-1:
-                L.append('I_{}'.format(m[1]))
-                L.extend([arrows[n] for n in m[0][m[2]:]])
-        elif m[2]!=-1:
-            L = ['e_{}I_{}'.format(m[3],m[2])]
-        else:
-            L = ['e_{}'.format(m[3])]
-        return '*'.join(L)
-
-    def _latex_monomial(self, m):
-        # m is [list, pos, mid], where the list gives the nb of arrows, pos
-        # gives the component in the module, and mid gives the length of the
-        # left factor in a two-sided module.
-        cdef list arrows = self._parent._quiver.edge_labels()
-        cdef list L
-        if m[0]:
-            L = [arrows[n] for n in (m[0][:m[2]] if m[2]!=-1 else m[0])]
-            if m[2]!=-1:
-                L.append('I_{%s}'%(m[1]))
-                L.extend([arrows[n] for n in m[0][m[2]:]])
-        elif m[2]!=-1:
-            L = ['e_{%s}\\cdot I_{%s}'%(m[3],m[2])]
-        else:
-            L = ['e_{%s}'%(m[3])]
-        return '\\cdot '.join(L)
-
     cdef list _sorted_items_for_printing(self):
         """
-        Return list of pairs (M,c), where c is a coefficient and M is data
-        that can be understood by self.parent()._repr_monomial or
-        self.parent()._latex_monomial.
+        Return list of pairs ``(M,c)``, where ``c`` is a coefficient and ``M``
+        will be passed to ``self.parent()._repr_monomial`` resp. to
+        ``self.parent()._latex_monomial``, providing the indices of the
+        algebra generators occurring in the monomial.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
+            sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
+            sage: X         # indirect doctest
+            5*e_0 + 3*e_2 + a + 2*b + 3*c
+            sage: latex(X)  # indirect doctest
+            5e_0 + 3e_2 + a + 2b + 3c
+
         """
-        cdef dict = self.parent().print_options()
         cdef path_homog_poly_t *H = self.data
         cdef list L, L_total
         cdef size_t i
         cdef path_term_t * T
         L_total = []
+        cdef list vertices = self._parent.quiver().vertices()
+        cdef unsigned int offset = len(vertices)
         while H != NULL:
-            L = []
+            L = []  # data for a single component (given by start- and endpoints)
             T = H.poly.lead
             while T!=NULL:
-                L.append((([biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)],
-                       T.mon.pos, T.mon.mid, H.start),<object>(T.coef)))
+                if T.mon.path.length:
+                    L.append(([offset+biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)],
+                              <object>(T.coef)))
+                else:
+                    L.append(([vertices.index(H.start)], <object>(T.coef)))
                 T = T.nxt
             if len(L) != H.poly.nterms:
                 print "Term count of polynomial is wrong, got",len(L), "expected", H.poly.nterms
@@ -117,17 +97,39 @@ cdef class PathAlgebraElement(RingElement):
         return L_total
 
     def _repr_(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
+            sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
+            sage: X         # indirect doctest
+            5*e_0 + 3*e_2 + a + 2*b + 3*c
+
+        """
         return repr_lincomb(self._sorted_items_for_printing(), strip_one=True,
-                            repr_monomial = self._repr_monomial,
-                            scalar_mult       = '*',
-                            latex_scalar_mult = None,
+                            scalar_mult=self.parent()._print_options['scalar_mult'],
+                            repr_monomial = self._parent._repr_monomial
                             )
 
     def _latex_(self):
+        """
+        Latex string representation.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
+            sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
+            sage: latex(X)  # indirect doctest
+            5e_0 + 3e_2 + a + 2b + 3c
+
+        """
         return repr_lincomb(self._sorted_items_for_printing(),
-                            scalar_mult       = '*',
+                            scalar_mult       = self.parent()._print_options['scalar_mult'],
+                            latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
                             latex_scalar_mult = None,
-                            repr_monomial = self._latex_monomial,
+                            repr_monomial = self._parent._latex_monomial,
                             is_latex=True, strip_one = True)
 
     # Basic properties

@@ -24,8 +24,6 @@ from cpython.ref cimport *
 from cython.operator cimport preincrement as preinc, predecrement as predec, postincrement as postinc
 from sage.libs.gmp.mpn cimport mpn_cmp
 
-from sage.combinat.free_module import repr_lincomb
-
 ########################################
 ##
 ## Allocation and Deallocation of monomials
