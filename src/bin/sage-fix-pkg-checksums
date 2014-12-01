@@ -12,55 +12,55 @@ for upstream in "$@"
 do
     ## Find a package from tarball name
     tarball=`basename "$upstream"`
-    upstream_pkg_name=${tarball%-*}
+    upstream_pkg_name=${tarball%%-*}
     ## uppercase==>lowercase ? Allows to accept existing cases. TBD.
     pkg_name=$( echo $upstream_pkg_name | tr A-Z a-z )
     
     ## Do we have documentation on this package ?
     if [ -d "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
-	
-	## tarball name dissection
-	pkg_compression=${tarball#*.tar}   # gz or bz2
-	tar_pkg=$( echo $tarball | sed -r "s/^([^-]*)-.*$/\1/" )
-	tar_cmp=$( echo $tarball | sed -r "s/^(.*)(.tar(\.gz|\.bz2)?)/\2/" )
-	ext_str="s/^"$tar_pkg"-(.*)"$tar_cmp"$/\1/"
-	tar_ver=$( echo $tarball | sed -r $ext_str )
-	
-	## package-version.txt dissection
-	sage_version=$(cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/\.p[0-9]+$//")
-	sage_patch=$( cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/^(.*)\.(p[0-9]+)$/\2/" )
-	## Intercept versions with no patch number
-	if [ $sage_patch = $sage_version ] ; then sage_patch="" ; fi
-	
-	## Treat if versions match
-	if [ $sage_version = $tar_ver ] ; then
-	    echo $tarball
-	    checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
-	    echo "tarball=$tarball"> $checksums
-	    ## echo "tarball=$tarball"
-	    echo -n "sha1=">> $checksums
-	    ## echo -n "sha1="
+    
+    ## tarball name dissection
+    pkg_compression=${tarball#*.tar}   # gz or bz2
+    tar_pkg=$( echo $tarball | sed -r "s/^([^-]*)-.*$/\1/" )
+    tar_cmp=$( echo $tarball | sed -r "s/^(.*)(.tar(\.gz|\.bz2)?)/\2/" )
+    ext_str="s/^"$tar_pkg"-(.*)"$tar_cmp"$/\1/"
+    tar_ver=$( echo $tarball | sed -r $ext_str )
+    
+    ## package-version.txt dissection
+    sage_version=$(cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/\.p[0-9]+$//")
+    sage_patch=$( cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/^(.*)\.(p[0-9]+)$/\2/" )
+    ## Intercept versions with no patch number
+    if [ $sage_patch = $sage_version ] ; then sage_patch="" ; fi
+    
+    ## Treat if versions match
+    if [ $sage_version = $tar_ver ] ; then
+        echo $tarball
+        checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
+        echo "tarball=$tarball"> $checksums
+        ## echo "tarball=$tarball"
+        echo -n "sha1=">> $checksums
+        ## echo -n "sha1="
             if command -v sha1sum &>/dev/null; then
-		sha1sum $upstream | sed 's/ .*//' >> $checksums
+        sha1sum $upstream | sed 's/ .*//' >> $checksums
             else
-		shasum -a 1 $upstream | sed 's/ .*//'>> $checksums
+        shasum -a 1 $upstream | sed 's/ .*//'>> $checksums
             fi
-	    
+        
             echo -n "md5=">> $checksums
             if command -v md5 &>/dev/null; then
-		md5 $upstream | sed 's/.*= *//'>> $checksums
+        md5 $upstream | sed 's/.*= *//'>> $checksums
             else
-		md5sum $upstream | sed 's/ .*//'>> $checksums
+        md5sum $upstream | sed 's/ .*//'>> $checksums
             fi
-	    
+        
             echo -n "cksum=">> $checksums
             cksum $upstream | sed 's/ .*//'>> $checksums
-	else
-	    ## Spurious versins in upstream/ : info message ?
-	    echo $tarball : version mismatch with $pkg_name/package-version.txt
-	fi
     else
-	## Undocumented tarball : ignore (optional : warning)
-	echo $tarball : no directory pkgs/$pkg_name exists.
+        ## Spurious versions in upstream/ : info message ? Nope
+        ## echo $tarball : version mismatch with $pkg_name/package-version.txt
+    fi
+    else
+    ## Undocumented tarball : ignore (optional : warning)
+    echo $tarball : no directory pkgs/$pkg_name exists.
     fi
 done
