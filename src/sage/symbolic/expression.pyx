@@ -8029,7 +8029,8 @@ cdef class Expression(CommutativeRingElement):
     def simplify_full(self):
         """
         Apply simplify_factorial, simplify_trig, simplify_rational,
-        simplify_log, and again simplify_rational to self (in that order).
+        simplify_log, and again simplify_rational, then simplify_sum
+        to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
 
@@ -8089,6 +8090,7 @@ cdef class Expression(CommutativeRingElement):
         x = x.simplify_rational()
         x = x.simplify_log('one')
         x = x.simplify_rational()
+        x = x.simplify_sum()
         return x
 
     full_simplify = simplify_full
@@ -8448,6 +8450,29 @@ cdef class Expression(CommutativeRingElement):
         return self.parent()(self._maxima_().makefact().factcomb().minfactorial())
 
     factorial_simplify = simplify_factorial
+
+    def simplify_sum(self):
+        r"""
+        For every symbolic sum in the given expression, try to evaluate
+        it numerically.
+        
+        While symbolic sum expressions with constant limits are evaluated
+        immediately on the command line, unevaluated sums of this kind can
+        result from, e.g., substitution of limit variables. 
+
+        INPUT:
+
+        - ``self`` - symbolic expression
+
+        EXAMPLES::
+        
+            sage: (k,n) = var('k,n')
+            sage: ex = sum(abs(-k*k+n),k,1,n)(n=8); ex
+            sum(abs(-k^2 + 8), k, 1, 8)
+            sage: ex.simplify_sum()
+            162
+        """
+        return self.parent()(self._maxima_().simplify_sum())
 
     def canonicalize_radical(self):
         r"""
