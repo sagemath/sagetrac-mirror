@@ -45,7 +45,7 @@ REFERENCES
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 from lean_matrix cimport BinaryMatrix
 cdef bint npruned_not_defined = True
 cdef npruned

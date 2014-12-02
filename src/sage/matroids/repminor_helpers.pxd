@@ -1,5 +1,5 @@
 from lean_matrix cimport  BinaryMatrix
-from sage.misc.bitset cimport bitset_t
+from sage.data_structures.bitset cimport bitset_t
 
 
 cdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat)
