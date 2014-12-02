@@ -20,25 +20,134 @@ include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
 
-## TODO
-# Move representation from pxi to here and repr/latex_monomial to the parent
-### (can only be done after making PathAlgebraElement the default element class)
-
 cdef class PathAlgebraElement(RingElement):
+    """
+    Elements of a :class:`~sage.quivers.algebra.PathAlgebra`.
+
+    NOTE:
+
+    Upon creation of a path algebra, one can choose among several monomial
+    orders, which are all positive or negative degree orders. Monomial orders
+    that are not degree orders are not supported.
+
+    EXAMPLES:
+
+    After creating a path algebra and getting hold of its generators, one can
+    create elements just as usual::
+
+        sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+        sage: A.inject_variables()
+        Defining e_0, e_1, e_2, a, b, c, d, e, f
+        sage: x = a+2*b+3*c+5*e_0+3*e_2
+        sage: x
+        5*e_0 + a + 2*b + 3*c + 3*e_2
+
+    The path algebra decomposes as a direct sum according to start- and endpoints::
+
+        sage: x.sort_by_vertices()
+        [(5*e_0, 0, 0),
+         (a, 0, 1),
+         (2*b, 0, 2),
+         (3*c, 1, 0),
+         (3*e_2, 2, 2)]
+        sage: (x^3+x^2).sort_by_vertices()
+        [(150*e_0 + 33*a*c, 0, 0),
+         (30*a + 3*a*c*a, 0, 1),
+         (114*b + 6*a*c*b, 0, 2),
+         (90*c + 9*c*a*c, 1, 0),
+         (18*c*a, 1, 1),
+         (54*c*b, 1, 2),
+         (36*e_2, 2, 2)]
+
+    For a consistency test, we create a path algebra that is isomorphic to a
+    free associative algebra, and compare arithmetic with the default
+    implementations of free algebras::
+
+        sage: F.<x,y,z> = FreeAlgebra(GF(25,'t'))
+        sage: P = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
+        sage: pF = x+y*z*x+2*y-z+1
+        sage: pP = sage_eval('x+y*z*x+2*y-z+1', P.gens_dict())
+        sage: pP^5+3*pP^3 == sage_eval(repr(pF^5+3*pF^3), P.gens_dict())
+        True
+        sage: pF2 = x^4+x*y*x*z+2*z^2*x*y
+        sage: pP2 = sage_eval('x^4+x*y*x*z+2*z^2*x*y', P.gens_dict())
+        sage: pP2^7 == sage_eval(repr(pF2^7), P.gens_dict())
+        True
+
+    When the Cython implementation of path algebra elements was introduced, it
+    was vastly faster than the default implementation of free algebras::
+
+        sage: %timeit pF^5+3*pF^3    # random
+        1 loops, best of 3: 344 ms per loop
+        sage: %timeit pP^5+3*pP^3    # random
+        100 loops, best of 3: 3.63 ms per loop
+        sage: %timeit pF2^7          # random
+        10000 loops, best of 3: 526 ms per loop
+        sage: %timeit pP2^7          # random
+        10000 loops, best of 3: 23.9 ms per loop
+
+    """
     def __cinit__(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+            sage: A.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: x = a+2*b+3*c+5*e_0+3*e_2   # indirect doctest
+            sage: x
+            5*e_0 + a + 2*b + 3*c + 3*e_2
+
+        """
         self.data = NULL
+
     def __dealloc__(self):
+        """
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+            sage: A.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: x = a+2*b+3*c+5*e_0+3*e_2
+            sage: del x       # indirect doctest
+
+        """
         homog_poly_free(self.data)
-    def __init__(self, S, data, order="negdegrevlex"):
+
+    def __init__(self, S, data):
+        """
+        Do not call directly.
+
+        INPUT:
+
+        - ``S``, a path algebra.
+
+        - ``data``, a dictionary. Most of its keys are
+          :class:`~sage.quivers.paths.QuiverPath`, the value giving its
+          coefficient. If ``data['order']`` is present, it should be one of
+          "negdegrevlex", "degrevlex", "negdeglex" or "deglex, defining the
+          monomial order to be used. If ``data['order']`` is not given, the
+          default order "negdegrevlex" is chosen.
+
+        NOTE:
+
+        Monomial orders that are not degree orders are not supported.
+
+        EXAMPLES::
+        """
         self._hash = -1
         if 'order' in data:
             order = data.pop('order')
+        else:
+            order = "negdegrevlex"
         if order=="negdegrevlex":
             self.cmp_terms = negdegrevlex
         elif order=="degrevlex":
             self.cmp_terms = degrevlex
-        elif order=="revlex":
-            self.cmp_terms = revlex
+        elif order=="negdeglex":
+            self.cmp_terms = negdeglex
+        elif order=="deglex":
+            self.cmp_terms = deglex
         else:
             raise ValueError("Unknown term order '{}'".format(order))
         cdef QuiverPath tmp = None
@@ -92,6 +201,9 @@ cdef class PathAlgebraElement(RingElement):
                 T = T.nxt
             if len(L) != H.poly.nterms:
                 print "Term count of polynomial is wrong, got",len(L), "expected", H.poly.nterms
+            else:
+                if not poly_is_ordered(H.poly, self.cmp_terms):
+                    print "Term ordering of polynomial is wrong"
             L_total.extend(L)
             H = H.nxt
         return L_total
@@ -355,7 +467,7 @@ cdef class PathAlgebraElement(RingElement):
             T = T.nxt
         return self.base_ring().zero()        
 
-    def filtration_by_vertices(self):
+    def sort_by_vertices(self):
         cdef path_homog_poly_t * H = self.data
         cdef PathAlgebraElement out
         cdef list C = []
@@ -379,13 +491,9 @@ cdef class PathAlgebraElement(RingElement):
         """
         TESTS::
 
-            sage: from sage.quivers.algebra_elements import PathAlgebraElement
             sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(GF(3))
-            sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
-            sage: y = PathAlgebraElement(A, sage_eval('a*c+d*c*b*f', A.gens_dict()))
-
-        BUG::
-
+            sage: x = sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict())
+            sage: y = sage_eval('a*c+d*c*b*f', A.gens_dict())
             sage: x*(y+x) == x*y+x*x
             False
 
@@ -428,7 +536,6 @@ cdef class PathAlgebraElement(RingElement):
         """
         EXAMPLES::
 
-            sage: from sage.quivers.algebra_elements import PathAlgebraElement
             sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(GF(3))
             sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
             sage: y = PathAlgebraElement(A, sage_eval('a*c', A.gens_dict()))
@@ -504,7 +611,6 @@ cdef class PathAlgebraElement(RingElement):
         """
         EXAMPLES::
 
-            sage: from sage.quivers.algebra_elements import PathAlgebraElement
             sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(GF(3))
             sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
             sage: y = PathAlgebraElement(A, sage_eval('a*c', A.gens_dict()))
@@ -576,80 +682,6 @@ cdef class PathAlgebraElement(RingElement):
                     H1 = H1.nxt
                     H2 = H2.nxt
 
-
-#    # TODO: REMOVE
-#    def iadd_mul(self, coef, QuiverPath L, PathAlgebraElement P, QuiverPath R):
-#        """
-#        from sage.quivers.algebra_elements import PathAlgebraElement
-#        A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
-#        DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().inject_variables()
-#        x = PathAlgebraElement(A, sage_eval('a*c+7*c*b+c*b*e*b*e*b+3*c*b*e*b', A.gens_dict()))
-#        y = PathAlgebraElement(A, sage_eval('a*c+d*c*b*f', A.gens_dict()))
-#        y.iadd_mul(2, d, x, f)
-#
-#        sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
-#        sage: copy(x).iadd_mul(1,b*e,x,e_0)  # correct, but memory leak
-#        e_0 + 5*b*e + 5*b*e*b*e + b*e*b*e*b*e
-#
-#
-#        """
-#        coef = self._parent.base_ring()(coef)
-#        cdef path_homog_poly_t *prev = NULL
-#        cdef path_homog_poly_t *H2 = P.data
-#        if not coef:
-#            return
-#        while H2 != NULL:
-#            if H2.start == L._end and H2.end == R._start:
-#                break
-#            H2 = H2.nxt
-#        if H2 == NULL:
-#            return self
-#        if self.data == NULL:
-#            self.data = homog_poly_create(L._start, R._end)
-#            poly_iadd_lrmul(self.data.poly, coef, L._path, H2.poly, R._path, self.cmp_terms, 0, 0, -1)
-#            return self
-#        prev = homog_poly_get_predecessor_of_component(self.data, L._start, R._end)
-#        cdef path_homog_poly_t *H1
-#        if prev == NULL:
-#            H1  = self.data
-#            if H1!=NULL and H1.start == L._start and H1.end == R._end:
-#                # We need to override H1
-#                poly_iadd_lrmul(H1.poly, coef, L._path, H2.poly, R._path, self.cmp_terms, 0, 0, -1)
-#                # Do we need to delete H1?
-#                if H1.poly.lead == NULL:
-#                    self.data = H1.nxt
-#                    sage_free(H1.poly)
-#                    sage_free(H1)
-#                return self
-#            self.data = homog_poly_create(L._start, R._end)
-#            poly_iadd_lrmul(self.data.poly, coef, L._path, H2.poly, R._path, self.cmp_terms, 0, 0, -1)
-#            if self.data.poly.lead == NULL:
-#                sage_free(self.data.poly)
-#                sage_free(self.data)
-#                self.data = H1
-#            else:
-#                self.data.nxt = H1
-#        else:
-#            H1 = prev.nxt
-#            if H1.start == L._start and H1.end == R._end:
-#                # We need to override H1
-#                poly_iadd_lrmul(H1.poly, coef, L._path, H2.poly, R._path, self.cmp_terms, 0, 0, -1)
-#                # Do we need to delete H1?
-#                if H1.poly.lead == NULL:
-#                    prev.nxt = H1.nxt
-#                    sage_free(H1.poly)
-#                    sage_free(H1)
-#                return self
-#            prev.nxt = homog_poly_create(L._start, R._end)
-#            poly_iadd_lrmul(prev.nxt.poly, coef, L._path, H2.poly, R._path, self.cmp_terms, 0, 0, -1)
-#            if prev.nxt.poly.lead == NULL:
-#                sage_free(prev.nxt.poly)
-#                sage_free(prev.nxt)
-#                prev.nxt = H1
-#            else:
-#                prev.nxt.nxt = H1
-#        return self
-
 ## (scalar) multiplication
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -658,52 +690,91 @@ cdef class PathAlgebraElement(RingElement):
 
             sage: from sage.quivers.algebra_elements import PathAlgebraElement
             sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
-            sage: X = sage_eval('3*a+3*b+3*c+3*e_0+3*e_2', A.gens_dict())
-            sage: x = PathAlgebraElement(A, X)
-            sage: x*2
+            sage: x = sage_eval('3*a+3*b+3*c+3*e_0+3*e_2', A.gens_dict())
+            sage: x*2   # indirect doctest
+            6*e_0 + 6*a + 6*b + 6*c + 6*e_2
 
         ::
 
-            sage: X = sage_eval('3*a+4*b+3*c+4*e_0+3*e_2', A.gens_dict())
-            sage: x = PathAlgebraElement(A, X)
-            sage: z = (x^3)[0,2]
-            sage: z*5   # crash
+            sage: z = sage_eval('a+2*b+5*c+5*e_0+3*e_2', A.gens_dict())
+            sage: z
+            5*e_0 + a + 2*b + 5*c + 3*e_2
+            sage: z*3
+            3*a + 6*b + 9*e_2
 
         """
         cdef path_homog_poly_t * out = homog_poly_scale(self.data, right)
+        cdef path_homog_poly_t * outnxt
         if out.poly.nterms == 0:
-            homog_poly_free(out)
-            return self._new_(NULL)
+            # homog_poly_scale will remove zero components, except the first.
+            # Thus, we can return self._new_(out.nxt), but need to free the
+            # memory occupied by out first.
+            outnxt = out.nxt
+            poly_free(out.poly)
+            sage_free(out)
+            return self._new_(outnxt)
         return self._new_(out)
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
-        cdef path_homog_poly_t * out = homog_poly_scale(self.data, right)
-        if out.poly.nterms == 0:
-            homog_poly_free(out)
-            return self._new_(NULL)
-        return self._new_(out)
-
-    def __div__(self, x):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
-        Division by coefficients
-
-        """
-        if isinstance(self, PathAlgebraElement):
-            return (<PathAlgebraElement>self)._new_(homog_poly_scale((<PathAlgebraElement>self).data, ~(self.base_ring()( x ))))
-        return (<PathAlgebraElement>x)._new_(homog_poly_scale((<PathAlgebraElement>x).data, ~(x.base_ring()( self ))))
-
-    cpdef RingElement _mul_(self, RingElement  other):
-        """
-        Former leaks or bugs...
-
         EXAMPLES::
 
             sage: from sage.quivers.algebra_elements import PathAlgebraElement
             sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
+            sage: x = sage_eval('3*a+3*b+3*c+3*e_0+3*e_2', A.gens_dict())
+            sage: 2*x   # indirect doctest
+            6*e_0 + 6*a + 6*b + 6*c + 6*e_2
+
+        ::
+
+            sage: z = sage_eval('a+2*b+5*c+5*e_0+3*e_2', A.gens_dict())
+            sage: z
+            5*e_0 + a + 2*b + 5*c + 3*e_2
+            sage: 3*z
+            3*a + 6*b + 9*e_2
+
+        """
+        cdef path_homog_poly_t * out = homog_poly_scale(self.data, left)
+        cdef path_homog_poly_t * outnxt
+        if out.poly.nterms == 0:
+            # homog_poly_scale will remove zero components, except the first.
+            # Thus, we can return self._new_(out.nxt), but need to free the
+            # memory occupied by out first.
+            outnxt = out.nxt
+            poly_free(out.poly)
+            sage_free(out)
+            return self._new_(outnxt)
+        return self._new_(out)
+
+    def __div__(self, x):
+        """
+        Division by coefficients.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
+            sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
+            sage: X/2
+            10*e_0 + 8*a + b + 9*c + 9*e_2
+            sage: (X/2)*2 == X
+            True
+
+        """
+        if isinstance(self, PathAlgebraElement):
+            return (<PathAlgebraElement>self)._new_(homog_poly_scale((<PathAlgebraElement>self).data, ~(self.base_ring()( x ))))
+        raise TypeError("Don't know how to divide {} by {}".format(x, self))
+
+## Multiplication in the algebra
+
+    cpdef RingElement _mul_(self, RingElement  other):
+        """
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
             sage: A.inject_variables()
             Defining e_0, e_1, e_2, a, b, c, d, e, f
-            sage: x = PathAlgebraElement(A, b*e*b*e+4*b*e+e_0)
-            sage: y = PathAlgebraElement(A, a*c+5*f*e)
+            sage: x = b*e*b*e+4*b*e+e_0
+            sage: y = a*c+5*f*e
             sage: x*y
             sage: y*x
             sage: y*y
@@ -711,16 +782,21 @@ cdef class PathAlgebraElement(RingElement):
 
         ::
 
-            sage: x = PathAlgebraElement(A, sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict()))
-            sage: y = PathAlgebraElement(A, sage_eval('a*c+d*c*b*f', A.gens_dict()))
+            sage: x = b*e*b*e+4*b*e+e_0
+            sage: y = a*c+d*c*b*f
             sage: x*(y+x) == x*y+x*x
             True
 
-        ::
+        TESTS:
 
-            sage: X = sage_eval('a+2*b+3*c+e_0+e_2', A.gens_dict())
-            sage: x = PathAlgebraElement(A, X)
-            sage: x^3 == PathAlgebraElement(A, X^3)
+        We compare against the multiplication in free algebras, which is
+        implemented independently::
+
+            sage: F.<x,y,z> = FreeAlgebra(GF(25,'t'))
+            sage: A = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
+            sage: pF = x+2*y-z+1
+            sage: pA = sage_eval('x+2*y-z+1', A.gens_dict())
+            sage: pA^5 == sage_eval(repr(pF^5), A.gens_dict())
             True
 
         """
@@ -797,8 +873,10 @@ cpdef PathAlgebraElement path_algebra_element_unpickle(P, list data):
         out.cmp_terms = negdegrevlex
     elif order=="degrevlex":
         out.cmp_terms = degrevlex
-    elif order=="revlex":
-        out.cmp_terms = revlex
+    elif order=="negdeglex":
+        out.cmp_terms = negdeglex
+    elif order=="deglex":
+        out.cmp_terms = deglex
     else:
         raise ValueError("Unknown term order '{}'".format(order))
     out.data = homog_poly_unpickle(data)

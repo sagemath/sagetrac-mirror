@@ -40,9 +40,17 @@ class PathAlgebra(CombinatorialFreeModule):
 
     - ``P`` -- the path semigroup of a quiver `Q`
 
+    - ``order`` -- optional string, one of "negdegrevlex" (default),
+      "degrevlex", "negdeglex" or "deglex", defining the monomial order to be
+      used.
+
     OUTPUT:
 
-    - the path algebra `kP`
+    - the path algebra `kP` with the given monomial order
+
+    NOTE:
+
+    Monomial orders that are not degree orders are not supported.
 
     EXAMPLES::
 
@@ -53,10 +61,13 @@ class PathAlgebra(CombinatorialFreeModule):
         sage: A.variable_names()
         ('e_1', 'e_2', 'e_3', 'a', 'b')
 
-    Note that path algebras are uniquely defined by their quiver and field::
+    Note that path algebras are uniquely defined by their quiver, field and
+    monomial order::
 
         sage: A is P.algebra(GF(7))
         True
+        sage: A is P.algebra(GF(7), order="degrevlex")
+        False
         sage: A is P.algebra(RR)
         False
         sage: A is DiGraph({1:{2:['a']}}).path_semigroup().algebra(GF(7))
@@ -283,6 +294,10 @@ class PathAlgebra(CombinatorialFreeModule):
         # If it's a QuiverPath return the associated basis element
         if isinstance(x, QuiverPath):
             return self.element_class(self, {x: self.base_ring().one()})
+
+        # If it's a scalar, return a multiple of one:
+        if x in self.base_ring():
+            return self.one()*x
 
         # If it's a tuple or a list, try and create a QuiverPath from it and
         # then return the associated basis element

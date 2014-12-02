@@ -108,22 +108,12 @@ cdef inline int negdegrevlex(path_mon_t *M1, path_mon_t *M2):
     c = cmp(M1.mid, M2.mid)
     if c!=0:
         return c
+    # mpn_cmp does comparison of long integers. If the two long integers have
+    # the same number of digits (this is the case her), it is the same as
+    # lexicographic comparison of the numbers. The highest digit corresponds
+    # to the right-most item in the path. Hence, it becomes
+    # reverse-lexicographic order.
     c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
-    if c!=0:
-        return c
-    return cmp(M2.pos, M1.pos)
-
-cdef inline int revlex(path_mon_t *M1, path_mon_t *M2):
-    # Order by
-    # 1. reverse lexicographic ordering
-    # 2. reverse position
-    cdef int c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, min(M1.path.data.limbs, M2.path.data.limbs))
-    if c!=0:
-        return c
-    c = cmp(M1.path.length,M2.path.length)
-    if c!=0:
-        return c
-    c = cmp(M2.mid, M1.mid)
     if c!=0:
         return c
     return cmp(M2.pos, M1.pos)
@@ -139,7 +129,48 @@ cdef inline int degrevlex(path_mon_t *M1, path_mon_t *M2):
     c = cmp(M2.mid, M1.mid)
     if c!=0:
         return c
+    # mpn_cmp does comparison of long integers. If the two long integers have
+    # the same number of digits (this is the case her), it is the same as
+    # lexicographic comparison of the numbers. The highest digit corresponds
+    # to the right-most item in the path. Hence, it becomes
+    # reverse-lexicographic order.
     c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
+    if c!=0:
+        return c
+    return cmp(M2.pos, M1.pos)
+
+cdef inline int negdeglex(path_mon_t *M1, path_mon_t *M2):
+    # Order by
+    # 1. negative degree
+    # 2. lexicographic ordering
+    # 3. reverse position
+    cdef int c = cmp(M2.path.length, M1.path.length)
+    if c:
+        return c
+    cdef mp_size_t index
+    for index from 0 <= index < M1.path.length:
+        c = cmp(biseq_getitem(M1.path, index), biseq_getitem(M2.path, index))
+        if c:
+            return c
+    c = cmp(M2.mid, M1.mid)
+    if c!=0:
+        return c
+    return cmp(M2.pos, M1.pos)
+
+cdef inline int deglex(path_mon_t *M1, path_mon_t *M2):
+    # Order by
+    # 1. degree
+    # 2. lexicographic ordering
+    # 3. reverse position
+    cdef int c = cmp(M1.path.length, M2.path.length)
+    if c:
+        return c
+    cdef mp_size_t index
+    for index from 0 <= index < M1.path.length:
+        c = cmp(biseq_getitem(M1.path, index), biseq_getitem(M2.path, index))
+        if c:
+            return c
+    c = cmp(M2.mid, M1.mid)
     if c!=0:
         return c
     return cmp(M2.pos, M1.pos)
@@ -452,6 +483,14 @@ cdef bint poly_is_sane(path_poly_t *P):
         preinc(count)
         T = T.nxt
     return count == P.nterms
+
+cdef bint poly_is_ordered(path_poly_t *P, path_order_t cmp_terms):
+    cdef path_term_t *T = P.lead
+    while T != NULL:
+        if T.nxt != NULL and cmp_terms(T.mon, T.nxt.mon)!=1:
+            return False
+        T = T.nxt
+    return True
 
 cdef inline list poly_pickle(path_poly_t *P):
     cdef list L = []
