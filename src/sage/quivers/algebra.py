@@ -171,6 +171,25 @@ class PathAlgebra(CombinatorialFreeModule):
         self._assign_names(self._semigroup.variable_names())
 
     def order_string(self):
+        """
+        Return the string that defines the monomial order of this algebra.
+
+        EXAMPLES::
+
+            sage: P1 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
+            sage: P2 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="degrevlex")
+            sage: P3 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="negdeglex")
+            sage: P4 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="deglex")
+            sage: P1.order_string()
+            'negdegrevlex'
+            sage: P2.order_string()
+            'degrevlex'
+            sage: P3.order_string()
+            'negdeglex'
+            sage: P4.order_string()
+            'deglex'
+
+        """
         return self._ordstr
 
     @cached_method
@@ -202,7 +221,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.arrows()
             (a, b, c)
         """
-        return tuple(self._from_dict( {index: self.base_ring().one(), 'order': self._ordstr},
+        return tuple(self._from_dict( {index: self.base_ring().one()},
                                       remove_zeros=False )
                      for index in self._semigroup.arrows())
 
@@ -219,7 +238,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.idempotents()
             (e_1, e_2, e_3, e_4)
         """
-        return tuple(self._from_dict( {index: self.base_ring().one(), 'order': self._ordstr},
+        return tuple(self._from_dict( {index: self.base_ring().one()},
                                       remove_zeros=False )
                      for index in self._semigroup.idempotents())
 
@@ -243,7 +262,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.gen(5)
             b
         """
-        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one(), 'order':self._ordstr},
+        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one()},
                                 remove_zeros = False )
 
     def ngens(self):
@@ -303,6 +322,9 @@ class PathAlgebra(CombinatorialFreeModule):
         # then return the associated basis element
         if isinstance(x, (tuple, list, basestring)):
             return self.element_class(self, {self._semigroup(x): self.base_ring().one()})
+
+        if isinstance(x, dict):
+            return self.element_class(self, x)
 
         # Otherwise let CombinatorialFreeModule try
         return super(PathAlgebra, self)._element_constructor_(x)
@@ -459,7 +481,6 @@ class PathAlgebra(CombinatorialFreeModule):
         """
         one = self.base_ring().one()
         D = dict((index,one) for index in self._semigroup.idempotents())
-        D['order'] = self._ordstr
         return self._from_dict( D )
 
     ###########################################################################
