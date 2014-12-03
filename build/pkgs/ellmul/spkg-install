@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+echo "Configuring ellmul."
+./configure --prefix=$SAGE_LOCAL --with-mpir=$SAGE_LOCAL --with-mpfr=$SAGE_LOCAL --with-flint=$SAGE_LOCAL
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to configure ellmul."
+    exit 1
+fi
+
+echo "Building ellmul."
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to build ellmul."
+    exit 1
+fi
+
+echo "Installing ellmul."
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to install ellmul."
+    exit 1
+fi
+
