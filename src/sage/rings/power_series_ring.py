@@ -127,6 +127,7 @@ import commutative_ring
 import integral_domain
 import field
 import integer
+from sage.symbolic.expression import Expression
 import sage.structure.parent_gens as gens
 from infinity import infinity
 import sage.misc.latex as latex
@@ -724,6 +725,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                 num = self.element_class(self, f.numerator(), prec, check=check)
                 den = self.element_class(self, f.denominator(), prec, check=check)
                 return self.coerce(num/den)
+        elif isinstance(f, Expression) and f.is_series():
+            return self.element_class(self, f.list(),
+                                      f.degree(f.default_variable()), check=check)            
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
