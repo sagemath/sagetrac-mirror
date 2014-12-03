@@ -1,5 +1,5 @@
 """
-A Cython implementation of elements of path algebras.
+Path algebra elements.
 
 AUTHORS:
 
@@ -479,7 +479,7 @@ cdef class PathAlgebraElement(RingElement):
             The monomials are not elements of the underlying partial
             semigroup, but of the algebra.
 
-        .. SEEALSO: :meth:`support`
+        .. SEEALSO:: :meth:`support`
 
         EXAMPLES::
 
@@ -593,7 +593,7 @@ cdef class PathAlgebraElement(RingElement):
             first ordered according to initial and terminal vertices, before
             applying the monomial order of the path algebra.
 
-        .. SEEALSO: :meth:`monomials`
+        .. SEEALSO:: :meth:`monomials`
 
         EXAMPLES::
 
