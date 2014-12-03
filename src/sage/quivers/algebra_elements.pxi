@@ -798,7 +798,7 @@ cdef path_poly_t *poly_sub(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
                 out.lead = term_copy(T1)
                 T = out.lead
             else:
-                T.nxt = term_neg(T1)
+                T.nxt = term_copy(T1)
                 T = T.nxt
             T1 = T1.nxt
             preinc(count1)

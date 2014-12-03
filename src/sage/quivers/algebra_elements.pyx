@@ -60,31 +60,39 @@ cdef class PathAlgebraElement(RingElement):
          (36*e_2, 2, 2)]
 
     For a consistency test, we create a path algebra that is isomorphic to a
-    free associative algebra, and compare arithmetic with the default
-    implementations of free algebras::
+    free associative algebra, and compare arithmetic with two other
+    implementations of free algebras (note that the letterplace implementation
+    only allows weighted homogeneous elements)::
 
         sage: F.<x,y,z> = FreeAlgebra(GF(25,'t'))
-        sage: P = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
         sage: pF = x+y*z*x+2*y-z+1
+        sage: pF2 = x^4+x*y*x*z+2*z^2*x*y
+        sage: P = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
         sage: pP = sage_eval('x+y*z*x+2*y-z+1', P.gens_dict())
         sage: pP^5+3*pP^3 == sage_eval(repr(pF^5+3*pF^3), P.gens_dict())
         True
-        sage: pF2 = x^4+x*y*x*z+2*z^2*x*y
+        sage: L.<x,y,z> = FreeAlgebra(GF(25,'t'), implementation='letterplace')
+        sage: pL2 = x^4+x*y*x*z+2*z^2*x*y
         sage: pP2 = sage_eval('x^4+x*y*x*z+2*z^2*x*y', P.gens_dict())
         sage: pP2^7 == sage_eval(repr(pF2^7), P.gens_dict())
         True
+        sage: pP2^7 == sage_eval(repr(pL2^7), P.gens_dict())
+        True
 
     When the Cython implementation of path algebra elements was introduced, it
-    was vastly faster than the default implementation of free algebras::
+    was faster than the default implementation of free algebras, but slower
+    than the letterplace implementation::
 
-        sage: timeit('pF^5+3*pF^3')    # random
+        sage: timeit('pF^5+3*pF^3')    # not tested
         1 loops, best of 3: 344 ms per loop
-        sage: timeit('pP^5+3*pP^3')    # random
+        sage: timeit('pP^5+3*pP^3')    # not tested
         100 loops, best of 3: 3.63 ms per loop
-        sage: timeit('pF2^7')          # random
-        10000 loops, best of 3: 526 ms per loop
-        sage: timeit('pP2^7')          # random
-        10000 loops, best of 3: 23.9 ms per loop
+        sage: timeit('pF2^7')          # not tested
+        10000 loops, best of 3: 505 ms per loop
+        sage: timeit('pL2^7')          # not tested
+        125 loops, best of 3: 2.04 ms per loop
+        sage: timeit('pP2^7')          # not tested
+        10000 loops, best of 3: 22.7 ms per loop
 
     """
     def __cinit__(self, *args, **kwds):
@@ -1153,7 +1161,7 @@ cdef class PathAlgebraElement(RingElement):
             sage: x = b*e*b*e+4*b*e+1
             sage: y = a*c-1  # indirect doctest
             sage: x-y        # indirect doctest
-            2*e_0 + 2*b*e + 2*a*c + b*e*b*e
+            2*e_0 + b*e + 2*a*c + b*e*b*e
 
         """
         cdef PathAlgebraElement right = other
