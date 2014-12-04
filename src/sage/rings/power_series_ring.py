@@ -127,6 +127,7 @@ import commutative_ring
 import integral_domain
 import field
 import integer
+from sage.symbolic.expression import Expression
 import sage.structure.parent_gens as gens
 from infinity import infinity
 import sage.misc.latex as latex
@@ -694,6 +695,20 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             1 - x + x^2 - x^3 + x^4 + O(x^5)
             sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'x')(x).coefficients()
             [x]
+            
+        Conversion from symbolic series::
+        
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: y=var('y')
+            sage: ex=(1/(1-y)).series(y,6); R(ex)
+            1 + x + x^2 + x^3 + x^4 + x^5 + O(x^6)
+            sage: ex=(sin(y)).series(y,6); R(ex)
+            x - 1/6*x^3 + 1/120*x^5 + O(x^6)
+            sage: R.<x> = PowerSeriesRing(SR)
+            sage: ex=(log(2-y)).series(y,4); R(ex)
+            log(2) - 1/2*x - 1/8*x^2 - 1/24*x^3 + O(x^4)
+            sage: ex=(gamma(1-y)).series(y,3); R(ex)
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
 
         Laurent series with non-negative valuation are accepted (see
         :trac:`6431`)::
@@ -724,6 +739,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                 num = self.element_class(self, f.numerator(), prec, check=check)
                 den = self.element_class(self, f.denominator(), prec, check=check)
                 return self.coerce(num/den)
+        elif isinstance(f, Expression) and f.is_series():
+            return self.element_class(self, f.list(),
+                                      f.degree(f.default_variable()), check=check)            
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
