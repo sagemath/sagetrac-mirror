@@ -8471,6 +8471,11 @@ cdef class Expression(CommutativeRingElement):
             sum(abs(-k^2 + 8), k, 1, 8)
             sage: ex.simplify_sum()
             162
+            sage: f(x,k) = sum((2/n)*(sin(n*x)*(-1)^(n+1)), n, 1, k)
+            sage: f(x,2)
+            -2*sum((-1)^n*sin(n*x)/n, n, 1, 2)
+            sage: f(x,2).simplify_sum()
+            -sin(2*x) + 2*sin(x)
         """
         return self.parent()(self._maxima_().simplify_sum())
 
