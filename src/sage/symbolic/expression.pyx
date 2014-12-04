@@ -5784,14 +5784,24 @@ cdef class Expression(CommutativeRingElement):
             -4913/27 + 289/9*theta - 17/9*theta^2 + 2602/27*theta^3 + O(theta^4)
             sage: g.parent()
             Power Series Ring in theta over Rational Field
+            sage: ex=(gamma(1-x)).series(x,3); ex
+            1 + (euler_gamma)*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
+            sage: g=ex.power_series(SR); g
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
+            sage: g.parent()
+            Power Series Ring in x over Symbolic Ring
         """
-        v = self.variables()
-        if len(v) != 1:
-            raise ValueError("self must be a polynomial in one variable but it is in the variables %s" % tuple([v]))
-        f = self.polynomial(base_ring)
         from sage.rings.all import PowerSeriesRing
-        R = PowerSeriesRing(base_ring, names=f.parent().variable_names())
-        return R(f, f.degree()+1)
+        if self.is_series():
+            R = PowerSeriesRing(base_ring, names=str(self.default_variable()))
+            return R(self.list(), self.degree(self.default_variable()))
+        else:
+            v = self.variables()
+            if len(v) != 1:
+                raise ValueError("self must be a polynomial in one variable but it is in the variables %s" % tuple([v]))
+            f = self.polynomial(base_ring)
+            R = PowerSeriesRing(base_ring, names=f.parent().variable_names())
+            return R(f, f.degree()+1)
 
     def gcd(self, b):
         """
