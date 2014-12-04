@@ -40,7 +40,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1
 cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
-cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0
+cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2
 cdef size_t biseq_getitem(biseq_t S, mp_size_t index)
 cdef biseq_getitem_py(biseq_t S, mp_size_t index)
@@ -50,7 +50,6 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
 
 cdef class BoundedIntegerSequence:
     cdef biseq_t data
-    cdef str str(self)
     cpdef bint startswith(self, BoundedIntegerSequence other)
     cpdef list list(self)
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other)
