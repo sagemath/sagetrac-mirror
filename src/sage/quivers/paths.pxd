@@ -1,5 +1,5 @@
 from sage.structure.element cimport MonoidElement, Element
-from sage.data_structures.bounded_integer_sequences cimport biseq_t, biseq_dealloc, biseq_getitem, biseq_init_concat, biseq_startswith, biseq_contains, biseq_max_overlap, biseq_init_slice, biseq_init_list
+from sage.data_structures.bounded_integer_sequences cimport *
 from sage.libs.gmp.types cimport *
 from sage.libs.gmp.mpn cimport mpn_cmp
 
