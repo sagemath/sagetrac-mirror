@@ -472,41 +472,6 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(1/k^5, k, 1, oo)
         zeta(5)
 
-    .. WARNING::
-    
-        This function only works with symbolic expressions. To sum any
-        other objects like list elements or function return values,
-        please use python summation, see
-        http://docs.python.org/library/functions.html#sum
-
-        In particular, this does not work::
-        
-            sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert x (=n) to an integer
-            
-        Use python ``sum()`` instead::
-        
-            sage: sum(list[n] for n in range(4))
-            10
-            
-        Also, only a limited number of functions are recognized in symbolic sums::
-        
-            sage: sum(valuation(n,2),n,1,5)
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-            
-        Again, use python ``sum()``::
-        
-            sage: sum(valuation(n+1,2) for n in range(5))
-            3
-            
-        (now back to the Sage ``sum`` examples)
-
     A well known binomial identity::
 
         sage: symbolic_sum(binomial(n,k), k, 0, n)
@@ -762,7 +727,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.00000000000006, 5.329070518200754e-12, 21, 0)
+        (-480.0000000000001, 5.329070518200754e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -1008,7 +973,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                         error = abs(g(aa))
                         if error < expected_error:
                             # See if we can prove equality exactly
-                            if g(ex).simplify_trig().simplify_radical() == 0:
+                            if g(ex).simplify_trig().canonicalize_radical() == 0:
                                 return g
                             # Otherwise fall back to numerical guess
                             elif epsilon and error < epsilon:

@@ -433,7 +433,7 @@ def test_relation_maxima(relation):
         return True
 
     #Try to apply some simplifications to see if left - right == 0
-    simp_list = [difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+    simp_list = [difference.simplify_log, difference.simplify_rational,difference.canonicalize_radical,difference.simplify_trig]
     for f in simp_list:
         try:
             if repr( f() ).strip() == "0":
@@ -545,7 +545,7 @@ def solve(f, *args, **kwds):
     underlying algorithm in Maxima::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
-        ([x == 0, y == 0], [x == (0.30901699437494745 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
+        ([x == 0, y == 0], [x == (0.3090169943749475 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
@@ -615,7 +615,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z..., y == -1/4*pi - pi*z...]]
+        [[x == 1/4*pi + pi*z79, y == -1/4*pi - pi*z79]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::

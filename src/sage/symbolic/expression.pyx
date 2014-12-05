@@ -146,9 +146,9 @@ from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
 
 # a small overestimate of log(10,2)
@@ -858,7 +858,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             n = self.pyobject()
         except TypeError:
-            raise TypeError("unable to convert x (=%s) to an integer" % self)
+            raise TypeError("unable to convert %r to an integer" % self)
         if isinstance(n, sage.rings.integer.Integer):
             return n
         return sage.rings.integer.Integer(n)
@@ -5579,13 +5579,13 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
             sage: R(x^2 + y)
             x^2 + y
-            sage: R = QQ[w]
+            sage: R = QQ['w']
             sage: R(w^3 + w + 1)
             w^3 + w + 1
-            sage: R = GF(7)[z]
+            sage: R = GF(7)['z']
             sage: R(z^3 + 10*z)
             z^3 + 3*z
 
@@ -5596,7 +5596,7 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: R = SR[x]
+            sage: R = SR['x']
             sage: a = R(sqrt(2) + x^3 + y)
             sage: a
             x^3 + y + sqrt(2)
@@ -5609,13 +5609,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
             pi*y^3 + x^3*e + sqrt(2) + I
-            sage: R = CDF[x,y]
+            sage: R = CDF['x,y']
             sage: R(f)
-             2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
+            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::
 
-            sage: R = ComplexField(100)[x,y]
+            sage: R = ComplexField(100)['x,y']
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
 
@@ -6560,6 +6560,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.4).arccos()
             1.15927948072741
             sage: plot(lambda x: SR(x).arccos(), -1,1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -6611,6 +6612,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.5).arctan()
             0.463647609000806
             sage: plot(lambda x: SR(x).arctan(), -20,20)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -6882,6 +6884,7 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('tanh(1.0)')
             0.7615941559557649
             sage: plot(lambda x: SR(x).tanh(), -1, 1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7161,6 +7164,7 @@ cdef class Expression(CommutativeRingElement):
             sage: math.log(0.5)
             -0.6931471805599453
             sage: plot(lambda x: SR(x).log(), 0.1,10)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7467,6 +7471,7 @@ cdef class Expression(CommutativeRingElement):
             sage: math.exp(0.5)
             1.6487212707001282
             sage: plot(lambda x: (SR(x).exp() - SR(-x).exp())/2 - SR(x).sinh(), -1, 1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -8000,8 +8005,8 @@ cdef class Expression(CommutativeRingElement):
         .. seealso::
 
            :meth:`simplify_full`, :meth:`simplify_trig`,
-           :meth:`simplify_rational`, :meth:`simplify_radical`,
-           :meth:`simplify_factorial`, :meth:`simplify_log`
+           :meth:`simplify_rational`, :meth:`simplify_factorial`,
+           :meth:`simplify_log`, :meth:`canonicalize_radical`
 
         EXAMPLES::
 
@@ -8094,7 +8099,7 @@ cdef class Expression(CommutativeRingElement):
         Simplify an expression containing hypergeometric functions.
 
         INPUT:
- 
+
         - ``algorithm`` -- (default: ``'maxima'``) the algorithm to use for
           for simplification. Implemented are ``'maxima'``, which uses Maxima's
           ``hgfred`` function, and ``'sage'``, which uses an algorithm
@@ -8444,78 +8449,147 @@ cdef class Expression(CommutativeRingElement):
 
     factorial_simplify = simplify_factorial
 
-    def simplify_radical(self):
+    def canonicalize_radical(self):
         r"""
-        Simplify this symbolic expression, which can contain logs,
-        exponentials, and radicals, by trying to convert it into a canonical
-        form over a large class of expressions and a given ordering of
-        variables.
+        Choose a canonical branch of the given expression. The square
+        root, cube root, natural log, etc. functions are multi-valued. The
+        ``canonicalize_radical()`` method will choose *one* of these values
+        based on a heuristic.
+
+        For example, ``sqrt(x^2)`` has two values: ``x``, and
+        ``-x``. The ``canonicalize_radical()`` function will choose
+        *one* of them, consistently, based on the behavior of the
+        expression as ``x`` tends to positive infinity. The solution
+        chosen is the one which exhibits this same behavior. Since
+        ``sqrt(x^2)`` approaches positive infinity as ``x`` does, the
+        solution chosen is ``x`` (which also tends to positive
+        infinity).
 
         .. WARNING::
 
             As shown in the examples below, a canonical form is not always
             returned, i.e., two mathematically identical expressions might
-            be simplified to different expressions.
+            be converted to different expressions.
+
+            Assumptions are not taken into account during the
+            transformation. This may result in a branch choice
+            inconsistent with your assumptions.
 
         ALGORITHM:
 
         This uses the Maxima ``radcan()`` command. From the Maxima
-        documentation: "All functionally equivalent forms are mapped into a
-        unique form. For a somewhat larger class of expressions, produces a
-        regular form. Two equivalent expressions in this class do not
-        necessarily have the same appearance, but their difference can be
-        simplified by radcan to zero. For some expressions radcan is quite
-        time consuming. This is the cost of exploring certain relationships
-        among the components of the expression for simplifications based on
-        factoring and partial fraction expansions of exponents."
+        documentation:
 
-        .. NOTE::
+        .. pull-quote::
 
-            :meth:`radical_simplify`, :meth:`simplify_radical`,
-            :meth:`exp_simplify`, :meth:`simplify_exp` are all the same.
+            Simplifies an expression, which can contain logs,
+            exponentials, and radicals, by converting it into a form
+            which is canonical over a large class of expressions and a
+            given ordering of variables; that is, all functionally
+            equivalent forms are mapped into a unique form. For a
+            somewhat larger class of expressions, radcan produces a
+            regular form. Two equivalent expressions in this class do
+            not necessarily have the same appearance, but their
+            difference can be simplified by radcan to zero.
 
-        EXAMPLES::
+            For some expressions radcan is quite time consuming. This
+            is the cost of exploring certain relationships among the
+            components of the expression for simplifications based on
+            factoring and partial fraction expansions of exponents.
 
-            sage: var('x,y,a')
-            (x, y, a)
+        EXAMPLES:
 
-        ::
+        ``canonicalize_radical()`` can perform some of the same
+        manipulations as :meth:`log_expand`::
 
+            sage: y = SR.symbol('y')
             sage: f = log(x*y)
-            sage: f.simplify_radical()
+            sage: f.log_expand()
+            log(x) + log(y)
+            sage: f.canonicalize_radical()
             log(x) + log(y)
 
-        ::
+        And also handles some exponential functions::
+
+            sage: f = (e^x-1)/(1+e^(x/2))
+            sage: f.canonicalize_radical()
+            e^(1/2*x) - 1
+
+        It can also be used to change the base of a logarithm when the
+        arguments to ``log()`` are positive real numbers::
 
             sage: f = log(8)/log(2)
-            sage: f.simplify_radical()
+            sage: f.canonicalize_radical()
             3
 
         ::
 
+            sage: a = SR.symbol('a')
             sage: f = (log(x+x^2)-log(x))^a/log(1+x)^(a/2)
-            sage: f.simplify_radical()
+            sage: f.canonicalize_radical()
             log(x + 1)^(1/2*a)
 
-        ::
+        The simplest example of counter-intuitive behavior is what
+        happens when we take the square root of a square::
 
-            sage: f = (e^x-1)/(1+e^(x/2))
-            sage: f.simplify_exp()
-            e^(1/2*x) - 1
+            sage: sqrt(x^2).canonicalize_radical()
+            x
+
+        If you don't want this kind of "simplification," don't use
+        ``canonicalize_radical()``.
+
+        This behavior can also be triggered when the expression under
+        the radical is not given explicitly as a square::
+
+            sage: sqrt(x^2 - 2*x + 1).canonicalize_radical()
+            x - 1
+
+        Another place where this can become confusing is with
+        logarithms of complex numbers. Suppose ``x`` is complex with
+        ``x == r*e^(I*t)`` (``r`` real). Then ``log(x)`` is
+        ``log(r) + I*(t + 2*k*pi)`` for some integer ``k``.
+
+        Calling ``canonicalize_radical()`` will choose a branch,
+        eliminating the solutions for all choices of ``k`` but
+        one. Simplified by hand, the expression below is
+        ``(1/2)*log(2) + I*pi*k`` for integer ``k``. However,
+        ``canonicalize_radical()`` will take each log expression, and
+        choose one particular solution, dropping the other. When the
+        results are subtracted, we're left with no imaginary part::
+
+            sage: f = (1/2)*log(2*x) + (1/2)*log(1/x)
+            sage: f.canonicalize_radical()
+            1/2*log(2)
+
+        Naturally the result is wrong for some choices of ``x``::
+
+            sage: f(x = -1)
+            I*pi + 1/2*log(2)
 
         The example below shows two expressions e1 and e2 which are
-        "simplified" to different expressions, while their difference is
-        "simplified" to zero, thus ``simplify_radical`` does not return a
-        canonical form, except maybe for 0. ::
+        "simplified" to different expressions, while their difference
+        is "simplified" to zero; thus ``canonicalize_radical()`` does
+        not return a canonical form::
 
             sage: e1 = 1/(sqrt(5)+sqrt(2))
             sage: e2 = (sqrt(5)-sqrt(2))/3
-            sage: e1.simplify_radical()
+            sage: e1.canonicalize_radical()
             1/(sqrt(5) + sqrt(2))
-            sage: e2.simplify_radical()
+            sage: e2.canonicalize_radical()
             1/3*sqrt(5) - 1/3*sqrt(2)
-            sage: (e1-e2).simplify_radical()
+            sage: (e1-e2).canonicalize_radical()
             0
+
+        The issue reported in :trac:`3520` is a case where
+        ``canonicalize_radical()`` causes a numerical integral to be
+        calculated incorrectly::
+
+            sage: f1 = sqrt(25 - x) * sqrt( 1 + 1/(4*(25-x)) )
+            sage: f2 = f1.canonicalize_radical()
+            sage: numerical_integral(f1.real(), 0, 1)[0] # abs tol 1e-10
+            4.974852579915647
+            sage: numerical_integral(f2.real(), 0, 1)[0] # abs tol 1e-10
+            -4.974852579915647
 
         TESTS:
 
@@ -8523,19 +8597,47 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a,b = var('a b')
             sage: A = abs((a+I*b))^2
-            sage: A.simplify_radical()
+            sage: A.canonicalize_radical()
             abs(a + I*b)^2
             sage: imag(A)
             0
-            sage: imag(A.simplify_radical())
+            sage: imag(A.canonicalize_radical())
             0
+
+        Ensure that deprecation warnings are thrown for the old
+        "simplify" aliases::
+
+            sage: x.simplify_radical()
+            doctest...: DeprecationWarning: simplify_radical is deprecated. Please use canonicalize_radical instead.
+            See http://trac.sagemath.org/11912 for details.
+            x
+            sage: x.radical_simplify()
+            doctest...: DeprecationWarning: radical_simplify is deprecated. Please use canonicalize_radical instead.
+            See http://trac.sagemath.org/11912 for details.
+            x
+            sage: x.simplify_exp()
+            doctest...: DeprecationWarning: simplify_exp is deprecated. Please use canonicalize_radical instead.
+            See http://trac.sagemath.org/11912 for details.
+            x
+            sage: x.exp_simplify()
+            doctest...: DeprecationWarning: exp_simplify is deprecated. Please use canonicalize_radical instead.
+            See http://trac.sagemath.org/11912 for details.
+            x
+
         """
         from sage.calculus.calculus import maxima
         res = self.parent()(self._maxima_().radcan())
         return res
 
-    radical_simplify = simplify_radical
-    simplify_exp = exp_simplify = simplify_radical
+    # Repeat the deprecated_function_alias() call so that each use of
+    # an alias below will throw a new warning. If we set
+    # e.g. radical_simplify = simplify_radical, we'd only get one
+    # warning from a use of simplify_radical followed by a use of
+    # radical_simplify.
+    simplify_radical = deprecated_function_alias(11912, canonicalize_radical)
+    radical_simplify = deprecated_function_alias(11912, canonicalize_radical)
+    simplify_exp = deprecated_function_alias(11912, canonicalize_radical)
+    exp_simplify = deprecated_function_alias(11912, canonicalize_radical)
 
     def simplify_log(self,algorithm=None):
         r"""
@@ -9341,10 +9443,8 @@ cdef class Expression(CommutativeRingElement):
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
-            
-            
             sage: solve(cos(x)==0, x, to_poly_solve='force')
-            [x == 1/2*pi + pi*z...]
+            [x == 1/2*pi + pi*z77]
 
         The same may also apply if a returned unsolved expression has a
         denominator, but the original one did not::
@@ -9437,6 +9537,15 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: (1, 2) are not valid variables.
+
+        :trac:`17128`: fixed::
+
+            sage: var('x,y')
+            (x, y)
+            sage: f = x+y
+            sage: sol = f.solve([x, y], solution_dict=True)
+            sage: sol[0].get(x) + sol[0].get(y)
+            0
 
         :trac:`16651` fixed::
 
@@ -9572,7 +9681,11 @@ cdef class Expression(CommutativeRingElement):
                         continue
 
         if solution_dict:
-            X = [dict([[sol.left(), sol.right()]]) for sol in X]
+            if isinstance(x, (list, tuple)):
+                X = [{sol.left():sol.right() for sol in b} for b in X]
+            else:
+                X = [dict([[sol.left(),sol.right()]]) for sol in X]
+
         if multiplicities:
             return X, ret_multiplicities
         else:
@@ -9662,7 +9775,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a.solve(t)
             []
-            sage: b = a.simplify_radical(); b
+            sage: b = a.canonicalize_radical(); b
             -23040*(-2.0*e^(1800*t) + 25.0*e^(900*t) - 32.0)*e^(-2400*t)
             sage: b.solve(t)
             []
@@ -9847,16 +9960,19 @@ cdef class Expression(CommutativeRingElement):
         This displays a straight line::
 
             sage: sin(2).plot((x,0,3))
+            Graphics object consisting of 1 graphics primitive
 
         This draws a red oscillatory curve::
 
             sage: sin(x^2).plot((x,0,2*pi), rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
 
         Another plot using the variable theta::
 
             sage: var('theta')
             theta
             sage: (cos(theta) - erf(theta)).plot((theta,-2*pi,2*pi))
+            Graphics object consisting of 1 graphics primitive
 
         A very thick green plot with a frame::
 
@@ -9865,6 +9981,7 @@ cdef class Expression(CommutativeRingElement):
         You can embed 2d plots in 3d space as follows::
 
             sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+            Graphics3d Object
 
         A more complicated family::
 
@@ -9874,6 +9991,7 @@ cdef class Expression(CommutativeRingElement):
         A plot involving the floor function::
 
             sage: plot(1.0 - x * floor(1/x), (x,0.00001,1.0))
+            Graphics object consisting of 1 graphics primitive
 
         Sage used to allow symbolic functions with "no arguments";
         this no longer works::
@@ -9886,11 +10004,13 @@ cdef class Expression(CommutativeRingElement):
         You should evaluate the function first::
 
             sage: plot(2*sin(x), -4, 4)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: f(x) = x*(1 - x)
             sage: plot(f,0,1)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.symbolic.callable import is_CallableSymbolicExpression
         from sage.symbolic.ring import is_SymbolicVariable
@@ -9953,6 +10073,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
+            Graphics object consisting of 1 graphics primitive
 
         Check that :trac:`15030` is fixed::
 
@@ -9960,6 +10081,7 @@ cdef class Expression(CommutativeRingElement):
             3.52985761682672
             sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
             sage: plot(abs(f(x)), 0,5)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.ext.fast_callable import fast_callable
         return fast_callable(self, vars=vars, expect_one_var=True)
@@ -10010,41 +10132,6 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/k^5).sum(k, 1, oo)
             zeta(5)
 
-        .. WARNING::
-        
-            This function only works with symbolic expressions. To sum any
-            other objects like list elements or function return values,
-            please use python summation, see
-            http://docs.python.org/library/functions.html#sum
-
-            In particular, this does not work::
-            
-                sage: n = var('n')
-                sage: list=[1,2,3,4,5]
-                sage: sum(list[n],n,0,3)
-                Traceback (most recent call last):
-                ...
-                TypeError: unable to convert x (=n) to an integer
-                
-            Use python ``sum()`` instead::
-            
-                sage: sum(list[n] for n in range(4))
-                10
-                
-            Also, only a limited number of functions are recognized in symbolic sums::
-            
-                sage: sum(valuation(n,2),n,1,5)
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-                
-            Again, use python ``sum()``::
-            
-                sage: sum(valuation(n+1,2) for n in range(5))
-                3
-                
-            (now back to the Sage ``sum`` examples)
-    
         A well known binomial identity::
 
             sage: assume(n>=0)
