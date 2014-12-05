@@ -3560,7 +3560,28 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
-
+    
+    def series_variable(self):
+        """
+        Return the expansion variable of this symbolic series.
+        
+        EXAMPLES::
+        
+            sage: s=(1/(1-x)).series(x,3); s
+            1 + 1*x + 1*x^2 + Order(x^3)
+            sage: s.series_variable()
+            x
+            sage: x.series_variable()
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a series.
+        """
+        cdef GEx x = g_series_var(self._gobj)
+        cdef Expression ex = new_Expression_from_GEx(self._parent, x)
+        if ex.is_zero():
+            raise TypeError("Not a series.")
+        return ex
+        
     def residue(self, symbol):
         """
         Calculate the residue of ``self`` with respect to ``symbol``.

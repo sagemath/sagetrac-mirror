@@ -698,17 +698,16 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             
         Conversion from symbolic series::
         
+            sage: x,y = var('x,y')
+            sage: s=(1/(1-x)).series(x,3); s
+            1 + 1*x + 1*x^2 + Order(x^3)
             sage: R.<x> = PowerSeriesRing(QQ)
-            sage: y=var('y')
-            sage: ex=(1/(1-y)).series(y,6); R(ex)
-            1 + x + x^2 + x^3 + x^4 + x^5 + O(x^6)
-            sage: ex=(sin(y)).series(y,6); R(ex)
-            x - 1/6*x^3 + 1/120*x^5 + O(x^6)
-            sage: R.<x> = PowerSeriesRing(SR)
-            sage: ex=(log(2-y)).series(y,4); R(ex)
-            log(2) - 1/2*x - 1/8*x^2 - 1/24*x^3 + O(x^4)
-            sage: ex=(gamma(1-y)).series(y,3); R(ex)
-            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
+            sage: R(s)
+            1 + x + x^2 + O(x^3)
+            sage: ex=(gamma(1-y)).series(y,3)
+            sage: R.<y> = PowerSeriesRing(SR)
+            sage: R(ex)
+            1 + euler_gamma*y + (1/2*euler_gamma^2 + 1/12*pi^2)*y^2 + O(y^3)
 
         Laurent series with non-negative valuation are accepted (see
         :trac:`6431`)::
@@ -740,8 +739,11 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                 den = self.element_class(self, f.denominator(), prec, check=check)
                 return self.coerce(num/den)
         elif isinstance(f, Expression) and f.is_series():
-            return self.element_class(self, f.list(),
-                                      f.degree(f.default_variable()), check=check)            
+            if str(f.series_variable()) is self.variable_name():
+                return self.element_class(self, f.list(),
+                                      f.degree(f.series_variable()), check=check)
+            else:
+                raise TypeError("Can only convert series into ring with same variable name.")            
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
