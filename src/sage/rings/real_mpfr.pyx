@@ -135,7 +135,6 @@ import  sage.structure.element
 cdef bin_op
 from sage.structure.element import bin_op
 
-import sage.misc.misc as misc
 import sage.misc.weak_dict
 
 import operator
@@ -1463,7 +1462,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef int wordsize
 
-        if sage.misc.misc.is_64_bit:
+        from sage.misc.all import is_64_bit
+        if is_64_bit:
             wordsize = 64
         else:
             wordsize = 32

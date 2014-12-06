@@ -12,7 +12,6 @@ Utility functions for libGAP
 ###############################################################################
 
 from sage.env import SAGE_LOCAL
-from sage.misc.misc import is_64_bit
 from libc.stdint cimport uintptr_t
 from element cimport *
 
