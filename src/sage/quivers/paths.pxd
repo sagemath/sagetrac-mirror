@@ -1,16 +1,5 @@
 from sage.structure.element cimport MonoidElement, Element
-from sage.data_structures.bounded_integer_sequences cimport *
-from sage.libs.gmp.types cimport *
-from sage.libs.gmp.mpn cimport mpn_cmp
-
-include "sage/ext/python.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
-
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
+from sage.data_structures.bounded_integer_sequences cimport biseq_t
 
 cdef class QuiverPath(MonoidElement):
     cdef biseq_t _path

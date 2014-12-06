@@ -18,10 +18,15 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.data_structures.bounded_integer_sequences cimport *
+from sage.libs.gmp.mpn cimport mpn_cmp
+from cpython.slice cimport PySlice_Check
+from cython.operator cimport dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
+
+include "sage/ext/interrupt.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 from sage.rings.integer_ring import ZZ
-from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -405,7 +410,7 @@ cdef class QuiverPath(MonoidElement):
         cdef int start, stop, step
         cdef unsigned int init, end
         cdef QuiverPath OUT
-        if PySlice_Check(<PyObject *>index):
+        if PySlice_Check(index):
             start,stop,step = index.indices(self._path.length)
             if step!=1:
                 raise ValueError("Slicing only possible for step 1")
@@ -760,6 +765,8 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
     out._path.mask_item = limb_lower_bits_up(itembitsize)
     out._path.length = length
     if length>0:
+        sig_on()
         bitset_init(out._path.data, 1)
         bitset_unpickle(out._path.data, bitset_data)
+        sig_off()
     return out
