@@ -1180,7 +1180,7 @@ class Func_legendre_P(OrthogonalPolynomial):
         
         EXAMPLES::
             
-            sage: legendre_P(1/2, I+1)
+            sage: legendre_P(1/2, I+1.)
             1.05338240025858 + 0.359890322109665*I
             sage: legendre_P(1/2, I+1, hold=True)
             legendre_P(1/2, I + 1)
@@ -1188,6 +1188,10 @@ class Func_legendre_P(OrthogonalPolynomial):
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'pari':
             return self.eval_pari(n, x)
+        elif algorithm == 'recursive':
+            return self.eval_recursive(n, x)
+        elif algorithm == 'maxima':
+            return self._maxima_init_evaled_(n, x)
         
         if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
             ret = self._eval_(n, x, *args, **kwds)
@@ -1208,13 +1212,9 @@ class Func_legendre_P(OrthogonalPolynomial):
             x
             sage: legendre_P(4, x+1)
             35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
-            sage: legendre_P(1/2, I+1)
+            sage: legendre_P(1/2, I+1.)
             1.05338240025858 + 0.359890322109665*I
         """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'pari':
-            return self.eval_pari(n, x)
-
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
@@ -1222,8 +1222,6 @@ class Func_legendre_P(OrthogonalPolynomial):
             ret = self.eval_pari(n, x)
             if ret is not None:
                 return ret
-        if SR(x).is_numeric() and SR(n).is_numeric():
-            return self._evalf_(n, x, **kwds)
 
     def _eval_special_values_(self, n, x):
         """
@@ -1252,7 +1250,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: legendre_P(1/2, I+1).n()
             1.05338240025858 + 0.359890322109665*I
             sage: legendre_P(1/2, I+1).n(59)
-            1.0533824002585803 + 0.35989032210966537*I
+            1.0533824002585801 + 0.35989032210966539*I
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
@@ -1369,7 +1367,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
         
         EXAMPLES::
             
-            sage: legendre_Q(1/2, I+1)
+            sage: legendre_Q(1/2, I+1.)
             -0.511424110789061 + 1.34356195297194*I
             sage: legendre_Q(1/2, I+1, hold=True)
             legendre_Q(1/2, I + 1)
@@ -1377,7 +1375,9 @@ class Func_legendre_Q(OrthogonalPolynomial):
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'maxima':
             return self._maxima_init_evaled_(n, x)
-        
+        elif algorithm == 'recursive':
+            return self.eval_recursive(n, x)
+
         if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
             ret = self._eval_(n, x, *args, **kwds)
             if ret is not None:
@@ -1397,7 +1397,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
             -8/15
             sage: legendre_Q(2,2*x)
             1/4*(12*x^2 - 1)*(log(2*x + 1) - log(-2*x + 1)) - 3*x
-            sage: legendre_Q(1/2, I+1)
+            sage: legendre_Q(1/2, I+1.)
             -0.511424110789061 + 1.34356195297194*I
 
         NOTE::
@@ -1405,19 +1405,11 @@ class Func_legendre_Q(OrthogonalPolynomial):
             Maxima (``algorithm='maxima'``) will output the complex
             conjugate of the correct result, see :trac:`16813`.
         """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, x)
-        if algorithm == 'recursive':
-            return self.eval_recursive(n, x)
-
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
         if n in ZZ and not SR(x).is_numeric():
             return self.eval_formula(n, x)
-        if SR(x).is_numeric() and SR(n).is_numeric():
-            return self._evalf_(n, x, **kwds)
 
     def _maxima_init_evaled_(self, n, x):
         """
@@ -1471,9 +1463,9 @@ class Func_legendre_Q(OrthogonalPolynomial):
         
         EXAMPLES::
             
-            sage: legendre_Q(4, 2)
+            sage: legendre_Q(4, 2.)
             0.00116107583162041 - 86.9828465962674*I
-            sage: legendre_Q(1/2, I+1)
+            sage: legendre_Q(1/2, I+1.)
             -0.511424110789061 + 1.34356195297194*I
             sage: legendre_Q(1/2, I+1).n(59)
             -0.51142411078906080 + 1.3435619529719394*I
@@ -1639,10 +1631,10 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
         
         EXAMPLES::
         
-            sage: gen_legendre_P(3,2,I+1)
-            45.0000000000000 - 15.0000000000000*I
-            sage: gen_legendre_P(3,2,I+1,hold=True)
-            gen_legendre_P(3, 2, I + 1)
+            sage: gen_legendre_P(2,1,x)
+            -3*sqrt(-x^2 + 1)*x
+            sage: gen_legendre_P(2,1,x,hold=True)
+            gen_legendre_P(2, 1, x)
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'maxima':
@@ -1667,13 +1659,9 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
             sage: gen_legendre_P(3,2,x)
             -15*(x^2 - 1)*x
-            sage: gen_legendre_P(3,2,2.)
+            sage: gen_legendre_P(3,2,2).n() # abs tol 1e-14
             -90.0000000000000
         """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, m, x)
-
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
             return ret
@@ -1681,8 +1669,6 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             and n >= 0 and m >= 0
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_poly(n, m, x)
-        if SR(x).is_numeric() and SR(n).is_numeric() and SR(m).is_numeric():
-            return self._evalf_(n, m, x, **kwds)
 
     def _maxima_init_evaled_(self, n, m, x):
         """
@@ -1740,9 +1726,9 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
         
         EXAMPLES::
             
-            sage: gen_legendre_P(10,2,3.)
+            sage: gen_legendre_P(10,2,3).n() # abs tol 1e-14
             -7.19496360000000e8
-            sage: gen_legendre_P(5/2,2,1+I)
+            sage: gen_legendre_P(5/2,2,1.+I)
             14.3165258449040 - 12.7850496155152*I
             sage: gen_legendre_P(5/2,2,ComplexField(70)(1+I))
             14.316525844904028532 - 12.785049615515157033*I
@@ -1861,10 +1847,6 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
             sage: gen_legendre_Q(2,1,3,algorithm='maxima')
             -3*sqrt(-2)*(3*I*pi + 3*log(2)) + 25/4*sqrt(-2)
         """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, m, x)
-
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
             return ret
@@ -1872,8 +1854,6 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
             and n >= 0 and m >= 0
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_recursive(n, m, x)
-        if SR(x).is_numeric() and SR(n).is_numeric() and SR(m).is_numeric():
-            return self._evalf_(n, m, x, **kwds)
 
     def _maxima_init_evaled_(self, n, m, x):
         """
