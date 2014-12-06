@@ -576,7 +576,7 @@ cdef class QuiverPath(MonoidElement):
         if self._parent is not P._parent:
             return (None, None, None)
         cdef int i
-        i = biseq_start_of_overlap(self._path, P._path, 0)
+        i = biseq_startswith_tail(P._path, self._path, 0)
         if i==-1:
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
