@@ -714,7 +714,7 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        return NewBISEQ, (bitset_pickle(self.data.data) if self.data.length>0 else (), self.data.itembitsize, self.data.length)
+        return NewBISEQ, (bitset_pickle(self.data.data), self.data.itembitsize, self.data.length)
 
     def __len__(self):
         """
@@ -1357,7 +1357,7 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
     # bitset_unpickle assumes that out.data.data is initialised.
     biseq_init(out.data, length, itembitsize)
     sig_on()
-    if bitset_data: bitset_unpickle(out.data.data, bitset_data)
+    bitset_unpickle(out.data.data, bitset_data)
     sig_off()
     return out
 
