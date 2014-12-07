@@ -1581,15 +1581,18 @@ cdef class Matrix(matrix0.Matrix):
 
     def delete_columns(self, dcols, check=True):
         """
-        Return the matrix constructed from deleting the columns with indices in the ``dcols`` list.
+        Return the matrix constructed from deleting the columns with indices ``dcols``.
 
         INPUT:
 
-        * ``dcols`` - list of indices of columns to be deleted from self.
-        * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
+        - ``dcols`` - list of indices of columns to be deleted from self.
+
+        - ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
         SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
+
+            The method :meth:`matrix_from_columns` is similar except that the
+            arguments are the set of columns indices that are kept.
 
         EXAMPLES::
 
@@ -1614,7 +1617,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.delete_columns([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 2, 4] contains invalid indices.
             sage: A.delete_columns([-1,2,4], check=False)
             [ 0  1  3]
             [ 4  5  7]
@@ -1632,16 +1635,11 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(dcols, list) or PY_TYPE_CHECK(dcols, tuple)):
+        if not (PyList_Check(dcols) or PyTuple_Check(dcols)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
-        cdef list cols, diff_cols
-
-        if check:
-            diff_cols = list(set(dcols).difference(set(range(self._ncols))))
-            if not (diff_cols == []):
-                raise IndexError("{d} contains invalid indices.".format(d=diff_cols))
-        cols = [k for k in range(self._ncols) if not k in dcols]
-        return self.matrix_from_columns(cols)
+        if check and any(e < 0 or e >= self._ncols for e in dcols):
+            raise IndexError("{d} contains invalid indices.".format(d=dcols))
+        return self.matrix_from_columns([k for k in range(self._ncols) if not k in dcols])
 
     def matrix_from_rows(self, rows):
         """
@@ -1659,19 +1657,21 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (PY_TYPE_CHECK(rows, list) or PY_TYPE_CHECK(rows, tuple)):
-            raise TypeError, "rows must be a list of integers"
-        cdef Matrix A
-        cdef Py_ssize_t nrows,k,c
+        if not (PyList_Check(rows) or PyTuple_Check(rows)):
+            raise TypeError("rows must be a list of integers")
 
-        nrows = PyList_GET_SIZE(rows)
+        cdef Matrix A
+        cdef Py_ssize_t nrows,i,j,k,c
+
+        nrows = len(rows)
         A = self.new_matrix(nrows = nrows)
         k = 0
         for i from 0 <= i < nrows:
-            if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError, "row %s out of range"%rows[i]
+            j = rows[i]
+            if j < 0 or j >= self._nrows:
+                raise IndexError("row %s out of range"%j)
             for c from 0 <= c < self._ncols:
-                A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
+                A.set_unsafe(k,c, self.get_unsafe(j,c))
             k += 1
         return A
 
@@ -1710,7 +1710,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.delete_rows([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 2, 4] contains invalid indices.
             sage: A.delete_rows([-1,2,4], check=False)
             [ 0  1  2]
             [ 3  4  5]
@@ -1726,18 +1726,14 @@ cdef class Matrix(matrix0.Matrix):
             TypeError: The argument must be a list or a tuple, not junk
 
         AUTHORS:
+
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(drows, list) or PY_TYPE_CHECK(drows, tuple)):
+        if not (PyList_Check(drows) or PyTuple_Check(drows)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
-        cdef list rows, diff_rows
-
-        if check:
-            diff_rows = list(set(drows).difference(set(range(self._nrows))))
-            if not (diff_rows == []):
-                raise IndexError("{d} contains invalid indices.".format(d=diff_rows))
-        rows = [k for k in range(self._nrows) if not k in drows]
-        return self.matrix_from_rows(rows)
+        if check and any(e < 0 or e > self._nrows for e in drows):
+            raise IndexError("{d} contains invalid indices.".format(d=drows))
+        return self.matrix_from_rows([k for k in range(self._nrows) if not k in drows])
 
     def matrix_from_rows_and_columns(self, rows, columns):
         """
@@ -1779,27 +1775,25 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not PY_TYPE_CHECK(rows, list):
-            raise TypeError, "rows must be a list of integers"
-        if not PY_TYPE_CHECK(columns, list):
-            raise TypeError, "columns must be a list of integers"
+        if not (PyList_Check(rows) or PyTuple_Check(rows)):
+            raise TypeError("rows must be a list of integers")
+        if not (PyList_Check(columns) or PyTuple_Check(columns)):
+            raise TypeError("columns must be a list of integers")
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j
 
         r = 0
-        ncols = PyList_GET_SIZE(columns)
-        nrows = PyList_GET_SIZE(rows)
+        ncols = len(columns)
+        nrows = len(rows)
         A = self.new_matrix(nrows = nrows, ncols = ncols)
 
-        tmp = [el for el in columns if el >= 0 and el < self._ncols]
-        columns = tmp
-        if ncols != PyList_GET_SIZE(columns):
-            raise IndexError, "column index out of range"
+        if any(e < 0 or e >= self._ncols for e in columns):
+            raise IndexError("column index out of range")
+        if any(e <0 or e >= self._nrows for e in rows):
+            raise IndexError("row index out of range")
 
         for i from 0 <= i < nrows:
-            if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError, "row %s out of range"%i
             k = 0
             for j from 0 <= j < ncols:
                 A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))

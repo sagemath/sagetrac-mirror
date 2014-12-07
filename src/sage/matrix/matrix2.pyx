@@ -12,6 +12,8 @@ AUTHORS:
 
 - Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
 
+- Vincent Delecroix (2014-12): clean permanent, permanental_minor and imports
+
 TESTS::
 
     sage: m = matrix(ZZ['x'], 2, 3, [1..6])
@@ -20,6 +22,7 @@ TESTS::
 
 #*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#                     2014 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -27,28 +30,37 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.libs.gmp.types cimport mpz_t
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/gmp.pxi"
+
+from sage.rings.integer cimport Integer
+
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/ext/interrupt.pxi"
 
+import itertools
+from copy import copy
+
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.misc.misc import verbose, get_verbose
+
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
-from sage.misc.misc import verbose, get_verbose
-from sage.rings.number_field.number_field_base import is_NumberField
-from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ, is_RationalField
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.misc.derivative import multi_derivative
-from copy import copy
 
 import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
+
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -493,10 +505,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: a = matrix(QQ, 2,2, [1,2,3,2]); a
             [1 2]
             [3 2]
+
+        In the above example, the sum of entries of the first row is `3` while
+        for the second one its `5`. Hence we get `15` as product of row sums::
+
             sage: a.prod_of_row_sums([0,1])
             15
 
-        Another example::
+        Another example using only a subset of columns::
 
             sage: a = matrix(QQ, 2,3, [1,2,3,2,5,6]); a
             [1 2 3]
@@ -509,14 +525,12 @@ cdef class Matrix(matrix1.Matrix):
         - Jaap Spies (2006-02-18)
         """
         cdef Py_ssize_t c, row
-        pr = 1
+        pr = self.base_ring().one()
         for row from 0 <= row < self._nrows:
-            tmp = []
+            s = self.base_ring().zero()
             for c in cols:
-#               if c<0 or c >= self._ncols:
-#                   raise IndexError, "matrix column index out of range"
-                tmp.append(self.get_unsafe(row, c))
-            pr = pr * sum(tmp)
+                s += self.get_unsafe(row, c)
+            pr *= s
         return pr
 
     def elementwise_product(self, right):
@@ -688,8 +702,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def permanent(self):
         r"""
-        Calculate and return the permanent of the `m \times n`
-        matrix ``self`` using Ryser's algorithm.
+        Return the permanent of ``self`` using Ryser's algorithm.
 
         Let `A = (a_{i,j})` be an `m \times n` matrix over
         any commutative ring, with `m \le n`. The permanent of
@@ -713,10 +726,6 @@ cdef class Matrix(matrix1.Matrix):
         INPUT:
 
         - ``A`` -- matrix of size `m \times n` with `m \leq n`
-
-        OUTPUT:
-
-        permanent of the matrix `A`
 
         ALGORITHM:
 
@@ -786,35 +795,40 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanent()
             x^2*y + x*y^2
 
+        TESTS:
+
+        This was too large for the previous version of Sage
+
+            sage:
+
         AUTHORS:
 
-        - Jaap Spies (2006-02-16)
-
-        - Jaap Spies (2006-02-21): added definition of permanent
+        - Jaap Spies (2006-02)
         """
-        cdef Py_ssize_t m, n, r
-        cdef int sn
+        cdef Integer z = PY_NEW(Integer)
+        cdef int m, n, r
 
-        perm = 0
+        perm = self.base_ring().zero()
         m = self._nrows
         n = self._ncols
         if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"%(m,n))
 
         for r from 1 <= r < m+1:
-            lst = _choose(n, r)
-            tmp = []
-            for cols in lst:
-                tmp.append(self.prod_of_row_sums(cols))
-            s = sum(tmp)
-            # sn = (-1)^(m-r)
-            if (m - r) % 2 == 0:
-                sn = 1
-            else:
-                sn = -1
-            perm = perm + sn * _binomial(n-r, m-r) * s
-        return perm
+            s = self.base_ring().zero()
+            for c in itertools.combinations(range(n), r):
+                s += self.prod_of_row_sums(c)
+                del c   # Python hack in itertools: the tuple is reused
+                        # internally by combinations and we avoid a free/malloc
 
+            mpz_bin_uiui(z.value, n-r, m-r)
+            # set z = (-1)^(m-r) z
+            if (m + r) % 2 == 1:
+                mpz_neg(z.value, z.value)
+
+            perm += z * s
+
+        return perm
 
     def permanental_minor(self, Py_ssize_t k):
         r"""
@@ -901,9 +915,11 @@ cdef class Matrix(matrix1.Matrix):
             return R.zero()
 
         pm = 0
-        for cols in _choose(n,k):
-            for rows in _choose(m,k):
+        for cols in itertools.combinations(range(n),k):
+            for rows in itertools.combinations(range(m),k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
+                del rows # Python hack
+            del cols # Python hack
         return pm
 
 
@@ -3161,11 +3177,11 @@ cdef class Matrix(matrix1.Matrix):
             algorithm = 'default'
         elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
-        elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
+        elif algorithm == 'padic' and not (R is ZZ or R is QQ):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
-        elif algorithm == 'flint' and not (is_IntegerRing(R) or is_RationalField(R)):
+        elif algorithm == 'flint' and not (R is ZZ or R is QQ):
             raise ValueError("'flint' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
-        elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
+        elif algorithm == 'pari' and not (R is ZZ or (is_NumberField(R) and not R is QQ)):
             raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
         elif algorithm == 'generic' and not R.is_field():
             raise ValueError("'generic' matrix kernel algorithm only available over a field, not over %s" % R)
@@ -3180,14 +3196,14 @@ cdef class Matrix(matrix1.Matrix):
             raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
         elif basis == 'pivot' and not R.is_field():
             raise ValueError('pivot basis only available over a field, not over %s' % R)
-        elif basis == 'LLL' and not is_IntegerRing(R):
+        elif basis == 'LLL' and R is not ZZ:
             raise ValueError('LLL-reduced basis only available over the integers, not over %s' % R)
 
         # Determine proof keyword for integer matrices
         proof = kwds.pop('proof', None)
         if not (proof in [None, True, False]):
             raise ValueError("'proof' must be one of True, False or None, not %s" % proof)
-        if not (proof is None or is_IntegerRing(R)):
+        if not (proof is None or R is ZZ):
             raise ValueError("'proof' flag only valid for matrices over the integers")
 
         # We could sanitize/process remaining (un-popped) keywords here and
@@ -6387,7 +6403,6 @@ cdef class Matrix(matrix1.Matrix):
         E = self.augment(ident)
         extended = E.echelon_form(**kwds)
         if subdivide:
-            from copy import copy
             extended = copy(extended)
             # pivots of E are cached from echelon form computation
             rank = len([c for c in E.pivots() if c < self.ncols()])
@@ -9514,7 +9529,6 @@ cdef class Matrix(matrix1.Matrix):
             for (eval, size) in blocks], subdivide=subdivide)
 
         if transformation:
-            from itertools import groupby
 
             # ``jordan_chains`` is a dictionary with keys the eigenvalues.
             # For every eigenvalue, we consider all Jordan blocks and find
@@ -9529,7 +9543,7 @@ cdef class Matrix(matrix1.Matrix):
 
                 block_sizes = [size for e,size in blocks if e == eval]
                 block_size_pairs = [(val,len(list(c))) \
-                    for val,c in groupby(block_sizes)]
+                    for val,c in itertools.groupby(block_sizes)]
 
                 # Y is a list of vectors, spanning everything that we have
                 # covered by the Jordan chains we developed so far.
@@ -10746,7 +10760,6 @@ cdef class Matrix(matrix1.Matrix):
 
         - Rob Beezer (2012-05-27)
         """
-        from copy import copy
         C = self.fetch('cholesky')
         if C is None:
             if not self.is_square():
@@ -12417,6 +12430,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: v.derivative(x,x)
             (0, 0, 2)
         """
+        from sage.misc.derivative import multi_derivative
         return multi_derivative(self, args)
 
     def exp(self):
@@ -14165,102 +14179,6 @@ def cmp_pivots(x,y):
     else:
         return -1
 
-
-def _choose(Py_ssize_t n, Py_ssize_t t):
-    """
-    Returns all possible sublists of length t from range(n)
-
-    Based on algorithm T from Knuth's taocp part 4: 7.2.1.3 p.5 This
-    function replaces the one based on algorithm L because it is
-    faster.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix2 import _choose
-        sage: _choose(1,1)
-        [[0]]
-        sage: _choose(4,1)
-        [[0], [1], [2], [3]]
-        sage: _choose(4,4)
-        [[0, 1, 2, 3]]
-
-    AUTHORS:
-
-    - Jaap Spies (2007-11-14)
-    """
-    cdef Py_ssize_t j, temp
-
-    x = []               # initialize T1
-    c = range(t)
-    if t == n:
-        x.append(c)
-        return x
-    c.append(n)
-    c.append(0)
-    j = t-1
-
-    while True:
-        x.append(c[:t])    # visit T2
-        if j >= 0:
-            c[j] = j+1
-            j = j-1
-            continue       # goto T2
-
-        if c[0]+1 < c[1]:  # T3 easy case!
-            c[0] = c[0]+1
-            continue
-        else:
-            j = 1
-
-        while True:
-            c[j-1] = j-1      # T4 find j
-            temp = c[j]+1
-            if temp == c[j+1]:
-                j = j+1
-            else:
-                break
-
-
-        if j >= t:     # T5 stop?
-            break
-
-        c[j] = temp    # T6
-        j = j-1
-
-    return x
-
-
-def _binomial(Py_ssize_t n, Py_ssize_t k):
-    """
-    Fast and unchecked implementation of binomial(n,k) This is only for
-    internal use.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix2 import _binomial
-        sage: _binomial(10,2)
-        45
-        sage: _binomial(10,5)
-        252
-
-    AUTHORS:
-
-    - Jaap Spies (2007-10-26)
-    """
-    cdef Py_ssize_t i
-
-    if k > (n/2):
-        k = n-k
-    if k == 0:
-        return 1
-
-    result = n
-    n, k = n-1, k-1
-    i = 2
-    while k > 0:
-        result = (result*n)/i
-        i, n, k = i+1, n-1, k-1
-    return result
 
 def _jordan_form_vector_in_difference(V, W):
     r"""
