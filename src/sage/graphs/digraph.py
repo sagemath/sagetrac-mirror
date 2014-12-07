@@ -2859,7 +2859,7 @@ class DiGraph(GenericGraph):
         """
         return list(self.all_cycles_iterator(starting_vertices=starting_vertices, simple=True, rooted=rooted, max_length=max_length, trivial=trivial))
 
-    def path_semigroup(self):
+    def path_semigroup(self, dense_encoding=True):
         """
         The partial semigroup formed by the paths of this quiver.
 
@@ -2873,7 +2873,7 @@ class DiGraph(GenericGraph):
 
         """
         from sage.quivers.path_semigroup import PathSemigroup
-        return PathSemigroup(self)
+        return PathSemigroup(self, dense_encoding)
 
     ### Directed Acyclic Graphs (DAGs)
 
