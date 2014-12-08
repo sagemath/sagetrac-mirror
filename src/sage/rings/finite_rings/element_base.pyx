@@ -61,7 +61,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         n = n % (q-1)
         if n == 0:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         gcd, alpha, beta = n.xgcd(q-1) # gcd = alpha*n + beta*(q-1), so 1/n = alpha/gcd (mod q-1)
         if gcd == 1:
             return [self**alpha] if all else self**alpha
@@ -69,7 +69,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         q1overn = (q-1)//n
         if self**q1overn != 1:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         self = self**alpha
         if cunningham:
             from sage.rings.factorint import factor_cunningham
@@ -98,7 +98,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else:
                 return self
         else:
-            raise ValueError, "unknown algorithm"
+            raise ValueError("unknown algorithm")
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -521,22 +521,19 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**2, 'a')
-            sage: a = k.gen()
+            sage: k.<a> = FiniteField(9, impl='givaro', modulus='primitive')
             sage: a.is_square()
             False
             sage: (a**2).is_square()
             True
-            sage: k = FiniteField_ext_pari(2**2,'a')
-            sage: a = k.gen()
+            sage: k.<a> = FiniteField(4, impl='ntl', modulus='primitive')
             sage: (a**2).is_square()
             True
-            sage: k = FiniteField_ext_pari(17**5,'a'); a = k.gen()
-            sage: (a**2).is_square()
-            True
+            sage: k.<a> = FiniteField(17^5, impl='pari_ffelt', modulus='primitive')
             sage: a.is_square()
             False
+            sage: (a**2).is_square()
+            True
 
         ::
 
@@ -574,23 +571,25 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: F = FiniteField_ext_pari(7^2, 'a')
+            sage: F = FiniteField(7^2, 'a')
             sage: F(2).square_root()
             4
             sage: F(3).square_root()
-            5*a + 1
+            2*a + 6
             sage: F(3).square_root()**2
             3
             sage: F(4).square_root()
-            5
-            sage: K = FiniteField_ext_pari(7^3, 'alpha')
+            2
+            sage: K = FiniteField(7^3, 'alpha', impl='pari_ffelt')
             sage: K(3).square_root()
             Traceback (most recent call last):
             ...
             ValueError: must be a perfect square.
         """
-        return self.nth_root(2, extend=extend, all=all)
+        try:
+            return self.nth_root(2, extend=extend, all=all)
+        except ValueError:
+            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """
@@ -598,9 +597,9 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17, impl='pari_mod')
+            sage: k.<a> = GF(3^17)
             sage: (a^3 - a - 1).sqrt()
-            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
+            a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
         """
         return self.square_root(extend=extend, all=all)
 
