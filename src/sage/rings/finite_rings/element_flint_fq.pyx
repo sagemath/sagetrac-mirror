@@ -116,11 +116,6 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         self.initialized = 1
         self.construct_from(x)
 
-    # Cython should automatically set the C fields to 0
-    #def __cinit__(FiniteFieldElement_flint_fq self):
-    #    self.val = NULL
-    #    self._cparent = NULL
-
     def __dealloc__(FiniteFieldElement_flint_fq self):
         """
         Cython deconstructor.
