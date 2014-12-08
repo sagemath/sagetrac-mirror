@@ -451,6 +451,30 @@ class DirectedConvexPolyomino(ClonableList):
                 array[-1-h][-1-w] = 0
         return array
 
+    def nb_corners(self):
+        array = self.get_array()
+        def entry( array, i, j ):
+            if (
+                i<0 or j<0 or
+                i >= len(array) or
+                len(array) == 0 or j >= len(array[0])
+            ):
+                return 0
+            return array[i][j]
+        res = 0
+        for h in range( len(array) ):
+            for w in range( len(array[0]) ):
+                if array[h][w] == 1 :
+                    if (entry(array,h,w-1) == 0 and entry(array,h-1,w) == 0):
+                        res += 1
+                    if (entry(array,h,w-1) == 0 and entry(array,h+1,w) == 0):
+                        res += 1
+                    if (entry(array,h,w+1) == 0 and entry(array,h-1,w) == 0):
+                        res += 1
+                    if (entry(array,h,w+1) == 0 and entry(array,h+1,w) == 0):
+                        res += 1
+        return res
+
     def maximal_cut(self):
         r"""
         """
