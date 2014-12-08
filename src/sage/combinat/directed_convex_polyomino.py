@@ -1,4 +1,5 @@
 r"""
+<<<<<<< HEAD
 The Directed Convex Polyominoes
 ===============================
 
@@ -7,12 +8,26 @@ directed convex polyominoes.
 """
 #******************************************************************************
 #  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr),
+=======
+The Directed Convex Polyominoes 
+===============================
+
+The goal of this module is to give some tools to manipulate the 
+directed convex polyominoes.
+"""
+#*****************************************************************************
+#  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr), 
+>>>>>>> FETCH_HEAD
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
+<<<<<<< HEAD
 #******************************************************************************
+=======
+#*****************************************************************************
+>>>>>>> FETCH_HEAD
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
@@ -24,12 +39,20 @@ from sage.structure.global_options import GlobalOptions
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_attribute import lazy_attribute
+<<<<<<< HEAD
 from sage.sets.disjoint_union_enumerated_sets \
     import DisjointUnionEnumeratedSets
 from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
+=======
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.rings.integer import Integer
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.family import Family
+from sage.sets.non_negative_integers import NonNegativeIntegers 
+>>>>>>> FETCH_HEAD
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from copy import deepcopy
@@ -38,6 +61,7 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.partition import Partition
 from sage.combinat.partition import Partitions
+<<<<<<< HEAD
 from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino
 from sage.combinat.parallelogram_polyomino import _drawing_tool
 from sage.functions.other import binomial
@@ -48,6 +72,17 @@ default_tikz_options = dict(
     color_bounce_0='red', color_bounce_1='blue',
     translation=[0, 0], rotation=0,
     mirror=None
+=======
+from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino, _drawing_tool
+from sage.functions.other import binomial
+
+default_tikz_options = dict(
+    scale=1, line_size=1, point_size=3.5
+    , color_line='black', color_point='black'
+    , color_bounce_0='red', color_bounce_1='blue'
+    , translation=[0,0], rotation=0
+    , mirror=None
+>>>>>>> FETCH_HEAD
 )
 
 DirectedConvexPolyominoesOptions = GlobalOptions(
@@ -60,6 +95,7 @@ DirectedConvexPolyominoesOptions = GlobalOptions(
         default=default_tikz_options,
         description='the tikz options',
         checker=lambda x: Set(x.keys()).issubset(
+<<<<<<< HEAD
             Set(
                 [
                     'scale', 'line_size', 'point_size',
@@ -74,18 +110,42 @@ DirectedConvexPolyominoesOptions = GlobalOptions(
         description='Different tree-like tableaux components to draw',
         checker=lambda x: Set(x.keys()).issubset(
             Set(['diagram', 'bounce_0', 'bounce_1'])
+=======
+            Set( [
+                'scale', 'line_size', 'point_size'
+                , 'color_line', 'color_point', 'translation', 'mirror'
+                , 'rotation', 'color_bounce_0', 'color_bounce_1'
+            ] )
+        )
+    ),
+    drawing_components=dict(
+        default= dict( diagram=True ),
+        description='Different tree-like tableaux components to draw',
+        checker=lambda x: Set(x.keys()).issubset(
+            Set( [
+                'diagram', 'bounce_0', 'bounce_1'
+            ] )
+>>>>>>> FETCH_HEAD
         )
     ),
     display=dict(
         default="list",
+<<<<<<< HEAD
         values=dict(
+=======
+        values= dict(
+>>>>>>> FETCH_HEAD
             list='displayed as list',
             drawing='as a drawing'
         )
     ),
     latex=dict(
         default="drawing",
+<<<<<<< HEAD
         values=dict(
+=======
+        values= dict(
+>>>>>>> FETCH_HEAD
             list='displayed as list',
             drawing='as a drawing'
         )
@@ -93,11 +153,16 @@ DirectedConvexPolyominoesOptions = GlobalOptions(
 )
 
 
+<<<<<<< HEAD
 def _maximal_cut(pp):
+=======
+def _maximal_cut( pp ):
+>>>>>>> FETCH_HEAD
     if pp.size() == 0:
         return [0, 0]
     h = pp.heights()[-1] - 1
     w = pp.widths()[-1] - 1
+<<<<<<< HEAD
     return [h, w]
 
 
@@ -115,6 +180,22 @@ def _include(pp1, pp2):
     return True
 
 
+=======
+    return [ h, w ]
+
+def _maximal_partition_cut( pp ):
+    [h, w] = _maximal_cut( pp )
+    return [ w for i in range(h) ]
+
+def _include( pp1, pp2 ):
+    if len(pp1) > len( pp2 ):
+        return False
+    for i in range( len(pp1) ):
+        if( pp1[i] > pp2[i] ):
+            return False
+    return True
+
+>>>>>>> FETCH_HEAD
 class DirectedConvexPolyomino(ClonableList):
     r"""
     The class of directed convex polyominoes.
@@ -125,7 +206,11 @@ class DirectedConvexPolyomino(ClonableList):
     def __classcall_private__(cls, *args, **opts):
         r"""
         """
+<<<<<<< HEAD
         return cls._auto_parent._element_constructor_(*args, **opts)
+=======
+        return cls._auto_parent._element_constructor_( *args, **opts )
+>>>>>>> FETCH_HEAD
 
     @lazy_class_attribute
     def _auto_parent(cls):
@@ -141,6 +226,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -170,11 +256,37 @@ class DirectedConvexPolyomino(ClonableList):
         if not _include(cut, maximal_cut):
             raise ValueError(
                 "The cut must be included in %s." % (str(maximal_cut))
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+        """
+        pp = self.parallelogram_polyomino()
+        cut = self.cut()
+        maximal_cut = _maximal_partition_cut( pp )
+        if not _include( cut, maximal_cut ):
+            raise ValueError(
+                "The cut must be included in %s."%( str(maximal_cut) )
+>>>>>>> FETCH_HEAD
             )
 
     def __hash__(self):
         r"""
         Return the hash code of the parallelogram polyomino
+<<<<<<< HEAD
 
         EXAMPLES::
 
@@ -199,6 +311,29 @@ class DirectedConvexPolyomino(ClonableList):
             [[[0, 0, 0, 0, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0]], []]: True}
         """
         return hash((self.parallelogram_polyomino(), self.cut()))
+=======
+            
+        EXAMPLES::
+            
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: hash( dcp ) == hash( ( pp, cut ) )
+            True
+
+            sage: DCPS = DirectedConvexPolyominoes( 7 )
+            sage: D = { DCPS[0] : True, DCPS[1]: True }
+            sage: D[ DCPS[0] ] = False
+            sage: import pprint
+            sage: pp = pprint.PrettyPrinter()
+            sage: pp.pprint( D )
+            {[[[0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0]], []]: False,
+            [[[0, 0, 0, 0, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0]], []]: True}
+        """
+        return hash( (self.parallelogram_polyomino(), self.cut()) )
+>>>>>>> FETCH_HEAD
 
     def __copy__(self):
         r"""
@@ -207,6 +342,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -215,6 +351,13 @@ class DirectedConvexPolyomino(ClonableList):
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
             sage: dcp1 = copy(dcp)
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: dcp1 = copy( dcp )
+>>>>>>> FETCH_HEAD
             sage: dcp1 is dcp
             False
             sage: dcp1 == dcp
@@ -223,17 +366,27 @@ class DirectedConvexPolyomino(ClonableList):
             [[[0, 0, 1, 0, 1, 0, 1, 1, 1, 1], [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]], [3, 2]]
         """
         return DirectedConvexPolyomino(
+<<<<<<< HEAD
             [self.parallelogram_polyomino(), self.cut()]
         )
 
     def parallelogram_polyomino(self):
         r"""
         Return the minimal parallelogram polyomino that contain the directed
+=======
+            [ self.parallelogram_polyomino(), self.cut() ]
+        )
+
+    def parallelogram_polyomino( self ):
+        r"""
+        Return the minimal parallelogram polyomino that contain the directed 
+>>>>>>> FETCH_HEAD
         convex polyomino.
 
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -249,6 +402,20 @@ class DirectedConvexPolyomino(ClonableList):
     def pp(self):
         r"""
         Return the minimal parallelogram polyomino that contain the directed
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: pp == dcp.parallelogram_polyomino()
+            True
+        """
+        return ClonableList.__getitem__( self, 0 )
+
+    def pp( self ):
+        r"""
+        Return the minimal parallelogram polyomino that contain the directed 
+>>>>>>> FETCH_HEAD
         convex polyomino.
 
         It is a shortcut for parallelogram_polyomino().
@@ -256,6 +423,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -263,12 +431,22 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: pp == dcp.pp()
             True
         """
         return self.parallelogram_polyomino()
 
+<<<<<<< HEAD
     def cut(self):
+=======
+    def cut( self ):
+>>>>>>> FETCH_HEAD
         """
         Return the partition to remove form the parallelogram polyomino of
         self.parallelogram_polyomino() to obtain the directed convex polyomino.
@@ -276,6 +454,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -287,16 +466,31 @@ class DirectedConvexPolyomino(ClonableList):
             True
         """
         return ClonableList.__getitem__(self, 1)
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: cut == dcp.cut()
+            True
+        """
+        return ClonableList.__getitem__( self, 1 )
+>>>>>>> FETCH_HEAD
 
     def __init__(self, parent, value, check=True):
         r"""
         Construct a directed convex polyomino.
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> FETCH_HEAD
         The input is a pair of a polyomino parallelogram and a partition.
 
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -304,10 +498,17 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp
             [[[0, 0, 1, 0, 1, 0, 1, 1, 1, 1], [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]], [3, 2]]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -315,18 +516,32 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp
             [[[0, 0, 1, 0, 1, 0, 1, 1, 1, 1], [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]], []]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [[1], [1]]
             ....: )
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp
             [[[1], [1]], []]
         """
         if not isinstance(value, (list, tuple)) or len(value) != 2:
+<<<<<<< HEAD
             raise ValueError(
                 "Invalid input for directed convex polyomino: %s." % (
                     str(value)
@@ -343,6 +558,18 @@ class DirectedConvexPolyomino(ClonableList):
                 raise ValueError(
                     "Value %s must be a list or a tuple." % (value)
                 )
+=======
+            raise ValueError("Invalid input for directed convex polyomino : %s."%(str(value)) )
+        [pp,cut] = value
+        if isinstance(pp, (list, tuple)):
+            pp = ParallelogramPolyomino( pp )
+        if isinstance(cut, (list, tuple)):
+            cut = Partition( cut )
+        ClonableList.__init__(self, parent, [pp,cut])
+        if check:
+            if not isinstance(value, (list, tuple)):
+                raise ValueError("Value %s must be a list or a tuple." % (value))
+>>>>>>> FETCH_HEAD
             self.check()
         self._options = None
 
@@ -350,8 +577,13 @@ class DirectedConvexPolyomino(ClonableList):
         r"""
         Return the degree convexity of a directed convex polyomino.
 
+<<<<<<< HEAD
         A convex polyomino is said to be k-convex if every pair of its cells
         can be connected by a monotone path (path with south and east steps)
+=======
+        A convex polyomino is said to be k-convex if every pair of its cells 
+        can be connected by a monotone path (path with south and east steps) 
+>>>>>>> FETCH_HEAD
         with at most k changes of direction.
         The degree of convexity of a convex polyomino P is the smallest integer
         k such that P is k-convex.
@@ -359,6 +591,7 @@ class DirectedConvexPolyomino(ClonableList):
         If the directed convex polyomino is empty, the function return -1.
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1] ,
             ....:         [1, 1, 0, 1, 1, 0, 1, 0, 0]  ]
@@ -371,6 +604,17 @@ class DirectedConvexPolyomino(ClonableList):
 
             sage: cut = Partition([1])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1], [1,1,0,1,1,0,1,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: dcp.degree_convexity()
+            3
+
+            sage: cut = Partition( [1] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp.degree_convexity()
             2
 
@@ -378,10 +622,17 @@ class DirectedConvexPolyomino(ClonableList):
         pp = self.parallelogram_polyomino()
         k_pp = pp.degree_convexity()
         if not pp.is_flat():
+<<<<<<< HEAD
             return k_pp
         max_degree_cut = self.maximal_degree_cut()
         cut = self.cut()
         if _include(max_degree_cut, cut):
+=======
+            return k_pp 
+        max_degree_cut = self.maximal_degree_cut()
+        cut = self.cut()
+        if _include( max_degree_cut, cut ) :
+>>>>>>> FETCH_HEAD
             return k_pp - 1
         else:
             return k_pp
@@ -390,8 +641,13 @@ class DirectedConvexPolyomino(ClonableList):
         r"""
         Return true if the directed convex polyomino is k-directed.
 
+<<<<<<< HEAD
         A convex polyomino is said to be k-convex if every pair of its cells
         can be connected by a monotone path (path with south and east steps)
+=======
+        A convex polyomino is said to be k-convex if every pair of its cells 
+        can be connected by a monotone path (path with south and east steps) 
+>>>>>>> FETCH_HEAD
         with at most k changes of direction.
         The degree of convexity of a convex polyomino P is the smallest integer
         k such that P is k-convex.
@@ -404,6 +660,7 @@ class DirectedConvexPolyomino(ClonableList):
         r"""
         Return an array of 0s and 1s such that the 1s represent the boxes of
         the parallelogram polyomino.
+<<<<<<< HEAD
 
         EXAMPLES::
 
@@ -416,12 +673,24 @@ class DirectedConvexPolyomino(ClonableList):
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
             sage: matrix(dcp.get_array())
+=======
+        
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: matrix( dcp.get_array() )
+>>>>>>> FETCH_HEAD
             [1 1 0 0 0 0]
             [1 1 1 1 1 1]
             [0 1 1 1 0 0]
             [0 0 1 0 0 0]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -430,12 +699,20 @@ class DirectedConvexPolyomino(ClonableList):
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
             sage: matrix(dcp.get_array())
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: matrix( dcp.get_array() )
+>>>>>>> FETCH_HEAD
             [1 1 0 0 0 0]
             [1 1 1 1 1 1]
             [0 1 1 1 1 1]
             [0 0 1 1 1 1]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [[1], [1]]
             ....: )
             sage: cut = Partition([])
@@ -447,10 +724,24 @@ class DirectedConvexPolyomino(ClonableList):
         array = deepcopy(self.parallelogram_polyomino().get_array())
         cut = self.cut()
         for h in range(len(cut)):
+=======
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: matrix( dcp.get_array() )
+            []
+
+        """
+        array = deepcopy( self.parallelogram_polyomino().get_array() )
+        cut = self.cut()
+        for h in range( len(cut) ):
+>>>>>>> FETCH_HEAD
             for w in range(cut[h]):
                 array[-1-h][-1-w] = 0
         return array
 
+<<<<<<< HEAD
     def nb_corners(self):
         array = self.get_array()
         def entry( array, i, j ):
@@ -482,12 +773,22 @@ class DirectedConvexPolyomino(ClonableList):
         return Partition(_maximal_partition_cut(pp))
 
     def is_flat(self):
+=======
+    def maximal_cut( self ):
+        r"""
+        """
+        pp = self.parallelogram_polyomino()
+        return Partition( _maximal_partition_cut( pp ) )
+
+    def is_flat( self ):
+>>>>>>> FETCH_HEAD
         """
         Return true if the Parallelogram polyomino associated with the directed
         convex polyomino is flat.
         """
         return self.parallelogram_polyomino().is_flat()
 
+<<<<<<< HEAD
     def maximal_degree_cut(self):
         r"""
         If the parallelogram polyomino is flat, return the size of the maximal
@@ -511,45 +812,82 @@ class DirectedConvexPolyomino(ClonableList):
             ....:             [1, 1, 0, 1, 0, 0, 1, 0, 0]
             ....:         ], []
             ....:     ]
+=======
+    def maximal_degree_cut( self ):
+        r"""
+        If the parallelogram polyomino is flat, return the size of the maximal 
+        rectangle included in the parallelogram polyomino where cells have a 
+        maximal degree convexity.
+        It the parallelogram polyomino is not flat, return the empty partition.
+
+        A cell of convex polyomino has k as degree convexity if it can be 
+        connected with the leftmost cell of the top row by a monotone path 
+        (path with south and east steps) with at most k changes of direction.
+
+        RETURNS : The return value is a list [h,w] where h is the height of the
+        parallelogram polyomino and w is the width.
+
+        EXAMPLES::
+        
+            sage: dcp = DirectedConvexPolyomino(
+            ....:     [[ [0,0,0,1,0,1,0,1,1], [1,1,0,1,0,0,1,0,0] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             [1]
 
             sage: dcp = DirectedConvexPolyomino(
+<<<<<<< HEAD
             ....:     [[[0, 0, 0, 0, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0]], []]
+=======
+            ....:     [[ [0,0,0,0,1,1,1], [1,1,1,0,0,0,0] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             [2, 2, 2]
 
             sage: dcp = DirectedConvexPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [
             ....:             [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
             ....:             [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0]
             ....:         ], []
             ....:     ]
+=======
+            ....:     [[ [0,0,0,0,1,1,0,0,1,1,1,1], [1,1,1,0,0,0,1,1,1,0,0,0] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             [3, 3]
 
             sage: dcp = DirectedConvexPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [
             ....:              [0, 0, 1, 0, 1, 0, 0, 1, 1],
             ....:              [1, 1, 0, 1, 0, 1, 0, 0, 0]
             ....:         ], []
             ....:     ]
+=======
+            ....:     [[ [0,0,1,0,1,0,0,1,1], [1,1,0,1,0,1,0,0,0] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             [1, 1]
 
             sage: dcp = DirectedConvexPolyomino(
+<<<<<<< HEAD
             ....:     [[[1], [1]], []]
+=======
+            ....:     [[ [1], [1] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             []
 
         TESTS:
+<<<<<<< HEAD
 
             sage: dcp = DirectedConvexPolyomino(
             ....:     [
@@ -558,11 +896,17 @@ class DirectedConvexPolyomino(ClonableList):
             ....:             [1, 1, 0, 1, 0, 1, 0, 0]
             ....:         ], []
             ....:     ]
+=======
+            
+            sage: dcp = DirectedConvexPolyomino(
+            ....:     [[ [0,0,1,0,1,0,1,1], [1,1,0,1,0,1,0,0] ], []]
+>>>>>>> FETCH_HEAD
             ....: )
             sage: dcp.maximal_degree_cut()
             [1]
 
             sage: dcp = DirectedConvexPolyomino(
+<<<<<<< HEAD
             ....:     [[[0, 1], [1, 0]], []]
             ....: )
             sage: dcp.maximal_degree_cut()
@@ -592,19 +936,57 @@ class DirectedConvexPolyomino(ClonableList):
         If 'direction' is 1 (resp. 0), the bounce path is the path
         starting at position position (h=1, w=0) (resp. (h=0, w=1)) with
         initial direction, the vector (0, 1) (resp. (1, 0)), and turning
+=======
+            ....:     [[ [0,1], [1,0] ], []]
+            ....: )
+            sage: dcp.maximal_degree_cut()
+            []
+            
+        """
+        pp = self.parallelogram_polyomino()
+        if pp.size()==0 or pp.size()==1:
+            return Partition( [] )
+        if not pp.is_flat():
+            return Partition( [] )
+        k = pp.degree_convexity()
+        if k%2 == 0:
+            direction = 0
+        else :
+            direction = 1
+        h = pp.bounce_path( direction=direction )[-1]
+        w = pp.bounce_path( direction=1-direction )[-1]
+        return Partition( [ w for i in range( h ) ] )
+
+    def bounce_path(self, direction = 1 ):
+        r"""
+        Return the bounce path of directed convex polyomino.
+
+        The bounce path is a path with two steps (1,0) and (0,1).
+
+        If 'direction' is 1 (resp. 0), the bounce path is the path
+        starting at position position (h=1,w=0) (resp. (h=0,w=1)) with 
+        initial direction, the vector (0,1) (resp. (1,0)), and turning 
+>>>>>>> FETCH_HEAD
         each time the path crosses the perimeter of the parallelogram
         polyomino.
 
         The path is coded by a list of integers. Each integer represents
         the size of the path between two turnings.
 
+<<<<<<< HEAD
         You can visualize the two bounce paths by using the following
         commands:
 
+=======
+        You can visualize the two bounce paths by using the following 
+        commands :
+        
+>>>>>>> FETCH_HEAD
         """
         raise NotImplementedError()
         return None
 
+<<<<<<< HEAD
     def bounce(self, direction=1):
         r"""
         Return the bounce of the parallelogram polyomino.
@@ -613,6 +995,16 @@ class DirectedConvexPolyomino(ClonableList):
         polyomino. (p=self.bounce_path())
         The bounce is defined by:
         sum([(1+floor(i/2))*p[i] for i in range(len(p))])
+=======
+    def bounce( self, direction = 1 ):
+        r"""
+        Return the bounce of the parallelogram polyomino.
+
+        Les p be the bounce path of the parallelogram 
+        polyomino. ( p=self.bounce_path() )
+        The bounce is defined by :
+        sum( [ (1+ floor(i/2))*p[i] for i in range(len(p)) ] )
+>>>>>>> FETCH_HEAD
 
         """
         raise NotImplementedError()
@@ -647,6 +1039,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -654,6 +1047,12 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp._repr_list()
             '[[[0, 0, 1, 0, 1, 0, 1, 1, 1, 1], [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]], [3, 2]]'
         """
@@ -661,12 +1060,18 @@ class DirectedConvexPolyomino(ClonableList):
 
     def geometry(self):
         r"""
+<<<<<<< HEAD
         Return a pair [h, w] containing the height and the width of the
         directed convex polyomino.
+=======
+        Return a pair [h,w] containing the height and the width of the directed
+        convex polyomino.
+>>>>>>> FETCH_HEAD
 
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -674,10 +1079,17 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp.geometry()
             [4, 6]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -685,20 +1097,37 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp.geometry()
             [4, 6]
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [[1], [1]]
             ....: )
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp.geometry()
             [0, 1]
 
         """
         pp = self.parallelogram_polyomino()
+<<<<<<< HEAD
         return [pp.height(), pp.width()]
+=======
+        return [ pp.height(), pp.width() ]
+>>>>>>> FETCH_HEAD
 
     def size(self):
         r"""
@@ -707,6 +1136,7 @@ class DirectedConvexPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -714,6 +1144,12 @@ class DirectedConvexPolyomino(ClonableList):
             ....: )
             sage: cut = Partition([])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp.size()
             9
         """
@@ -725,7 +1161,11 @@ class DirectedConvexPolyomino(ClonableList):
 
         EXAMPLES::
 
+<<<<<<< HEAD
             sage: pp = DirectedConvexPolyomino([[[0, 1], [1, 0]], []])
+=======
+            sage: pp = DirectedConvexPolyomino( [ [[0,1], [1,0]], [] ] )
+>>>>>>> FETCH_HEAD
             sage: pp.get_options()
             options for directed convex polyominoes
         """
@@ -733,7 +1173,11 @@ class DirectedConvexPolyomino(ClonableList):
             return self.parent().get_options()
         return self._options
 
+<<<<<<< HEAD
     def set_options(self, *get_value, **set_value):
+=======
+    def set_options( self, *get_value, **set_value ):
+>>>>>>> FETCH_HEAD
         r"""
         Set new options to the object.
 
@@ -741,6 +1185,7 @@ class DirectedConvexPolyomino(ClonableList):
             TODO
         """
         if self._options is None:
+<<<<<<< HEAD
             self._options = deepcopy(self.get_options())
         self._options(*get_value, **set_value)
 
@@ -748,10 +1193,19 @@ class DirectedConvexPolyomino(ClonableList):
         r"""
         Return a string representing a drawing of the directed convex
         polyomino.
+=======
+            self._options = deepcopy( self.get_options() )
+        self._options( *get_value, **set_value )
+
+    def _repr_drawing(self):
+        r"""
+        Return a string representing a drawing of the directed convex polyomino.
+>>>>>>> FETCH_HEAD
 
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -763,6 +1217,16 @@ class DirectedConvexPolyomino(ClonableList):
             '[1 1 0 0 0 0]\n[1 1 1 1 1 1]\n[0 1 1 1 0 0]\n[0 0 1 0 0 0]'
         """
         return str(matrix(self.get_array()))
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: dcp._repr_drawing()
+            '[1 1 0 0 0 0]\n[1 1 1 1 1 1]\n[0 1 1 1 0 0]\n[0 0 1 0 0 0]'
+        """
+        return str( matrix( self.get_array() ) )
+>>>>>>> FETCH_HEAD
 
     def get_tikz_options(self):
         return self.get_options()['tikz_options']
@@ -796,6 +1260,7 @@ class DirectedConvexPolyomino(ClonableList):
         grid_height = self.height() + 1
         drawing_tool = _drawing_tool(
             tikz_options,
+<<<<<<< HEAD
             XY=lambda v: [v[0], grid_height-1-v[1]]
         )
         res = ""
@@ -824,6 +1289,35 @@ class DirectedConvexPolyomino(ClonableList):
         t[0] += -.5
         t[1] += .5
         return pp._to_tikz_bounce(directions=directions)
+=======
+            XY = lambda v: [ v[0], grid_height-1-v[1] ]
+        )
+        res = ""
+        if self.size() == 0:
+            res += drawing_tool.draw_line( [0,0], [1,0] )
+            return res
+        def carre( x,y ):
+            res = drawing_tool.draw_polyline(
+                [ [x, y], [x+1, y], [x+1, y+1], [x, y+1], [x, y] ]
+            )
+            return res
+        array = self.get_array()
+        for h in range( len(array) ):
+            for w in range( len(array[h]) ):
+                if array[h][w] == 1:
+                    res += carre( w, h )
+        return res
+
+    def _to_tikz_bounce( self, directions=[0,1] ):
+        pp = self.parallelogram_polyomino()
+        pp.get_options()[ 'tikz_options' ] = deepcopy(
+            self.get_tikz_options()
+        )
+        t = pp.get_options()[ 'tikz_options' ]['translation']
+        t[0] += -.5
+        t[1] += .5
+        return pp._to_tikz_bounce( directions=directions )
+>>>>>>> FETCH_HEAD
 
     def to_tikz(self):
         r"""
@@ -833,6 +1327,7 @@ class DirectedConvexPolyomino(ClonableList):
         """
         res = ""
         drawing_components = self.get_options()['drawing_components']
+<<<<<<< HEAD
         if 'diagram' in drawing_components:
             res += self._to_tikz_diagram()
         directions = []
@@ -842,13 +1337,28 @@ class DirectedConvexPolyomino(ClonableList):
             directions.append(1)
         if len(directions) != 0:
             res += self._to_tikz_bounce(directions)
+=======
+        if 'diagram' in  drawing_components :
+            res += self._to_tikz_diagram()
+        directions = []
+        if 'bounce_0' in  drawing_components :
+            directions.append(0)
+        if 'bounce_1' in  drawing_components :
+            directions.append(1)
+        if len( directions ) != 0 :
+            res += self._to_tikz_bounce( directions )
+>>>>>>> FETCH_HEAD
         return res
 
     def _latex_(self):
         r"""
         Return a LaTeX version of ``self``.
 
+<<<<<<< HEAD
         For more on the latex options, see
+=======
+        For more on the latex options, see 
+>>>>>>> FETCH_HEAD
         :meth:`DirectedConvexPolyominoes.global_options`.
         """
         return self.get_options().dispatch(self, '_latex_', 'latex')
@@ -859,7 +1369,11 @@ class DirectedConvexPolyomino(ClonableList):
         """
         latex.add_package_to_preamble_if_available("tikz")
         tikz_options = self.get_tikz_options()
+<<<<<<< HEAD
         res = "\n\\begin{tikzpicture}[scale=%s]" % (tikz_options['scale'])
+=======
+        res = "\n\\begin{tikzpicture}[scale=%s]"%(tikz_options['scale'])
+>>>>>>> FETCH_HEAD
         res += self.to_tikz()
         res += "\n\\end{tikzpicture}"
         return res
@@ -870,7 +1384,10 @@ class DirectedConvexPolyomino(ClonableList):
         """
         return "\\[%s\\]" % self._repr_list()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> FETCH_HEAD
 class DirectedConvexPolyominoesFactory(SetFactory):
     r"""
     The directed convex polyominoes factory.
@@ -903,6 +1420,7 @@ class DirectedConvexPolyominoesFactory(SetFactory):
         return "Factory for directed convex polyominoes"
 
 DirectedConvexPolyominoes = DirectedConvexPolyominoesFactory()
+<<<<<<< HEAD
 DirectedConvexPolyominoes.__doc__ = \
     DirectedConvexPolyominoesFactory.__call__.__doc__
 
@@ -910,6 +1428,12 @@ DirectedConvexPolyominoes.__doc__ = \
 class DirectedConvexPolyominoes_size(
     ParentWithSetFactory, UniqueRepresentation
 ):
+=======
+DirectedConvexPolyominoes.__doc__ = DirectedConvexPolyominoesFactory.__call__.__doc__
+
+
+class DirectedConvexPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
+>>>>>>> FETCH_HEAD
     r"""
     The directed convex polyominoes of size `n`.
     """
@@ -919,17 +1443,30 @@ class DirectedConvexPolyominoes_size(
         """
         self._size = size
         ParentWithSetFactory.__init__(
+<<<<<<< HEAD
             self, (size, ), policy, category=FiniteEnumeratedSets()
+=======
+            self, (size,), policy, category = FiniteEnumeratedSets()
+>>>>>>> FETCH_HEAD
         )
 
     def _repr_(self):
         r"""
+<<<<<<< HEAD
         Return the string representation of the set of directed convex
         polyominoes
 
         EXAMPLES::
 
             sage: DirectedConvexPolyominoes(3)
+=======
+        Return the string representation of the set of directed convex 
+        polyominoes
+
+        EXAMPLES::
+        
+            sage: DirectedConvexPolyominoes( 3 )
+>>>>>>> FETCH_HEAD
             directed convex polyominoes of size 3
         """
         return "directed convex polyominoes of size %s" % (self._size)
@@ -937,38 +1474,59 @@ class DirectedConvexPolyominoes_size(
     def an_element(self):
         r"""
         """
+<<<<<<< HEAD
         return next(self.__iter__())
+=======
+        return next( self.__iter__() )
+>>>>>>> FETCH_HEAD
 
     def check_element(self, el, check):
         r"""
         """
         if el.size() != self.size():
+<<<<<<< HEAD
             raise ValueError(
                 "The direct convex polyomino has a Wrong size: %s" % (
                     el.size()
                 )
             )
+=======
+            raise ValueError("The direct convex polyomino has a Wrong size : %s"%(el.size()))
+>>>>>>> FETCH_HEAD
 
     def cardinality(self):
         r"""
         Return the number of directed convex polyominoes.
 
         EXAMPLES::
+<<<<<<< HEAD
             sage: all([
             ....:     DirectedConvexPolyominoes(i).cardinality() ==
             ....:     len(list(DirectedConvexPolyominoes(i)))
             ....:     for i in range(1, 5)
             ....: ])
+=======
+            sage: all( [
+            ....:     DirectedConvexPolyominoes(i).cardinality() ==
+            ....:     len( list( DirectedConvexPolyominoes(i) ) )
+            ....:     for i in range(1, 5)
+            ....: ] )
+>>>>>>> FETCH_HEAD
             True
 
         """
         n = self.size() - 1
+<<<<<<< HEAD
         return binomial(2*n, n)
+=======
+        return binomial( 2*n, n )
+>>>>>>> FETCH_HEAD
 
     def __iter__(self):
         r"""
         Return a directed convex polyomino generator.
         """
+<<<<<<< HEAD
         from sage.combinat.parallelogram_polyomino \
             import ParallelogramPolyominoes
         from sage.combinat.partition import Partitions
@@ -978,12 +1536,27 @@ class DirectedConvexPolyominoes_size(
             for size in range(h*w + 1):
                 for partition in Partitions(size, outer=list(max_cut)):
                     yield DirectedConvexPolyomino([pp, partition])
+=======
+        from sage.combinat.parallelogram_polyomino import  ParallelogramPolyominoes
+        from sage.combinat.partition import Partitions
+        for pp in ParallelogramPolyominoes( self.size() ):
+            [h, w] = _maximal_cut( pp )
+            max_cut = [ w for i in range(h) ]
+            for size in range( h*w + 1 ):
+                for partition in Partitions( size, outer=list(max_cut) ):
+                    yield DirectedConvexPolyomino( [ pp, partition ] )
+>>>>>>> FETCH_HEAD
 
     def get_options(self):
         return self.global_options
 
+<<<<<<< HEAD
     def set_options(self, *get_value, **set_value):
         self.global_options(*get_value, **set_value)
+=======
+    def set_options( self, *get_value, **set_value ):
+        self.global_options( *get_value, **set_value )
+>>>>>>> FETCH_HEAD
 
     global_options = DirectedConvexPolyominoesOptions
 
@@ -991,7 +1564,11 @@ class DirectedConvexPolyominoes_size(
         r"""
         Return the size of the convex directed polyominoes generated by this
         parent.
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> FETCH_HEAD
         EXAMPLES::
 
             sage: DirectedConvexPolyominoes(0).size()
@@ -1003,10 +1580,14 @@ class DirectedConvexPolyominoes_size(
         """
         return self._size
 
+<<<<<<< HEAD
 
 class DirectedConvexPolyominoes_all(
     ParentWithSetFactory, DisjointUnionEnumeratedSets
 ):
+=======
+class DirectedConvexPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
+>>>>>>> FETCH_HEAD
     r"""
     This class enumerates all the directed convex polyominoes.
     """
@@ -1015,6 +1596,7 @@ class DirectedConvexPolyominoes_all(
         Construct the set of all directed convex polyominoes.
 
         EXAMPLES::
+<<<<<<< HEAD
 
             sage: DCPS = DirectedConvexPolyominoes()
             sage: DCPS
@@ -1036,17 +1618,46 @@ class DirectedConvexPolyominoes_all(
         """
         ParentWithSetFactory.__init__(
             self, (), policy, category=FiniteEnumeratedSets()
+=======
+        
+            sage: DCPS = DirectedConvexPolyominoes()
+            sage: DCPS
+            directed convex polyominoes
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+            sage: dcp in DCPS
+            True
+
+            sage: next( DCPS.__iter__() ) in DCPS
+            True
+        """
+        ParentWithSetFactory.__init__(
+            self, (), policy, category = FiniteEnumeratedSets()
+>>>>>>> FETCH_HEAD
         )
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
                 NonNegativeIntegers(), self._directed_convex_polyominoes_size
             ),
+<<<<<<< HEAD
             facade=True, keepkey=False,
             category=self.category()
         )
 
     def _directed_convex_polyominoes_size(self, n):
         return DirectedConvexPolyominoes_size(n, policy=self.facade_policy())
+=======
+            facade=True, keepkey = False,
+            category = self.category()
+        )
+
+    def _directed_convex_polyominoes_size( self, n ):
+        return DirectedConvexPolyominoes_size( n, policy=self.facade_policy() )
+>>>>>>> FETCH_HEAD
 
     def _repr_(self):
         r"""
@@ -1054,7 +1665,11 @@ class DirectedConvexPolyominoes_all(
         polyominoes.
 
         EXAMPLES::
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> FETCH_HEAD
             sage: DCPS = DirectedConvexPolyominoes()
             sage: DCPS
             directed convex polyominoes
@@ -1063,13 +1678,18 @@ class DirectedConvexPolyominoes_all(
 
     def check_element(self, el, check):
         r"""
+<<<<<<< HEAD
         Check is a given element `el` is in the set of directed convex
+=======
+        Check is a given element `el` is in the set of directed convex 
+>>>>>>> FETCH_HEAD
         polyominoes.
 
         EXAMPLES::
 
             sage: DCPS = DirectedConvexPolyominoes()
             sage: pp = ParallelogramPolyomino(
+<<<<<<< HEAD
             ....:     [
             ....:         [0, 0, 1, 0, 1, 0, 1, 1, 1, 1],
             ....:         [1, 1, 0, 1, 1, 1, 1, 0, 0, 0]
@@ -1077,6 +1697,12 @@ class DirectedConvexPolyominoes_all(
             ....: )
             sage: cut = Partition([3, 2])
             sage: dcp = DirectedConvexPolyomino([pp, cut])
+=======
+            ....:     [ [0,0,1,0,1,0,1,1,1,1], [1,1,0,1,1,1,1,0,0,0] ]
+            ....: )
+            sage: cut = Partition( [3, 2] )
+            sage: dcp = DirectedConvexPolyomino( [pp, cut] )
+>>>>>>> FETCH_HEAD
             sage: dcp in DCPS
             True
         """
@@ -1086,7 +1712,11 @@ class DirectedConvexPolyominoes_all(
         r"""
         Return all the options associated with the set of
         directed convex polyomino.
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> FETCH_HEAD
         EXAMPLES::
 
             sage: DPS = DirectedConvexPolyominoes()
@@ -1100,7 +1730,12 @@ class DirectedConvexPolyominoes_all(
         """
         return self.global_options
 
+<<<<<<< HEAD
     def set_options(self, *get_value, **set_value):
         self.global_options(*get_value, **set_value)
+=======
+    def set_options( self, *get_value, **set_value ):
+        self.global_options( *get_value, **set_value )
+>>>>>>> FETCH_HEAD
 
     global_options = DirectedConvexPolyominoesOptions
