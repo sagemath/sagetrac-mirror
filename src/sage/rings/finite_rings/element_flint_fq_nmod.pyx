@@ -115,11 +115,6 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         self.initialized = 1
         self.construct_from(x)
 
-    # Cython should automatically set the C fields to 0
-    #def __cinit__(FiniteFieldElement_flint_fq_nmod self):
-    #    self.val = NULL
-    #    self._cparent = NULL
-
     def __dealloc__(FiniteFieldElement_flint_fq_nmod self):
         """
         Cython deconstructor.
@@ -240,10 +235,10 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
                 fq_nmod_zero(self.val, self._cparent)
             else:
                 p = mpz_get_ui((<Integer>self._parent.characteristic()).value)
-                nmod_poly_zero(<nmod_poly_struct*>self.val)
+                nmod_poly_zero(self.val)
                 for i in xrange(n):
                     x_ui = mpz_fdiv_ui(Integer(x[i]).value, p)
-                    nmod_poly_set_coeff_ui(<nmod_poly_struct*>self.val, i, x_ui)
+                    nmod_poly_set_coeff_ui(self.val, i, x_ui)
 
         elif isinstance(x, Rational):
             self.construct_from(x % self._parent.characteristic())
@@ -647,7 +642,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         n = K.degree()
         clist = []
         for i in xrange(n):
-            clong = nmod_poly_get_coeff_ui(<nmod_poly_struct*> self.val, i)
+            clong = nmod_poly_get_coeff_ui(self.val, i)
             clist.append(clong)
         return K.polynomial_ring()(clist)
 
