@@ -3,6 +3,8 @@ from sage.libs.flint.nmod_poly cimport *
 cdef extern from "javad_nmod/ff_isom.h":
     cdef cppclass FFIsomorphism:
         FFIsomorphism(nmod_poly_t, nmod_poly_t) except +
+        void compute_generators(nmod_poly_t g1, nmod_poly_t g2)
+        void build_isomorphism(nmod_poly_t g1, nmod_poly_t g2)
         nmod_poly_t x_image
 
 cdef extern from "javad_nmod/ff_isom_base_change.h":
