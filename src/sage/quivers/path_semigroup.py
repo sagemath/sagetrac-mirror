@@ -85,7 +85,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     Element = QuiverPath
 
     @staticmethod
-    def __classcall__(cls, Q, dense_encoding=True):
+    def __classcall__(cls, Q):
         """
         Normalize the arguments passed to the constructor.
 
@@ -112,17 +112,15 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # If self is immutable and weighted, then the copy is really cheap:
         # __copy__ just returns self.
         Q = Q.copy(immutable=True, weighted=True)
-        return super(PathSemigroup, cls).__classcall__(cls, Q, dense_encoding)
+        return super(PathSemigroup, cls).__classcall__(cls, Q)
 
-    def __init__(self, Q, dense_encoding=True):
+    def __init__(self, Q):
         """
         Initialize ``self``.
 
         INPUT:
 
         - a :class:`~sage.graphs.digraph.DiGraph`.
-        - ``dense_representation`` -- bool (default: True), whether to use a more
-          memory efficient way to represent paths.
 
         EXAMPLES:
 
@@ -178,14 +176,11 @@ class PathSemigroup(UniqueRepresentation, Parent):
         else:
             # TODO: Make this the category of "partial semigroups"
             cat = cat.join([cat,Semigroups()])
-        if dense_encoding:
-            try:
-                self._max_outgoing = max(len(self._quiver.outgoing_edges(v)) for v in self._quiver.vertices())
-            except ValueError: # empty sequence
-                self._max_outgoing = 1
-        else:
-            self._max_outgoing = -1
         Parent.__init__(self, names=names, category=cat)
+
+    @lazy_attribute
+    def _nb_arrows(self):
+        return max(len(self._quiver.edges()),1)
 
     def _repr_(self):
         """
@@ -293,49 +288,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         if not data:
             raise ValueError("No data given to define this path")
-        if self._max_outgoing!=-1:
-            if isinstance(data, QuiverPath):
-                if data.parent() is self:
-                    return data
-                in_data = list(data)
-                out_data = []
-                v = data.initial_vertex()
-                for e in in_data:
-                    out_data.append(self._quiver.outgoing_edges(v).index(e))
-                    v = e[1]
-                if v != data.terminal_vertex():
-                    raise ValueError("The path should end with vertex {}, not {}".format(v,data.terminal_vertex()))
-                return self.element_class(self, data.initial_vertex(), data.terminal_vertex(), out_data, nb_arrows = self._max_outgoing, check=False)
-            if data==1:
-                return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], self._max_outgoing, check=False)
-            if isinstance(data, basestring):
-                Labels = self._quiver.edge_labels()
-                Edges  = self._quiver.edges()
-                start, end = Edges[Labels.index(data)][0:2]
-                return self.element_class(self, start, end, [self._quiver.outgoing_edges(start).index((start,end,data))], self._max_outgoing, check=False)
-            if isinstance(data[0], basestring):
-                Labels = self._quiver.edge_labels()
-                Edges  = self._quiver.edges()
-                v = start = Edges[Labels.index(data[0])][0]
-                end   = Edges[Labels.index(data[-1])][1]
-                out_data = []
-                for e in data:
-                    arrow = Edges[Labels.index(e)]
-                    out_data.append(self._quiver.outgoing_edges(v).index(arrow))
-                    v = arrow[1]
-                if v != end:
-                    raise ValueError("The path should end with vertex {}, not {}".format(v,end))
-                return self.element_class(self, start, end, out_data, self._max_outgoing, check=check)
-            if len(data[0])==2:
-                return self.element_class(self, data[0][0], data[0][1], [], self._max_outgoing)
-            E = self._quiver.edges()
-            out_data = []
-            v = data[0][0]
-            for e in data:
-                out_data.append(self._quiver.outgoing_edges(v).index(e))
-                v = e[1]
-            return self.element_class(self, data[0][0], v, out_data, self._max_outgoing, check=False)
-
         if isinstance(data, QuiverPath):
             if data.parent() is self:
                 return data
@@ -343,7 +295,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
                 return self(list(data), check=check)
             return self.element_class(self, data.initial_vertex(), data.terminal_vertex(), [], check=True)
         if data==1:
-            return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], self._max_outgoing, check=False)
+            return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], check=False)
         if isinstance(data, basestring):
             E = self._quiver.edge_labels()
             start,end = self._quiver.edges()[E.index(data)][0:2]
@@ -370,9 +322,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             (a, b, c, d)
         """
         Q = self._quiver
-        if self._max_outgoing == -1:
-            return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(Q.edges()))
-        return tuple(self.element_class(self, e[0],e[1], [Q.outgoing_edges(e[0]).index(e)], self._max_outgoing, check=False) for e in Q.edges())
+        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(Q.edges()))
 
     @cached_method
     def idempotents(self):
@@ -386,7 +336,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.idempotents()
             (e_1, e_2, e_3)
         """
-        return tuple(self.element_class(self, v,v, [], self._max_outgoing, check=False) for v in self._quiver.vertices())
+        return tuple(self.element_class(self, v,v, [], check=False) for v in self._quiver.vertices())
 
     def ngens(self):
         """
@@ -627,7 +577,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if v not in self._quiver:
             raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self.element_class(self,v,v,[], self._max_outgoing, check=False)
+            yield self.element_class(self,v,v,[], check=False)
         else:
             for w in self.iter_paths_by_length_and_startpoint(d-1, v):
                 for a in self._quiver._backend.iterator_out_edges([w.terminal_vertex()], True):
@@ -661,7 +611,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if v not in self._quiver:
             raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self.element_class(self,v,v, [], self._max_outgoing, check=False)
+            yield self.element_class(self,v,v, [], check=False)
         else:
             for w in self.iter_paths_by_length_and_endpoint(d-1, v):
                 for a in self._quiver._backend.iterator_in_edges([w.initial_vertex()],True):
@@ -1069,13 +1019,13 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         # Handle the trivial case
         if start == end:
-            return [self.element_class(self,start, end, [], self._max_outgoing, check=False)]
+            return [self.element_class(self,start, end, [], check=False)]
 
         # This function will recursively convert a path given in terms of
         # vertices to a list of QuiverPaths.
         def _v_to_e(path):
             if len(path) == 1:
-                return [self.element_class(self,path[0], path[0], [], self._max_outgoing, check=False)]
+                return [self.element_class(self,path[0], path[0], [], check=False)]
             paths = []
             l = Q.edge_label(path[0], path[1])
             if isinstance(l, str):

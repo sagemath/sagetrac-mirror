@@ -4,9 +4,8 @@ from sage.data_structures.bounded_integer_sequences cimport biseq_t
 cdef class QuiverPath(MonoidElement):
     cdef biseq_t _path
     cdef int _start, _end
-    cdef bint dense_encoding
     cdef QuiverPath _new_(self, int start, int end)
     cpdef bint has_subpath(self, QuiverPath subpath) except -1
     cpdef bint has_initial_segment(self, QuiverPath subpath) except -1
 
-cpdef QuiverPath NewQuiverPath(Q, start, end, data, itembitsize, length, dense_encoding)
+cpdef QuiverPath NewQuiverPath(Q, start, end, data, itembitsize, length)

@@ -153,39 +153,21 @@ cdef class QuiverPath(MonoidElement):
         out._parent = self._parent
         out._start = start
         out._end = end
-        out.dense_encoding = self.dense_encoding
         return out
 
-    def __init__(self, parent, start, end, path, nb_arrows=-1, check=True):
+    def __init__(self, parent, start, end, path, check=True):
         """
         Creates a path object.  Type ``QuiverPath?`` for more information.
 
         INPUT:
 
-        - ``parent``, a path semigroup
-
-        - ``start``, integer, the label of the initial vertex
-
-        - ``end``, integer, the label of the terminal vertex
-
+        - ``parent``, a path semigroup.
+        - ``start``, integer, the label of the initial vertex.
+        - ``end``, integer, the label of the terminal vertex.
         - ``path``, list of integers, providing the list of arrows
           occuring in the path, labelled according to the position in
           the list of all arrows (resp. the list of outgoing arrows at
-          each vertex)
-
-        - ``nb_arrows``, an integer:
-
-          - if it is `-1`, then an arrow in this path is determined by a
-            single integer, namely its position in the list of all arrows
-            of the quiver.
-          - otherwise, it gives the maximal number of outgoing arrows of
-            the quiver's vertices
-
-          The latter allows to store the path in less memory, making some
-          operations (concatenation) faster, while other operations (detection
-          of sub-paths) becomes slower, since one can determine an arrow only
-          together with its initial vertex.
-
+          each vertex).
         - ``check``, whether or not to check the input.
 
         TESTS::
@@ -213,51 +195,31 @@ cdef class QuiverPath(MonoidElement):
         cdef unsigned int l = len(path)
         self._start = start
         self._end   = end
-        self.dense_encoding = (nb_arrows!=-1)
+        biseq_init_list(self._path, path, parent._nb_arrows)
+        if not check:
+            return
         cdef unsigned int n
         cdef tuple arrow
-        if self.dense_encoding:
-            biseq_init_list(self._path, path, nb_arrows)
-            if not check:
-                return
-            Q = parent.quiver()
-            if not l:
-                if start!=end:
-                    raise ValueError("Start and endpoint of a path of length 0 must coincide")
-                if start not in Q:
-                    raise ValueError("Vertex {} not in the quiver".format(start))
-                return
-            if start not in Q.vertices():
-                raise ValueError("Startpoint {} should belong to {}".format(start, Q.vertices()))
-            for n in path:
-                arrow = Q.outgoing_edges(start)[n]
-                start = arrow[1]
+        Q = parent.quiver()
+        E = Q.edges()
+        if not l:
             if start!=end:
-                raise ValueError("The path should end at vertex {}".format(end))
-        else:
-            biseq_init_list(self._path, path, max(len(parent._quiver.edges()), 1))
-            if not check:
-                return
-            Q = parent.quiver()
-            E = Q.edges()
-            if not l:
-                if start!=end:
-                    raise ValueError("Start and endpoint of a path of length 0 must coincide")
-                if start not in Q:
-                    raise ValueError("Vertex {} not in the quiver".format(start))
-                return
-            V = Q.vertices()
-            if start not in V:
-                raise ValueError("Startpoint {} should belong to {}".format(start, V))
-            if end not in V:
-                raise ValueError("Startpoint {} should belong to {}".format(end, V))
-            if E[path[0]][0]!=start:
-                raise ValueError("First edge should start at vertex {}".format(start))
-            if E[path[-1]][1]!=end:
-                raise ValueError("Last edge should end at vertex {}".format(end))
-            for n from 0<n<l:
-                if E[path[n-1]][1]!=E[path[n]][0]:
-                    raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
+                raise ValueError("Start and endpoint of a path of length 0 must coincide")
+            if start not in Q:
+                raise ValueError("Vertex {} not in the quiver".format(start))
+            return
+        V = Q.vertices()
+        if start not in V:
+            raise ValueError("Startpoint {} should belong to {}".format(start, V))
+        if end not in V:
+            raise ValueError("Startpoint {} should belong to {}".format(end, V))
+        if E[path[0]][0]!=start:
+            raise ValueError("First edge should start at vertex {}".format(start))
+        if E[path[-1]][1]!=end:
+            raise ValueError("Last edge should end at vertex {}".format(end))
+        for n from 0<n<l:
+            if E[path[n-1]][1]!=E[path[n]][0]:
+                raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
 
     def __reduce__(self):
         """
@@ -274,7 +236,7 @@ cdef class QuiverPath(MonoidElement):
         """
         return NewQuiverPath, (self._parent, self._start, self._end,
                                bitset_pickle(self._path.data), self._path.itembitsize,
-                               self._path.length, self.dense_encoding)
+                               self._path.length)
 
     def __hash__(self):
         """
@@ -323,18 +285,6 @@ cdef class QuiverPath(MonoidElement):
         cdef mp_size_t i
         if not self._path.length:
             return 'e_{0}'.format(self._start)
-        cdef list data
-        cdef int v
-        cdef tuple e
-        if self.dense_encoding:
-            Q  = self._parent.quiver().outgoing_edges
-            data = []
-            v = self._start
-            for i in range(self._path.length):
-                e = Q(v)[biseq_getitem(self._path, i)]
-                data.append(e[2])
-                v = e[1]
-            return '*'.join(data)
         E = self._parent.quiver().edges()
         return '*'.join([E[biseq_getitem(self._path, i)][2] for i in range(self._path.length)])
 
@@ -353,9 +303,6 @@ cdef class QuiverPath(MonoidElement):
             1
         """
         return self._path.length
-
-    def uses_dense_encoding(self):
-        return self.dense_encoding
 
     def deg(self):
         """
@@ -449,7 +396,6 @@ cdef class QuiverPath(MonoidElement):
         cdef QuiverPath cself, other
         cself = left
         other = right
-        assert cself.dense_encoding == other.dense_encoding, "The two paths use incompatible encoding"
         # we want *negative* degree reverse lexicographical order
         cdef int c = cmp(other._path.length, cself._path.length)
         if c!=0:
@@ -487,19 +433,8 @@ cdef class QuiverPath(MonoidElement):
                 raise ValueError("Slicing only possible for step 1")
             if start==0 and stop==self._path.length:
                 return self
-            if self.dense_encoding:
-                Q = self._parent._quiver.outgoing_edges
-                init = self._start
-                for i in range(start):
-                    ind = biseq_getitem(self._path, i)
-                    init = (<tuple>(<list>(Q(init)))[ind])[1]
-                end = init
-                for i in range(start, stop):
-                    ind = biseq_getitem(self._path, i)
-                    end = (<tuple>(<list>(Q(end)))[ind])[1]
-            else:
-                init = E[biseq_getitem(self._path, start)][0]
-                end   = E[biseq_getitem(self._path, stop)][0]
+            init = E[biseq_getitem(self._path, start)][0]
+            end   = E[biseq_getitem(self._path, stop)][0]
             OUT = self._new_(init, end)
             biseq_init_slice(OUT._path, self._path, start, stop, step)
             return OUT
@@ -507,16 +442,8 @@ cdef class QuiverPath(MonoidElement):
             index = self._path.length+index
         if index<0 or index>=self._path.length:
             raise IndexError("list index out of range")
-        if self.dense_encoding:
-            Q = self._parent._quiver.outgoing_edges
-            init = self._start
-            for i in range(index):
-                ind = biseq_getitem(self._path, i)
-                init = (<tuple>(<list>(Q(init)))[ind])[1]
-            end = (<tuple>(<list>(Q(init)))[biseq_getitem(self._path, index)])[1]
-        else:
-            init = E[biseq_getitem(self._path, index)][0]
-            end = E[biseq_getitem(self._path, index)][1]
+        init = E[biseq_getitem(self._path, index)][0]
+        end = E[biseq_getitem(self._path, index)][1]
         OUT = self._new_(init, end)
         biseq_init_slice(OUT._path, self._path, index, index+1, 1)
         return OUT
@@ -537,19 +464,9 @@ cdef class QuiverPath(MonoidElement):
         # Return an iterator over an empty tuple for trivial paths, otherwise
         # return an iterator for _path as a list
         cdef mp_size_t i
-        cdef int v
-        cdef tuple e
-        if self.dense_encoding:
-            Q = self._parent.quiver().outgoing_edges
-            v = self._start
-            for i from 0<=i<self._path.length:
-                e = Q(v)[biseq_getitem(self._path, i)]
-                v = e[1]
-                yield e
-        else:
-            E = self._parent.quiver().edges()
-            for i from 0<=i<self._path.length:
-                yield E[biseq_getitem(self._path, i)]
+        E = self._parent.quiver().edges()
+        for i from 0<=i<self._path.length:
+            yield E[biseq_getitem(self._path, i)]
 
     cpdef MonoidElement _mul_(self, MonoidElement other):
         """
@@ -585,7 +502,6 @@ cdef class QuiverPath(MonoidElement):
         cdef QuiverPath right = other
         if self._end != right._start:
             return None
-        assert self.dense_encoding == right.dense_encoding, "The two paths use incompatible encoding"
         cdef QuiverPath OUT = self._new_(self._start, right._end)
         biseq_init_concat(OUT._path, self._path,right._path)
         return OUT
@@ -617,7 +533,6 @@ cdef class QuiverPath(MonoidElement):
         """
         cdef QuiverPath right = other
         cdef QuiverPath cself = self
-        assert cself.dense_encoding == right.dense_encoding, "The two paths use incompatible encoding"
         # Handle trivial case
         if right is None or cself._start!=right._start:
             return None
@@ -683,34 +598,12 @@ cdef class QuiverPath(MonoidElement):
         if self._parent is not P._parent:
             return (None, None, None)
         cdef size_t i, start
-        if not self.dense_encoding:
-            assert not P.dense_encoding, "The two paths use incompatible encoding"
-            sig_on()
-            i = biseq_startswith_tail(P._path, self._path, 0)
-            sig_off()
-            if i==-1:
-                return (None, None, None)
-            return (self[:i], self[i:], P[self._path.length-i:])
-        assert P.dense_encoding, "The two paths use incompatible encoding"
-        if self._path.length<=P._path.length:
-            start = 0
-        else:
-            start = self._path.length - P._path.length
-        cdef int v = self._start
-        cdef object C = self._parent._quiver.outgoing_edges
-        for i from 0 <= i < start:
-            v = <tuple>((<list>(C(v)))[biseq_getitem(self._path, i)])[1]
-        for i from start <= i < self._path.length:
-            if v == P._start:
-                sig_on()
-                if mpn_equal_bits_shifted(P._path.data.bits, self._path.data.bits,
-                                          (self._path.length - i)*self._path.itembitsize,
-                                          i*self._path.itembitsize):
-                    sig_off()
-                    return (self[:i], self[i:], P[self._path.length-i:])
-                sig_off()
-            v = <tuple>((<list>(C(v)))[biseq_getitem(self._path, i)])[1]
-        return (None,None,None)
+        sig_on()
+        i = biseq_startswith_tail(P._path, self._path, 0)
+        sig_off()
+        if i==-1:
+            return (None, None, None)
+        return (self[:i], self[i:], P[self._path.length-i:])
 
     cpdef bint has_subpath(self, QuiverPath subpath) except -1:
         """
@@ -752,23 +645,6 @@ cdef class QuiverPath(MonoidElement):
         cdef size_t max_i, bitsize
         if self._path.length < subpath._path.length:
             return 0
-        if self.dense_encoding:
-            assert subpath.dense_encoding, "The two paths use incompatible encoding"
-            v = self._start
-            C = self._parent._quiver.outgoing_edges
-            max_i = (1+self._path.length) - subpath._path.length
-            bitsize = subpath._path.length * subpath._path.itembitsize
-            for i from 0 <= i < max_i:
-                if v == subpath._start:
-                    sig_on()
-                    if mpn_equal_bits_shifted(subpath._path.data.bits, self._path.data.bits,
-                                              bitsize, i*self._path.itembitsize):
-                        sig_off()
-                        return 1
-                    sig_off()
-                v = <tuple>(C(v)[biseq_getitem(self._path, i)])[1]
-            return 0
-        assert not subpath.dense_encoding, "The two paths use incompatible encoding"
         if biseq_contains(self._path, subpath._path, 0)==-1:
             return 0
         return 1
@@ -802,7 +678,6 @@ cdef class QuiverPath(MonoidElement):
         """
         if subpath._parent is not self._parent:
             raise ValueError("The two paths belong to different quivers")
-        assert self.dense_encoding == subpath.dense_encoding, "The two paths have incompatible encoding"
         if self._start != subpath._start:
             return 0
         if subpath._path.length==0:
@@ -867,22 +742,13 @@ cdef class QuiverPath(MonoidElement):
         Q = self._parent.reverse()
         # Handle trivial paths
         if self._path.length==0:
-            return Q.element_class(Q, self._end, self._start, [], Q._max_outgoing, check=False)
+            return Q.element_class(Q, self._end, self._start, [], check=False)
 
         # Reverse all the edges in the path, then reverse the path
         cdef mp_size_t i
-        if not self.dense_encoding:
-            return Q.element_class(Q, self._end, self._start, [biseq_getitem(self._path,i) for i in xrange(self._path.length-1,-1,-1)], check=False)
-        cdef list data = list(self)
-        cdef object CR = Q._quiver.outgoing_edges
-        cdef int v1,v2
-        cdef str label
-        cdef list out_data = []
-        for v1,v2,label in reversed(data):
-            out_data.append(CR(v2).index((v2,v1,label)))
-        return Q.element_class(Q, self._end, self._start, out_data, Q._max_outgoing, check=False)
+        return Q.element_class(Q, self._end, self._start, [biseq_getitem(self._path,i) for i in xrange(self._path.length-1,-1,-1)], check=False)
 
-cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length, dense_encoding):
+cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
     """
     Return a new quiver path for given defining data.
 
@@ -896,9 +762,6 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length, 
     - ``bitsize``, the number of bits used to store the path
     - ``itembitsize``, the number of bits used to store a single item
     - ``length``, the number of items in the path
-    - ``dense_encoding``, whether the encoding of this path as a list uses the
-      outgoing arrows at each vertex, or *all* vertices of the quiver. The former
-      is the default, since it is more memory efficient.
 
     TESTS::
 
@@ -912,10 +775,9 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length, 
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,
-          (0, 2L, 1, 4, (0L,)),
-          1L,
-          2,
-          True))
+          (0, 4L, 1, 4, (4L,)),
+          2L,
+          2))
 
     """
     cdef QuiverPath out = PY_NEW(Q.element_class)
@@ -925,7 +787,6 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length, 
     out._path.itembitsize = itembitsize
     out._path.mask_item = limb_lower_bits_up(itembitsize)
     out._path.length = length
-    out.dense_encoding = dense_encoding
     if length>0:
         sig_on()
         bitset_init(out._path.data, 1)
