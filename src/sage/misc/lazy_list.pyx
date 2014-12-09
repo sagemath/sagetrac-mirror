@@ -259,12 +259,10 @@ cdef class stopped_lazy_list_iterator(object):
 
 cdef class lazy_list(object):
     r"""
-    Lazy list.
+    Abstract class for Lazy list.
+    Should not be instantiated
 
     INPUT:
-
-    - ``iterator`` -- an iterable or an iterator
-
     - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
 
     - ``start``, ``stop``, ``step`` -- ``None`` (default) or a non-negative
@@ -272,12 +270,12 @@ cdef class lazy_list(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list_from_iterator
         sage: from itertools import count
-        sage: m = lazy_list(count()); m
+        sage: m = lazy_list_from_iterator(count()); m
         lazy list [0, 1, 2, ...]
 
-        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
+        sage: m2 = lazy_list_from_iterator(count(), start=8, stop=20551, step=2)
         sage: m2
         lazy list [8, 10, 12, ...]
 
@@ -304,9 +302,9 @@ cdef class lazy_list(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
-            sage: f = lazy_list(count())
+            sage: f = lazy_list_from_iterator(count())
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
@@ -383,11 +381,11 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: P = lazy_list(iter(Primes()))
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: P = lazy_list_from_iterator(iter(Primes()))
             sage: P[2:143:5].list()
             [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
-            sage: P = lazy_list(iter([1,2,3]))
+            sage: P = lazy_list_from_iterator(iter([1,2,3]))
             sage: P.list()
             [1, 2, 3]
             sage: P[:100000].list()
@@ -399,7 +397,7 @@ cdef class lazy_list(object):
 
         Check that the cache is immutable::
 
-            sage: lazy = lazy_list(iter(Primes()))[:5]
+            sage: lazy = lazy_list_from_iterator(iter(Primes()))[:5]
             sage: l = lazy.list(); l
             [2, 3, 5, 7, 11]
             sage: l[0] = -1; l
@@ -420,7 +418,7 @@ cdef class lazy_list(object):
         EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list
-            sage: P = lazy_list(iter(Primes()))[10:21474838:4]
+            sage: P = lazy_list_from_iterator(iter(Primes()))[10:21474838:4]
             sage: P.info()
             cache length 0
             start        10
@@ -441,26 +439,11 @@ cdef class lazy_list(object):
 
     def __add__(self, other):
         r"""
-        If ``self`` is a list then return the lazy_list that consists of the
-        concatenation of ``self`` and ``other``.
-
-        TESTS::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list(i**3 - i + 1 for i in count()); l
-            lazy list [1, 1, 7, ...]
-            sage: p = ['huit', 'douze']
-            sage: ll = p + l; ll
-            lazy list ['huit', 'douze', 1, ...]
-            sage: l[:10].list() == ll[2:12].list()
-            True
-            sage: p
-            ['huit', 'douze']
         """
-        if isinstance(self, list):
-            return self.__class__(iter(other), cache=self[:])
-        raise TypeError("can only add list to lazy_list")
+        # if isinstance(self, list):
+        #     return self.lazy_list_from_iterator(iter(other), cache=self[:])
+        # raise TypeError("can only add list to lazy_list")
+        raise NotImplementedError("TODO")
 
     def __repr__(self):
         r"""
@@ -468,9 +451,9 @@ cdef class lazy_list(object):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
-            sage: r = lazy_list(count()); r  # indirect doctest
+            sage: r = lazy_list_from_iterator(count()); r  # indirect doctest
             lazy list [0, 1, 2, ...]
             sage: r[:0]
             lazy list []
@@ -482,9 +465,9 @@ cdef class lazy_list(object):
             lazy list [0, 1, 2]
             sage: r[:4]
             lazy list [0, 1, 2, ...]
-            sage: lazy_list([0,1])
+            sage: lazy_list_from_iterator([0,1])
             lazy list [0, 1]
-            sage: lazy_list([0,1,2,3])
+            sage: lazy_list_from_iterator([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
         cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
@@ -524,8 +507,8 @@ cdef class lazy_list(object):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: m = lazy_list(count())
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: m = lazy_list_from_iterator(count())
             sage: x = loads(dumps(m))
             sage: y = iter(x)
             sage: print y.next(), y.next(), y.next()
@@ -565,8 +548,8 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: l = lazy_list([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12])[2::3]
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: l = lazy_list_from_iterator([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12])[2::3]
             sage: l.info()
             cache length 0
             start        2
@@ -604,9 +587,9 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import chain, repeat
-            sage: f = lazy_list(chain(iter([1,2,3]), repeat('a')))
+            sage: f = lazy_list_from_iterator(chain(iter([1,2,3]), repeat('a')))
             sage: f.get(0)
             1
             sage: f.get(3)
@@ -654,8 +637,8 @@ cdef class lazy_list(object):
         TESTS::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: iter(lazy_list(count()))
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: iter(lazy_list_from_iterator(count()))
             iterator of lazy list [0, 1, 2, ...]
         """
         if self.stop == PY_SSIZE_T_MAX:
@@ -726,8 +709,8 @@ cdef class lazy_list(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: f = lazy_list(iter([1,2,3]))
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: f = lazy_list_from_iterator(iter([1,2,3]))
             sage: f0 = f[0:]
             sage: print f.get(0), f.get(1), f.get(2)
             1 2 3
@@ -743,7 +726,7 @@ cdef class lazy_list(object):
             ...
             IndexError: lazy list index out of range
 
-            sage: l = lazy_list([0]*12)[1::2]
+            sage: l = lazy_list_from_iterator([0]*12)[1::2]
             sage: l[2::3]
             lazy list [0, 0]
             sage: l[3::2]
@@ -752,7 +735,7 @@ cdef class lazy_list(object):
         A lazy list automatically adjusts the indices in order that start and
         stop are congruent modulo step::
 
-            sage: P = lazy_list(iter(Primes()))
+            sage: P = lazy_list_from_iterator(iter(Primes()))
             sage: P[1:12:4].start_stop_step()
             (1, 13, 4)
             sage: P[1:13:4].start_stop_step()
@@ -762,7 +745,7 @@ cdef class lazy_list(object):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(xrange(10000)))
+            sage: l = lazy_list_from_iterator(iter(xrange(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1.start_stop_step() == l2.start_stop_step()
@@ -774,7 +757,7 @@ cdef class lazy_list(object):
 
         Further tests::
 
-            sage: l = lazy_list(iter([0]*25))
+            sage: l = lazy_list_from_iterator(iter([0]*25))
             sage: l[2::3][2::3][4::5]
             lazy list []
             sage: l[2::5][3::][1::]
@@ -802,12 +785,12 @@ cdef class lazy_list_from_iterator(lazy_list):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list_from_iterator
         sage: from itertools import count
-        sage: m = lazy_list(count()); m
+        sage: m = lazy_list_from_iterator(count()); m
         lazy list [0, 1, 2, ...]
 
-        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
+        sage: m2 = lazy_list_from_iterator(count(), start=8, stop=20551, step=2)
         sage: m2
         lazy list [8, 10, 12, ...]
 
@@ -834,9 +817,9 @@ cdef class lazy_list_from_iterator(lazy_list):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
             sage: from itertools import count
-            sage: f = lazy_list(count())
+            sage: f = lazy_list_from_iterator(count())
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
@@ -880,8 +863,8 @@ cdef class lazy_list_from_iterator(lazy_list):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: m = lazy_list(count())
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: m = lazy_list_from_iterator(count())
             sage: x = loads(dumps(m))
             sage: y = iter(x)
             sage: print y.next(), y.next(), y.next()
@@ -896,8 +879,8 @@ cdef class lazy_list_from_iterator(lazy_list):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: f = lazy_list(iter([1,2,3]))
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: f = lazy_list_from_iterator(iter([1,2,3]))
             sage: f0 = f[0:]
             sage: print f.get(0), f.get(1), f.get(2)
             1 2 3
@@ -913,7 +896,7 @@ cdef class lazy_list_from_iterator(lazy_list):
             ...
             IndexError: lazy list index out of range
 
-            sage: l = lazy_list([0]*12)[1::2]
+            sage: l = lazy_list_from_iterator([0]*12)[1::2]
             sage: l[2::3]
             lazy list [0, 0]
             sage: l[3::2]
@@ -922,7 +905,7 @@ cdef class lazy_list_from_iterator(lazy_list):
         A lazy list automatically adjusts the indices in order that start and
         stop are congruent modulo step::
 
-            sage: P = lazy_list(iter(Primes()))
+            sage: P = lazy_list_from_iterator(iter(Primes()))
             sage: P[1:12:4].start_stop_step()
             (1, 13, 4)
             sage: P[1:13:4].start_stop_step()
@@ -932,7 +915,7 @@ cdef class lazy_list_from_iterator(lazy_list):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(xrange(10000)))
+            sage: l = lazy_list_from_iterator(iter(xrange(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1.start_stop_step() == l2.start_stop_step()
@@ -944,7 +927,7 @@ cdef class lazy_list_from_iterator(lazy_list):
 
         Further tests::
 
-            sage: l = lazy_list(iter([0]*25))
+            sage: l = lazy_list_from_iterator(iter([0]*25))
             sage: l[2::3][2::3][4::5]
             lazy list []
             sage: l[2::5][3::][1::]
@@ -975,7 +958,7 @@ cdef class lazy_list_from_fun(lazy_list):
 
     INPUT:
 
-    - ``iterator`` -- an iterable or an iterator
+    - ``fun`` -- a callable object
 
     - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
 
@@ -984,12 +967,12 @@ cdef class lazy_list_from_fun(lazy_list):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list
+        sage: from sage.misc.lazy_list import lazy_list_from_fun
         sage: from itertools import count
-        sage: m = lazy_list(count()); m
+        sage: m = lazy_list_from_fun(count()); m
         lazy list [0, 1, 2, ...]
 
-        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
+        sage: m2 = lazy_list_from_fun(lambda a, b: a, start=8, stop=20551, step=2)
         sage: m2
         lazy list [8, 10, 12, ...]
 
@@ -1016,9 +999,9 @@ cdef class lazy_list_from_fun(lazy_list):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list_from_fun
             sage: from itertools import count
-            sage: f = lazy_list(count())
+            sage: f = lazy_list_from_fun(lambda a, b: a)
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
@@ -1061,8 +1044,8 @@ cdef class lazy_list_from_fun(lazy_list):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: m = lazy_list(count())
+            sage: from sage.misc.lazy_list import lazy_list_from_fun
+            sage: m = lazy_list_from_fun(lambda a, b: a)
             sage: x = loads(dumps(m))
             sage: y = iter(x)
             sage: print y.next(), y.next(), y.next()
@@ -1079,8 +1062,8 @@ cdef class lazy_list_from_fun(lazy_list):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: f = lazy_list(iter([1,2,3]))
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: f = lazy_list_from_iterator(iter([1,2,3]))
             sage: f0 = f[0:]
             sage: print f.get(0), f.get(1), f.get(2)
             1 2 3
@@ -1096,7 +1079,7 @@ cdef class lazy_list_from_fun(lazy_list):
             ...
             IndexError: lazy list index out of range
 
-            sage: l = lazy_list([0]*12)[1::2]
+            sage: l = lazy_list_from_iterator([0]*12)[1::2]
             sage: l[2::3]
             lazy list [0, 0]
             sage: l[3::2]
@@ -1105,7 +1088,7 @@ cdef class lazy_list_from_fun(lazy_list):
         A lazy list automatically adjusts the indices in order that start and
         stop are congruent modulo step::
 
-            sage: P = lazy_list(iter(Primes()))
+            sage: P = lazy_list_from_iterator(iter(Primes()))
             sage: P[1:12:4].start_stop_step()
             (1, 13, 4)
             sage: P[1:13:4].start_stop_step()
@@ -1115,7 +1098,7 @@ cdef class lazy_list_from_fun(lazy_list):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(xrange(10000)))
+            sage: l = lazy_list_from_iterator(iter(xrange(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1.start_stop_step() == l2.start_stop_step()
@@ -1127,7 +1110,7 @@ cdef class lazy_list_from_fun(lazy_list):
 
         Further tests::
 
-            sage: l = lazy_list(iter([0]*25))
+            sage: l = lazy_list_from_iterator(iter([0]*25))
             sage: l[2::3][2::3][4::5]
             lazy list []
             sage: l[2::5][3::][1::]
