@@ -15,9 +15,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cp */lib*.so $SAGE_LOCAL/lib/
+cp -f */lib*.so $SAGE_LOCAL/lib/
 mkdir -p $SAGE_LOCAL/include/javad_nmod
-cp nmod_poly_isom/*.h $SAGE_LOCAL/include/javad_nmod/
+cp -f nmod_poly_isom/*.h $SAGE_LOCAL/include/javad_nmod/
 mkdir -p $SAGE_LOCAL/include/javad_fmpz_mod
-cp fmpz_mod_poly_isom/*.h $SAGE_LOCAL/include/javad_fmpz_mod/
+cp -f fmpz_mod_poly_isom/*.h $SAGE_LOCAL/include/javad_fmpz_mod/
 
