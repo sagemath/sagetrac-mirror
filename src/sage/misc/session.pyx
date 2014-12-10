@@ -317,15 +317,7 @@ def save_session(name='sage_session', verbose=False):
     save(D, name)
     if embedded():
         # Also save D to the data directory if we're using the notebook.
-        # This is broken for now. Simply print some information to the user
-        # if the user does not save it in the DATA directory.
-        # save(D, '../../data/' + name)
-        if name.find('.sagenb/') <= 0 or name.find('/data/') <= 0:
-            print ( "To store the session in a common directory that the "
-                    "entire worksheet can access, save it using the command:\n"
-                    "save_session(DATA + '{0}')\n"
-                    "You can later load it by running in any cell:\n"
-                    "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
+        save(D, './data/' + name)
 
 def load_session(name='sage_session', verbose=False):
     r"""
@@ -372,7 +364,7 @@ def load_session(name='sage_session', verbose=False):
 
     if embedded():
         if not os.path.exists(name):
-            nm = '../../data/' + name
+            nm = './data/' + name
             if not nm.endswith('.sobj'): nm += '.sobj'
             if os.path.exists(nm):
                 name = nm
