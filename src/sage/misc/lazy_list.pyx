@@ -940,7 +940,7 @@ cdef class lazy_list_from_iterator(lazy_list):
 
         r = self._normalize_slice(key)
 
-        if isinstance(r, tuple):
+        if not isinstance(r, tuple):
             return r
         
         start, stop, step = r
