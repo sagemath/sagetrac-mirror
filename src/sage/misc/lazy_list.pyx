@@ -952,7 +952,7 @@ cdef class lazy_list_from_iterator(lazy_list):
         return self.__class__(self.iterator, self.cache, start, stop, step)
 
 
-cdef class lazy_list_from_fun(lazy_list):
+cdef class lazy_list_from_function(lazy_list):
     r"""
     Lazy list.
 
@@ -967,12 +967,12 @@ cdef class lazy_list_from_fun(lazy_list):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list_from_fun
+        sage: from sage.misc.lazy_list import lazy_list_from_function
         sage: from itertools import count
-        sage: m = lazy_list_from_fun(count()); m
+        sage: m = lazy_list_from_function(count()); m
         lazy list [0, 1, 2, ...]
 
-        sage: m2 = lazy_list_from_fun(lambda a, b: a, start=8, stop=20551, step=2)
+        sage: m2 = lazy_list_from_function(lambda a, b: a, start=8, stop=20551, step=2)
         sage: m2
         lazy list [8, 10, 12, ...]
 
@@ -999,14 +999,14 @@ cdef class lazy_list_from_fun(lazy_list):
 
         TESTS::
 
-            sage: from sage.misc.lazy_list import lazy_list_from_fun
+            sage: from sage.misc.lazy_list import lazy_list_from_function
             sage: from itertools import count
-            sage: f = lazy_list_from_fun(lambda a, b: a)
+            sage: f = lazy_list_from_function(lambda a, b: a)
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
         
-        super(lazy_list_from_fun, self).__init__(cache, start, stop, step)
+        super(lazy_list_from_function, self).__init__(cache, start, stop, step)
 
         if not hasattr(fun, '__call__'):
             raise TypeError("%s object is not callable"%(type(fun)))
@@ -1044,8 +1044,8 @@ cdef class lazy_list_from_fun(lazy_list):
         EXAMPLES::
 
             sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list_from_fun
-            sage: m = lazy_list_from_fun(lambda a, b: a)
+            sage: from sage.misc.lazy_list import lazy_list_from_function
+            sage: m = lazy_list_from_function(lambda a, b: a)
             sage: x = loads(dumps(m))
             sage: y = iter(x)
             sage: print y.next(), y.next(), y.next()
