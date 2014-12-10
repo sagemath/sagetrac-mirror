@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Path algebra elements.
 
@@ -87,13 +86,13 @@ cdef class PathAlgebraElement(RingElement):
         sage: timeit('pF^5+3*pF^3')    # not tested
         1 loops, best of 3: 338 ms per loop
         sage: timeit('pP^5+3*pP^3')    # not tested
-        100 loops, best of 3: 2.85 ms per loop
+        100 loops, best of 3: 2.55 ms per loop
         sage: timeit('pF2^7')          # not tested
         10000 loops, best of 3: 513 ms per loop
         sage: timeit('pL2^7')          # not tested
         125 loops, best of 3: 1.99 ms per loop
         sage: timeit('pP2^7')          # not tested
-        10000 loops, best of 3: 1.66 ms per loop
+        10000 loops, best of 3: 1.54 ms per loop
 
     """
     def __cinit__(self, *args, **kwds):

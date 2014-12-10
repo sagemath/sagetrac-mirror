@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Boilerplate functions for a cython implementation of elements of path algebras.
 
