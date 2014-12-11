@@ -966,18 +966,31 @@ class Function_gamma_inc(BuiltinFunction):
             sage: type(r)
             <type 'float'>
         """
-        if algorithm == 'pari':
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
+            prec = 53
+            C = complex
+        else:
             try:
-                return x.gamma_inc(y)
+                prec = R.precision()
             except AttributeError:
                 prec = 53
             try:
                 C = R.complex_field()
             except AttributeError:
                 C = R
-
         if algorithm == 'pari':
-            v = ComplexField(prec)(x).gamma_inc(y)
+            try:
+                v = ComplexField(prec)(x).gamma_inc(y)
+            except AttributeError:
+                if not (is_ComplexNumber(x)):
+                    if is_ComplexNumber(y):
+                        C = y.parent()
+                    else:
+                        C = ComplexField()
+                        x = C(x)
         else:
             import mpmath
             v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, y, parent=R))
@@ -1068,8 +1081,8 @@ class Function_gamma_inc_lower(BuiltinFunction):
             0.646647167633873
             sage: gamma_inc_lower(3,2).n(algorithm='pari')
             0.646647167633873
-            sage: gamma_inc_lower(3,2.).n(200)
-            0.64664716763387308784416518392...
+            sage: gamma_inc_lower(3,2).n(200)
+            0.64664716763387308106000505027515...
             sage: gamma_inc_lower(0,2.)
             +Infinity
         """

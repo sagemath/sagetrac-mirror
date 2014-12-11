@@ -965,11 +965,6 @@ class Hypergeometric_M(BuiltinFunction):
             sage: hypergeometric_M(a,b,0)
             1
         """
-        cm = get_coercion_model()
-        co = cm.canonical_coercion(cm.canonical_coercion(a, b)[0], z)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
         if not isinstance(z, Expression) and z == 0:
             return Integer(1)
         return
@@ -1072,11 +1067,6 @@ class Hypergeometric_U(BuiltinFunction):
                                  latex_name='U')
 
     def _eval_(self, a, b, z, **kwargs):
-        cm = get_coercion_model()
-        co = cm.canonical_coercion(cm.canonical_coercion(a, b)[0], z)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
         return
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
