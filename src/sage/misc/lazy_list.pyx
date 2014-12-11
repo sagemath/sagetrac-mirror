@@ -997,13 +997,35 @@ cdef class lazy_list_from_function(lazy_list):
         r"""
         Initialize ``self``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list_from_function
-            sage: from itertools import count
-            sage: f = lazy_list_from_function(lambda a, b: a)
-            sage: loads(dumps(f))
+            
+            We can provide initial values:
+
+            sage: m = lazy_list_from_function(lambda a: a[-1]+1, [0]); m
             lazy list [0, 1, 2, ...]
+
+            Alternatively, rely on the fact that the length of the cache is initially zero:
+
+            sage: m = lazy_list_from_function(lambda a: len(a)); m
+            lazy list [0, 1, 2, ...]
+
+
+            Beware of strange constructs!  The following makes each
+            element of the lazy list the lazy list itself...
+
+            sage: f = lazy_list_from_function(lambda a: a);
+            sage: f[0]
+            [[...]]
+            sage: f
+            lazy list [[[...], [...], [...], [...]], [[...], [...], [...], [...]], [[...], [...], [...], [...]], ...]
+            sage: f[0]
+            [[...], [...], [...], [...]]
+            sage: f[10]
+            [[...], [...], [...], [...], [...], [...], [...], [...], [...], [...], [...]]
+            sage: f[0] == f[10]
+            True
         """
         
         super(lazy_list_from_function, self).__init__(cache, start, stop, step)
@@ -1033,7 +1055,7 @@ cdef class lazy_list_from_function(lazy_list):
         cdef Py_ssize_t cache_size = PyList_GET_SIZE(self.cache)
         
         while cache_size <= i:
-            PyList_Append(self.cache, self.function(cache_size, self.cache))
+            PyList_Append(self.cache, self.function(self.cache))
             cache_size = PyList_GET_SIZE(self.cache)
         return 0
 
@@ -1042,19 +1064,9 @@ cdef class lazy_list_from_function(lazy_list):
         Pickling support
 
         EXAMPLES::
-
-            sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list_from_function
-            sage: m = lazy_list_from_function(lambda a, b: a)
-            sage: x = loads(dumps(m))
-            sage: y = iter(x)
-            sage: print y.next(), y.next(), y.next()
-            0 1 2
         """
 
         return self.__class__, (self.function, self.cache, self.start, self.stop, self.step)
-        
-
     
     def __getitem__(self, key):
         r"""
