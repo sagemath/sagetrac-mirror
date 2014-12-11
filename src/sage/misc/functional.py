@@ -797,6 +797,10 @@ def integral(x, *args, **kwds):
         sage: y = (x^2)*exp(x) / (1 + exp(x))^2
         sage: _ = integrate(y, x, -1000, 1000)
 
+    When SymPy cannot solve an integral it gives it back (:trac:`14723`)::
+
+        sage: integrate(log(x)*log(log(x)), x, algorithm='sympy')
+        integrate(log(x)*log(log(x)), x)
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
