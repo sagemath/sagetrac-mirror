@@ -395,12 +395,10 @@ def eta(x):
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
 
-
-
     EXAMPLES::
 
         sage: eta(1+I)
-        0.742048775837 + 0.19883137023*I
+        0.7420487758365647 + 0.1988313702299107*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -592,7 +590,7 @@ def symbolic_sum(expression, *args, **kwds):
             sage: sum(list[n],n,0,3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=n) to an integer
+            TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
         
@@ -781,7 +779,7 @@ def integral(x, *args, **kwds):
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
         1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
-        sage: t.simplify_exp()  # long time
+        sage: t.canonicalize_radical()  # long time
         1/2*sqrt(pi)*e^(1/4)
         sage: sage.calculus.calculus.maxima('domain: complex')
         complex
@@ -1214,10 +1212,10 @@ def norm(x):
 
         sage: z = 1 + 2*I
         sage: norm(matrix([[z]]))
-        2.2360679775
+        2.23606797749979
         sage: M = matrix(ZZ, [[1,2,4,3], [-1,0,3,-10]])
-        sage: norm(M)
-        10.6903311292
+        sage: norm(M)  # abs tol 1e-14
+        10.690331129154467
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))
