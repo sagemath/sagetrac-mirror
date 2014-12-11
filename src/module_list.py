@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 
@@ -89,6 +90,15 @@ def uname_specific(name, value, alternative):
         return value
     else:
         return alternative
+
+# These are not true Python extensions, just libraries which will be
+# installed in $SAGE_LOCAL/lib
+libsage_modules = [
+    Extension('libcsage',
+              sources = glob('c_lib/src/*.c') + glob('c_lib/src/*.cpp'),
+              depends = glob('c_lib/include/*'),
+              libraries = ['gmp', 'ntl', 'pari'])
+    ]
 
 ext_modules = [
 

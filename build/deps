@@ -115,7 +115,6 @@ all-sage: \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/sage \
-     $(INST)/csage \
      $(EXTCODE) \
      $(SCRIPTS)
 
@@ -498,22 +497,10 @@ $(INST)/sage: \
 		 $(INST)/$(READLINE) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(ZNPOLY) \
-		 $(INST)/csage
+		 $(INST)/$(ZNPOLY)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		$(PIPE) 'time python setup.py install 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
-		touch $@; \
-	fi
-
-$(INST)/csage: $(INST)/$(SCONS) \
-       $(INST)/$(MPIR) \
-       $(INST)/$(NTL) \
-       $(INST)/$(PARI) \
-       $(INST)/$(PYTHON)
-	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
-		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

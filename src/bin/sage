@@ -643,7 +643,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    sage-build "$@" || exit $?
+    ( cd "$SAGE_SRC" && python setup.py install ) || exit $?
 }
 
 if [[ "$1" =~ "--notebook="* || "$1" =~ "-n="* || "$1" =~ "-notebook="* ]]; then
@@ -701,7 +701,8 @@ fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
     shift
-    build_sage -b "$@"
+    ( cd "$SAGE_SRC" && make clean )
+    build_sage "$@"
     exit $?
 fi
 
