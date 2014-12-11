@@ -118,29 +118,36 @@ This module implements finite partially ordered sets. It defines:
 
 **Internals**
 
-A poset is stored as a DiGraph over plain integers and a list of poset
-elements corresponding to those intergers. A cover relation on the
-poset is an edge on the DiGraph.
+A poset is stored as a DiGraph over plain integers, and a list associating a
+name to each of those integers. The cover relations of the poset are the edges
+on the DiGraph.
 
 - A point `x` of `P` corresponds to the integer ``P._element_to_vertex(x)``.
 - The integer `x` corresponds to point ``P._list[x]``.
 - ``P._list`` is some linear extension of `P`, i.e. if `x<y` then
   ``P._element_to_vertex(x) < P._element_to_vertex(y)``.
 
-Many functions are basically just wrappers of graph functions, for example:
+Many :class:`FinitePoset` functions are wrappers of :class:`DiGraph` functions,
+for example:
 
-- ``is_connected()`` wraps the function of Graph with same name.
-- ``minimal_elements()`` wraps ``sources()`` on DiGraph, giving
-  meaningful name for the poset operation.
-- ``maximal_antichains()`` is same as maximun cliques of incomparability graph,
-  combining two digraph functions to one poset function.
+- :meth:`~FinitePoset.is_connected` wraps :meth:`GenericGraph.is_connected
+  <sage.graphs.generic_graph.GenericGraph.is_connected>`.
 
-Backend of the DiGraph is static, hence very fast. On the other hand
-there is no way to modify existing poset. Actually there are digraph
-for both lower and upper coverings, so for example ``has_top()`` and
-``has_bottom()`` take same time.
+- :meth:`~FinitePoset.minimal_elements` wraps :meth:`DiGraph.sources`, giving a
+  meaningful name to the poset operation.
 
-Internal DiGraph of the poset also contains positioning information
+- :meth:`~FinitePoset.maximal_antichains()` is a call to
+  :meth:`Graph.cliques_maximal` on the Poset's
+  :meth:`~FinitePoset.incomparability_graph`, combining two digraph functions into
+  one poset function.
+
+The data structure of the :class:`DiGraph` is a :mod:`static sparse graph
+<sage.graphs.base.static_sparse_graph>`, hence very fast. On the other hand
+there is no way to modify existing poset. Two digraphs are stored for both lower
+and upper coverings, so for example :meth:`~FinitePoset.has_top()` and
+:meth:`~FinitePoset.has_bottom` are equally fast.
+
+The Internal DiGraph of the poset also contains positioning information
 for nodes; see difference between ``P.hasse_diagram().show()`` and
 ``DiGraph(P.hasse_diagram()).show()``.
 
