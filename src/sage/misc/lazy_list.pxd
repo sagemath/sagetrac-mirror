@@ -11,8 +11,8 @@ cdef class lazy_list_from_iterator(lazy_list):
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1
 
-cdef class lazy_list_from_fun(lazy_list):
-    cdef object fun
+cdef class lazy_list_from_function(lazy_list):
+    cdef object function
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1
     

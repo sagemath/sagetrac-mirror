@@ -958,7 +958,7 @@ cdef class lazy_list_from_function(lazy_list):
 
     INPUT:
 
-    - ``fun`` -- a callable object
+    - ``function`` -- a callable object
 
     - ``cache`` -- ``None`` (default) or a list - used to initialize the cache.
 
@@ -993,7 +993,7 @@ cdef class lazy_list_from_function(lazy_list):
         - all entry indices are stictly less than ``stop`` so that
           :class:`lazy_list` agrees with ``range(start, stop)``
     """
-    def __init__(self, fun, cache=None, start=None, stop=None, step=None):
+    def __init__(self, function, cache=None, start=None, stop=None, step=None):
         r"""
         Initialize ``self``.
 
@@ -1008,9 +1008,9 @@ cdef class lazy_list_from_function(lazy_list):
         
         super(lazy_list_from_function, self).__init__(cache, start, stop, step)
 
-        if not hasattr(fun, '__call__'):
-            raise TypeError("%s object is not callable"%(type(fun)))
-        self.fun = fun
+        if not hasattr(function, '__call__'):
+            raise TypeError("%s object is not callable"%(type(function)))
+        self.function = function
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -1033,7 +1033,7 @@ cdef class lazy_list_from_function(lazy_list):
         cdef Py_ssize_t cache_size = PyList_GET_SIZE(self.cache)
         
         while cache_size <= i:
-            PyList_Append(self.cache, self.fun(cache_size, self.cache))
+            PyList_Append(self.cache, self.function(cache_size, self.cache))
             cache_size = PyList_GET_SIZE(self.cache)
         return 0
 
@@ -1052,7 +1052,7 @@ cdef class lazy_list_from_function(lazy_list):
             0 1 2
         """
 
-        return self.__class__, (self.fun, self.cache, self.start, self.stop, self.step)
+        return self.__class__, (self.function, self.cache, self.start, self.stop, self.step)
         
 
     
@@ -1132,4 +1132,4 @@ cdef class lazy_list_from_function(lazy_list):
             l = []
             return lazy_list_from_iterator(iter(l), l, 0, 0, 1)
 
-        return self.__class__(self.fun, self.cache, start, stop, step)
+        return self.__class__(self.function, self.cache, start, stop, step)
