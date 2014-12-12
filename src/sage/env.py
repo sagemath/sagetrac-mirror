@@ -5,10 +5,14 @@ AUTHORS:
 
 - \R. Andrew Ohana (2012): Initial version.
 
+- Jeroen Demeyer (2014-12-12): add functions for Cython compiler flags,
+  see :trac:`17484`.
+
 """
 
 ########################################################################
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
+#       Copyright (C) 2014 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -142,6 +146,17 @@ def get_include_dirs():
     """
     Return a list of include directories, used to search for
     dependencies and add to gcc -I<path>.
+
+    OUTPUT: a list of include directories
+
+    EXAMPLES::
+
+        sage: from sage.env import get_include_dirs
+        sage: get_include_dirs()
+        ['.../local/include',
+         '.../src',
+         '.../src/c_lib/include',
+         '.../src/sage/ext']
     """
     from os.path import join as opj
     return [SAGE_INC,
@@ -159,6 +174,16 @@ def get_compile_args(debug=False, warn=False):
     - ``debug`` -- (default: ``False``) enable debugging with ``gdb``
 
     - ``warn`` -- (default: ``False``) enable compiler warnings
+
+    OUTPUT: a list of compiler flags
+
+    EXAMPLES::
+
+        sage: from sage.env import get_compile_args
+        sage: '-ggdb' in get_compile_args()
+        False
+        sage: '-ggdb' in get_compile_args(debug=True)
+        True
     """
     import subprocess
     from distutils import sysconfig
@@ -188,6 +213,14 @@ def get_compile_args(debug=False, warn=False):
 def get_link_args():
     """
     Extra linker flags (currently nothing).
+
+    OUTPUT: a list of linker flags
+
+    EXAMPLES::
+
+        sage: from sage.env import get_link_args
+        sage: get_link_args()
+        []
     """
     return []
 
