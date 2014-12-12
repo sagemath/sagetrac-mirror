@@ -147,12 +147,9 @@ there is no way to modify existing poset. Two digraphs are stored for both lower
 and upper coverings, so for example :meth:`~FinitePoset.has_top()` and
 :meth:`~FinitePoset.has_bottom` are equally fast.
 
-The Internal DiGraph of the poset also contains positioning information
-for nodes; see difference between ``P.hasse_diagram().show()`` and
-``DiGraph(P.hasse_diagram()).show()``.
-
 Some things are saved as lazy attributes: le-matrix, ranks, join and
-meet matrices.
+meet matrices. Hence for example ``P.gt(x, y)`` is faster after
+``P.lequal_matrix()``."
 
 Classes and functions
 ---------------------
