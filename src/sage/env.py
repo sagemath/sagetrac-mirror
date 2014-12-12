@@ -89,6 +89,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
+_add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
 _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
@@ -131,6 +132,65 @@ if ' ' in DOT_SAGE:
 # things that need DOT_SAGE
 _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))
 _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
+
+
+#########################################
+# Compiler/linker flags for Cython code
+#########################################
+
+def get_include_dirs():
+    """
+    Return a list of include directories, used to search for
+    dependencies and add to gcc -I<path>.
+    """
+    from os.path import join as opj
+    return [SAGE_INC,
+            SAGE_SRC,
+            opj(SAGE_SRC, 'c_lib', 'include'),
+            opj(SAGE_SRC, 'sage', 'ext')]
+
+def get_compile_args(debug=False, warn=False):
+    """
+    Return additional compile flags which should be used for Cython
+    extensions.
+
+    INPUT:
+
+    - ``debug`` -- (default: ``False``) enable debugging with ``gdb``
+
+    - ``warn`` -- (default: ``False``) enable compiler warnings
+    """
+    import subprocess
+    from distutils import sysconfig
+
+    # Manually add -fno-strict-aliasing, which is needed to compile Cython
+    # and disappears from the default flags if the user has set CFLAGS.
+    extra_compile_args = [ "-fno-strict-aliasing" ]
+
+    # comment these four lines out to turn on warnings from gcc
+    if not warn:
+        if sysconfig.get_config_var('CC').startswith("gcc"):
+            extra_compile_args.append('-w')
+
+    if debug:
+        extra_compile_args.append('-ggdb')
+
+    # Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
+    # as witnessed by a doctest in sage/libs/gap/element.pyx if the
+    # compiler flag -Og is used. See also
+    # * http://trac.sagemath.org/sage_trac/ticket/14460
+    # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
+    if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
+        extra_compile_args.append('-fno-tree-dominator-opts')
+
+    return extra_compile_args
+
+def get_link_args():
+    """
+    Extra linker flags (currently nothing).
+    """
+    return []
+
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site

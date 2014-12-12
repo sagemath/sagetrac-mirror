@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, time, platform, subprocess, glob
+import os, sys, time, glob
 from distutils.core import setup
 
 # Make sure stdout doesn't buffer output, otherwise output
@@ -18,7 +18,7 @@ sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 from module_list import libsage_modules, ext_modules
 import sage.ext.gen_interpreters
-from sage.env import *
+from sage.env import SAGE_INC, SAGE_LOCAL, SAGE_SRC, SAGE_VERSION, SITE_PACKAGES
 
 #########################################################
 ### Configuration
@@ -36,36 +36,12 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
-# search for dependencies and add to gcc -I<path>
-include_dirs = [SAGE_INC,
-                SAGE_SRC,
-                os.path.join(SAGE_SRC, 'c_lib', 'include'),
-                os.path.join(SAGE_SRC, 'sage', 'ext')]
+from sage.env import get_include_dirs, get_compile_args, get_link_args
+include_dirs = get_include_dirs()
+extra_compile_args = get_compile_args()
+extra_link_args = get_link_args()
 
-# Manually add -fno-strict-aliasing, which is needed to compile Cython
-# and disappears from the default flags if the user has set CFLAGS.
-extra_compile_args = [ "-fno-strict-aliasing" ]
-extra_link_args = [ ]
-
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
-DEVEL = False
-if DEVEL:
-    extra_compile_args.append('-ggdb')
-
-# Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
-# as witnessed by a doctest in sage/libs/gap/element.pyx if the
-# compiler flag -Og is used. See also
-# * http://trac.sagemath.org/sage_trac/ticket/14460
-# * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
-if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-dominator-opts')
 
 # Generate interpreters
 sage.ext.gen_interpreters.rebuild(os.path.join(SAGE_SRC, 'sage', 'ext', 'interpreters'))
@@ -382,7 +358,7 @@ class sage_build_ext(build_ext):
     def prepare_extension(self, ext):
         sources = ext.sources
         if sources is None or type(sources) not in (ListType, TupleType):
-            raise DistutilsSetupError(("in 'ext_modules' option (extension '%s'), " +
+            raise RuntimeError(("in 'ext_modules' option (extension '%s'), " +
                    "'sources' must be present and must be " +
                    "a list of source filenames") % ext.name)
         sources = list(sources)

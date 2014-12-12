@@ -17,9 +17,9 @@ AUTHORS:
 
 from __future__ import print_function
 
-import os, sys, platform
+import os, sys
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME, get_include_dirs
 from misc import SPYX_TMP
 
 def cblas():
@@ -67,14 +67,8 @@ def atlas():
     else:
         return 'atlas'
 
-include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
-                os.path.join(SAGE_LOCAL,'include'), \
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
-                os.path.join(SAGE_SRC,'sage','ext'), \
-                os.path.join(SAGE_SRC), \
-                os.path.join(SAGE_SRC,'sage','gsl')]
 
+include_dirs = get_include_dirs()
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
                  'ec', 'gsl', cblas(), atlas(), 'ntl', 'csage']
@@ -197,27 +191,25 @@ def pyx_preparse(s):
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
         ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
-        ['mpfr',
-        'gmp',
-        'gmpxx',
-        'stdc++',
-        'pari',
-        'm',
-        'ec',
-        'gsl',
-        '...blas',
-        ...,
-        'ntl',
-        'csage'],
-        ['.../include/csage',
-        '.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
-        '...',
-        '.../sage/gsl'],
-        'c',
-        [], ['-w', '-O2'])
+         ['mpfr',
+          'gmp',
+          'gmpxx',
+          'stdc++',
+          'pari',
+          'm',
+          'ec',
+          'gsl',
+          '...blas',
+          '...',
+          'ntl',
+          'csage'],
+         ['.../local/include',
+          '.../src',
+          '.../src/c_lib/include',
+          '.../src/sage/ext'],
+         'c',
+         [],
+         [])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'
@@ -237,17 +229,14 @@ def pyx_preparse(s):
 
         sage: inc
         ['bar',
-        '.../include/csage',
-        '.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
-        '...',
-        '.../sage/gsl']
+         '.../local/include',
+         '.../src',
+         '.../src/c_lib/include',
+         '.../src/sage/ext']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
-        ['-w', '-O2', '-O3', '-ggdb']
+        ['-O3', '-ggdb']
 
     TESTS::
 
@@ -273,7 +262,6 @@ def pyx_preparse(s):
     if lang != "c++": # has issues with init_csage()
         s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
     args, s = parse_keywords('cargs', s)
-    args = ['-w','-O2'] + args
 
     return s, libs, inc, lang, additional_source_files, args
 
@@ -413,8 +401,9 @@ def cython(filename, verbose=False, compile_message=False,
 
     F, libs, includes, language, additional_source_files, extra_args = pyx_preparse(F)
 
-    # add the working directory to the includes so custom headers etc. work
-    includes.append(os.path.split(os.path.splitext(filename)[0])[0])
+    # Add the working directory to the includes so custom headers work.
+    # Join with "." such that we don't end up with an empty directory name.
+    includes.append(os.path.join(".", os.path.dirname(filename)))
 
     if language == 'c++':
         extension = "cpp"
@@ -450,19 +439,19 @@ import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
 from sage.env import SAGE_LOCAL
-
-extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
-extra_compile_args = %s
+from sage.env import get_compile_args, get_link_args
+extra_compile_args = %s + get_compile_args()
+extra_link_args = get_link_args()
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
                      library_dirs=[SAGE_LOCAL + '/lib/'],
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
-                     language = '%s' )]
+                     language = '%s',
+                     include_dirs = %s)]
 
-setup(ext_modules = ext_modules,
-      include_dirs = %s)
+setup(ext_modules = ext_modules)
     """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
