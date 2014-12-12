@@ -1332,7 +1332,7 @@ def divisors(n):
         sage: divisors(K.ideal(3))
         [Fractional ideal (1), Fractional ideal (3), Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (5*a), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
 
     TESTS::
 
@@ -2145,15 +2145,14 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
     INPUT:
 
-    - ``a`` - an integer
+    - ``a`` -- an integer
 
-    - ``m`` - a modulus
+    - ``m`` -- a modulus
 
-    - ``algorithm`` - (default: 'fast')
+    - ``algorithm`` -- (default: 'fast')
 
-      - ``'fast'`` - a fast compiled implementation
-
-      - ``'python'`` - a slow pure python implementation
+      - ``'fast'`` - a fast implementation using direct MPIR calls
+        in Cython.
 
     OUTPUT:
 
@@ -2192,95 +2191,37 @@ def rational_reconstruction(a, m, algorithm='fast'):
         sage: rational_reconstruction(400,1000)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 400 (mod 1000) does not exist.
+        ArithmeticError: rational reconstruction of 400 (mod 1000) does not exist
 
     ::
 
-        sage: rational_reconstruction(3,292393, algorithm='python')
+        sage: rational_reconstruction(3, 292393)
         3
         sage: a = Integers(292393)(45/97); a
         204977
-        sage: rational_reconstruction(a,292393, algorithm='python')
+        sage: rational_reconstruction(a, 292393, algorithm='fast')
         45/97
-        sage: a = Integers(292393)(45/97); a
-        204977
-        sage: rational_reconstruction(a,292393, algorithm='fast')
-        45/97
-        sage: rational_reconstruction(293048,292393, algorithm='fast')
+        sage: rational_reconstruction(293048, 292393)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-        sage: rational_reconstruction(293048,292393, algorithm='python')
+        ArithmeticError: rational reconstruction of 655 (mod 292393) does not exist
+        sage: rational_reconstruction(0, 0)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-
-    TESTS:
-
-    Check that ticket #9345 is fixed::
-
-        sage: rational_reconstruction(1, 0)
+        ZeroDivisionError: rational reconstruction with zero modulus
+        sage: rational_reconstruction(0, 1, algorithm="foobar")
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: rational_reconstruction(randint(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
+        ValueError: unknown algorithm 'foobar'
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
     elif algorithm == 'python':
-        return _rational_reconstruction_python(a,m)
+        from sage.misc.superseded import deprecation
+        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
+        return ZZ(a).rational_reconstruction(m)
     else:
-        raise ValueError("unknown algorithm")
-
-def _rational_reconstruction_python(a,m):
-    """
-    Internal fallback function for rational_reconstruction; see
-    documentation of that function for details.
-
-    INPUT:
-
-    - ``a`` - an integer
-
-    - ``m`` - a modulus
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import _rational_reconstruction_python
-        sage: _rational_reconstruction_python(20,31)
-        -2/3
-        sage: _rational_reconstruction_python(11323,100000)
-        119/53
-    """
-    a = int(a); m = int(m)
-    a %= m
-    if a == 0 or m==0:
-        return ZZ(0)/ZZ(1)
-    if m < 0:
-        m = -m
-    if a < 0:
-        a = m-a
-    if a == 1:
-        return ZZ(1)/ZZ(1)
-    u = m
-    v = a
-    bnd = math.sqrt(m/2)
-    U = (1,0,u)
-    V = (0,1,v)
-    while abs(V[2]) > bnd:
-        q = U[2]/V[2]  # floor is implicit
-        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
-        U = V
-        V = T
-    x = abs(V[1])
-    y = V[2]
-    if V[1] < 0:
-        y *= -1
-    if x <= bnd and GCD(x,y) == 1:
-        return ZZ(y) / ZZ(x)
-    raise ValueError("Rational reconstruction of %s (mod %s) does not exist."%(a,m))
+        raise ValueError("unknown algorithm %r" % algorithm)
 
 def mqrr_rational_reconstruction(u, m, T):
     r"""
@@ -5565,13 +5506,13 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c = sort_complex_numbers_for_display
         sage: nums = [CDF(i) for i in range(3)]
         sage: for i in range(3):
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
         sage: shuffle(nums)
         sage: sort_c(nums)
-        [0.0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+        [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
     if len(nums) == 0:
         return nums
