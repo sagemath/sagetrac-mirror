@@ -68,7 +68,7 @@ There are several ways to create and build Cython code in Sage.
 #. Create a ``.pyx`` file and add it to the Sage library.
 
    #. First, add a listing for the Cython extension to the variable
-      ``ext_modules`` in the file
+      ``cython_modules`` in the file
       ``SAGE_ROOT/src/module_list.py``. See the
       ``distutils.extension.Extension`` class for more information on
       creating a new Cython extension.

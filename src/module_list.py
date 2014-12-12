@@ -100,7 +100,7 @@ libsage_modules = [
               libraries = ['gmp', 'ntl', 'pari'])
     ]
 
-ext_modules = [
+cython_modules = [
 
     ################################
     ##
@@ -2149,7 +2149,7 @@ ext_modules = [
 from sage.misc.package import is_package_installed
 
 if is_package_installed('fes'):
-    ext_modules.extend([
+    cython_modules.extend([
        Extension("sage.libs.fes",
                  ["sage/libs/fes.pyx"],
                  language = "c",
@@ -2159,7 +2159,7 @@ if is_package_installed('fes'):
 
 if (os.path.isfile(SAGE_INC + "/gurobi_c.h") and
     os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")):
-    ext_modules.append(
+    cython_modules.append(
         Extension("sage.numerical.backends.gurobi_backend",
                   ["sage/numerical/backends/gurobi_backend.pyx"],
                   language = 'c',
@@ -2168,7 +2168,7 @@ if (os.path.isfile(SAGE_INC + "/gurobi_c.h") and
 
 
 if is_package_installed('coxeter3'):
-    ext_modules.append(
+    cython_modules.append(
         Extension('sage.libs.coxeter3.coxeter',
                   sources = ['sage/libs/coxeter3/coxeter.pyx'],
                   include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
@@ -2179,7 +2179,7 @@ if is_package_installed('coxeter3'):
 
 if (os.path.isfile(SAGE_INC + "/cplex.h") and
     os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")):
-    ext_modules.append(
+    cython_modules.append(
         Extension("sage.numerical.backends.cplex_backend",
                   ["sage/numerical/backends/cplex_backend.pyx"],
                   language = 'c',
@@ -2187,7 +2187,7 @@ if (os.path.isfile(SAGE_INC + "/cplex.h") and
         )
 
 if is_package_installed('cbc'):
-    ext_modules.append(
+    cython_modules.append(
         Extension("sage.numerical.backends.coin_backend",
                   ["sage/numerical/backends/coin_backend.pyx"],
                   language = 'c++',
@@ -2196,7 +2196,7 @@ if is_package_installed('cbc'):
 
 
 if is_package_installed('cryptominisat'):
-    ext_modules.extend([
+    cython_modules.extend([
         Extension("sage.sat.solvers.cryptominisat.cryptominisat",
                   ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
                   include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
@@ -2210,7 +2210,7 @@ if is_package_installed('cryptominisat'):
         ])
 
 if is_package_installed('mcqd'):
-    ext_modules.append(
+    cython_modules.append(
         Extension("sage.graphs.mcqd",
                   ["sage/graphs/mcqd.pyx"],
                   language = "c++"))
@@ -2220,7 +2220,7 @@ if is_package_installed('mcqd'):
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
-    ext_modules.append(
+    cython_modules.append(
         Extension('sage.misc.darwin_utilities',
             sources = ['sage/misc/darwin_memory_usage.c',
                        'sage/misc/darwin_utilities.pyx'],
@@ -2229,7 +2229,7 @@ if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
 
 
 if is_package_installed('lrcalc'):
-    ext_modules.append(
+    cython_modules.append(
         Extension('sage.libs.lrcalc.lrcalc',
                   sources = ["sage/libs/lrcalc/lrcalc.pyx"],
                   include_dirs = [SAGE_INC + '/lrcalc/'],
