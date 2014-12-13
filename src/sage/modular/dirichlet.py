@@ -81,6 +81,7 @@ from sage.rings.ring import is_Ring
 
 from sage.misc.cachefunc                    import cached_method
 from sage.rings.arith                       import binomial, bernoulli
+from sage.functions.other                   import factorial
 from sage.structure.element                 import MultiplicativeGroupElement
 from sage.structure.sequence                import Sequence
 from sage.structure.factory                 import UniqueFactory
@@ -662,7 +663,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             # h(n) = g(t)*e^{nt}
             h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
-            ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
+            ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * factorial(k)
 
         else:
             raise ValueError("algorithm = '%s' unknown"%algorithm)

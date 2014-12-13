@@ -103,7 +103,6 @@ import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
 import ring_element
-import arith
 import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
@@ -1937,12 +1936,14 @@ cdef class PowerSeries(AlgebraElement):
 
         EXAMPLES::
 
+            sage: from sage.functions.other import factorial
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
             sage: f.egf_to_ogf()
             t + t^2 + 2*t^3
         """
-        return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
+        from sage.functions.other import factorial
+        return self.parent()([self[i] * factorial(i) for i in range(self.degree()+1)])
 
     def ogf_to_egf(self):
         r"""
@@ -1958,7 +1959,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.ogf_to_egf()
             t + 1/2*t^2 + 1/3*t^3
         """
-        return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+        from sage.functions.other import factorial
+        return self.parent()([self[i] / factorial(i) for i in range(self.degree()+1)])
 
     ogf = deprecated_function_alias(15705, egf_to_ogf)
     egf = deprecated_function_alias(15705, ogf_to_egf)

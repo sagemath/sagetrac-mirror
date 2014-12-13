@@ -25,7 +25,8 @@ The algorithm used in this file comes from
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.composition import Composition
 from sage.combinat.combinat import CombinatorialClass
-from sage.rings.arith import euler_phi,factorial, divisors, gcd
+from sage.rings.arith import euler_phi, divisors, gcd
+from sage.functions.other import factorial
 from sage.rings.integer import Integer
 from sage.misc.misc import prod
 from sage.combinat.misc import DoublyLinkedList

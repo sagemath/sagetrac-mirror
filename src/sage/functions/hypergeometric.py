@@ -140,8 +140,8 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
-from sage.rings.arith import (binomial, rising_factorial, factorial)
-from sage.functions.other import sqrt, gamma, real_part
+from sage.rings.arith import (binomial, rising_factorial)
+from sage.functions.other import sqrt, gamma, real_part, factorial
 from sage.functions.log import exp, log
 from sage.functions.trig import cos, sin
 from sage.functions.hyperbolic import cosh, sinh
