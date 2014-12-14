@@ -1291,7 +1291,6 @@ def py_tgamma_for_doctests(x):
     """
     return py_tgamma(x)
 
-from sage.rings.arith import factorial
 cdef public object py_factorial(object x) except +:
     """
     The factorial function exported to pynac.
@@ -1315,7 +1314,7 @@ cdef public object py_factorial(object x) except +:
         coercion_success = False
 
     if coercion_success and x_in_ZZ >= 0:
-        return factorial(x)
+        return ZZ(x).factorial()
     else:
         return py_tgamma(x+1)
 

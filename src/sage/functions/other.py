@@ -1305,6 +1305,13 @@ class Function_factorial(GinacFunction):
 
         TESTS:
 
+            sage: factorial(6) == 6*5*4*3*2
+            True
+            sage: factorial(1) == factorial(0)
+            True
+            sage: factorial(71) == 71* factorial(70)
+            True
+
         We verify that we can convert this function to Maxima and
         bring it back into Sage.::
 
@@ -1356,20 +1363,21 @@ class Function_factorial(GinacFunction):
             factorial
         """
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
+                               ginac_name='factorial',
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
                                  sympy='factorial'))
 
-    def _eval_(self, x):
+    def __call__(self, x, **kwds):
         """
-        Evaluate the factorial function.
-
+        Return the factorial function.
+ 
         Note that this method overrides the eval method defined in GiNaC
         which calls numeric evaluation on all numeric input. We preserve
         exact results if the input is a rational number.
-
+ 
         EXAMPLES::
-
+ 
             sage: k = var('k')
             sage: k.factorial()
             factorial(k)
@@ -1384,12 +1392,19 @@ class Function_factorial(GinacFunction):
             sage: SR(3245908723049857203948572398475).factorial()
             factorial(3245908723049857203948572398475)
         """
-        if isinstance(x, Rational):
-            return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
-            return py_factorial_py(x)
-
-        return None
+        algorithm=kwds.get('algorithm','gmp')
+        if not kwds.get('hold', False):
+            if isinstance(x, Rational):
+                return gamma(x+1)
+            elif isinstance(x, (Integer, int)):
+                if algorithm == 'gmp':
+                    return ZZ(x).factorial()
+                elif algorithm == 'pari':
+                    from sage.libs.pari.all import pari
+                    return pari.factorial(x)
+                else:
+                    raise ValueError('unknown algorithm')
+        return super(GinacFunction,self).__call__(x, **kwds)
 
 factorial = Function_factorial()
 
