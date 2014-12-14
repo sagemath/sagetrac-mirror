@@ -15734,7 +15734,6 @@ class GenericGraph(GenericGraph_pyx):
 
         .. plot::
 
-            from sage.graphs.graph_generators import graphs
             draw(graphs.PetersenGraph())
 
         """

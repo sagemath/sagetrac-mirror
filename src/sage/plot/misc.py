@@ -392,4 +392,7 @@ def draw(plot):
     plt.imshow(img)
     plt.margins(0)
     plt.axis("off")
+    plt.tight_layout(pad=0)
+
+from sage.all_cmdline import *
 """
