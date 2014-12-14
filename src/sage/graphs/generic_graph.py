@@ -15731,6 +15731,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
+
+        .. plot::
+
+            from sage.graphs.graph_generators import graphs
+            draw(graphs.PetersenGraph())
+
         """
         if method == "js":
             from sage.graphs.graph_plot_js import gen_html_code

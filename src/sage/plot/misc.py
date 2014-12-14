@@ -378,3 +378,18 @@ def get_matplotlib_linestyle(linestyle, return_type):
                              "respectively {'-', '--', ':', '-.', ''}"%
                              (linestyle))
 
+# This code is executed before each ".. PLOT::" directive in the Sphinx
+# documentation. It defines a 'draw' functions that displays a Sage object
+# through mathplotlib, so that it will be displayed in the HTML doc
+plot_pre_code = """
+def draw(plot):
+    import matplotlib.image as mpimg
+    from sage.misc.temporary_file import tmp_filename
+    import matplotlib.pyplot as plt
+    fn = tmp_filename(ext=".png")
+    plot.plot().save(fn)
+    img = mpimg.imread(fn)
+    plt.imshow(img)
+    plt.margins(0)
+    plt.axis("off")
+"""
