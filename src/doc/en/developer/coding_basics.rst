@@ -376,6 +376,16 @@ a guide.
               sage: have_fresh_beers('Bière de l\'Yvette') # todo: not implemented
               Enjoy !
 
+- A PLOT block to illustrate with pictures the output of a function. In
+  order to generate the drawing, write several lines of code in order to
+  build a Sage object ``X`` with a ``.plot`` method. Then, call
+  ``draw(X)`` at the end of the PLOT block::
+
+      .. PLOT::
+
+          g = graphs.PetersenGraph()
+          draw(g)
+
 - A REFERENCES block to list books or papers (optional). This block serves
   a similar purpose to a list of references in a research paper, or a
   bibliography in a monograph. If your method, function or class uses an
