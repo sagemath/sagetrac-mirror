@@ -639,6 +639,14 @@ cdef class Origami_dense_pyx:
             H_2(2)
             sage: sorted(o.period_generators())
             [(-2, 2), (0, 2), (0, 3), (2, 0), (2, 0), (4, 0)]
+
+            sage: o = Origami('(1)(2)(3)','(1,2,3)')
+            sage: o.period_generators()
+            [(1, 0), (0, 3)]
+
+            sage: o = Origami('(1,2)','(1,2)')
+            sage: o.period_generators()
+            [(2, 0), (-1, 1)]
         """
         # TODO: it is stupid as we do twice the job... in standard form we
         # already compute the singularities
@@ -651,14 +659,20 @@ cdef class Origami_dense_pyx:
          # its top right corner on the left (or -1 if none)
         cdef int i,k
         cdef list periods = []
+        cdef int mark
 
         # compute the set squares which have a singularity in either their top
         # right or bottom right corners
+        mark = 0
         memset(br_sg, 0, self._n*sizeof(int))
         for i in range(self._n):
             if r[u[i]] != u[r[i]]:
+                mark = 1
                 br_sg[u[i]] = 1
 #                print "tr/br at %d/%d"%(i,u[i])
+
+        if mark == 0:  # torus case... no marked point
+            br_sg[0] = 1
 
         # now compute the horizontal saddles and build i_to_tr
 #        print "compute horiz"
@@ -689,6 +703,9 @@ cdef class Origami_dense_pyx:
                     k += 1
 #                print "new (%d,%d)"%(-i_to_tr[j],k)
                 periods.append((smallInteger(-i_to_tr[j]), k))
+
+        if len(periods) == 0:
+            raise RuntimeError("this should not happen!")
 
         sage_free(memory)
         return periods
@@ -778,6 +795,11 @@ cdef class Origami_dense_pyx:
             sage: o = Origami('(1,2,3,4)(5,6)','(1,5)(2,6)')
             sage: o.is_reduced()
             False
+
+            sage: o = Origami('(1)(2)(3)','(1,2,3)')
+            sage: o.is_reduced()
+            XXX
+
         """
         return self.lattice_of_periods() == (smallInteger(1),smallInteger(0),smallInteger(1))
 
