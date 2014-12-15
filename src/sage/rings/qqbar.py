@@ -3938,12 +3938,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         the number into a number field element first may be able to help,
         as in this case::
 
-            sage: a = AA.polynomial_root(QQ[x]([101724, -915320, 1141893, -1061610, 30361, -300, 1]), RIF(120,121))
+            sage: p = QQ[x]([101724, -915320, 1141893, -1061610, 30361, -300, 1])
+            sage: a = AA.polynomial_root(p, RIF(120,121))
             sage: SR(a.minpoly()).solve(SR(x), explicit_solutions=True)
             []
             sage: a.radical_expression(via_nf=False)
             120.55238677055798?
-
+            sage: s = a.radical_expression()
+            sage: s
+            1/8*((sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) ...
+            sage: N(s)
+            120.552386770558
+            sage: s.minpoly() == p
+            True
 
         TESTS:
 
