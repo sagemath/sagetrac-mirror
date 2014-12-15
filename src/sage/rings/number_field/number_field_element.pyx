@@ -2236,10 +2236,10 @@ cdef class NumberFieldElement(FieldElement):
         else:
             # Convert the embedding to an embedding into AA or QQbar
             embedding = number_field.refine_embedding(embedding, infinity)
-            a = embedding(self).radical_expression()
+            a = embedding(self).radical_expression(via_nf=False)
             if a.parent() == SR:
                 return a
-            b = embedding.im_gens()[0].radical_expression()
+            b = embedding.im_gens()[0].radical_expression(via_nf=True)
             if b.parent() == SR:
                 return self.polynomial()(b)
             return SR(a)

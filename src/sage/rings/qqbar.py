@@ -3893,11 +3893,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         val = self.interval_diameter(target)
         return field(val)
 
-    def radical_expression(self):
+    def radical_expression(self, via_nf=True):
         r"""
-        Attempt to obtain a symbolic expression using radicals. If no
-        exact symbolic expression can be found, the algebraic number
-        will be returned without modification.
+        Attempt to obtain a symbolic expression using radicals.
+
+        INPUT:
+
+        -  ``via_nf`` - convert to number field element if the minimal
+                        polynomial can't be solved directly
+
+        OUTPUT:
+
+        Either a symbolic expression representing the given algebraic number,
+        or the number itself without modification if no such expression
+        could be found.
 
         EXAMPLES::
 
@@ -3924,11 +3933,23 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(0).radical_expression()
             0
 
+        For some algebraic numbers, the minimal polynomial itself cannot
+        be directly converted to a radical expression. However, turning
+        the number into a number field element first may be able to help,
+        as in this case::
+
+            sage: a = AA.polynomial_root(QQ[x]([101724, -915320, 1141893, -1061610, 30361, -300, 1]), RIF(120,121))
+            sage: SR(a.minpoly()).solve(SR(x), explicit_solutions=True)
+            []
+            sage: a.radical_expression(via_nf=False)
+            120.55238677055798?
+
+
         TESTS:
 
         In this example we find the correct answer despite the fact that
         multiple roots overlap with the current value. As a consequence,
-        the precision of the evaluation will have to be increased.
+        the precision of the evaluation will have to be increased::
 
             sage: a = AA(sqrt(2) + 10^25)
             sage: p = a.minpoly()
@@ -3950,6 +3971,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             interval_field = ComplexIntervalField(self._value.prec())
         roots = SR(poly).solve(var, explicit_solutions=True)
         if len(roots) != poly.degree():
+            if via_nf:
+                nf, val, nf2alg = self.as_number_field_element(True)
+                gen = nf2alg(nf.gen()).radical_expression(via_nf=False)
+                if gen.parent() == SR:
+                    return val.polynomial()(gen)
             return self
         assert all(root.lhs() == var for root in roots)
         roots = [root.rhs() for root in roots]
