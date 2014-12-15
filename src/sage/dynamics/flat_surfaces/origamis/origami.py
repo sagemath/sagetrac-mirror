@@ -462,9 +462,15 @@ class Origami_generic(object):
             sage: r = '(1)(2)(3,4)(5,6,7,8)(9,10)'
             sage: u = '(1,2,3,5,6,10)(4,9)(7,8)'
             sage: Origami(r,u).stratum_component()
-            H_even(2,2,2)
+            H_4(2^3)^even
             sage: Origami(u,r).stratum_component()
-            H_even(2,2,2)
+            H_4(2^3)^even
+
+            sage: r = '(1,2,3,4,5)(6,7,8,9,10)'
+            sage: u = '(1,6)(2,10)(3,9)(4,8)(5,7)'
+            sage: o = Origami(r,u)
+            sage: o.stratum_component()
+            H_5(4^2)^odd
         """
         return self.cylinder_diagram().stratum_component()
 
@@ -1346,7 +1352,7 @@ class Origami_dense(Origami_dense_pyx,Origami_generic):
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         if relative is False or self.lattice_of_absolute_periods() == (1,0,1):
-            return PermutationGroup([self.r(),self.u()])
+            return PermutationGroup([self.r(),self.u()], canonicalize=False)
 
         elif relative is True:
             from sage.interfaces.gap import gap
@@ -1367,7 +1373,7 @@ class Origami_dense(Origami_dense_pyx,Origami_generic):
                 b = B[0]
             H = gap.Stabilizer(G,b,gap.OnSets)
             action = gap.Action(H,b,gap.OnPoints)
-            return PermutationGroup(list(gap.GeneratorsOfGroup(action)))
+            return PermutationGroup(list(gap.GeneratorsOfGroup(action)), canonicalize=False)
         else:
             raise ValueError("relative must be a boolean")
 
