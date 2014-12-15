@@ -2474,7 +2474,8 @@ class CylinderDiagram(SeparatrixDiagram):
         for j,(b,t) in enumerate(self.cylinders()):
             face = [i for i in b] + [2*(n+j)] + [n+i for i in t[1:]+t[:1]] + [2*(n+j)+1]
             faces.append(tuple(face))
-            angles[b[0]] = angles[n+t[0]] = angles[2*(n+j)] = angles[2*(n+j)+1] = half
+            t1 = t[1] if len(t) > 1 else t[0]
+            angles[b[0]] = angles[n+t1] = angles[2*(n+j)] = angles[2*(n+j)+1] = half
 
         return RibbonGraphWithAngles(edges=edges,faces=faces,angles=angles)
 
