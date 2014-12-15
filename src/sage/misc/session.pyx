@@ -317,7 +317,7 @@ def save_session(name='sage_session', verbose=False):
     save(D, name)
     if embedded():
         # Also save D to the data directory if we're using the notebook.
-        save(D, './data/' + name)
+        save(D, os.path.join('data', name))
 
 def load_session(name='sage_session', verbose=False):
     r"""
@@ -364,7 +364,7 @@ def load_session(name='sage_session', verbose=False):
 
     if embedded():
         if not os.path.exists(name):
-            nm = './data/' + name
+            nm = os.path.join('data', name)
             if not nm.endswith('.sobj'): nm += '.sobj'
             if os.path.exists(nm):
                 name = nm
