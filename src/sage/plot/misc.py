@@ -383,12 +383,24 @@ def get_matplotlib_linestyle(linestyle, return_type):
 # through mathplotlib, so that it will be displayed in the HTML doc
 plot_pre_code = """
 def draw(plot):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
     import matplotlib.image as mpimg
-    from sage.misc.temporary_file import tmp_filename
+    from StringIO import StringIO
     import matplotlib.pyplot as plt
-    fn = tmp_filename(ext=".png")
-    plot.plot().save(fn)
-    img = mpimg.imread(fn)
+
+    # Make sure that the object has a matplotlib method
+    try:
+        fig = plot.matplotlib()
+    except AttributeError:
+        fig = plot.plot().matplotlib()
+
+    # Save the graphical object to a (virtual) file
+    virtual_file = StringIO()
+    fig.set_canvas(FigureCanvasAgg(fig))
+    fig.savefig(virtual_file, format='png')
+    virtual_file.seek(0)
+
+    img = mpimg.imread(virtual_file)
     plt.imshow(img)
     plt.margins(0)
     plt.axis("off")
