@@ -236,7 +236,7 @@ from sage.categories.rings import Rings
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinat import CombinatorialObject
 from sage.graphs.graph import Graph
-from sage.interfaces.html_display import HTMLDisplay, HTMLTable
+#from sage.interfaces.html_display import HTMLDisplay, HTMLTable
 from sage.matrix.constructor import matrix
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
