@@ -750,7 +750,7 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, bitset_data, itembitsize, length):
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,
-          (0, 4L, 1, 4, (4L,)),
+          (0, 4L, 1, ..., (4L,)),
           2L,
           2))
 
