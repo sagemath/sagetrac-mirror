@@ -798,7 +798,7 @@ def integral(x, *args, **kwds):
         sage: _ = integrate(y, x, -1000, 1000)
 
     When SymPy cannot solve an integral it gives it back, so we must
-    be able to convert SymPy's `Integral` (:trac:`14723`)::
+    be able to convert SymPy's ``Integral`` (:trac:`14723`)::
 
         sage: import sympy
         sage: x, y, z = sympy.symbols('x y z')
