@@ -205,8 +205,6 @@ kill_list.lead = NULL
 
 # Deallocate the term, and return the pointer .nxt, without using kill list
 cdef inline path_term_t *term_free_force(path_term_t *T):
-    if T.coef!=NULL:
-        Py_DECREF(<object>(T.coef))
     mon_free(T.mon)
     cdef path_term_t *out = T.nxt
     sage_free(T)
