@@ -802,14 +802,15 @@ def integral(x, *args, **kwds):
 
         sage: import sympy
         sage: x, y, z = sympy.symbols('x y z')
-        sage: SR(sympy.Integral(x))
-        integrate(x, x)
+        sage: f = sympy.Function('f')
+        sage: SR(sympy.Integral(f(x), x))
+        integrate(f(x), x)
         sage: type(_)
         <type 'sage.symbolic.expression.Expression'>
-        sage: SR(sympy.Integral(x,(x,0,1)))
-        integrate(x, x, 0, 1)
-        sage: SR(sympy.Integral(x*y*z,x,y,z))
-        integrate(integrate(integrate(x*y*z, x), y), z)
+        sage: SR(sympy.Integral(f(x),(x,0,1)))
+        integrate(f(x), x, 0, 1)
+        sage: SR(sympy.Integral(f(x,y,z),x,y,z))
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

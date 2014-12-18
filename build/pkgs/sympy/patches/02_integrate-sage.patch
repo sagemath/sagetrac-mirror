@@ -32,3 +32,21 @@ diff --git a/sympy/integrals/integrals.py b/sympy/integrals/integrals.py
  
  @xthreaded
  def integrate(*args, **kwargs):
+
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 07707a5..c0d7c3d 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -695,6 +695,12 @@ def __new__(cls, *args, **options):
+     def _eval_as_leading_term(self, x):
+         return self
+ 
++    def _sage_(self):
++        import sage.all as sage
++        fname = str(self.func)
++        args = [arg._sage_() for arg in self.args]
++        func = sage.function(fname, *args)
++        return func
+ 
+ class UndefinedFunction(FunctionClass):
+     """
