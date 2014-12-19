@@ -800,15 +800,18 @@ def integral(x, *args, **kwds):
     When SymPy cannot solve an integral it gives it back, so we must
     be able to convert SymPy's ``Integral`` (:trac:`14723`)::
 
+        sage: x, y, z = var('x,y,z')
+        sage: f = function('f',x)
+        sage: integrate(f,x,algorithm='sympy')
+        integrate(f(x), x)
+        sage: integrate(f,x,0,1,algorithm='sympy')
+        integrate(f(x), x, 0, 1)
+        sage: f = function('f',x,y,z)
+        sage: integrate(integrate(integrate(f,x,algorithm='sympy'),y,algorithm='sympy'),z,algorithm='sympy')
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
         sage: import sympy
         sage: x, y, z = sympy.symbols('x y z')
         sage: f = sympy.Function('f')
-        sage: SR(sympy.Integral(f(x), x))
-        integrate(f(x), x)
-        sage: type(_)
-        <type 'sage.symbolic.expression.Expression'>
-        sage: SR(sympy.Integral(f(x),(x,0,1)))
-        integrate(f(x), x, 0, 1)
         sage: SR(sympy.Integral(f(x,y,z),x,y,z))
         integrate(integrate(integrate(f(x, y, z), x), y), z)
     """

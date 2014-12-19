@@ -680,6 +680,9 @@ class SympyConverter(Converter):
             sage: f = arcsin(2)
             sage: s.composition(f, f.operator())
             asin(2)
+            sage: f = function('f', x)
+            sage: s.composition(f, f.operator())
+            f(x)
         """
         f = operator._sympy_init_()
         g = ex.operands()
@@ -689,6 +692,9 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
+            from sage.symbolic.function_factory import SymbolicFunction
+            if isinstance(ex.operator(), SymbolicFunction):
+                return sympy.Function(str(f))(*g, evaluate=False)
             raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
 sympy = SympyConverter()
