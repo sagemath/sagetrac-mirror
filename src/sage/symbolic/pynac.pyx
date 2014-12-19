@@ -1294,19 +1294,11 @@ def py_tgamma_for_doctests(x):
 cdef public object py_factorial(object x) except +:
     """
     The factorial function exported to pynac.
-
-    TESTS::
-
-        sage: from sage.symbolic.pynac import py_factorial_py as py_factorial
-        sage: py_factorial(4)
-        24
-        sage: py_factorial(-2/3)
-        2.67893853470775
     """
     # factorial(x) is only defined for non-negative integers x
     # so we first test if x can be coerced into ZZ and is non-negative.
     # If this is not the case then we return the symbolic expression gamma(x+1)
-    # This fixes Trac 9240
+    # This fixes :trac:`9240`
     try:
         x_in_ZZ = ZZ(x)
         coercion_success = True
@@ -1320,16 +1312,18 @@ cdef public object py_factorial(object x) except +:
 
 def py_factorial_py(x):
     """
-    This function is a python wrapper around py_factorial(). This wrapper
-    is needed when we override the eval() method for GiNaC's factorial
-    function in sage.functions.other.Function_factorial.
+    Deprecated.
 
     TESTS::
 
         sage: from sage.symbolic.pynac import py_factorial_py
         sage: py_factorial_py(3)
+        doctest:...: DeprecationWarning: This version of factorial is deprecated. Please use sage.functions.other.factorial.
+        See http://trac.sagemath.org/17489 for details.
         6
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17489, 'This version of factorial is deprecated. Please use sage.functions.other.factorial.')
     return py_factorial(x)
 
 cdef public object py_doublefactorial(object x) except +:

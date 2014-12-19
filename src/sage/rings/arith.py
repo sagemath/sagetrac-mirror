@@ -334,6 +334,30 @@ def bernoulli(n, algorithm='default', num_threads=1):
         raise ValueError("invalid choice of algorithm")
 
 
+def factorial(n, algorithm='gmp'):
+    r"""
+    This version of ``factorial`` is deprecated. Please use
+    :meth:`sage.functions.other.factorial`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.arith import factorial as fact
+        sage: fact(8)
+        doctest:...: DeprecationWarning: This version of factorial is deprecated. Please use sage.functions.other.factorial.
+        See http://trac.sagemath.org/17489 for details.
+        40320
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(17489, 'This version of factorial is deprecated. Please use sage.functions.other.factorial.')
+    if n < 0:
+        raise ValueError("factorial -- must be nonnegative")
+    if algorithm == 'gmp':
+        return ZZ(n).factorial()
+    elif algorithm == 'pari':
+        return pari.factorial(n)
+    else:
+        raise ValueError('unknown algorithm')
+
 def is_prime(n):
     r"""
     Returns ``True`` if `n` is prime, and ``False`` otherwise.
@@ -3194,7 +3218,9 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)])/factorial(m)
+    else:
+        from sage.functions.other import factorial
+        return misc.prod([x-i for i in xrange(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""
@@ -5266,6 +5292,7 @@ def subfactorial(n):
 
     - Jaap Spies (2007-01-23)
     """
+    from sage.functions.other import factorial
     return factorial(n)*sum(((-1)**k)/factorial(k) for k in range(n+1))
 
 
