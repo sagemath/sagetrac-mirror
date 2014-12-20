@@ -812,10 +812,14 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         251/216
         sage: harmonic_number(5/2)
         -2*log(2) + 46/15
-        sage: harmonic_number(5/2,2)
-        -hurwitz_zeta(5/2, 3) + zeta(5/2)
+        sage: harmonic_number(3,3.)
+        zeta(3) - 0.0400198661225573
+        sage: harmonic_number(3.,3.)
+        1.16203703703704
+        sage: harmonic_number(3,3).n(200)
+        1.16203703703703703703703...
         sage: harmonic_number(1+I,5)
-        -hurwitz_zeta(I + 1, 6) + zeta(I + 1)
+        harmonic_number(I + 1, 5)
         sage: harmonic_number(1.+I,5)
         1.57436810798989 - 1.06194728851357*I
 
@@ -906,30 +910,28 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             sage: harmonic_number(5,0.1).n()
             0.386627621982332
         """
-        if not isinstance(z, Expression):
-            if not isinstance(m, Expression):
-                if m == 0:
-                    return z
-                elif m == 1:
-                    return harmonic_m1._eval_(z)
-                else:
-                    return self._evalf_(z, m, parent=sage_structure_coerce_parent(z))
-            return None
-        elif m == 0:
+        if m == 0:
             return z
-        return None
+        elif m == 1:
+            return harmonic_m1._eval_(z)
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
         EXAMPLES::
 
-            sage: harmonic_number(5/2,2)
-            -hurwitz_zeta(5/2, 3) + zeta(5/2)
-            sage: harmonic_number(3.,3).n(200)
-            1.162037037037036979469917...
+            sage: harmonic_number(3,3.)
+            zeta(3) - 0.0400198661225573
+            sage: harmonic_number(3.,3.)
+            1.16203703703704
+            sage: harmonic_number(3,3).n(200)
+            1.16203703703703703703703...
             sage: harmonic_number(I,5).n()
             2.36889632899995 - 3.51181956521611*I
         """
+        if m == 0:
+            return parent(z)
+        elif m == 1:
+            return harmonic_m1._evalf_(z, parent)
         from sage.functions.transcendental import zeta, hurwitz_zeta
         return zeta(z) - hurwitz_zeta(z,m+1)
 
@@ -1036,25 +1038,21 @@ class Function_harmonic_number(BuiltinFunction):
             sage: harmonic_number(2*x)
             harmonic_number(2*x)
         """
-        if not isinstance(z, Expression):
-            R = sage_structure_coerce_parent(z)
-            if R is ZZ:
-                if z == 0:
-                    return Integer(0)
-                elif z == 1:
-                    return Integer(1)
-                elif z < 2**20:
-                    import sage.libs.flint.arith as flint_arith
-                    return flint_arith.harmonic_number(z)
-                # fall through if flint cannot handle argument
-            elif R is QQ:
-                from sage.calculus.calculus import symbolic_sum
-                from sage.symbolic.ring import SR
-                from sage.rings.infinity import infinity
-                x = SR('x')
-                return z*symbolic_sum(1/x/(z+x),x,1,infinity)
-            return self._evalf_(z, **kwds)
-        return None
+        if z in ZZ:
+            if z == 0:
+                return Integer(0)
+            elif z == 1:
+                return Integer(1)
+            elif z < 2**20:
+                import sage.libs.flint.arith as flint_arith
+                return flint_arith.harmonic_number(z)
+            # fall through if flint cannot handle argument
+        elif z in QQ:
+            from sage.calculus.calculus import symbolic_sum
+            from sage.symbolic.ring import SR
+            from sage.rings.infinity import infinity
+            x = SR('x')
+            return z*symbolic_sum(1/x/(z+x),x,1,infinity)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):
         """
@@ -1062,15 +1060,16 @@ class Function_harmonic_number(BuiltinFunction):
         
             sage: harmonic_number(20).n() # this goes from rational to float
             3.59773965714368
+            sage: harmonic_number(20).n(200)
+            3.59773965714368191148376906...
             sage: harmonic_number(20.) # this computes the integral with mpmath
             3.59773965714368
-            sage: harmonic_number(20.).n(200)
-            3.59773965714368193502536996...
-            sage: harmonic_number(I)
+            sage: harmonic_number(1.0*I)
             0.671865985524010 + 1.07667404746858*I
         """
+        from sage.libs.mpmath import utils as mpmath_utils
         import mpmath
-        return mpmath_utils.call(mpmath.harmonic, z)
+        return mpmath_utils.call(mpmath.harmonic, z, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
         """
