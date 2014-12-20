@@ -178,6 +178,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
             cat = cat.join([cat,Semigroups()])
         Parent.__init__(self, names=names, category=cat)
 
+    @lazy_attribute
+    def _nb_arrows(self):
+        return max(len(self._quiver.edges()),1)
+
     def _repr_(self):
         """
         String representation.
@@ -294,8 +298,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             return self.element_class(self, self._quiver.vertices()[0], self._quiver.vertices()[0], [], check=False)
         if isinstance(data, basestring):
             E = self._quiver.edge_labels()
-            start = self._quiver.edges()[E.index(data)][0]
-            end   = self._quiver.edges()[E.index(data)][1]
+            start,end = self._quiver.edges()[E.index(data)][0:2]
             return self.element_class(self, start, end, [E.index(data)], check=False)
         if isinstance(data[0], basestring):
             E = self._quiver.edge_labels()
@@ -318,7 +321,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.arrows()
             (a, b, c, d)
         """
-        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(self._quiver.edges()))
+        Q = self._quiver
+        return tuple(self.element_class(self, e[0],e[1], [i], check=False) for i,e in enumerate(Q.edges()))
 
     @cached_method
     def idempotents(self):
@@ -374,14 +378,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.gens()[5]
             c
         """
-        Q = self._quiver
-        nv = Q.num_verts()
-        if i < nv:
-            v = Q.vertices()[i]
-            return self.element_class(self,v,v, [], check=False)
-        e = Q.edges()[i-nv]
-        return self.element_class(self,e[0],e[1], [i-nv], check=False)
+        return self.gens()[i]
 
+    @cached_method
     def gens(self):
         """
         Return the tuple of generators.
