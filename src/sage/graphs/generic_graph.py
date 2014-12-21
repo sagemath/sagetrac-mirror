@@ -13420,6 +13420,62 @@ class GenericGraph(GenericGraph_pyx):
 
         return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
 
+    def geodetic_closure(self, S):
+        r"""
+        Returns the geodetic closure of a given set of vertices `S`.
+
+        We say that for a subset of vertices `S` of a graph `G` its
+        geodetic closure `g(S)` is the set of all vertices that lie
+        on a shortest `u-v` path for any pair of vertices `u,v \in S`.
+
+        INPUT:
+
+
+            - ``S`` - A subset of vertices of the graph for which we wish to compute
+            their geodetic closure.
+    
+        OUTPUT:
+        
+            A Set() object containing the geodetic closure of `S`.
+
+        EXAMPLES::
+
+        The vertices of the Petersen graph can be obtained by a geodetic closure of 
+        four of its vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.geodetic_closure([0, 2, 8, 9])
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+        If two vertices of a digraph are unreachable then their geodetic closure is trivial::
+
+            sage: G = DiGraph([(1,2),(3,1)])
+            sage: G.geodetic_closure(  [2,3] )
+            {2, 3}
+        """
+
+        from sage.sets.set import Set
+        from sage.rings.infinity import Infinity
+
+        n = len(S)
+        V = self.vertices()
+        D = self.distance_all_pairs()
+        isDirected = self.is_directed()
+    
+
+        ret = Set(S)
+
+        for k in xrange(len(V)):
+            if V[k] in ret: continue
+            for i in xrange(n):
+                if isDirected and D[ V[k] ][ S[i] ] == Infinity: continue
+                for j in xrange(0 if isDirected else i+1, n):
+                    if isDirected and D[ V[k] ][ S[j] ] == Infinity: continue
+                    
+                    if  D[ V[k] ][ S[i] ] + D[ V[k] ][ S[j] ] == D[ S[i] ][ S[j] ]:
+                        ret = ret.union(Set([V[k]]))
+
+        return ret
     def szeged_index(self):
         r"""
         Returns the Szeged index of the graph.
