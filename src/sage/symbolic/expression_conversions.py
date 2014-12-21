@@ -571,10 +571,10 @@ class InterfaceInit(Converter):
             %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
             sage: bool(b.sage() == a)
             True
-            
+
         Test a special case (:trac:`16697`)::
-        
-            sage: x,y=var('x,y')
+
+            sage: x,y = var('x,y')
             sage: (gamma_inc(x,y).diff(x))
             D[0](gamma)(x, y)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
@@ -1207,7 +1207,7 @@ class FastFloatConverter(Converter):
             1.2
 
         Using _fast_float_ on a function which is the identity is
-        now supported (see Trac 10246)::
+        now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
             sage: f._fast_float_(x)
