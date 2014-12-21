@@ -211,6 +211,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.shortest_path_all_pairs` | Computes a shortest path between each pair of vertices.
     :meth:`~GenericGraph.wiener_index` | Returns the Wiener index of the graph.
     :meth:`~GenericGraph.average_distance` | Returns the average distance between vertices of the graph.
+    :meth:`~GenericGraph.geodetic_closure` | Returns the geodetic closure of a set of vertices of the graph. 
 
 
 **Flows, connectivity, trees:**
