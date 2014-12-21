@@ -571,7 +571,14 @@ class InterfaceInit(Converter):
             %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
             sage: bool(b.sage() == a)
             True
-
+            
+        Test a special case (:trac:`16697`)::
+        
+            sage: x,y=var('x,y')
+            sage: (gamma_inc(x,y).diff(x))
+            D[0](gamma)(x, y)
+            sage: (gamma_inc(x,x+1).diff(x)).simplify()
+            -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -666,7 +673,7 @@ class SympyConverter(Converter):
 
     TESTS:
 
-    Make sure we can convert I (trac #6424)::
+    Make sure we can convert I (:trac:`6424`)::
 
         sage: bool(I._sympy_() == I)
         True
