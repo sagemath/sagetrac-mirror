@@ -89,6 +89,7 @@ cdef class Function(SageObject):
         self._latex_name = latex_name
         self._evalf_params_first = evalf_params_first
         self._conversions = {} if conversions is None else conversions
+        self._algorithm = None 
 
         # handle custom printing
         # if print_func is defined, it is used instead of name
@@ -210,7 +211,7 @@ cdef class Function(SageObject):
             sage: class Test(BuiltinFunction):
             ....:     def __init__(self):
             ....:         BuiltinFunction.__init__(self, 'test', nargs=2)
-            ....:     def _evalf_(self, x, y, parent):
+            ....:     def _evalf_(self, x, y, **kwds):
             ....:         return x + 1
             ....:     def _eval_(self, x, y):
             ....:         res = self._evalf_try_(x, y)
@@ -234,7 +235,7 @@ cdef class Function(SageObject):
             sage: class Test2(BuiltinFunction):
             ....:     def __init__(self):
             ....:         BuiltinFunction.__init__(self, 'test', nargs=1)
-            ....:     def _evalf_(self, x, parent):
+            ....:     def _evalf_(self, x, **kwds):
             ....:         return 0.5
             ....:     def _eval_(self, x):
             ....:         res = self._evalf_try_(x)
@@ -255,7 +256,7 @@ cdef class Function(SageObject):
             if any(self._is_numerical(x) for x in args):
                 if not any(isinstance(x, Expression) for x in args):
                     p = get_coercion_model().common_parent(*args)
-                    return evalf(*args, parent=p)
+                    return evalf(*args, parent=p, algorithm=self._algorithm)
         except Exception:
             pass
 
@@ -943,7 +944,7 @@ cdef class BuiltinFunction(Function):
                 evalf_params_first, alt_name = alt_name)
 
     def __call__(self, *args, bint coerce=True, bint hold=False,
-            bint dont_call_method_on_arg=False):
+            bint dont_call_method_on_arg=False, algorithm=None):
         r"""
         Evaluate this function on the given arguments and return the result.
 
@@ -966,12 +967,33 @@ cdef class BuiltinFunction(Function):
             sage: bar = BuiltinFunction(name='bar', alt_name='foo')
             sage: bar(A())
             'foo'
+            
+        Algorithm arguments are stored for later numerical evaluation::
+        
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class MyFunction(BuiltinFunction):
+            ....:    def __init__(self):
+            ....:        BuiltinFunction.__init__(self, 'test', nargs=1)
+            ....:    def _evalf_(self, x, **kwds):
+            ....:        algorithm = kwds.get('algorithm', None)
+            ....:        if algorithm == 'algoA':
+            ....:            return 1.0
+            ....:        else:
+            ....:            return 0.0
+            ....:    def _eval_(self, x):
+            ....:         return self._evalf_try_(x)
+            sage: f = MyFunction()
+            sage: f(0.0, algorithm='algoA')
+            1.00000000000000
+            sage: f(0.0)
+            0.000000000000000
         """
         # If there is only one argument, and the argument has an attribute
         # with the same name as this function, try to call it to get the result
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
+        self._algorithm = algorithm
         res = None
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
             arg = args[0]
@@ -1097,7 +1119,6 @@ cdef class BuiltinFunction(Function):
         else:
             # we should never end up here
             raise ValueError, "cannot read pickle"
-
 
 cdef class SymbolicFunction(Function):
     """

@@ -24,6 +24,7 @@ cdef class Function(SageObject):
     cdef object _latex_name
     cdef object _conversions
     cdef object _evalf_params_first
+    cdef object _algorithm
     cdef _is_registered(self)
     cdef _register_function(self)
 
