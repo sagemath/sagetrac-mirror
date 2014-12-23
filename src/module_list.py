@@ -2210,6 +2210,13 @@ if is_package_installed('mcqd'):
                   language = "c++"))
 #                  libraries = ["mcqd"]))
 
+# FIXME maybe the problem is that I didn't actually install the package
+# as one would do in sage?    
+ext_modules.append(
+        Extension("sage.graphs.bliss",
+                  ["sage/graphs/bliss.pyx"],
+                  language = "c++"))
+#
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()
