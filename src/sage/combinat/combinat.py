@@ -62,8 +62,6 @@ combinatorial functions:
 
 -  binomial the binomial coefficient (wrapped from PARI)
 
--  factorial (wrapped from PARI)
-
 -  partition (from the Python Cookbook) Generator of the list of
    all the partitions of the integer `n`.
 
@@ -2538,7 +2536,7 @@ def bell_polynomial(n, k):
     - Blair Sutton (2009-01-26)
     """
     from sage.combinat.partition import Partitions
-    from sage.rings.arith import factorial
+    from sage.functions.all import factorial
     vars = ZZ[tuple(['x_'+str(i) for i in range(1, n-k+2)])].gens()
     result = 0
     for p in Partitions(n, length=k):

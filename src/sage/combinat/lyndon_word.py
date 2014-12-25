@@ -20,7 +20,7 @@ Lyndon words
 from combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import divisors, gcd, moebius, Integer
-from sage.rings.arith import factorial
+from sage.functions.all import factorial
 from sage.misc.misc import prod
 import __builtin__
 import necklace

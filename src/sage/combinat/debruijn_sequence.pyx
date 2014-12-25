@@ -356,5 +356,5 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
         .. [1] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
           Sequences. *Communications in Math. and in Computer Chem.*
         """
-        from sage.functions.other import factorial
+        from sage.functions.all import factorial
         return (factorial(self.k) ** (self.k ** (self.n - 1)))/ (self.k**self.n)

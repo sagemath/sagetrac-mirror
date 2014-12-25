@@ -139,7 +139,7 @@ from sage.misc.package import is_package_installed
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
-from sage.functions.other import factorial
+from sage.functions.all import factorial
 
 
 def load_hap():

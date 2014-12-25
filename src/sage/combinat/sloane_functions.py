@@ -128,7 +128,7 @@ import inspect
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
-from sage.functions.all import prime_pi
+from sage.functions.all import prime_pi, factorial
 import partition
 from sage.rings.integer import Integer as Integer_class
 
@@ -4658,7 +4658,7 @@ class A000142(SloaneSequence):
             sage: [sloane.A000142._eval(n) for n in range(10)]
             [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880]
         """
-        return arith.factorial(n)
+        return factorial(n)
 
 class A000085(SloaneSequence):
     def __init__(self):
@@ -4716,7 +4716,7 @@ class A000085(SloaneSequence):
             sage: [sloane.A000085._eval(n) for n in range(10)]
             [1, 1, 2, 4, 10, 26, 76, 232, 764, 2620]
         """
-        return sum([arith.factorial(n)//(arith.factorial(n-2*k)*(2**k)*arith.factorial(k)) for k in range(n//2+1)])
+        return sum([factorial(n)//(factorial(n-2*k)*(2**k)*factorial(k)) for k in range(n//2+1)])
 
 class A001189(SloaneSequence):
     def __init__(self):
@@ -4835,7 +4835,7 @@ class A000670(SloaneSequence):
         # a(n) = Sum from k=1 to n of k! StirlingS2(n, k)
         if n == 0:
             return Integer(1)
-        return sum([arith.factorial(k)*combinat.stirling_number2(n,k) for k in range(1,n+1)])
+        return sum([factorial(k)*combinat.stirling_number2(n,k) for k in range(1,n+1)])
 
 
 
@@ -4953,7 +4953,7 @@ class A000165(SloaneSequence):
             sage: [sloane.A000165._eval(n) for n in range(10)]
             [1, 2, 8, 48, 384, 3840, 46080, 645120, 10321920, 185794560]
         """
-        return (2**n)*arith.factorial(n)
+        return (2**n)*factorial(n)
 
 
 
@@ -5012,7 +5012,7 @@ class A001147(SloaneSequence):
             sage: [sloane.A001147._eval(n) for n in range(10)]
             [1, 1, 3, 15, 105, 945, 10395, 135135, 2027025, 34459425]
         """
-        return arith.factorial(2*n)/(arith.factorial(n)*2**n)
+        return factorial(2*n)/(factorial(n)*2**n)
 
 class A006882(SloaneSequence):
     def __init__(self):

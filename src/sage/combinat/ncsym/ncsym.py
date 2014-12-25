@@ -19,7 +19,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 
-from sage.functions.other import factorial
+from sage.functions.all import factorial
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions

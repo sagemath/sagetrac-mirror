@@ -4,7 +4,6 @@ Other functions
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
-from sage.symbolic.pynac import py_factorial_py
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
@@ -1244,155 +1243,6 @@ def psi(x, *args, **kwds):
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
 
-class Function_factorial(GinacFunction):
-    def __init__(self):
-        r"""
-        Returns the factorial of `n`.
-
-        INPUT:
-
-        -  ``n`` - any complex argument (except negative
-           integers) or any symbolic expression
-
-
-        OUTPUT: an integer or symbolic expression
-
-        EXAMPLES::
-
-            sage: x = var('x')
-            sage: factorial(0)
-            1
-            sage: factorial(4)
-            24
-            sage: factorial(10)
-            3628800
-            sage: factorial(6) == 6*5*4*3*2
-            True
-            sage: f = factorial(x + factorial(x)); f
-            factorial(x + factorial(x))
-            sage: f(x=3)
-            362880
-            sage: factorial(x)^2
-            factorial(x)^2
-
-        To prevent automatic evaluation use the ``hold`` argument::
-
-            sage: factorial(5,hold=True)
-            factorial(5)
-
-        To then evaluate again, we currently must use Maxima via
-        :meth:`sage.symbolic.expression.Expression.simplify`::
-
-            sage: factorial(5,hold=True).simplify()
-            120
-
-        We can also give input other than nonnegative integers.  For
-        other nonnegative numbers, the :func:`gamma` function is used::
-
-            sage: factorial(1/2)
-            1/2*sqrt(pi)
-            sage: factorial(3/4)
-            gamma(7/4)
-            sage: factorial(2.3)
-            2.68343738195577
-
-        But negative input always fails::
-
-            sage: factorial(-32)
-            Traceback (most recent call last):
-            ...
-            ValueError: factorial -- self = (-32) must be nonnegative
-
-        TESTS:
-
-        We verify that we can convert this function to Maxima and
-        bring it back into Sage.::
-
-            sage: z = var('z')
-            sage: factorial._maxima_init_()
-            'factorial'
-            sage: maxima(factorial(z))
-            factorial(_SAGE_VAR_z)
-            sage: _.sage()
-            factorial(z)
-            sage: k = var('k')
-            sage: factorial(k)
-            factorial(k)
-
-            sage: factorial(3.14)
-            7.173269190187...
-
-        Test latex typesetting::
-
-            sage: latex(factorial(x))
-            x!
-            sage: latex(factorial(2*x))
-            \left(2 \, x\right)!
-            sage: latex(factorial(sin(x)))
-            \sin\left(x\right)!
-            sage: latex(factorial(sqrt(x+1)))
-            \left(\sqrt{x + 1}\right)!
-            sage: latex(factorial(sqrt(x)))
-            \sqrt{x}!
-            sage: latex(factorial(x^(2/3)))
-            \left(x^{\frac{2}{3}}\right)!
-
-            sage: latex(factorial)
-            {\rm factorial}
-
-        Check that #11539 is fixed::
-
-            sage: (factorial(x) == 0).simplify()
-            factorial(x) == 0
-            sage: maxima(factorial(x) == 0).sage()
-            factorial(x) == 0
-            sage: y = var('y')
-            sage: (factorial(x) == y).solve(x)
-            [factorial(x) == y]
-
-        Test pickling::
-
-            sage: loads(dumps(factorial))
-            factorial
-        """
-        GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
-                conversions=dict(maxima='factorial',
-                                 mathematica='Factorial',
-                                 sympy='factorial'))
-
-    def _eval_(self, x):
-        """
-        Evaluate the factorial function.
-
-        Note that this method overrides the eval method defined in GiNaC
-        which calls numeric evaluation on all numeric input. We preserve
-        exact results if the input is a rational number.
-
-        EXAMPLES::
-
-            sage: k = var('k')
-            sage: k.factorial()
-            factorial(k)
-            sage: SR(1/2).factorial()
-            1/2*sqrt(pi)
-            sage: SR(3/4).factorial()
-            gamma(7/4)
-            sage: SR(5).factorial()
-            120
-            sage: SR(3245908723049857203948572398475r).factorial()
-            factorial(3245908723049857203948572398475L)
-            sage: SR(3245908723049857203948572398475).factorial()
-            factorial(3245908723049857203948572398475)
-        """
-        if isinstance(x, Rational):
-            return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
-            return py_factorial_py(x)
-
-        return None
-
-factorial = Function_factorial()
-
 class Function_binomial(GinacFunction):
     def __init__(self):
         r"""
@@ -1516,6 +1366,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.misc import prod
+        from sage.functions.integer_function import factorial
         return prod([n-i for i in xrange(k)])/factorial(k)
 
     def _eval_(self, n, k):

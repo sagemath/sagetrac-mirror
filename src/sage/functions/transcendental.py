@@ -19,7 +19,7 @@ Transcendental Functions
 
 import sys
 import sage.rings.complex_field as complex_field
-from sage.functions.other import factorial, psi
+from sage.functions.all import factorial, psi
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber

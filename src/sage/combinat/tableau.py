@@ -81,7 +81,7 @@ from sage.structure.parent import Parent
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.decorators import rename_keyword
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial
+from sage.functions.all import factorial
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.composition import Composition, Compositions

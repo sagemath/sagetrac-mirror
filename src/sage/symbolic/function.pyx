@@ -1010,10 +1010,14 @@ cdef class BuiltinFunction(Function):
                     res = method()
 
         if res is None:
-            res = self._evalf_try_(*args)
-            if res is None:
+            if hold is True:
                 res = super(BuiltinFunction, self).__call__(
-                        *args, coerce=coerce, hold=hold)
+                    *args, coerce=coerce, hold=hold)
+            else:
+                res = self._evalf_try_(*args)
+                if res is None:
+                    res = super(BuiltinFunction, self).__call__(
+                            *args, coerce=coerce, hold=hold)
 
         # If none of the input arguments was a Sage Element but the
         # output is, then convert the output back to the corresponding

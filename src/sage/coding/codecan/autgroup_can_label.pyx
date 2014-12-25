@@ -104,7 +104,7 @@ and to the action of the symmetric group only::
 
 from sage.coding.codecan.codecan import PartitionRefinementLinearCode
 from sage.combinat.permutation import Permutation
-from sage.functions.other import factorial
+from sage.functions.all import factorial
 
 def _cyclic_shift(n, p):
     r"""

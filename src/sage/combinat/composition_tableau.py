@@ -10,7 +10,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.misc.misc_c import prod
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.functions.other import factorial
+from sage.functions.all import factorial
 from sage.misc.cachefunc import cached_function
 from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

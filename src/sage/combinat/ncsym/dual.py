@@ -24,7 +24,7 @@ from sage.combinat.set_partition import SetPartitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.subset import Subsets
-from sage.functions.other import factorial
+from sage.functions.all import factorial
 from sage.sets.set import Set
 
 class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):

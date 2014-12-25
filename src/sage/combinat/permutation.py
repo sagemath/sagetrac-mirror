@@ -234,7 +234,7 @@ from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.rings.arith import factorial
+from sage.functions.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword

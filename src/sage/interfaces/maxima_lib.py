@@ -1179,10 +1179,10 @@ sage_op_dict = {
     sage.symbolic.expression.operator.pow : "MEXPT",
     sage.symbolic.expression.operator.or_ : "MOR",
     sage.symbolic.expression.operator.and_ : "MAND",
+    sage.functions.integer_function.factorial : "MFACTORIAL",
     sage.functions.log.ln : "%LOG",
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
-    sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.other.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
 }

@@ -336,65 +336,19 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
 def factorial(n, algorithm='gmp'):
     r"""
-    Compute the factorial of `n`, which is the product
-    `1\cdot 2\cdot 3 \cdots (n-1)\cdot n`.
-
-    INPUT:
-
-    -  ``n`` - an integer
-
-    -  ``algorithm`` - string (default: 'gmp'):
-
-       -  ``'gmp'`` - use the GMP C-library factorial function
-
-       -  ``'pari'`` - use PARI's factorial function
-
-    OUTPUT: an integer
+    This version of ``factorial`` is deprecated. Please use
+    :meth:`sage.functions.all.factorial`.
 
     EXAMPLES::
 
-        sage: from sage.rings.arith import factorial
-        sage: factorial(0)
-        1
-        sage: factorial(4)
-        24
-        sage: factorial(10)
-        3628800
-        sage: factorial(1) == factorial(0)
-        True
-        sage: factorial(6) == 6*5*4*3*2
-        True
-        sage: factorial(1) == factorial(0)
-        True
-        sage: factorial(71) == 71* factorial(70)
-        True
-        sage: factorial(-32)
-        Traceback (most recent call last):
-        ...
-        ValueError: factorial -- must be nonnegative
-
-    PERFORMANCE: This discussion is valid as of April 2006. All timings
-    below are on a Pentium Core Duo 2Ghz MacBook Pro running Linux with
-    a 2.6.16.1 kernel.
-
-
-    -  It takes less than a minute to compute the factorial of
-       `10^7` using the GMP algorithm, and the factorial of
-       `10^6` takes less than 4 seconds.
-
-    -  The GMP algorithm is faster and more memory efficient than the
-       PARI algorithm. E.g., PARI computes `10^7` factorial in 100
-       seconds on the core duo 2Ghz.
-
-    -  For comparison, computation in Magma `\leq` 2.12-10 of
-       `n!` is best done using ``*[1..n]``. It takes
-       113 seconds to compute the factorial of `10^7` and 6
-       seconds to compute the factorial of `10^6`. Mathematica
-       V5.2 compute the factorial of `10^7` in 136 seconds and the
-       factorial of `10^6` in 7 seconds. (Mathematica is notably
-       very efficient at memory usage when doing factorial
-       calculations.)
+        sage: from sage.rings.arith import factorial as fact
+        sage: fact(8)
+        doctest:...: DeprecationWarning: This version of factorial is deprecated. Please use sage.functions.all.factorial.
+        See http://trac.sagemath.org/17489 for details.
+        40320
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17489, 'This version of factorial is deprecated. Please use sage.functions.all.factorial.')
     if n < 0:
         raise ValueError("factorial -- must be nonnegative")
     if algorithm == 'gmp':
@@ -3264,7 +3218,9 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)])/factorial(m)
+    else:
+        from sage.functions.all import factorial
+        return misc.prod([x-i for i in xrange(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""
@@ -5336,6 +5292,7 @@ def subfactorial(n):
 
     - Jaap Spies (2007-01-23)
     """
+    from sage.functions.all import factorial
     return factorial(n)*sum(((-1)**k)/factorial(k) for k in range(n+1))
 
 

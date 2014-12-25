@@ -317,7 +317,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
             sage: SemimonomialTransformationGroup(F, 5).order() == (4-1)**5 * factorial(5) * 2
             True
         """
-        from sage.functions.other import factorial
+        from sage.functions.all import factorial
         from sage.categories.homset import End
         n = self.degree()
         R = self.base_ring()
