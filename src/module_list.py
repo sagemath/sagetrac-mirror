@@ -2211,7 +2211,10 @@ if is_package_installed('mcqd'):
 ext_modules.append(
         Extension("sage.graphs.bliss",
                   ["sage/graphs/bliss.pyx"],
-                  language = "c++"))
+                  language = "c++",
+                  libraries= ["bliss"])
+        )
+                
 #
 
 # Only include darwin_utilities on OS_X >= 10.5
