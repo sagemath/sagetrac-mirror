@@ -38,12 +38,13 @@ cdef extern from "/home/azi/bliss-0.72/graph.hh" namespace "bliss":
         Graph(const unsigned int)
         void add_edge(const unsigned int, const unsigned int)
         void find_automorphisms(Stats&, void (*hook)(void* , unsigned int, const unsigned int*), void*)
+        void change_color(const unsigned int, const unsigned int);
 
     cdef cppclass Digraph(AbstractGraph):
         Digraph(const unsigned int)
         void add_edge(const unsigned int, const unsigned int)
         void find_automorphisms(Stats&, void (*hook)(void* , unsigned int, const unsigned int*), void*)
-
+        void change_color(const unsigned int, const unsigned int);
 
 
 # What we recieve here is a permutation given as a bijection and we create the respective
@@ -90,6 +91,8 @@ def automorphism_group(G,partition=None):
     cdef Stats s
 
     # FIXME can this directed/undirected thing be solved in a more elegant way?
+    # Its really really ugly. I guess the solution would be to patch bliss to make add_edge
+    # and change_color part of the AbstractGraph class?
     isDir = G.is_directed() 
 
     if isDir:
@@ -111,6 +114,14 @@ def automorphism_group(G,partition=None):
         else:
             g.add_edge(d[x],d[y])     
 
+    if partition:
+        for i in xrange(1,len(partition)):
+            for v in partition[i]:
+                if isDir:
+                    h.change_color(d2[v], i)
+                else:   
+                    g.change_color(d2[v], i)
+
     gens = [] 
     data = (gens, d2)        
 
@@ -124,4 +135,3 @@ def automorphism_group(G,partition=None):
 
     from sage.groups.perm_gps.permgroup import PermutationGroup
     return PermutationGroup(gens)
-
