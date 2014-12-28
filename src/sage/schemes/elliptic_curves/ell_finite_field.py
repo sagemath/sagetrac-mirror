@@ -1301,16 +1301,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def isogenies_graph(self, l):
         """
         Return the l-isogenies graph of E.
-        
-        .. note::
-        
-            Needs the database "db_modular_polynomials" in order to work
-            properly.
+
+        .. NOTE::
+
+            This needs the database "db_modular_polynomials" in order
+            to work properly.
 
         EXAMPLE::
 
             sage: E = EllipticCurve(GF(31),[1,2,3,4,5])
-            sage: E.isogenies_graph(5).edges()  # optional - db_modular_polynomials 
+            sage: E.isogenies_graph(5).edges()  # optional - db_modular_polynomials
             [(3, 9, None), (9, 3, None)]
             sage: E = EllipticCurve(GF(5081),[3290,3887])
             sage: E.isogenies_graph(5).edges() # optional - db_modular_polynomials
@@ -1332,7 +1332,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
              (4996, 3959, None)]
         """
         if not l.is_prime():
-            raise AttributeError("l has to be prime")
+            raise ValueError("l has to be prime")
 
         R = PolynomialRing(self.base_field(), 'j0,j1')
         db = sage.databases.db_modular_polynomials.ClassicalModularPolynomialDatabase()
