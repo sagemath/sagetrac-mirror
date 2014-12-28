@@ -24,16 +24,25 @@ import math
 
 
 class IntegerFunction(BuiltinFunction):
+    """
+    BuiltinFunction that, when called with integer argument, will
+    consider it to be "numerical" and call its ``_evalf_`` method. 
+    """
     
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
             evalf_params_first=True, alt_name=None):
         """
         TESTS::
-
+            sage: from sage.functions.integer_function import IntegerFunction
+            sage: class F(IntegerFunction):
+            ....:    def __init__(self):
+            ....:        IntegerFunction.__init__(self, "f")
+            sage: f = F()
+            sage: loads(dumps(f(x)))
+            f(x)
         """
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first, alt_name = alt_name)
-
 
     def _is_numerical(self, x):
         """
@@ -66,16 +75,21 @@ class IntegerFunction(BuiltinFunction):
 
 
 class IntegerGinacFunction(IntegerFunction, GinacFunction):
-    
+    """
+    GinacFunction that, when called with integer argument, will
+    consider it to be "numerical" and call its ``_evalf_`` method. 
+    """    
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
             evalf_params_first=True):
         """
         TESTS::
-
-            sage: from sage.functions.trig import Function_cot
-            sage: c = Function_cot() # indirect doctest
-            sage: c(pi/2)
-            0
+            sage: from sage.functions.integer_function import IntegerGinacFunction
+            sage: class F(IntegerGinacFunction):
+            ....:    def __init__(self):
+            ....:        IntegerGinacFunction.__init__(self, "exp")
+            sage: f = F()
+            sage: loads(dumps(f(x)))
+            e^x
         """
         IntegerFunction.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first)
@@ -202,7 +216,7 @@ class Function_factorial(IntegerGinacFunction):
 
     def _evalf_(self, x, **kwds):
         """
-        Return the factorial function.
+        Numerical evaluation of the factorial function.
  
         Note that this method overrides the eval method defined in GiNaC
         which calls numeric evaluation on all numeric input. We preserve
@@ -230,7 +244,6 @@ class Function_factorial(IntegerGinacFunction):
         """
         algorithm = kwds.get('algorithm','gmp')
         hold = kwds.get('hold', False)
-#        print('algo:, hold:'), algorithm, kwds.get('hold', False)
         if hold is not True:
             parent = ZZ
             if isinstance(x, Rational) and x.is_integer():
@@ -238,17 +251,14 @@ class Function_factorial(IntegerGinacFunction):
                 x = ZZ(x)
             if isinstance(x, (Integer, int)):
                 if algorithm == 'gmp' or algorithm is None:
-#                    print('calling ZZ(x).factorial()')
                     return parent(ZZ(x).factorial())
                 elif algorithm == 'pari':
                     from sage.libs.pari.pari_instance import pari
-#                    print('calling pari')
                     return parent(pari.factorial(x))
                 else:
                     raise ValueError('unknown algorithm')
             else:
                 # let gamma deal with other parents
-#                print('calling gamma()')
                 return gamma(x+1)
 
 factorial = Function_factorial()
