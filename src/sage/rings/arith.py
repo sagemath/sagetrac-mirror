@@ -5293,7 +5293,7 @@ def subfactorial(n):
     - Jaap Spies (2007-01-23)
     """
     from sage.functions.all import factorial
-    return factorial(n)*sum(((-1)**k)/factorial(k) for k in range(n+1))
+    return factorial(n)*sum(QQ((-1)**k)/factorial(k) for k in range(n+1))
 
 
 def is_power_of_two(n):

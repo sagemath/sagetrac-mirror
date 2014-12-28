@@ -4397,7 +4397,7 @@ class Partition(CombinatorialObject, Element):
                         if i < 0:
                             return 0
                         else:
-                            return 1/factorial(i)
+                            return QQ(1)/factorial(i)
                     len_range = range(larger.length())
                     from sage.matrix.constructor import matrix
                     M = matrix(QQ,[[inv_factorial(larger.get_part(i)-smaller.get_part(j)-i+j) for i in len_range] for j in len_range])
@@ -4450,7 +4450,7 @@ class Partition(CombinatorialObject, Element):
             sage: all(sum(mu.plancherel_measure() for mu in Partitions(n))==1 for n in range(10))
             True
         """
-        return self.dimension()**2/factorial(self.size())
+        return QQ(self.dimension()**2)/factorial(self.size())
 
     def outline(self, variable=var("x")):
         r"""

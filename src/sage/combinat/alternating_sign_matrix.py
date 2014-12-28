@@ -39,7 +39,7 @@ from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.functions.all import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
@@ -1039,7 +1039,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             sage: [AlternatingSignMatrices(n).cardinality() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
         """
-        return Integer(prod( [ factorial(3*k+1)/factorial(self._n+k)
+        return Integer(prod( [ QQ(factorial(3*k+1))/factorial(self._n+k)
                        for k in range(self._n)] ))
 
     def matrix_space(self):
@@ -1257,7 +1257,7 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
             sage: M.cardinality()
             42
         """
-        return Integer(prod( [ factorial(3*k+1)/factorial(self._n+k)
+        return Integer(prod( [ QQ(factorial(3*k+1))/factorial(self._n+k)
                        for k in range(self._n)] ))
 
     def _lattice_initializer(self):
@@ -1488,7 +1488,7 @@ class ContreTableaux_n(ContreTableaux):
             sage: [ ContreTableaux(n).cardinality() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
         """
-        return prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] )
+        return prod( [ QQ(factorial(3*k+1))/factorial(self.n+k) for k in range(self.n)] )
 
     def _iterator_rec(self, i):
         """

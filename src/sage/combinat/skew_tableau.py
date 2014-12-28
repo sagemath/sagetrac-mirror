@@ -1590,7 +1590,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
                 if v < 0:
                     a[i,j] = 0
                 else:
-                    a[i,j] = 1/factorial(v)
+                    a[i,j] = QQ(1)/factorial(v)
         return ZZ(factorial(n) * a.det())
 
     def __iter__(self):

@@ -459,7 +459,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
-                tester.assert_(isinstance(card, Integer))
+                tester.assert_(isinstance(card, (int, Integer)))
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
