@@ -80,25 +80,25 @@ cdef void add_gen(void *user_param , unsigned int n, const unsigned int *aut):
     gens += [perm]
 
 
-def bliss_graph(G,partition):    
+cdef Graph *bliss_graph(G,partition, vert2int, int2vert):    
 
     n = G.order()
     cdef Graph *g = new Graph(n)
 
     for x,y in G.edges(labels=False):
-        if x not in d:
-            d[x] = cv
-            d2[cv] = x
+        if x not in vert2int:
+            vert2int[x] = cv
+            int2vert[cv] = x
             cv+=1
-        if y not in d:
-            d[y] = cv
-            d2[cv] = y
+        if y not in vert2int:
+            vert2int[y] = cv
+            int2vert[cv] = y
             cv+=1
-        g.add_edge(d[x],d[y])     
+        g.add_edge(vert2int[x],vert2int[y])     
     if partition:
         for i in xrange(1,len(partition)):
             for v in partition[i]:
-                g.change_color(d2[v], i)
+                g.change_color(vert2int[v], i)
     return g
 
 def automorphism_group(G,partition=None):
