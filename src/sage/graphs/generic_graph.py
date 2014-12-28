@@ -16543,8 +16543,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         size = len(self)
         g = self.canonical_label()
-        edges = ','.join("%s-%s" % (e[0]+1,e[1]+1) for e in g.edges())
-        return "%s:%s" % (size, edges)
+        edges = ','.join("{}-{}".format(e[0] + 1, e[1] + 1) for e in g.edges())
+        return "{}:{}".format(size, edges)
 
     ### Spectrum
 
