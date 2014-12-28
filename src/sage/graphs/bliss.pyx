@@ -26,7 +26,7 @@ include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
 
-cdef extern from "/home/azi/bliss-0.72/graph.hh" namespace "bliss":
+cdef extern from "graph.hh" namespace "bliss":
 
     cdef cppclass Stats:
         pass
@@ -52,6 +52,7 @@ cdef extern from "/home/azi/bliss-0.72/graph.hh" namespace "bliss":
 
 # FIXME. One can use Permutation().to_cylce here I am not sure I like it though since we'd have
 # to translate labelings back and forth and as I said I want this to be fast.
+# I think at this point it would be best to keep this and modify Permutation to support labeled stuff        
 cdef void add_gen(void *user_param , unsigned int n, const unsigned int *aut):
 
     covered = cur = 0
@@ -79,6 +80,27 @@ cdef void add_gen(void *user_param , unsigned int n, const unsigned int *aut):
     gens += [perm]
 
 
+def bliss_graph(G,partition):    
+
+    n = G.order()
+    cdef Graph *g = new Graph(n)
+
+    for x,y in G.edges(labels=False):
+        if x not in d:
+            d[x] = cv
+            d2[cv] = x
+            cv+=1
+        if y not in d:
+            d[y] = cv
+            d2[cv] = y
+            cv+=1
+        g.add_edge(d[x],d[y])     
+    if partition:
+        for i in xrange(1,len(partition)):
+            for v in partition[i]:
+                g.change_color(d2[v], i)
+    return g
+
 def automorphism_group(G,partition=None):
 
     cv = 0 
@@ -95,41 +117,47 @@ def automorphism_group(G,partition=None):
     # and change_color part of the AbstractGraph class?
     isDir = G.is_directed() 
 
-    if isDir:
+    if G.is_directed(): 
         h = new Digraph(n)
+        for x,y in G.edges(labels=False):
+            if x not in d:
+                d[x] = cv
+                d2[cv] = x
+                cv+=1
+            if y not in d:
+                d[y] = cv
+                d2[cv] = y
+                cv+=1
+            h.add_edge(d[x],d[y])     
+        if partition:
+            for i in xrange(1,len(partition)):
+                for v in partition[i]:
+                    h.change_color(d2[v], i)
     else:
         g = new Graph(n)
-
-    for x,y in G.edges(labels=False):
-        if x not in d:
-            d[x] = cv
-            d2[cv] = x
-            cv+=1
-        if y not in d:
-            d[y] = cv
-            d2[cv] = y
-            cv+=1
-        if isDir: 
-            h.add_edge(d[x],d[y])     
-        else:
+        for x,y in G.edges(labels=False):
+            if x not in d:
+                d[x] = cv
+                d2[cv] = x
+                cv+=1
+            if y not in d:
+                d[y] = cv
+                d2[cv] = y
+                cv+=1
             g.add_edge(d[x],d[y])     
 
-    if partition:
-        for i in xrange(1,len(partition)):
-            for v in partition[i]:
-                if isDir:
-                    h.change_color(d2[v], i)
-                else:   
+        if partition:
+            for i in xrange(1,len(partition)):
+                for v in partition[i]:
                     g.change_color(d2[v], i)
 
     gens = [] 
     data = (gens, d2)        
 
-    if isDir:
+    if G.is_directed():
        h.find_automorphisms(s, add_gen, <PyObject *> data)
     else:
        g.find_automorphisms(s, add_gen, <PyObject *> data)
-    
     del g 
     del h
 
