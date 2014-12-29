@@ -1063,7 +1063,7 @@ class Function_Struve_H(BuiltinFunction):
         sqrt(2)*sqrt(1/(pi*x))*sin(x)
         sage: struve_H(2,x)
         struve_H(2, x)
-        sage: struve_H(1/2.,pi)
+        sage: struve_H(1/2,pi).n()
         0.900316316157106
         
     REFERENCES:
@@ -1077,10 +1077,13 @@ class Function_Struve_H(BuiltinFunction):
         r"""
     ^    EXAMPLES::
     
+            sage: n = var('n')
             sage: maxima("struve_h(n,x);").sage()
             struve_H(n, x)
             sage: struve_H(7/5,1)._maxima_()
             struve_h(7/5,1)
+            sage: loads(dumps(struve_H(n,x)))
+            struve_H(n, x)
         """
         BuiltinFunction.__init__(self, 'struve_H', nargs=2,
                                  conversions=dict(maple='StruveH',
@@ -1102,10 +1105,6 @@ class Function_Struve_H(BuiltinFunction):
             2*sqrt(2)/pi
             sage: struve_H(2,x)
             struve_H(2, x)
-            sage: struve_H(1/2.,pi)
-            0.900316316157106
-            sage: struve_H(1/2,pi).n(200)
-            0.9003163161571060695551991910...
         """
         if a.is_zero() and z.is_zero():
             return 0
@@ -1115,19 +1114,15 @@ class Function_Struve_H(BuiltinFunction):
         if a == Integer(1)/2:
             from sage.functions.trig import cos
             return sqrt(2/(pi*z)) * (1-cos(z))
-        if isinstance(a, Expression) or isinstance(z, Expression):
-            return None
-        if is_inexact(a) or is_inexact(z):
-            a, z = get_coercion_model().canonical_coercion(a, z)
-            return self._evalf_(a, z, parent(z))
-        return None
     
     def _evalf_(self, a, z, parent=None, algorithm=None):
         """
         EXAMPLES::
         
-            sage: struve_H(1/2.,pi)
+            sage: struve_H(1/2,pi).n()
             0.900316316157106
+            sage: struve_H(1/2,pi).n(200)
+            0.9003163161571060695551991910...
         """
         import mpmath
         return mpmath_utils.call(mpmath.struveh, a, z, parent=parent)
@@ -1166,7 +1161,7 @@ class Function_Struve_L(BuiltinFunction):
     
         sage: struve_L(2,x)
         struve_L(2, x)
-        sage: struve_L(1/2.,pi)
+        sage: struve_L(1/2,pi).n()
         4.76805417696286
         sage: diff(struve_L(1,x),x)
         1/3*x/pi - 1/2*struve_L(2, x) + 1/2*struve_L(0, x)
@@ -1182,10 +1177,13 @@ class Function_Struve_L(BuiltinFunction):
         r"""
     ^    EXAMPLES::
     
+            sage: n = var('n')
             sage: maxima("struve_l(n,x);").sage()
             struve_L(n, x)
             sage: struve_L(7/5,1)._maxima_()
             struve_l(7/5,1)
+            sage: loads(dumps(struve_L(n,x)))
+            struve_L(n, x)
         """
         BuiltinFunction.__init__(self, 'struve_L', nargs=2,
                                  conversions=dict(maple='StruveL',
@@ -1201,26 +1199,18 @@ class Function_Struve_L(BuiltinFunction):
             0
             sage: struve_L(2,x)
             struve_L(2, x)
-            sage: struve_L(1/2.,pi)
-            4.76805417696286
-            sage: struve_L(1/2,pi).n(200)
-            4.768054176962864289162484345...
         """
         if a.is_zero() and z.is_zero():
             return 0
-        if isinstance(a, Expression) or isinstance(z, Expression):
-            return None
-        if is_inexact(a) or is_inexact(z):
-            a, z = get_coercion_model().canonical_coercion(a, z)
-            return self._evalf_(a, z, parent(z))
-        return None
     
     def _evalf_(self, a, z, parent=None, algorithm=None):
         """
         EXAMPLES::
         
-            sage: struve_L(1/2.,pi)
+            sage: struve_L(1/2,pi).n()
             4.76805417696286
+            sage: struve_L(1/2,pi).n(200)
+            4.768054176962864289162484345...
         """
         import mpmath
         return mpmath_utils.call(mpmath.struvel, a, z, parent=parent)
