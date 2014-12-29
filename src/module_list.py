@@ -2212,7 +2212,8 @@ if is_package_installed('mcqd'):
 
 # FIXME maybe the problem is that I didn't actually install the package
 # as one would do in sage?    
-ext_modules.append(
+if is_package_installed('bliss'):    
+    ext_modules.append(
         Extension("sage.graphs.bliss",
                   ["sage/graphs/bliss.pyx"],
                   language = "c++",
