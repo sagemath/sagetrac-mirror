@@ -477,7 +477,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` - an integer.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
