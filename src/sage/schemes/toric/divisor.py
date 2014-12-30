@@ -175,8 +175,7 @@ from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
 from sage.misc.all import latex, flatten, prod
 from sage.modules.all import vector
-from sage.modules.free_module import (FreeModule_ambient_field,
-                                      FreeModule_ambient_pid)
+from sage.modules.free_module import FreeModule_ambient_field
 from sage.rings.all import QQ, ZZ
 from sage.schemes.generic.divisor import Divisor_generic
 from sage.schemes.generic.divisor_group import DivisorGroup_generic
@@ -2056,7 +2055,7 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
     __call__ = _element_constructor_
 
 
-class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
+class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_field):
     r"""
     Construct the basis lattice of the ``group``.
 
@@ -2099,7 +2098,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            QQ, group.dimension())
 
     def _repr_(self):
         r"""

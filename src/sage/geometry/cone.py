@@ -561,8 +561,9 @@ def normalize_rays(rays, lattice):
             ray_parent = parent(rays[0])
             lattice = (ray_parent if is_ToricLattice(ray_parent)
                                   else ToricLattice(len(rays[0])))
-        if lattice.base_ring() is not ZZ:
-            raise TypeError("lattice must be a free module over ZZ")
+        R = lattice.base_ring()
+        if R is not ZZ and R is not QQ:
+            raise TypeError("lattice must be a free module over ZZ or QQ")
         # Are we dealing with a quotient lattice?
         try:
             if not lattice.is_torsion_free():
