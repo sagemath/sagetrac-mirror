@@ -23,7 +23,7 @@ as a formal sum of monomial Manin Symbols, with integer coefficients.
 There are various different classes holding lists of Manin symbols of
 different types.  The hierarchy is as follows:
 
-- :class:`ManinSymbolList`
+::
 
   - :class:`ManinSymbolList_group`
 
