@@ -708,6 +708,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
         - ``gens`` -- list of elements of the ambient vector space of
           ``self``.
 
+        - ``base_ring`` -- a ring over which the module will be defined
+          (default: ``ZZ``)
+
         OUTPUT:
 
         - submodule spanned by ``gens``.
@@ -749,12 +752,16 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
     def span_of_basis(self, *args, **kwds):
         r"""
-        Return the submodule with the given ``basis``.
+        Return the free R-module with the given basis, where R is `\ZZ`
+        or the user-specified ``base_ring``.
 
         INPUT:
 
         - ``basis`` -- list of elements of the ambient vector space of
           ``self``.
+
+        - ``base_ring`` -- a ring over which the module will be defined
+          (default: ``ZZ``)
 
         OUTPUT:
 
@@ -777,8 +784,11 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: Ns = N.span_of_basis([(1,2,3)])
             sage: Ns.span_of_basis([(2,4,0)])
             Sublattice <N(2, 4, 0)>
-            sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)])
-            Sublattice <(1/5, 2/5, 0), (1/7, 1/7, 0)>
+            sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)], QQ)
+            Vector space of degree 3 and dimension 2 over Rational Field
+            User basis matrix:
+            [1/5 2/5   0]
+            [1/7 1/7   0]
 
         Of course the input basis vectors must be linearly independent::
 
@@ -797,7 +807,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return ToricLattice_sublattice_with_basis(self.ambient_module(),
                     *args, **kwds)
         else:
-            return super(ToricLattice_generic, self).span_with_basis(*args,
+            return super(ToricLattice_generic, self).span_of_basis(*args,
                                                                      **kwds)
 
 
