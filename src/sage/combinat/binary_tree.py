@@ -2522,6 +2522,15 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     _backslash_ = under
 
+    def lbs(self, t2):
+        r"""
+        Relative lbs of ``self`` and ``t2``.
+        """
+        # u = self
+        # v = t2
+        q = self.tamari_interval(t2).lower_binary_tree()
+        return q.left_border_symmetry().left_right_symmetry()
+
     def sylvester_class(self, left_to_right=False):
         r"""
         Iterate over the sylvester class corresponding to the binary tree
