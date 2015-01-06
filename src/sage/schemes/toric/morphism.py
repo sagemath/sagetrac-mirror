@@ -371,7 +371,7 @@ REFERENCES:
 from sage.categories.morphism import Morphism
 
 from sage.structure.sequence  import Sequence
-from sage.rings.all import ZZ, QQ, gcd
+from sage.rings.all import ZZ, gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
