@@ -1836,7 +1836,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         ker = fm.kernel().basis()
         m = fm.matrix() * base_cone.lattice().basis_matrix()
         base_cone_preimg = [m.solve_left(r) for r in base_cone.rays()]
-        L = fm.domain_fan().lattice().span(ker+base_cone_preimg, QQ).saturation()
+        L = fm.domain_fan().lattice().span(ker+base_cone_preimg, toric=False).saturation()
 
         cone_L = Cone([L.coordinates(r) for r in defining_cone.rays()])
         L_quotient = cone_L.sublattice_quotient()

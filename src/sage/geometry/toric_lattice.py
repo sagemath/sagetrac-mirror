@@ -699,7 +699,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         S = super(ToricLattice_generic, self).saturation()
         return S if is_ToricLattice(S) else self.ambient_module().submodule(S)
 
-    def span(self, *args, **kwds):
+    def span(self, gens, base_ring=ZZ, *args, **kwds):
         """
         Return the span of the given generators.
 
@@ -710,6 +710,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         - ``base_ring`` -- a ring over which the module will be defined
           (default: ``ZZ``)
+
+        - ``toric`` -- (boolean, defaults to ``True`` if and only if
+          ``base_ring`` is ``ZZ``) if ``True``, return a toric lattice.
+          If ``False``, return a free module.
 
         OUTPUT:
 
@@ -737,20 +741,38 @@ class ToricLattice_generic(FreeModule_generic_pid):
             ...
             ArithmeticError: Argument gens (= [N(0, 1, 0)])
             does not generate a submodule of self.
-        """
-        if len(args) > 1:
-            base_ring = args[1]
-        elif "base_ring" in kwds:
-            base_ring = kwds["base_ring"]
-        else:
-            base_ring = None
-        if base_ring is None or base_ring is ZZ:
-            gens = args[0] if args else kwds["gens"]
-            return ToricLattice_sublattice(self.ambient_module(), gens)
-        else:
-            return super(ToricLattice_generic, self).span(*args, **kwds)
 
-    def span_of_basis(self, *args, **kwds):
+        With ``toric=False`` or a different ring, the result is a free
+        module or a vector space::
+
+            sage: Ns.span([(2,4,0)], toric=False)
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [2 4 0]
+            sage: Ns.span([(1/5,2/5,0), (1/7,1/7,0)], QQ)
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+
+        Forcing ``toric=True`` with a different ring is an error::
+
+            sage: Ns.span([(1/5,2/5,0), (1/7,1/7,0)], base_ring=QQ, toric=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: you need toric=False if you want the span() over a different ring than ZZ
+        """
+        if base_ring is ZZ:
+            if kwds.pop('toric', True):
+                return ToricLattice_sublattice(
+                        self.ambient_module(), gens, *args, **kwds)
+        elif kwds.pop('toric', False):
+           raise TypeError("you need toric=False if you want the span() over a different ring than ZZ")
+
+        return super(ToricLattice_generic, self).span(
+                gens, base_ring, *args, **kwds)
+
+    def span_of_basis(self, basis, base_ring=ZZ, *args, **kwds):
         r"""
         Return the free R-module with the given basis, where R is `\ZZ`
         or the user-specified ``base_ring``.
@@ -762,6 +784,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         - ``base_ring`` -- a ring over which the module will be defined
           (default: ``ZZ``)
+
+        - ``toric`` -- (boolean, defaults to ``True`` if and only if
+          ``base_ring`` is ``ZZ``) if ``True``, return a toric lattice.
+          If ``False``, return a free module.
 
         OUTPUT:
 
@@ -784,6 +810,14 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: Ns = N.span_of_basis([(1,2,3)])
             sage: Ns.span_of_basis([(2,4,0)])
             Sublattice <N(2, 4, 0)>
+
+        With ``toric=False`` or a different ring, the result is a free
+        module or a vector space::
+
+            sage: Ns.span_of_basis([(2,4,0)], base_ring=ZZ, toric=False)
+            Free module of degree 3 and rank 1 over Integer Ring
+            User basis matrix:
+            [2 4 0]
             sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)], QQ)
             Vector space of degree 3 and dimension 2 over Rational Field
             User basis matrix:
@@ -796,19 +830,23 @@ class ToricLattice_generic(FreeModule_generic_pid):
             Traceback (most recent call last):
             ...
             ValueError: The given basis vectors must be linearly independent.
+
+        Forcing ``toric=True`` with a different ring is an error::
+
+            sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)], base_ring=QQ, toric=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: you need toric=False if you want the span_of_basis() over a different ring than ZZ
         """
-        if len(args) > 1:
-            base_ring = args[1]
-        elif "base_ring" in kwds:
-            base_ring = kwds["base_ring"]
-        else:
-            base_ring = None
-        if base_ring is None or base_ring is ZZ:
-            return ToricLattice_sublattice_with_basis(self.ambient_module(),
-                    *args, **kwds)
-        else:
-            return super(ToricLattice_generic, self).span_of_basis(*args,
-                                                                     **kwds)
+        if base_ring is ZZ:
+            if kwds.pop('toric', True):
+                return ToricLattice_sublattice_with_basis(
+                        self.ambient_module(), basis, *args, **kwds)
+        elif kwds.pop('toric', False):
+           raise TypeError("you need toric=False if you want the span_of_basis() over a different ring than ZZ")
+        
+        return super(ToricLattice_generic, self).span_of_basis(
+                basis, base_ring, *args, **kwds)
 
 
 class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
