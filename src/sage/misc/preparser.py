@@ -516,14 +516,13 @@ def parse_ellipsis(code, preparse_step=True):
         'for i in (ellipsis_iter(f(x) ,Ellipsis, L[10])):'
         sage: [1.0..2.0]
         [1.00000000000000, 2.00000000000000]
-    
+
     TESTS:
-    
-    Check that nested ellipsis is processed correctly (#17378)::
-    
+
+    Check that nested ellipsis is processed correctly (:trac:`17378`)::
+
         sage: preparse('[1,..,2,..,len([1..3])]')
         '(ellipsis_range(Integer(1),Ellipsis,Integer(2),Ellipsis,len((ellipsis_range(Integer(1),Ellipsis,Integer(3))))))'
-
     """
     ix = code.find('..')
     while ix != -1:
@@ -537,7 +536,7 @@ def parse_ellipsis(code, preparse_step=True):
             code = code[:ix] + "Ellipsis" + code[ix+3:]
         else:
             start_list, end_list = containing_block(code, ix, ['()','[]'])
-            
+
             #search the current containing block for other '..' occurrences that may
             #be contained in proper subblocks. Those need to be processed before
             #we can deal with the present level of ellipses.
@@ -546,7 +545,7 @@ def parse_ellipsis(code, preparse_step=True):
                 if code[ix-1]!='.' and code[ix+2]!='.':
                     start_list,end_list = containing_block(code,ix,['()','[]'])
                 ix = code.find('..',ix+2,end_list)
-               
+
             arguments = code[start_list+1:end_list-1].replace('...', ',Ellipsis,').replace('..', ',Ellipsis,')
             arguments = re.sub(r',\s*,', ',', arguments)
             if preparse_step:
