@@ -67,8 +67,8 @@ cdef class Monoid(Parent):
     TESTS::
 
         sage: from sage.monoids.monoid import Monoid
-        sage: G = Monoid()
-        sage: TestSuite(G).run(skip = ["_test_an_element",\
+        sage: M = Monoid()
+        sage: TestSuite(M).run(skip = ["_test_an_element",\
                                        "_test_associativity",\
                                        "_test_elements",\
                                        "_test_elements_eq_reflexive",\
@@ -88,17 +88,17 @@ cdef class Monoid(Parent):
         TESTS::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.category()
+            sage: M = Monoid()
+            sage: M.category()
             Category of monoids
-            sage: G = Monoid(category=Monoids()) # todo: do the same test with some subcategory of Monoids when there will exist one
-            sage: G.category()
+            sage: M = Monoid(category=Monoids()) # todo: do the same test with some subcategory of Monoids when there will exist one
+            sage: M.category()
             Category of monoids
-            sage: G = Monoid(category = CommutativeAdditiveMonoids())
+            sage: M = Monoid(category = CommutativeAdditiveMonoids())
             Traceback (most recent call last):
             ...
             ValueError: (Category of commutative additive monoids,) is not a subcategory of Category of monoids
-            sage: G._repr_option('element_is_atomic')
+            sage: M._repr_option('element_is_atomic')
             False
         """
         from sage.categories.monoids import Monoids
@@ -127,8 +127,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: 4 in G               #indirect doctest
+            sage: M = Monoid()
+            sage: 4 in M               #indirect doctest
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -147,8 +147,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.is_abelian()
+            sage: M = Monoid()
+            sage: M.is_abelian()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -182,8 +182,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.order()
+            sage: M = Monoid()
+            sage: M.order()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -198,8 +198,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.is_finite()
+            sage: M = Monoid()
+            sage: M.is_finite()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -218,8 +218,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.is_multiplicative()
+            sage: M = Monoid()
+            sage: M.is_multiplicative()
             True
         """
         return True
@@ -236,8 +236,8 @@ cdef class Monoid(Parent):
         EXAMPLES:
 
             sage: from sage.monoids.monoid import AbelianMonoid
-            sage: G = AbelianMonoid([2,3,4,5])
-            sage: G.an_element()
+            sage: M = AbelianMonoid([2,3,4,5])
+            sage: M.an_element()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -252,8 +252,8 @@ cdef class Monoid(Parent):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid
-            sage: G = Monoid()
-            sage: G.random_element()
+            sage: M = Monoid()
+            sage: M.random_element()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -272,8 +272,8 @@ cdef class AbelianMonoid(Monoid):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import AbelianMonoid
-            sage: G = AbelianMonoid()
-            sage: G.is_abelian()
+            sage: M = AbelianMonoid()
+            sage: M.is_abelian()
             True
         """
         return True
@@ -290,8 +290,8 @@ cdef class FiniteMonoid(Monoid):
         TESTS::
 
             sage: from sage.monoids.monoid import FiniteMonoid
-            sage: G = FiniteMonoid()
-            sage: G.category()
+            sage: M = FiniteMonoid()
+            sage: M.category()
             Category of finite monoids
         """
         from sage.categories.finite_monoids import FiniteMonoids
@@ -312,8 +312,8 @@ cdef class FiniteMonoid(Monoid):
         EXAMPLES::
 
             sage: from sage.monoids.monoid import FiniteMonoid
-            sage: G = FiniteMonoid()
-            sage: G.is_finite()
+            sage: M = FiniteMonoid()
+            sage: M.is_finite()
             True
         """
         return True
