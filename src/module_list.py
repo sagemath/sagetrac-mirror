@@ -1412,6 +1412,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.monoids
+    ##
+    ################################
+
+    Extension('sage.monoids.monoid',
+              sources = ['sage/monoids/monoid.pyx']),
+
+    ################################
+    ##
     ## sage.numerical
     ##
     ################################
