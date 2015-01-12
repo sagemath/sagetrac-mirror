@@ -24,6 +24,7 @@ from sage.monoids.monoid cimport Monoid
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
+
 def is_Group(x):
     """
     Return whether ``x`` is a group object.
@@ -108,64 +109,6 @@ cdef class Group(Monoid):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
         super(Group, self).__init__(base=base, gens=gens, category=category)
 
-    def __contains__(self, x):
-        r"""
-        Test whether `x` defines a group element.
-
-        INPUT:
-
-        - ``x`` -- anything.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: 4 in G               #indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        try:
-            self(x)
-        except TypeError:
-            return False
-        return True
-
-    def is_abelian(self):
-        """
-        Test whether this group is abelian.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.is_abelian()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-    def is_commutative(self):
-        r"""
-        Test whether this group is commutative.
-
-        This is an alias for is_abelian, largely to make groups work
-        well with the Factorization class.
-
-        (Note for developers: Derived classes should override is_abelian, not
-        is_commutative.)
-
-        EXAMPLE::
-
-            sage: SL(2, 7).is_commutative()
-            False
-        """
-        return self.is_abelian()
 
     def order(self):
         """
@@ -183,6 +126,7 @@ cdef class Group(Monoid):
         """
         raise NotImplementedError
 
+
     def is_finite(self):
         """
         Returns True if this group is finite.
@@ -198,21 +142,6 @@ cdef class Group(Monoid):
         """
         return self.order() != infinity
 
-    def is_multiplicative(self):
-        """
-        Returns True if the group operation is given by \* (rather than
-        +).
-
-        Override for additive groups.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.is_multiplicative()
-            True
-        """
-        return True
 
     def _an_element_(self):
         """
@@ -231,20 +160,6 @@ cdef class Group(Monoid):
         from sage.misc.misc import prod
         return prod(self.gens())
 
-    def random_element(self, bound=None):
-        """
-        Return a random element of this group.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.random_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def quotient(self, H):
         """
@@ -262,6 +177,7 @@ cdef class Group(Monoid):
         """
         raise NotImplementedError
 
+
 cdef class AbelianGroup(Group):
     """
     Generic abelian group.
@@ -278,6 +194,7 @@ cdef class AbelianGroup(Group):
             True
         """
         return True
+
 
 cdef class FiniteGroup(Group):
     """
@@ -319,6 +236,7 @@ cdef class FiniteGroup(Group):
             True
         """
         return True
+
 
     def cayley_graph(self, connecting_set=None):
         """
