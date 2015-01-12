@@ -110,6 +110,7 @@ cdef class Monoid(Parent):
             if not any(cat.is_subcategory(Monoids()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, Monoids()))
         Parent.__init__(self, base=base, gens=gens, category=category)
+        super(Monoid, self).__init__(base=base, gens=gens, category=category)
 
 
     def __contains__(self, x):
@@ -285,6 +286,8 @@ cdef class FiniteMonoid(Monoid):
             if not any(cat.is_subcategory(FiniteMonoids()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, FiniteMonoids()))
         Parent.__init__(self, base=base, gens=gens, category=category)
+        super(FiniteMonoid, self).__init__(base=base, gens=gens,
+                                           category=category)
 
 
     def is_finite(self):
