@@ -1,6 +1,6 @@
-from sage.structure.parent cimport Parent
+from sage.monoids.monoid cimport Monoid
 
-cdef class Group(Parent):
+cdef class Group(Monoid):
     pass
 
 cdef class AbelianGroup(Group):

@@ -49,7 +49,7 @@ def is_Group(x):
     return isinstance(x, (Group, OldGroup))
 
 
-cdef class Group(Parent):
+cdef class Group(Monoid):
     """
     Base class for all groups
 
