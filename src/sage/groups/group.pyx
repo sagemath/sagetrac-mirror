@@ -17,12 +17,7 @@ Base class for groups
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
-
-from sage.structure.parent cimport Parent
 from sage.monoids.monoid cimport Monoid
-from sage.rings.infinity import infinity
-from sage.rings.integer_ring import ZZ
 
 
 def is_Group(x):
@@ -140,6 +135,7 @@ cdef class Group(Monoid):
             ...
             NotImplementedError
         """
+        from sage.rings.infinity import infinity
         return self.order() != infinity
 
 
