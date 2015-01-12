@@ -62,7 +62,7 @@ class Monoid_class(Parent):
 
 cdef class Monoid(Parent):
     """
-    Base class for all monoids
+    Base class for all monoids.
 
     TESTS::
 
@@ -83,7 +83,7 @@ cdef class Monoid(Parent):
     """
     def __init__(self, base=None, gens=None, category=None):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -115,7 +115,7 @@ cdef class Monoid(Parent):
 
     def __contains__(self, x):
         r"""
-        Test whether `x` defines a monoid element.
+        Test whether `x` defines an element of ``self``.
 
         INPUT:
 
@@ -143,7 +143,7 @@ cdef class Monoid(Parent):
 
     def is_abelian(self):
         """
-        Test whether this monoid is abelian.
+        Test whether ``self`` is abelian.
 
         EXAMPLES::
 
@@ -159,13 +159,15 @@ cdef class Monoid(Parent):
 
     def is_commutative(self):
         r"""
-        Test whether this monoid is commutative.
+        Test whether ``self`` is commutative.
 
-        This is an alias for is_abelian, largely to make monoids work
-        well with the Factorization class.
+        This is an alias for :meth:`is_abelian`, largely to make groups work
+        well with the factorization class.
 
-        (Note for developers: Derived classes should override is_abelian, not
-        is_commutative.)
+        .. NOTE::
+
+            Note for developers: Derived classes should override
+            :meth:`is_abelian`, not :meth:`is_commutative`.
 
         EXAMPLE::
 
@@ -177,7 +179,7 @@ cdef class Monoid(Parent):
 
     def is_finite(self):
         """
-        Returns True if this monoid is finite.
+        Returns ``True`` if ``self`` is finite.
 
         EXAMPLES::
 
@@ -193,7 +195,7 @@ cdef class Monoid(Parent):
 
     def is_multiplicative(self):
         """
-        Returns True if the monoid operation is given by \* (rather than
+        Returns ``True`` if the operation is given by \* (rather than
         +).
 
         Override for additive monoids.
@@ -210,7 +212,7 @@ cdef class Monoid(Parent):
 
     def _an_element_(self):
         """
-        Return an element
+        Return an element.
 
         OUTPUT:
 
@@ -230,7 +232,7 @@ cdef class Monoid(Parent):
 
     def random_element(self, bound=None):
         """
-        Return a random element of this monoid.
+        Return a random element.
 
         EXAMPLES::
 
@@ -250,7 +252,7 @@ cdef class AbelianMonoid(Monoid):
     """
     def is_abelian(self):
         """
-        Return True.
+        Return ``True`` since ``self`` is abelian.
 
         EXAMPLES::
 
@@ -268,7 +270,7 @@ cdef class FiniteMonoid(Monoid):
     """
     def __init__(self, base=None, gens=None, category=None):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -292,7 +294,7 @@ cdef class FiniteMonoid(Monoid):
 
     def is_finite(self):
         """
-        Return True.
+        Return ``True`` since ``self`` is finite.
 
         EXAMPLES::
 
