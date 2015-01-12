@@ -106,7 +106,7 @@ cdef class Group(Monoid):
                 category = (category,)
             if not any(cat.is_subcategory(Groups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+        super(Group, self).__init__(base=base, gens=gens, category=category)
 
     def __contains__(self, x):
         r"""
@@ -303,7 +303,9 @@ cdef class FiniteGroup(Group):
                 category = (category,)
             if not any(cat.is_subcategory(FiniteGroups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, FiniteGroups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+        super(FiniteGroup, self).__init__(base=base, gens=gens,
+                                          category=category)
+
 
     def is_finite(self):
         """
