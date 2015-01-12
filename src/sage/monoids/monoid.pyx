@@ -174,23 +174,6 @@ cdef class Monoid(Parent):
         return self.is_abelian()
 
 
-    def order(self):
-        """
-        Returns the number of elements of this monoid, which is either a
-        positive integer or infinity.
-
-        EXAMPLES::
-
-            sage: from sage.monoids.monoid import Monoid
-            sage: M = Monoid()
-            sage: M.order()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-
     def is_finite(self):
         """
         Returns True if this monoid is finite.
@@ -204,8 +187,7 @@ cdef class Monoid(Parent):
             ...
             NotImplementedError
         """
-        from sage.rings.infinity import infinity
-        return self.order() != infinity
+        raise NotImplementedError
 
 
     def is_multiplicative(self):
