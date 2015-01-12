@@ -108,8 +108,8 @@ cdef class Monoid(Parent):
             if not isinstance(category, tuple):
                 category = (category,)
             if not any(cat.is_subcategory(Monoids()) for cat in category):
-                raise ValueError("%s is not a subcategory of %s"%(category, Monoids()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+                raise ValueError("%s is not a subcategory of %s" %
+                                 (category, Monoids()))
         super(Monoid, self).__init__(base=base, gens=gens, category=category)
 
 
@@ -284,8 +284,8 @@ cdef class FiniteMonoid(Monoid):
             if not isinstance(category, tuple):
                 category = (category,)
             if not any(cat.is_subcategory(FiniteMonoids()) for cat in category):
-                raise ValueError("%s is not a subcategory of %s"%(category, FiniteMonoids()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+                raise ValueError("%s is not a subcategory of %s" %
+                                 (category, FiniteMonoids()))
         super(FiniteMonoid, self).__init__(base=base, gens=gens,
                                            category=category)
 
