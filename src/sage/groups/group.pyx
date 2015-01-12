@@ -20,6 +20,7 @@ Base class for groups
 import random
 
 from sage.structure.parent cimport Parent
+from sage.monoids.monoid cimport Monoid
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
