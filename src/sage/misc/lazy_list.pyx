@@ -890,10 +890,10 @@ cdef class lazy_list_from_function(lazy_list):
 
         sage: from sage.misc.lazy_list import lazy_list_from_function
         sage: from itertools import count
-        sage: m = lazy_list_from_function(count()); m
+        sage: m = lazy_list_from_function(lambda a : [a[-1]+1], [0]); m
         lazy list [0, 1, 2, ...]
 
-        sage: m2 = lazy_list_from_function(lambda a, b: a, start=8, stop=20551, step=2)
+        sage: m2 = lazy_list_from_function(lambda a: [a[-1]+1], [0], start=8, stop=20551, step=2)
         sage: m2
         lazy list [8, 10, 12, ...]
 
@@ -905,8 +905,6 @@ cdef class lazy_list_from_function(lazy_list):
         0 1 2
         sage: print x.next(), y.next()
         3 3
-        sage: loads(dumps(m))
-        lazy list [0, 1, 2, ...]
 
     .. NOTE::
 
@@ -924,29 +922,15 @@ cdef class lazy_list_from_function(lazy_list):
             
             We can provide initial values:
 
-            sage: m = lazy_list_from_function(lambda a: a[-1]+1, [0]); m
+            sage: m = lazy_list_from_function(lambda a: [a[-1]+1], [0]); m
             lazy list [0, 1, 2, ...]
-
-            Alternatively, rely on the fact that the length of the cache is initially zero:
-
-            sage: m = lazy_list_from_function(lambda a: len(a)); m
-            lazy list [0, 1, 2, ...]
-
 
             Beware of strange constructs!  The following makes each
             element of the lazy list the lazy list itself...
 
             sage: f = lazy_list_from_function(lambda a: a);
             sage: f[0]
-            [[...]]
-            sage: f
-            lazy list [[[...], [...], [...], [...]], [[...], [...], [...], [...]], [[...], [...], [...], [...]], ...]
-            sage: f[0]
-            [[...], [...], [...], [...]]
-            sage: f[10]
-            [[...], [...], [...], [...], [...], [...], [...], [...], [...], [...], [...]]
-            sage: f[0] == f[10]
-            True
+            [[...]] # never stop
         """
         
         super(lazy_list_from_function, self).__init__(cache, start, stop, step)
@@ -1000,6 +984,13 @@ cdef class lazy_list_from_function(lazy_list):
         Pickling support
 
         EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_function
+            sage: m = lazy_list_from_function(lambda l : [l[-1]+1])
+            sage: loads(dumps(m))
+            ...
+            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+
         """
 
         return self.__class__, (self.function, self.cache, self.start, self.stop, self.step)
@@ -1036,9 +1027,6 @@ cdef class lazy_list_explicit(lazy_list):
         0 1 2
         sage: print x.next(), y.next()
         3 3
-        sage: loads(dumps(m))
-        lazy list [0, 1, 2, ...]
-
     .. NOTE::
 
         - :class:`lazy_list` interprets the constant ``(size_t)-1`` as infinity
@@ -1050,9 +1038,10 @@ cdef class lazy_list_explicit(lazy_list):
         Initialize ``self``.
 
         EXAMPLES::
-        
-        sage: m = lazy_list_explicit(lambda n : n*(n+1)/2); m
-        lazy list [
+
+            sage: from sage.misc.lazy_list import lazy_list_explicit
+            sage: m = lazy_list_explicit(lambda n : n*(n+1)/2); m
+            lazy list [0, 1, 3, ...]
 
         """
         
@@ -1094,6 +1083,13 @@ cdef class lazy_list_explicit(lazy_list):
         Pickling support
 
         EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_explicit
+            sage: m = lazy_list_explicit(lambda n : n*(n+1)/2)
+            sage: loads(dumps(m))
+            ...
+            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+
         """
 
         return self.__class__, (self.function, self.cache, self.start, self.stop, self.step)
@@ -1109,21 +1105,20 @@ cdef class lazy_list_explicit(lazy_list):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_list import lazy_list_from_iterator
-            sage: from itertools import chain, repeat
-            sage: f = lazy_list_from_iterator(chain(iter([1,2,3]), repeat('a')))
+            sage: from sage.misc.lazy_list import lazy_list_explicit
+            sage: f = lazy_list_from_explicit(lambda n : n*(n+1)/2)
             sage: f.get(0)
-            1
+            0
             sage: f.get(3)
-            'a'
+            6
             sage: f.get(0)
-            1
+            0
             sage: f.get(4)
-            'a'
+            10
 
             sage: g = f[:10]
             sage: g.get(5)
-            'a'
+            15
             sage: g.get(10)
             Traceback (most recent call last):
             ...
