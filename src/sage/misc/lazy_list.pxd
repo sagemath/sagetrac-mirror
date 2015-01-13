@@ -15,6 +15,11 @@ cdef class lazy_list_from_function(lazy_list):
     cdef object function
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1
+
+cdef class lazy_list_explicit(lazy_list):
+    cdef object function
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1
     
 cdef class lazy_list_iterator(object):
     cdef lazy_list l
