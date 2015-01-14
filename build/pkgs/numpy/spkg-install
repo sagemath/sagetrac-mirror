@@ -23,32 +23,19 @@ fi
 
 cd src
 
-# Apply patches.
-patches=""
-if [ $UNAME = "CYGWIN" ]; then
-    echo "CYGWIN: Patching numpy/linalg/setup.py"
-    patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
+# Is this really needed anymore?
+if [ "$UNAME" = "Darwin" ]; then
+    unset ATLAS
+    unset BLAS
+    unset LAPACK
+else
+    export LDFLAGS="-shared $LDFLAGS"
 fi
-for patch in $patches; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 echo "[DEFAULT]" > site.cfg
 echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
 echo "include_dirs = $SAGE_LOCAL/include" >> site.cfg
 echo "" >> site.cfg
-
-if [ `uname` = "Darwin" ]; then
-    unset ATLAS
-    unset BLAS
-    unset LAPACK
-else
-    export LDFLAGS="${LDFLAGS} -shared"
-fi
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
