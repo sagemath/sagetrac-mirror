@@ -1240,13 +1240,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used on OS X to
   set the :envvar:`DYLD_LIBRARY_PATH` variable.
 
-- :envvar:`SAGE_CBLAS` - used in the file
-  :file:`SAGE_ROOT/src/sage/misc/cython.py`.
-  Set this to the base name of the BLAS library file on your system if you want
-  to override the default setting.
-  That is, if the relevant file is called :file:`libcblas_new.so` or
-  :file:`libcblas_new.dylib`, then set this to ``cblas_new``.
-
 Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
