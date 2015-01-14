@@ -59,7 +59,7 @@ from cpython.list cimport *
 from libc cimport limits
 
 
-cdef class lazy_list_iterator(object):
+cdef class lazy_list_with_cache_iterator(object):
     """
     Iterator for a lazy list.
 
@@ -161,7 +161,7 @@ cdef class lazy_list_iterator(object):
         self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
         return <object> PyList_GET_ITEM(self.l.cache, self.pos)
 
-cdef class stopped_lazy_list_iterator(object):
+cdef class stopped_lazy_list_with_cache_iterator(object):
     """
     A lazy list iterator which eventually stops.
 
@@ -216,7 +216,7 @@ cdef class stopped_lazy_list_iterator(object):
             sage: loads(dumps(i))
             iterator of lazy list [3, 21, 39, ...]
         """
-        return lazy_list_iterator, (self.l,self.pos)
+        return lazy_list_with_cache_iterator, (self.l,self.pos)
 
     def __iter__(self):
         r"""
@@ -228,7 +228,7 @@ cdef class stopped_lazy_list_iterator(object):
             sage: L = lazy_list(iter(Primes()))[:100]
             sage: i = iter(L)
             sage: type(i)
-            <type 'sage.misc.lazy_list.stopped_lazy_list_iterator'>
+            <type 'sage.misc.lazy_list.stopped_lazy_list_with_cache_iterator'>
             sage: i is iter(i)   #indirect doctest
             True
         """
@@ -244,7 +244,7 @@ cdef class stopped_lazy_list_iterator(object):
             sage: L = lazy_list(iter(Primes()))[:100]
             sage: i = iter(L)
             sage: type(i)
-            <type 'sage.misc.lazy_list.stopped_lazy_list_iterator'>
+            <type 'sage.misc.lazy_list.stopped_lazy_list_with_cache_iterator'>
             sage: i.next()  #indirect doctest
             2
             sage: i.next()  #indirect doctest
@@ -259,8 +259,46 @@ cdef class stopped_lazy_list_iterator(object):
         return <object> PyList_GET_ITEM(self.l.cache, self.pos)
 
 cdef class lazy_list(object):
+
+    def __init__(self, start=None, stop=None, step=None):
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = PY_SSIZE_T_MAX
+        if step is None:
+            step = 1
+
+        if not isinstance(start, (int,long)):
+            try:
+                start = start.__index__()
+            except Exception:
+                raise TypeError("start must be None or integer")
+        if start < 0:
+            raise ValueError("start must be non negative")
+        if not isinstance(stop, (int,long)):
+            try:
+                stop = stop.__index__()
+            except Exception:
+                raise TypeError("stop must be None or integer")
+        if stop < 0:
+            raise ValueError("stop must be larger than -2")
+        if not isinstance(step, (int,long)):
+            try:
+                step = step.__index__()
+            except Exception:
+                raise TypeError("step must be None or integer")
+        if step <= 0:
+            raise ValueError("step must be positive")
+
+        self.start = <Py_ssize_t> start
+        self.stop  = <Py_ssize_t> stop
+        self.step  = <Py_ssize_t> step
+
+    
+    
+cdef class lazy_list_with_cache(lazy_list):
     r"""
-    Abstract class for Lazy list.
+    Abstract class for Lazy list with cache.
     Should not be instantiated
 
     INPUT:
@@ -309,44 +347,14 @@ cdef class lazy_list(object):
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = PY_SSIZE_T_MAX
-        if step is None:
-            step = 1
+
+        super(lazy_list_with_cache, self).__init__(start, stop, step)
 
         if cache is None or stop <= start:
             cache = []
         elif not isinstance(cache, list):
             raise TypeError("cache must be a list, not %s"%type(cache).__name__)
         self.cache = cache
-
-        if not isinstance(start, (int,long)):
-            try:
-                start = start.__index__()
-            except Exception:
-                raise TypeError("start must be None or integer")
-        if start < 0:
-            raise ValueError("start must be non negative")
-        if not isinstance(stop, (int,long)):
-            try:
-                stop = stop.__index__()
-            except Exception:
-                raise TypeError("stop must be None or integer")
-        if stop < 0:
-            raise ValueError("stop must be larger than -2")
-        if not isinstance(step, (int,long)):
-            try:
-                step = step.__index__()
-            except Exception:
-                raise TypeError("step must be None or integer")
-        if step <= 0:
-            raise ValueError("step must be positive")
-
-        self.start = <Py_ssize_t> start
-        self.stop  = <Py_ssize_t> stop
-        self.step  = <Py_ssize_t> step
 
     def start_stop_step(self):
         r"""
@@ -643,8 +651,8 @@ cdef class lazy_list(object):
             iterator of lazy list [0, 1, 2, ...]
         """
         if self.stop == PY_SSIZE_T_MAX:
-            return lazy_list_iterator(self)
-        return stopped_lazy_list_iterator(self)
+            return lazy_list_with_cache_iterator(self)
+        return stopped_lazy_list_with_cache_iterator(self)
 
     def __getitem__(self, key):
         r"""
@@ -771,7 +779,7 @@ cdef class lazy_list(object):
 
         return clss(*args)
     
-cdef class lazy_list_from_iterator(lazy_list):
+cdef class lazy_list_from_iterator(lazy_list_with_cache):
     r"""
     Lazy list.
 
@@ -873,7 +881,7 @@ cdef class lazy_list_from_iterator(lazy_list):
         """
         return self.__class__, (self.iterator, self.cache, self.start, self.stop, self.step)
 
-cdef class lazy_list_from_function(lazy_list):
+cdef class lazy_list_from_function(lazy_list_with_cache):
     r"""
     Lazy list.
 
@@ -995,7 +1003,7 @@ cdef class lazy_list_from_function(lazy_list):
 
         return self.__class__, (self.function, self.cache, self.start, self.stop, self.step)
     
-cdef class lazy_list_explicit(lazy_list):
+cdef class lazy_list_explicit(lazy_list_with_cache):
     r"""
     Lazy list.
 
