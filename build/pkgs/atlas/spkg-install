@@ -68,6 +68,17 @@ def assert_success(rc, good=None, bad=None):
 ### Skip building ATLAS on specific systems
 ######################################################################
 
+def write_cblas_config(libs):
+    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config')i, 'w')
+    for lib in libs:
+	f.write("-l"+lib)
+    f.close()
+
+
+######################################################################
+### Skip building ATLAS on specific systems
+######################################################################
+
 if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
     print('Skipping build of ATLAS on OS X, using system library instead.')
     print('You can try building your own ATLAS by setting SAGE_ATLAS_ARCH')
@@ -78,6 +89,7 @@ if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
         for lib in [ 'libBLAS.dylib', 'libLAPACK.dylib']:
             ln(os.path.join(veclib_dir, lib),
                os.path.join(conf['SAGE_LOCAL'], 'lib', lib))
+    write_cblas_config(['blas'])
     sys.exit(0)
 
 
@@ -176,6 +188,8 @@ if 'SAGE_ATLAS_LIB' in os.environ:
                 pass
     for lib in libraries + libraries_optional:
         symlinkOSlibrary(lib)
+
+    write_cblas_config(libs[1:])
 
     sys.exit(0)
 
