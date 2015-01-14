@@ -36,6 +36,8 @@ BUILD_LIB_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-lib')
 os.environ['MAKE'] += ' -j1'
 MAKE = os.environ['MAKE']
 
+# SAGE_LOCAL
+SAGE_LOCAL = os.environ['SAGE_LOCAL']
 
 ######################################################################
 ### Some auxiliary functions to facilitate IO and error checking
@@ -69,9 +71,9 @@ def assert_success(rc, good=None, bad=None):
 ######################################################################
 
 def write_cblas_config(libs):
-    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config')i, 'w')
-    for lib in libs:
-	f.write("-l"+lib)
+    import string
+    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'w')
+    f.write(string.join(libs," "))
     f.close()
 
 
@@ -107,8 +109,10 @@ if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
 if 'SAGE_ATLAS_LIB' in os.environ:
     ATLAS_LIB = os.environ['SAGE_ATLAS_LIB']
 
-    libraries_sets = [['liblapack', 'libcblas', 'libf77blas', 'libatlas'], ['liblapack', 'libblas']]
-    libraries_optional = ['libptcblas', 'libptf77blas']
+    prefix = 'lib'
+
+    libraries_sets = [['lapack', 'cblas', 'f77blas', 'atlas'], ['lapack', 'blas']]
+    libraries_optional = ['ptcblas', 'ptf77blas']
 
     def is_atlas_lib_path(path):
         if path is None:
@@ -118,8 +122,8 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         filenames = os.listdir(path)
         for libs in libraries_sets:
             for lib in libs:
-                if not any(fname.startswith(lib) for fname in filenames):
-                    print('Cannot find '+lib+'.* in '+path)
+                if not any(fname.startswith(prefix+lib) for fname in filenames):
+                    print('Cannot find '+prefix+lib+'.* in '+path)
                     break
             else:
                 libraries = libs
@@ -146,7 +150,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         sys.exit(2)
 
     for fname in os.listdir(ATLAS_LIB):
-        if fname.startswith('libf77blas'):
+        if fname.startswith(prefix+'f77blas'):
             f77blas = os.path.join(ATLAS_LIB, fname)
     else:
         f77blas = None
@@ -187,13 +191,13 @@ if 'SAGE_ATLAS_LIB' in os.environ:
             except OSError:
                 pass
     for lib in libraries + libraries_optional:
-        symlinkOSlibrary(lib)
+        symlinkOSlibrary(prefix+lib)
 
     write_cblas_config(libs[1:])
 
     sys.exit(0)
 
-
+write_cblas_config(['f77blas', 'cblas', 'atlas'])
 
 ######################################################################
 ### Patch source

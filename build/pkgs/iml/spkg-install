@@ -33,7 +33,7 @@ fi
 
 # CBLAS autodetection should work ok at least on Linux
 if [ $UNAME = "Darwin" ]; then
-    cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"`
+    cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/\([^ ]\+\)/-l\1/g'`
     IML_CONFIGURE="--with-cblas=\"$cblas_libs\" $IML_CONFIGURE"
 fi
 

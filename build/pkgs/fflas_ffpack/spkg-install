@@ -50,8 +50,8 @@ export CFLAGS CXXFLAGS LDFLAGS
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
-#    --with-blas="$FFLAS_FFPACK_BLAS" \
-    --enable-optimization --disable-static
+    --enable-optimization --disable-static # \
+#    --with-blas="$FFLAS_FFPACK_BLAS"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring fflas_ffpack."
     exit 1

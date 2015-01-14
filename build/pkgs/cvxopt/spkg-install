@@ -38,22 +38,17 @@ if [ "$UNAME" = FreeBSD ]; then
 fi
 
 # optional modules configuration
-export BUILD_GLPK=1
-export GLPK_LIB_DIR="$SAGE_LOCAL/lib"
-export GLPK_INC_DIR="$SAGE_LOCAL/include"
+export CVXOPT_BUILD_GLPK=1
+export CVXOPT_GLPK_LIB_DIR="$SAGE_LOCAL/lib"
+export CVXOPT_GLPK_INC_DIR="$SAGE_LOCAL/include"
 
-export BUILD_GSL=1
-export GSL_LIB_DIR="$SAGE_LOCAL/lib"
-export GSL_INC_DIR="$SAGE_LOCAL/include"
+export CVXOPT_BUILD_GSL=1
+export CVXOPT_GSL_LIB_DIR="$SAGE_LOCAL/lib"
+export CVXOPT_GSL_INC_DIR="$SAGE_LOCAL/include"
 
 # BLAS/LAPACK configuration
-BLAS_LIB="["
-for lib in `cat "$SAGE_LOCAL/share/cblas_config"`; do
-    BLAS_LIB="${BLAS_LIB}'$lib', "
-done
-BLAS_LIB="${BLAS_LIB}]"
-export BLAS_LIB
-export BLAS_LIB_DIR="$SAGE_LOCAL/lib"
+export CVXOPT_BLAS_LIB=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/ /,/g'`
+export CVXOPT_BLAS_LIB_DIR="$SAGE_LOCAL/lib"
 
 python setup.py install
 if [ $? -ne 0 ]; then
