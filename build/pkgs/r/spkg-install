@@ -70,13 +70,25 @@ else
     XSUPPORT=no
 fi
 
+# R can use BLAS and LAPACK.
+# To configure BLAS/LAPACK, either:
+# - rely on automatic detection system by passing --with-blas and/or
+#   --with-lapack without arguments,
+# - pass every linking flags for BLAS --with-blas,
+# - pass additional linking flags for LAPACK in --with-lapack.
 if [ "$UNAME" = "Darwin" ]; then
+# Not sure why this is needed
+# Can't the Accelerate framework be used?
     echo "Configuring R without ATLAS for OS X"
 else
     echo "Configuring R with ATLAS"
-    R_CONFIGURE_BLAS="--with-blas=\"-L$SAGE_LOCAL/lib -lf77blas -latlas\""
-    R_CONFIGURE_LAPACK="--with-lapack=\"-L$SAGE_LOCAL/lib -llapack -lcblas\""
-    echo $R_CONFIGURE_BLAS
+# R suggests the following for ATLAS, but autodetection works fine
+# at least on Linux
+#    R_CONFIGURE_BLAS="--with-blas=\"-L$SAGE_LOCAL/lib -lf77blas -latlas\""
+#    R_CONFIGURE_LAPACK="--with-lapack=\"-L$SAGE_LOCAL/lib -llapack -lcblas\""
+#    echo $R_CONFIGURE_BLAS
+     R_CONFIGURE_BLAS="--with-blas"
+     R_CONFIGURE_LAPACK="--with-lapack"
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
