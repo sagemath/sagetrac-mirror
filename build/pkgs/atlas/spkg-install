@@ -68,13 +68,6 @@ def assert_success(rc, good=None, bad=None):
 ### Skip building ATLAS on specific systems
 ######################################################################
 
-# On Cygwin, we used to require that the system-wide lapack packages were
-# installed (this included the lapack-devel and lapack packages).
-# These packages indeed include BLAS and LAPACK and are enough to build
-# the rest of Sage, whereas building ATLAS was problematic.
-# For the record, the corresponding files to symlink from the system-wide
-# packages are: '/usr/lib/libblas.dll.a' and  '/usr/lib/liblapack.dll.a'.
-
 if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
     print('Skipping build of ATLAS on OS X, using system library instead.')
     print('You can try building your own ATLAS by setting SAGE_ATLAS_ARCH')
@@ -92,14 +85,18 @@ if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
 ### Use SAGE_ATLAS_LIB='directory' if provided
 ######################################################################
 
+# On Cygwin, we used to require that the system-wide lapack packages were
+# installed (this included the lapack-devel and lapack packages).
+# These packages indeed include BLAS and LAPACK and are enough to build
+# the rest of Sage, whereas building ATLAS was problematic.
+# For the record, the corresponding files to symlink from the system-wide
+# packages are: '/usr/lib/libblas.dll.a' and  '/usr/lib/liblapack.dll.a'.
+
 if 'SAGE_ATLAS_LIB' in os.environ:
     ATLAS_LIB = os.environ['SAGE_ATLAS_LIB']
-    if conf['CYGWIN?']:
-        libraries = ['libblas', 'liblapack']
-        libraries_optional = []
-    else:
-        libraries = ['libatlas', 'liblapack', 'libcblas', 'libf77blas']
-        libraries_optional = ['libptcblas', 'libptf77blas']
+
+    libraries_sets = [['liblapack', 'libcblas', 'libf77blas', 'libatlas'], ['liblapack', 'libblas']]
+    libraries_optional = ['libptcblas', 'libptf77blas']
 
     def is_atlas_lib_path(path):
         if path is None:
@@ -107,11 +104,15 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         if not os.path.isdir(path):
             return False
         filenames = os.listdir(path)
-        for lib in libraries:
-            if not any(fname.startswith(lib) for fname in filenames):
-                print('Cannot find '+lib+'.* in '+path)
-                return False
-        return True
+        for libs in libraries_sets:
+            for lib in libs:
+                if not any(fname.startswith(lib) for fname in filenames):
+                    print('Cannot find '+lib+'.* in '+path)
+                    break
+            else:
+                libraries = libs
+                return True
+        return False
 
     paths = [ ATLAS_LIB, os.path.join(ATLAS_LIB, 'lib64'), os.path.join(ATLAS_LIB, 'lib') ]
     ATLAS_LIB = None
@@ -121,18 +122,27 @@ if 'SAGE_ATLAS_LIB' in os.environ:
             break
 
     if ATLAS_LIB is None:
-        print('Unable to find one of liblapack, libcblas, libatlas or libf77blas')
-        print('in the directory', ATLAS_LIB)
-        print('Set SAGE_ATLAS_LIB to the directory containing liblapack, libcblas,')
-        print('libatlas and libf77blas (either .a, .so, .dylib extensions) if')
-        print('you wish to use existing ATLAS libraries. For more details, see')
+        print('Unable to find required libraries in the directory', ATLAS_LIB)
+        print('Set SAGE_ATLAS_LIB to the directory containing:')
+	print('- liblapack, libcblas, libf77blas and libatlas;')
+	print('- or liblapack and libblas;')
+        print('you wish to use existing ATLAS libraries.')
+        print('For more details, see:')
         print('http://sagemath.org/doc/installation/source.html#environment-variables')
         print('Unset SAGE_ATLAS_LIB to build ATLAS from source.')
         print('Then type make.')
         sys.exit(2)
 
-    symbol_table = try_run('readelf -s ' + os.path.join(ATLAS_LIB, 'libf77blas.so'))
-    if not symbol_table is None:
+    for fname in os.listdir(ATLAS_LIB):
+        if fname.startswith('libf77blas'):
+            f77blas = os.path.join(ATLAS_LIB, fname)
+    else:
+        f77blas = None
+    if f77blas is not None:
+        symbol_table = try_run('readelf -s ' + f77blas)
+    else:
+        symbol_table = None
+    if symbol_table is not None:
         sym_gfortran = 'gfortran' in symbol_table
         sym_g95 = 'g95' in symbol_table
         if sym_gfortran and conf['fortran'] != 'gfortran':
@@ -166,7 +176,9 @@ if 'SAGE_ATLAS_LIB' in os.environ:
                 pass
     for lib in libraries + libraries_optional:
         symlinkOSlibrary(lib)
+
     sys.exit(0)
+
 
 
 ######################################################################
