@@ -1154,3 +1154,47 @@ cdef class lazy_list_explicit(lazy_list):
         return obj
 
     get = __call__
+
+    def list(self):
+        r"""
+        Return the list made of the elements of ``self``.
+
+        .. NOTE::
+
+            If self.stop is sufficiently large, this will build a list
+            of length ``(size_t)-1`` which should be beyond the capacity of
+            your RAM!
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_explicit
+            sage: P = lazy_list_explicit(lambda n : factorial(n))
+            sage: P[2:143:5].list()
+            [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
+            sage: P = lazy_list_from_iterator(iter([1,2,3]))
+            sage: P.list()
+            [1, 2, 3]
+            sage: P[:100000].list()
+            [1, 2, 3]
+            sage: P[1:7:2].list()
+            [2]
+
+        TESTS:
+
+        Check that the cache is immutable::
+
+            sage: lazy = lazy_list_from_iterator(iter(Primes()))[:5]
+            sage: l = lazy.list(); l
+            [2, 3, 5, 7, 11]
+            sage: l[0] = -1; l
+            [-1, 3, 5, 7, 11]
+            sage: lazy.list()
+            [2, 3, 5, 7, 11]
+        """
+        try:
+            self.update_cache_up_to(self.stop-1)
+            for i in range((self.stop-self.start)/self.step):
+                self.get(i) # force the computation
+        except StopIteration:
+            pass
+        return self.cache[self.start:self.stop:self.step]
