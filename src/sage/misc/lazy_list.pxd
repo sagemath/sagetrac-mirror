@@ -22,13 +22,25 @@ cdef class lazy_list_explicit(lazy_list_with_cache):
     cdef object function
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1
-    
+
+cdef class lazy_list_periodic(lazy_list):
+    cdef list pre_period, period
+
+cdef class lazy_list_iterator(object):
+    cdef lazy_list l
+    cdef Py_ssize_t pos, step
+
 cdef class lazy_list_with_cache_iterator(object):
     cdef lazy_list_with_cache l
     cdef Py_ssize_t pos, step
 
-cdef class stopped_lazy_list_with_cache_iterator(object):
-    cdef lazy_list_with_cache l
-    cdef Py_ssize_t pos, step, stop
+cdef class stopped_lazy_list_with_cache_iterator(lazy_list_with_cache_iterator):
+    cdef Py_ssize_t stop
 
+cdef class lazy_list_periodic_iterator(object):
+    cdef lazy_list_periodic l
+    cdef Py_ssize_t pos, step
+
+cdef class stopped_lazy_list_periodic_iterator(lazy_list_periodic_iterator):
+    cdef Py_ssize_t stop
 

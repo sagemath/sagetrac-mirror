@@ -61,11 +61,11 @@ from libc cimport limits
 
 cdef class lazy_list_with_cache_iterator(object):
     """
-    Iterator for a lazy list.
+    Iterator for a lazy list with cache.
 
     INPUT:
 
-    - ``l`` -- a lazy list
+    - ``l`` -- a lazy list with cache
 
     - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
       specifying the starting position
@@ -91,7 +91,7 @@ cdef class lazy_list_with_cache_iterator(object):
         """
         if not isinstance(l, lazy_list):
             raise TypeError("argument must be lazy_list not %s"%type(l).__name__)
-        self.l = <lazy_list> l
+        self.l = <lazy_list_with_cache> l
         self.step = self.l.step
         if pos is not None:
             self.pos = pos
@@ -161,78 +161,21 @@ cdef class lazy_list_with_cache_iterator(object):
         self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
         return <object> PyList_GET_ITEM(self.l.cache, self.pos)
 
-cdef class stopped_lazy_list_with_cache_iterator(object):
+cdef class stopped_lazy_list_with_cache_iterator(lazy_list_with_cache_iterator):
     """
-    A lazy list iterator which eventually stops.
+    A lazy list, with cache,  iterator which eventually stops.
 
     INPUT:
 
-    - ``l`` -- a lazy list
+    - ``l`` -- a lazy list with cache
 
     - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
       specifying the starting position
     """
+
     def __init__(self, l, pos=None):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list((i**2-i-1 for i in count()), start=5, stop=15555)
-            sage: i1 = iter(l); i2 = iter(l)
-            sage: print i1.next(), i1.next()
-            19 29
-            sage: print i2.next(), i2.next()
-            19 29
-            sage: print i1.next(), i2.next()
-            41 41
-        """
-        if not isinstance(l, lazy_list):
-            raise TypeError("argument must be a lazy list")
-
-        self.l = <lazy_list> l
-        self.step = self.l.step
+        super(stopped_lazy_list_with_cache_iterator, self).__init__(l, pos)
         self.stop = self.l.stop
-        if pos is not None:
-            self.pos = pos
-        else:
-            self.pos = self.l.start - self.l.step
-        self.stop = self.l.stop
-
-    def __reduce__(self):
-        r"""
-        Pickling support.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: from itertools import count
-            sage: l = lazy_list(count(), start=3, stop=255, step=18)
-            sage: l
-            lazy list [3, 21, 39, ...]
-            sage: i = iter(l)
-            sage: loads(dumps(i))
-            iterator of lazy list [3, 21, 39, ...]
-        """
-        return lazy_list_with_cache_iterator, (self.l,self.pos)
-
-    def __iter__(self):
-        r"""
-        Return ``self`` since this is an iterator.
-
-        TESTS::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: L = lazy_list(iter(Primes()))[:100]
-            sage: i = iter(L)
-            sage: type(i)
-            <type 'sage.misc.lazy_list.stopped_lazy_list_with_cache_iterator'>
-            sage: i is iter(i)   #indirect doctest
-            True
-        """
-        return self
 
     def __next__(self):
         r"""
@@ -258,6 +201,133 @@ cdef class stopped_lazy_list_with_cache_iterator(object):
         self.l.update_cache_up_to(self.pos)   # possibly raise a StopIteration
         return <object> PyList_GET_ITEM(self.l.cache, self.pos)
 
+cdef class lazy_list_periodic_iterator(object):
+
+    """
+    Iterator for a periodic lazy list.
+
+    INPUT:
+
+    - ``l`` -- a periodic lazy list
+
+    - ``pos`` -- (Default: ``None``) ``None`` or a non-negative integer
+      specifying the starting position
+    """
+    def __init__(self, l, pos=None):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_periodic
+            sage: l = lazy_list_periodic([0,1])
+            sage: e1 = iter(l)
+            sage: e2 = iter(l)
+            sage: e1.next(), e1.next()
+            (0, 1)
+            sage: e2.next(), e2.next(), e2.next()
+            (0, 1, 0)
+            sage: e1.next(), e1.next()
+            (0, 1)
+            sage: e2.next()
+            1
+        """
+        if not isinstance(l, lazy_list):
+            raise TypeError("argument must be lazy_list not %s"%type(l).__name__)
+        self.l = <lazy_list_with_cache> l
+        self.step = self.l.step
+        if pos is not None:
+            self.pos = pos
+        else:
+            self.pos = self.l.start - self.step
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_periodic
+            sage: l = lazy_list_periodic([0,1])
+            sage: iterator = iter(l)
+            sage: iterator.next()
+            0
+            sage: iterator2 = loads(dumps(iterator))
+            sage: iterator2.next()
+            1
+        """
+        return self.__class__, (self.l, self.pos)
+
+    def __repr__(self):
+        r"""
+        Return a string representation.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_periodic
+            sage: l = lazy_list_periodic([0,1])
+            sage: iter(l)   #indirect doctest
+            iterator of lazy list [|0, 1, ...]
+        """
+        return "iterator of %s"%self.l
+
+    def __iter__(self):
+        r"""
+        Return ``self`` since this is an iterator.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_periodic
+            sage: l = lazy_list([0,1])
+            sage: i = iter(l)
+            sage: i.__iter__() is i
+            True
+        """
+        return self
+
+    def __next__(self):
+
+        cdef Py_ssize_t pp_size, p_size, pos
+
+        self.pos += self.step
+        
+        pp_size = PyList_GET_SIZE(self.l.pre_period)
+
+        if self.pos < pp_size:
+            return <object> PyList_GET_ITEM(self.l.pre_period, self.pos)
+        
+        p_size = PyList_GET_SIZE(self.l.period)
+
+        pos = (self.pos - pp_size) % p_size
+        
+        return <object> PyList_GET_ITEM(self.l.period, pos)
+
+cdef class stopped_lazy_list_periodic_iterator(lazy_list_periodic_iterator):
+
+    def __init__(self, l, pos=None):
+        super(stopped_lazy_list_periodic_iterator, self).__init__(l, pos)
+        self.stop = self.l.stop
+
+    def __next__(self):
+
+        cdef Py_ssize_t pp_size, p_size, pos
+
+        self.pos += self.step
+        
+        if self.pos == self.stop:
+            raise StopIteration
+        
+        pp_size = PyList_GET_SIZE(self.l.pre_period)
+
+        if self.pos < pp_size:
+            return <object> PyList_GET_ITEM(self.l.pre_period, self.pos)
+        
+        p_size = PyList_GET_SIZE(self.l.period)
+
+        pos = (self.pos - pp_size) % p_size
+        
+        return <object> PyList_GET_ITEM(self.l.period, pos)
+        
 cdef class lazy_list(object):
 
     def __init__(self, start=None, stop=None, step=None):
@@ -294,7 +364,138 @@ cdef class lazy_list(object):
         self.stop  = <Py_ssize_t> stop
         self.step  = <Py_ssize_t> step
 
-    
+    def __getitem__(self, key):
+        r"""
+        Returns a lazy list which shares the same attributes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: f = lazy_list_from_iterator(iter([1,2,3]))
+            sage: f0 = f[0:]
+            sage: print f.get(0), f.get(1), f.get(2)
+            1 2 3
+            sage: f1 = f[1:]
+            sage: print f1.get(0), f1.get(1)
+            2 3
+            sage: f2 = f[2:]
+            sage: print f2.get(0)
+            3
+            sage: f3 = f[3:]
+            sage: print f3.get(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: lazy list index out of range
+
+            sage: l = lazy_list_from_iterator([0]*12)[1::2]
+            sage: l[2::3]
+            lazy list [0, 0]
+            sage: l[3::2]
+            lazy list [0, 0]
+
+        A lazy list automatically adjusts the indices in order that start and
+        stop are congruent modulo step::
+
+            sage: P = lazy_list_from_iterator(iter(Primes()))
+            sage: P[1:12:4].start_stop_step()
+            (1, 13, 4)
+            sage: P[1:13:4].start_stop_step()
+            (1, 13, 4)
+            sage: P[1:14:4].start_stop_step()
+            (1, 17, 4)
+
+        We check commutation::
+
+            sage: l = lazy_list_from_iterator(iter(xrange(10000)))
+            sage: l1 = l[::2][:3001]
+            sage: l2 = l[:6002][::2]
+            sage: l1.start_stop_step() == l2.start_stop_step()
+            True
+            sage: l3 = l1[13::2][:50:2]
+            sage: l4 = l1[:200][13:113:4]
+            sage: l3.start_stop_step() == l4.start_stop_step()
+            True
+
+        Further tests::
+
+            sage: l = lazy_list_from_iterator(iter([0]*25))
+            sage: l[2::3][2::3][4::5]
+            lazy list []
+            sage: l[2::5][3::][1::]
+            lazy list [0]
+            sage: l[3:24:2][1::][1:7:3]
+            lazy list [0, 0]
+            sage: l[::2][2::][2::3]
+            lazy list [0, 0, 0]
+        """
+
+        
+        if not isinstance(key, slice):
+            key = key.__index__()
+        if isinstance(key, (int,long)):
+            return self.get(key)
+
+        # the following make all terms > 0
+        if key.start is None:
+            start = 0
+        elif isinstance(key.start, (int,long)):
+            start = key.start
+        else:
+            try:
+                start = key.start.__index__()
+            except Exception:
+                raise TypeError("slice indices must be integers or None or have an __index__ method")
+
+        if key.stop is None:
+            stop = PY_SSIZE_T_MAX
+        elif isinstance(key.stop, (int,long)):
+            stop = key.stop
+        else:
+            try:
+                stop = key.stop.__index__()
+            except Exception:
+                raise TypeError("slice indices must be integers or None or have an __index__ method")
+
+        if key.step is None:
+            step = 1
+        elif isinstance(key.step, (int,long)):
+            step = key.step
+        else:
+            try:
+                step = key.step.__index__()
+            except Exception:
+                raise TypeError("slice indices must be integers or None or have an __index__ method")
+
+        if step == 0:
+            raise TypeError("step may not be 0")
+        if step < 0 or start < 0 or stop < 0:
+            raise ValueError("slice indices must be non negative")
+
+        step = step * self.step
+        start = self.start + start * self.step
+        if stop != PY_SSIZE_T_MAX:
+            stop = self.start + stop * self.step
+        if stop > self.stop:
+            stop = self.stop
+        if stop != PY_SSIZE_T_MAX and stop%step != start%step:
+            stop = stop - (stop-start)%step + step
+
+        if start >= stop:
+            l = []
+            return lazy_list_from_iterator(iter(l), l, 0, 0, 1)
+
+        clss, args = self.__reduce__()
+        args = args[:-3] + (start, stop, step) #because all subclasses need some arguments + (start, stop, step)
+
+        return clss(*args)
+
+    def __add__(self, other):
+        r"""
+        """
+        # if isinstance(self, list):
+        #     return self.lazy_list_from_iterator(iter(other), cache=self[:])
+        # raise TypeError("can only add list to lazy_list")
+        raise NotImplementedError("TODO")  
     
 cdef class lazy_list_with_cache(lazy_list):
     r"""
@@ -446,14 +647,6 @@ cdef class lazy_list_with_cache(lazy_list):
         print "stop        ", self.stop
         print "step        ", self.step
 
-    def __add__(self, other):
-        r"""
-        """
-        # if isinstance(self, list):
-        #     return self.lazy_list_from_iterator(iter(other), cache=self[:])
-        # raise TypeError("can only add list to lazy_list")
-        raise NotImplementedError("TODO")
-
     def __repr__(self):
         r"""
         Return a string representation.
@@ -508,22 +701,6 @@ cdef class lazy_list_with_cache(lazy_list):
                 repr(self.get(0)),
                 repr(self.get(1)),
                 repr(self.get(2)))
-
-    def __reduce__(self):
-        r"""
-        Pickling support
-
-        EXAMPLES::
-
-            sage: from itertools import count
-            sage: from sage.misc.lazy_list import lazy_list_from_iterator
-            sage: m = lazy_list_from_iterator(count())
-            sage: x = loads(dumps(m))
-            sage: y = iter(x)
-            sage: print y.next(), y.next(), y.next()
-            0 1 2
-        """
-        return self.__class__, (self.cache, self.start, self.stop, self.step)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except *:
         r"""
@@ -653,131 +830,6 @@ cdef class lazy_list_with_cache(lazy_list):
         if self.stop == PY_SSIZE_T_MAX:
             return lazy_list_with_cache_iterator(self)
         return stopped_lazy_list_with_cache_iterator(self)
-
-    def __getitem__(self, key):
-        r"""
-        Returns a lazy list which shares the same cache.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list_from_iterator
-            sage: f = lazy_list_from_iterator(iter([1,2,3]))
-            sage: f0 = f[0:]
-            sage: print f.get(0), f.get(1), f.get(2)
-            1 2 3
-            sage: f1 = f[1:]
-            sage: print f1.get(0), f1.get(1)
-            2 3
-            sage: f2 = f[2:]
-            sage: print f2.get(0)
-            3
-            sage: f3 = f[3:]
-            sage: print f3.get(0)
-            Traceback (most recent call last):
-            ...
-            IndexError: lazy list index out of range
-
-            sage: l = lazy_list_from_iterator([0]*12)[1::2]
-            sage: l[2::3]
-            lazy list [0, 0]
-            sage: l[3::2]
-            lazy list [0, 0]
-
-        A lazy list automatically adjusts the indices in order that start and
-        stop are congruent modulo step::
-
-            sage: P = lazy_list_from_iterator(iter(Primes()))
-            sage: P[1:12:4].start_stop_step()
-            (1, 13, 4)
-            sage: P[1:13:4].start_stop_step()
-            (1, 13, 4)
-            sage: P[1:14:4].start_stop_step()
-            (1, 17, 4)
-
-        We check commutation::
-
-            sage: l = lazy_list_from_iterator(iter(xrange(10000)))
-            sage: l1 = l[::2][:3001]
-            sage: l2 = l[:6002][::2]
-            sage: l1.start_stop_step() == l2.start_stop_step()
-            True
-            sage: l3 = l1[13::2][:50:2]
-            sage: l4 = l1[:200][13:113:4]
-            sage: l3.start_stop_step() == l4.start_stop_step()
-            True
-
-        Further tests::
-
-            sage: l = lazy_list_from_iterator(iter([0]*25))
-            sage: l[2::3][2::3][4::5]
-            lazy list []
-            sage: l[2::5][3::][1::]
-            lazy list [0]
-            sage: l[3:24:2][1::][1:7:3]
-            lazy list [0, 0]
-            sage: l[::2][2::][2::3]
-            lazy list [0, 0, 0]
-        """
-
-        
-        if not isinstance(key, slice):
-            key = key.__index__()
-        if isinstance(key, (int,long)):
-            return self.get(key)
-
-        # the following make all terms > 0
-        if key.start is None:
-            start = 0
-        elif isinstance(key.start, (int,long)):
-            start = key.start
-        else:
-            try:
-                start = key.start.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
-
-        if key.stop is None:
-            stop = PY_SSIZE_T_MAX
-        elif isinstance(key.stop, (int,long)):
-            stop = key.stop
-        else:
-            try:
-                stop = key.stop.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
-
-        if key.step is None:
-            step = 1
-        elif isinstance(key.step, (int,long)):
-            step = key.step
-        else:
-            try:
-                step = key.step.__index__()
-            except Exception:
-                raise TypeError("slice indices must be integers or None or have an __index__ method")
-
-        if step == 0:
-            raise TypeError("step may not be 0")
-        if step < 0 or start < 0 or stop < 0:
-            raise ValueError("slice indices must be non negative")
-
-        step = step * self.step
-        start = self.start + start * self.step
-        if stop != PY_SSIZE_T_MAX:
-            stop = self.start + stop * self.step
-        if stop > self.stop:
-            stop = self.stop
-        if stop != PY_SSIZE_T_MAX and stop%step != start%step:
-            stop = stop - (stop-start)%step + step
-
-        if start >= stop:
-            l = []
-            return lazy_list_from_iterator(iter(l), l, 0, 0, 1)
-
-        clss, args = self.__reduce__()
-        args = args[:-3] + (start, stop, step)
-
-        return clss(*args)
     
 cdef class lazy_list_from_iterator(lazy_list_with_cache):
     r"""
@@ -1156,7 +1208,7 @@ cdef class lazy_list_explicit(lazy_list_with_cache):
 
         if obj is None :
             obj = self.function(j)
-            Py_INCREF(obj)
+            Py_INCREF(obj) # Sometimes there is a bug, I think it comes from here
             PyList_SET_ITEM(self.cache, j, obj)
 
         return obj
@@ -1206,3 +1258,90 @@ cdef class lazy_list_explicit(lazy_list_with_cache):
         except StopIteration:
             pass
         return self.cache[self.start:self.stop:self.step]
+
+cdef class lazy_list_periodic(lazy_list):
+
+    def __init__(self, period, pre_period=[], start=None, stop=None, step=None):
+        super(lazy_list_periodic, self).__init__(start, stop, step)
+
+        if not isinstance(period, list):
+            raise TypeError("period must be a list, not %s"%type(period).__name__)
+        else:
+            self.period = period
+        
+        if not isinstance(pre_period, list):
+            raise TypeError("pre_period must be a list, not %s"%type(pre_period).__name__)
+        else:
+            self.pre_period = pre_period
+
+    def __repr__(self):
+
+        cdef Py_ssize_t pp_size, p_size, i
+        
+        l = [ "lazy list [" ]
+
+        pp_size = PyList_GET_SIZE(self.pre_period)
+        p_size = PyList_GET_SIZE(self.period)
+        
+        for i in range(self.start, pp_size, self.step):
+            l.append(repr(<object>PyList_GET_ITEM(self.pre_period, i)))
+            l.append(", ")
+
+        l.append("|")
+            
+        for i in range(pp_size % self.step, p_size, self.step):
+            l.append(repr(<object>PyList_GET_ITEM(self.period, i)))
+            l.append(", ")
+
+        l.append("...]")
+                
+        return "".join(l)
+
+    def __reduce__(self):
+        
+        return self.__class__, (self.period, self.pre_period, self.start, self.stop, self.step)
+
+    def __call__(self, i):
+
+        cdef Py_ssize_t j, pp_size, p_size
+        
+        if not hasattr(i, '__index__'):
+            raise TypeError("indices must be integers, not %s"%type(i).__name__)
+
+        j = i.__index__()
+        
+        if j < 0:
+            raise ValueError("indices must be non negative")
+
+        j = self.start + j * self.step
+
+        if j >= self.stop:
+            raise IndexError("lazy list index out of range")
+
+        pp_size = PyList_GET_SIZE(self.pre_period)
+
+        if j < pp_size:
+            return <object> PyList_GET_ITEM(self.pre_period, j)
+        
+        p_size = PyList_GET_SIZE(self.period)
+
+        j = (j - pp_size) % p_size
+        
+        return <object> PyList_GET_ITEM(self.period, j)
+
+    get = __call__
+
+    def __iter__(self):
+        if self.stop == PY_SSIZE_T_MAX:
+            return lazy_list_periodic_iterator(self)
+        return stopped_lazy_list_periodic_iterator(self)
+
+    def list(self):
+
+        cdef Py_ssize_t i
+        cdef list l = <object> PyList_New((self.stop - self.start)/self.step)
+
+        for i in range((self.stop - self.start)/self.step):
+            PyList_SET_ITEM(l, i, self.get(i))
+
+        return l
