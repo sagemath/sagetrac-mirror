@@ -10,26 +10,9 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 ### BLAS setup
 #########################################################
 
-## Choose cblas library -- note -- make sure to update sage/misc/cython.py
-## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
-    BLAS=os.environ['SAGE_BLAS']
-    BLAS2=os.environ['SAGE_BLAS']
-elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
-    BLAS='cblas'
-    BLAS2='atlas'
-elif os.path.exists('/usr/lib/libcblas.dylib') or \
-     os.path.exists('/usr/lib/libcblas.so'):
-    BLAS='cblas'
-    BLAS2='cblas'
-elif os.path.exists('/usr/lib/libblas.dll.a'):
-    BLAS='gslcblas'
-    BLAS2='gslcblas'
-else:
-    # This is very slow  (?), but *guaranteed* to be available.
-    BLAS='gslcblas'
-    BLAS2='gslcblas'
-
+f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'r')
+blas_libs = f.readline().split()
+f.close()
 
 #########################################################
 ### Commonly used definitions
@@ -637,42 +620,42 @@ ext_modules = [
 
     Extension('sage.gsl.callback',
               sources = ['sage/gsl/callback.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
+              libraries = ['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.dwt',
               sources = ['sage/gsl/dwt.pyx'],
-              libraries=['gsl',BLAS],
+              libraries=['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.fft',
               sources = ['sage/gsl/fft.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
+              libraries = ['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.gsl_array',
               sources = ['sage/gsl/gsl_array.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
+              libraries=['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.integration',
               sources = ['sage/gsl/integration.pyx'],
               define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-              libraries=['gsl',BLAS, BLAS2]),
+              libraries=['gsl'] + blas_libs),
 
     Extension('sage.gsl.interpolation',
               sources = ['sage/gsl/interpolation.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
+              libraries = ['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.ode',
               sources = ['sage/gsl/ode.pyx'],
-              libraries=['gsl',BLAS, BLAS2],
+              libraries=['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.gsl.probability_distribution',
               sources = ['sage/gsl/probability_distribution.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
+              libraries=['gsl'] + blas_libs,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     ################################
@@ -729,10 +712,8 @@ ext_modules = [
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
-              # For this to work on cygwin, linboxsage *must* be
-              # before ntl.
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
-                           'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx', BLAS, BLAS2],
+                           'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx'] + blas_libs,
               language = 'c++',
               extra_compile_args = givaro_extra_compile_args,
               depends = givaro_depends),
@@ -1032,7 +1013,7 @@ ext_modules = [
 
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx'],
-              libraries=[BLAS, BLAS2, 'gmp'],
+              libraries=['gmp'] + blas_libs,
               include_dirs = numpy_include_dirs),
 
     Extension('sage.matrix.matrix',
@@ -1050,7 +1031,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_complex_double_dense',
               sources = ['sage/matrix/matrix_complex_double_dense.pyx'],
-              libraries=[BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
@@ -1064,7 +1045,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_double_dense',
               sources = ['sage/matrix/matrix_double_dense.pyx'],
-              libraries=[BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
@@ -1081,8 +1062,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
-              # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
+              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint'] +blas_libs,
               depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_integer_sparse',
@@ -1107,19 +1087,19 @@ ext_modules = [
               language="c++",
               extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
+              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint'] + blas_libs,
               depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + blas_libs,
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + blas_libs,
               extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
                     + m4ri_extra_compile_args + givaro_extra_compile_args),
 
@@ -1137,8 +1117,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
-              # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
+              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint'] + blas_libs,
               depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_rational_sparse',
@@ -1147,7 +1126,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_real_double_dense',
               sources = ['sage/matrix/matrix_real_double_dense.pyx'],
-              libraries=[BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
@@ -1372,13 +1351,13 @@ ext_modules = [
 
     Extension('sage.modules.vector_complex_double_dense',
               ['sage/modules/vector_complex_double_dense.pyx'],
-              libraries = [BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
     Extension('sage.modules.vector_double_dense',
               ['sage/modules/vector_double_dense.pyx'],
-              libraries = [BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
@@ -1402,7 +1381,7 @@ ext_modules = [
 
     Extension('sage.modules.vector_real_double_dense',
               ['sage/modules/vector_real_double_dense.pyx'],
-              libraries = [BLAS, BLAS2],
+              libraries = blas_libs,
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
@@ -1548,7 +1527,7 @@ ext_modules = [
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99", "-D_XPG6"],
-              libraries = (['gsl', BLAS, BLAS2, 'pari', 'gmp', 'm'])),
+              libraries = ['gsl', 'pari', 'gmp', 'm'] + blas_libs),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx'],
@@ -1614,7 +1593,7 @@ ext_modules = [
 
     Extension('sage.rings.real_double',
               sources = ['sage/rings/real_double.pyx'],
-              libraries = ['gsl', 'gmp', BLAS, BLAS2],
+              libraries = ['gsl', 'gmp'] + blas_libs,
               depends = numpy_depends,
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 

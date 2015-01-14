@@ -22,50 +22,21 @@ import os, sys, platform
 from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
 from misc import SPYX_TMP
 
-def cblas():
+def cblas_libs():
     """
-    Return the name of the cblas library on this system. If the environment
-    variable :envvar:`$SAGE_CBLAS` is set, just return its value. If not,
-    return ``'cblas'`` if :file:`/usr/lib/libcblas.so` or
-    :file:`/usr/lib/libcblas.dylib` exists, return ``'blas'`` if
-    :file:`/usr/lib/libblas.dll.a` exists, and return ``'gslcblas'`` otherwise.
+    Return the name of the cblas library on this system.
+    Currently written in SAGE_LOCAL/share/cblas_config when ATLAS
+    install script is run.
 
     EXAMPLES::
 
-        sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
+        sage: sage.misc.cython.cblas_libs() # random -- depends on OS, etc.
         'cblas'
     """
-    if 'SAGE_CBLAS' in os.environ:
-        return os.environ['SAGE_CBLAS']
-    elif os.path.exists('/usr/lib/libcblas.dylib') or \
-         os.path.exists('/usr/lib/libcblas.so'):
-        return 'cblas'
-    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
-        return 'blas'
-    else:
-        # This is very slow (?), but *guaranteed* to be available.
-        return 'gslcblas'
-
-# In case of ATLAS we need to link against cblas as well as atlas
-# In the other cases we just return the same library name as cblas()
-# which is fine for the linker
-#
-# We should be using the Accelerate FrameWork on OS X, but that requires
-# some magic due to distutils having ridden on the short bus :)
-def atlas():
-    """
-    Returns the name of the ATLAS library to use. On Darwin or Cygwin, this is
-    ``'blas'``, and otherwise it is ``'atlas'``.
-
-    EXAMPLES::
-
-        sage: sage.misc.cython.atlas() # random -- depends on OS
-        'atlas'
-    """
-    if UNAME == "Darwin" or "CYGWIN" in UNAME:
-        return 'blas'
-    else:
-        return 'atlas'
+    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'r')
+    libs = f.readline().split()
+    f.close()
+    return libs
 
 include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
                 os.path.join(SAGE_LOCAL,'include'), \
@@ -77,7 +48,7 @@ include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'ec', 'gsl', cblas(), atlas(), 'ntl', 'csage']
+                 'ec', 'gsl'] + cblas_libs() + [ 'ntl', 'csage']
 
 offset = 0
 
@@ -205,7 +176,6 @@ def pyx_preparse(s):
         'm',
         'ec',
         'gsl',
-        '...blas',
         ...,
         'ntl',
         'csage'],
@@ -217,7 +187,7 @@ def pyx_preparse(s):
         '...',
         '.../sage/gsl'],
         'c',
-        [], ['-w', '-O2'])
+        [], ['-w', '-O2'],...)
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'
@@ -229,7 +199,7 @@ def pyx_preparse(s):
         'pari',
         'm',
         'ec',
-        'gsl', '...blas', ...,
+        'gsl', ...,
         'ntl',
         'csage']
         sage: libs[1:] == sage.misc.cython.standard_libs
@@ -451,14 +421,12 @@ from distutils.core import setup, Extension
 
 from sage.env import SAGE_LOCAL
 
-extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = %s
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
                      library_dirs=[SAGE_LOCAL + '/lib/'],
                      extra_compile_args = extra_compile_args,
-                     extra_link_args = extra_link_args,
                      language = '%s' )]
 
 setup(ext_modules = ext_modules,
