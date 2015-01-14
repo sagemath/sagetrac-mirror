@@ -31,8 +31,10 @@ if [ "$SAGE64" = "yes" ]; then
     CFLAGS="-m64 $CFLAGS"
 fi
 
+# CBLAS autodetection should work ok at least on Linux
 if [ $UNAME = "Darwin" ]; then
-    IML_CONFIGURE="--with-cblas=-lcblas $IML_CONFIGURE"
+    cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"`
+    IML_CONFIGURE="--with-cblas=\"$cblas_libs\" $IML_CONFIGURE"
 fi
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
