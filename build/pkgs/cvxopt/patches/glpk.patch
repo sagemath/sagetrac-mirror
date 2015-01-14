@@ -1,0 +1,14 @@
+The GLPK module is underlinked and fails to build on Cygwin.
+diff --git a/setup.py b/setup.py
+index 20670f7..62e82c5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -103,7 +115,7 @@ if BUILD_FFTW:
+     extmods += [fftw];
+ 
+ if BUILD_GLPK:
+-    glpk = Extension('glpk', libraries = ['glpk'],
++    glpk = Extension('glpk', libraries = ['glpk', 'gmp', 'z'],
+         include_dirs = [ GLPK_INC_DIR ],
+         library_dirs = [ GLPK_LIB_DIR ],
+         sources = ['src/C/glpk.c'] )

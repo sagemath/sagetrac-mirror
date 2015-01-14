@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    echo "Maybe run 'sage -sh'?"
+    echo >&2 "SAGE_LOCAL undefined ... exiting";
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
@@ -10,6 +10,7 @@ cd src
 
 # Apply patches.
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
@@ -21,7 +22,6 @@ done
 # gcc, but other compilers will not accept that, so
 # allow it to be configured as something different if need
 # be.
-
 if [ -z $CFLAG64 ] ; then
    CFLAG64=-m64
 fi
@@ -36,6 +36,24 @@ fi
 if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
+
+# optional modules configuration
+export BUILD_GLPK=1
+export GLPK_LIB_DIR="$SAGE_LOCAL/lib"
+export GLPK_INC_DIR="$SAGE_LOCAL/include"
+
+export BUILD_GSL=1
+export GSL_LIB_DIR="$SAGE_LOCAL/lib"
+export GSL_INC_DIR="$SAGE_LOCAL/include"
+
+# BLAS/LAPACK configuration
+BLAS_LIB="["
+for lib in `cat "$SAGE_LOCAL/share/cblas_config"`; do
+    BLAS_LIB="${BLAS_LIB}'$lib', "
+done
+BLAS_LIB="${BLAS_LIB}]"
+export BLAS_LIB
+export BLAS_LIB_DIR="$SAGE_LOCAL/lib"
 
 python setup.py install
 if [ $? -ne 0 ]; then
