@@ -1169,27 +1169,27 @@ cdef class lazy_list_explicit(lazy_list):
 
             sage: from sage.misc.lazy_list import lazy_list_explicit
             sage: P = lazy_list_explicit(lambda n : factorial(n))
-            sage: P[2:143:5].list()
-            [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
-            sage: P = lazy_list_from_iterator(iter([1,2,3]))
+            sage: P[2:17:3].list()
+            [2, 120, 40320, 39916800, 87178291200]
+            sage: P = lazy_list_explicit(lambda n : factorial(n), start = 0, stop = 10)
             sage: P.list()
-            [1, 2, 3]
+            [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880]
             sage: P[:100000].list()
-            [1, 2, 3]
+            [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880]
             sage: P[1:7:2].list()
-            [2]
+            [1, 6, 120]
 
         TESTS:
 
         Check that the cache is immutable::
 
-            sage: lazy = lazy_list_from_iterator(iter(Primes()))[:5]
+            sage: lazy = lazy_list_explicit(lambda n : 2*n+1)[:5]
             sage: l = lazy.list(); l
-            [2, 3, 5, 7, 11]
+            [1, 3, 5, 7, 9]
             sage: l[0] = -1; l
-            [-1, 3, 5, 7, 11]
+            [-1, 3, 5, 7, 9]
             sage: lazy.list()
-            [2, 3, 5, 7, 11]
+            [1, 3, 5, 7, 9]
         """
         try:
             self.update_cache_up_to(self.stop-1)
