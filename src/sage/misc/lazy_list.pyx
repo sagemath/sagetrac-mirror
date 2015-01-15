@@ -536,7 +536,7 @@ cdef class lazy_list_with_cache(lazy_list):
         - all entry indices are stictly less than ``stop`` so that
           :class:`lazy_list` agrees with ``range(start, stop)``
     """
-    def __init__(self, cache=None, start=None, stop=None, step=None):
+    def __init__(self, cache, start=None, stop=None, step=None):
         r"""
         Initialize ``self``.
 
@@ -551,10 +551,11 @@ cdef class lazy_list_with_cache(lazy_list):
 
         super(lazy_list_with_cache, self).__init__(start, stop, step)
 
-        if cache is None or stop <= start:
+        if cache is None or self.stop <= self.start:
             cache = []
         elif not isinstance(cache, list):
             raise TypeError("cache must be a list, not %s"%type(cache).__name__)
+
         self.cache = cache
 
     def start_stop_step(self):
@@ -1026,7 +1027,7 @@ cdef class lazy_list_from_function(lazy_list_with_cache):
         s = PyList_GET_SIZE(self.cache)
         
         while s <= i:
-            l = <object> self.function(self.cache)
+            l = <list> self.function(self.cache)
             n = PyList_GET_SIZE(l)
 
             j_max = min(PY_SSIZE_T_MAX - s, n)
