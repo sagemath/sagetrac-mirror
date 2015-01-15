@@ -1,3 +1,4 @@
+Let CVXOPT build on Solaris.
 diff -ru src/src/C/cvxopt.h b/src/C/cvxopt.h
 --- src/src/C/cvxopt.h	2013-04-22 08:44:28.000000000 +0200
 +++ b/src/C/cvxopt.h	2013-05-14 17:00:12.402407091 +0200
