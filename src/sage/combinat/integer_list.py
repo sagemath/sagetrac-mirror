@@ -696,36 +696,6 @@ class IntegerListsLex(Parent):
        special cases, it would be possible to do better by counting
        techniques for integral point in polytopes.
 
-    .. NOTE::
-
-       Caveat: with the current implementation, the constraints should
-       satisfy the following conditions:
-
-       - The upper and lower bounds themselves should satisfy the
-         slope constraints.
-
-       - The maximal and minimal slopes values should not be equal.
-
-       - The maximal and minimal part values should not be equal.
-
-    Those conditions are not checked by the algorithm, and the
-    result may be completely incorrect if they are not satisfied:
-
-    In the following example, the slope condition is not satisfied
-    by the upper bound on the parts, and ``[3,3]`` is erroneously
-    included in the result::
-
-        sage: list(IntegerListsLex(6, max_part=3, max_slope=-1))
-        [[3, 3], [3, 2, 1]]
-
-    With some work, this could be fixed without affecting the overall
-    complexity and efficiency. Also, the generation algorithm could be
-    extended to deal with non-constant slope constraints and with
-    negative parts, as well as to accept a range parameter instead of
-    a single integer for the sum `n` of the lists (the later was
-    readily implemented in MuPAD-Combinat). Encouragements,
-    suggestions, and help are welcome.
-
     .. TODO:
 
         Integrate all remaining tests from
@@ -735,12 +705,6 @@ class IntegerListsLex(Parent):
 
         sage: g = lambda x: lambda i: x
         sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0, max_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(1), min_slope = 0, max_slope = 0))
-        [[]]
-        sage: list(IntegerListsLex(0, max_length=0, floor = g(0), min_slope = 0, max_slope = 0))
         [[]]
         sage: list(IntegerListsLex(0, min_part = 1, min_slope = 0))
         [[]]
@@ -839,6 +803,29 @@ class IntegerListsLex(Parent):
             sage: C.cardinality().parent() is ZZ
             True
             sage: TestSuite(C).run()
+
+        TESTS::
+
+            sage: IntegerListsLex(5,min_slope=3,max_slope=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: min_slope(=3)<max_slope(=3) does not hold
+            sage: IntegerListsLex(5,min_part=3,max_part=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: min_part(=3)<max_part(=3) does not hold
+            sage: IntegerListsLex(4,min_length=900,min_slope=1,max_part=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: The slope constraints are not satisfied
+            sage: IntegerListsLex(4,min_length=900,max_slope=-1,max_part=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: The slope constraints are not satisfied
+            sage: list(IntegerListsLex(6, max_part=3, max_slope=-1))
+            Traceback (most recent call last):
+            ...
+            ValueError: The slope constraints are not satisfied
         """
         # Convert to float infinity
         from sage.rings.infinity import infinity
@@ -850,6 +837,21 @@ class IntegerListsLex(Parent):
             max_length = float('inf')
         if max_part == infinity:
             max_part = float('+inf')
+
+        # check that max/min are distinct
+        if min_part >= max_part:
+            raise ValueError("min_part(={})<max_part(={}) does not hold".format(min_part,max_part))
+        if min_slope >= max_slope:
+            raise ValueError("min_slope(={})<max_slope(={}) does not hold".format(min_slope,max_slope))
+
+        # check slope constraints
+        if ((min_slope>0 and  min_length*min_slope > (max_part-min_part)) or
+            (max_slope<0 and -min_length*max_slope > (max_part-min_part)) or
+            (min_slope>0 and  min_part + min_slope*min_length*(min_length-1)/2 > n) or
+            (max_slope<0 and  max_part + max_slope*min_length*(min_length-1)/2 < n)):
+            raise ValueError("The slope constraints are not satisfied")
+
+
 
         if floor is None:
             self.floor_list = []
