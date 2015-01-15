@@ -37,6 +37,13 @@ cdef class lazy_list_with_cache_iterator(object):
 cdef class stopped_lazy_list_with_cache_iterator(lazy_list_with_cache_iterator):
     cdef Py_ssize_t stop
 
+cdef class lazy_list_explicit_iterator(object):
+    cdef lazy_list_explicit l
+    cdef Py_ssize_t pos, step
+    
+cdef class stopped_lazy_list_explicit_iterator(lazy_list_explicit_iterator):
+    cdef Py_ssize_t stop
+    
 cdef class lazy_list_periodic_iterator(object):
     cdef lazy_list_periodic l
     cdef Py_ssize_t pos, step
