@@ -6,41 +6,7 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-# These flags confuse numpy's distutils.  In particular,
-# if they are set empty bad things happen.
-unset CFLAGS CXXFLAGS SHAREDFLAGS
-echo "Note: CFLAGS, CXXFLAGS and SHAREDFLAGS are taken from distutils,"
-echo "      so their current settings are ignored."
-
-if [ "$UNAME" = "Darwin" ]; then
-    unset ATLAS
-    unset BLAS
-    unset LAPACK
-    export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
-    export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
-else
-    export ATLAS="$SAGE_LOCAL"
-    export BLAS="$SAGE_LOCAL"
-    export LAPACK="$SAGE_LOCAL"
-    export LDFLAGS="-shared $LDFLAGS"
-fi
-
-# Make sure that the fortran objects are compiled with -fPIC
-export FFLAGS="$FFLAGS -fPIC"
-export FCFLAGS="$FCFLAGS -fPIC"
-
-# This avoids problems on some systems -- until we officially
-# support umfpack (which we will likely do, since cvxopt I think includes it):
-UMFPACK="None"; export UMFPACK
-# See http://projects.scipy.org/pipermail/scipy-user/2006-July/008661.html
-# (Currently SWIG gets invoked by scipy when building the umfpack interface,
-# which is bad.)
-
-
-# Remove previous installation (if any):
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
-
-cd src/
+cd src
 
 # Apply patches (if any):
 for patch in ../patches/*.patch; do
@@ -52,14 +18,58 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# Build:
+# Numpy/SciPy ships its own "improved" distutils.
+# In particular, if one of these environment variables is defined:
+#
+#  F77, F90, LDSHARED, LD, AR, RANLIB,
+#  F77FLAGS, F90FLAGS, FREEFLAGS, FOPT, FARCH,
+#  FDEBUG, FFLAGS, LDFLAGS, ARFLAGS
+#
+# then it will be used as is (even if empty),
+# potentially omitting necessary flags.
+# E.g., if LDFALGS is set, but does not contain "-shared",
+# linking of shared modules will fail.
+#
+# So either we unset all of the above which can be harmful,
+# or trust that the user won't break everything.
+# The most critical parts are:
+# - compile objects with -fPIC or equivalent,
+# - link them with -shared.
+
+# Make sure that the fortran objects are compiled with -fPIC
+if [ -n "${FFLAGS+set}" ]; then
+    export FFLAGS="-fPIC $FFLAGS"
+fi
+if [ -n "${FCFLAGS+set}" ]; then
+    export FCFLAGS="-fPIC $FCFLAGS"
+fi
+
+# Make sure to link with the shared flag on most platforms
+if [ -n "${LDFLAGS+set}" ]; then
+    if [ "$UNAME" != "Darwin" ]; then
+        export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
+        export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
+    else
+        export LDFLAGS="-shared $LDFLAGS"
+    fi
+fi
+
+# This avoids problems on some systems -- until we officially
+# support umfpack (which we will likely do, since cvxopt I think includes it):
+export UMFPACK="None"
+# See http://projects.scipy.org/pipermail/scipy-user/2006-July/008661.html
+# (Currently SWIG gets invoked by scipy when building the umfpack interface,
+# which is bad.)
+
 python setup.py build
 if [ $? -ne 0 ]; then
     echo >&2 "Error building scipy."
     exit 1
 fi
 
-# Install:
+# Remove previous installation (if any):
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
+
 python setup.py install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing scipy."

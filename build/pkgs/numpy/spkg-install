@@ -1,35 +1,32 @@
 #!/usr/bin/env bash
 
-CUR=`pwd`
-
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting"
-   echo "Maybe run 'sage -sh'?"
+   echo >&2 "SAGE_LOCAL undefined ... exiting"
+   echo >&2 "Maybe run 'sage -sh'?"
    exit 1
-fi
-
-# Setting CFLAGS to have the option -m64 does not work for Numpy when
-# making 64-bit builds on at least OS X and Solaris. Instead set CC
-# to include the the -m64
-
-if [ -z "$CFLAG64" ] ; then
-   CFLAG64=-m64
-fi
-
-if [ "x$SAGE64" = xyes ] ; then
-   CC="$CC $CFLAG64"
-   export CC
 fi
 
 cd src
 
-# Is this really needed anymore?
-if [ "$UNAME" = "Darwin" ]; then
-    unset ATLAS
-    unset BLAS
-    unset LAPACK
-else
-    export LDFLAGS="-shared $LDFLAGS"
+# Apply patches (if any):
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+# Setting CFLAGS to have the option -m64 does not work for Numpy when
+# making 64-bit builds on at least OS X and Solaris. Instead set CC
+# to include the the -m64
+if [ -z "$CFLAG64" ] ; then
+   CFLAG64=-m64
+fi
+if [ "$SAGE64" = yes ] ; then
+   CC="$CC $CFLAG64"
+   export CC
 fi
 
 echo "[DEFAULT]" > site.cfg
@@ -37,23 +34,56 @@ echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
 echo "include_dirs = $SAGE_LOCAL/include" >> site.cfg
 echo "" >> site.cfg
 
+# Numpy/SciPy ships its own "improved" distutils.
+# In particular, if one of these environment variables is defined:
+#
+#  F77, F90, LDSHARED, LD, AR, RANLIB,
+#  F77FLAGS, F90FLAGS, FREEFLAGS, FOPT, FARCH,
+#  FDEBUG, FFLAGS, LDFLAGS, ARFLAGS
+#
+# then it will be used as is (even if empty),
+# potentially omitting necessary flags.
+# E.g., if LDFALGS is set, but does not contain "-shared",
+# linking of shared modules will fail.
+#
+# So either we unset all of the above which can be harmful,
+# or trust that the user won't break everything.
+# The most critical parts are:
+# - compile objects with -fPIC or equivalent,
+# - link them with -shared.
+
 # Make sure that the fortran objects are compiled with -fPIC
-export FFLAGS="$FFLAGS -fPIC"
-export FCFLAGS="$FCFLAGS -fPIC"
+if [ -n "${FFLAGS+set}" ]; then
+    export FFLAGS="-fPIC $FFLAGS"
+fi
+if [ -n "${FCFLAGS+set}" ]; then
+    export FCFLAGS="-fPIC $FCFLAGS"
+fi
 
-export NUMPY_FCONFIG="config_fc --noopt --noarch"
+# Make sure to link with the shared flag on most platforms
+if [ -n "${LDFLAGS+set}" ]; then
+    if [ "$UNAME" != "Darwin" ]; then
+        export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
+        export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
+    else
+        export LDFLAGS="-shared $LDFLAGS"
+    fi
+fi
 
-################################################
+# Disable generic and arch dependent optimisations
+NUMPY_FCONFIG="config_fc --noopt --noarch"
 
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
-
-# Program around a bug in SciPY's distutils.
-unset CFLAGS
-
-python setup.py install ${NUMPY_FCONFIG}
-
+python setup.py ${NUMPY_FCONFIG} build
 if [ $? -ne 0 ]; then
-    echo "Error building numpy."
+    echo >&2 "Error building numpy."
     exit 1
 fi
 
+# Remove previous installation (if any):
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
+
+python setup.py install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing numpy."
+    exit 1
+fi
