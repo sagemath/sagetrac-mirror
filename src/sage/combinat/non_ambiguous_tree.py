@@ -44,7 +44,10 @@ from sage.combinat.combinatorial_map import combinatorial_map
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
-    , color_line='red', color_point='black'
+    , color_line='red' 
+    , color_root='black'
+    , color_left_nodes='red'
+    , color_right_nodes='blue'
     , color_diagram='black'
     , translation=[0,0], rotation=0
 )
@@ -61,7 +64,9 @@ NonAmbiguousTreesOptions=GlobalOptions(
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
                 'scale', 'line_size', 'point_size'
-                , 'color_line', 'color_point', 'translation'
+                , 'color_line' 
+                , 'color_root', 'color_left_nodes', 'color_right_nodes'
+                ,'translation'
                 , 'color_diagram'
                 , 'rotation'
             ] )
@@ -425,9 +430,18 @@ class NonAmbiguousTree( ClonableList ):
         return 1 + self.left_node_number()
 
     @cached_method
-    def get_array( self ):
+    def get_array( 
+        self, root_label=1, left_node_label=1, right_node_label=1, 
+        empty_cell_label=0 
+    ):
         r"""
         Return the array associated with the non ambiguous tree.
+
+        INPUTS::
+            root_label : array entry for the root (default=1)
+            left_node_label : array entry for the left nodes (default=1)
+            right_node_label : array entry for the right nodes (default=1)
+            empty_cell_label : array entry for the empty cells (default=0)
 
         EXAMPLES::
 
@@ -458,18 +472,18 @@ class NonAmbiguousTree( ClonableList ):
         if self.get_tree().is_empty():
             return [[]]
         res = [
-            [ 0 for w in range(self.width()) ]
+            [ empty_cell_label for w in range(self.width()) ]
             for h in range(self.height())
         ]
-        res[0][0] = 1
+        res[0][0] = root_label
         def init_array( array, tree, lfather=0, rfather=0 ):
             if tree.is_empty():
                 return
             if not tree[0].is_empty():
-                array[ tree[0].label() ][ lfather ] = 1
+                array[ tree[0].label() ][ lfather ] = left_node_label
                 init_array( array, tree[0], lfather, tree[0].label() )
             if not tree[1].is_empty():
-                array[ rfather ][ tree[1].label() ] = 1
+                array[ rfather ][ tree[1].label() ] = right_node_label
                 init_array( array, tree[1], tree[1].label(), rfather )
         init_array( res, self.get_tree() )
         return res
@@ -550,7 +564,10 @@ class NonAmbiguousTree( ClonableList ):
         res = ""
         tikz_options = self.get_tikz_options()
 
-        array = self.get_array()
+        array = self.get_array(
+            root_label=1, left_node_label=2, right_node_label=3, 
+            empty_cell_label=0 
+        )
         height = len( array )
         width = len( array[0] )
         def X( x ):
@@ -560,9 +577,15 @@ class NonAmbiguousTree( ClonableList ):
 
         for h in range( height ):
             for w in range( width ):
-                if array[h][w]:
+                if array[h][w] > 0:
+                    if array[h][w] == 1:
+                        color = tikz_options['color_root']
+                    if array[h][w] == 2:
+                        color = tikz_options['color_left_nodes']
+                    if array[h][w] == 3:
+                        color = tikz_options['color_right_nodes']
                     res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
-                        tikz_options['color_point'],
+                        color,
                         X( w ), Y( h ),
                         tikz_options['point_size']
                     )
@@ -573,7 +596,10 @@ class NonAmbiguousTree( ClonableList ):
         res = ""
         tikz_options = self.get_tikz_options()
 
-        array = self.get_array()
+        array = self.get_array(
+            root_label=1, left_node_label=2, right_node_label=3, 
+            empty_cell_label=0 
+        )
         height = len( array )
         width = len( array[0] )
         def X( x ):
@@ -581,32 +607,34 @@ class NonAmbiguousTree( ClonableList ):
         def Y( y ):
             return height-y
 
+        # We draw the right edges
         for h in range( height ):
             min_w = None
             max_w = None
             for w in range( width ):
-                if array[h][w] == 1:
+                if array[h][w] > 0:
                     if min_w == None:
                         min_w = w
                         max_w = w
                     else:
                         max_w = w
             res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color_line'], tikz_options['line_size'],
+                tikz_options['color_right_nodes'], tikz_options['line_size'],
                 X( min_w ), Y( h ), X( max_w ), Y( h )
             )
+        # We draw the left edges
         for w in range( width ):
             min_h = None
             max_h = None
             for h in range( height ):
-                if array[h][w] == 1:
+                if array[h][w] > 0:
                     if min_h == None:
                         min_h = h
                         max_h = h
                     else:
                         max_h = h
             res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
-                tikz_options['color_line'], tikz_options['line_size'],
+                tikz_options['color_left_nodes'], tikz_options['line_size'],
                 X( w ), Y( min_h ), X( w ), Y( max_h )
             )
         res += self._to_tikz_points()
