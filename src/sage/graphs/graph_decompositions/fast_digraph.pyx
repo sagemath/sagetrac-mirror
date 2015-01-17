@@ -160,8 +160,8 @@ cdef class FastDiGraph_bitset:
         """
         self.n = D.order()
         self.graph = <bitset_t*>sage_malloc(sizeof(bitset_t)*self.n)
-        self.degree = <int*>sage_malloc(sizeof(int)*self.n)
-        cdef long i, j
+
+        cdef int i
 
         # When the vertices are not consecutive integers
         self.vertices_to_int = {}
