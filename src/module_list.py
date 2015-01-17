@@ -713,7 +713,7 @@ ext_modules = [
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
-                           'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx'] + blas_libs,
+                           'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx', 'lapack'] + blas_libs,
               language = 'c++',
               extra_compile_args = givaro_extra_compile_args,
               depends = givaro_depends),

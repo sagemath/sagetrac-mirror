@@ -36,22 +36,17 @@ export CFLAGS CXXFLAGS LDFLAGS
 # To configure BLAS/LAPACK, either:
 # - rely on automatic detection system,
 # - pass every linking flags for BLAS and LAPACK in --with-blas,
-# - pass linking flags for BLAS in --with-cblas and/or flags for
-#   LAPACK in --with-lapack.
-
-#if [ -z "$FFLAS_FFPACK_BLAS" ]; then
-#    FFLAS_FFPACK_BLAS=`cat "$SAGE_LOCAL/share/cblas_config"`
-#fi
-#
-#echo "*************************************************"
-#echo " Using FFLAS_FFPACK_BLAS=$FFLAS_FFPACK_BLAS"
-#echo "*************************************************"
-
+# - pass paths for BLAS in --with-cblas and/or for LAPACK in --with-lapack.
+if [ "$UNAME" = "CYGWIN" ]; then
+    cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/\([^ ]\+\)/-l\1/g'`
+    FFLAS_FFPACK_BLAS=--with-blas="-llapack $cblas_libs"
+#    FFLAS_FFPACK_CONFIGURE="--with-blas=\"-llapack $cblas_libs\" $FFLAS_FFPACK_CONFIGURE"
+fi
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
-    --enable-optimization --disable-static # \
-#    --with-blas="$FFLAS_FFPACK_BLAS"
+    --enable-optimization --disable-static \
+    "$FFLAS_FFPACK_BLAS"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring fflas_ffpack."
     exit 1

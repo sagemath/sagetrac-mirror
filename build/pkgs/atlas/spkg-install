@@ -114,28 +114,31 @@ if 'SAGE_ATLAS_LIB' in os.environ:
     libraries_sets = [['lapack', 'cblas', 'f77blas', 'atlas'], ['lapack', 'blas']]
     libraries_optional = ['ptcblas', 'ptf77blas']
 
-    def is_atlas_lib_path(path):
+    def is_atlas_lib_path(path, libs):
         if path is None:
             return False
         if not os.path.isdir(path):
             return False
         filenames = os.listdir(path)
-        for libs in libraries_sets:
-            for lib in libs:
-                if not any(fname.startswith(prefix+lib) for fname in filenames):
-                    print('Cannot find '+prefix+lib+'.* in '+path)
-                    break
-            else:
-                libraries = libs
-                return True
+        for lib in libs:
+            if not any(fname.startswith(prefix+lib) for fname in filenames):
+                print('Cannot find '+prefix+lib+'.* in '+path)
+                break
+        else:
+            return True 
         return False
 
     paths = [ ATLAS_LIB, os.path.join(ATLAS_LIB, 'lib64'), os.path.join(ATLAS_LIB, 'lib') ]
     ATLAS_LIB = None
-    for path in paths:
-        if is_atlas_lib_path(path):
-            ATLAS_LIB = path
-            break
+    for libs in libraries_sets:
+        for path in paths:
+            if is_atlas_lib_path(path, libs):
+                ATLAS_LIB = path
+                libraries = libs
+                break
+        else:
+            continue
+        break
 
     if ATLAS_LIB is None:
         print('Unable to find required libraries in the directory', ATLAS_LIB)
