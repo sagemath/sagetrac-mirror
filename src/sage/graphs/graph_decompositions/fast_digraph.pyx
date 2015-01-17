@@ -1,23 +1,31 @@
 r"""
-Compact structure for fast operations on less than 32 vertices
+Compact structure for fast operations on directed graphs
 
-This module implements a digraph structure meant to be used in Cython in
-**highly enumerative** algorithms. It can store graphs on less than
-``sizeof(int)`` vertices and perform several basic operations **quickly**
-(add/remove arcs, count the out-neighborhood of a set of vertices or return its
-cardinality).
+This module implements digraph structures meant to be used in Cython in
+**highly enumerative** algorithms:
 
-**Sets and integers :**
+- ``FastDigraph`` -- This structure can store graphs on less than
+  ``sizeof(int)`` vertices and perform several basic operations **quickly**
+  (add/remove arcs, count the out-neighborhood of a set of vertices or return
+  its cardinality). In this structure, sets are represented as integers, where
+  the ith bit is set if element i belongs to the set.
 
-In the following code, sets are represented as integers, where the ith bit is
-set if element i belongs to the set.
+- ``FastDigraph_bitset`` -- This structure stores the neighborhood of vertices
+  using bitsets to enable fast operations such as: count the out-neighbors,
+  intersection of neighborhoods, etc.
+
 """
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from libc.stdint cimport uint8_t
+
+###############################################################################
+# FastDigraph data structure to store graphs with at most sizeof(int) vertices
+###############################################################################
 
 cdef class FastDigraph:
     cdef uint8_t n
@@ -130,3 +138,55 @@ cdef inline int slow_popcount32(int i):
        j += (i>>k) & 1
 
    return j
+
+
+
+###############################################################################
+# FastDigraph_bitset to store neighborhoods using bitsets
+###############################################################################
+
+cdef class FastDiGraph_bitset:
+    cdef int n
+    cdef bitset_t *graph
+    cdef dict vertices_to_int
+    cdef dict int_to_vertices
+
+    def __cinit__(self, D):
+        r"""
+        Constructor for ``FastDiGraph_bitset``.
+
+        If `D` is a Graph, we consider it as a symmetric DiGraph, and so we add
+        arcs `(u,v)`and `(v,u)` for each edge `uv`.
+        """
+        self.n = D.order()
+        self.graph = <bitset_t*>sage_malloc(sizeof(bitset_t)*self.n)
+        self.degree = <int*>sage_malloc(sizeof(int)*self.n)
+        cdef long i, j
+
+        # When the vertices are not consecutive integers
+        self.vertices_to_int = {}
+        self.int_to_vertices = {}
+        for i,v in enumerate(D.vertices()):
+            self.vertices_to_int[v] = i
+            self.int_to_vertices[i] = v
+            bitset_init(self.graph[self.vertices_to_int[v]], self.n)
+            bitset_clear(self.graph[self.vertices_to_int[v]])
+
+        if D.is_directed():
+            for u,v in D.edge_iterator(labels=None):
+                bitset_add(self.graph[self.vertices_to_int[u]], self.vertices_to_int[v])
+        else:
+            for u,v in D.edge_iterator(labels=None):
+                bitset_add(self.graph[self.vertices_to_int[u]], self.vertices_to_int[v])
+                bitset_add(self.graph[self.vertices_to_int[v]], self.vertices_to_int[u])
+                    
+
+    def __dealloc__(self):
+        r"""
+        Destructor.
+        """
+        cdef long i
+        for 0 <= i < self.n:
+            bitset_free(self.graph[i])
+        sage_free(self.graph)
+
