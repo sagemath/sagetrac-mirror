@@ -169,6 +169,54 @@ The vertex separation of `G` is given by the value of `z`, and the order of
 vertex `v` in the optimal layout is given by the smallest `t` for which
 `y_v^t==1`.
 
+
+Branch and Bound algorithm for the vertex separation
+----------------------------------------------------
+
+We describe below the principle of a branch and bound algorithm (BAB) for
+determining an optimal ordering for the vertex separation of `G`, as proposed in
+[CMN14]_.
+
+**Greedy steps:**
+
+Let us denote `{\cal L}(S)` the set of all possible orderings of the vertices in
+`S`, and let `{\cal L}_P(S)\subseteq {\cal L}(S)` be the set of all possible
+orderings of the vertices of `V` starting with prefix `P`, where `P` is an
+ordered subset of vertices of `V`. Let also `c(L)` be the cost of the ordering
+`L\in{\cal L}(V)` as defined above.
+
+Given a digraph `D=(V,A)`, a set `S\subset V`, and an ordering `P\in{\cal
+L}(S)`, it has been proved in [CMN14]_ that if there exists `v\in V\setminus S`
+such that either `N^+(v)\subseteq S\cup N^+(S)`, or `v\in N^+(S)` and
+`N^+(v)\setminus(S\cup N^+(S)) = \{w\}`, then `\min_{L\in{\cal L}_P(V)} c(L) =
+\min_{L\in{\cal L}_{P\odot\{v\}}(V)} c(L)`.
+
+In other words, if we find a vertex `v` satisfying above conditions, the best
+possible ordering with prefix `P` has the same cost as the best possible
+ordering with prefix `P\odot\{v\}`. So we can greedily extend the prefix with
+vertices satisfying the conditions which results in a significant reduction of
+the search space.
+
+**The algorithm:**
+
+Given the current prefix `P` and the current upper bound `UB` (either an input
+upper bound or the cost of the best solution found so far), apply the following
+steps:
+
+- Extend the prefix `P` using the greedy steps as described above. Let `P'` be
+  the resulting prefix.
+
+- Sort the vertices `v\in V\setminus P'` by increasing values of
+  `|N^+(P\odot\{v\})|`, and prune the vertices with a value larger or equal to
+  `UB`. Let `\Delta` be the resulting sorted list.
+
+- Repeat with prefix `P'\odot\{v\}` for all `v\in\Delta` and keep the best found
+  solution.
+
+If a lower bound is passed to the algorithm, it will stop as soon as a solution
+with cost equal to that lower bound is found.
+
+
 REFERENCES
 ----------
 
