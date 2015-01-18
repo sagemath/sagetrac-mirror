@@ -578,7 +578,7 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
 def wilson_1972_difference_family(K, k, existence=False, check=True):
     r"""
     Wilson construction of difference families on finite field.
-    
+
     The construction appears in [Wi72]_.
 
     INPUT:
@@ -698,7 +698,7 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
                 "and k={}, the roots of unity fail to belong to distinct "
                 "cosets modulo H^m")
         xxi *= xx
-    
+
     if existence:
         return True
 
@@ -736,16 +736,16 @@ def one_cyclic_tiling(A,n):
         sage: tile0 = [0, 1, 2, 7]
         sage: m = one_cyclic_tiling(tile0, 12)
         sage: print_tiling(tile0, m, 12)
-        XXX    X    
+        XXX    X
             XXX    X
-           X    XXX 
+           X    XXX
 
         sage: tile0 = [0, 1, 5]
         sage: m = one_cyclic_tiling(tile0, 12)
         sage: print_tiling(tile0, m, 12)
-        XX   X      
-           XX   X   
-          X      XX 
+        XX   X
+           XX   X
+          X      XX
               XX   X
 
     ALGORITHM:
@@ -753,7 +753,7 @@ def one_cyclic_tiling(A,n):
     Uses dancing likns :mod:`sage.combinat.dlx`
     """
     from sage.combinat.dlx import DLXMatrix
-    
+
     rows = []
     for i in range(n):
         rows.append([i+1, [(i+a)%n+1 for a in A]])
@@ -765,7 +765,7 @@ def one_radical_difference_family(K, k):
     r"""
     Search for a radical difference family on ``K`` using dancing links
     algorithm. In this function we assume that `\lambda = 1`.
-    
+
     INPUT:
 
     - ``K`` -- a finite field of cardinality `q`.
