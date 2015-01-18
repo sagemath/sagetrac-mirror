@@ -295,15 +295,15 @@ def kirkman_triple_system(v,existence=False):
         # 01(n'-1),23(n'-1),... are blocks of the design.
         gdd = {4:kirkman_triple_system(9),
                7:kirkman_triple_system(15)}
-        gdd[4].relabel({v:i for i,v in enumerate(sum([list(set(S).difference([ 8])) for S in gdd[4] if  8 in S]+[[ 8]],[]))})
-        gdd[7].relabel({v:i for i,v in enumerate(sum([list(set(S).difference([14])) for S in gdd[7] if 14 in S]+[[14]],[]))})
+        gdd[4].relabel({v:i for i,v in enumerate(sum([sorted(set(S).difference([ 8])) for S in gdd[4] if  8 in S]+[[ 8]],[]))})
+        gdd[7].relabel({v:i for i,v in enumerate(sum([sorted(set(S).difference([14])) for S in gdd[7] if 14 in S]+[[14]],[]))})
         gdd[4] = gdd[4].is_resolvable(True)[1]
         gdd[7] = gdd[7].is_resolvable(True)[1]
 
         # The first parallel class contains 01(n'-1), the second contains
         # 23(n'-1), etc..
-        gdd[4].sort(key=lambda x:[list(set(S).difference([ 8])) for S in x if  8 in S][0][0])
-        gdd[7].sort(key=lambda x:[list(set(S).difference([14])) for S in x if 14 in S][0][0])
+        gdd[4].sort(key=lambda x:(min(set(S).difference([ 8])) for S in x if  8 in S).next())
+        gdd[7].sort(key=lambda x:(min(set(S).difference([14])) for S in x if 14 in S).next())
 
         # Remove the blocks containing (n'-1)
         gdd[4] = [[B for B in classs if  8 not in B] for classs in gdd[4]]
@@ -422,8 +422,8 @@ def PBD_4_7(v,check=True, existence=False):
 
     All values `\leq 300`::
 
-        sage: for i in range(300):
-        ....:     if i%3==1 and i not in [10,19,31]:
+        sage: for i in range(1,300,3):
+        ....:     if i not in [10,19,31]:
         ....:         assert PBD_4_7(i,existence=True)
         ....:         _ = PBD_4_7(i,check=True)
     """
@@ -646,6 +646,7 @@ def PBD_4_7(v,check=True, existence=False):
                                   K = [4,7],
                                   check = check,
                                   copy = False)
+
 def PBD_4_7_from_Y(gdd,check=True):
     r"""
     Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\N-\{3,6,10\})`-GDD.
@@ -660,7 +661,7 @@ def PBD_4_7_from_Y(gdd,check=True):
     - A block of size `s\in\{4,5,7\}` becomes a `(3s,\{4,7\},\{3\})`-GDD.
 
     This lemma is part of the existence proof of `(v,\{4,7\})`-PBD as explained
-    in IX.4.5 from [BJL99]).
+    in IX.4.5 from [BJL99]_).
 
     INPUT:
 
@@ -713,7 +714,7 @@ def PBD_4_7_from_Y(gdd,check=True):
         # in sets of size 4
         GDD[7] = PBD_4_7(22)
         x = set(range(22)).difference(*[S for S in GDD[7] if len(S) != 4]).pop()
-        relabel = sum([S for S in GDD[7] if x in S],[]) # the groups must be 012,345,...
+        relabel = sum((S for S in GDD[7] if x in S),[]) # the groups must be 012,345,...
         relabel = [xx for xx in relabel if xx != x]+[x]
         GDD[7].relabel({v:i for i,v in enumerate(relabel)})
         GDD[7] = [S for S in GDD[7] if 21 not in S]
