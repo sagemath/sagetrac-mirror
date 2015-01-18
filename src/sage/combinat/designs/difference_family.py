@@ -547,6 +547,21 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
             return True
         D = K.cyclotomic_cosets(x**8, [one])
 
+    elif l == 1:
+        # try hard
+        # here we strongly suspect that the exhaustion below always return None
+        D = one_radical_difference_family(K, k)
+        if D is None:
+            if existence:
+                return False
+            raise EmptySetError("There is no radical difference set for the"\
+                                " parameters (v,k,l)=({},{},1)".format(v,k))
+        print "**  You found a new example of radical difference set **"\
+              "**  for the parameters (v,k,l)=({},{},1).             **"\
+              "**  Please contact sage-devel@googlegroups.com        **".format(v,k)
+        if existence:
+            return True
+
     else:
         if existence:
             return Unknown
@@ -699,6 +714,123 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
     return D
 
+def one_cyclic_tiling(A,n):
+    r"""
+    Given a subset ``A`` of the cyclic additive group `G = Z / nZ` return
+    another subset `B` so that `A + B = G` and `|A| |B| = n` (i.e. any element
+    of `G` is uniquely expressed as a sum `a+b` with `a` in `A` and `b` in `B`).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import one_cyclic_tiling
+        sage: tile = [0,2,4]
+        sage: m = one_cyclic_tiling(tile,6); m
+        [0, 1]
+        sage: sorted((i+j)%6 for i in tile for j in m)
+        [0, 1, 2, 3, 4, 5]
+
+        sage: def print_tiling(tile, translat, n):
+        ....:     for x in translat:
+        ....:         print ''.join('X' if (i-x)%n in tile else ' ' for i in range(n))
+
+        sage: tile0 = [0, 1, 2, 7]
+        sage: m = one_cyclic_tiling(tile0, 12)
+        sage: print_tiling(tile0, m, 12)
+        XXX    X    
+            XXX    X
+           X    XXX 
+
+        sage: tile0 = [0, 1, 5]
+        sage: m = one_cyclic_tiling(tile0, 12)
+        sage: print_tiling(tile0, m, 12)
+        XX   X      
+           XX   X   
+          X      XX 
+              XX   X
+
+    ALGORITHM:
+
+    Uses dancing likns :mod:`sage.combinat.dlx`
+    """
+    from sage.combinat.dlx import DLXMatrix
+    
+    rows = []
+    for i in range(n):
+        rows.append([i+1, [(i+a)%n+1 for a in A]])
+    M = DLXMatrix(rows)
+    for c in M:
+        return [i-1 for i in c]
+
+def one_radical_difference_family(K, k):
+    r"""
+    Search for a radical difference family on ``K`` using dancing links
+    algorithm. In this function we assume that `\lambda = 1`.
+    
+    INPUT:
+
+    - ``K`` -- a finite field of cardinality `q`.
+
+    - ``k`` -- a positive integer so that `k(k-1)` divides `q-1`.
+
+    OUTPUT:
+
+    Either a difference family or ``None`` if it does not exist.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import (
+        ....:    one_radical_difference_family,
+        ....:    is_difference_family)
+
+    The parameters that appear in [Bur95]_::
+
+        sage: df = one_radical_difference_family(GF(449), 8); df
+        [[1, 18, 25, 176, 324, 359, 444, 0],
+         [9, 88, 162, 222, 225, 237, 404, 0],
+         [11, 140, 198, 275, 357, 394, 421, 0],
+         [40, 102, 249, 271, 305, 388, 441, 0],
+         [49, 80, 93, 161, 204, 327, 433, 0],
+         [70, 99, 197, 230, 362, 403, 435, 0],
+         [121, 141, 193, 293, 331, 335, 382, 0],
+         [191, 285, 295, 321, 371, 390, 392, 0]]
+        sage: is_difference_family(GF(449), df, 449, 8, 1)
+        True
+    """
+    q = K.cardinality()
+    x = K.multiplicative_generator()
+
+    e = k*(k-1)
+    if q%e != 1:
+        raise ValueError("q%e is not 1")
+    t = (q-1) / e
+    if k%2 == 1:
+        m = (k-1) // 2
+        r = x ** ((q-1) // k)     # k-th root of unity
+        A = set(r**i - 1 for i in range(1,m+1))
+    else:
+        m = k // 2
+        r = x ** ((q-1) // (k-1)) # (k-1)-th root of unity
+        A = set(r**i - 1 for i in range(1,m))
+        A.add(K.one())
+
+    # now quotient everything modulo H^{mt}
+    l = (q-1)/(m*t)
+    mt = m*t
+    from sage.groups.generic import discrete_log
+    logA = [discrete_log(a,x)%mt for a in A]
+
+    if len(set(logA)) != m:
+        return None
+
+    c = one_cyclic_tiling(logA, mt)
+    if c is None:
+        return None
+
+    D = K.cyclotomic_cosets(r, [x**i for i in c])
+    if k%2 == 0:
+        for d in D:
+            d.append(K.zero())
+    return D
 
 def radical_difference_family(K, k, l=1, existence=False, check=True):
     r"""
@@ -733,9 +865,14 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
          [111, 123, 155, 181, 273],
          [156, 209, 224, 264, 271]]
 
-    .. TODO:
-
-        Implement the more general Buratti construction from [Bu95]_
+         sage: q = 43
+         sage: while q < 1000:
+         ....:     if is_prime_power(q):
+         ....:         if radical_difference_family(GF(q,'a'),7,existence=True):
+         ....:             print q,
+         ....:             _ = radical_difference_family(GF(q,'a'),7)
+         ....:     q += 42
+         337 421 463 883
     """
     v = K.cardinality()
     x = K.multiplicative_generator()
@@ -762,17 +899,24 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
         raise NotImplementedError("No radical families implemented for l > 2")
 
     # Wilson (1972), Theorem 9 and 10
+    # This step is not needed as all difference family with l=1 can be built
+    # from one_radical_difference_family. Though, the one below is relatively
+    # fast and makes a huge difference in timings
     elif wilson_1972_difference_family(K,k,existence=True):
         if existence:
             return True
         D = wilson_1972_difference_family(K,k,check=False)
 
-    elif existence:
-      return Unknown
-
     else:
-      raise NotImplementedError("Sage does not know how to build a radical "
-               "difference family with parameters v={} and k={}".format(v,k))
+        # here we try hard
+        D = one_radical_difference_family(K,k)
+        if D is None:
+            if existence:
+                return False
+            raise EmptySetError("No such difference family")
+        elif existence:
+            return True
+
 
     if check and not is_difference_family(K, D, v, k, l):
         raise RuntimeError("radical_difference_family produced a wrong "
