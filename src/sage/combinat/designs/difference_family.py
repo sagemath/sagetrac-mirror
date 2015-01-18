@@ -488,14 +488,47 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
          a^3 + a^2 + a + 1,
          a^3 + a^2 + a + 1]
 
-        sage: for (v,k,l) in [(3,2,1), (7,3,1), (7,4,2), (11,5,2), (11,6,3),
-        ....:                 (13,4,1), (16,6,2), (19,9,4), (19,10,5)]:
-        ....:
-        ....:     assert radical_difference_set(GF(v,'a'), k, l, existence=True), "pb with v={} k={} l={}".format(v,k,l)
+        sage: for k in range(2,50):
+        ....:     for l in reversed(divisors(k*(k-1))):
+        ....:         v = k*(k-1)//l + 1
+        ....:         if is_prime_power(v) and radical_difference_set(GF(v,'a'),k,l,existence=True):
+        ....:             _ = radical_difference_set(GF(v,'a'),k,l)
+        ....:             print "{:3} {:3} {:3}".format(v,k,l)
+          3   2   1
+          4   3   2
+          7   3   1
+          5   4   3
+          7   4   2
+         13   4   1
+         11   5   2
+          7   6   5
+         11   6   3
+         16   6   2
+          8   7   6
+          9   8   7
+         19   9   4
+         37   9   2
+         73   9   1
+         11  10   9
+         19  10   5
+         23  11   5
+         13  12  11
+         23  12   6
+         27  13   6
+         27  14   7
+         16  15  14
+         31  15   7
+        ...
+         41  40  39
+         79  40  20
+         83  41  20
+         43  42  41
+         83  42  21
+         47  46  45
+         49  48  47
+        197  49  12
     """
     v = K.cardinality()
-    one = K.one()
-    x = K.multiplicative_generator()
 
     if l*(v-1) != k*(k-1):
         if existence:
@@ -506,70 +539,85 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
     if (v-1) == k:
         if existence:
             return True
-        return K.cyclotomic_cosets(x, [one])
+        add_zero = False
 
     # q = 3 mod 4
     elif v%4 == 3 and k == (v-1)//2:
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**2, [one])
+        add_zero = False
 
     # q = 3 mod 4
     elif v%4 == 3 and k == (v+1)//2:
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**2, [one])
-        D[0].insert(0, K.zero())
+        add_zero = True
 
     # q = 4t^2 + 1, t odd
     elif v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**4, [one])
+        add_zero = False
 
     # q = 4t^2 + 9, t odd
     elif v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**4, [one])
-        D[0].insert(0,K.zero())
+        add_zero = True
 
-    # one case with k-1 = (v-1)/3
+    # exceptional case 1
     elif (v,k,l) == (16,6,2):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**3, [one])
-        D[0].insert(0,K.zero())
+        add_zero = True
 
-    # one case with k = (v-1)/8
+    # exceptional case 2
     elif (v,k,l) == (73,9,1):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**8, [one])
+        add_zero = False
 
-    elif l == 1:
-        # try hard
-        # here we strongly suspect that the exhaustion below always return None
-        D = one_radical_difference_family(K, k)
-        if D is None:
-            if existence:
-                return False
-            raise EmptySetError("There is no radical difference set for the"\
-                                " parameters (v,k,l)=({},{},1)".format(v,k))
-        print "**  You found a new example of radical difference set **"\
-              "**  for the parameters (v,k,l)=({},{},1).             **"\
-              "**  Please contact sage-devel@googlegroups.com        **".format(v,k)
-        if existence:
-            return True
-
+    # are there more ??
     else:
-        if existence:
-            return Unknown
-        raise NotImplementedError("no radical difference set is "
-                "implemented for the parameters (v,k,l) = ({},{},{}".format(v,k,l))
+        x = K.multiplicative_generator()
+        D = K.cyclotomic_cosets(x**((v-1)//k), [K.one()])
+        if is_difference_family(K, D, v, k, l):
+            print "**  You found a new example of radical difference set **\n"\
+                  "**  for the parameters (v,k,l)=({},{},{}).            **\n"\
+                  "**  Please contact sage-devel@googlegroups.com        **\n".format(v,k,l)
+            if existence:
+                return True
+            add_zero = False
+
+        else:
+            D = K.cyclotomic_cosets(x**((v-1)//(k-1)), [K.one()])
+            D[0].insert(0,K.zero())
+            if is_difference_family(K, D, v, k, l):
+                print "**  You found a new example of radical difference set **"\
+                      "**  for the parameters (v,k,l)=({},{},{}).            **"\
+                      "**  Please contact sage-devel@googlegroups.com        **".format(v,k,l)
+                if existence:
+                    return True
+                add_zero = True
+
+            elif existence:
+                return False
+            else:
+                raise EmptySetError("no radical difference set exist "
+                        "for the parameters (v,k,l) = ({},{},{}".format(v,k,l))
+
+    x = K.multiplicative_generator()
+    if add_zero:
+        r = x**((v-1)//(k-1))
+        D = K.cyclotomic_cosets(r, [K.one()])
+        D[0].insert(0, K.zero())
+    else:
+        r = x**((v-1)//k)
+        D = K.cyclotomic_cosets(r, [K.one()])
 
     if check and not is_difference_family(K, D, v, k, l):
-        raise RuntimeError("Sage tried to build a cyclotomic coset with "
+        print D
+        raise RuntimeError("Sage tried to build a radical difference set with "
                 "parameters ({},{},{}) but it seems that it failed! Please "
                 "e-mail sage-devel@googlegroups.com".format(v,k,l))
 
@@ -814,7 +862,6 @@ def one_radical_difference_family(K, k):
         A.add(K.one())
 
     # now quotient everything modulo H^{mt}
-    l = (q-1)/(m*t)
     mt = m*t
     from sage.groups.generic import discrete_log
     logA = [discrete_log(a,x)%mt for a in A]
