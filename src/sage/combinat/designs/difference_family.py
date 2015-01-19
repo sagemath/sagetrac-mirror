@@ -593,9 +593,9 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
             D = K.cyclotomic_cosets(x**((v-1)//(k-1)), [K.one()])
             D[0].insert(0,K.zero())
             if is_difference_family(K, D, v, k, l):
-                print "**  You found a new example of radical difference set **"\
-                      "**  for the parameters (v,k,l)=({},{},{}).            **"\
-                      "**  Please contact sage-devel@googlegroups.com        **".format(v,k,l)
+                print "**  You found a new example of radical difference set **\n"\
+                      "**  for the parameters (v,k,l)=({},{},{}).            **\n"\
+                      "**  Please contact sage-devel@googlegroups.com        **\n".format(v,k,l)
                 if existence:
                     return True
                 add_zero = True
@@ -616,7 +616,6 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
         D = K.cyclotomic_cosets(r, [K.one()])
 
     if check and not is_difference_family(K, D, v, k, l):
-        print D
         raise RuntimeError("Sage tried to build a radical difference set with "
                 "parameters ({},{},{}) but it seems that it failed! Please "
                 "e-mail sage-devel@googlegroups.com".format(v,k,l))
