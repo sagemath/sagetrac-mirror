@@ -2817,7 +2817,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Traceback (most recent call last):
             ...
             TypeError: delta must be <= 1
-            sage: L = X.LLL(delta=1)
+            sage: L = X.LLL(delta=1)    # not tested, will eat lots of ram
             Traceback (most recent call last):
             ...
             RuntimeError: infinite loop in LLL
@@ -3090,7 +3090,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.rational_reconstruction(11)
             Traceback (most recent call last):
             ...
-            ValueError: Rational reconstruction of 4 (mod 11) does not exist.
+            ValueError: rational reconstruction does not exist
 
         We throw in a denominator and reduce the matrix modulo 389 - it
         does rationally reconstruct.
@@ -3103,7 +3103,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         TEST:
 
-        Check that ticket #9345 is fixed::
+        Check that trac:`9345` is fixed::
 
             sage: A = random_matrix(ZZ, 3, 3)
             sage: A.rational_reconstruction(0)
