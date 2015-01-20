@@ -263,6 +263,16 @@ class Hypergeometric(BuiltinFunction):
 
     def _eval_(self, a, b, z, **kwargs):
         """
+        Evaluate this hypergeometric expression.
+
+        .. NOTE:
+
+            Sage will try to simplify symbolic hypergeometric expressions
+            immediately to a closed form, which may be polynomials of high
+            degree. However, if a numeric result is needed usage of the
+            `hypergeometric` function is better suited than substituting
+            into such polynomials, due to cancellation.
+
         EXAMPLES::
         
             sage: hypergeometric([], [], 0)
