@@ -35,7 +35,7 @@ cdef extern from "factory/factory.h":
     cdef int SW_USE_NTL_SORT
 
 
-cdef extern from "libsingular.h":
+cdef extern from "Singular/libsingular.h":
 
     #
     # OPTIONS
@@ -988,61 +988,59 @@ cdef extern from "libsingular.h":
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
 
-cdef extern from "prCopy.h":
+cdef extern from "polys/prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)
     poly *prCopyR(poly *p, ring *r, ring *dest_r)
 
     cdef int LANG_TOP
 
-# Non-commutative functions
+cdef extern from "polys/nc/nc.h":
     ctypedef enum nc_type:
-      nc_error # Something's gone wrong!
-      nc_general # yx=q xy+...
-      nc_skew # yx=q xy
-      nc_comm # yx= xy
-      nc_lie,  # yx=xy+...
-      nc_undef, # for internal reasons */
-      nc_exterior #
+        nc_error
+        nc_general
+        nc_skew
+        nc_comm
+        nc_lie
+        nc_undef
+        nc_exterior
 
-
-cdef extern from "gring.h":
     void ncRingType(ring *, nc_type)
     nc_type ncRingType_get "ncRingType" (ring *)
     int nc_CallPlural(matrix* CC, matrix* DD, poly* CN, poly* DN, ring* r)
     bint nc_SetupQuotient(ring *, ring *, bint)
 
-cdef extern from "sca.h":
+cdef extern from "polys/nc/sca.h":
     void sca_p_ProcsSet(ring *, p_Procs_s *)
     void scaFirstAltVar(ring *, int)
     void scaLastAltVar(ring *, int)
 
-cdef extern from "ring.h":
+cdef extern from "polys/monomials/ring.h":
     bint rIsPluralRing(ring* r)
     void rPrint "rWrite"(ring* r)
     char* rOrderingString "rOrdStr"(ring* r)
 #    void rDebugPrint(ring* r)
     void pDebugPrint "p_DebugPrint" (poly*p, ring* r)
 
-cdef extern from "stairc.h":
+cdef extern from "kernel/combinatorics/stairc.h":
     # Computes the monomial basis for R[x]/I
     ideal *scKBase(int deg, ideal *s, ideal *Q)
 
-cdef extern from "lists.h":
+cdef extern from "Singular/lists.h":
     ctypedef struct lists "slists":
         int    nr
         leftv  *m
         void (*Init)(int n)
 
-cdef extern from "kstd1.h":
+cdef extern from "kernel/GBEngine/kstd1.h":
     cdef extern int Kstd1_deg   # degBound, default 0
     cdef extern int Kstd1_mu    # multBound, default 0
 
-cdef extern from "intvec.h":
+cdef extern from "singular/misc/intvec.h":
     # for the moment we need only new, as we use the cleanup of sleftv
     # to get rid of it again
     intvec* intvec_new "New<intvec>"()
     intvec* intvec_new_int3 "new intvec"(int, int, int)
 
-cdef extern from "syz.h":
+cdef extern from "kernel/GBEngine/syz.h":
     ctypedef struct syStrategy "ssyStrategy":
         short references

@@ -59,7 +59,7 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
     m4ri_extra_compile_args.extend( [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()] )
     break
 
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
+singular_libs = ['Singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Givaro flags
