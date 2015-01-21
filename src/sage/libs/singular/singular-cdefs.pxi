@@ -14,8 +14,6 @@ include "sage/ext/cdefs.pxi"
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
-cdef extern from "factor.h":
-    cdef int libfac_interruptflag
 
 cdef extern from "factory/factory.h":
 

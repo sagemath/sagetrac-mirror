@@ -172,7 +172,7 @@ from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 
 # singular functions
 from sage.libs.singular.decl cimport (
-    errorreported, libfac_interruptflag,
+    errorreported,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
@@ -4251,7 +4251,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Ideal (x2 - 1, x1 - 1) of Multivariate Polynomial Ring in x1, x2 over Rational Field
 
         """
-        global errorreported, libfac_interruptflag
+        global errorreported
         if not self._parent._base.is_field():
             raise NotImplementedError, "Lifting of multivariate polynomials over non-fields is not implemented."
 
@@ -4285,10 +4285,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
         res = idLift(_I, fI, NULL, 0, 0, 0)
-        if errorreported != 0 or libfac_interruptflag != 0:
+        if errorreported != 0 :
             errorcode = errorreported
             errorreported = 0
-            libfac_interruptflag = 0
             if errorcode == 1:
                 raise ValueError("polynomial is not in the ideal")
             raise RuntimeError

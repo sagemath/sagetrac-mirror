@@ -63,6 +63,9 @@ fi
 
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
+export LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
+
+
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
 export CXXFLAGS="$CXXFLAGS -fPIC"
@@ -81,13 +84,11 @@ choose_patches()
     cd "$PATCHES" || return $?
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        mv conditional/sage_debug.patch . || return $?
+        #mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure
         mv "$SRC/omalloc/configure" configure_omalloc
-        rm -r "$SRC/omalloc"/*
+        #rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
@@ -125,6 +126,7 @@ config()
     # 3) --without-debug doesn't work:
     #    http://www.singular.uni-kl.de:8002/trac/ticket/438
     #    Replace --with-debug by $WITH_DEBUG if this is fixed.
+    ./autogen.sh
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
@@ -171,15 +173,16 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL" \
-                $ENABLE_DEBUGOUTPUT
+                --with-gmp="$SAGE_LOCAL" 
+                
+                #   $ENABLE_DEBUGOUTPUT
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
         return 1
     fi
 
-    $MAKE all
+    $MAKE all 
     if [ $? -ne 0 ]; then
         echo >&2 "Error building the standalone factory."
         return 1
