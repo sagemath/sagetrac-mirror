@@ -481,17 +481,39 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return self.var('some_variable')
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
-        Returns True, since the symbolic expression ring is (for the most
-        part) a field.
+        Return False, since the symbolic ring is not a field.
 
         EXAMPLES::
 
             sage: SR.is_field()
-            True
+            False
         """
-        return True
+        return False
+
+    def is_integral_domain(self, proof=True):
+        """
+        Return False, since the symbolic ring is not an integral
+        domain.
+
+        EXAMPLES::
+
+            sage: SR.is_integral_domain()
+            False
+        """
+        return False
+
+    def is_zero(self):
+        """
+        Return False, since the symbolic ring is not the zero ring.
+
+        EXAMPLES::
+
+            sage: SR.is_zero()
+            False
+        """
+        return False
 
     cpdef bint is_exact(self) except -2:
         """

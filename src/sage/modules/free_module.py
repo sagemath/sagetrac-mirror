@@ -369,6 +369,7 @@ done from the right side.""")
 
         #            raise TypeError, "The base_ring must be a commutative ring."
 
+        from sage.symbolic.ring import SymbolicRing
         try:
             if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
                 return RealDoubleVectorSpace_class(rank)
@@ -376,7 +377,7 @@ done from the right side.""")
             elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
                 return ComplexDoubleVectorSpace_class(rank)
 
-            elif base_ring.is_field():
+            elif (base_ring.is_field() or isinstance(base_ring, SymbolicRing)):
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
             elif base_ring in PrincipalIdealDomains():

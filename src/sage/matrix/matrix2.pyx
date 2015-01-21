@@ -324,8 +324,11 @@ cdef class Matrix(matrix1.Matrix):
             if self.nrows() != B.nrows():
                 raise ValueError, "number of rows of self must equal number of rows of B"
 
+        from sage.symbolic.ring import SymbolicRing
         K = self.base_ring()
-        if not K.is_integral_domain():
+        if isinstance(K, SymbolicRing):
+            pass
+        elif not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
                 from sage.libs.pari.all import pari
@@ -342,8 +345,9 @@ cdef class Matrix(matrix1.Matrix):
                 if is_Vector(B):
                     return (K ** self.ncols())(ret)
                 return self.matrix_space(self.ncols(), 1)(ret)
-            raise TypeError, "base ring must be an integral domain or a ring of integers mod n"
-        if not K.is_field():
+            elif not isinstance(K, SymbolicRing):
+                raise TypeError("base ring must be an integral domain, a quotient of ZZ or a symbolic ring")
+        elif not K.is_field():
             K = K.fraction_field()
             self = self.change_ring(K)
 
@@ -3608,7 +3612,8 @@ cdef class Matrix(matrix1.Matrix):
         if M is None and is_NumberField(R):
             format, M = self._right_kernel_matrix_over_number_field()
 
-        if M is None and R.is_field():
+        from sage.symbolic.ring import SymbolicRing
+        if M is None and (R.is_field() or isinstance(R, SymbolicRing)):
             format, M = self._right_kernel_matrix_over_field()
 
         if M is None and R.is_integral_domain():
@@ -6404,6 +6409,7 @@ cdef class Matrix(matrix1.Matrix):
             True
         """
         self.check_mutability()
+        R = self.base_ring()
 
         if algorithm == 'default':
             if self._will_use_strassen_echelon():
@@ -6411,7 +6417,8 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 algorithm = 'classical'
         try:
-            if self.base_ring().is_field():
+            from sage.symbolic.ring import SymbolicRing
+            if R.is_field() or isinstance(R, SymbolicRing):
                 if algorithm == 'classical':
                     self._echelon_in_place_classical()
                 elif algorithm == 'strassen':

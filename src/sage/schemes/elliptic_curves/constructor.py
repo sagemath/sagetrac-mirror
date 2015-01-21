@@ -267,11 +267,11 @@ class EllipticCurveFactory(UniqueFactory):
         sage: E = EllipticCurve([i,i]); E
         Elliptic Curve defined by y^2 = x^3 + I*x + I over Symbolic Ring
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
+        <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
         sage: E.category()
         Category of schemes over Symbolic Ring
         sage: SR in Fields()
-        True
+        False
 
         sage: F = FractionField(PolynomialRing(QQ,'t'))
         sage: t = F.gen()

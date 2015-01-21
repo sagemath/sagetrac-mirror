@@ -5772,7 +5772,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a
             x^3 + y + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
             sage: a.degree()
             0
 
@@ -5848,15 +5848,23 @@ cdef class Expression(CommutativeRingElement):
             1/x
             sage: parent(fr)
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-            sage: parent(((pi+sqrt(2)/x).fraction(SR)))
-            Fraction Field of Univariate Polynomial Ring in x over Symbolic Ring
-            sage: parent(((pi+sqrt(2))/x).fraction(SR))
-            Fraction Field of Univariate Polynomial Ring in x over Symbolic Ring
             sage: y=var('y')
             sage: fr=((3*x^5 - 5*y^5)^7/(x*y)).fraction(GF(7)); fr
             (3*x^35 + 2*y^35)/(x*y)
             sage: parent(fr)
             Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 7
+
+        This does not work when the base ring is the symbolic ring,
+        because the symbolic ring does not have a fraction field::
+
+            sage: parent(((pi+sqrt(2)/x).fraction(SR)))
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
+            sage: parent(((pi+sqrt(2))/x).fraction(SR))
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
         """
         return self.numerator().polynomial(base_ring)/\
                self.denominator().polynomial(base_ring)

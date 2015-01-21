@@ -5134,18 +5134,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: (N*M).norm()
             0.9999999999999999
         """
-        if not self.base_ring().is_field():
+        from sage.symbolic.ring import SymbolicRing
+        R = self.base_ring()
+        if not (R.is_field() or isinstance(R, SymbolicRing)):
             try:
                 return ~self.matrix_over_field()
             except TypeError:
                 # There is one easy special case -- the integers modulo N.
-                if is_IntegerModRing(self.base_ring()):
+                if is_IntegerModRing(R):
                     # This is "easy" in that we either get an error or
                     # the right answer.  Note that of course there
                     # could be a much faster algorithm, e.g., using
                     # CRT or p-adic lifting.
                     try:
-                        return (~self.lift()).change_ring(self.base_ring())
+                        return (~self.lift()).change_ring(R)
                     except (TypeError, ZeroDivisionError):
                         raise ZeroDivisionError("input matrix must be nonsingular")
                 raise
@@ -5177,7 +5179,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # Over exact rings, of course, we still want the old
         # behavior.
 
-        if self.base_ring().is_exact():
+        if R.is_exact():
             if B[self._nrows-1, self._ncols-1] != 1:
                 raise ZeroDivisionError("input matrix must be nonsingular")
         else:
