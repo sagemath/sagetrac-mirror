@@ -63,6 +63,9 @@ fi
 
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
+export LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
+
+
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
 export CXXFLAGS="$CXXFLAGS -fPIC"
@@ -81,13 +84,9 @@ choose_patches()
     cd "$PATCHES" || return $?
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure
         mv "$SRC/omalloc/configure" configure_omalloc
-        rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
@@ -171,8 +170,7 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL" \
-                $ENABLE_DEBUGOUTPUT
+                --with-gmp="$SAGE_LOCAL"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
