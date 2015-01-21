@@ -829,7 +829,7 @@ def one_radical_difference_family(K, k):
         ....:    one_radical_difference_family,
         ....:    is_difference_family)
 
-    The parameters that appear in [Bur95]_::
+    The parameters that appear in [Bu95]_::
 
         sage: df = one_radical_difference_family(GF(449), 8); df
         [[1, 18, 25, 176, 324, 359, 444, 0],
@@ -842,6 +842,59 @@ def one_radical_difference_family(K, k):
          [191, 285, 295, 321, 371, 390, 392, 0]]
         sage: is_difference_family(GF(449), df, 449, 8, 1)
         True
+
+    ALGORITHM:
+
+    Let fix an integer `k` and a prime power `q = t k(k-1) + 1`. Let `K` be a
+    field of cardinality `q`. A `(q,k,1)`-difference family is radical if
+    its base blocks are either: a coset of the `k`-th root of unity for `k` odd
+    or a coset of `k-1`-th root of unity and `0` if `k` is even (the number `t`
+    is the number of blocks of that difference family). We explain below why the
+    existence of a radical difference family is equivalent to a tiling problem
+    in a cyclic group. This subsequent problem is solved by a call to the
+    function :func:`one_cyclic_tiling`.
+
+    Let `H = K^*` be the multiplicative group of invertible elements and `x` a
+    generator of `H`. We denote by `H^j` the set of `j`-th power in `H`. In
+    order to treat uniformly the case of `k` odd and `k` even, let us introduce
+    the following notations that are the one we use in the algorithm:
+
+    For `k` odd we set
+
+    .. MATH::
+
+        m = \frac{k-1}{2} \quad
+        r = x^{\frac{q-1}{k}} \quad
+        A = \{r^i-1; 1 \leq i \leq m\}
+
+    while for `k` even we set
+
+    .. MATH::
+
+        m = \frac{k}{2} \quad
+        r = x^{\frac{q-1}{k-1}} \quad
+        A = \{r^i-1; 1 \leq i \leq m-1\} \cup \{1\}
+
+    Note that `r` is nothing else but a primitive `k`-th root of unity
+    for `k` odd and a `k-1`-th root of unity for `k` even. And we also have
+    `H^{2mt} = \langle r \rangle`.
+
+    It is easy to verify (see [Wi72]_) that we have for `k` odd `\Delta H^{2mt}
+    =  A H^{mt}` while for `k` even `\Delta (H^{2mt} \cup \{0\}) = A H^{mt}`.
+    Here `\Delta B` is the set of differences of distinct elements in `B`.
+
+    From now on, we consider the case of `k` odd only the case of `k` even being
+    similar. Let us consider a set of blocks of the form `B = \{x_1 H^{2mt},
+    \ldots, x_k H^{2mt}\}`. From the explicit equation on `\Delta H^{2mt}` in
+    the previous paragraph, `B` is a (radical) difference family if and only if
+
+    .. MATH::
+
+        \bigcup_{i=1}^k (x_1 A H^{mt}) = H.
+
+    In other words, the multiplicative translate `x_i A` of `A` form a partition
+    of `H / H^{mt}`. One can consider this as a tiling of `H / H^{mt}` by
+    translates of the unique tile `A`.
     """
     q = K.cardinality()
     x = K.multiplicative_generator()
@@ -853,21 +906,25 @@ def one_radical_difference_family(K, k):
     if k%2 == 1:
         m = (k-1) // 2
         r = x ** ((q-1) // k)     # k-th root of unity
-        A = set(r**i - 1 for i in range(1,m+1))
+        A = [r**i - 1 for i in range(1,m+1)]
     else:
         m = k // 2
         r = x ** ((q-1) // (k-1)) # (k-1)-th root of unity
-        A = set(r**i - 1 for i in range(1,m))
-        A.add(K.one())
+        A = [r**i - 1 for i in range(1,m)]
+        A.append(K.one())
 
-    # now quotient everything modulo H^{mt}
+    # instead of the complicated multiplicative group H/H^{mt} we use the
+    # discrete logarithm to convert everything into the group Z/mtZ
     mt = m*t
     from sage.groups.generic import discrete_log
     logA = [discrete_log(a,x)%mt for a in A]
 
+    # if two elments of A are in the same coset modulo H^{mt} then no tiling is
+    # possible
     if len(set(logA)) != m:
         return None
 
+    # now, brute force
     c = one_cyclic_tiling(logA, mt)
     if c is None:
         return None
