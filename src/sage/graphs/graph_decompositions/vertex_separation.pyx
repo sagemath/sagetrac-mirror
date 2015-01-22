@@ -180,22 +180,26 @@ determining an optimal ordering for the vertex separation of `G`, as proposed in
 **Greedy steps:**
 
 Let us denote `{\cal L}(S)` the set of all possible orderings of the vertices in
-`S`, and let `{\cal L}_P(S)\subseteq {\cal L}(S)` be the set of all possible
-orderings of the vertices of `V` starting with prefix `P`, where `P` is an
-ordered subset of vertices of `V`. Let also `c(L)` be the cost of the ordering
-`L\in{\cal L}(V)` as defined above.
+`S`, and let `{\cal L}_P(S)\subseteq {\cal L}(S)` be the orderings starting with
+a prefix `P`. Let also `c(L)` be the cost of the ordering `L\in{\cal L}(V)` as
+defined above.
 
-Given a digraph `D=(V,A)`, a set `S\subset V`, and an ordering `P\in{\cal
-L}(S)`, it has been proved in [CMN14]_ that if there exists `v\in V\setminus S`
-such that either `N^+(v)\subseteq S\cup N^+(S)`, or `v\in N^+(S)` and
-`N^+(v)\setminus(S\cup N^+(S)) = \{w\}`, then `\min_{L\in{\cal L}_P(V)} c(L) =
-\min_{L\in{\cal L}_{P\odot\{v\}}(V)} c(L)`.
+Given a digraph `D=(V,A)`, a set `S\subset V`, and a prefix `P`, it has been
+proved in [CMN14]_ that `\min_{L\in{\cal L}_P(V)} c(L) = \min_{L\in{\cal
+L}_{P+v}(V)} c(L)` holds in two (non exhaustive) cases:
+
+.. MATH::
+
+    \text{or} \left\{ \begin{align}
+        &N^+(v)\subseteq S\cup N^+(S)\\
+        &v\in N^+(S)\text{ and }N^+(v)\setminus(S\cup N^+(S)) = \{w\}
+    \end{align}\right.
 
 In other words, if we find a vertex `v` satisfying above conditions, the best
 possible ordering with prefix `P` has the same cost as the best possible
-ordering with prefix `P\odot\{v\}`. So we can greedily extend the prefix with
-vertices satisfying the conditions which results in a significant reduction of
-the search space.
+ordering with prefix `P+v`. So we can greedily extend the prefix with vertices
+satisfying the conditions which results in a significant reduction of the search
+space.
 
 **The algorithm:**
 
@@ -203,14 +207,14 @@ Given the current prefix `P` and the current upper bound `UB` (either an input
 upper bound or the cost of the best solution found so far), apply the following
 steps:
 
-- Extend the prefix `P` using the greedy steps as described above. Let `P'` be
-  the resulting prefix.
+- Extend the prefix `P` into a prefix `P'` using the greedy steps as described
+  above.
 
-- Sort the vertices `v\in V\setminus P'` by increasing values of
-  `|N^+(P\odot\{v\})|`, and prune the vertices with a value larger or equal to
-  `UB`. Let `\Delta` be the resulting sorted list.
+- Sort the vertices `v\in V\setminus P'` by increasing values of `|N^+(P+v)|`,
+  and prune the vertices with a value larger or equal to `UB`. Let `\Delta` be
+  the resulting sorted list.
 
-- Repeat with prefix `P'\odot\{v\}` for all `v\in\Delta` and keep the best found
+- Repeat with prefix `P'+v` for all `v\in\Delta` and keep the best found
   solution.
 
 If a lower bound is passed to the algorithm, it will stop as soon as a solution
@@ -233,7 +237,8 @@ REFERENCES
 .. [CMN14] *Experimental Evaluation of a Branch and Bound Algorithm for
   computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
   Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
-  Denmark, pages 46-58, June 2014
+  Denmark, pages 46-58, June 2014,
+  http://hal.inria.fr/hal-00943549/document
 
 AUTHORS
 -------
@@ -952,33 +957,33 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
 def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     r"""
-    Branch and Bound algorithm for the vertex separation. 
+    Branch and Bound algorithm for the vertex separation.
 
     This method implements the branch and bound algorithm for the vertex
     separation of directed graphs and the pathwidth of undirected graphs
     proposed in [CMN14]_. The implementation is valid for both Graph and
     DiGraph. See the documentation of the
     :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
-    
-    INPUTS: 
- 
+
+    INPUTS:
+
     - ``G`` -- a Graph or a DiGraph.
-  
+
     - ``lower_bound`` -- (default: None) lower bound to consider in the branch
       and  bound algorithm. This allows us to stop the search as soon as a
       solution with width at most ``lower_bound`` is found.
- 
+
     - ``upper_bound`` -- (default: None) if specified, the algorithm searches
-      for a solution with `width < upper\_bound`. It helps cutting branches.
+      for a solution with ``width < upper_bound``. It helps cutting branches.
       However, if the given upper bound is too low, the algorithm may not be
       able to find a solution.
- 
+
     OUTPUTS:
- 
+
     - ``width`` -- the computed vertex separation
- 
-    - ``seq`` -- best ordering found. It is an ordered list of vertices.
- 
+
+    - ``seq`` -- an ordering of the vertices of with ``width``.
+
 
     EXAMPLES:
 
@@ -1053,7 +1058,7 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         ...
         ValueError: The input upper bound is lower than the input lower bound.
 
-    Giving a two low upper bound::
+    Giving a too low upper bound::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
         sage: VS.vertex_separation_BAB(digraphs.Circuit(3), upper_bound=0)
@@ -1112,9 +1117,18 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     try:
         # ==> Call the cython method
         sig_on()
-        width = vertex_separation_BAB_C(H, current_prefix, positions, best_seq, 0,
-                                        ba, bb, bc, 
-                                        lower_bound, upper_bound, 0)
+        width = vertex_separation_BAB_C(H                      = H,
+                                        current_prefix         = current_prefix,
+                                        positions              = positions,
+                                        best_seq               = best_seq,
+                                        level                  = 0,
+                                        b_current_prefix       = ba,
+                                        b_current_neighborhood = bb,
+                                        b_current_other        = bc,
+                                        lower_bound            = lower_bound,
+                                        upper_bound            = upper_bound,
+                                        current_cost           = 0)
+
         sig_off()
 
         # ==> Build the final ordering
@@ -1129,8 +1143,7 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         sage_free(best_seq)
         sage_free(positions)
 
-    return width if width<upper_bound else -1, order
-
+    return (width if width<upper_bound else -1), order
 
 cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_pos):
     """
@@ -1146,21 +1159,19 @@ cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_
         positions[a] = pos_a
         prefix[pos_a] = a
 
-
 cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
-                                 int *current_prefix,
-                                 int *positions,
-                                 int *best_seq,
-                                 int level,
+                                 int *    current_prefix,
+                                 int *    positions,
+                                 int *    best_seq,
+                                 int      level,
                                  bitset_t b_current_prefix,
                                  bitset_t b_current_neighborhood,
                                  bitset_t b_current_other,
-                                 int lower_bound,
-                                 int upper_bound,
-                                 int current_cost):
+                                 int      lower_bound,
+                                 int      upper_bound,
+                                 int      current_cost):
     r"""
-    Branch and Bound algorithm for the process number and the vertex separation. 
-    
+    Branch and Bound algorithm for the process number and the vertex separation.
     """
     cdef int i
 
@@ -1172,7 +1183,6 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
                 best_seq[i] = current_prefix[i]
 
         return current_cost
-
 
     cdef int delta_i, j, v, somemore, select_it
     cdef list delta = list()
@@ -1211,7 +1221,7 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
         for i from loc_level <= i < H.n:
             j = current_prefix[i]
-                
+
             if bitset_issubset(H.graph[j], bits_tmp):
                 # (i) Vertex j is such that all its out-neighbors are in the
                 # prefix or in its out-neighborhood (so in bits_tmp).
@@ -1252,7 +1262,7 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
         bitset_free(loc_b_current_prefix)
         bitset_free(loc_b_current_neighborhood)
         bitset_free(loc_b_current_other)
-        
+
         return current_cost
 
 
@@ -1280,7 +1290,7 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
         if delta_i < upper_bound:
             # We extend the current prefix with vertex i and explore the branch
-            
+
             bitset_union(bits_tmp, loc_b_current_neighborhood,  H.graph[i])
             bitset_difference(bits_tmp, bits_tmp, loc_b_current_prefix)
             bitset_discard(bits_tmp, i)
@@ -1310,4 +1320,3 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
     bitset_free(loc_b_current_other)
 
     return upper_bound
-

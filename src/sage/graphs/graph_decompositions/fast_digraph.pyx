@@ -160,6 +160,8 @@ cdef class FastDiGraph_bitset:
         """
         self.n = D.order()
         self.graph = <bitset_t*>sage_malloc(sizeof(bitset_t)*self.n)
+        if self.graph == NULL:
+           raise MemoryError
 
         cdef int i
 
@@ -169,8 +171,8 @@ cdef class FastDiGraph_bitset:
         for i,v in enumerate(D.vertices()):
             self.vertices_to_int[v] = i
             self.int_to_vertices[i] = v
-            bitset_init(self.graph[self.vertices_to_int[v]], self.n)
-            bitset_clear(self.graph[self.vertices_to_int[v]])
+            bitset_init(self.graph[i], self.n)
+            bitset_clear(self.graph[i])
 
         if D.is_directed():
             for u,v in D.edge_iterator(labels=None):
@@ -179,7 +181,6 @@ cdef class FastDiGraph_bitset:
             for u,v in D.edge_iterator(labels=None):
                 bitset_add(self.graph[self.vertices_to_int[u]], self.vertices_to_int[v])
                 bitset_add(self.graph[self.vertices_to_int[v]], self.vertices_to_int[u])
-                    
 
     def __dealloc__(self):
         r"""
@@ -189,4 +190,3 @@ cdef class FastDiGraph_bitset:
         for 0 <= i < self.n:
             bitset_free(self.graph[i])
         sage_free(self.graph)
-
