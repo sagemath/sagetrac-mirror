@@ -970,6 +970,43 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return PermutationGroup([
                 Permutation(coset_table[2*i]) for i in range(len(coset_table)//2)])
 
+    def structure_description(self, limit=4096000, latex=False):
+        r"""
+        Return a string that tries to describe the structure of ``self``.
+        This methods wraps GAP's ``StructureDescription`` method.
+        Requires the *optional* ``database_gap`` package.
+
+        INPUT:
+
+        - ``limit`` -- integer (default: 4096000). The maximal number
+          of cosets before the computation is aborted. It is used by
+          ``self.as_permutation_group()`` procedure.
+
+        - ``latex`` -- a boolean (default: ``False``). If ``True`` return a
+          LaTeX formatted string. It is used by ``PermutationGroup.structure_description()``
+          procedure.
+
+        OUTPUT:
+
+        - string
+
+        .. WARNING::
+
+            From GAP's documentation: The string returned by
+            ``StructureDescription`` is **not** an isomorphism invariant:
+            non-isomorphic groups can have the same string value, and two
+            isomorphic groups in different representations can produce different
+            strings.
+
+        EXAMPLES::
+
+            sage: F.<x, y> = FreeGroup()
+            sage: G=F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
+            sage: G.structure_description()
+            'C7'
+        """
+        return self.as_permutation_group(limit).structure_description(latex)
+
     def direct_product(self, H, reduced=False, new_names=True):
         r"""
         Return the direct product of ``self`` with finitely presented
