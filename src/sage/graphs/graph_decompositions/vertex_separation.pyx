@@ -1081,13 +1081,17 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         raise ValueError("The input upper bound must be at least 1.")
 
     # ==> Allocate and initialize some data structures
+    cdef int i
     cdef FastDiGraph_bitset H = FastDiGraph_bitset(G)
-    cdef bitset_t ba
-    cdef bitset_t bb
-    cdef bitset_t bc
-    bitset_init(ba, H.n)
-    bitset_init(bb, H.n)
-    bitset_init(bc, H.n)
+    
+    # We need 3 bitsets here + 5 per call to vertex_separation_BAB_C,
+    # so overall 3 + 5*H.n
+    cdef int bitset_pool_size = 3 + 5*H.n
+    cdef bitset_s * bitset_pool = <bitset_s *>sage_malloc(bitset_pool_size * sizeof(bitset_s))
+    if bitset_pool==NULL:
+        raise MemoryError("Unable to allocate data structures.")
+    for i from 0 <= i < bitset_pool_size:
+        bitset_init(bitset_pool+i, H.n)
     cdef int * current_prefix = <int *>sage_malloc(H.n * sizeof(int))
     cdef int * best_seq       = <int *>sage_malloc(H.n * sizeof(int))
     cdef int * positions      = <int *>sage_malloc(H.n * sizeof(int))
@@ -1095,17 +1099,19 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         sage_free(current_prefix)
         sage_free(best_seq)
         sage_free(positions)
-        bitset_free(ba)
-        bitset_free(bb)
-        bitset_free(bc)
+        for i from 0 <= i < bitset_pool_size:
+            bitset_free(bitset_pool+i)
+        sage_free(bitset_pool)
         raise MemoryError("Unable to allocate data strutures.")
 
-    cdef int i
     for 0 <= i < H.n:
         current_prefix[i] = i
         best_seq[i] = i
         positions[i] = i
 
+    cdef bitset_s *ba = bitset_pool
+    cdef bitset_s *bb = bitset_pool+1
+    cdef bitset_s *bc = bitset_pool+2
     bitset_clear(ba)
     bitset_clear(bb)
     bitset_clear(bc)
@@ -1127,7 +1133,8 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
                                         b_current_other        = bc,
                                         lower_bound            = lower_bound,
                                         upper_bound            = upper_bound,
-                                        current_cost           = 0)
+                                        current_cost           = 0,
+                                        bitset_pool            = bitset_pool+3 )
 
         sig_off()
 
@@ -1136,9 +1143,9 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
             order.append(H.int_to_vertices[best_seq[i]])
 
     finally:
-        bitset_free(ba)
-        bitset_free(bb)
-        bitset_free(bc)
+        for i from 0 <= i < bitset_pool_size:
+            bitset_free(bitset_pool+i)
+        sage_free(bitset_pool)
         sage_free(current_prefix)
         sage_free(best_seq)
         sage_free(positions)
@@ -1160,16 +1167,17 @@ cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_
         prefix[pos_a] = a
 
 cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
-                                 int *    current_prefix,
-                                 int *    positions,
-                                 int *    best_seq,
-                                 int      level,
-                                 bitset_t b_current_prefix,
-                                 bitset_t b_current_neighborhood,
-                                 bitset_t b_current_other,
-                                 int      lower_bound,
-                                 int      upper_bound,
-                                 int      current_cost):
+                                 int *      current_prefix,
+                                 int *      positions,
+                                 int *      best_seq,
+                                 int        level,
+                                 bitset_t   b_current_prefix,
+                                 bitset_t   b_current_neighborhood,
+                                 bitset_t   b_current_other,
+                                 int        lower_bound,
+                                 int        upper_bound,
+                                 int        current_cost,
+                                 bitset_s * bitset_pool):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
     """
@@ -1190,16 +1198,11 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
     # ==> Allocate local data structures
 
-    cdef bitset_t bits_tmp
-    cdef bitset_t bits_tmp2
-    cdef bitset_t loc_b_current_prefix
-    cdef bitset_t loc_b_current_neighborhood
-    cdef bitset_t loc_b_current_other
-    bitset_init(bits_tmp, H.n)
-    bitset_init(bits_tmp2, H.n)
-    bitset_init(loc_b_current_prefix, H.n)
-    bitset_init(loc_b_current_neighborhood, H.n)
-    bitset_init(loc_b_current_other, H.n)
+    cdef bitset_s *bits_tmp                   = bitset_pool + 5*level
+    cdef bitset_s *bits_tmp2                  = bitset_pool + 5*level+1
+    cdef bitset_s *loc_b_current_prefix       = bitset_pool + 5*level+2
+    cdef bitset_s *loc_b_current_neighborhood = bitset_pool + 5*level+3
+    cdef bitset_s *loc_b_current_other        = bitset_pool + 5*level+4
     bitset_copy(loc_b_current_prefix, b_current_prefix)
     bitset_copy(loc_b_current_neighborhood, b_current_neighborhood)
     bitset_copy(loc_b_current_other, b_current_other)
@@ -1257,12 +1260,6 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
             for 0 <= i < H.n:
                 best_seq[i] = current_prefix[i]
 
-        bitset_free(bits_tmp)
-        bitset_free(bits_tmp2)
-        bitset_free(loc_b_current_prefix)
-        bitset_free(loc_b_current_neighborhood)
-        bitset_free(loc_b_current_other)
-
         return current_cost
 
 
@@ -1300,7 +1297,7 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
             cost_i = vertex_separation_BAB_C(H, current_prefix, positions, best_seq, loc_level+1,
                                              loc_b_current_prefix, bits_tmp, loc_b_current_other,
-                                             lower_bound, upper_bound, delta_i)
+                                             lower_bound, upper_bound, delta_i, bitset_pool)
 
             bitset_discard(loc_b_current_prefix, i)
             bitset_add(loc_b_current_other, i)
@@ -1311,12 +1308,5 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
                     # Either we have optimal solution, or we are satisfied with
                     # current solution.
                     break
-
-    # We release local data structures
-    bitset_free(bits_tmp)
-    bitset_free(bits_tmp2)
-    bitset_free(loc_b_current_prefix)
-    bitset_free(loc_b_current_neighborhood)
-    bitset_free(loc_b_current_other)
 
     return upper_bound
