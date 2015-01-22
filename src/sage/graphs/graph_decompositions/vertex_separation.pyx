@@ -982,7 +982,7 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
 
     - ``width`` -- the computed vertex separation
 
-    - ``seq`` -- an ordering of the vertices of with ``width``.
+    - ``seq`` -- an ordering of the vertices of width ``width``.
 
 
     EXAMPLES:
