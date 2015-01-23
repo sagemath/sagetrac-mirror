@@ -33,7 +33,9 @@ from sage.structure.parent_base import ParentWithBase
 from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
 
-from sage.rings.all import RR, CC
+from sage.rings.real_mpfr import RR
+from sage.rings.complex_field import ComplexField
+CC = ComplexField()
 
 pynac_symbol_registry = {}
 

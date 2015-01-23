@@ -142,6 +142,7 @@ import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
+from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
@@ -1757,12 +1758,7 @@ cdef class Expression(CommutativeRingElement):
 
     def is_series(self):
         """
-        Return True if ``self`` is a series.
-
-        Series are special kinds of symbolic expressions that are
-        constructed via the :meth:`series` method. They usually have
-        an ``Order()`` term unless the series representation is exact,
-        see :meth:`is_terminating_series`.
+        Return True if ``self`` is a :class:`~sage.symbolic.series.SymbolicSeries`.
 
         OUTPUT:
 
@@ -1802,7 +1798,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sum_expr.is_series()
             False
         """
-        return is_a_series(self._gobj)
+        return False
 
     def is_terminating_series(self):
         """
@@ -1834,7 +1830,7 @@ cdef class Expression(CommutativeRingElement):
             sage: exp(x).series(x,10).is_terminating_series()
             False
         """
-        return g_is_a_terminating_series(self._gobj)
+        return False
 
     cpdef bint is_polynomial(self, var):
         """
@@ -3564,13 +3560,17 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
+        cdef SymbolicSeries nex
         sig_on()
         try:
             x = self._gobj.series(symbol0._gobj, order, 0)
+            nex = <SymbolicSeries>PY_NEW(SymbolicSeries)
+            nex._parent = self._parent
+            GEx_construct_ex(&nex._gobj, x)
         finally:
             sig_off()
-        return new_Expression_from_GEx(self._parent, x)
-
+        return nex
+    
     def residue(self, symbol):
         """
         Calculate the residue of ``self`` with respect to ``symbol``.
@@ -3729,9 +3729,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x==1,3).truncate().expand()
             -2*x^2*cos(1) + 5/2*x^2*sin(1) + 5*x*cos(1) - 7*x*sin(1) - 3*cos(1) + 11/2*sin(1)
         """
-        if not is_a_series(self._gobj):
-            return self
-        return new_Expression_from_GEx(self._parent, series_to_poly(self._gobj))
+        return self
 
     def expand(Expression self, side=None):
         """
@@ -5183,6 +5181,8 @@ cdef class Expression(CommutativeRingElement):
             [[2*a^2 + 1, 0], [-2*sqrt(2)*a + 1, 1], [1, 2]]
             sage: p.coefficients(x, sparse=False)
             [2*a^2 + 1, -2*sqrt(2)*a + 1, 1]
+            
+        TESTS:
 
         The behaviour is undefined with noninteger or negative exponents::
 
@@ -5257,6 +5257,10 @@ cdef class Expression(CommutativeRingElement):
             -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
             sage: p.list(a)
             [x^2 + x + 1, -2*sqrt(2)*x, 2]
+            sage: s=(1/(1-x)).series(x,6); s
+            1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
+            sage: s.list()
+            [1, 1, 1, 1, 1, 1]
         """
         return self.coefficients(x=x, sparse=False)
 
@@ -10888,3 +10892,4 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
        return greater
     else:
         raise TypeError("incompatible relations")
+
