@@ -72,7 +72,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
 from ginac cimport *
-from sage.symbolic.expression cimport *
+from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 cdef class SymbolicSeries(Expression):
     def __init__(self, SR):

@@ -136,14 +136,13 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
-from sage.symbolic.series cimport *
-
 import operator
 import ring
 import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
+from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
