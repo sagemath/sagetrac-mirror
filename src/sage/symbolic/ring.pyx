@@ -481,6 +481,23 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return self.var('some_variable')
 
+    def fraction_field(self):
+        """
+        Return ``self``.
+
+        .. WARNING::
+
+            This is not mathematically correct, since the symbolic
+            ring is not a field.  This function may be deprecated in
+            future versions of Sage.
+
+        EXAMPLES::
+
+            sage: SR.fraction_field()
+            Symbolic Ring
+        """
+        return self
+
     def is_field(self, proof=True):
         """
         Return False, since the symbolic ring is not a field.
