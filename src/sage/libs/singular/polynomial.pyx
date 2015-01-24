@@ -162,9 +162,10 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
         ....:         _ = p(a, a)
         ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
-        sage: _ = leak(50000)   # warmup and fill up pre-allocated buckets
-        sage: leak(10000)
-        0
+        sage: _ = leak(50000)                            # long time
+        sage: leaked = [leak(10000) for i in range(10)]  # long time
+        sage: leaked.count(0) >= 5                       # long time
+        True
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)
