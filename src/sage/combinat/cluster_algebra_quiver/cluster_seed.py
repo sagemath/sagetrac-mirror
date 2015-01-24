@@ -2295,7 +2295,11 @@ class ClusterSeed(SageObject):
     def loop(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4):
         """
         See arc(). Return the expansion of given loop with respect to self.weighted_triangulation
-        crossed_arcs is a list of arcs that are crossed by the loop. The first and last arcs are equal and is considered the cut edge.
+        Based on  http://arxiv.org/abs/1110.4364 sections 3.1-3.2:
+        Pick an orientation of the closed loop gamma and an ideal triangle tri0 (not a self-folded triangle) crossed gamma.
+        Let c2 be the second edge of tri0 that is crossed by gamma. (In above paper, Figure 9, this edge is labeled 'c').
+        Let crossed_arcs be a list of arcs that are crossed by gamma, where c2 is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=c2.
+         
         EXAMPLES::
             ### Example 3.6 from Dupont - Thomas' ATOMIC BASES IN TYPES A AND AFFINE A
             sage: T = [(0,1,2),(0,1,3)]
