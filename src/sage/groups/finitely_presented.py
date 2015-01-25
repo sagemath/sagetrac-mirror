@@ -743,7 +743,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     """
     Element = FinitelyPresentedGroupElement
 
-    def __init__(self, free_group, relations):
+    def __init__(self, free_group, relations, is_gap_group=False):
         """
         The Python constructor.
 
@@ -762,13 +762,21 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: TestSuite(H).run()
             sage: TestSuite(J).run()
         """
-        from sage.groups.free_group import is_FreeGroup
-        assert is_FreeGroup(free_group)
-        assert isinstance(relations, tuple)
+        if not libgap.IsFreeGroup(free_group):
+          raise ValueError("First argument is not a free group.")
+        if not isinstance(relations, tuple):
+          raise ValueError("Second argument is not a tuple of relations.")
+
+        if is_gap_group:
+            names = repr(free_group.GeneratorsOfGroup()).strip('[   ]')
+            free_group = FreeGroup(names)
+
+
         self._free_group = free_group
         self._relations = relations
         self._assign_names(free_group.variable_names())
         parent_gap = free_group.gap() / libgap([ rel.gap() for rel in relations])
+
         ParentLibGAP.__init__(self, parent_gap)
         Group.__init__(self)
 
