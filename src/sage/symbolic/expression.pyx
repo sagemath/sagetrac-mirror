@@ -5236,33 +5236,16 @@ cdef class Expression(CommutativeRingElement):
             doctest:...: DeprecationWarning: coeffs is deprecated. Please use coefficients instead.
             See http://trac.sagemath.org/17438 for details.
             [[1, 1]]
-
-        Series coefficients are now handled correctly (:trac:`17399`)::
-
-            sage: s=(1/(1-x)).series(x,6); s
-            1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
-            sage: s.coefficients()
-            [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5]]
-            sage: s.coefficients(x, sparse=False)
-            [1, 1, 1, 1, 1, 1]
-            sage: x,y = var("x,y")
-            sage: s=(1/(1-y*x-x)).series(x,3); s
-            1 + (y + 1)*x + ((y + 1)^2)*x^2 + Order(x^3)
-            sage: s.coefficients(x, sparse=False)
-            [1, y + 1, (y + 1)^2]
         """
         if x is None:
             x = self.default_variable()
-        if is_a_series(self._gobj):
-            l = [[self.coefficient(x, d), d] for d in xrange(self.degree(x))]
-        else:
-            f = self._maxima_()
-            maxima = f.parent()
-            maxima._eval_line('load(coeflist)')
-            G = f.coeffs(x)
-            from sage.calculus.calculus import symbolic_expression_from_maxima_string
-            S = symbolic_expression_from_maxima_string(repr(G))
-            l = S[1:]
+        f = self._maxima_()
+        maxima = f.parent()
+        maxima._eval_line('load(coeflist)')
+        G = f.coeffs(x)
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        S = symbolic_expression_from_maxima_string(repr(G))
+        l = S[1:]
 
         if sparse is True:
             return l
