@@ -1,0 +1,13 @@
+diff --git ppl-1.1.orig/configure.ac ppl-1.1.new/configure.ac
+index 25f3ba3..0d5beb8 100755
+--- ppl-1.1.orig/configure.ac
++++ ppl-1.1.new/configure.ac
+@@ -1580,7 +1580,7 @@ AC_CHECK_DECLS([getrusage, setrlimit],
+ ])
+ 
+ AC_CHECK_DECLS([setitimer], [], [], [[
+-#ifdef HAVE_SYS_TIME_H
++#if defined HAVE_SYS_TIME_H && !defined(__CYGWIN__)
+ # include <sys/time.h>
+ #endif
+ ]])

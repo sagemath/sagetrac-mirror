@@ -1,0 +1,26 @@
+diff --git ppl-1.1.orig/configure ppl-1.1.new/configure
+index 896c61f..2398891 100755
+--- ppl-1.1.orig/configure
++++ ppl-1.1.new/configure
+@@ -23901,7 +23901,7 @@ _ACEOF
+
+
+ ac_fn_cxx_check_decl "$LINENO" "setitimer" "ac_cv_have_decl_setitimer" "
+-#ifdef HAVE_SYS_TIME_H
++#if defined HAVE_SYS_TIME_H && !defined(__CYGWIN__)
+ # include <sys/time.h>
+ #endif
+
+diff --git ppl-1.1.orig/configure.ac ppl-1.1.new/configure.ac
+index 25f3ba3..0d5beb8 100755
+--- ppl-1.1.orig/configure.ac
++++ ppl-1.1.new/configure.ac
+@@ -1580,7 +1580,7 @@ AC_CHECK_DECLS([getrusage, setrlimit],
+ ])
+
+ AC_CHECK_DECLS([setitimer], [], [], [[
+-#ifdef HAVE_SYS_TIME_H
++#if defined HAVE_SYS_TIME_H && !defined(__CYGWIN__)
+ # include <sys/time.h>
+ #endif
+ ]])
