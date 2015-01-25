@@ -142,7 +142,7 @@ cdef class SymbolicSeries(Expression):
         """
         return new_Expression_from_GEx(self._parent, series_to_poly(self._gobj))
 
-    def series_variable(self):
+    def default_variable(self):
         """
         Return the expansion variable of this symbolic series.
 
@@ -150,7 +150,7 @@ cdef class SymbolicSeries(Expression):
 
             sage: s=(1/(1-x)).series(x,3); s
             1 + 1*x + 1*x^2 + Order(x^3)
-            sage: s.series_variable()
+            sage: s.default_variable()
             x
         """
         cdef GEx x = g_series_var(self._gobj)
