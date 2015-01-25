@@ -3304,7 +3304,7 @@ def coercion_traceback(dump=True):
         return coercion_model.exception_stack()
 
 
-cdef class NamedBinopMethod:
+cdef class NamedBinopMethod(object):
     """
     A decorator to be used on binary operation methods that should operate
     on elements of the same parent. If the parents of the arguments differ,
@@ -3316,17 +3316,27 @@ cdef class NamedBinopMethod:
     operations like ``_add_``, ``_sub_``, etc. in that both operands are
     guaranteed to have exactly the same parent.
     """
-    cdef _self
-    cdef _func
-    cdef _name
+    cdef object _self
+    cdef object _func
+    cdef str _name
+    cdef public str __name__
+    cdef public str __module__
 
     def __init__(self, func, name=None, obj=None):
         """
         TESTS::
 
             sage: from sage.structure.element import NamedBinopMethod
-            sage: NamedBinopMethod(gcd)(12, 15)
+            sage: f = NamedBinopMethod(gcd)
+            sage: f(12, 15)
             3
+
+        Check that module and name are correctly initialized (:trac:`17673`)::
+
+            sage: f.__module__
+            'sage.rings.arith'
+            sage: f.__name__
+            'gcd'
         """
         self._func = func
         if name is None:
@@ -3336,8 +3346,12 @@ cdef class NamedBinopMethod:
                 name = func.__func__.__name__
             else:
                 name = func.__name__
-        self._name = name
+        self._name = self.__name__ = name
         self._self = obj
+        try:
+            self.__module__ = func.__module__
+        except AttributeError:
+            self.__module__ = func.__objclass__.__module__
 
     def __call__(self, x, y=None, **kwds):
         """
