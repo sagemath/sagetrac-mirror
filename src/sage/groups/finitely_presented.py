@@ -970,7 +970,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return PermutationGroup([
                 Permutation(coset_table[2*i]) for i in range(len(coset_table)//2)])
 
-    def structure_description(self, limit=4096000, latex=False):
+    def structure_description(self, latex=False):
         r"""
         Return a string that tries to describe the structure of ``self``.
         This methods wraps GAP's ``StructureDescription`` method.
@@ -978,13 +978,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         INPUT:
 
-        - ``limit`` -- integer (default: 4096000). The maximal number
-          of cosets before the computation is aborted. It is used by
-          ``self.as_permutation_group()`` procedure.
-
         - ``latex`` -- a boolean (default: ``False``). If ``True`` return a
-          LaTeX formatted string. It is used by ``PermutationGroup.structure_description()``
-          procedure.
+          LaTeX formatted string.
 
         OUTPUT:
 
@@ -1002,10 +997,31 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
             sage: F.<x, y> = FreeGroup()
             sage: G=F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
-            sage: G.structure_description()
+            sage: G.structure_description() # optional - database_gap
             'C7'
+            sage: G2 = G.direct_product(G)
+            sage: G2.structure_description()
+            'C7 x C7'
+            sage: LatexExpr(G2.structure_description(latex=True)) # optional - database_gap
+            'C_{7} \times C_{7}'
         """
-        return self.as_permutation_group(limit).structure_description(latex)
+        try:
+            description = self._gap_().StructureDescription().sage()
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
+
+        if not latex:
+            return description
+
+        description = description.replace("x", r"\times").replace(":", r"\times")
+
+        import re
+        description = re.sub(r"([A-Za-z]+)([0-9]+)", r"\g<1>_{\g<2>}", description)
+        description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
+
+        return description
 
     def direct_product(self, H, reduced=False, new_names=True):
         r"""
