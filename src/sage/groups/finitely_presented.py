@@ -743,11 +743,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     """
     Element = FinitelyPresentedGroupElement
 
-    def __init__(self, free_group, relations, is_gap_group=False):
+    def __init__(self, free_group, relations):
         """
-        The Python constructor.
+        The Python constructor. :class:`FinitelyPresentedGroup` can be
+        initialized from :class:`FreeGroup` and from a GAP group.
 
-        TESTS::
+        EXAMPLES::
 
             sage: G = FreeGroup('a, b')
             sage: H = G / (G([1]), G([2])^3)
@@ -759,18 +760,41 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: J is H
             True
 
+            sage: fp_gap = libgap.FreeGroup("x", "y")
+            sage: from sage.groups.free_group import wrap_FreeGroup
+            sage: fp_sage = wrap_FreeGroup(fp_gap)
+            sage: fp_sage.inject_variables(verbose=False)
+            sage: g = fp_sage / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
+            sage: from sage.groups.finitely_presented import FinitelyPresentedGroup
+            sage: fpg = FinitelyPresentedGroup(fp_gap, g.relations())
+            sage: fpg.gens()
+            (x, y)
+            sage: fpg.relations()
+            (x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1)
+
+        TESTS::
             sage: TestSuite(H).run()
             sage: TestSuite(J).run()
+
         """
-        if not libgap.IsFreeGroup(free_group):
-          raise ValueError("First argument is not a free group.")
+        is_gap_group = False
+
+        from sage.groups.free_group import is_FreeGroup
+        if not is_FreeGroup(free_group):
+            if libgap.IsFreeGroup(free_group):
+                is_gap_group = True
+            else:
+                raise ValueError("First argument is not a free group.")
+
         if not isinstance(relations, tuple):
-          raise ValueError("Second argument is not a tuple of relations.")
+            raise ValueError("Second argument is not a tuple of relations.")
 
         if is_gap_group:
-            names = repr(free_group.GeneratorsOfGroup()).strip('[   ]')
-            free_group = FreeGroup(names)
+            from sage.groups.free_group import wrap_FreeGroup
 
+            free_group = wrap_FreeGroup(free_group)
+
+            free_group.inject_variables(verbose=False)
 
         self._free_group = free_group
         self._relations = relations
