@@ -10,16 +10,11 @@ This module implements digraph structures meant to be used in Cython in
   its cardinality). In this structure, sets are represented as integers, where
   the ith bit is set if element i belongs to the set.
 
-- ``FastDigraph_bitset`` -- This structure stores the neighborhood of vertices
-  using bitsets to enable fast operations such as: count the out-neighbors,
-  intersection of neighborhoods, etc.
-
 """
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'sage/data_structures/bitset.pxi'
 
 from libc.stdint cimport uint8_t
 
@@ -140,53 +135,3 @@ cdef inline int slow_popcount32(int i):
    return j
 
 
-
-###############################################################################
-# FastDigraph_bitset to store neighborhoods using bitsets
-###############################################################################
-
-cdef class FastDiGraph_bitset:
-    cdef int n
-    cdef bitset_t *graph
-    cdef dict vertices_to_int
-    cdef dict int_to_vertices
-
-    def __cinit__(self, D):
-        r"""
-        Constructor for ``FastDiGraph_bitset``.
-
-        If `D` is a Graph, we consider it as a symmetric DiGraph, and so we add
-        arcs `(u,v)`and `(v,u)` for each edge `uv`.
-        """
-        self.n = D.order()
-        self.graph = <bitset_t*>sage_malloc(sizeof(bitset_t)*self.n)
-        if self.graph == NULL:
-           raise MemoryError
-
-        cdef int i
-
-        # When the vertices are not consecutive integers
-        self.vertices_to_int = {}
-        self.int_to_vertices = {}
-        for i,v in enumerate(D.vertices()):
-            self.vertices_to_int[v] = i
-            self.int_to_vertices[i] = v
-            bitset_init(self.graph[i], self.n)
-            bitset_clear(self.graph[i])
-
-        if D.is_directed():
-            for u,v in D.edge_iterator(labels=None):
-                bitset_add(self.graph[self.vertices_to_int[u]], self.vertices_to_int[v])
-        else:
-            for u,v in D.edge_iterator(labels=None):
-                bitset_add(self.graph[self.vertices_to_int[u]], self.vertices_to_int[v])
-                bitset_add(self.graph[self.vertices_to_int[v]], self.vertices_to_int[u])
-
-    def __dealloc__(self):
-        r"""
-        Destructor.
-        """
-        cdef long i
-        for 0 <= i < self.n:
-            bitset_free(self.graph[i])
-        sage_free(self.graph)

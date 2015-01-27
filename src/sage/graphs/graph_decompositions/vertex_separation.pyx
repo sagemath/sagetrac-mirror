@@ -259,6 +259,8 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'fast_digraph.pyx'
 from libc.stdint cimport uint8_t, int8_t
+include "sage/data_structures/binary_matrix.pxi"
+from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
 #*****************************************************************************
 #          Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -1070,52 +1072,49 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     from sage.graphs.digraph import DiGraph
     if not isinstance(G, DiGraph) and not isinstance(G, Graph):
         raise ValueError("The input parameter must be a Graph or a DiGraph.")
-    if G.order()==0:
+
+    cdef int n = G.order()
+    if n==0:
         return 0, []
 
     lower_bound = 0 if lower_bound is None else lower_bound
-    upper_bound = G.order() if upper_bound is None else upper_bound
+    upper_bound = n if upper_bound is None else upper_bound
     if lower_bound > upper_bound:
         raise ValueError("The input upper bound is lower than the input lower bound.")
     if upper_bound < 1:
         raise ValueError("The input upper bound must be at least 1.")
 
     # ==> Allocate and initialize some data structures
+
+    # We use a binary matrix to store the (di)graph. This way the neighborhoud
+    # of a vertex is stored in one bitset.
+    cdef binary_matrix_t H
+    cdef dict vertex_to_int = dense_graph_init(H, G, translation = True)
     cdef int i
-    cdef FastDiGraph_bitset H = FastDiGraph_bitset(G)
+    cdef dict int_to_vertex = dict((i, v) for v,i in vertex_to_int.iteritems())
+
+    # We need 3 bitsets here + 5 per call to vertex_separation_BAB_C, so overall
+    # 5*n + 3. We use another binary matrix as a pool of bitsets.
+    cdef binary_matrix_t bm_pool
+    binary_matrix_init(bm_pool, 5*n+3, n)
+    # one of them is initialized with 1's
+    bitset_complement(bm_pool.rows[5*n+2], bm_pool.rows[5*n+2])
     
-    # We need 3 bitsets here + 5 per call to vertex_separation_BAB_C,
-    # so overall 3 + 5*H.n
-    cdef int bitset_pool_size = 3 + 5*H.n
-    cdef bitset_s * bitset_pool = <bitset_s *>sage_malloc(bitset_pool_size * sizeof(bitset_s))
-    if bitset_pool==NULL:
-        raise MemoryError("Unable to allocate data structures.")
-    for i from 0 <= i < bitset_pool_size:
-        bitset_init(bitset_pool+i, H.n)
-    cdef int * current_prefix = <int *>sage_malloc(H.n * sizeof(int))
-    cdef int * best_seq       = <int *>sage_malloc(H.n * sizeof(int))
-    cdef int * positions      = <int *>sage_malloc(H.n * sizeof(int))
+    cdef int * current_prefix = <int *>sage_malloc(n * sizeof(int))
+    cdef int * best_seq       = <int *>sage_malloc(n * sizeof(int))
+    cdef int * positions      = <int *>sage_malloc(n * sizeof(int))
     if current_prefix==NULL or best_seq==NULL or positions==NULL:
         sage_free(current_prefix)
         sage_free(best_seq)
         sage_free(positions)
-        for i from 0 <= i < bitset_pool_size:
-            bitset_free(bitset_pool+i)
-        sage_free(bitset_pool)
+        binary_matrix_free(H)
+        binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
 
-    for 0 <= i < H.n:
+    for i in range(n):
         current_prefix[i] = i
         best_seq[i] = i
         positions[i] = i
-
-    cdef bitset_s *ba = bitset_pool
-    cdef bitset_s *bb = bitset_pool+1
-    cdef bitset_s *bc = bitset_pool+2
-    bitset_clear(ba)
-    bitset_clear(bb)
-    bitset_clear(bc)
-    bitset_complement(bc,bc)
 
     cdef int width = upper_bound
     cdef list order = list()
@@ -1124,31 +1123,31 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         # ==> Call the cython method
         sig_on()
         width = vertex_separation_BAB_C(H                      = H,
+                                        n                      = n,
                                         current_prefix         = current_prefix,
                                         positions              = positions,
                                         best_seq               = best_seq,
                                         level                  = 0,
-                                        b_current_prefix       = ba,
-                                        b_current_neighborhood = bb,
-                                        b_current_other        = bc,
+                                        b_current_prefix       = bm_pool.rows[5*n],
+                                        b_current_neighborhood = bm_pool.rows[5*n+1],
+                                        b_current_other        = bm_pool.rows[5*n+2],
                                         lower_bound            = lower_bound,
                                         upper_bound            = upper_bound,
                                         current_cost           = 0,
-                                        bitset_pool            = bitset_pool+3 )
+                                        bm_pool                = bm_pool )
 
         sig_off()
 
         # ==> Build the final ordering
-        for 0 <= i < H.n:
-            order.append(H.int_to_vertices[best_seq[i]])
+        for 0 <= i < n:
+            order.append(int_to_vertex[best_seq[i]])
 
     finally:
-        for i from 0 <= i < bitset_pool_size:
-            bitset_free(bitset_pool+i)
-        sage_free(bitset_pool)
         sage_free(current_prefix)
         sage_free(best_seq)
         sage_free(positions)
+        binary_matrix_free(H)
+        binary_matrix_free(bm_pool)
 
     return (width if width<upper_bound else -1), order
 
@@ -1166,18 +1165,19 @@ cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_
         positions[a] = pos_a
         prefix[pos_a] = a
 
-cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
-                                 int *      current_prefix,
-                                 int *      positions,
-                                 int *      best_seq,
-                                 int        level,
-                                 bitset_t   b_current_prefix,
-                                 bitset_t   b_current_neighborhood,
-                                 bitset_t   b_current_other,
-                                 int        lower_bound,
-                                 int        upper_bound,
-                                 int        current_cost,
-                                 bitset_s * bitset_pool):
+cdef int vertex_separation_BAB_C(binary_matrix_t H,
+                                 int             n,
+                                 int *           current_prefix,
+                                 int *           positions,
+                                 int *           best_seq,
+                                 int             level,
+                                 bitset_t        b_current_prefix,
+                                 bitset_t        b_current_neighborhood,
+                                 bitset_t        b_current_other,
+                                 int             lower_bound,
+                                 int             upper_bound,
+                                 int             current_cost,
+                                 binary_matrix_t bm_pool):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
     """
@@ -1185,9 +1185,9 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
     # ==> Test termination
 
-    if level==H.n:
+    if level==n:
         if current_cost < upper_bound:
-            for 0 <= i < H.n:
+            for i in range(n):
                 best_seq[i] = current_prefix[i]
 
         return current_cost
@@ -1198,11 +1198,11 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
     # ==> Allocate local data structures
 
-    cdef bitset_s *bits_tmp                   = bitset_pool + 5*level
-    cdef bitset_s *bits_tmp2                  = bitset_pool + 5*level+1
-    cdef bitset_s *loc_b_current_prefix       = bitset_pool + 5*level+2
-    cdef bitset_s *loc_b_current_neighborhood = bitset_pool + 5*level+3
-    cdef bitset_s *loc_b_current_other        = bitset_pool + 5*level+4
+    cdef bitset_s *bits_tmp                   = bm_pool.rows[5*level]
+    cdef bitset_s *bits_tmp2                  = bm_pool.rows[5*level+1]
+    cdef bitset_s *loc_b_current_prefix       = bm_pool.rows[5*level+2]
+    cdef bitset_s *loc_b_current_neighborhood = bm_pool.rows[5*level+3]
+    cdef bitset_s *loc_b_current_other        = bm_pool.rows[5*level+4]
     bitset_copy(loc_b_current_prefix, b_current_prefix)
     bitset_copy(loc_b_current_neighborhood, b_current_neighborhood)
     bitset_copy(loc_b_current_other, b_current_other)
@@ -1222,17 +1222,17 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
     while somemore:
         somemore = 0
 
-        for i from loc_level <= i < H.n:
+        for i from loc_level <= i < n:
             j = current_prefix[i]
 
-            if bitset_issubset(H.graph[j], bits_tmp):
+            if bitset_issubset(H.rows[j], bits_tmp):
                 # (i) Vertex j is such that all its out-neighbors are in the
                 # prefix or in its out-neighborhood (so in bits_tmp).
                 bitset_add(bits_tmp, j)
                 select_it = 1
 
             elif bitset_in(loc_b_current_neighborhood, j):
-                bitset_difference(bits_tmp2, H.graph[j], bits_tmp)
+                bitset_difference(bits_tmp2, H.rows[j], bits_tmp)
                 if bitset_len(bits_tmp2)==1:
                     # (ii) Vertex j is an out-neighbor of the prefix and all but
                     # one of its out-neighbors are in the prefix or in its
@@ -1255,9 +1255,9 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
 
     # ==> Test termination
     #
-    if loc_level==H.n:
+    if loc_level==n:
         if current_cost < upper_bound:
-            for 0 <= i < H.n:
+            for i in range(n):
                 best_seq[i] = current_prefix[i]
 
         return current_cost
@@ -1267,9 +1267,9 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
     #
     # We compute for each remaining vertex v a lower bound on the width of any
     # ordering with prefix current_prefix+v
-    for i from loc_level <= i < H.n:
+    for i from loc_level <= i < n:
         j = current_prefix[i]
-        bitset_union(bits_tmp, loc_b_current_neighborhood, H.graph[j])
+        bitset_union(bits_tmp, loc_b_current_neighborhood, H.rows[j])
         bitset_difference(bits_tmp, bits_tmp, loc_b_current_prefix)
         bitset_discard(bits_tmp, j)
         delta_i = bitset_len(bits_tmp)
@@ -1279,7 +1279,7 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
     delta.sort()
 
 
-    # ==> Reccursion
+    # ==> Recursion
 
     for delta_i, i in delta:
 
@@ -1288,16 +1288,26 @@ cdef int vertex_separation_BAB_C(FastDiGraph_bitset H,
         if delta_i < upper_bound:
             # We extend the current prefix with vertex i and explore the branch
 
-            bitset_union(bits_tmp, loc_b_current_neighborhood,  H.graph[i])
+            bitset_union(bits_tmp, loc_b_current_neighborhood,  H.rows[i])
             bitset_difference(bits_tmp, bits_tmp, loc_b_current_prefix)
             bitset_discard(bits_tmp, i)
             _my_invert_positions(current_prefix, positions, i, loc_level)
             bitset_add(loc_b_current_prefix, i)
             bitset_discard(loc_b_current_other, i)
 
-            cost_i = vertex_separation_BAB_C(H, current_prefix, positions, best_seq, loc_level+1,
-                                             loc_b_current_prefix, bits_tmp, loc_b_current_other,
-                                             lower_bound, upper_bound, delta_i, bitset_pool)
+            cost_i = vertex_separation_BAB_C(H                      = H,
+                                             n                      = n,
+                                             current_prefix         = current_prefix,
+                                             positions              = positions,
+                                             best_seq               = best_seq,
+                                             level                  = loc_level+1,
+                                             b_current_prefix       = loc_b_current_prefix,
+                                             b_current_neighborhood = bits_tmp,
+                                             b_current_other        = loc_b_current_other,
+                                             lower_bound            = lower_bound,
+                                             upper_bound            = upper_bound,
+                                             current_cost           = delta_i,
+                                             bm_pool                = bm_pool )
 
             bitset_discard(loc_b_current_prefix, i)
             bitset_add(loc_b_current_other, i)
