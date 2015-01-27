@@ -1750,9 +1750,11 @@ def singular_function(name):
         <noncommutative RingWrap>
 
     """
-
+    from sage.misc.stopgap import stopgap
     cdef SingularFunction fnc
     try:
+        if (name=="factorize"):
+          stopgap("This code contains bugs and may be mathematically unreliable.", 17680)
         return SingularKernelFunction(name)
     except NameError:
         return SingularLibraryFunction(name)

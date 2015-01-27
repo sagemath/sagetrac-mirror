@@ -1664,6 +1664,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: factor(x)
             x
         """
+        from sage.misc.stopgap import stopgap
         R = self.parent()
 
         # raise error if trying to factor zero
@@ -1694,6 +1695,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise NotImplementedError("proof = True factorization not implemented.  Call factor with proof=False.")
 
         R._singular_().set_ring()
+        stopgap("This code contains bugs and may be mathematically unreliable.", 17680)
         S = self._singular_().factorize()
         factors = S[1]
         exponents = S[2]

@@ -4166,6 +4166,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: for i in range(100):
             ...       assert len(f.factor()) == 4
         """
+        from sage.misc.stopgap import stopgap
+        stopgap("This code contains bugs and may be mathematically unreliable.", 17680)
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
         cdef intvec *iv
