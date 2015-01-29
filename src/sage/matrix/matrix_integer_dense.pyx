@@ -2515,7 +2515,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return U
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, max_loops=0, max_time=0, auto_abort=False,
+            precision=0, max_loops=0, max_time=0, auto_abort=False, gh_bound=False,
             preprocessing=None, dump_gso_filename=None):
         """
         Block Korkin-Zolotarev reduction.
@@ -2590,6 +2590,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           provided it is interpreted as pruning vector. It must have length ``block_size``
           and must start with ``1``.
           
+        - ``gh_bound`` (default: ``False``) heuristic, if ``True`` then the enumeration bound will
+            be set to ``gh_bound`` times the Gaussian Heuristic. If ``True`` then gh_bound is set to
+            1.1, which is fpLLL's default.
+
         - ``preprocessing`` - (default: ``None``) if not ``None`` this is parameter is
           interpreted as a list of preprocessing options. The following options are
           supported.
@@ -2670,7 +2674,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if prune < 0:
             raise TypeError("prune must be >= 0")
         prune = int(prune)
-
         verbose = get_verbose() >= 2
 
         block_size = int(block_size)
@@ -2750,6 +2753,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                   max_loops=max_loops,
                   auto_abort=auto_abort,
                   prune=prune,
+                  gh_bound=gh_bound,
                   preprocessing=preprocessing,
                   dump_gso_filename=dump_gso_filename)
             R = A._sage_()

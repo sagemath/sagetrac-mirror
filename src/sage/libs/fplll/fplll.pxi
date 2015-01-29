@@ -69,6 +69,7 @@ cdef extern from "fplll/defs.h" namespace "fplll":
         BKZ_BOUNDED_LLL
         BKZ_AUTO_ABORT
         BKZ_DUMP_GSO
+        BKZ_GH_BND
 
     cdef enum LLLMethod:
         LM_WRAPPER
@@ -111,6 +112,8 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
          BKZParam(int blockSize, double delta)
          BKZParam(int blockSize, double delta, int flags, int maxLoops, int maxTime, int linearPruningLevel,
                   double autoAbort_scale, int autoAbort_maxNoDec)
+         BKZParam(int blockSize, double delta, int flags, int maxLoops, int maxTime, int linearPruningLevel,
+                  double autoAbort_scale, int autoAbort_maxNoDec, double ghFactor)
          int blockSize
          double delta
          int flags
@@ -121,6 +124,9 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
          int autoAbort_maxNoDec
 
          vector[double] pruning
+
+         double ghFactor
+
          string dumpGSOFilename
 
          BKZParam *preprocessing

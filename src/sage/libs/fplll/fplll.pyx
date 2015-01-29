@@ -449,7 +449,7 @@ cdef class FP_LLL:
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
             verbose=False, no_lll=False, bounded_lll=False, auto_abort=False, prune=False,
-            preprocessing=None, dump_gso_filename=None):
+            gh_bound=False, preprocessing=None, dump_gso_filename=None):
         r"""
         Run BKZ reduction.
 
@@ -466,24 +466,63 @@ cdef class FP_LLL:
           * ``'mpfr'``
 
         - ``verbose`` -- (default: ``False``) be verbose
+
         - ``no_lll`` -- (default: ``False``) to use LLL
+
         - ``bounded_lll`` -- (default: ``False``) bounded LLL
+
         - ``precision`` -- (default: ``0`` for automatic choice) bit
           precision to use if ``fp`` is ``'rr'``
+
         - ``max_loops`` -- (default: ``0`` for no restriction) maximum
           number of full loops
+
         - ``max_time`` -- (default: ``0`` for no restricion) stop after
           time seconds (up to loop completion)
+
         - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
-          average slope of `\log(\lVert b_i^* \rVert)` does not decrease
-          fast enough
+          average slope of `\log(||b_i^*||)` does not decrease fast enough.
+          If a tuple is given it is parsed as ``(scale, max_iter)`` such that
+          the algorithm will terminate if for ``max_iter`` loops the slope is not
+          smaller than ``scale * old_slope`` where ``old_slope`` was the old minimum.
+          If ``True`` is given, this is equivalent to providing ``(1.0,5)`` which is
+          fpLLL's default.
+
+        - ``gh_bound`` (default: ``False``) heuristic, if ``True`` then the enumeration bound will
+            be set to ``gh_bound`` times the Gaussian Heuristic. If ``True`` then gh_bound is set to
+            1.1, which is fpLLL's default.
+
         - ``preprocessing`` - (default: ``None``) if not ``None`` this is parameter is
-          interpreted as a list of preprocessing options which are applied recursively.
-          That is, if ``preprocessing=[(10,10,3600.0), (10,0,0)]`` local blocks are
-          preprocessed with at most 10 rounds of BKZ-10 (interrupted after 3600.0).
-          Inner blocks of this BKZ-10 are preprocessed with LLL only (the other two
-          parameters are ignored if the first parameter is <= 2). If ``None`` only LLL
-          is run to preprocess local blocks before calling enumeration.
+          interpreted as a list of preprocessing options. The following options are
+          supported.
+
+          - ``None``: LLL is run for pre-processing local blocks.
+
+          - an integer: this is interpreted as the block size used for preprocessing local
+            blocks before calling enumeration. Any integer ≤ 2 disables BKZ preprocessing
+            and runs LLL instead, any integer ≥ ``block_size`` raises an error.
+
+          - an iterable of integers: this is interpreted as a list of pre-processing
+            block sizes. For example, ``preprocessing=[20,5]`` would pre-process with
+            BKZ-20 where blocks in turn are preprocessed with BKZ-5.
+
+          - an iterable of tuples: this is interpreted as a list of pre-processing
+            options where each entry ``(bs, ml, mt, aa, p)`` has the following
+            interpretation:
+
+            - ``bs`` - block size used for pre-preprocessing
+
+            - ``ml`` - ``max_loops`` for each local block
+
+            - ``mt`` - ``max_time`` for each local block
+
+            - ``aa`` - auto abort for local pre-processing
+
+            - ``prune`` - ``prune`` for local blocks.
+
+            It is permissable to not set all parameters. For example, ``[(20,10)]`` is
+            interpreted as ``[(20,0,0,True,0)]``.
+
         - ``dump_gso_filename`` - (default: ``None``) if this is not ``None``
           then the logs of the norms of the Gram-Schmidt vectors are written
           to this file after each BKZ loop.
@@ -534,7 +573,8 @@ cdef class FP_LLL:
         linearPruningLevel = 0
         try:
             linearPruningLevel = int(prune)
-            o.enableLinearPruning(linearPruningLevel)
+            if linearPruningLevel:
+                o.enableLinearPruning(linearPruningLevel)
         except TypeError:
             if prune:
                 o.pruning.resize(block_size)
@@ -549,6 +589,12 @@ cdef class FP_LLL:
             o.flags |= BKZ_NO_LLL
         if bounded_lll:
             o.flags |= BKZ_BOUNDED_LLL
+        if gh_bound:
+            o.flags |= BKZ_GH_BND
+            if gh_bound is True:
+                o.ghFactor = 1.1
+            else:
+                o.ghFactor = float(gh_bound)
         if auto_abort:
             o.flags |= BKZ_AUTO_ABORT
             try:
@@ -569,6 +615,10 @@ cdef class FP_LLL:
             o.dumpGSOFilename = dump_gso_filename
 
         cdef BKZParam *preproc = &o
+
+        # preprocessing is None or False
+        if not preprocessing:
+            preprocessing = []
 
         # preprocessing is an integer
         try:
