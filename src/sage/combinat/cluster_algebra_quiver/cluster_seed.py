@@ -2086,26 +2086,26 @@ class ClusterSeed(SageObject):
         
     def snake_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1):
         """
-		INPUT: 
-		crossed_arcs = x0, x1, ... etc
-		(optional) first_triangle = (a,b,c) -> the first triangle crossed by arc
-		(optional) final_triangle = (d,e,f) -> the final triangle crossed by arc 
+        INPUT: 
+        crossed_arcs = x0, x1, ... etc
+        (optional) first_triangle = (a,b,c) -> the first triangle crossed by arc
+        (optional) final_triangle = (d,e,f) -> the final triangle crossed by arc 
 		
-		Algorithm will try to find the first triangle and final triangle crossed by arc, and
-		will warn user to enter these triangles if the algorithm fails
+        Algorithm will try to find the first triangle and final triangle crossed by arc, and
+        will warn user to enter these triangles if the algorithm fails
 		  
-		1 labels the bottom triangle of a positively-oriented tile,
-		2 labels the top triangle of a positively-oriented tile,
-		-1 labels the bottom triangle of a positively-oriented tile,
-		-2 labels the top triangle of a negatively-oriented tile.
+        1 labels the bottom triangle of a positively-oriented tile,
+        2 labels the top triangle of a positively-oriented tile,
+        -1 labels the bottom triangle of a positively-oriented tile,
+        -2 labels the top triangle of a negatively-oriented tile.
 		
-		The direction (RIGHT or ABOVE) that is attached to the top triangle (labeled -2 or 2) 
-		indicates the location of the tile after the current tile.
+        The direction (RIGHT or ABOVE) that is attached to the top triangle (labeled -2 or 2) 
+        indicates the location of the tile after the current tile.
 		
-		If this is a snake graph (not a band graph), 
-		then the direction for the last tile does not mean anything
+        If this is a snake graph (not a band graph), 
+        then the direction for the last tile does not mean anything
 		
-		EXAMPLES::
+        EXAMPLES::
 		    #### Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces"
 		    #1,2,3,4,5,6 = 1,2,3,4,5,6, gamma crosses 1,2,3,4,1
 		    #outer boundary edges, clockwise starting from starting point of gamma: 7,8,9, 10
@@ -2289,6 +2289,26 @@ class ClusterSeed(SageObject):
             [(1, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise'))), (2, (x2, x0*x3, x6), 'ABOVE')]]
             sage: S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell])
             (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
+            
+            sage: # 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper http://arxiv.org/abs/0712.4131 where tau_i = i and tau_13 is labeled 0
+            sage: T = [(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)] # Describe the labels of the triangles counterclockwise
+            sage: #S = ClusterSeed(T, boundary_edges=[6,7,8,9,10,11,12,0])
+            sage: S = ClusterSeed(T)
+            sage: c = [item for item in S.cluster()]
+            sage: gamma = S.arc([c[1],c[3],c[5]])
+            sage: S.mutate([1,3,5], inplace=True)
+            sage: S.cluster_variable(5) == gamma
+            True
+            
+            sage: # Affine A(2,2) triangulation from Figure 3 of Shiffler-Thomas' paper http://arxiv.org/abs/0712.4131 where tau_i = i and tau_8 is labeled 0
+            sage: T = [(7,4,3),(4,1,5),(3,6,2),(2,1,0)]
+            sage: #S = ClusterSeed(T, boundary_edges=[5,6,7,0])
+            sage: S = ClusterSeed(T)
+            sage: c = [item for item in S.cluster()]
+            sage: gamma = S.arc([c[1],c[2],c[3],c[4],c[1]])
+            sage: S.mutate([1,3,4,2,3], inplace=True)
+            sage: S.cluster_variable(3) == gamma
+            True
         """
         return LaurentExpansionFromSurface(self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, self._weighted_boundary_edges, fig_size=fig_size)
 
