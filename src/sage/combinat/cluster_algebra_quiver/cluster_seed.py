@@ -2160,7 +2160,7 @@ class ClusterSeed(SageObject):
        see snake_graph()
 
        EXAMPLES::
-           ######## Figure 6 of Musiker and Williams "Skein Relations" #######
+           ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
            #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
            sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
            sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])

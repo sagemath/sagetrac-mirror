@@ -426,6 +426,16 @@ def PartitionIntoTuples(L):
     """
     This function acts like Partition[L,2] in Mathematica.
     Partition a list into a list of tuples.
+
+    EXAMPLES::
+        sage: from sage.combinat.cluster_algebra_quiver.surface \
+              import PartitionIntoTuples
+        sage: L = [1,2,3,4,5,6,7,8,9,10]
+        sage: PartitionIntoTuples(L)
+        [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        sage: L = [2,3,4,5,6,7,8,9,10]
+        sage: PartitionIntoTuples(L)
+        [[2, 3], [4, 5], [6, 7], [8, 9], [10]]
     """
     ListTuples = []
     if len(L) % 2 == 1:
@@ -442,6 +452,18 @@ def GetDenominator(G):
     Mathematica: todaslasdiagonales
     Input: snake graph G
     Return all denominators, i.e. variables corresponding to arcs (of ideal triangulation) that are crossed by input arc
+
+    EXAMPLES::
+        sage: from sage.combinat.cluster_algebra_quiver.surface \
+              import GetDenominator
+        sage: ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
+        sage: #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
+        sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
+        sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])
+        sage: c = [item for item in S.cluster()]
+        sage: BG = S.band_graph( [ c[1], c[2], c[3], c[0], c[1] ]) # Pick cut edge to be tau_1 = 1, go clockwise
+        sage: GetDenominator(BG)
+        x0*x1*x2*x3
     """
     denom = 1
     for pos in range(0,len(G)):
