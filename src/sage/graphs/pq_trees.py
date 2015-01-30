@@ -88,17 +88,15 @@ def reorder_sets(sets):
     if len(sets) == 1:
         return sets
 
-    s = set([])
+    s = set().union(*sets) # union of the sets
 
-    for ss in sets:
-        for i in ss:
-            s.add(i)
-
-    tree = P(sets)
-
+    from sage.sets.set import Set
+    tree = P(map(Set,sets)) # REMOVE THAAAAAAAAAAAAAAAAAT
 
     for i in s:
+        print 'set_continuous {}'.format(i)
         tree.set_contiguous(i)
+        print tree
         tree = flatten(tree)
 
     return tree.ordering()
@@ -121,20 +119,20 @@ class PQ:
     adding the constraints one at a time.
 
         * At first, there is no constraint : all the permutations are
-          allowed. We will then build a tree composed of one node
+          allowed. We will then build a tree `T_1` composed of one node
           linked to all the sets in our collection (his children). As
           we want to remember that all the permutations of his
           children are allowed, we will label it with "P", making it a
-          P-Tree.
+          `P`-Tree.
 
         * We are now picking an element `x \in X`, and we want to
           ensure that all the elements `C_x` containing it are
           contiguous. We can remove them from their tree `T_1`, create
           a second tree `T_2` whose only children are the `C_x`, and
           attach this `T_2` to `T_1`. We also make this new tree a
-          `P-Tree`, as all the elements of `C_x` can be permuted as
+          `P`-Tree, as all the elements of `C_x` can be permuted as
           long as they stay close to each other. Obviously, the whole
-          tree `T_2` can be prmuter with the other children of `T_1`
+          tree `T_2` can be permuted with the other children of `T_1`
           in any way -- it does not impair the fact that the sequence
           of the children will ensure the sets containing `x` are
           contiguous.
@@ -154,9 +152,9 @@ class PQ:
           following way :
 
             * We create a tree `T_1` gathering all the elements not
-              containing `x` nor `x'`, and make it a `P-Tree`
+              containing `x` nor `x'`, and make it a `P`-Tree
 
-            * We create 3 `P`-Trees `T_{x, x'}, T_x, T_{x'}`, which
+            * We create three `P`-Trees `T_{x, x'}, T_x, T_{x'}`, which
               respectively have for children the elements or our
               collection containing
 
@@ -244,10 +242,7 @@ class PQ:
             True
 
         """
-        for i in self:
-            if v in i:
-                return True
-        False
+        return any(v in i for i in self)
 
     def split(self, v):
         r"""
@@ -315,7 +310,6 @@ class PQ:
             {2, 3}
             ('P', [{2, 4}, {8, 2}, {9, 2}])
         """
-
         for i in self._children:
             yield i
 
@@ -549,7 +543,6 @@ class P(PQ):
             ValueError: Impossible
 
         """
-
         ###############################################################
         # Defining Variables :                                        #
         #                                                             #
@@ -586,15 +579,13 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = dict(map(lambda x_y : (x_y[0],len(x_y[1])), sorting.iteritems()))
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
+        if (n_PARTIAL_ALIGNED > 2 or
             (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
-
             raise ValueError(impossible_msg)
 
         # From now on, there are at most two pq-trees which are partially filled
@@ -629,7 +620,6 @@ class P(PQ):
 
             self._children = set_EMPTY + set_PARTIAL_ALIGNED
             return (PARTIAL, ALIGNED)
-
 
         ################################################################
         # 2/2                                                          #
@@ -670,7 +660,6 @@ class P(PQ):
                     subtree = set_PARTIAL_ALIGNED[0]
                     new.extend(subtree.simplify(v, right = ALIGNED))
 
-
                 # Then the full elements, if any, in a P-tree (we can
                 # permute any two of them while keeping all the
                 # elements containing v on an interval
@@ -690,10 +679,9 @@ class P(PQ):
             # interval of sets containing v to the right
 
             else:
-
                 new = []
 
-                # The second partal element is aligned to the right
+                # The second partial element is aligned to the right
                 # while, as we want to put it at the end of the
                 # interval, it should be aligned to the left
                 set_PARTIAL_ALIGNED[1].reverse()
@@ -783,7 +771,6 @@ class Q(PQ):
 
         """
 
-
         #################################################################
         # Guidelines :                                                  #
         #                                                               #
@@ -833,8 +820,7 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = dict(map(lambda x_y1 : (x_y1[0],len(x_y1[1])), sorting.iteritems()))
 
         ###################################################################
         #                                                                 #
@@ -874,7 +860,7 @@ class Q(PQ):
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
+        if (n_PARTIAL_ALIGNED > 2 or
             (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
 
             raise ValueError(impossible_msg)
@@ -913,7 +899,7 @@ class Q(PQ):
         #                                                            #
         # We iteratively consider all the children, and check        #
         # that the elements containing v are indeed                  #
-        # locate on an interval.                                     #
+        # located on an interval.                                    #
         #                                                            #
         # We are also interested in knowing whether this interval is #
         # aligned to the right                                       #
@@ -1014,4 +1000,3 @@ class Q(PQ):
             # complement of whether we have seen the right end
 
             return (PARTIAL, not seen_right_end)
-
