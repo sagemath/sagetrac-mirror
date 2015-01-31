@@ -2191,7 +2191,6 @@ class MPolynomialIdeal_singular_repr(
         This is due to precision error,
         which causes the computation of an intermediate Groebner basis to fail.
 
-
         If the ground field's characteristic is too large for
         Singular, we resort to a toy implementation::
 
@@ -2202,6 +2201,22 @@ class MPolynomialIdeal_singular_repr(
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
             [{y: 0, x: 0}]
+
+        The dictionary expressing the variety will be indexed by generators
+        of the polynomial ring after changing to the target field.
+        But the mapping will also accept generators of the original ring,
+        or even generator names as strings, when provided as keys::
+
+            sage: K.<x,y> = QQ[]
+            sage: I = ideal([x^2+2*y-5,x+y+3])
+            sage: v = I.variety(AA)[0]; v
+            {x: 4.464101615137755?, y: -7.464101615137755?}
+            sage: v.keys()[0].parent()
+            Multivariate Polynomial Ring in x, y over Algebraic Real Field
+            sage: v[x]
+            4.464101615137755?
+            sage: v["y"]
+            -7.464101615137755?
 
         TESTS::
 
@@ -2339,15 +2354,16 @@ class MPolynomialIdeal_singular_repr(
           else:
             raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
+        from sage.structure.converting_dict import KeyConvertingDict
         V = []
         for t in T:
             Vbar = _variety([P(f) for f in t], [])
             #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
-                V.append(dict([(P(var),val) for var,val in v.iteritems()]))
+                V.append(KeyConvertingDict(P, v))
         V.sort()
-        return Sequence(V)
+        return V
 
     @require_field
     def hilbert_polynomial(self):
@@ -4342,8 +4358,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                    -x0*y0 + x4*y1 + x3*y2 + x2*y3 + x1*y4 - y0*z0 + y4*z1 + y3*z2 + y2*z3 + y1*z4 - y0) of Multivariate Polynomial Ring in
                    x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4 over Finite Field of size 3
             sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
-            sage: J.variety()
-            [{y1: 0, y4: 0, x4: 0, y2: 0, y3: 0, y0: 0, x2: 0, z4: 0, z3: 0, z2: 0, x1: 0, z1: 0, z0: 0, x0: 1, x3: 0}]
+            sage: from sage.doctest.fixtures import reproducible_repr
+            sage: print(reproducible_repr(J.variety()))
+            [{x0: 1, x1: 0, x2: 0, x3: 0, x4: 0, y0: 0, y1: 0, y2: 0, y3: 0, y4: 0, z0: 0, z1: 0, z2: 0, z3: 0, z4: 0}]
 
 
         Weil restrictions are often used to study elliptic curves over
