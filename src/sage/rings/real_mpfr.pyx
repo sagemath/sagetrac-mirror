@@ -2193,21 +2193,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_add(x.value, self.value, (<RealNumber>other).value, (<RealField_class>self._parent).rnd)
         return x
 
-    def __invert__(self):
-        """
-        Return the reciprocal of ``self``.
-
-        EXAMPLES::
-
-            sage: ~RR(5/2)
-            0.400000000000000
-            sage: ~RR(1)
-            1.00000000000000
-            sage: ~RR(0)
-            +infinity
-        """
-        return self._parent(1) / self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.

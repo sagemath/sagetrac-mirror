@@ -1500,6 +1500,19 @@ cdef class MonoidElement(Element):
     """
     Generic element of a monoid.
     """
+    def is_one(self):
+        r"""
+        Test whether this element is one.
+
+        EXAMPLES::
+
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
+            sage: F([]).is_one()
+            True
+            sage: F([(1, 2)]).is_one()
+            False
+        """
+        return self == self._parent.one()
 
     #############################################################
     # Multiplication
@@ -1646,9 +1659,10 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         r"""
         Return the inverse of ``self``.
         """
+        # Warning: do not use _div_() here has some elements override __div__()
         if self.is_one():
             return self
-        return self.parent().one()/self
+        return self._parent.one() / self
 
 
 def is_RingElement(x):
@@ -1660,6 +1674,25 @@ def is_RingElement(x):
 cdef class RingElement(ModuleElement):
     ##################################################
     def is_one(self):
+        r"""
+        Test whether ``self`` is the unit.
+
+        EXAMPLES::
+
+            sage: ZZ(1).is_one()
+            True
+            sage: ZZ(3).is_one()
+            False
+            sage: ZZ(-1).is_one()
+            False
+
+            sage: R.<x,y> = ZZ['x','y']
+            sage: A = R.quotient([x^2+3*x*y,y^4 - x^3])
+            sage: A(1).is_one()
+            True
+            sage: A(-1).is_one()
+            False
+        """
         return self == self._parent.one()
 
     ##################################
@@ -2005,9 +2038,31 @@ cdef class RingElement(ModuleElement):
         return self._div_(right)
 
     def __invert__(self):
+        r"""
+        Return the reciprocal of ``self``.
+
+        EXAMPLES::
+
+            sage: ~RR(5/2)
+            0.400000000000000
+            sage: ~RR(1)
+            1.00000000000000
+            sage: ~RR(0)
+            +infinity
+
+            sage: R.<x> = QQ[]
+            sage: f = x - 90283
+            sage: f.__invert__()
+            1/(x - 90283)
+            sage: ~f
+            1/(x - 90283)
+        """
+        # Warning: do not use _div_() here has some elements override __div__()
         if self.is_one():
             return self
-        return 1/self
+        if self.is_zero():
+            raise ZeroDivisionError("division by zero in a ring")
+        return self._parent.one() / self
 
     def additive_order(self):
         """
@@ -3262,7 +3317,7 @@ def is_InfinityElement(x):
 cdef class InfinityElement(RingElement):
     def __invert__(self):
         from sage.rings.all import ZZ
-        return ZZ(0)
+        return ZZ.zero()
 
 cdef class PlusInfinityElement(InfinityElement):
     pass

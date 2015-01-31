@@ -1030,19 +1030,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
         return self.subs(**d)
 
-    def __invert__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = x - 90283
-            sage: f.__invert__()
-            1/(x - 90283)
-            sage: ~f
-            1/(x - 90283)
-        """
-        return self.parent().one()/self
-
     def inverse_of_unit(self):
         """
         EXAMPLES::
@@ -1669,7 +1656,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (TypeError, ValueError):
             pass
         return RingElement.__div__(self, right)
-
 
     def __pow__(self, right, modulus):
         """

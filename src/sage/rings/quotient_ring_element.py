@@ -579,7 +579,7 @@ class QuotientRingElement(ring_element.RingElement):
         try:
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())
         except NotImplementedError:
-            return self.parent()(1)/self
+            return self.parent().one()/self
         return self.parent()(inv)
 
     def __float__(self):
