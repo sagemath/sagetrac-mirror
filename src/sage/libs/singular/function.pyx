@@ -90,6 +90,7 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_ideal_libsingular cimport sage_ideal_to_singular_ideal, singular_ideal_to_sage_sequence
 
 from sage.libs.singular.decl cimport *
+# n_ParameterNames
 
 from sage.libs.singular.option import opt_ctx
 from sage.libs.singular.polynomial cimport singular_vector_maximal_component, singular_polynomial_check
@@ -196,7 +197,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).npars()
             0
         """
-        return self._ring.P
+        return n_NumberOfParameters(self._ring.cf)
 
     def ordering_string(self):
         """
@@ -230,7 +231,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).par_names()
             []
         """
-        return [self._ring.parameter[i] for i in range(self.npars())]
+        return [n_ParameterNames(self._ring.cf)[i] for i in range(self.npars())]
 
     def characteristic(self):
         """
@@ -246,7 +247,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).characteristic()
             0
         """
-        return self._ring.ch
+        return self._ring.cf.ch
 
     def is_commutative(self):
         """

@@ -170,8 +170,13 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL"
+                --with-gmp="$SAGE_LOCAL" 
+                
+                
+#                --enable-streamio --without-Singular
 
+#                --enable-debugoutput
+                
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
         return 1
