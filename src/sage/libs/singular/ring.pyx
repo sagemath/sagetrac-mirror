@@ -24,6 +24,8 @@ from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
 from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a
 from sage.libs.singular.decl cimport p_Copy
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
+from sage.libs.singular.decl cimport n_coeffType
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -120,7 +122,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef int nblcks
     cdef int offset
     cdef int characteristic
-    cdef int ringtype = 0
+    cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
     cdef MPolynomial_libsingular minpoly
     cdef lnumber *nmp
@@ -166,7 +168,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
         mpz_init_set_ui(ringflaga, 0)
         characteristic = 0
-        ringtype = 4 # integer ring
+        ringtype = n_Z # integer ring
 
     elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
         if base_ring.characteristic() <= 2147483647:
@@ -197,11 +199,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             if is_64_bit:
                 # it seems Singular uses ints somewhere
                 # internally, cf. #6051 (Sage) and #138 (Singular)
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+                if exponent <= 30: ringtype = n_Z2m
+                else: ringtype = n_GF
             else:
-                if exponent <= 30: ringtype = 1
-                else: ringtype = 3
+                if exponent <= 30: ringtype = n_Z2m
+                else: ringtype = n_GF
             characteristic = exponent
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, 2)
@@ -211,7 +213,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             F = ch.factor()
             assert(len(F)==1)
 
-            ringtype = 3
+            ringtype = n_GF
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set(ringflaga, (<Integer>F[0][0]).value)
             ringflagb = F[0][1]
@@ -223,7 +225,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 characteristic = ch
             except OverflowError:
                 raise NotImplementedError("Characteristic %d too big."%ch)
-            ringtype = 2
+            ringtype = n_Zn
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, characteristic)
             ringflagb = 1
@@ -234,7 +236,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
     _ring.ch = characteristic
-    _ring.ringtype = ringtype
+    _ring.cf.type = ringtype
     _ring.N = n
     _ring.names  = _names
 
@@ -315,7 +317,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     # whether we break at indices first!
     _ring.order[nblcks] = ringorder_C
 
-    if ringtype != 0:
+    if ringtype != n_unknown:
         _ring.ringflaga = ringflaga
         _ring.ringflagb = ringflagb
 

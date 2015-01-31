@@ -169,6 +169,7 @@ include "sage/ext/interrupt.pxi"
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 
 # singular functions
 from sage.libs.singular.decl cimport (
@@ -1637,8 +1638,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if r!=currRing: rChangeCurrRing(r)  # pDivide
         res = pDivide(f._poly, g._poly)
         if coeff:
-            if r.ringtype == 0 or r.cf.nDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r)):
-                n = r.cf.nDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r))
+            if r.cf.type == n_unknown or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
+                n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
                 p_SetCoeff0(res, n, r)
             else:
                 raise ArithmeticError("Cannot divide these coefficients.")
@@ -3195,7 +3196,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = bool((not self._poly.next) and _ring.cf.nIsOne(_n))
+        ret = bool((not self._poly.next) and _ring.cf.cfIsOne(_n,_ring.cf))
 
         p_Delete(&_p, _ring)
         return ret
@@ -3920,8 +3921,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
-        if r.ringtype != 0:
-            if r.ringtype == 4:
+        if r.cf.type != n_unknown:
+            if r.cf.type == n_Z:
                 P = parent.change_ring(RationalField())
                 f = P(self)//P(right)
                 CM = list(f)
@@ -4470,8 +4471,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             raise TypeError, "algorithm %s not supported"%(algorithm)
 
-        if _ring.ringtype != 0:
-            if _ring.ringtype == 4:
+        if _ring.cf.type != n_unknown:
+            if _ring.cf.type == n_Z:
                 P = self._parent.change_ring(RationalField())
                 res = P(self).gcd(P(right))
                 coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
@@ -4541,8 +4542,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef MPolynomial_libsingular _g
         if _ring!=currRing: rChangeCurrRing(_ring)
 
-        if _ring.ringtype != 0:
-            if _ring.ringtype == 4:
+        if _ring.cf.type != n_unknown:
+            if _ring.cf.type == n_Z:
                 P = self.parent().change_ring(RationalField())
                 py_gcd = P(self).gcd(P(g))
                 py_prod = P(self*g)

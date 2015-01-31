@@ -66,6 +66,7 @@ from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idR
 from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
 from sage.libs.singular.decl cimport pp_Mult_nn, p_Delete, n_Delete
 from sage.libs.singular.decl cimport rIsPluralRing
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 
 from sage.structure.parent_base cimport ParentWithBase
 
@@ -304,12 +305,12 @@ def interred_libsingular(I):
 
 
     # divide head by coefficients
-    if r.ringtype == 0:
+    if r.cf.type == n_unknown:
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]
             if p:
                 n = p_GetCoeff(p,r)
-                n = r.cf.nInvers(n)
+                n = r.cf.cfInvers(n,r.cf)
             result.m[j] = pp_Mult_nn(p, n, r)
             p_Delete(&p,r)
             n_Delete(&n,r)

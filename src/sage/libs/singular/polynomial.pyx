@@ -227,20 +227,20 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
             return 0
         elif p_IsConstant(q,r):
             # compare 0, const
-            return 1-2*r.cf.nGreaterZero(p_GetCoeff(q,r)) # -1: <, 1: > #
+            return 1-2*r.cf.cfGreaterZero(p_GetCoeff(q,r), r.cf) # -1: <, 1: > #
     elif q == NULL:
         if p_IsConstant(p,r):
             # compare const, 0
-            return -1+2*r.cf.nGreaterZero(p_GetCoeff(p,r)) # -1: <, 1: >
+            return -1+2*r.cf.cfGreaterZero(p_GetCoeff(p,r), r.cf) # -1: <, 1: >
     #else
 
     while ret==0 and p!=NULL and q!=NULL:
         ret = p_Cmp( p, q, r)
 
         if ret==0:
-            h = r.cf.nSub(p_GetCoeff(p, r),p_GetCoeff(q, r))
+            h = r.cf.cfSub(p_GetCoeff(p, r),p_GetCoeff(q, r),r.cf)
             # compare coeffs
-            ret = -1+r.cf.nIsZero(h)+2*r.cf.nGreaterZero(h) # -1: <, 0:==, 1: >
+            ret = -1+r.cf.cfIsZero(h,r.cf)+2*r.cf.cfGreaterZero(h, r.cf) # -1: <, 0:==, 1: >
             n_Delete(&h, r)
         p = pNext(p)
         q = pNext(q)
@@ -309,7 +309,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
         raise ZeroDivisionError
     sig_on()
     cdef number *n = p_GetCoeff(q, r)
-    n = r.cf.nInvers(n)
+    n = r.cf.cfInvers(n,r.cf)
     ret[0] = pp_Mult_nn(p, n, r)
     n_Delete(&n, r)
     sig_off()

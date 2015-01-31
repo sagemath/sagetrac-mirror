@@ -118,6 +118,9 @@ from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wr
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
+from sage.libs.singular.decl cimport n_coeffType
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
+
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import is_IntegerRing
@@ -988,10 +991,12 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
+        cdef n_coeffType unknownRingtype = n_unknown
+  
         res = pDivide(f._poly,g._poly)
         if coeff:
-            if r.ringtype == 0 or r.cf.nDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r)):
-                n = r.cf.nDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r))
+            if (r.cf.type == unknownRingtype) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
+                n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
                 p_SetCoeff0(res, n, r)
             else:
                 raise ArithmeticError("Cannot divide these coefficients.")
@@ -2388,7 +2393,7 @@ cdef class NCPolynomial_plural(RingElement):
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = bool((not self._poly.next) and _ring.cf.nIsOne(_n))
+        ret = bool((not self._poly.next) and _ring.cf.cfIsOne(_n,_ring.cf))
 
         p_Delete(&_p, _ring)
         return ret
