@@ -1933,12 +1933,21 @@ cdef class Matrix(matrix1.Matrix):
             sage: t = var('t')
             sage: m = matrix(2,[1,2,4,t])
             sage: m.minimal_polynomial()
+            doctest:...: DeprecationWarning: minimal polynomial over the symbolic ring not defined; returning the characteristic polynomial instead
+            See http://trac.sagemath.org/11126 for details.
             x^2 + (-t - 1)*x + t - 8
         """
         f = self.fetch('minpoly')
         if not f is None:
             return f.change_variable_name(var)
         f = self.charpoly(var=var, **kwds)
+
+        from sage.symbolic.ring import SymbolicRing
+        if isinstance(f.base_ring(), SymbolicRing):
+            from sage.misc.superseded import deprecation
+            deprecation(11126, 'minimal polynomial over the symbolic ring not defined; returning the characteristic polynomial instead')
+            return f
+
         if f.is_squarefree():  # is_squarefree for polys much faster than factor.
             # Then f must be the minpoly
             self.cache('minpoly', f)
