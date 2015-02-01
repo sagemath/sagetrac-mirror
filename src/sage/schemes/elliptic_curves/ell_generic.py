@@ -169,6 +169,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         if is_IntegerModRing(K):
             self._point = ell_point.EllipticCurvePoint_finite_field
 
+        from sage.symbolic.ring import SymbolicRing
+        if isinstance(K, SymbolicRing):
+            self._point = ell_point.EllipticCurvePoint_field
+
     _point = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
