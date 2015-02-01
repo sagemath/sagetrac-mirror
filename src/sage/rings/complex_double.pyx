@@ -1450,21 +1450,6 @@ cdef class ComplexDoubleElement(FieldElement):
 
     imag_part = imag
 
-    def parent(self):
-        """
-        Return the complex double field, which is the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: a = CDF(2,3)
-            sage: a.parent()
-            Complex Double Field
-            sage: parent(a)
-            Complex Double Field
-        """
-        return CDF
-
-
     #######################################################################
     # Elementary Complex Functions
     #######################################################################
@@ -1927,6 +1912,18 @@ cdef class ComplexDoubleElement(FieldElement):
             0.5535743588970452 - 0.4023594781085251*I
         """
         return self._new_c(gsl_complex_arccot(self._complex))
+
+    def arcsec(self):
+        r"""
+        This function returns the complex arcsecant of the complex number
+        `z`, `{\rm arcsec}(z) = {\rm arccos}(1/z)`.
+
+        EXAMPLES::
+
+            sage: CDF(1,1).arcsec()  # rel tol 1e-15
+            1.118517879643706 + 0.5306375309525178*I
+        """
+        return self._new_c(gsl_complex_arcsec(self._complex))
 
 
     #######################################################################
