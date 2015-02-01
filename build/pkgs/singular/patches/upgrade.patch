@@ -49,7 +49,7 @@ diff -rupN a/libpolys/polys/ext_fields/algext.cc b/libpolys/polys/ext_fields/alg
 diff -rupN a/libpolys/polys/ext_fields/algext.h b/libpolys/polys/ext_fields/algext.h
 --- a/libpolys/polys/ext_fields/algext.h	2014-10-28 17:57:19.000000000 +0100
 +++ b/libpolys/polys/ext_fields/algext.h	2015-01-31 16:16:11.000000000 +0100
-@@ -47,6 +47,36 @@ BOOLEAN  naInitChar(coeffs cf, void* inf
+@@ -47,6 +47,35 @@ BOOLEAN  naInitChar(coeffs cf, void* inf
  
  /// if m == var(i)/1 => return i,
  int naIsParam(number, const coeffs);
@@ -80,7 +80,6 @@ diff -rupN a/libpolys/polys/ext_fields/algext.h b/libpolys/polys/ext_fields/alge
 +void     naCoeffWrite(const coeffs cf, BOOLEAN details);
 +//number   naIntDiv(number a, number b, const coeffs cf);
 +const char * naRead(const char *s, number *a, const coeffs cf);
-+number naParameter(const int iParameter, const coeffs cf);
 +number naMap00(number a, const coeffs src, const coeffs dst);
 +
  
@@ -97,7 +96,7 @@ diff -rupN a/Singular/libsingular.h b/Singular/libsingular.h
 +#include <kernel/maps/fast_maps.h>
 +#include <coeffs/rintegers.h>
 +#include <coeffs/rmodulon.h>
-+
++number nr2mMapZp(number from, const coeffs /*src*/, const coeffs dst);
  void siInit(char *);
  
  /* we need this function in Sage*/

@@ -39,8 +39,13 @@ cdef extern from "Singular/libsingular.h":
     # OPTIONS
     #
 
-    cdef unsigned int singular_options "test"
-    cdef unsigned int singular_verbose_options "verbose"
+    # test is now si_opt_1
+    # verbose is now si_opt_2
+    #extern "C" unsigned si_opt_1; //< NOTE: Original option variable name: test
+    #extern "C" unsigned si_opt_2; //< NOTE: Original option variable name: verbose
+
+    cdef unsigned int singular_options "si_opt_1"
+    cdef unsigned int singular_verbose_options "si_opt_2"
 
     # actual options
     cdef int OPT_PROT
@@ -109,10 +114,10 @@ cdef extern from "Singular/libsingular.h":
 
     # algebraic numbers
 
-    ctypedef struct lnumber "slnumber":
-        napoly *z
-        napoly *n
-        int s
+    #ctypedef struct lnumber "slnumber":
+    #    napoly *z
+    #    napoly *n
+    #    int s
 
     cdef enum n_coeffType:
         n_unknown=0
@@ -164,6 +169,8 @@ cdef extern from "Singular/libsingular.h":
         void    (*cfWrite)(number* a, const n_Procs_s* r)
         void    (*cfNormalize)(number* a,  const n_Procs_s* r)
 
+
+
         bint (*cfDivBy)(number* a, number* b, const n_Procs_s* r)
         bint (*cfEqual)(number* a,number* b, const n_Procs_s* )
         bint (*cfIsZero)(number* a, const n_Procs_s* )
@@ -172,12 +179,19 @@ cdef extern from "Singular/libsingular.h":
         bint (*cfGreaterZero)(number* a, const n_Procs_s* )
         void (*cfPower)(number* a, int i, number* * result,  const n_Procs_s* r)
         
+        
         int ch
+        mpz_ptr    modBase;
+        unsigned long modExponent;
         
         #n_coeffType type
         int type
 
     # polynomials
+    
+    const char ** n_ParameterNames(const n_Procs_s* r)
+    
+    int n_NumberOfParameters(const n_Procs_s* r)
 
     ctypedef struct poly "polyrec":
         poly *next
@@ -221,13 +235,21 @@ cdef extern from "Singular/libsingular.h":
         #n_coeffType type # field etc.
         #int type # field etc.
         
-        mpz_ptr ringflaga
-        unsigned long ringflagb
+
+        
         int pCompIndex # index of components
         unsigned long bitmask # mask for getting single exponents
+        
 
         n_Procs_s*    cf
         int ref
+        
+        # return total degree of p
+
+        long (*pLDeg)(poly *p, int *l, ring *r)
+        
+        #char  const ** rParameter(const ring * r)
+    
 
     # available ring orders
 
@@ -412,7 +434,8 @@ cdef extern from "Singular/libsingular.h":
     cdef idhdl *currRingHdl
 
     cdef int errorreported
-    cdef int verbose
+    #cdef int verbose
+    cdef int si_opt_2 
     cdef void * currentVoice
     cdef int myynest
 
@@ -538,7 +561,7 @@ cdef extern from "Singular/libsingular.h":
 
     int p_GetExp(poly *p, int v, ring *r)
 
-    # get the maximal exponent in p
+    # get the maximal exponent in p 
 
     unsigned long p_GetMaxExp(poly *p, ring *r)
 
@@ -560,7 +583,7 @@ cdef extern from "Singular/libsingular.h":
 
     # return whether a polynomial is homogenous
 
-    int pIsHomogeneous(poly *p)
+    int p_IsHomogeneous(poly *p, const  ring *r)
 
     # return string representation of p
 
@@ -670,29 +693,29 @@ cdef extern from "Singular/libsingular.h":
 
     # gcd of f and g
 
-    poly *singclap_gcd ( poly *f, poly *g )
+    poly *singclap_gcd ( poly *f, poly *g, ring * r )
 
     # resultant of f and g in x
 
-    poly *singclap_resultant ( poly *f, poly *g , poly *x)
+    poly *singclap_resultant ( poly *f, poly *g , poly *x, ring * r)
 
     # extended gcd of f and g
 
-    int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb )
+    int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb, ring * r )
 
     # full polynomial division (as opposed to monomial division)
 
-    poly *singclap_pdivide ( poly *f, poly *g )
+    poly *singclap_pdivide ( poly *f, poly *g, ring * r )
 
     # factorization
 
-    ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps)
+    ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps, ring * r)
 
     # TRUE if p is square free
     int singclap_isSqrFree(poly *p)
 
     # return determinant of i
-    poly *singclap_det(matrix *i)
+    poly *singclap_det(matrix *i, ring * r)
 
     # normal form calculation of p with respect to i, q is quotient
     # ring.
@@ -703,9 +726,7 @@ cdef extern from "Singular/libsingular.h":
 
     poly *pDiff(poly *p, int i)
 
-    # return total degree of p
 
-    int (*pLDeg)(poly *p, int *l, ring *r)
 
     # TRUE if p is a vector
 
@@ -764,7 +785,8 @@ cdef extern from "Singular/libsingular.h":
 
     # i-th algebraic number paraemeter
 
-    number *naParameter(int i, const n_Procs_s* cf)
+    #see ring .cf.cfParameter
+    #number *naParameter(int i, const n_Procs_s* cf)
 
     # algebraic number power
 
@@ -828,7 +850,7 @@ cdef extern from "Singular/libsingular.h":
     number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
 
     #init 2^m from a long
-    number *nr2mMapZp(number *)
+    number *nr2mMapZp(number *,const n_Procs_s* src,const n_Procs_s* dst)
 
 
     # get C int from ZmodN
@@ -860,7 +882,7 @@ cdef extern from "Singular/libsingular.h":
 
     # rank of free module for m
 
-    long idRankFreeModule(ideal *m, ring *r)
+    long id_RankFreeModule(ideal *m, ring *r)
 
     # buchberger's algorithm
 

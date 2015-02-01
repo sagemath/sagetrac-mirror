@@ -19,7 +19,8 @@ include "sage/ext/stdsage.pxi"
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
 
-from sage.libs.singular.decl cimport number, lnumber, napoly, ring, currRing
+#from sage.libs.singular.decl cimport number, lnumber, napoly, ring, currRing
+from sage.libs.singular.decl cimport number,  napoly, ring, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
 from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a
@@ -125,7 +126,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
     cdef MPolynomial_libsingular minpoly
-    cdef lnumber *nmp
+    #cdef lnumber *nmp
     cdef int * m
 
     cdef __mpz_struct* ringflaga
@@ -235,25 +236,27 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring = <ring*>omAlloc0Bin(sip_sring_bin)
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
-    _ring.ch = characteristic
+    _ring.cf.ch = characteristic
     _ring.cf.type = ringtype
     _ring.N = n
     _ring.names  = _names
 
     if is_extension:
-        rChangeCurrRing(k._ring)
-        _ring.algring = rCopy0(k._ring)
-        rComplete(_ring.algring, 1)
-        _ring.algring.pCompIndex = -1
-        _ring.P = _ring.algring.N
-        _ring.parameter = <char**>omAlloc0(sizeof(char*)*2)
-        _ring.parameter[0] = omStrDup(_ring.algring.names[0])
-
-        nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
-        nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
+        raise "not implemented"
+        #rChangeCurrRing(k._ring)
+        #_ring.algring = rCopy0(k._ring)
+        #rComplete(_ring.algring, 1)
+        #_ring.algring.pCompIndex = -1
+        #_ring.P = _ring.algring.N
+        #_ring.parameter = <char**>omAlloc0(sizeof(char*)*2)
+        #_ring.parameter[0] = omStrDup(_ring.algring.names[0])
+        #
+        #nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
+        #nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
         nmp.s=2
+        #
+        #_ring.minpoly=<number*>nmp
 
-        _ring.minpoly=<number*>nmp
 
     cdef nbaseblcks = len(order.blocks())
     nblcks = nbaseblcks + order.singular_moreblocks()
@@ -318,8 +321,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring.order[nblcks] = ringorder_C
 
     if ringtype != n_unknown:
-        _ring.ringflaga = ringflaga
-        _ring.ringflagb = ringflagb
+        _ring.cf.modBase = ringflaga
+        _ring.cf.modExponent = ringflagb
 
     rComplete(_ring, 1)
     _ring.ShortOut = 0

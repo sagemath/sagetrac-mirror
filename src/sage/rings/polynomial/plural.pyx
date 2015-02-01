@@ -488,7 +488,7 @@ cdef class NCPolynomialRing_plural(Ring):
             if  <Parent>element.parent() is base_ring:
                 # shortcut for GF(p)
                 if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element) % _ring.ch, _ring)
+                    _p = p_ISet(int(element) % _ring.cf.ch, _ring)
                 else:
                     _n = sa2si(element,_ring)
                     _p = p_NSet(_n, _ring)
@@ -509,7 +509,7 @@ cdef class NCPolynomialRing_plural(Ring):
         # Accepting int
         elif PY_TYPE_CHECK(element, int):
             if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(int(element) % _ring.ch,_ring)
+                _p = p_ISet(int(element) % _ring.cf.ch,_ring)
             else:
                 _n = sa2si(base_ring(element),_ring)
                 _p = p_NSet(_n, _ring)
@@ -2332,7 +2332,7 @@ cdef class NCPolynomial_plural(RingElement):
 
     def is_homogeneous(self):
         """
-        Return ``True`` if this polynomial is homogeneous.
+        Return ``True`` if this polynomial is homogeneous. 
 
         EXAMPLES::
 
@@ -2355,7 +2355,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         cdef ring *_ring = (<NCPolynomialRing_plural>self._parent)._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(pIsHomogeneous(self._poly))
+        return bool(p_IsHomogeneous(self._poly,_ring))
 
 
     def is_monomial(self):

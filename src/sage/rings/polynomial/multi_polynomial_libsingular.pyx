@@ -179,10 +179,10 @@ from sage.libs.singular.decl cimport (
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
-    pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
+    p_IsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
     delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
-    pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
+    pLength, kNF, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
     pDiff, singclap_resultant, p_Normalize,
     prCopyR, prCopyR_NoSort )
 
@@ -796,7 +796,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent() is base_ring:
                 # shortcut for GF(p)
                 if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element) % _ring.ch, _ring)
+                    _p = p_ISet(int(element) % _ring.cf.ch, _ring)
                 else:
                     _n = sa2si(element,_ring)
                     _p = p_NSet(_n, _ring)
@@ -820,7 +820,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         elif isinstance(element, int) or isinstance(element, long):
             if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(element % _ring.ch, _ring)
+                _p = p_ISet(element % _ring.cf.ch, _ring)
             else:
                 _n = sa2si(base_ring(element), _ring)
                 _p = p_NSet(_n, _ring)
@@ -3126,7 +3126,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef ring *_ring = self._parent_ring
         if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(pIsHomogeneous(self._poly))
+        return bool(p_IsHomogeneous(self._poly,_ring))
 
     cpdef _homogenize(self, int var):
         """
@@ -3944,7 +3944,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
         if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
-        quo = singclap_pdivide( _self._poly, _right._poly )
+        quo = singclap_pdivide( _self._poly, _right._poly, r )
         if count >= 15:
             sig_off()
         f = new_MP(parent, quo)
@@ -4192,7 +4192,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         iv = NULL
         sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
-        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some pointa
+        I = singclap_factorize ( ptemp, &iv , 0, _ring) #delete iv at some pointa
         sig_off()
 
         ivv = iv.ivGetVec()
@@ -4496,7 +4496,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
-        _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring))
+        _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring), _ring )
         if count >= 20:
             sig_off()
 
@@ -4564,9 +4564,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
-        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring))
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring), _ring )
         prod = pp_Mult_qq(self._poly, _g._poly, _ring)
-        ret = singclap_pdivide(prod , gcd )
+        ret = singclap_pdivide(prod , gcd , _ring)
         p_Delete(&prod, _ring)
         p_Delete(&gcd, _ring)
         if count >= 20:
@@ -4587,13 +4587,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: h.is_squarefree()
             False
         """
+        raise NotImplementedError,"was removed from singular"
         cdef ring *_ring = self._parent_ring
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "is_squarefree of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
-        if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(singclap_isSqrFree(self._poly))
+        #if(_ring != currRing): rChangeCurrRing(_ring)
+        #return bool(singclap_isSqrFree(self._poly), _ring)
 
     @coerce_binop
     def quo_rem(self, MPolynomial_libsingular right):
@@ -4650,7 +4651,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
         if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
-        quo = singclap_pdivide( self._poly, right._poly )
+        quo = singclap_pdivide( self._poly, right._poly, r )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
         if count >= 15:
             sig_off()
@@ -5091,7 +5092,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring != currRing: rChangeCurrRing(_ring)   # singclap_resultant
-        rt =  singclap_resultant(p_Copy(self._poly, _ring), p_Copy(other._poly, _ring),p_Copy((<MPolynomial_libsingular>variable)._poly, _ring))
+        rt =  singclap_resultant(p_Copy(self._poly, _ring), p_Copy(other._poly, _ring), p_Copy((<MPolynomial_libsingular>variable)._poly , _ring ), _ring)
         if count >= 20:
             sig_off()
         return new_MP(self._parent, rt)
