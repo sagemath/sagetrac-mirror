@@ -1,0 +1,103 @@
+diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
+--- a/libpolys/coeffs/rmodulon.h	2014-10-28 17:57:19.000000000 +0100
++++ b/libpolys/coeffs/rmodulon.h	2015-01-31 16:34:10.000000000 +0100
+@@ -63,5 +63,6 @@ void    nrnInitExp(unsigned long c, cons
+ coeffs  nrnQuot1(number c, const coeffs r);
+ 
+ number nrnMapQ(number from, const coeffs src, const coeffs dst);
++number nrnMapGMP(number from, const coeffs /*src*/, const coeffs dst);
+ #endif
+ #endif
+diff -rupN a/libpolys/polys/ext_fields/algext.cc b/libpolys/polys/ext_fields/algext.cc
+--- a/libpolys/polys/ext_fields/algext.cc	2014-10-28 17:57:19.000000000 +0100
++++ b/libpolys/polys/ext_fields/algext.cc	2015-01-31 00:57:10.000000000 +0100
+@@ -78,33 +78,7 @@ static const n_coeffType ID = n_algExt;
+ /* minimal polynomial */
+ #define naMinpoly naRing->qideal->m[0]
+ 
+-/// forward declarations
+-BOOLEAN  naGreaterZero(number a, const coeffs cf);
+-BOOLEAN  naGreater(number a, number b, const coeffs cf);
+-BOOLEAN  naEqual(number a, number b, const coeffs cf);
+-BOOLEAN  naIsOne(number a, const coeffs cf);
+-BOOLEAN  naIsMOne(number a, const coeffs cf);
+-BOOLEAN  naIsZero(number a, const coeffs cf);
+-number   naInit(long i, const coeffs cf);
+-int      naInt(number &a, const coeffs cf);
+-number   naNeg(number a, const coeffs cf);
+-number   naInvers(number a, const coeffs cf);
+-number   naAdd(number a, number b, const coeffs cf);
+-number   naSub(number a, number b, const coeffs cf);
+-number   naMult(number a, number b, const coeffs cf);
+-number   naDiv(number a, number b, const coeffs cf);
+-void     naPower(number a, int exp, number *b, const coeffs cf);
+-number   naCopy(number a, const coeffs cf);
+-void     naWriteLong(number &a, const coeffs cf);
+-void     naWriteShort(number &a, const coeffs cf);
+-number   naGetDenom(number &a, const coeffs cf);
+-number   naGetNumerator(number &a, const coeffs cf);
+-number   naGcd(number a, number b, const coeffs cf);
+-int      naSize(number a, const coeffs cf);
+-void     naDelete(number *a, const coeffs cf);
+-void     naCoeffWrite(const coeffs cf, BOOLEAN details);
+-//number   naIntDiv(number a, number b, const coeffs cf);
+-const char * naRead(const char *s, number *a, const coeffs cf);
++
+ 
+ static BOOLEAN naCoeffIsEqual(const coeffs cf, n_coeffType n, void * param);
+ 
+diff -rupN a/libpolys/polys/ext_fields/algext.h b/libpolys/polys/ext_fields/algext.h
+--- a/libpolys/polys/ext_fields/algext.h	2014-10-28 17:57:19.000000000 +0100
++++ b/libpolys/polys/ext_fields/algext.h	2015-01-31 16:16:11.000000000 +0100
+@@ -47,6 +47,36 @@ BOOLEAN  naInitChar(coeffs cf, void* inf
+ 
+ /// if m == var(i)/1 => return i,
+ int naIsParam(number, const coeffs);
++/// forward declarations
++BOOLEAN  naGreaterZero(number a, const coeffs cf);
++BOOLEAN  naGreater(number a, number b, const coeffs cf);
++BOOLEAN  naEqual(number a, number b, const coeffs cf);
++BOOLEAN  naIsOne(number a, const coeffs cf);
++BOOLEAN  naIsMOne(number a, const coeffs cf);
++BOOLEAN  naIsZero(number a, const coeffs cf);
++number   naInit(long i, const coeffs cf);
++int      naInt(number &a, const coeffs cf);
++number   naNeg(number a, const coeffs cf);
++number   naInvers(number a, const coeffs cf);
++number   naAdd(number a, number b, const coeffs cf);
++number   naSub(number a, number b, const coeffs cf);
++number   naMult(number a, number b, const coeffs cf);
++number   naDiv(number a, number b, const coeffs cf);
++void     naPower(number a, int exp, number *b, const coeffs cf);
++number   naCopy(number a, const coeffs cf);
++void     naWriteLong(number &a, const coeffs cf);
++void     naWriteShort(number &a, const coeffs cf);
++number   naGetDenom(number &a, const coeffs cf);
++number   naGetNumerator(number &a, const coeffs cf);
++number   naGcd(number a, number b, const coeffs cf);
++int      naSize(number a, const coeffs cf);
++void     naDelete(number *a, const coeffs cf);
++void     naCoeffWrite(const coeffs cf, BOOLEAN details);
++//number   naIntDiv(number a, number b, const coeffs cf);
++const char * naRead(const char *s, number *a, const coeffs cf);
++number naParameter(const int iParameter, const coeffs cf);
++number naMap00(number a, const coeffs src, const coeffs dst);
++
+ 
+ struct  spolyrec;
+ typedef struct spolyrec    polyrec;
+diff -rupN a/Singular/libsingular.h b/Singular/libsingular.h
+--- a/Singular/libsingular.h	2014-10-28 17:57:18.000000000 +0100
++++ b/Singular/libsingular.h	2015-01-31 16:34:14.000000000 +0100
+@@ -26,6 +26,11 @@
+ #include <Singular/attrib.h>
+ #include <misc/options.h>
+ 
++#include <polys/ext_fields/algext.h>
++#include <kernel/maps/fast_maps.h>
++#include <coeffs/rintegers.h>
++#include <coeffs/rmodulon.h>
++
+ void siInit(char *);
+ 
+ /* we need this function in Sage*/
