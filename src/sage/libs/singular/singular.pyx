@@ -557,7 +557,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     cdef int _d
     if _ring.cf.type == n_Z2m:
         _d = long(d)
-        return nr2mMapZp(<number *>_d, currRing, _ring)
+        return nr2mMapZp(<number *>_d, currRing.cf, _ring.cf)
     else:
         lift = d.lift()
         return nrnMapGMP(<number *>((<Integer>lift).value), currRing.cf, _ring.cf)
