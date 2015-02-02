@@ -718,6 +718,16 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         48481/1247400*pi
         193359161/6227020800*pi
         5799919/227026800*pi
+
+    Check that :trac:`8728` is fixed::
+
+        sage: forget()
+        sage: c,w,T = var('c,w,T')
+        sage: assume(1-c^2>0)
+        sage: assume(abs(c)-sqrt(1-c^2)-1>0)
+        sage: assume(abs(sqrt(1-c^2)-1)-abs(c)>0)
+        sage: integrate(cos(w+T)/(1+c*cos(T))^2,T,0,2*pi)
+        2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
