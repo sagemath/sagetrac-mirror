@@ -5,6 +5,7 @@ Thematic tutorial document tree
 .. toctree::
    :maxdepth: 2
 
+   index-sage-combinat
    2010-03-29-SLC64
    2010-05-06-SageDays20.5
    2010-06-11-Sage-demo-LAGA
@@ -53,15 +54,16 @@ Thematic tutorial document tree
    demo-symbolics
    demo-symmetric-functions
    demo-tsetlin
-   coding_theory
    functional_programming
    group_theory
-   index-sage-combinat
    lie
    linear_programming
    numtheory_rsa
+   coding_theory
+   polytutorial
    sandpile
    talks
+   tutorial-programming-python
    tutorial-comprehensions
    tutorial-editing-sage-sources
    tutorial-first-exercises

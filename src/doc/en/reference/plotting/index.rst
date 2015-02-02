@@ -19,6 +19,7 @@
    sage/plot/disk
    sage/plot/ellipse
    sage/graphs/graph_plot
+   sage/plot/histogram
    sage/plot/line
    sage/plot/step
    sage/plot/matrix_plot
@@ -30,6 +31,6 @@
    sage/plot/text
    sage/plot/colors
    sage/plot/hyperbolic_arc
-   sage/plot/hyperbolic_triangle
+   sage/plot/hyperbolic_polygon
 
 .. include:: ../footer.txt

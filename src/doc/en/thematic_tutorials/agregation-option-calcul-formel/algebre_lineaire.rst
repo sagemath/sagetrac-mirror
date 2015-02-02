@@ -11,22 +11,82 @@ Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques: Algèbre li
 Formes normales et applications
 *******************************
 
-L'algorithme de Gauss revisité
-==============================
+L'algorithme de Gauß revisité
+=============================
 
-On se place dans un corps `K` quelconque.
+On se place dans un corps `K` quelconque
+
+Forme échelon (réduite)
+-----------------------
+
+.. TOPIC:: Définition
+
+    Une matrice est sous forme *échelon* (en lignes) si le nombre de
+    zéros précédant la première valeur non nulle d'une ligne augmente
+    ligne par ligne jusqu'à ce qu'il ne reste plus que des zéros:
+
+    .. MATH::
+
+       \begin{pmatrix}
+       \underline{*} & * & * & * & * & * & * & * & * \\
+       0 & 0 & \underline{*} & * & * & * & * & * & * \\
+       0 & 0 & 0 & \underline{*} & * & * & * & * & * \\
+       0 & 0 & 0 & 0 & 0 & 0 & \underline{*} & * & * \\
+       0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \underline{*} \\
+       0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0
+       \end{pmatrix}
+
+    Les *colonnes caractéristiques* sont les colonnes contenant les
+    *pivots* (soulignés ci-dessus), c'est-à-dire les premiers
+    coefficients non nul d'une ligne.
+
+    Une matrice est sous forme *échelon réduite* si les pivots valent
+    1 et si les autres coefficients dans les colonnes des pivots sont
+    nuls:
+
+    .. MATH::
+
+        \begin{pmatrix}
+        1 & * & 0 & 0 & * & * & 0 & * & 0 \\
+        0 & 0 & 1 & 0 & * & * & 0 & * & 0 \\
+        0 & 0 & 0 & 1 & * & * & 0 & * & 0 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 1 & * & 0 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0
+        \end{pmatrix}
+
+.. TOPIC:: Exemple
+
+    ::
+
+        sage: M = random_matrix(QQ, 4, 8, algorithm='echelon_form', num_pivots=3); M # random
+        [ 1 -3  0 -2  0  3  1  0]
+        [ 0  0  1 -5  0 -2 -1 -1]
+        [ 0  0  0  0  1 -1  3  1]
+        [ 0  0  0  0  0  0  0  0]
+        sage: M.pivots()                                                             # random
+        (0, 2, 4)
+
+.. TOPIC:: Remarque
+
+    L'algorithme du pivot de Gauß-Jordan transforme une matrice
+    jusqu'à ce qu'elle soit sous forme échelon (réduite).
+
+Forme échelon et matrices équivalentes
+--------------------------------------
 
 .. TOPIC:: Exercice: matrices à deux lignes
 
     Soit `M` une matrice générique à deux lignes. Écrire sous forme de
     multiplication à gauche par une matrice `2\times 2` le pivot de
-    Gauss appliqué à `M`.
+    Gauß appliqué à `M`.
 
+    .. TODO:: Le faire à la place sur trois matrices typiques à deux lignes
 
 .. TOPIC:: Remarque
 
     Si `M` est obtenue de `N` par l'algorithme du pivot de Gauß, alors
-    `M=PM` où `P` est une matrice inversible (éventuellement de
+    `M=PN` où `P` est une matrice inversible (éventuellement de
     déterminant `1`).
 
 Disons ici que deux matrices `M` et `N` de `M_{n,m}(K)` sont
@@ -40,21 +100,23 @@ matrice inversible `P` telle que `M=PN`.
 .. TOPIC:: Question
 
     La remarque précédente dit que si deux matrices `M` et `N` donnent
-    la même forme échelon par Gauß, alors elles sont équivalentes.
+    la même forme échelon réduite par Gauß, alors elles sont équivalentes.
 
     Réciproque?
+
+.. TOPIC:: Démonstration opératoire de la réciproque
+
+   Montrer pas à pas que si `M` et `N` sont réduits et `M=PN`, alors
+   `P` est essentiellement l'identité (à part les dernières colonnes
+   correspondant aux lignes nulles de `M` et `N`).
+
+.. TODO:: Digression sur les formes normales
 
 .. TOPIC:: Théorème
 
    On considère les matrices `n\times m` à coefficients dans un corps
    `K`. La forme échelon réduite donne une *forme normale* pour les
    matrices modulo l'action de `GL_n(K)` à gauche.
-
-Voir par exemple [Storjohan.2004]_ pour une présentation d'ensemble
-des formes normales pour les différentes relations d'équivalences sur
-les matrices (conjugaison, similitude, ...) sur les différents types
-d'anneaux, et les algorithmes associés.
-
 
 Interprétation géométrique
 --------------------------
@@ -70,10 +132,24 @@ Décrire un objet comme étant le résultat d'un algorithme est
     et seulement si les vecteurs engendrent le même sous-espace
     vectoriel de `K^m`.
 
-    Autrement dit, l'ensemble quotient `GL_n(K) \backslash M_{n,m}(K)`
-    représente l'ensemble des sous-espaces vectoriels de dimension au
-    plus `n` dans `K^m`. Cet ensemble est naturellement muni d'une
-    structure de variété appelée variété Grassmanienne.
+    .. TODO:: Rédiger la démonstrationn
+
+.. TOPIC:: Corollaire
+
+    L'ensemble quotient `GL_n(K) \backslash M_{n,m}(K)` représente
+    l'ensemble des sous-espaces vectoriels de dimension au plus `n`
+    dans `K^m`. Cet ensemble est naturellement muni d'une structure de
+    variété appelée variété Grassmanienne.
+
+
+.. TODO:: Poser le problème
+
+    Prendre une matrice spécifique
+
+    Interprétation des lignes de la forme normale réduite?
+
+    Pourquoi est-elle indépendante de l'ordre de calcul?
+
 
 .. TOPIC:: Rappel: groupes de permutations
 
@@ -174,7 +250,9 @@ Appliquons le même programme.
 .. TOPIC:: Remarque
 
     La permutation `P` apparaissant dans le calcul de l'algorithme de
-    Gauß a une interprétation géométrique naturelle.
+    Gauß a une interprétation géométrique naturelle (position du
+    drapeau `\langle v_1\rangle, \langle v_1,v_2\rangle` par rapport
+    au drapeau canonique).
 
     Les variétés Grassmaniennes et ses variantes (variétés de
     drapeaux, ...) et leur multiples généralisations sont l'objet
@@ -194,7 +272,8 @@ Applications des formes échelon
 .. TOPIC:: Exercice: calcul avec les sous espaces vectoriels
 
     On considère des sous espaces `E`, `F`, ... de `V=K^n` donnés par
-    des générateurs ou des équations. Donner des algorithmes pour:
+    des générateurs ou des équations. Donner des algorithmes (et leur
+    complexité!) pour:
 
     #.  Déterminer une base de `E`.
 
@@ -253,8 +332,6 @@ Peut-on procéder comme précédemment?
 	[10  1  2]
 	[ 6  2 -1]
 
-	sage:
-
     #.  Quel candidat pour une forme échelon?
 
     #.  Interprétation en terme de multiplication par une matrice?
@@ -308,9 +385,22 @@ déjà en dimension `1`:
 
     #.  Existe-t'il des drapeaux croissants infinis?
 
-	.. TODO:: Donner un exemple illustrant le phénomène en
-		  ajoutant des vecteurs au hasard les uns après les
-		  autres
+
+        Exemple::
+
+            sage: V = ZZ^6
+            sage: I = V.zero_submodule(); I
+            Free module of degree 6 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+
+        ::
+
+            sage: I = I + V.submodule([V.random_element(prob=.3)]); I # random
+            Free module of degree 6 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 0 19  0  0 24  0]
+
 
 .. TOPIC:: Généralisations
 
@@ -330,14 +420,14 @@ Application: classification des groupes abéliens de type fini
     #.  Que peut-on dire sur l'ensemble des relations entre ces
         éléments?
 
-    #.  En déduire la structure de `G`
+    #.  En déduire la structure de `G`.
 
 
 Gauß sans fractions et Gauß-Bareiss
 ===================================
 
 Soit `A` un anneau. Par exemple un anneau de polynômes multivariés
-`A=\QQ[x,y]`. Qu'est-ce qui subsiste de tout cela?
+`A=\QQ[x,y]`. Qu'est-ce qui subsiste de tout ce que l'on a vu?
 
 Exemple: dimension 1
 --------------------
@@ -379,24 +469,39 @@ Revenons sur notre exemple::
 
     sage: M
 
-    sage: M[2] = M[2] / a
+On constate que `a` divise la troisième ligne; on peut donc diviser de
+manière exacte par `a`::
+
+    sage: M[2] = M[2] // a
     sage: M
+
+De plus, le coefficient ``M[3,3]`` est le déterminant de la matrice d'origine::
 
     sage: N[:,:3]
     sage: N[:,:3].det()
 
-    sage: 
+    sage:
+
+Ce phénomène est général et peut être utilisé récursivement:
+
+.. TOPIC:: Algorithme de Gauß-Bareiss
+
+    On procède comme pour Gauß sans fractions, y compris pour traiter
+    les lignes avec un coefficient nul dans la colonne du
+    pivot. Cependant, avant de traiter les colonnes `\geq i+2` on
+    divise tout le quadrant inférieur composé des lignes et colonnes
+    `\geq i+2`, par `M[i,i]`.
+
+Le fonctionnement de l'algorithme repose sur la propriété suivante:
 
 .. TOPIC:: Proposition
 
-    Soit `M` une matrice sur un anneau intègre.
-
-    Après avoir traité de les `i` premières colonnes, `M_{i,i}` est le
-    déterminant du mineur de la matrice d'origine, et ce déterminant
-    divise toutes les coefficients `M_{i',j'}` avec `i',j'>i`.
-
-    Par récurrence, on obtient l'algorithme de Gauß-Bareiss qui permet
-    de calculer le déterminant.
+    Soit `M` une matrice sur un anneau intègre. Après avoir traité les
+    `i` premières colonnes, `M_{i,i}` est le déterminant du `i`-ème
+    *mineur dominant* de la matrice d'origine (correspondant aux `i`
+    premières lignes et colonnes). De plus après avoir traité la
+    colonne `i+1`, ce déterminant divise toutes les coefficients
+    `M_{i',j'}` avec `i',j'\geq i+2`.
 
 .. TOPIC:: Exercice
 
@@ -404,10 +509,29 @@ Revenons sur notre exemple::
     supérieure.
 
 
+.. TOPIC:: Remarque
+
+    Pour simplifier, on a supposé ci-dessus que la matrice était
+    carrée et que tous les mineurs dominants étaient non nuls. Modulo
+    les détails techniques usuels (forme échelon réduite plutôt que
+    uni triangulaire supérieure), l'algorithme se généralise à des
+    matrices quelconques sur un anneau intègre.
+
+
 Conclusion
 ==========
 
-.. TODO:: !!!
+Le coeur de l'algèbre linéaire est l'étude des matrices modulo des
+relations d'équivalences (équivalence, conjugaison, similitude), et ce
+sur les différents types d'anneaux.
+
+Dans chaque cas, on introduit une notion d'ordre (plus
+conceptuellement de *drapeau*) qui permet de définir simultanément une
+*forme normale* et un *algorithme d'élimination* permettant de
+calculer cette forme normale.
+
+Voir par exemple [Storjohan.2004]_ pour une présentation d'ensemble.
+
 
 TP
 ==
@@ -431,7 +555,7 @@ TP
 
 	Évaluer la complexité pratique en prenant des matrices
 	aléatoire de taille `n=2^k`. Comparer avec ce que l'on obtient
-	avec Gauss, et avec Gauss sur un corps fini.
+	avec Gauß, et avec Gauß sur un corps fini.
 
 	Qu'en pensez-vous?
 
@@ -466,14 +590,6 @@ Textes connexes
 - `Résolution de systèmes linéaires en entiers <http://nicolas.thiery.name/Enseignement/Agregation/Textes/560-ResolutionDeSystemesLineairesEnEntiers.pdf>`_
 
 - `Pseudo inverses de matrices <http://nicolas.thiery.name/Enseignement/Agregation/Textes/PseudoInverseMatrice.pdf>`_
-
-**********************
-Programmation linéaire
-**********************
-
-Simplexe, dualité, applications
-
-Voir Cours/TP dans OldNotes
 
 *******************
 Quelques références

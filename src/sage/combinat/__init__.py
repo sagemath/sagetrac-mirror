@@ -1,91 +1,47 @@
 __doc__ = r"""
-Combinatorics quickref
-----------------------
+=============
+Combinatorics
+=============
 
- - :mod:`sage.combinat.demo`
- - sage.combinat.demo_short
- - sage.combinat.combinat?  (pretty outdated)
- - sage.combinat.root_systems?
- - sage.combinat.species?
+Introductory material
+---------------------
 
-See also:
- - :class:`EnumeratedSets`, :class:`FiniteEnumeratedSets`
+- :ref:`sage.combinat.quickref`
+- :ref:`sage.combinat.tutorial`
 
-* Integer Sequences
+Thematic indexes
+----------------
 
-sloane_find(list), sloane.<tab>
-s = sloane.find([1,3,19,211])[0]
-s = sloane.i_am_lucky([1,3,19,211])
-s(5), s.references()
+- :ref:`sage.combinat.algebraic_combinatorics`
 
-* Combinatorial objects:
+  - :ref:`sage.combinat.cluster_algebra_quiver`
+  - :ref:`sage.combinat.crystals`
+  - :ref:`sage.combinat.root_system`
+  - :ref:`sage.combinat.sf`
 
-P = Partitions(10); P.count(); P.<tab>
-C = Combinations([1,3,7]); C.list()
-Compositions(5, max_part = 3, ...).unrank(3)
-Tableau
+- :ref:`sage.combinat.counting`
+- :ref:`sage.combinat.enumerated_sets`
+- :ref:`sage.combinat.catalog_partitions`
+- :ref:`sage.combinat.finite_state_machine`
+- :ref:`sage.combinat.species`
+- :ref:`sage.combinat.designs`
+- :ref:`sage.combinat.posets`
+- :ref:`sage.combinat.words`
 
-* Constructions and Species
+Utilities
+---------
 
-for (p, c) in CartesianProduct(P, C): ...
+- :ref:`sage.combinat.output`
+- :ref:`sage.combinat.ranker`
+- :func:`Combinatorial maps <sage.combinat.combinatorial_map.combinatorial_map>`
+- :ref:`sage.combinat.misc`
 
-DisjointUnion(Family(lambda n: IntegerVectors(n, 3), NonNegativeIntegers))
+Related topics
+--------------
 
-* Words
-
-W=Words('abc') W('aabca')
-
-Franco: what about putting W('aabca').bar(), where bar would be some flashy feature?
-
-* Posets
-
-Posets: Poset([[1,2],[4],[3],[4],[]])
-
-* Polytopes
-
-L =LatticePolytope(random_matrix(ZZ, 3,6, x=7))
-L.npoints() L.plot3d()
-
-* Root systems, Coxeter and Weyl groups
-
-See: sage.combinat.root_system?
-
-* Crystals
-
-CrystalOfTableaux(["A",3], shape = [3,2])
-
-See sage.combinat.crystals?
-
-* Symmetric functions and combinatorial Hopf algebras
-
- Sym = SymmetricFunctions(QQ)
- %from Sym.shortcuts() import *   /   %from Sym.shortcuts() import s, h, m
- Sym.import_shortcuts()           /   Sym.import_shortcuts("s,h,m")
- s[3] * h[2] ...
-
- NCSF
- QSym
- MultivariatePolynomials
-
- SymmetricGroupAlgebra
-
- HeckeAlgebra
-
-* Discrete groups, Permutation groups
-
-See sage.groups?
-
-  S = SymmetricGroup(4)
-  M = MultivariatePolynomials('x0,x1,x2,x3')
-  M(...).action??? S.
-
-* Lattices
-
-* Graph theory and posets
-
-See Graph?, Digraph?, graphs?
-
-Poset({1: [2,3], 2: [4], 3: [4]}).some_snappy_feature()
+- :ref:`sage.coding`
+- :ref:`sage.dynamics`
+- :ref:`sage.graphs`
 
 """
 
@@ -93,4 +49,5 @@ import demo
 import demo_short
 import demo_algebraic_combinatorics
 import tutorial_enumerated_sets
+import quickref
 import tutorial
