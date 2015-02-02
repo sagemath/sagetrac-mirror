@@ -10508,17 +10508,23 @@ cdef class Expression(CommutativeRingElement):
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
-        Check that the sum in :trac:`10682` is done right::
-
-            sage: sum(binomial(n,k)*k^2, k, 2, n)
-            1/4*(n^2 + n)*2^n - n
-
         .. note::
 
            #. Sage can currently only understand a subset of the output of Maxima, Maple and
               Mathematica, so even if the chosen backend can perform the summation the
               result might not be convertable into a Sage expression.
 
+        TESTS:
+
+        Check that the sum in :trac:`10682` is done right::
+
+            sage: sum(binomial(n,k)*k^2, k, 2, n)
+            1/4*(n^2 + n)*2^n - n
+
+        Check that :trac:`16176` is fixed::
+
+            n = var('n')
+            sum(log(1-1/n^2),n,2,oo)
         """
         from sage.calculus.calculus import symbolic_sum
         return symbolic_sum(self, *args, **kwds)
