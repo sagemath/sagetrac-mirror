@@ -15,7 +15,7 @@ import sage.structure.element
 coercion_model = sage.structure.element.get_coercion_model()
 
 # avoid name conflicts with `parent` as a function parameter
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 
 from sage.symbolic.constants import pi
 from sage.functions.log import exp
@@ -936,7 +936,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: incomplete_gamma(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
             sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
-            1.27309721644711
+            (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
 
@@ -945,13 +945,27 @@ class Function_gamma_inc(BuiltinFunction):
             sage: type(r)
             <type 'float'>
         """
-        if parent is None:
-            parent = s_parent(x)
-        try:
-            prec = parent.precision()
-        except Exception:
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
             prec = 53
-        return parent(ComplexField(prec)(x).gamma_inc(y))
+            C = complex
+        else:
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
+        v = ComplexField(prec)(x).gamma_inc(y)
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
+
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1742,8 +1756,23 @@ def sqrt(x, *args, **kwds):
             [2, -2]
             sage: sqrt(x^2)
             sqrt(x^2)
+
+        For a non-symbolic square root, there are a few options.
+        The best is to numerically approximate afterward::
+
             sage: sqrt(2).n()
             1.41421356237310
+            sage: sqrt(2).n(prec=100)
+            1.4142135623730950488016887242
+
+        Or one can input a numerical type.
+
+            sage: sqrt(2.)
+            1.41421356237310
+            sage: sqrt(2.000000000000000000000000)
+            1.41421356237309504880169
+            sage: sqrt(4.0)
+            2.00000000000000
 
         To prevent automatic evaluation, one can use the ``hold`` parameter
         after coercing to the symbolic ring::

@@ -329,7 +329,7 @@ from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
 from sage.functions.other import factorial, binomial
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 
 _done = False
 def _init():
@@ -1161,7 +1161,7 @@ chebyshev_U = Func_chebyshev_U()
 def gen_legendre_P(n,m,x):
     r"""
     Returns the generalized (or associated) Legendre function of the
-    first kind for integers `n > -1, m > -1`.
+    first kind.
 
     The awkward code for when m is odd and 1 results from the fact that
     Maxima is happy with, for example, `(1 - t^2)^3/2`, but
@@ -1199,7 +1199,7 @@ def gen_legendre_P(n,m,x):
 def gen_legendre_Q(n,m,x):
     """
     Returns the generalized (or associated) Legendre function of the
-    second kind for integers `n>-1`, `m>-1`.
+    second kind.
 
     Maxima restricts m = n. Hence the cases m n are computed using the
     same recursion used for gen_legendre_P(n,m,x) when m is odd and
@@ -1261,7 +1261,25 @@ def hermite(n,x):
         sage: w = var('w')
         sage: hermite(3,2*w)
         8*(8*w^2 - 3)*w
+
+    Check that :trac:`17192` is fixed::
+        sage: x = PolynomialRing(QQ, 'x').gen()
+        sage: hermite(0,x)
+        1
+
+        sage: hermite(-1,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -1
+
+        sage: hermite(-7,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -7
     """
+    if not (n > -1):
+        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+
     _init()
     return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
 
@@ -1285,14 +1303,31 @@ def jacobi_P(n,a,b,x):
         3/2*x^2 - 1/2
         sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
         5.009999999999998
+
+    Check that :trac:`17192` is fixed::
+        sage: x = PolynomialRing(QQ, 'x').gen()
+        sage: jacobi_P(0,0,0,x)
+        1
+
+        sage: jacobi_P(-1,0,0,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -1
+
+        sage: jacobi_P(-7,0,0,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -7
     """
+    if not (n > -1):
+        raise  ValueError("n must be greater than -1, got n = {0}".format(n))
+
     _init()
     return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)'%(ZZ(n),a,b)), locals={'x':x})
 
 def legendre_P(n,x):
     """
-    Returns the Legendre polynomial of the first kind for integers
-    `n > -1`.
+    Returns the Legendre polynomial of the first kind.
 
     REFERENCE:
 
@@ -1318,8 +1353,7 @@ def legendre_P(n,x):
 
 def legendre_Q(n,x):
     """
-    Returns the Legendre function of the second kind for integers
-    `n > -1`.
+    Returns the Legendre function of the second kind.
 
     Computed using Maxima.
 
@@ -1361,7 +1395,25 @@ def ultraspherical(n,a,x):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
+
+    Check that :trac:`17192` is fixed::
+        sage: x = PolynomialRing(QQ, 'x').gen()
+        sage: ultraspherical(0,1,x)
+        1
+
+        sage: ultraspherical(-1,1,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -1
+
+        sage: ultraspherical(-7,1,x)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than -1, got n = -7
     """
+    if not (n > -1):
+        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+
     _init()
     return sage_eval(maxima.eval('ultraspherical(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
 
