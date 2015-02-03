@@ -366,9 +366,9 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         sage: list_plot3d([(1, 2, 3), (0, 1, 3), (2, 1, 4), (1, 0, -2)], texture='yellow', num_points=50)
         Graphics3d Object
     """
-    from matplotlib import tri
     import numpy
     import scipy
+    from matplotlib import tri
     from random import random
     from scipy import interpolate
     from plot3d import plot3d
@@ -420,10 +420,22 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
                                           #arbitrary choice - assuming more or less a nxn grid of points
                                           # x should have n^2 entries. We sample 4 times that many points.
 
+    points=[[x[i],y[i]] for i in range(len(x))]
+    j = numpy.complex(0, 1)
+
     if interpolation_type == 'linear':
-        T = tri.Triangulation(x, y)
-        f = tri.LinearTriInterpolator(T, z)
-        j = numpy.complex(0, 1)
+        f = interpolate.LinearNDInterpolator(points,z)
+        from parametric_surface import ParametricSurface
+        def g(x, y):
+            z = f([x, y])
+            return (x, y, z)
+        G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
+        G._set_extra_kwds(kwds)
+        return G
+
+    if interpolation_type == 'MPLlinear':
+        T= tri.Triangulation(x,y)
+        f= tri.LinearTriInterpolator(T,z)
         from parametric_surface import ParametricSurface
         def g(x, y):
             z = f(x, y)
@@ -432,13 +444,22 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         G._set_extra_kwds(kwds)
         return G
 
-    if interpolation_type == 'cubic' or interpolation_type == 'default':
-        T = tri.Triangulation(x, y)
-        f = tri.CubicTriInterpolator(T, z)
-        j = numpy.complex(0, 1)
+    if interpolation_type == 'cubic':
+        T=tri.Triangulation(x,y)
+        f=tri.CubicTriInterpolator(T,z)
+        from parametric_surface import ParametricSurface
+        def g(x,y):
+            z=f(x,y)
+            return (x,y,z)
+        G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
+        G._set_extra_kwds(kwds)
+        return G
+
+    if interpolation_type == 'nn' or interpolation_type == 'default':
+        f = interpolate.NearestNDInterpolator(points,z)
         from parametric_surface import ParametricSurface
         def g(x, y):
-            z = f(x, y)
+            z = f([x, y])
             return (x, y, z)
         G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
         G._set_extra_kwds(kwds)
