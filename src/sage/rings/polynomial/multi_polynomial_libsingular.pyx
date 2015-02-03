@@ -179,7 +179,7 @@ from sage.libs.singular.decl cimport (
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
-    p_IsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
+    p_IsHomogeneous, pHomogen, p_Totaldegree,pLDeg1_Totaldegree , singclap_pdivide, singclap_factorize,
     delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,

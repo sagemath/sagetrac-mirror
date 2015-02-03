@@ -156,11 +156,73 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     ##         p   -p : Fp(a)           *names         FALSE             (done)
     ##         q    q : GF(q=p^n)       *names         TRUE              (todo)
 
+    _wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int *))
+    _order  = <int *>omAlloc0((nblcks + 2) * sizeof(int))
+    _block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
+    _block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
+
+    #if order.is_local():
+    #    _ring.OrdSgn = -1
+    #else:
+    #    _ring.OrdSgn = 1
+
+    cdef int idx = 0
+    for i from 0 <= i < nbaseblcks:
+        s = order[i].singular_str()
+        if s[0] == 'M': # matrix order
+            _ring.order[idx] = ringorder_M
+            mtx = order[i].matrix().list()
+            wv = <int *>omAlloc0(len(mtx)*sizeof(int))
+            for j in range(len(mtx)):
+                wv[j] = int(mtx[j])
+            _ring.wvhdl[idx] = wv
+        elif s[0] == 'w' or s[0] == 'W': # weighted degree orders
+            _ring.order[idx] = order_dict.get(s[:2], ringorder_dp)
+            wts = order[i].weights()
+            wv = <int *>omAlloc0(len(wts)*sizeof(int))
+            for j in range(len(wts)):
+                wv[j] = int(wts[j])
+            _ring.wvhdl[idx] = wv
+        elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
+            _ring.order[idx] = ringorder_a
+            if len(order[i]) == 0:    # may be zero for arbitrary-length orders
+                nlen = n
+            else:
+                nlen = len(order[i])
+
+            _ring.wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
+            for j in range(nlen):  _ring.wvhdl[idx][j] = 1
+            _ring.block0[idx] = offset + 1     # same like subsequent rp block
+            _ring.block1[idx] = offset + nlen
+
+            idx += 1;                   # we need one more block here
+            _ring.order[idx] = ringorder_rp
+
+        else: # ordinary orders
+            _ring.order[idx] = order_dict.get(s, ringorder_dp)
+
+        _ring.block0[idx] = offset + 1
+        if len(order[i]) == 0: # may be zero in some cases
+            _ring.block1[idx] = offset + n
+        else:
+            _ring.block1[idx] = offset + len(order[i])
+        offset = _ring.block1[idx]
+        idx += 1
+
+    # TODO: if we construct a free module don't hardcode! This
+    # position determines whether we break ties at monomials first or
+    # whether we break at indices first!
+    _ring.order[nblcks] = ringorder_C
+    
+     if is_extension:
+        raise "extension ring disabled"
+    
     if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
             raise TypeError, "Characteristic p must be <= 2147483647."
+        ring = rDefault(int characteristic             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
 
     elif PY_TYPE_CHECK(base_ring, RationalField):
         characteristic = 0
@@ -262,63 +324,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     nblcks = nbaseblcks + order.singular_moreblocks()
     offset = 0
 
-    _ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int *))
-    _ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int))
-    _ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
-    _ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
 
-    if order.is_local():
-        _ring.OrdSgn = -1
-    else:
-        _ring.OrdSgn = 1
-
-    cdef int idx = 0
-    for i from 0 <= i < nbaseblcks:
-        s = order[i].singular_str()
-        if s[0] == 'M': # matrix order
-            _ring.order[idx] = ringorder_M
-            mtx = order[i].matrix().list()
-            wv = <int *>omAlloc0(len(mtx)*sizeof(int))
-            for j in range(len(mtx)):
-                wv[j] = int(mtx[j])
-            _ring.wvhdl[idx] = wv
-        elif s[0] == 'w' or s[0] == 'W': # weighted degree orders
-            _ring.order[idx] = order_dict.get(s[:2], ringorder_dp)
-            wts = order[i].weights()
-            wv = <int *>omAlloc0(len(wts)*sizeof(int))
-            for j in range(len(wts)):
-                wv[j] = int(wts[j])
-            _ring.wvhdl[idx] = wv
-        elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
-            _ring.order[idx] = ringorder_a
-            if len(order[i]) == 0:    # may be zero for arbitrary-length orders
-                nlen = n
-            else:
-                nlen = len(order[i])
-
-            _ring.wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
-            for j in range(nlen):  _ring.wvhdl[idx][j] = 1
-            _ring.block0[idx] = offset + 1     # same like subsequent rp block
-            _ring.block1[idx] = offset + nlen
-
-            idx += 1;                   # we need one more block here
-            _ring.order[idx] = ringorder_rp
-
-        else: # ordinary orders
-            _ring.order[idx] = order_dict.get(s, ringorder_dp)
-
-        _ring.block0[idx] = offset + 1
-        if len(order[i]) == 0: # may be zero in some cases
-            _ring.block1[idx] = offset + n
-        else:
-            _ring.block1[idx] = offset + len(order[i])
-        offset = _ring.block1[idx]
-        idx += 1
-
-    # TODO: if we construct a free module don't hardcode! This
-    # position determines whether we break ties at monomials first or
-    # whether we break at indices first!
-    _ring.order[nblcks] = ringorder_C
 
     if ringtype != n_unknown:
         _ring.cf.modBase = ringflaga

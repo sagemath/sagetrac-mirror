@@ -38,6 +38,7 @@ cdef extern from "Singular/libsingular.h":
     #
     # OPTIONS
     #
+    
 
     # test is now si_opt_1
     # verbose is now si_opt_2
@@ -449,6 +450,8 @@ cdef extern from "Singular/libsingular.h":
     # singular init
 
     int siInit(char *)
+    
+
 
     # external resource init
 
@@ -481,7 +484,22 @@ cdef extern from "Singular/libsingular.h":
 
     # construct ring with characteristic, number of vars and names
 
-    ring *rDefault(int char, int nvars, char **names)
+    ring *rDefault(int char           , int nvars, char **names)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
+    ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+  
+    # see coeffs.h
+    ctypedef struct  GFInfo:
+        int GFChar;
+        int GFDegree;
+        const char* GFPar_name;
+  
+    
+    # parameter is pointer to gGFInfo
+    # 
+    n_Procs_s* nInitChar(n_coeffType t, void * parameter)
+    
 
     # ring destructor
 
@@ -655,6 +673,8 @@ cdef extern from "Singular/libsingular.h":
     # total degree of p
 
     long p_Totaldegree(poly *p, ring *r)
+    
+    long pLDeg1_Totaldegree(poly * p,int *l, const ring * r)
 
     # iterate through the monomials of p
 
@@ -1042,6 +1062,12 @@ cdef extern from "Singular/libsingular.h":
     int hasFlag(leftv *A, int F)
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
+    
+cdef extern from "polys/weight.h":
+
+    
+    double wFunctionalBuch(int *degw, int *lpol, int npol, double *rel, double wx, double wNsqr)
+  
 
 cdef extern from "polys/prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)

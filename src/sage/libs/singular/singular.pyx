@@ -41,6 +41,7 @@ from sage.libs.singular.decl cimport siInit
 from sage.libs.singular.decl cimport n_Init
 from sage.libs.singular.decl cimport rChangeCurrRing, currRing
 from sage.libs.singular.decl cimport WerrorS_callback, const_char_ptr
+from sage.libs.singular.decl cimport wFunctionalBuch
 
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
