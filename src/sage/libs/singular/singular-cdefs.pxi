@@ -38,6 +38,7 @@ cdef extern from "Singular/libsingular.h":
     #
     # OPTIONS
     #
+    
 
     # test is now si_opt_1
     # verbose is now si_opt_2
@@ -97,7 +98,7 @@ cdef extern from "Singular/libsingular.h":
     # ideal flags
     cdef int  FLAG_STD
     cdef int  FLAG_TWOSTD
-
+ 
     #
     # STRUCTS
     #
@@ -226,11 +227,11 @@ cdef extern from "Singular/libsingular.h":
         p_Procs_s *p_Procs #polxnomial procs
         ideal *qideal #quotient ideal
 
-        char **parameter # parameter names
-        ring *algring # base extension field
+        #char **parameter # parameter names
+        #ring *algring # base extension field
         short N # number of variables
-        short P # number of parameters
-        int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        #short P # number of parameters
+        #int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
         
         #n_coeffType type # field etc.
         #int type # field etc.
@@ -449,6 +450,8 @@ cdef extern from "Singular/libsingular.h":
     # singular init
 
     int siInit(char *)
+    
+
 
     # external resource init
 
@@ -473,7 +476,7 @@ cdef extern from "Singular/libsingular.h":
 
     char *omStrDup(char *)
 
-    # free
+    # free 
 
     void omFree(void *)
 
@@ -481,7 +484,29 @@ cdef extern from "Singular/libsingular.h":
 
     # construct ring with characteristic, number of vars and names
 
-    ring *rDefault(int char, int nvars, char **names)
+    ring *rDefault(int char , int nvars, char **names)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
+    ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+  
+  
+    # see rmodulon.h
+    
+    ctypedef struct ZnmInfo:
+       mpz_ptr base;  
+       unsigned long exp; 
+  
+    # see coeffs.h
+    ctypedef struct  GFInfo:
+        int GFChar;
+        int GFDegree;
+        const char* GFPar_name;
+  
+    
+    # parameter is pointer to gGFInfo
+    # 
+    n_Procs_s* nInitChar(n_coeffType t, void * parameter)
+    
 
     # ring destructor
 
@@ -655,6 +680,8 @@ cdef extern from "Singular/libsingular.h":
     # total degree of p
 
     long p_Totaldegree(poly *p, ring *r)
+    
+    long pLDeg1_Totaldegree(poly * p,int *l, ring * r) 
 
     # iterate through the monomials of p
 
@@ -1042,6 +1069,12 @@ cdef extern from "Singular/libsingular.h":
     int hasFlag(leftv *A, int F)
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
+    
+cdef extern from "polys/weight.h":
+
+    
+    double wFunctionalBuch(int *degw, int *lpol, int npol, double *rel, double wx, double wNsqr)
+  
 
 cdef extern from "polys/prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)

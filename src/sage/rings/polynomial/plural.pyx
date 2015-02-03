@@ -118,6 +118,11 @@ from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wr
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
+from sage.libs.singular.decl cimport wFunctionalBuch
+from sage.libs.singular.decl cimport p_Totaldegree, pLDeg1_Totaldegree
+from sage.libs.singular.decl cimport *
+
+
 from sage.libs.singular.decl cimport n_coeffType
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 
@@ -2989,3 +2994,20 @@ cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring)
       tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
     p_Setm(tempvector, _ring)
     return tempvector
+    
+    
+cdef stubWFunctionalBuch():
+  cdef int *degw = <int*>sage_malloc(sizeof(int)*5)
+  cdef int *lpol = <int*>sage_malloc(sizeof(int)*5)
+  cdef double *rel = <double*>sage_malloc(sizeof(double)*5)
+  cdef double wx = 3.0
+  cdef double wNsqr = 3.0
+  result = wFunctionalBuch(degw, lpol, 5, rel,  wx,  wNsqr)
+  
+  
+cdef  stubTotaldegree(poly *tempvector, ring * _ring):
+   cdef int *l = <int*>sage_malloc(sizeof(int)*5)
+   result = pLDeg1_Totaldegree(tempvector, l, _ring )
+
+ 
+ 

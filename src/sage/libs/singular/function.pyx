@@ -1775,17 +1775,19 @@ def lib(name):
         sage: primes(2,10, ring=GF(127)['x,y,z'])
         (2, 3, 5, 7)
     """
-    global verbose
-    cdef int vv = verbose
+    #global verbose # verbose is now  si_opt_2
+    global si_opt_2
+
+    cdef int vv =  si_opt_2
 
     if get_verbose() <= 0:
-        verbose &= ~Sy_bit(V_LOAD_LIB)
+         si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
 
     if get_verbose() <= 0:
-        verbose &= ~Sy_bit(V_REDEFINE)
+         si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
     cdef bint failure = iiLibCmd(omStrDup(name), 1, 1, 1)
-    verbose = vv
+    si_opt_2 = vv
 
     if failure:
         raise NameError("Library '%s' not found."%(name,))
