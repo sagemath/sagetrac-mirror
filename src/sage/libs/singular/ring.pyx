@@ -120,7 +120,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef long longcharacteristic
     cdef long cexponent
     cdef GFInfo* _param
-    cdef ZnmInfo info
+    cdef ZnmInfo _info
     cdef ring* _ring
     cdef char **_names
     cdef char *_name
@@ -325,7 +325,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 else:              ringtype = n_GF
                       
             if ringtype == n_GF:
-                _cf = nInitChar( n_GF, <void *>_param )
+                _cf = nInitChar( n_GF, <void *>&_param )
             elif  ringtype == n_Z2m:
                 _cf = nInitChar( n_Z2m, <void *>cexponent )
                         
@@ -353,10 +353,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             except OverflowError:
                 raise NotImplementedError("Characteristic %d too big."%ch)          
            
-            info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
-            mpz_init_set_ui(info.base, characteristic)
-            info.exp = 1
-            _cf = nInitChar( n_Zn, <void *>info )
+            _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
+            mpz_init_set_ui(_info.base, characteristic)
+            _info.exp = 1
+            _cf = nInitChar( n_Zn, <void *>&_info )
         _ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
             
             
