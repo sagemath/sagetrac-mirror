@@ -98,7 +98,7 @@ cdef extern from "Singular/libsingular.h":
     # ideal flags
     cdef int  FLAG_STD
     cdef int  FLAG_TWOSTD
-
+ 
     #
     # STRUCTS
     #
@@ -485,11 +485,16 @@ cdef extern from "Singular/libsingular.h":
     # construct ring with characteristic, number of vars and names
 
     ring *rDefault(int char , int nvars, char **names)
-
-
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
     ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+  
+  
+    # see rmodulon.h
+    
+    ctypedef struct ZnmInfo:
+       mpz_ptr base;  
+       unsigned long exp; 
   
     # see coeffs.h
     ctypedef struct  GFInfo:
@@ -676,7 +681,7 @@ cdef extern from "Singular/libsingular.h":
 
     long p_Totaldegree(poly *p, ring *r)
     
-    long pLDeg1_Totaldegree(poly * p,int *l, const ring * r)
+    long pLDeg1_Totaldegree(poly * p,int *l, ring * r) 
 
     # iterate through the monomials of p
 

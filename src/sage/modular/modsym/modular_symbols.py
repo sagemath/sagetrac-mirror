@@ -42,7 +42,7 @@ from sage.misc.latex import latex
 
 _C = cusps.Cusps
 
-#X, Y = ZZ['X,Y'].gens()
+X, Y = ZZ['X,Y'].gens()
 
 class ModularSymbol(SageObject):
     r"""
