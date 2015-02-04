@@ -232,13 +232,13 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             characteristic = base_ring.characteristic()
         else:
             raise TypeError, "Characteristic p must be <= 2147483647."
-        #_ring = rDefault( characteristic , n, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        _ring = rDefault( characteristic , nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         _ring = rDefault(characteristic, nvars, _names)
 
     elif PY_TYPE_CHECK(base_ring, RationalField):
         characteristic = 0
-        #_ring = rDefault( characteristic , n, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        _ring = rDefault(characteristic, nvars, _names)
+        _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #_ring = rDefault(characteristic, nvars, _names)
 
     elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
         raise "Ring disabled "
