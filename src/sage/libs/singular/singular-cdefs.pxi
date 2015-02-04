@@ -227,11 +227,11 @@ cdef extern from "Singular/libsingular.h":
         p_Procs_s *p_Procs #polxnomial procs
         ideal *qideal #quotient ideal
 
-        char **parameter # parameter names
-        ring *algring # base extension field
+        #char **parameter # parameter names
+        #ring *algring # base extension field
         short N # number of variables
-        short P # number of parameters
-        int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        #short P # number of parameters
+        #int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
         
         #n_coeffType type # field etc.
         #int type # field etc.
@@ -476,7 +476,7 @@ cdef extern from "Singular/libsingular.h":
 
     char *omStrDup(char *)
 
-    # free
+    # free 
 
     void omFree(void *)
 
@@ -484,7 +484,9 @@ cdef extern from "Singular/libsingular.h":
 
     # construct ring with characteristic, number of vars and names
 
-    ring *rDefault(int char           , int nvars, char **names)
+    ring *rDefault(int char , int nvars, char **names)
+
+
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
     ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)

@@ -27,6 +27,7 @@ from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, r
 from sage.libs.singular.decl cimport p_Copy
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 from sage.libs.singular.decl cimport n_coeffType
+from sage.libs.singular.decl cimport rDefault
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -122,6 +123,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef int i,j
     cdef int nblcks
     cdef int offset
+    cdef int nvars
     cdef int characteristic
     cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
@@ -132,13 +134,21 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef __mpz_struct* ringflaga
     cdef unsigned long ringflagb
 
+    _ring  = NULL
+
     is_extension = False
 
     n = int(n)
     if n<1:
         raise ArithmeticError("The number of variables must be at least 1.")
 
+    nvars = n
     order = TermOrder(term_order, n)
+
+    cdef nbaseblcks = len(order.blocks())
+    nblcks = nbaseblcks + order.singular_moreblocks()
+    offset = 0
+
 
     _names = <char**>omAlloc0(sizeof(char*)*(len(names)))
     for i from 0 <= i < n:
@@ -170,51 +180,51 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     for i from 0 <= i < nbaseblcks:
         s = order[i].singular_str()
         if s[0] == 'M': # matrix order
-            _ring.order[idx] = ringorder_M
+            _order[idx] = ringorder_M
             mtx = order[i].matrix().list()
             wv = <int *>omAlloc0(len(mtx)*sizeof(int))
             for j in range(len(mtx)):
                 wv[j] = int(mtx[j])
-            _ring.wvhdl[idx] = wv
+            _wvhdl[idx] = wv
         elif s[0] == 'w' or s[0] == 'W': # weighted degree orders
-            _ring.order[idx] = order_dict.get(s[:2], ringorder_dp)
+            _order[idx] = order_dict.get(s[:2], ringorder_dp)
             wts = order[i].weights()
             wv = <int *>omAlloc0(len(wts)*sizeof(int))
             for j in range(len(wts)):
                 wv[j] = int(wts[j])
-            _ring.wvhdl[idx] = wv
+            _wvhdl[idx] = wv
         elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
-            _ring.order[idx] = ringorder_a
+            _order[idx] = ringorder_a
             if len(order[i]) == 0:    # may be zero for arbitrary-length orders
                 nlen = n
             else:
                 nlen = len(order[i])
 
-            _ring.wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
-            for j in range(nlen):  _ring.wvhdl[idx][j] = 1
-            _ring.block0[idx] = offset + 1     # same like subsequent rp block
-            _ring.block1[idx] = offset + nlen
+            _wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
+            for j in range(nlen):  _wvhdl[idx][j] = 1
+            _block0[idx] = offset + 1     # same like subsequent rp block
+            _block1[idx] = offset + nlen
 
             idx += 1;                   # we need one more block here
-            _ring.order[idx] = ringorder_rp
+            _order[idx] = ringorder_rp
 
         else: # ordinary orders
-            _ring.order[idx] = order_dict.get(s, ringorder_dp)
+            _order[idx] = order_dict.get(s, ringorder_dp)
 
-        _ring.block0[idx] = offset + 1
+        _block0[idx] = offset + 1
         if len(order[i]) == 0: # may be zero in some cases
-            _ring.block1[idx] = offset + n
+            _block1[idx] = offset + n
         else:
-            _ring.block1[idx] = offset + len(order[i])
-        offset = _ring.block1[idx]
+            _block1[idx] = offset + len(order[i])
+        offset = _block1[idx]
         idx += 1
 
     # TODO: if we construct a free module don't hardcode! This
     # position determines whether we break ties at monomials first or
     # whether we break at indices first!
-    _ring.order[nblcks] = ringorder_C
+    _order[nblcks] = ringorder_C
     
-     if is_extension:
+    if is_extension:
         raise "extension ring disabled"
     
     if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
@@ -222,18 +232,23 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             characteristic = base_ring.characteristic()
         else:
             raise TypeError, "Characteristic p must be <= 2147483647."
-        ring = rDefault(int characteristic             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+        #_ring = rDefault( characteristic , n, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        _ring = rDefault(characteristic, nvars, _names)
 
     elif PY_TYPE_CHECK(base_ring, RationalField):
         characteristic = 0
+        #_ring = rDefault( characteristic , n, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        _ring = rDefault(characteristic, nvars, _names)
 
     elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
+        raise "Ring disabled "
         ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
         mpz_init_set_ui(ringflaga, 0)
         characteristic = 0
         ringtype = n_Z # integer ring
 
     elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+        raise "Ring disabled "
         if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
@@ -247,6 +262,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         is_extension = True
 
     elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+        raise "Ring disabled "
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
@@ -256,6 +272,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         is_extension = True
 
     elif is_IntegerModRing(base_ring):
+        raise "Ring disabled "
         ch = base_ring.characteristic()
         if ch.is_power_of(2):
             exponent = ch.nbits() -1
@@ -295,16 +312,16 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     else:
         raise NotImplementedError("Base ring is not supported.")
 
-    _ring = <ring*>omAlloc0Bin(sip_sring_bin)
+    #_ring = <ring*>omAlloc0Bin(sip_sring_bin)
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
-    _ring.cf.ch = characteristic
-    _ring.cf.type = ringtype
-    _ring.N = n
-    _ring.names  = _names
+    #_ring.cf.ch = characteristic
+    #_ring.cf.type = ringtype
+    #_ring.N = n
+    #_ring.names  = _names
 
     if is_extension:
-        raise "not implemented"
+        raise "Ring disabled "
         #rChangeCurrRing(k._ring)
         #_ring.algring = rCopy0(k._ring)
         #rComplete(_ring.algring, 1)
@@ -320,18 +337,17 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #_ring.minpoly=<number*>nmp
 
 
-    cdef nbaseblcks = len(order.blocks())
-    nblcks = nbaseblcks + order.singular_moreblocks()
-    offset = 0
+    print "_ring.ShortOut",_ring.ShortOut
+    print "_ring.N",_ring.N
 
 
+    #if ringtype != n_unknown:
+    #    print "not n_unknown"
+    #    _ring.cf.modBase = ringflaga
+    #    _ring.cf.modExponent = ringflagb
 
-    if ringtype != n_unknown:
-        _ring.cf.modBase = ringflaga
-        _ring.cf.modExponent = ringflagb
-
-    rComplete(_ring, 1)
-    _ring.ShortOut = 0
+    #rComplete(_ring, 1)
+    #_ring.ShortOut = 0
 
     rChangeCurrRing(_ring)
 
