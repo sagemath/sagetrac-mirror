@@ -1659,7 +1659,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         r"""
         Return the inverse of ``self``.
         """
-        # Warning: do not use _div_() here has some elements override __div__()
+        # Warning: do not use _div_() here has some elements overwrite __div__()
         if self.is_one():
             return self
         return self._parent.one() / self
@@ -2057,11 +2057,9 @@ cdef class RingElement(ModuleElement):
             sage: ~f
             1/(x - 90283)
         """
-        # Warning: do not use _div_() here has some elements override __div__()
+        # Warning: do not use _div_() here has some elements overwrite __div__()
         if self.is_one():
             return self
-        if self.is_zero():
-            raise ZeroDivisionError("division by zero in a ring")
         return self._parent.one() / self
 
     def additive_order(self):
