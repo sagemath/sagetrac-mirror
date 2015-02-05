@@ -91,6 +91,7 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_ideal_libsingular cimport sage_ideal_to_singular_ideal, singular_ideal_to_sage_sequence
 
 from sage.libs.singular.decl cimport *
+# n_ParameterNames
 
 from sage.libs.singular.option import opt_ctx
 from sage.libs.singular.polynomial cimport singular_vector_maximal_component, singular_polynomial_check
@@ -197,7 +198,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).npars()
             0
         """
-        return self._ring.P
+        return n_NumberOfParameters(self._ring.cf)
 
     def ordering_string(self):
         """
@@ -231,7 +232,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).par_names()
             []
         """
-        return [self._ring.parameter[i] for i in range(self.npars())]
+        return [n_ParameterNames(self._ring.cf)[i] for i in range(self.npars())]
 
     def characteristic(self):
         """
@@ -247,7 +248,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).characteristic()
             0
         """
-        return self._ring.ch
+        return self._ring.cf.ch
 
     def is_commutative(self):
         """
@@ -1775,17 +1776,19 @@ def lib(name):
         sage: primes(2,10, ring=GF(127)['x,y,z'])
         (2, 3, 5, 7)
     """
-    global verbose
-    cdef int vv = verbose
+    #global verbose # verbose is now  si_opt_2
+    global si_opt_2
+
+    cdef int vv =  si_opt_2
 
     if get_verbose() <= 0:
-        verbose &= ~Sy_bit(V_LOAD_LIB)
+         si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
 
     if get_verbose() <= 0:
-        verbose &= ~Sy_bit(V_REDEFINE)
+         si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
     cdef bint failure = iiLibCmd(omStrDup(name), 1, 1, 1)
-    verbose = vv
+    si_opt_2 = vv
 
     if failure:
         raise NameError("Library '%s' not found."%(name,))

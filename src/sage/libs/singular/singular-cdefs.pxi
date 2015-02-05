@@ -14,8 +14,6 @@ include "sage/ext/cdefs.pxi"
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
-cdef extern from "factor.h":
-    cdef int libfac_interruptflag
 
 cdef extern from "factory/factory.h":
 
@@ -35,14 +33,20 @@ cdef extern from "factory/factory.h":
     cdef int SW_USE_NTL_SORT
 
 
-cdef extern from "libsingular.h":
+cdef extern from "Singular/libsingular.h":
 
     #
     # OPTIONS
     #
+    
 
-    cdef unsigned int singular_options "test"
-    cdef unsigned int singular_verbose_options "verbose"
+    # test is now si_opt_1
+    # verbose is now si_opt_2
+    #extern "C" unsigned si_opt_1; //< NOTE: Original option variable name: test
+    #extern "C" unsigned si_opt_2; //< NOTE: Original option variable name: verbose
+
+    cdef unsigned int singular_options "si_opt_1"
+    cdef unsigned int singular_verbose_options "si_opt_2"
 
     # actual options
     cdef int OPT_PROT
@@ -94,7 +98,7 @@ cdef extern from "libsingular.h":
     # ideal flags
     cdef int  FLAG_STD
     cdef int  FLAG_TWOSTD
-
+ 
     #
     # STRUCTS
     #
@@ -111,47 +115,84 @@ cdef extern from "libsingular.h":
 
     # algebraic numbers
 
-    ctypedef struct lnumber "slnumber":
-        napoly *z
-        napoly *n
-        int s
+    #ctypedef struct lnumber "slnumber":
+    #    napoly *z
+    #    napoly *n
+    #    int s
 
+    cdef enum n_coeffType:
+        n_unknown=0
+        n_Zp=1 #/**< \F{p < 2^31} */
+        n_Q=2   #/**< rational (GMP) numbers */
+        n_R=3   #/**< single prescision (6,6) real numbers */
+        n_GF=4  #/**< \GF{p^n < 2^16} */
+        n_long_R=5  #/**< real floating point (GMP) numbers */
+        n_algExt=6   #/**< used for all algebraic extensions, i.e.,
+                    #  the top-most extension in an extension tower
+                     # is algebraic */
+        n_transExt=7   #/**< used for all transcendental extensions, i.e.,
+                       # the top-most extension in an extension tower
+                       # is transcendental */
+        n_long_C=8  #/**< complex floating point (GMP) numbers */
+        n_Z=9  #/**< only used if HAVE_RINGS is defined: ? */
+        n_Zn=10  #/**< only used if HAVE_RINGS is defined: ? */
+        n_Znm=11  #/**< only used if HAVE_RINGS is defined: ? */
+        n_Z2m=12  #/**< only used if HAVE_RINGS is defined: ? */
+        n_CF=13  #/**< ? */tons_of_spam = 3
+        
     ctypedef struct ring "ip_sring"
 
+    #cdef struct  n_Procs_s;
+    #ctypedef n_Procs_s* coeffs;
+    
     ctypedef struct n_Procs_s:
 
-        number* nDiv(number *, number *)
-        number* nAdd(number *, number *)
-        number* nSub(number *, number *)
-        number* nMul(number *, number *)
+        number* cfDiv(number *, number *, const n_Procs_s* r)
+        number* cfAdd(number *, number *, const n_Procs_s* r)
+        number* cfSub(number *, number *, const n_Procs_s* r)
+        number* cfMult(number *, number *, const n_Procs_s* r)
 
-        void    (*nNew)(number* * a)
-        number*  (*nInit)(int i)
-        number*  (*nPar)(int i)
-        int     (*nParDeg)(number* n)
-        int     (*nSize)(number* n)
-        int     (*n_Int)(number* n, ring *)
-        int     (*nDivComp)(number* a,number* b)
-        number*  (*nGetUnit)(number* a)
-        number*  (*nExtGcd)(number* a, number* b, number* *s, number* *t)
+        #void    (*nNew)(number* * a)
+        number*  (*cfInit)(int i, const n_Procs_s* r )
+        number*  (*cfParameter)(int i, const n_Procs_s* r)
+        int     (*cfParDeg)(number* n, const n_Procs_s* r)
+        int     (*cfSize)(number* n, const n_Procs_s* r)
+        int     (*cfInt)(number* n, const n_Procs_s* r)
+        int     (*cdDivComp)(number* a,number* b, const n_Procs_s* r)
+        number*  (*cfGetUnit)(number* a, const n_Procs_s* r)
+        number*  (*cfExtGcd)(number* a, number* b, number* *s, number* *t , const n_Procs_s* r)
 
-        number*  (*nNeg)(number* a)
-        number*  (*nInvers)(number* a)
-        number*  (*nCopy)(number* a)
-        number*  (*nRePart)(number* a)
-        number*  (*nImPart)(number* a)
-        void    (*nWrite)(number* a)
-        void    (*nNormalize)(number* a)
+        number*  (*cfInpNeg)(number* a,  const n_Procs_s* r)
+        number*  (*cfInvers)(number* a,  const n_Procs_s* r)
+        number*  (*cfCopy)(number* a,  const n_Procs_s* r)
+        number*  (*cfRePart)(number* a, const n_Procs_s* cf)
+        number*  (*cfImPart)(number* a, const n_Procs_s* cf)
+        void    (*cfWrite)(number* a, const n_Procs_s* r)
+        void    (*cfNormalize)(number* a,  const n_Procs_s* r)
 
-        bint (*nDivBy)(number* a, number* b)
-        bint (*nEqual)(number* a,number* b)
-        bint (*nIsZero)(number* a)
-        bint (*nIsOne)(number* a)
-        bint (*nIsMOne)(number* a)
-        bint (*nGreaterZero)(number* a)
-        void (*nPower)(number* a, int i, number* * result)
+
+
+        bint (*cfDivBy)(number* a, number* b, const n_Procs_s* r)
+        bint (*cfEqual)(number* a,number* b, const n_Procs_s* )
+        bint (*cfIsZero)(number* a, const n_Procs_s* )
+        bint (*cfIsOne)(number* a, const n_Procs_s* )
+        bint (*cfIsMOne)(number* a, const n_Procs_s* )
+        bint (*cfGreaterZero)(number* a, const n_Procs_s* )
+        void (*cfPower)(number* a, int i, number* * result,  const n_Procs_s* r)
+        
+        
+        int ch
+        mpz_ptr    modBase;
+        unsigned long modExponent;
+        
+        #n_coeffType type
+        int type
 
     # polynomials
+    
+    const char ** n_ParameterNames(const n_Procs_s* r)
+    
+    int n_NumberOfParameters(const n_Procs_s* r)
 
     ctypedef struct poly "polyrec":
         poly *next
@@ -168,6 +209,10 @@ cdef extern from "libsingular.h":
     ctypedef struct p_Procs_s "p_Procs_s":
         pass
     # rings
+    
+    #cdef extern n_coeffType
+     
+  
 
     ctypedef struct ring "ip_sring":
         int  *order  # array of orderings
@@ -182,19 +227,30 @@ cdef extern from "libsingular.h":
         p_Procs_s *p_Procs #polxnomial procs
         ideal *qideal #quotient ideal
 
-        char **parameter # parameter names
-        ring *algring # base extension field
+        #char **parameter # parameter names
+        #ring *algring # base extension field
         short N # number of variables
-        short P # number of parameters
-        int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
-        unsigned int ringtype # field etc.
-        mpz_ptr ringflaga
-        unsigned long ringflagb
+        #short P # number of parameters
+        #int ch # characteristic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        
+        #n_coeffType type # field etc.
+        #int type # field etc.
+        
+
+        
         int pCompIndex # index of components
         unsigned long bitmask # mask for getting single exponents
+        
 
         n_Procs_s*    cf
         int ref
+        
+        # return total degree of p
+
+        long (*pLDeg)(poly *p, int *l, ring *r)
+        
+        #char  const ** rParameter(const ring * r)
+    
 
     # available ring orders
 
@@ -379,7 +435,8 @@ cdef extern from "libsingular.h":
     cdef idhdl *currRingHdl
 
     cdef int errorreported
-    cdef int verbose
+    #cdef int verbose
+    cdef int si_opt_2 
     cdef void * currentVoice
     cdef int myynest
 
@@ -393,6 +450,8 @@ cdef extern from "libsingular.h":
     # singular init
 
     int siInit(char *)
+    
+
 
     # external resource init
 
@@ -417,7 +476,7 @@ cdef extern from "libsingular.h":
 
     char *omStrDup(char *)
 
-    # free
+    # free 
 
     void omFree(void *)
 
@@ -425,7 +484,29 @@ cdef extern from "libsingular.h":
 
     # construct ring with characteristic, number of vars and names
 
-    ring *rDefault(int char, int nvars, char **names)
+    ring *rDefault(int char , int nvars, char **names)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
+    ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+  
+  
+    # see rmodulon.h
+    
+    ctypedef struct ZnmInfo:
+       mpz_ptr base;  
+       unsigned long exp; 
+  
+    # see coeffs.h
+    ctypedef struct  GFInfo:
+        int GFChar;
+        int GFDegree;
+        const char* GFPar_name;
+  
+    
+    # parameter is pointer to gGFInfo
+    # 
+    n_Procs_s* nInitChar(n_coeffType t, void * parameter)
+    
 
     # ring destructor
 
@@ -505,7 +586,7 @@ cdef extern from "libsingular.h":
 
     int p_GetExp(poly *p, int v, ring *r)
 
-    # get the maximal exponent in p
+    # get the maximal exponent in p 
 
     unsigned long p_GetMaxExp(poly *p, ring *r)
 
@@ -527,7 +608,7 @@ cdef extern from "libsingular.h":
 
     # return whether a polynomial is homogenous
 
-    int pIsHomogeneous(poly *p)
+    int p_IsHomogeneous(poly *p, const  ring *r)
 
     # return string representation of p
 
@@ -599,6 +680,8 @@ cdef extern from "libsingular.h":
     # total degree of p
 
     long p_Totaldegree(poly *p, ring *r)
+    
+    long pLDeg1_Totaldegree(poly * p,int *l, ring * r) 
 
     # iterate through the monomials of p
 
@@ -637,29 +720,29 @@ cdef extern from "libsingular.h":
 
     # gcd of f and g
 
-    poly *singclap_gcd ( poly *f, poly *g )
+    poly *singclap_gcd ( poly *f, poly *g, ring * r )
 
     # resultant of f and g in x
 
-    poly *singclap_resultant ( poly *f, poly *g , poly *x)
+    poly *singclap_resultant ( poly *f, poly *g , poly *x, ring * r)
 
     # extended gcd of f and g
 
-    int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb )
+    int singclap_extgcd( poly *f, poly *g, poly *res, poly *pa, poly *pb, ring * r )
 
     # full polynomial division (as opposed to monomial division)
 
-    poly *singclap_pdivide ( poly *f, poly *g )
+    poly *singclap_pdivide ( poly *f, poly *g, ring * r )
 
     # factorization
 
-    ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps)
+    ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps, ring * r)
 
     # TRUE if p is square free
     int singclap_isSqrFree(poly *p)
 
     # return determinant of i
-    poly *singclap_det(matrix *i)
+    poly *singclap_det(matrix *i, ring * r)
 
     # normal form calculation of p with respect to i, q is quotient
     # ring.
@@ -670,9 +753,7 @@ cdef extern from "libsingular.h":
 
     poly *pDiff(poly *p, int i)
 
-    # return total degree of p
 
-    int (*pLDeg)(poly *p, int *l, ring *r)
 
     # TRUE if p is a vector
 
@@ -703,11 +784,11 @@ cdef extern from "libsingular.h":
 
     # rational number from numerator and denominator
 
-    number *nlInit2gmp(mpz_t n, mpz_t d)
+    number *nlInit2gmp(mpz_t n, mpz_t d,const n_Procs_s* cf)
 
     # rational number from numerator and denominator
 
-    number *nlInit2(int i, int j)
+    number *nlInit2(int i, int j,const n_Procs_s* cf)
 
     # simplify rational number (cancel common factors)
 
@@ -719,19 +800,20 @@ cdef extern from "libsingular.h":
 
     # get numerator
 
-    number *nlGetNumerator(number *n, ring *r)
+    number *nlGetNumerator(number *n, const n_Procs_s* cf)
 
     # get denominator
 
-    number *nlGetDenom(number *n, ring *r)
+    number *nlGetDenom(number *n, const n_Procs_s* cf)
 
     # delete rational number
 
-    void nlDelete(number **n, ring *r)
+    void nlDelete(number **n, const n_Procs_s* cf)
 
     # i-th algebraic number paraemeter
 
-    number *naPar(int i)
+    #see ring .cf.cfParameter
+    #number *naParameter(int i, const n_Procs_s* cf)
 
     # algebraic number power
 
@@ -739,11 +821,11 @@ cdef extern from "libsingular.h":
 
     # algebraic number multiplication
 
-    number *naMult(number *, number *)
+    number *naMult(number *, number *, const n_Procs_s* cf)
 
     # algebraic number addition
 
-    number *naAdd(number *, number *)
+    number *naAdd(number *, number *, const n_Procs_s* cf)
 
     # deep copy of algebraic number
 
@@ -751,19 +833,19 @@ cdef extern from "libsingular.h":
 
     # algebraic number from int
 
-    number *naInit(int, ring *r)
+    number *naInit(int, const n_Procs_s*)
 
     # algebraic number destructor
 
-    void naDelete(number **, ring*)
+    void naDelete(number **, const n_Procs_s*)
 
     # algebraic number comparison with zero
 
-    int naIsZero(number *)
+    int naIsZero(number *,const n_Procs_s*)
 
     # algebraic number comparison with one
 
-    int naIsOne(number *)
+    int naIsOne(number *,const n_Procs_s*)
 
     # get current coefficent
 
@@ -786,16 +868,16 @@ cdef extern from "libsingular.h":
     long SR_HDL(number *)
 
     # map Q -> Q(a)
-    number *naMap00(number *c)
+    number *naMap00(number *c,const n_Procs_s* src,const n_Procs_s* dst)
 
     # init integer
-    number *nrzInit(int i, ring *r)
+    number *nrzInit(int i, const n_Procs_s* cf)
 
     # init ZmodN from GMP
-    number *nrnMapGMP(number *v)
+    number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
 
     #init 2^m from a long
-    number *nr2mMapZp(number *)
+    number *nr2mMapZp(number *,const n_Procs_s* src,const n_Procs_s* dst)
 
 
     # get C int from ZmodN
@@ -827,7 +909,7 @@ cdef extern from "libsingular.h":
 
     # rank of free module for m
 
-    long idRankFreeModule(ideal *m, ring *r)
+    long id_RankFreeModule(ideal *m, ring *r)
 
     # buchberger's algorithm
 
@@ -987,62 +1069,66 @@ cdef extern from "libsingular.h":
     int hasFlag(leftv *A, int F)
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
+    
+cdef extern from "polys/weight.h":
 
-cdef extern from "prCopy.h":
+    
+    double wFunctionalBuch(int *degw, int *lpol, int npol, double *rel, double wx, double wNsqr)
+  
+
+cdef extern from "polys/prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)
     poly *prCopyR(poly *p, ring *r, ring *dest_r)
 
     cdef int LANG_TOP
 
-# Non-commutative functions
+cdef extern from "polys/nc/nc.h":
     ctypedef enum nc_type:
-      nc_error # Something's gone wrong!
-      nc_general # yx=q xy+...
-      nc_skew # yx=q xy
-      nc_comm # yx= xy
-      nc_lie,  # yx=xy+...
-      nc_undef, # for internal reasons */
-      nc_exterior #
+        nc_error
+        nc_general
+        nc_skew
+        nc_comm
+        nc_lie
+        nc_undef
+        nc_exterior
 
-
-cdef extern from "gring.h":
     void ncRingType(ring *, nc_type)
     nc_type ncRingType_get "ncRingType" (ring *)
     int nc_CallPlural(matrix* CC, matrix* DD, poly* CN, poly* DN, ring* r)
     bint nc_SetupQuotient(ring *, ring *, bint)
 
-cdef extern from "sca.h":
+cdef extern from "polys/nc/sca.h":
     void sca_p_ProcsSet(ring *, p_Procs_s *)
     void scaFirstAltVar(ring *, int)
     void scaLastAltVar(ring *, int)
 
-cdef extern from "ring.h":
+cdef extern from "polys/monomials/ring.h":
     bint rIsPluralRing(ring* r)
     void rPrint "rWrite"(ring* r)
     char* rOrderingString "rOrdStr"(ring* r)
 #    void rDebugPrint(ring* r)
     void pDebugPrint "p_DebugPrint" (poly*p, ring* r)
 
-cdef extern from "stairc.h":
+cdef extern from "kernel/combinatorics/stairc.h":
     # Computes the monomial basis for R[x]/I
     ideal *scKBase(int deg, ideal *s, ideal *Q)
 
-cdef extern from "lists.h":
+cdef extern from "Singular/lists.h":
     ctypedef struct lists "slists":
         int    nr
         leftv  *m
         void (*Init)(int n)
 
-cdef extern from "kstd1.h":
+cdef extern from "kernel/GBEngine/kstd1.h":
     cdef extern int Kstd1_deg   # degBound, default 0
     cdef extern int Kstd1_mu    # multBound, default 0
 
-cdef extern from "intvec.h":
+cdef extern from "singular/misc/intvec.h":
     # for the moment we need only new, as we use the cleanup of sleftv
     # to get rid of it again
     intvec* intvec_new "New<intvec>"()
     intvec* intvec_new_int3 "new intvec"(int, int, int)
 
-cdef extern from "syz.h":
+cdef extern from "kernel/GBEngine/syz.h":
     ctypedef struct syStrategy "ssyStrategy":
         short references
