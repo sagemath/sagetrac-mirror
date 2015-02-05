@@ -841,8 +841,21 @@ cdef class GinacFunction(BuiltinFunction):
             sage: out = arctan2(int(0), RR(1))
             sage: (out, parent(out))
             (0, Integer Ring)
+
+        TESTS::
+
+            sage: sin(x, algorithm='foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'foo' for sin
+            sage: sin(x, algorithm='ginac')
+            sin(x)
         """
         res = super(GinacFunction, self).__call__(*args, **kwds)
+
+        algorithm = kwds.get('algorithm')
+        if algorithm is not None and algorithm != "ginac":
+            raise ValueError("unknown algorithm %r for %s"%(algorithm,self))
 
         # Convert to Integer if the output was of type "int" and any of
         # the inputs was a Sage Element
