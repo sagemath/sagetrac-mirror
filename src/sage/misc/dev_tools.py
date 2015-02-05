@@ -62,7 +62,7 @@ def runsnake(command):
     .. seealso::
 
         - `The RunSnakeRun website <http://www.vrplumber.com/programming/runsnakerun/>`_
-        - ``%prun``
+        - `Profiling <../../../../thematic_tutorials/profiling.html>`_ thematic tutorial
         - :class:`Profiler`
 
     EXAMPLES::
