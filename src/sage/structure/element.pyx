@@ -2056,10 +2056,14 @@ cdef class RingElement(ModuleElement):
             1/(x - 90283)
             sage: ~f
             1/(x - 90283)
+
+            sage: a = ZZ['x'].one()
+            sage: (~a).parent()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         """
         # Warning: do not use _div_() here has some elements overwrite __div__()
-        if self.is_one():
-            return self
+        # Warning: even if self is one, we should not return itself because of
+        #          coercion
         return self._parent.one() / self
 
     def additive_order(self):
