@@ -36,7 +36,7 @@ def module_names_cmp(x,y):
 
 def runsnake(command):
     """
-    Graphical profiling with ``runsnake``
+    Graphical profiling with ``RunSnakeRun``
 
     INPUT:
 
@@ -50,23 +50,18 @@ def runsnake(command):
         4
         9
 
-    :func:`runsnake` requires the program ``runsnake``. Due to non
-    trivial dependencies (python-wxgtk, ...), installing it within the
-    Sage distribution is unpractical. Hence, we recommend installing
-    it with the system wide Python. On Ubuntu 10.10, this can be done
-    with::
+    :func:`runsnake` requires the program ``RunSnakeRun``. Due to non trivial
+    dependencies (wxPython, ...), installing it within the Sage distribution is
+    unpractical. Hence, we recommend installing it system wide. On
+    Debian/Ubuntu, just install the ``runsnakerun`` package. See `the
+    RunSnakeRun website`_ for installation instructions for other platforms.
 
-        > sudo apt-get install python-profiler python-wxgtk2.8 python-setuptools
-        > sudo easy_install RunSnakeRun
-
-    See the ``runsnake`` website for instructions for other platforms.
-
-    :func:`runsnake` further assumes that the system wide Python is
-    installed in ``/usr/bin/python``.
+    :func:`runsnake` further assumes that the system wide Python is installed
+    in ``/usr/bin/python``.
 
     .. seealso::
 
-        - `The runsnake website <http://www.vrplumber.com/programming/runsnakerun/>`_
+        - `The RunSnakeRun website <http://www.vrplumber.com/programming/runsnakerun/>`_
         - ``%prun``
         - :class:`Profiler`
 
