@@ -1165,6 +1165,31 @@ class R(Expect):
         """
         self.execute('setwd(%r)' % dir)
 
+    #############################
+    # Compatibility with parent #
+    #############################
+
+    def zero(self):
+        r"""
+        Return the zero of R.
+
+        EXAMPLES::
+
+            sage: r.zero()
+            [1] 0
+        """
+        return self('0')
+
+    def one(self):
+        r"""
+        Return the one of R.
+
+        EXAMPLES::
+
+            sage: r.one()
+            [1] 1
+        """
+        return self('1')
 
 # patterns for _sage_()
 rel_re_param = re.compile('\s([\w\.]+)\s=')

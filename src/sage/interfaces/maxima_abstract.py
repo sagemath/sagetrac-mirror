@@ -2289,7 +2289,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         """
         return self._operation('-')
 
-    def __inv__(self):
+    def __invert__(self):
         r"""
         Multiplicative inverse of this Maxima function.
 
