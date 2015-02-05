@@ -83,6 +83,9 @@ def runsnake(command):
         sage: runsnake("print(2^2)")                    # optional - runsnake
         0
     """
+    from sage.misc.sage_ostools import have_program
+    if not have_program('runsnake'):
+        raise RuntimeError('The program RunSnakeRun seems not installed, see runsnake? for more details.')
     import cProfile, os
     from sage.misc.misc import tmp_filename, get_main_globals
     command = command.lstrip().rstrip()
