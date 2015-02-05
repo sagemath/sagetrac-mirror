@@ -89,7 +89,6 @@ cdef class Function(SageObject):
         self._latex_name = latex_name
         self._evalf_params_first = evalf_params_first
         self._conversions = {} if conversions is None else conversions
-        self._algorithm = None 
 
         # handle custom printing
         # if print_func is defined, it is used instead of name
@@ -189,7 +188,7 @@ cdef class Function(SageObject):
         self._serial = g_register_new(opt)
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def _evalf_try_(self, *args):
+    def _evalf_try_(self, *args, **kwds):
         """
         Call :meth:`_evalf_` if one the arguments is numerical and none
         of the arguments are symbolic.
@@ -256,7 +255,8 @@ cdef class Function(SageObject):
             if any(self._is_numerical(x) for x in args):
                 if not any(isinstance(x, Expression) for x in args):
                     p = get_coercion_model().common_parent(*args)
-                    return evalf(*args, parent=p, algorithm=self._algorithm)
+                    algo = kwds.get('algorithm')
+                    return evalf(*args, parent=p, algorithm=algo)
         except Exception:
             pass
 
@@ -981,7 +981,7 @@ cdef class BuiltinFunction(Function):
             sage: bar(A())
             'foo'
             
-        Algorithm arguments are stored for later numerical evaluation::
+        Algorithm arguments are passed to `_evalf_`::
         
             sage: from sage.symbolic.function import BuiltinFunction
             sage: class MyFunction(BuiltinFunction):
@@ -1006,7 +1006,6 @@ cdef class BuiltinFunction(Function):
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
-        self._algorithm = algorithm
         res = None
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
             arg = args[0]
@@ -1023,7 +1022,7 @@ cdef class BuiltinFunction(Function):
                     res = method()
 
         if res is None:
-            res = self._evalf_try_(*args)
+            res = self._evalf_try_(*args, algorithm=algorithm)
             if res is None:
                 res = super(BuiltinFunction, self).__call__(
                         *args, coerce=coerce, hold=hold)
