@@ -36,7 +36,7 @@ def module_names_cmp(x,y):
 
 def runsnake(command):
     """
-    Graphical profiling with ``RunSnakeRun``
+    Graphical profiling with ``RunSnakeRun``.
 
     INPUT:
 
