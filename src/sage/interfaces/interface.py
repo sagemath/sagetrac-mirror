@@ -336,6 +336,32 @@ class Interface(ParentWithBase):
         """
         return 'e'
 
+    def zero(self):
+        r"""
+        Return the zero of this interface.
+
+        EXAMPLES::
+
+            sage: maxima.zero()
+            0
+            sage: r.zero()
+            [1] 0
+        """
+        return self('0')
+
+    def one(self):
+        r"""
+        Return the one of this interface.
+
+        EXAMPLES::
+
+            sage: maxima.one()
+            1
+            sage: r.one()
+            [1] 1
+        """
+        return self('1')
+
     ############################################################
     #         Functions for working with variables.
     #  The first three must be overloaded by derived classes,

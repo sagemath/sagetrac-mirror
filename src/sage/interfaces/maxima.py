@@ -1052,32 +1052,6 @@ class Maxima(MaximaAbstract, Expect):
         """
         return MaximaElementFunction
 
-    ############################
-    # Compatibiliy with parent #
-    ############################
-
-    def zero(self):
-        r"""
-        Return the zero of maxima.
-
-        EXAMPLES::
-
-            sage: maxima.zero()
-            0
-        """
-        return self('0')
-
-    def one(self):
-        r"""
-        Return the one of maxima.
-
-        EXAMPLES::
-
-            sage: maxima.one()
-            1
-        """
-        return self('1')
-
     ## some old helper functions to wrap the calculus use
     ## of the Maxima interface. these routines expect arguments
     ## living in the symbolic ring and return something
