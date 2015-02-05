@@ -42,11 +42,8 @@ def runsnake(command):
 
     - ``command`` -- the command to be run as a string.
 
-    EXAMPLES::
-
-        sage: runsnake("list(SymmetricGroup(3))")        # optional - runsnake
-
-    ``command`` is first preparsed (see :func:`preparse`)::
+    If the the preparser is turned on, ``command`` is first preparsed (see
+    :func:`preparse` and :func:`preparser`)::
 
         sage: runsnake('for x in range(1,4): print x^2') # optional - runsnake
         1
@@ -73,12 +70,28 @@ def runsnake(command):
         - ``%prun``
         - :class:`Profiler`
 
+    EXAMPLES::
+
+        sage: runsnake("list(SymmetricGroup(3))")        # optional - runsnake
+
+    TESTS::
+
+        sage: preparser(True)
+        sage: runsnake("print(2^2)")                    # optional - runsnake
+        4
+        sage: preparser(False)
+        sage: runsnake("print(2^2)")                    # optional - runsnake
+        0
     """
     import cProfile, os
     from sage.misc.misc import tmp_filename, get_main_globals
-    from sage.repl.preparse import preparse
+    command = command.lstrip().rstrip()
+    from sage.repl.interpreter import _do_preparse
+    if _do_preparse:
+        from sage.repl.preparse import preparse
+        command = preparse(command)
     tmpfile = tmp_filename()
-    cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
+    cProfile.runctx(command, get_main_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
 
 def import_statement_string(module, names, lazy):
