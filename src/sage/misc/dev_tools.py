@@ -95,7 +95,7 @@ def runsnake(command):
         command = preparse(command)
     tmpfile = tmp_filename()
     cProfile.runctx(command, get_main_globals(), locals(), filename=tmpfile)
-    os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
+    os.system("/usr/bin/python -E `which runsnake` {} &".format(tmpfile))
 
 def import_statement_string(module, names, lazy):
     r"""
