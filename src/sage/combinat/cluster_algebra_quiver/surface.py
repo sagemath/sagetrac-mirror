@@ -7,6 +7,9 @@ and computing the T-expansion of arcs/loops with respect to T
 
 from sage.combinat.combinat import fibonacci
 from sage.graphs.digraph import DiGraph
+#from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
+from sage.rings.all import ZZ
+from sage.matrix.all import matrix
 
 ######################################################################################################
 ############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
@@ -93,6 +96,205 @@ def remove_duplicate_triangles(data):
             list_triangles.append(triangle)
     return list_triangles
 
+def _triangulation_to_matrix(list_triangles):
+    """
+    Returns a skew-symmetric matrix corresponding from a list of ideal triangles. The order of the list does not matter.
+        For each triangle t in list_triangles:
+    if t=[a,b,c] has distinct edges, add cycles a->b->c->a
+    if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b,
+    add the same directed edge between r and b.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_matrix
+        sage: T = [[2, 1, 0], [3, 2, 1]] # Annulus with 2 marked points
+        sage: _triangulation_to_matrix(T)
+        [ 0 -1  1  0]
+        [ 1  0 -2  1]
+        [-1  2  0 -1]
+        [ 0 -1  1  0]
+
+        sage: T = [[1,4,2],[3,4,3],[2,0,1]] # twice-punctured monogon with 3 (non-ordinary) ideal triangles (affine D)
+        sage: B = _triangulation_to_matrix(T)
+        sage: Q = ClusterQuiver(B)
+        sage: Q.b_matrix()
+        [ 0  1 -1  0  0]
+        [-1  0  0  1  1]
+        [ 1  0  0 -1 -1]
+        [ 0 -1  1  0  0]
+        [ 0 -1  1  0  0]
+
+        sage: Tmu2 = [(1,1,2),(3,4,3),(2,4,0)] # 2 self-folded triangles and 1 triangle with one vertex (affine D)
+        sage: Bmu2 = _triangulation_to_matrix(Tmu2)
+        sage: Bmu2
+        [ 0  1  1 -1 -1]
+        [-1  0  0  1  1]
+        [-1  0  0  1  1]
+        [ 1 -1 -1  0  0]
+        [ 1 -1 -1  0  0]
+        sage: Qmu2 = ClusterQuiver(Bmu2)
+        sage: Qmu2.mutate(2,inplace=False).digraph() == Q.digraph()
+        True
+        sage: Qmu2.mutation_type()
+        'undetermined finite mutation type'
+        sage: Qmu2.is_mutation_finite()
+        True
+
+        sage: M = _triangulation_to_matrix ([[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]])
+
+    """
+    digraph_edges = []
+    selffolded_triangles = []
+    nooses = []
+
+    for t in list_triangles:
+        selffolded = is_selffolded (t)
+        if t[0] != t[1] and t[1] != t[2] and t[0] != t[2]:
+            # if t has three distinct edges, add 3 edges for those
+            digraph_edges.extend([[t[0],t[1],None], [t[1],t[2],None], [t[2],t[0],None]])
+        elif selffolded != False:
+            radius = selffolded[0]
+            ell = selffolded[2]
+            selffolded_triangles.append([radius,radius, ell])
+            nooses.append(ell)
+        else:
+            raise ValueError ('A triangle has to have 3 distinct edges or 2 distinct edges')
+            break
+
+    #if DiGraph(digraph_edges).has_loops(): # any loop would get cancelled by _surface_edge_list_to_matrix
+    #    raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
+    #digraph_edges = remove_two_cycles(digraph_edges) # should be able to cancel out after we run _surface_edge_list_to_matrix
+
+    #selffolded_edges =[]
+    #for t in selffolded_triangles:
+    #    radius = t[0]
+    #    ell = t[1]
+    #    flagA = False
+    #    flagB = False
+    #    for e in digraph_edges:
+    #        if e[0]==ell:
+    #            selffolded_edges.append([radius, e[1],None])
+    #            flagA = True
+    #        elif e[1]==ell:
+    #            selffolded_edges.append([e[0],radius,None])
+    #            flagB = True
+    #        if flagA or flagB:
+    #            break
+
+    selffolded_edges = []
+    radius_to_radius_edges = []
+    for t in selffolded_triangles:
+        radius = t[0]
+        ell = t[2]
+        flagFoundSharedNooseA = False
+        flagFoundSharedNooseB = False
+        for e in digraph_edges:
+            if e[0]==ell:
+                selffolded_edges.append([radius, e[1], None])
+                if e[1] in nooses:
+                    radius_e = _get_radius(e[1],selffolded_triangles)
+                    if [radius, radius_e, None] not in radius_to_radius_edges:
+                        radius_to_radius_edges.append([radius, radius_e, None])
+                #elif e[2] in nooses:
+                #    radius_e = _get_radius(e[2],selffolded_triangles)
+                #    selffolded_edges.append([radius_e, radius, None])
+                flagFoundSharedNooseA = True
+            elif e[1]==ell:
+                selffolded_edges.append([e[0],radius, None])
+                if e[0] in nooses:
+                    radius_e = _get_radius(e[0],selffolded_triangles)
+                    if [radius_e, radius, None] not in radius_to_radius_edges:
+                        radius_to_radius_edges.append([radius_e, radius, None])
+                #elif e[2] in nooses:
+                #    radius_e = _get_radius(e[2],selffolded_triangles)
+                #    selffolded_edges.append([radius, radius_e, None])
+                flagFoundSharedNooseB = True
+            if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
+                break
+
+    all_edges = digraph_edges + selffolded_edges + radius_to_radius_edges
+    n = len(DiGraph(all_edges))
+
+    #print 'n: ', n
+    #print 'diraph ', digraph_edges, 'selffolded ', selffolded_edges ,'radius to radius', radius_to_radius_edges
+    #print 'all edges ', all_edges
+    #from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
+    return _surface_edge_list_to_matrix(all_edges,n,0)
+
+def _get_radius(noose,selffolded_triangles):
+    """
+    Return the radius of the self-folded triangle with input noose from the list
+    selffolded_triangles is a list in the form of [[radiusA, radiusA, nooseA], [radiusB, radiusB, nooseB], ...]
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_radius
+
+    """
+    for t in selffolded_triangles:
+        if noose == t[2]:
+            return t[0]
+
+    raise ValueError('There is no self-folded triangles with noose ', noose)
+
+
+def _surface_edge_list_to_matrix( edges, n, m ):
+    """
+    Returns the matrix obtained from the edge list of a quiver (possibly with loops, two-cycles, multiply-listed edges).
+    Slightly different from :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix`.
+
+    INPUT:
+
+    - ``edges``: the list of edges.
+
+    - ``n``: the number of mutable vertices of the quiver.
+
+    - ``m``: the number of frozen vertices of the quiver.
+
+    OUTPUT:
+
+    - An `(n+m) \times n` matrix corresponding to the edge-list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix
+        sage: G = QuiverMutationType(['A',2])._digraph
+        sage: _surface_edge_list_to_matrix(G.edges(),2,0)
+        [ 0  1]
+        [-1  0]
+    """
+    M = matrix(ZZ,n+m,n,sparse=True)
+
+    ###
+    dic = []
+
+    T_user_labels = list(set([v for e in edges for v in e])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
+    if T_user_labels.count(None) > 0:
+        T_user_labels.remove(None)
+    T_user_labels.sort()
+    #print 'user labesl: ', T_user_labels
+
+    if len(T_user_labels)==n:
+        for pos in range(0,n):
+            dic.append( (T_user_labels[pos], pos) )
+
+    #print 'dic: ', dic
+    ###
+
+    for user_edge in edges:
+        if user_edge[2] is None:
+            edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[1],dic), (1,-1))
+        elif user_edge[2] in ZZ:
+            edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[2],dic), (user_edge[2],-user_edge[2]))
+        #print 'edge: ', edge
+        v1,v2,(a,b) = edge
+
+        if v1 < n:
+            M[v2,v1] += b
+        if v2 < n:
+            M[v1,v2] += a
+    return M
+
 def _edges_from_ideal_triangles(list_triangles):
     """
     Returns a list of directed edges from a list of triangles. The order of the list does not matter.
@@ -102,14 +304,10 @@ def _edges_from_ideal_triangles(list_triangles):
     if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b,
     add the same directed edge between r and b.
 
-    EXAMPLES::
-
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_ideal_triangles
-        sage: _edges_from_ideal_triangles([(1,1,2),(3,4,3),(2,4,0)]) # 2 self-folded triangles and 1 triangle with one vertex
-        [[0, 2], [2, 4], [4, 0], [0, 1], [1, 4], [2, 3], [3, 0]]
     """
     digraph_edges = []
     selffolded_triangles = []
+    nooses = []
 
     for t in list_triangles:
         selffolded = is_selffolded (t)
@@ -119,34 +317,46 @@ def _edges_from_ideal_triangles(list_triangles):
         elif selffolded != False:
             radius = selffolded[0]
             ell = selffolded[2]
-            selffolded_triangles.append([radius,ell])
+            selffolded_triangles.append([radius,radius,ell])
+            nooses.append(ell)
         else:
             raise ValueError ('A triangle has to have 3 distinct edges or 2 distinct edges')
             break
 
-    if DiGraph(digraph_edges).has_loops():
-        raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
-    digraph_edges = remove_two_cycles(digraph_edges)
+    #if DiGraph(digraph_edges).has_loops():
+    #    raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
+    #digraph_edges = remove_two_cycles(digraph_edges)
 
-    selffolded_edges =[]
+    selffolded_edges = []
     for t in selffolded_triangles:
         radius = t[0]
         ell = t[1]
-        flagA = False
-        flagB = False
+        flagFoundSharedNooseA = False
+        flagFoundSharedNooseB = False
         for e in digraph_edges:
             if e[0]==ell:
                 selffolded_edges.append([radius, e[1]])
-                flagA = True
+                if e[1] in nooses:
+                    radius_e = _get_radius(e[1],selffolded_triangles)
+                    selffolded_edges.append([radius, radius_e])
+                #elif e[2] in nooses:
+                #    radius_e = _get_radius(e[2],selffolded_triangles)
+                #    selffolded_edges.append([radius_e, radius])
+                flagFoundSharedNooseA = True
             elif e[1]==ell:
                 selffolded_edges.append([e[0],radius])
-                flagB = True
-            if flagA and flagB:
+                if e[0] in nooses:
+                    radius_e = _get_radius(e[0],selffolded_triangles)
+                    selffolded_edges.append([radius_e, radius])
+                #elif e[2] in nooses:
+                #    radius_e = _get_radius(e[2],selffolded_triangles)
+                #    selffolded_edges.append([radius, radius_e])
+                flagFoundSharedNooseB = True
+            if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
                 break
-    if 2*len(selffolded_triangles) == len(selffolded_edges):
-        return digraph_edges + selffolded_edges
-    else:
-        raise ValueError('Incorrect input for self-folded triangles')
+
+    return digraph_edges + selffolded_edges
+
 
 def remove_two_cycles(edges):
     """
@@ -200,9 +410,14 @@ def _give_weight_to_double_edges(dg):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _give_weight_to_double_edges
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _give_weight_to_double_edges, _edges_from_ideal_triangles
         sage: _give_weight_to_double_edges(DiGraph([[1,2],[2,3],[3,4],[2,3],[3,5],[5,2]])).edges()
         [(1, 2, None), (2, 3, 1), (2, 3, 1), (3, 4, None), (3, 5, None), (5, 2, None)]
+
+        sage: T=[[2,1,0],[3,2,1]] # an annulus with 2 marked points
+        sage: e = _edges_from_ideal_triangles(T)
+        sage: _give_weight_to_double_edges(DiGraph(e)).edges()
+        [(0, 2, None), (1, 0, None), (1, 3, None), (2, 1, 1), (2, 1, 1), (3, 2, None)]
     """
     double_edges = dg.multiple_edges()
     dg.delete_edges(double_edges)
@@ -218,12 +433,13 @@ def _edges_from_triangles(data):
     Return list of edges from triangulation after 2-cycles are erased, e.g. 1->2->1 are be removed
     and returns an error if a triple edge appears (which is impossible unless there is a bug in the code)
 
-    EXAMPLES::
+    #EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_triangles
-        sage: _edges_from_triangles([(4, 5, 1), (4, 3, 2), [3, 7, 2], [2, 1, 6]])
-        [[1, 4], [1, 6], [2, 1], [2, 4], [3, 7], [4, 3], [4, 5], [5, 1], [6, 2], [7, 2]]
-    """
+        #sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_triangles
+        #sage: _edges_from_triangles([(4, 5, 1), (4, 3, 2), [3, 7, 2], [2, 1, 6]]) == \
+        #[[1, 4], [1, 6], [2, 1], [2, 4], [3, 7], [4, 3], [4, 5], [5, 1], [6, 2], [7, 2]]
+        #True
+        """
 
     digraph_edges = _edges_from_ideal_triangles ( data )
     digraph_edges = remove_triple_edges ( digraph_edges )
@@ -235,12 +451,15 @@ def _get_triangulation_dictionary(T, cluster):
     Create a triangulation dictonary e.g. if user uses labels 1,2,5, .., then return [(1,x0),(2,x1),(5,x2), ...]
 
     EXAMPLES::
-
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary
         sage: T = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: S = ClusterSeed(T)
         sage: S._triangulation_dictionary
         [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
+        sage: S = ClusterSeed(twice_punctured_bigon)
+        sage: _get_triangulation_dictionary(S.triangulation(), S.cluster())
+        [(0, x0), (1, x1), (2, x1*x2), (3, x3), (4, x3*x4), (6, x5), (7, x6)]
     """
     dic = []
     list_radius = []
@@ -454,10 +673,10 @@ def GetDenominator(G):
     Return all denominators, i.e. variables corresponding to arcs (of ideal triangulation) that are crossed by input arc
 
     EXAMPLES::
-        sage: from sage.combinat.cluster_algebra_quiver.surface \
-              import GetDenominator
-        sage: ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
-        sage: #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
+
+        ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
+        #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
         sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
         sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])
         sage: c = [item for item in S.cluster()]
@@ -881,11 +1100,16 @@ def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
 def _get_triangle(T, tau_k, tau_k1=None):
     """
     Return the triangle/s that share an edge with tau_k (and tau_k1 , if given)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangle
+
     """
     triangle_k = []
     if isinstance(tau_k,list): tau_k = (tau_k[0],tau_k[1])
 
-    if tau_k1 != None:
+    if tau_k1 is not None:
         if isinstance(tau_k1,list): tau_k1 = (tau_k1[0],tau_k1[1])
         for t in T:
             if tau_k in t and tau_k1 in t:
@@ -900,8 +1124,16 @@ def _get_triangle(T, tau_k, tau_k1=None):
 def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_triangle, is_arc, is_loop):
     """
     We assume there is only one crossed arc, or the self-folded triangle (ell, r, ell) is the only triangle crossed.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
+        sage: Tri = [(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)]
+        sage: S = ClusterSeed(Tri, boundary_edges=[11,12,13,0])
+        sage: try_to_find_end_triangles_for_one_crossed_arc (S.weighted_triangulation(),S.x(4), None,None,True,False)
+        [(x4, x3, x12), (x0, x4, x5)]
     """
-    triangle0 = _get_triangle(T, tau)
+    triangle0 = _get_triangle(T, tau, None)
 
     if is_loop == True:
         raise ValueError('Input error. Gamma crossing only one arc of T means Gamma is contractible to a puncture.')
@@ -938,6 +1170,10 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, input_triangle=None):
     """
     We assume there are at least two crossed arcs
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangle
+
     """
     if first_or_final == 'First':
         tau_1 = crossed_arcs[0]
@@ -951,7 +1187,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
 
     if N == 1:
         triangle1_A = triangle1[0]
-        triangle0 = _get_triangle(T, tau_1)
+        triangle0 = _get_triangle(T, tau_1, None)
         if len(triangle0) == 1:
             raise ValueError('Incorrect input. Only one triangle ', triangle0,' has edge ', tau_1)
         elif len(triangle0)==2:
@@ -969,7 +1205,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
 
     elif N == 2:
         if input_triangle!=None:
-            triangle0 = _get_triangle(T, tau_1)
+            triangle0 = _get_triangle(T, tau_1, None)
             if are_triangles_equal(input_triangle,triangle0[0]) or are_triangles_equal(input_triangle,triangle0[1]):
                 return input_triangle
             else:
@@ -1010,6 +1246,11 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
   [(0, 0, 1, 0), 'ABOVE']]]
 
     Matching of tile (a,b,c,d) = (floor, right, ceiling, left)
+
+
+     EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_matching
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -1049,6 +1290,11 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
 def _draw_snake_graph(G, xy=(0,0) ):
     """
     Returns the plot of the snake graph G
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
+
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -1171,6 +1417,18 @@ def snake_graph_tile_directions(G):
     snake_graph
 
     Return [the positions (RIGHT or ABOVE) of all tiles in the band/snake graph including the last tile]
+
+    EXAMPLES::
+
+        ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
+        #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, snake_graph_tile_directions
+        sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
+        sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])
+        sage: c = [item for item in S.cluster()]
+        sage: G = _snake_graph (S._weighted_triangulation, [ c[1], c[2], c[3], c[0], c[1] ], None, None, False, True, 1, None)
+        sage: snake_graph_tile_directions (G)
+        ['ABOVE', 'RIGHT', 'RIGHT', 'ABOVE']
     """
     directions = []
     for pos in range(0,len(G)):
@@ -1187,6 +1445,11 @@ def _minimal_matching_first_tile( DIR ):
     RIGHT if the second tile is above the first tile
 
     Returns the minimal matching of the first tile of the band/snake graph
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _minimal_matching_first_tile
+
     """
     if DIR == ABOVE:
         mark = (1,0,0,0)
@@ -1202,6 +1465,12 @@ def _minimal_matching_current_tile(previous_DIR, current_DIR, last_marking_in_li
 
     Returns the marking for the current tile (to achieve the minimal matching).
     We assume the current tile is not the final tile in the band/snake graph
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _minimal_matching_current_tile
+        sage: _minimal_matching_current_tile('ABOVE','RIGHT',(0, 1, 0, 0))
+        (0, 0, 1, 0)
     """
      # case: current tile is above previous tile, and next tile is above the current tile
     if [previous_DIR,current_DIR] == [ABOVE, ABOVE]:
@@ -1256,6 +1525,11 @@ def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
     penultimate_tile_mark -> the edges that we have marked on the penultimate tile
 
     Return: the marking of the final tile
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _minimal_matching_final_tile
+
     """
     if penultimate_direction == ABOVE:
         if penultimate_tile_mark == (0,1,0,1):
@@ -1292,6 +1566,10 @@ def FlipAllFlippableTilesInList(input_list_matchings):
     Input:
     input_list_matchings -> list of matchings of a band/snake graph
     Flip tiles to create more matchings, for all matchings input_list_matchings
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTilesInList
     """
     list_new_matchings = []
     for matching in input_list_matchings:
@@ -1312,6 +1590,11 @@ def FlipAllFlippableTiles(input_tiles):
     Flip all tiles that can be flipped and return new matchings.
     Record the indices of the tiles that we flip.
     Don't flip tiles from the list [the indices of the tiles that were last flipped] because that would be redundant.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTiles
+
     """
     last_flipped_tiles = input_tiles[0] # Tiles that we will not flip this time
     tiles = input_tiles[1]
@@ -1383,6 +1666,11 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     list_other_matchings -> List of matchings to be compared with input_list_matchings
 
     Return a list of unique perfect matchings, along with all possible indices of last flipped tiles
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetMoreLastFlippedTilesInList
+
     """
     out_new_matchings_corrected_indices = []
     for outer_ct in range(0,len(list_matchings)):
@@ -1403,6 +1691,11 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     to_compare_matching -> another matching that may or may not be equal to current_matching
 
     Return [ [indices of last flipped tiles which may include new indices if to_compare_matching has the same matching],[current matching] ]
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetMoreLastFlippedTiles
+
     """
     last_flipped_tiles = current_matching[0]
     if current_matching[1] == to_compare_matching[1]: # If the two input matchings have the same marks {a,b,c,d}
@@ -1417,6 +1710,11 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
     [1,0,1,0], ABOVE -> return [0, b, c, d]
     [0, 1, 0, 1], RIGHT -> return [a, b, c, 0]
     [0, 1, 0, 1], ABOVE -> return [1, b, c, d]
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetNextTileMarking
+
     """
     a = NextTileMark[0]
     b = NextTileMark[1]
@@ -1437,6 +1735,11 @@ def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
     ABOVE, [1,0,1,0] -> return [0, b, c, d]
     RIGHT, [0, 1, 0, 1] -> return [a, 0, c, d]
     ABOVE, [0, 1, 0, 1] -> return [a, b, 1, d]
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetPreviousTileMarking
+
     """
     a = PreviousTileMark[0]
     b = PreviousTileMark[1]
@@ -1453,8 +1756,16 @@ def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
 
 def FlipTile(tile_info):
     """
-    [[1,0,1,0],DIR] -> return [[0, 1, 0, 1], DIR]
-    [[[0, 1, 0, 1], DIR]] -> return [[0, 1, 0, 1], DIR]
+    [(1,0,1,0),DIR] -> return [(0, 1, 0, 1), DIR]
+    [(0, 1, 0, 1), DIR] -> return [(1, 0, 1, 0), DIR]
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import FlipTile
+        sage: FlipTile([(1,0,1,0),'ABOVE'])
+        [(0, 1, 0, 1), 'ABOVE']
+        sage: FlipTile([(0, 1, 0, 1), 'ABOVE'])
+        [(1, 0, 1, 0), 'ABOVE']
     """
     mark = tile_info[0]
     DIR = tile_info[1]
@@ -1472,6 +1783,13 @@ def FlipTile(tile_info):
 ######################################################################
 
 def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
+    """
+    Returns
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangle_to_draw
+
+    """
     alpha,beta=None,None
     if triangle[0] == tau: # tau_k of the triangle_k (with edges tau_k and tau_{k+1})
         alpha = triangle[1]
@@ -1504,6 +1822,14 @@ def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
         raise ValueError ('Input error: ', triangle, triangle_type, tau, tau_placement)
 
 def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):
+    """
+    Returns
+
+        EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon
+
+    """
     end_triangles = _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop)
     first_triangle = end_triangles[0]
     final_triangle = end_triangles[1]
@@ -1545,6 +1871,13 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
     return triangles_to_draw
 
 def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
+    """
+    Returns
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_polygon
+
+    """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
     from sage.plot.arrow import arrow2d
@@ -1648,6 +1981,13 @@ def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
     return drawing
 
 def _draw_triangle(triangle,x,y, k):
+    """
+    Returns
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_triangle
+
+    """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
     from sage.plot.text import text
