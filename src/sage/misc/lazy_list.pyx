@@ -60,7 +60,7 @@ from cpython.list cimport *
 
 from libc cimport limits
 
-cdef class lazy_list(object):
+cdef class abstract_lazy_list(object):
 
     def __init__(self, start=None, stop=None, step=None):
         if start is None:
@@ -226,8 +226,37 @@ cdef class lazy_list(object):
 
         for i in range(self.start, self.stop, self.step):
             yield <object> self.get(i)
-    
-cdef class lazy_list_with_cache(lazy_list):
+
+    def __call__(self, *args):
+
+        raise NotImplementedError("This is an abstract class")
+
+    get = __call__
+
+    def start_stop_step(self):
+        r"""
+        Return the triple ``(start, stop, step)`` of reference points of the
+        original lazy list.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: p = lazy_list_from_iterator(iter(Primes()))[:2147483647]
+            sage: p.start_stop_step()
+            (0, 2147483647, 1)
+            sage: q = p[100:1042233:12]
+            sage: q.start_stop_step()
+            (100, 1042240, 12)
+            sage: r = q[233::3]
+            sage: r.start_stop_step()
+            (2896, 1042252, 36)
+            sage: 1042241%3 == 233%3
+            True
+        """
+        return (self.start, self.stop, self.step)
+
+
+cdef class lazy_list_with_cache(abstract_lazy_list):
     r"""
     Abstract class for Lazy list with cache.
     Should not be instantiated
@@ -288,28 +317,6 @@ cdef class lazy_list_with_cache(lazy_list):
 
         self.cache = cache
 
-    def start_stop_step(self):
-        r"""
-        Return the triple ``(start, stop, step)`` of reference points of the
-        original lazy list.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: p = lazy_list_from_iterator(iter(Primes()))[:2147483647]
-            sage: p.start_stop_step()
-            (0, 2147483647, 1)
-            sage: q = p[100:1042233:12]
-            sage: q.start_stop_step()
-            (100, 1042240, 12)
-            sage: r = q[233::3]
-            sage: r.start_stop_step()
-            (2896, 1042252, 36)
-            sage: 1042241%3 == 233%3
-            True
-        """
-        return (self.start, self.stop, self.step)
-
     def list(self):
         r"""
         Return the list made of the elements of ``self``.
@@ -351,32 +358,6 @@ cdef class lazy_list_with_cache(lazy_list):
         except StopIteration:
             pass
         return self.cache[self.start:self.stop:self.step]
-
-    def info(self):
-        r"""
-        Print information about ``self`` on standard output.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: P = lazy_list_from_iterator(iter(Primes()))[10:21474838:4]
-            sage: P.info()
-            cache length 0
-            start        10
-            stop         21474838
-            step         4
-            sage: P[0]
-            31
-            sage: P.info()
-            cache length 11
-            start        10
-            stop         21474838
-            step         4
-        """
-        print "cache length", len(self.cache)
-        print "start       ", self.start
-        print "stop        ", self.stop
-        print "step        ", self.step
 
     def __repr__(self):
         r"""
@@ -985,7 +966,7 @@ cdef class lazy_list_explicit(lazy_list_with_cache):
             pass
         return self.cache[self.start:self.stop:self.step]
     
-cdef class lazy_list_periodic(lazy_list):
+cdef class lazy_list_periodic(abstract_lazy_list):
 
     def __init__(self, period, pre_period=[], start=None, stop=None, step=None):
         super(lazy_list_periodic, self).__init__(start, stop, step)
