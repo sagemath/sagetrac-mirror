@@ -28,6 +28,70 @@ TESTS::
 
     sage: PolynomialRing(ZZ,'x').objgen()
     (Univariate Polynomial Ring in x over Integer Ring, x)
+
+Division by an element of the basering is multiplication on the right by an inverse.
+
+::
+
+    sage: x = QQ['x'].0
+    sage: f = (x^3 + 5)/3; f
+    1/3*x^3 + 5/3
+    sage: f.parent()
+    Univariate Polynomial Ring in x over Rational Field
+
+If we do the same over `\ZZ` the result is in the
+polynomial ring over `\QQ`.
+
+::
+
+    sage: x  = ZZ['x'].0
+    sage: f = (x^3 + 5)/3; f
+    1/3*x^3 + 5/3
+    sage: f.parent()
+    Univariate Polynomial Ring in x over Rational Field
+
+Divides can make elements of the fraction field::
+
+    sage: R.<x> = QQ['x']
+    sage: f = x^3 + 5
+    sage: g = R(3)
+    sage: h = f/g; h
+    1/3*x^3 + 5/3
+    sage: h.parent()
+    Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+This is another example over a non-prime finite field (submitted by
+a student of Jon Hanke). It illustrates cancellation between the
+numerator and denominator over a non-prime finite field.
+
+::
+
+    sage: R.<x> = PolynomialRing(GF(5^2, 'a'), 'x')
+    sage: f = x^3 + 4*x
+    sage: f / (x - 1)
+    x^2 + x
+
+Be careful about coercions (this used to be broken)::
+
+    sage: R.<x> = ZZ['x']
+    sage: f = x / Mod(2,5); f
+    3*x
+    sage: f.parent()
+    Univariate Polynomial Ring in x over Ring of integers modulo 5
+
+Check that :trac:`12217` is fixed::
+
+    sage: P.<x> = GF(5)[]
+    sage: x/0
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: Inverse does not exist.
+
+    sage: P.<x> = GF(25, 'a')[]
+    sage: x/5
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: division by zero in Finite Field in a of size 5^2
 """
 
 #*****************************************************************************
@@ -1745,82 +1809,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             return (self//h).any_root(ring, -degree, True)
         else:
             return self.roots(ring=ring, multiplicities=False)[0]
-
-
-    def __div__(self, right):
-        """
-        EXAMPLES::
-
-            sage: x = QQ['x'].0
-            sage: f = (x^3 + 5)/3; f
-            1/3*x^3 + 5/3
-            sage: f.parent()
-            Univariate Polynomial Ring in x over Rational Field
-
-        If we do the same over `\ZZ` the result is in the
-        polynomial ring over `\QQ`.
-
-        ::
-
-            sage: x  = ZZ['x'].0
-            sage: f = (x^3 + 5)/3; f
-            1/3*x^3 + 5/3
-            sage: f.parent()
-            Univariate Polynomial Ring in x over Rational Field
-
-        Divides can make elements of the fraction field::
-
-            sage: R.<x> = QQ['x']
-            sage: f = x^3 + 5
-            sage: g = R(3)
-            sage: h = f/g; h
-            1/3*x^3 + 5/3
-            sage: h.parent()
-            Fraction Field of Univariate Polynomial Ring in x over Rational Field
-
-        This is another example over a non-prime finite field (submitted by
-        a student of Jon Hanke). It illustrates cancellation between the
-        numerator and denominator over a non-prime finite field.
-
-        ::
-
-            sage: R.<x> = PolynomialRing(GF(5^2, 'a'), 'x')
-            sage: f = x^3 + 4*x
-            sage: f / (x - 1)
-            x^2 + x
-
-        Be careful about coercions (this used to be broken)::
-
-            sage: R.<x> = ZZ['x']
-            sage: f = x / Mod(2,5); f
-            3*x
-            sage: f.parent()
-            Univariate Polynomial Ring in x over Ring of integers modulo 5
-
-        TESTS:
-
-        Check that :trac:`12217` is fixed::
-
-            sage: P.<x> = GF(5)[]
-            sage: x/0
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: Inverse does not exist.
-
-            sage: P.<x> = GF(25, 'a')[]
-            sage: x/5
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
-        """
-        try:
-            if not isinstance(right, Element) or right.parent() != self.parent():
-                R = self.parent().base_ring()
-                x = R._coerce_(right)
-                return self * ~x
-        except (TypeError, ValueError):
-            pass
-        return RingElement.__div__(self, right)
 
 
     def __pow__(self, right, modulus):
