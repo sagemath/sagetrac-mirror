@@ -41,6 +41,7 @@ from sage.combinat.binary_tree import LabelledBinaryTree, LabelledBinaryTrees
 from sage.functions.other import factorial
 from sage.combinat.posets.posets import Poset
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.permutation import Permutation
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
@@ -207,6 +208,149 @@ class NonAmbiguousTree( ClonableList ):
 
     def get_tree( self ):
         return self[0]
+
+    def get_permutation_of_left_and_right_sons( self ):
+        """
+        This method return a pair of permutation L and R. 
+        The entries of L are the left sons of the Non ambiguous tree.
+        The entries of R are the right sons of the Non ambiguous tree.
+        The left (resp. right) sons are indexed by integers going from 1 to the 
+        number of left (resp. right) sons.
+        To index the left (resp. right) sons, we perform a postfix walk in the 
+        tree starting  from the left subtree (resp. right) and ending with the 
+        right (resp. left) subtree and we number all the left (resp. right) sons
+        in the same order of the walk.
+
+        Examples ::
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 0, 1, 0],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[7, 3, 5, 6, 1, 2, 4], [3, 4, 1, 2]]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[], []]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1,1,1,1],
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[], [3, 2, 1]]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:     [1],
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[2, 1], []]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 0, 1, 1, 0],
+            ....:     [1, 1, 0, 0, 0],
+            ....:     [0, 0, 1, 0, 1],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 1, 0, 0, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[3, 4, 1, 2], [4, 3, 1, 2]]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 0, 1, 0],
+            ....:     [1, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 1, 0, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[3, 4, 1, 2], [3, 4, 1, 2]]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 1, 0, 0],
+            ....:     [1, 0, 0, 1, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 0, 1, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[3, 4, 1, 2], [3, 1, 4, 2]]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [1, 0, 0, 1, 0],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 0, 1, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_permutation_of_left_and_right_sons()
+            [[4, 3, 1, 2], [3, 1, 4, 2]]
+
+
+
+        """
+
+        R = range( self.right_node_number() )
+        L = range( self.left_node_number() )
+        T = self.get_tree()
+        def parcours_postfix_L( T, L, cpt, type_arete ):
+            if len(T) != 0:
+                cpt = parcours_postfix_L( T[0], L, cpt, 0 )
+                cpt = parcours_postfix_L( T[1], L, cpt, 1 )
+                if type_arete == 0 :
+                    L[ T.label() - 1 ] = cpt
+                    cpt += 1
+            return cpt
+        def parcours_postfix_R( T, R, cpt, type_arete ):
+            if len(T) != 0:
+                cpt = parcours_postfix_R( T[1], R, cpt, 1 )
+                cpt = parcours_postfix_R( T[0], R, cpt, 0 )
+                if type_arete == 1 :
+                    R[ T.label() - 1 ] = cpt
+                    cpt += 1
+            return cpt
+        parcours_postfix_L( T, L, 1, -1 )
+        parcours_postfix_R( T, R, 1, -1 )
+        return [ Permutation(L), Permutation(R) ]
+
+    def get_left_permutation( self ):
+        """
+        Return the permutation of left sons.
+        See the documentation of get_permutation_of_left_and_right_sons().
+        """
+        return self.get_permutation_of_left_and_right_sons()[0]
+
+    def get_right_permutation( self ):
+        """
+        Return the permutation of right sons.
+        See the documentation of get_permutation_of_left_and_right_sons().
+        """
+        return self.get_permutation_of_left_and_right_sons()[1]
 
     @combinatorial_map(name = "To binary tree")
     def to_binary_tree( self ):
@@ -429,7 +573,6 @@ class NonAmbiguousTree( ClonableList ):
             return 0
         return 1 + self.left_node_number()
 
-    @cached_method
     def get_array( 
         self, root_label=1, left_node_label=1, right_node_label=1, 
         empty_cell_label=0 
