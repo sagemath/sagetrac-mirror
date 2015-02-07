@@ -1264,18 +1264,6 @@ class FSMFourier(SageObject):
 
     -   Artificial example, period 3::
 
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-            ....:     f(8*n) == f(4*n+3)+3,
-            ....:     f(8*n+4) == f(4*n+3)+1,
-            ....:     f(8*n+2) == f(4*n+3)+2,
-            ....:     f(8*n+6) == f(4*n+3)-1,
-            ....:     f(8*n+1) == f(4*n)+5,
-            ....:     f(8*n+5) == f(4*n+2)+1,
-            ....:     f(8*n+3) == f(4*n+1)+2,
-            ....:     f(8*n+7) == f(4*n+1),
-            ....:     f(0) == 0],
-            ....:     f, n, 2))
-            sage: Told = F.transducer.relabeled()
             sage: T = Transducer([
             ....:     (0, 1, 0, []), (0, 2, 1, []), (1, 3, 0, []),
             ....:     (1, 4, 1, []), (2, 5, 0, []), (2, 6, 1, []),
@@ -1291,8 +1279,6 @@ class FSMFourier(SageObject):
             sage: T.state(4).final_word_out = [2, 2, 5, 0]
             sage: T.state(5).final_word_out = [5, 0]
             sage: T.state(6).final_word_out = [2, 5, 0]
-            sage: T == Told
-            True
             sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
@@ -1316,14 +1302,6 @@ class FSMFourier(SageObject):
 
     -   Artificial example, period 2, vanishing `\mathbf{w}`-vector::
 
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-            ....:     f(4*n) == f(2*n+1)+1,
-            ....:     f(4*n+1) == f(2*n)+2,
-            ....:     f(4*n+2) == f(2*n+1)+3,
-            ....:     f(4*n+3) == f(2*n)-1,
-            ....:     f(0) == 0],
-            ....:     f, n, 2))
-            sage: Told = F.transducer.relabeled()
             sage: T = Transducer(
             ....:     [(0, 1, 0, []), (0, 2, 1, []), (1, 2, 0, 1),
             ....:      (1, 2, 1, 3), (2, 1, 0, 2), (2, 1, 1, -1)],
@@ -1332,8 +1310,6 @@ class FSMFourier(SageObject):
             sage: T.state(0).final_word_out = 0
             sage: T.state(1).final_word_out = 0
             sage: T.state(2).final_word_out = [2, 0]
-            sage: Told == T
-            True
             sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
@@ -1687,17 +1663,9 @@ class FSMFourier(SageObject):
             matter, as the difference is analytic and thus does not
             contribute to the residue. ::
 
-                sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-                ....:         f(2*n + 1) == f(n) + 1,
-                ....:         f(2*n) == f(n) + 1,
-                ....:         f(0) == -1],
-                ....:         f, n, 2))
-                sage: Told = F.transducer.relabeled()
                 sage: T = Transducer([(0, 0, 0, 1), (0, 0, 1, 1)],
                 ....:     initial_states=[0], final_states=[0])
                 sage: T.state(0).final_word_out = -1
-                sage: T == Told
-                True
                 sage: F = FSMFourier(T) # optional - arb
 
             We check that the result agrees with the known values::
