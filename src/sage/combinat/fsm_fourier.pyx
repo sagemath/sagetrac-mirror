@@ -153,8 +153,9 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_arb cimport arb_to_mpfi
-from sage.rings.real_mpfi import min_RIF, max_RIF, RealIntervalField
+from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
+from sage.rings.real_mpfi import RealIntervalFieldElement as RIF_E
 from sage.structure.sage_object cimport SageObject
 
 
@@ -186,14 +187,14 @@ def infinity_vector_norm(v):
     Note that the
     :meth:`sage.modules.free_module_element.FreeModuleElement.norm`
     method is inadequate, as it uses the Python max instead of
-    :func:`~sage.rings.real_mpfi.max_RIF`::
+    :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.max`::
 
         sage: vector([a, b]).norm(infinity).endpoints()
         (1.00000000000000, 4.00000000000000)
         sage: vector([b, a]).norm(infinity).endpoints()
         (2.00000000000000, 3.00000000000000)
     """
-    return max_RIF(abs(r) for r in v)
+    return RIF_E.max(*(abs(r) for r in v))
 
 
 def infinity_matrix_norm(A):
@@ -1526,17 +1527,22 @@ class FSMFourier(SageObject):
 
     -   Artificial example, period 3::
 
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-            ....:     f(8*n) == f(4*n+3)+3,
-            ....:     f(8*n+4) == f(4*n+3)+1,
-            ....:     f(8*n+2) == f(4*n+3)+2,
-            ....:     f(8*n+6) == f(4*n+3)-1,
-            ....:     f(8*n+1) == f(4*n)+5,
-            ....:     f(8*n+5) == f(4*n+2)+1,
-            ....:     f(8*n+3) == f(4*n+1)+2,
-            ....:     f(8*n+7) == f(4*n+1),
-            ....:     f(0) == 0],
-            ....:     f, n, 2))
+            sage: T = Transducer([
+            ....:     (0, 1, 0, []), (0, 2, 1, []), (1, 3, 0, []),
+            ....:     (1, 4, 1, []), (2, 5, 0, []), (2, 6, 1, []),
+            ....:     (3, 6, 0, 3), (3, 6, 1, 1), (4, 6, 0, 2),
+            ....:     (4, 6, 1, -1), (5, 3, 0, 5), (5, 4, 1, 1),
+            ....:     (6, 5, 0, 2), (6, 5, 1, 0)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2, 3, 4, 5, 6])
+            sage: T.state(0).final_word_out = 0
+            sage: T.state(1).final_word_out = 0
+            sage: T.state(2).final_word_out = [5, 0]
+            sage: T.state(3).final_word_out = 0
+            sage: T.state(4).final_word_out = [2, 2, 5, 0]
+            sage: T.state(5).final_word_out = [5, 0]
+            sage: T.state(6).final_word_out = [2, 5, 0]
+            sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             3
@@ -1559,13 +1565,15 @@ class FSMFourier(SageObject):
 
     -   Artificial example, period 2, vanishing `\mathbf{w}`-vector::
 
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-            ....:     f(4*n) == f(2*n+1)+1,
-            ....:     f(4*n+1) == f(2*n)+2,
-            ....:     f(4*n+2) == f(2*n+1)+3,
-            ....:     f(4*n+3) == f(2*n)-1,
-            ....:     f(0) == 0],
-            ....:     f, n, 2))
+            sage: T = Transducer(
+            ....:     [(0, 1, 0, []), (0, 2, 1, []), (1, 2, 0, 1),
+            ....:      (1, 2, 1, 3), (2, 1, 0, 2), (2, 1, 1, -1)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2])
+            sage: T.state(0).final_word_out = 0
+            sage: T.state(1).final_word_out = 0
+            sage: T.state(2).final_word_out = [2, 0]
+            sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             2
@@ -1918,11 +1926,10 @@ class FSMFourier(SageObject):
             matter, as the difference is analytic and thus does not
             contribute to the residue. ::
 
-                sage: F = FSMFourier(transducers.Recursion([ # optional - arb
-                ....:         f(2*n + 1) == f(n) + 1,
-                ....:         f(2*n) == f(n) + 1,
-                ....:         f(0) == -1],
-                ....:         f, n, 2))
+                sage: T = Transducer([(0, 0, 0, 1), (0, 0, 1, 1)],
+                ....:     initial_states=[0], final_states=[0])
+                sage: T.state(0).final_word_out = -1
+                sage: F = FSMFourier(T) # optional - arb
 
             We check that the result agrees with the known values::
 
@@ -1954,9 +1961,9 @@ class FSMFourier(SageObject):
         RIF = sigma.parent()
 
         def taylor_error(N, sigma, x):
-            return min_RIF([
-                max_RIF([RIF(1), 1/(1 + x)**(sigma + N)]),
-                max_RIF([RIF(N), N/(1 + x)**(sigma + 1)])])
+            return RIF_E.min(
+                RIF_E.max(RIF(1), 1/(1 + x)**(sigma + N)),
+                RIF_E.max(RIF(N), N/(1 + x)**(sigma + 1)))
 
 
         q = ZZ(self.q)
