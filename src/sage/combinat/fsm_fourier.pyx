@@ -145,7 +145,7 @@ from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfi import min_RIF, max_RIF
+from sage.rings.real_mpfi import RealIntervalFieldElement as RIF_E
 from sage.structure.sage_object cimport SageObject
 
 
@@ -177,14 +177,14 @@ def infinity_vector_norm(v):
     Note that the
     :meth:`sage.modules.free_module_element.FreeModuleElement.norm`
     method is inadequate, as it uses the Python max instead of
-    :func:`~sage.rings.real_mpfi.max_RIF`::
+    :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.max`::
 
         sage: vector([a, b]).norm(infinity).endpoints()
         (1.00000000000000, 4.00000000000000)
         sage: vector([b, a]).norm(infinity).endpoints()
         (2.00000000000000, 3.00000000000000)
     """
-    return max_RIF(abs(r) for r in v)
+    return RIF_E.max(*(abs(r) for r in v))
 
 
 def infinity_matrix_norm(A):
@@ -1692,9 +1692,9 @@ class FSMFourier(SageObject):
         RIF = sigma.parent()
 
         def taylor_error(N, sigma, x):
-            return min_RIF([
-                max_RIF([RIF(1), 1/(1 + x)**(sigma + N)]),
-                max_RIF([RIF(N), N/(1 + x)**(sigma + 1)])])
+            return RIF_E.min(
+                RIF_E.max(RIF(1), 1/(1 + x)**(sigma + N)),
+                RIF_E.max(RIF(N), N/(1 + x)**(sigma + 1)))
 
 
         q = ZZ(self.q)
