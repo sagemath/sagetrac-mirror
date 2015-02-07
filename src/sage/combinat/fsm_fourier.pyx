@@ -1275,6 +1275,25 @@ class FSMFourier(SageObject):
             ....:     f(8*n+7) == f(4*n+1),
             ....:     f(0) == 0],
             ....:     f, n, 2))
+            sage: Told = F.transducer.relabeled()
+            sage: T = Transducer([
+            ....:     (0, 1, 0, []), (0, 2, 1, []), (1, 3, 0, []),
+            ....:     (1, 4, 1, []), (2, 5, 0, []), (2, 6, 1, []),
+            ....:     (3, 6, 0, 3), (3, 6, 1, 1), (4, 6, 0, 2),
+            ....:     (4, 6, 1, -1), (5, 3, 0, 5), (5, 4, 1, 1),
+            ....:     (6, 5, 0, 2), (6, 5, 1, 0)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2, 3, 4, 5, 6])
+            sage: T.state(0).final_word_out = 0
+            sage: T.state(1).final_word_out = 0
+            sage: T.state(2).final_word_out = [5, 0]
+            sage: T.state(3).final_word_out = 0
+            sage: T.state(4).final_word_out = [2, 2, 5, 0]
+            sage: T.state(5).final_word_out = [5, 0]
+            sage: T.state(6).final_word_out = [2, 5, 0]
+            sage: T == Told
+            True
+            sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             3
@@ -1304,6 +1323,18 @@ class FSMFourier(SageObject):
             ....:     f(4*n+3) == f(2*n)-1,
             ....:     f(0) == 0],
             ....:     f, n, 2))
+            sage: Told = F.transducer.relabeled()
+            sage: T = Transducer(
+            ....:     [(0, 1, 0, []), (0, 2, 1, []), (1, 2, 0, 1),
+            ....:      (1, 2, 1, 3), (2, 1, 0, 2), (2, 1, 1, -1)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2])
+            sage: T.state(0).final_word_out = 0
+            sage: T.state(1).final_word_out = 0
+            sage: T.state(2).final_word_out = [2, 0]
+            sage: Told == T
+            True
+            sage: F = FSMFourier(T) # optional - arb
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             2
@@ -1661,6 +1692,13 @@ class FSMFourier(SageObject):
                 ....:         f(2*n) == f(n) + 1,
                 ....:         f(0) == -1],
                 ....:         f, n, 2))
+                sage: Told = F.transducer.relabeled()
+                sage: T = Transducer([(0, 0, 0, 1), (0, 0, 1, 1)],
+                ....:     initial_states=[0], final_states=[0])
+                sage: T.state(0).final_word_out = -1
+                sage: T == Told
+                True
+                sage: F = FSMFourier(T) # optional - arb
 
             We check that the result agrees with the known values::
 
