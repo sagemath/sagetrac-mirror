@@ -703,16 +703,28 @@ cdef init_libsingular():
     global WerrorS_callback
     global error_messages
 
+    cdef char * dlerrormsg = NULL
+
+
     cdef void *handle = NULL
 
+    libSingularFound = False
+
     for extension in ["so", "dylib", "dll"]:
-        lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
+        lib = os.environ['SAGE_LOCAL']+"/lib/libSingular."+extension # libsingular renamed to libSingular
         if os.path.exists(lib):
+            libSingularFound = True 
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
             break
+            
+    if not libSingularFound : 
+            raise ImportError, "did not find libsingular file!"
+
 
     if handle == NULL:
-        print dlerror()
+        dlerrormsg = dlerror()
+        if not dlerrormsg == NULL:
+                print dlerrormsg
         raise ImportError, "cannot load libSINGULAR library"
 
     # load SINGULAR
