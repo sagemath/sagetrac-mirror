@@ -107,6 +107,13 @@ Combinatorics
    sage/combinat/hall_polynomial
    sage/combinat/kazhdan_lusztig
 
+**Polyominoes**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/parallelogram_polyomino
+
 **Posets**
 
 .. toctree::
@@ -166,7 +173,6 @@ Combinatorics
    sage/combinat/subword
    sage/combinat/lyndon_word
    sage/combinat/dyck_word
-   sage/combinat/parallelogram_polyomino
 
 **Unsorted**
 
