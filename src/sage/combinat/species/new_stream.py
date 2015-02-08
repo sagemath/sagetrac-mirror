@@ -564,7 +564,7 @@ class StreamFromList(ListCachedStream):
         if list is None:
             list = self.list()
         if len(list) < 0:
-            raise ValueError, "list cannot be empty"
+            raise ValueError("list cannot be empty")
         self._cache = list[:]
         self.set_constant(len(list) - 1, list[-1])
 

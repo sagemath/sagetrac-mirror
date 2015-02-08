@@ -1539,7 +1539,7 @@ class RecursiveStream(SeriesStream):
             try:
                 self._stream
             except AttributeError:
-                raise ValueError, "must call define() first"
+                raise ValueError("must call define() first")
             return func(self, *args, **kwds)
         return wrapper
 
