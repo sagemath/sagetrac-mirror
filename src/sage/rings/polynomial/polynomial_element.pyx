@@ -91,7 +91,7 @@ Check that :trac:`12217` is fixed::
     sage: x/5
     Traceback (most recent call last):
     ...
-    ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+    ZeroDivisionError: Inverse does not exist.
 """
 
 #*****************************************************************************
