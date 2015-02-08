@@ -836,7 +836,11 @@ class NonAmbiguousTree( ClonableList ):
         sage: def test_p_conjecture( h, w ):
         ....:     res = count_nat_by_p( h, w )
         ....:     p_max = min( w,h )
-        ....:     suite = [ factorial(p) * factorial(p-1) * stirling_number2(w,p) * stirling_number2(h,p)  for p in range( 1, p_max+1 ) ]
+        ....:     suite = [
+        ....:         factorial(p) * factorial(p-1) *
+        ....:         stirling_number2(w,p) * stirling_number2(h,p)
+        ....:         for p in range( 1, p_max+1 )
+        ....:     ]
         ....:     for p in range( 1, p_max+1 ):
         ....:         if res[p] != suite[p-1]:
         ....:             return False
