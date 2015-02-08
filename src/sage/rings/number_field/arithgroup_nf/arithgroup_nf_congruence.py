@@ -66,7 +66,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
             sage: H.level()
         """
         if not hasattr(self, '_level'):
-            raise NotImplementedError, "Level not implemented for %s" % self
+            raise NotImplementedError("Level not implemented for %s" % self)
         return self._level
 
     def is_congruence(self):
@@ -103,7 +103,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         """
         if self.level() == self.base_ring().ideal(1):
             return 1
-        raise NotImplementedError, "Index not implemented for %s" % self
+        raise NotImplementedError("Index not implemented for %s" % self)
 
     def coset_reps(self, G=None):
         r"""
@@ -136,11 +136,11 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
 
         """
         if self.index() != 1:
-            raise NotImplementedError, ("Generators not implemented for %s" %
-                                        self)
+            raise NotImplementedError("Generators not implemented for %s" %
+                                      self)
         if self.group() != 'SL':
-            raise NotImplementedError, ("Generators not implemented for %s" %
-                                        self)
+            raise NotImplementedError("Generators not implemented for %s" %
+                                      self)
         gens = [matrix(self.number_field(), 2, 2, [0, 1, -1, 0])]
         for eps in self.base_ring().basis():
             gens.append(matrix(self.number_field(), 2, 2, [1, eps, 0, 1]))
@@ -165,8 +165,8 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
             return self._ncusps
         if self.index() == 1:
             return self.number_field().class_number()
-        raise NotImplementedError, ("Number of cusps not implemented for %s" %
-                                    self)
+        raise NotImplementedError("Number of cusps not implemented for %s" %
+                                  self)
 
     def _find_cusps(self):
         r"""
