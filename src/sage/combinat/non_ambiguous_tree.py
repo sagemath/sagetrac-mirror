@@ -210,7 +210,7 @@ class NonAmbiguousTree( ClonableList ):
         return self[0]
 
     def get_permutation_of_left_and_right_sons( self ):
-        """
+        r"""
         This method return a pair of permutation L and R. 
         The entries of L are the left sons of the Non ambiguous tree.
         The entries of R are the right sons of the Non ambiguous tree.
@@ -339,16 +339,100 @@ class NonAmbiguousTree( ClonableList ):
         return [ Permutation(L), Permutation(R) ]
 
     def get_left_permutation( self ):
-        """
+        r"""
         Return the permutation of left sons.
         See the documentation of get_permutation_of_left_and_right_sons().
+
+        Examples ::
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 0, 1, 0],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_left_permutation()
+            [7, 3, 5, 6, 1, 2, 4]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_left_permutation()
+            []
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1,1,1,1],
+            ....:   ]
+            ....: )
+            sage: nat.get_left_permutation()
+            []
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:     [1],
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_left_permutation()
+            [2, 1]
         """
         return self.get_permutation_of_left_and_right_sons()[0]
 
     def get_right_permutation( self ):
-        """
+        r"""
         Return the permutation of right sons.
         See the documentation of get_permutation_of_left_and_right_sons().
+        
+        Examples ::
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1, 1, 0, 1, 0],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 1],
+            ....:     [0, 0, 0, 1, 0],
+            ....:     [1, 0, 0, 0, 0],
+            ....:     [0, 0, 1, 0, 0],
+            ....:     [0, 1, 0, 0, 0]
+            ....:   ]
+            ....: )
+            sage: nat.get_right_permutation()
+            [3, 4, 1, 2]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_right_permutation()
+            []
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1,1,1,1],
+            ....:   ]
+            ....: )
+            sage: nat.get_right_permutation()
+            [3, 2, 1]
+
+            sage: nat = NonAmbiguousTree(
+            ....:   [
+            ....:     [1],
+            ....:     [1],
+            ....:     [1],
+            ....:   ]
+            ....: )
+            sage: nat.get_right_permutation()
+            []
         """
         return self.get_permutation_of_left_and_right_sons()[1]
 
@@ -412,6 +496,32 @@ class NonAmbiguousTree( ClonableList ):
         r"""
         Construct a non-ambiguous tree.
 
+        A non-ambiguous tree is an array containing 1 and 0 such that
+        Each row has to contain at least one 1.
+        Each column has to contain at least one 1.
+        There is a 1 at position (0,0) called the root.
+        To each no root node, there is
+            a node on its left in the same row or
+            a node on the top in the same column
+            but not the both.
+
+        The non-ambiguous trees are in bijection with labeled binary trees
+        verifying that :
+         - the labels are integers
+         - if p and f are left (resp.) sons and if f is a descendant of p ( f 
+           is in the subtree of p with p \ne f ), then the label of f is 
+           strictely greater than the label of p.
+         - All the label of the left (resp.) sons are different and is an 
+           interval starting from 1.
+
+        The bijection from binary tree to non-ambiguous tree are simple :
+         - The nodes code the 1 in the array;
+         - The X and Y coordinates of the root are equal to 0;
+         - The labels of the left (resp.) nodes code the X (resp. Y) 
+           coordinates of the 1 associated with the node.
+         - The Y (resp. X) coordinate of a left (resp. right) son s is the Y 
+           (resp. X) coordinate of the father of s.
+
         Two types of input is allowed :
         1) A Labelled binary trees.
             The label of left nodes contains the height position of the node.
@@ -420,10 +530,10 @@ class NonAmbiguousTree( ClonableList ):
             The width of a left nodes is equals to the height of its father.
         2) An array containing of 1 and 0. The 1s represent the nodes of the the
             non-ambiguous tree and 0s nothing.
-            Each row have to contain at least one 1.
-            Each column have to contain at least one 1.
-            There is a 1 situated at position (0,0) called the root.
-            To each node, which are not the root, there is
+            Each row has to contain at least one 1.
+            Each column has to contain at least one 1.
+            There is a 1 at position (0,0) called the root.
+            To each non root node, there is
                 a node on it left in the same row or
                 a node on the top in the same column
                 but not the both.
@@ -435,7 +545,7 @@ class NonAmbiguousTree( ClonableList ):
         0 1 0 0 0
 
         is a non-ambiguous tree and can be represented by the following
-        non-ambguous tree:
+        labeled tree:
 
                 x
               /   \
@@ -629,6 +739,135 @@ class NonAmbiguousTree( ClonableList ):
                 array[ rfather ][ tree[1].label() ] = right_node_label
                 init_array( array, tree[1], tree[1].label(), rfather )
         init_array( res, self.get_tree() )
+        return res
+
+    def get_p( self ):
+        r"""
+        Return the p statistic.
+
+        Let A be an array. Let WxH the dimension of A. 
+        We calls hooks of A the sets H_0, ..., H_{min(W,H)-1} of cells defined 
+        by  H_k = { (i,j) | ( i = k and j >) k ) or ( i >= k and j = k ) \}$.
+
+        For example, in the following array, the cells labeled by i are cells
+        of the hook H_i :
+
+        0 0 0 0 0 0
+        0 1 1 1 1 1
+        0 1 2 2 2 2
+        0 1 2 3 3 3
+
+        The p statistic is the number of hook of a non-ambiguous tree 
+        containing at least one 1.
+
+        For example,
+
+        sage: nat = NonAmbiguousTree(
+        ....:   [
+        ....:     [1, 1, 1],
+        ....:     [1, 0, 0],
+        ....:   ]
+        ....: )
+        sage: nat.get_p()
+        1
+
+        sage: nat = NonAmbiguousTree(
+        ....:   [
+        ....:     [1, 1, 1],
+        ....:     [1, 0, 0],
+        ....:     [0, 0, 1],
+        ....:   ]
+        ....: )
+        sage: nat.get_p()
+        2
+
+        sage: nat = NonAmbiguousTree(
+        ....:   [
+        ....:     [1, 1, 0],
+        ....:     [1, 0, 0],
+        ....:     [1, 0, 1],
+        ....:     [0, 0, 1],
+        ....:   ]
+        ....: )
+        sage: nat.get_p()
+        2
+
+        sage: nat = NonAmbiguousTree(
+        ....:   [
+        ....:     [1, 1, 0],
+        ....:     [0, 1, 0],
+        ....:     [0, 1, 1],
+        ....:   ]
+        ....: )
+        sage: nat.get_p()
+        3
+
+        sage: nat = NonAmbiguousTree(
+        ....:   [
+        ....:     [1],
+        ....:   ]
+        ....: )
+        sage: nat.get_p()
+        1
+
+        There is a conjecture for the p stastistics : the p statistics is the 
+        p of the following formula :
+            NAT(w,h) = \sum_{p>=1} (p-1)! p! S_2(w,p) S_2(h, p)
+        where w and h are the dimension of the non-ambiguous tree and 
+        S_2(n,k) is the stirling number of type 2.
+
+        sage: def rectangular_nat( h, w ):
+        ....:     res = []
+        ....:     NATS = NonAmbiguousTrees(w+h-1)
+        ....:     for nat in NATS:
+        ....:         if nat.width() == w and nat.height() == h:
+        ....:             res.append( nat )
+        ....:     return res
+
+        sage: def count_nat_by_p( h, w ):
+        ....:     t = {}
+        ....:     for nat in rectangular_nat( h, w ):
+        ....:         p = nat.get_p()
+        ....:         if not p in t:
+        ....:             t[p] = 0
+        ....:         t[p] += 1
+        ....:     return t
+
+        sage: def test_p_conjecture( h, w ):
+        ....:     res = count_nat_by_p( h, w )
+        ....:     p_max = min( w,h )
+        ....:     suite = [ factorial(p) * factorial(p-1) * stirling_number2(w,p) * stirling_number2(h,p)  for p in range( 1, p_max+1 ) ]
+        ....:     for p in range( 1, p_max+1 ):
+        ....:         if res[p] != suite[p-1]:
+        ....:             return False
+        ....:     return True
+
+        sage: all( [ 
+        ....:     all( [ test_p_conjecture( i,i ) for i in range(1,4) ] )
+        ....:     for j in range(1,4) 
+        ....: ] )
+        True
+
+        """
+        a = self.get_array(
+            root_label=1, left_node_label=1, right_node_label=1, 
+            empty_cell_label=0 
+        )
+        p_max = min( self.width(), self.height() )
+        res = 0
+        for i in range( p_max ):
+            empty = True
+            for h in range( i, self.height() ):
+                if a[h][ i ] == 1:
+                    empty = False
+                    break
+            if empty:
+                for w in range( i, self.width() ):
+                    if a[i][w] == 1:
+                        empty = False
+                        break
+            if not empty :
+                res += 1
         return res
 
     def _repr_(self):
