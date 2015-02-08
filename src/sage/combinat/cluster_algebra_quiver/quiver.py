@@ -31,7 +31,7 @@ from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
-from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_arrows, remove_duplicate_triangles #, _give_weight_to_double_edges
+from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_arrows, remove_duplicate_triangles
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -357,10 +357,6 @@ class ClusterQuiver(SageObject):
                 self._description = 'Quiver on %d vertex' %(n+m)
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
-            #if from_surface != True:
-            #   self._triangulation = None
-            #if self._triangulation != None:
-            #    self._description += ' from a triangulation'
             self._cluster_triangulation = None
             self._mutation_type = None
 
@@ -369,18 +365,7 @@ class ClusterQuiver(SageObject):
             self._cluster_triangulation = data
             self.__init__( data._M , from_surface=True)
 
-        #elif isinstance(data,list) and \
-        #all(type(triangle) in [list,tuple] and len(triangle)==3 for triangle in data):
-        #    data = remove_duplicate_triangles (data)
-        #    M = _triangulation_to_matrix(data)
-        #    #dg_edges = _edges_from_triangles(data)
-        #    #dg = DiGraph(dg_edges)
-        #    #dg = _give_weight_to_double_edges (dg)
-        #    self._triangulation = data
-        #    self.__init__(data=M, frozen=None, from_surface=True, boundary_edges=boundary_edges)
-
         # if data is a list of edges, the appropriate digraph is constructed.
-
         elif isinstance(data,list) and all(isinstance(x,(list,tuple)) for x in data ):
             dg = DiGraph( data )
             self.__init__(data=dg, frozen=frozen )
@@ -525,8 +510,8 @@ class ClusterQuiver(SageObject):
 
         TESTS::
 
-            #sage: Q = ClusterQuiver(['A',5])
-            #sage: Q.show() # long time # TODO is this necessary?
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.show() # long time
         """
         n, m = self._n, self._m
         plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos )
@@ -545,10 +530,9 @@ class ClusterQuiver(SageObject):
         - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
 
         TESTS::
-            # TODO: is this necessary
-            #sage: Q = ClusterQuiver(['A',4])
-            #sage: Q.interact() # long time
-            #'The interactive mode only runs in the Sage notebook.'
+            sage: Q = ClusterQuiver(['A',4])
+            sage: Q.interact() # long time
+            'The interactive mode only runs in the Sage notebook.'
         """
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
@@ -606,9 +590,8 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-            #sage: Q = ClusterQuiver(['F',4,[1,2]])
-            #sage: Q.save_image(os.path.join(SAGE_TMP, 'sage.png'))
-            # TODO
+            sage: Q = ClusterQuiver(['F',4,[1,2]])
+            sage: Q.save_image(os.path.join(SAGE_TMP, 'sage.png'))
         """
         graph_plot = self.plot( circular=circular )
         graph_plot.save( filename=filename )
@@ -625,18 +608,16 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-            #sage: Q = ClusterQuiver(['F',4,[1,2]])
-            #sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
-            # TODO
+            sage: Q = ClusterQuiver(['F',4,[1,2]])
+            sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
 
         Make sure we can save quivers with `m != n` frozen variables, see :trac:`14851`::
 
-            #sage: S=ClusterSeed(['A',3])
-            #sage: T1=S.principal_extension()
-            #sage: T2=T1.principal_extension(ignore_coefficients=True)
-            #sage: Q=T2.quiver()
-            #sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
-            # TODO
+            sage: S=ClusterSeed(['A',3])
+            sage: T1=S.principal_extension()
+            sage: T2=T1.principal_extension(ignore_coefficients=True)
+            sage: Q=T2.quiver()
+            sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
         """
         M = self.b_matrix()
         if self.m() > 0:

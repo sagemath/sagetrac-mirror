@@ -32,7 +32,6 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
-#from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary, _get_weighted_triangulation, _get_weighted_edges,
 from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_snake_graph, LaurentExpansionFromSurface, _draw_lifted_polygon, _lifted_polygon
 
 
@@ -92,7 +91,7 @@ class ClusterSeed(SageObject):
         A seed for a cluster algebra of rank 10 from a triangulation with 4 boundary edges
 
     """
-    def __init__(self, data, frozen=None, is_principal=None):#, boundary_edges=None):
+    def __init__(self, data, frozen=None, is_principal=None):
         r"""
         TESTS::
 
@@ -100,9 +99,6 @@ class ClusterSeed(SageObject):
             sage: TestSuite(S).run()
         """
         from quiver import ClusterQuiver
-
-        #self._boundary_edges = boundary_edges
-        #self._weighted_boundary_edges = None
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):
@@ -135,22 +131,13 @@ class ClusterSeed(SageObject):
             self._is_principal = None
 
             self._cluster_triangulation = quiver._cluster_triangulation
-            #self._boundary_edges = quiver._boundary_edges
             if self._cluster_triangulation:# is not None:
                 self._description += ' from a triangulation with %d boundary edges' %len(self._cluster_triangulation._boundary_edges)
-                #self._triangulation_dictionary = _get_triangulation_dictionary (self._triangulation, self._cluster)
-                #self._weighted_triangulation = _get_weighted_triangulation (self._triangulation, self._triangulation_dictionary)
-                #if self._boundary_edges is not None:
-                #    self._weighted_boundary_edges = _get_weighted_edges (self._boundary_edges, self._triangulation_dictionary)
-            #else:
-                #self._triangulation_dictionary = None
-                #self._weighted_triangulation = None
-                #self._weighted_boundary_edges = None
 
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
-            quiver = ClusterQuiver( data, frozen=frozen)#, boundary_edges=boundary_edges )
-            self.__init__( quiver)#, boundary_edges=boundary_edges )
+            quiver = ClusterQuiver( data, frozen=frozen )
+            self.__init__( quiver )
 
 
         if is_principal is not None:
@@ -2074,17 +2061,6 @@ class ClusterSeed(SageObject):
         """
         return self._cluster_triangulation
 
-    #def weighted_triangulation (self):
-    #   """
-    #    Return the triangulation given by user with weights (e.g. [(x1, x2, x0),(x1,x3,x5), ...)
-    #    EXAMPLES::
-    #        sage: T = [(1,4,7),(1,2,5),(2,0,3),(0,6,3)]
-    #        sage: S = ClusterSeed(T)
-    #        sage: S.weighted_triangulation()
-    #        [(x1, x4, x7), (x1, x2, x5), (x2, x0, x3), (x0, x6, x3)]
-    #    """
-    #    return self._weighted_triangulation
-
     def snake_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1):
         """
         INPUT:
@@ -2294,7 +2270,6 @@ class ClusterSeed(SageObject):
 
             sage: # 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper http://arxiv.org/abs/0712.4131 where tau_i = i and tau_13 is labeled 0
             sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0]) # Describe the labels of the triangles counterclockwise
-            sage: #S = ClusterSeed(T, boundary_edges=[6,7,8,9,10,11,12,0])
             sage: S = ClusterSeed(T)
             sage: c = [item for item in S.cluster()]
             sage: gamma = S.arc([c[1-1],c[3-1],c[5-1]])

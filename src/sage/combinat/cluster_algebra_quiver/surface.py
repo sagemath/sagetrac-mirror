@@ -165,26 +165,6 @@ def _triangulation_to_arrows(list_triangles):
             raise ValueError ('An ideal triangle has to have 3 distinct edges or 2 distinct edges')
             break
 
-    #if DiGraph(digraph_edges).has_loops(): # any loop would get cancelled by _surface_edge_list_to_matrix
-    #    raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
-    #digraph_edges = remove_two_cycles(digraph_edges) # should be able to cancel out after we run _surface_edge_list_to_matrix
-
-    #selffolded_edges =[]
-    #for t in selffolded_triangles:
-    #    radius = t[0]
-    #    ell = t[1]
-    #    flagA = False
-    #    flagB = False
-    #    for e in digraph_edges:
-    #        if e[0]==ell:
-    #            selffolded_edges.append([radius, e[1],None])
-    #            flagA = True
-    #        elif e[1]==ell:
-    #            selffolded_edges.append([e[0],radius,None])
-    #            flagB = True
-    #        if flagA or flagB:
-    #            break
-
     selffolded_edges = []
     radius_to_radius_edges = []
     for t in selffolded_triangles:
@@ -199,9 +179,6 @@ def _triangulation_to_arrows(list_triangles):
                     radius_e = _get_radius(e[1],selffolded_triangles)
                     if [radius, radius_e, None] not in radius_to_radius_edges:
                         radius_to_radius_edges.append([radius, radius_e, None])
-                #elif e[2] in nooses:
-                #    radius_e = _get_radius(e[2],selffolded_triangles)
-                #    selffolded_edges.append([radius_e, radius, None])
                 flagFoundSharedNooseA = True
             elif e[1]==ell:
                 selffolded_edges.append([e[0],radius, None])
@@ -209,21 +186,9 @@ def _triangulation_to_arrows(list_triangles):
                     radius_e = _get_radius(e[0],selffolded_triangles)
                     if [radius_e, radius, None] not in radius_to_radius_edges:
                         radius_to_radius_edges.append([radius_e, radius, None])
-                #elif e[2] in nooses:
-                #    radius_e = _get_radius(e[2],selffolded_triangles)
-                #    selffolded_edges.append([radius, radius_e, None])
                 flagFoundSharedNooseB = True
             if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
                 break
-
-    #all_edges = digraph_edges + selffolded_edges + radius_to_radius_edges
-    #n = len(DiGraph(all_edges))
-
-    #print 'n: ', n
-    #print 'diraph ', digraph_edges, 'selffolded ', selffolded_edges ,'radius to radius', radius_to_radius_edges
-    #print 'all edges ', all_edges
-    #from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
-    #return _surface_edge_list_to_matrix(all_edges,n,0,)
 
     return digraph_edges + selffolded_edges + radius_to_radius_edges
 
@@ -265,13 +230,6 @@ def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edge
         sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix
 
     """
-
-    #T_user_labels = list(set([v for a in arrows for v in a])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
-    #if T_user_labels.count(None) > 0:
-    #    T_user_labels.remove(None)
-    #T_user_labels.sort()
-    #print 'user labesl: ', T_user_labels
-
     arcs = []
     if len(boundary_edges) == 0:
         arcs = arcs_and_boundary_edges
@@ -286,18 +244,13 @@ def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edge
         for pos in range(0,arcs_count):
             dic.append( (arcs[pos], pos) )
 
-    #print 'dic: ', dic
-    ###
 
     M = matrix(ZZ,arcs_count,arcs_count,sparse=True)
 
     for user_edge in arrows:
-
         if user_edge[0] in boundary_edges or user_edge[1] in boundary_edges:
             continue
-        #print 'user_edge: ', user_edge
-
-        if user_edge[2] is None:
+        if user_edge[2] is None: # todo: arrows coming from surfaces will not have weight, so the elif should be removed
             edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[1],dic), (1,-1))
         elif user_edge[2] in ZZ:
             edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[2],dic), (user_edge[2],-user_edge[2]))
@@ -354,24 +307,17 @@ def _edges_from_ideal_triangles(list_triangles):
                 if e[1] in nooses:
                     radius_e = _get_radius(e[1],selffolded_triangles)
                     selffolded_edges.append([radius, radius_e])
-                #elif e[2] in nooses:
-                #    radius_e = _get_radius(e[2],selffolded_triangles)
-                #    selffolded_edges.append([radius_e, radius])
                 flagFoundSharedNooseA = True
             elif e[1]==ell:
                 selffolded_edges.append([e[0],radius])
                 if e[0] in nooses:
                     radius_e = _get_radius(e[0],selffolded_triangles)
                     selffolded_edges.append([radius_e, radius])
-                #elif e[2] in nooses:
-                #    radius_e = _get_radius(e[2],selffolded_triangles)
-                #    selffolded_edges.append([radius, radius_e])
                 flagFoundSharedNooseB = True
             if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
                 break
 
     return digraph_edges + selffolded_edges
-
 
 def remove_two_cycles(edges):
     """
@@ -487,8 +433,6 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
     dic = []
     list_radius = []
     list_ell = []
-    #T_user_labels = list(set([edge for triangle in T for edge in triangle])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
-    #T_user_labels.sort()
 
     T_user_labels = _get_user_arc_labels(T)
     arcs = []
