@@ -764,6 +764,62 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
         """
         return self._rank
 
+    def coxeter_diagram(self):
+        """
+        Returns the Coxeter diagram of self.
+
+        EXAMPLES::
+
+            sage: mut_type = QuiverMutationType( ['A',5] ); mut_type
+            ['A', 5]
+            sage: mut_type.coxeter_diagram()
+            Coxeter diagram of rank 5
+
+            sage: mut_type = QuiverMutationType( ['A',[5,3],1] ); mut_type
+            ['A', [3, 5], 1]
+            sage: mut_type.coxeter_diagram()
+            Coxeter diagram of rank 8
+
+            sage: mut_type = QuiverMutationType(['A',3],['B',3]); mut_type
+            [ ['A', 3], ['B', 3] ]
+            sage: mut_type.coxeter_diagram()
+            Coxeter diagram of rank 6
+
+            sage: mut_type = QuiverMutationType(['A',3],['B',3],['X',6]); mut_type
+            [ ['A', 3], ['B', 3], ['X', 6] ]
+            sage: mut_type.coxeter_diagram()
+            Coxeter diagram of rank 12
+        """
+        G = Graph(self._graph)
+        for v1, v2, label in G.edges():
+            if type(label) in [list, tuple]:
+                label = -prod(label)
+            elif label == 2:
+                label = 4
+
+            if label is None:
+                G.set_edge_label(v1, v2, 1)
+            elif label in [1, 2]:
+                G.set_edge_label(v1, v2, label + 2)
+            elif label == 3:
+                G.set_edge_label(v1, v2, 4)
+            elif label == 4:
+                G.set_edge_label(v1, v2, infinity)
+            else:
+                raise ValueError("Coxeter diagrams are not defined for quiver mutation types with edge labels (b,-c) such that b*c > 4")
+        return CoxeterDiagram(G)
+
+    def coxeter_matrix(self):
+        """
+        """
+        n = self._graph.order()
+        M = matrix(ZZ, [[2] * n] * n)
+        for v1, v2, label in self._graph.edge_iterator():
+            M[v1, v2] = M[v2, v1] = label
+        for i in xrange(n):
+            M[i, i] = 1
+        return M
+
     @cached_method
     def b_matrix(self):
         """
@@ -2080,6 +2136,52 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,
         return QuiverMutationType( [comp.dual() for comp in comps ] )
 
 
+class CoxeterDiagram(SageObject):
+    """
+    This is a very basic implementation of Coxeter diagrams. It is used
+    in QuiverMutationType and should not be called directly.
+    """
+    def __init__(self, D):
+        """
+        INPUT:
+
+        - ``D`` -- is a graph without loops or two-cycles with
+          integral edge labels 3 and bigger and +infinity
+
+            - QuiverMutationType
+            - tuple or list defining a proper quiver mutation type
+
+        EXAMPLES::
+
+            sage: QuiverMutationType(['A',4],['B',6])
+            [ ['A', 4], ['B', 6] ]
+        """
+        self._graph = Graph(D)
+
+    def __copy__(self):
+        """
+        """
+        return CoxeterDiagram(self._graph)
+
+    def __hash__(self):
+        """
+        """
+        return hash((tuple(self._graph.vertices()),
+                     tuple(self._graph.edge_iterator(self._graph.vertices()))))
+
+    def _repr_(self):
+        """
+        """
+        return "Coxeter diagram of rank %s" % len(self._graph.vertices())
+
+    def show(self):
+        G = Graph(self._graph)
+        for v1, v2, label in G.edge_iterator():
+            if label == 3:
+                G.set_edge_label(v1, v2, '')
+        G.show(edge_labels=True)
+
+
 def _construct_classical_mutation_classes(n):
     r"""
     Return a dict with keys being tuples representing regular
@@ -2090,7 +2192,7 @@ def _construct_classical_mutation_classes(n):
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
         sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
-        sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long time
+        sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long tie
         ....:   print mut_class, rank_2_classes[mut_class]
         ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
         ('A', 2) [('AO', ())]
