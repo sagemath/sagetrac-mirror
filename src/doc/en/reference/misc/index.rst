@@ -9,6 +9,7 @@ Miscellaneous
    sage/misc/bindable_class
    sage/misc/cachefunc
    sage/misc/weak_dict
+   sage/misc/converting_dict
    sage/misc/c3
    sage/misc/c3_controlled
    sage/misc/decorators
