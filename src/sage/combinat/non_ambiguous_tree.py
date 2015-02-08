@@ -245,7 +245,8 @@ class NonAmbiguousTree( ClonableList ):
        - a node on the top in the same column
        - but not the both.
 
-    EXAMPLES::
+    For example,
+    ::
 
         1 1 0 1 0
         1 0 1 0 1
@@ -253,8 +254,7 @@ class NonAmbiguousTree( ClonableList ):
 
     is a non-ambiguous tree and can be represented by the following
     labeled tree, 
-
-    EXAMPLES::
+    ::
 
            x
          /   \
@@ -266,8 +266,7 @@ class NonAmbiguousTree( ClonableList ):
 
     If we replace each 1 of the previous matrix by the label of its node,
     in the non-ambiguous tree, we obtain :
-
-    EXAMPLES::
+    ::
 
                                 Label of
                               right nodes
@@ -814,8 +813,7 @@ class NonAmbiguousTree( ClonableList ):
 
         For example, in the following array, the cells labeled by i are cells
         of the hook `H_i` :
-
-        EXAMPLES::
+        ::
 
             0 0 0 0 0 0
             0 1 1 1 1 1
