@@ -37,13 +37,20 @@ class ClusterTriangulation(SageObject):
             sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1] )
             sage: T
             An ideal triangulation associated with cluster algebra of rank 6 with 1 boundary edges
+
             sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)] )
             sage: T
             An ideal triangulation associated with cluster algebra of rank 7
+
             sage: Triangles = [(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)]
             sage: T = ClusterTriangulation(Triangles, boundary_edges=[11,12,13,0])
             sage: T
             An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
+
+            sage: once_punctured_torus = ClusterTriangulation([(1,2,3),(3,1,2)])
+            sage: S = ClusterSeed(once_punctured_torus)
+            sage: S.mutation_type()
+            'undetermined finite mutation type'
 
     """
     def __init__(self, data, boundary_edges=None):

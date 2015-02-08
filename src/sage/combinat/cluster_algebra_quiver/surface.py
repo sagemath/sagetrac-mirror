@@ -73,20 +73,24 @@ def is_selffolded(t):
 def remove_duplicate_triangles(data):
     """
     In case user accidentally inputs a duplicate triangle, we remove the duplicate.
-    In particular, we do not allow: spheres with 1, 2, or 3 punctures
     For example, if user inputs triangles 1 => 2 => 3 => 1, it will turn into 1 ->2 -> 3 ->1
+    The only exception: The once-punctured torus' triangulation has two triangles with identical labels.
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles
         sage: remove_duplicate_triangles([(1,2,3),(1,2,4),[3,1,2],[2,3,1]])
         [(1, 2, 3), (1, 2, 4)]
-        sage: thrice_punctured_sphere = [(1,2,3),(3,1,2)]
-        sage: remove_duplicate_triangles(thrice_punctured_sphere)
-        [(1, 2, 3)]
+        sage: once_punctured_torus = [(1,2,3),(3,1,2)]
+        sage: remove_duplicate_triangles(once_punctured_torus)
+        [(1, 2, 3), (3, 1, 2)]
     """
 
     list_triangles = []
+
+    if len(data) == 2 and are_triangles_equal(data[0],data[1]):
+        return data
+
     for triangle in data:
         is_duplicate_triangle = False
         for t in list_triangles:
@@ -1202,6 +1206,8 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
                 return input_triangle
             else:
                 raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' which does not exist.')
+        if are_triangles_equal(triangle1[0],triangle1[1]) and len(T)==2: # If T is a triangulation of a once-punctured torus
+            return triangle1[0]
         if first_or_final == 'First':
             raise ValueError('In this case user must specify the first triangle = triangle_0 crossed by gamma. '\
             ,'since there are two triangles ', triangle1, ' with edges ', tau_1,' and ', tau_2)

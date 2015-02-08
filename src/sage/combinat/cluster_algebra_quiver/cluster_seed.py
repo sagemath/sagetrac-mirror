@@ -2294,7 +2294,12 @@ class ClusterSeed(SageObject):
             sage: S1 = S.mutate(0, inplace=False)
             sage: S1.cluster_variable(0) == S.arc ([S.x(0)])
             True
-        """
+
+            sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
+            sage: S = ClusterSeed(once_punctured_torus)
+            sage: S.arc([S.x(0),S.x(1),S.x(2),S.x(0)])
+            #TODO compare with mutation
+            """
         CT = self._cluster_triangulation
         return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
