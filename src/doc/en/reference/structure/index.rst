@@ -104,8 +104,6 @@ Utilities
    sage/structure/coerce_dict
    sage/structure/coerce_exceptions
 
-   sage/structure/converting_dict
-
 Internals
 ---------
 
