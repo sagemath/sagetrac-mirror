@@ -847,7 +847,7 @@ class NonAmbiguousTree( ClonableList ):
         ....:     return True
 
         sage: all( [ 
-        ....:     all( [ test_p_conjecture( i,i ) for i in range(1,4) ] )
+        ....:     all( [ test_p_conjecture( i,j ) for i in range(1,4) ] )
         ....:     for j in range(1,4) 
         ....: ] )
         True
