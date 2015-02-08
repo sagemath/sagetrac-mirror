@@ -766,7 +766,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def coxeter_diagram(self):
         """
-        Returns the Coxeter diagram of self.
+        Return the Coxeter diagram of ``self``.
 
         EXAMPLES::
 
@@ -806,11 +806,16 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             elif label == 4:
                 G.set_edge_label(v1, v2, infinity)
             else:
-                raise ValueError("Coxeter diagrams are not defined for quiver mutation types with edge labels (b,-c) such that b*c > 4")
+                raise ValueError("Coxeter diagrams are not defined for "
+                                 "quiver mutation types with edge "
+                                 "labels (b,-c) such that b*c > 4")
         return CoxeterDiagram(G)
 
     def coxeter_matrix(self):
         """
+        Return the Coxeter matrix of ``self``.
+
+        EXAMPLES::
         """
         n = self._graph.order()
         M = matrix(ZZ, [[2] * n] * n)
@@ -2175,6 +2180,8 @@ class CoxeterDiagram(SageObject):
         return "Coxeter diagram of rank %s" % len(self._graph.vertices())
 
     def show(self):
+        """
+        """
         G = Graph(self._graph)
         for v1, v2, label in G.edge_iterator():
             if label == 3:
@@ -2192,7 +2199,7 @@ def _construct_classical_mutation_classes(n):
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
         sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
-        sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long tie
+        sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long time
         ....:   print mut_class, rank_2_classes[mut_class]
         ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
         ('A', 2) [('AO', ())]
