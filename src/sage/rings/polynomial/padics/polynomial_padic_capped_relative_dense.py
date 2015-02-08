@@ -585,8 +585,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: a = t^4 + K(13,5)*t^2 + 13
             sage: K(13,7) * a
             (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
+
+            sage: from sage.structure.coerce_actions import RightModuleAction
+            sage: RightModuleAction(ZZ, Qp(5, 10)['x'])
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over 5-adic Field with capped relative precision 10
         """
-        return None
+        return self * self.parent()(left)
         # The code below has never been tested and is somehow subtly broken.
 
         if self._valaddeds is None:
