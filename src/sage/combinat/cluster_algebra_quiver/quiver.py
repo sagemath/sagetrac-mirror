@@ -31,7 +31,7 @@ from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
-from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_matrix, remove_duplicate_triangles #, _give_weight_to_double_edges
+from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_arrows, remove_duplicate_triangles #, _give_weight_to_double_edges
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -48,12 +48,10 @@ class ClusterQuiver(SageObject):
         * ClusterQuiver
         * Matrix - a skew-symmetrizable matrix
         * DiGraph - must be the input data for a quiver
-        * List of triangles - must be the list of triangles from a triangulation (see Examples)
+        * CluserTriangulation
         * List of edges - must be the edge list of a digraph for a quiver
 
     - ``frozen`` -- (default:``None``) sets the number of frozen variables if the input type is a DiGraph, it is ignored otherwise.
-
-    - ``boundary_edges`` -- (default:``None``)
 
     EXAMPLES:
 
@@ -146,11 +144,13 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver( DiGraph([[1,2],[2,3],[3,4],[4,1]]) ); Q
             Quiver on 4 vertices
 
-        from a List of triangles (forming a triangulation of a surface)::
+        from a ClusterTriangulation::
 
-            sage: Q = ClusterQuiver ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1] ); Q
-            Quiver on 7 vertices from a triangulation
-            sage: Q = ClusterQuiver ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)] ); Q
+            sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1] )
+            sage: Q = ClusterQuiver (T); Q
+            Quiver on 6 vertices from a triangulation with 1 boundary edges
+            sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)] )
+            sage: Q = ClusterQuiver ( T ); Q
             Quiver on 7 vertices from a triangulation
 
         from a List of edges::
@@ -185,7 +185,7 @@ class ClusterQuiver(SageObject):
         ...
         ValueError: The input data was not recognized.
     """
-    def __init__( self, data, frozen=None, from_surface=False, boundary_edges=None ):
+    def __init__( self, data, frozen=None, from_surface=False):#, boundary_edges=None ):
         """
         TESTS::
 
@@ -193,9 +193,10 @@ class ClusterQuiver(SageObject):
             sage: TestSuite(Q).run()
         """
         from cluster_seed import ClusterSeed
+        from cluster_triangulation import ClusterTriangulation
         from sage.matrix.matrix import Matrix
 
-        self._boundary_edges = boundary_edges
+        #self._boundary_edges = boundary_edges
 
         # constructs a quiver from a mutation type
         if type( data ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
@@ -255,7 +256,7 @@ class ClusterQuiver(SageObject):
             else:
                 self.__init__( mutation_type.standard_quiver() )
 
-         # constructs a quiver from a cluster seed
+        # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
             self.__init__( data.quiver() )
 
@@ -270,7 +271,7 @@ class ClusterQuiver(SageObject):
             self._digraph = copy( data._digraph )
             self._mutation_type = data._mutation_type
             self._description = data._description
-            self._triangulation = data._triangulation
+            self._cluster_triangulation = data._cluster_triangulation
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
@@ -291,9 +292,12 @@ class ClusterQuiver(SageObject):
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
             if from_surface != True:
-                self._triangulation = None
-            if self._triangulation != None:
+                self._cluster_triangulation = None
+            if self._cluster_triangulation != None:
                 self._description += ' from a triangulation'
+                if len(self._cluster_triangulation._boundary_edges)>0:
+                    self._description += ' with %d boundary edges' %len(self._cluster_triangulation._boundary_edges)
+
             #self._triangulation = None
 
         # constructs a quiver from a digraph
@@ -357,20 +361,23 @@ class ClusterQuiver(SageObject):
             #   self._triangulation = None
             #if self._triangulation != None:
             #    self._description += ' from a triangulation'
-            self._triangulation = None
+            self._cluster_triangulation = None
             self._mutation_type = None
 
         # if data is a list of triangles (forming a triangulation), the appropriate digraph is constructed.
+        elif isinstance(data, ClusterTriangulation):
+            self._cluster_triangulation = data
+            self.__init__( data._M , from_surface=True)
 
-        elif isinstance(data,list) and \
-        all(type(triangle) in [list,tuple] and len(triangle)==3 for triangle in data):
-            data = remove_duplicate_triangles (data)
-            M = _triangulation_to_matrix(data)
-            #dg_edges = _edges_from_triangles(data)
-            #dg = DiGraph(dg_edges)
-            #dg = _give_weight_to_double_edges (dg)
-            self._triangulation = data
-            self.__init__(data=M, frozen=None, from_surface=True, boundary_edges=boundary_edges)
+        #elif isinstance(data,list) and \
+        #all(type(triangle) in [list,tuple] and len(triangle)==3 for triangle in data):
+        #    data = remove_duplicate_triangles (data)
+        #    M = _triangulation_to_matrix(data)
+        #    #dg_edges = _edges_from_triangles(data)
+        #    #dg = DiGraph(dg_edges)
+        #    #dg = _give_weight_to_double_edges (dg)
+        #    self._triangulation = data
+        #    self.__init__(data=M, frozen=None, from_surface=True, boundary_edges=boundary_edges)
 
         # if data is a list of edges, the appropriate digraph is constructed.
 
@@ -1626,14 +1633,16 @@ class ClusterQuiver(SageObject):
         else:
             return is_finite
 
-    def triangulation (self):
+    def cluster_triangulation (self):
         """
-        Returns the underlying triangulation of ``self``.
+        Returns the triangulation class associated with ``self``.
 
         EXAMPLES::
-            sage: T = [(1,4,7),(1,2,5),(2,0,3),(0,6,3)]
+            sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
             sage: Q = ClusterQuiver(T)
-            sage: Q.triangulation()
+            sage: Q.cluster_triangulation()._triangles
             [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
+            sage: Q.cluster_triangulation() == T
+            True
         """
-        return self._triangulation
+        return self._cluster_triangulation

@@ -5,6 +5,7 @@ and computing the T-expansion of arcs/loops with respect to T
 
 """
 
+#from sage.structure.sage_object import SageObject
 from sage.combinat.combinat import fibonacci
 from sage.graphs.digraph import DiGraph
 #from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
@@ -96,7 +97,7 @@ def remove_duplicate_triangles(data):
             list_triangles.append(triangle)
     return list_triangles
 
-def _triangulation_to_matrix(list_triangles):
+def _triangulation_to_arrows(list_triangles):
     """
     Returns a skew-symmetric matrix corresponding from a list of ideal triangles. The order of the list does not matter.
         For each triangle t in list_triangles:
@@ -106,16 +107,16 @@ def _triangulation_to_matrix(list_triangles):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_matrix
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels
         sage: T = [[2, 1, 0], [3, 2, 1]] # Annulus with 2 marked points
-        sage: _triangulation_to_matrix(T)
+        sage: _surface_edge_list_to_matrix(_triangulation_to_arrows(T),_get_user_arc_labels(T),[],4)
         [ 0 -1  1  0]
         [ 1  0 -2  1]
         [-1  2  0 -1]
         [ 0 -1  1  0]
 
         sage: T = [[1,4,2],[3,4,3],[2,0,1]] # twice-punctured monogon with 3 (non-ordinary) ideal triangles (affine D)
-        sage: B = _triangulation_to_matrix(T)
+        sage: B = _surface_edge_list_to_matrix(_triangulation_to_arrows(T),_get_user_arc_labels(T),[],5)
         sage: Q = ClusterQuiver(B)
         sage: Q.b_matrix()
         [ 0  1 -1  0  0]
@@ -125,22 +126,25 @@ def _triangulation_to_matrix(list_triangles):
         [ 0 -1  1  0  0]
 
         sage: Tmu2 = [(1,1,2),(3,4,3),(2,4,0)] # 2 self-folded triangles and 1 triangle with one vertex (affine D)
-        sage: Bmu2 = _triangulation_to_matrix(Tmu2)
+        sage: Bmu2 = _surface_edge_list_to_matrix(_triangulation_to_arrows(Tmu2),_get_user_arc_labels(Tmu2),[],5)
         sage: Bmu2
         [ 0  1  1 -1 -1]
         [-1  0  0  1  1]
         [-1  0  0  1  1]
         [ 1 -1 -1  0  0]
         [ 1 -1 -1  0  0]
-        sage: Qmu2 = ClusterQuiver(Bmu2)
-        sage: Qmu2.mutate(2,inplace=False).digraph() == Q.digraph()
+
+        sage: Bmu2.mutate(2)
+        sage: Bmu2 == B
         True
+
+        sage: Qmu2 = ClusterQuiver(Bmu2)
         sage: Qmu2.mutation_type()
         'undetermined finite mutation type'
         sage: Qmu2.is_mutation_finite()
         True
 
-        sage: M = _triangulation_to_matrix ([[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]])
+        sage: M = _triangulation_to_arrows ([[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]])
 
     """
     digraph_edges = []
@@ -158,7 +162,7 @@ def _triangulation_to_matrix(list_triangles):
             selffolded_triangles.append([radius,radius, ell])
             nooses.append(ell)
         else:
-            raise ValueError ('A triangle has to have 3 distinct edges or 2 distinct edges')
+            raise ValueError ('An ideal triangle has to have 3 distinct edges or 2 distinct edges')
             break
 
     #if DiGraph(digraph_edges).has_loops(): # any loop would get cancelled by _surface_edge_list_to_matrix
@@ -212,14 +216,16 @@ def _triangulation_to_matrix(list_triangles):
             if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
                 break
 
-    all_edges = digraph_edges + selffolded_edges + radius_to_radius_edges
-    n = len(DiGraph(all_edges))
+    #all_edges = digraph_edges + selffolded_edges + radius_to_radius_edges
+    #n = len(DiGraph(all_edges))
 
     #print 'n: ', n
     #print 'diraph ', digraph_edges, 'selffolded ', selffolded_edges ,'radius to radius', radius_to_radius_edges
     #print 'all edges ', all_edges
     #from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
-    return _surface_edge_list_to_matrix(all_edges,n,0)
+    #return _surface_edge_list_to_matrix(all_edges,n,0,)
+
+    return digraph_edges + selffolded_edges + radius_to_radius_edges
 
 def _get_radius(noose,selffolded_triangles):
     """
@@ -238,50 +244,59 @@ def _get_radius(noose,selffolded_triangles):
     raise ValueError('There is no self-folded triangles with noose ', noose)
 
 
-def _surface_edge_list_to_matrix( edges, n, m ):
+def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edges, arcs_count ):
     """
     Returns the matrix obtained from the edge list of a quiver (possibly with loops, two-cycles, multiply-listed edges).
     Slightly different from :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix`.
 
     INPUT:
 
-    - ``edges``: the list of edges.
-
-    - ``n``: the number of mutable vertices of the quiver.
-
-    - ``m``: the number of frozen vertices of the quiver.
+    - ``arrows``: the list of edges from the quiver associated to a triangulation.
+    - ``arcs_and_boundary_edges``: the list of user-given labels of arcs and boundary edges
+    - ``boundary_edges``: the list of user-given boundary edges
+    - ``arcs_count``: the number of surface edges (that are not boundary edges)
 
     OUTPUT:
 
-    - An `(n+m) \times n` matrix corresponding to the edge-list.
+    - An `arcs_count \times arcs_count` matrix corresponding to the arrows-list (ignoring the boundary edges).
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix
-        sage: G = QuiverMutationType(['A',2])._digraph
-        sage: _surface_edge_list_to_matrix(G.edges(),2,0)
-        [ 0  1]
-        [-1  0]
+
     """
-    M = matrix(ZZ,n+m,n,sparse=True)
 
-    ###
-    dic = []
-
-    T_user_labels = list(set([v for e in edges for v in e])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
-    if T_user_labels.count(None) > 0:
-        T_user_labels.remove(None)
-    T_user_labels.sort()
+    #T_user_labels = list(set([v for a in arrows for v in a])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
+    #if T_user_labels.count(None) > 0:
+    #    T_user_labels.remove(None)
+    #T_user_labels.sort()
     #print 'user labesl: ', T_user_labels
 
-    if len(T_user_labels)==n:
-        for pos in range(0,n):
-            dic.append( (T_user_labels[pos], pos) )
+    arcs = []
+    if len(boundary_edges) == 0:
+        arcs = arcs_and_boundary_edges
+    else:
+        for pos in range(0,len(arcs_and_boundary_edges)):
+            tau = arcs_and_boundary_edges[pos]
+            if tau not in boundary_edges:
+                arcs.append( tau )
+
+    dic = []
+    if len(arcs) == arcs_count:
+        for pos in range(0,arcs_count):
+            dic.append( (arcs[pos], pos) )
 
     #print 'dic: ', dic
     ###
 
-    for user_edge in edges:
+    M = matrix(ZZ,arcs_count,arcs_count,sparse=True)
+
+    for user_edge in arrows:
+
+        if user_edge[0] in boundary_edges or user_edge[1] in boundary_edges:
+            continue
+        #print 'user_edge: ', user_edge
+
         if user_edge[2] is None:
             edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[1],dic), (1,-1))
         elif user_edge[2] in ZZ:
@@ -289,9 +304,9 @@ def _surface_edge_list_to_matrix( edges, n, m ):
         #print 'edge: ', edge
         v1,v2,(a,b) = edge
 
-        if v1 < n:
+        if v1 < arcs_count:
             M[v2,v1] += b
-        if v2 < n:
+        if v2 < arcs_count:
             M[v1,v2] += a
     return M
 
@@ -445,31 +460,49 @@ def _edges_from_triangles(data):
     digraph_edges = remove_triple_edges ( digraph_edges )
     return digraph_edges
 
-def _get_triangulation_dictionary(T, cluster):
+def _get_user_arc_labels (T):
     """
-    This function is called by cluster_seed.py
+    Gives a list of labels in a list of 3-tuples
+    """
+    T_user_labels = list(set([edge for triangle in T for edge in triangle]))
+    T_user_labels.sort()
+    return T_user_labels
+
+def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_vars):
+    """
+    This function is called by cluster_triangulation.py
     Create a triangulation dictonary e.g. if user uses labels 1,2,5, .., then return [(1,x0),(2,x1),(5,x2), ...]
 
     EXAMPLES::
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary
-        sage: T = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
-        sage: S = ClusterSeed(T)
-        sage: S._triangulation_dictionary
+        sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
+        sage: T = ClusterTriangulation(Triangles)
+        sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
-        sage: S = ClusterSeed(twice_punctured_bigon)
-        sage: _get_triangulation_dictionary(S.triangulation(), S.cluster())
+        sage: T = ClusterTriangulation(twice_punctured_bigon)
+        sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         [(0, x0), (1, x1), (2, x1*x2), (3, x3), (4, x3*x4), (6, x5), (7, x6)]
     """
     dic = []
     list_radius = []
     list_ell = []
-    T_user_labels = list(set([edge for triangle in T for edge in triangle])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
-    T_user_labels.sort()
+    #T_user_labels = list(set([edge for triangle in T for edge in triangle])) # In case user skips a number for triangulation label, e.g. 2,4,5,6,7,9,13,..
+    #T_user_labels.sort()
 
-    if len(T_user_labels)==len(cluster):
+    T_user_labels = _get_user_arc_labels(T)
+    arcs = []
+    boundary_edges.sort()
+
+    for l in T_user_labels:
+        if l not in boundary_edges:
+            arcs.append(l)
+
+    if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
         for pos in range(0,len(cluster)):
-            dic.append( (T_user_labels[pos], cluster[pos]) )
+            dic.append( (arcs[pos], cluster[pos]) )
+        for pos in range(0,len(boundary_edges_vars)):
+            dic.append( (boundary_edges[pos], boundary_edges_vars[pos]) )
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded (triangle)
@@ -481,7 +514,7 @@ def _get_triangulation_dictionary(T, cluster):
             list_radius.append(radius)
             list_ell.append(ell)
 
-    for pos in range(0,len(dic)): # Assign an ell-loop to the product of r * r\notch
+    for pos in range(0,len(dic)): # Assign a noose to the product of r * r\notch
         cluster_var = dic[pos][1]
         if list_ell.count (cluster_var):
             ind = list_ell.index(cluster_var)
@@ -514,11 +547,10 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
 
     EXAMPLES::
 
-        sage: T = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
-        sage: S = ClusterSeed(T)
-        sage: S._triangulation_dictionary
+        sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
+        sage: T._triangulation_dictionary
         [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
-        sage: S.weighted_triangulation()
+        sage: T.weighted_triangulation()
         [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
     """
     weighted_T = []
@@ -567,14 +599,14 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
 
     EXAMPLES::
         sage: from sage.combinat.cluster_algebra_quiver.surface import LaurentExpansionFromSurface
-        sage: T = [(0,2,1),(0,4,3),(1,6,5)]
+        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
         sage: S = ClusterSeed(T)
         sage: S1=S.mutate(0,inplace=False)
-        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S.weighted_triangulation(),[S.x(0)],None,None,True,None)
+        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],None,None,True,None)
         True
     """
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
-        raise ValueError('crossed_arcs should be a non-empty list of cluster variable/s')
+        raise ValueError('crossed_arcs should be a non-empty list object of cluster variable/s')
 
     G = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
     MinMatching = GetMinimalMatching ( G )  # Return [['minimal PM'], [minimal matching with directions]]
@@ -677,8 +709,8 @@ def GetDenominator(G):
         ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
         #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
-        sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
-        sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])
+        sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)],boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
+        sage: S = ClusterSeed(T)
         sage: c = [item for item in S.cluster()]
         sage: BG = S.band_graph( [ c[1], c[2], c[3], c[0], c[1] ]) # Pick cut edge to be tau_1 = 1, go clockwise
         sage: GetDenominator(BG)
@@ -1128,10 +1160,26 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
-        sage: Tri = [(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)]
-        sage: S = ClusterSeed(Tri, boundary_edges=[11,12,13,0])
-        sage: try_to_find_end_triangles_for_one_crossed_arc (S.weighted_triangulation(),S.x(4), None,None,True,False)
-        [(x4, x3, x12), (x0, x4, x5)]
+        sage: Tri = ClusterTriangulation([(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)], boundary_edges=[11,12,13,0])
+        sage: S = ClusterSeed(Tri)
+        sage: Tri.triangulation_dictionary()
+        [(1, x0),
+        (2, x0*x1),
+        (3, x2),
+        (4, x3),
+        (5, x4),
+        (6, x5),
+        (7, x6),
+        (8, x7),
+        (9, x8),
+        (10, x9),
+        (0, b10),
+        (11, b11),
+        (12, b12),
+        (13, b13)]
+
+        sage: try_to_find_end_triangles_for_one_crossed_arc (S._cluster_triangulation.weighted_triangulation(),S.x(3), None,None,True,False)
+        [(x3, x2, b12), (b10, x3, x4)]
     """
     triangle0 = _get_triangle(T, tau, None)
 
@@ -1382,8 +1430,9 @@ def GetMinimalMatching(G):
 
     EXAMPLES::
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetMinimalMatching,_snake_graph
-        sage: S=ClusterSeed([(0,2,1),(0,4,3),(1,6,5)])
-        sage: G=_snake_graph(S.weighted_triangulation(),[S.x(0)],is_arc=True)
+        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+        sage: S = ClusterSeed(T)
+        sage: G = _snake_graph(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],is_arc=True)
         sage: GetMinimalMatching(G) # floor and ceiling are marked
         [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
     """
@@ -1423,10 +1472,10 @@ def snake_graph_tile_directions(G):
         ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
         #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
         sage: from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, snake_graph_tile_directions
-        sage: T = [(1,2,4),(1,0,5),(0,3,6),(2,3,7)] # Counterclockwise triangulation
-        sage: S = ClusterSeed(T, boundary_edges=[4,5,6,7])
+        sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
+        sage: S = ClusterSeed(T)
         sage: c = [item for item in S.cluster()]
-        sage: G = _snake_graph (S._weighted_triangulation, [ c[1], c[2], c[3], c[0], c[1] ], None, None, False, True, 1, None)
+        sage: G = _snake_graph (S._cluster_triangulation._weighted_triangulation, [ c[1], c[2], c[3], c[0], c[1] ], None, None, False, True, 1, None)
         sage: snake_graph_tile_directions (G)
         ['ABOVE', 'RIGHT', 'RIGHT', 'ABOVE']
     """
