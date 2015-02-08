@@ -3088,6 +3088,36 @@ class ANDescr(SageObject):
         else:
             return (n*n)._descr
 
+    def quick_symbolic(self):
+        r"""
+        A symbolic representation for this number, if quickly available.
+
+        If this descriptor is the result of converting a symbolic
+        expression to an algebraic number, that symbolic expression is
+        stored and hence available. Combining such numbers with other
+        such numbers or rational numbers, using only elementary
+        arithmetic operations, makes a symbolic expression for the
+        final result available as well.
+
+        The function :func:`sage.symbolic.expression_conversions.algebraic`
+        will overwrite this method by a function which simply returns
+        the symbolic expression that led to that algebraic number.
+        So if the input is a symbolic expression, this is a shortcut.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(2))
+            sage: b = a._descr
+            sage: b.quick_symbolic()
+            sqrt(2)
+            sage: p = QQ['x']([1,5,3])
+            sage: a = p.roots(QQbar, multiplicities=False)[0]
+            sage: b = a._descr
+            sage: b.quick_symbolic() is None
+            True
+        """
+        return None
+
 class AlgebraicNumber_base(sage.structure.element.FieldElement):
     r"""
     This is the common base class for algebraic numbers (complex
@@ -3651,8 +3681,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         od = self._descr
         if od.is_exact(): return
-        if self._symbolic_expression is not None:
-            self._exact_symbolic()
+        self._exact_symbolic()
         self._set_descr(self._descr.exactify())
 
     def _set_descr(self, new_descr):
@@ -3679,8 +3708,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             self._value = self._value.intersection(new_val)
 
-    _symbolic_expression = None
-
     def _exact_symbolic(self):
         r"""
         Compute an exact representation of self using a known symbolic expression.
@@ -3698,13 +3725,16 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: c.minpoly() # indirect doctest
             x^6 - 49/2*x^4 + 133/16*x^2 + 225/4
         """
-
+        e = self._descr.quick_symbolic()
+        if e is None:
+            return
         try:
             # Only numeric conversion is faster; algebraic would cause infinite recursion.
-            p = self._symbolic_expression.minpoly(algorithm='numeric')
+            p = e.minpoly(algorithm='numeric')
         except (NotImplementedError, ValueError):
             return
-        r = p.roots(self.parent(), False)
+        K = QQbar if is_ComplexIntervalFieldElement(self._value) else AA
+        r = p.roots(K, multiplicities=False)
         r = [z for z in r if z._value.overlaps(self._value)]
         while len(r) > 1:
             # TODO: find input which actually tests this code path!
@@ -5622,6 +5652,21 @@ class ANRational(ANDescr):
         """
         return self._value
 
+    def quick_symbolic(self):
+        r"""
+        Cast this rational number to a symbolic expression.
+
+        EXAMPLE::
+
+            sage: a = QQbar(5/7)._descr.quick_symbolic()
+            sage: a
+            5/7
+            sage: a.parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.ring import SR
+        return SR(self._value)
+
 class ANRootOfUnity(ANDescr):
     r"""
     The subclass of ``ANDescr`` that represents a rational multiplied
@@ -6026,6 +6071,21 @@ class ANRootOfUnity(ANDescr):
             -1
         """
         return self._scale
+
+    def quick_symbolic(self):
+        r"""
+        Cast this root of unity to a symbolic expression.
+
+        EXAMPLE::
+
+            sage: a = (3*QQbar.zeta(5)^2)._descr.quick_symbolic()
+            sage: a
+            3*e^(4/5*I*pi)
+            sage: a.parent()
+            Symbolic Ring
+        """
+        from sage.all import exp, I, pi
+        return self._scale * exp(2*I*pi * self._angle)
 
 def is_AlgebraicReal(x):
     r"""
@@ -7814,6 +7874,37 @@ class ANUnaryExpr(ANDescr):
             arg.exactify()
             return arg._descr.conjugate(None)
 
+    def quick_symbolic(self):
+        r"""
+        Apply this operation to the symbolic expression of its argument.
+
+        EXAMPLE::
+
+            sage: v = (-QQbar(sqrt(2)))._descr
+            sage: type(v)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: v.quick_symbolic()
+            -sqrt(2)
+        """
+        arg = self._arg._descr.quick_symbolic()
+        if arg is None:
+            return None
+        op = self._op
+        if op == '-':
+            return -arg
+        if op == '~':
+            return 1/arg
+        if op == 'real':
+            return arg.real()
+        if op == 'imag':
+            return arg.imag()
+        if op == 'abs':
+            return arg.abs()
+        if op == 'norm':
+            return arg * arg.conjugate()
+        if op == 'conjugate':
+            return arg.conjugate()
+
 class ANBinaryExpr(ANDescr):
     def __init__(self, left, right, op):
         r"""
@@ -8053,6 +8144,35 @@ class ANBinaryExpr(ANDescr):
                 return ANExtensionElement(gen, value)
         finally:
             sys.setrecursionlimit(old_recursion_limit)
+
+    def quick_symbolic(self):
+        r"""
+        Apply this operation to the symbolic expression of its argument.
+
+        EXAMPLE::
+
+            sage: a = QQbar.zeta(3) + AA(sqrt(2))
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+            sage: b.quick_symbolic()
+            sqrt(2) + e^(2/3*I*pi)
+        """
+        left = self._left._descr.quick_symbolic()
+        if left is None:
+            return None
+        right = self._right._descr.quick_symbolic()
+        if right is None:
+            return None
+        op = self._op
+        if op == '+':
+            return left + right
+        if op == '-':
+            return left - right
+        if op == '*':
+            return left * right
+        if op == '/':
+            return left / right
 
 ax = QQbarPoly.gen()
 # def heptadecagon():

@@ -942,7 +942,7 @@ def algebraic(ex, field):
         0
     """
     res = AlgebraicConverter(field)(ex)
-    res._symbolic_expression = ex
+    res._descr.quick_symbolic = lambda: ex
     return res
 
 ##############
