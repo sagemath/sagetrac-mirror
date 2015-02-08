@@ -1,8 +1,8 @@
 r"""
-This file contains helper functions for cluster_algebra_quiver package
-for defining cluster algebras from an initial surface ideal triangulation T
-and computing the T-expansion of arcs/loops with respect to T
+surface
 
+This file contains helper functions for producing an initial surface ideal triangulation for a cluster triangulation class
+and for computing the Laurent expansion for cluster algebra elements not belonging to the initial ideal triangulation.
 """
 
 #from sage.structure.sage_object import SageObject

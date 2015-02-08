@@ -1,16 +1,15 @@
 r"""
 ClusterTriangulation
 
-An Ideal triangulation associated to a cluster algebra (arXiv:math/0608367) or other triangulations (not implemented yet)
+An *cluster triangulation* (see :arXiv:math/`0608367`) is an ideal triangulation, i.e. a maximal collection of distinct non-crossing arcs.
+An ideal triangulation of a surface with marked points (S,M) is associated to a seed of a cluster algebra arising from (S,M).
 
-Cluster triangulations are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`
+.. SEEALSO:: Cluster triangulations are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`
 and :meth:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
 
 """
 
 from sage.structure.sage_object import SageObject
-#from copy import copy
-#from sage.structure.unique_representation import UniqueRepresentation
 
 ######################################################################################################
 ############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
@@ -23,10 +22,13 @@ class ClusterTriangulation(SageObject):
     INPUT:
 
     - ``data`` -- can be any of the following::
+        * List of triangles - must be the list of 3-tuples (i.e. edge labels of a triangle) from an ideal triangulation (see Examples)
 
+    .. TODO::
+
+    - ``data`` -- can also be any of the following::
         * Matrix - a skew-symmetrizable matrix arising from a tagged triangulation (todo: not yet implemented)
         * DiGraph - must be the input data for a quiver from a tagged triangulation (todo: not yet implemented)
-        * List of triangles - must be the list of triangles (counterclockwise) from an ideal triangulation (see Examples)
         * List of edges - must be the edge list of a digraph for a quiver from a tagged triangulation (todo: not yet implemented)
         * Objects that Theodosios Douvropoulos is currently working with (not related to cluster algebras from surfaces) (todo: not yet implemented)
 
