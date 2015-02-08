@@ -33,10 +33,9 @@ TESTS::
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_function
-from sage.combinat.species.stream import _integers_from
 from sage.combinat.sf.all import SymmetricFunctions
 from sage.combinat.species.generating_series import CycleIndexSeriesRing
-from sage.rings.all import RationalField, Integer, divisors
+from sage.rings.all import RationalField, Integer, divisors, NN
 
 @cached_function
 def _cl_term(n, R = RationalField()):
@@ -75,7 +74,7 @@ def _cl_gen (R = RationalField()):
         sage: [g.next() for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
-    return (_cl_term(i, R) for i in _integers_from(0))
+    return (_cl_term(i, R) for i in NN)
 
 @cached_function
 def CombinatorialLogarithmSeries(R = RationalField()):

@@ -3,10 +3,7 @@ Lazy Power Series
 
 This file provides an implementation of lazy univariate power
 series, which uses the stream class for its internal data
-structure. The lazy power series keep track of their approximate
-order as much as possible without forcing the computation of any
-additional coefficients. This is required for recursively defined
-power series.
+structure.
 
 This code is based on the work of Ralf Hemmecke and Martin Rubey's
 Aldor-Combinat, which can be found at
@@ -28,46 +25,102 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from stream import Stream, Stream_class
-from series_order import  bounded_decrement, increment, inf, unk
+from series_order import  inf, unk
 from sage.rings.all import Integer
-from sage.misc.misc import prod
-from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
-
-from sage.algebras.algebra import Algebra
-from sage.algebras.algebra_element import AlgebraElement
+from sage.misc.misc_c import prod
+from sage.misc.cachefunc import cached_method
 import sage.structure.parent_base
 from sage.categories.all import Rings
+from series_stream import (SeriesStream, SeriesStreamFromList, SeriesStreamFromIterator, TermStream,
+                           ChangeRingStream, SumStream, ProductStream, TailStream, DerivativeStream,
+                           IntegralStream, CompositionStream, RecursiveStream, RestrictedStream,
+                           ListSumStream, SumGeneratorStream, ProductGeneratorStream)
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.structure.element import AlgebraElement
+from sage.algebras.algebra import Algebra
+from sage.categories.algebras import Algebras
 
-class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class = None, names=None):
+
+class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
+    def __init__(self, R, element_class=None, category=None, names=None):
         """
         TESTS::
 
             sage: from sage.combinat.species.series import LazyPowerSeriesRing
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: loads(dumps(L))
-            Lazy Power Series Ring over Rational Field
+            sage: TestSuite(L).run()
+
+        Check that :trac:`15249`  is fixed::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: (L.zero() + x).coefficients(4)
+            [0, 1, 0, 0]
+            sage: (L.zero() - x).coefficients(4)
+            [0, -1, 0, 0]
+
+        Check that :trac:`15248` is fixed::
+
+        
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: m = matrix(L, [[x, x], [1, x]])
+            sage: m.det().coefficients(4)
+            [0, -1, 1, 0]
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: m = matrix(L, [[x, x], [1, x]])
+            sage: m.det().coefficients(4)
+            [0, -1, 1, 0]
+
+        Check that :trac:`10084` is fixed::
+
+            sage: one = L(0) + L(1)
+            sage: one.coefficients(4)
+            [1, 0, 0, 0]
+
+        Check that :trac:`10085` and :trac:`10086` are fixed::
+
+             sage: S1.<t> = LazyPowerSeriesRing(ZZ)
+             sage: S2.<y> = LazyPowerSeriesRing(S1)
+             sage: y.coefficient(1).coefficient(0)
+             1
+             sage: S2(t).coefficient(0)
+             t
+
+        Check that :trac:`13433` is fixed::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: x.coefficient(2).parent()
+            Rational Field
+
+        Check that :trac:`14685` is fixed::
+
+            sage: R = LazyPowerSeriesRing(QQ)
+            sage: b = R(iter([0,0,0,1,0]))
+            sage: coeffs = b.coefficients(10)
+            sage: b.aorder
+            3
         """
-        #Make sure R is a ring with unit element
+        # Make sure R is a ring with unit element
         if not R in Rings():
             raise TypeError("Argument R must be a ring.")
-        try:
-            z = R(Integer(1))
-        except Exception:
+
+        if not hasattr(R, 'one'):
             raise ValueError("R must have a unit element")
 
-        #Take care of the names
+        if category is None:
+            category = Algebras(R)
+
+        # Take care of the names
         if names is None:
             names = 'x'
         else:
             names = names[0]
 
-        self._element_class = element_class if element_class is not None else LazyPowerSeries
-        self._order = None
+        self.Element = element_class if element_class is not None else LazyPowerSeries
         self._name = names
-        sage.structure.parent_base.ParentWithBase.__init__(self, R)
+
+        Parent.__init__(self, base=R, category=category)
 
     def ngens(self):
         """
@@ -78,36 +131,40 @@ class LazyPowerSeriesRing(Algebra):
         """
         return 1
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: LazyPowerSeriesRing(QQ)
             Lazy Power Series Ring over Rational Field
         """
-        return "Lazy Power Series Ring over %s"%self.base_ring()
+        return "Lazy Power Series Ring over {}".format(self.base_ring())
 
-    def __cmp__(self, x):
+    def _new(self, stream_cls, *args, **kwds):
         """
+        Return a new lazy power series with class ``stream_cls``.
+        This function automatically sets the ``base_ring`` parameter.
+
         EXAMPLES::
 
-            sage: LQ = LazyPowerSeriesRing(QQ)
-            sage: LZ = LazyPowerSeriesRing(ZZ)
-            sage: LQ == LQ
-            True
-            sage: LZ == LQ
-            False
-        """
-        if self.__class__ is not x.__class__:
-            return cmp(self.__class__, x.__class__)
-        return cmp(self.base_ring(), x.base_ring())
+            sage: from sage.combinat.species.series_stream import TermStream
+            sage: L1 = LazyPowerSeriesRing(QQ)
+            sage: g = L1._new(TermStream, n=2, value=3)
+            sage: g.coefficients(5)
+            [0, 0, 3, 0, 0]
 
-    def _coerce_impl(self, x):
+        """
+        kwds['base_ring'] = self.base_ring()
+        return self.element_class(self, stream_cls(*args, **kwds))
+
+    def _coerce_map_from_(self, ring):
         """
         EXAMPLES::
 
             sage: L1 = LazyPowerSeriesRing(QQ)
             sage: L2 = LazyPowerSeriesRing(RR)
+            sage: L1.has_coerce_map_from(ZZ)
+            True
             sage: L2.has_coerce_map_from(L1)
             True
             sage: L1.has_coerce_map_from(L2)
@@ -119,25 +176,50 @@ class LazyPowerSeriesRing(Algebra):
             sage: a.coefficients(3)
             [2.00000000000000, 2.00000000000000, 2.00000000000000]
         """
-        return self(x)
+        if self.base_ring().has_coerce_map_from(ring):
+            return True
+        if (self.__class__.__base__ is ring.__class__.__base__ and
+            self.base_ring().has_coerce_map_from(ring.base_ring())):
+            return True
 
+    def __call__(self, x=None, *args, **kwds):
+        """
+        We override the default call method of ``Parent`` to make the
+        default value ``None`` instead of ``x``.
 
-    def __call__(self, x=None, order=unk):
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: L()
+            O(1)
+            sage: L(0)
+            0        
+        """
+        return super(LazyPowerSeriesRing, self).__call__(x=x, *args, **kwds)
+        
+    def _element_constructor_(self, x=None, order=unk):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L()
-            Uninitialized lazy power series
+            O(1)
             sage: L(1)
             1
             sage: L(ZZ).coefficients(10)
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
             sage: L(iter(ZZ)).coefficients(10)
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
-            sage: L(Stream(ZZ)).coefficients(10)
+
+        ::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = SeriesStreamFromIterator(iterator=ZZ, base_ring=QQ, convert=True)
+            sage: L(s).coefficients(10)
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
+            sage: _[0].parent()
+            Rational Field
 
         ::
 
@@ -162,50 +244,51 @@ class LazyPowerSeriesRing(Algebra):
             ...
             TypeError: do not know how to coerce pi into self
         """
-        cls = self._element_class
-        BR = self.base_ring()
+        cls = self.element_class
+        base_ring = self.base_ring()
 
         if x is None:
-            res = cls(self, stream=None, order=unk, aorder=unk,
-                      aorder_changed=True, is_initialized=False)
-            res.compute_aorder = uninitialized
-            return res
+            return self._new(RecursiveStream)
+
+        if hasattr(x, "parent") and base_ring.has_coerce_map_from(x.parent()):
+            x = base_ring(x)
+            return self.term(x, 0)
 
         if isinstance(x, LazyPowerSeries):
             x_parent = x.parent()
-            if x_parent.__class__ != self.__class__:
+            if x_parent.__class__.__base__ != self.__class__.__base__:
                 raise ValueError
 
-            if x_parent.base_ring() == self.base_ring():
+            if x_parent.base_ring() == base_ring:
                 return x
             else:
-                if self.base_ring().has_coerce_map_from(x_parent.base_ring()):
-                    return x._new(partial(x._change_ring_gen, self.base_ring()), lambda ao: ao, x, parent=self)
+                if base_ring.has_coerce_map_from(x_parent.base_ring()):
+                    return self._new(ChangeRingStream, stream=x._stream,
+                                     new_ring=base_ring)
 
 
-        if hasattr(x, "parent") and BR.has_coerce_map_from(x.parent()):
-            x = BR(x)
-            return self.term(x, 0)
-
-        if hasattr(x, "__iter__") and not isinstance(x, Stream_class):
+        if isinstance(x, SeriesStream):
+            assert x.base_ring() == base_ring
+            return cls(self, x)
+        
+        if isinstance(x, (list, tuple)):
+            x = SeriesStreamFromList(list=x, base_ring=base_ring)
+        elif hasattr(x, "__iter__"):
             x = iter(x)
 
         if is_iterator(x):
-            x = Stream(x)
+            x = SeriesStreamFromIterator(iterator=x, base_ring=base_ring, convert=True)
 
-        if isinstance(x, Stream_class):
-            aorder = order if order != unk else 0
-            return cls(self, stream=x, order=order, aorder=aorder,
-                       aorder_changed=False, is_initialized=True)
+        if isinstance(x, SeriesStream):
+            return cls(self, x)
         elif not hasattr(x, "parent"):
-            x = BR(x)
             return self.term(x, 0)
 
-        raise TypeError("do not know how to coerce %s into self"%x)
+        raise TypeError("do not know how to coerce {} into self".format(x))
 
     def zero_element(self):
         """
-        Returns the zero power series.
+        Return the zero power series.
 
         EXAMPLES::
 
@@ -215,9 +298,11 @@ class LazyPowerSeriesRing(Algebra):
         """
         return self(self.base_ring()(0))
 
+    zero = zero_element
+
     def identity_element(self):
         """
-        Returns the one power series.
+        Return the one power series.
 
         EXAMPLES::
 
@@ -227,16 +312,22 @@ class LazyPowerSeriesRing(Algebra):
         """
         return self(self.base_ring()(1))
 
+    one = identity_element
+
+    @cached_method
     def gen(self, i=0):
         """
+        Return the generator for this algebra.
+        
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.gen().coefficients(5)
             [0, 1, 0, 0, 0]
         """
-        res = self._new_initial(1, Stream([0,1,0]))
-        res._name = self._name
+        assert i == 0
+        res = self._new(TermStream, 1, 1)
+        res.rename(self._name)
         return res
 
     def term(self, r, n):
@@ -251,73 +342,21 @@ class LazyPowerSeriesRing(Algebra):
         """
         if n < 0:
             raise ValueError("n must be non-negative")
-        BR = self.base_ring()
+
         if r == 0:
-            res = self._new_initial(inf, Stream([0]))
-            res._name = "0"
+            res = self._new(TermStream, 0, 0)
+            res.rename("0")
         else:
-            zero = BR(0)
-            s = [zero]*n+[BR(r),zero]
-            res = self._new_initial(n, Stream(s))
+            res = self._new(TermStream, n, r)
 
             if n == 0:
-                res._name = repr(r)
+                res.rename(repr(r))
             elif n == 1:
-                res._name = repr(r) + "*" + self._name
+                res.rename(repr(r) + "*" + self._name)
             else:
-                res._name = "%s*%s^%s"%(repr(r), self._name, n)
+                res.rename("{}*{}^{}".format(repr(r), self._name, n))
 
         return res
-
-    def _new_initial(self, order, stream):
-        """
-        Returns a new power series with specified order.
-
-        INPUT:
-
-
-        -  ``order`` - a non-negative integer
-
-        -  ``stream`` - a Stream object
-
-
-        EXAMPLES::
-
-            sage: from sage.combinat.species.stream import Stream
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: L._new_initial(0, Stream([1,2,3,0])).coefficients(5)
-            [1, 2, 3, 0, 0]
-        """
-        return self._element_class(self, stream=stream, order=order, aorder=order,
-                                   aorder_changed=False, is_initialized=True)
-
-
-    def _sum_gen(self, series_list):
-        """
-        Returns a generator for the coefficients of the sum the the lazy
-        power series in series_list.
-
-        INPUT:
-
-
-        -  ``series_list`` - a list of lazy power series
-
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: series_list = [ L([1]), L([0,1]), L([0,0,1]) ]
-            sage: g = L._sum_gen(series_list)
-            sage: [g.next() for i in range(5)]
-            [1, 2, 3, 3, 3]
-        """
-        last_index = len(series_list) - 1
-        assert last_index >= 0
-        n = 0
-        while True:
-            r = sum( [f.coefficient(n) for f in series_list] )
-            yield r
-            n += 1
 
     def sum(self, a):
         """
@@ -328,33 +367,18 @@ class LazyPowerSeriesRing(Algebra):
             sage: L.sum(l).coefficients(10)
             [0, 3, -3, 6, -6, 9, -9, 12, -12, 15]
         """
-        return self( self._sum_gen(a) )
-
-    #Potentially infinite sum
-    def _sum_generator_gen(self, g):
-        """
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L([1])
-            sage: def f():
-            ...       while True:
-            ...           yield s
-            sage: g = L._sum_generator_gen(f())
-            sage: [g.next() for i in range(10)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        """
-        s = Stream(g)
-        n = 0
-        while True:
-            r = s[n].coefficient(n)
-            for i in range(len(s)-1):
-                r += s[i].coefficient(n)
-            yield r
-            n += 1
+        return self._new(ListSumStream, [x._stream for x in a])
 
     def sum_generator(self, g):
         """
+        Return a lazy power series whose $n^{th}$ coefficients is
+        the sum of $n^{th}$ coefficients for the first $n$ series in
+        ``g``.
+
+        INPUT:
+
+        - ``g`` - an iterable of lazy power series
+        
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
@@ -373,38 +397,27 @@ class LazyPowerSeriesRing(Algebra):
             sage: t.coefficients(9)
             [1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        return self(self._sum_generator_gen(g))
+        return self._new(SumGeneratorStream, g)
 
     #Potentially infinite product
-    def _product_generator_gen(self, g):
-        """
-        EXAMPLES::
-
-            sage: from itertools import imap
-            sage: from sage.combinat.species.stream import _integers_from
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: g = imap(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
-            sage: g2 = L._product_generator_gen(g)
-            sage: [g2.next() for i in range(10)]
-            [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
-        """
-        z = g.next()
-        yield z.coefficient(0)
-        yield z.coefficient(1)
-
-        n = 2
-
-        for x in g:
-            z = z * x
-            yield z.coefficient(n)
-            n += 1
-
-        while True:
-            yield z.coefficient(n)
-            n += 1
-
     def product_generator(self, g):
-        """
+        r"""
+        Return a lazy power series which is the product of the
+        (potentially infinite) series in the iterable ``g``.  In order
+        to do this, we place restrictions on the form of the series
+        $g_n$.  In particular we require that
+
+        .. math::
+
+           g_n = 1 + \sum_{i=n}^{\infty} a_{n,i} x^i.
+
+        Then, the $n^{th}$ coefficient can be obtained from the first
+        $n$ series.
+
+        INPUT:
+
+        - ``g`` - an iterable of lazy power series
+        
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
@@ -464,43 +477,166 @@ class LazyPowerSeriesRing(Algebra):
             sage: rhs.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        return self(self._product_generator_gen(g))
-
-
+        return self._new(ProductGeneratorStream, g)
 
 class LazyPowerSeries(AlgebraElement):
-    def __init__(self, A, stream=None, order=None, aorder=None, aorder_changed=True, is_initialized=False, name=None):
+    def __init__(self, A, stream=None):
         """
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L()
-            sage: loads(dumps(f))
-            Uninitialized lazy power series
+            sage: f = L(2)
+            sage: TestSuite(f).run()
+            sage: f = L(); f
+            O(1)
         """
-        AlgebraElement.__init__(self, A)
+        super(LazyPowerSeries, self).__init__(A)
         self._stream = stream
-        self.order = unk if order is None else order
-        self.aorder = unk if aorder is None else aorder
-        if self.aorder == inf:
-            self.order = inf
-        self.aorder_changed = aorder_changed
-        self.is_initialized = is_initialized
         self._zero = A.base_ring().zero_element()
-        self._name = name
 
-    def compute_aorder(*args, **kwargs):
+    def __nonzero__(self):
         """
-        The default compute_aorder does nothing.
+        Return ``True`` if this series is nonzero; otherwise, it
+        returns ``False``.
 
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L(1)
-            sage: a.compute_aorder() is None
+            sage: bool(L(2))
             True
+            sage: bool(L(0))
+            False
         """
-        return None
+        return self != self.parent().zero_element()
+
+    def __ne__(self, other):
+        """
+        Return ``True`` if ``self != other``.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: L(2) != 2.3
+            True
+            sage: L(3) != L(3)
+            False
+            sage: L([1,2,3]) != L([2,3,4])
+            True
+            sage: L([1,2,3]) != L([1,2,3])
+            False
+        """
+        return not (self == other)
+
+    def __eq__(self, other):
+        """
+        Return ``True`` if ``self == other``.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: x^2 == L([0,0,1,0])
+            True
+            sage: L(3) == 2.3
+            False
+        """
+        if type(self) != type(other):
+            return False
+        if not (self._stream.is_constant() and other._stream.is_constant()):
+            return False
+        for i in range(max(self._stream.get_constant_position(),
+                           other._stream.get_constant_position())):
+            if self[i] != other[i]:
+                return False
+        else:
+            return True
+        
+    @property
+    def aorder(self):
+        """
+        Return the (currently computed) approximate order for this
+        series.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.aorder
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.aorder
+            0
+            sage: g.get_aorder()
+            1
+            sage: g.aorder
+            1
+        """
+        return self._stream.aorder
+
+    def get_aorder(self):
+        """
+        Return the approximate order for this series after refining
+        it (without computing additional coefficients).
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.aorder
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.get_aorder()
+            1
+        """
+        return self._stream.get_aorder()
+
+    @property
+    def order(self):
+        """
+        Return the (currently computed) approximate order for this
+        series.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,0,3,0]))
+            sage: g.order
+            Unknown series order
+            sage: g[1]
+            0
+            sage: g.order
+            Unknown series order
+            sage: g.get_order()
+            Unknown series order
+            sage: g[2]
+            3
+            sage: g.order
+            Unknown series order
+            sage: g.get_order()
+            2
+            sage: g.order
+            2
+        """
+        return self._stream.order
+
+    def get_order(self):
+        """
+        Return the order for this series after refining
+        it (without computing additional coefficients).
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.order
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.get_order()
+            1
+        """
+        return self._stream.get_order()
 
     def _get_repr_info(self, x):
         """
@@ -516,24 +652,24 @@ class LazyPowerSeries(AlgebraElement):
         m = ['1', x]
         m += [x+"^"+str(i) for i in range(2, n)]
         c = [ self._stream[i] for i in range(n) ]
-        return [ (m,c) for m,c in zip(m,c) if c != 0]
+        return [(_m, _c) for _m, _c in zip(m, c) if c != 0]
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L(); s._name = 's'; s
+            sage: s = L(); s.rename('s'); s
             s
 
         ::
 
             sage: L()
-            Uninitialized lazy power series
+            O(1)
 
         ::
 
-            sage: a = L([1,2,3])
+            sage: a = L(iter([1,2,3]))
             sage: a
             O(1)
             sage: a.compute_coefficients(2)
@@ -550,145 +686,18 @@ class LazyPowerSeries(AlgebraElement):
             sage: a
             1 + 2*x + 3*x^2
         """
-        if self._name is not None:
-            return self._name
-
-        if self.is_initialized:
-            n = len(self._stream)
-            x = self.parent()._name
-            baserepr = repr_lincomb(self._get_repr_info(x))
-            if self._stream.is_constant():
-                if self._stream[n-1] == 0:
-                    l = baserepr
-                else:
-                    l = baserepr + " + " + repr_lincomb([(x+"^"+str(i), self._stream[n-1]) for i in range(n, n+3)]) + " + ..."
+        n = len(self._stream)
+        x = self.parent()._name
+        baserepr = repr_lincomb(self._get_repr_info(x))
+        if (self._stream.is_constant() and
+            (n - 1) >= self._stream.get_constant_position()):
+            if self._stream[n-1] == 0:
+                l = baserepr
             else:
-                l = baserepr + " + O(x^%s)"%n if n > 0 else "O(1)"
+                l = baserepr + " + " + repr_lincomb([(x+"^"+str(i), self._stream[n-1]) for i in range(n, n+3)]) + " + ..."
         else:
-            l = 'Uninitialized lazy power series'
+            l = baserepr + " + O(x^{})".format(n) if n > 0 else "O(1)"
         return l
-
-
-    def refine_aorder(self):
-        """
-        Refines the approximate order of self as much as possible without
-        computing any coefficients.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L([0,0,0,0,1])
-            sage: a.aorder
-            0
-            sage: a.coefficient(2)
-            0
-            sage: a.aorder
-            0
-            sage: a.refine_aorder()
-            sage: a.aorder
-            3
-
-        ::
-
-            sage: a = L([0,0])
-            sage: a.aorder
-            0
-            sage: a.coefficient(5)
-            0
-            sage: a.refine_aorder()
-            sage: a.aorder
-            Infinite series order
-
-        ::
-
-            sage: a = L([0,0,1,0,0,0])
-            sage: a[4]
-            0
-            sage: a.refine_aorder()
-            sage: a.aorder
-            2
-        """
-        #If we already know the order, then we don't have
-        #to worry about the approximate order
-        if self.order != unk:
-            return
-
-        #aorder can never be infinity since order would have to
-        #be infinity as well
-        assert self.aorder != inf
-
-        if self.aorder == unk or not self.is_initialized:
-            self.compute_aorder()
-        else:
-            #Try to improve the approximate order
-            ao = self.aorder
-            c = self._stream
-            n = c.number_computed()
-
-
-            if ao == 0 and n > 0:
-                while ao < n:
-                    if self._stream[ao] == 0:
-                        self.aorder += 1
-                        ao += 1
-                    else:
-                        break
-
-            #Try to recognize the zero series
-            if ao == n:
-                #For non-constant series, we cannot do anything
-                if not c.is_constant():
-                    return
-                if c[n-1] == 0:
-                    self.aorder = inf
-                    self.order  = inf
-                    return
-
-            if ao < n:
-                self.order = ao
-
-
-        if hasattr(self, '_reference') and self._reference is not None:
-            self._reference._copy(self)
-
-    def initialize_coefficient_stream(self, compute_coefficients):
-        """
-        Initializes the coefficient stream.
-
-        INPUT: compute_coefficients
-
-        TESTS::
-
-            sage: from sage.combinat.species.series_order import inf, unk
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L()
-            sage: compute_coefficients = lambda ao: iter(ZZ)
-            sage: f.order = inf
-            sage: f.aorder = inf
-            sage: f.initialize_coefficient_stream(compute_coefficients)
-            sage: f.coefficients(5)
-            [0, 0, 0, 0, 0]
-
-        ::
-
-            sage: f = L()
-            sage: compute_coefficients = lambda ao: iter(ZZ)
-            sage: f.order = 1
-            sage: f.aorder = 1
-            sage: f.initialize_coefficient_stream(compute_coefficients)
-            sage: f.coefficients(5)
-            [0, 1, -1, 2, -2]
-        """
-        ao = self.aorder
-        assert ao != unk
-
-        if ao == inf:
-            self.order = inf
-            self._stream = Stream(0)
-        else:
-            self._stream = Stream(compute_coefficients(ao))
-
-        self.is_initialized = True
 
     def compute_coefficients(self, i):
         """
@@ -706,7 +715,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def coefficients(self, n):
         """
-        Returns the first n coefficients of self.
+        Return the first n coefficients of self.
 
         EXAMPLES::
 
@@ -719,7 +728,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def is_zero(self):
         """
-        Returns True if and only if self is zero.
+        Return True if and only if self is zero.
 
         EXAMPLES::
 
@@ -736,7 +745,7 @@ class LazyPowerSeries(AlgebraElement):
 
         ::
 
-            sage: s = L([0])
+            sage: s = L(iter([0]))
             sage: s.is_zero()
             False
             sage: s.coefficient(0)
@@ -746,52 +755,8 @@ class LazyPowerSeries(AlgebraElement):
             sage: s.is_zero()
             True
         """
-        self.refine_aorder()
-        return self.order == inf
-
-    def set_approximate_order(self, new_order):
-        """
-        Sets the approximate order of self and returns True if the
-        approximate order has changed otherwise it will return False.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L([0,0,0,3,2,1,0])
-            sage: f.get_aorder()
-            0
-            sage: f.set_approximate_order(3)
-            True
-            sage: f.set_approximate_order(3)
-            False
-        """
-        self.aorder_changed = ( self.aorder != new_order )
-        self.aorder = new_order
-        return self.aorder_changed
-
-    def _copy(self, x):
-        """
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L.term(2, 2)
-            sage: g = L()
-            sage: g._copy(f)
-            sage: g.order
-            2
-            sage: g.aorder
-            2
-            sage: g.is_initialized
-            True
-            sage: g.coefficients(4)
-            [0, 0, 2, 0]
-        """
-        self.order  = x.order
-        self.aorder = x.aorder
-        self.aorder_changed = x.aorder_changed
-        self.compute_aorder = x.compute_aorder
-        self.is_initialized = x.is_initialized
-        self._stream = x._stream
+        self._stream.refine_aorder()
+        return self._stream.order == inf
 
     def define(self, x):
         """
@@ -803,10 +768,9 @@ class LazyPowerSeries(AlgebraElement):
             sage: one = L(1)
             sage: monom = L.gen()
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(one+monom*s)
             sage: s.aorder
-            0
+            Unknown series order
             sage: s.order
             Unknown series order
             sage: [s.coefficient(i) for i in range(6)]
@@ -817,10 +781,9 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(one+monom*s*s)
             sage: s.aorder
-            0
+            Unknown series order
             sage: s.order
             Unknown series order
             sage: [s.coefficient(i) for i in range(6)]
@@ -831,10 +794,9 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(monom + s*s)
             sage: s.aorder
-            1
+            Unknown series order
             sage: s.order
             Unknown series order
             sage: [s.coefficient(i) for i in range(7)]
@@ -845,9 +807,7 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: t = L()
-            sage: t._name = 't'
             sage: s.define(one+monom*t*t*t)
             sage: t.define(one+monom*s*s)
             sage: [s.coefficient(i) for i in range(9)]
@@ -860,9 +820,7 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: t = L()
-            sage: t._name = 't'
             sage: s.define(monom + t*t*t)
             sage: t.define(monom + s*s)
             sage: [s.coefficient(i) for i in range(9)]
@@ -875,17 +833,34 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(one+monom*s*s*s)
             sage: [s.coefficient(i) for i in range(10)]
             [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
         """
-        self._copy(x)
-        x._reference = self
+        self._stream.define(x._stream)
+
+    def _new(self, cls, *args, **kwds):
+        """
+        Return a new lazy power series with class ``stream_cls``.
+        This function automatically sets the ``base_ring`` parameter.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import TermStream
+            sage: L1 = LazyPowerSeriesRing(QQ)
+            sage: x = L1.gen()
+            sage: g = x._new(TermStream, n=2, value=3)
+            sage: g.coefficients(5)
+            [0, 0, 3, 0, 0]
+
+        """
+        parent = self.parent()
+        kwds['base_ring'] = parent.base_ring()
+        return self.__class__(parent, cls(*args, **kwds))
 
     def coefficient(self, n):
         """
-        Returns the coefficient of xn in self.
+        Return the coefficient of xn in self.
 
         EXAMPLES::
 
@@ -894,46 +869,11 @@ class LazyPowerSeries(AlgebraElement):
             sage: [f.coefficient(i) for i in range(5)]
             [0, 1, -1, 2, -2]
         """
-        # The following line must not be written n < self.get_aorder()
-        # because comparison of Integer and OnfinityOrder is not implemented.
-        if self.get_aorder() > n:
-            return self._zero
-
-        assert self.is_initialized
-
         return self._stream[n]
-
-    def get_aorder(self):
-        """
-        Returns the approximate order of self.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L.gen()
-            sage: a.get_aorder()
-            1
-        """
-        self.refine_aorder()
-        return self.aorder
-
-    def get_order(self):
-        """
-        Returns the order of self.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L.gen()
-            sage: a.get_order()
-            1
-        """
-        self.refine_aorder()
-        return self.order
 
     def get_stream(self):
         """
-        Returns self's underlying Stream object.
+        Return self's underlying Stream object.
 
         EXAMPLES::
 
@@ -943,47 +883,8 @@ class LazyPowerSeries(AlgebraElement):
             sage: [s[i] for i in range(5)]
             [0, 1, 0, 0, 0]
         """
-        self.refine_aorder()
+        self._stream.refine_aorder()
         return self._stream
-
-    def _approximate_order(self, compute_coefficients, new_order, *series):
-        if self.is_initialized:
-            return
-
-        ochanged = self.aorder_changed
-
-        ao = new_order(*[s.aorder for s in series])
-        ao = inf if ao == unk else ao
-
-        tchanged = self.set_approximate_order(ao)
-
-        if len(series) == 0:
-            must_initialize_coefficient_stream = True
-            tchanged = ochanged = False
-        elif len(series) == 1 or len(series) == 2:
-            must_initialize_coefficient_stream = ( self.aorder == unk or self.is_initialized is False)
-        else:
-            raise ValueError
-
-        if ochanged or tchanged:
-            for s in series:
-                s.compute_aorder()
-            ao = new_order(*[s.aorder for s in series])
-            tchanged = self.set_approximate_order(ao)
-
-        if must_initialize_coefficient_stream:
-            self.initialize_coefficient_stream(compute_coefficients)
-
-        if hasattr(self, '_reference') and self._reference is not None:
-            self._reference._copy(self)
-
-    def _new(self, compute_coefficients, order_op, *series, **kwds):
-        parent = kwds['parent'] if 'parent' in kwds else self.parent()
-        new_fps = self.__class__(parent, stream=None, order=unk, aorder=self.aorder,
-                                 aorder_changed=True, is_initialized=False)
-
-        new_fps.compute_aorder = lambda: new_fps._approximate_order(compute_coefficients, order_op, *series)
-        return new_fps
 
     def _add_(self, y):
         """
@@ -1027,36 +928,9 @@ class LazyPowerSeries(AlgebraElement):
             sage: [ sum2.coefficient(i) for i in range(5, 11) ]
             [0, 0, 0, 0, 0, 0]
         """
-        return self._new(partial(self._plus_gen, y), min, self, y)
+        return self._new(SumStream, self._stream, y._stream)
 
     add = _add_
-
-
-
-    def _plus_gen(self, y, ao):
-        """
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: gs1 = L([1])
-            sage: g = gs1._plus_gen(gs1, 0)
-            sage: [g.next() for i in range(5)]
-            [2, 2, 2, 2, 2]
-
-        ::
-
-            sage: g = gs1._plus_gen(gs1, 2)
-            sage: [g.next() for i in range(5)]
-            [0, 0, 2, 2, 2]
-        """
-        base_ring = self.parent().base_ring()
-        zero = base_ring(0)
-        for n in range(ao):
-            yield zero
-        n = ao
-        while True:
-            yield self._stream[n] + y._stream[n]
-            n += 1
 
     def _mul_(self, y):
         """
@@ -1101,48 +975,9 @@ class LazyPowerSeries(AlgebraElement):
             sage: [prod2.coefficient(i) for i in range(11)]
             [-1, -2, -5, -19, 0, 0, 16, 176, 0, 0, 0]
         """
-
-        return self._new(partial(self._times_gen, y), lambda a,b:a+b, self, y)
+        return self._new(ProductStream, self._stream, y._stream)
 
     times = _mul_
-
-    def _times_gen(self, y, ao):
-        """
-        Returns an iterator for the coefficients of self \* y.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L([1,1,0])
-            sage: g = f._times_gen(f,0)
-            sage: [g.next() for i in range(5)]
-            [1, 2, 1, 0, 0]
-        """
-        base_ring = self.parent().base_ring()
-        zero = base_ring(0)
-
-        for n in range(ao):
-            yield zero
-
-        n = ao
-        while True:
-            low = self.aorder
-            high = n - y.aorder
-            nth_coefficient = zero
-
-            #Handle the zero series
-            if low == inf or high == inf:
-                yield zero
-                n += 1
-                continue
-
-            for k in range(low, high+1):
-                cx = self._stream[k]
-                if cx == 0:
-                    continue
-                nth_coefficient += cx * y._stream[n-k]
-            yield nth_coefficient
-            n += 1
 
     def __pow__(self, n):
         """
@@ -1161,11 +996,17 @@ class LazyPowerSeries(AlgebraElement):
         """
         if not isinstance(n, (int, Integer)) or n < 0:
             raise ValueError("n must be a nonnegative integer")
-        return prod([self]*n, self.parent().identity_element())
 
+        if n == 0:
+            return self.parent().term(1, 0)
+
+        return prod([self] * n, self.parent().one())
+
+    CompositionStream = CompositionStream
+            
     def __call__(self, y):
         """
-        Returns the composition of this power series and the power series
+        Return the composition of this power series and the power series
         y.
 
         EXAMPLES::
@@ -1185,7 +1026,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: t = L([0,0,1,0])
             sage: u = s(t)
             sage: u.aorder
-            0
+            Unknown series order
             sage: u.order
             Unknown series order
             sage: u.coefficients(10)
@@ -1205,58 +1046,31 @@ class LazyPowerSeries(AlgebraElement):
             sage: u.coefficients(14)
             [1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
         """
-        return self._new(partial(self._compose_gen, y), lambda a,b:a*b, self, y)
+        return self._new(self.CompositionStream, self._stream, y._stream)
 
     composition = __call__
 
-    def _compose_gen(self, y, ao):
-        """
-        Returns a iterator for the coefficients of the composition of this
-        power series with the power series y.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L([1])
-            sage: t = L([0,1])
-            sage: g = s._compose_gen(t, 0)
-            sage: [g.next() for i in range(10)]
-            [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
-        """
-        assert y.coefficient(0) == 0
-        yield self._stream[0]
-        z = self.tail().compose(y)*y
-        c = z.coefficient(1)
-
-        n = 1
-        while True:
-            yield z._stream[n]
-            n += 1
-
-
     def tail(self):
         """
-        Returns the power series whose coefficients obtained by subtracting
+        Return the power series whose coefficients obtained by subtracting
         the constant term from this series and then dividing by x.
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L(range(20))
             sage: g = f.tail()
             sage: g.coefficients(10)
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         """
-        return self._new(lambda a0: self.iterator(1), bounded_decrement, self)
+        return self._new(TailStream, self._stream)
 
     def iterator(self, n=0, initial=None):
         """
-        Returns an iterator for the coefficients of self starting at n.
+        Return an iterator for the coefficients of self starting at n.
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L(range(10))
             sage: g = f.iterator(2)
@@ -1277,7 +1091,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _power_gen(self):
         """
-        Returns a generator for all the powers self^k starting with k = 1.
+        Return a generator for all the powers self^k starting with k = 1.
 
         EXAMPLES::
 
@@ -1300,7 +1114,6 @@ class LazyPowerSeries(AlgebraElement):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: one = L(1)
             sage: monom = L.gen()
@@ -1312,7 +1125,6 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(one+monom*s*s)
             sage: u = s.derivative()
             sage: u.coefficients(5) #[1*1, 2*2, 3*5, 4*14, 5*42]
@@ -1331,8 +1143,8 @@ class LazyPowerSeries(AlgebraElement):
 
         ::
 
-            sage: s = L(); s._name='s'
-            sage: t = L(); t._name='t'
+            sage: s = L();
+            sage: t = L();
             sage: s.define(monom+t*t*t)
             sage: t.define(monom+s*s)
             sage: u = (s*t).derivative()
@@ -1346,32 +1158,14 @@ class LazyPowerSeries(AlgebraElement):
 
         ::
 
-            sage: f = L._new_initial(2, Stream([0,0,4,5,6,0]))
+            sage: f = L([0,0,4,5,6,0])
             sage: d = f.derivative()
             sage: d.get_aorder()
             1
             sage: d.coefficients(5)
             [0, 8, 15, 24, 0]
         """
-        return self._new(self._diff_gen, bounded_decrement, self)
-
-    def _diff_gen(self, ao):
-        """
-        Returns an iterator for the coefficients of the derivative of
-        self.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L([1])
-            sage: g = f._diff_gen(0)
-            sage: [g.next() for i in range(10)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        """
-        n = 1
-        while True:
-            yield n*self._stream[n]
-            n += 1
+        return self._new(DerivativeStream, self._stream)
 
     ###########
     #Integrals#
@@ -1430,8 +1224,7 @@ class LazyPowerSeries(AlgebraElement):
 
         TESTS::
 
-            sage: from sage.combinat.species.stream import Stream
-            sage: f = L._new_initial(2, Stream([0,0,4,5,6,0]))
+            sage: f = L([0,0,4,5,6,0])
             sage: i = f.derivative().integral()
             sage: i.get_aorder()
             2
@@ -1443,75 +1236,15 @@ class LazyPowerSeries(AlgebraElement):
             sage: i.coefficients(5)
             [1, 0, 4, 5, 6]
         """
-        if integration_constant == 0:
-            return self._new(self._integral_zero_gen, increment, self)
-        else:
-            L = self.parent()
-            return L._new_initial(0, Stream(self._integral_nonzero_gen(integration_constant)))
-
-    def _integral_zero_gen(self, ao):
-        """
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L.gen()
-            sage: g = s._integral_zero_gen(1)
-            sage: [g.next() for i in range(5)]
-            [0, 0, 1/2, 0, 0]
-        """
-        for n in range(ao):
-            yield self._zero
-        n = ao
-        while True:
-            #Check to see if the stream is finite
-            if self.is_finite(n-1):
-                yield self._stream[n-1]
-                raise StopIteration
-            else:
-                yield (Integer(1)/Integer(n))*self._stream[n-1]
-                n += 1
-
-
-    def _integral_nonzero_gen(self, integration_constant):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.species.stream import Stream
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L._new_initial(2, Stream([0,0,4,5,6,0])).derivative()
-            sage: g = f._integral_nonzero_gen(1)
-            sage: [g.next() for i in range(5)]
-            [1, 0, 4, 5, 6]
-        """
-        yield integration_constant
-        ao = self.aorder
-        assert ao != unk
-
-        if ao == inf:
-            yield self._zero
-            raise StopIteration
-        else:
-            for _ in range(ao-1):
-                yield self._zero
-
-            n = max(1,ao)
-            while True:
-                c = self.coefficient(n-1)
-
-                #Check to see if the stream is finite
-                if self.is_finite(n-1):
-                    yield self.coefficient(n-1)
-                    raise StopIteration
-                else:
-                    yield (Integer(1)/Integer(n))*self.coefficient(n-1)
-                    n += 1
+        return self._new(IntegralStream, stream=self._stream,
+                         integration_constant=integration_constant)
 
     def is_finite(self, n=None):
         """
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L([0,0,1,0,0]); a
+            sage: a = L(iter([0,0,1,0,0])); a
             O(1)
             sage: a.is_finite()
             False
@@ -1528,16 +1261,9 @@ class LazyPowerSeries(AlgebraElement):
         """
         if self.order is inf:
             return True
-
-        s = self._stream
-
-        if n is None:
-            n = len(s)
-
-        if s.is_constant() and all(s[i] == 0 for i in range(n-1, max(n,len(s)))):
-            return True
-
-        return False
+        
+        return (self._stream.is_constant() and
+                self._stream.get_constant() == 0)
 
     def exponential(self):
         """
@@ -1571,7 +1297,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def __getitem__(self, i):
         """
-        Returns the ith coefficient of self.
+        Return the ith coefficient of self.
 
         EXAMPLES::
 
@@ -1588,8 +1314,10 @@ class LazyPowerSeries(AlgebraElement):
     #########################
     def restricted(self, min=None, max=None):
         """
-        Returns the power series restricted to the coefficients starting at
-        min and going up to, but not including max. If min is not
+        Return the power series restricted to the coefficients starting at
+        min and going up to, but not including max.
+
+        If min is not
         specified, then it is assumed to be zero. If max is not specified,
         then it is assumed to be infinity.
 
@@ -1606,13 +1334,11 @@ class LazyPowerSeries(AlgebraElement):
             sage: a.restricted(min=2, max=6).coefficients(10)
             [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
         """
-        import __builtin__
         if ((min is None and max is None) or
-            (max is None and self.get_aorder() >= min)):
+            (max is None and self._stream.get_aorder() >= min)):
             return self
 
-        return self._new(partial(self._restricted_gen, min, max),
-                         lambda ao: __builtin__.max(ao, min), self)
+        return self._new(RestrictedStream, self._stream, min=min, max=max)
 
     def _restricted_gen(self, mn, mx, ao):
         """
@@ -1689,3 +1415,4 @@ def uninitialized():
         RuntimeError: we should never be here
     """
     raise RuntimeError("we should never be here")
+
