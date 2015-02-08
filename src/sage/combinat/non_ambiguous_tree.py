@@ -810,10 +810,10 @@ class NonAmbiguousTree( ClonableList ):
         sage: nat.get_p()
         1
 
-        There is a conjecture for the p stastistics : the p statistics is the 
+        There is a conjecture for the p stastistics : the p statistic is the 
         p of the following formula :
             NAT(w,h) = \sum_{p>=1} (p-1)! p! S_2(w,p) S_2(h, p)
-        where w and h are the dimension of the non-ambiguous tree and 
+        where w and h are the dimensions of the non-ambiguous tree and 
         S_2(n,k) is the stirling number of type 2.
 
         sage: def rectangular_nat( h, w ):
