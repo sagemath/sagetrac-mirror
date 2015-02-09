@@ -70,7 +70,7 @@ def is_selffolded(t):
     else:
         return False
 
-def remove_duplicate_triangles(data):
+def remove_duplicate_triangles(data,boundary_edges=None):
     """
     In case user accidentally inputs a duplicate triangle, we remove the duplicate.
     For example, if user inputs triangles 1 => 2 => 3 => 1, it will turn into 1 ->2 -> 3 ->1
@@ -88,8 +88,14 @@ def remove_duplicate_triangles(data):
 
     list_triangles = []
 
+    if len(data) == 1:
+        raise ValueError('A triangle with no puncture is not allowed. The following surfaces are not allow: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.')
+
     if len(data) == 2 and are_triangles_equal(data[0],data[1]):
-        return data
+        if boundary_edges:
+            raise ValueError('Two triangles sharing the same edges form a triangulation of a once-punctured torus, which has no boundary')
+        else:
+            return data
 
     for triangle in data:
         is_duplicate_triangle = False
