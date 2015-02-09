@@ -288,6 +288,17 @@ class NonAmbiguousTree( ClonableList ):
 
         sage: nat = NonAmbiguousTree(
         ....:     [ 
+        ....:       [1,0,1,1,0],
+        ....:       [0,0,1,0,0],
+        ....:       [1,1,0,0,1],
+        ....:       [0,0,1,0,0]
+        ....:     ]
+        ....: )
+        sage: nat
+        0[2[., 1[., 4[., .]]], 2[1[3[., .], .], 3[., .]]]
+
+        sage: nat = NonAmbiguousTree(
+        ....:     [ 
         ....:       [1,1,0,1,0],
         ....:       [1,0,1,0,1],
         ....:       [0,1,0,0,0]
@@ -347,6 +358,21 @@ class NonAmbiguousTree( ClonableList ):
         return _posets_of_nodes( self.get_tree() )
 
     def get_tree( self ):
+        r'''
+        Return the labeled tree associated with the non-ambiguous tree.
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ 
+            ....:       [1,1,0,1,0],
+            ....:       [1,0,1,0,1],
+            ....:       [0,1,0,0,0]
+            ....:     ]
+            ....: )
+            sage: nat.get_tree()
+            0[1[., 2[., 4[., .]]], 1[2[., .], 3[., .]]]
+        '''
         return self[0]
 
     def get_permutation_of_left_and_right_sons( self ):
@@ -578,6 +604,34 @@ class NonAmbiguousTree( ClonableList ):
 
     @combinatorial_map(name = "To binary tree")
     def to_binary_tree( self ):
+        r'''
+        Return the binary tree of the non ambiguous tree
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ 
+            ....:       [1,0,1,1,0],
+            ....:       [0,0,1,0,0],
+            ....:       [1,1,0,0,1],
+            ....:       [0,0,1,0,0]
+            ....:     ]
+            ....: )
+            sage: nat.to_binary_tree()
+            [[., [., [., .]]], [[[., .], .], [., .]]]
+
+            sage: nat = NonAmbiguousTree( [ [1] ] )
+            sage: nat.to_binary_tree()
+            [., .]
+
+            sage: nat = NonAmbiguousTree( [ [1, 1] ] )
+            sage: nat.to_binary_tree()
+            [., [., .]]
+
+            sage: nat = NonAmbiguousTree( [ [1], [1] ] )
+            sage: nat.to_binary_tree()
+            [[., .], .]
+        '''
         return BinaryTree( self.get_tree() )
 
     def _recursive_check(
@@ -695,9 +749,39 @@ class NonAmbiguousTree( ClonableList ):
         self._options = None
 
     def left_node_number( self ):
+        r'''
+        Return the number of left sons in the non-ambiguous tree.
+
+        The number of left sons is equal to the height - 1.
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
+            ....: )
+            sage: nat.left_node_number()
+            2
+            sage: nat.left_node_number() == nat.height() - 1
+            True
+        '''
         return self.get_tree().left_node_number()
 
     def right_node_number( self ):
+        r'''
+        Return the number of right sons in the non-ambiguous tree.
+
+        The number of right sons is equal to the width - 1.
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
+            ....: )
+            sage: nat.right_node_number()
+            4
+            sage: nat.right_node_number() == nat.width() - 1
+            True
+        '''
         return self.get_tree().right_node_number()
 
     def width( self ):
@@ -1145,7 +1229,19 @@ class NonAmbiguousTree( ClonableList ):
 
     def get_options( self ):
         r'''
-        Return all the opitons of the object.
+        Return all the options of the object.
+
+        Examples::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
+            ....: )
+            sage: o = nat.get_options()
+            sage: o
+            options for Non-ambiguous Trees
+            sage: o()
+            Current options for Non-ambiguous Trees
+            ...
         '''
         if self._options is None:
             return self.parent().get_options()
