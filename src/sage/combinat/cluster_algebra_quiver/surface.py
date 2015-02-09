@@ -273,150 +273,7 @@ def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edge
             M[v1,v2] += a
     return M
 
-def _edges_from_ideal_triangles(list_triangles):
-    """
-    Returns a list of directed edges from a list of triangles. The order of the list does not matter.
-
-    For each triangle t in list_triangles:
-    if t=[a,b,c] has distinct edges, add cycles a->b->c->a
-    if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b,
-    add the same directed edge between r and b.
-
-    """
-    digraph_edges = []
-    selffolded_triangles = []
-    nooses = []
-
-    for t in list_triangles:
-        selffolded = is_selffolded (t)
-        if t[0] != t[1] and t[1] != t[2] and t[0] != t[2]:
-            # if t has three distinct edges, add 3 edges for those
-            digraph_edges.extend([[t[0],t[1]], [t[1],t[2]], [t[2],t[0]]])
-        elif selffolded != False:
-            radius = selffolded[0]
-            ell = selffolded[2]
-            selffolded_triangles.append([radius,radius,ell])
-            nooses.append(ell)
-        else:
-            raise ValueError ('A triangle has to have 3 distinct edges or 2 distinct edges')
-            break
-
-    #if DiGraph(digraph_edges).has_loops():
-    #    raise ValueError ('Input error. Input triangulation: ', list_triangles, ' would create a digraph with loops. The subdigraph has edges ', digraph_edges)
-    #digraph_edges = remove_two_cycles(digraph_edges)
-
-    selffolded_edges = []
-    for t in selffolded_triangles:
-        radius = t[0]
-        ell = t[1]
-        flagFoundSharedNooseA = False
-        flagFoundSharedNooseB = False
-        for e in digraph_edges:
-            if e[0]==ell:
-                selffolded_edges.append([radius, e[1]])
-                if e[1] in nooses:
-                    radius_e = _get_radius(e[1],selffolded_triangles)
-                    selffolded_edges.append([radius, radius_e])
-                flagFoundSharedNooseA = True
-            elif e[1]==ell:
-                selffolded_edges.append([e[0],radius])
-                if e[0] in nooses:
-                    radius_e = _get_radius(e[0],selffolded_triangles)
-                    selffolded_edges.append([radius_e, radius])
-                flagFoundSharedNooseB = True
-            if flagFoundSharedNooseA and flagFoundSharedNooseB: # change from and to or
-                break
-
-    return digraph_edges + selffolded_edges
-
-def remove_two_cycles(edges):
-    """
-    Remove two-cycles from a list of edges
-
-    EXAMPLES::
-
-        sage: from sage.combinat.cluster_algebra_quiver.surface import remove_two_cycles
-        sage: remove_two_cycles([[1,2],[2,3],[3,1],[1,4],[4,3],[3,2],[4,3],[3,2]])
-        [[1, 2], [1, 4], [3, 1], [3, 2], [4, 3], [4, 3]]
-        sage: remove_two_cycles([[1,2],[2,3],[2,1],[3,2]])
-        []
-    """
-    edges.sort()
-    for e in edges:
-        if edges.count([e[1],e[0]]) > 0:
-            edges.remove(e)
-            edges.remove( [e[1],e[0]] )
-        elif edges.count( (e[1],e[0]) ) > 0:
-            edges.remove(e)
-            edges.remove( (e[1],e[0]) )
-    return edges
-
-def remove_triple_edges(edges):
-    """
-    This function is not necessary if the code works properly.
-    Return the list of edges containing at most 2 copies of the same edge
-
-    EXAMPLES::
-
-        sage: from sage.combinat.cluster_algebra_quiver.surface import remove_triple_edges
-        sage: remove_triple_edges([[1,2],[2,3],[3,4],[2,3],[3,5],[5,2]])
-        [[1, 2], [2, 3], [2, 3], [3, 4], [3, 5], [5, 2]]
-    """
-    edges.sort()
-    removetripleedge_necessary = False
-
-    for e in edges:
-        while edges.count(e)>2:
-             edges.remove(e)
-             print 'triple edge: ', e
-             removetripleedge_necessary = True
-    if removetripleedge_necessary == True:
-        raise ValueError('There should not be triple edges from a triangulation. Bug in the code')
-    return edges
-
-def _give_weight_to_double_edges(dg):
-    """
-    INPUT: digraph
-    Replace every double edge with a single edge of weight 1
-
-    EXAMPLES::
-
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _give_weight_to_double_edges, _edges_from_ideal_triangles
-        sage: _give_weight_to_double_edges(DiGraph([[1,2],[2,3],[3,4],[2,3],[3,5],[5,2]])).edges()
-        [(1, 2, None), (2, 3, 1), (2, 3, 1), (3, 4, None), (3, 5, None), (5, 2, None)]
-
-        sage: T=[[2,1,0],[3,2,1]] # an annulus with 2 marked points
-        sage: e = _edges_from_ideal_triangles(T)
-        sage: _give_weight_to_double_edges(DiGraph(e)).edges()
-        [(0, 2, None), (1, 0, None), (1, 3, None), (2, 1, 1), (2, 1, 1), (3, 2, None)]
-    """
-    double_edges = dg.multiple_edges()
-    dg.delete_edges(double_edges)
-
-    for e in double_edges:
-        dg.add_edge(e[0],e[1], label=1)
-    return dg
-
-def _edges_from_triangles(data):
-    """
-    This function is called by quiver.py
-    Input is a list of tuples or list of lists [ (a,b,c),(a,d,e) ...] of ideal triangles forming an ideal triangulation.
-    Return list of edges from triangulation after 2-cycles are erased, e.g. 1->2->1 are be removed
-    and returns an error if a triple edge appears (which is impossible unless there is a bug in the code)
-
-    #EXAMPLES::
-
-        #sage: from sage.combinat.cluster_algebra_quiver.surface import _edges_from_triangles
-        #sage: _edges_from_triangles([(4, 5, 1), (4, 3, 2), [3, 7, 2], [2, 1, 6]]) == \
-        #[[1, 4], [1, 6], [2, 1], [2, 4], [3, 7], [4, 3], [4, 5], [5, 1], [6, 2], [7, 2]]
-        #True
-        """
-
-    digraph_edges = _edges_from_ideal_triangles ( data )
-    digraph_edges = remove_triple_edges ( digraph_edges )
-    return digraph_edges
-
-def _get_user_arc_labels (T):
+def _get_user_arc_labels(T):
     """
     Gives a list of labels in a list of 3-tuples
     """
@@ -882,11 +739,6 @@ def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
 ##########################################################################################
 
 
-
-
-
-
-
 #########################################################################################
 ################### BEGIN: FUNCTIONS FOR CONSTRUCTING BAND/SNAKE GRAPH ##################
 #########################################################################################
@@ -1002,8 +854,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 
     MATHEMATICAL ALGORITHM AND NOTATION::
     We use the same notation as in
-    "Positivity for cluster algebras from surfaces"
-    http://arxiv.org/abs/0906.0748 (section 4).
+    "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748` (section 4).
     gamma = the arc which expansion (with respect to T) we compute.
     tau_1, tau_2, ... , tau_d are the arcs of T that are crossed by gamma, in order.
     If gamma is a loop, then tau_1 = tau_d

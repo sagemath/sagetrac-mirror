@@ -1,22 +1,19 @@
 r"""
 ClusterTriangulation
 
-An *cluster triangulation* (see :arXiv:math/`0608367`) is an ideal triangulation, i.e. a maximal collection of distinct non-crossing arcs.
+An *cluster triangulation* (see :arxiv:`math/0608367`) is an ideal triangulation, i.e. a maximal collection of distinct non-crossing arcs.
 An ideal triangulation of a surface with marked points (S,M) is associated to a seed of a cluster algebra arising from (S,M).
 
-.. SEEALSO:: Cluster triangulations are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`
-and :meth:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
+.. SEEALSO::
 
+Cluster triangulations are closely related to :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`
+and :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
 """
 
 from sage.structure.sage_object import SageObject
 
-######################################################################################################
-############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
-######################################################################################################
-
 class ClusterTriangulation(SageObject):
-    r"""
+    """
     An initial *ideal triangulation* associated to a surface
 
     INPUT:
@@ -55,7 +52,7 @@ class ClusterTriangulation(SageObject):
             sage: T = ClusterTriangulation(annulus22, boundary_edges=['bd3','bd2','bd1','bd4'])
             sage: T
             An ideal triangulation associated with cluster algebra of rank 4 with 4 boundary edges
-            sage: ClusterSeed(T).mutation_type() # Figure 6 of arXiv:1108.3382
+            sage: ClusterSeed(T).mutation_type() # Figure 6 of :arxiv:`1108.3382`
             ['A', [2, 2], 1]
             sage: T.triangulation_dictionary()
             [('tau1', x0),
@@ -67,27 +64,29 @@ class ClusterTriangulation(SageObject):
             ('bd3', b6),
             ('bd4', b7)]
 
-            sage: thrice_punctured_square = [(2,2,1), (1,3,11), (3,12,4), (4,5,14), (5,6,10), (6,7,9), (8,10,9), (7,13,8)]
-            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[14,12,13,11]) # Figure 15 of arXiv:0906.0748
-            sage: T
-            An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
-            sage: ClusterSeed(T).mutation_type()
-            'undetermined finite mutation type'
-            sage: T.triangulation_dictionary()
-            [(1, x0*x1),
-            (2, x1),
-            (3, x2),
-            (4, x3),
-            (5, x4),
-            (6, x5),
-            (7, x6),
-            (8, x7),
-            (9, x8),
-            (10, x9),
-            (11, b10),
-            (12, b11),
-            (13, b12),
-            (14, b13)]
+             Figure 15 of :arxiv:`0906.0748`::
+
+                sage: thrice_punctured_square = [(2,2,1), (1,3,11), (3,12,4), (4,5,14), (5,6,10), (6,7,9), (8,10,9), (7,13,8)]
+                sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[14,12,13,11])
+                sage: T
+                An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
+                sage: ClusterSeed(T).mutation_type()
+                'undetermined finite mutation type'
+                sage: T.triangulation_dictionary()
+                [(1, x0*x1),
+                (2, x1),
+                (3, x2),
+                (4, x3),
+                (5, x4),
+                (6, x5),
+                (7, x6),
+                (8, x7),
+                (9, x8),
+                (10, x9),
+                (11, b10),
+                (12, b11),
+                (13, b12),
+                (14, b13)]
 
             sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
             sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
@@ -116,7 +115,7 @@ class ClusterTriangulation(SageObject):
 
     """
     def __init__(self, data, boundary_edges=None):
-        r"""
+        """
         TESTS::
 
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
@@ -194,6 +193,7 @@ class ClusterTriangulation(SageObject):
         Returns the underlying triangulation of ``self``.
 
         EXAMPLES::
+
             sage: Triangles = [(1,4,7),(1,2,5),(2,0,3),(0,6,3),(6,3,0)]
             sage: T = ClusterTriangulation(Triangles)
             sage: T.triangles()
@@ -204,7 +204,7 @@ class ClusterTriangulation(SageObject):
     def b_matrix(self):
         """
         Returns the B-matrix of the coefficient-free cluster.  The conventions
-        for B-matrices are the opposite of arXiv:math/0608367.
+        for B-matrices are the opposite of :arxiv:`math/0608367`.
 
         EXAMPLES::
 
@@ -220,7 +220,7 @@ class ClusterTriangulation(SageObject):
             [ 0 -1  1  0  0]
             sage: twice_punctured_monogon_mu2 = [(4,5,5),(2,3,3),(1,4,2)]
             sage: Tmu2 = ClusterTriangulation(twice_punctured_monogon_mu2) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
-            sage: Bmu2 = Tmu2.b_matrix() #Figure 9 (right) of arXiv:math/0608367
+            sage: Bmu2 = Tmu2.b_matrix() #Figure 9 (right) of :arxiv:`math/0608367`
             sage: Bmu2
             [ 0 -1 -1  1  1]
             [ 1  0  0 -1 -1]
@@ -235,14 +235,14 @@ class ClusterTriangulation(SageObject):
             sage: Qmu2.mutation_type()
             'undetermined finite mutation type'
 
-            sage: twice_punctured_monogon = [(1,1,2), (4,4,3), ('boundary',2,3)] # Figure 10 (bottom) of arXiv:math/0608367
+            sage: twice_punctured_monogon = [(1,1,2), (4,4,3), ('boundary',2,3)] # Figure 10 (bottom) of :arxiv:`math/0608367`
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=['boundary'])
             sage: B = T.b_matrix(); B
             [ 0  0  1  1]
             [ 0  0  1  1]
             [-1 -1  0  0]
             [-1 -1  0  0]
-            sage: twice_punctured_monogon_mu3 = [(1,1,2), (2,4,3), (3,4,'boundary')] # Figure 10 (top) of arXiv:math/0608367
+            sage: twice_punctured_monogon_mu3 = [(1,1,2), (2,4,3), (3,4,'boundary')] # Figure 10 (top) of :arxiv:`math/0608367`
             sage: Tmu3 = ClusterTriangulation(twice_punctured_monogon_mu3, boundary_edges=['boundary'])
             sage: Bmu3 = Tmu3.b_matrix(); Bmu3
             [ 0  0 -1  1]
@@ -274,6 +274,7 @@ class ClusterTriangulation(SageObject):
         Return the labels of boundary edges (not diagonals) of ``self`` given by user.
 
         EXAMPLES::
+
             sage: annulus22 = [('bd1','tau1','tau2'),('tau2','tau3','bd4'),('tau1','tau4','bd2'),('tau3','bd3','tau4')]
             sage: T = ClusterTriangulation(annulus22, boundary_edges=['bd3','bd2','bd1','bd4'])
             sage: T.boundary_edges()
@@ -315,10 +316,12 @@ class ClusterTriangulation(SageObject):
 
         EXAMPLES::
 
-            sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)] #Figure 10 (bottom) of arXiv:math/0608367
-            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
-            sage: T.triangulation_dictionary()
-            [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
+            Figure 10 (bottom) of :arxiv:`math/0608367`::
+
+                sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
+                sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
+                sage: T.triangulation_dictionary()
+                [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
         """
         return self._triangulation_dictionary
 
@@ -333,12 +336,14 @@ class ClusterTriangulation(SageObject):
             sage: CT.triangulation()
             [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
 
-            sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)] #Figure 10 (bottom) of arXiv:math/0608367
-            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
-            sage: T.triangulation()
-            [((5, 'counterclockwise'), (5, 'clockwise'), 4),
-            ((3, 'counterclockwise'), (3, 'clockwise'), 2),
-            (1, 4, 2)]
+            Figure 10 (bottom) of :arxiv:`math/0608367`::
+
+                sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
+                sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
+                sage: T.triangulation()
+                [((5, 'counterclockwise'), (5, 'clockwise'), 4),
+                ((3, 'counterclockwise'), (3, 'clockwise'), 2),
+                (1, 4, 2)]
         """
         return self._triangulation
 
@@ -353,12 +358,14 @@ class ClusterTriangulation(SageObject):
             sage: CT.weighted_triangulation()
             [(x1, x4, x7), (x1, x2, x5), (x2, x0, x3), (x0, x6, x3)]
 
-            sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)] #Figure 10 (bottom) of arXiv:math/0608367
-            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
-            sage: T.weighted_triangulation()
-            [((x3, 'counterclockwise'), (x3, 'clockwise'), x2*x3),
-            ((x1, 'counterclockwise'), (x1, 'clockwise'), x0*x1),
-            (b4, x2*x3, x0*x1)]
+            Two self-folded triangles and 1 triangle with one vertex (affine D). See Figure 10 (bottom) of :arxiv:`math/0608367`::
+
+                sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
+                sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
+                sage: T.weighted_triangulation()
+                [((x3, 'counterclockwise'), (x3, 'clockwise'), x2*x3),
+                ((x1, 'counterclockwise'), (x1, 'clockwise'), x0*x1),
+                (b4, x2*x3, x0*x1)]
         """
         return self._weighted_triangulation
 

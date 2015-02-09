@@ -36,7 +36,7 @@ from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_sna
 
 
 class ClusterSeed(SageObject):
-    r"""
+    """
     The *cluster seed* associated to an *exchange matrix*.
 
     INPUT:
@@ -2049,7 +2049,7 @@ class ClusterSeed(SageObject):
             raise ValueError("Greedy elements are only currently "
                              "defined for cluster seeds of rank two.")
 
-    def cluster_triangulation (self):
+    def cluster_triangulation(self):
         """
         Returns the triangulation class associated to ``self``.
 
@@ -2062,7 +2062,7 @@ class ClusterSeed(SageObject):
         """
         return self._cluster_triangulation
 
-    def snake_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
+    def snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
         """
         INPUT:
         crossed_arcs = x0, x1, ... etc
@@ -2165,7 +2165,7 @@ class ClusterSeed(SageObject):
         else:
             return _snake_graph (CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges_vars)
 
-    def band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
+    def band_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
        """
        Return the band graph description for a list of crossed arcs
 
@@ -2254,7 +2254,7 @@ class ClusterSeed(SageObject):
         if return_value:
             return lifted_polygon
 
-    def draw_lifted_polygon_loop (self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False):
+    def draw_lifted_polygon_loop(self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False):
         """
         Return picture of lifted triangulation of polygon and lifted curve on the polygon (see MSW1 section 7)
         EXAMPLES::
@@ -2288,7 +2288,7 @@ class ClusterSeed(SageObject):
         Return the Laurent expansion of the given ordinary arc from a triangulated surface.
 
         INPUT:
-        - ``crossed_arcs`` --  arcs of self.triangulation() that are crossed by the arc to be computed
+            - ``crossed_arcs`` --  arcs of self.triangulation() that are crossed by the arc to be computed
 
         ALGORITHM:
             The algorithm used is the perfect matching formula from

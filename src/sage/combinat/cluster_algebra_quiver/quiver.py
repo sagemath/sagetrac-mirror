@@ -1614,11 +1614,12 @@ class ClusterQuiver(SageObject):
         else:
             return is_finite
 
-    def cluster_triangulation (self):
+    def cluster_triangulation(self):
         """
         Returns the cluster triangulation class associated with ``self``.
 
         EXAMPLES::
+
             sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
             sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
             sage: Q = ClusterQuiver(T)
