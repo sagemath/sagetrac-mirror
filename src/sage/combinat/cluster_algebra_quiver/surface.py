@@ -484,18 +484,38 @@ def _get_edge_user_label(edge_var, triangulation_dictionary):
         if td[1] == edge_var:
             return td[0]
 
-def _get_weighted_edge(edge_label, triangulation_dictionary):
+def _get_weighted_edge(arc, triangulation_dictionary):
     """
-    access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
+    Return the variable corresponding to the given arc label.
+
+    ``arc``: user-given label for an arc or boundary edge
+    ``triangulation dictionary``: correspondence between user-given labels for arcs and boundary edges and variables corresponding to them [(1,x0),(2,x1),(5,x2), ..., ('b1',b_{n+1}), ..., ('bm',b_{n+m})]
+
+    EXAMPLES::
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
+
     """
+    if arc is None:
+        return arc
+
+    dir = None
+
+    if isinstance(arc,tuple):
+        arc_label, dir = arc
+    else:
+        arc_label = arc
+
     for td in triangulation_dictionary:
-        if td[0] == edge_label:
-            return td[1]
+        if td[0] == arc_label:
+            return (td[1], dir) if dir else td[1]
 
 def _get_weighted_edges(edges, triangulation_dictionary):
     """
     access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
     """
+    if edges is None:
+        return edges
+
     weighted_edges = []
     for e in edges:
         weighted_e = _get_weighted_edge (e, triangulation_dictionary)
@@ -1235,7 +1255,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
                 if are_triangles_equal(input_triangle,triangle0[0]):
                     return input_triangle
                 else:
-                    raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' but it should be ', triangle0[0])
+                    raise ValueError('Incorrect input. User inputs an end triangle ', first_or_final, ' triangle: ', input_triangle, ' but it should be ', triangle0[0])
             return triangle0[0]
         elif len(triangle0) > 2 :
             raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1 )
@@ -1246,7 +1266,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
             if are_triangles_equal(input_triangle,triangle0[0]) or are_triangles_equal(input_triangle,triangle0[1]):
                 return input_triangle
             else:
-                raise ValueError('Incorrect input. User inputs ', first_or_final, ' triangle: ', input_triangle, ' which does not exist.')
+                raise ValueError('Incorrect input. User inputs an end triangle ', first_or_final, ' triangle: ', input_triangle, ' which does not exist.')
         if are_triangles_equal(triangle1[0],triangle1[1]) and len(T)==2: # If T is a triangulation of a once-punctured torus
             return triangle1[0]
         if first_or_final == 'First':
@@ -1302,7 +1322,10 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     (x,y)=xy
 
     if matching_weight != None:
-        drawing = drawing + text('$'+str(matching_weight).replace('x','x_').replace('*',' ')+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
+        if user_labels:
+            drawing = drawing + text('$'+str(matching_weight)+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'gray')
+        else:
+            drawing = drawing + text('$'+str(matching_weight).replace('x','x_').replace('*',' ')+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
     if pos!= None:
         pos_str = '$(' + str(pos) + ')$. '
         drawing = drawing + text(pos_str, (x ,y-0.2), rgbcolor=(0,1,0.2))
