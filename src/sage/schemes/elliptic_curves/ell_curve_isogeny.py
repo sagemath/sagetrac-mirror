@@ -3436,7 +3436,6 @@ class EllipticCurveIsogeny(Morphism):
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
                 raise ValueError("There is a bug in dual().")
-            # PROBLEM HERE BELOW IN THE CODE : E0 not defined !
             phi_hat.set_post_isomorphism(WeierstrassIsomorphism(E0,aut[0],E0))
 
         self.__dual = phi_hat
