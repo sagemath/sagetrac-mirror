@@ -248,21 +248,24 @@ class NonAmbiguousTree( ClonableList ):
     For example,
     ::
 
-        1 1 0 1 0
-        1 0 1 0 1
-        0 1 0 0 0
+        1 0 1 1 0
+        0 0 1 0 0
+        1 1 0 0 1
+        0 0 1 0 0
 
     is a non-ambiguous tree and can be represented by the following
-    labeled tree, 
+    labeled binary tree, 
     ::
 
-           x
-         /   \
-        1      1
-         \    / \
-          2  2   3
-           \
-            4
+             x
+           /   \
+          /     \
+         /        \
+        2          2
+         \        / \
+          1      1   3
+           \    /
+            4  3
 
     If we replace each 1 of the previous matrix by the label of its node,
     in the non-ambiguous tree, we obtain :
@@ -274,9 +277,10 @@ class NonAmbiguousTree( ClonableList ):
                                 | | | |
                                 V V V V
         
-                              x 1 0 3 0
-         Label of       1 ->  1 0 2 0 4         x is the root
-         left nodes     2 ->  0 2 0 0 0         0 is nothing
+                              x 0 2 3 0
+         Label of       1 ->  0 0 1 0 0         x is the root
+         left nodes     2 ->  2 1 0 0 4         0 is nothing
+                        3 ->  0 0 3 0 0
 
     By convention, we will label the root by 0.
 
