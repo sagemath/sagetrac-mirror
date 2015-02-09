@@ -37,6 +37,7 @@ Maps between them
 
    sage/schemes/elliptic_curves/weierstrass_morphism
    sage/schemes/elliptic_curves/ell_curve_isogeny
+   sage/schemes/elliptic_curves/isogeny_char_zero
    sage/schemes/elliptic_curves/isogeny_small_degree
 
 
