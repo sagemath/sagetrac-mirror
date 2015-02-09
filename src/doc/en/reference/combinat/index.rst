@@ -163,6 +163,7 @@ Combinatorics
    sage/combinat/abstract_tree
    sage/combinat/ordered_tree
    sage/combinat/binary_tree
+   sage/combinat/non_ambiguous_tree
 
 **Word**
 
