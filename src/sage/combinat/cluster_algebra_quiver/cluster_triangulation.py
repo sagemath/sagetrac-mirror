@@ -123,7 +123,7 @@ class ClusterTriangulation(SageObject):
             sage: TestSuite(CT).run() # what CT should I put here? (todo)
 
         """
-        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_weighted_triangulation
+        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_user_label_triangulation, _get_weighted_triangulation
         from sage.rings.all import QQ
         from sage.rings.all import FractionField, PolynomialRing
 
@@ -152,6 +152,7 @@ class ClusterTriangulation(SageObject):
             self._cluster = list(self._R.gens()[0:self._n])
             self._boundary_edges_vars = list(self._R.gens()[self._n:]) if boundary_edges else []
             self._triangulation_dictionary = _get_triangulation_dictionary (self._triangles, self._cluster, self._boundary_edges, self._boundary_edges_vars)
+            self._triangulation = _get_user_label_triangulation(self._triangles)
             self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._triangulation_dictionary)
 
         else:
@@ -321,6 +322,26 @@ class ClusterTriangulation(SageObject):
         """
         return self._triangulation_dictionary
 
+    def triangulation(self):
+        """
+        Return the list of triangles of ``self`` where a self-folded triangle (r,r,ell) is replaced by (r, 'counterclockwise'), (r, 'clockwise'), ell)
+
+        EXAMPLES::
+
+            sage: Triangles = [(1,4,7),(1,2,5),(2,0,3),(0,6,3)]
+            sage: CT = ClusterTriangulation(Triangles)
+            sage: CT.triangulation()
+            [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
+
+            sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)] #Figure 10 (bottom) of arXiv:math/0608367
+            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
+            sage: T.triangulation()
+            [((5, 'counterclockwise'), (5, 'clockwise'), 4),
+            ((3, 'counterclockwise'), (3, 'clockwise'), 2),
+            (1, 4, 2)]
+        """
+        return self._triangulation
+
     def weighted_triangulation(self):
         """
         Return the list of triangles of ``self`` where user-given labels are replaced by the variables corresponding to them.
@@ -355,3 +376,18 @@ class ClusterTriangulation(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
         return _get_weighted_edge(a,self._triangulation_dictionary)
+
+    def get_edge_user_label(self,var):
+        """
+        Return the label (given by user) of an arc of boundary edge corresponding to a variable x_i or b_i
+
+        EXAMPLES::
+
+            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
+            sage: T.get_edge_user_label(T._cluster[0])
+            0
+            sage: T.get_edge_user_label(T._boundary_edges_vars[2])
+            6
+        """
+        from sage.combinat.cluster_algebra_quiver.surface import _get_edge_user_label
+        return _get_edge_user_label(var,self._triangulation_dictionary)

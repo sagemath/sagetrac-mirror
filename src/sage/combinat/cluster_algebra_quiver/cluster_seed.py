@@ -2058,10 +2058,11 @@ class ClusterSeed(SageObject):
             sage: Q = ClusterSeed(T)
             sage: Q.cluster_triangulation()._triangles
             [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
+
         """
         return self._cluster_triangulation
 
-    def snake_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1):
+    def snake_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
         """
         INPUT:
         crossed_arcs = x0, x1, ... etc
@@ -2088,11 +2089,11 @@ class ClusterSeed(SageObject):
             #outer boundary edges, clockwise starting from starting point of gamma are labeled: 7,8,9, 10
             #inner boundary edges, clockwise starting from ending point of gamma are labeled:11, 0
             sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
-            sage: S = ClusterSeed(T);#, boundary_edges=[7,8,9,10,11,0])
+            sage: S = ClusterSeed(T)
             sage: c = [item for item in S.cluster()]
             sage: S.arc ([c[0],c[1],c[2],c[3],c[0]]) == S.arc([c[0],c[3],c[2],c[1],c[0]])
             True
-            sage: S.snake_graph([c[0],c[1],c[2],c[3],c[0]]) # corrected
+            sage: S.snake_graph([c[0],c[1],c[2],c[3],c[0]],user_labels=False) # corrected
             [[(1, (x3, x0, x4)), (2, (x1, x0, b6), 'RIGHT')],
             [(-1, (x0, x1, b6)), (-2, (b11, x1, x2), 'ABOVE')],
             [(1, (b11, x2, x1)), (2, (x5, x2, x3), 'ABOVE')],
@@ -2106,7 +2107,7 @@ class ClusterSeed(SageObject):
             sage: r = c[1-1]; ell = c[2-1]* r
             sage: S.arc([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]])== S.arc([c[6-1],c[5-1],c[4-1],c[3-1], ell,(r,'clockwise'), ell ]) # Gamma_1
             True
-            sage: S.snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1) # Gamma_1
+            sage: S.snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1, user_labels=False) # Gamma_1
             [[(-1, (x2, x0*x1, b11)),
             (-2, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise')), 'RIGHT')],
             [(1, (x0*x1, (x0, 'counterclockwise'), (x0, 'clockwise'))),
@@ -2118,7 +2119,7 @@ class ClusterSeed(SageObject):
             [(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
             [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'ABOVE')]]
 
-            sage: S.snake_graph([c[4],c[5],c[6],c[7],c[8],c[5],c[4]],first_tile_orientation=1) # Ell_p
+            sage: S.snake_graph([c[4],c[5],c[6],c[7],c[8],c[5],c[4]],first_tile_orientation=1, user_labels=False) # Ell_p
             [[(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
             [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'RIGHT')],
             [(1, (x5, x6, x8)), (2, (x7, x6, b13), 'RIGHT')],
@@ -2129,19 +2130,50 @@ class ClusterSeed(SageObject):
 
             sage: S.arc([c[4],c[5],c[6],c[7],c[8],c[5],c[4]]) == S.arc([c[4],c[5],c[8],c[7],c[6],c[5],c[4]]) # Ell_p
             True
+
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: S = ClusterSeed(T) # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
+            sage: S.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+            [[(-1, (3, 'ell', 11)),
+            (-2, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise')), 'RIGHT')],
+            [(1, ('ell', ('r', 'counterclockwise'), ('r', 'clockwise'))),
+            (2, (('r', 'counterclockwise'), ('r', 'clockwise'), 'ell'), 'ABOVE')],
+            [(-1, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise'))),
+            (-2, (3, 'ell', 11), 'RIGHT')],
+            [(1, ('ell', 3, 11)), (2, (4, 3, 12), 'RIGHT')],
+            [(-1, (3, 4, 12)), (-2, (5, 4, 14), 'RIGHT')],
+            [(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
+            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'ABOVE')]]
+            sage: S.snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            [[(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
+            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'RIGHT')],
+            [(1, (6, 7, 9)), (2, (8, 7, 13), 'RIGHT')],
+            [(-1, (7, 8, 13)), (-2, (10, 8, 9), 'ABOVE')],
+            [(1, (10, 9, 8)), (2, (7, 9, 6), 'ABOVE')],
+            [(-1, (7, 6, 9)), (-2, (10, 6, 5), 'ABOVE')],
+            [(1, (10, 5, 6)), (2, (4, 5, 14), 'ABOVE')]]
+
+        REFERENCES:
+
+        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
+        and Bases for Cluster Algebras from Surfaces :arXiv:`1110.4364`
         """
         CT = self._cluster_triangulation
-        return _snake_graph (CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges_vars)
+        if user_labels:
+            return _snake_graph (CT._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges)
+        else:
+            return _snake_graph (CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges_vars)
 
-    def band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1):
+    def band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
        """
-       see snake_graph()
+       Return the band graph description for a list of crossed arcs
 
        EXAMPLES::
-            ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
-            #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
-            sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
-            sage: S = ClusterSeed(T)#, boundary_edges=[4,5,6,7])
+            ######## Figure 6 of Musiker and Williams "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`  #######
+            # where tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=b4,b5,b6,b7
+            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7']) # Counterclockwise triangulation
+            sage: S = ClusterSeed(T)
             sage: c = [item for item in S.cluster()]
             sage: S.band_graph( [ c[1], c[2], c[3], c[0], c[1] ]) # Pick cut edge to be tau_1 = 1, go clockwise
             [[(1, (b5, x1, x0)), (2, (b4, x1, x2), 'ABOVE')],
@@ -2153,14 +2185,37 @@ class ClusterSeed(SageObject):
 
        """
        CT = self._cluster_triangulation
-       return _snake_graph (CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges_vars)
+       if user_labels:
+           return _snake_graph (CT._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges)
+       else:
+           return _snake_graph (CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=CT._boundary_edges_vars)
 
-    def draw_snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None):
-        drawing = _draw_snake_graph (self.snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation))
+    def draw_snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
+        """
+        Draw the snake graph for a list of crossed arcs
+
+        EXAMPLES::
+            # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: S = ClusterSeed(T)
+            sage: r = T.get_edge_var('r')
+            sage: ell = T.get_edge_var('ell')
+            sage: three = T.get_edge_var(3)
+            sage: four = T.get_edge_var(4)
+            sage: five = T.get_edge_var(5)
+            sage: six = T.get_edge_var(6)
+            sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
+            sage: S.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
+            sage: S.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+
+            sage: S.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+        """
+        drawing = _draw_snake_graph (self.snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
-    def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None):
-        drawing = _draw_snake_graph ( self.band_graph (crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation))
+    def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
+        drawing = _draw_snake_graph ( self.band_graph (crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
     def draw_lifted_polygon_arc (self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False):
@@ -2259,7 +2314,7 @@ class ClusterSeed(SageObject):
             ['D', 4]
             sage: c = [item for item in S.cluster()]
             sage: r=c[0]; ell=c[3]*r;
-            sage: S.snake_graph([c[1],c[2],ell,[r,'counterclockwise'],ell])
+            sage: S.snake_graph([c[1],c[2],ell,[r,'counterclockwise'],ell], user_labels=False)
             [[(1, (b4, x1, b7)), (2, (x2, x1, b5), 'RIGHT')],
             [(-1, (x1, x2, b5)), (-2, (x0*x3, x2, b6), 'RIGHT')],
             [(1, (x2, x0*x3, b6)), (2, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise')), 'ABOVE')],

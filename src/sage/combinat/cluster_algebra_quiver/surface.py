@@ -476,6 +476,14 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
     return dic
 
+def _get_edge_user_label(edge_var, triangulation_dictionary):
+    """
+    access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
+    """
+    for td in triangulation_dictionary:
+        if td[1] == edge_var:
+            return td[0]
+
 def _get_weighted_edge(edge_label, triangulation_dictionary):
     """
     access the triangulation dictionary, e.g.: [(1,x0),(2,x1),(5,x2), ...]
@@ -520,6 +528,33 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
             c = false_or_r_r_ell[2]
         weighted_T.append( (a,b,c) )
     return weighted_T
+
+
+def _get_user_label_triangulation(T):
+    """
+    This function is called by cluster_seed.py
+    Return the triangulation given by user with weights (e.g. [(x1, x2, x0),(x1,x3,x5), ...)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_user_label_triangulation
+        sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
+        sage: T._triangulation_dictionary
+        [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
+        sage: T.weighted_triangulation()
+        [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
+    """
+    informative_T = []
+    for pos in range(0,len(T)):
+        a, b, c = T[pos]
+
+        false_or_r_r_ell = is_selffolded ((a,b,c))
+        if isinstance(false_or_r_r_ell, tuple):
+            a = (false_or_r_r_ell[0],'counterclockwise')
+            b = (false_or_r_r_ell[1],'clockwise')
+            c = false_or_r_r_ell[2]
+        informative_T.append( (a,b,c) )
+    return informative_T
 
 ############# ENDING: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ##########
 ##########################################################################################
@@ -1291,13 +1326,19 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     return drawing, (x+ 2*white_space,0)
 
 
-def _draw_snake_graph(G, xy=(0,0) ):
+def _draw_snake_graph (G, xy=(0,0), user_labels=False):
     """
     Returns the plot of the snake graph G
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
+        sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+        sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+        sage: S = ClusterSeed(T) # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
+        sage: G_user_labels = S.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+        sage: _draw_snake_graph (G_user_labels,user_labels=True)
+        Graphics object consisting of 43 graphics primitives
 
     """
     from sage.plot.graphics import Graphics
@@ -1317,27 +1358,32 @@ def _draw_snake_graph(G, xy=(0,0) ):
         floor = tile[0][1][0]
         if type(floor) in [tuple, list]: floor=floor[0]
         floor = str(floor)
-        floor = '$' + floor.replace('*','}').replace('x','x_{') + '}$'
+        if not user_labels: # a noose represent a product of two cluster variables (parallel arcs with different notchings at a puncture)
+            floor = '$' + floor.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         diagonal = tile[0][1][1]
         if type(diagonal) in [tuple, list]: diagonal=diagonal[0]
         diagonal = str(diagonal)
-        diagonal = '$' + diagonal.replace('*','}').replace('x','x_{') + '}$'
+        if not user_labels:
+            diagonal = '$' + diagonal.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         left_side = tile[0][1][2]
         if type(left_side) in [tuple, list]: left_side=left_side[0]
         left_side = str(left_side)
-        left_side = '$' + left_side.replace('*','}').replace('x','x_{') + '}$'
+        if not user_labels:
+            left_side = '$' + left_side.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         right_side = tile[1][1][2]
         if type(right_side) in [tuple, list]: right_side=right_side[0]
         right_side = str(right_side)
-        right_side = '$' + right_side.replace('*','}').replace('x','x_{') + '}$'
+        if not user_labels:
+            right_side = '$' + right_side.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         ceiling = tile[1][1][0]
         if type(ceiling) in [tuple, list]: ceiling=ceiling[0]
         ceiling = str(ceiling)
-        ceiling = '$' + ceiling.replace('*','}').replace('x','x_{') + '}$'
+        if not user_labels:
+            ceiling = '$' + ceiling.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         orientation = tile[0][0]
         if orientation == 1: orientation='$+$'
