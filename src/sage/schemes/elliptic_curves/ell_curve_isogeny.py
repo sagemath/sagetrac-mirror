@@ -68,20 +68,16 @@ from sage.categories import homset
 
 from sage.categories.morphism import Morphism
 
-from sage.rings.all import PolynomialRing, Integer, ZZ, LaurentSeriesRing
+from sage.rings.all import PolynomialRing, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
-
-from sage.rings.number_field.number_field_base import is_NumberField
 
 from sage.rings.rational_field import is_RationalField
 
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, isomorphisms
 
 from sage.sets.set import Set
-
-from sage.misc.cachefunc import cached_function
 
 from sage.schemes.elliptic_curves import isogeny_char_zero
 
@@ -773,7 +769,7 @@ class EllipticCurveIsogeny(Morphism):
         sage: E2.isogeny(None,codomain=E,degree=5)
         Traceback (most recent call last):
         ...
-        ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 5
+        ValueError: The two curves are not linked by a rational normalized isogeny of degree 5
         sage: phihat = phi.dual(); phihat
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: phihat.is_normalized()
@@ -1004,7 +1000,7 @@ class EllipticCurveIsogeny(Morphism):
                 raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
             # save the domain/codomain: really used now (trac #7096)
-            old_domain = E
+            # old_domain = E
             old_codomain = codomain
 
             (pre_isom, post_isom, E, codomain, kernel) = compute_sequence_of_maps(E, codomain, degree)
@@ -1662,14 +1658,14 @@ class EllipticCurveIsogeny(Morphism):
             [0, 1]
 
         """
-
         if (self.__kernel_polynomial_list is not None):
             return self.__kernel_polynomial_list
 
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise InputError("The kernel polynomial should already be defined!")
+            raise RuntimeError("The kernel polynomial should already "
+                               "be defined!")
 
         return ker_poly_list
 
@@ -2201,7 +2197,6 @@ class EllipticCurveIsogeny(Morphism):
 
         """
         poly_ring = self.__poly_ring
-        x = poly_ring.gen()
         E = self.__E1
 
         # Convert to a univariate polynomial, even if it had a
@@ -3364,7 +3359,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
-        Test (for trac ticket 7096)::
+        Test (for :trac:`7096`)::
 
             sage: E = EllipticCurve('11a1')
             sage: phi = E.isogeny(E(5,5))
@@ -3441,13 +3436,14 @@ class EllipticCurveIsogeny(Morphism):
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
                 raise ValueError("There is a bug in dual().")
+            # PROBLEM HERE BELOW IN THE CODE : E0 not defined !
             phi_hat.set_post_isomorphism(WeierstrassIsomorphism(E0,aut[0],E0))
 
         self.__dual = phi_hat
 
         return phi_hat
 
-    def formal(self,prec=20):
+    def formal(self, prec=20):
         r"""
         Return the formal isogeny as a power series in the variable
         `t=-x/y` on the domain curve.
@@ -3918,9 +3914,6 @@ def unfill_isogeny_matrix(M):
         sage: unfill_isogeny_matrix(M1) == M
         True
     """
-    from sage.matrix.all import Matrix
-    from sage.rings.infinity import Infinity
-
     n = M.nrows()
     M1 = copy(M)
     zero = Integer(0)
