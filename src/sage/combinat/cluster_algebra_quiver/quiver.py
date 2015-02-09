@@ -1616,9 +1616,23 @@ class ClusterQuiver(SageObject):
 
     def cluster_triangulation (self):
         """
-        Returns the triangulation class associated with ``self``.
+        Returns the cluster triangulation class associated with ``self``.
 
         EXAMPLES::
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: Q = ClusterQuiver(T)
+            sage: Q.cluster_triangulation()
+            An ideal triangulation associated with cluster algebra of rank 4 with 4 boundary edges
+            sage: Q.cluster_triangulation()._triangles
+            [('a', 'd', 'c'), ('a', 'll', 'b'), ('r', 'r', 'll'), ('b', 'f', 'e')]
+            sage: Q.cluster_triangulation()._boundary_edges
+            ['c', 'd', 'e', 'f']
+
+            sage: Q = ClusterQuiver(['A',4])
+            sage: Q.cluster_triangulation() is None
+            True
+
             sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
             sage: Q = ClusterQuiver(T)
             sage: Q.cluster_triangulation()._triangles
