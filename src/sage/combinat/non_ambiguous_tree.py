@@ -1,6 +1,6 @@
 # coding=utf-8
 r'''
-Non-ambiguous trees
+Non-ambiguous Trees
 
 This module deals with Non-ambiguous trees.
 
@@ -188,7 +188,7 @@ def _posets_of_nodes( tree ):
 
 class NonAmbiguousTree( ClonableList ):
     r'''
-    Non-ambiguous tree
+    Non-ambiguous Tree
 
     A non-ambiguous tree is an array containing 1 and 0 such that each row has 
     to contain at least one 1; each column has to contain at least one 1;
