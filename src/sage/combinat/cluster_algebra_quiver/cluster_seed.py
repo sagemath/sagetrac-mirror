@@ -12,7 +12,7 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 
-.. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
+.. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
 
 #*****************************************************************************
@@ -2054,6 +2054,7 @@ class ClusterSeed(SageObject):
         Returns the triangulation class associated to ``self``.
 
         EXAMPLES::
+
             sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
             sage: Q = ClusterSeed(T)
             sage: Q.cluster_triangulation()._triangles
@@ -2084,80 +2085,84 @@ class ClusterSeed(SageObject):
         then the direction for the last tile does not mean anything
 
         EXAMPLES::
-            #### Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces"
-            # where the arc gamma crosses arcs labeled 1,2,3,4,1
-            #outer boundary edges, clockwise starting from starting point of gamma are labeled: 7,8,9, 10
-            #inner boundary edges, clockwise starting from ending point of gamma are labeled:11, 0
-            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)
-            sage: c = [item for item in S.cluster()]
-            sage: S.arc ([c[0],c[1],c[2],c[3],c[0]], user_labels=False) == S.arc([c[0],c[3],c[2],c[1],c[0]], user_labels=False)
-            True
-            sage: S.snake_graph([c[0],c[1],c[2],c[3],c[0]],user_labels=False) # corrected
-            [[(1, (x3, x0, x4)), (2, (x1, x0, b6), 'RIGHT')],
-            [(-1, (x0, x1, b6)), (-2, (b11, x1, x2), 'ABOVE')],
-            [(1, (b11, x2, x1)), (2, (x5, x2, x3), 'ABOVE')],
-            [(-1, (x5, x3, x2)), (-2, (x0, x3, x4), 'RIGHT')],
-            [(1, (x3, x0, x4)), (2, (x1, x0, b6), 'ABOVE')]]
+            Figure 8 of Musiker - Schiffler - Williams' "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364` such that:
+            the arc gamma crosses arcs  arelabeled 1,2,3,4,1;
+            outer boundary edges, clockwise starting from starting point of gamma are labeled: 7,8,9, 10;
+            inner boundary edges, clockwise starting from ending point of gamma are labeled:11, 0::
 
-            ### Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces"
-            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
-            sage: c = [item for item in S.cluster()]
-            sage: r = c[1-1]; ell = c[2-1]* r
-            sage: S.arc([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)== S.arc([c[6-1],c[5-1],c[4-1],c[3-1], ell,(r,'clockwise'), ell ], user_labels=False) # Gamma_1
-            True
-            sage: S.snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1, user_labels=False) # Gamma_1
-            [[(-1, (x2, x0*x1, b11)),
-            (-2, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise')), 'RIGHT')],
-            [(1, (x0*x1, (x0, 'counterclockwise'), (x0, 'clockwise'))),
-            (2, ((x0, 'counterclockwise'), (x0, 'clockwise'), x0*x1), 'ABOVE')],
-            [(-1, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise'))),
-            (-2, (x2, x0*x1, b11), 'RIGHT')],
-            [(1, (x0*x1, x2, b11)), (2, (x3, x2, b12), 'RIGHT')],
-            [(-1, (x2, x3, b12)), (-2, (x4, x3, b10), 'RIGHT')],
-            [(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
-            [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'ABOVE')]]
+                sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: S.arc ([c[0],c[1],c[2],c[3],c[0]], user_labels=False) == S.arc([c[0],c[3],c[2],c[1],c[0]], user_labels=False)
+                True
+                sage: S.snake_graph([c[0],c[1],c[2],c[3],c[0]],user_labels=False) # corrected
+                [[(1, (x3, x0, x4)), (2, (x1, x0, b6), 'RIGHT')],
+                [(-1, (x0, x1, b6)), (-2, (b11, x1, x2), 'ABOVE')],
+                [(1, (b11, x2, x1)), (2, (x5, x2, x3), 'ABOVE')],
+                [(-1, (x5, x3, x2)), (-2, (x0, x3, x4), 'RIGHT')],
+                [(1, (x3, x0, x4)), (2, (x1, x0, b6), 'ABOVE')]]
 
-            sage: S.snake_graph([c[4],c[5],c[6],c[7],c[8],c[5],c[4]],first_tile_orientation=1, user_labels=False) # Ell_p
-            [[(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
-            [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'RIGHT')],
-            [(1, (x5, x6, x8)), (2, (x7, x6, b13), 'RIGHT')],
-            [(-1, (x6, x7, b13)), (-2, (x9, x7, x8), 'ABOVE')],
-            [(1, (x9, x8, x7)), (2, (x6, x8, x5), 'ABOVE')],
-            [(-1, (x6, x5, x8)), (-2, (x9, x5, x4), 'ABOVE')],
-            [(1, (x9, x4, x5)), (2, (x3, x4, b10), 'ABOVE')]]
+            Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
 
-            sage: S.arc([c[4],c[5],c[6],c[7],c[8],c[5],c[4]], user_labels=False) == S.arc([c[4],c[5],c[8],c[7],c[6],c[5],c[4]], user_labels=False) # Ell_p
-            True
+                sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0]) # Counterclockwise
+                sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
+                sage: c = [item for item in S.cluster()]
+                sage: r = c[1-1]; ell = c[2-1]* r
+                sage: S.arc([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)== S.arc([c[6-1],c[5-1],c[4-1],c[3-1], ell,(r,'clockwise'), ell], user_labels=False) # Gamma_1
+                True
+                sage: S.snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1, user_labels=False) # Gamma_1
+                [[(-1, (x2, x0*x1, b11)),
+                (-2, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise')), 'RIGHT')],
+                [(1, (x0*x1, (x0, 'counterclockwise'), (x0, 'clockwise'))),
+                (2, ((x0, 'counterclockwise'), (x0, 'clockwise'), x0*x1), 'ABOVE')],
+                [(-1, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise'))),
+                (-2, (x2, x0*x1, b11), 'RIGHT')],
+                [(1, (x0*x1, x2, b11)), (2, (x3, x2, b12), 'RIGHT')],
+                [(-1, (x2, x3, b12)), (-2, (x4, x3, b10), 'RIGHT')],
+                [(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
+                [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'ABOVE')]]
 
-            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-            sage: S = ClusterSeed(T) # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
-            sage: S.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
-            [[(-1, (3, 'ell', 11)),
-            (-2, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise')), 'RIGHT')],
-            [(1, ('ell', ('r', 'counterclockwise'), ('r', 'clockwise'))),
-            (2, (('r', 'counterclockwise'), ('r', 'clockwise'), 'ell'), 'ABOVE')],
-            [(-1, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise'))),
-            (-2, (3, 'ell', 11), 'RIGHT')],
-            [(1, ('ell', 3, 11)), (2, (4, 3, 12), 'RIGHT')],
-            [(-1, (3, 4, 12)), (-2, (5, 4, 14), 'RIGHT')],
-            [(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
-            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'ABOVE')]]
-            sage: S.snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
-            [[(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
-            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'RIGHT')],
-            [(1, (6, 7, 9)), (2, (8, 7, 13), 'RIGHT')],
-            [(-1, (7, 8, 13)), (-2, (10, 8, 9), 'ABOVE')],
-            [(1, (10, 9, 8)), (2, (7, 9, 6), 'ABOVE')],
-            [(-1, (7, 6, 9)), (-2, (10, 6, 5), 'ABOVE')],
-            [(1, (10, 5, 6)), (2, (4, 5, 14), 'ABOVE')]]
+                sage: S.snake_graph([c[4],c[5],c[6],c[7],c[8],c[5],c[4]],first_tile_orientation=1, user_labels=False) # Ell_p
+                [[(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
+                [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'RIGHT')],
+                [(1, (x5, x6, x8)), (2, (x7, x6, b13), 'RIGHT')],
+                [(-1, (x6, x7, b13)), (-2, (x9, x7, x8), 'ABOVE')],
+                [(1, (x9, x8, x7)), (2, (x6, x8, x5), 'ABOVE')],
+                [(-1, (x6, x5, x8)), (-2, (x9, x5, x4), 'ABOVE')],
+                [(1, (x9, x4, x5)), (2, (x3, x4, b10), 'ABOVE')]]
+
+                sage: S.arc([c[4],c[5],c[6],c[7],c[8],c[5],c[4]], user_labels=False) == S.arc([c[4],c[5],c[8],c[7],c[6],c[5],c[4]], user_labels=False) # Ell_p
+                True
+
+            Thrice-punctured square of Figure 10 of 'Positivity for Cluster Algebras from Surfaces', :arxiv:`0906.0748`::
+
+                sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+                sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+                sage: S = ClusterSeed(T)
+                sage: S.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+                [[(-1, (3, 'ell', 11)),
+                (-2, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise')), 'RIGHT')],
+                [(1, ('ell', ('r', 'counterclockwise'), ('r', 'clockwise'))),
+                (2, (('r', 'counterclockwise'), ('r', 'clockwise'), 'ell'), 'ABOVE')],
+                [(-1, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise'))),
+                (-2, (3, 'ell', 11), 'RIGHT')],
+                [(1, ('ell', 3, 11)), (2, (4, 3, 12), 'RIGHT')],
+                [(-1, (3, 4, 12)), (-2, (5, 4, 14), 'RIGHT')],
+                [(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
+                [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'ABOVE')]]
+                sage: S.snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+                [[(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
+                [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'RIGHT')],
+                [(1, (6, 7, 9)), (2, (8, 7, 13), 'RIGHT')],
+                [(-1, (7, 8, 13)), (-2, (10, 8, 9), 'ABOVE')],
+                [(1, (10, 9, 8)), (2, (7, 9, 6), 'ABOVE')],
+                [(-1, (7, 6, 9)), (-2, (10, 6, 5), 'ABOVE')],
+                [(1, (10, 5, 6)), (2, (4, 5, 14), 'ABOVE')]]
 
         REFERENCES:
 
-        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
-        and Bases for Cluster Algebras from Surfaces :arXiv:`1110.4364`
+        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arxiv:`0906.0748`
+        and Bases for Cluster Algebras from Surfaces :arxiv:`1110.4364`
         """
         CT = self._cluster_triangulation
         if user_labels:
@@ -2170,21 +2175,18 @@ class ClusterSeed(SageObject):
        Return the band graph description for a list of crossed arcs
 
        EXAMPLES::
-            ######## Figure 6 of Musiker and Williams "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`  #######
-            # where tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=b4,b5,b6,b7
-            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7']) # Counterclockwise triangulation
-            sage: S = ClusterSeed(T)
-            sage: c = [item for item in S.cluster()]
-            sage: S.band_graph( [c[1],c[2],c[3],c[0],c[1]], user_labels=False) # Pick cut edge to be tau_1 = 1, go clockwise
-            [[(1, (b5, x1, x0)), (2, (b4, x1, x2), 'ABOVE')],
-            [(-1, (b4, x2, x1)), (-2, (x3, x2, b7), 'RIGHT')],
-            [(1, (x2, x3, b7)), (2, (x0, x3, b6), 'RIGHT')],
-            [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
-            sage: S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
-            (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
-            sage: S.loop([1,2,3,0,1], user_labels=True) == S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
-            True
 
+            Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+            where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``::
+
+                sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: S.band_graph( [c[1],c[2],c[3],c[0],c[1]], user_labels=False) # Pick cut edge to be tau_1 = 1, go clockwise
+                [[(1, (b5, x1, x0)), (2, (b4, x1, x2), 'ABOVE')],
+                [(-1, (b4, x2, x1)), (-2, (x3, x2, b7), 'RIGHT')],
+                [(1, (x2, x3, b7)), (2, (x0, x3, b6), 'RIGHT')],
+                [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
        """
        CT = self._cluster_triangulation
        if user_labels:
@@ -2194,53 +2196,75 @@ class ClusterSeed(SageObject):
 
     def draw_snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
         """
-        Draw the snake graph for a list of crossed arcs
+        Display the snake graph for a list of crossed arcs
 
         EXAMPLES::
-            # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
-            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-            sage: S = ClusterSeed(T)
-            sage: r = T.get_edge_var('r')
-            sage: ell = T.get_edge_var('ell')
-            sage: three = T.get_edge_var(3)
-            sage: four = T.get_edge_var(4)
-            sage: five = T.get_edge_var(5)
-            sage: six = T.get_edge_var(6)
-            sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
-            sage: S.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
-            sage: S.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
 
-            sage: S.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+
+                sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+                sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+                sage: S = ClusterSeed(T)
+                sage: r = T.get_edge_var('r')
+                sage: ell = T.get_edge_var('ell')
+                sage: three = T.get_edge_var(3)
+                sage: four = T.get_edge_var(4)
+                sage: five = T.get_edge_var(5)
+                sage: six = T.get_edge_var(6)
+                sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
+                sage: S.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
+                sage: S.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+                sage: S.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
         """
         drawing = _draw_snake_graph (self.snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
     def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
+        """
+        Display the band graph for a list of crossed arcs
+
+        EXAMPLES::
+
+            Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+            where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``::
+
+                sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: S.draw_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False) # Pick cut edge to be tau_1 = 1, go clockwise
+                sage: S.draw_band_graph([1,2,3,0,1], user_labels=True)
+        """
         drawing = _draw_snake_graph ( self.band_graph (crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
-    def draw_lifted_polygon_arc (self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False):
+    def draw_lifted_polygon_arc (self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False, user_labels=True):
         """
         Return picture of lifted triangulation of polygon and lifted curve on the polygon (see MSW1 section 7)
-        EXAMPLES::
-            ### Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces"
-            ## boundaries are 11,12,13,0
-            # 1=r, 2=ell, and 3,4,5,...,10 are other arcs
-            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
-            sage: c = [item for item in S.cluster()]
-            sage: r = c[1-1]; ell = c[2-1]*c[1-1]
-            sage: S.draw_lifted_polygon_arc ( [ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1]] )
 
-            #### Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces"
-            #1,2,3,4,5,6 = 1,2,3,4,5,6, gamma crosses 1,2,3,4,1
-            #outer boundary edges, clockwise starting from starting point of gamma: 7,8,9, 10
-            #inner boundary edges, clockwise starting from ending point of gamma:11, 0
-            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[7,8,9,10,11,0])
-            sage: c = [item for item in S.cluster()]
-            sage: S.draw_lifted_polygon_arc ( [c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]] )
+        .. SEEALSO:: :meth:`arc`, :meth:``draw_lifted_polygon_loop``
+
+        EXAMPLES::
+
+            Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`
+            where boundary edges are labeled 11,12,13,0; and  1=r, 2=ell, and 3,4,5,...,10 are other arcs::
+
+                sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
+                sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
+                sage: c = [item for item in S.cluster()]
+                sage: r = c[1-1]; ell = c[2-1]*c[1-1]
+                sage: S.draw_lifted_polygon_arc ([ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)
+                sage: S.draw_lifted_polygon_arc ([2,(1,'counterclockwise'),2,3,4,5,6], user_labels=True)
+
+            Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364` where:
+            the loop gamma crosses the arcs labeled 1,2,3,4,1 (1 is counted twice)
+            outer boundary edges, clockwise starting from starting point of gamma: 7,8,9, 10
+            inner boundary edges, clockwise starting from ending point of gamma:11, 0::
+
+                sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
+                sage: S = ClusterSeed(T)#, boundary_edges=[7,8,9,10,11,0])
+                sage: c = [item for item in S.cluster()]
+                sage: S.draw_lifted_polygon_arc([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+                sage: S.draw_lifted_polygon_arc([1,2,3,4,1], user_labels=True)
         """
 
         #if self._weighted_boundary_edges is not None:
@@ -2248,36 +2272,47 @@ class ClusterSeed(SageObject):
         #    if boundary_edges_crossed != set():
         #        raise ValueError (list[boundary_edges_crossed], ' are both boundary edges and crossed arcs.')
 
-        lifted_polygon = _lifted_polygon(self._cluster_triangulation.weighted_triangulation(), crossed_arcs, first_triangle, final_triangle, is_arc=True, is_loop=False)
+        if user_labels:
+            lifted_polygon = _lifted_polygon(self._cluster_triangulation._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, is_loop=False)
+        else:
+            lifted_polygon = _lifted_polygon(self._cluster_triangulation._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, is_loop=False)
         drawing = _draw_lifted_polygon(lifted_polygon, is_arc=True, is_loop=False)
         drawing.show ( axes=False, figsize=fig_size)
         if return_value:
             return lifted_polygon
 
-    def draw_lifted_polygon_loop(self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False):
+    def draw_lifted_polygon_loop(self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, return_value=False, user_labels=True):
         """
         Return picture of lifted triangulation of polygon and lifted curve on the polygon (see MSW1 section 7)
+
+        .. SEEALSO:: :meth:`loop`, :meth:``draw_lifted_polygon_arc``
+
         EXAMPLES::
-            ### Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces"
-            ## boundaries are 11,12,13,0
-            # 1=r, 2=ell, and 3,4,5,...,10 are other arcs
-            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
-            sage: c = [item for item in S.cluster()]
-            sage: r = c[1-1]; ell = c[2-1]*c[1-1]
-            sage: S.draw_lifted_polygon_loop ( [c[3-1],ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1],c[7-1],c[8-1],c[9-1],c[6-1],c[5-1],c[4-1],c[3-1]] )
 
-            #### Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces"
-            #1,2,3,4,5,6 = 1,2,3,4,5,6, gamma crosses 1,2,3,4,1
-            #outer boundary edges, clockwise starting from starting point of gamma: 7,8,9, 10
-            #inner boundary edges, clockwise starting from ending point of gamma:11, 0
-            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[7,8,9,10,11,0])
-            sage: c = [item for item in S.cluster()]
+            Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`, where
+            the boundary edges are labeled 11,12,13,0, and the arcs are labeled 1 (a radius), 2 (a noose), and 3,4,5,...,10::
 
-            sage: S.draw_lifted_polygon_loop ( [c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]] )
+                sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
+                sage: S = ClusterSeed(T)#, boundary_edges=[11,12,13,0])
+                sage: c = [item for item in S.cluster()]
+                sage: r = c[1-1]; ell = c[2-1]*c[1-1]
+                sage: S.draw_lifted_polygon_loop([c[3-1],ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1],c[7-1],c[8-1],c[9-1],c[6-1],c[5-1],c[4-1],c[3-1]], user_labels=False)
+
+            Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+            with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
+            the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9, 10; and
+            the inner boundary edges, clockwise starting from ending point of gamma:11, 0::
+
+                sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
+                sage: S = ClusterSeed(T)#, boundary_edges=[7,8,9,10,11,0])
+                sage: c = [item for item in S.cluster()]
+                sage: S.draw_lifted_polygon_loop([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+                sage: S.draw_lifted_polygon_loop([1,2,3,4,1], user_labels=True)
         """
-        lifted_polygon = _lifted_polygon(self._cluster_triangulation.weighted_triangulation(), crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True)
+        if user_labels:
+            lifted_polygon = _lifted_polygon(self._cluster_triangulation._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True)
+        else:
+            lifted_polygon = _lifted_polygon(self._cluster_triangulation._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True)
         drawing = _draw_lifted_polygon(lifted_polygon, is_arc=False, is_loop=True)
         drawing.show ( axes=False, figsize=fig_size)
         if return_value:
@@ -2285,76 +2320,83 @@ class ClusterSeed(SageObject):
 
     def arc(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
         """
-        Return the Laurent expansion of the given ordinary arc from a triangulated surface.
+        Return the Laurent expansion of a generalized arc gamma (i.e. a curve between marked point/s) which crosses the arc in crossed_arcs
+
+        .. SEEALSO:: :meth:`loop`, :meth:``draw_lifted_polygon``
 
         INPUT:
-            - ``crossed_arcs`` --  arcs of self.triangulation() that are crossed by the arc to be computed
+            - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from ``self.cluster_triangulation().cluster()`` if (``user_labels`` is ``False``) corresponding to arcs that are crossed by gamma
+            - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
+            - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
+            - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the snake graph if ``True``
+            - ``fig_size`` -- (default:4) image size
+            - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
         ALGORITHM:
             The algorithm used is the perfect matching formula from
-            "Positivity for cluster algebras from surfaces"
-            http://arxiv.org/abs/0906.0748 (section 4).
+            "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748`  (section 4).
 
         EXAMPLES::
-            # once-punctured square with 2 radii, border edges are labeled 4,5,6,7, see first triangulation in oral paper
-            sage: once_punctured_square = [(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]] # Counterlockwise
-            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=[4,5,6,7])
-            sage: Q = ClusterQuiver(T)
-            sage: S = ClusterSeed(Q)
-            sage: c = [item for item in S.cluster()]
-            sage: S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False) # 5 perfect matchings
-            (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
-            sage: S.arc([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False)
-            True
-            sage: S.arc([1,2,3],user_labels=True) == S.arc([S.x(1),S.x(2),S.x(3)],user_labels=False)
-            True
-            sage: S.arc([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
-            True
 
-            sage: S.loop(crossed_arcs = [c[0],c[3],c[0]],  first_triangle = [c[0],c[3],T.get_edge_var(6)], user_labels=False) # Loop is contractible to a puncture, crossing two radii
-            2
+            An ideal triangulation of a once-punctured square having 2 radii, and the boundary edges are labeled 4,5,6,7::
 
-            sage: # once-punctured square with self-folded triangle, border edges are labeled 4,5,6,7, 2nd triangulation in oral paper
-            sage: # ell-loop is labeled 3, radius is labeled 0
-            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7]) # Counterclockwise
-            sage: S = ClusterSeed(T)#, boundary_edges=[4,5,6,7])
-            sage: S.mutation_type()
-            ['D', 4]
-            sage: c = [item for item in S.cluster()]
-            sage: r=c[0]; ell=c[3]*r;
-            sage: S.snake_graph([c[1],c[2],ell,[r,'counterclockwise'],ell], user_labels=False)
-            [[(1, (b4, x1, b7)), (2, (x2, x1, b5), 'RIGHT')],
-            [(-1, (x1, x2, b5)), (-2, (x0*x3, x2, b6), 'RIGHT')],
-            [(1, (x2, x0*x3, b6)), (2, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise')), 'ABOVE')],
-            [(-1, ((x0, 'counterclockwise'), (x0, 'clockwise'), x0*x3)), (-2, (x0*x3, (x0, 'clockwise'), (x0, 'counterclockwise')), 'RIGHT')],
-            [(1, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise'))), (2, (x2, x0*x3, b6), 'ABOVE')]]
-            sage: S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
-            (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
-            sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True) == S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
-            True
-            sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True)==S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
-            True
+                sage: once_punctured_square = [(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]]
+                sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=[4,5,6,7])
+                sage: Q = ClusterQuiver(T)
+                sage: S = ClusterSeed(Q)
+                sage: c = [item for item in S.cluster()]
+                sage: S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False)
+                (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
+                sage: S.arc([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False)
+                True
+                sage: S.arc([1,2,3],user_labels=True) == S.arc([S.x(1),S.x(2),S.x(3)],user_labels=False)
+                True
+                sage: S.arc([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
+                True
 
-            sage: # 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper http://arxiv.org/abs/0712.4131 where tau_i = i and tau_13 is labeled 0
-            sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0]) # Describe the labels of the triangles counterclockwise
-            sage: S = ClusterSeed(T)
-            sage: c = [item for item in S.cluster()]
-            sage: gamma = S.arc([c[1-1],c[3-1],c[5-1]], user_labels=False)
-            sage: S.mutate([1-1,3-1,5-1], inplace=True)
-            sage: S.cluster_variable(5-1) == gamma
-            True
+            A once-punctured square's triangulation with self-folded triangle, border edges are labeled 4,5,6,7, 2nd triangulation in oral paper
+            ell-loop is labeled 3, radius is labeled 0::
 
-            sage: # Affine A(2,2) triangulation from Figure 3 of Shiffler-Thomas' paper http://arxiv.org/abs/0712.4131 where tau_i = i and tau_8 is labeled 0
-            sage: T = ClusterTriangulation([(7,4,3),(4,1,5),(3,6,2),(2,1,0)], boundary_edges=[5,6,7,0])
-            sage: #S = ClusterSeed(T, boundary_edges=[5,6,7,0])
-            sage: S = ClusterSeed(T)
-            sage: c = [item for item in S.cluster()]
-            sage: gamma = S.arc([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
-            sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
-            sage: S.cluster_variable(2) == gamma
-            True
-            sage: S.mutation_type()
-            ['A', [2, 2], 1]
+                sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
+                sage: S = ClusterSeed(T)
+                sage: S.mutation_type()
+                ['D', 4]
+                sage: c = [item for item in S.cluster()]
+                sage: r=c[0]; ell=c[3]*r;
+                sage: S.snake_graph([c[1],c[2],ell,[r,'counterclockwise'],ell], user_labels=False)
+                [[(1, (b4, x1, b7)), (2, (x2, x1, b5), 'RIGHT')],
+                [(-1, (x1, x2, b5)), (-2, (x0*x3, x2, b6), 'RIGHT')],
+                [(1, (x2, x0*x3, b6)), (2, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise')), 'ABOVE')],
+                [(-1, ((x0, 'counterclockwise'), (x0, 'clockwise'), x0*x3)), (-2, (x0*x3, (x0, 'clockwise'), (x0, 'counterclockwise')), 'RIGHT')],
+                [(1, ((x0, 'clockwise'), x0*x3, (x0, 'counterclockwise'))), (2, (x2, x0*x3, b6), 'ABOVE')]]
+                sage: S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+                (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
+                sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True) == S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+                True
+                sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True)==S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+                True
+
+            An 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper :arxiv.`abs/0712.4131` where tau_i = i and tau_13 is labeled 0::
+
+                sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0])
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: gamma = S.arc([c[1-1],c[3-1],c[5-1]], user_labels=False)
+                sage: S.mutate([1-1,3-1,5-1], inplace=True)
+                sage: S.cluster_variable(5-1) == gamma
+                True
+
+            Affine A(2,2) triangulation from Figure 3 of Shiffler-Thomas' paper :arxiv:`abs/0712.4131` where tau_i = i and tau_8 is labeled 0::
+
+                sage: T = ClusterTriangulation([(7,4,3),(4,1,5),(3,6,2),(2,1,0)], boundary_edges=[5,6,7,0])
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: gamma = S.arc([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+                sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
+                sage: S.cluster_variable(2) == gamma
+                True
+                sage: S.mutation_type()
+                ['A', [2, 2], 1]
 
             sage: T= ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)
@@ -2371,11 +2413,6 @@ class ClusterSeed(SageObject):
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges
         CT = self._cluster_triangulation
 
-        #if user_labels:
-        #    return LaurentExpansionFromSurface(CT._triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-        #else:
-        #    return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs, CT._triangulation_dictionary)
             first_triangle = _get_weighted_edges(first_triangle, CT._triangulation_dictionary)
@@ -2384,37 +2421,59 @@ class ClusterSeed(SageObject):
 
     def loop(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
         """
-        See arc(). Return the expansion of given loop with respect to self.weighted_triangulation
-        Based on  http://arxiv.org/abs/1110.4364 sections 3.1-3.2:
-        Pick an orientation of the closed loop gamma and an ideal triangle tri0 (not a self-folded triangle) crossed gamma.
-        Let c2 be the second edge of tri0 that is crossed by gamma. (In above paper, Figure 9, this edge is labeled 'c').
-        Let crossed_arcs be a list of arcs that are crossed by gamma, where c2 is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=c2.
+        Return the Laurent expansion of a loop (living in the surface's interior) in the variables of ``self.cluster_triangulation().cluster()``.
+
+        See algorithm in :arxiv:``1110.4364`` sections 3.1-3.2::
+
+            #. Pick an orientation of the closed loop gamma and an ideal triangle Delta0 (not a self-folded triangle) crossed by gamma.
+            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of :arxiv:``1110.4364``, this edge is labeled ``c``).
+            #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
+
+        .. SEEALSO:: :meth:`arc`
+
+        INPUT:
+            - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+            - ``first_triangle`` -- (default:``None``) the first triangle crossed by loop
+            - ``final_triangle`` -- (default:``None``) the last triangle crossed by loop
+            - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the band graph if ``True``
+            - ``fig_size`` -- (default:4) image size
+            - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
         EXAMPLES::
-            ### Example 3.6 from Dupont - Thomas' ATOMIC BASES IN TYPES A AND AFFINE A
-            sage: T = ClusterTriangulation([(0,1,2),(0,1,3)], boundary_edges=[2,3])
-            sage: S = ClusterSeed(T)#, boundary_edges=[2,3])
-            sage: c = [item for item in S.cluster()]
-            sage: crossed_arcs = [ c[0], c[1], c[0] ] # loop z_1 with no self-intersection
-            sage: S.loop( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
-            (x0^2 + x1^2 + 1)/(x0*x1)
-            sage: crossed_arcs = [ c[0], c[1], c[0], c[1], c[0] ] # loop z_2 with 1 self-intersection
-            sage: S.loop(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
-            (x0^4 + x1^4 + 2*x0^2 + 2*x1^2 + 1)/(x0^2*x1^2)
 
-            # once-punctured square with 2 radii, border edges are labeled 4,5,6,7, see first triangulation in oral paper
-            sage: once_punctured_square = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7]) # Counterlockwise
-            sage: S = ClusterSeed(once_punctured_square)
-            sage: S.loop(crossed_arcs=[0,3,0], first_triangle = [0,3,6], user_labels=True) # Loop is contractible to a puncture, crossing two radii
-            2
+            Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+            where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.
+            We pick tau_1 to be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1] ::
+
+                sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+                sage: S = ClusterSeed(T)
+                sage: c = [item for item in S.cluster()]
+                sage: S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+                (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
+                sage: S.loop([1,2,3,0,1], user_labels=True) == S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+                True
+
+            Example 3.6 from Dupont - Thomas' Atomic Basis in Types A and Affine A :arXiv:`1106.3758`::
+
+                sage: T = ClusterTriangulation([(0,1,2),(0,1,3)], boundary_edges=[2,3])
+                sage: S = ClusterSeed(T)#, boundary_edges=[2,3])
+                sage: c = [item for item in S.cluster()]
+                sage: crossed_arcs = [c[0], c[1], c[0]] # loop z_1 with no self-intersection
+                sage: S.loop( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
+                (x0^2 + x1^2 + 1)/(x0*x1)
+                sage: crossed_arcs = [c[0], c[1], c[0], c[1], c[0]] # loop z_2 with 1 self-intersection
+                sage: S.loop(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
+                (x0^4 + x1^4 + 2*x0^2 + 2*x1^2 + 1)/(x0^2*x1^2)
+
+            Once-punctured square with 2 radii and boundary edges labeled 4,5,6,7 where the loop is contractible to the puncture::
+
+                sage: once_punctured_square = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
+                sage: S = ClusterSeed(once_punctured_square)
+                sage: S.loop(crossed_arcs=[0,3,0], first_triangle = [0,3,6], user_labels=True)
+                2
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges
         CT = self._cluster_triangulation
-
-        #if user_labels:
-        #    return LaurentExpansionFromSurface(CT._triangulation, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-        #else:
-        #    return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs, CT._triangulation_dictionary)

@@ -219,7 +219,7 @@ def _get_radius(noose,selffolded_triangles):
     raise ValueError('There is no self-folded triangles with noose ', noose)
 
 
-def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edges, arcs_count ):
+def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges, arcs_count):
     """
     Returns the matrix obtained from the edge list of a quiver (possibly with loops, two-cycles, multiply-listed edges).
     Slightly different from :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix`.
@@ -247,12 +247,12 @@ def _surface_edge_list_to_matrix( arrows, arcs_and_boundary_edges, boundary_edge
         for pos in range(0,len(arcs_and_boundary_edges)):
             tau = arcs_and_boundary_edges[pos]
             if tau not in boundary_edges:
-                arcs.append( tau )
+                arcs.append(tau)
 
     dic = []
     if len(arcs) == arcs_count:
         for pos in range(0,arcs_count):
-            dic.append( (arcs[pos], pos) )
+            dic.append((arcs[pos], pos))
 
 
     M = matrix(ZZ,arcs_count,arcs_count,sparse=True)
@@ -311,9 +311,9 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
     if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
         for pos in range(0,len(cluster)):
-            dic.append( (arcs[pos], cluster[pos]) )
+            dic.append((arcs[pos], cluster[pos]))
         for pos in range(0,len(boundary_edges_vars)):
-            dic.append( (boundary_edges[pos], boundary_edges_vars[pos]) )
+            dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded (triangle)
@@ -403,7 +403,7 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
             a = (false_or_r_r_ell[0],'counterclockwise')
             b = (false_or_r_r_ell[1],'clockwise')
             c = false_or_r_r_ell[2]
-        weighted_T.append( (a,b,c) )
+        weighted_T.append((a,b,c))
     return weighted_T
 
 
@@ -430,7 +430,7 @@ def _get_user_label_triangulation(T):
             a = (false_or_r_r_ell[0],'counterclockwise')
             b = (false_or_r_r_ell[1],'clockwise')
             c = false_or_r_r_ell[2]
-        informative_T.append( (a,b,c) )
+        informative_T.append((a,b,c))
     return informative_T
 
 ############# ENDING: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ##########
@@ -439,7 +439,7 @@ def _get_user_label_triangulation(T):
 ##########################################################################################
 ########################################### BEGINS: LAURENT EXPANSION ####################
 
-def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_triangle=None, is_arc=None, is_loop=None, verbose=False, boundary_edges=None, fig_size=4 ):
+def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_triangle=None, is_arc=None, is_loop=None, verbose=False, boundary_edges=None, fig_size=4):
     """
     This function is called by cluster_seed.py
 
@@ -475,7 +475,7 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
         raise ValueError('crossed_arcs should be a non-empty list object of cluster variable/s')
 
     G = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
-    MinMatching = GetMinimalMatching ( G )  # Return [['minimal PM'], [minimal matching with directions]]
+    MinMatching = GetMinimalMatching(G)  # Return [['minimal PM'], [minimal matching with directions]]
     tile_flip_max = fibonacci(len(G)+1) # We do not need this upper bound, but we do this to avoid infinite loop in case of a bug in the code
 
     old_matchings = []
@@ -483,7 +483,7 @@ def LaurentExpansionFromSurface( T, crossed_arcs, first_triangle=None, final_tri
 
     if len(crossed_arcs) == 1:
         horizontal_PM = [FlipTile(MinMatching[1][0])]
-        all_matchings =[MinMatching, [['maximal PM'], horizontal_PM] ]
+        all_matchings =[MinMatching, [['maximal PM'], horizontal_PM]]
     else:
         for loop_count in range(0,tile_flip_max):
             new_matchings = FlipAllFlippableTilesInList(current_matchings) # All tiles (except the ones that were flipped last) are flipped
@@ -578,7 +578,7 @@ def GetDenominator(G):
         sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)],boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
         sage: S = ClusterSeed(T)
         sage: c = [item for item in S.cluster()]
-        sage: BG = S.band_graph( [ c[1], c[2], c[3], c[0], c[1] ]) # Pick cut edge to be tau_1 = 1, go clockwise
+        sage: BG = S.band_graph([c[1], c[2], c[3], c[0], c[1]]) # Pick cut edge to be tau_1 = 1, go clockwise
         sage: GetDenominator(BG)
         x0*x1*x2*x3
     """
@@ -607,7 +607,7 @@ def ExtractWeight(tile, abcd, is_final_tile):
     Mathematica: rescatePositivo4
 
     Input:
-    tile -> a tile from a band/snake graph in the format [ [1,(x,y,z)],[2,(b,y,a),DIR ]]
+    tile -> a tile from a band/snake graph in the format [[1,(x,y,z)],[2,(b,y,a),DIR]]
     abcd -> (i1,i2,i3,i4) is a matching e.g. (1,0,0,0)
     is_final_tile -> True or False
 
@@ -662,7 +662,7 @@ def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
             if pos == len(partitioned_snakegraph)-1 :
                 is_final_tile = True
             abcd = PM[1][pos][0] # abcd = (bottom,right,top,left)
-            tile_weight = ExtractWeight(partitioned_snakegraph[pos], abcd, is_final_tile )
+            tile_weight = ExtractWeight(partitioned_snakegraph[pos], abcd, is_final_tile)
             tile_weights.append(tile_weight)
     else:
         print 'warning: see GetMonomialTerm'
@@ -759,7 +759,7 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
     # If only one arc tau of T is crossed, then we assign the two triangles
     # that have an edge tau to be first_triangle and final_triangle
     if len(crossed_arcs)==1 or (is_loop==True and len(crossed_arcs)==2):
-        [ first_triangle, final_triangle ] = \
+        [first_triangle, final_triangle] = \
         try_to_find_end_triangles_for_one_crossed_arc(T, crossed_arcs[0], first_triangle, final_triangle, is_arc, is_loop)
 
     # We try to determine first_triangle and final_triangle by tau_1, tau_2 and tau_{d-1} and tau_{d}
@@ -789,11 +789,11 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
 
 def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
     """
-    If curve is a not a loop, return a list [ (None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
+    If curve is a not a loop, return a list [(None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
     if tau_k is a radius that is crossed in a counterclockwise direction, then write:
-    ..., (tau_{k-1}, (tau_k,'counterclockwise) ), ( (tau_k, 'clockwise'), tau_{k+1}), ...
+    ..., (tau_{k-1}, (tau_k,'counterclockwise)), ((tau_k, 'clockwise'), tau_{k+1}), ...
     """
-    edges = [ (None, crossed_arcs[0])]
+    edges = [(None, crossed_arcs[0])]
     for k in range(0,len(crossed_arcs)-1): # k from 1 to d-1
         tau_k = crossed_arcs[k]
         tau_kplus1 = crossed_arcs[k+1]
@@ -801,12 +801,12 @@ def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
             tau_k_a_dir = edges[k][1][1]
             if tau_k_a_dir == 'clockwise':
                 tau_k = (tau_k[0],'counterclockwise')
-                #edges.append( (tau_k, tau_kplus1) )
+                #edges.append((tau_k, tau_kplus1))
             elif tau_k_a_dir == 'counterclockwise':
                 tau_k = (tau_k[0],'clockwise')
-        edges.append( (tau_k, tau_kplus1) ) # Gamma crosses triangle_k from tau_k to tau_kplus1
+        edges.append((tau_k, tau_kplus1)) # Gamma crosses triangle_k from tau_k to tau_kplus1
     tau_final = crossed_arcs[-1]
-    edges.append( (tau_final, None) )
+    edges.append((tau_final, None))
     return edges
 
 def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges):
@@ -863,11 +863,11 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 
     We build the snake graph by glueing d tiles:
     tile_k has tile_orientation = 1 if k is odd, -1 if k is even.
-    tile_1 = [ ( 1,(xa,xb,xc)),(2, (xd,xb,xe), ABOVE/RIGHT) ]
+    tile_1 = [(1,(xa,xb,xc)),(2, (xd,xb,xe), ABOVE/RIGHT)]
     where b = tau_1 (located in the middle of both triples) is the diagonal of tile_1
     and (xa,xb,xc) = triangle_0 and (xd,xb,xe) = triangle_1
 
-    tile_2 = [ ( -1, (xd,xe,xb) ),(-2, (xf,xe,xg), ABOVE/RIGHT) ]
+    tile_2 = [(-1, (xd,xe,xb)),(-2, (xf,xe,xg), ABOVE/RIGHT)]
     where e = tau_2 (located in the middle of both triples) is the diagonal of tile_2
 
     We insert negatively-oriented copies of triangle_1, ..., triangle_{d-1}
@@ -875,24 +875,24 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 
     CODING ALGORITHM::
 
-    G = [  ( 1,(triangle_0)=(xa,x_{tau_1},xc) ) ]
+    G = [(1,(triangle_0)=(xa,x_{tau_1},xc))]
 
     Loop through all crossed arcs tau_1, ..., tau_{d-1}:
         For each iteration k,
-        add ( 2 * tile_orientation , (triangle_k)=(xa,x_tau_k,xc), ABOVE/RIGHT),
+        add (2 * tile_orientation , (triangle_k)=(xa,x_tau_k,xc), ABOVE/RIGHT),
         the top triangle of tile_k
         (Note that the diagonal of tile_k is x_tau_k and is placed in the center)
 
-        Then add ( 1* -tile_orientation, (triangle_k)=(xa,x_tau_{k+1},xc)) ,
+        Then add (1* -tile_orientation, (triangle_k)=(xa,x_tau_{k+1},xc)) ,
         the bottom triangle of tile_{k+1}.
         (Note that the diagonal of tile_{k+1} is x_tau_{k+1} and is placed in the center)
 
-    Finally, add ( 2* -tile_orientation, (triangle_d)=(xa, x_tau_d, xc) )
+    Finally, add (2* -tile_orientation, (triangle_d)=(xa, x_tau_d, xc))
     """
     if boundary_edges != None and boundary_edges != []:
         for edge in boundary_edges:
             if edge in crossed_arcs:
-                raise ValueError( edge, ' is both a boundary edge and a crossed arc.')
+                raise ValueError(edge, ' is both a boundary edge and a crossed arc.')
 
     end_triangles = _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop)
     first_triangle = end_triangles[0]
@@ -906,9 +906,9 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     tau_first_a = edges[0][1] # The edge tau_k of triangle_0 (as opposed to triangle_1)
 
     tile_orientation = first_tile_orientation
-    tile_1_bottom = ( tile_orientation, _rearrange_triangle_for_snakegraph(first_triangle,tau_first_a, tile_orientation) )
+    tile_1_bottom = (tile_orientation, _rearrange_triangle_for_snakegraph(first_triangle,tau_first_a, tile_orientation))
 
-    out_snakegraph = [ tile_1_bottom ]
+    out_snakegraph = [tile_1_bottom]
     triangle_kmin1 = first_triangle # The very first triangle (bottom half of the first tile)
 
     for k in range(1,len(edges)-1):
@@ -925,13 +925,13 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
         else:
             tile_direction = ABOVE
 
-        top_triangle_of_tile_k = ( 2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction )
+        top_triangle_of_tile_k = (2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction)
 
         # Tile k+1 will have opposite orientation as tile k
         tile_orientation = tile_orientation * (-1)
 
         bottom_triangle_of_tile_kplus1 = \
-        ( tile_orientation, _rearrange_triangle_for_snakegraph(triangles[k], tau_kplus1_a ,tile_orientation) )
+        (tile_orientation, _rearrange_triangle_for_snakegraph(triangles[k], tau_kplus1_a ,tile_orientation))
 
         # tau_kplus1_b
         out_snakegraph.extend([top_triangle_of_tile_k, bottom_triangle_of_tile_kplus1])
@@ -952,10 +952,10 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
         #if isinstance(tau_kplus1_a,tuple):
         #    tile_direction = RIGHT
 
-    top_triangle_of_tile_d = ( 2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction )
+    top_triangle_of_tile_d = (2*tile_orientation, rearranged_top_triangle_with_orientation, tile_direction)
     out_snakegraph.append(top_triangle_of_tile_d)
 
-    return PartitionIntoTuples( out_snakegraph )
+    return PartitionIntoTuples(out_snakegraph)
 
 def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
     """
@@ -1109,7 +1109,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
                     raise ValueError('Incorrect input. User inputs an end triangle ', first_or_final, ' triangle: ', input_triangle, ' but it should be ', triangle0[0])
             return triangle0[0]
         elif len(triangle0) > 2 :
-            raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1 )
+            raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1)
 
     elif N == 2:
         if input_triangle!=None:
@@ -1317,16 +1317,16 @@ def GetMinimalMatching(G):
     graph_directions = snake_graph_tile_directions(G)
 
     if len(graph_directions) == 1: # If curve crosses the triangulation once
-        return [['minimal PM'], [[(1, 0, 1, 0), graph_directions[0]] ]]
+        return [['minimal PM'], [[(1, 0, 1, 0), graph_directions[0]]]]
 
-    initial_matching = [ [ _minimal_matching_first_tile(graph_directions[0]), graph_directions[0]] ]
+    initial_matching = [[_minimal_matching_first_tile(graph_directions[0]), graph_directions[0]]]
 
     # Continue assigning minimal matching for the rest of the tiles, except the final tile
     for pos in range(1,len(graph_directions)-1):
        # The edges that we have marked so far (from the previous tile)
        last_marking_in_list = initial_matching[-1][0]
        current_tile_mark = _minimal_matching_current_tile(graph_directions[pos-1],graph_directions[pos], last_marking_in_list)
-       initial_matching.append([ current_tile_mark, graph_directions[pos] ])
+       initial_matching.append([current_tile_mark, graph_directions[pos]])
 
     last_marking_in_list = initial_matching[-1][0]
     penultimate_direction = graph_directions[-2]
@@ -1351,7 +1351,7 @@ def snake_graph_tile_directions(G):
         sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
         sage: S = ClusterSeed(T)
         sage: c = [item for item in S.cluster()]
-        sage: G = _snake_graph (S._cluster_triangulation._weighted_triangulation, [ c[1], c[2], c[3], c[0], c[1] ], None, None, False, True, 1, None)
+        sage: G = _snake_graph (S._cluster_triangulation._weighted_triangulation, [c[1], c[2], c[3], c[0], c[1]], None, None, False, True, 1, None)
         sage: snake_graph_tile_directions (G)
         ['ABOVE', 'RIGHT', 'RIGHT', 'ABOVE']
     """
@@ -1361,7 +1361,7 @@ def snake_graph_tile_directions(G):
         directions.append(direction)
     return directions
 
-def _minimal_matching_first_tile( DIR ):
+def _minimal_matching_first_tile(DIR):
     """
     Mathematica: funAuxA
 
@@ -1508,9 +1508,9 @@ def FlipAllFlippableTiles(input_tiles):
 
     Input:
     input_tiles ->
-    [ [the indices of the tiles that were last flipped], [matching information] ]
+    [[the indices of the tiles that were last flipped], [matching information]]
     If input_tiles are the minimum matching, then it looks like
-    [ ['minimal PM'], [minimal matching] ]
+    [['minimal PM'], [minimal matching]]
 
     Flip all tiles that can be flipped and return new matchings.
     Record the indices of the tiles that we flip.
@@ -1524,21 +1524,21 @@ def FlipAllFlippableTiles(input_tiles):
     last_flipped_tiles = input_tiles[0] # Tiles that we will not flip this time
     tiles = input_tiles[1]
 
-    # The list of tile markings [ (a, b, c, d), (e, f, g, h), ...], without RIGHT or ABOVE information
+    # The list of tile markings [(a, b, c, d), (e, f, g, h), ...], without RIGHT or ABOVE information
     list_tile_marks_without_directions = [tile[0] for tile in tiles]
 
-    #horizonal_tiles_indices = [positions of list_tile_marks_without_directions that match [1,0,1,0] ]
+    #horizonal_tiles_indices = [positions of list_tile_marks_without_directions that match [1,0,1,0]]
     if (1,0,1,0) in list_tile_marks_without_directions:
-        horizonal_indices = [list_tile_marks_without_directions.index( (1,0,1,0) )]
+        horizonal_indices = [list_tile_marks_without_directions.index((1,0,1,0))]
         for pos in range(horizonal_indices[0]+1,len(list_tile_marks_without_directions)):
             if list_tile_marks_without_directions[pos]==(1,0,1,0):
                 horizonal_indices.append(pos)
     else:
         horizonal_indices = []
 
-    #vertical_tiles_indices = [ positions of list_tile_marks_without_directions that match (0,1,0,1) ]
+    #vertical_tiles_indices = [positions of list_tile_marks_without_directions that match (0,1,0,1)]
     if (0,1,0,1) in list_tile_marks_without_directions:
-        vertical_indices = [list_tile_marks_without_directions.index( (0,1,0,1) )]
+        vertical_indices = [list_tile_marks_without_directions.index((0,1,0,1))]
         for pos in range(vertical_indices[0]+1,len(list_tile_marks_without_directions)):
             if list_tile_marks_without_directions[pos]==(0,1,0,1):
                 vertical_indices.append(pos)
@@ -1567,7 +1567,7 @@ def FlipAllFlippableTiles(input_tiles):
                 next_tile_direction = next_tile[1]
                 NextTileMark = next_tile[0]
                 NextTileMark = GetNextTileMarking(current_tile[0],current_tile[1], NextTileMark)
-                flipped_next_tile = [ NextTileMark, next_tile_direction]
+                flipped_next_tile = [NextTileMark, next_tile_direction]
                 new_matching[current_tile_pos+1] = flipped_next_tile
 
             if current_tile_pos > 0:
@@ -1575,7 +1575,7 @@ def FlipAllFlippableTiles(input_tiles):
                 previous_tile_direction = previous_tile [1]
                 PreviousTileMark = previous_tile[0]
                 PreviousTileMark = GetPreviousTileMarking(previous_tile_direction, current_tile[0], PreviousTileMark)
-                flipped_previous_tile =[ PreviousTileMark, previous_tile_direction ]
+                flipped_previous_tile =[PreviousTileMark, previous_tile_direction]
                 new_matching[current_tile_pos-1] = flipped_previous_tile
 
             new_matching_with_last_flipped_tile = [[current_tile_pos], new_matching]
@@ -1612,10 +1612,10 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     Mathematica: comparo1A1
 
     Input:
-    current_matching -> [ [last flipped tiles of current matching], [current matching] ]
+    current_matching -> [[last flipped tiles of current matching], [current matching]]
     to_compare_matching -> another matching that may or may not be equal to current_matching
 
-    Return [ [indices of last flipped tiles which may include new indices if to_compare_matching has the same matching],[current matching] ]
+    Return [[indices of last flipped tiles which may include new indices if to_compare_matching has the same matching],[current matching]]
 
     EXAMPLES::
 
@@ -1626,7 +1626,7 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     if current_matching[1] == to_compare_matching[1]: # If the two input matchings have the same marks {a,b,c,d}
         last_flipped_tiles = UniqueList(current_matching[0] + to_compare_matching[0])
         last_flipped_tiles.sort()
-    return [ last_flipped_tiles, current_matching[1]]
+    return [last_flipped_tiles, current_matching[1]]
 
 def GetNextTileMarking(tile,DIR, NextTileMark):
     """
@@ -1645,13 +1645,13 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
     b = NextTileMark[1]
     c = NextTileMark[2]
     d = NextTileMark[3]
-    if [tile,DIR] == [ (1,0,1,0), RIGHT]:
+    if [tile,DIR] == [(1,0,1,0), RIGHT]:
         return (a, b, c, 1)
-    if [tile,DIR] == [ (1,0,1,0), ABOVE]:
+    if [tile,DIR] == [(1,0,1,0), ABOVE]:
         return (0, b, c, d)
-    if [tile,DIR] == [ (0, 1, 0, 1), RIGHT]:
+    if [tile,DIR] == [(0, 1, 0, 1), RIGHT]:
         return (a, b, c, 0)
-    if [tile,DIR] == [ (0, 1, 0, 1), ABOVE]:
+    if [tile,DIR] == [(0, 1, 0, 1), ABOVE]:
         return (1, b, c, d)
 
 def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
@@ -1695,9 +1695,9 @@ def FlipTile(tile_info):
     mark = tile_info[0]
     DIR = tile_info[1]
     if mark == (1, 0, 1, 0):
-        return [ (0, 1, 0, 1), DIR]
+        return [(0, 1, 0, 1), DIR]
     if mark == (0, 1, 0, 1):
-        return [ (1, 0, 1, 0), DIR]
+        return [(1, 0, 1, 0), DIR]
 
 ##########################################################################################
 ####### ENDS: FUNCTIONS THAT CREATE ALL PERFECT MATCHINGS FROM THE MINIMAL MATCHING ######
@@ -1761,7 +1761,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
 
     edges = _list_of_tau_k_and_tau_kplus1 (T, crossed_arcs)
     triangles = _list_triangles_crossed_by_curve (T, crossed_arcs, first_triangle, final_triangle, edges)
-    triangles_to_draw = [ _triangle_to_draw(triangles[0], 'pyramid', edges[0][1], 'right') ]
+    triangles_to_draw = [_triangle_to_draw(triangles[0], 'pyramid', edges[0][1], 'right')]
 
     for k in range(1,len(triangles)):
         tau = edges[k][0]
@@ -1781,7 +1781,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
                 placement = 'right'
             else:
                 raise ValueError ('Bug? odd k= ', k ,' tau_k = ', tau, 'triangle_kmin1: ', triangle_kmin1)
-            triangles_to_draw.append(_triangle_to_draw(triangles[k], 'upsidedown triangle', tau, placement, test_k=k) )
+            triangles_to_draw.append(_triangle_to_draw(triangles[k], 'upsidedown triangle', tau, placement, test_k=k))
 
         elif k % 2 == 0:
             if triangle_kmin1 ['top'] in [tau, other_side_of_radius]:
@@ -1792,7 +1792,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
                 placement = 'left'
             else:
                 raise ValueError ('Bug? even k= ', k, ' tau_k = ', tau, 'triangle_kmin1: ', triangle_kmin1)
-            triangles_to_draw.append(_triangle_to_draw(triangles[k], 'pyramid', tau, placement, test_k=k) )
+            triangles_to_draw.append(_triangle_to_draw(triangles[k], 'pyramid', tau, placement, test_k=k))
     return triangles_to_draw
 
 def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
@@ -1815,7 +1815,8 @@ def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
     drawing = drawing + _draw_triangle (lifted_polygon[0],x,y, 0)
 
     if is_arc:
-        drawing = drawing + line([(x-2,y-2),(x+1,y-1)],linestyle = curve_style, rgbcolor='red')#, thickness=curve_thickness) # from left corner to right edge of pyramid
+        #drawing = drawing + line([(x-2,y-2),(x+1,y-1)],linestyle = curve_style, rgbcolor='red')#, thickness=curve_thickness) # from left corner to right edge of pyramid
+        drawing = drawing + arrow2d((x-2,y-2),(x+1,y-1),linestyle = curve_style, rgbcolor='red')#, thickness=curve_thickness) # from left corner to right edge of pyramid
     elif is_loop:
         drawing = drawing + line([(x,y-1),(x+1,y-1)],linestyle = curve_style, rgbcolor='red')#, thickness=curve_thickness) # from center of pyramid to right edge of pyramid
 

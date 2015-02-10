@@ -1,13 +1,14 @@
 r"""
 ClusterTriangulation
 
-An *cluster triangulation* (see :arxiv:`math/0608367`) is an ideal triangulation, i.e. a maximal collection of distinct non-crossing arcs.
+An *cluster triangulation* (see :arxiv:`math/0608367`) is a subset of an ideal triangulation, i.e. a maximal collection of distinct non-crossing arcs.
 An ideal triangulation of a surface with marked points (S,M) is associated to a seed of a cluster algebra arising from (S,M).
 
 .. SEEALSO::
 
-Cluster triangulations are closely related to :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`
-and :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
+    Cluster triangulations closely interact with
+    :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`,
+    :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterQuiver`,
 """
 
 from sage.structure.sage_object import SageObject
@@ -95,11 +96,11 @@ class ClusterTriangulation(SageObject):
             sage: ClusterSeed(T).mutation_type()
             'undetermined finite mutation type'
 
-            sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1] )
+            sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1])
             sage: T
             An ideal triangulation associated with cluster algebra of rank 6 with 1 boundary edges
 
-            sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)] )
+            sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)])
             sage: T
             An ideal triangulation associated with cluster algebra of rank 7
 
@@ -113,6 +114,10 @@ class ClusterTriangulation(SageObject):
             sage: S
             'undetermined finite mutation type'
 
+            Triangles do not need to be connected::
+                sage: T = ClusterTriangulation([(1,2,3),(3,4,5),(1,5,6),(10,20,30),(30,40,50)])
+                sage: ClusterSeed(T).mutation_type()
+                [ ['D', 6], ['A', 5] ]
     """
     def __init__(self, data, boundary_edges=None):
         """
@@ -120,7 +125,6 @@ class ClusterTriangulation(SageObject):
 
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
             sage: TestSuite(CT).run() # what CT should I put here? (todo)
-
         """
         from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_user_label_triangulation, _get_weighted_triangulation
         from sage.rings.all import QQ
@@ -170,7 +174,7 @@ class ClusterTriangulation(SageObject):
             False
 
             sage: CT2 = ClusterTriangulation([('aa','dd','cc'), ('aa','ll','bb'), ('rr','rr','ll'),('bb','ff','ee')], boundary_edges=['ee','dd','cc','ff'])
-            sage: CT.__eq__( CT2 )
+            sage: CT.__eq__(CT2)
             True
         """
         return isinstance(other, ClusterTriangulation) and self._weighted_triangulation == other._weighted_triangulation
@@ -181,7 +185,7 @@ class ClusterTriangulation(SageObject):
 
         EXAMPLES::
 
-            sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)] )
+            sage: T = ClusterTriangulation([(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)])
             sage: T._repr_()
             'An ideal triangulation associated with cluster algebra of rank 7'
         """
@@ -252,7 +256,6 @@ class ClusterTriangulation(SageObject):
             sage: B.mutate(2)
             sage: Bmu3 == B
             True
-
         """
         return self._M
 
@@ -306,7 +309,6 @@ class ClusterTriangulation(SageObject):
             sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
             sage: T.boundary_edges_vars()
             [b4, b5, b6, b7]
-
         """
         return self._boundary_edges_vars
 
