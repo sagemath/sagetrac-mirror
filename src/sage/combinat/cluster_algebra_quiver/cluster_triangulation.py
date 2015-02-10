@@ -20,6 +20,7 @@ class ClusterTriangulation(SageObject):
     INPUT:
 
     - ``data`` -- can be any of the following::
+
         * List of triangles - must be the list of 3-tuples (i.e. edge labels of a triangle) from an ideal triangulation (see Examples)
 
     .. TODO::
@@ -115,6 +116,7 @@ class ClusterTriangulation(SageObject):
             'undetermined finite mutation type'
 
             Triangles do not need to be connected::
+
                 sage: T = ClusterTriangulation([(1,2,3),(3,4,5),(1,5,6),(10,20,30),(30,40,50)])
                 sage: ClusterSeed(T).mutation_type()
                 [ ['D', 6], ['A', 5] ]
@@ -320,10 +322,10 @@ class ClusterTriangulation(SageObject):
 
         EXAMPLES::
 
-            Figure 10 (bottom) of :arxiv:`math/0608367`::
+             2 self-folded triangles and 1 triangle with one vertex (affine D), Figure 10 (bottom) of :arxiv:`math/0608367`::
 
                 sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
-                sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
+                sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
                 sage: T.triangulation_dictionary()
                 [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
         """
@@ -426,6 +428,7 @@ class ClusterTriangulation(SageObject):
         then the direction for the last tile does not mean anything
 
         EXAMPLES::
+
             Figure 8 of Musiker - Schiffler - Williams' "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364` such that:
             the arc gamma crosses arcs  arelabeled 1,2,3,4,1;
             outer boundary edges, clockwise starting from starting point of gamma are labeled: 7,8,9, 10;
