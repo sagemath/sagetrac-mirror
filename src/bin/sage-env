@@ -27,6 +27,44 @@
 ##########################################################################
 
 
+# sage_export <varname> [<value>]
+#
+# If <value> is given, sets <varname> to <value> and exports the variable.
+# Furthermore, if this hasn't been done before, saves the original value of
+# <varname> in the variable SAGE_SAVED_$varname (if <varname> was unset, then this
+# is taken into account as well).
+#
+# If <value> is not given, then <varname> is exported and its value and, if this
+# hasn't been done before, its value is saved in the same way as above.
+# (note that exporting an unset variable preserves its unset status)
+#
+# The fact that the variable has been stored is recorded by appending
+# <varname> to the exported environment variable $SAGE_SAVED_ENVIRONMENT_VARIABLES
+#
+# See sage-native execute for sage_restore, which restores the values of variables
+# saved by sage_export.
+#
+# AUTHORS: Nils Bruin, Thierry Monteil 
+
+sage_export ()
+{
+    local varname="$1"
+    local backup="SAGE_SAVED_$varname"
+    if [ "x$SAGE_ENVIRONMENT_VARIABLES" == "x${SAGE_ENVIRONMENT_VARIABLES/$varname}" ]; then
+        export SAGE_ENVIRONMENT_VARIABLES+=":$varname"
+        if [ -z ${!varname+x} ]; then
+            export ${backup}
+        else
+            export $backup="${!varname}"
+        fi
+    fi
+    if (( $# > 1 )); then
+        export $varname="$2"
+    else
+        export $varname
+    fi
+}
+
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
 # absolute path (a relative path remains relative), nor does it treat
@@ -254,11 +292,7 @@ export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC="$SAGE_SRC/doc"
 
-if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
-    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
-    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
-fi 
-export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+sage_export PATH "$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -283,11 +317,13 @@ fi
 
 # Compile-time path for libraries.  This is the equivalent of
 # adding the gcc option -L $SAGE_LOCAL/lib.
+sage_export LIBRARY_PATH
 [ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
 export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
 
 # Compile-time path for include files.  This is the equivalent of
 # adding the gcc option -I $SAGE_LOCAL/include.
+sage_export CPATH
 [ -z "$CPATH" ] || CPATH="${CPATH}:"
 export CPATH="${CPATH}$SAGE_LOCAL/include"
 
@@ -300,17 +336,17 @@ if [ -n "$MULTI_ARCH" ]; then
 fi
 
 # For PARI/GP
-GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
-GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
-GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
+sage_export GP_DATA_DIR "$SAGE_LOCAL/share/pari"
+sage_export GPHELP "$SAGE_LOCAL/bin/gphelp"
+sage_export GPDOCDIR "$SAGE_LOCAL/share/pari/doc"
 
 # Allow git to work without warning messages after relocating Sage.
 # See trac #15901.
-GIT_TEMPLATE_DIR="$SAGE_LOCAL"/share/git-core/templates && export GIT_TEMPLATE_DIR
-GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
+sage_export GIT_TEMPLATE_DIR "$SAGE_LOCAL"/share/git-core/templates
+sage_export GIT_EXEC_PATH "$SAGE_LOCAL"/libexec/git-core
 
-SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+sage_export SINGULARPATH "$SAGE_LOCAL/share/singular"
+sage_export SINGULAR_EXECUTABLE "$SAGE_LOCAL/bin/Singular"
 
 if [ "$SAGE_SERVER" = "" ]; then
     SAGE_SERVER="http://www.sagemath.org/"
@@ -363,31 +399,24 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
+sage_export IPYTHONDIR `find "$SAGE_SPKG_INST" -name "ipython*"`
 if [ -n "$IPYTHONDIR" ]; then
     export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
 fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then
-    PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
-    export PYTHON_EGG_CACHE
+    sage_export PYTHON_EGG_CACHE "$DOT_SAGE/.python-eggs"
 fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+    sage_export PYTHONPATH "$SAGE_ROOT/local/lib/python"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
-    PYTHONHOME="$SAGE_ROOT/local"
-    export PYTHONPATH
-    export PYTHONHOME
+    sage_export PYTHONHOME "$SAGE_ROOT/local"
 fi
 
-if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
-    SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
-    SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
-fi
-
+sage_export LD_LIBRARY_PATH
 # Add some directories to $LD_LIBRARY_PATH:
 # * lib/openmpi is needed for openmpi.
 # * lib/R/lib is needed for R in case the Sage install is moved.
@@ -400,16 +429,11 @@ for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
         LD_LIBRARY_PATH="${libdir}$LD_LIBRARY_PATH"
     fi
 done
-export LD_LIBRARY_PATH
 
 # The following is needed for OS X (especially for the
 # Singular install).
 if [ `uname` = "Darwin" ]; then
-    if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
-        SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
-        SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
-    fi
-    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
+    sage_export DYLD_LIBRARY_PATH "$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib"
 fi
 
 # Use a matplotlib config directory specific to Sage and specific to
@@ -420,16 +444,17 @@ fi
 "$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
     MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
-    MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
-    export MPLCONFIGDIR
+    sage_export MPLCONFIGDIR "$DOT_SAGE/matplotlib-$MPLVERSION"
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
 # Unset these variables which interfere with R
+sage_export R_HOME
+sage_export R_PROFILE
 unset R_HOME
 unset R_PROFILE
 
-MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+sage_export MAXIMA_PREFIX "$SAGE_ROOT/local"
 
 ############ architecture flags
 
@@ -446,12 +471,17 @@ MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 # it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
 # CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
 # Currently, this information is of no use to us so we discard it.
-export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
+sage_export UNAME `uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
 export __sage__=""
+
+sage_export CC
+sage_export CPP
+sage_export CXX
+sage_export FC
 
 # Set the C and C++ compilers
 if [ -z "$CC" ]; then
@@ -505,21 +535,21 @@ fi
 if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
     FC=gfortran
 fi
-export CC CPP CXX FC
 
 # Set other Fortran-related compiler variables
-export F77="$FC"
-export F90="$FC"   # Needed for SciPy
-export F95="$FC"
+sage_export F77 "$FC"
+sage_export F90 "$FC"   # Needed for SciPy
+sage_export F95 "$FC"
 
 # Setup env varariables if ccache is installed
 if [ -d "$SAGE_LOCAL/libexec/ccache" ]; then
     PATH="$SAGE_LOCAL/libexec/ccache:$PATH"
 fi
 if [ -z "$CCACHE_BASEDIR" ]; then
-    export CCACHE_BASEDIR="$SAGE_ROOT"
+    sage_export CCACHE_BASEDIR "$SAGE_ROOT"
 fi
 
+sage_export AS
 # Set AS to assembler used by $CC ("as" by default)
 if [ "$AS" = "" ]; then
     CC_as=`$CC -print-file-name=as 2>/dev/null`
@@ -530,9 +560,9 @@ if [ "$AS" = "" ]; then
         AS=as
     fi
 fi
-export AS
 
 # Set LD to linker used by $CC ("ld" by default)
+sage_export LD
 if [ "$LD" = "" ]; then
     CC_ld=`$CC -print-file-name=ld 2>/dev/null`
     if command -v $CC_ld >/dev/null 2>/dev/null; then
@@ -542,7 +572,6 @@ if [ "$LD" = "" ]; then
         LD=ld
     fi
 fi
-export LD
 
 
 if [ "$AR" = "" ]; then
@@ -603,7 +632,7 @@ if [ "$UNAME" = "CYGWIN" ]; then
 fi
 
 # See trac 7186 -- this is needed if ecl is moved
-ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
+sage_export ECLDIR "$SAGE_LOCAL/lib/ecl/"
 
 # Handle parallel building/testing/...
 # See Trac Ticket #12016
@@ -658,4 +687,4 @@ fi
 # If we move the Sage tree then ncurses cannot find terminfo, hence, we
 # tell it where to find it. See Trac Ticket #15091
 
-export TERMINFO="$SAGE_LOCAL/share/terminfo"
+sage_export TERMINFO "$SAGE_LOCAL/share/terminfo"
