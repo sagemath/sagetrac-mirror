@@ -2,14 +2,14 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
-import sage.misc.misc as misc
-
 include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
+
+from sage.misc.all import prod
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -287,7 +287,7 @@ cdef class MPolynomial(CommutativeRingElement):
         n = len(x)
         expr = fast_float_constant(0)
         for (m,c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
 
@@ -329,7 +329,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         expr = etb.constant(self.base_ring()(0))
         for (m, c) in self.dict().iteritems():
-            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0],
+            monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
             expr = expr + monom
         return expr
@@ -472,7 +472,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: t,s = R.gens()
             sage: x,y,z = R.base_ring().gens()
             sage: (x+y+2*z*s+3*t)._mpoly_dict_recursive(['z','t','s'])
-            {(1, 0, 1): 2, (0, 1, 0): 3, (0, 0, 0): x + y}
+            {(0, 0, 0): x + y, (0, 1, 0): 3, (1, 0, 1): 2}
 
         TESTS::
 
@@ -1091,7 +1091,6 @@ cdef class MPolynomial(CommutativeRingElement):
         p = k.characteristic()
         e = k.degree()
         v = [self] + [self.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,e)]
-        from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
     def sylvester_matrix(self, right, variable = None):

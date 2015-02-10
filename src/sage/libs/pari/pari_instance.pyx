@@ -166,11 +166,11 @@ cimport libc.stdlib
 cimport cython
 
 from sage.structure.parent cimport Parent
+from sage.libs.flint.fmpz cimport fmpz_get_mpz
+from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
-from sage.libs.pari.handle_error cimport pari_error_string, \
-        _pari_init_error_handling, _pari_check_warning, \
-        _pari_handle_exception, _pari_err_recover
+from sage.libs.pari.handle_error cimport _pari_init_error_handling
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -368,24 +368,6 @@ cdef void sage_puts(char* s):
 cdef void sage_flush():
     sys.stdout.flush()
 
-cdef PariOUT sage_pariErr
-
-cdef void sage_pariErr_putchar(char c):
-    cdef char s[2]
-    s[0] = c
-    s[1] = 0
-    global pari_error_string
-    pari_error_string += str(s)
-    pari_set_last_newline(1)
-
-cdef void sage_pariErr_puts(char *s):
-    global pari_error_string
-    pari_error_string += str(s)
-    pari_set_last_newline(1)
-
-cdef void sage_pariErr_flush():
-    pass
-
 
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
@@ -454,11 +436,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariOut.putch = sage_putchar
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
-
-        pariErr = &sage_pariErr
-        pariErr.putch = sage_pariErr_putchar
-        pariErr.puts = sage_pariErr_puts
-        pariErr.flush = sage_pariErr_flush
 
         # Display only 15 digits
         self._real_precision = 15
@@ -889,7 +866,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         return objtogen(s)
 
-    cdef GEN _new_GEN_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
+    cdef GEN _new_GEN_from_fmpz_mat_t(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc):
         r"""
         Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
         from a ``mpz_t**``.
@@ -900,13 +877,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN x
         cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
+        cdef mpz_t tmp
+        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                x = self._new_GEN_from_mpz_t(B[i][j])
+                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,j))
+                x = self._new_GEN_from_mpz_t(tmp)
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
-    cdef GEN _new_GEN_from_mpz_t_matrix_rotate90(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
+    cdef GEN _new_GEN_from_fmpz_mat_t_rotate90(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc):
         r"""
         Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
         from a ``mpz_t**`` and rotate the matrix 90 degrees
@@ -920,13 +900,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN x
         cdef GEN A = zeromatcopy(nc, nr)
         cdef Py_ssize_t i, j
+        cdef mpz_t tmp
+        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                x = self._new_GEN_from_mpz_t(B[i][nc-j-1])
+                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,nc-j-1))
+                x = self._new_GEN_from_mpz_t(tmp)
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
-    cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+    cdef gen integer_matrix(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
         """
         EXAMPLES::
 
@@ -936,9 +919,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         cdef GEN g
         if permute_for_hnf:
-            g = self._new_GEN_from_mpz_t_matrix_rotate90(B, nr, nc)
+            g = self._new_GEN_from_fmpz_mat_t_rotate90(B, nr, nc)
         else:
-            g = self._new_GEN_from_mpz_t_matrix(B, nr, nc)
+            g = self._new_GEN_from_fmpz_mat_t(B, nr, nc)
         return self.new_gen(g)
 
     cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
