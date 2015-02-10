@@ -20,6 +20,11 @@ def are_triangles_equal(triangleA, triangleB):
     """
     If triangles are equal (including orientation), return True. Otherwise return False
 
+    INPUT:
+
+    - ``triangleA`` -- a 3-tuple (or list of length 3) of labels of a triangle (with at least 2 unique labels)
+    - ``triangleB`` -- a 3-tuple (or list of length 3) of labels of a triangle (with at least 2 unique labels)
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import are_triangles_equal
@@ -42,6 +47,10 @@ def are_triangles_equal(triangleA, triangleB):
 def is_selffolded(t):
     """
     Returns whether a list of three elements or a 3-tuple has only two distinct entries
+
+    INPUT:
+
+    - ``t`` -- a 3-tuple (or list of length 3) of labels of a triangle (with at least 2 unique labels)
 
     EXAMPLES::
 
@@ -75,6 +84,12 @@ def remove_duplicate_triangles(data,boundary_edges=None):
     In case user accidentally inputs a duplicate triangle, we remove the duplicate.
     For example, if user inputs triangles 1 => 2 => 3 => 1, it will turn into 1 ->2 -> 3 ->1
     The only exception: The once-punctured torus' triangulation has two triangles with identical labels.
+
+    See :class:``ClusterQuiver``
+
+    INPUT:
+
+    - ``data`` -- a list of 3-tuples (or lists of length 3) of triangles
 
     EXAMPLES::
 
@@ -114,6 +129,12 @@ def _triangulation_to_arrows(list_triangles):
     if t=[a,b,c] has distinct edges, add cycles a->b->c->a
     if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b,
     add the same directed edge between r and b.
+
+    See :class:``CluserQuiver``
+
+    INPUT:
+
+    - ``list_triangles`` -- a list of triangles, i.e. a 3-tuple (or a list of length 3) with at least 2 unique labels
 
     EXAMPLES::
 
@@ -206,6 +227,13 @@ def _get_radius(noose,selffolded_triangles):
     """
     Return the radius of the self-folded triangle with input noose from the list
     selffolded_triangles is a list in the form of [[radiusA, radiusA, nooseA], [radiusB, radiusB, nooseB], ...]
+
+    See :func:``~sage.combinat.cluster_algebra_quiver.surface._triangulation_to_arrows``
+
+    INPUT:
+
+    - ``noose`` -- a string or number
+    - ``self-folded triangles`` -- a list of 3-tuples
 
     EXAMPLES::
 
@@ -576,9 +604,8 @@ def GetDenominator(G):
         #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
         sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)],boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
-        sage: S = ClusterSeed(T)
-        sage: c = [item for item in S.cluster()]
-        sage: BG = S.band_graph([c[1], c[2], c[3], c[0], c[1]]) # Pick cut edge to be tau_1 = 1, go clockwise
+        sage: c = [item for item in T.cluster()]
+        sage: BG = T.band_graph([c[1], c[2], c[3], c[0], c[1]]) # Pick cut edge to be tau_1 = 1, go clockwise
         sage: GetDenominator(BG)
         x0*x1*x2*x3
     """
@@ -652,7 +679,7 @@ def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
     Return monomial term for the input perfect matching
     """
     tile_weights = []
-    if boundary_edges == None:
+    if boundary_edges is None:
         boundary_edges = []
 
     if len(partitioned_snakegraph) == len(PM[1]): # this should always be equal
@@ -749,7 +776,7 @@ ABOVE = 'ABOVE'
 def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
     if (is_arc,is_loop) == (True, True) or (is_arc,is_loop) == (False, False):
         raise ValueError('is_arc and is_loop cannot have the same value')
-    if is_loop == True:
+    if is_loop:
         if len(crossed_arcs) < 2:
             raise ValueError('Since gamma is a loop, user needs to specify at least two crossing arcs.',\
             'If gamma only crosses one arc tau, then enter [tau,tau]')
@@ -764,26 +791,28 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
 
     # We try to determine first_triangle and final_triangle by tau_1, tau_2 and tau_{d-1} and tau_{d}
     else:
-        if is_loop == True:
-            if first_triangle != None and final_triangle == None:
+        if is_loop:
+            if not(first_triangle is None) and final_triangle is None:
                 final_triangle = first_triangle
-            elif first_triangle == None and final_triangle != None:
+            elif first_triangle is None and not(final_triangle is None):
                 first_triangle = final_triangle
 
         #if first_triangle == None:
         first_triangle = try_to_find_end_triangle(T,crossed_arcs, 'First', is_arc, is_loop, first_triangle)
 
-        if is_loop == True and final_triangle == None:
+        #if is_loop == True and final_triangle == None:
+        if is_loop and final_triangle is None:
             final_triangle = first_triangle
 
         #if final_triangle == None:
         final_triangle = try_to_find_end_triangle(T,crossed_arcs, 'Final', is_arc, is_loop, final_triangle)
 
-        if is_loop == True:
-            if are_triangles_equal(first_triangle, final_triangle) == False:
+        if is_loop:
+            #if are_triangles_equal(first_triangle, final_triangle) == False:
+            if not are_triangles_equal(first_triangle, final_triangle):
                 raise ValueError('Input error. Gamma is a loop, but first_triangle = ', first_triangle, ' is not equal',\
                 ' final_triangle = ', final_triangle)
-    if first_triangle == None or final_triangle == None:
+    if first_triangle is None or final_triangle is None:
         raise ValueError('Error. [first_triangle,final_triangle] = ', [first_triangle,final_triangle])
     return [first_triangle,final_triangle]
 
@@ -889,7 +918,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 
     Finally, add (2* -tile_orientation, (triangle_d)=(xa, x_tau_d, xc))
     """
-    if boundary_edges != None and boundary_edges != []:
+    if not(boundary_edges is None) and boundary_edges != []:
         for edge in boundary_edges:
             if edge in crossed_arcs:
                 raise ValueError(edge, ' is both a boundary edge and a crossed arc.')
@@ -898,7 +927,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     first_triangle = end_triangles[0]
     final_triangle = end_triangles[1]
 
-    if is_loop == True:
+    if is_loop:
         crossed_arcs = crossed_arcs[0:len(crossed_arcs)-1] # If loop, remove tau_final, which is equal to tau_1
     edges = _list_of_tau_k_and_tau_kplus1(T, crossed_arcs)
     triangles = _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges)
@@ -943,7 +972,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     rearranged_top_triangle_with_orientation = \
     _rearrange_triangle_for_snakegraph(final_triangle,tau_d_b, tile_orientation)
 
-    if is_loop == True and k==len(edges)-2 and rearranged_top_triangle_with_orientation[0] == tau_first_a:
+    if is_loop and k==len(edges)-2 and rearranged_top_triangle_with_orientation[0] == tau_first_a:
         tile_direction = RIGHT
         #if isinstance(tau_1_b,tuple):
         #    tile_direction = ABOVE
@@ -1021,7 +1050,6 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
         sage: Tri = ClusterTriangulation([(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)], boundary_edges=[11,12,13,0])
-        sage: S = ClusterSeed(Tri)
         sage: Tri.triangulation_dictionary()
         [(1, x0),
         (2, x0*x1),
@@ -1038,31 +1066,34 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
         (12, b12),
         (13, b13)]
 
-        sage: try_to_find_end_triangles_for_one_crossed_arc (S._cluster_triangulation.weighted_triangulation(),S.x(3), None,None,True,False)
+        sage: try_to_find_end_triangles_for_one_crossed_arc (Tri._weighted_triangulation,Tri.cluster()[3], None,None,True,False)
         [(x3, x2, b12), (b10, x3, x4)]
+
+        sage: try_to_find_end_triangles_for_one_crossed_arc (Tri._triangulation,4, None,None,True,False)
+        [(4, 3, 12), (0, 4, 5)]
     """
     triangle0 = _get_triangle(T, tau, None)
 
-    if is_loop == True:
+    if is_loop:
         raise ValueError('Input error. Gamma crossing only one arc of T means Gamma is contractible to a puncture.')
 
     # The case when gamma is an arc
     if len(triangle0) == 2:
-        if first_triangle != None and final_triangle == None:
+        if not(first_triangle is None) and final_triangle is None:
             if are_triangles_equal(triangle0[0], first_triangle):
                 final_triangle = triangle0[1]
             elif are_triangles_equal(triangle0[1], first_triangle):
                 final_triangle = triangle0[0]
             else:
                 raise ValueError('Input error. User gives first_triangle = ', first_triangle, ' that does not exist')
-        elif first_triangle == None and final_triangle != None:
+        elif first_triangle is None and not(final_triangle is None):
             if are_triangles_equal(triangle0[0], final_triangle):
                 fist_triangle = triangle0[1]
             elif are_triangles_equal(triangle0[1], final_triangle):
                 first_triangle = triangle0[0]
             else:
                 raise ValueError('Input error. User gives final_triangle = ', final_triangle, ' that does not exist')
-        elif first_triangle == None and final_triangle == None:
+        elif first_triangle is None and final_triangle is None:
             first_triangle = triangle0[0]
             final_triangle = triangle0[1]
 
@@ -1077,7 +1108,20 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 
 def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, input_triangle=None):
     """
-    We assume there are at least two crossed arcs
+    We assume there are at least two crossed arcs. Return the first/final triangle crossed by curve.
+
+    See :func:``~sage.combinat.cluster_algebra_quiver.surface._get_first_final_triangles``, :func:``~sage.combinat.cluster_algebra_quiver.surface._snake_graph``
+
+    INPUT:
+
+    - ``T`` -- a list of triangles
+    - ``crossed_arcs`` -- a list (of length at least 2) of arcs crossed by a curve
+    - ``first_or_final`` -- ``First`` or ``Final``
+    - ``is_arc`` -- True if curve is between marked point/s
+    - ``is_loop`` -- True if curve is not between marked point/s
+    - ``input_triangle`` -- (default:None) the first/final triangle specified by user
+
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangle
@@ -1100,9 +1144,9 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
             raise ValueError('Incorrect input. Only one triangle ', triangle0,' has edge ', tau_1)
         elif len(triangle0)==2:
             triangle0.remove(triangle1_A)
-            if is_loop == True and first_or_final == 'Final': # Maybe erase
+            if is_loop and first_or_final == 'Final': # Maybe erase
                 triangle0 = [triangle1_A] #Maybe erase
-            if input_triangle!=None:
+            if not(input_triangle is None):
                 if are_triangles_equal(input_triangle,triangle0[0]):
                     return input_triangle
                 else:
@@ -1112,7 +1156,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
             raise ValueError('Incorrect input. There are more than 2 triangles with edge =', tau_1)
 
     elif N == 2:
-        if input_triangle!=None:
+        if not(input_triangle is None):
             triangle0 = _get_triangle(T, tau_1, None)
             if are_triangles_equal(input_triangle,triangle0[0]) or are_triangles_equal(input_triangle,triangle0[1]):
                 return input_triangle
@@ -1172,12 +1216,12 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
 
     (x,y)=xy
 
-    if matching_weight != None:
+    if not(matching_weight is None):
         if user_labels:
             drawing = drawing + text('$'+str(matching_weight)+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'gray')
         else:
             drawing = drawing + text('$'+str(matching_weight).replace('x','x_').replace('*',' ')+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
-    if pos!= None:
+    if not(pos is None):
         pos_str = '$(' + str(pos) + ')$. '
         drawing = drawing + text(pos_str, (x ,y-0.2), rgbcolor=(0,1,0.2))
 
@@ -1200,20 +1244,26 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     return drawing, (x+ 2*white_space,0)
 
 
-def _draw_snake_graph (G, xy=(0,0), user_labels=False):
+def _draw_snake_graph (G, user_labels, xy=(0,0)):
     """
     Returns the plot of the snake graph G
 
+    INPUT:
+
+    - ``G`` -- snake graph description, see :meth:``~sage.combinat.cluster_algebra_quiver.ClusterTriangulation.snake_graph``
+    - ``user_labels`` -- whether the labels of the snake graph are user-given labels or variables (x_i and b_i) corresponding to arcs/boundary edges
+    - ``xy`` -- (default:(0,0)) snake graph should be plotted at xy=(a,b)
+
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
-        sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-        sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-        sage: S = ClusterSeed(T) # Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`
-        sage: G_user_labels = S.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
-        sage: _draw_snake_graph (G_user_labels,user_labels=True)
-        Graphics object consisting of 43 graphics primitives
+        Figure 10 of 'Positivity for Cluster Algebras from Surfaces', :arXiv:`0906.0748`::
 
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: G_user_labels = T.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+            sage: _draw_snake_graph (G_user_labels,user_labels=True)
+            Graphics object consisting of 43 graphics primitives
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -1305,12 +1355,18 @@ def GetMinimalMatching(G):
     Input: band/snake graph
 
     EXAMPLES::
-        sage: from sage.combinat.cluster_algebra_quiver.surface import GetMinimalMatching,_snake_graph
-        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
-        sage: S = ClusterSeed(T)
-        sage: G = _snake_graph(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],is_arc=True)
-        sage: GetMinimalMatching(G) # floor and ceiling are marked
-        [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+
+        The minimal matching of a graph with one tile is such that the floor and ceiling edges of the only tile are marked (1,0,1,0).
+        In addition, when a tile is the final tile, we write DIR='ABOVE' direction by default::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import GetMinimalMatching,_snake_graph
+            sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+            sage: G_varlabel = _snake_graph(T._weighted_triangulation,[T.cluster()[0]],is_arc=True)
+            sage: GetMinimalMatching(G_varlabel)
+            [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+            sage: G_userlabel = _snake_graph(T._triangulation,[0],is_arc=True)
+            sage: GetMinimalMatching(G_userlabel)
+            [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
     """
 
     # The list of (for each tile in the band/snake graph, the direction of the next tile)
@@ -1349,9 +1405,8 @@ def snake_graph_tile_directions(G):
         #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
         sage: from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, snake_graph_tile_directions
         sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
-        sage: S = ClusterSeed(T)
-        sage: c = [item for item in S.cluster()]
-        sage: G = _snake_graph (S._cluster_triangulation._weighted_triangulation, [c[1], c[2], c[3], c[0], c[1]], None, None, False, True, 1, None)
+        sage: c = [item for item in T.cluster()]
+        sage: G = _snake_graph (T._weighted_triangulation, [c[1], c[2], c[3], c[0], c[1]], None, None, False, True, 1, None)
         sage: snake_graph_tile_directions (G)
         ['ABOVE', 'RIGHT', 'RIGHT', 'ABOVE']
     """
@@ -1516,6 +1571,10 @@ def FlipAllFlippableTiles(input_tiles):
     Record the indices of the tiles that we flip.
     Don't flip tiles from the list [the indices of the tiles that were last flipped] because that would be redundant.
 
+    INPUT:
+
+    - ``input_tiles`` -- a list of [[the indices of tiles that were last flipped],[a perfect matching of a snake/band graph]]
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTiles
@@ -1590,7 +1649,13 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     list_matchings -> List of matchings
     list_other_matchings -> List of matchings to be compared with input_list_matchings
 
-    Return a list of unique perfect matchings, along with all possible indices of last flipped tiles
+    Return a (non-repeating) list of perfect matchings of a snake/band graph
+    (each perfect matching P includes info on all possible indices of tiles that were flipped to get to P)
+
+    INPUT:
+
+    - ``list_matchings`` -- a (possibly with repeats) list of perfect matchings of a snake/band graph
+    - ``list_other_matchings`` -- a list of perfect matchings of a snake/band graph which is to be compared with ``list_matchings``
 
     EXAMPLES::
 
@@ -1631,14 +1696,21 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
 def GetNextTileMarking(tile,DIR, NextTileMark):
     """
     ([tile,DIR],[a,b,c,d]):
-    [1,0,1,0], RIGHT -> return [a, b, c, 1]
-    [1,0,1,0], ABOVE -> return [0, b, c, d]
-    [0, 1, 0, 1], RIGHT -> return [a, b, c, 0]
-    [0, 1, 0, 1], ABOVE -> return [1, b, c, d]
+    (1,0,1,0), RIGHT -> return [a, b, c, 1]
+    (1,0,1,0), ABOVE -> return [0, b, c, d]
+    (0, 1, 0, 1), RIGHT -> return [a, b, c, 0]
+    (0, 1, 0, 1), ABOVE -> return [1, b, c, d]
+
+    INPUT:
+
+    - ``tile`` -- tile marking (either (1,0,1,0) or (0,1,0,1))
+    - ``DIR`` -- whether the next tile is glued to the ``RIGHT`` or ``ABOVE`` the current tile
+    - ``NextTileMark`` -- the marks of the next tile
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetNextTileMarking
+        sage: #((1,0,1,0), 'RIGHT',)
 
     """
     a = NextTileMark[0]
@@ -1656,10 +1728,10 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
 
 def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
     """
-    RIGHT, [1,0,1,0] -> return [a, 1, c, d]
-    ABOVE, [1,0,1,0] -> return [0, b, c, d]
-    RIGHT, [0, 1, 0, 1] -> return [a, 0, c, d]
-    ABOVE, [0, 1, 0, 1] -> return [a, b, 1, d]
+    RIGHT, (1,0,1,0) -> return [a, 1, c, d]
+    ABOVE, (1,0,1,0) -> return [0, b, c, d]
+    RIGHT, (0, 1, 0, 1) -> return [a, 0, c, d]
+    ABOVE, (0, 1, 0, 1) -> return [a, b, 1, d]
 
     EXAMPLES::
 
@@ -1797,7 +1869,9 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
 
 def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
     """
-    Returns
+    Returns the graphics info of a lifted triangulated polygon and the lifted curve.
+    See :meth:``ClusterTriangulation.draw_lifted_polygon_arc`` and :meth:``ClusterTriangulation.draw_lifted_polygon_loop``
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_polygon
@@ -1908,7 +1982,15 @@ def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
 
 def _draw_triangle(triangle,x,y, k):
     """
-    Returns
+    Returns a triangle starting at (x,y) in the shape of a pyramid (resp, an upside-down triangle) if k is even (resp, k is odd).
+    See :func:sage.combinat.cluster_algebra_quiver.surface._draw_lifted_polygon
+
+     INPUT:
+
+    - ``triangle`` -- a 3-tuple (or list of length 3) of labels of a triangle
+    - ``x,y`` -- (x,y) indicates where triangle should be drawn
+    - ``k`` -- a natural number which indexes the triangles
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_triangle
