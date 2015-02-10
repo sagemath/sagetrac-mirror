@@ -7,6 +7,8 @@ Option Algèbre et Calcul Formel de l'Agrégation de Mathématiques: Algèbre li
 
 .. MODULEAUTHOR:: `Nicolas M. Thiéry <http://Nicolas.Thiery.name/>`_ <Nicolas.Thiery at u-psud.fr>
 
+``Mathematics is the art of reducing any problem to linear algebra`` - William Stein.
+
 *******************************
 Formes normales et applications
 *******************************
@@ -535,6 +537,93 @@ Voir par exemple [Storjohan.2004]_ pour une présentation d'ensemble.
 
 TP
 ==
+
+.. TOPIC:: Exercice: Du calcul matriciel au calcul sur les sous espace vectoriels
+
+    #.  Soit `V` une liste de vecteurs dans `E=\QQ^10`, comme par
+        exemple::
+
+            sage: V = random_matrix(QQ, 4, 10, algorithm='echelonizable', rank=3).rows() # random
+            sage: V
+            [(1, 4, -5, 3, -19, 2, -56, -19, -5, -43),
+             (4, 16, -20, -11, 75, 8, 229, 52, 26, 153),
+             (5, 20, -25, -19, 121, 10, 368, 87, 43, 251),
+             (0, 0, 0, -2, 13, 0, 39, 11, 4, 28)]
+
+        On veut calculer une base du sous-espace vectoriel engendré
+        par `V`. On peut l'obtenir simplement avec les outils déjà
+        présents::
+
+            sage: E = QQ^10
+            sage: E.span(V)
+            Vector space of degree 10 and dimension 3 over Rational Field
+            Basis matrix:
+            [ 1  4 -5  0  0  2  1 -3  1 -2]
+            [ 0  0  0  1  0  0  0  1 -2 -1]
+            [ 0  0  0  0  1  0  3  1  0  2]
+
+        Implanter votre propre fonction ``baseSEV(V)`` qui calcule une
+        telle base en se ramenant à du calcul matriciel.
+
+    #.  Soit `V` une liste de vecteurs et `u` un autre vecteur. On
+        veut tester si `u` est dans le sous espace vectoriel engendré
+        par `V`::
+
+            sage: u = E([1, 2, 5, 3, 0, 1, 6, 3, 0, 5])
+            sage: u in V
+            False
+
+        Comme ci-dessus, implanter votre propre fonction
+        ``appartient(V,v)`` qui se ramène à du calcul matriciel.
+
+    #.  Implanter votre propre fonction ``SEV_egaux(U, V)`` qui teste
+        si deux listes deux vecteurs engendrent le même sous espace
+        vectoriel.
+
+    #.  Implanter votre propre fonction ``SEV_orthogonal(V)`` pour
+        calculer une base de l'orthogonal de `\langle V\rangle`,
+        c'est-à-dire l'ensemble des vecteurs `u` du dual de `E` tel
+        que `\langle u,v\rangle=0`.
+
+        Quel rapport avec la résolution d'équations?
+
+    #.  Implanter votre propre fonction ``SEV_somme(U, V)`` qui
+        calcule une base de la somme des deux sous-espaces vectoriels
+        `\langle U\rangle` et `\langle V\rangle`.
+
+    #.  De même implanter ``SEV_intersection(U,V)`` et
+        ``SEV_en_somme_directe(U,V)``.
+
+.. TOPIC:: Exercice: application aux codes cycliques
+
+    On oubliera ici que les codes cycliques sont naturellement
+    représentés par des idéaux dans `\Z_2[X] / X^n-1`, et on ne fera
+    que de l'algèbre linéaire.
+
+    Soit `E` un espace vectoriel sur un corps fini; typiquement::
+
+        sage: F2 = GF(2)
+        sage: E = F2^7; E
+        Vector space of dimension 7 over Finite Field of size 2
+
+    On considère l'opération ``cycle(v)`` qui prend un vecteur et
+    décale ses coordonnées d'un cran vers la droite (modulo `n`).  On
+    rappelle qu'un code cyclique est un sous-espace vectoriel de `E`
+    qui est stable par l'opération ``cycle``.
+
+    #.  Implanter l'opération ``cycle``.
+
+    #.  Implanter une fonction ``code_cyclique(v)`` qui renvoie le
+        plus petit code cyclique `C` contenant `v`.
+
+    #.  Implanter une fonction qui renvoie la matrice de contrôle du
+        code `C`, c'est à dire une matrice `M` telle que `Mv=0` si et
+        seulement si `v` est dans `C`.
+
+    #.  Implanter le décodage par syndrome pour le code cyclique
+        engendré par `v=` (voir le cours
+        :ref:`agregation.codes_correcteurs`).
+
 
 .. TOPIC:: Exercice: algorithme de Gauß-Bareiss
 

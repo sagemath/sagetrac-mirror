@@ -27,8 +27,8 @@ avec les petits outils suivants:
 
 ::
 
-    sage: load ~/Enseignement/Agregation/media/gauss.py
-    sage: pretty_print_default()
+    sage: load ~/Enseignement/Agregation/Notes-rst/media/gauss.py
+    sage: pretty_print_default(False)
 
 ::
 
@@ -42,21 +42,21 @@ avec les petits outils suivants:
 Commençons par un corps fini::
 
     sage: import functools
-    sage: input = functools.partial(matrice_inversible, corps=GF(7))
+    sage: construit_donnee = functools.partial(matrice_inversible, corps=GF(7))
 
-    sage: input(3)
+    sage: construit_donnee(3)
 
-    sage: temps(gauss, n=10, input=input)
+    sage: temps(gauss, 10, construit_donnee)
     0.006472110748291016
-    sage: temps(gauss, n=20, input=input)
+    sage: temps(gauss, 20, construit_donnee)
     0.021173954010009766
 
-    sage: [temps(gauss, n=2^k, input=input) for k in range(9)]
+    sage: [temps(gauss, 2^k, construit_donnee) for k in range(9)]
     [0.0006530284881591797, 0.0002830028533935547, 0.00041413307189941406,
      0.001219034194946289, 0.0043790340423583984, 0.01766800880432129,
      0.07697796821594238, 0.3689899444580078, 1.9787850379943848]
 
-    sage: t = [0.00010895729064941406, 0.00017499923706054688, 0.0003829002380371094, 0.0012199878692626953, 0.004486799240112305, 0.017815113067626953, 0.0767819881439209, 0.3669130802154541, 1.9796710014343262, 12.182868957519531, 82.9688880443573]
+    sage: t = [5.1975250244140625e-05, 6.008148193359375e-05, 6.818771362304688e-05, 0.00014901161193847656, 0.00047707557678222656, 0.002396106719970703, 0.0066339969635009766, 0.03583502769470215, 0.26586079597473145, 2.0630128383636475, 15.69841194152832, 127.40424704551697, 1255.349585056305]
     sage: [ t[i+1]/t[i] for i in range(len(t)-1) ]
     [1.606126914660832, 2.18801089918256, 3.18617683686177, 3.67774086378738,
      3.97056166640098, 4.30993549423195, 4.77863479554227, 5.39547677142458,
@@ -64,12 +64,12 @@ Commençons par un corps fini::
 
     sage: points(enumerate(_))
 
-C'est raisonnablement crédible.
+C'est raisonnablement plausible.
 
 Prenons maintenant le corps des rationnels::
 
-    sage: input = functools.partial(matrice_inversible, corps=QQ)
-    sage: t = [temps(gauss, n=2^k, input=input) for k in range(8)]; t   # random
+    sage: construit_donnee = functools.partial(matrice_inversible, corps=QQ)
+    sage: t = [temps(gauss, 2^k, construit_donnee) for k in range(8)]; t   # random
     [0.002805948257446289, 0.02091503143310547, 0.17576098442077637,
      1.7260560989379883, 20.39414095878601, 296.17037892341614]
 
@@ -81,13 +81,14 @@ Oups!!!
 
 ::
 
-    sage: hilbert(3)
+    sage: def hilbert(n):
+    ....:     return matrix(QQ, n, n, lambda i,j: 1/(1+i+j))
+    ....: hilbert(3)
     [  1 1/2 1/3]
     [1/2 1/3 1/4]
     [1/3 1/4 1/5]
 
-    sage: input = hilbert
-    sage: t = [temps(gauss, n=2^k, input=input) for k in range(9)]; t
+    sage: t = [temps(gauss, 2^k, hilbert) for k in range(9)]; t
     [7.553905434695352, 8.077981700124337, 8.68987278491837,
      9.991872599419295, 11.684664369567903]
 
@@ -96,15 +97,15 @@ Oups!
 Prenons un corps de fractions rationnelles::
 
     sage: K = QQ['x'].fraction_field()
-    sage: input = functools.partial(matrice_inversible, corps=K)
+    sage: construit_donnee = functools.partial(matrice_inversible, corps=K)
 
-    sage: input(2)
+    sage: construit_donnee(2)
     [ (-3/8*x + 3/25)/(-1/13*x^2 + 1/3*x)                       (-1/3*x - 1)/(-2*x^2 + x + 1)]
     [ (4/169*x^2 + 1/9*x)/(x^2 + 9*x - 1/5)  (-1/2*x^2 + 1/2*x + 207)/(2/7*x^2 + 3/2*x + 1/2)]
 
-    sage: t = [temps(gauss, n, input=input) for n in range(6)]; t
+    sage: t = [temps(gauss, n, construit_donnee) for n in range(6)]; t
 
-    sage: temps(gauss, 7, input=input)
+    sage: temps(gauss, 7, construit_donnee)
 
 Analyse: Complexité arithmétique versus complexité en bits
 ==========================================================
@@ -152,6 +153,8 @@ fait en gros `n\log n`) où `n` est le nombre de bits::
     sage: [float(tt[i+1]/tt[i]) for i in range(len(t)-1)]
     [1.0, 1.0, 2.0, 5.0, 2.6, 2.3846153846153846]
 
+::
+
     sage: 
 
 Cela suggère expérimentalement que, pour les rationnels, le nombre de
@@ -182,11 +185,18 @@ gros coefficients.
 
     #.  Choisir un grand nombre premier `p>2b`
 
-    #.  Calculer `\det(M)` modulo `p`
+    #.  Calculer `\det(M)` modulo `p`:
 
-	.. TODO:: diagramme commutatif
+	.. MATH::
 
-    #.  En déduire `\det(M)`
+           \require{AMScd}
+           \begin{CD}
+           M @>{\ \det\ }>> \det(M)\\
+           @VV{\mod p}V @VV{\mod p}V \\
+           M\!\mod p @>{\ \det\ }>> \det(M\!\mod p)
+           \end{CD}
+
+    #.  En déduire `\det(M)`.
 
 
 .. TOPIC:: Algorithme multimodulaire
@@ -199,7 +209,7 @@ gros coefficients.
 
     #.  Calculer `\det(M)` modulo `p_i` pour chaque `i`
 
-    #.  Utiliser le lemme chinois pour reconstruire `\det(M)`
+    #.  Utiliser le lemme chinois pour reconstruire `\det(M)`.
 
 .. TOPIC:: Intérêt du multimodulaire?
 
@@ -217,7 +227,9 @@ gros coefficients.
 Exemple: bornes sur le rang
 ---------------------------
 
-.. TODO::
+.. TOPIC:: Remarque
+
+    rang (M\mod p) \leq rang (M)
 
 Généralisations
 ---------------
@@ -243,7 +255,7 @@ où l'on maîtrise la croissance des coefficients intermédiaires.
 
     #.  Choisir `k` éléments du corps de base.
 
-    #.  Prendre le morphisme d'évaluation en ces points::
+    #.  Prendre le morphisme d'évaluation en ces points:
 
         .. MATH::
 
@@ -261,7 +273,7 @@ où l'on maîtrise la croissance des coefficients intermédiaires.
 .. TOPIC:: Exercice
 
     Donner une borne de complexité pour le calcul du polynôme
-    charactéristique d'une matrices dans `GF(p)`.
+    caractéristique d'une matrice dans `GF(p)`.
 
 Variante: méthodes p-adiques
 ----------------------------
@@ -327,7 +339,7 @@ Problème
 
 Considérons une matrice creuse::
 
-    sage: M = random_matrix(GF(7), 19, sparse=True, density=1/2)
+    sage: M = random_matrix(GF(7), 19, sparse=True, density=1/3)
     sage: M
     [2 0 0 0 2 2 0 2 0 0 0 4 0 0 3 5 0 0 0]
     [2 0 0 0 0 3 0 6 0 0 3 0 6 0 3 5 6 0 5]
@@ -349,9 +361,9 @@ Considérons une matrice creuse::
     [6 0 5 0 0 0 0 0 0 0 1 0 6 0 0 0 0 0 0]
     [5 0 0 2 0 0 6 6 0 6 0 5 0 0 0 0 0 0 0]
 
-Et appliquons un pivot de Gauß::
+Et appliquons un pivot de Gauß partiel::
 
-    sage: gauss(M,5)
+    sage: gauss(M,10)
     [1 0 0 0 1 1 0 1 0 0 0 2 0 0 5 6 0 0 0]
     [0 1 5 0 1 1 0 0 5 6 6 6 6 1 2 4 0 6 0]
     [0 0 1 0 0 0 0 0 0 1 0 0 0 4 0 0 4 0 0]
@@ -399,18 +411,15 @@ Et pourtant::
     sage: M.rank()
     9263
 
+::
+
     sage: 
 
-Comment cela marche???
+Comment cela marche-t-il???
 
 
 Algorithmes de type «boîtes noire»
 ==================================
-
-Rappel
-======
-
-.. TODO:: Algorithme de Berlekamp-Massey par Euclide
 
 Algorithme de Wiedemann
 =======================
@@ -419,19 +428,62 @@ Algorithme de Wiedemann
 
     Calculer le polynôme minimal d'une matrice
 
-.. TOPIC:: Définition: espace de Krilov
+.. TOPIC:: Remarque
 
-    TODO
+    Soit `P` le polynôme minimal d'une matrice carrée `M`.
+
+    Soient U et V deux vecteurs.
+
+    Alors la suite de nombre `u_k = U M^k V` satisfait une relation de
+    récurence donnée par les coefficients de `P`.
+
+
+.. TOPIC:: Rappel: Algorithme de Berlekamp-Massey
+
+    L'algorithme de Berlekamp-Massey permet, étant donné une suite
+    `s_{1},\dots,s_{n}` d'éléments d'un corps de trouver la plus
+    petite relation de récurrence satisfaite par cette suite. Les
+    coefficients de cette relation de récurrence sont
+    traditionnellement encodés sous la forme d'un polynôme.
+
+    Voir TP pour les détails.
+
+
+.. TOPIC:: Algorithme de Wiedemann
+
+    #.  Prendre des vecteurs `U` et `V` aléatoires
+
+    #.  Déterminer les premiers termes de la suite `u_k` en calculant
+        itérativement `V, MV, M^2V, \ldots`
+
+    #.  En déduire par BM la relation de récurence minimale qu'elle
+        satisfait.
+
+    #.  Cette relation divise le polynôme minimal `P` de `M`.
+
+    #.  Réitérer «suffisamment de fois».
+
+.. TOPIC:: Remarques
+
+    #.  On n'a eu besoin de calculer que des produits `MV`
+
+        On voit `M` comme un endomorphisme
+
+    #.  Complexité mémoire bornée par `n`
 
 Application: calcul d'inverses
 ==============================
 
-.. TODO::
+.. TOPIC:: Exercice
+
+    Supposer que le polynôme minimal de `M` soit `X^3-2X+1`.
+
+    Déterminer l'inverse de `M`.
 
 Application: calcul du rang
 ===========================
 
-.. TODO::
+Voir TP.
 
 *******************************
 Algorithme de Faddeev-Leverrier
@@ -513,7 +565,7 @@ Wiedemann
     de ce type.
 
     Évaluer la complexité expérimentale de ces calculs. Comparer avec
-    la fonction linalg::minpoly du système.
+    la méthode `minpoly` du système.
 
 .. TOPIC:: Exercice: Calcul du rang par préconditionnement par produit de matrices diagonales.
 

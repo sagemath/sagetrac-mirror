@@ -1,9 +1,11 @@
 import time
 
-def gauss(m):
+def gauss(m,k=None):
     m = copy(m)
     n = m.nrows()
-    for i in range(n):
+    if k is None:
+        k = m.ncols()
+    for i in range(k):
         # Recherche du pivot
         for j in range(i,n):
             if m[j,i]:
@@ -16,16 +18,15 @@ def gauss(m):
             m.add_multiple_of_row(j, i, -m[j,i]/m[i,i])
     return m
 
-def data(n, corps=QQ):
+def matrice_inversible(n, corps=QQ):
     # Renvoie une matrice inversible
     while True:
-        m = random_matrix(corps, n, n)
+        m = random_matrix(corps, n)
         if m.det():
             return m
 
-def temps(f, n, data=data, corps=QQ):
-    print n
-    m = data(n, corps)
+def temps(f, n, construit_donnee):
+    m = construit_donnee(n)
     debut = time.time()
     f(m)
     return time.time() - debut

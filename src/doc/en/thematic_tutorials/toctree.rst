@@ -30,7 +30,7 @@ Thematic tutorial document tree
    agregation-option-calcul-formel/algebre_lineaire_rapide
    agregation-option-calcul-formel/bibliotheque_tsetlin
    agregation-option-calcul-formel/codes_correcteurs
-   agregation-option-calcul-formel/groupe_symmetrique
+   agregation-option-calcul-formel/groupe_symetrique
    agregation-option-calcul-formel/index
    agregation-option-calcul-formel/introduction
    agregation-option-calcul-formel/multiplications_rapides
