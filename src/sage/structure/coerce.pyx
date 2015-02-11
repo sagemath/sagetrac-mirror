@@ -1382,7 +1382,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field
 
-        Bug #17740::
+        Bug :trac:`17740`::
 
             sage: cm.discover_action(GF(5)['x'], ZZ, operator.div)
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
@@ -1441,12 +1441,23 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
-            try:
-                right_mul = self.get_action(R, S, mul)
-                if isinstance(right_mul, RightModuleAction):
+            right_mul = self.get_action(R, S, mul)
+            if right_mul and not right_mul.is_left():
+                try:
                     return ~right_mul
-            except TypeError: # action may not be invertible
-                self._record_exception()
+                except TypeError: # action may not be invertible
+                    self._record_exception()
+
+            # It's possible an action is defined on the fraction field itself.
+            if hasattr(S, '_pseudo_fraction_field'):
+                K = S._pseudo_fraction_field()
+                if K is not S:
+                    right_mul = self.get_action(R, K, mul)
+                    if right_mul and not right_mul.is_left():
+                        try:
+                            return PrecomposedAction(~right_mul, None, K.coerce_map_from(S))
+                        except TypeError: # action may not be invertible
+                            self._record_exception()
 
         return None
 

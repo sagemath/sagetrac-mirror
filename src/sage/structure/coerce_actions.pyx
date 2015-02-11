@@ -275,7 +275,7 @@ cdef class ModuleAction(Action):
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
 
         The following tests against a problem that was relevant during work on
-        trac ticket #9944::
+        :trac:`9944`::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S.<x> = PolynomialRing(ZZ, sparse=True)
@@ -288,11 +288,11 @@ cdef class ModuleAction(Action):
         Action.__init__(self, G, S, not PY_TYPE_CHECK(self, RightModuleAction), operator.mul)
         if not isinstance(G, Parent):
             # only let Parents act
-            raise TypeError, "Actor must be a parent."
+            raise TypeError("Actor must be a parent.")
         base = S.base()
         if base is S or base is None:
             # The right thing to do is a normal multiplication
-            raise CoercionException, "Best viewed as standard multiplication"
+            raise CoercionException("Best viewed as standard multiplication")
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the base ring
         if G is not base:
@@ -303,15 +303,15 @@ cdef class ModuleAction(Action):
                 from sage.categories.pushout import pushout
                 # this may raise a type error, which we propagate
                 self.extended_base = pushout(G, S)
-                # make sure the pushout actually gave correct a base extension of S
+                # make sure the pushout actually gave a correct base extension of S
                 if self.extended_base.base() != pushout(G, base):
-                    raise CoercionException, "Actor must be coercible into base."
+                    raise CoercionException("Actor must be coercible into base.")
                 else:
                     self.connecting = self.extended_base.base()._internal_coerce_map_from(G)
                     if self.connecting is None:
                         # this may happen if G is, say, int rather than a parent
                         # TODO: let python types be valid actions
-                        raise CoercionException, "Missing connecting morphism"
+                        raise CoercionException("Missing connecting morphism")
 
         # Don't waste time if our connecting morphisms happen to be the identity.
         if self.connecting is not None and self.connecting.codomain() is G:
@@ -400,6 +400,8 @@ cdef class ModuleAction(Action):
 
             sage: A = ~RightModuleAction(QQ, ZZ['x']); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 
@@ -408,6 +410,8 @@ cdef class ModuleAction(Action):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 
