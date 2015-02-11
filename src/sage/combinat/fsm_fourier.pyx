@@ -1192,7 +1192,7 @@ cdef class FSMFourierCache(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)
+            ....:     2, f, n)
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: F = FSMFourier(T) # optional - arb
             sage: F.cache.fluctuation_empirical(10, 12) # optional - arb; tolerance 1e-12
@@ -2205,7 +2205,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)) #
+            ....:     2, f, n))
             sage: F.plot_fluctuation(8, 9, 2) # optional - arb
             Graphics object consisting of 2 graphics primitives
 
@@ -2270,7 +2270,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)) #
+            ....:     2, f, n))
             sage: dir = tmp_dir()
             sage: F.plot_fluctuation_asymptote( # optional - arb
             ....:     dir + "test", 8, 9, resolution=2)
