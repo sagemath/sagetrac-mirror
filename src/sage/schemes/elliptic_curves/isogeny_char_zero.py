@@ -51,6 +51,7 @@ bmss_names = ("BMSS", "bmss")
 stark_names = ("Stark", "stark", "Starks", "starks")
 algorithm_names = bmss_names + stark_names
 
+
 def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
     r"""
     Compute the kernel polynomial of the normalized rational isogeny between
@@ -59,16 +60,16 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
     Assuming a rational normalized isogeny of degree ``degree`` exists between
     ``E1`` and
     ``E2``, this function returns the squarefree polynomial vanishing on the
-    abscissae of its kernel. 
-    
+    abscissae of its kernel.
+
     If no such isogeny exists, the outcome is undetermined. Some
     inexpensive checks are executed, and a ``ValueError`` raised if it
     can be concluded that no isogeny of degree ``degree``
     exists. Otherwise a random looking polynomial of degree ``degree``
     is returned.
 
-    .. note:: 
-       
+    .. note::
+
         The error probability of the checks decreases exponentially
         with the degree. It is slightly lower for Stark's algorithm
         than for BMSS.
@@ -271,80 +272,59 @@ def isogeny_Stark(E1, E2, degree):
         x^4 + 14*x^3 + x^2 + 34*x + 21
         sage: f**2
         x^4 + 14*x^3 + x^2 + 34*x + 21
-
     """
-
     K = E1.base_field()
     R = PolynomialRing(K, 'x')
     x = R.gen()
 
     try:
-        wp1 = E1.weierstrass_p(prec=4*degree+4)  #BMSS claim 2*degree is enough, but it is not M09
+        wp1 = E1.weierstrass_p(prec=4*degree+4)
+        # BMSS claim 2*degree is enough, but it is not M09
         wp2 = E2.weierstrass_p(prec=4*degree+4)
     except NotImplementedError:
-        raise ZeroDivisionError("Stark's algorithm only works for characteristic 0 or greater than 4*degree + 6.")
+        raise ZeroDivisionError("Stark's algorithm only works for "
+                                "characteristic 0 or greater "
+                                "than 4*degree + 6.")
 
     # viewed them as power series in Z = z^2
     S = LaurentSeriesRing(K, 'Z')
     Z = S.gen()
-    pe1 = 1/Z
-    pe2 = 1/Z
+    pe1 = ~Z
+    pe2 = ~Z
     for i in xrange(2*degree+1):
         pe1 += wp1[2*i] * Z**i
         pe2 += wp2[2*i] * Z**i
     pe1 = pe1.add_bigoh(2*degree+2)
     pe2 = pe2.add_bigoh(2*degree+2)
 
-    #print 'wps = ',pe1
-    #print 'wps2 = ',pe2
-
     n = 1
     q = [R(1), R(0)]
-    #p = [R(0), R(1)]
     T = pe2
 
-    while ( q[n].degree() < (degree-1) ):
-        #print 'n=', n
+    while q[n].degree() < (degree - 1):
 
         n += 1
         a_n = 0
         r = -T.valuation()
         while (0 <= r):
             t_r = T[-r]
-            #print '    r=',r
-            #print '    t_r=',t_r
-            #print '    T=',T
             a_n = a_n + t_r * x**r
             T = T - t_r*pe1**r
             r = -T.valuation()
 
-
-        q_n = a_n*q[n-1] + q[n-2]
+        q_n = a_n * q[n - 1] + q[n - 2]
         q.append(q_n)
-        #p_n = a_n*p[n-1] + q[n-2]
-        #p.append(p_n)
 
         if n == degree + 1 or T == 0:
             if T == 0 or T.valuation() < 2:
                 raise ValueError("The two curves are not linked by a rational normalized isogeny of degree %s" % degree)
-            #print 'breaks here'
             break
 
-        T = 1/T
-        #print '  a_n=', a_n
-        #print '  q_n=', q_n
-        #print '  p_n=', p_n
-        #print '  T = ', T
+        T = ~T
 
     qn = q[n]
-    #pn= p[n]
-    #print 'final  T = ', T
-    #print '  f =', pn/qn
 
-    qn = (1/qn.leading_coefficient())*qn
-    #pn = (1/qn.leading_coefficient())*pn
-
-    return qn
+    return (1 / qn.leading_coefficient()) * qn
 
 
 def isogeny_BMSS(E1, E2, degree):
@@ -378,7 +358,7 @@ def isogeny_BMSS(E1, E2, degree):
         by returning a random looking polynomial of degree ``degree -
         1``.  A check on this result must be performed in order to
         tell it apart from the successfull case.
-        
+
         Non exhaustive tests are implemented in
         :py:func:`isogeny_kernel`. Exhaustive test are implemented by
         :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`,
@@ -511,9 +491,7 @@ def isogeny_BMSS(E1, E2, degree):
         sage: E2 = EllipticCurve([-3^4,0])
         sage: E.isogeny(kernel=None, codomain=E2, degree=9)
         Isogeny of degree 9 from Elliptic Curve defined by y^2 = x^3 - x over Rational Field to Elliptic Curve defined by y^2 = x^3 - 81*x over Rational Field
-
     """
-
     (a1, a2, a3, a4, a6) = E1.a_invariants()
     (b1, b2, b3, b4, b6) = E2.a_invariants()
 
@@ -540,7 +518,8 @@ def isogeny_BMSS(E1, E2, degree):
     # If the points of abscissa 0 are in the kernel,
     # correct the degree of D
     gap = N.degree() - D.degree() - 1
-    if (gap > 0): D = D.shift(gap)
+    if gap > 0:
+        D = D.shift(gap)
 
     return D
 
@@ -622,11 +601,12 @@ def _BMSS_diffeq(G, H, prec=None):
     # 1/(T'^2 G) to precision d
     diffT2G = G.O(1)/(H.O(1)**2)
     # Sqrt(G) and Sqrt(1/G) to precision d
-    sqG = G.O(1).sqrt(); invsqG = ~sqG
+    sqG = G.O(1).sqrt()
+    invsqG = ~sqG
 
     T = (H.O(1) / G.O(1)).shift(1)
 
-    while d < prec-1:
+    while d < prec - 1:
         # update diffT, sqG and invsqG to precision d
         # (nothing changes in the first iteration)
         diffT2G = diffT2G * (2 - G * T.derivative()**2 * diffT2G)
@@ -642,7 +622,7 @@ def _BMSS_diffeq(G, H, prec=None):
 
         k = (H(T) * T.shift(-1) - G * T.derivative()**2) * diffT2G * invsqG
         # K = 1/2 sqrt(x) integral(k/sqrt(x))
-        K =  R([c/(2*i+1) for (i, c) in enumerate(k)]).O(k.prec()).shift(1)
+        K = R([c / (2*i+1) for (i, c) in enumerate(k)]).O(k.prec()).shift(1)
 
         # update the solution
         T += T.derivative() * sqG * K
