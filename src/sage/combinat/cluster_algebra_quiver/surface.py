@@ -667,12 +667,79 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
             sage: LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
             (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
     """
-    from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
+    #from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
 
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
         raise ValueError('crossed_arcs should be a non-empty list object of cluster variable/s')
 
     G = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
+#    MinMatching = GetMinimalMatching(G)  # Return [['minimal PM'], [minimal matching with directions]]
+#    tile_flip_max = fibonacci(len(G)+1) # We do not need this upper bound, but we do this to avoid infinite loop in case of a bug in the code
+
+#    old_matchings = []
+#    current_matchings = [MinMatching]
+
+#    if len(crossed_arcs) == 1:
+#        horizontal_PM = [FlipTile(MinMatching[1][0])]
+#        all_matchings =[MinMatching, [['maximal PM'], horizontal_PM]]
+#    else:
+#        for loop_count in range(0,tile_flip_max):
+#            new_matchings = FlipAllFlippableTilesInList(current_matchings) # All tiles (except the ones that were flipped last) are flipped
+#            if new_matchings != []:
+#                old_current_new_matchings = UniqueList(old_matchings + current_matchings + new_matchings)
+
+#                # The same matching can be produced via different flips, so we merge all of them into one item
+#                new_matchings_corrected_indices = \
+#                GetMoreLastFlippedTilesInList(new_matchings, old_current_new_matchings)
+
+#                old_matchings = UniqueList(old_matchings + current_matchings)
+#                current_matchings = new_matchings_corrected_indices
+#            else:
+#                break
+
+#        all_matchings = UniqueList(old_matchings + current_matchings)
+
+    all_matchings = GetAllMatchings(G, crossed_arcs)
+
+    if verbose:
+        print "**************** Perfect Matchings and Their Weights: *****************"
+        from sage.plot.graphics import Graphics
+        drawing = Graphics()
+        xy=(0,0)
+        draw_G = _draw_snake_graph(G,xy)
+
+        for pos in range(0,len(all_matchings)):
+            PM = all_matchings[pos]
+            matching_weight = GetMonomialTerm(G, PM)
+            draw_G = _draw_snake_graph(G,xy)
+            matching_drawing, xy = _draw_matching(PM, matching_weight,pos,xy, white_space=1)
+            drawing += matching_drawing + draw_G
+
+        drawing.set_aspect_ratio(1)
+        drawing.show(axes=False, figsize=[fig_size*(len(all_matchings)+1), fig_size])
+
+    return SumOfMonomialTerms(G, all_matchings, boundary_edges)/ GetDenominator(G)
+
+def GetAllMatchings(G, crossed_arcs):
+    """
+    INPUT:
+
+    EXAMPLES::
+
+        An ideal triangulation of a once-punctured square having 2 radii, and the boundary edges are labeled 4,5,6,7::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import GetAllMatchings
+            sage: once_punctured_square = [(1,'b7','b4'),(1,'b5',2),('b6',0,3),(2,3,0),(0,3,'b6'),['b7','b4',1]]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['b4','b5','b6','b7'])
+            sage: S = ClusterSeed(T)
+            sage: crossed = [S.x(1),S.x(2),S.x(3)]
+            sage: gamma = S.mutate([3,2,1],inplace=False).cluster_variable(1)
+            sage: snakegraph = T.snake_graph(crossed,user_labels=False)
+            sage: sum(gamma.numerator().coefficients()) == len(GetAllMatchings(snakegraph,crossed))
+            True
+    """
+    from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
+
     MinMatching = GetMinimalMatching(G)  # Return [['minimal PM'], [minimal matching with directions]]
     tile_flip_max = fibonacci(len(G)+1) # We do not need this upper bound, but we do this to avoid infinite loop in case of a bug in the code
 
@@ -699,28 +766,11 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
 
         all_matchings = UniqueList(old_matchings + current_matchings)
 
-    if verbose:
-        print "**************** Perfect Matchings and Their Weights: *****************"
-        from sage.plot.graphics import Graphics
-        drawing = Graphics()
-        xy=(0,0)
-        draw_G = _draw_snake_graph(G,xy)
-
-        for pos in range(0,len(all_matchings)):
-            PM = all_matchings[pos]
-            matching_weight = GetMonomialTerm(G, PM)
-            draw_G = _draw_snake_graph(G,xy)
-            matching_drawing, xy = _draw_matching(PM, matching_weight,pos,xy, white_space=1)
-            drawing += matching_drawing + draw_G
-
-        drawing.set_aspect_ratio(1)
-        drawing.show(axes=False, figsize=[fig_size*(len(all_matchings)+1), fig_size])
-
-    return SumOfMonomialTerms(G, all_matchings, boundary_edges)/ GetDenominator(G)
+    return all_matchings
 
 def UniqueList(in_list):
     """
-    Return ``in_list`` with any multiple entries removed
+    Return the list ``in_list`` with any multiple entries removed
 
     EXAMPLES::
 
@@ -745,10 +795,10 @@ def UniqueList(in_list):
 
 def PartitionIntoTuples(L):
     """
-    This function acts like Partition[L,2] in Mathematica.
-    Partition a list into a list of tuples.
+    Partition a list into a list of tuples. This function acts like Partition[L,2] in Mathematica.
 
     EXAMPLES::
+
         sage: from sage.combinat.cluster_algebra_quiver.surface \
               import PartitionIntoTuples
         sage: L = [1,2,3,4,5,6,7,8,9,10]
@@ -770,20 +820,28 @@ def PartitionIntoTuples(L):
 
 def GetDenominator(G):
     """
-    Mathematica: todaslasdiagonales
-    Input: snake graph G
-    Return all denominators, i.e. variables corresponding to arcs (of ideal triangulation) that are crossed by input arc
+    Return product of the variables corresponding to arcs that are crossed by curve gamma
+    (this is the denominator of the Laurent polynomial expansion returned by
+    :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`)
+
+    To debug, original Mathematica function: todaslasdiagonales
+
+    INPUT:
+
+        - ``G`` -- snake/band graph information, see :meth:`ClusterTriangulation.band_graph` or :meth:`ClusterTriangulation.snake_graph`
 
     EXAMPLES::
 
-        ######## Figure 6 of Musiker and Williams "Skein Relations" arxiv.org/abs/1108.3382 #######
-        #tau_4, tau_1, tau_2, tau_3 = 0,1,2,3 and b1,b2,b3,b4=4,5,6,7
-        sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
-        sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)],boundary_edges=[4,5,6,7]) # Counterclockwise triangulation
-        sage: c = [item for item in T.cluster()]
-        sage: BG = T.band_graph([c[1], c[2], c[3], c[0], c[1]]) # Pick cut edge to be tau_1 = 1, go clockwise
-        sage: GetDenominator(BG)
-        x0*x1*x2*x3
+        Figure 6 of Musiker and Williams'
+        "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+        tau_4, tau_1, tau_2, tau_3 = 0,1,2,3, and we pick tau_1=1 to be the first and last arc crossed::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
+            sage: T = ClusterTriangulation([(1,2,'b1'),(1,0,'b2'),(0,3,'b3'),(2,3,'b4')],boundary_edges=['b1','b2','b3','b4']) # Counterclockwise triangulation
+            sage: c = [item for item in T.cluster()]
+            sage: BG = T.band_graph([c[1], c[2], c[3], c[0], c[1]],user_labels=False)
+            sage: GetDenominator(BG)
+            x0*x1*x2*x3
     """
     denom = 1
     for pos in range(0,len(G)):
@@ -795,10 +853,21 @@ def GetDenominator(G):
 
 def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
     """
-    Mathematica: terminoPolinomioSobreListaDeConfig
+    Return sum of all monomial terms (corresponding to all perfect matchings of ``snakegraph``)
+    which is the numerator of the Laurent polynomial expansion returned by :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
 
-    Input: information of triangles crossed by arc, and information of all matchings of the snake graph
-    Sum of all monomial terms (i.e. the numerator of Laurent Expansion).
+    To debug, original Mathematica function: terminoPolinomioSobreListaDeConfig
+
+    INPUT:
+
+        - ``snakegraph`` -- see :meth:`ClusterTriangulation.band_graph` or :meth:`ClusterTriangulation.snake_graph`
+        - ``all_matchings`` -- all perfect matchings for ``snakegraph``
+        - ``boundary_edges`` -- (default:``None``) variables b_i (which is set to 1) corresponding to boundary edges
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
+
     """
     sumTerms = 0
     for matching in all_matchings:

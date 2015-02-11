@@ -406,7 +406,7 @@ class ClusterTriangulation(SageObject):
         return _get_edge_user_label(var,self._triangulation_dictionary)
 
 
-    def snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
+    def snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=True):
         """
         INPUT:
         crossed_arcs = x0, x1, ... etc
@@ -513,7 +513,7 @@ class ClusterTriangulation(SageObject):
         else:
             return _snake_graph (self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges_vars)
 
-    def band_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=False):
+    def band_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=True):
        """
        Return the band graph description for a list of crossed arcs
 
