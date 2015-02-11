@@ -76,7 +76,7 @@ Example
     ....:     f(2*n + 1) == f(n) + 1,
     ....:     f(2*n) == f(n),
     ....:     f(0) == 0],
-    ....:     f, n, 2)
+    ....:     2, f, n)
     sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
     sage: F = FSMFourier(T) # optional - arb
     sage: F.FourierCoefficient(0) # optional - arb
@@ -401,7 +401,7 @@ class FSMFourierComponent(SageObject):
         ....:     f(2*n + 1) == f(n) + 1,
         ....:     f(2*n) == f(n),
         ....:     f(0) == 0],
-        ....:     f, n, 2))
+        ....:     2, f, n))
         sage: F.components[0] # optional - arb
         <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
         sage: F.components[0].period # optional - arb
@@ -432,7 +432,7 @@ class FSMFourierComponent(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: F.components[0] # optional - arb
             <class 'sage.combinat.fsm_fourier.FSMFourierComponent'>
             sage: F.components[0].period # optional - arb
@@ -1074,7 +1074,7 @@ cdef class FSMFourierCache(SageObject):
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: cache = F.cache # optional - arb
             sage: [cache.b(r) for r in range(3)] # optional - arb
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
@@ -1161,7 +1161,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: F.common_period # optional - arb
             1
             sage: [FC] = F.components # optional - arb
@@ -1193,7 +1193,7 @@ class FSMFourier(SageObject):
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: F.common_period # optional - arb
             1
             sage: [FC] = F.components # optional - arb
@@ -1221,7 +1221,7 @@ class FSMFourier(SageObject):
             ....:     f(16*n+15) == f(2*n+2)+1,
             ....:     f(1) == 2, f(0) == 0]
             ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             1
@@ -1245,7 +1245,7 @@ class FSMFourier(SageObject):
             ....:     f(4*n+2) == f(n)+1,
             ....:     f(2*n+1) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: [FC] = F.components # optional - arb
             sage: F.common_period # optional - arb
             1
@@ -1378,7 +1378,7 @@ class FSMFourier(SageObject):
             ....:     f(3*n + 1) == f(n) + 1,
             ....:     f(3*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 3), ComplexIntervalField(200))
+            ....:     3, f, n), ComplexIntervalField(200))
             sage: F.common_period # optional - arb
             1
             sage: F.e_T # optional - arb
@@ -1458,7 +1458,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: F.common_period # optional - arb
             1
             sage: [FC] = F.components # optional - arb
@@ -1589,7 +1589,7 @@ class FSMFourier(SageObject):
             ....:     f(4*n + 3) == f(n + 1) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
-            ....:     f, n, 2)
+            ....:     2, f, n)
             sage: FSMFourier(T).b0() # optional - arb
             (0, 1, 1)
         """
@@ -1636,7 +1636,7 @@ class FSMFourier(SageObject):
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
-                ....:     f, n, 2))
+                ....:     2, f, n))
                 sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: F._H_m_rhs_(CIF(2), 100) # optional - arb
                 (0.0050250833316668? + 0.?e-18*I)
@@ -1795,7 +1795,7 @@ class FSMFourier(SageObject):
             ....:     f(2*n + 1) == f(n),
             ....:     f(2*n) == f(n),
             ....:     f(0) == 1],
-            ....:     f, n, 2))
+            ....:     2, f, n))
             sage: w = F.components[0].w(); w # optional - arb
             [(1)]
             sage: F._w_H_Res_(w[0], CIF(1)) # optional - arb
@@ -1844,7 +1844,7 @@ class FSMFourier(SageObject):
                 ....:     f(2*n + 1) == f(n),
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
-                ....:     f, n, 2) # optional - arb
+                ....:     2, f, n) # optional - arb
                 sage: FSMFourier(T)._H_m_(CIF(2), 100) # optional - arb
                 (0.010050166663334? + 0.?e-18*I)
         """
@@ -1880,7 +1880,7 @@ class FSMFourier(SageObject):
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2))
+                ....:     2, f, n))
                 sage: def FourierCoefficientDelange(k):
                 ....:     if k == 0:
                 ....:         return 1/(2*log(2))*(log(2*pi)-1)-3/4
