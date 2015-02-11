@@ -34,6 +34,7 @@ AUTHORS:
 #*****************************************************************************
 
 
+import os
 import sys, signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
@@ -443,6 +444,29 @@ class DocTestReporter(SageObject):
                                 log ("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
                     log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
+
+           if os.environ.get("XML_RESULTS"):
+               time = stats[basename].get("walltime", 1e6)
+               if result_dict.err is None:
+                   tests = ntests
+                   failures = result_dict.failures
+                   errors = 0
+                   failure_item = "<error type='failure'>test failures</error>" if failures else ""
+               else:
+                   tests = 1
+                   failures = 0
+                   errors = 1
+                   failure_item = "<error type='error'>%s</error>" % str(result_dict.err).replace('<', '&lt;').replace('>', '&gt;')
+               output = open(os.path.join(os.environ.get('XML_RESULTS'), basename + ".xml"), "w")
+               output.write("""
+                   <?xml version="1.0" ?>
+                   <testsuite name="%(basename)s" errors="%(errors)s" failures="%(failures)s" tests="%(tests)s" time="%(time)s">
+                   <testcase classname="%(basename)s" name="all">
+                   %(failure_item)s
+                   </testcase>
+                   </testsuite>
+                   """ % locals())
+               output.close()
 
         except Exception:
             import traceback
