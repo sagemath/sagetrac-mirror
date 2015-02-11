@@ -1746,7 +1746,6 @@ class ExpressionTreeWalker(Converter):
         """
         return operator(*map(self, ex.operands()))
 
-
 class SubstituteFunction(ExpressionTreeWalker):
     def __init__(self, ex, original, new):
         """

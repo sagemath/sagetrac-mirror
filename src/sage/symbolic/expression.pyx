@@ -4974,6 +4974,16 @@ cdef class Expression(CommutativeRingElement):
             (x, y) |--> x^n + y^n
             sage: f(2,3)
             3^n + 2^n
+
+        Piecewise functions will have their variable set according
+        to the argument::
+
+            sage: f(x) = piecewise([((0,2), y^3)])
+            sage: f(1)
+            y^3
+            sage: f(y) = piecewise([((0,2), y^3)])
+            sage: f(1)
+            1
         """
         # we override type checking in CallableSymbolicExpressionRing,
         # since it checks for old SymbolicVariable's
@@ -4984,8 +4994,20 @@ cdef class Expression(CommutativeRingElement):
             if not is_SymbolicVariable(i):
                 break
         else:
+            from sage.symbolic.expression_conversions import ExpressionTreeWalker
+            from sage.functions.piecewise import PiecewiseFunction
+            class PiecewiseConverter(ExpressionTreeWalker):
+                def composition(self, ex, operator):
+                    if isinstance(operator, PiecewiseFunction):
+                        it = ex.iteritems()
+                        return PiecewiseFunction()(tuple((d,f) for d,f in it), var=args[0])
+                    else:
+                        return operator(*map(self, ex.operands()))
+
+            s = PiecewiseConverter(self)
+            ex = s()
             R = CallableSymbolicExpressionRing(args, check=False)
-            return R(self)
+            return R(ex)
         raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
 
     ############################################################################
