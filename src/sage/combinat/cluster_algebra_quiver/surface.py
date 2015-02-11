@@ -376,9 +376,9 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
     INPUT:
 
     - ``T``: triangulation, a list of 3-tuples, see ``ClusterTriangulation.triangulation``
-    - ``cluster``: see :meth:``ClusterTriangulation.cluster``
-    - ``boundary_edges``: a list of user-given boundary edges, possibly an empty list, see :meth:``ClusterTriangulation.boundary_edges``
-    - ``boundary_edges_vars``: see :meth:``ClusterTriangulation.boundary_edges_vars``
+    - ``cluster``: see :meth:`~ClusterTriangulation.cluster`
+    - ``boundary_edges``: a list of user-given boundary edges, possibly an empty list, see :meth:`~ClusterTriangulation.boundary_edges`
+    - ``boundary_edges_vars``: see :meth:`~ClusterTriangulation.boundary_edges_vars`
 
     EXAMPLES::
 
@@ -440,8 +440,8 @@ def _get_edge_user_label(edge_var, triangulation_dictionary):
 
     INPUT:
 
-    - ``edge_var``: a variable x_i or b_i returned by :meth:``ClusterTriangulation.cluster`` or :meth:``ClusterTriangulation.boundary_edges_vars``
-    - ``triangulation_dictionary``: see :meth:``ClusterTriangulation.triangulation_dictionary``
+    - ``edge_var`` -- a variable x_i or b_i returned by :meth:`ClusterTriangulation.cluster` or :meth:`ClusterTriangulation.boundary_edges_vars`
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
 
     EXAMPLES::
 
@@ -469,8 +469,8 @@ def _get_weighted_edge(arc, triangulation_dictionary):
 
     INPUT:
 
-    - ``arc``: user-given label for an arc or boundary edge, possibly a tuple (label,'counterclockwise') or (label,'clockwise')
-    - ``triangulation_dictionary``: see :meth:``ClusterTriangulation.triangulation_dictionary``
+    - ``arc`` -- user-given label for an arc or boundary edge, possibly a tuple (label,'counterclockwise') or (label,'clockwise')
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
 
     EXAMPLES::
 
@@ -508,8 +508,8 @@ def _get_weighted_edges(edges, triangulation_dictionary):
 
     INPUT:
 
-    - ``edges``: list of user-given labels for arcs/boundary edges
-    - ``triangulation_dictionary``: see :meth:``ClusterTriangulation.triangulation_dictionary``
+    - ``edges`` -- list of user-given labels for arcs/boundary edges
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
 
     EXAMPLES::
 
@@ -534,15 +534,21 @@ def _get_weighted_edges(edges, triangulation_dictionary):
 
 def _get_weighted_triangulation(T, triangulation_dictionary):
     """
-    This function is called by cluster_seed.py
-    Return the triangulation given by user with weights (e.g. [(x1, x2, x0),(x1,x3,x5), ...)
+    Return the triangulation ``T`` given by user such that user-given labels are replaced by variables x_i and b_i.
+    See :class:`ClusterTriangulation` and :meth:`ClusterTriangulation.triangulation_dictionary`
+
+    INPUT:
+
+    - ``T`` -- list of triangles with labels given by user
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
 
     EXAMPLES::
 
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_triangulation
         sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
         sage: T._triangulation_dictionary
         [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
-        sage: T.weighted_triangulation()
+        sage: _get_weighted_triangulation(T._triangles, T._triangulation_dictionary)
         [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
     """
     weighted_T = []
@@ -562,17 +568,28 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
 
 def _get_user_label_triangulation(T):
     """
-    This function is called by cluster_seed.py
-    Return the triangulation given by user with weights (e.g. [(x1, x2, x0),(x1,x3,x5), ...)
+    Return the same input list ``T`` (of triangles with user-given edge labels)
+    where each triangle (a,a,b) or (a,b,a) or (b,a,a) is replaced by ((a, 'counterclockwise'),(a, 'clockwise'),b)
+
+    INPUT:
+
+    - ``T`` -- list of triangles with labels given by user
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_user_label_triangulation
-        sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
-        sage: T._triangulation_dictionary
-        [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
-        sage: T.weighted_triangulation()
-        [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
+        sage: twice_punctured_monogon = [(1,1,2), (4,4,3), ('boundary',2,3)]
+        sage: _get_user_label_triangulation(twice_punctured_monogon)
+        [((1, 'counterclockwise'), (1, 'clockwise'), 2),
+        ((4, 'counterclockwise'), (4, 'clockwise'), 3),
+        ('boundary', 2, 3)]
+
+        sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+        sage: _get_user_label_triangulation(once_punctured_square)
+        [('a', 'd', 'c'),
+        ('a', 'll', 'b'),
+        (('r', 'counterclockwise'), ('r', 'clockwise'), 'll'),
+        ('b', 'f', 'e')]
     """
     informative_T = []
     for pos in range(0,len(T)):
@@ -594,35 +611,61 @@ def _get_user_label_triangulation(T):
 
 def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_triangle=None, is_arc=None, is_loop=None, verbose=False, boundary_edges=None, fig_size=4):
     """
-    This function is called by cluster_seed.py
-
-        Return the Laurent expansion of the given ordinary arc from a triangulated surface.
-        The algorithm used is the perfect matching formula from
-        "Positivity for cluster algebras from surfaces"
-        http://arxiv.org/abs/0906.0748 (section 4).
+    Return the Laurent expansion of the cluster algebra element
+    (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
+    with respect to the initial seed corresponding to the triangulation ``T``.
+    See :meth:`ClusterSeed.arc` and :meth:`ClusterSeed.loop`
 
     INPUT:
-    weighted triangulation, e.g. [(x0,x1,x2),(x0,x2,x3), ...]
-    crossed_arcs = x0, x1, ... etc
-    (optional) first_triangle = [a,b,c] -> the first triangle crossed by arc
-    (optional) final_triangle = [d,e,f] -> the final triangle crossed by arc
 
+        - ``T`` -- list of triangles (3-tuples)
+        - ``crossed_arcs`` --  cluster variables corresponding to arcs that are crossed by gamma
+        - ``first_triangle`` -- (default:``None``) the first triangle (a,b,c) crossed by curve
+        - ``final_triangle`` -- (default:``None``) the last triangle (d,e,f) crossed by curve
+        - ``is_arc`` -- (default:``None``) True if curve is between marked point/s
+        - ``is_loop`` -- (default:``None``) True if curve is a loop in the interior of the surface
+        - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the snake graph if ``True``
+        - ``fig_size`` -- (default:4) image size
 
-    (Loop A)
-    Starting from the minimal matching, flip every tile (one at a time) that can be flipped.
-    When no new matchings are created, quit the loop.
-    Record all matchings in "all_matchings"
+    ALGORITHM:
 
-    (Loop B):
-    get SUM of the weights of all perfect matchings in "all_matchings"
+        To compute the Laurent polynomial expansion:
+        See the perfect matching formula from Musiker-Schiffler-Williams'
+        "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748`  (section 4)
+        and "Bases for cluster algebras from surfaces" :arxiv:``1110.4364`` (sections 3.1-3.2)
+
+        #. To produce ``all_perfect_matchings`` of a snake graph/band graph:
+            #. Produce the minimal matching min_pm, i.e. the perfect matching containing:
+                #. the floor edge of the first tile (with +1 orientation),
+                #. and only boundary edges of the snake graph.
+            #. Produce more perfect matching/s by flipping (one at a time)
+            every flippable tile (i.e. (1,0,1,0) to (0,1,0,1)) of min_pm.
+            #. Continue flipping (one at a time) every flippable tile of current matchings.
+            #. When this process stops producing new perfect matchings, quit the loop.
+
+        #. Compute the sum ``all_sum`` of all weights of all perfect matchings in ``all_perfect_matchings``,
+        i.e. the weight of a perfect matching is the product of all weights of edges in the matchings.
+
+        #. The Laurent polynomial expansion corresponding to the curve is equal to ``all_sum`` over prod[``crossed_arcs``]
 
     EXAMPLES::
+
         sage: from sage.combinat.cluster_algebra_quiver.surface import LaurentExpansionFromSurface
         sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
         sage: S = ClusterSeed(T)
         sage: S1=S.mutate(0,inplace=False)
-        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],None,None,True,None)
+        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None)
         True
+
+        Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+        where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.
+        We pick tau_1 to be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1] ::
+
+            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: S = ClusterSeed(T)
+            sage: c = [item for item in S.cluster()]
+            sage: LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
+            (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
     """
     from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
 
@@ -677,7 +720,13 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
 
 def UniqueList(in_list):
     """
-    Remove duplicate copies from list
+    Return ``in_list`` with any multiple entries removed
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import UniqueList
+        sage: UniqueList([5,4,3,2,1,'a','b','c','d','e',4,3,2,1,'d','c','c','c'])
+        [5, 4, 3, 2, 1, 'a', 'b', 'c', 'd', 'e']
     """
     new_list = []
     for elt in in_list:
@@ -1377,7 +1426,7 @@ def _draw_snake_graph (G, user_labels, xy=(0,0)):
 
     INPUT:
 
-    - ``G`` -- snake graph description, see :meth:``~sage.combinat.cluster_algebra_quiver.ClusterTriangulation.snake_graph``
+    - ``G`` -- snake graph description, see :meth:`~sage.combinat.cluster_algebra_quiver.ClusterTriangulation.snake_graph`
     - ``user_labels`` -- whether the labels of the snake graph are user-given labels or variables (x_i and b_i) corresponding to arcs/boundary edges
     - ``xy`` -- (default:(0,0)) snake graph should be plotted at xy=(a,b)
 
@@ -1997,7 +2046,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
 def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
     """
     Returns the graphics info of a lifted triangulated polygon and the lifted curve.
-    See :meth:``ClusterTriangulation.draw_lifted_polygon_arc`` and :meth:``ClusterTriangulation.draw_lifted_polygon_loop``
+    See :meth:`ClusterTriangulation.draw_lifted_polygon_arc` and :meth:`ClusterTriangulation.draw_lifted_polygon_loop`
 
     EXAMPLES::
 
