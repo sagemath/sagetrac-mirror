@@ -18,9 +18,9 @@ We can do arithmetic with relationals::
     sage: e - 1
     x <= x - 3
     sage: e*(-1)
-    -x - 1 <= -x + 2
+    -x - 1 >= -x + 2
     sage: (-2)*e
-    -2*x - 2 <= -2*x + 4
+    -2*x - 2 >= -2*x + 4
     sage: e*5
     5*x + 5 <= 5*x - 10
     sage: e/5
@@ -2583,26 +2583,44 @@ cdef class Expression(CommutativeRingElement):
             x = gsub(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
 
+    @staticmethod
+    def _switch_inequality_(op):
+        if op == less:
+            return greater
+        elif op == greater:
+            return less
+        elif op == less_or_equal:
+            return greater_or_equal
+        elif op == greater_or_equal:
+            return less_or_equal
+
     cpdef RingElement _mul_(left, RingElement right):
         """
         Multiply left and right.
 
         EXAMPLES::
 
-            sage: var("x y")
+            sage: var('x,y'); f = x + 3 < y - 2
             (x, y)
-            sage: x*y*y
-            x*y^2
+            sage: f*(-2/3)
+            -2/3*x - 2 > -2/3*y + 4/3
+            sage: f*(-pi)
+            -pi*(x + 3) > -pi*(y - 2)
+            sage: (x^3 + 1 > 2*sqrt(3)) * (-1)
+            -x^3 - 1 < -2*sqrt(3)
+            sage: (x^3 + 1 >= 2*sqrt(3)) * (-1)
+            -x^3 - 1 <= -2*sqrt(3)
+            sage: (x^3 + 1 <= 2*sqrt(3)) * (-1)
+            -x^3 - 1 >= -2*sqrt(3)
+            sage: f*(1+I)
+            Traceback (most recent call last):
 
-            # multiplying relational expressions
+        Multiplying relational expressions::
+
             sage: ( (x+y) > x ) * ( x > y )
             (x + y)*x > x*y
-
             sage: ( (x+y) > x ) * x
             (x + y)*x > x^2
-
-            sage: ( (x+y) > x ) * -1
-            -x - y > -x
 
         TESTS::
 
@@ -2768,7 +2786,29 @@ cdef class Expression(CommutativeRingElement):
             sage: ex = -(x1 + r2 - x2*r1)/x3
             sage: ex.substitute(a=z, b=z)
             (r1*x2 - r2 - x1)/x3
+
+        Relations become `False` when multiplied with `0` (:trac:`7660`)::
+
+            sage: (x == 2)*0
+            False
+            sage: 0*(x < 5)
+            False
+
+        If inequalities are multiplied with a real (or a value that can
+        be coerced into real) then the operation gets distributed over
+        both sides, and the sign switched if the value was negative
+        (:trac:`7660`)::
+
+            sage: -(x < 5)
+            -x > -5
+            sage: (x <= 5)*2
+            2*x <= 10
+            sage: (x >= 5)*-2.0
+            -2.00000000000000*x <= -10.0000000000000
+            sage: (x > 5)*I
+            I*(x > 5)
         """
+        from sage.rings.real_mpfr import RR
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
@@ -2780,15 +2820,29 @@ cdef class Expression(CommutativeRingElement):
                                gmul(left._gobj.rhs(), _right._gobj.rhs()),
                                op)
             else:
-                o = relational_operator(left._gobj)
-                x = relational(gmul(left._gobj.lhs(), _right._gobj),
-                               gmul(left._gobj.rhs(), _right._gobj),
-                               o)
+                if _right.is_trivial_zero():
+                    return False
+                try:
+                    r = RR(_right)
+                except TypeError:
+                    x = gmul(left._gobj, _right._gobj)
+                else:
+                    o = relational_operator(left._gobj)
+                    x = relational(gmul(left._gobj.lhs(), _right._gobj),
+                                   gmul(left._gobj.rhs(), _right._gobj),
+                                   o if r>0 else Expression._switch_inequality_(o))
         elif is_a_relational(_right._gobj):
-            o = relational_operator(_right._gobj)
-            x = relational(gmul(left._gobj, _right._gobj.lhs()),
-                           gmul(left._gobj, _right._gobj.rhs()),
-                           o)
+            if left.is_trivial_zero():
+                return False
+            try:
+                r = RR(left)
+            except TypeError:
+                x = gmul(left._gobj, _right._gobj)
+            else:
+                o = relational_operator(_right._gobj)
+                x = relational(gmul(left._gobj, _right._gobj.lhs()),
+                               gmul(left._gobj, _right._gobj.rhs()),
+                               o if r>0 else Expression._switch_inequality_(o))
         else:
             x = gmul(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
@@ -10729,42 +10783,28 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
+        Note that the direction of the following inequalities is
+        not reversed::
+
             sage: var('x,y'); f = x + 3 < y - 2
             (x, y)
             sage: f.multiply_both_sides(7)
             7*x + 21 < 7*y - 14
             sage: f.multiply_both_sides(-1/2)
             -1/2*x - 3/2 < -1/2*y + 1
-            sage: f*(-2/3)
-            -2/3*x - 2 < -2/3*y + 4/3
-            sage: f*(-pi)
-            -pi*(x + 3) < -pi*(y - 2)
 
-        Since the direction of the inequality never changes when doing
-        arithmetic with equations, you can multiply or divide the
+        You can multiply or divide the
         equation by a quantity with unknown sign::
 
-            sage: f*(1+I)
-            (I + 1)*x + 3*I + 3 < (I + 1)*y - 2*I - 2
             sage: f = sqrt(2) + x == y^3
             sage: f.multiply_both_sides(I)
             I*x + I*sqrt(2) == I*y^3
             sage: f.multiply_both_sides(-1)
             -x - sqrt(2) == -y^3
-
-        Note that the direction of the following inequalities is
-        not reversed::
-
-            sage: (x^3 + 1 > 2*sqrt(3)) * (-1)
-            -x^3 - 1 > -2*sqrt(3)
-            sage: (x^3 + 1 >= 2*sqrt(3)) * (-1)
-            -x^3 - 1 >= -2*sqrt(3)
-            sage: (x^3 + 1 <= 2*sqrt(3)) * (-1)
-            -x^3 - 1 <= -2*sqrt(3)
         """
         if not is_a_relational(self._gobj):
             raise TypeError("this expression must be a relation")
-        return self * x
+        return self.operator()(self.lhs() * x, self.rhs() * x)
 
     def divide_both_sides(self, x, checksign=None):
         """
@@ -10789,7 +10829,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if not is_a_relational(self._gobj):
             raise TypeError("this expression must be a relation")
-        return self / x
+        return self.operator()(self.lhs() / x, self.rhs() / x)
 
 
 cdef dict dynamic_class_cache = {}
