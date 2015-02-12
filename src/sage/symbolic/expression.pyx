@@ -10,26 +10,6 @@ We create a relational expression::
     sage: eqn.subs(x == 5)
     16 <= 18
 
-Notice that squaring the relation squares both sides.
-
-::
-
-    sage: eqn^2
-    (x - 1)^4 <= (x^2 - 2*x + 3)^2
-    sage: eqn.expand()
-    x^2 - 2*x + 1 <= x^2 - 2*x + 3
-
-The can transform a true relational into a false one::
-
-    sage: eqn = SR(-5) < SR(-3); eqn
-    -5 < -3
-    sage: bool(eqn)
-    True
-    sage: eqn^2
-    25 < 9
-    sage: bool(eqn^2)
-    False
-
 We can do arithmetic with relationals::
 
     sage: e = x+1 <= x-2
@@ -3257,6 +3237,16 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+
+        Equations distribute powers over the sides but inequalities
+        will not (:trac:`7660`)::
+
+            sage: eq = x==5
+            sage: eq^2
+            x^2 == 25
+            sage: rel = x<5
+            sage: rel^2
+            (x < 5)^2
         """
         cdef Expression base, nexp
 
@@ -3270,7 +3260,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             nexp = base.coerce_in(exp)
         cdef GEx x
-        if is_a_relational(base._gobj):
+        if base.operator() == operator.eq or base.operator() == operator.ne:
             x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
                            g_pow(base._gobj.rhs(), nexp._gobj),
                            relational_operator(base._gobj))
