@@ -306,7 +306,7 @@ below::
     sage: f + g
     x + 5 < x + y + 8
     sage: f*(-1)
-    -x - 3 < -y + 2
+    -x - 3 > -y + 2
 
 TESTS:
 

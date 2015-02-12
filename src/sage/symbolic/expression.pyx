@@ -2616,18 +2616,24 @@ cdef class Expression(CommutativeRingElement):
             -x^3 - 1 >= -2*sqrt(3)
             sage: f*(1+I)
             Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality multiplied with irreal or symbolic.
 
         Multiplying relational expressions::
 
             sage: ( (x+y) > x ) * ( x > y )
             (x + y)*x > x*y
             sage: ( (x+y) > x ) * x
-            (x + y)*x > x^2
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality multiplied with irreal or symbolic.
 
         TESTS::
 
             sage: x * ( (x+y) > x )
-            (x + y)*x > x^2
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality multiplied with irreal or symbolic.
 
             sage: ( x > y) * (y < x)
             Traceback (most recent call last):
@@ -2808,7 +2814,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (x >= 5)*-2.0
             -2.00000000000000*x <= -10.0000000000000
             sage: (x > 5)*I
-            I*(x > 5)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality multiplied with irreal or symbolic.
         """
         from sage.rings.real_mpfr import RR
         cdef GEx x
@@ -2824,24 +2832,30 @@ cdef class Expression(CommutativeRingElement):
             else:
                 if _right.is_trivial_zero():
                     return False
+                o = relational_operator(left._gobj)
                 try:
                     r = RR(_right)
                 except TypeError:
-                    x = gmul(left._gobj, _right._gobj)
+                    if o == equal or o == not_equal:
+                        x = gmul(left._gobj, _right._gobj)
+                    else:
+                        raise ArithmeticError('Inequality multiplied with irreal or symbolic.')
                 else:
-                    o = relational_operator(left._gobj)
                     x = relational(gmul(left._gobj.lhs(), _right._gobj),
                                    gmul(left._gobj.rhs(), _right._gobj),
                                    o if r>0 else Expression._switch_inequality_(o))
         elif is_a_relational(_right._gobj):
             if left.is_trivial_zero():
                 return False
+            o = relational_operator(_right._gobj)
             try:
                 r = RR(left)
             except TypeError:
-                x = gmul(left._gobj, _right._gobj)
+                if o == equal or o == not_equal:
+                    x = gmul(left._gobj, _right._gobj)
+                else:
+                    raise ArithmeticError('Inequality multiplied with irreal or symbolic.')
             else:
-                o = relational_operator(_right._gobj)
                 x = relational(gmul(left._gobj, _right._gobj.lhs()),
                                gmul(left._gobj, _right._gobj.rhs()),
                                o if r>0 else Expression._switch_inequality_(o))
@@ -2878,7 +2892,9 @@ cdef class Expression(CommutativeRingElement):
             (x + y)/x > x/y
 
             sage: ( (x+y) > x ) / x
-            (x + y)/x > 1
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality divided by irreal or symbolic.
 
             sage: ( (x+y) > x ) / -1
             -x - y < -x
@@ -2886,7 +2902,9 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: x / ( (x+y) > x )
-            x/(x + y) > 1
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Irreal or symbolic divided by inequality.
 
             sage: ( x > y) / (y < x)
             Traceback (most recent call last):
@@ -2958,24 +2976,30 @@ cdef class Expression(CommutativeRingElement):
                                    gdiv(left._gobj.rhs(), _right._gobj.rhs()),
                                    op)
                 else:
+                    o = relational_operator(left._gobj)
                     try:
                         r = RR(_right)
                     except TypeError:
-                        x = gdiv(left._gobj, _right._gobj)
+                        if o == equal or o == not_equal:
+                            x = gdiv(left._gobj, _right._gobj)
+                        else:
+                            raise ArithmeticError('Inequality divided by irreal or symbolic.')
                     else:
-                        o = relational_operator(left._gobj)
                         x = relational(gdiv(left._gobj.lhs(), _right._gobj),
                                        gdiv(left._gobj.rhs(), _right._gobj),
                                        o if r>0 else Expression._switch_inequality_(o))
             elif is_a_relational(_right._gobj):
                 if left.is_trivial_zero():
                     return False
+                o = relational_operator(_right._gobj)
                 try:
                     r = RR(left)
                 except TypeError:
-                    x = gdiv(left._gobj, _right._gobj)
+                    if o == equal or o == not_equal:
+                        x = gdiv(left._gobj, _right._gobj)
+                    else:
+                        raise ArithmeticError('Irreal or symbolic divided by inequality.')
                 else:
-                    o = relational_operator(_right._gobj)
                     x = relational(gdiv(left._gobj, _right._gobj.lhs()),
                                    gdiv(left._gobj, _right._gobj.rhs()),
                                    Expression._switch_inequality_(o) if r>0 else o)
@@ -10858,7 +10882,9 @@ cdef class Expression(CommutativeRingElement):
             sage: eqn.divide_both_sides(theta)
             (x^3 + theta)/theta < sin(theta*x)/theta
             sage: eqn/theta
-            (x^3 + theta)/theta < sin(theta*x)/theta
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Inequality divided by irreal or symbolic.
         """
         if not is_a_relational(self._gobj):
             raise TypeError("this expression must be a relation")
