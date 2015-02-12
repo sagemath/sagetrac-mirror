@@ -188,7 +188,7 @@ def _triangulation_to_arrows(list_triangles):
         sage: Qmu2.is_mutation_finite()
         True
 
-        sage: arrows = _triangulation_to_arrows ([[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]])
+        sage: arrows = _triangulation_to_arrows([[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]])
         sage: arrows
         [[4, 5, None],
         [5, 1, None],
@@ -211,7 +211,7 @@ def _triangulation_to_arrows(list_triangles):
     nooses = []
 
     for t in list_triangles:
-        selffolded = is_selffolded (t)
+        selffolded = is_selffolded(t)
         if t[0] != t[1] and t[1] != t[2] and t[0] != t[2]:
             # if t has three distinct edges, add 3 edges for those
             digraph_edges.extend([[t[0],t[1],None], [t[1],t[2],None], [t[2],t[0],None]])
@@ -221,7 +221,7 @@ def _triangulation_to_arrows(list_triangles):
             selffolded_triangles.append([radius,radius, ell])
             nooses.append(ell)
         else:
-            raise ValueError ('An ideal triangle has to have 3 distinct edges or 2 distinct edges')
+            raise ValueError('An ideal triangle has to have 3 distinct edges or 2 distinct edges')
             break
 
     selffolded_edges = []
@@ -415,18 +415,18 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
             dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
-        selffolded = is_selffolded (triangle)
+        selffolded = is_selffolded(triangle)
         if type(selffolded) in [tuple,list]:
             radius_label = selffolded[0]
             ell_label = selffolded[2]
             radius = _get_weighted_edge(radius_label, dic)
-            ell = _get_weighted_edge (ell_label, dic)
+            ell = _get_weighted_edge(ell_label, dic)
             list_radius.append(radius)
             list_ell.append(ell)
 
     for pos in range(0,len(dic)): # Assign a noose to the product of r * r\notch
         cluster_var = dic[pos][1]
-        if list_ell.count (cluster_var):
+        if list_ell.count(cluster_var):
             ind = list_ell.index(cluster_var)
             dic[pos] = (dic[pos][0], list_ell[ind] * list_radius[ind])
 
@@ -526,7 +526,7 @@ def _get_weighted_edges(edges, triangulation_dictionary):
 
     weighted_edges = []
     for e in edges:
-        weighted_e = _get_weighted_edge (e, triangulation_dictionary)
+        weighted_e = _get_weighted_edge(e, triangulation_dictionary)
         weighted_edges.append(weighted_e)
     return weighted_edges
 
@@ -551,9 +551,9 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
     """
     weighted_T = []
     for pos in range(0,len(T)):
-        a = _get_weighted_edge (T[pos][0], triangulation_dictionary)
-        b = _get_weighted_edge (T[pos][1], triangulation_dictionary)
-        c = _get_weighted_edge (T[pos][2], triangulation_dictionary)
+        a = _get_weighted_edge(T[pos][0], triangulation_dictionary)
+        b = _get_weighted_edge(T[pos][1], triangulation_dictionary)
+        c = _get_weighted_edge(T[pos][2], triangulation_dictionary)
 
         false_or_r_r_ell = is_selffolded ((a,b,c))
         if isinstance(false_or_r_r_ell, tuple):
@@ -612,7 +612,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
     Return the Laurent expansion of the cluster algebra element
     (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
     with respect to the initial seed corresponding to the triangulation ``T``.
-    See :meth:`ClusterSeed.arc` and :meth:`ClusterSeed.loop`
+    See :meth:`ClusterSeed.arc_laurent_expansion` and :meth:`ClusterSeed.loop`
 
     INPUT:
 
@@ -687,7 +687,7 @@ def GetAllMatchings(G):
 
     INPUT:
 
-    - ``G`` -- snake/band graph, see :meth:`ClusterTriangulation.snake_graph` and :meth:`ClusterTriangulation.band_graph`
+    - ``G`` -- snake/band graph, see :meth:`ClusterTriangulation.list_snake_graph` and :meth:`ClusterTriangulation.list_band_graph`
 
     ALGORITHM:
 
@@ -710,7 +710,7 @@ def GetAllMatchings(G):
             sage: S = ClusterSeed(T)
             sage: crossed = [S.x(1),S.x(2),S.x(3)]
             sage: gamma = S.mutate([3,2,1],inplace=False).cluster_variable(1)
-            sage: snakegraph = T.snake_graph(crossed,user_labels=False)
+            sage: snakegraph = T.list_snake_graph(crossed,user_labels=False)
             sage: sum(gamma.numerator().coefficients()) == len(GetAllMatchings(snakegraph))
             True
     """
@@ -804,7 +804,7 @@ def GetDenominator(G):
 
     INPUT:
 
-    - ``G`` -- snake/band graph information, see :meth:`ClusterTriangulation.band_graph` or :meth:`ClusterTriangulation.snake_graph`
+    - ``G`` -- snake/band graph information, see :meth:`ClusterTriangulation.list_band_graph` or :meth:`ClusterTriangulation.list_snake_graph`
 
     EXAMPLES::
 
@@ -815,7 +815,7 @@ def GetDenominator(G):
             sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
             sage: T = ClusterTriangulation([(1,2,'b1'),(1,0,'b2'),(0,3,'b3'),(2,3,'b4')],boundary_edges=['b1','b2','b3','b4']) # Counterclockwise triangulation
             sage: c = [item for item in T.cluster()]
-            sage: BG = T.band_graph([c[1], c[2], c[3], c[0], c[1]],user_labels=False)
+            sage: BG = T.list_band_graph([c[1], c[2], c[3], c[0], c[1]],user_labels=False)
             sage: GetDenominator(BG)
             x0*x1*x2*x3
     """
@@ -836,7 +836,7 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
 
     INPUT:
 
-    - ``snakegraph`` -- see :meth:`ClusterTriangulation.band_graph` or :meth:`ClusterTriangulation.snake_graph`
+    - ``snakegraph`` -- see :meth:`ClusterTriangulation.list_band_graph` or :meth:`ClusterTriangulation.list_snake_graph`
     - ``all_matchings`` -- all perfect matchings for ``snakegraph``
     - ``boundary_edges`` -- (default:``None``) variables b_i (which is set to 1) corresponding to boundary edges
 
@@ -849,7 +849,7 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
             sage: S = ClusterSeed(T)
             sage: crossed = [S.x(0),S.x(1),S.x(2),S.x(3),S.x(0)]
             sage: boundary_variables = [_get_weighted_edge(b,T._triangulation_dictionary) for b in ['b5','b6','b7','b8']]
-            sage: G = T.snake_graph(crossed,user_labels=False)
+            sage: G = T.list_snake_graph(crossed,user_labels=False)
             sage: all_matchings = GetAllMatchings(G)
             sage: gamma_numerator = SumOfMonomialTerms(G, all_matchings, boundary_edges=boundary_variables)
             sage: gamma_denominator = GetDenominator(G)
@@ -878,7 +878,7 @@ def ExtractWeight(tile, abcd, is_final_tile):
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import ExtractWeight
         sage: T = ClusterTriangulation([(1,0,4),(3,0,2)])
-        sage: G = T.snake_graph([T.cluster()[0]], user_labels=False)
+        sage: G = T.list_snake_graph([T.cluster()[0]], user_labels=False)
         sage: G[0]
         [(1, (x1, x0, x4)), (2, (x3, x0, x2), 'ABOVE')]
         sage: ExtractWeight(G[0],(1,0,1,0),True)
@@ -1025,6 +1025,8 @@ ABOVE = 'ABOVE'
 
 def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
     """
+    Search for and return [first_triangle, last_triangle], the first and final triangles crossed by curve
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_first_final_triangles
@@ -1132,7 +1134,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     """
     Return descriptions of the snake/band graph for the curve crossing the arcs in input ``crossed_arcs``
 
-    See :meth:`ClusterTriangulation.snake_graph` and :meth:`ClusterTriangulation.band_graph`
+    See :meth:`ClusterTriangulation.list_snake_graph` and :meth:`ClusterTriangulation.list_band_graph`
 
     To debug, see Mathematica function: banda
 
@@ -1221,7 +1223,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
             [(-1, (3, 4, 12)), (-2, (5, 4, 14), 'RIGHT')],
             [(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
             [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'ABOVE')]]
-            sage: T.snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            sage: T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
             [[(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
             [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'RIGHT')],
             [(1, (6, 7, 9)), (2, (8, 7, 13), 'RIGHT')],
@@ -1585,7 +1587,7 @@ def _draw_snake_graph (G, user_labels, xy=(0,0)):
 
     INPUT:
 
-    - ``G`` -- snake graph description, see :meth:`~sage.combinat.cluster_algebra_quiver.ClusterTriangulation.snake_graph`
+    - ``G`` -- snake graph description, see :meth:`~sage.combinat.cluster_algebra_quiver.ClusterTriangulation.list_snake_graph`
     - ``user_labels`` -- whether the labels of the snake graph are user-given labels or variables (x_i and b_i) corresponding to arcs/boundary edges
     - ``xy`` -- (default:(0,0)) snake graph should be plotted at xy=(a,b)
 
@@ -1596,8 +1598,8 @@ def _draw_snake_graph (G, user_labels, xy=(0,0)):
             sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
             sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-            sage: G_user_labels = T.snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
-            sage: _draw_snake_graph (G_user_labels,user_labels=True)
+            sage: G_user_labels = T.list_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+            sage: _draw_snake_graph(G_user_labels,user_labels=True)
             Graphics object consisting of 43 graphics primitives
     """
     from sage.plot.graphics import Graphics
@@ -1746,7 +1748,7 @@ def snake_graph_tile_directions(G):
         [(-1, ('b1', 2, 1)), (-2, (3, 2, 'b4'), 'RIGHT')],\
         [(1, (2, 3, 'b4')), (2, (0, 3, 'b3'), 'RIGHT')],\
         [(-1, (3, 0, 'b3')), (-2, ('b2', 0, 1), 'ABOVE')]]
-        sage: snake_graph_tile_directions (G)
+        sage: snake_graph_tile_directions(G)
         ['ABOVE', 'RIGHT', 'RIGHT', 'ABOVE']
     """
     directions = []
@@ -2160,12 +2162,154 @@ def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
 
 def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):
     """
-    Returns
+    Return list of copies of the triangles which are crossed by gamma.
+    See Section 7 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`
 
-        EXAMPLES::
+    INPUT:
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon
+    - ``T`` -- list of triangles, see :meth:`ClusterTriangulation.weighted_triangulation` and :meth:`ClusterTriangulation.triangulation`
+    - ``crossed_arcs`` -- the list of variables or user-given labels labeling the arcs crossed by curve
+    - ``first_triangle`` -- a 3-tuple with labels of the first triangle crossed by curve
+    - ``final_triangle`` -- a 3-tuple with labels of the final triangle crossed by curve
+    - ``is_arc`` -- True if curve is between marked point/s
+    - ``is_loop`` -- True if curve is a loop in the interior of surface
 
+    EXAMPLES::
+
+        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`, where
+        the boundary edges are labeled 11,12,13,0, and the arcs are labeled 1 (a radius), 2 (a noose), and 3,4,5,...,10::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon
+            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
+            sage: c = T.cluster()
+            sage: r = c[0]
+            sage: ell = c[1] * r
+
+            sage: _lifted_polygon (T._weighted_triangulation, [ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1]], None, None, True, False)
+            [{'bottom': b11, 'glued_on': 'glued_to_the_left', 'left': x2, 'right': x0*x1},
+            {'glued_on': 'glued_to_the_right',
+            'left': x0*x1,
+            'right': (x0, 'counterclockwise'),
+            'top': (x0, 'clockwise')},
+            {'bottom': (x0, 'clockwise'),
+            'glued_on': 'glued_to_the_top',
+            'left': (x0, 'counterclockwise'),
+            'right': x0*x1},
+            {'glued_on': 'glued_to_the_right', 'left': x0*x1, 'right': x2, 'top': b11},
+            {'bottom': b12, 'glued_on': 'glued_to_the_right', 'left': x2, 'right': x3},
+            {'glued_on': 'glued_to_the_right', 'left': x3, 'right': x4, 'top': b10},
+            {'bottom': x5, 'glued_on': 'glued_to_the_right', 'left': x4, 'right': x9},
+            {'glued_on': 'glued_to_the_bottom', 'left': x6, 'right': x8, 'top': x5}]
+
+            sage: _lifted_polygon (T._triangulation, [2,(1,'counterclockwise'),2,3,4,5,6], None, None, True, False)
+            [{'bottom': 11, 'glued_on': 'glued_to_the_left', 'left': 3, 'right': 2},
+            {'glued_on': 'glued_to_the_right',
+            'left': 2,
+            'right': (1, 'counterclockwise'),
+            'top': (1, 'clockwise')},
+            {'bottom': (1, 'clockwise'),
+            'glued_on': 'glued_to_the_top',
+            'left': (1, 'counterclockwise'),
+            'right': 2},
+            {'glued_on': 'glued_to_the_right', 'left': 2, 'right': 3, 'top': 11},
+            {'bottom': 12, 'glued_on': 'glued_to_the_right', 'left': 3, 'right': 4},
+             {'glued_on': 'glued_to_the_right', 'left': 4, 'right': 5, 'top': 0},
+            {'bottom': 6, 'glued_on': 'glued_to_the_right', 'left': 5, 'right': 10},
+            {'glued_on': 'glued_to_the_bottom', 'left': 7, 'right': 9, 'top': 6}]
+
+            sage: crossed_vars = [c[2],ell,(r,'counterclockwise'),ell, c[2],c[3],c[4],c[5],c[6],c[7],c[8],c[5],c[4],c[3],c[2]]
+            sage: _lifted_polygon(T._weighted_triangulation, crossed_vars, first_triangle=None, final_triangle=None, is_arc=False, is_loop=True)
+            [{'bottom': x3, 'glued_on': 'glued_to_the_left', 'left': b12, 'right': x2},
+            {'glued_on': 'glued_to_the_right', 'left': x2, 'right': b11, 'top': x0*x1},
+            {'bottom': x0*x1,
+            'glued_on': 'glued_to_the_top',
+            'left': (x0, 'clockwise'),
+            'right': (x0, 'counterclockwise')},
+            {'glued_on': 'glued_to_the_right',
+            'left': (x0, 'clockwise'),
+            'right': x0*x1,
+            'top': (x0, 'counterclockwise')},
+            {'bottom': x2, 'glued_on': 'glued_to_the_right', 'left': x0*x1, 'right': b11},
+            {'glued_on': 'glued_to_the_bottom', 'left': b12, 'right': x3, 'top': x2},
+            {'bottom': x4, 'glued_on': 'glued_to_the_right', 'left': x3, 'right': b10},
+            {'glued_on': 'glued_to_the_bottom', 'left': x5, 'right': x9, 'top': x4},
+            {'bottom': x8, 'glued_on': 'glued_to_the_left', 'left': x6, 'right': x5},
+            {'glued_on': 'glued_to_the_left', 'left': x7, 'right': x6, 'top': b13},
+            {'bottom': x8, 'glued_on': 'glued_to_the_left', 'left': x9, 'right': x7},
+            {'glued_on': 'glued_to_the_bottom', 'left': x5, 'right': x6, 'top': x8},
+            {'bottom': x4, 'glued_on': 'glued_to_the_left', 'left': x9, 'right': x5},
+            {'glued_on': 'glued_to_the_bottom', 'left': b10, 'right': x3, 'top': x4},
+            {'bottom': x2, 'glued_on': 'glued_to_the_right', 'left': x3, 'right': b12},
+            {'glued_on': 'glued_to_the_bottom', 'left': b12, 'right': x3, 'top': x2}]
+
+            sage: crossed_userlabels = [3,2,(1,'counterclockwise'),2, 3,4,5,6,7,8,9,6,5,4,3]
+            sage: _lifted_polygon(T._triangulation, crossed_userlabels, first_triangle=None, final_triangle=None, is_arc=False, is_loop=True)
+            [{'bottom': 4, 'glued_on': 'glued_to_the_left', 'left': 12, 'right': 3},
+            {'glued_on': 'glued_to_the_right', 'left': 3, 'right': 11, 'top': 2},
+            {'bottom': 2,
+            'glued_on': 'glued_to_the_top',
+            'left': (1, 'clockwise'),
+            'right': (1, 'counterclockwise')},
+            {'glued_on': 'glued_to_the_right',
+            'left': (1, 'clockwise'),
+            'right': 2,
+            'top': (1, 'counterclockwise')},
+            {'bottom': 3, 'glued_on': 'glued_to_the_right', 'left': 2, 'right': 11},
+            {'glued_on': 'glued_to_the_bottom', 'left': 12, 'right': 4, 'top': 3},
+            {'bottom': 5, 'glued_on': 'glued_to_the_right', 'left': 4, 'right': 0},
+            {'glued_on': 'glued_to_the_bottom', 'left': 6, 'right': 10, 'top': 5},
+            {'bottom': 9, 'glued_on': 'glued_to_the_left', 'left': 7, 'right': 6},
+            {'glued_on': 'glued_to_the_left', 'left': 8, 'right': 7, 'top': 13},
+            {'bottom': 9, 'glued_on': 'glued_to_the_left', 'left': 10, 'right': 8},
+            {'glued_on': 'glued_to_the_bottom', 'left': 6, 'right': 7, 'top': 9},
+            {'bottom': 5, 'glued_on': 'glued_to_the_left', 'left': 10, 'right': 6},
+            {'glued_on': 'glued_to_the_bottom', 'left': 0, 'right': 4, 'top': 5},
+            {'bottom': 3, 'glued_on': 'glued_to_the_right', 'left': 4, 'right': 12},
+            {'glued_on': 'glued_to_the_bottom', 'left': 12, 'right': 4, 'top': 3}]
+
+        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
+        the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9, 10; and
+        the inner boundary edges, clockwise starting from ending point of gamma:11, 0::
+
+            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
+            sage: c = [item for item in T.cluster()]
+
+            sage: _lifted_polygon(T._weighted_triangulation, [c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]],None, None, True, False)
+            [{'bottom': x3, 'glued_on': 'glued_to_the_left', 'left': x4, 'right': x0},
+            {'glued_on': 'glued_to_the_right', 'left': x0, 'right': b6, 'top': x1},
+            {'bottom': x1, 'glued_on': 'glued_to_the_top', 'left': x2, 'right': b11},
+            {'glued_on': 'glued_to_the_left', 'left': x5, 'right': x2, 'top': x3},
+            {'bottom': x3, 'glued_on': 'glued_to_the_top', 'left': x4, 'right': x0},
+            {'glued_on': 'glued_to_the_right', 'left': x0, 'right': b6, 'top': x1}]
+
+            sage: _lifted_polygon(T._triangulation, [1,2,3,4,1], None, None, True, False)
+            [{'bottom': 4, 'glued_on': 'glued_to_the_left', 'left': 5, 'right': 1},
+            {'glued_on': 'glued_to_the_right', 'left': 1, 'right': 0, 'top': 2},
+            {'bottom': 2, 'glued_on': 'glued_to_the_top', 'left': 3, 'right': 11},
+            {'glued_on': 'glued_to_the_left', 'left': 6, 'right': 3, 'top': 4},
+            {'bottom': 4, 'glued_on': 'glued_to_the_top', 'left': 5, 'right': 1},
+            {'glued_on': 'glued_to_the_right', 'left': 1, 'right': 0, 'top': 2}]
+
+            sage: _lifted_polygon(T._weighted_triangulation, [c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], None, None, False, True)
+            [{'bottom': x3, 'glued_on': 'glued_to_the_left', 'left': x4, 'right': x0},
+            {'glued_on': 'glued_to_the_right', 'left': x0, 'right': b6, 'top': x1},
+            {'bottom': x1, 'glued_on': 'glued_to_the_top', 'left': x2, 'right': b11},
+            {'glued_on': 'glued_to_the_left', 'left': x5, 'right': x2, 'top': x3},
+            {'bottom': x3, 'glued_on': 'glued_to_the_top', 'left': x4, 'right': x0},
+            {'glued_on': 'glued_to_the_right', 'left': x0, 'right': x4, 'top': x3}]
+
+            sage: _lifted_polygon(T._triangulation, [1,2,3,4,1], None, None, False, True)
+            [{'bottom': 4, 'glued_on': 'glued_to_the_left', 'left': 5, 'right': 1},
+            {'glued_on': 'glued_to_the_right', 'left': 1, 'right': 0, 'top': 2},
+            {'bottom': 2, 'glued_on': 'glued_to_the_top', 'left': 3, 'right': 11},
+            {'glued_on': 'glued_to_the_left', 'left': 6, 'right': 3, 'top': 4},
+            {'bottom': 4, 'glued_on': 'glued_to_the_top', 'left': 5, 'right': 1},
+            {'glued_on': 'glued_to_the_right', 'left': 1, 'right': 5, 'top': 4}]
+
+    .. TODO::
+
+        Can the output be more readable?
     """
     end_triangles = _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop)
     first_triangle = end_triangles[0]
@@ -2207,14 +2351,14 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
             triangles_to_draw.append(_triangle_to_draw(triangles[k], 'pyramid', tau, placement, test_k=k))
     return triangles_to_draw
 
-def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
+def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
     """
-    Returns the graphics info of a lifted triangulated polygon and the lifted curve.
-    See :meth:`ClusterTriangulation.draw_lifted_polygon_arc` and :meth:`ClusterTriangulation.draw_lifted_polygon_loop`
+    Returns the graphics info of a lifted triangulated polygon/annulus and the lifted curve.
+    See :meth:`ClusterTriangulation.draw_lifted_arc` and :meth:`ClusterTriangulation.draw_lifted_loop`
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_polygon
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_curve
 
     """
     from sage.plot.graphics import Graphics
@@ -2323,7 +2467,7 @@ def _draw_lifted_polygon(lifted_polygon, is_arc, is_loop):
 def _draw_triangle(triangle,x,y, k):
     """
     Returns a triangle starting at (x,y) in the shape of a pyramid (resp, an upside-down triangle) if k is even (resp, k is odd).
-    See :func:`~sage.combinat.cluster_algebra_quiver.surface._draw_lifted_polygon`
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._draw_lifted_curve`
 
     INPUT:
 
@@ -2357,15 +2501,18 @@ def _draw_triangle(triangle,x,y, k):
         lines = lines + line ([(x,y),(x+2,y-2)]) # right side of pyramid
 
         left = str(triangle['left'])
-        left = '$' + left.replace('*','}').replace('x','x_{') + '}$'
+        if not isinstance(triangle['left'], str):
+            left = '$' + left.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
         texts = texts + text (left,(x-1,y-1), horizontal_alignment='left', rgbcolor=text_color) # left side of pyramid
 
         bottom = str(triangle['bottom'])
-        bottom = '$' + bottom.replace('*','}').replace('x','x_{') + '}$'
+        if not isinstance(triangle['bottom'], str):
+            bottom = '$' + bottom.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
         texts = texts + text (bottom,(x,y-2), vertical_alignment='bottom', rgbcolor=text_color) # bottom of pyramid
 
         right = str(triangle['right'])
-        right = '$' + right.replace('*','}').replace('x','x_{') + '}$'
+        if not isinstance(triangle['right'], str):
+            right = '$' + right.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
         texts = texts + text (right, (x+1,y-1), horizontal_alignment='left', rgbcolor=text_color) # right side of pyramid
 
         texts = texts + text ('$\\Delta_{'+str(k)+'}$', (x+0.2, y-0.7), rgbcolor=(0,1,0))
@@ -2375,9 +2522,21 @@ def _draw_triangle(triangle,x,y, k):
         lines = lines + line ([(x-2,y+2),(x+2,y+2)]) # top of the upside-down triangle
         lines = lines + line ([(x,y),(x+2,y+2)]) # right side of the upside-down triangle
 
-        texts = texts + text ('$'+str(triangle['left']).replace('x','x_{').replace('*','}')+'}$',(x-1,y+1), horizontal_alignment='left', rgbcolor=text_color) # left side of the upside-down triangle
-        texts = texts + text ('$'+str(triangle['top']).replace('x','x_{').replace('*','}')+'}$',(x,y+2), vertical_alignment='bottom', rgbcolor=text_color) # top of the upside-down triangle
-        texts = texts + text ('$'+str(triangle['right']).replace('x','x_{').replace('*','}')+'}$', (x+1,y+1), horizontal_alignment='left', rgbcolor=text_color) # right side of the upside-down triangle
+        if not isinstance(triangle['left'], str):
+            texts = texts + text('$'+str(triangle['left']).replace('x','x_{').replace('b','b_{').replace('*','}')+'}$',(x-1,y+1), horizontal_alignment='left', rgbcolor=text_color) # left side of the upside-down triangle
+        else:
+            texts = texts + text(triangle['left'], (x-1,y+1), horizontal_alignment='left', rgbcolor=text_color) # left side of the upside-down triangle
+
+        if not isinstance(triangle['top'], str):
+            texts = texts + text('$'+str(triangle['top']).replace('x','x_{').replace('b','b_{').replace('*','}')+'}$',(x,y+2), vertical_alignment='bottom', rgbcolor=text_color) # top of the upside-down triangle
+        else:
+            texts = texts + text(triangle['top'], (x,y+2), vertical_alignment='bottom', rgbcolor=text_color) # top of the upside-down triangle
+
+        if not isinstance(triangle['right'], str):
+            texts = texts + text('$'+str(triangle['right']).replace('x','x_{').replace('b','b_{').replace('*','}')+'}$', (x+1,y+1), horizontal_alignment='left', rgbcolor=text_color) # right side of the upside-down triangle
+        else:
+            texts = texts + text(triangle['right'], (x+1,y+1), horizontal_alignment='left', rgbcolor=text_color) # right side of the upside-down triangle
+
         texts = texts + text ('$\\Delta_{'+str(k)+'}$', (x+0.2, y+0.7), rgbcolor=(0,1,0))
 
     return lines + texts

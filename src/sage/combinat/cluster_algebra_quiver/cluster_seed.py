@@ -2061,11 +2061,11 @@ class ClusterSeed(SageObject):
         """
         return self._cluster_triangulation
 
-    def arc(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
+    def arc_laurent_expansion(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
         """
         Return the Laurent expansion of a generalized arc gamma (i.e. a curve between marked point/s) which crosses the arc in crossed_arcs
 
-        .. SEEALSO:: :meth:`loop`, :meth:``ClusterTriangulation.draw_lifted_polygon_loop``
+        .. SEEALSO:: :meth:`loop`, :meth:``ClusterTriangulation.draw_lifted_loop``
 
         INPUT:
             - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from ``self.cluster_triangulation().cluster()`` if (``user_labels`` is ``False``) corresponding to arcs that are crossed by gamma
@@ -2088,13 +2088,13 @@ class ClusterSeed(SageObject):
                 sage: Q = ClusterQuiver(T)
                 sage: S = ClusterSeed(Q)
                 sage: c = [item for item in S.cluster()]
-                sage: S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False)
+                sage: S.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
                 (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
-                sage: S.arc([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == S.arc([S.x(1),S.x(2),S.x(3)], user_labels=False)
+                sage: S.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == S.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
                 True
-                sage: S.arc([1,2,3],user_labels=True) == S.arc([S.x(1),S.x(2),S.x(3)],user_labels=False)
+                sage: S.arc_laurent_expansion([1,2,3],user_labels=True) == S.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)],user_labels=False)
                 True
-                sage: S.arc([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
+                sage: S.arc_laurent_expansion([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
                 True
 
             A once-punctured square's triangulation with self-folded triangle, border edges are labeled 4,5,6,7, 2nd triangulation in oral paper
@@ -2107,11 +2107,11 @@ class ClusterSeed(SageObject):
                 sage: c = [item for item in S.cluster()]
                 sage: r=c[0]
                 sage: ell=c[3]*r
-                sage: S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+                sage: S.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
                 (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
-                sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True) == S.arc([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+                sage: S.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True) == S.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
                 True
-                sage: S.arc([1,2,3,(0,'counterclockwise'),3], user_labels=True)==S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+                sage: S.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True)==S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
                 True
 
             An 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper :arxiv.`abs/0712.4131` where tau_i = i and tau_13 is labeled 0::
@@ -2119,7 +2119,7 @@ class ClusterSeed(SageObject):
                 sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0])
                 sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
-                sage: gamma = S.arc([c[1-1],c[3-1],c[5-1]], user_labels=False)
+                sage: gamma = S.arc_laurent_expansion([c[1-1],c[3-1],c[5-1]], user_labels=False)
                 sage: S.mutate([1-1,3-1,5-1], inplace=True)
                 sage: S.cluster_variable(5-1) == gamma
                 True
@@ -2129,7 +2129,7 @@ class ClusterSeed(SageObject):
                 sage: T = ClusterTriangulation([(7,4,3),(4,1,5),(3,6,2),(2,1,0)], boundary_edges=[5,6,7,0])
                 sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
-                sage: gamma = S.arc([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+                sage: gamma = S.arc_laurent_expansion([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
                 sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
                 sage: S.cluster_variable(2) == gamma
                 True
@@ -2139,13 +2139,13 @@ class ClusterSeed(SageObject):
             sage: T= ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)
             sage: S1 = S.mutate(0, inplace=False)
-            sage: S1.cluster_variable(0) == S.arc ([S.x(0)], user_labels=False)
+            sage: S1.cluster_variable(0) == S.arc_laurent_expansion ([S.x(0)], user_labels=False)
             True
 
             sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
             sage: S = ClusterSeed(once_punctured_torus)
             sage: c = S.cluster()
-            sage: S.arc([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == S.mutate([0,1,2], inplace=False).cluster_variable(2)
+            sage: S.arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == S.mutate([0,1,2], inplace=False).cluster_variable(2)
             True
             """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
@@ -2157,7 +2157,7 @@ class ClusterSeed(SageObject):
             final_triangle = _get_weighted_edges(final_triangle, CT._triangulation_dictionary)
         return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
-    def loop(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
+    def loop_laurent_expansion(self,crossed_arcs, first_triangle=None, final_triangle=None, verbose=False, fig_size=4, user_labels=True):
         """
         Return the Laurent expansion of a loop (living in the surface's interior) in the variables of ``self.cluster_triangulation().cluster()``.
 
@@ -2167,7 +2167,7 @@ class ClusterSeed(SageObject):
             #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of :arxiv:``1110.4364``, this edge is labeled ``c``).
             #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
 
-        .. SEEALSO:: :meth:`arc`
+        .. SEEALSO:: :meth:`arc_laurent_expansion`
 
         INPUT:
             - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
@@ -2186,9 +2186,9 @@ class ClusterSeed(SageObject):
                 sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
                 sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
-                sage: S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+                sage: S.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
                 (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
-                sage: S.loop([1,2,3,0,1], user_labels=True) == S.loop([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+                sage: S.loop_laurent_expansion([1,2,3,0,1], user_labels=True) == S.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
                 True
 
             Example 3.6 from Dupont - Thomas' Atomic Basis in Types A and Affine A :arXiv:`1106.3758`::
@@ -2197,17 +2197,17 @@ class ClusterSeed(SageObject):
                 sage: S = ClusterSeed(T)#, boundary_edges=[2,3])
                 sage: c = [item for item in S.cluster()]
                 sage: crossed_arcs = [c[0], c[1], c[0]] # loop z_1 with no self-intersection
-                sage: S.loop( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
+                sage: S.loop_laurent_expansion( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
                 (x0^2 + x1^2 + 1)/(x0*x1)
                 sage: crossed_arcs = [c[0], c[1], c[0], c[1], c[0]] # loop z_2 with 1 self-intersection
-                sage: S.loop(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
+                sage: S.loop_laurent_expansion(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
                 (x0^4 + x1^4 + 2*x0^2 + 2*x1^2 + 1)/(x0^2*x1^2)
 
             Once-punctured square with 2 radii and boundary edges labeled 4,5,6,7 where the loop is contractible to the puncture::
 
                 sage: once_punctured_square = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
                 sage: S = ClusterSeed(once_punctured_square)
-                sage: S.loop(crossed_arcs=[0,3,0], first_triangle = [0,3,6], user_labels=True)
+                sage: S.loop_laurent_expansion(crossed_arcs=[0,3,0], first_triangle = [0,3,6], user_labels=True)
                 2
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
