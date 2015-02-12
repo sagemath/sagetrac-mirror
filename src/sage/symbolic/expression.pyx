@@ -26,9 +26,9 @@ We can do arithmetic with relationals::
     sage: e/5
     1/5*x + 1/5 <= 1/5*x - 2/5
     sage: 5/e
-    5/(x + 1) <= 5/(x - 2)
+    5/(x + 1) >= 5/(x - 2)
     sage: e/(-2)
-    -1/2*x - 1/2 <= -1/2*x + 1
+    -1/2*x - 1/2 >= -1/2*x + 1
     sage: -2/e
     -2/(x + 1) <= -2/(x - 2)
 
@@ -2593,6 +2593,8 @@ cdef class Expression(CommutativeRingElement):
             return greater_or_equal
         elif op == greater_or_equal:
             return less_or_equal
+        else:
+            return op
 
     cpdef RingElement _mul_(left, RingElement right):
         """
@@ -2858,7 +2860,20 @@ cdef class Expression(CommutativeRingElement):
             sage: x/y/y
             x/y^2
 
-            # dividing relational expressions
+        Relations switch sign when divided by a negative real,
+        and back again when a negative real divides them::
+
+            sage: (x < 5)/2
+            1/2*x < (5/2)
+            sage: (x < 5)/-5
+            -1/5*x > -1
+            sage: 5/(x < 5)
+            5/x > 1
+            sage: -1/(x < 5)
+            -1/x < (-1/5)
+
+        Dividing relational expressions::
+
             sage: ( (x+y) > x ) / ( x > y )
             (x + y)/x > x/y
 
@@ -2866,7 +2881,7 @@ cdef class Expression(CommutativeRingElement):
             (x + y)/x > 1
 
             sage: ( (x+y) > x ) / -1
-            -x - y > -x
+            -x - y < -x
 
         TESTS::
 
@@ -2924,7 +2939,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(1L)/SR(2L)
             0.5
+
+        Relations become `False` when `0` is divided by them (:trac:`7660`)::
+
+            sage: 0/(x < 5)
+            False
         """
+        from sage.rings.real_mpfr import RR
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
@@ -2937,15 +2958,27 @@ cdef class Expression(CommutativeRingElement):
                                    gdiv(left._gobj.rhs(), _right._gobj.rhs()),
                                    op)
                 else:
-                    o = relational_operator(left._gobj)
-                    x = relational(gdiv(left._gobj.lhs(), _right._gobj),
-                                   gdiv(left._gobj.rhs(), _right._gobj),
-                                   o)
+                    try:
+                        r = RR(_right)
+                    except TypeError:
+                        x = gdiv(left._gobj, _right._gobj)
+                    else:
+                        o = relational_operator(left._gobj)
+                        x = relational(gdiv(left._gobj.lhs(), _right._gobj),
+                                       gdiv(left._gobj.rhs(), _right._gobj),
+                                       o if r>0 else Expression._switch_inequality_(o))
             elif is_a_relational(_right._gobj):
-                o = relational_operator(_right._gobj)
-                x = relational(gdiv(left._gobj, _right._gobj.lhs()),
-                               gdiv(left._gobj, _right._gobj.rhs()),
-                               o)
+                if left.is_trivial_zero():
+                    return False
+                try:
+                    r = RR(left)
+                except TypeError:
+                    x = gdiv(left._gobj, _right._gobj)
+                else:
+                    o = relational_operator(_right._gobj)
+                    x = relational(gdiv(left._gobj, _right._gobj.lhs()),
+                                   gdiv(left._gobj, _right._gobj.rhs()),
+                                   Expression._switch_inequality_(o) if r>0 else o)
             else:
                 x = gdiv(left._gobj, _right._gobj)
             return new_Expression_from_GEx(left._parent, x)
