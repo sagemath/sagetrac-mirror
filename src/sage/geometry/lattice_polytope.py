@@ -1059,12 +1059,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                     self, self.vertices_pc(), err))
             result = stdout.read()
-            # We program around an issue with subprocess (this so far seems to
-            # only be an issue on Cygwin).
-            try:
-                p.terminate()
-            except OSError:
-                pass
+            from sage.misc.misc import terminate_robustly
+            terminate_robustly(p)
         if (not result or
             "!" in result or
             "failed." in result or
@@ -4941,10 +4937,8 @@ def _palp(command, polytopes, reduce_dimension=False):
         raise RuntimeError(("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err))
     os.remove(input_file_name)
-    try:
-        p.terminate()
-    except OSError:
-        pass
+    from sage.misc.misc import terminate_robustly
+    terminate_robustly(p)
     return output_file_name
 
 def _palp_canonical_order(V, PM_max, permutations):
