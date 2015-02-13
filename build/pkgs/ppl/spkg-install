@@ -36,6 +36,15 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+
+# Since cygwin_alarm.patch changes configure, touch files
+# to avoid reconfiguration
+touch aclocal.m4
+touch Makefile.in
+touch configure
+touch config.h.in
+
+
 # Enable only what's needed for Sage
 PPL_CONFIGURE="--enable-coefficients=mpz --disable-fpmath $PPL_CONFIGURE"
 
