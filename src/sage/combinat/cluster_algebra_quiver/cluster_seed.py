@@ -2065,10 +2065,13 @@ class ClusterSeed(SageObject):
         """
         Return the Laurent expansion of a generalized arc gamma (i.e. a curve between marked point/s) which crosses the arc in crossed_arcs
 
-        .. SEEALSO:: :meth:`loop`, :meth:``ClusterTriangulation.draw_lifted_loop``
+        .. SEEALSO:: :meth:`loop_laurent_expansion`, :meth:``ClusterTriangulation.draw_lifted_arc``
 
         INPUT:
             - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from ``self.cluster_triangulation().cluster()`` if (``user_labels`` is ``False``) corresponding to arcs that are crossed by gamma
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
             - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
             - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
             - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the snake graph if ``True``
@@ -2109,9 +2112,12 @@ class ClusterSeed(SageObject):
                 sage: ell=c[3]*r
                 sage: S.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
                 (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
-                sage: S.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True) == S.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+                sage: gamma = S.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True)
+                sage: gamma == S.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
                 True
-                sage: S.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True)==S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+                sage: gamma == S.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+                True
+                sage: gamma == S.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
                 True
 
             An 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper :arxiv.`abs/0712.4131` where tau_i = i and tau_13 is labeled 0::
@@ -2120,6 +2126,8 @@ class ClusterSeed(SageObject):
                 sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
                 sage: gamma = S.arc_laurent_expansion([c[1-1],c[3-1],c[5-1]], user_labels=False)
+                sage: gamma == S.arc_laurent_expansion([5,3,1])
+                True
                 sage: S.mutate([1-1,3-1,5-1], inplace=True)
                 sage: S.cluster_variable(5-1) == gamma
                 True
@@ -2130,6 +2138,8 @@ class ClusterSeed(SageObject):
                 sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
                 sage: gamma = S.arc_laurent_expansion([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+                sage: gamma == S.arc_laurent_expansion([1,4,3,2,1])
+                True
                 sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
                 sage: S.cluster_variable(2) == gamma
                 True
@@ -2167,10 +2177,13 @@ class ClusterSeed(SageObject):
             #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of :arxiv:``1110.4364``, this edge is labeled ``c``).
             #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
 
-        .. SEEALSO:: :meth:`arc_laurent_expansion`
+        .. SEEALSO:: :meth:`arc_laurent_expansion`, :meth:`ClusterTriangulation.draw_lifted_loop`
 
         INPUT:
             - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
             - ``first_triangle`` -- (default:``None``) the first triangle crossed by loop
             - ``final_triangle`` -- (default:``None``) the last triangle crossed by loop
             - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the band graph if ``True``
@@ -2194,8 +2207,13 @@ class ClusterSeed(SageObject):
             Example 3.6 from Dupont - Thomas' Atomic Basis in Types A and Affine A :arXiv:`1106.3758`::
 
                 sage: T = ClusterTriangulation([(0,1,2),(0,1,3)], boundary_edges=[2,3])
-                sage: S = ClusterSeed(T)#, boundary_edges=[2,3])
+                sage: S = ClusterSeed(T)
                 sage: c = [item for item in S.cluster()]
+                sage: S.loop_laurent_expansion([1,0,1,0,1],first_triangle=(0,1,2)) == S.loop_laurent_expansion([0,1,0,1,0],first_triangle=(0,1,2))
+                True
+                sage: S.loop_laurent_expansion([1,0,1,0,1],first_triangle=(0,1,2)) == S.loop_laurent_expansion([0,1,0,1,0],first_triangle=(0,1,3))
+                True
+
                 sage: crossed_arcs = [c[0], c[1], c[0]] # loop z_1 with no self-intersection
                 sage: S.loop_laurent_expansion( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
                 (x0^2 + x1^2 + 1)/(x0*x1)

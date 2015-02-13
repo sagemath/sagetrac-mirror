@@ -9,6 +9,10 @@ and for computing the Laurent expansion for cluster algebra elements not belongi
 ############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
 ######################################################################################################
 
+
+RIGHT = 'RIGHT'
+ABOVE = 'ABOVE'
+
 def are_triangles_equal(triangleA, triangleB):
     """
     If triangles are equal (including orientation), return True. Otherwise return False.
@@ -78,7 +82,7 @@ def remove_duplicate_triangles(data,boundary_edges=None):
     In case user accidentally inputs a duplicate triangle, we remove the duplicate.
     The only exception: The once-punctured torus' triangulation has two triangles with identical labels.
 
-    See :class:``ClusterQuiver``
+    See :class:`ClusterQuiver`
 
     INPUT:
 
@@ -128,7 +132,7 @@ def _triangulation_to_arrows(list_triangles):
         #. if t=[r,r,ell] is a self-folded triangle and there is an edge between ell and b, add the same directed edge between r and b.
         #. if t=[a,b,c] has distinct edges and a and b are both nooses (of two self-folded triangles [ra,ra,a] and [rb,rb,b]), add an extra arrow between ra and rb.
 
-    See :func:``~sage.combinat.cluster_algebra_quiver.surface._surface_edge_list_to_matrix`` and :class:``ClusterQuiver``
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._surface_edge_list_to_matrix` and :class:`ClusterQuiver`
 
     INPUT:
 
@@ -255,7 +259,7 @@ def _get_radius(noose,selffolded_triangles):
     """
     Return the radius of the self-folded triangle with input noose from the list of all self-folded triangles.
 
-    See :func:``~sage.combinat.cluster_algebra_quiver.surface._triangulation_to_arrows``
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._triangulation_to_arrows`
 
     INPUT:
 
@@ -367,9 +371,10 @@ def _get_user_arc_labels(T):
 
 def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_vars):
     """
-    Return a list of tuples ``t=(a,b)`` where ``a`` is a user-given label from input ``T`` and ``b`` is the variable x_i or b_i corresponding to ``a``.
+    Return a list of tuples ``t=(a,b)`` where ``a`` is a user-given label from input ``T``
+    and ``b`` is the variable x_i or b_i corresponding to ``a``.
 
-    See :class:``ClusterTriangulation``
+    See :class:`ClusterTriangulation`
 
     INPUT:
 
@@ -463,7 +468,7 @@ def _get_weighted_edge(arc, triangulation_dictionary):
     """
     Return the variable corresponding to the input arc label.
 
-    See :func:``~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edges``
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edges`
 
     INPUT:
 
@@ -502,7 +507,7 @@ def _get_weighted_edges(edges, triangulation_dictionary):
     """
     Return the variables corresponding to the list of input arc label/s
 
-    See :func:``~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edge``
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edge`
 
     INPUT:
 
@@ -563,7 +568,6 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
         weighted_T.append((a,b,c))
     return weighted_T
 
-
 def _get_user_label_triangulation(T):
     """
     Return the same input list ``T`` (of triangles with user-given edge labels)
@@ -622,7 +626,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
     - ``final_triangle`` -- (default:``None``) the last triangle (d,e,f) crossed by curve
     - ``is_arc`` -- (default:``None``) True if curve is between marked point/s
     - ``is_loop`` -- (default:``None``) True if curve is a loop in the interior of the surface
-    - ``verbose`` -- (default:``False``) display the image of the perfect matchings of the snake graph if ``True``
+    - ``verbose`` -- (default:``False``) display the image of all perfect matchings of the snake graph if ``True``
     - ``fig_size`` -- (default:4) image size
 
     ALGORITHM:
@@ -630,12 +634,17 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
         To compute the Laurent polynomial expansion:
         See the perfect matching formula from Musiker-Schiffler-Williams'
         "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748`  (section 4)
-        and "Bases for cluster algebras from surfaces" :arxiv:``1110.4364`` (sections 3.1-3.2)
+        and "Bases for cluster algebras from surfaces" :arxiv:`1110.4364` (sections 3.1-3.2)
 
         #. Compute the sum ``all_sum`` of all weights of all perfect matchings in ``all_perfect_matchings``,
         i.e. the weight of a perfect matching is the product of all weights of edges in the matchings.
 
         #. The Laurent polynomial expansion corresponding to the curve is equal to ``all_sum`` over prod[``crossed_arcs``]
+
+    .. TODO::
+
+        In case parameter ``verbose`` is set to ``True``, user may want to specify that the perfect matchings
+        should be labeled by user-given labels (and not the weights from the variables)
 
     EXAMPLES::
 
@@ -667,13 +676,13 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
         from sage.plot.graphics import Graphics
         drawing = Graphics()
         xy=(0,0)
-        draw_G = _draw_snake_graph(G,xy)
+        draw_G = _draw_snake_graph(G, print_user_labels=False, xy=xy)
 
         for pos in range(0,len(all_matchings)):
             PM = all_matchings[pos]
             matching_weight = GetMonomialTerm(G, PM)
-            draw_G = _draw_snake_graph(G,xy)
-            matching_drawing, xy = _draw_matching(PM, matching_weight,pos,xy, white_space=1)
+            draw_G = _draw_snake_graph(G, print_user_labels=False,xy=xy)
+            matching_drawing, xy = _draw_matching(PM, matching_weight,pos,xy, white_space=1, print_user_labels=False)
             drawing += matching_drawing + draw_G
 
         drawing.set_aspect_ratio(1)
@@ -713,6 +722,14 @@ def GetAllMatchings(G):
             sage: snakegraph = T.list_snake_graph(crossed,user_labels=False)
             sage: sum(gamma.numerator().coefficients()) == len(GetAllMatchings(snakegraph))
             True
+
+            sage: T=ClusterTriangulation([[1,2,3],[1,2,3]])
+            sage: G=T.list_snake_graph([T.cluster()[0]],user_labels=False)
+            sage: G
+            [[(1, (x2, x0, x1)), (2, (x2, x0, x1), 'ABOVE')]]
+            sage: GetAllMatchings(G)
+            [[['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]],
+            [['maximal PM'], [[(0, 1, 0, 1), 'ABOVE']]]]
     """
     from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
 
@@ -775,8 +792,7 @@ def PartitionIntoTuples(L):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface \
-              import PartitionIntoTuples
+        sage: from sage.combinat.cluster_algebra_quiver.surface import PartitionIntoTuples
         sage: L = [1,2,3,4,5,6,7,8,9,10]
         sage: PartitionIntoTuples(L)
         [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
@@ -796,7 +812,7 @@ def PartitionIntoTuples(L):
 
 def GetDenominator(G):
     """
-    Return product of the variables corresponding to arcs that are crossed by curve gamma
+    Return the product of the variables corresponding to arcs that are crossed by curve gamma
     (this is the denominator of the Laurent polynomial expansion returned by
     :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`)
 
@@ -830,7 +846,8 @@ def GetDenominator(G):
 def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
     """
     Return sum of all monomial terms (corresponding to all perfect matchings of ``snakegraph``)
-    which is the numerator of the Laurent polynomial expansion returned by :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
+    which is the numerator of the Laurent polynomial expansion returned by
+    :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
 
     To debug, original Mathematica function: terminoPolinomioSobreListaDeConfig
 
@@ -913,33 +930,64 @@ def ExtractWeight(tile, abcd, is_final_tile):
 
     return weights
 
-def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
+def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
     """
     Return the monomial term corresponding to the input perfect matching ``PM``.
 
-    To debug, see Mathematica function : terminoPolinomio
+    To debug, see Mathematica function: terminoPolinomio
+
+    Called by :func:`~sage.combinat.cluster_algebra_quiver.surface.SumOfMonomialTerms and :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
 
     INPUT:
 
-    - ``partitioned_snakegraph`` -- snake/band graph
+    - ``snakegraph`` -- snake/band graph
     - ``PM`` -- a perfect matching of a band/snake graph
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import GetMonomialTerm # TODO
+        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import GetMonomialTerm, FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: crossed = [T.get_edge_var(e) for e in [5,6,7,8,9,6,5]]
+            sage: G = T.list_snake_graph(crossed, first_tile_orientation=1, user_labels=False)
+            sage: pm_a, pm_b = FlipAllFlippableTilesInList([GetMinimalMatching(G)])
+            sage: pm_a
+            [[2],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]]
+            sage: GetMonomialTerm(G,pm_a,boundary_edges=T._boundary_edges_vars)
+            x3^2*x4^2*x8^3
+            sage: pm_b
+            [[5],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE']]]
+            sage: GetMonomialTerm(G,pm_b,boundary_edges=T._boundary_edges_vars)
+            x3^2*x4*x5*x6*x7*x8*x9
     """
     tile_weights = []
     if boundary_edges is None:
         boundary_edges = []
 
-    if len(partitioned_snakegraph) == len(PM[1]): # this should always be equal
+    if len(snakegraph) == len(PM[1]): # this should always be equal
         total_weight = []
         is_final_tile = False
-        for pos in range(0,len(partitioned_snakegraph)):
-            if pos == len(partitioned_snakegraph)-1 :
+        for pos in range(0,len(snakegraph)):
+            if pos == len(snakegraph)-1 :
                 is_final_tile = True
             abcd = PM[1][pos][0] # abcd = (bottom,right,top,left)
-            tile_weight = ExtractWeight(partitioned_snakegraph[pos], abcd, is_final_tile)
+            tile_weight = ExtractWeight(snakegraph[pos], abcd, is_final_tile)
             tile_weights.append(tile_weight)
     else:
         print 'warning: see GetMonomialTerm'
@@ -950,8 +998,8 @@ def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
         if var not in boundary_edges:
             matching_weight = matching_weight * var
 
-    first_triangle = partitioned_snakegraph[0][0][1] # the very first triangle [x,y,z]
-    final_triangle = partitioned_snakegraph[-1][1][1] # the very last triangle [x,y,z]
+    first_triangle = snakegraph[0][0][1] # the very first triangle [x,y,z]
+    final_triangle = snakegraph[-1][1][1] # the very last triangle [x,y,z]
 
     # a,b,c and x,y,z are counterclockwise and b,y are diagonals so that
     # a = bottom, b= diagonal, c = left
@@ -1020,16 +1068,28 @@ def GetMonomialTerm(partitioned_snakegraph, PM, boundary_edges=None):
 ################### BEGIN: FUNCTIONS FOR CONSTRUCTING BAND/SNAKE GRAPH ##################
 #########################################################################################
 
-RIGHT = 'RIGHT'
-ABOVE = 'ABOVE'
-
 def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
     """
-    Search for and return [first_triangle, last_triangle], the first and final triangles crossed by curve
+    Search for and return [first_triangle, last_triangle], the first and final triangles crossed by curve.
+
+    Called by :func:`~sage.combinat.cluster_algebra_quiver.surface_snake_graph`
+    and :func:`~sage.combinat.cluster_algebra_quiver.surface_lifted_polygon`
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_first_final_triangles
+        Example 3.6 from Dupont - Thomas' Atomic Basis in Types A and Affine A :arXiv:`1106.3758`::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _get_first_final_triangles
+            sage: T = ClusterTriangulation([(0,1,'b2'),(0,1,'b3')], boundary_edges=['b2','b3'])
+            sage: _get_first_final_triangles(T._triangulation, [0,1,0,1,0], first_triangle=(0,1,'b2'), final_triangle=None, is_arc=False, is_loop=True)
+            [(0, 1, 'b2'), (0, 1, 'b2')]
+
+        A once-punctured square's triangulation with self-folded triangle, border edges are labeled 4,5,6,7, 2nd triangulation in oral paper
+        ell-loop is labeled 3, radius is labeled 0::
+
+            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
+            sage: _get_first_final_triangles(T._triangulation, [1,2,3,(0,'counterclockwise'),3], None, None, is_arc=True, is_loop=False)
+            [(1, 7, 4), (2, 3, 6)]
     """
     if (is_arc,is_loop) == (True, True) or (is_arc,is_loop) == (False, False):
         raise ValueError('is_arc and is_loop cannot have the same value')
@@ -1075,13 +1135,40 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
 
 def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
     """
-    If curve is a not a loop, return a list [(None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
-    if tau_k is a radius that is crossed in a counterclockwise direction, then write:
-    ..., (tau_{k-1}, (tau_k,'counterclockwise)), ((tau_k, 'clockwise'), tau_{k+1}), ...
+    Return a list [(None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
+    where tau_k is the k-th arc that is crossed by the curve
+
+    If tau_k is a radius that is crossed in a counterclockwise direction (respectively, clockwise direction),
+    then return [..., (tau_{k-1}, (tau_k,'counterclockwise)), ((tau_k, 'clockwise'), tau_{k+1}), ...]
+    (respectively, return (tau_{k-1}, (tau_k,'clockwise)), ((tau_k, 'counterclockwise'),)
+
+    Called by :func:`~sage.combinat.cluster_algebra_quiver.surface_snake_graph`
+    and :func:`~sage.combinat.cluster_algebra_quiver.surface_lifted_polygon`
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _list_of_tau_k_and_tau_kplus1
+        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _list_of_tau_k_and_tau_kplus1
+            sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0']) # Counterclockwise
+            sage: _list_of_tau_k_and_tau_kplus1(T._triangulation,[2,(1,'counterclockwise'),2,3,4,5,6])
+            [(None, 2),
+            (2, (1, 'counterclockwise')),
+            ((1, 'clockwise'), 2),
+            (2, 3),
+            (3, 4),
+            (4, 5),
+            (5, 6),
+            (6, None)]
+            sage: _list_of_tau_k_and_tau_kplus1(T._triangulation,[6,5,4,3,2,(1,'clockwise'),2])
+            [(None, 6),
+            (6, 5),
+            (5, 4),
+            (4, 3),
+            (3, 2),
+            (2, (1, 'clockwise')),
+            ((1, 'counterclockwise'), 2),
+            (2, None)]
     """
     edges = [(None, crossed_arcs[0])]
     for k in range(0,len(crossed_arcs)-1): # k from 1 to d-1
@@ -1101,7 +1188,10 @@ def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
 
 def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges):
     """
-    Return the list of triangles Delta_k (in order) which are crossed by curve
+    Return the list of ideal triangles Delta_k (in order) which are crossed by curve
+
+    Called by :func:`~sage.combinat.cluster_algebra_quiver.surface_snake_graph`
+    and :func:`~sage.combinat.cluster_algebra_quiver.surface_lifted_polygon`
 
     INPUT:
 
@@ -1109,11 +1199,30 @@ def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_tria
     - ``crossed_arcs`` -- list of arcs crosed by curve (with arcs labeled by user-labels or by variables)
     - ``first_triangle`` -- the first triangle crossed by curve
     - ``final_triangle`` -- the final triangle crossed by curve
-    - ``edges`` -- list of (triangle) edges crossed by curve
+    - ``edges`` -- list of (triangle) edges crossed by curve, retrieved by :func:`~sage.combinat.cluster_algebra_quiver._list_of_tau_k_and_tau_kplus1`
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _list_triangles_crossed_by_curve
+        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _list_triangles_crossed_by_curve, _list_of_tau_k_and_tau_kplus1
+            sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0']) # Counterclockwise
+            sage: tau_k_and_kplus1_list = _list_of_tau_k_and_tau_kplus1(T._triangulation,[2,(1,'counterclockwise'),2,3,4,5,6])
+            sage: delta_k_list = _list_triangles_crossed_by_curve(T._triangulation, [2,(1,'counterclockwise'),2,3,4,5,6], (2, 3, 'b11'), (6, 7, 9), tau_k_and_kplus1_list)
+            sage: delta_k_list
+            [(2, 3, 'b11'),
+            ((1, 'counterclockwise'), (1, 'clockwise'), 2),
+            ((1, 'counterclockwise'), (1, 'clockwise'), 2),
+            (2, 3, 'b11'),
+            (4, 3, 'b12'),
+            ('b0', 4, 5),
+            (5, 6, 10),
+            (6, 7, 9)]
+
+            sage: delta_k_list.reverse()
+            sage: tau_k_and_kplus1_list = _list_of_tau_k_and_tau_kplus1(T._triangulation,[6,5,4,3,2,(1,'clockwise'),2])
+            sage: delta_k_list == _list_triangles_crossed_by_curve(T._triangulation, [6,5,4,3,2,(1,'clockwise'),2], (6, 7, 9), (2, 3, 'b11'), tau_k_and_kplus1_list)
+            True
     """
     triangles = [first_triangle]
     for k in range(1,len(edges)-1): # Get each triangle (triangle_k) with edges tau_k and tau_{k+1}
@@ -1134,13 +1243,18 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     """
     Return descriptions of the snake/band graph for the curve crossing the arcs in input ``crossed_arcs``
 
-    See :meth:`ClusterTriangulation.list_snake_graph` and :meth:`ClusterTriangulation.list_band_graph`
+    See :meth:`ClusterTriangulation.list_snake_graph`, :meth:`ClusterTriangulation.list_band_graph`,
+    :meth:`ClusterTriangulation.draw_snake_graph`, and :meth:`ClusterTriangulation.draw_band_graph`
 
     To debug, see Mathematica function: banda
 
     INPUT:
 
     - ``T`` -- triangulation (with edges labeled by user or variables), see :meth:`ClusterTriangulation.triangulation` or :meth:`ClusterTriangulation.weighted_triangulation`
+    - ``crossed_arcs`` -- A list of labels/variables corresponding to arcs that cross curve gamma, in order.
+                        If curve crosses a self-folded triangle (ell,r,ell), then specify
+                        ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                        or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
     - ``first_triangle`` -- (default:``None``) The first triangle crossed by curve
     - ``final_triangle`` -- (default:``None``) The final triangle crossed by curve (if is_loop is True, ``first_triangle`` = ``final_triangle``)
     - ``is_arc`` -- (default:True) (TODO: change this to None) Return snake graph if True
@@ -1148,62 +1262,26 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     - ``first_tile_orientation`` -- (default:1) The orientation of the first tile (either +1 or -1)
     - ``boundary_edges`` -- (default:``None``) Labels or variables corresponding to boundary edges, i.e. :meth:`ClusterTriangulation.boundary_edges` and :meth:`ClusterTriangulation.boundary_edges_vars`
 
-    ALGORITHM:
+    REFERENCES:
 
-    weighted triangulation, e.g. [(x0,x1,x2),(x0,x2,x3), ...]
-    crossed_arcs = [x0, x1, ...]
-    If curve crosses a self-folded triangle (ell,r,ell), then
-    specify (ell,r,ell,'counterclockwise') or (ell,r,ell,'clockwise')
-    (optional) first_triangle = [a,b,c] -> the first triangle crossed by arc
-    (optional) final_triangle = [d,e,f] -> the final triangle crossed by arc
+        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arxiv:`0906.0748`
+        and Bases for Cluster Algebras from Surfaces :arxiv:`1110.4364`
 
-    1 labels the bottom triangle of a positively-oriented tile,
-    2 labels the top triangle of a positively-oriented tile,
-    -1 labels the bottom triangle of a positively-oriented tile,
-    -2 labels the top triangle of a negatively-oriented tile.
+    NOTE:
 
-    The direction (RIGHT or ABOVE) that is attached to the top triangle (labeled -2 or 2)
-    indicates the location of the tile after the current tile.
+        * 1 labels the bottom triangle of a positively-oriented tile,
+        * 2 labels the top triangle of a positively-oriented tile,
+        * -1 labels the bottom triangle of a positively-oriented tile,
+        * -2 labels the top triangle of a negatively-oriented tile.
 
-    If this is a snake graph (not a band graph),
-    then the direction for the last tile does not mean anything
+        * The direction (RIGHT or ABOVE) that is attached to the top triangle (labeled -2 or 2)
+            indicates the location of the tile after the current tile.
+            * If RIGHT, the next tile is glued to the right of the current tile
+            * If ABOVE, the next tile is glued on top of the current tile
 
-    MATHEMATICAL ALGORITHM AND NOTATION::
-    We use the same notation as in
-    "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748` (section 4).
-    gamma = the arc which expansion (with respect to T) we compute.
-    tau_1, tau_2, ... , tau_d are the arcs of T that are crossed by gamma, in order.
-    If gamma is a loop, then tau_1 = tau_d
-    gamma_0, gamma_1, ... ,gamma_d are the segment of gamma between the tau_k's
-    triangle_0, triangle_1, ... , triangle_d are the triangles crossed by gamma_0, gamma_1, ... ,gamma_d
-
-    We build the snake graph by glueing d tiles:
-    tile_k has tile_orientation = 1 if k is odd, -1 if k is even.
-    tile_1 = [(1,(xa,xb,xc)),(2, (xd,xb,xe), ABOVE/RIGHT)]
-    where b = tau_1 (located in the middle of both triples) is the diagonal of tile_1
-    and (xa,xb,xc) = triangle_0 and (xd,xb,xe) = triangle_1
-
-    tile_2 = [(-1, (xd,xe,xb)),(-2, (xf,xe,xg), ABOVE/RIGHT)]
-    where e = tau_2 (located in the middle of both triples) is the diagonal of tile_2
-
-    We insert negatively-oriented copies of triangle_1, ..., triangle_{d-1}
-    in between the positively-oriented copies of triangle_1, ..., triangle_{d-1}, triangle_d
-
-    CODING ALGORITHM::
-
-    G = [(1,(triangle_0)=(xa,x_{tau_1},xc))]
-
-    Loop through all crossed arcs tau_1, ..., tau_{d-1}:
-        For each iteration k,
-        add (2 * tile_orientation , (triangle_k)=(xa,x_tau_k,xc), ABOVE/RIGHT),
-        the top triangle of tile_k
-        (Note that the diagonal of tile_k is x_tau_k and is placed in the center)
-
-        Then add (1* -tile_orientation, (triangle_k)=(xa,x_tau_{k+1},xc)) ,
-        the bottom triangle of tile_{k+1}.
-        (Note that the diagonal of tile_{k+1} is x_tau_{k+1} and is placed in the center)
-
-    Finally, add (2* -tile_orientation, (triangle_d)=(xa, x_tau_d, xc))
+        * If this is a snake graph, then the direction for the final tile does not mean anything.
+        * If this is a band graph, the direction for the final tile indicates that
+            the 'cut' edge is the ceiling (if ABOVE) or to the right (if RIGHT) of the final tile.
 
     EXAMPLES::
 
@@ -1447,7 +1525,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
     """
     We assume there are at least two crossed arcs. Return the first/final triangle crossed by curve.
 
-    See :func:``~sage.combinat.cluster_algebra_quiver.surface._get_first_final_triangles``, :func:``~sage.combinat.cluster_algebra_quiver.surface._snake_graph``
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_first_final_triangles`, :func:`~sage.combinat.cluster_algebra_quiver.surface._snake_graph`
 
     INPUT:
 
@@ -1523,7 +1601,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
 ### BEGIN: DRAWING SNAKE GRAPH ###
 ##################################
 
-def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1):
+def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1, print_user_labels=False):
     """
     EXAMPLES:
     perfect_matching looks like
@@ -1538,10 +1616,24 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
 
     Matching of tile (a,b,c,d) = (floor, right, ceiling, left)
 
+    .. TODO::
 
-     EXAMPLES::
+        Currently the parameter ``print_user_labels`` is always ``False``.
+        We may want to enable user to print out perfect matchings of snake/band graphs with edges labeled by user-labels from
+        :meth:`ClusterTriangulation.arcs` and :meth:`ClusterTriangulation.boundary_edges`
+        (instead of variables from :meth:`ClusterTriangulation.cluster` and :meth:`ClusterTriangulation.boundary_edges_vars`)
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_matching
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_matching, GetMonomialTerm, GetMinimalMatching, FlipAllFlippableTiles
+        sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+        sage: c = T.cluster()
+        sage: G = T.list_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+        sage: min_pm = GetMinimalMatching(G)
+        sage: PM = FlipAllFlippableTiles(min_pm)[0]
+        sage: monomial_term = GetMonomialTerm(G, PM, boundary_edges=T._boundary_edges_vars)
+        sage: _draw_matching(PM, monomial_term, print_user_labels=False)
+        (Graphics object consisting of 8 graphics primitives, (4, 0))
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -1554,7 +1646,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     (x,y)=xy
 
     if not(matching_weight is None):
-        if user_labels:
+        if print_user_labels:
             drawing = drawing + text('$'+str(matching_weight)+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'gray')
         else:
             drawing = drawing + text('$'+str(matching_weight).replace('x','x_').replace('*',' ')+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
@@ -1581,7 +1673,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     return drawing, (x+ 2*white_space,0)
 
 
-def _draw_snake_graph (G, user_labels, xy=(0,0)):
+def _draw_snake_graph (G, print_user_labels, xy=(0,0)):
     """
     Returns the plot of the snake graph G
 
@@ -1599,7 +1691,7 @@ def _draw_snake_graph (G, user_labels, xy=(0,0)):
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
             sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
             sage: G_user_labels = T.list_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
-            sage: _draw_snake_graph(G_user_labels,user_labels=True)
+            sage: _draw_snake_graph(G_user_labels,print_user_labels=True)
             Graphics object consisting of 43 graphics primitives
     """
     from sage.plot.graphics import Graphics
@@ -1619,31 +1711,31 @@ def _draw_snake_graph (G, user_labels, xy=(0,0)):
         floor = tile[0][1][0]
         if type(floor) in [tuple, list]: floor=floor[0]
         floor = str(floor)
-        if not user_labels: # a noose represent a product of two cluster variables (parallel arcs with different notchings at a puncture)
+        if not print_user_labels: # a noose represent a product of two cluster variables (parallel arcs with different notchings at a puncture)
             floor = '$' + floor.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         diagonal = tile[0][1][1]
         if type(diagonal) in [tuple, list]: diagonal=diagonal[0]
         diagonal = str(diagonal)
-        if not user_labels:
+        if not print_user_labels:
             diagonal = '$' + diagonal.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         left_side = tile[0][1][2]
         if type(left_side) in [tuple, list]: left_side=left_side[0]
         left_side = str(left_side)
-        if not user_labels:
+        if not print_user_labels:
             left_side = '$' + left_side.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         right_side = tile[1][1][2]
         if type(right_side) in [tuple, list]: right_side=right_side[0]
         right_side = str(right_side)
-        if not user_labels:
+        if not print_user_labels:
             right_side = '$' + right_side.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         ceiling = tile[1][1][0]
         if type(ceiling) in [tuple, list]: ceiling=ceiling[0]
         ceiling = str(ceiling)
-        if not user_labels:
+        if not print_user_labels:
             ceiling = '$' + ceiling.replace('*','}').replace('x','x_{').replace('b','b_{') + '}$'
 
         orientation = tile[0][0]
@@ -1708,6 +1800,21 @@ def GetMinimalMatching(G):
             sage: G_userlabel = _snake_graph(T._triangulation,[0],is_arc=True)
             sage: GetMinimalMatching(G_userlabel)
             [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+
+        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: G = T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            sage: GetMinimalMatching(G)
+            [['minimal PM'],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]]
     """
 
     # The list of (for each tile in the band/snake graph, the direction of the next tile)
@@ -1887,17 +1994,87 @@ def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
 
 def FlipAllFlippableTilesInList(input_list_matchings):
     """
-    Mathematica: confiSelectivoSobrelista
+    For each perfect matching ``PM`` in ``input_list_matchings``,
+    create more perfect matchings by flipping every flippable tile.
+    Return the list ``list_new_matchings`` of perfect matchings created by this method.
+    The list ``list_new_matchings`` does not purposely contain any perfect matching info from the input ``input_list_matchings``,
+    but ``list_new_matchings`` is likely to most perfect matchings from ``input_list_matchings``.
+
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface.GetAllMatchings`
+
+    To debug, see Mathematica function: confiSelectivoSobrelista
 
     INPUT:
 
     - ``input_list_matchings`` -> list of matchings of a band/snake graph
 
-    Flip tiles to create more matchings, for all matchings input_list_matchings
-
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTilesInList
+        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+
+            sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: G = T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            sage: current_matchings = FlipAllFlippableTilesInList([GetMinimalMatching(G)])
+            sage: current_matchings
+            [[[2],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]],
+            [[5],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE']]]]
+            sage: FlipAllFlippableTilesInList(current_matchings)
+            [[[1],
+            [[(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]],
+            [[3],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]],
+            [[5],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE']]],
+            [[2],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE']]],
+            [[6],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE']]]]
     """
     list_new_matchings = []
     for matching in input_list_matchings:
@@ -1907,24 +2084,61 @@ def FlipAllFlippableTilesInList(input_list_matchings):
 
 def FlipAllFlippableTiles(input_tiles):
     """
-    Mathematica: confiSelectivo
+    Return a list ``out_list_new_matchings`` of new perfect matchings produced by
+    flipping a flippable tile of ``input_tiles``.
+    The output list does not include the input perfect matching ``input_tiles``.
 
-    [[the indices of the tiles that were last flipped], [matching information]]
-    If input_tiles are the minimum matching, then it looks like
-    [['minimal PM'], [minimal matching]]
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface.FlipAllFlippableTilesInList`
 
-    Flip all tiles that can be flipped and return new matchings.
-    Record the indices of the tiles that we flip.
-    Don't flip tiles from the list [the indices of the tiles that were last flipped] because that would be redundant.
+    To debug, see Mathematica function: confiSelectivo
+
+    NOTE:
+
+        Record the indices of the tiles that we flip, i.e.
+        if we flip ``[[indices],[perfect matching PM]]`` at tile ``k``, we produce [[k],[PM flipped at k]].
+        If a tile indexed by ``k`` is flippable but ``k`` is in ``input_tiles[0]``, don't flip tile ``k``.
 
     INPUT:
 
-    - ``input_tiles`` -- a list of [[the indices of tiles that were last flipped],[a perfect matching of a snake/band graph]]
+    - ``input_tiles`` -- [[the indices of tiles that were last flipped],[a perfect matching of a snake/band graph]]
+                        if ``input_tiles`` is not the minimal matching. [['minimal PM'], [the minimal matching]]
+                        if ``input_tiles`` is the minimal matching.
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTiles
+        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
 
+            sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTiles, GetMinimalMatching
+            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: G = T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            sage: MinPM = GetMinimalMatching(G)
+            sage: MinPM
+            [['minimal PM'],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]]
+            sage: FlipAllFlippableTiles(MinPM)
+            [[[2],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'RIGHT'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 0, 0), 'ABOVE'],
+            [(0, 1, 0, 1), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE']]],
+            [[5],
+            [[(1, 0, 0, 0), 'ABOVE'],
+            [(0, 0, 0, 1), 'RIGHT'],
+            [(1, 0, 1, 0), 'RIGHT'],
+            [(0, 1, 0, 0), 'ABOVE'],
+            [(0, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE'],
+            [(1, 0, 1, 0), 'ABOVE']]]]
     """
     last_flipped_tiles = input_tiles[0] # Tiles that we will not flip this time
     tiles = input_tiles[1]
@@ -1989,7 +2203,7 @@ def FlipAllFlippableTiles(input_tiles):
 
 def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     """
-    Return a (non-repeating) list of perfect matchings of a snake/band graph
+    Return a (possibly non-unique) list of perfect matchings of a snake/band graph
     (each perfect matching P includes info on all possible indices of tiles that were flipped to get to P)
 
     To debug, see Mathematica function: comparoNuevosContraVarios
@@ -2002,8 +2216,52 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetMoreLastFlippedTilesInList
+        sage: list_matchings = [[[3], [[(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[0], [[(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[4], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'ABOVE']]], \
+        [[1], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'ABOVE']]]]
 
+        sage: list_other_matchings = [[['minimal PM'], [[(1, 0, 0, 0), 'ABOVE'], [(0, 0, 0, 1), 'RIGHT'], [(1, 0, 1, 0), 'RIGHT'], [(0, 1, 0, 0), 'ABOVE'], [(0, 0, 1, 0), 'ABOVE']]], \
+        [[2], [[(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'RIGHT'], [(0, 1, 0, 1), 'RIGHT'], [(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'ABOVE']]], \
+        [[1], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 1, 0, 0), 'RIGHT'], [(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'ABOVE']]], \
+        [[3], [[(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'RIGHT'], [(0, 0, 0, 1), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[0], [[(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'RIGHT'], [(0, 1, 0, 0), 'RIGHT'], [(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'ABOVE']]], \
+        [[1, 3], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[4], [[(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'RIGHT'], [(0, 0, 0, 1), 'RIGHT'], [(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'ABOVE']]], \
+        [[3], [[(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[0], [[(0, 1, 0, 1), 'ABOVE'], [(0, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'ABOVE']]], \
+        [[4], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'ABOVE']]], \
+        [[1], [[(1, 0, 1, 0), 'ABOVE'], [(1, 0, 1, 0), 'RIGHT'], [(0, 0, 0, 0), 'RIGHT'], [(1, 0, 0, 0), 'ABOVE'], [(0, 1, 0, 1), 'ABOVE']]]]
+
+        sage: GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings)
+        [[[0, 3],
+        [[(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 1, 0), 'ABOVE']]],
+        [[0, 3],
+        [[(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 1, 0), 'ABOVE']]],
+        [[1, 4],
+        [[(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE']]],
+        [[1, 4],
+        [[(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE']]]]
     """
+    #print 'list_matchings:', list_matchings
+    #print ""
+    #print 'list_other_matchings:', list_other_matchings
     out_new_matchings_corrected_indices = []
     for outer_ct in range(0,len(list_matchings)):
         current_matching = list_matchings[outer_ct]
@@ -2012,22 +2270,74 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
             GetMoreLastFlippedTiles(current_matching, list_other_matchings[inner_ct])
             current_matching = temp_current_matching
         out_new_matchings_corrected_indices.append(current_matching)
+
+    #print ""
+    #print 'out_new_matchings_corrected_indices', out_new_matchings_corrected_indices
+    #print ""
     return out_new_matchings_corrected_indices
 
 def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     """
-    Mathematica: comparo1A1
+    Return input ``current_matching`` if input ``to_compare_matching`` contains a different perfect matching, and
+    return [[indices of last flipped tiles which may include new indices if ``to_compare_matching`` is the same matching],
+    [current_matching[1]]]
 
-    Input:
-    current_matching -> [[last flipped tiles of current matching], [current matching]]
-    to_compare_matching -> another matching that may or may not be equal to current_matching
+    To debug, see Mathematica function: comparo1A1
 
-    Return [[indices of last flipped tiles which may include new indices if to_compare_matching has the same matching],[current matching]]
+    INPUT:
+
+    - ``current_matching`` -- [[last flipped tiles of current matching], [current matching]]
+    - ``to_compare_matching`` -- another matching that may or may not be equal to current_matching
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetMoreLastFlippedTiles
+        sage: PM = [[1],\
+        [[(1, 0, 1, 0), 'ABOVE'],\
+        [(1, 0, 1, 0), 'RIGHT'],\
+        [(0, 1, 0, 0), 'RIGHT'],\
+        [(0, 1, 0, 1), 'ABOVE'],\
+        [(0, 0, 0, 0), 'ABOVE'],\
+        [(0, 1, 0, 1), 'ABOVE'],\
+        [(0, 0, 1, 0), 'ABOVE']]]
+        sage: PM_to_compare = [[0,3], PM[1]]
+        sage: GetMoreLastFlippedTiles(PM, PM_to_compare)
+        [[0, 1, 3],
+        [[(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 1, 0), 'RIGHT'],
+        [(0, 1, 0, 0), 'RIGHT'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 1, 0), 'ABOVE']]]
 
+        sage: PM = [[3],\
+        [[(1, 0, 0, 0), 'ABOVE'],\
+        [(0, 1, 0, 1), 'RIGHT'],\
+        [(0, 0, 0, 1), 'RIGHT'],\
+        [(1, 0, 1, 0), 'ABOVE'],\
+        [(1, 0, 0, 0), 'ABOVE'],\
+        [(0, 1, 0, 1), 'ABOVE'],\
+        [(0, 0, 1, 0), 'ABOVE']]]
+        sage: PM_to_compare = [[5],\
+        [[(1, 0, 0, 0), 'ABOVE'],\
+        [(0, 1, 0, 1), 'RIGHT'],\
+        [(0, 1, 0, 1), 'RIGHT'],\
+        [(0, 1, 0, 1), 'ABOVE'],\
+        [(0, 0, 1, 0), 'ABOVE'],\
+        [(1, 0, 1, 0), 'ABOVE'],\
+        [(1, 0, 1, 0), 'ABOVE']]]
+        sage: PM[1] == PM_to_compare[1]
+        False
+        sage: GetMoreLastFlippedTiles(PM, PM_to_compare)
+        [[3],
+        [[(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'RIGHT'],
+        [(0, 0, 0, 1), 'RIGHT'],
+        [(1, 0, 1, 0), 'ABOVE'],
+        [(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 1, 0), 'ABOVE']]]
     """
     last_flipped_tiles = current_matching[0]
     if current_matching[1] == to_compare_matching[1]: # If the two input matchings have the same marks {a,b,c,d}
@@ -2037,11 +2347,10 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
 
 def GetNextTileMarking(tile,DIR, NextTileMark):
     """
-    ([tile,DIR],[a,b,c,d]):
-    (1,0,1,0), RIGHT -> return [a, b, c, 1]
-    (1,0,1,0), ABOVE -> return [0, b, c, d]
-    (0, 1, 0, 1), RIGHT -> return [a, b, c, 0]
-    (0, 1, 0, 1), ABOVE -> return [1, b, c, d]
+    (1, 0, 1, 0), RIGHT, (a, b, c, d) -> return (a, b, c, 1)
+    (1, 0, 1, 0), ABOVE, (a, b, c, d) -> return (0, b, c, d)
+    (0, 1, 0, 1), RIGHT, (a, b, c, d) -> return (a, b, c, 0)
+    (0, 1, 0, 1), ABOVE, (a, b, c, d) -> return (1, b, c, d)
 
     INPUT:
 
@@ -2052,8 +2361,16 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetNextTileMarking
-        sage: #((1,0,1,0), 'RIGHT',)
-
+        sage: GetNextTileMarking((1, 0, 1, 0), 'RIGHT', (0, 1, 0, 0))
+        (0, 1, 0, 1)
+        sage: GetNextTileMarking((0, 1, 0, 1), 'ABOVE', (0, 0, 0, 0))
+        (1, 0, 0, 0)
+        sage: GetNextTileMarking((0, 1, 0, 1), 'RIGHT', (0, 1, 0, 1))
+        (0, 1, 0, 0)
+        sage: GetNextTileMarking((0, 1, 0, 1), 'ABOVE', (0, 0, 1, 0))
+        (1, 0, 1, 0)
+        sage: GetNextTileMarking((1, 0, 1, 0), 'ABOVE', (1, 0, 1, 0))
+        (0, 0, 1, 0)
     """
     a = NextTileMark[0]
     b = NextTileMark[1]
@@ -2070,15 +2387,30 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
 
 def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
     """
-    RIGHT, (1,0,1,0) -> return [a, 1, c, d]
-    ABOVE, (1,0,1,0) -> return [0, b, c, d]
-    RIGHT, (0, 1, 0, 1) -> return [a, 0, c, d]
-    ABOVE, (0, 1, 0, 1) -> return [a, b, 1, d]
+    RIGHT, (1, 0, 1, 0), (a, b,c, d) -> return (a, 1, c, d)
+    ABOVE, (1, 0, 1, 0), (a, b,c, d) -> return (0, b, c, d)
+    RIGHT, (0, 1, 0, 1), (a, b,c, d) -> return (a, 0, c, d)
+    ABOVE, (0, 1, 0, 1), (a, b,c, d) -> return (a, b, 1, d)
+
+    INPUT:
+
+    - ``DIR`` -- whether the next tile is glued to the ``RIGHT`` or ``ABOVE`` the current tile
+    - ``tile`` -- tile marking (either (1,0,1,0) or (0,1,0,1))
+    - ``PreviousTileMark`` -- the marks of the previous tile
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetPreviousTileMarking
-
+        sage: GetPreviousTileMarking('RIGHT', (1, 0, 1, 0), (0, 0, 0, 1))
+        (0, 1, 0, 1)
+        sage: GetPreviousTileMarking('RIGHT', (0, 1, 0, 1), (0, 1, 0, 1))
+        (0, 0, 0, 1)
+        sage: GetPreviousTileMarking('ABOVE', (0, 1, 0, 1), (0, 0, 0, 0))
+        (0, 0, 1, 0)
+        sage: GetPreviousTileMarking('ABOVE', (0, 1, 0, 1), (1, 0, 0, 0))
+        (1, 0, 1, 0)
+        sage: GetPreviousTileMarking('ABOVE', (1, 0, 1, 0), (1, 0, 1, 0))
+        (1, 0, 0, 0)
     """
     a = PreviousTileMark[0]
     b = PreviousTileMark[1]
@@ -2095,7 +2427,7 @@ def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
 
 def FlipTile(tile_info):
     """
-    [(1,0,1,0),DIR] -> return [(0, 1, 0, 1), DIR]
+    [(1, 0, 1, 0),DIR] -> return [(0, 1, 0, 1), DIR]
     [(0, 1, 0, 1), DIR] -> return [(1, 0, 1, 0), DIR]
 
     EXAMPLES::
@@ -2123,11 +2455,65 @@ def FlipTile(tile_info):
 
 def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
     """
-    Returns
+    Returns the follow information (dictionary) on how the triangle should be displayed and glued to the next triangle::
+
+        {'bottom'/'top': edge label or variable info,
+        'left': edge label or variable info,
+        'right': edge label or variable info,
+        'glued_on': 'glued_to_the_left'/'glued_to_the_right'/'glued_to_the_top'/'glued_to_the_bottom'}
+
+    If 'glued_on': 'glued_to_the_bottom', the current input (upside-down) triangle ``triangle`` is glued BELOW the previous (pyramid) triangle.
+    If 'glued_on': 'glued_to_the_top', the current input (pyramid) triangle ``triangle`` is glued ABOVE the previous (upside-down) triangle.
+    If 'glued_on': 'glued_to_the_left', this current input triangle ``triangle`` is glued to the LEFT of the previous triangle.
+    If 'glued_on': 'glued_to_the_right', this current input triangle ``triangle`` is glued to the RIGHT of the previous triangle.
+
+    If 'bottom' is returned, the input triangle ``triangle`` is a pyramid.
+    If 'top' is returned, the input triangle ``triangle`` is an upside-down pyramid.
+
+    INPUT:
+
+    - ``triangle`` -- a 3-tuple of user-given labels or variables corresponding to triangle edges
+
+    - ``tau`` -- the first edge of ``triangle`` crossed by curve gamma
+        (i.e. if ``triangle`` is Delta_k, then tau is tau_k)
+
+    - ``tau_placement`` -- (options:``bottom``,``top``,``left``,``right``)
+
+        *  If ``tau_placement`` = ``bottom``, this current input ``triangle`` to be glued below the previous triangle.
+        *  If ``tau_placement`` = ``top``, this current input ``triangle`` to be glued above the previous triangle.
+        *  If ``tau_placement`` = ``left``, this current input ``triangle`` to be glued to the left the previous triangle.
+        *  If ``tau_placement`` = ``right``, this current input ``triangle`` to be glued to the right the previous triangle.
+
+    - ``test_k`` -- include the current index of the triangle (for debugging purposes)
+
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangle_to_draw
+        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
 
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _triangle_to_draw
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _list_triangles_crossed_by_curve, _list_of_tau_k_and_tau_kplus1
+            sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0']) # Counterclockwise
+            sage: tau_k_and_kplus1_list = _list_of_tau_k_and_tau_kplus1(T._triangulation,[2,(1,'counterclockwise'),2,3,4,5,6])
+            sage: delta_k_list = _list_triangles_crossed_by_curve(T._triangulation, [2,(1,'counterclockwise'),2,3,4,5,6], (2, 3, 'b11'), (6, 7, 9), tau_k_and_kplus1_list)
+            sage: delta_k_list
+            [(2, 3, 'b11'),
+            ((1, 'counterclockwise'), (1, 'clockwise'), 2),
+            ((1, 'counterclockwise'), (1, 'clockwise'), 2),
+            (2, 3, 'b11'),
+            (4, 3, 'b12'),
+            ('b0', 4, 5),
+            (5, 6, 10),
+            (6, 7, 9)]
+            sage: first_triangle_to_draw = _triangle_to_draw(delta_k_list[0], 'pyramid', tau_k_and_kplus1_list[0][1], 'right')
+            sage: first_triangle_to_draw
+            {'bottom': 'b11', 'glued_on': 'glued_to_the_left', 'left': 3, 'right': 2}
+            sage: _triangle_to_draw(delta_k_list[2], 'upsidedown triangle', tau_k_and_kplus1_list[2][0], 'top', test_k=None)
+            {'glued_on': 'glued_to_the_bottom',
+            'left': 2,
+            'right': (1, 'counterclockwise'),
+            'top': (1, 'clockwise')}
+            sage: _triangle_to_draw(delta_k_list[5], 'pyramid', tau_k_and_kplus1_list[5][0], 'left', test_k=None)
+            {'bottom': 5, 'glued_on': 'glued_to_the_right', 'left': 4, 'right': 'b0'}
     """
     alpha,beta=None,None
     if triangle[0] == tau: # tau_k of the triangle_k (with edges tau_k and tau_{k+1})
@@ -2353,13 +2739,21 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
 
 def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
     """
-    Returns the graphics info of a lifted triangulated polygon/annulus and the lifted curve.
+    Returns the graphics of a lifted triangulated polygon/annulus and the lifted curve.
     See :meth:`ClusterTriangulation.draw_lifted_arc` and :meth:`ClusterTriangulation.draw_lifted_loop`
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_curve
+        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
+        the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9, 10; and
+        the inner boundary edges, clockwise starting from ending point of gamma:11, 0::
 
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_curve, _lifted_polygon
+            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
+            sage: lifted_polygon = _lifted_polygon(T._triangulation, [1,2,3,4,1], None, None, is_arc=False, is_loop=True)
+            sage: _draw_lifted_curve(lifted_polygon, is_arc=False, is_loop=True)
+            Graphics object consisting of 40 graphics primitives
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -2467,7 +2861,8 @@ def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
 def _draw_triangle(triangle,x,y, k):
     """
     Returns a triangle starting at (x,y) in the shape of a pyramid (resp, an upside-down triangle) if k is even (resp, k is odd).
-    See :func:`~sage.combinat.cluster_algebra_quiver.surface._draw_lifted_curve`
+    See :func:`~sage.combinat.cluster_algebra_quiver.surface._draw_lifted_curve`,
+    :meth:`ClusterTriangulation.draw_lifted_arc` and :meth:`ClusterTriangulation.draw_lifted_loop`
 
     INPUT:
 
@@ -2477,8 +2872,17 @@ def _draw_triangle(triangle,x,y, k):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_triangle
+        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
+        the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9,1 and 0; and
+        the inner boundary edges, clockwise starting from ending point of gamma are 11 and 0::
 
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_triangle
+            sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_lifted_curve, _lifted_polygon
+            sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
+            sage: lifted_polygon = _lifted_polygon(T._triangulation, [1,2,3,4,1], None, None, is_arc=False, is_loop=True)
+            sage: _draw_lifted_curve(lifted_polygon, is_arc=False, is_loop=True)
+            Graphics object consisting of 40 graphics primitives
     """
     from sage.plot.graphics import Graphics
     from sage.plot.line import line
@@ -2487,9 +2891,6 @@ def _draw_triangle(triangle,x,y, k):
     texts = Graphics()
 
     text_color = 'green'
-
-    #left_edge = triangle['left']; right_edge = triangle['right']
-    #bottom_edge = triangle['bottom']; top_edge = triangle['top']
 
     for side in triangle:
         if type(triangle[side]) in [tuple, list]: # If the side is (radius, 'clockwise/counterclockwise)

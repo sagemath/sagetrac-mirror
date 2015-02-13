@@ -9,6 +9,12 @@ An ideal triangulation of a surface with marked points (S,M) is associated to a 
     Cluster triangulations closely interact with
     :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`,
     :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterQuiver`,
+
+REFERENCES:
+
+    See algorithms for building a snake/band graph and computing the Laurent polynomial expansions of a curve/loop in
+    Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arxiv:`0906.0748`
+    and Bases for Cluster Algebras from Surfaces :arxiv:`1110.4364`
 """
 
 from sage.structure.sage_object import SageObject
@@ -26,6 +32,7 @@ class ClusterTriangulation(SageObject):
     .. TODO::
 
     - ``data`` -- can also be any of the following::
+
         * Matrix - a skew-symmetrizable matrix arising from a tagged triangulation (todo: not yet implemented)
         * DiGraph - must be the input data for a quiver from a tagged triangulation (todo: not yet implemented)
         * List of edges - must be the edge list of a digraph for a quiver from a tagged triangulation (todo: not yet implemented)
@@ -66,7 +73,7 @@ class ClusterTriangulation(SageObject):
             ('bd3', b6),
             ('bd4', b7)]
 
-             Figure 15 of :arxiv:`0906.0748`::
+            Figure 15 of :arxiv:`0906.0748`::
 
                 sage: thrice_punctured_square = [(2,2,1), (1,3,11), (3,12,4), (4,5,14), (5,6,10), (6,7,9), (8,10,9), (7,13,8)]
                 sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[14,12,13,11])
@@ -408,24 +415,26 @@ class ClusterTriangulation(SageObject):
 
     def list_snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=True):
         """
+        Return the snake graph description for a list of crossed arcs
+
+        .. SEEALSO::
+
+            :meth:`draw_snake_graph`, :meth:`list_band_graph`
+
         INPUT:
-        crossed_arcs = x0, x1, ... etc
-        (optional) first_triangle = (a,b,c) -> the first triangle crossed by arc
-        (optional) final_triangle = (d,e,f) -> the final triangle crossed by arc
+        - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
+        - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
+        - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
+        - ``first_tile_orientation`` -- (default:1) the orientation (either +1 or -1) for the first tile of the snake graph
+        - ``fig_size`` -- (default:None) image size
+        - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
-        Algorithm will try to find the first triangle and final triangle crossed by arc, and
-        will warn user to enter these triangles if the algorithm fails
+        NOTE:
 
-        1 labels the bottom triangle of a positively-oriented tile,
-        2 labels the top triangle of a positively-oriented tile,
-        -1 labels the bottom triangle of a positively-oriented tile,
-        -2 labels the top triangle of a negatively-oriented tile.
-
-        The direction (RIGHT or ABOVE) that is attached to the top triangle (labeled -2 or 2)
-        indicates the location of the tile after the current tile.
-
-        If this is a snake graph (not a band graph),
-        then the direction for the last tile does not mean anything
+            The direction ('RIGHT' and 'ABOVE') for the last tile of the snake graph description does not mean anything
 
         EXAMPLES::
 
@@ -514,10 +523,32 @@ class ClusterTriangulation(SageObject):
             return _snake_graph (self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges_vars)
 
     def list_band_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, user_labels=True):
-       """
-       Return the band graph description for a list of crossed arcs
+        """
+        Return the band graph description for a list of crossed arcs
 
-       EXAMPLES::
+        .. SEEALSO::
+
+            :meth:`draw_band_graph`, :meth:`list_snake_graph`
+
+        INPUT:
+        - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
+        - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
+        - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
+        - ``first_tile_orientation`` -- (default:1) the orientation (either +1 or -1) for the first tile of the band graph
+        - ``fig_size`` -- (default:None) image size
+        - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
+
+        NOTE:
+
+            In contrast to the method :meth:`list_snake_graph`
+            (where the direction for the final tile of the snake graph does not mean anything),
+            the direction ('RIGHT' and 'ABOVE') for the final tile of the band graph means that
+            the 'cut' edge label is at the right (if 'RIGHT') or the ceiling (if 'ABOVE') of the final tile
+
+        EXAMPLES::
 
             Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
             where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``::
@@ -529,17 +560,37 @@ class ClusterTriangulation(SageObject):
                 [(-1, (b4, x2, x1)), (-2, (x3, x2, b7), 'RIGHT')],
                 [(1, (x2, x3, b7)), (2, (x0, x3, b6), 'RIGHT')],
                 [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
-       """
-       from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
 
-       if user_labels:
-           return _snake_graph (self._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges)
-       else:
-           return _snake_graph (self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges_vars)
+        REFERENCES:
+
+        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arxiv:`0906.0748`
+        and Bases for Cluster Algebras from Surfaces :arxiv:`1110.4364`
+       """
+        from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
+
+        if user_labels:
+            return _snake_graph (self._triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges)
+        else:
+            return _snake_graph (self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True, first_tile_orientation=first_tile_orientation, boundary_edges=self._boundary_edges_vars)
 
     def draw_snake_graph(self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
         """
         Display the snake graph for a list of crossed arcs
+
+        .. SEEALSO::
+
+            :meth:`ClusterSeed.arc_laurent_expansion`, :meth:`draw_band_graph`, :meth:`list_snake_graph`
+
+        INPUT:
+        - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
+        - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
+        - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
+        - ``first_tile_orientation`` -- (default:1) the orientation (either +1 or -1) for the first tile of the snake graph
+        - ``fig_size`` -- (default:None) image size
+        - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
         EXAMPLES::
 
@@ -560,12 +611,29 @@ class ClusterTriangulation(SageObject):
                 sage: T.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_snake_graph
-        drawing = _draw_snake_graph (self.list_snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
+        drawing = _draw_snake_graph (self.list_snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), print_user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
     def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
         """
         Display the band graph for a list of crossed arcs
+
+        .. SEEALSO::
+
+            :meth:`ClusterSeed.loop_laurent_expansion`, :meth:`draw_snake_graph`,  :meth:`list_band_graph`
+
+        INPUT:
+
+        - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``)
+                                and variables from self.cluster_triangulation().cluster() if (``user_labels`` is ``False``) corresponding to arcs that are crossed by curve
+                                If curve crosses a self-folded triangle (ell,r,ell), then specify
+                                ``ell, (r, 'counterclockwise), ell`` (if, as gamma is about to cross r, the puncture is to the right of gamma)
+                                or ``ell, (r, clockwise), ell`` (if, as gamma is about to cross r, the puncture is to the left of gamma)
+        - ``first_triangle`` -- (default:``None``) the first triangle crossed by curve
+        - ``final_triangle`` -- (default:``None``) the last triangle crossed by curve
+        - ``first_tile_orientation`` -- (default:1) the orientation (either +1 or -1) for the first tile of the band graph
+        - ``fig_size`` -- (default:``None``) image size
+        - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
         EXAMPLES::
 
@@ -579,7 +647,7 @@ class ClusterTriangulation(SageObject):
                 sage: T.draw_band_graph([1,2,3,0,1], user_labels=True)
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_snake_graph
-        drawing = _draw_snake_graph ( self.list_band_graph (crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), user_labels=user_labels)
+        drawing = _draw_snake_graph ( self.list_band_graph (crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), print_user_labels=user_labels)
         drawing.show ( axes=False, figsize=fig_size )
 
     def draw_lifted_arc (self, crossed_arcs, first_triangle=None, final_triangle=None, fig_size=None, verbose=False, user_labels=True):
@@ -588,7 +656,7 @@ class ClusterTriangulation(SageObject):
 
         .. SEEALSO::
 
-            :meth:`ClusterSeed.arc_laurent_expansion`, :meth:``draw_lifted_loop``
+            :meth:`ClusterSeed.arc_laurent_expansion`, :meth:`draw_lifted_loop`
 
         .. TODO::
 
@@ -644,7 +712,7 @@ class ClusterTriangulation(SageObject):
 
         .. SEEALSO::
 
-            :meth:`ClusterSeed.loop_laurent_expansion`, :meth:``draw_lifted_arc``
+            :meth:`ClusterSeed.loop_laurent_expansion`, :meth:`draw_lifted_arc`
 
         .. TODO::
 
