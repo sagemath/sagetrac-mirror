@@ -2097,6 +2097,52 @@ def embedded():
     """
     return sage.server.support.EMBEDDED_MODE
 
+def terminate_robustly(p):
+    """
+    Close a Popened child process
+
+    INPUT:
+
+    - ``p`` -- the Popened process to be closed.
+
+    OUTPUT:
+
+    return code of the process.
+
+    EXAMPLES::
+
+    sage: from sage.misc.misc import terminate_robustly
+    sage: from subprocess import Popen, PIPE
+    sage: from sage.env import SAGE_SRC
+    sage: import os.path
+    sage: p = Popen(['cat', os.path.join(SAGE_SRC, 'setup.py')], stdout=PIPE)
+    sage: p.stdout.readline()
+    '#!/usr/bin/env python\n'
+    sage: terminate_robustly(p)
+    0
+    """
+    if p.poll() is not None:
+        return p.returncode
+
+    # On cygwin, using signals to terminate a process fails if
+    # the process still has data to output.
+    # use communicate() instead
+    import sys
+    if sys.platform == 'cygwin':
+        p.communicate()
+        if p.poll() is not None:
+            return p.returncode
+
+    p.terminate()
+    if p.poll() is not None:
+        return p.returncode
+
+    p.kill()
+    if p.poll() is not None:
+        return p.returncode
+
+    raise RuntimeError('Process could not be terminated')
+
 
 #############################################
 # Operators
