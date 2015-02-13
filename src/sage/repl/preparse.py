@@ -1035,11 +1035,11 @@ quote_state = None
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
              numeric_literals=True):
     r"""
-    Preparses a line of input.
+    Preparses a single line of input.
 
     INPUT:
 
-    - ``line`` - a string
+    - ``line`` - a string representing a single (complete) line of code
 
     - ``reset`` - a boolean (default: True)
 
