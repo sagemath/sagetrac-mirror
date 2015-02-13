@@ -2837,7 +2837,7 @@ cdef class Expression(CommutativeRingElement):
                     r = RR(_right)
                 except TypeError:
                     if o == equal or o == not_equal:
-                        x = gmul(left._gobj, _right._gobj)
+                        return left.multiply_both_sides(_right)
                     else:
                         raise ArithmeticError('Inequality multiplied with irreal or symbolic.')
                 else:
@@ -2852,7 +2852,7 @@ cdef class Expression(CommutativeRingElement):
                 r = RR(left)
             except TypeError:
                 if o == equal or o == not_equal:
-                    x = gmul(left._gobj, _right._gobj)
+                    return _right.multiply_both_sides(left)
                 else:
                     raise ArithmeticError('Inequality multiplied with irreal or symbolic.')
             else:
@@ -2981,7 +2981,7 @@ cdef class Expression(CommutativeRingElement):
                         r = RR(_right)
                     except TypeError:
                         if o == equal or o == not_equal:
-                            x = gdiv(left._gobj, _right._gobj)
+                            return left.divide_both_sides(_right)
                         else:
                             raise ArithmeticError('Inequality divided by irreal or symbolic.')
                     else:
@@ -2996,7 +2996,7 @@ cdef class Expression(CommutativeRingElement):
                     r = RR(left)
                 except TypeError:
                     if o == equal or o == not_equal:
-                        x = gdiv(left._gobj, _right._gobj)
+                        return _right.divide_both_sides(left)
                     else:
                         raise ArithmeticError('Irreal or symbolic divided by inequality.')
                 else:
@@ -10838,7 +10838,7 @@ cdef class Expression(CommutativeRingElement):
            The *checksign* keyword argument is currently ignored and
            is included for backward compatibility reasons only.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Note that the direction of the following inequalities is
         not reversed::
