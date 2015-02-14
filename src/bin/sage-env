@@ -48,10 +48,23 @@
 
 sage_export ()
 {
+    if (( $# < 1 || $# > 2)); then
+        echo "usage: sage_export <VARIABLE NAME> [<VALUE>]" >&2
+        return 2
+    fi
+
     local varname="$1"
+
+    #we need to test early that the first parameter is a valid identifier
+    export "$varname" || return 1
+
     local backup="SAGE_SAVED_$varname"
     if [ "x$SAGE_ENVIRONMENT_VARIABLES" == "x${SAGE_ENVIRONMENT_VARIABLES/$varname}" ]; then
-        export SAGE_ENVIRONMENT_VARIABLES+=":$varname"
+        if [ -z $SAGE_ENVIRONMENT_VARIABLES ]; then
+            export SAGE_ENVIRONMENT_VARIABLES="$varname"
+        else
+            export SAGE_ENVIRONMENT_VARIABLES+=":$varname"
+        fi
         if [ -z ${!varname+x} ]; then
             export ${backup}
         else
@@ -59,10 +72,9 @@ sage_export ()
         fi
     fi
     if (( $# > 1 )); then
-        export $varname="$2"
-    else
-        export $varname
+        export "$varname"="$2"
     fi
+    return 0
 }
 
 # Resolve all symbolic links in a filename.  This more or less behaves
