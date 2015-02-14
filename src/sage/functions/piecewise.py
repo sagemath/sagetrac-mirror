@@ -525,7 +525,157 @@ class PiecewiseFunction(BuiltinFunction):
                 result.append(piecewise([(domain, func)], var=variable))
             return tuple(result)
 
+        def integral(cls, self, parameters, variable, x=None, a=None, b=None, definite=False):
+            r"""
+            By default, return the indefinite integral of the function.
+            If definite=True is given, returns the definite integral.
 
+            AUTHOR:
+
+            - Paul Butler
+
+            EXAMPLES::
+
+                sage: f1(x) = 1-x
+                sage: f = piecewise([((0,1),1), ((1,2),f1)])
+                sage: f.integral(definite=True)
+                1/2
+
+            ::
+
+                sage: f1(x) = -1
+                sage: f2(x) = 2
+                sage: f = piecewise([((0,2),f1), ((2,pi),f2)])
+                sage: f.integral(definite=True)
+                1/2*pi
+
+                sage: f1(x) = 2
+                sage: f2(x) = 3 - x
+                sage: f = piecewise([[(-2, 0), f1], [(0, 3), f2]])
+                sage: f.integral()
+                piecewise(x|-->2*x + 4 on (-2, 0), x|-->-1/2*x^2 + 3*x + 4 on (0, 3); x)
+
+                sage: f1(y) = -1
+                sage: f2(y) = y + 3
+                sage: f3(y) = -y - 1
+                sage: f4(y) = y^2 - 1
+                sage: f5(y) = 3
+                sage: f = piecewise([[(-4,-3),f1],[(-3,-2),f2],[(-2,0),f3],[(0,2),f4],[(2,3),f5]])
+                sage: F = f.integral(y)
+                sage: F
+                piecewise(y|-->-y - 4 on (-4, -3), y|-->1/2*y^2 + 3*y + 7/2 on (-3, -2), y|-->-1/2*y^2 - y - 1/2 on (-2, 0), y|-->1/3*y^3 - y - 1/2 on (0, 2), y|-->3*y - 35/6 on (2, 3); y)
+
+            Ensure results are consistent with FTC::
+
+                sage: F(-3) - F(-4)
+                -1
+                sage: F(-1) - F(-3)
+                1
+                sage: F(2) - F(0)
+                2/3
+                sage: f.integral(y, 0, 2)
+                2/3
+                sage: F(3) - F(-4)
+                19/6
+                sage: f.integral(y, -4, 3)
+                19/6
+                sage: f.integral(definite=True)
+                19/6
+
+            ::
+
+                sage: f1(y) = (y+3)^2
+                sage: f2(y) = y+3
+                sage: f3(y) = 3
+                sage: f = piecewise([[(-infinity, -3), f1], [(-3, 0), f2], [(0, infinity), f3]])
+                sage: f.integral()
+                piecewise(y|-->1/3*y^3 + 3*y^2 + 9*y + 9 on (-oo, -3), y|-->1/2*y^2 + 3*y + 9/2 on (-3, 0), y|-->3*y + 9/2 on (0, +oo); y)
+
+            ::
+
+                sage: f1(x) = e^(-abs(x))
+                sage: f = piecewise([[(-infinity, infinity), f1]])
+                sage: f.integral(definite=True)
+                2
+                sage: f.integral()
+                piecewise(x|-->-1/2*((sgn(x) - 1)*e^(2*x) - 2*e^x*sgn(x) + sgn(x) + 1)*e^(-x) - 1 on (-oo, +oo); x)
+
+            ::
+
+                sage: f = piecewise([((0, 5), cos(x))])
+                sage: f.integral()
+                piecewise(x|-->sin(x) on (0, 5); x)
+
+
+            TESTS:
+
+            Verify that piecewise integrals of zero work (trac #10841)::
+
+                sage: f0(x) = 0
+                sage: f = piecewise([[(0,1),f0]])
+                sage: f.integral(x,0,1)
+                0
+                sage: f = piecewise([[(0,1), 0]])
+                sage: f.integral(x,0,1)
+                0
+                sage: f = piecewise([[(0,1), SR(0)]])
+                sage: f.integral(x,0,1)
+                0
+
+            """
+            if a != None and b != None:
+                F = self.integral(x)
+                return F(b) - F(a)
+
+            if a != None or b != None:
+                raise TypeError, 'only one endpoint given'
+
+            area = 0 # cumulative definite integral of parts to the left of the current interval
+            integrand_pieces = self.pieces()
+            # integrand_pieces.sort()
+            new_pieces = []
+
+            if x == None:
+                x = self.default_variable()
+
+            # The integral is computed by iterating over the pieces in order.
+            # The definite integral for each piece is calculated and accumulated in `area`.
+            # Thus at any time, `area` represents the definite integral of all the pieces
+            # encountered so far. The indefinite integral of each piece is also calculated,
+            # and the `area` before each piece is added to the piece.
+            #
+            # If a definite integral is requested, `area` is returned.
+            # Otherwise, a piecewise function is constructed from the indefinite integrals
+            # and returned.
+            #
+            # An exception is made if integral is called on a piecewise function
+            # that starts at -infinity. In this case, we do not try to calculate the
+            # definite integral of the first piece, and the value of `area` remains 0
+            # after the first piece.
+
+            from sage.rings.infinity import infinity
+            from sage.symbolic.assumptions import assume, forget
+            for piece in integrand_pieces:
+                start = piece.domain().get_interval(0).lower()
+                end = piece.domain().get_interval(0).upper()
+                fun = SR(piece.expressions()[0])
+                if start == -infinity and not definite:
+                    fun_integrated = fun.integral(x, end, x)
+                else:
+                    try:
+                        assume(start < x)
+                    except ValueError: # Assumption is redundant
+                        pass
+                    fun_integrated = fun.integral(x, start, x) + area
+                    forget(start < x)
+                    if definite or end != infinity:
+                        area += fun.integral(x, start, end)
+                new_pieces.append([(start, end), SR(fun_integrated).function(x)])
+
+            if definite:
+                return SR(area)
+            else:
+                return piecewise(new_pieces)
 
 
 piecewise = PiecewiseFunction()
