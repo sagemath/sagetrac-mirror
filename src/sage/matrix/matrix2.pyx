@@ -14174,6 +14174,388 @@ cdef class Matrix(matrix1.Matrix):
                 companions.append(sage.matrix.constructor.companion_matrix(poly, format=format))
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
+    def rcm(self, root=None, root_finder='ppnf'):
+        r"""
+        Return the permutation obtain by the Reverse Cuthill-Mckee
+        Algorithm to be use for reduce the bandwidth of the square symetric
+        matrix.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        - ``root`` - the node to be use as root. If None it will be use the
+          ``root_finder``.
+
+        - ``root_finder`` - a string option for the root finder
+          algorithm to be used. The options are:
+
+          * 'ppnf'.
+
+        OUTPUT:
+
+        The permutation.
+
+        EXAMPLES:
+          sage: A = matrix([[1, 1], [0, 1]]); A
+          [1 1]
+          [0 1]
+          sage: A.rcm()
+          Traceback (most recent call last):
+          ...
+          ValueError: matrix must be symmetric.
+
+          A = matrix([[1, 1, 1, 0, 0],
+                      [1, 1, 1, 0, 1],
+                      [1, 1, 1, 1, 0],
+                      [0, 0, 1, 1, 0],
+                      [0, 1, 0, 0, 1]]); A
+          r = A.rcm()
+
+          A = matrix([[1, 1, 0, 0, 1, 0],
+                      [1, 1, 1, 0, 0, 1],
+                      [0, 1, 1, 0, 1, 0],
+                      [0, 0, 0, 1, 1, 0],
+                      [1, 0, 1, 1, 1, 1],
+                      [0, 1, 0, 0, 1, 1]]); A
+          r = A.rcm()
+
+          A = matrix([[1, 1, 0, 0, 1, 1],
+                      [1, 1, 1, 1, 0, 1],
+                      [0, 1, 1, 0, 1, 0],
+                      [0, 1, 0, 1, 0, 0],
+                      [1, 0, 1, 0, 1, 1],
+                      [1, 1, 0, 0, 1, 1]]); A
+          r = A.rcm()
+
+        ALGORITHM:
+
+        See the references below.
+
+        REFERENCES:
+
+        - [CM69] E. Cuthill and J. McKee. Reducing the bandwidth of sparse
+          symmetric matrics. In Proceedings of the 1969 24th national
+          conference, ACM '69, pages 157-172, New York, NY, USA, 1969. ACM.
+
+        - [Geo71] J. A. George. Computer implementation of the finite element
+          method. Report. Dept. of Computer Science, 1971.
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        from collections import deque
+
+        if not self.is_symmetric():
+            raise ValueError('matrix must be symmetric.')
+
+        cdef int n = self.ncols()
+        cdef int i, j
+        degree = [0 for k in xrange(n)]
+        news = [0 for k in xrange(n)]
+
+        # Build adjacent list of matrix.
+        adj = self._adj_list()
+        for i in xrange(n):
+            degree[i] = len(adj[i])
+
+        # TODO Loop over the neighboor.
+        # given a list of numbers degree, the degree_s is a list of tuples
+        # where the each tuple is the form of (i, degree[i]) and the list is
+        # sorted based on the degree[i].
+        degree_s = [k for k in sorted(enumerate(degree), key=lambda x:x[1])]
+        visited = [False for k in xrange(n)]
+
+        if root:
+            v = root
+        elif root_finder == 'ppnf':
+            v = self._ppnf()
+
+        q = deque([v])
+        count = 0
+
+        visited[v] = True
+        while len(q):
+            v = q.pop()
+            news[v] = count
+            count = count + 1
+            for w in degree_s:
+                if w[0] in adj[v] and visited[w[0]] == False:
+                    q.append(w[0])
+                    visited[w[0]] = True
+        news.reverse()
+        return news
+
+    def _ppnf(self):
+        """
+        Return a pseudo-peripheral node of the square symetric matrix.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        OUTPUT:
+
+        A pseudo-peripheral node.
+
+        EXAMPLES:
+
+        ALGORITHM:
+
+        See the references below.
+
+        REFERENCES:
+
+        - [GL79] Alan George and Joseph W. H. Liu. An implementation of a
+          pseudoperipheral node finder. ACM Trans. Math. Softw., 5(3):284-295,
+          September 1979.
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        r = 1  # Any node of the graph.
+        L = self._rls([r])
+        stop = False
+        it = 0
+        aux = 0
+
+        while not stop and it < 10:
+            it = it + 1
+            aux = self._min_degree(L[-1])
+            auxL = self._rls([aux])
+            if len(auxL) > len(L):
+                r = aux
+                L = auxL
+            else:
+                stop = True
+        return aux
+
+    def _rls(self, r):
+        """
+        Return a root level structure of the square symetric matrix.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        - ``r`` - a node to be the root.
+
+        OUTPUT:
+
+        The root level structure.
+
+        EXAMPLES:
+
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            [1 1 1 0 0]
+            [1 1 1 0 1]
+            [1 1 1 1 0]
+            [0 0 1 1 0]
+            [0 1 0 0 1]
+            sage: A._rls(0)
+            deque([[0], [1, 2], [4, 3]])
+            sage: A._rls(4)
+            deque([[4], [1], [0, 2], [3]])
+
+        ALGORITHM:
+
+        See the references below.
+
+        REFERENCES:
+
+        - [GL79] Alan George and Joseph W. H. Liu. An implementation of a
+          pseudoperipheral node finder. ACM Trans. Math. Softw., 5(3):284-295,
+          September 1979.
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        from collections import deque
+
+        cdef int i
+
+        L = deque([])
+        L.append([r])
+        L.append(self._adj([r]))
+
+        stop = False
+        while not stop:
+            aux = self._rm_root_adj(self._adj(L[-1]), L[-2])
+            if not aux:
+                stop = True
+            else:
+                L.append(aux)
+        return L
+
+    def _adj_list(self):
+        """Adjacent list.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        OUTPUT:
+
+        The adjacent list of the matrix.
+
+        EXAMPLES:
+
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            [1 1 1 0 0]
+            [1 1 1 0 1]
+            [1 1 1 1 0]
+            [0 0 1 1 0]
+            [0 1 0 0 1]
+            sage: A._adj_list()
+            [[1, 2], [0, 2, 4], [0, 1, 3], [2], [1]]
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        l = []
+        for i in xrange(self.ncols()):
+            aux = []
+            for j in xrange(self.ncols()):
+                if i != j and self[i, j]:
+                    aux.append(j)
+            l.append(aux)
+        return l
+
+    def _adj(self, r):
+        """List of adjacent nodes to ``r``.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        - ``r`` - a non-empty list of nodes.
+
+        OUTPUT:
+
+        A list of nodes adjacent to nodes in r.
+
+        EXAMPLES:
+
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            [1 1 1 0 0]
+            [1 1 1 0 1]
+            [1 1 1 1 0]
+            [0 0 1 1 0]
+            [0 1 0 0 1]
+            sage: A._adj([0])
+            [1, 2]
+            sage: A._adj([1])
+            [0, 2, 4]
+            sage: A._adj([2])
+            [0, 1, 3]
+            sage: A._adj([3])
+            [2]
+            sage: A._adj([4])
+            [1]
+            sage: A._adj([0,1,2])
+            [4, 3]
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        l = []
+        for j in r:
+            for i in xrange(self.ncols()):
+                if i not in r and self[i, j] != 0:
+                    l.append(i)
+        return l
+
+    def _rm_root_adj(self, l1, l2):
+        """Remove elements of above root level structure.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        - ``l1`` - a level structure.
+
+        - ``l2`` - the level structure above l1.
+
+        OUTPUT:
+
+        A level structure.
+
+        EXAMPLES:
+
+            sage: A = matrix([[1]]); A
+            [1]
+            sage: A._rm_root_adj([0], [0])
+            []
+            sage: A._rm_root_adj([0, 1, 2, 3, 4, 5], [0])
+            [1, 2, 3, 4, 5]
+            sage: A._rm_root_adj([0, 1, 2, 3, 4, 5], [0, 1, 2])
+            [3, 4, 5]
+            sage: A._rm_root_adj([0, 1, 2, 3, 4, 5], [0, 3, 5])
+            [1, 2, 4]
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        new = []
+        for i in l1:
+            if i not in l2:
+                new.append(i)
+        return new
+
+    def _min_degree(self, l):
+        """Select a node of minimum degree from the list ``l``.
+
+        INPUT:
+
+        - ``self`` - a square symetric matrix.
+
+        - ``l`` - a list of nodes.
+
+        OUTPUT:
+
+        A node of minimum degree from the list ``l``.
+
+        EXAMPLES:
+
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            [1 1 1 0 0]
+            [1 1 1 0 1]
+            [1 1 1 1 0]
+            [0 0 1 1 0]
+            [0 1 0 0 1]
+            sage: A._min_degree([0])
+            0
+            sage: A._min_degree([1])
+            1
+            sage: A._min_degree([0,1,2])
+            0
+            sage: A._min_degree([0,1,2,3,4])
+            3
+
+        AUTHORS:
+
+        - Raniere Silva (2012): initial version.
+        """
+        r = l[0]
+        g = float('inf')
+        cdef int j
+
+        for i in l:
+            aux = 0
+            for j in xrange(self.ncols()):
+                if self[i, j] != 0:
+                    aux = aux + 1
+            if aux < g:
+                g = aux
+                r = i
+        return r
+
     # A limited number of access-only properties are provided for matrices
     property T:
         r"""
