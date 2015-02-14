@@ -14174,71 +14174,76 @@ cdef class Matrix(matrix1.Matrix):
                 companions.append(sage.matrix.constructor.companion_matrix(poly, format=format))
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
-    def rcm(self, root=None, root_finder='ppnf'):
+    def reverse_cuthill_mckee(self, root=None, root_finder='ppnf'):
         r"""
-        Return the permutation obtain by the Reverse Cuthill-Mckee
-        Algorithm to be use for reduce the bandwidth of the square symetric
-        matrix.
+        Return the permutation obtained by the Reverse Cuthill-Mckee
+        Algorithm to be used for reducing the bandwidth of the square
+        symetric matrix.
 
         INPUT:
 
         - ``self`` - a square symetric matrix.
 
-        - ``root`` - the node to be use as root. If None it will be use the
+        - ``root`` - the node to be used as root. If ``None`` it will use the
           ``root_finder``.
 
         - ``root_finder`` - a string option for the root finder
-          algorithm to be used. The options are:
-
-          * 'ppnf'.
+          algorithm to be used. The only option is 'ppnf' (pseudo-peripheral
+          node finder).
 
         OUTPUT:
 
         The permutation.
 
-        EXAMPLES:
-          sage: A = matrix([[1, 1], [0, 1]]); A
-          [1 1]
-          [0 1]
-          sage: A.rcm()
-          Traceback (most recent call last):
-          ...
-          ValueError: matrix must be symmetric.
+        EXAMPLES::
 
-          A = matrix([[1, 1, 1, 0, 0],
-                      [1, 1, 1, 0, 1],
-                      [1, 1, 1, 1, 0],
-                      [0, 0, 1, 1, 0],
-                      [0, 1, 0, 0, 1]]); A
-          r = A.rcm()
+            sage: A = matrix([[1, 1, 1, 0, 0],
+            ....:     [1, 1, 1, 0, 1],
+            ....:     [1, 1, 1, 1, 0],
+            ....:     [0, 0, 1, 1, 0],
+            ....:     [0, 1, 0, 0, 1]])
+            sage: r = A.reverse_cuthill_mckee(); r
+            [0, 3, 2, 1, 4]
 
-          A = matrix([[1, 1, 0, 0, 1, 0],
-                      [1, 1, 1, 0, 0, 1],
-                      [0, 1, 1, 0, 1, 0],
-                      [0, 0, 0, 1, 1, 0],
-                      [1, 0, 1, 1, 1, 1],
-                      [0, 1, 0, 0, 1, 1]]); A
-          r = A.rcm()
+            sage: A = matrix([[1, 1, 0, 0, 1, 0],
+            ....:            [1, 1, 1, 0, 0, 1],
+            ....:            [0, 1, 1, 0, 1, 0],
+            ....:            [0, 0, 0, 1, 1, 0],
+            ....:            [1, 0, 1, 1, 1, 1],
+            ....:            [0, 1, 0, 0, 1, 1]])
+            sage: r = A.reverse_cuthill_mckee(); r
+            [2, 1, 0, 4, 3, 5]
 
-          A = matrix([[1, 1, 0, 0, 1, 1],
-                      [1, 1, 1, 1, 0, 1],
-                      [0, 1, 1, 0, 1, 0],
-                      [0, 1, 0, 1, 0, 0],
-                      [1, 0, 1, 0, 1, 1],
-                      [1, 1, 0, 0, 1, 1]]); A
-          r = A.rcm()
+            sage: A = matrix([[1, 1, 0, 0, 1, 1],
+            ....:            [1, 1, 1, 1, 0, 1],
+            ....:            [0, 1, 1, 0, 1, 0],
+            ....:            [0, 1, 0, 1, 0, 0],
+            ....:            [1, 0, 1, 0, 1, 1],
+            ....:            [1, 1, 0, 0, 1, 1]])
+            sage: r = A.reverse_cuthill_mckee(); r
+            [2, 3, 0, 5, 1, 4]
+
+        TESTS::
+
+            sage: A = matrix([[1, 1], [0, 1]]); A
+            [1 1]
+            [0 1]
+            sage: A.reverse_cuthill_mckee()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix must be symmetric.
 
         ALGORITHM:
 
-        See the references below.
+        See the references [CM69]_ and [Geo71]_.
 
         REFERENCES:
 
-        - [CM69] E. Cuthill and J. McKee. Reducing the bandwidth of sparse
+        .. [CM69] E. Cuthill and J. McKee. Reducing the bandwidth of sparse
           symmetric matrics. In Proceedings of the 1969 24th national
           conference, ACM '69, pages 157-172, New York, NY, USA, 1969. ACM.
 
-        - [Geo71] J. A. George. Computer implementation of the finite element
+        .. [Geo71] J. A. George. Computer implementation of the finite element
           method. Report. Dept. of Computer Science, 1971.
 
         AUTHORS:
@@ -14252,8 +14257,8 @@ cdef class Matrix(matrix1.Matrix):
 
         cdef int n = self.ncols()
         cdef int i, j
-        degree = [0 for k in xrange(n)]
-        news = [0 for k in xrange(n)]
+        degree = [0] * n
+        news = [0] * n
 
         # Build adjacent list of matrix.
         adj = self._adj_list()
@@ -14264,13 +14269,13 @@ cdef class Matrix(matrix1.Matrix):
         # given a list of numbers degree, the degree_s is a list of tuples
         # where the each tuple is the form of (i, degree[i]) and the list is
         # sorted based on the degree[i].
-        degree_s = [k for k in sorted(enumerate(degree), key=lambda x:x[1])]
+        degree_s = [k for k in sorted(enumerate(degree), key=lambda x: x[1])]
         visited = [False for k in xrange(n)]
 
         if root:
             v = root
         elif root_finder == 'ppnf':
-            v = self._ppnf()
+            v = self._find_pseudo_peripheral_node()
 
         q = deque([v])
         count = 0
@@ -14281,13 +14286,13 @@ cdef class Matrix(matrix1.Matrix):
             news[v] = count
             count = count + 1
             for w in degree_s:
-                if w[0] in adj[v] and visited[w[0]] == False:
+                if w[0] in adj[v] and not visited[w[0]]:
                     q.append(w[0])
                     visited[w[0]] = True
         news.reverse()
         return news
 
-    def _ppnf(self):
+    def _find_pseudo_peripheral_node(self):
         """
         Return a pseudo-peripheral node of the square symetric matrix.
 
@@ -14299,11 +14304,13 @@ cdef class Matrix(matrix1.Matrix):
 
         A pseudo-peripheral node.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: TODO
 
         ALGORITHM:
 
-        See the references below.
+        See the reference [GL79]_.
 
         REFERENCES:
 
@@ -14316,15 +14323,15 @@ cdef class Matrix(matrix1.Matrix):
         - Raniere Silva (2012): initial version.
         """
         r = 1  # Any node of the graph.
-        L = self._rls([r])
+        L = self._root_level_structure([r])
         stop = False
         it = 0
         aux = 0
 
         while not stop and it < 10:
-            it = it + 1
+            it += 1
             aux = self._min_degree(L[-1])
-            auxL = self._rls([aux])
+            auxL = self._root_level_structure([aux])
             if len(auxL) > len(L):
                 r = aux
                 L = auxL
@@ -14332,7 +14339,7 @@ cdef class Matrix(matrix1.Matrix):
                 stop = True
         return aux
 
-    def _rls(self, r):
+    def _root_level_structure(self, r):
         """
         Return a root level structure of the square symetric matrix.
 
@@ -14346,28 +14353,23 @@ cdef class Matrix(matrix1.Matrix):
 
         The root level structure.
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1],
+            ....:   [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
             [1 1 1 0 0]
             [1 1 1 0 1]
             [1 1 1 1 0]
             [0 0 1 1 0]
             [0 1 0 0 1]
-            sage: A._rls(0)
+            sage: A._root_level_structure(0)
             deque([[0], [1, 2], [4, 3]])
-            sage: A._rls(4)
+            sage: A._root_level_structure(4)
             deque([[4], [1], [0, 2], [3]])
 
         ALGORITHM:
 
-        See the references below.
-
-        REFERENCES:
-
-        - [GL79] Alan George and Joseph W. H. Liu. An implementation of a
-          pseudoperipheral node finder. ACM Trans. Math. Softw., 5(3):284-295,
-          September 1979.
+        See the reference [GL79]_.
 
         AUTHORS:
 
@@ -14391,7 +14393,8 @@ cdef class Matrix(matrix1.Matrix):
         return L
 
     def _adj_list(self):
-        """Adjacent list.
+        """
+        Adjacent list.
 
         INPUT:
 
@@ -14401,9 +14404,10 @@ cdef class Matrix(matrix1.Matrix):
 
         The adjacent list of the matrix.
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1],
+            ....:    [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
             [1 1 1 0 0]
             [1 1 1 0 1]
             [1 1 1 1 0]
@@ -14426,7 +14430,8 @@ cdef class Matrix(matrix1.Matrix):
         return l
 
     def _adj(self, r):
-        """List of adjacent nodes to ``r``.
+        """
+        List of adjacent nodes to ``r``.
 
         INPUT:
 
@@ -14438,9 +14443,10 @@ cdef class Matrix(matrix1.Matrix):
 
         A list of nodes adjacent to nodes in r.
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1],
+            ....:    [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
             [1 1 1 0 0]
             [1 1 1 0 1]
             [1 1 1 1 0]
@@ -14471,7 +14477,8 @@ cdef class Matrix(matrix1.Matrix):
         return l
 
     def _rm_root_adj(self, l1, l2):
-        """Remove elements of above root level structure.
+        """
+        Remove elements of above root level structure.
 
         INPUT:
 
@@ -14485,7 +14492,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A level structure.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix([[1]]); A
             [1]
@@ -14509,7 +14516,8 @@ cdef class Matrix(matrix1.Matrix):
         return new
 
     def _min_degree(self, l):
-        """Select a node of minimum degree from the list ``l``.
+        """
+        Select a node of minimum degree from the list ``l``.
 
         INPUT:
 
@@ -14521,9 +14529,10 @@ cdef class Matrix(matrix1.Matrix):
 
         A node of minimum degree from the list ``l``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
+            sage: A = matrix([[1, 1, 1, 0, 0], [1, 1, 1, 0, 1],
+            ....:  [1, 1, 1, 1, 0], [0, 0, 1, 1, 0], [0, 1, 0, 0, 1]]); A
             [1 1 1 0 0]
             [1 1 1 0 1]
             [1 1 1 1 0]
@@ -14550,7 +14559,7 @@ cdef class Matrix(matrix1.Matrix):
             aux = 0
             for j in xrange(self.ncols()):
                 if self[i, j] != 0:
-                    aux = aux + 1
+                    aux += 1
             if aux < g:
                 g = aux
                 r = i
