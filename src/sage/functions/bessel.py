@@ -518,9 +518,12 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: bessel_Y(-1/2, x)
             sqrt(2)*sqrt(1/(pi*x))*sin(x)
         """
-        from sage.rings.infinity import unsigned_infinity
-        if x == 0 and not isinstance(n, Expression):
-            return unsigned_infinity
+        from sage.rings.infinity import infinity, unsigned_infinity
+        if x == 0:
+            if n == 0:
+                return -infinity
+            elif not isinstance(n, Expression):
+                return unsigned_infinity
         elif n == QQ(1)/2:
             return -sqrt(2/pi/x) * cos(x)
         elif n == QQ(-1)/2:
