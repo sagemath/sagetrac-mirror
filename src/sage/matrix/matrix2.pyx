@@ -14306,7 +14306,14 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: A = matrix([[1, 1, 0, 0, 1, 1],
+            ....:            [1, 1, 1, 1, 0, 1],
+            ....:            [0, 1, 1, 0, 1, 0],
+            ....:            [0, 1, 0, 1, 0, 0],
+            ....:            [1, 0, 1, 0, 1, 1],
+            ....:            [1, 1, 0, 0, 1, 1]])
+            sage: A._find_pseudo_peripheral_node()
+            3
 
         ALGORITHM:
 
