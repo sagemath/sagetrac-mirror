@@ -81,7 +81,7 @@ You can find critical points of a piecewise defined function:
     sage: f2 = 1-x
     sage: f3 = 2*x
     sage: f4 = 10*x-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2), ((2,3),f3), ((3,10),f4)])
     sage: f.critical_points()
     [5.0]
 
@@ -165,7 +165,7 @@ where :math:`f(x)=1`, :math:`0<x<1`:
 ::
 
     sage: x = PolynomialRing(QQ, 'x').gen()
-    sage: f = Piecewise([[(0,1),1*x^0]])
+    sage: f = piecewise([((0,1),1*x^0)])
     sage: g = f.convolution(f)
     sage: h = f.convolution(g)
     sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
@@ -200,7 +200,7 @@ where :math:`f` is a piecewise defined function, can
 
     sage: f1(x) = x^2
     sage: f2(x) = 5-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2)])
     sage: f.trapezoid(4)
     Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x],
     [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2],
@@ -230,7 +230,7 @@ computation.
     (x, s)
     sage: f1(x) = 1
     sage: f2(x) = 1-x
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2)])
     sage: f.laplace(x, s)
     -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
 
@@ -370,7 +370,7 @@ illustrating how the Gibbs phenomenon is mollified).
 
     sage: f1 = lambda x: -1
     sage: f2 = lambda x: 2
-    sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+    sage: f = piecewise([((0,pi/2),f1), ((pi/2,pi),f2)])
     sage: f.fourier_series_cosine_coefficient(5,pi)
     -3/5/pi
     sage: f.fourier_series_sine_coefficient(2,pi)

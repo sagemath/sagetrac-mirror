@@ -4984,6 +4984,10 @@ cdef class Expression(CommutativeRingElement):
             sage: f(y) = piecewise([((0,2), y^3)])
             sage: f(1)
             1
+            sage: f(x,y) = piecewise([((0,2), y^3)])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: piecewise functions with more than one variable not supported.
         """
         # we override type checking in CallableSymbolicExpressionRing,
         # since it checks for old SymbolicVariable's
@@ -4999,6 +5003,9 @@ cdef class Expression(CommutativeRingElement):
             class PiecewiseConverter(ExpressionTreeWalker):
                 def composition(self, ex, operator):
                     if isinstance(operator, PiecewiseFunction):
+                        if len(args) > 1:
+                            raise NotImplementedError('piecewise functions '
+                            'with more than one variable not supported.')
                         it = ex.iteritems()
                         return PiecewiseFunction()(tuple((d,f) for d,f in it), var=args[0])
                     else:
