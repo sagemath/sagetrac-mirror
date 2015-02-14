@@ -1,8 +1,24 @@
 r"""
 surface
 
-This file contains helper functions for producing an initial surface ideal triangulation for a cluster triangulation class
-and for computing the Laurent expansion for cluster algebra elements not belonging to the initial ideal triangulation.
+This file contains helper functions for producing an initial surface ideal triangulation
+for the :class:`ClusterTriangulation` class and for computing the Laurent expansion
+for cluster algebra elements not belonging to the initial ideal triangulation.
+See :meth:`ClusterSeed.arc_laurent_expansion`, :meth:`ClusterSeed.loop_laurent_expansion`
+
+REFERENCES:
+
+    .. [MSW_Positivity] Musiker - Schiffler - Williams,
+    *Positivity for Cluster Algebras from Surfaces*,
+    :arxiv:`0906.0748`
+
+    .. [MSW_Bases] Musiker - Schiffler - Williams,
+    *Bases for Cluster Algebras from Surfaces*,
+    :arxiv:`1110.4364`
+
+    .. [MW_MatrixFormulae] Musiker and Williams,
+    *Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces*,
+    :arXiv:`1108.3382`
 """
 
 ######################################################################################################
@@ -633,8 +649,8 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
 
         To compute the Laurent polynomial expansion:
         See the perfect matching formula from Musiker-Schiffler-Williams'
-        "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748`  (section 4)
-        and "Bases for cluster algebras from surfaces" :arxiv:`1110.4364` (sections 3.1-3.2)
+        "Positivity for cluster algebras from surfaces" [MSW_Positivity]_  (section 4)
+        and "Bases for cluster algebras from surfaces" [MSW_Bases]_ (sections 3.1-3.2)
 
         #. Compute the sum ``all_sum`` of all weights of all perfect matchings in ``all_perfect_matchings``,
         i.e. the weight of a perfect matching is the product of all weights of edges in the matchings.
@@ -655,7 +671,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None, final_tria
         sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None)
         True
 
-        Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+        Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" [MW_MatrixFormulae]_
         where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.
         We pick tau_1 to be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1] ::
 
@@ -825,7 +841,7 @@ def GetDenominator(G):
     EXAMPLES::
 
         Figure 6 of Musiker and Williams'
-        "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+        "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" [MW_MatrixFormulae]_
         tau_4, tau_1, tau_2, tau_3 = 0,1,2,3, and we pick tau_1=1 to be the first and last arc crossed::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
@@ -945,7 +961,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
 
     EXAMPLES::
 
-        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+        Figure 10 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import GetMonomialTerm, FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
@@ -1147,7 +1163,7 @@ def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
 
     EXAMPLES::
 
-        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
+        Figure 10 and 11 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _list_of_tau_k_and_tau_kplus1
             sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0']) # Counterclockwise
@@ -1203,7 +1219,7 @@ def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_tria
 
     EXAMPLES::
 
-        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
+        Figure 10 and 11 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _list_triangles_crossed_by_curve, _list_of_tau_k_and_tau_kplus1
             sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0']) # Counterclockwise
@@ -1260,12 +1276,10 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     - ``is_arc`` -- (default:True) (TODO: change this to None) Return snake graph if True
     - ``is_loop`` -- (default:False) (TODO: change this to None) Return band graph if True
     - ``first_tile_orientation`` -- (default:1) The orientation of the first tile (either +1 or -1)
-    - ``boundary_edges`` -- (default:``None``) Labels or variables corresponding to boundary edges, i.e. :meth:`ClusterTriangulation.boundary_edges` and :meth:`ClusterTriangulation.boundary_edges_vars`
+    - ``boundary_edges`` -- (default:``None``) Labels or variables corresponding to boundary edges, i.e.
 
-    REFERENCES:
-
-        .. Musiker-Schiffler-Williams, Positivity for Cluster Algebras from Surfaces, :arxiv:`0906.0748`
-        and Bases for Cluster Algebras from Surfaces :arxiv:`1110.4364`
+        *:meth:`ClusterTriangulation.boundary_edges` and
+        *:meth:`ClusterTriangulation.boundary_edges_vars`
 
     NOTE:
 
@@ -1285,7 +1299,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 
     EXAMPLES::
 
-        Thrice-punctured square of Figure 10 of 'Positivity for Cluster Algebras from Surfaces', :arxiv:`0906.0748`::
+        Thrice-punctured square of Figure 10 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
@@ -1685,7 +1699,7 @@ def _draw_snake_graph (G, print_user_labels, xy=(0,0)):
 
     EXAMPLES::
 
-        Figure 10 of 'Positivity for Cluster Algebras from Surfaces', :arXiv:`0906.0748`::
+        Figure 10 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
@@ -1801,7 +1815,7 @@ def GetMinimalMatching(G):
             sage: GetMinimalMatching(G_userlabel)
             [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
 
-        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+        Figure 10 of [MSW_Positivity]_::
 
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
             sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
@@ -2010,7 +2024,7 @@ def FlipAllFlippableTilesInList(input_list_matchings):
 
     EXAMPLES::
 
-        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+        Figure 10 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
@@ -2106,7 +2120,7 @@ def FlipAllFlippableTiles(input_tiles):
 
     EXAMPLES::
 
-        Figure 10 of Positivity for Cluster Algebras from Surfaces, :arXiv:`0906.0748`::
+        Figure 10 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import FlipAllFlippableTiles, GetMinimalMatching
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
@@ -2488,7 +2502,7 @@ def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
 
     EXAMPLES::
 
-        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`::
+        Figure 10 and 11 of [MSW_Positivity]_::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _triangle_to_draw
             sage: from sage.combinat.cluster_algebra_quiver.surface import _list_triangles_crossed_by_curve, _list_of_tau_k_and_tau_kplus1
@@ -2549,7 +2563,7 @@ def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
 def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):
     """
     Return list of copies of the triangles which are crossed by gamma.
-    See Section 7 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`
+    See Section 7 of [MSW_Positivity]_
 
     INPUT:
 
@@ -2562,7 +2576,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
 
     EXAMPLES::
 
-        Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" :arxiv:`0906.0748`, where
+        Figure 10 and 11 of [MSW_Positivity]_, where
         the boundary edges are labeled 11,12,13,0, and the arcs are labeled 1 (a radius), 2 (a noose), and 3,4,5,...,10::
 
             sage: from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon
@@ -2653,7 +2667,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
             {'bottom': 3, 'glued_on': 'glued_to_the_right', 'left': 4, 'right': 12},
             {'glued_on': 'glued_to_the_bottom', 'left': 12, 'right': 4, 'top': 3}]
 
-        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        Figure 8 of [MSW_Bases]_
         with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
         the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9, 10; and
         the inner boundary edges, clockwise starting from ending point of gamma:11, 0::
@@ -2744,7 +2758,7 @@ def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
 
     EXAMPLES::
 
-        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        Figure 8 of [MSW_Bases]_
         with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
         the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9, 10; and
         the inner boundary edges, clockwise starting from ending point of gamma:11, 0::
@@ -2872,7 +2886,7 @@ def _draw_triangle(triangle,x,y, k):
 
     EXAMPLES::
 
-        Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" :arxiv:`1110.4364`
+        Figure 8 of [MSW_Bases]_
         with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
         the outer boundary edges, clockwise starting from starting point of gamma are 7,8,9,1 and 0; and
         the inner boundary edges, clockwise starting from ending point of gamma are 11 and 0::

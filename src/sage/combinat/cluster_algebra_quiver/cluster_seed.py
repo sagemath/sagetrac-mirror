@@ -2051,6 +2051,8 @@ class ClusterSeed(SageObject):
         """
         Returns the triangulation class associated to ``self``.
 
+        See :class:`ClusterTriangulation`.
+
         EXAMPLES::
 
             sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
@@ -2058,6 +2060,31 @@ class ClusterSeed(SageObject):
             sage: Q.cluster_triangulation()._triangles
             [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
 
+        REFERENCES:
+
+        .. [MSW_Positivity] Musiker - Schiffler - Williams,
+        *Positivity for Cluster Algebras from Surfaces*,
+        :arxiv:`0906.0748`
+
+        .. [MSW_Bases] Musiker - Schiffler - Williams,
+        *Bases for Cluster Algebras from Surfaces*,
+        :arxiv:`1110.4364`
+
+        .. [MW_MatrixFormulae] Musiker and Williams,
+        *Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces*,
+        :arxiv:`1108.3382`
+
+        .. [FominShapiroThurston] Fomin - Shapiro - Thurston,
+        *Cluster algebras and triangulated surfaces. part I: Cluster complexes*,
+        :arxiv:`math/0608367`
+
+        .. [SchifflerThomas] Shiffler - Thomas,
+        *On cluster algebras arising from unpunctured surfaces*,
+        :arxiv:`abs/0712.4131`
+
+        .. [DupontThomas] Dupont - Thomas,
+        *Atomic Basis in Types A and Affine A*,
+        :arxiv:`1106.3758`
         """
         return self._cluster_triangulation
 
@@ -2065,7 +2092,7 @@ class ClusterSeed(SageObject):
         """
         Return the Laurent expansion of a generalized arc gamma (i.e. a curve between marked point/s) which crosses the arc in crossed_arcs
 
-        .. SEEALSO:: :meth:`loop_laurent_expansion`, :meth:``ClusterTriangulation.draw_lifted_arc``
+        .. SEEALSO:: :meth:`loop_laurent_expansion`, :meth:`ClusterTriangulation.draw_lifted_arc`
 
         INPUT:
             - ``crossed_arcs`` --  labels from self.cluster_triangulation().triangulation() (if ``user_labels`` is ``True``) and variables from ``self.cluster_triangulation().cluster()`` if (``user_labels`` is ``False``) corresponding to arcs that are crossed by gamma
@@ -2079,8 +2106,8 @@ class ClusterSeed(SageObject):
             - ``user_labels`` -- (default:``True``) whether or not ``crossed_arcs`` is a list of labels
 
         ALGORITHM:
-            The algorithm used is the perfect matching formula from
-            "Positivity for cluster algebras from surfaces" :arxiv:`0906.0748`  (section 4).
+
+            See the perfect matching formula from in [MSW_Positivity]_ (section 4).
 
         EXAMPLES::
 
@@ -2120,7 +2147,7 @@ class ClusterSeed(SageObject):
                 sage: gamma == S.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
                 True
 
-            An 8-gon triangulation from Figure 2 of Shiffler-Thomas' paper :arxiv.`abs/0712.4131` where tau_i = i and tau_13 is labeled 0::
+            An 8-gon triangulation from Figure 2 of [SchifflerThomas]_ where tau_i = i and tau_13 is labeled 0::
 
                 sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0])
                 sage: S = ClusterSeed(T)
@@ -2132,7 +2159,7 @@ class ClusterSeed(SageObject):
                 sage: S.cluster_variable(5-1) == gamma
                 True
 
-            Affine A(2,2) triangulation from Figure 3 of Shiffler-Thomas' paper :arxiv:`abs/0712.4131` where tau_i = i and tau_8 is labeled 0::
+            Affine A(2,2) triangulation from Figure 3 of [SchifflerThomas]_ where tau_i = i and tau_8 is labeled 0::
 
                 sage: T = ClusterTriangulation([(7,4,3),(4,1,5),(3,6,2),(2,1,0)], boundary_edges=[5,6,7,0])
                 sage: S = ClusterSeed(T)
@@ -2171,10 +2198,10 @@ class ClusterSeed(SageObject):
         """
         Return the Laurent expansion of a loop (living in the surface's interior) in the variables of ``self.cluster_triangulation().cluster()``.
 
-        See algorithm in :arxiv:``1110.4364`` sections 3.1-3.2::
+        See algorithm in [MSW_Bases]_ sections 3.1-3.2::
 
             #. Pick an orientation of the closed loop gamma and an ideal triangle Delta0 (not a self-folded triangle) crossed by gamma.
-            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of :arxiv:``1110.4364``, this edge is labeled ``c``).
+            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of [MSW_Bases]_, this edge is labeled ``c``).
             #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
 
         .. SEEALSO:: :meth:`arc_laurent_expansion`, :meth:`ClusterTriangulation.draw_lifted_loop`
@@ -2192,7 +2219,7 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            Figure 6 of Musiker and Williams' "Matrix Formulae and Skein Relations for Cluster Algebras from Surfaces" :arXiv:`1108.3382`
+            Figure 6 of [MW_MatrixFormulae]_
             where tau_4, tau_1, tau_2, tau_3 = ``0``,``1``,``2``,``3`` and b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.
             We pick tau_1 to be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1] ::
 
@@ -2204,7 +2231,7 @@ class ClusterSeed(SageObject):
                 sage: S.loop_laurent_expansion([1,2,3,0,1], user_labels=True) == S.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
                 True
 
-            Example 3.6 from Dupont - Thomas' Atomic Basis in Types A and Affine A :arXiv:`1106.3758`::
+            Example 3.6 from [DupontThomas]_::
 
                 sage: T = ClusterTriangulation([(0,1,2),(0,1,3)], boundary_edges=[2,3])
                 sage: S = ClusterSeed(T)
