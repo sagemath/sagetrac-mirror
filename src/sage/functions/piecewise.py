@@ -65,6 +65,7 @@ TESTS::
 from sage.symbolic.function import BuiltinFunction
 from sage.sets.real_set import RealSet
 from sage.symbolic.ring import SR
+from sage.rings.rational_field import QQ
 
 
 
@@ -432,7 +433,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: from sage.ext.fast_callable import ExpressionTreeBuilder
                 sage: etb = ExpressionTreeBuilder(vars=['x'])
                 sage: p._fast_callable_(etb)
-                {CommutativeRings.element_class}(v_0)
+                {piecewise(x|-->-x on (-1, 0), x|-->x on [0, 1]; x)}(v_0)
             """
             # print 'ev_fast_cal', parameters, variable, etb
             self = piecewise(parameters, var=variable)
@@ -525,6 +526,25 @@ class PiecewiseFunction(BuiltinFunction):
                 result.append(piecewise([(domain, func)], var=variable))
             return tuple(result)
 
+        def end_points(cls, self, parameters, variable):
+            """
+            Returns a list of all interval endpoints for this function.
+
+            EXAMPLES::
+
+                sage: f1(x) = 1
+                sage: f2(x) = 1-x
+                sage: f3(x) = x^2-5
+                sage: f = piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+                sage: f.end_points()
+                [0, 1, 2, 3]
+                sage: f = piecewise([([0,0], sin(x)), ((0,2), cos(x))]);  f
+                piecewise(x|-->sin(x) on {0}, x|-->cos(x) on (0, 2); x)
+                sage: f.end_points()
+            """
+            intervals = self.domains()
+            return [ intervals[0][0] ] + [b for a,b in intervals]
+
         def integral(cls, self, parameters, variable, x=None, a=None, b=None, definite=False):
             r"""
             By default, return the indefinite integral of the function.
@@ -545,7 +565,7 @@ class PiecewiseFunction(BuiltinFunction):
 
                 sage: f1(x) = -1
                 sage: f2(x) = 2
-                sage: f = piecewise([((0,2),f1), ((2,pi),f2)])
+                sage: f = piecewise([((0,pi/2),f1), ((pi/2,pi),f2)])
                 sage: f.integral(definite=True)
                 1/2*pi
 
@@ -676,6 +696,135 @@ class PiecewiseFunction(BuiltinFunction):
                 return SR(area)
             else:
                 return piecewise(new_pieces)
+
+        def critical_points(cls, self, parameters, variable):
+            """
+            Return the critical points of this piecewise function.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: f1 = x^0
+                sage: f2 = 10*x - x^2
+                sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
+                sage: f = piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
+                sage: expected = [5, 12, 13, 14]
+                sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
+                True
+
+            TESTS:
+
+            Use variables other than x (:trac:`13836`)::
+
+                sage: R.<y> = QQ[]
+                sage: f1 = y^0
+                sage: f2 = 10*y - y^2
+                sage: f3 = 3*y^4 - 156*y^3 + 3036*y^2 - 26208*y
+                sage: f = piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
+                sage: expected = [5, 12, 13, 14]
+                sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
+                True
+            """
+            from sage.calculus.calculus import maxima
+            x = QQ[self.default_variable()].gen()
+            crit_pts = []
+            for piece in self.pieces():
+                a = piece.domain().get_interval(0).lower()
+                b = piece.domain().get_interval(0).upper()
+                f = SR(piece.expressions()[0])
+                for root in maxima.allroots(SR(f).diff(x)==0):
+                    root = float(root.rhs())
+                    if a < root < b:
+                        crit_pts.append(root)
+            return crit_pts
+
+        def convolution(cls, self, parameters, variable, other):
+            """
+            Return the convolution function,
+            `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
+            supported `f,g`.
+
+            EXAMPLES::
+
+                sage: x = PolynomialRing(QQ,'x').gen()
+                sage: f = piecewise([[(0,1),1*x^0]])  ## example 0
+                sage: g = f.convolution(f)
+                sage: h = f.convolution(g)
+                sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
+                sage: # Type show(P+Q+R) to view
+                sage: f = piecewise([[(0,1),1*x^0],[(1,2),2*x^0],[(2,3),1*x^0]])  ## example 1
+                sage: g = f.convolution(f)
+                sage: h = f.convolution(g)
+                sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
+                sage: # Type show(P+Q+R) to view
+                sage: f = piecewise([[(-1,1),1]])                             ## example 2
+                sage: g = piecewise([[(0,3),x]])
+                sage: f.convolution(g)
+                Piecewise defined function with 3 parts, [[(-1, 1), 0], [(1, 2), -3/2*x], [(2, 4), -3/2*x]]
+                sage: g = piecewise([[(0,3),1*x^0],[(3,4),2*x^0]])
+                sage: f.convolution(g)
+                Piecewise defined function with 5 parts, [[(-1, 1), x + 1], [(1, 2), 3], [(2, 3), x], [(3, 4), -x + 8], [(4, 5), -2*x + 10]]
+            """
+            f = self
+            g = other
+            M = min(min(f.end_points()),min(g.end_points()))
+            N = max(max(f.end_points()),max(g.end_points()))
+            R2 = PolynomialRing(QQ,2,names=["tt","uu"])
+            tt,uu = R2.gens()
+            conv = 0
+            f0 = f.functions()[0]
+            g0 = g.functions()[0]
+            R1 = f0.parent()
+            xx = R1.gen()
+            var = repr(xx)
+            if len(f.intervals())==1 and len(g.intervals())==1:
+                f = f.unextend()
+                g = g.unextend()
+                a1 = f.intervals()[0][0]
+                a2 = f.intervals()[0][1]
+                b1 = g.intervals()[0][0]
+                b2 = g.intervals()[0][1]
+                i1 = repr(f0).replace(var,repr(uu))
+                i2 = repr(g0).replace(var,"("+repr(tt-uu)+")")
+                cmd1 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, a1,    tt-b1)    ## if a1+b1 < tt < a2+b1
+                cmd2 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, tt-b2, tt-b1)    ## if a1+b2 < tt < a2+b1
+                cmd3 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, tt-b2, a2)       ## if a1+b2 < tt < a2+b2
+                cmd4 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, a1, a2)          ## if a2+b1 < tt < a1+b2
+                conv1 = maxima.eval(cmd1)
+                conv2 = maxima.eval(cmd2)
+                conv3 = maxima.eval(cmd3)
+                conv4 = maxima.eval(cmd4)
+                # this is a very, very, very ugly hack
+                x = PolynomialRing(QQ,'x').gen()
+                fg1 = sage_eval(conv1.replace("tt",var), {'x':x}) ## should be = R2(conv1)
+                fg2 = sage_eval(conv2.replace("tt",var), {'x':x}) ## should be = R2(conv2)
+                fg3 = sage_eval(conv3.replace("tt",var), {'x':x}) ## should be = R2(conv3)
+                fg4 = sage_eval(conv4.replace("tt",var), {'x':x}) ## should be = R2(conv4)
+                if a1-b1<a2-b2:
+                    if a2+b1!=a1+b2:
+                        h = piecewise([[(a1+b1,a1+b2),fg1],[(a1+b2,a2+b1),fg4],[(a2+b1,a2+b2),fg3]])
+                    else:
+                        h = piecewise([[(a1+b1,a1+b2),fg1],[(a1+b2,a2+b2),fg3]])
+                else:
+                    if a1+b2!=a2+b1:
+                        h = piecewise([[(a1+b1,a2+b1),fg1],[(a2+b1,a1+b2),fg2],[(a1+b2,a2+b2),fg3]])
+                    else:
+                        h = piecewise([[(a1+b1,a2+b1),fg1],[(a2+b1,a2+b2),fg3]])
+                return h
+
+            if len(f.intervals())>1 or len(g.intervals())>1:
+                z = Piecewise([[(-3*abs(N-M),3*abs(N-M)),0*xx**0]])
+                ff = f.functions()
+                gg = g.functions()
+                intvlsf = f.intervals()
+                intvlsg = g.intervals()
+                for i in range(len(ff)):
+                    for j in range(len(gg)):
+                        f0 = piecewise([[intvlsf[i],ff[i]]])
+                        g0 = piecewise([[intvlsg[j],gg[j]]])
+                        h = g0.convolution(f0)
+                        z = z + h
+                return z.unextend()
 
 
 piecewise = PiecewiseFunction()
