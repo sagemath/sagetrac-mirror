@@ -64,9 +64,6 @@ def runsnake(command):
 
     See the ``runsnake`` website for instructions for other platforms.
 
-    :func:`runsnake` further assumes that the system wide Python is
-    installed in ``/usr/bin/python``.
-
     .. seealso::
 
         - `The runsnake website <http://www.vrplumber.com/programming/runsnakerun/>`_
@@ -74,14 +71,18 @@ def runsnake(command):
         - :class:`Profiler`
 
     """
-    import cProfile, os
+    import cProfile, os, subprocess
     from sage.misc.temporary_file import tmp_filename
     from sage.misc.misc import get_main_globals
     from sage.repl.preparse import preparse
     tmpfile = tmp_filename()
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
-    os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
-
+    sage_runsnake=os.path.join(os.environ["SAGE_LOCAL"],"bin","runsnake")
+    if os.path.isfile(sage_runsnake) and os.access(sage_runsnake,os.X_OK):
+        pid=subprocess.Popen([sage_runsnake,tmpfile]).pid
+    else:
+        pid=subprocess.Popen(["sage-native-execute","runsnake",tmpfile]).pid
+        
 def import_statement_string(module, names, lazy):
     r"""
     Return a (lazy) import statement for ``names`` from ``module``.
