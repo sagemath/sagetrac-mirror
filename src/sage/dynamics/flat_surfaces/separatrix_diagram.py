@@ -1459,7 +1459,7 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
         True
     """
     from sage.combinat.plane_tree import admissible_plane_tree_iterator
-    from gray_codes import revolving_door_switch_iterator
+    from sage.combinat.gray_codes import combinations
 
     cyl_diags = set([])
     if verbose is True: verbose=1
@@ -1562,7 +1562,7 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
             if verbose:
                 print " start revolving door(%d,%d)"%(l,p)
                 print " leaves are at separatrices", L
-            for i,j in revolving_door_switch_iterator(l,p):
+            for i,j in combinations(l,p):
                 i = L[i]
                 j = L[j]
                 if verbose > 1:
