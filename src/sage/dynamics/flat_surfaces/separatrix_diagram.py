@@ -70,7 +70,6 @@ They can also be built from separatrix diagram::
 """
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from gray_codes import TuplesGraySwitch
 
 import itertools
 import sage.rings.arith as arith
@@ -2771,6 +2770,7 @@ class CylinderDiagram(SeparatrixDiagram):
             8
         """
         from origamis.origami import Origami_dense
+        from sage.combinat.gray_codes import product
 
         widths = [sum(lengths[i] for i in bot) for bot in self.bot_cycle_tuples()]
         areas = [heights[i]*widths[i] for i in xrange(self.ncyls())]
@@ -2811,7 +2811,7 @@ class CylinderDiagram(SeparatrixDiagram):
         yield Origami_dense(lx,ly)
 
         # yield the others using a Gray code
-        for i,o in TuplesGraySwitch(widths):
+        for i,o in product(widths):
             if o == 1:
                 ly.insert(v[i+1]-widths[i],ly.pop(v[i+1]-1))
             else:
