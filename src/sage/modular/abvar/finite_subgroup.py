@@ -11,7 +11,7 @@ structure as an abstract group. Arithmetic on subgroups is also
 supported, including adding two subgroups together, checking
 inclusion, etc.
 
-TODO: Intersection, action of Hecke operators.
+.. TODO:: Intersection, action of Hecke operators.
 
 AUTHORS:
 
@@ -103,6 +103,7 @@ from sage.misc.all import prod
 import abvar as abelian_variety
 from sage.categories.fields import Fields
 _Fields = Fields()
+
 
 class FiniteSubgroup(Module_old):
     def __init__(self, abvar, field_of_definition=QQ):
