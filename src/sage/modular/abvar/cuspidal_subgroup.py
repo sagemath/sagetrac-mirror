@@ -772,12 +772,12 @@ class RationalCuspidalPoint(ModuleElement):
             sage: C.0
             -P15 + P5
         """
-        M = self.parent().module()
-        vbar = M(M.coordinate_vector(self.element(), reduce=True).list())
+        vbar = self.element()
         L = vbar.lift().list()
         replist = []
         for i in range(len(L)):
-            replist.append((L[i], "P"+str(self.__cuspnames[i])))
+            if L[i] != 0:
+                replist.append((L[i], "P"+str(self.__cuspnames[i])))
         return FormalSum(replist)._repr_()
 
     def _add_(self, other):
