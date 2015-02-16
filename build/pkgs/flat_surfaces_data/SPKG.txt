@@ -1,0 +1,30 @@
+= Flat surfaces data =
+
+== Description ==
+
+Data for Flat Surfaces. Current content:
+
+- List of cylinder diagrams
+- List of generalized permutations in exceptional strata of quadratic
+  differentials
+- Origami database
+
+== SPKG Maintainers ==
+
+ * Vincent Delecroix
+
+== License ==
+
+GPL v3
+
+== Upstream Contact ==
+
+ Vincent Delecroix <vincent.delecroix@labri.fr>
+
+== Dependencies ==
+
+N/A
+
+== Changelog ==
+
+N/A

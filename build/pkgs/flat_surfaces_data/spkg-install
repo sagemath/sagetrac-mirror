@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mkdir -p "$SAGE_SHARE"/flat_surfaces
+mv src/* "$SAGE_SHARE"/flat_surfaces
