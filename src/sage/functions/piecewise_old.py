@@ -1018,6 +1018,7 @@ class PiecewisePolynomial:
             conv2 = maxima.eval(cmd2)
             conv3 = maxima.eval(cmd3)
             conv4 = maxima.eval(cmd4)
+            print(a1,a2,b1,b2,f0,g0,i1,i2,cmd1,cmd2,cmd3,cmd4,conv1,conv2,conv3,conv4)
             # this is a very, very, very ugly hack
             x = PolynomialRing(QQ,'x').gen()
             fg1 = sage_eval(conv1.replace("tt",var), {'x':x}) ## should be = R2(conv1)

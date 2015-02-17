@@ -63,7 +63,7 @@ TESTS::
 #*****************************************************************************
 
 from sage.symbolic.function import BuiltinFunction
-from sage.sets.real_set import RealSet
+from sage.sets.real_set import RealSet, RealInterval
 from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 
@@ -134,7 +134,11 @@ class PiecewiseFunction(BuiltinFunction):
         for piece in function_pieces:
             domain, function = piece
             if not isinstance(domain, RealSet):
-                domain = RealSet(domain)
+                if isinstance(domain, RealInterval):
+                    print(domain.lower(), domain.upper())
+                    domain = RealSet(domain.lower(), domain.upper())
+                else:
+                    domain = RealSet(domain)
             if domain.is_empty():
                 continue
             function = SR(function)
@@ -543,11 +547,14 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.end_points()
                 [0, 2]
             """
+            from sage.rings.infinity import infinity
             s = set()
             for domain, func in parameters:
                 for interval in domain:
                     s.add(interval.lower())
                     s.add(interval.upper())
+            s.discard(-infinity)
+            s.discard(infinity)
             return sorted(s)
 
         def integral(cls, self, parameters, variable, x=None, a=None, b=None, definite=False):
@@ -750,8 +757,9 @@ class PiecewiseFunction(BuiltinFunction):
 
                 sage: x = PolynomialRing(QQ,'x').gen()
                 sage: f = piecewise([[(0,1),1*x^0]])  ## example 0
-                sage: g = f.convolution(f)
-                sage: h = f.convolution(g)
+                sage: g = f.convolution(f); g
+                piecewise(x|-->x on (0, 1), x|-->-x + 2 on (1, 2); x)
+                sage: h = f.convolution(g); h
                 sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
                 sage: # Type show(P+Q+R) to view
                 sage: f = piecewise([[(0,1),1*x^0],[(1,2),2*x^0],[(2,3),1*x^0]])  ## example 1
@@ -821,33 +829,13 @@ class PiecewiseFunction(BuiltinFunction):
                     for finterval in fdomain:
                         for gdomain, gfunc in g.iteritems():
                             for ginterval in gdomain:
-                                f0 = piecewise([finterval, ffunc])
-                                g0 = piecewise([ginterval, gfunc])
+                                print(finterval)
+                                f0 = piecewise([(finterval, ffunc)])
+                                g0 = piecewise([(finterval, ffunc)])
                                 h = g0.convolution(f0)
                                 z = z + h
+                                raise
                 return z
 
 
 piecewise = PiecewiseFunction()
-
-def Piecewise(*args, **kwds):
-    """
-    Deprecated spelling of ``piecewise``
-
-    EXAMPLES::
-
-        sage: Piecewise([((-1, 0), -x), ([0, 1], x)])
-        doctest:...: DeprecationWarning: use lower-case piecewise instead
-        See http://trac.sagemath.org/14801 for details.
-        piecewise(x|-->-x on (-1, 0), x|-->x on [0, 1]; x)
-    """
-    from sage.misc.lazy_import import lazy_import
-    from sage.misc.superseded import deprecation
-    lazy_import('sage.functions.piecewise_old', 'Piecewise')
-    deprecation(14801, 'use lower-case piecewise instead')
-    ret = Piecewise(*args, **kwds)
-    print type(ret)
-    return ret
-
-
-
