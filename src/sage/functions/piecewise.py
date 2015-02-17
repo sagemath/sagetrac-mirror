@@ -836,14 +836,18 @@ def Piecewise(*args, **kwds):
 
     EXAMPLES::
 
-        sage: Piecewise([((-1, 0), -x), ([0, 1], x)], var=x)
+        sage: Piecewise([((-1, 0), -x), ([0, 1], x)])
         doctest:...: DeprecationWarning: use lower-case piecewise instead
         See http://trac.sagemath.org/14801 for details.
         piecewise(x|-->-x on (-1, 0), x|-->x on [0, 1]; x)
     """
+    from sage.misc.lazy_import import lazy_import
     from sage.misc.superseded import deprecation
+    lazy_import('sage.functions.piecewise_old', 'Piecewise')
     deprecation(14801, 'use lower-case piecewise instead')
-    return piecewise(*args, **kwds)
+    ret = Piecewise(*args, **kwds)
+    print type(ret)
+    return ret
 
 
 

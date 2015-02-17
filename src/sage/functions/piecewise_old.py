@@ -51,6 +51,8 @@ TESTS::
     doctest:...: DeprecationWarning: use lower-case piecewise instead
     See http://trac.sagemath.org/14801 for details.
     sage: 2*f
+    doctest:...: DeprecationWarning: use lower-case piecewise instead
+    See http://trac.sagemath.org/14801 for details.
     Piecewise defined function with 1 parts, [[(0, 1), 2]]
 """
 
@@ -80,9 +82,11 @@ from sage.symbolic.assumptions import assume, forget
 from sage.calculus.calculus import SR, maxima
 from sage.calculus.all import var
 
-def piecewise(list_of_pairs, var=None):
+def Piecewise(list_of_pairs, var=None):
     """
-    Returns a piecewise function from a list of (interval, function)
+    Deprecated spelling of :func:`sage.functions.piecewise`.
+
+    Return a piecewise function from a list of (interval, function)
     pairs.
     
     ``list_of_pairs`` is a list of pairs (I, fcn), where
@@ -103,6 +107,8 @@ def piecewise(list_of_pairs, var=None):
         sage: f1(x) = -1
         sage: f2(x) = 2
         sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        doctest:...: DeprecationWarning: use lower-case piecewise instead
+        See http://trac.sagemath.org/14801 for details.
         sage: f(1)
         -1
         sage: f(3)
@@ -114,9 +120,9 @@ def piecewise(list_of_pairs, var=None):
         sage: f(1.1)
         1.21000000000000
     """
+    from sage.misc.superseded import deprecation
+    deprecation(14801, 'use lower-case piecewise instead')
     return PiecewisePolynomial(list_of_pairs, var=var)
-
-Piecewise = piecewise
 
 class PiecewisePolynomial:
     """
@@ -128,6 +134,8 @@ class PiecewisePolynomial:
         sage: f1(x) = -1
         sage: f2(x) = 2
         sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        doctest:...: DeprecationWarning: use lower-case piecewise instead
+        See http://trac.sagemath.org/14801 for details.
         sage: f(1)
         -1
         sage: f(3)
@@ -323,6 +331,8 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: f.extend_by_zero_to(-1, 3)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 4 parts, [[(-1, 0), 0], [(0, 1), x |--> 1], [(1, 2), x |--> -x + 1], [(2, 3), 0]]
         """
         zero = QQ['x'](0)
@@ -348,6 +358,8 @@ class PiecewisePolynomial:
             sage: e = f.extend_by_zero_to(-10,10); e
             Piecewise defined function with 4 parts, [[(-10, -3), 0], [(-3, -1), x + 3], [(-1, 1), -x^2 + 1], [(1, 10), 0]]
             sage: d = e.unextend(); d
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 2 parts, [[(-3, -1), x + 3], [(-1, 1), -x^2 + 1]]
             sage: d==f
             True
@@ -450,6 +462,8 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: f.riemann_sum(6,mode="midpoint")
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 6 parts, [[(0, 1/3), 1/36], [(1/3, 2/3), 1/4], [(2/3, 1), 25/36], [(1, 4/3), 131/36], [(4/3, 5/3), 11/4], [(5/3, 2), 59/36]]
         
         ::
@@ -460,7 +474,8 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
-        
+            Graphics object consisting of 15 graphics primitives
+
         ::
         
             sage: f = Piecewise([[(-1,1),(1/2+x-x^3)]], x) ## example 3
@@ -469,7 +484,8 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
-        """
+            Graphics object consisting of 17 graphics primitives
+            """
         if mode is None:
             rsum = self._riemann_sum_helper(N, lambda x0,x1: [[(x0,x1),SR(self(x0))]],
                                             initial=[])
@@ -498,6 +514,8 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: f.trapezoid(4)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x], [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2], [(3/2, 2), -7/2*x + 8]]
         
         ::
@@ -509,7 +527,8 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
-        
+            Graphics object consisting of 9 graphics primitives
+
         ::
         
             sage: R.<x> = QQ[]
@@ -519,6 +538,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+            Graphics object consisting of 14 graphics primitives
 
         TESTS:
 
@@ -559,7 +579,8 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P + Q + t + tt
-        
+            Graphics object consisting of 10 graphics primitives
+
         ::
         
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])  ## example 2
@@ -570,6 +591,7 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P+Q+t+tt
+            Graphics object consisting of 8 graphics primitives
         """
         def f(x0, x1):
             f0, f1 = self(x0), self(x1)
@@ -804,6 +826,8 @@ class PiecewisePolynomial:
             sage: f2(x) = 3 - x
             sage: f = Piecewise([[(-2, 0), f1], [(0, 3), f2]])
             sage: f.integral()
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 2 parts, [[(-2, 0), x |--> 2*x + 4], [(0, 3), x |--> -1/2*x^2 + 3*x + 4]]
 
             sage: f1(y) = -1
@@ -937,7 +961,15 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: g = f.convolution(f)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: h = f.convolution(g)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
             sage: # Type show(P+Q+R) to view
             sage: f = Piecewise([[(0,1),1*x^0],[(1,2),2*x^0],[(2,3),1*x^0]])  ## example 1
@@ -948,9 +980,13 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-1,1),1]])                             ## example 2
             sage: g = Piecewise([[(0,3),x]])
             sage: f.convolution(g)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 3 parts, [[(-1, 1), 0], [(1, 2), -3/2*x], [(2, 4), -3/2*x]]
             sage: g = Piecewise([[(0,3),1*x^0],[(3,4),2*x^0]])
             sage: f.convolution(g)
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 5 parts, [[(-1, 1), x + 1], [(1, 2), 3], [(2, 3), x], [(3, 4), -x + 8], [(4, 5), -2*x + 10]]
         """
         f = self
@@ -1028,12 +1064,12 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: f.derivative()
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             Piecewise defined function with 2 parts, [[(0, 1), x |--> 0], [(1, 2), x |--> -1]]
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
-            doctest:...: DeprecationWarning: use lower-case piecewise instead
-            See http://trac.sagemath.org/14801 for details.
             sage: f.derivative()
             Piecewise defined function with 2 parts, [[(0, 1/2*pi), x |--> 0], [(1/2*pi, pi), x |--> 0]]
             
@@ -1060,9 +1096,12 @@ class PiecewisePolynomial:
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
             sage: tf = f.tangent_line(0.9) ## tangent line at x=0.9
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
             sage: P + Q
+            Graphics object consisting of 4 graphics primitives
         """
         pt = QQ(pt)
         R = QQ[self.default_variable()]
@@ -1091,7 +1130,8 @@ class PiecewisePolynomial:
             See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
-        
+            Graphics object consisting of 4 graphics primitives
+
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
 
@@ -1461,6 +1501,8 @@ class PiecewisePolynomial:
             sage: f3(x) = -1
             sage: f4(x) = 2
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: P = f.plot_fourier_series_partial_sum_filtered(3,pi,[1]*3,-5,5)    # long time
             sage: f1(x) = -1
             sage: f2(x) = 2
@@ -1769,6 +1811,8 @@ class PiecewisePolynomial:
             sage: g2 = x-5
             sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
             sage: h = f*g
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
             sage: h
             Piecewise defined function with 5 parts, [[(0, 1), x - 2], [(1, 2), -x^2 + 3*x - 2], [(2, 3), 2*x^2 - 4*x], [(3, 5), -x^2 + 12*x - 20], [(5, 10), -x^2 + 15*x - 50]]
             sage: g*(11/2)
