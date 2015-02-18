@@ -63,7 +63,7 @@ TESTS::
 #*****************************************************************************
 
 from sage.symbolic.function import BuiltinFunction
-from sage.sets.real_set import RealSet, RealInterval
+from sage.sets.real_set import RealSet, InternalRealInterval
 from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 
@@ -134,7 +134,7 @@ class PiecewiseFunction(BuiltinFunction):
         for piece in function_pieces:
             domain, function = piece
             if not isinstance(domain, RealSet):
-                if isinstance(domain, RealInterval):
+                if isinstance(domain, InternalRealInterval):
                     print(domain.lower(), domain.upper())
                     domain = RealSet(domain.lower(), domain.upper())
                 else:
@@ -834,7 +834,6 @@ class PiecewiseFunction(BuiltinFunction):
                                 g0 = piecewise([(finterval, ffunc)])
                                 h = g0.convolution(f0)
                                 z = z + h
-                                raise
                 return z
 
 
