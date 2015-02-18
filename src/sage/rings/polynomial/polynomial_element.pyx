@@ -2358,6 +2358,86 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self._parent(do_karatsuba(f,g, K_threshold, 0, 0, n))
         return self._parent(do_karatsuba_different_size(f,g, K_threshold))
 
+    def _mul_trunc(self, right, prec, K_threshold = None):
+        """
+        Returns the product of two polynomials truncating orders of 
+        the polynomial variable greater or equal to h.
+
+        It uses a Karatsuba based truncated multiplication with a threshold to
+        fall back to a quadratic truncation multiplication algorithm.
+
+        INPUT:
+
+        - ``self``: polynomial
+        - ``right``: polynomial
+        - ``prec``: desired precission, all terms of ``self*right`` of degree >=
+          prec are discarded
+        - ``K_threshold``: threshold for Karatsuba multiplication. If one of the
+          degrees of the polynomials is <= K_threshold, an truncated algorithm
+          based on classical multiplication is used.
+
+        REFERENCE:
+
+        - Hanrot, G.; Zimmermann, P. A long note on Mulder's short product. J.
+          Symbolic Comput. 37 (2004), no. 3, 391-401.
+
+        EXAMPLES::
+
+            sage: R.<a,b> = QQ[]
+            sage: K.<t> = R[]
+            sage: p = 1 + a*t + b*t^2
+            sage: p._mul_trunc(p,3)   
+            (a^2 + 2*b)*t^2 + 2*a*t + 1
+            sage: p1 = K.random_element(ZZ.random_element(20,60))
+            sage: p2 = K.random_element(ZZ.random_element(20,60))
+            sage: h = p1*p2
+            sage: p1._mul_trunc(p2,10) == h
+            False
+            sage: p1._mul_trunc(p2,10) == h[:10]
+            True
+            sage: p1._mul_trunc(p2,50) == h[:50]
+            True
+            sage: p1._mul_trunc(p2,150) == h
+            True
+
+        This also works for noncommutative rings::
+
+            sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
+            sage: R.<w> = PolynomialRing(A)
+            sage: f = R.random_element(randint(20,50))
+            sage: g = R.random_element(randint(20,50))
+            sage: h = f*g
+            sage: f._mul_trunc(g,10) == h
+            False
+            sage: f._mul_trunc(g,10) == h[:10]
+            True
+            sage: f._mul_trunc(g,50) == h[:50]
+            True
+            sage: f._mul_trunc(g,110) == h
+            True
+        """
+        if self.is_zero():
+            return self
+        elif right.is_zero():
+            return right
+        f = self.list()
+        g = right.list()
+        n = len(f)
+        m = len(g)
+        if n == 1:
+            c = f[0]
+            return self._parent([c*a for a in g[:prec]])
+        if m == 1:
+            c = g[0]
+            return self._parent([a*c for a in f[:prec]])
+        if K_threshold is None:
+            K_threshold = self._parent._Karatsuba_threshold
+        if n <= K_threshold or m <= K_threshold:
+            return self._parent(do_trunc_classical(f, g, prec))
+        if n == m:
+            return self._parent(do_trunc_karatsuba(f, g, prec, K_threshold))
+        return self._parent(do_trunc_karatsuba_different_size(f, g, prec, K_threshold))
+
     def base_ring(self):
         """
         Return the base ring of the parent of self.
@@ -6930,13 +7010,15 @@ cdef do_schoolbook_product(x, y):
     Compute the multiplication of two polynomials represented by lists, using
     the schoolbook algorithm.
 
-    This is the core of _mul_generic and the code that is used by
-    _mul_karatsuba bellow a threshold.
+    This is the core of :func:`_mul_generic` and the code that is used by
+    :func:`_mul_karatsuba` below a threshold.
 
     TESTS:
 
-    Doctested indirectly in _mul_generic and _mul_karatsuba. For the doctest we
-    use a ring such that default multiplication calls external libraries::
+    Doctested indirectly in :func:`_mul_generic` and :func:`_mul_karatsuba`.
+
+    For the doctest we use a ring such that default multiplication
+    calls external libraries::
 
         sage: K = ZZ['x']
         sage: f = K.random_element(8)
@@ -6952,17 +7034,17 @@ cdef do_schoolbook_product(x, y):
         return y
     elif d1 == 0:
         c = x[0]
-        return [c*a for a in y] # beware of noncommutative rings
+        return [c * a for a in y]  # beware of noncommutative rings
     elif d2 == 0:
         c = y[0]
-        return [a*c for a in x] # beware of noncommutative rings
+        return [a * c for a in x]  # beware of noncommutative rings
     coeffs = []
-    for k from 0 <= k <= d1+d2:
-        start = 0 if k <= d2 else k-d2  # max(0, k-d2)
-        end =   k if k <= d1 else d1    # min(k, d1)
-        sum = x[start] * y[k-start]
+    for k from 0 <= k <= d1 + d2:
+        start = 0 if k <= d2 else k - d2  # max(0, k-d2)
+        end =   k if k <= d1 else d1      # min(k, d1)
+        sum = x[start] * y[k - start]
         for i from start < i <= end:
-            sum = sum + x[i] * y[k-i]
+            sum = sum + x[i] * y[k - i]
         coeffs.append(sum)
     return coeffs
 
@@ -6970,21 +7052,21 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
     """
     Multiply two polynomials of different degrees by splitting the one of
     largest degree in chunks that are multiplied with the other using the
-    Karatsuba algorithm, as explained in _mul_karatsuba.
+    Karatsuba algorithm, as explained in :func:`_mul_karatsuba`.
 
     INPUT:
 
-        - `left`: a list representing a polynomial
-        - `right`: a list representing a polynomial
-        - `K_threshold`: an Integer, a threshold to pass to the classical
-          quadratic algorithm. During Karatsuba recursion, if one of the lists
-          has length <= K_threshold the classical product is used instead.
+    - ``left`` -- a list representing a polynomial
+    - ``right`` -- a list representing a polynomial
+    - ``K_threshold`` -- an Integer, a threshold to pass to the classical
+      quadratic algorithm. During Karatsuba recursion, if one of the lists
+      has length <= ``K_threshold`` the classical product is used instead.
 
     TESTS:
 
-    This method is indirectly doctested in _mul_karatsuba.
+    This method is indirectly doctested in :func:`_mul_karatsuba`.
 
-    Here, we use Fibonacci numbers that need deepest recursion in this method.
+    Here, we use Fibonacci numbers that need deepest recursion in this method::
 
         sage: K = ZZ['x']
         sage: f = K.random_element(21)
@@ -6998,12 +7080,12 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
         return []
     if n == 1:
         c = left[0]
-        return [c*a for a in right]
+        return [c * a for a in right]
     if m == 1:
         c = right[0]
-        return [a*c for a in left] # beware of noncommutative rings
+        return [a * c for a in left]  # beware of noncommutative rings
     if n <= K_threshold or m <= K_threshold:
-        return do_schoolbook_product(left,right)
+        return do_schoolbook_product(left, right)
     if n == m:
         return do_karatsuba(left, right, K_threshold, 0, 0, n)
     if n > m:
@@ -7013,17 +7095,17 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
         r = n % m
         output = do_karatsuba(left, right, K_threshold, 0, 0, m)
         for i from 1 <= i < q:
-            mi = m*i
+            mi = m * i
             carry = do_karatsuba(left, right, K_threshold, mi, 0, m)
-            for j from 0 <= j < m-1:
-                output[mi+j] = output[mi+j] + carry[j]
-            output.extend(carry[m-1:])
+            for j from 0 <= j < m - 1:
+                output[mi + j] = output[mi + j] + carry[j]
+            output.extend(carry[m - 1:])
         if r:
-            mi = m*q
+            mi = m * q
             carry = do_karatsuba_different_size(left[mi:], right, K_threshold)
-            for j from 0 <= j < m-1:
-                output[mi+j] = output[mi+j] + carry[j]
-            output.extend(carry[m-1:])
+            for j from 0 <= j < m - 1:
+                output[mi + j] = output[mi + j] + carry[j]
+            output.extend(carry[m - 1:])
         return output
     else:
         # n < m, I need to repeat the code due to the case
@@ -7032,45 +7114,49 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
         r = m % n
         output = do_karatsuba(left, right, K_threshold, 0, 0, n)
         for i from 1 <= i < q:
-            mi = n*i
+            mi = n * i
             carry = do_karatsuba(left, right, K_threshold, 0, mi, n)
-            for j from 0 <= j < n-1:
-                output[mi+j] = output[mi+j] + carry[j]
-            output.extend(carry[n-1:])
+            for j from 0 <= j < n - 1:
+                output[mi + j] = output[mi + j] + carry[j]
+            output.extend(carry[n - 1:])
         if r:
-            mi = n*q
+            mi = n * q
             carry = do_karatsuba_different_size(left, right[mi:], K_threshold)
-            for j from 0 <= j < n-1:
-                output[mi+j] = output[mi+j] + carry[j]
-            output.extend(carry[n-1:])
+            for j from 0 <= j < n - 1:
+                output[mi + j] = output[mi + j] + carry[j]
+            output.extend(carry[n - 1:])
         return output
 
-cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
+cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l,
+                  Py_ssize_t start_r,Py_ssize_t num_elts):
     """
     Core routine for Karatsuba multiplication. This function works for two
     polynomials of the same degree.
 
-    Input:
+    INPUT:
 
-        - left: a list containing a slice representing a polynomial
-        - right: a list containing the slice representing a polynomial with the
-          same length as left
-        - K_threshold: an integer. For lists of length <= K_threshold, the
-          quadratic polynomial multiplication is used.
-        - start_l: the index of left where the actual polynomial starts
-        - start_r: the index of right where the actual polynomial starts
-        - num_elts: the length of the polynomials.
+    - ``left`` -- a list containing a slice representing a polynomial
+    - ``right`` -- a list containing the slice representing a polynomial with
+      the same length as ``left``
+    - ``K_threshold`` -- an integer. For lists of length <=
+      ``K_threshold``, the quadratic polynomial multiplication is
+      used.
+    - ``start_l`` -- the index of ``left`` where the actual polynomial starts
+    - ``start_r`` -- the index of ``right`` where the actual polynomial starts
+    - ``num_elts`` -- the length of the polynomials.
 
-    Thus, the actual polynomials we want to multiply are represented by the
-    slices: left[ start_l: start_l+num_elts ], right[ right_l: right_l+num_elts ].
+    Thus, the actual polynomials we want to multiply are represented
+    by the slices: ``left[ start_l: start_l+num_elts ]``,
+    ``right[ right_l: right_l+num_elts ]``.
+
     We use this representation in order to avoid creating slices of lists and
     create smaller lists.
 
-    Output:
+    OUTPUT:
 
-        - a list representing the product of the polynomials
+    - a list representing the product of the polynomials
 
-    Doctested indirectly in _mul_karatsuba
+    Doctested indirectly in :func:`_mul_karatsuba`
 
     TESTS::
 
@@ -7082,61 +7168,292 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
 
     Notes on the local variables:
 
-    - ac will always be a list of length lenac
-    - bd will always be a list of length lenbd
-    - a_m_b and c_m_d are lists of length ne, we only make necessary additions
-    - tt1 has length lenac
+    - ``ac`` will always be a list of length ``lenac``
+    - ``bd`` will always be a list of length ``lenbd``
+    - ``a_m_b`` and ``c_m_d`` are lists of length ``ne``,
+      we only make necessary additions
+    - ``tt1`` has length ``lenac``
     """
     cdef Py_ssize_t e, ne, lenac, lenbd, start_le, start_re, i
     if num_elts == 0:
         return []
     if num_elts == 1:
-        return [left[start_l]*right[start_r]]
+        return [left[start_l] * right[start_r]]
     if num_elts <= K_threshold:
         # Special case of degree 2, no loop, no function call
         if num_elts == 2:
             b = left[start_l]
-            a = left[start_l+1]
+            a = left[start_l + 1]
             d = right[start_r]
-            c = right[start_r+1]
-            return [b*d, a*d+b*c, a*c]
-        return do_schoolbook_product(left[start_l:start_l+num_elts], right[start_r:start_r+num_elts])
+            c = right[start_r + 1]
+            return [b * d, a * d + b * c, a * c]
+        return do_schoolbook_product(left[start_l: start_l + num_elts],
+                                     right[start_r: start_r + num_elts])
     if num_elts == 2:
         # beware of noncommutative rings
         b = left[start_l]
-        a = left[start_l+1]
+        a = left[start_l + 1]
         d = right[start_r]
-        c = right[start_r+1]
-        ac = a*c
-        bd = b*d
-        return [bd, (a+b)*(c+d)-ac-bd, ac]
-    e = num_elts//2
-    ne = num_elts-e
-    lenac = 2*ne-1
-    lenbd = 2*e-1
-    start_le = start_l+e
-    start_re = start_r+e
+        c = right[start_r + 1]
+        ac = a * c
+        bd = b * d
+        return [bd, (a + b) * (c + d) - ac - bd, ac]
+    e = num_elts // 2
+    ne = num_elts - e
+    lenac = 2 * ne - 1
+    lenbd = 2 * e - 1
+    start_le = start_l + e
+    start_re = start_r + e
     ac = do_karatsuba(left, right, K_threshold, start_le, start_re, ne)
     bd = do_karatsuba(left, right, K_threshold, start_l,  start_r,  e)
-    a_m_b = left[start_le:start_le+ne]
-    c_m_d = right[start_re:start_re+ne]
+    a_m_b = left[start_le: start_le + ne]
+    c_m_d = right[start_re: start_re + ne]
     for i from 0 <= i < e:
-        a_m_b[i] = a_m_b[i] + left[start_l+i]
-        c_m_d[i] = c_m_d[i] + right[start_r+i]
+        a_m_b[i] = a_m_b[i] + left[start_l + i]
+        c_m_d[i] = c_m_d[i] + right[start_r + i]
     tt1 = do_karatsuba(a_m_b, c_m_d, K_threshold, 0, 0, ne)
     # bd might be shorter than ac, we divide the operations in two loops
     for i from 0 <= i < lenbd:
-        tt1[i] = tt1[i] - (ac[i]+bd[i])
+        tt1[i] = tt1[i] - (ac[i] + bd[i])
     for i from lenbd <= i < lenac:
         tt1[i] = tt1[i] - ac[i]
     # Reconstruct the product from the lists bd, tt1, ac.
-    for i from 0 <= i < e-1:
-        bd[e+i] = bd[e+i] + tt1[i]
-    bd.append(tt1[e-1])
+    for i from 0 <= i < e - 1:
+        bd[e + i] = bd[e + i] + tt1[i]
+    bd.append(tt1[e - 1])
     for i from 0 <= i < lenac -e:
-        ac[i] = ac[i] + tt1[e+i]
+        ac[i] = ac[i] + tt1[e + i]
     return bd + ac
 
+cdef do_trunc_classical(x, y, Py_ssize_t prec):
+    """
+    Method to compute the truncated multiplication of two polynomials
+    represented by lists.
+
+    This is the code that is used by :func:`_mul_trunc` below
+    a threshold.
+
+    INPUT:
+
+    - ``x`` -- a list representing a polynomial.
+    - ``y`` -- a list representing a polynomial.
+    - ``prec`` -- desired precision, all terms of ``x*y`` of degree >=
+      ``prec`` are discarded
+
+    Doctested indirectly in :func:`_mul_trunc`.
+
+    TESTS::
+
+        sage: K = ZZ[x]
+        sage: f = K.random_element(8)
+        sage: g = K.random_element(8)
+        sage: (f*g)[:8] - f._mul_trunc(g, 8, 20)
+        0
+    """
+    cdef Py_ssize_t i, k, start, end
+    cdef Py_ssize_t d1 = len(x) - 1, d2 = len(y) - 1
+    if d1 == -1:
+        return x
+    elif d2 == -1:
+        return y
+    elif d1 == 0:
+        c = x[0]
+        return [c * a for a in y[:prec]]  # beware of noncommutative rings
+    elif d2 == 0:
+        c = y[0]
+        return [a * c for a in x[:prec]]  # beware of noncommutative rings
+    coeffs = []
+    for k from 0 <= k <= min(d1 + d2, prec - 1):
+        start = 0 if k <= d2 else k - d2  # max(0, k-d2)
+        end =   k if k <= d1 else d1      # min(k, d1)
+        sum = x[start] * y[k - start]
+        for i from start < i <= end:
+            sum += x[i] * y[k - i]
+        coeffs.append(sum)
+    return coeffs
+
+cdef do_trunc_karatsuba(left, right, Py_ssize_t prec, Py_ssize_t K_threshold):
+    """
+    Core routine for truncated Karatsuba multiplication.
+
+    This function works for two polynomials of the same degree
+    represented by lists.
+
+    INPUT:
+
+    - ``left`` -- a list representing a polynomial.
+    - ``right`` -- a list representing a polynomial with the same length
+      as ``left``.
+    - ``prec`` -- precision. All terms of the multiplication of degree
+      greater or equal than ``prec`` are discarded.
+    - ``K_threshold`` -- an integer. For lists of length <= ``K_threshold``, 
+      :func:`do_trunc_classical` is used
+
+    OUTPUT:
+
+    - a list representing the slicing ``(left*right)[:prec]``
+
+    Doctested indirectly in :func:`_mul_trunc`.
+
+    TESTS::
+
+        sage: K.<x> = ZZ[]
+        sage: f = K.random_element(8) + x^9
+        sage: g = K.random_element(8) + x^9
+        sage: (f*g)[:8] - f._mul_trunc(g, 8, 2)
+        0
+    """
+    cdef Py_ssize_t n, n0, n1, len_l, len_h, len_m, i
+    n = len(left)
+    if n == 0:
+        return left
+    if prec == 0:
+        return []
+    if n == 1 or prec == 1:
+        return [left[0] * right[0]]
+    if n <= K_threshold:
+        return do_trunc_classical(left, right, prec)
+    if 2 * n - 1 <= prec:
+        return do_karatsuba(left, right, K_threshold, 0, 0, n)
+    if prec == 2:
+        return [left[0] * right[0], left[0] * right[1] + left[1] * right[0]]
+    #prec >= 3
+    if n == 2:
+        b = left[0]
+        a = left[1]
+        d = right[0]
+        c = right[1]
+        ac = a * c
+        bd = b * d
+        return [bd, (a + b) * (c + d) - ac - bd, ac]
+    n0 = prec // 2
+    n1 = (prec + 1) // 2
+    left_even  = left[::2]
+    left_odd   = left[1::2]
+    right_even = right[::2]
+    right_odd  = right[1::2]
+    # l has degree bigger than h
+    l = do_trunc_karatsuba(left_even, right_even, n1, K_threshold)
+    h = do_trunc_karatsuba(left_odd, right_odd, n0, K_threshold)
+    left_add = list(left_even)
+    right_add = list(right_even)
+    for i from 0 <= i < len(left_odd):
+        left_add[i]  += left_odd[i]
+        right_add[i] += right_odd[i]
+    m = do_trunc_karatsuba(left_add, right_add, n0, K_threshold)
+    len_l = len(l) # It can be much less than n1
+    len_h = len(h)
+    len_m = len(m)
+    l_h = list(l)
+    for i in range(len_h):
+        l_h[i] += h[i]
+    for i in range(len_m):
+        m[i] -= l_h[i]
+    m.extend([-f for f in l_h[len(m):]])
+    coeffs = []
+    len_m = len(m)
+    for i from 0 <= i < len_m:    
+        coeffs.append(l[i])
+        coeffs.append(m[i])
+    for i from 0 <= i < len(coeffs) // 2 - 1:
+        coeffs[2 * i + 2] += h[i]
+    return coeffs[:prec]
+
+cdef do_trunc_karatsuba_different_size(left, right, Py_ssize_t prec, Py_ssize_t K_threshold):
+    """
+    This algorithm is to deal with truncated Karatsuba multiplication
+    of two polynomials of different degrees.
+
+    INPUT:
+
+    - ``left`` -- a list representing a polynomial
+    - ``right`` -- a list representing a polynomial
+    - ``prec``: precision. All terms of the multiplication of degree
+      greater or equal than ``prec`` are discarded
+    - ``K_threshold`` -- an integer, a threshold to pass to the classical
+      quadratic algorithm. During Karatsuba recursion, if one of the lists
+          has length <= ``K_threshold`` the classical product is used instead.
+
+    If ``left`` is a list representing a polynomial `f` of degree `n` and
+    ``right`` is a list representing a list of degree `m` with `n < m`, then
+    we interpret ``right`` as
+
+    .. math::
+
+        g_0 + g_1 x^n +g_2 x^{2n} + ... + g_q x^{nq}
+
+    where `g_i` are polynomials of degree `n-1`, `g_q` of degree <= `n-1`.
+
+    Then compute each product `f g_i` with Karatsuba multiplication
+    and from them reconstruct `fg`.
+
+    This method is indirectly doctested in :func:`_mul_karatsuba_`
+
+    TESTS::
+
+        sage: K.<x> = ZZ[]
+        sage: f = K.random_element(27) + x^28
+        sage: g = K.random_element(33) + x^34
+        sage: (f*g)[:20] - f._mul_trunc(g, 20, 2)
+        0
+    """
+    cdef Py_ssize_t n, m, q, r, mi
+    n = min(len(left), prec)
+    m = min(len(right), prec)
+    if n == 0 or m == 0:
+        return []
+    if n == 1:
+        c = left[0]
+        return [c * a for a in right[:prec]]
+    if m == 1:
+        c = right[0]
+        return [a * c for a in left[:prec]]  # beware of noncommutative rings
+    if n <= K_threshold or m <= K_threshold:
+        return do_trunc_classical(left, right, prec)
+    if n + m - 1 <= prec:
+        return do_karatsuba_different_size(left, right, K_threshold)
+    if n == m:
+        return do_trunc_karatsuba(left[:n] ,right[:n], prec, K_threshold)
+    if n > m:
+        # left is the bigger list
+        # n is the bigger number
+        q = n // m
+        r = n % m
+        output = do_karatsuba(left, right, K_threshold, 0, 0, m)
+        for i from 1 <= i < q:
+            mi = m * i
+            carry = do_karatsuba(left, right, K_threshold, mi, 0, m)
+            for j in range(m - 1):
+                output[mi + j] += carry[j]
+            output.extend(carry[m - 1:])
+        if r:
+            mi = m * q
+            carry = do_trunc_karatsuba_different_size(left[mi:], right,
+                                                      prec - mi, K_threshold)
+            for j from 0 <= j < min(len(carry), m - 1):
+                output[mi + j] += carry[j]
+            output.extend(carry[m - 1:])
+        return output[:prec]
+    else:
+        # n < m, I need to repeat the code due to the case
+        # of noncommutative rings.
+        q = m // n
+        r = m % n
+        output = do_karatsuba(left, right, K_threshold, 0, 0, n)
+        for i from 1 <= i < q:
+            mi = n * i
+            carry = do_karatsuba(left, right, K_threshold, 0, mi, n)
+            for j in range(n - 1):
+                output[mi + j] += carry[j]
+            output.extend(carry[n - 1:])
+        if r:
+            mi = n * q
+            carry = do_trunc_karatsuba_different_size(left, right[mi:],
+                                                      prec - mi, K_threshold)
+            for j from 0 <= j < min(len(carry), n - 1):
+                output[mi + j] += carry[j]
+            output.extend(carry[n - 1:])
+        return output[:prec]
 
 cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, sample):
     cdef Polynomial_generic_dense f = <Polynomial_generic_dense>PY_NEW_SAME_TYPE(sample)
