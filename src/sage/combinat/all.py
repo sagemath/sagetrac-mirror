@@ -38,6 +38,7 @@ from derangements import Derangements
 #RSK
 from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
                 RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from domino_tableaux import Domino_RSK, Domino_RSK_Inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
