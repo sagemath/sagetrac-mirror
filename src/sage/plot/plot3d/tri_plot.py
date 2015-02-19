@@ -218,11 +218,12 @@ class TriangleFactory:
 
 class TrianglePlot:
     """
+    Recursive plot of functions of two variables
+
     Recursively plots a function of two variables by building squares of 4 triangles, checking at
     every stage whether or not each square should be split into four more squares.  This way,
     more planar areas get fewer triangles, and areas with higher curvature get more triangles.
     """
-
     def str(self):
         """
         Returns a string listing the objects in the instance of the TrianglePlot class.

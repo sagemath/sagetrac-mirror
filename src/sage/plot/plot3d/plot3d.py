@@ -880,7 +880,6 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
 
     INPUT:
 
-
     -  ``f`` - a symbolic function or a Python function of
        3 variables.
 
@@ -892,8 +891,14 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
 
     -  ``grad_f`` - gradient of f as a Python function
 
-    -  ``color`` - "automatic" - a rainbow of num_colors
-       colors
+    -  ``color`` - coloring options:
+
+        -- "automatic" - a rainbow of ``num_colors`` colors
+
+        -- a list of 2 colors : this will display a checkerboard coloring
+
+        -- a list of at least 3 colors : this will color according to
+           the values of the function
 
     -  ``num_colors`` - (default: 128) number of colors to
        use with default color
@@ -906,13 +911,25 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
 
     -  ``**kwds`` - standard graphics parameters
 
-
     EXAMPLES:
 
     We plot `\sin(xy)`::
 
         sage: from sage.plot.plot3d.plot3d import plot3d_adaptive
-        sage: x,y=var('x,y'); plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
+        sage: x, y = var('x,y')
+        sage: plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
+        Graphics3d Object
+
+    Same with a checkerboard coloring::
+
+        sage: plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5,
+        ....:  color=['white','black'])
+        Graphics3d Object
+
+    Another one with just a few colors::
+
+        sage: plot3d_adaptive(x*x+y*y, (x,-pi,pi), (y,-pi,pi), initial_depth=5,
+        ....:  color=['green','white','red'])
         Graphics3d Object
     """
     if initial_depth >= max_depth:
@@ -927,34 +944,36 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
 
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')
+    elif isinstance(color, list):
+        texture = color
     else:
-        if isinstance(color, list):
-            texture = color
-        else:
-            kwds['color'] = color
-            texture = Texture(kwds)
+        kwds['color'] = color
+        texture = Texture(kwds)
 
     factory = TrivialTriangleFactory()
-    plot = TrianglePlot(factory, g, (xmin, xmax), (ymin, ymax), g = grad_f,
+    plot = TrianglePlot(factory, g, (xmin, xmax), (ymin, ymax), g=grad_f,
                         min_depth=initial_depth, max_depth=max_depth,
-                        max_bend=max_bend, num_colors = None)
+                        max_bend=max_bend, num_colors=None)
 
+    # colors could be set in the next line since trac #12212
+    # using P = IndexFaceSet(plot._objects, texture_list=[...])
+    # this would avoid the use of P.partition()
     P = IndexFaceSet(plot._objects)
     if isinstance(texture, (list, tuple)):
         if len(texture) == 2:
-            # do a grid coloring
+            # do a grid (checkerboard) coloring
             xticks = (xmax - xmin)/2**initial_depth
             yticks = (ymax - ymin)/2**initial_depth
             parts = P.partition(lambda x,y,z: (int((x-xmin)/xticks) + int((y-ymin)/yticks)) % 2)
         else:
-            # do a topo coloring
+            # do a topo coloring (color according to z-coordinate)
             bounds = P.bounding_box()
             min_z = bounds[0][2]
             max_z = bounds[1][2]
             if max_z == min_z:
                 span = 0
             else:
-                span = (len(texture)-1) / (max_z - min_z)    # max to avoid dividing by 0
+                span = len(texture) / (max_z - min_z)
             parts = P.partition(lambda x,y,z: int((z-min_z)*span))
         all = []
         for k, G in parts.iteritems():
