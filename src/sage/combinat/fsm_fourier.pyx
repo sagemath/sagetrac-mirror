@@ -140,7 +140,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module_element cimport FreeModuleElement_generic_dense
 import sage.rings.arith
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.rings.complex_interval_acb cimport ComplexIntervalFieldElement_to_acb
+from sage.rings.complex_ball_acb cimport ComplexIntervalFieldElement_to_acb
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
@@ -1080,7 +1080,7 @@ cdef class FSMFourierCache(SageObject):
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
         """
         self.compute_b(r+1)
-        return acb_mat_to_matrix(self.bb[r], self.precision).column(0)
+        return acb_mat_to_matrix(self.bb[r], self.parent.CIF).column(0)
 
     cdef FreeModuleElement_generic_dense partial_dirichlet(
         self,
@@ -1120,7 +1120,7 @@ cdef class FSMFourierCache(SageObject):
             acb_pow(scalar, scalar, minuss, self.precision)
             acb_mat_scalar_addmul_acb(result, self.bb[r],
                                       scalar, self.precision)
-        result_vector = acb_mat_to_matrix(result, self.precision).column(0)
+        result_vector = acb_mat_to_matrix(result, self.parent.CIF).column(0)
 
         acb_clear(minuss)
         acb_clear(scalar)
