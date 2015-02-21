@@ -40,7 +40,7 @@ import operator
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 import sage.misc.sage_eval
 
@@ -876,8 +876,10 @@ class InterfaceElement(RingElement):
         except AttributeError:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            try:
+                s = s.replace(self._name, self.__custom_name)
+            except AttributeError:
+                pass
         return s
 
     def __getattr__(self, attrname):
@@ -1140,7 +1142,7 @@ class InterfaceElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if not hasattr(n, 'parent') or P is not n.parent():
+        if parent(n) is not P:
             n = P(n)
         return self._operation("^", n)
 

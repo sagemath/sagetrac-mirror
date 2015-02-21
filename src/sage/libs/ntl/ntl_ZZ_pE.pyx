@@ -109,6 +109,7 @@ cdef class ntl_ZZ_pE:
         self.c.restore_c()
 
         cdef ZZ_c temp
+        cdef ntl_ZZ_pX tmp_zzpx
         if v is not None:
             sig_on()
             if PY_TYPE_CHECK(v, ntl_ZZ_pE):
@@ -120,7 +121,11 @@ cdef class ntl_ZZ_pE:
                     raise ValueError, "You cannot cast between rings with different moduli"
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
             elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
-                self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)).x)
+                tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
+                # random values without the following restore call
+                # surely because the above call restore things and breaks the modulus
+                self.c.restore_c()
+                self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
             elif PyInt_Check(v):
                 self.x = long_to_ZZ_pE(v)
             elif PY_TYPE_CHECK(v, ntl_ZZ_p):
@@ -145,7 +150,7 @@ cdef class ntl_ZZ_pE:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_pE         ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_pE) without     ##
+        ## could do r = ntl_ZZ_pE.__new__(ntl_ZZ_pE) without
         ## first restoring a ZZ_pEContext, which could##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -170,7 +175,7 @@ cdef class ntl_ZZ_pE:
     cdef ntl_ZZ_pE _new(self):
         cdef ntl_ZZ_pE r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_pE)
+        r = ntl_ZZ_pE.__new__(ntl_ZZ_pE)
         r.c = self.c
         return r
 
@@ -293,7 +298,7 @@ cdef class ntl_ZZ_pE:
         Returns value as ntl_ZZ_pX.
         """
         self.c.restore_c()
-        cdef ntl_ZZ_pX y = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX y = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         y.c = self.c.pc
         sig_on()
         y.x = ZZ_pE_to_ZZ_pX(self.x)

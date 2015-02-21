@@ -26,7 +26,6 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
 from cpython.tuple cimport *
 
 import sage.modules.free_module
@@ -49,8 +48,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -228,7 +225,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
+            {(0, 0): x, (0, 1): y, (1, 2): 2*x + y}
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -256,16 +253,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [0 1 2]
             [3 4 5]
             sage: v = a._dict(); v
-            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): 1, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
 
         If you change a key of the dictionary, the corresponding entry of
         the matrix will be changed (but without clearing any caches of
         computing information about the matrix)::
 
             sage: v[0,1] = -2/3; v
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a._dict()
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a[0,1]
             -2/3
 
@@ -879,7 +876,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>row_index):
+            elif isinstance(row_index, slice):
                 row_list = range(*row_index.indices(nrows))
             else:
                 if not PyIndex_Check(row_index):
@@ -911,7 +908,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
-            elif PySlice_Check(<PyObject *>col_index):
+            elif isinstance(col_index, slice):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 if not PyIndex_Check(col_index):
@@ -963,7 +960,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if ind < 0 or ind >= nrows:
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
-        elif PySlice_Check(<PyObject *>row_index):
+        elif isinstance(row_index, slice):
             row_list = range(*row_index.indices(nrows))
             r = self.matrix_from_rows(row_list)
         else:
@@ -5120,7 +5117,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
             sage: (N*M).norm()
-            1.0
+            0.9999999999999999
         """
         if not self.base_ring().is_field():
             try:

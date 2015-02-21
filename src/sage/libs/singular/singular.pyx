@@ -24,8 +24,6 @@ cdef extern from "limits.h":
 
 import os
 
-from sage.misc.misc_c import is_64_bit
-
 from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options
@@ -128,7 +126,7 @@ cdef Integer si2sa_ZZ(number *n, ring *_ring):
     """
     cdef Integer z
     z = Integer()
-    z.set_from_mpz(<__mpz_struct*>n)
+    z.set_from_mpz(<mpz_ptr>n)
     return z
 
 cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
@@ -154,7 +152,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         return cache._one_element
     z = (<lnumber*>n).z
 
-    a = cache.objectptr.sage_generator()
+    a = cache.objectptr.indeterminate()
     ret = cache.objectptr.zero
     order = cache.objectptr.cardinality() - 1
 
@@ -164,7 +162,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
         else:
-            a = ( e * cache.objectptr.sage_generator() ) % order
+            a = ( e * cache.objectptr.indeterminate() ) % order
             ret = cache.objectptr.axpy(ret, c, a, ret)
         z = <napoly*>pNext(<poly*>z)
     return (<FFgivE>cache._zero_element)._new_c(ret)
@@ -231,13 +229,13 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef object ret
 
     if naIsZero(n):
-        return base.zero_element()
+        return base.zero()
     elif naIsOne(n):
-        return base.one_element()
+        return base.one()
     z = (<lnumber*>n).z
 
     a = base.gen()
-    ret = base.zero_element()
+    ret = base.zero()
 
     while z:
         c = <long>napGetCoeff(z)
@@ -328,7 +326,7 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
         return base(<long>n)
     else:
         ret = Integer()
-        ret.set_from_mpz(<__mpz_struct*>n)
+        ret.set_from_mpz(<mpz_ptr>n)
         return base(ret)
 
     return base(_ring.cf.n_Int(n,_ring))
@@ -354,7 +352,12 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
     if _ring != currRing: rChangeCurrRing(_ring)
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef int b = - _ring.ch
 
     a = naPar(1)
@@ -388,7 +391,12 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
@@ -423,7 +431,12 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     elem = elem.polynomial()
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -459,7 +472,13 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *nlCoeff, *naCoeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *nlCoeff
+    cdef number *naCoeff
+    cdef number *apow1
+    cdef number *apow2
     elem = list(elem)
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -505,7 +524,7 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
     """
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n = nrzInit(0, _ring)
-    mpz_set(<__mpz_struct*>n, d.value)
+    mpz_set(<mpz_ptr>n, d.value)
     return <number*>n
 
 cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):

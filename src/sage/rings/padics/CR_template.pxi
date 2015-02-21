@@ -181,7 +181,8 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CRElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.unit, ans.prime_pow)
@@ -1102,7 +1103,7 @@ cdef class CRElement(pAdicTemplateElement):
         rprec = aprec - self.ordp
         return ccmp(self.unit, right.unit, rprec, rprec < self.relprec, rprec < right.relprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -1726,9 +1727,9 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             sage: f = Qp(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets with partial maps
+            Category of homsets of sets with partial maps
             sage: Zp(5).coerce_map_from(ZZ).section().category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.is_field() or R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1937,7 +1938,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f = Qp(5).coerce_map_from(QQ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_QQ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, QQ, SetsWithPartialMaps()))
@@ -1958,7 +1959,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f(Qp(5)(1/5))
             1/5
         """
-        cdef Rational ans = PY_NEW(Rational)
+        cdef Rational ans = Rational.__new__(Rational)
         cdef CRElement x =  _x
         if x.relprec == 0:
             mpq_set_ui(ans.value, 0, 1)
@@ -2129,7 +2130,7 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
         sage: a.precision_relative() == b.precision_relative()
         True
     """
-    cdef CRElement ans = PY_NEW(cls)
+    cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.unit, ans.prime_pow)

@@ -262,10 +262,28 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(w, 14)
             w + O(w^14)
 
-        Check that #3865 is fixed::
+        TESTS:
+
+        Check that :trac:`3865` is fixed::
 
             sage: W(gp('3 + O(5^10)'))
             3 + O(w^3125)
+
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3)
+
+            sage: K = Qp(3)
+            sage: S.<a> = K[]
+            sage: L.<a> = K.extension(a^2+1)
+            sage: L(L.residue_field().zero())
+            O(3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -350,7 +368,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
                 tmp_Int = PY_NEW(Integer)
-                ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+                ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
                 x = tmp_Int
                 if absprec is infinity or ctx_prec < aprec:
                     aprec = ctx_prec
@@ -359,7 +377,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
         elif PY_TYPE_CHECK(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
-            ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+            ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
@@ -367,7 +385,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
-            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
             if absprec is infinity or 1 < aprec:
                 aprec = 1
                 absprec = 0 # absprec just has to be non-infinite: everything else uses aprec
@@ -734,7 +752,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         shift = mpz_remove(tmp_m, x, self.prime_pow.prime.value)
         sig_off()
         self._set_prec_rel(relprec)
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_to_ZZ(&tmp_z, tmp_m)
         mpz_clear(tmp_m)
         if self.relprec != 0:
             ZZ_pX_SetCoeff(self.unit, 0, ZZ_to_ZZ_p(tmp_z))
@@ -785,7 +803,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # This indicates that self._set_inexact_zero was called
             mpz_clear(tmp_m)
             return 0
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_to_ZZ(&tmp_z, tmp_m)
         mpz_clear(tmp_m)
         if self.relprec != 0:
             ZZ_pX_SetCoeff(self.unit, 0, ZZ_to_ZZ_p(tmp_z))
@@ -940,9 +958,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec != 0:
             mpz_init(tmp_m)
             mpz_set(tmp_m, num_unit)
-            mpz_to_ZZ(&num_zz, &tmp_m)
+            mpz_to_ZZ(&num_zz, tmp_m)
             mpz_set(tmp_m, den_unit)
-            mpz_to_ZZ(&den_zz, &tmp_m)
+            mpz_to_ZZ(&den_zz, tmp_m)
             mpz_clear(tmp_m)
             #The context has been restored in setting self.relprec
             ZZ_p_div(tmp_zp, ZZ_to_ZZ_p(num_zz), ZZ_to_ZZ_p(den_zz))
@@ -1401,7 +1419,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             3 + O(w^6)
         """
         cdef ZZ_pX_c high_shifter, high_shifter2
-        cdef ZZ_pX_Modulus_c *modulus, modulus_up
+        cdef ZZ_pX_Modulus_c *modulus
+        cdef ZZ_pX_Modulus_c modulus_up
         cdef ntl_ZZ_pContext_class c
         cdef PowComputer_ZZ_pX_small_Eis sm
         cdef PowComputer_ZZ_pX_big_Eis big
@@ -1491,7 +1510,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: w^5 + 1 # indirect doctest
             1 + w^5 + O(w^25)
         """
-        cdef pAdicZZpXCRElement ans = PY_NEW(pAdicZZpXCRElement)
+        cdef pAdicZZpXCRElement ans = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         if relprec > 0:
@@ -1528,7 +1547,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec == 0:
             return make_ZZpXCRElement, (self.parent(), None, ordp, relprec, 0)
         self.prime_pow.restore_context_capdiv(self.relprec)
-        cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX holder = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_context_capdiv(self.relprec)
         holder.x = self.unit
         return make_ZZpXCRElement, (self.parent(), holder, ordp, relprec, 0)
@@ -2057,8 +2076,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 raise ValueError, "valuation overflow"
             ans.ordp = mpz_get_si(tmp)
             mpz_clear(tmp)
-        cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
-        mpz_to_ZZ(&rZZ.x, &right.value)
+        cdef ntl_ZZ rZZ = ntl_ZZ.__new__(ntl_ZZ)
+        mpz_to_ZZ(&rZZ.x, right.value)
         sig_on()
         if mpz_sgn(right.value) < 0:
             if self.prime_pow.e == 1:
@@ -2360,7 +2379,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             raise ValueError, "This element not well approximated by an integer."
         ans = PY_NEW(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(f.x))
-        ZZ_to_mpz(&ans.value, &tmp_z)
+        ZZ_to_mpz(ans.value, &tmp_z)
         return ans
 
     def is_zero(self, absprec = None):
@@ -2439,7 +2458,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec == 0:
             raise ValueError, "self == 0"
         self.prime_pow.restore_context_capdiv(self.relprec)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_context_capdiv(self.relprec)
         ans.x = self.unit
         return ans
@@ -2505,8 +2524,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 little_shift = self.prime_pow.e - little_shift
             ctx = self.prime_pow.get_context_capdiv(self.relprec + little_shift)
         ctx.restore_c()
-        cdef pAdicZZpXCRElement dummy = PY_NEW(pAdicZZpXCRElement)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef pAdicZZpXCRElement dummy = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         cdef Integer ans_k = PY_NEW(Integer)
         dummy.unit = self.unit
         dummy.prime_pow = self.prime_pow

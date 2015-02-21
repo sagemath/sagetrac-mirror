@@ -94,7 +94,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef FMElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -562,7 +563,7 @@ cdef class FMElement(pAdicTemplateElement):
                     aprec < right.prime_pow.prec_cap,
                     self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -997,7 +998,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f = ZpFM(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicConvert_FM_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1151,7 +1152,7 @@ def unpickle_fme_v2(cls, parent, value):
         sage: a.parent() is R
         True
     """
-    cdef FMElement ans = PY_NEW(cls)
+    cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)

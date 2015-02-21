@@ -102,7 +102,7 @@ cdef class LazyField(Field):
             sage: a = CLF.pi() * CLF.I(); a
             3.141592653589794?*I
             sage: CDF(a)
-            3.14159265359*I
+            3.141592653589793*I
         """
         if name in named_constants:
             return LazyConstant(self, name)
@@ -679,13 +679,13 @@ cdef class LazyFieldElement(FieldElement):
         return hash(complex(self))
 
     cdef LazyFieldElement _new_wrapper(self, value):
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._parent
         e._value = value
         return e
 
     cdef LazyFieldElement _new_binop(self, LazyFieldElement left, LazyFieldElement right, op):
-        cdef LazyBinop e = <LazyBinop>PY_NEW(LazyBinop)
+        cdef LazyBinop e = <LazyBinop>LazyBinop.__new__(LazyBinop)
         e._parent = self._parent
         e._left = left
         e._right = right
@@ -693,7 +693,7 @@ cdef class LazyFieldElement(FieldElement):
         return e
 
     cdef LazyFieldElement _new_unop(self, LazyFieldElement arg, op):
-        cdef LazyUnop e = <LazyUnop>PY_NEW(LazyUnop)
+        cdef LazyUnop e = <LazyUnop>LazyUnop.__new__(LazyUnop)
         e._parent = self._parent
         e._op = op
         e._arg = arg
@@ -760,7 +760,7 @@ cdef class LazyFieldElement(FieldElement):
             5.0
             sage: a = CLF(-1)^(1/4)
             sage: CDF(a)
-            0.707106781187 + 0.707106781187*I
+            0.7071067811865476 + 0.7071067811865475*I
         """
         return self.eval(R)
 
@@ -1318,7 +1318,7 @@ cdef class LazyNamedUnop(LazyUnop):
         """
         arg = self._arg.eval(R)
         cdef bint has_extra_args = self._extra_args is not None and len(self._extra_args) > 0
-        if PY_TYPE_CHECK_EXACT(R, type):
+        if type(R) is type:
             f = getattr(math, self._op)
             if has_extra_args:
                 return f(arg, *self._extra_args)
@@ -1456,7 +1456,7 @@ cdef class LazyConstant(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'e')
             sage: RDF(a) # indirect doctest
-            2.71828182846
+            2.718281828459045
             sage: a = LazyConstant(CLF, 'I')
             sage: CC(a)
             1.00000000000000*I
@@ -1704,9 +1704,9 @@ cdef class LazyWrapperMorphism(Morphism):
             sage: f(x)._value
             20
         """
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._codomain
-        if PY_TYPE_CHECK_EXACT(x, LazyWrapper):
+        if type(x) is LazyWrapper:
             e._value = (<LazyWrapper>x)._value
         else:
             e._value = x

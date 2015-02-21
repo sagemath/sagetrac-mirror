@@ -389,7 +389,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: f = (x^3 + y/t^3)^3 + t^2; f
             y^3*t^-9 + 3*x^3*y^2*t^-6 + 3*x^6*y*t^-3 + x^9 + t^2
             sage: f.dict()
-            {0: x^9, -6: 3*x^3*y^2, 2: 1, -3: 3*x^6*y, -9: y^3}
+            {-9: y^3, -6: 3*x^3*y^2, -3: 3*x^6*y, 0: x^9, 2: 1}
         """
         return dict(zip(self.exponents(), self.coefficients()))
 
@@ -1395,7 +1395,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x*y
         """
         cdef LaurentPolynomial_mpair ans
-        ans = PY_NEW(LaurentPolynomial_mpair)
+        ans = LaurentPolynomial_mpair.__new__(LaurentPolynomial_mpair)
         ans._parent = self._parent
         return ans
 
@@ -1617,7 +1617,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         if t not in self._prod.exponents():
-            return self.parent().base_ring().zero_element()
+            return self.parent().base_ring().zero()
         return self._prod[t]
 
     def __iter__(self):
@@ -1635,7 +1635,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         for c, exps in self._prod.list():
-            prod = self.parent().one_element()
+            prod = self.parent().one()
             for i in range(len(exps)):
                 prod *= self.parent().gens()[i]**exps[i]
             yield (c, prod)
@@ -1655,7 +1655,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         for c, exps in self._prod.list():
-            prod = self.parent().one_element()
+            prod = self.parent().one()
             for i in range(len(exps)):
                 prod *= self.parent().gens()[i]**exps[i]
             L.append(prod)

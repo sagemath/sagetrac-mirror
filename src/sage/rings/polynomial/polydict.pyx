@@ -179,7 +179,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
-            {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
         return self.__repn.copy()
 
@@ -912,8 +912,8 @@ cdef class ETuple:
         Quickly creates a new initialized ETuple with the
         same length as self.
         """
-        cdef ETuple x
-        x = <ETuple>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef ETuple x = <ETuple>t.__new__(t)
         x._length = self._length
         return x
 
@@ -990,7 +990,7 @@ cdef class ETuple:
             (1, 1, 0, 0, 2, 0)
         """
         cdef size_t index = 0
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         result._length = self._length+other._length
         result._nonzero = self._nonzero+other._nonzero
         result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
@@ -1013,7 +1013,7 @@ cdef class ETuple:
             (1, 2, 3, 1, 2, 3)
         """
         cdef int _factor = factor
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         if factor <= 0:
             result._length = 0
             result._nonzero = 0
@@ -1533,7 +1533,7 @@ cdef class ETuple:
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,0,1])
             sage: e.common_nonzero_positions(f)
-            set([0, 2])
+            {0, 2}
             sage: e.common_nonzero_positions(f,sort=True)
             [0, 2]
         """

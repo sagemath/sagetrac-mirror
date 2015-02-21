@@ -199,7 +199,8 @@ class G_AlgFactory(UniqueFactory):
         # Get the number of names:
         names = tuple(names)
         n = len(names)
-        order = TermOrder(order or 'degrevlex', n)
+        if not isinstance(order, TermOrder):
+            order = TermOrder(order or 'degrevlex', n)
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         P = PolynomialRing(base_ring, n, names, order=order)
@@ -344,7 +345,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
 
         if check:
-            from sage.libs.singular import ff
+            from sage.libs.singular.function_factory import ff
             test = ff.nctools__lib.ndcond(ring = self)
             if (len(test) != 1) or (test[0] != 0):
                 raise ValueError("NDC check failed!")
@@ -360,10 +361,17 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H is loads(dumps(H))  # indirect doctest
             True
 
+        Check that :trac:`17224` is fixed::
+
+            sage: from sage.rings.polynomial.term_order import TermOrder
+            sage: F.<x,y> = FreeAlgebra(QQ)
+            sage: g = F.g_algebra({y*x:-x*y}, order=TermOrder('wdegrevlex', [1,2]))
+            sage: loads(dumps(g)) == g
+            True
         """
         return g_Algebra, (self.base_ring(),self._c,self._d,
                             self.variable_names(),
-                            self.term_order().name(),
+                            self.term_order(),
                             self.category())
 
     def __dealloc__(self):
@@ -707,7 +715,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H.relations()
             {z*x: x*z + 2*x, z*y: y*z - 2*y}
             sage: H.relations(add_commutative=True)
-            {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y}
+            {y*x: x*y, z*x: x*z + 2*x, z*y: y*z - 2*y}
 
         """
         if add_commutative:
@@ -966,7 +974,8 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         cdef poly *res
         cdef ring *r = self._ring
-        cdef number *n, *denom
+        cdef number *n
+        cdef number *denom
 
         if not <ParentWithBase>self is f._parent:
             f = self._coerce_c(f)
@@ -1222,15 +1231,16 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P.monomial_pairwise_prime(x^2*z^3, x1^4) # not tested
             True
 
-            sage: P.monomial_pairwise_prime((2)*x^3*y^2, Q.zero_element()) # not tested
+            sage: P.monomial_pairwise_prime((2)*x^3*y^2, Q.zero()) # not tested
             True
 
-            sage: P.monomial_pairwise_prime(2*P.one_element(),x)
+            sage: P.monomial_pairwise_prime(2*P.one(),x)
             False
         """
         cdef int i
         cdef ring *r
-        cdef poly *p, *q
+        cdef poly *p
+        cdef poly *q
 
         if h._parent is not g._parent:
             g = (<NCPolynomialRing_plural>h._parent)._coerce_c(g)
@@ -1310,7 +1320,8 @@ def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
 
     """
     cdef ring *r = R._ring
-    cdef poly *m, *p
+    cdef poly *m
+    cdef poly *p
     cdef int _i, _e
     p = p_ISet(0,r)
     rChangeCurrRing(r)
@@ -1641,12 +1652,11 @@ cdef class NCPolynomial_plural(RingElement):
             ....
             OverflowError: Exponent overflow (...).
         """
-        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
-                PY_TYPE_CHECK_EXACT(exp, int):
-                    try:
-                        exp = Integer(exp)
-                    except TypeError:
-                        raise TypeError("non-integral exponents not supported")
+        if type(exp) is not Integer:
+            try:
+                exp = Integer(exp)
+            except TypeError:
+                raise TypeError("non-integral exponents not supported")
 
         if exp < 0:
             return 1/(self**(-exp))
@@ -1685,7 +1695,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
-            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
 
         The result of reduction is not the normal form, if one reduces
         by a list of polynomials::
@@ -2151,7 +2161,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: f = (2*x*y^3*z^2 + (7)*x^2 + (3))
             sage: f.dict()
-            {(0, 0, 0): 3, (2, 0, 0): 7, (1, 2, 3): 2}
+            {(0, 0, 0): 3, (1, 2, 3): 2, (2, 0, 0): 7}
         """
         cdef poly *p
         cdef ring *r
@@ -2680,7 +2690,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
         z
 
     """
-    cdef NCPolynomial_plural p = PY_NEW(NCPolynomial_plural)
+    cdef NCPolynomial_plural p = NCPolynomial_plural.__new__(NCPolynomial_plural)
     p._parent = <ParentWithBase>parent
     p._poly = juice
     p_Normalize(p._poly, parent._ring)
@@ -2726,7 +2736,7 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     """
     assert( rw.is_commutative() )
 
-    cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>PY_NEW(MPolynomialRing_libsingular)
+    cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>MPolynomialRing_libsingular.__new__(MPolynomialRing_libsingular)
 
     self._ring = rw._ring
 
@@ -2798,7 +2808,7 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
 
     assert( not rw.is_commutative() )
 
-    cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>PY_NEW(NCPolynomialRing_plural)
+    cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>NCPolynomialRing_plural.__new__(NCPolynomialRing_plural)
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)

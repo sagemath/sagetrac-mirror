@@ -95,7 +95,8 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = ZpCA(5); R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CAElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef CAElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -679,7 +680,7 @@ cdef class CAElement(pAdicTemplateElement):
                 raise PrecisionError("Elements not known to enough precision")
         return ccmp(self.value, right.value, aprec, aprec < self.absprec, aprec < right.absprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         This function is used in comparing `p`-adic elements.
 
@@ -1186,7 +1187,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f = ZpCA(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicConvert_CA_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1361,7 +1362,7 @@ def unpickle_cae_v2(cls, parent, value, absprec):
         sage: a.parent() is R
         True
     """
-    cdef CAElement ans = PY_NEW(cls)
+    cdef CAElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
