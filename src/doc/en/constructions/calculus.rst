@@ -200,17 +200,13 @@ where :math:`f` is a piecewise defined function, can
 
     sage: f1(x) = x^2
     sage: f2(x) = 5-x^2
-    sage: f = piecewise([((0,1),f1), ((1,2),f2)])
-    sage: f.trapezoid(4)
-    Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x],
-    [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2],
-    [(3/2, 2), -7/2*x + 8]]
-    sage: f.riemann_sum_integral_approximation(6,mode="right")
-    19/6
-    sage: f.integral()
-    piecewise(x|-->1/3*x^3 on (0, 1), x|-->-1/3*x^3 + 5*x - 13/3 on (1, 2); x)
-    sage: f.integral(definite=True)
-    3
+    sage: f = piecewise([[[0,1], f1], [RealSet.open_closed(1,2), f2]])
+    sage: t = f.trapezoid(2); t
+    piecewise(x|-->1/2*x on (0, 1/2), x|-->3/2*x - 1/2 on (1/2, 1), x|-->7/2*x - 5/2 on (1, 3/2), x|-->-7/2*x + 8 on (3/2, 2); x)
+    sage: t.integral()
+    piecewise(x|-->1/4*x^2 on (0, 1/2), x|-->3/4*x^2 - 1/2*x + 1/8 on (1/2, 1), x|-->7/4*x^2 - 5/2*x + 9/8 on (1, 3/2), x|-->-7/4*x^2 + 8*x - 27/4 on (3/2, 2); x)
+    sage: t.integral(definite=True)
+    9/4
 
 .. index: Laplace transform
 
