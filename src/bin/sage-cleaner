@@ -17,13 +17,17 @@
 #*****************************************************************************
 
 
-import os, shutil, sys, time, socket, errno, signal, atexit
+import os, shutil, sys, time, socket, errno, signal, atexit, tempfile
 
 
 HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
 DOT_SAGE = os.environ['DOT_SAGE']
 
-SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
+if os.name == 'posix':
+    subdir = 'sage.' + str(os.getuid())
+else:
+    subdir = 'sage'
+SAGE_TMP_ROOT = os.path.join(tempfile.gettempdir(), subdir)
 logfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.log')
 pidfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.pid')
 # pidfile used by earlier versions of sage-cleaner (before #15457)
@@ -172,7 +176,7 @@ def fix_old_mistakes():
         logger.warning('Deleting invalid temp dir %s', wrong_sage_tmp_root)
         rm_rf(wrong_sage_tmp_root)
 
-    # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
+    # SAGE_TMP in DOT_SAGE/tmp
     import glob
     old_root =  glob.glob(os.path.join(DOT_SAGE, 'tmp', HOSTNAME+'-*'))
     if wrong_hostname != HOSTNAME:
@@ -180,6 +184,12 @@ def fix_old_mistakes():
     for old_tmp in old_root:
         logger.warning('Deleting invalid temp dir %s', old_tmp)
         rm_rf(old_tmp)
+
+    # SAGE_TMP in DOT_SAGE/temp
+    wrong_sage_tmp_root = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
+    if wrong_sage_tmp_root != SAGE_TMP_ROOT and os.path.exists(wrong_sage_tmp_root):
+        logger.warning('Deleting invalid temp dir %s', wrong_sage_tmp_root)
+        rm_rf(wrong_sage_tmp_root)
 
     # PID file before it was moved into SAGE_TMP_ROOT
     rm_rf(old_pidfile)

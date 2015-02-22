@@ -53,7 +53,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "assert_attribute", "LOGFILE"]
 
 from warnings import warn
-import os, stat, sys, signal, time, resource, math
+import os, stat, sys, signal, time, resource, math, tempfile
 import sage.misc.prandom as random
 from lazy_string import lazy_string
 
@@ -66,9 +66,7 @@ lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bi
 mul = prod
 
 
-from sage.env import DOT_SAGE, HOSTNAME
-
-LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
+from sage.env import DOT_SAGE
 
 def sage_makedirs(dir):
     """
@@ -131,9 +129,13 @@ def SAGE_TMP():
 
         sage: from sage.misc.misc import SAGE_TMP
         sage: SAGE_TMP
-        l'.../temp/...'
+        l'.../sage...'
     """
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    if os.name == 'posix':
+        subdir = 'sage.' + str(os.getuid())
+    else:
+        subdir = 'sage'
+    d = os.path.join(tempfile.gettempdir(), subdir, str(os.getpid()))
     sage_makedirs(d)
     return d
 
@@ -143,7 +145,7 @@ def SPYX_TMP():
     EXAMPLES::
         sage: from sage.misc.misc import SPYX_TMP
         sage: SPYX_TMP
-        l'.../temp/.../spyx'
+        l'.../sage.../spyx'
     """
     return os.path.join(SAGE_TMP, 'spyx')
 
@@ -154,7 +156,7 @@ def SAGE_TMP_INTERFACE():
 
         sage: from sage.misc.misc import SAGE_TMP_INTERFACE
         sage: SAGE_TMP_INTERFACE
-        l'.../temp/.../interface'
+        l'.../sage.../interface'
     """
     d = os.path.join(SAGE_TMP, 'interface')
     sage_makedirs(d)
