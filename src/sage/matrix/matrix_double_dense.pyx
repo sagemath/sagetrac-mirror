@@ -1673,15 +1673,15 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             return self._row_ambient_module().zero_vector()
 
         raise NotImplementedError("this function is not finished (see trac 4932)")
-        self._c_compute_LU()  # so self._L_M and self._U_M are defined below.
-        cdef Matrix_double_dense M = self._new()
-        lu = self._L_M*self._U_M
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        M._matrix_numpy = scipy.linalg.lu_solve((lu, self._P_M), b)
-        return M
+#        self._c_compute_LU()  # so self._L_M and self._U_M are defined below.
+#        cdef Matrix_double_dense M = self._new()
+#        lu = self._L_M*self._U_M
+#        global scipy
+#        if scipy is None:
+#            import scipy
+#        import scipy.linalg
+#        M._matrix_numpy = scipy.linalg.lu_solve((lu, self._P_M), b)
+#        return M
 
     def solve_right(self, b):
         r"""

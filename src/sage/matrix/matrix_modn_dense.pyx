@@ -972,11 +972,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'generic':
-            raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
+            raise NotImplementedError("minimal polynomials are not implemented for Z/nZ")
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('minpoly_%s_%s'%(algorithm, var), g)
-        return g
+            raise ValueError("no algorithm '%s'"%algorithm)
 
     def echelonize(self, algorithm="gauss", **kwds):
         """
@@ -1496,7 +1494,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         if self._nrows == 0:
             return self._coerce_element(1)
 
-            return matrix_dense.Matrix_dense.determinant(self)
+        return matrix_dense.Matrix_dense.determinant(self)
 
     def randomize(self, density=1, nonzero=False):
         """
