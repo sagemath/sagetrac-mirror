@@ -852,6 +852,43 @@ class FormsRing_abstract(Parent):
                    - (self._group.n()-2) / (4*self._group.n()) * (Z**2+X**(self._group.n()-2)) * dZ
 
     @cached_method
+    def _multiplication_op(self):
+        r"""
+        Return the differential operator in ``self.diff_alg()``
+        corresponding to the multiplication of forms by their weight.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: MR = ModularFormsRing(n=8)
+            sage: MR._multiplication_op()
+            2/3*X*dX + 8/3*Y*dY + 2*Z*dZ
+
+            sage: MR2 = ModularFormsRing(n=infinity)
+            sage: MR2._multiplication_op()
+            4*X*dX + 2*Y*dY + 2*Z*dZ
+
+            sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
+            sage: n=8
+            sage: MR._derivative_op()-MR._serre_derivative_op() == (n-2)/(4*n)*Z*MR._multiplication_op()
+            True
+
+            sage: MR2._derivative_op()-MR2._serre_derivative_op() == 1/4*Z*MR2._multiplication_op()
+            True
+        """
+
+        (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
+
+        if (self.hecke_n() == infinity):
+            return   4 * X * dX\
+                   + 2 * Y * dY\
+                   + 2 * Z * dZ
+        else:
+            return   4/(self._group.n()-2) * X * dX\
+                   + 2*self._group.n()/(self._group.n()-2) * Y * dY\
+                   + 2 * Z * dZ
+
+    @cached_method
     def has_reduce_hom(self):
         r"""
         Return whether the method ``reduce`` should reduce
