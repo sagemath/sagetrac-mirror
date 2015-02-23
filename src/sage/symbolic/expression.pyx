@@ -2178,17 +2178,42 @@ cdef class Expression(CommutativeRingElement):
             sage: expr.is_zero()
             False
             sage: forget()
+
+        Treat constants, wrapped pyobjects, infinity correctly (:trac:`12967`)::
+
+            sage: assert( pi < Infinity )
+            sage: assert( pi > -Infinity )
+            sage: assert( SR(2) < Infinity )
+            sage: assert( SR(2) > -Infinity )
+            sage: assert( SR(2) < SR(pi) )
         """
         if self.is_relational():
-            # constants are wrappers around Sage objects, compare directly
-            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
-                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+            lhs = self.lhs()
+            rhs = self.rhs()
+            lhs_is_numeric = rhs_is_numeric = False
+            if is_a_constant(self._gobj.lhs()):
+                lhs = lhs.n()
+                lhs_is_numeric = True
+            elif self.lhs().is_numeric():
+                lhs = lhs.pyobject()
+                lhs_is_numeric = True
+            if is_a_constant(self._gobj.rhs()):
+                rhs = rhs.n()
+                rhs_is_numeric = True
+            if self.rhs().is_numeric():
+                rhs = rhs.pyobject()
+                rhs_is_numeric = True
+
+            if lhs_is_numeric and rhs_is_numeric:
+                # constants are wrappers around Sage objects, compare directly
+                return self.operator()(lhs, rhs)
+            elif ((lhs_is_numeric and is_a_infinity(self._gobj.rhs()))
+                or (rhs_is_numeric and is_a_infinity(self._gobj.lhs()))):
+                from sage.rings.infinity import InfinityRing
+                P = InfinityRing
+                return self.operator()(P(lhs), P(rhs))
 
             pynac_result = relational_to_bool(self._gobj)
-
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
 
             if pynac_result:
                 if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
