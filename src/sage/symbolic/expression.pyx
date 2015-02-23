@@ -2214,6 +2214,8 @@ cdef class Expression(CommutativeRingElement):
                 return self.operator()(P(lhs), P(rhs))
 
             pynac_result = relational_to_bool(self._gobj)
+            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
+                return pynac_result
 
             if pynac_result:
                 if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
