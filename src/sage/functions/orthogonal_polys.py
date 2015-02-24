@@ -331,7 +331,7 @@ from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 
 _done = False
 def _init():
