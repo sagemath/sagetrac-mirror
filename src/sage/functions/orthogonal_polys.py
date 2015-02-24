@@ -1531,18 +1531,10 @@ class Func_legendre_Q(OrthogonalPolynomial):
         """
         Return expanded Legendre ``Q(n, arg)`` function expression.
         
-        We use the fact that ``Q(n,x)`` is of form
-        
-        .. math::
-
-            Q_n(x) = \frac{1}{2}P_n(x)(\log(1+x)-\log(1-x))+W_n(x),
-        
-        with ``W_n(x)`` a holonomic function.
-
         REFERENCE:
-    
+
         - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E2
-        
+
         EXAMPLES::
         
             sage: legendre_Q.eval_formula(1,x)
