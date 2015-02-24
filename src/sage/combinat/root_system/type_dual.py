@@ -141,6 +141,8 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         if not type.is_crystallographic():
             raise NotImplementedError("only implemented for crystallographic Cartan types")
         cartan_type.CartanType_decorator.__init__(self, type)
+        self._dual = type
+
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_relabel.CartanType.__init__

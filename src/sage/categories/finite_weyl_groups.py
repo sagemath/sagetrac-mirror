@@ -8,6 +8,7 @@ Finite Weyl Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class FiniteWeylGroups(CategoryWithAxiom):
@@ -58,7 +59,20 @@ class FiniteWeylGroups(CategoryWithAxiom):
     """
 
     class ParentMethods:
-        pass
+        @cached_method
+        def root_poset(self):
+            return self.cartan_type().root_system().root_poset()
+
+        @cached_method
+        def degrees(self):
+            from sage.combinat.partition import Partition
+            deg_conj = [ x.rank() for x in self.root_poset() ]
+            p = Partition( [deg_conj.count(i) for i in range(max(deg_conj)+1)] )
+            return [ i+1 for i in reversed(p.conjugate()) ]
+
+        @cached_method
+        def codegrees(self):
+            return [ i-2 for i in self.degrees() ]
 
     class ElementMethods:
         pass

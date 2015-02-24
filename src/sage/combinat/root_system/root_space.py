@@ -9,7 +9,8 @@ Root lattices and root spaces
 #*****************************************************************************
 
 from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
@@ -65,6 +66,11 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         from sage.categories.homset import Hom
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         self.root_system = root_system
+        if base_ring is None:
+            if root_system.cartan_type().is_crystallographic():
+                base_ring = QQ
+            else:
+                base_ring = UniversalCyclotomicField()
         CombinatorialFreeModule.__init__(self, base_ring,
                                          root_system.index_set(),
                                          prefix = "alphacheck" if root_system.dual_side else "alpha",
