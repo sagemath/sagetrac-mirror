@@ -24,6 +24,7 @@ Comprehensive Module list
     sage/combinat/backtrack
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
+    sage/combinat/bracelet
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/choose_nk
