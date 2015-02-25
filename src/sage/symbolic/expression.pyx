@@ -2186,6 +2186,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert( SR(2) < Infinity )
             sage: assert( SR(2) > -Infinity )
             sage: assert( SR(2) < SR(pi) )
+            sage: bool(pi == RIF(pi))
+            Traceback (most recent call last):
+            ...
+            TypeError: comparison with interval
         """
         if self.is_relational():
             lhs = self.lhs()
@@ -2204,6 +2208,8 @@ cdef class Expression(CommutativeRingElement):
                 rhs = rhs.pyobject()
                 rhs_is_numeric = True
 
+            if hasattr(lhs, 'lower') or hasattr(rhs, 'lower'):
+                raise TypeError('comparison with interval')
             if lhs_is_numeric and rhs_is_numeric:
                 # constants are wrappers around Sage objects, compare directly
                 return self.operator()(lhs, rhs)
