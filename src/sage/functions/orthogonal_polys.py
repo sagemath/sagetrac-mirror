@@ -411,9 +411,11 @@ class OrthogonalPolynomial(BuiltinFunction):
             sage: from sage.functions.orthogonal_polys import OrthogonalPolynomial
             sage: P = OrthogonalPolynomial('testo_P')
             sage: P._maxima_init_evaled_(2, 5) is None
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: _maxima_init_evaled_ not implemented
         """
-        return None
+        raise NotImplementedError("_maxima_init_evaled_ not implemented")
 
     def eval_formula(self, *args):
         """
@@ -1439,21 +1441,20 @@ class Func_laguerre(OrthogonalPolynomial):
                 conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
                     'maple':'LaguerreL'})
 
-    def __call__(self, n, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-        
-            sage: laguerre(99,x,hold=True)
-            laguerre(99, x)
-        """        
-        if not kwds.get('hold', False):
-            ret = self._eval_(n, x, *args, **kwds)
-            if ret is not None:
-                return ret
+    def _maxima_init_evaled_(self, n, x):
+        """
+        Evaluate the Laguerre polynomial ``self`` with maxima.
 
-        return super(OrthogonalPolynomial,self).__call__(n, x, *args, **kwds)
+        EXAMPLES::
+
+            sage: var('n, x')
+            (n, x)
+            sage: laguerre._maxima_init_evaled_(1,x)
+            '1-_SAGE_VAR_x'
+            sage: maxima(laguerre(n, laguerre(n, x)))
+            laguerre(_SAGE_VAR_n,laguerre(_SAGE_VAR_n,_SAGE_VAR_x))
+        """
+        return maxima.eval('laguerre({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 
     def _eval_(self, n, x, *args, **kwds):
         r"""
@@ -1468,16 +1469,23 @@ class Func_laguerre(OrthogonalPolynomial):
             -1/6*x^3 + 3/2*x^2 - 3*x + 1
             sage: laguerre(2,2)
             -1
+            sage: laguerre(-1, x)
+            e^x
+            sage: laguerre(-6, x)
+            1/120*(x^5 + 25*x^4 + 200*x^3 + 600*x^2 + 600*x + 120)*e^x
             sage: laguerre(-9,2)
-            0
+            66769/315*e^2
         """
+        from sage.rings.integer import Integer
+        from sage.functions.log import exp
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
-        if n in ZZ and n >= 0 and (not SR(x).is_numeric() or n < 100):
-            return self._pol_laguerre(n, x)
-        if SR(x).is_numeric() and SR(n).is_numeric():
-            return self._evalf_(n, x, **kwds)
+        if isinstance(n, Integer):
+            if n >= 0 and not hasattr(x, 'prec'):
+                return self._pol_laguerre(n, x)
+            elif n < 0:
+                return exp(x)*laguerre(-n-1, -x)
 
     def _eval_special_values_(self, n, x):
         """
@@ -1490,13 +1498,11 @@ class Func_laguerre(OrthogonalPolynomial):
             sage: laguerre(1, x)
             -x + 1
         """
-        if n < 0:
-            return ZZ(0)
         if n == 0:
             return ZZ(1)
         if n == 1:
             return ZZ(1) - x
-    
+
     def _pol_laguerre(self, n, x):
         """
         Fast creation of Laguerre polynomial.
@@ -1509,7 +1515,7 @@ class Func_laguerre(OrthogonalPolynomial):
             sage: laguerre(4,x)
             1/24*x^4 - 2/3*x^3 + 3*x^2 - 4*x + 1
             sage: laguerre(4,x+1)
-            1/24*x^4 - 1/2*x^3 + 5/4*x^2 + 1/6*x - 5/8
+            1/24*(x + 1)^4 - 2/3*(x + 1)^3 + 3*(x + 1)^2 - 4*x - 3
             sage: laguerre(10,1+I)
             142511/113400*I + 95867/22680
         """
@@ -1588,24 +1594,19 @@ class Func_gen_laguerre(OrthogonalPolynomial):
                 conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',
                     'maple':'LaguerreL'})
 
-    def __call__(self, n, a, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-        
-            sage: (a,n)=var('a,n')
-            sage: gen_laguerre(n,a,x)
-            gen_laguerre(n, a, x)
-            sage: gen_laguerre(99,1,x,hold=True)
-            gen_laguerre(99, 1, x)
-        """        
-        if not kwds.get('hold', False):
-            ret = self._eval_(n, a, x, *args, **kwds)
-            if ret is not None:
-                return ret
+    def _maxima_init_evaled_(self, n, a, x):
+        """
+        Evaluate the Laguerre polynomial ``self`` with maxima.
 
-        return super(OrthogonalPolynomial,self).__call__(n, a, x, *args, **kwds)
+        EXAMPLES::
+
+            sage: a,n,x = var('a, n, x')
+            sage: gen_laguerre._maxima_init_evaled_(1,2,x)
+            '3*(1-_SAGE_VAR_x/3)'
+            sage: maxima(gen_laguerre(n, a, gen_laguerre(n, a, x)))
+            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
+        """
+        return maxima.eval('gen_laguerre({0},{1},{2})'.format(n._maxima_init_(), a._maxima_init_(), x._maxima_init_()))
 
     def _eval_(self, n, a, x, *args, **kwds):
         r"""
@@ -1624,13 +1625,13 @@ class Func_gen_laguerre(OrthogonalPolynomial):
             sage: gen_laguerre(3, 0, x)
             -1/6*x^3 + 3/2*x^2 - 3*x + 1
         """
+        from sage.rings.integer import Integer
         ret = self._eval_special_values_(n, a, x)
         if ret is not None:
             return ret
-        if n in ZZ and n >= 0 and (not SR(x).is_numeric() or n < 100):
-            return self._pol_gen_laguerre(n, a, x)
-        if SR(x).is_numeric() and SR(n).is_numeric():
-            return self._evalf_(n, a, x, **kwds)
+        if isinstance(n, Integer):
+            if n >= 0 and not hasattr(x, 'prec'):
+                return self._pol_gen_laguerre(n, a, x)
 
     def _eval_special_values_(self, n, a, x):
         """
@@ -1660,7 +1661,7 @@ class Func_gen_laguerre(OrthogonalPolynomial):
             sage: gen_laguerre(4, -1/2, x)
             1/24*x^4 - 7/12*x^3 + 35/16*x^2 - 35/16*x + 35/128
             sage: gen_laguerre(4, -1/2, x+1)
-            1/24*x^4 - 5/12*x^3 + 11/16*x^2 + 29/48*x - 103/384
+            1/24*(x + 1)^4 - 7/12*(x + 1)^3 + 35/16*(x + 1)^2 - 35/16*x - 245/128
             sage: gen_laguerre(10, 1, 1+I)
             25189/2100*I + 11792/2835
         """
