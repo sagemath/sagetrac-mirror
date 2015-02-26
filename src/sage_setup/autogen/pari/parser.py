@@ -53,48 +53,47 @@ def read_pari_desc():
     """
     Read and parse the file ``pari.desc``.
 
-    The output is a dictionary where the keys are GP function names
-    and the corresponding values are dictionaries containing the
-    ``(key, value)`` pairs from ``pari.desc``.
+    The output is an iterator. Each value corresponds to a dictionnary of
+    of ``(key, value)`` pairs from ``pari.desc``.
 
     EXAMPLES::
 
         sage: from sage_setup.autogen.pari.parser import read_pari_desc
         sage: D = read_pari_desc()
-        sage: D["cos"]
+        sage: D.next()
         {'class': 'basic',
-         'cname': 'gcos',
-         'doc': 'cosine of $x$.',
-         'function': 'cos',
-         'help': 'cos(x): cosine of x.',
-         'prototype': 'Gp',
-         'section': 'transcendental'}
+         'cname': 'gnot',
+         'description': '(negbool):bool:parens              $1\n(bool):negbool:parens                $1',
+         'function': '!_',
+         'help': '!_',
+         'prototype': 'G',
+         'section': 'symbolic_operators'}
     """
     with open(os.path.join(pari_src(), 'pari.desc')) as f:
         lines = f.readlines()
 
-    n = 0
-    N = len(lines)
-
     functions = {}
-    while n < N:
+    line = f.readline()
+    while line:
         fun = {}
         while True:
-            L = lines[n]; n += 1
-            if L == "\n":
+            if line == "\n":
                 break
+            L = line
+            line = f.readline()
             # As long as the next lines start with a space, append them
-            while lines[n].startswith(" "):
-                L += (lines[n])[1:]; n += 1
+            while line.startswith(" "):
+                L += line[1:]
+                line = f.readline()
             key, value = L.split(":", 1)
             # Change key to an allowed identifier name
             key = key.lower().replace("-", "")
             fun[key] = value.strip()
 
-        name = fun["function"]
-        functions[name] = fun
+        yield fun
+        line = f.readline()
 
-    return functions
+    f.close()
 
 
 decl_re = re.compile(" ([A-Za-z][A-Za-z0-9_]*)[(]")

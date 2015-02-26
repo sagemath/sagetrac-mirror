@@ -212,15 +212,12 @@ class PariFunctionGenerator(object):
         """
         Top-level function to generate the auto-generated files.
         """
-        D = read_pari_desc()
-        D = sorted(D.values(), key=lambda d: d['function'])
-
         self.gen_file = open(self.gen_filename, 'w')
         self.gen_file.write(gen_banner)
         self.instance_file = open(self.instance_filename, 'w')
         self.instance_file.write(instance_banner)
 
-        for v in D:
+        for v in read_pari_desc():
             self.handle_pari_function(**v)
 
         self.gen_file.close()
