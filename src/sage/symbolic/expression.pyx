@@ -2186,10 +2186,6 @@ cdef class Expression(CommutativeRingElement):
             sage: assert( SR(2) < Infinity )
             sage: assert( SR(2) > -Infinity )
             sage: assert( SR(2) < SR(pi) )
-            sage: bool(pi == RIF(pi))
-            Traceback (most recent call last):
-            ...
-            TypeError: comparison with interval
         """
         if self.is_relational():
             lhs = self.lhs()
