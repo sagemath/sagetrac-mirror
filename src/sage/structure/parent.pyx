@@ -1252,7 +1252,7 @@ cdef class Parent(category_object.CategoryObject):
             return True
         try:
             x2 = self(x)
-            EQ = (x2 == x)
+            EQ = bool(x2 == x)
             if EQ is True:
                 return True
             elif EQ is False:

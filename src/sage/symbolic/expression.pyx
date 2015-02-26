@@ -2208,8 +2208,6 @@ cdef class Expression(CommutativeRingElement):
                 rhs = rhs.pyobject()
                 rhs_is_numeric = True
 
-            if hasattr(lhs, 'lower') or hasattr(rhs, 'lower'):
-                raise TypeError('comparison with interval')
             if lhs_is_numeric and rhs_is_numeric:
                 # constants are wrappers around Sage objects, compare directly
                 return self.operator()(lhs, rhs)
