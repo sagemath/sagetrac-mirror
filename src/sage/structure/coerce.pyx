@@ -75,6 +75,7 @@ see the documentation for Parent.
 
 include "sage/ext/stdsage.pxi"
 from cpython.object cimport *
+from cpython.number cimport PyNumber_Coerce
 
 cdef add, sub, mul, div, iadd, isub, imul, idiv
 import operator
@@ -127,9 +128,6 @@ cpdef py_scalar_parent(py_type):
         return sage.rings.complex_double.CDF
     else:
         return None
-
-cdef _native_coercion_ranks_inv = (bool, int, long, float, complex)
-cdef dict _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -916,9 +914,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             else:
                 y_elt = y
             if x_elt is None:
-                raise RuntimeError, "BUG in map, returned None %s %s %s" % (x, type(x_map), x_map)
+                raise RuntimeError("BUG in map, returned None %s %s %s" % (x, type(x_map), x_map))
             elif y_elt is None:
-                raise RuntimeError, "BUG in map, returned None %s %s %s" % (y, type(y_map), y_map)
+                raise RuntimeError("BUG in map, returned None %s %s %s" % (y, type(y_map), y_map))
             if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above
@@ -932,16 +930,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     return x_elt,y_elt
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
-        cdef bint x_numeric = isinstance(x, (int, long, float, complex))
-        cdef bint y_numeric = isinstance(y, (int, long, float, complex))
+        cdef int x_numeric = isinstance(x, (int, long, float, complex))
+        cdef int y_numeric = isinstance(y, (int, long, float, complex))
 
+        cdef PyObject * obj_x
+        cdef PyObject * obj_y
         if x_numeric and y_numeric:
-            x_rank = _native_coercion_ranks[type(x)]
-            y_rank = _native_coercion_ranks[type(y)]
-            ty = _native_coercion_ranks_inv[max(x_rank, y_rank)]
-            x = ty(x)
-            y = ty(y)
-            return x, y
+            obj_x = <PyObject *>x
+            obj_y = <PyObject *>y
+            PyNumber_Coerce(&obj_x, &obj_y)
+            return <object>obj_x, <object>obj_y
 
         # Now handle the native python + sage object cases
         # that were not taken care of above.
@@ -988,7 +986,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             except Exception:
                 self._record_exception()
 
-        raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
+        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp))
 
 
     cpdef coercion_maps(self, R, S):
