@@ -465,11 +465,13 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
 def _get_edge_user_label(edge_var, triangulation_dictionary):
     """
-    Return tuple[0] if the input ``edge`` if tuple[1] is in the the input ``triangulation dictionary``
+    Return tuple[0] if the input ``edge`` if tuple[1] is in the the input
+    ``triangulation dictionary``
 
     INPUT:
 
-    - ``edge_var`` -- a variable x_i or b_i returned by :meth:`ClusterTriangulation.cluster` or :meth:`ClusterTriangulation.boundary_edges_vars`
+    - ``edge_var`` -- a variable x_i or b_i returned by :
+        meth:`ClusterTriangulation.cluster` or :meth:`ClusterTriangulation.boundary_edges_vars`
     - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
 
     EXAMPLES::
@@ -485,6 +487,10 @@ def _get_edge_user_label(edge_var, triangulation_dictionary):
         [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
         sage: _get_edge_user_label(T._cluster[2]*T._cluster[3], T._triangulation_dictionary)
         4
+
+        sage: TT = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
+        sage: _get_edge_user_label(TT._cluster[1]*TT._cluster[2], TT._triangulation_dictionary)
+        'j2'
     """
     for td in triangulation_dictionary:
         if td[1] == edge_var:
@@ -633,6 +639,67 @@ def _get_user_label_triangulation(T):
 
 ############# ENDING: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ##########
 ##########################################################################################
+
+##########################################################################################
+########################################### BEGINS: MUTATE A TRIANGULATION ###############
+
+def _triangles_mutate(T,diagonal):
+    """
+    Return a list of triangles after we mutate at ``diagonal``, i.e.
+    we remove the two triangles (before_tau_A, diagonal, after_tau_A) and
+    (before_tau_B, diagonal, after_tau_B) which have ``diagonal`` as an edge from the
+    list ``T``, and replace them with two new triangles
+    (after_tau_A, diagonal, before_tau_B) and (after_tau_B, diagonal, before_tau_A).
+    Note that the input list ``T`` will be modified.
+
+    See :meth:`ClusterTriangulation.mutate`
+
+    INPUT:
+
+    - ``triangles`` -- list of triangles (3-tuples of user-given labels)
+    - ``diagonal`` -- the edge that is to be mutated
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate
+        sage: four_punc_sphere = [(1,0,5),(3,5,4),(2,1,3),(0,2,4)]
+        sage: Tmu0 = _triangles_mutate(four_punc_sphere,0)
+        sage: Tmu0
+        [(3, 5, 4), (2, 1, 3), (5, 0, 4), (2, 0, 1)]
+        sage: four_punc_sphere
+        [(3, 5, 4), (2, 1, 3), (5, 0, 4), (2, 0, 1)]
+        sage: Tmu04 = _triangles_mutate(four_punc_sphere,4)
+        sage: Tmu04
+        [(2, 1, 3), (2, 0, 1), (3, 4, 0), (5, 4, 5)]
+        sage: Tmu040 = _triangles_mutate(four_punc_sphere,0)
+        sage: Tmu040
+        [(2, 1, 3), (5, 4, 5), (1, 0, 4), (3, 0, 2)]
+        sage: Tmu0402 = _triangles_mutate(four_punc_sphere,2)
+        sage: Tmu0402
+        [(5, 4, 5), (1, 0, 4), (1, 2, 0), (3, 2, 3)]
+        sage: Tmu04020 = _triangles_mutate(four_punc_sphere,0)
+        sage: Tmu04020
+        [(5, 4, 5), (3, 2, 3), (4, 0, 2), (1, 0, 1)]
+    """
+    two_triangles = _get_triangle(T, diagonal, None)
+    triangleA, triangleB = two_triangles[0], two_triangles[1]
+    if len(two_triangles) == 2:
+        T.remove(triangleA)
+        T.remove(triangleB)
+        triangleA = _rearrange_triangle_for_snakegraph(triangleA, diagonal, 1)
+        triangleB = _rearrange_triangle_for_snakegraph(triangleB, diagonal, 1)
+        before_tau_A, after_tau_A = triangleA[0], triangleA[2]
+        before_tau_B, after_tau_B = triangleB[0], triangleB[2]
+        T.extend([(after_tau_A, diagonal, before_tau_B),(after_tau_B, diagonal, before_tau_A)])
+    else:
+        raise ValueError('The search for the two triangles with edge ', diagonal, ' returns ', two_triangles)
+
+    return T
+
+############# ENDING: MUTATE A TRIANGULATION #############################################
+##########################################################################################
+
+
 
 ##########################################################################################
 ########################################### BEGINS: LAURENT EXPANSION ####################
@@ -1464,27 +1531,32 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
 def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
     """
     Return a rearrangement of the 3-tuple input ``triangle``
-    so that the current tau_k (the diagonal) is in the middle
+    so that the ``diagonal`` is in the middle and
     the original orientation is kept (if ``s`` is +1) and reversed (if ``s`` is -1)
 
     To debug, see Mathematica function: rot
 
     INPUT:
 
-    - ``triangle`` -- a 3-tuple triangle Delta_k
-    - ``diagonal`` -- the current diagonal tau_k of the tile of a snake/band graph
+    - ``triangle`` -- a 3-tuple triangle
+    - ``diagonal`` -- one of the edges of ``triangle`` which is to go in the middle
     - ``s`` -- the orientation of the current tile (either +1 or -1)
 
-    triangle -> [x,y,z]
-    diagonal -> arc (of triangle Tri) that is crossed the curve first
-    (if the curve crosses Tri twice in a row)
-    s -> orientation
+    EXAMPLES::
 
-    To create the band/snake graph, we glue the positively-oriented and
-    the negatively-oriented copies (of the same triangle T) together.
-    This function rearranges the edges of T such that:
-    if s = 1, keep the same order but put the diagonal in the middle
-    if s = -1, reverse the order and put the diagonal in the middle
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _rearrange_triangle_for_snakegraph
+        sage: _rearrange_triangle_for_snakegraph(('a','b','c'),'b',1)
+        ('a', 'b', 'c')
+        sage: _rearrange_triangle_for_snakegraph((1,2,3),1,1)
+        (3, 1, 2)
+        sage: _rearrange_triangle_for_snakegraph((1,2,3),3,1)
+        (2, 3, 1)
+        sage: _rearrange_triangle_for_snakegraph(('a','b','c'),'b',-1)
+        ('c', 'b', 'a')
+        sage: _rearrange_triangle_for_snakegraph((1,2,3),1,-1)
+        (2, 1, 3)
+        sage: _rearrange_triangle_for_snakegraph((1,2,3),3,-1)
+        (1, 3, 2)
     """
     x = triangle[0]
     y = triangle[1]
@@ -1501,6 +1573,40 @@ def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
     if s == -1 and y == diagonal:
         return (z,y,x)
     return (x,y,z)
+
+def _rearrange_triangle_small_first(triangle):
+    """
+    Return a rearrangement of the 3-tuple input ``triangle``
+    so that the smallest edge label is in the first entry
+
+    INPUT:
+
+    - ``triangle`` -- a 3-tuple triangle
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _rearrange_triangle_small_first
+        sage: _rearrange_triangle_small_first(('a','b','c'))
+        ('a', 'b', 'c')
+        sage: _rearrange_triangle_small_first((3,1,2))
+        (1, 2, 3)
+        sage: _rearrange_triangle_small_first((2,3,1))
+        (1, 2, 3)
+        sage: _rearrange_triangle_small_first((1,3,2))
+        (1, 3, 2)
+        sage: _rearrange_triangle_small_first((3,2,1))
+        (1, 3, 2)
+        sage: _rearrange_triangle_small_first((2,1,3))
+        (1, 3, 2)
+    """
+    x, y, z = triangle[0], triangle[1], triangle[2]
+    smallest = min(x,y,z)
+    if smallest == x:
+        return (x,y,z)
+    if smallest == y:
+        return (y,z,x)
+    if smallest == z:
+        return (z,x,y)
 
 def _get_triangle(T, tau_k, tau_k1=None):
     """
