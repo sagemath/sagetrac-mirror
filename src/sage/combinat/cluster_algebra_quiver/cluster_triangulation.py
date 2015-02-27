@@ -312,6 +312,32 @@ class ClusterTriangulation(SageObject):
             sage: B.mutate(2)
             sage: Bmu3 == B
             True
+
+        Four-punctured sphere with 3 self-folded triangle::
+
+            sage: four_punc_sphere = [(1,0,5),(3,5,4),(2,1,3),(0,2,4)]
+            sage: T = ClusterTriangulation(four_punc_sphere)
+            sage: B = T.b_matrix()
+            sage: Tmu0 = ClusterTriangulation([(0,1,2),(3,5,4),(2,1,3),(0,4,5)])
+            sage: B.mutate(0)
+            sage: B == Tmu0.b_matrix()
+            True
+            sage: Tmu04 = ClusterTriangulation([(0,1,2),(4,5,5),(2,1,3),(3,4,0)])
+            sage: B.mutate(4)
+            sage: B == Tmu04.b_matrix()
+            True
+            sage: Tmu040 = ClusterTriangulation([(1,0,4),(4,5,5),(2,1,3),(3,0,2)])
+            sage: B.mutate(0)
+            sage: B == Tmu040.b_matrix()
+            True
+            sage: Tmu0402 = ClusterTriangulation([(1,0,4),(4,5,5),(1,2,0),(3,2,3)])
+            sage: B.mutate(2)
+            sage: B == Tmu0402.b_matrix()
+            True
+            sage: Tmu04020 = ClusterTriangulation([(1,0,1),(4,5,5),(4,0,2),(3,2,3)])
+            sage: B.mutate(0)
+            sage: B == Tmu04020.b_matrix()
+            True
         """
         return self._M
 
@@ -660,7 +686,7 @@ class ClusterTriangulation(SageObject):
             [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
-        
+
         if user_labels:
             return _snake_graph(self._triangulation, crossed_arcs,
                                 first_triangle, final_triangle, is_arc=False,
