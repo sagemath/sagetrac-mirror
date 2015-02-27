@@ -127,6 +127,7 @@ import sage.tests.all as tests
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
+import sage.crypto.smc.all as smc
 
 from sage.plot.all       import *
 from sage.plot.plot3d.all     import *
