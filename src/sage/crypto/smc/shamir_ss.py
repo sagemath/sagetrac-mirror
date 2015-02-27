@@ -1,6 +1,6 @@
 # coding: UTF-8
 r"""
-Sharmir Secret Sharing
+Shamir Secret Sharing
 
 Implements the original versions of perfectly secure secret sharing
 as proposed by Shamir in [Shamir1979]_. Note that this code is for educational
@@ -39,9 +39,9 @@ class ShamirSS(SageObject):
     r"""
     Shamir secret sharing.
 
-    This class implements the original version of perfectly secure secret sharing
-    as proposed by Shamir in [Shamir1979]_. It is a very basic implementation
-    intended for educational purposes only.
+    This class implements the original version of perfectly secure
+    secret sharing as proposed by Shamir in [Shamir1979]_. It is a
+    very basic implementation intended for educational purposes only.
 
     INPUT:
 
@@ -144,7 +144,7 @@ class ShamirSS(SageObject):
     """
     def __init__(self, n=7, k=3, order=2**8):
         r"""
-        Sharmir secret sharing.
+        Shamir secret sharing.
 
         EXAMPLES::
 
@@ -171,7 +171,7 @@ class ShamirSS(SageObject):
 
     def _latex_(self):
         r"""
-        Return Latex representation of self.
+        Return Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -279,8 +279,8 @@ class ShamirSS(SageObject):
 
         """
         from berlekamp_welsh import berlekamp_welsh
-        polycoeffs = berlekamp_welsh(self._k - 1, points).coeffs()
-        return polycoeffs
+        bw = berlekamp_welsh(self._k - 1, points)
+        return bw.coefficients(sparse=False)
 
     def _rec_lagrange(self, points):
         r"""
@@ -313,14 +313,15 @@ class ShamirSS(SageObject):
             sage: secret == sss.reconstruct(shares)
             True
         """
-        polycoeffs = self._P.lagrange_polynomial(points).coeffs()
+        lag = self._P.lagrange_polynomial(points)
+        polycoeffs = lag.coefficients(sparse=False)
         if len(polycoeffs) != self._k:
             raise ValueError("lagrange polynomial degree mismatch.")
         return polycoeffs
 
     def _repr_(self):
         r"""
-        Return String representation of self.
+        Return string representation of ``self``.
 
         EXAMPLES::
 
