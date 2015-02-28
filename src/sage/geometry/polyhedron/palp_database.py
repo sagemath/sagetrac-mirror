@@ -231,12 +231,8 @@ class PALPreader(SageObject):
                 if stop is not None and i>=stop:
                     return
         finally:
-            palp.poll()
-            if palp.returncode is None:
-                palp.terminate()
-            palp.poll()
-            if palp.returncode is None:
-                palp.kill()
+            from sage.misc.misc import terminate_robustly
+            terminate_robustly(palp)
 
 
     def _iterate_Polyhedron(self, start, stop, step):
