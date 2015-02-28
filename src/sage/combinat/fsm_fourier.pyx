@@ -131,7 +131,7 @@ from sage.functions.log import log
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix_acb_dense cimport (
+from sage.matrix.matrix_complex_ball_dense cimport (
     matrix_to_acb_mat, acb_mat_to_matrix)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
