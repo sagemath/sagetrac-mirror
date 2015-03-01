@@ -179,7 +179,7 @@ class QuadraticStratum(Stratum):
             sage: QuadraticStratum([])
             Traceback (most recent call last):
             ...
-            ValueError: the list must be non empty
+            ValueError: the list must be nonempty
         """
         genus = kwds.get('genus', None)
 
@@ -305,9 +305,15 @@ class QuadraticStratum(Stratum):
         return n
 
     def nb_poles(self):
+        r"""
+        Return the number of poles of this quadratic stratum.
+        """
         return self._nb_poles
 
     def nb_fake_zeros(self):
+        r"""
+        Return the number of fake zeros of this quadratic stratum.
+        """
         return self._nb_fake_zeros
 
     def genus(self):
@@ -550,26 +556,6 @@ class QuadraticStratum(Stratum):
             return IEQSC(self)
         raise ValueError, "no irregular component for this stratum"
 
-    def unique_component(self):
-        r"""
-        Returns the unique component of self or raise a ValueError.
-
-        EXAMPLES::
-
-            sage: QuadraticStratum({1:1, -1:5}).unique_component()
-            Q_0(1, -1^5)^c
-            sage: QuadraticStratum(3,2,-1).unique_component()
-            Q_2(3, 2, -1)^nonhyp
-
-            sage: QuadraticStratum(12).unique_component()
-            Traceback (most recent call last):
-            ...
-            ValueError: several components for this stratum
-        """
-        if len(self._cc) != 1:
-            raise ValueError, "several components for this stratum"
-        return self._cc[0](self)
-
     def random_cylindric_permutation(self):
         r"""
         Return a random cylindric permutation that belongs to this stratum.
@@ -584,89 +570,11 @@ class QuadraticStratum(Stratum):
         return self.random_component().random_cylindric_permutation()
 
 
-    def random_cylindric_permutation(self):
-        r"""
-        Return a random cylindric permutation that belongs to this stratum.
-        """
-        return self.random_component().random_cylindric_permutation()
-
 class QuadraticStratumComponent(StratumComponent):
     r"""
     Generic class for component of quadratic stratum.
     """
     _name = 'c'
-
-    def random_cylindric_permutation(self, nsteps=64):
-        r"""
-        Return a cylindric permutation of the form ``p = ((0,...),(..., 0))``
-        where 0 can be any label.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticStratum({4:1,-1:4}); Q
-            Q_1(4, -1^4)
-            sage: c = Q.components()[0]
-            sage: p = c.random_cylindric_permutation(); p   # random
-            0 1 2 3 3 1
-            2 4 4 5 5 0
-            sage: p.stratum()
-            Q_1(4, -1^4)
-            sage: p = c.random_cylindric_permutation(); p
-            0 1 2 2
-            3 4 4 1 5 5 3 0
-            sage: p.stratum()
-            Q_1(4, -1^4)
-
-            sage: Q = QuadraticStratum(6,6); Q
-            Q_4(6^2)
-            sage: c_hyp, c_reg, c_irr = Q.components()
-
-            sage: for _ in xrange(3):
-            ...      p = c_reg.random_cylindric_permutation()
-            ...      print p
-            ...      print p.stratum()
-            0 1 2 3 4 5 6 7 3
-            1 4 6 2 8 7 8 5 0
-            Q_4(6^2)
-            0 1 2 3 4 2 5 6
-            6 4 7 8 3 7 5 1 8 0
-            Q_4(6^2)
-            0 1 2 3 4 5 6 3 7 6
-            4 1 8 2 5 7 8 0
-            Q_4(6^2)
-        """
-        import sage.misc.prandom as prandom
-
-        p = self.permutation_representative()
-
-        for _ in xrange(nsteps):
-            while not p.has_rauzy_move(0):
-                p = p.rauzy_move(1)
-            while not p.has_rauzy_move(1):
-                p = p.rauzy_move(0)
-
-            rd = prandom.random()
-            if rd < 0.1:  # inplace (symmetric)
-                p._inversed_twin()
-                p._reversed_twin()
-            elif rd < 0.55:
-                p = p.rauzy_move(0)
-            else:
-                p = p.rauzy_move(1)
-
-        while p[0][0] != p[1][-1]:
-            rd = prandom.random()
-            if rd < 0.1:  # inplace (symmetric)
-                p._inversed_twin()
-                p._reversed_twin()
-            elif not p.has_rauzy_move(0):
-                p = p.rauzy_move(1)
-            elif not p.has_rauzy_move(1) or rd < .55:
-                p = p.rauzy_move(0)
-            else:
-                p = p.rauzy_move(1)
-
-        return p
 
     def orientation_cover_component(self, fake_zeros=False):
         r"""
@@ -748,35 +656,22 @@ class QuadraticStratumComponent(StratumComponent):
 
             sage: Q = QuadraticStratum({4:1,-1:4}); Q
             Q_1(4, -1^4)
-            sage: c = Q.components()[0]
+            sage: c = Q.unique_component()
             sage: p = c.random_cylindric_permutation()
-            XX
-            YY
-            sage: p.stratum()
-            H(2^2)
-            sage: p = c.random_cylindric_permutation()
-            XX
-            YY
-            sage: p.stratum()
-            H(2^2)
+            sage: p.stratum_component()
+            Q_1(4, -1^4)^c
 
-            sage: Q = QuadraticStratum(12); Q
-            Q_4(12)
+            sage: Q = QuadraticStratum(6,6)
             sage: c_hyp, c_reg, c_irr = Q.components()
+            sage: print (c_hyp, c_reg, c_irr)
+            (Q_4(6^2)^hyp, Q_4(6^2)^reg, Q_4(6^2)^irr)
 
-            sage: for _ in xrange(3):
-            ...      p = c_reg.random_cylindric_permutation()
-            ...      print p
-            ...      print p.stratum()
-            XX
-            YY
-            Q_4(12)
-            XX
-            YY
-            Q_4(12)
-            XX
-            YY
-            Q_4(12)
+            sage: all(c_hyp.random_cylindric_permutation().stratum_component() == c_hyp for _ in range(4))
+            True
+            sage: all(c_reg.random_cylindric_permutation().stratum_component() == c_reg for _ in range(4))
+            True
+            sage: all(c_irr.random_cylindric_permutation().stratum_component() == c_irr for _ in range(4))
+            True
         """
         import sage.misc.prandom as prandom
 
@@ -1149,7 +1044,6 @@ class GenusTwoHyperellipticQuadraticStratumComponent(QSC):
 
 GTHQSC = GenusTwoHyperellipticQuadraticStratumComponent
 
-#TODO: optimize construction of l0 and l1
 class GenusTwoNonhyperellipticQuadraticStratumComponent(QSC):
     r"""
     This class is intended to be called internally rather than directly.
@@ -1723,6 +1617,9 @@ class QuadraticStrata_class(Strata):
         return s
 
     def __ne__(self, other):
+        r"""
+        Difference test.
+        """
         return not self.__eq__(other)
 
 class QuadraticStrata_g(QuadraticStrata_class):
@@ -1760,17 +1657,14 @@ class QuadraticStrata_g(QuadraticStrata_class):
         TESTS::
 
             sage: s = QuadraticStrata(genus=3)
-            sage: TestSuite(s).run()
             sage: loads(dumps(s)) == s
             True
 
             sage: s = QuadraticStrata(genus=3,nb_poles=5)
-            sage: TestSuite(s).run()
             sage: loads(dumps(s)) == s
             True
 
             sage: s = QuadraticStrata(genus=3,min_nb_poles=2,max_nb_poles=6)
-            sage: TestSuite(s).run()
             sage: loads(dumps(s)) == s
             True
         """
@@ -1784,6 +1678,9 @@ class QuadraticStrata_g(QuadraticStrata_class):
             Parent.__init__(self,category=InfiniteEnumeratedSets())
 
     def __eq__(self, other):
+        r"""
+        Equality test.
+        """
         r"""
         Equality test.
 
@@ -1977,12 +1874,10 @@ class QuadraticStrata_d(QuadraticStrata_class):
         TESTS::
 
             sage: s = AbelianStrata(dimension=10,fake_zeros=True)
-            sage: TestSuite(s).run()
             sage: loads(dumps(s)) == s
             True
 
             sage: s = AbelianStrata(dimension=10,fake_zeros=False)
-            sage: TestSuite(s).run()
             sage: loads(dumps(s)) == s
             True
         """
@@ -1993,6 +1888,9 @@ class QuadraticStrata_d(QuadraticStrata_class):
         self._max_nb_poles = max_nb_poles
 
     def __eq__(self, other):
+        r"""
+        Equality test.
+        """
         return (isinstance(other, QuadraticStrata_g) and
                 self._dimension == other._dimension and
                 self._min_nb_poles == other._min_nb_poles and
@@ -2120,6 +2018,9 @@ class QuadraticStrata_gd(QuadraticStrata_class):
                 self._max_nb_poles == other._max_nb_poles)
 
     def __reduce__(self, other):
+        r"""
+        Pickling support.
+        """
         return (QuadraticStrata_gd, (self._genus, self._dimension, self._min_nb_poles, self._max_nb_poles))
 
     def __contains__(self, c):
