@@ -377,18 +377,66 @@ class AbelianStratum(Stratum):
     #
 
     def has_odd_component(self):
-        return all(z%2 == 1 for z in self.zeros() and self.genus() != 2)
+        r"""
+        Test whether this stratum has an odd spin component.
+
+        EXAMPLES::
+
+            sage: AbelianStratum(2).has_odd_component()
+            False
+            sage: AbelianStratum(4).has_odd_component()
+            True
+            sage: AbelianStratum(4).odd_component()
+            H_3(4)^odd
+        """
+        return all(z%2 == 0 for z in self.zeros()) and self.genus() != 2
 
     def has_even_component(self):
-        return all(z%2 == 0 for z in self.zeros() and self.genus() >= 4)
+        r"""
+        Test whether this stratum has an even spin component.
+
+        EXAMPLES::
+
+            sage: AbelianStratum(2,2).has_even_component()
+            False
+            sage: AbelianStratum(6).has_even_component()
+            True
+            sage: AbelianStratum(6).even_component()
+            H_4(6)^even
+        """
+        return all(z%2 == 0 for z in self.zeros()) and self.genus() >= 4
 
     def has_hyperelliptic_component(self):
+        r"""
+        Test whether this stratum has an hyperelliptic component.
+
+        EXAMPLES::
+
+            sage: AbelianStratum(2,1,1).has_hyperelliptic_component()
+            False
+            sage: AbelianStratum(2,2).has_hyperelliptic_component()
+            True
+            sage: AbelianStratum(2,2).hyperelliptic_component()
+            H_3(2^2)^hyp
+        """
         z = self.zeros()
-        return (len(z) == 1) or (len(z) == 2 and z[0] == z[1])
+        return len(z) == 1 or (len(z) == 2 and z[0] == z[1])
 
     def has_non_hyperelliptic_component(self):
+        r"""
+        Test whether this stratum has a non-hyperelliptic component.
+
+        EXAMPLES::
+
+            sage: AbelianStratum(1,1).has_non_hyperelliptic_component()
+            False
+            sage: AbelianStratum(3,3).has_non_hyperelliptic_component()
+            True
+            sage: AbelianStratum(3,3).non_hyperelliptic_component()
+            H_4(3^2)^nonhyp
+        """
         z = self.zeros()
-        return ((len(z) == 2) and (z[0] == z[1]) and (z[0]%2 == 1))
+        return len(z) == 2 and z[0] == z[1] and z[0]%2 == 1 and z[0] > 1
 
     def unique_component(self):
         r"""
@@ -577,14 +625,10 @@ class AbelianStratum(Stratum):
         EXAMPLES::
 
             sage: a = AbelianStratum(2); a
-            H(2)
+            H_2(2)
             sage: for s in a.separatrix_diagrams(): print s
-            Separatrix diagram
-             bot (0,1,2)
-             top (0,1,2)
-            Separatrix diagram
-             bot (0)(1,2)
-             top (0,1)(2)
+            (0,1,2)-(0,1,2)
+            (0)(1,2)-(0,1)(2)
         """
         return sorted(self.separatrix_diagram_iterator(ncyls))
 
@@ -604,17 +648,16 @@ class AbelianStratum(Stratum):
 
         EXAMPLES::
 
+            sage: A = AbelianStratum(4)
             sage: for c in A.cylinder_diagram_iterator(3,force_computation=True):
             ....:     print c
             (0,2,1)-(0,3,4) (3)-(2) (4)-(1)
             (0,2,1)-(0,3,4) (3)-(1) (4)-(2)
-            (0,3,1)-(0,4) (2)-(1) (4)-(2,3)
-            (0,3,1)-(0,4) (2)-(3) (4)-(1,2)
+            (0,1)-(0,3,4) (2,4)-(1) (3)-(2)
+            (0,1)-(0,3,4) (2,3)-(1) (4)-(2)
             (0,2)-(4) (1,4)-(2,3) (3)-(0,1)
             (0,2)-(0,3) (1,3)-(1,4) (4)-(2)
             (0,1)-(0,3) (2,3)-(1,4) (4)-(2)
-            (0,1)-(0,3,4) (2,4)-(1) (3)-(2)
-            (0,1)-(0,3,4) (2,3)-(1) (4)-(2)
         """
         if ncyls is not None:
             if not isinstance(ncyls, (int,Integer)):
@@ -647,13 +690,13 @@ class AbelianStratum(Stratum):
             sage: A = AbelianStratum(2,2)
             sage: c4 = A.cylinder_diagrams(4)
             sage: c4
-            [(0,2,1)-(3,5,4) (3)-(1) (4)-(2) (5)-(0),
-             (0,5)-(3,4) (1,4)-(2,5) (2)-(1) (3)-(0),
+            [(0,1)-(0,5) (2)-(4) (3,4)-(1) (5)-(2,3),
              (0,2,1)-(3,4,5) (3)-(1) (4)-(2) (5)-(0),
-             (0,5)-(3,4) (1,4)-(2,5) (2)-(0) (3)-(1),
-             (0,1)-(0,5) (2)-(4) (3,4)-(1) (5)-(2,3),
+             (0,2,1)-(3,5,4) (3)-(1) (4)-(2) (5)-(0),
              (0,3)-(5) (1)-(0) (2,5)-(3,4) (4)-(1,2),
-             (0,3)-(0,5) (1,2)-(1,4) (4)-(3) (5)-(2)]
+             (0,3)-(0,5) (1,2)-(1,4) (4)-(3) (5)-(2),
+             (0,5)-(3,4) (1,4)-(2,5) (2)-(0) (3)-(1),
+             (0,5)-(3,4) (1,4)-(2,5) (2)-(1) (3)-(0)]
             sage: sorted(c4) == sorted(A.cylinder_diagrams(4,force_computation=True))
             True
         """
@@ -677,19 +720,11 @@ class AbelianStratum(Stratum):
             sage: A_odd = A.odd_component()
             sage: cyls = A.cylinder_diagrams_by_component(ncyls=2, force_computation=True)
             sage: cyls
-            {H_3(4)^odd: [
-              (0,1,2,3)-(2,4) (4)-(0,1,3),
-              (0,3,1,2)-(0,4,1) (4)-(2,3),
-              (0,2,3,1)-(0,2,1,4) (4)-(3),
-              (0,2,3,1)-(0,4,2,1) (4)-(3),
-              (0,1,3)-(4) (2,4)-(0,1,2,3),
+            {H_3(4)^odd: [(0,1,2,3)-(2,4) (4)-(0,1,3),
               (0,2,3)-(2,4) (1,4)-(0,1,3),
-              (0,1,2)-(0,3,1,4) (3,4)-(2)],
-             H_3(4)^hyp: [
-              (0,2,3,1)-(0,2,4,1) (4)-(3),
-              (0,1,3)-(0,1,4) (2,4)-(2,3)]
-             }
-
+              (0,2,3,1)-(0,2,1,4) (4)-(3),
+              (0,3,1,2)-(0,4,1) (4)-(2,3)],
+            H_3(4)^hyp: [(0,1,3)-(0,1,4) (2,4)-(2,3), (0,2,3,1)-(0,2,4,1) (4)-(3)]}
             sage: all(c.ncyls() == 2 for c in cyls[A_hyp])
             True
             sage: all(c.stratum_component() == A_hyp for c in cyls[A_hyp])
@@ -714,6 +749,47 @@ class AbelianStratum(Stratum):
             d[cyl.stratum_component()].append(cyl)
         return d
 
+    def one_cylinder_diagram(self):
+        r"""
+        Return a diagram with one cylinder in this connected component.
+
+        The diagram returned is the one deduced from the method representative.
+
+        INPUT:
+
+        - ``ncyls`` - the number of cylinders
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(3,2,1); a
+            H_4(3, 2, 1)
+            sage: c = a.one_cylinder_diagram();c
+            (0,8,3,2,1,6,5,4,7)-(0,8,7,6,5,4,3,2,1)
+            sage: c.stratum()
+            H_4(3, 2, 1)
+        """
+        return self.one_component().one_cylinder_diagram()
+
+    def separatrix_diagrams_number(self, ncyls=None):
+        r"""
+        Return the number of separatrix diagram that belongs to this stratum.
+        """
+        return sum(1 for _ in self.separatrix_diagram_iterator(ncyls))
+
+    def cylinder_diagrams_number(self, ncyls=None, force_computation=False):
+        r"""
+        Return the number of cylinder diagram that belongs to this stratum.
+        """
+        if ncyls is not None and ncyls > self.genus() + self.nb_zeros() - 1:
+            return 0
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return sum(CylinderDiagrams().count(cc, ncyls) for cc in self.components())
+            except ValueError:
+                pass
+
+        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
 
 class AbelianStratumComponent(StratumComponent):
     r"""
@@ -766,14 +842,14 @@ class AbelianStratumComponent(StratumComponent):
             sage: p = c.permutation_representative(alphabet="abcdefghi")
             sage: p
             a b c d e f g h i
-            i d c b e h g f a
+            e d c f i h g b a
             sage: print p.stratum_component()
             H_3(1^4)^c
 
             sage: cc = AbelianStratum(3,2,1,0).unique_component()
             sage: p = cc.permutation_representative(left_degree=3); p
             0 1 2 3 4 5 6 7 8 9 10
-            10 1 3 2 4 7 6 5 9 8 0
+            4 3 7 6 5 10 9 8 2 0 1
             sage: p.stratum_component()
             H_4(3, 2, 1, 0)^c
             sage: p.marking().left()
@@ -783,7 +859,7 @@ class AbelianStratumComponent(StratumComponent):
 
             sage: p = cc.permutation_representative(left_degree=2); p
             0 1 2 3 4 5 6 7 8 9 10
-            10 1 4 3 2 6 5 7 9 8 0
+            4 3 5 7 6 10 9 8 2 0 1
             sage: p.stratum_component()
             H_4(3, 2, 1, 0)^c
             sage: p.marking().left()
@@ -793,7 +869,7 @@ class AbelianStratumComponent(StratumComponent):
 
             sage: p = cc.permutation_representative(left_degree=1); p
             0 1 2 3 4 5 6 7 8 9 10
-            10 1 3 2 6 5 4 9 8 7 0
+            5 4 3 7 6 8 10 9 2 0 1
             sage: p.stratum_component()
             H_4(3, 2, 1, 0)^c
             sage: p.marking().left()
@@ -803,7 +879,7 @@ class AbelianStratumComponent(StratumComponent):
 
             sage: p = cc.permutation_representative(left_degree=0); p
             0 1 2 3 4 5 6 7 8 9 10
-            10 2 1 5 4 3 8 7 6 9 0
+            4 2 7 6 5 10 9 8 1 3 0
             sage: p.stratum_component()
             H_4(3, 2, 1, 0)^c
             sage: p.marking().left()
@@ -811,66 +887,53 @@ class AbelianStratumComponent(StratumComponent):
             sage: p.rauzy_diagram()  # long time
             Rauzy diagram with 246914 permutations
         """
-        raise NotImplementedError
-        z = self.stratum().zeros(fake_zeros=False)
-        n = self.stratum().nb_fake_zeros()
+        stratum = self.stratum()
 
-        if left_degree is not None:
-            if not isinstance(left_degree, (int,Integer)):
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+        g = stratum.genus()
+        zeros = stratum.zeros(fake_zeros=False)
+        n = stratum.nb_fake_zeros()
+
+        if left_degree is not None and left_degree != 0:
+            i = zeros.index(left_degree)
+            zeros.insert(0, zeros.pop(i))
+
+        if alphabet is None:
+            alphabet = range(stratum.dimension())
+
+        l0 = range(0, 4*g-3)
+        l1 = [4, 3, 2]
+        for k in range(5, 4*g-6, 4):
+            l1 += [k, k+3, k+2, k+1]
+        l1 += [1, 0]
+        k = 3
+        for d in zeros:
+            for i in range(d-1):
+                del l0[l0.index(k)]
+                del l1[l1.index(k)]
+                k += 2
+            k += 2
+
+        if n != 0:
+            interval = range(4*g-3, 4*g-3+n)
+
             if left_degree == 0:
-                if n == 0:
-                    raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
-            elif left_degree not in z:
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+                k = l0.index(4)
+                l0[k:k] = interval
+                l1[-1:-1] = interval
             else:
-                z.remove(left_degree)
-                z.insert(len(z),left_degree)
+                l0[1:1] = interval
+                l1.extend(interval)
 
-    def separatrix_diagrams_number(self, ncyls=None):
-        r"""
-        Return the number of separatrix diagram that belongs to this stratum.
-        """
-        return sum(1 for _ in self.separatrix_diagram_iterator(ncyls))
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            p = ReducedPermutationIET([l0, l1])
 
-    def cylinder_diagrams_number(self, ncyls=None, force_computation=False):
-        r"""
-        Return the number of cylinder diagram that belongs to this stratum.
-        """
-        if ncyls is not None and ncyls > self.genus() + self.nb_zeros() - 1:
-            return 0
-        if not force_computation:
-            from sage.databases.flat_surfaces import CylinderDiagrams
-            try:
-                return sum(CylinderDiagrams().count(cc, ncyls) for cc in self.components())
-            except ValueError:
-                pass
+        else:
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            p = LabelledPermutationIET([l0, l1])
 
-        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
-
-    #TODO: implement the case ncyls > 1
-    def one_cylinder_diagram(self,ncyls=1):
-        r"""
-        Return a diagram with one cylinder in this connected component.
-
-        The diagram returned is the one deduced from the method representative.
-
-        INPUT:
-
-        - ``ncyls`` - the number of cylinders
-
-        EXAMPLES::
-
-            sage: a = AbelianStratum(3,2,1); a
-            H(3, 2, 1)
-            sage: c = a.one_cylinder_diagram();c
-            (0,2,1,5,4,3,8,7,6)-(0,8,7,6,5,4,3,2,1)
-            sage: c.stratum()
-            H(3,2,1)
-        """
-        if ncyls != 1:
-            raise NotImplementedError
-        return self.components()[-1].one_cylinder_diagram()
+        p.alphabet(alphabet)
+        return p
 
     def random_standard_permutation(self, nsteps=64):
         r"""
@@ -1172,10 +1235,23 @@ class AbelianStratumComponent(StratumComponent):
 
         The diagram returned is the one deduced from the method
         permutation_representative.
+
+        EXAMPLES::
+
+            sage: A = AbelianStratum(2,2).odd_component()
+            sage: c = A.one_cylinder_diagram(); c
+            (0,5,1,3,2,4)-(0,5,4,3,2,1)
+            sage: c.stratum_component()
+            H_3(2^2)^odd
+
+            sage: A = AbelianStratum(3,3).non_hyperelliptic_component()
+            sage: c = A.one_cylinder_diagram(); c
+            (0,7,3,2,1,5,4,6)-(0,7,6,5,4,3,2,1)
+            sage: c.stratum_component()
+            H_4(3^2)^nonhyp
         """
         from separatrix_diagram import CylinderDiagram
         t = self.permutation_representative(reduced=True).to_standard()
-        t.alphabet(range(len(t)))
         return CylinderDiagram([(t[1][1:],t[0][-2::-1])],check=True)
 
     def cylinder_diagram_iterator(self, ncyls=None, force_computation=False):
@@ -1188,7 +1264,7 @@ class AbelianStratumComponent(StratumComponent):
             sage: cc = A.unique_component()
             sage: it = cc.cylinder_diagram_iterator(3)
             sage: cyl = it.next(); cyl
-            (0,2,5,4,3,1)-(0,7,1,2,6) (6)-(4) (7)-(3,5)
+            (0,1,3,2,4)-(0,2,1,5,6,7) (5,7)-(4) (6)-(3)
             sage: cyl.stratum_component()
             H_3(1^4)^c
             sage: cyl.ncyls()
@@ -1209,7 +1285,7 @@ class AbelianStratumComponent(StratumComponent):
 
         return self._cylinder_diagram_iterator(ncyls)
 
-    def _cylinder_diagram_iterator(ncyls):
+    def _cylinder_diagram_iterator(self, ncyls):
         r"""
         Default implementation for cylinder diagrams for connected stratum.
         """
@@ -1227,10 +1303,10 @@ class AbelianStratumComponent(StratumComponent):
         EXAMPLES::
 
             sage: C = AbelianStratum(1,1,1,1).unique_component(); C
-            H_c(1^4)
+            H_3(1^4)^c
             sage: for c in C.cylinder_diagrams(6): print c
-            (0,1)-(7) (2)-(1) (3)-(0) (4,7)-(5,6) (5)-(4) (6)-(2,3)
             (0,1)-(7) (2)-(0) (3)-(4) (4,7)-(5,6) (5)-(1) (6)-(2,3)
+            (0,1)-(7) (2)-(1) (3)-(0) (4,7)-(5,6) (5)-(4) (6)-(2,3)
             (0,3)-(6,7) (1,2)-(4,5) (4)-(1) (5)-(3) (6)-(2) (7)-(0)
             (0,3)-(6,7) (1,2)-(4,5) (4)-(3) (5)-(0) (6)-(2) (7)-(1)
         """
@@ -1249,26 +1325,26 @@ class AbelianStratumComponent(StratumComponent):
 
             sage: C = AbelianStratum(3,1).unique_component()
             sage: C.cylinder_diagrams_number(1)
-            4
+            2
             sage: C.cylinder_diagrams_number(2)
-            30
+            13
             sage: C.cylinder_diagrams_number(3)
-            44
+            20
             sage: C.cylinder_diagrams_number(4)
-            10
+            5
 
             sage: C = AbelianStratum(6)
             sage: C_hyp = C.hyperelliptic_component()
             sage: C_odd = C.odd_component()
             sage: C_even = C.even_component()
-            sage: for i in xrange(1,5): print "%3d"%C.cylinder_diagrams_number(i),
-             30 201 382 191
+            sage: for i in xrange(1,5): print C.cylinder_diagrams_number(i),
+            16  76 139  86
             sage: for i in xrange(1,5): print C_hyp.cylinder_diagrams_number(i),
-              1  21  70  35
+            1 3 8 4
             sage: for i in xrange(1,5): print C_odd.cylinder_diagrams_number(i),
-             21 132 240 120
+            11 49 85 54
             sage: for i in xrange(1,5): print C_even.cylinder_diagrams_number(i),
-              8  66 132  66
+            4 24 46 28
         """
         if ncyls is not None and ncyls > self.stratum().genus() + self.stratum().nb_zeros() - 1:
             return 0
@@ -1287,14 +1363,14 @@ class AbelianStratumComponent(StratumComponent):
         Returns an origami in this component
 
         The origami returned has the minimal number of squares and one
-        cylinder. It is obtained from the permutation representative of the 
+        cylinder. It is obtained from the permutation representative of the
         stratum.
 
         EXAMPLES::
 
-            sage: a = AbelianStratum(2,2).one_connected_component()
+            sage: a = AbelianStratum(2,2).one_component()
             sage: a.one_origami().stratum()
-            H(2,2)
+            H_3(2^2)
         """
         from sage.dynamics.flat_surfaces.origamis.all import Origami
         t = self.permutation_representative(reduced=True).to_standard()
@@ -1321,8 +1397,13 @@ class AbelianStratumComponent(StratumComponent):
         EXAMPLES::
 
             sage: cc = AbelianStratum(6).even_component()
-            sage: it = cc.origami_iterator()
-            sage: it.next()
+            sage: it = cc.origami_iterator(13)
+            sage: o = it.next()
+            sage: o
+            (1)(2,3,4,5,6)(7,8,9,10,11)(12)(13)
+            (1,2,7,4,9,12,6,11)(3,8,5,10,13)
+            sage: o.stratum_component()
+            H_4(6)^even
         """
         reduced = not reduced
         primitive = not primitive
@@ -1392,7 +1473,7 @@ class AbelianStratumComponent(StratumComponent):
             sage: A = AbelianStratum(2).hyperelliptic_component(); A
             H_2(2)^hyp
             sage: for i in xrange(3,10):
-            ...       print i,len(A.arithmetic_teichmueller_curves(i))
+            ....:     print i,len(A.arithmetic_teichmueller_curves(i))
             3 1
             4 1
             5 2
@@ -1404,9 +1485,9 @@ class AbelianStratumComponent(StratumComponent):
             sage: A = AbelianStratum(1,1).hyperelliptic_component(); A
             H_2(1^2)^hyp
             sage: for i in xrange(4,10):
-            ...      T = A.arithmetic_teichmueller_curves(i)
-            ...      T_prim = filter(lambda :T.origami().is_primitve())
-            ...      print i,len(T),len(T_prim)
+            ....:    T = A.arithmetic_teichmueller_curves(i)
+            ....:    T_prim = filter(lambda t:t.origami().is_primitive(), T)
+            ....:    print i,len(T),len(T_prim)
             4 2 1
             5 1 1
             6 5 2
@@ -1417,7 +1498,7 @@ class AbelianStratumComponent(StratumComponent):
             sage: A = AbelianStratum(4).hyperelliptic_component(); A
             H_3(4)^hyp
             sage: for i in xrange(5,10):
-            ...      print i,len(A.arithmetic_teichmueller_curves(i))
+            ....:    print i,len(A.arithmetic_teichmueller_curves(i))
             5 2
             6 4
             7 3
@@ -1744,16 +1825,39 @@ class HypAbelianStratumComponent(ASC):
         if not self.stratum().nb_fake_zeros():
             return self.permutation_representative()
 
-        raise NotImplementedError, "not implemented when there are fake zeros"
+        raise NotImplementedError("not implemented when there are fake zeros")
 
-    def standard_permutations(self):
-        if not self.nb_fake_zeros():
+    def standard_permutations(self, reduced=True):
+        r"""
+        Return the standard permutations in this hyperelliptic component.
+
+        EXAMPLES::
+
+            sage: AbelianStratum(6).hyperelliptic_component().standard_permutations()
+            [0 1 2 3 4 5 6 7
+             7 6 5 4 3 2 1 0]
+        """
+        if not self.stratum().nb_fake_zeros():
             d = self.stratum().dimension()
-            return [iet.Permutation(range(d),range(d-1,-1,-1))]
+            l0 = range(d)
+            l1 = range(d-1,-1,-1)
 
-        raise NotImplementedError, "not implemented when there are fake zeros"
+            if reduced:
+                from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+                p = ReducedPermutationIET([l0, l1])
+            else:
+                from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+                p = LabelledPermutationIET([l0, l1])
+
+            return [p]
+
+        raise NotImplementedError("not implemented when there are fake zeros")
 
     def standard_permutations_number(self):
+        r"""
+        Return the number of standard permutations in this hyperelliptic
+        component.
+        """
         if not self.stratum().nb_fake_zeros():
             return Integer(1)
 
@@ -1772,28 +1876,19 @@ class HypAbelianStratumComponent(ASC):
 
             sage: C = AbelianStratum(2,2).hyperelliptic_component()
             sage: for c in C.cylinder_diagram_iterator(1): print c
-            (0,4,3,2,1)-(1,5,4,3,2) (5)-(0)
-            (0,3,2,1)-(1,4,3,2) (4,5)-(0,5)
-            (0,2,1)-(1,3,2) (3,5,4)-(0,5,4)
-            (0,1)-(1,2) (2,5,4,3)-(0,5,4,3)
-            (0,5)-(0,1) (1,4,3,2)-(2,5,4,3)
-            (0,5,4)-(0,5,1) (1,3,2)-(2,4,3)
-            (0,5,4,3)-(0,5,4,1) (1,2)-(2,3)
-            (0,5,1)-(0,2,1) (2,4,3)-(3,5,4)
-            (0,5,4,1)-(0,5,2,1) (2,3)-(3,4)
-            (0,5,2,1)-(0,3,2,1) (3,4)-(4,5)
-            (0,5,3,2,1)-(0,4,3,2,1) (4)-(5)
-            (0,4,3,5,1)-(0,4,3,2,1) (2)-(5)
-            (0)-(5) (1,5,4,3,2)-(0,4,3,2,1)
-            (0,4,3,2,5)-(0,4,3,2,1) (1)-(5)
-            (0,4,5,2,1)-(0,4,3,2,1) (3)-(5)
+            (0,5,3,1,2,4)-(0,5,3,1,2,4)
+
+            sage: for c in C.cylinder_diagram_iterator(2): print c
+            (0,2,4,1)-(0,2,5,1) (3,5)-(3,4)
+            (0,3,4)-(0,3,5) (1,2,5)-(1,2,4)
+            (0,1,3,4,2)-(0,1,3,5,2) (5)-(4)
 
         When ``ncyls`` is set to ``None``, the iterator can reasonably be used
         with very large data::
 
             sage: C = AbelianStratum(10,10).hyperelliptic_component()
             sage: it = C.cylinder_diagram_iterator()
-            sage: c = it.next()
+            sage: c = it.next(); c
             (0,2,5,1)-(0,2,21,1) (3,4)-(3,6) (6,19)-(4,20) (7,9)-(8,10) (8,12)-(7,11) (10,14)-(9,13) (11,15)-(12,16) (13,17)-(14,18) (16,20)-(15,19) (18,21)-(5,17)
             sage: c.stratum_component()
             H_11(10^2)^hyp
@@ -1942,7 +2037,7 @@ class NonHypAbelianStratumComponent(ASC):
             sage: cc = AbelianStratum(3,3).non_hyperelliptic_component()
             sage: it = cc.cylinder_diagram_iterator()
             sage: c0 = it.next(); c0
-            (0,7,4,2,6,5,1,3)-(0,4,2,7,5,1,6,3)
+            (0,1,4,3,2)-(0,1,5,6,7) (5)-(4) (6)-(2) (7)-(3)
             sage: c0.stratum_component()
             H_4(3^2)^nonhyp
 
@@ -2053,7 +2148,7 @@ class EvenAbelianStratumComponent(ASC):
 
             sage: p = c.permutation_representative(left_degree=0); p
             0 1 2 3 4 5 6 7 8 9
-            7 5 4 3 2 9 8 1 6 0
+            6 4 3 2 7 9 8 1 5 0
             sage: p.stratum_component()
             H_4(4, 2, 0)^even
             sage: p.marking().left()
@@ -2336,7 +2431,7 @@ class OddAbelianStratumComponent(ASC):
 
             sage: p = c.permutation_representative(left_degree=0); p
             0 1 2 3 4 5 6 7 8 9
-            4 2 5 7 6 9 8 1 3 0
+            4 2 6 5 7 9 8 1 3 0
             sage: p.stratum_component()
             H_4(4, 2, 0)^odd
             sage: p.marking().left()
@@ -2560,25 +2655,19 @@ class OddAbelianStratumComponent(ASC):
 
             sage: C = AbelianStratum(4).odd_component()
             sage: for c in C.cylinder_diagrams(1): print c
-            (0,2,3,1,4)-(0,1,4,2,3)
-            (0,2,1,3,4)-(0,1,4,2,3)
-            (0,2,3,1,4)-(0,1,2,4,3)
+            (0,2,1,4,3)-(0,4,2,1,3)
+            (0,4,1,2,3)-(0,1,3,4,2)
             sage: for c in C.cylinder_diagrams(2): print c
-            (0,2,3,1)-(2,4) (4)-(0,3,1)
+            (0,1,2,3)-(2,4) (4)-(0,1,3)
+            (0,2,3)-(2,4) (1,4)-(0,1,3)
+            (0,2,3,1)-(0,2,1,4) (4)-(3)
             (0,3,1,2)-(0,4,1) (4)-(2,3)
-            (0,1,2,3)-(0,4,1,2) (4)-(3)
-            (0,1,2,3)-(0,1,4,2) (4)-(3)
-            (0,2,4)-(3) (1,3)-(0,2,1,4)
-            (0,2,4)-(2,3) (1,3)-(0,1,4)
-            (0,1,2)-(0,3,1,4) (3,4)-(2)
             sage: for c in C.cylinder_diagrams(3): print c
-            (0,2,1)-(0,3,4) (3)-(1) (4)-(2)
-            (0,2)-(0,3) (1,3)-(1,4) (4)-(2)
-            (0,2)-(4) (1,4)-(2,3) (3)-(0,1)
             (0,1)-(0,3,4) (2,3)-(1) (4)-(2)
             (0,1)-(0,3,4) (2,4)-(1) (3)-(2)
-            (0,3,1)-(0,4) (2)-(1) (4)-(2,3)
-            (0,3,1)-(0,4) (2)-(3) (4)-(1,2)
+            (0,2)-(0,3) (1,3)-(1,4) (4)-(2)
+            (0,2)-(4) (1,4)-(2,3) (3)-(0,1)
+            (0,2,1)-(0,3,4) (3)-(1) (4)-(2)
         """
         from itertools import ifilter
         if self.stratum().has_hyperelliptic_component():
@@ -2596,7 +2685,7 @@ OddASC = OddAbelianStratumComponent
 # iterators for Abelian strata with constraints on genus and dimension
 #
 
-def AbelianStrata(genus=None, dimension=None, fake_zeros=None):
+class AbelianStrata(Strata):
     r"""
     Abelian strata.
 
@@ -2665,26 +2754,134 @@ def AbelianStrata(genus=None, dimension=None, fake_zeros=None):
     H^out([1], 1)
     H^out([0], 0, 0, 0)
     """
-    fake_zeros = bool(fake_zeros)
-    if genus is None:
-        if dimension is None:
-            return AbelianStrata_all()
-        dimension = Integer(dimension)
-        return AbelianStrata_d(dimension,fake_zeros)
-    genus = Integer(genus)
+    def __new__(self, genus=None, dimension=None, fake_zeros=None):
+        fake_zeros = bool(fake_zeros)
+        if dimension is not None:
+            dimension = Integer(dimension)
+            if dimension < 0:
+                raise ValueError("dimension must be a non-negative integer")
 
-    if dimension is None:
-        return AbelianStrata_g(genus)
-    dimension = Integer(dimension)
-    return AbelianStrata_gd(genus,dimension,fake_zeros)
+        if genus is not None:
+            genus = Integer(genus)
+            if genus < 0:
+                raise ValueError("genus must be a non-negative integer")
 
-class AbelianStrata_class(Strata):
-    r"""
-    Generic class for abelian strata.
-    """
-    pass
+        if genus is None:
+            if dimension is None:
+                cls = AbelianStrata_all
+            else:
+                cls = AbelianStrata_d
+        elif dimension is None:
+            cls = AbelianStrata_g
+        else:
+            cls = AbelianStrata_gd
 
-class AbelianStrata_g(AbelianStrata_class):
+        S = Strata.__new__(cls, genus, dimension, fake_zeros)
+        AbelianStrata.__init__(S, genus, dimension, fake_zeros)
+        return S
+
+    def __init__(self, genus=None, dimension=None, fake_zeros=None):
+        r"""
+        TESTS::
+
+            sage: s = AbelianStrata(genus=3)
+            sage: loads(dumps(s)) == s
+            True
+        """
+        if dimension is None and (fake_zeros is True or genus is None):
+            category = InfiniteEnumeratedSets()
+        else:
+            category = FiniteEnumeratedSets()
+        Parent.__init__(self, category=category, facade=True)
+
+        self._genus = genus
+        self._dimension = dimension
+        self._fake_zeros = fake_zeros
+
+    def __eq__(self, other):
+        r"""
+        Equality test.
+        """
+        return (isinstance(other, AbelianStrata) and
+                (self._dimension == other._dimension) and
+                (self._genus == other._genus)         and
+                (self._fake_zeros == other._fake_zeros))
+
+    def __ne__(self, other):
+        r"""
+        Difference test.
+        """
+        return not self.__eq__(other)
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: AbelianStrata()                        # indirect doctest
+            Abelian strata
+
+            sage: AbelianStrata(dimension=2)             # indirect doctest
+            Abelian strata of dimension 2
+
+            sage: AbelianStrata(genus=3)                 # indirect doctest
+            Abelian strata of genus 3 surfaces
+
+            sage: AbelianStrata(genus=2, dimension=4)    # indirect doctest
+            Abelian strata of genus 2 surfaces and dimension 4
+        """
+        s = "Abelian strata"
+
+        l = []
+        if self._genus is not None:
+            l.append("genus {} surfaces".format(self._genus))
+        if self._dimension is not None:
+            l.append("dimension {}".format(self._dimension))
+
+        if l:
+            return "Abelian strata of " + " and ".join(l)
+        else:
+            return "Abelian strata"
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+        """
+        return (AbelianStrata, (self._genus, self._dimension, self._fake_zeros))
+
+    def __contains__(self, c):
+        r"""
+        Containance test
+
+        TESTS::
+
+            sage: a = AbelianStrata(genus=3)
+            sage: all(s in a for s in a)
+            True
+
+            sage: a = AbelianStrata(genus=3,fake_zeros=False)
+            sage: all(s in a for s in a)
+            True
+
+            sage: a = AbelianStrata(dimension=7,fake_zeros=True)
+            sage: all(s in a for s in a)
+            True
+            sage: AbelianStratum(2,0,0) in a
+            False
+
+            sage: a = AbelianStrata(dimension=7,fake_zeros=False)
+            sage: all(s in a for s in a)
+            True
+            sage: AbelianStratum(4,0) in a
+            False
+        """
+        if not isinstance(c, AbelianStratum):
+            return False
+
+        return ((self._genus is None or c.genus() == self._genus) and
+                (self._dimension is None or c.dimension() == self._dimension) and
+                (self._fake_zeros is None or self._fake_zeros or not c.nb_fake_zeros()))
+
+class AbelianStrata_g(AbelianStrata):
     r"""
     Stratas of genus g surfaces without fake zeros.
 
@@ -2701,55 +2898,6 @@ class AbelianStrata_g(AbelianStrata_class):
         sage: AbelianStrata(genus=4).random_element() #random
         H_4(4, 2)
     """
-    def __init__(self,genus):
-        r"""
-        TESTS::
-
-            sage: s = AbelianStrata(genus=3)
-            sage: TestSuite(s).run()
-            sage: loads(dumps(s)) == s
-            True
-        """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-        self._genus = genus
-
-    def __eq__(self, other):
-        return isinstance(other, AbelianStrata_g) and self._genus == other._genus
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __reduce__(self):
-        return (AbelianStrata_g,(self._genus,))
-
-    def __contains__(self, c):
-        r"""
-        Containance test
-
-        TESTS::
-
-            sage: a = AbelianStrata(genus=3)
-            sage: all(s in a for s in a)
-            True
-
-            sage: a = AbelianStrata(genus=3,fake_zeros=False)
-            sage: all(s in a for s in a)
-            True
-        """
-        if not isinstance(c, AbelianStratum):
-            return False
-
-        return c.genus() == self._genus
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: repr(AbelianStrata(genus=3))   #indirect doctest
-            'Abelian strata of genus 3 surfaces'
-        """
-        return "Abelian strata of genus %d surfaces"%self._genus
-
     def cardinality(self):
         r"""
         Return the number of abelian strata with a given genus.
@@ -2824,7 +2972,7 @@ class AbelianStrata_g(AbelianStrata_class):
         """
         return AbelianStratum({1:2*self._genus-2})
 
-class AbelianStrata_d(AbelianStrata_class):
+class AbelianStrata_d(AbelianStrata):
     r"""
     Strata with prescribed dimension.
 
@@ -2837,8 +2985,8 @@ class AbelianStrata_d(AbelianStrata_class):
     EXAMPLES::
 
         sage: for a in AbelianStrata(dimension=5,fake_zeros=True):
-        ...      print a
-        ...      print a.permutation_representative()
+        ....:     print a
+        ....:     print a.permutation_representative()
         H_2(2, 0)
         0 1 2 3 4
         4 1 3 2 0
@@ -2849,69 +2997,6 @@ class AbelianStrata_d(AbelianStrata_class):
         0 1 2 3 4
         4 0 1 2 3
     """
-    def __init__(self,dimension,fake_zeros):
-        r"""
-        TESTS::
-
-            sage: s = AbelianStrata(dimension=10,fake_zeros=True)
-            sage: TestSuite(s).run()
-            sage: loads(dumps(s)) == s
-            True
-
-            sage: s = AbelianStrata(dimension=10,fake_zeros=False)
-            sage: TestSuite(s).run()
-            sage: loads(dumps(s)) == s
-            True
-        """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-        self._dimension = dimension
-        self._fake_zeros = fake_zeros
-
-    def __eq__(self, other):
-        return (isinstance(other, AbelianStrata_d) and
-                (self._dimension == other._dimension) and
-                (self._fake_zeros == other._fake_zeros))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __contains__(self, c):
-        r"""
-        Containance test
-
-        TESTS::
-
-            sage: a = AbelianStrata(dimension=7,fake_zeros=True)
-            sage: all(s in a for s in a)
-            True
-
-            sage: a = AbelianStrata(dimension=7,fake_zeros=False)
-            sage: all(s in a for s in a)
-            True
-        """
-        if not isinstance(c, AbelianStratum):
-            return False
-
-        if c.dimension() != self._dimension:
-            return False
-
-        if (self._fake_zeros is False) and c.nb_fake_zeros():
-            return False
-
-        return True
-
-    def __reduce__(self):
-        return (AbelianStrata_d, (self._dimension,self._fake_zeros))
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: repr(AbelianStrata(dimension=2))  #indirect doctest
-            'Abelian strata of dimension 2'
-        """
-        return "Abelian strata of dimension %d" %(self._dimension)
-
     def first(self):
         r"""
         Returns the first stratum.
@@ -3016,10 +3101,10 @@ class AbelianStrata_d(AbelianStrata_class):
         TESTS::
 
             sage: for d in xrange(1,15):
-            ...     A = AbelianStrata(dimension=d,fake_zeros=True)
-            ...     assert len(A.list()) == A.cardinality()
-            ...     A = AbelianStrata(dimension=d,fake_zeros=False)
-            ...     assert len(A.list()) == A.cardinality()
+            ....:   A = AbelianStrata(dimension=d,fake_zeros=True)
+            ....:   assert len(A.list()) == A.cardinality()
+            ....:   A = AbelianStrata(dimension=d,fake_zeros=False)
+            ....:   assert len(A.list()) == A.cardinality()
         """
         n = self._dimension
         if n < 2:
@@ -3031,191 +3116,87 @@ class AbelianStrata_d(AbelianStrata_class):
             return Integer(1)
         return sum(Partitions(n-1,length=s,min_part=2).cardinality() for s in xrange(1+n%2,n,2))
 
-#TODO: first, last, cardinality
-class AbelianStrata_gd(AbelianStrata_class):
+class AbelianStrata_gd(AbelianStrata):
     r"""
-    Abelian strata with presrcribed genus and dimension.
+    Abelian strata of prescribed genus and number of intervals.
 
     INPUT:
 
-    - ``genus`` - an integer - the genus of the surfaces
+    - ``genus`` - integer: the genus of the surfaces
 
-    - ``dimension`` - an integer - the dimension of strata
+    - ``dimension`` - integer: the number of intervals
 
-    - ``fake_zeros`` - boolean - allows or not fake zeros
-
+    - ``fake_zeros`` - boolean: whether or not consider fake zeros
     """
-    def __init__(self,genus,dimension,fake_zeros):
-        r"""
-        TESTS::
-
-            sage: s = AbelianStrata(genus=4,dimension=10)
-            sage: loads(dumps(s)) == s
-            True
-        """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-        self._genus = genus
-        self._dimension = dimension
-        self._fake_zeros = fake_zeros
-
-    def __eq__(self, other):
-        return (isinstance(other, AbelianStrata_class) and
-                self._genus == other._genus and
-                self._dimension == other._dimension and
-                self._fake_zeros == other._fake_zeros)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __contains__(self, c):
-        r"""
-        Containance test
-
-        TESTS::
-
-            sage: a = AbelianStrata(dimension=7,fake_zeros=True)
-            sage: all(s in a for s in a)
-            True
-
-            sage: a = AbelianStrata(dimension=7,fake_zeros=False)
-            sage: all(s in a for s in a)
-            True
-        """
-        if not isinstance(c, AbelianStratum):
-            return False
-
-        if c.dimension() != self._dimension:
-            return False
-        if c.genus() != self._genus:
-            return False
-
-        if not fake_zeros and c.nb_fake_zeros():
-            return False
-
-        return True
-
-    def __reduce__(self):
-        return (AbelianStrata_gd, (self._genus,self._dimension,self._fake_zeros))
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: a = AbelianStrata(genus=2,dimension=4)
-            sage: repr(a)   #indirect doctest
-            'Abelian strata of genus 2 surfaces and dimension 4'
-        """
-        return "Abelian strata of genus %d surfaces and dimension %d"  %(self._genus, self._dimension)
-
     def __iter__(self):
         r"""
         TESTS::
 
-            sage: list(AbelianStrata(genus=2,dimension=4))
+            sage: list(AbelianStrata(genus=2, dimension=4))
             [H_2(2)]
         """
-        min_part = 1
-        if self._fake_zeros is False:
-            min_part = 2
-
-        if self._genus == 0 or self._dimension <= 1:
+        if self._genus == 0:
             pass
         elif self._genus == 1:
-            if self._fake_zeros is False:
-                if self._dimension == 2:
-                    yield AbelianStratum([0])
-            elif self._dimension >= 2:
-                    yield AbelianStratum([0]*(self._dimension-1))
+            if self._dimension >= 2 and self._fake_zeros:
+                yield AbelianStratum([0]*(self._dimension-1))
         else:
             s = self._dimension - 2*self._genus + 1
-            for p in Partitions(2*self._genus - 2 + s, length=s, min_part=min_part):
-                yield AbelianStratum([k-1 for k in p])
+            for p in Partitions(2*self._genus - 2 + s, length=s):
+                l = [k-1 for k in p]
+                for t in set(l):
+                    i = l.index(t)
+                    yield AbelianStratum([t] + l[:i] + l[i+1:])
 
-class AbelianStrata_all(AbelianStrata_class):
+class AbelianStrata_all(AbelianStrata):
     r"""
-    Abelian strata without fake zeros.
+    Abelian strata.
+
+    INPUT:
+
+    - ``fake_zeros`` - boolean (default: ``False``)
 
     EXAMPLES::
 
-        sage: A = AbelianStrata(); A
-        Abelian strata
-        sage: a = iter(A)
-        sage: for _ in xrange(10): print a.next()
+        sage: A = AbelianStrata()
+        sage: it = iter(A)
+        sage: for _ in range(10):
+        ....:     print it.next()
         H_1(0)
         H_2(2)
         H_2(1^2)
         H_3(4)
         H_3(3, 1)
         H_3(2^2)
-        H_3(2, 1^2)
-        H_3(1^4)
         H_4(6)
+        H_3(2, 1^2)
         H_4(5, 1)
+        H_4(4, 2)
+
+        sage: A = AbelianStrata(fake_zeros=True)
+        sage: it = iter(A)
+        sage: for _ in range(10):
+        ....:     print it.next()
+        H_1(0)
+        H_1(0^2)
+        H_2(2)
+        H_1(0^3)
+        H_2(2, 0)
+        H_2(1^2)
+        H_1(0^4)
+        H_3(4)
+        H_2(2, 0^2)
+        H_2(1^2, 0)
     """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: s = AbelianStrata()
-            sage: TestSuite(s).run()
-            sage: loads(dumps(s)) == s
-            True
-        """
-        Parent.__init__(self, category=InfiniteEnumeratedSets())
-
-    def __eq__(self, other):
-        return isinstance(other,AbelianStrata_all)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __contains__(self,c):
-        r"""
-        Contain test.
-        """
-        if not isinstance(c, AbelianStratum):
-            return False
-
-        if c.genus() == 1:
-            return c.nb_fake_zeros() == 1
-
-        return c.nb_fake_zeros() == 0
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: repr(AbelianStrata())   #indirect doctest
-            'Abelian strata'
-        """
-        return "Abelian strata"
-
-    def cardinality(self):
-        r"""
-        Return infinity.
-
-        EXAMPLES::
-
-            sage: AbelianStrata().cardinality()
-            +Infinity
-        """
-        return Infinity
-
-    def first(self):
-        return AbelianStratum([0])
-
-    an_element = first
-
     def __iter__(self):
-        """
-        Iterator.
-
+        r"""
         TESTS::
 
-            sage: iter(AbelianStrata()).next()
+            sage: iter(AbelianStrata()).next()  # indirect doctest
             H_1(0)
         """
         from itertools import count
-        for g in count(1):
-            for a in AbelianStrata_g(g):
-                yield a
+        for d in count(2):
+            for stratum in AbelianStrata(dimension=d, fake_zeros=self._fake_zeros):
+                yield stratum
+
