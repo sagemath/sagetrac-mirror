@@ -7928,7 +7928,7 @@ class ANBinaryExpr(ANDescr):
             if len(candidates) == 1:
                 value = candidates[0]
                 value.exactify()
-                return value
+                return value._descr
             # TODO: Increase precision until we have our root
             # Instead we fall back to legacy code for now
 
