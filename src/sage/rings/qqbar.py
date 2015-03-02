@@ -7923,7 +7923,11 @@ class ANBinaryExpr(ANDescr):
             approx = self._interval_fast(prec)
             fs = p.factor()
             fs = [f[0] for f in fs if f[0](approx).contains_zero()]
-            rs = prod(fs).roots(QQbar, False) # Use AA in some cases?
+            if is_ComplexIntervalFieldElement(approx):
+                K = QQbar
+            else:
+                K = AA
+            rs = prod(fs).roots(K, False)
             candidates = [r for r in rs if r._value.overlaps(approx)]
             if len(candidates) == 1:
                 value = candidates[0]
