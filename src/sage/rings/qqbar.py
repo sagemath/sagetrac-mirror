@@ -486,6 +486,7 @@ import itertools
 
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
+from sage.misc.misc_c import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
@@ -7901,13 +7902,41 @@ class ANBinaryExpr(ANDescr):
         try:
             left = self._left
             right = self._right
+            op = self._op
+
+            lp = left.minpoly()
+            rp = right.minpoly()(QQxy_y)
+            if op == '+':
+                lp = lp(QQxy_x - QQxy_y)
+            if op == '-':
+                lp = lp(QQxy_x + QQxy_y)
+            if op == '*':
+                lp = lp(QQxy_x).homogenize(QQxy_y)
+            if op == '/':
+                lp = lp(QQxy_x * QQxy_y)
+            p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+
+            lprec = left._value.prec()
+            rprec = right._value.prec()
+            prec = min(lprec, rprec)
+            # Can we get at the _vaue of our AlgebraicNumber instance?
+            approx = self._interval_fast(prec)
+            fs = p.factor()
+            fs = [f[0] for f in fs if f[0](approx).contains_zero()]
+            rs = prod(fs).roots(QQbar, False) # Use AA in some cases?
+            candidates = [r for r in rs if r._value.overlaps(approx)]
+            if len(candidates) == 1:
+                value = candidates[0]
+                value.exactify()
+                return value
+            # TODO: Increase precision until we have our root
+            # Instead we fall back to legacy code for now
+
             left.exactify()
             right.exactify()
             gen = left._exact_field().union(right._exact_field())
             left_value = gen(left._exact_value())
             right_value = gen(right._exact_value())
-
-            op = self._op
 
             if op == '+':
                 value = left_value + right_value
