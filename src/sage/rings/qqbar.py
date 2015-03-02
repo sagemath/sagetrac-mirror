@@ -5,6 +5,7 @@ AUTHOR:
 
 - Carl Witty (2007-01-27): initial version
 - Carl Witty (2007-10-29): massive rewrite to support complex as well as real numbers
+- Martin von Gagern (2015-03-02): use resultants for operations
 
 This is an implementation of the algebraic numbers (the complex
 numbers which are the zero of a polynomial in `\ZZ[x]`; in other
