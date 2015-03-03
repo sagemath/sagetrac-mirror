@@ -25,7 +25,7 @@ cpdef complex exp_z_integral(complex alpha, unsigned long n, unsigned int m):
 
     .. MATH::
 
-       \int_{alpha}^{infty} exp(2*pi*i*n*z) z^m dz
+        \int_{alpha}^{infty} exp(2*pi*i*n*z) z^m dz
 
     where `\alpha` is complex, `n\geq 1` an integer, and `m\geq 0` an integer.
 
@@ -39,24 +39,17 @@ cpdef complex exp_z_integral(complex alpha, unsigned long n, unsigned int m):
         sage: exp_z_integral(I,1,0)
         -0.0002972127416923586j
     """
-    cdef complex t = n * c0                  # = 2*pi*i*n
-    cdef complex one_over_t = 1 / t
-    cdef double j_prod = 1                 # = prod_{(m+1)-s}^m j
-    cdef complex denom = 1 / t               # = 1/(2*pi*i*n)^(s+1)
-    cdef complex alpha_pow = alpha ** m      # = alpha^(m-s)
-    cdef complex alpha_inv = 1 / alpha
-    cdef int sgn = 1                       # = (-1)^s
-
+    cdef complex t = n * c0                 # = 2*pi*i*n
+    cdef double j_prod = 1                  # = prod_{(m+1)-s}^m j
+    cdef complex sad = alpha ** m / t       # = sgn * alpha_pow * denom
+    cdef complex minus_alpha_t_inverse = -1 / (alpha * t)
     cdef unsigned int s
-
-    cdef complex summation = sgn * alpha_pow * denom * j_prod
+    cdef complex summation = sad * j_prod
 
     for s in range(1, m + 1):
         j_prod *= m + 1 - s
-        denom *= one_over_t
-        sgn *= -1
-        alpha_pow *= alpha_inv
-        summation += sgn * alpha_pow * denom * j_prod
+        sad *= minus_alpha_t_inverse
+        summation += sad * j_prod
 
     return cexp(t * alpha) * summation
 
@@ -66,6 +59,12 @@ cpdef complex extended_period_integral(unsigned int m, complex alpha, list v):
     Entries of v = [a0,a1,a2,...] are assumed to be complex.
 
     EXAMPLES::
+
+        sage: from sage.modular.periods.periods_cython import extended_period_integral
+        sage: extended_period_integral(1,I,[])
+        0j
+        sage: extended_period_integral(1,I,[1]*60)
+        0.002166540190656847j
     """
     # There are many nicer ways that this code could be written, e.g., using
     # sum, range, enumerate, etc. -- don't bother, as they are all way slower,
