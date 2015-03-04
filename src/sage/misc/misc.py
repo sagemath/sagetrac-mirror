@@ -2106,10 +2106,6 @@ def terminate_robustly(p):
 
     - ``p`` -- the Popened process to be closed.
 
-    OUTPUT:
-
-    return code of the process.
-
     EXAMPLES::
 
         sage: from sage.misc.misc import terminate_robustly
@@ -2118,10 +2114,9 @@ def terminate_robustly(p):
         sage: p.stdout.readline()
         '#!/usr/bin/env python\n'
         sage: terminate_robustly(p)
-        0
     """
     if p.poll() is not None:
-        return p.returncode
+        return
 
     # On cygwin, using signals to terminate a process fails if
     # the process still has data to output.
@@ -2133,18 +2128,8 @@ def terminate_robustly(p):
         if p.stdin is not None and p.stdin.closed:
             p.stdin = None
         p.communicate()
-        if p.poll() is not None:
-            return p.returncode
-
-    p.terminate()
-    if p.poll() is not None:
-        return p.returncode
-
-    p.kill()
-    if p.poll() is not None:
-        return p.returncode
-
-    raise RuntimeError('Process could not be terminated')
+    else:
+        p.terminate()
 
 
 #############################################
