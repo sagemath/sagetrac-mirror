@@ -61,9 +61,9 @@ class RSACryptosystem(PublicKeyCryptosystem):
         The Rivest, Shamir, Adleman public-key encryption scheme.
         sage: p = 31; q = 61;
         sage: pubkey = rc.public_key(p, q); pubkey
-        (4951760154835678088235319297L, 17)
+        (4951760154835678088235319297, 17)
         sage: prikey = rc.private_key(p, q); prikey
-        (4951760154835678088235319297L, 4077920125612805357425763753)
+        (4951760154835678088235319297, 4077920125612805357425763753)
         sage: P = 72697676798779827668
         sage: C = rc.encrypt(P, pubkey); C
         2467165704948727396791981601
@@ -187,7 +187,7 @@ class RSACryptosystem(PublicKeyCryptosystem):
             sage: p = 31; q = 61;
             sage: C = 2467165704948727396791981601
             sage: K = rc.private_key(p, q); K
-            (4951760154835678088235319297L, 4077920125612805357425763753)
+            (4951760154835678088235319297, 4077920125612805357425763753)
             sage: P = rc.decrypt(C, K); P
             72697676798779827668
 
@@ -252,8 +252,9 @@ class RSACryptosystem(PublicKeyCryptosystem):
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103;
             sage: P = 4
+            sage: K = rc.public_key(p, q);
             sage: C = rc.encrypt(P, K); C
-            4932417489295796679844298689
+            1024
 
         Now encrypt another string of numbers. The result is random; no seed is
         provided to the encryption function so the function generates its
@@ -274,7 +275,9 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
             sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
-            sage: rc.encrypt("", 3)
+            sage: p = 31; q = 61;
+            sage: K = rc.public_key(p, q);
+            sage: rc.encrypt("", K)
             Traceback (most recent call last):
             ...
             ValueError: The plaintext cannot be an empty string.
@@ -316,7 +319,7 @@ class RSACryptosystem(PublicKeyCryptosystem):
             sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc.private_key(19, 23)
-            (4398037598209L, 1173935455331)
+            (4398037598209, 1173935455331)
 
         Choose two distinct primes, compute the RSA
         private key corresponding to two Mersenne primes generated from the distinct primes , and test that the
@@ -391,7 +394,7 @@ class RSACryptosystem(PublicKeyCryptosystem):
             sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc.public_key(31, 61)
-            (4951760154835678088235319297L, 17)
+            (4951760154835678088235319297, 17)
 
         Choose two distinct primes, compute the RSA
         public key corresponding to two Mersenne primes generated from the distinct primes.::
