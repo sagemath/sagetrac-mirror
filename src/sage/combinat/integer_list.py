@@ -840,10 +840,6 @@ class IntegerListsLex(Parent):
             True
             sage: TestSuite(C).run()
         """
-        from sage.misc.stopgap import stopgap
-        stopgap("This code contains bugs and may be mathematically unreliable.",
-                17548)
-
         # Convert to float infinity
         from sage.rings.infinity import infinity
         if max_slope == infinity:
