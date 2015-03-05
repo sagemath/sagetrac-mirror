@@ -9963,13 +9963,13 @@ cdef class Expression(CommutativeRingElement):
         def has_integer_assumption(v):
             from sage.symbolic.assumptions import assumptions, GenericDeclaration
             alist = assumptions()
-            return any(isinstance(a, GenericDeclaration) and a.has(v) and 
+            return any(isinstance(a, GenericDeclaration) and a.has(v) and
                        a._assumption in ['even','odd','integer','integervalued']
-                for a in alist) 
+                for a in alist)
         if len(ex.variables()) and all(has_integer_assumption(var) for var in ex.variables()):
             return self.solve_diophantine(x, solution_dict=solution_dict)
 
-        # from here on, maxima is used for solution        
+        # from here on, maxima is used for solution
         m = ex._maxima_()
         P = m.parent()
         if explicit_solutions:
@@ -10066,17 +10066,17 @@ cdef class Expression(CommutativeRingElement):
             return X, ret_multiplicities
         else:
             return X
-    
+
     def solve_diophantine(self, x=None, solution_dict=False):
         """
         Solve a polynomial equation in the integers (a so called Diophantine).
-        
+
         If the argument is just a polynomial expression, equate to zero.
         If ``solution_dict=True`` return a list of dictionaries instead of
         a list of tuples.
-        
+
         EXAMPLES::
-        
+
             sage: x,y = var('x,y')
             sage: solve_diophantine(3*x==4)
             []
@@ -10084,18 +10084,18 @@ cdef class Expression(CommutativeRingElement):
             [-3, 3]
             sage: solve_diophantine(x^2+y^2==25)
             [(-4, 3), (4, -3), (0, -5), (-4, -3), (0, 5), (4, 3)]
-        
+
         The function is used when ``solve()`` is called with all variables are
         assumed integer::
-        
+
             sage: assume(x,'integer')
             sage: assume(y,'integer')
             sage: solve(x*y==1,(x,y))
             [(1, 1), (-1, -1)]
-            
+
         You can also pick specific variables, and get the solution as
         a dictionary::
-        
+
             sage: solve_diophantine(x*y==10, x)
             [-10, -5, -2, -1, 1, 2, 5, 10]
             sage: solve_diophantine(x*y-y==10, (x,y))
@@ -10109,10 +10109,10 @@ cdef class Expression(CommutativeRingElement):
              {x: 11, y: 1},
              {x: -4, y: -2},
              {x: -9, y: -1}]
- 
+
         If the solution is parametrized the parameter(s) are not defined,
         but you can substitute them with specific integer values::
-        
+
             sage: x,y,z = var('x,y,z')
             sage: sol=solve_diophantine(x^2-y==0); sol
             (t, t^2)
@@ -10124,7 +10124,7 @@ cdef class Expression(CommutativeRingElement):
             [(2, 0, 2), (4, -3, 5), (6, -8, 10), (4, 3, 5), (8, 0, 8), (12, -5, 13), (6, 8, 10), (12, 5, 13), (18, 0, 18)]
 
         Solve Pell equations::
-        
+
             sage: sol=solve_diophantine(x^2-2*y^2==1); sol
             (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
              3/4*sqrt(2)*(2*sqrt(2) + 3)^t - 3/4*sqrt(2)*(-2*sqrt(2) + 3)^t + (2*sqrt(2) + 3)^t + (-2*sqrt(2) + 3)^t)
@@ -10132,17 +10132,17 @@ cdef class Expression(CommutativeRingElement):
             [(1, 0), (3, 2), (17, 12), (99, 70), (577, 408), (3363, 2378)]
 
         TESTS::
-        
+
             sage: solve_diophantine(x^2-y,x,y)
             Traceback (most recent call last):
             ...
             AttributeError: Please use a tuple or list for several variables.
-            
+
         .. SEEALSO: http://docs.sympy.org/latest/modules/solvers/diophantine.html
             """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
-        
+
         if solution_dict not in (True,False):
             raise AttributeError("Please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
@@ -10177,7 +10177,7 @@ cdef class Expression(CommutativeRingElement):
                 ret = [tuple([sol[i] for i in var_idx]) for sol in solutions]
         else:
             ret = [dict([[ex.variables()[i],sol[i]] for i in var_idx]) for sol in solutions]
-            
+
         if len(ret) == 1:
             ret = ret[0]
         return ret
