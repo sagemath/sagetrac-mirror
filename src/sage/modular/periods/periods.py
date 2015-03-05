@@ -57,34 +57,38 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
 
     if not isinstance(v[0], complex):
         raise ValueError('entries of v should be complex (for efficiency)')
-    if not m <= k-2:
+    if not m <= k - 2:
         raise ValueError("m must be at most k-2")
-    if not a*d-b*c == 1:
+    if not a * d - b * c == 1:
         raise ValueError("matrix must have determinant 1")
 
-    alpha = (-d + I)/c
-    if alpha.imag != 1.0/c:
+    alpha = (-d + I) / c
+    if alpha.imag != 1.0 / c:
         (a, b, c, d) = (-a, -b, -c, -d)
-        alpha = (-d + I)/c
-        assert alpha.imag == 1.0/c
+        alpha = (-d + I) / c
+        assert alpha.imag == 1.0 / c
 
-    gamma_alpha = (a+I)/c
+    gamma_alpha = (a + I) / c
 
     if DEBUG:
-        print "alpha = %s, gamma(alpha) = %s"%(alpha, gamma_alpha)
+        print "alpha = %s, gamma(alpha) = %s" % (alpha, gamma_alpha)
 
-    # Next, compute eps(d)*(gamma^(-1)(X^m*Y^(k-2-m)))*{alpha,oo} - X^m*Y^(k-2-m)*{gamma(alpha), oo}
+    # Next, compute eps(d)*(gamma^(-1)(X^m*Y^(k-2-m)))*{alpha,oo} -
+    # X^m*Y^(k-2-m)*{gamma(alpha), oo}
     eps_d = complex(1 if eps is None else eps(d))
     ans = 0
 
-    # We have gamma^(-1)P(X,Y) = P(a*X+b*Y,c*X+d*Y) = (a*X+b*Y)^m*(c*X+d*Y)^(k-2-m)
-    # Using slow generic multivariate polynomial arithmetic is fine here, because
-    # this is not the bottleneck.
-    Q = (a*X+b*Y)**m * (c*X + d*Y)**(k-2-m)
-    for i in range(k-1):
-        coeff = Q.coefficient(X**i * Y**(k-2-i))
+    # We have gamma^(-1)P(X,Y) = P(a*X+b*Y,c*X+d*Y)
+    # = (a*X+b*Y)^m*(c*X+d*Y)^(k-2-m)
+
+    # Using slow generic multivariate polynomial arithmetic is fine
+    # here, because this is not the bottleneck.
+    Q = (a * X + b * Y) ** m * (c * X + d * Y) ** (k - 2 - m)
+    for i in range(k - 1):
+        coeff = Q.coefficient(X ** i * Y ** (k - 2 - i))
         if coeff != 0:
-            ans += int(coeff) * extended_period_integral(i, alpha, v)  # this is the bottleneck.
+            ans += int(coeff) * extended_period_integral(i, alpha, v)
+            # this is the bottleneck.
 
     ans *= eps_d
     ans -= extended_period_integral(m, gamma_alpha, v)
@@ -100,10 +104,14 @@ class PeriodMapping(object):
 
     EXAMPLES::
 
-        sage: M = ModularSymbols(Gamma1(3),weight=13,sign=0).cuspidal_submodule().decomposition()[0]
+        sage: A = ModularSymbols(Gamma1(3),weight=13,sign=0)
+        sage: M = A.cuspidal_submodule().decomposition()[0]
         sage: f = M.period_mapping(100)
         sage: A = M.ambient(); [f(A([i,0,oo]))[0] for i in range(12)]
-        [27.9280923271, 5.33567468252*I, -1.12953617856, -0.271724173647*I, 0.0784400124002, 0.0301915748497*I, -0.0174311138667, -0.0150957874248*I, 0.0174311138667, 0.0241532598797*I, -0.0380315211637, -0.0663551095597*I]
+        [27.9280923271, 5.33567468252*I, -1.12953617856, -0.271724173647*I,
+        0.0784400124002, 0.0301915748497*I, -0.0174311138667,
+        -0.0150957874248*I, 0.0174311138667, 0.0241532598797*I,
+        -0.0380315211637, -0.0663551095597*I]
     """
     def __init__(self, M, prec):
         DEBUG = False
@@ -127,8 +135,10 @@ class PeriodMapping(object):
         v = self._v = [[complex(e(a)) for a in v0] for e in embeddings]
         phi = M.rational_period_mapping()
 
-        # Find symbol s = X^i*Y^(k-2-i)*{oo,gamma(oo)}, with gamma in Gamma0(N),
-        # such that phi(x) != 0, and with lower left corner as small as possible.
+        # Find symbol s = X^i*Y^(k-2-i)*{oo,gamma(oo)}, with gamma in
+        # Gamma0(N), such that phi(x) != 0, and with lower left corner
+        # as small as possible.
+
         k = M.weight()
         self._A = A = M.ambient()
         star = A.star_involution()
@@ -138,8 +148,8 @@ class PeriodMapping(object):
         gens = [g.matrix() for g in Gamma0(N).gens()]
         gamma = gens[0]
         while len(candidates) == 0:
-            for m in range(k-2+1):
-                gamma *= random.choice(gens)**random.choice([-1, 1])
+            for m in range(k - 2 + 1):
+                gamma *= random.choice(gens) ** random.choice([-1, 1])
                 if gamma[1, 0] < 0:
                     gamma = -gamma
                 c = gamma[1, 0]
@@ -149,20 +159,22 @@ class PeriodMapping(object):
                     t = phi(elt)
                     if t:
                         tstar = phi(star(elt))
-                        if t != tstar and t != -tstar:   # not in +1 or -1 subspaces for star
+                        if t != tstar and t != -tstar:
+                            # not in +1 or -1 subspaces for star
                             candidates.append((abs(c), m, gamma.list(), elt))
                             if abs(c) == N:
                                 # can't beat this
                                 done = True
                                 break
-                if done: break
+                if done:
+                    break
         candidates.sort()
-        if DEBUG: print "candidates = ", candidates
-        _, self._m, self._gamma, self._s = candidates[0]
-        a,b,c,d = self._gamma
         if DEBUG:
-            print "Using X^%sY^%s*{oo, [%s,%s;%s,%s](oo)} = %s = %s to compute period integrals"%(
-                self._m, k-2-self._m, a,b,c,d, self._s.modular_symbol_rep(), self._s)
+            print "candidates = ", candidates
+        _, self._m, self._gamma, self._s = candidates[0]
+        a, b, c, d = self._gamma
+        if DEBUG:
+            print "Using X^%sY^%s*{oo, [%s,%s;%s,%s](oo)} = %s = %s to compute period integrals" % (self._m, k - 2 - self._m, a, b, c, d, self._s.modular_symbol_rep(), self._s)
 
         # Evaluate periods of this symbol for each conjugate newform
         periods = [period_integral(self._m, k, a, b, c, d, g, M.character())
@@ -186,39 +198,40 @@ class PeriodMapping(object):
             Tplus += Mplus.hecke_matrix(p)
             T += M.hecke_matrix(p)
             if DEBUG:
-                print " + T_%s"%p,
+                print " + T_%s" % p,
         if DEBUG:
             print "acts irreducibly"
 
-        # Make matrix with rows the periods of ((s+*s)/2)*T^i and ((s-*s)/2)*T^i
+        # Make matrix with rows the periods of ((s+*s)/2)*T^i and
+        # ((s-*s)/2)*T^i
         rows = [[z.real for z in periods]]
         z = [emb(a) for emb in embeddings]
-        for j in range(len(embeddings)-1):
-            rows.append([z[i]*rows[-1][i] for i in range(len(embeddings))])
+        for j in range(len(embeddings) - 1):
+            rows.append([z[i] * rows[-1][i] for i in range(len(embeddings))])
         P_real = matrix(CDF, rows)
-        rows = [[I*z.imag for z in periods]]
+        rows = [[I * z.imag for z in periods]]
         z = [emb(a) for emb in embeddings]
-        for j in range(len(embeddings)-1):
-            rows.append([z[i]*rows[-1][i] for i in range(len(embeddings))])
+        for j in range(len(embeddings) - 1):
+            rows.append([z[i] * rows[-1][i] for i in range(len(embeddings))])
         P_imag = matrix(rows)
         P = P_real.stack(P_imag)
 
-        # Map we want is first projection to M, followed by writing element
-        # in terms of basis ((s+*s)/2)*T^i, ..., ((s-*s)/2)*T^i) then finally
-        # multiplying by period_mat.
+        # Map we want is first projection to M, followed by writing
+        # element in terms of basis ((s+*s)/2)*T^i, ...,
+        # ((s-*s)/2)*T^i) then finally multiplying by period_mat.
         pi = M.projection()
 
         pimat = pi.matrix()
 
-        Tpows_plus = T.iterates(M.free_module().coordinate_vector(pi(self._s+star(self._s)).element()/2),
-                           Mplus.dimension(), rows=True)
-        Tpows_minus = T.iterates(M.free_module().coordinate_vector(pi(self._s-star(self._s)).element()/2),
-                           Mplus.dimension(), rows=True)
+        v_plus = M.free_module().coordinate_vector(pi(self._s + star(self._s)).element() / 2)
+        Tpows_plus = T.iterates(v_plus, Mplus.dimension(), rows=True)
+        v_minus = M.free_module().coordinate_vector(pi(self._s - star(self._s)).element() / 2)
+        Tpows_minus = T.iterates(v_minus, Mplus.dimension(), rows=True)
         Tpows = Tpows_plus.stack(Tpows_minus)
 
         # our matrix acting from right is:    pi * Tpows^(-1)  * P
 
-        self._period_matrix = pimat * Tpows**(-1) * P
+        self._period_matrix = pimat * Tpows ** (-1) * P
 
     def __call__(self, x):
         """
@@ -228,12 +241,17 @@ class PeriodMapping(object):
 
     def __repr__(self):
         """
-        Return a string representation of self
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: M = ModularSymbols(Gamma1(11),weight=11,sign=0).cuspidal_submodule().decomposition()[0]
+            sage: A = ModularSymbols(Gamma1(11),weight=11,sign=0)
+            sage: M = A.cuspidal_submodule().decomposition()[0]
             sage: M.period_mapping(99)  # indirect doctest
-            Period mapping associated to Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 100 for Gamma_1(11) of weight 11 with sign 0 and over Rational Field computed to precision 99
+            Period mapping associated to Modular Symbols subspace
+            of dimension 2 of Modular Symbols space of dimension 100
+            for Gamma_1(11) of weight 11 with sign 0 and
+            over Rational Field computed to precision 99
         """
-        return "Period mapping associated to %s computed to precision %s" % (self._M, self._prec)
+        msg = "Period mapping associated to {} computed to precision {}"
+        return msg.format(self._M, self._prec)
