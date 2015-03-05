@@ -209,7 +209,7 @@ class PeriodMapping(object):
         for j in range(len(embeddings) - 1):
             rows.append([z[i] * rows[-1][i] for i in range(len(embeddings))])
         P_real = matrix(CDF, rows)
-        rows = [[I * z.imag for z in periods]]
+        rows = [[I * pe.imag for pe in periods]]
         z = [emb(a) for emb in embeddings]
         for j in range(len(embeddings) - 1):
             rows.append([z[i] * rows[-1][i] for i in range(len(embeddings))])
@@ -223,9 +223,10 @@ class PeriodMapping(object):
 
         pimat = pi.matrix()
 
-        v_plus = M.free_module().coordinate_vector(pi(self._s + star(self._s)).element() / 2)
+        s = self._s
+        v_plus = M.free_module().coordinate_vector(pi(s + star(s)).element() / 2)
         Tpows_plus = T.iterates(v_plus, Mplus.dimension(), rows=True)
-        v_minus = M.free_module().coordinate_vector(pi(self._s - star(self._s)).element() / 2)
+        v_minus = M.free_module().coordinate_vector(pi(s - star(s)).element() / 2)
         Tpows_minus = T.iterates(v_minus, Mplus.dimension(), rows=True)
         Tpows = Tpows_plus.stack(Tpows_minus)
 
@@ -235,7 +236,16 @@ class PeriodMapping(object):
 
     def __call__(self, x):
         """
+        Compute the period mapping at x.
+
         EXAMPLES::
+
+            sage: A = ModularSymbols(Gamma1(11),weight=11,sign=0)
+            sage: M = A.cuspidal_submodule().decomposition()[0]
+            sage: PM = M.period_mapping(99)  # indirect doctest
+            sage: x = M.an_element()
+            sage: PM(x)
+            (0.19238885665085426 + 0.056774608645438374*I)
         """
         return self._A(x).element() * self._period_matrix
 

@@ -39,7 +39,7 @@ from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound give
 
 import hecke_operator
 
-from sage.modular.periods.periods import PeriodMapping
+from sage.modular.periods.periods import PeriodMapping as PeriodMapping_other
 
 from sage.misc.cachefunc import cached_method
 
@@ -1915,7 +1915,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: phi(M.gen(0))
             (-0.6346... + 1.4588...*I)
         """
-        return PeriodMapping(self, prec)
+        return PeriodMapping_other(self, prec)
 
     def abelian_variety(self):
         """
