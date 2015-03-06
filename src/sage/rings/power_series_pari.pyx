@@ -422,7 +422,7 @@ cdef class PowerSeries_pari(PowerSeries):
             sage: f[5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of bounds
+            IndexError: index out of range
             sage: f[1:4]
             -17/5*t^3 + O(t^5)
 
@@ -718,21 +718,21 @@ cdef class PowerSeries_pari(PowerSeries):
                 return [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n)]
             else:
                 return ([R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
-                        + [R.zero_element()] * (n - l))
+                        + [R.zero()] * (n - l))
         elif typ(g.g) == t_SER and varn(g.g) == pari.get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_SER has 2 codewords
             m = valp(g.g)
             if n <= m:
-                return [R.zero_element()] * n
+                return [R.zero()] * n
             elif n <= l + m:
-                return ([R.zero_element()] * m
+                return ([R.zero()] * m
                         + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n - m)])
             else:
-                return ([R.zero_element()] * m
+                return ([R.zero()] * m
                         + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
-                        + [R.zero_element()] * (n - l - m))
+                        + [R.zero()] * (n - l - m))
         else:
-            return [R(g)] + [R.zero_element()] * (n - 1)
+            return [R(g)] + [R.zero()] * (n - 1)
 
     def dict(self):
         """
