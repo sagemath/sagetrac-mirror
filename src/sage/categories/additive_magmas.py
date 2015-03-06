@@ -15,9 +15,10 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -478,6 +479,20 @@ class AdditiveMagmas(Category_singleton):
             """
             return self.parent().summation(self, other)
 
+    class Homsets(HomsetsCategory):
+        def extra_super_categories(self):
+            """
+            Implement the fact that a homset between two magmas is a magma.
+
+            EXAMPLES::
+
+                sage: AdditiveMagmas().Homsets().extra_super_categories()
+                [Category of additive magmas]
+                sage: AdditiveMagmas().Homsets().super_categories()
+                [Category of additive magmas, Category of homsets]
+            """
+            return [AdditiveMagmas()]
+
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
@@ -492,7 +507,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: C.super_categories()
                 [Category of additive magmas, Category of Cartesian products of sets]
                 sage: C.axioms()
-                frozenset([])
+                frozenset()
             """
             return [AdditiveMagmas()]
 
@@ -586,7 +601,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive commutative additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveCommutative'])
+                    frozenset({'AdditiveCommutative'})
                 """
                 return [AdditiveMagmas().AdditiveCommutative()]
 
@@ -609,6 +624,23 @@ class AdditiveMagmas(Category_singleton):
                 return [Magmas().Commutative()]
 
     class AdditiveUnital(CategoryWithAxiom):
+
+        def additional_structure(self):
+            r"""
+            Return whether ``self`` is a structure category.
+
+            .. SEEALSO:: :meth:`Category.additional_structure`
+
+            The category of unital additive magmas defines the zero as
+            additional structure, and this zero shall be preserved by
+            morphisms.
+
+            EXAMPLES::
+
+                sage: AdditiveMagmas().AdditiveUnital().additional_structure()
+                Category of additive unital additive magmas
+            """
+            return self
 
         class SubcategoryMethods:
 
@@ -714,10 +746,15 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: S = CommutativeAdditiveMonoids().example()
-                    sage: S.zero_element()
-                    0
+                    sage: from sage.geometry.polyhedron.parent import Polyhedra
+                    sage: P = Polyhedra(QQ, 3)
+                    sage: P.zero_element()
+                    doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
+                    See http://trac.sagemath.org/17694 for details.
+                    A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
                 """
+                from sage.misc.superseded import deprecation
+                deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
 
         class ElementMethods:
@@ -821,6 +858,47 @@ class AdditiveMagmas(Category_singleton):
                 """
                 return self._neg_()
 
+        class Homsets(HomsetsCategory):
+            def extra_super_categories(self):
+                """
+                Implement the fact that a homset between two unital additive
+                magmas is a unital additive magma.
+
+                EXAMPLES::
+
+                    sage: AdditiveMagmas().AdditiveUnital().Homsets().extra_super_categories()
+                    [Category of additive unital additive magmas]
+                    sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
+                    [Category of additive unital additive magmas, Category of homsets]
+                """
+                return [AdditiveMagmas().AdditiveUnital()]
+
+            class ParentMethods:
+
+                @cached_method
+                def zero(self):
+                    """
+                    EXAMPLES::
+
+                        sage: R = QQ['x']
+                        sage: H = Hom(ZZ, R, AdditiveMagmas().AdditiveUnital())
+                        sage: f = H.zero()
+                        sage: f
+                        Generic morphism:
+                          From: Integer Ring
+                          To:   Univariate Polynomial Ring in x over Rational Field
+                        sage: f(3)
+                        0
+                        sage: f(3) is R.zero()
+                        True
+
+                    TESTS:
+
+                        sage: TestSuite(f).run()
+                    """
+                    from sage.misc.constant_function import ConstantFunction
+                    return self(ConstantFunction(self.codomain().zero()))
+
         class AdditiveInverse(CategoryWithAxiom):
             class CartesianProducts(CartesianProductsCategory):
                 def extra_super_categories(self):
@@ -850,7 +928,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive unital additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveUnital'])
+                    frozenset({'AdditiveUnital'})
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

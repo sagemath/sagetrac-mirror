@@ -59,7 +59,7 @@ import random
 import subprocess
 import types
 
-from sage.misc.temporary_file import tmp_dir, graphics_filename
+from sage.misc.temporary_file import tmp_dir
 import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
@@ -689,7 +689,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ[x], RR])); O.close()
+        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -1586,25 +1586,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         else:
             _Latex_prefs._option['mathjax_avoid'] = L
 
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def jsmath_avoid_list(self, L=None):
-        """
-        Deprecated. Use :meth:`mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.jsmath_avoid_list()
-            doctest:...: DeprecationWarning: Use mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            []
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use mathjax_avoid_list instead.')
-        if L is None:
-            return _Latex_prefs._option['mathjax_avoid']
-        else:
-            _Latex_prefs._option['mathjax_avoid'] = L
-
     def add_to_mathjax_avoid_list(self, s):
         r"""nodetex
         Add to the list of strings which signal that MathJax should not
@@ -1632,22 +1613,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         current = latex.mathjax_avoid_list()
         if s not in current:
             _Latex_prefs._option['mathjax_avoid'].append(s)
-
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def add_to_jsmath_avoid_list(self, s):
-        """
-        Deprecated. Use :meth:`add_to_mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.add_to_jsmath_avoid_list('\\text')
-            doctest:...: DeprecationWarning: Use add_to_mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            sage: latex.mathjax_avoid_list([])  # reset list to default
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use add_to_mathjax_avoid_list instead.')
-        self.add_to_mathjax_avoid_list(s)
 
     def engine(self, e = None):
         r"""
@@ -1952,8 +1917,10 @@ class MathJax:
         -  ``locals`` - extra local variables used when
            evaluating Sage code in ``x``.
 
-        -  ``mode`` - string (optional, default ``'display'``): ``'display'``
-           for displaymath or ``'inline'`` for inline math
+        - ``mode`` - string (optional, default ``'display'``):
+           ``'display'`` for displaymath, ``'inline'`` for inline
+           math, or ``'plain'`` for just the LaTeX code without the
+           surrounding html and script tags.
 
         - ``combine_all`` - boolean (Default: ``False``): If ``combine_all`` is
           ``True`` and the input is a tuple, then it does not return a tuple
@@ -2022,24 +1989,21 @@ class MathJax:
                 subparts.append(spacer % "x")
             subparts.append(part[closing + 1:])
             parts[i] = "".join(subparts)
-        x = "".join(parts)
-
-        # In MathJax:
-        #   inline math: <script type="math/tex">...</script>
-        #   displaymath: <script type="math/tex; mode=display">...</script>
         from sage.misc.latex_macros import sage_configurable_latex_macros
+        latex_string = ''.join(
+            sage_configurable_latex_macros +
+            [_Latex_prefs._option['macros']] +
+            parts
+        )
         if mode == 'display':
-            modecode = '; mode=display'
+            html = '<html><script type="math/tex; mode=display">{0}</script></html>'
         elif mode == 'inline':
-            modecode = ''
+            html = '<html><script type="math/tex">{0}</script></html>'
+        elif mode == 'plain':
+            return latex_string
         else:
-            # what happened here?
-            raise ValueError("mode must be either 'display' or 'inline'")
-
-        return MathJaxExpr('<html><script type="math/tex{}">'.format(modecode)
-                         + ''.join(sage_configurable_latex_macros)
-                         + _Latex_prefs._option['macros']
-                         + '{}</script></html>'.format(x))
+            raise ValueError("mode must be either 'display', 'inline', or 'plain'")
+        return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2212,7 +2176,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            png_file = graphics_filename(ext='png')
+            from sage.misc.temporary_file import graphics_filename
+            png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
@@ -2513,13 +2478,14 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: 'foo'
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|</script></html>
+        \newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|
         sage: pretty_print_default(False)
         sage: 'foo'
         'foo'
     """
-    import sys
-    sys.displayhook.set_display('typeset' if enable else 'simple')
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    dm.preferences.text = 'latex' if enable else None
 
 
 common_varnames = ['alpha',

@@ -54,9 +54,8 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from design_catalog import transversal_design
 from block_design import BlockDesign
-from sage.rings.arith import binomial
-from sage.rings.arith import is_prime_power
-from incidence_structures import GroupDivisibleDesign
+from sage.rings.arith import binomial, is_prime_power
+from group_divisible_designs import GroupDivisibleDesign
 from designs_pyx import is_pairwise_balanced_design
 
 def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
@@ -148,9 +147,9 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31, 91]
+        [1, 6, 31, 91, 121]
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
+        [51, 61, 66, 76, 81, 96, 106, 111, 126, 136, 141]
 
     But we know some inexistence results::
 
@@ -158,6 +157,8 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         False
     """
     lmbd = 1
+
+    # Trivial BIBD
     if v == 1:
         if existence:
             return True
@@ -168,12 +169,15 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
             return True
         return BalancedIncompleteBlockDesign(v, [range(v)], check=False, copy=False)
 
+    # Non-existence of BIBD
     if (v < k or
         k < 2 or
         (v-1) % (k-1) != 0 or
         (v*(v-1)) % (k*(k-1)) != 0 or
-        # non-existence results from the Handbook of combinatorial designs. With
-        # lambda>1 other exceptions are (15,5,2),(21,6,2),(22,7,2),(22,8,4)
+        # From the Handbook of combinatorial designs:
+        #
+        # With lambda>1 other exceptions are
+        # (15,5,2),(21,6,2),(22,7,2),(22,8,4).
         (k==6 and v in [36,46]) or
         (k==7 and v == 43) or
         # Fisher's inequality
@@ -186,7 +190,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=False)
+        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=True)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -323,8 +327,8 @@ def steiner_triple_system(n):
     else:
         raise EmptySetError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
-    from sage.sets.set import Set
-    sts = Set(map(lambda x: Set(map(T,x)),sts))
+    # apply T and remove duplicates
+    sts = set(frozenset(T(xx) for xx in x) for x in sts)
 
     return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
 
@@ -406,8 +410,6 @@ def BIBD_from_TD(v,k,existence=False):
         ...
         NotImplementedError: I do not know how to build a (20,5,1)-BIBD!
     """
-    from orthogonal_arrays import transversal_design
-
     # First construction
     if (v%k == 0 and
         balanced_incomplete_block_design(v//k,k,existence=True) and
@@ -417,10 +419,10 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = v//k
-        BIBDvk = balanced_incomplete_block_design(v,k).blocks(copy=False)
+        BIBDvk = balanced_incomplete_block_design(v,k)._blocks
         TDkv = transversal_design(k,v,check=False)
 
-        BIBD = TDkv.blocks(copy=False)
+        BIBD = TDkv._blocks
         for i in range(k):
             BIBD.extend([[x+i*v for x in B] for B in BIBDvk])
 
@@ -433,8 +435,8 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = (v-1)//k
-        BIBDv1k = balanced_incomplete_block_design(v+1,k).blocks(copy=False)
-        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
+        BIBDv1k = balanced_incomplete_block_design(v+1,k)._blocks
+        TDkv = transversal_design(k,v,check=False)._blocks
 
         inf = v*k
         BIBD = TDkv
@@ -451,7 +453,7 @@ def BIBD_from_TD(v,k,existence=False):
 
         v = (v-k)//k
         BIBDvpkk = balanced_incomplete_block_design(v+k,k)
-        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
+        TDkv = transversal_design(k,v,check=False)._blocks
         inf = v*k
         BIBD = TDkv
 
@@ -473,25 +475,30 @@ def BIBD_from_TD(v,k,existence=False):
 
     return BIBD
 
-def BIBD_from_difference_family(G, D, check=True):
+
+
+def BIBD_from_difference_family(G, D, lambd=None, check=True):
     r"""
     Return the BIBD associated to the difference family ``D`` on the group ``G``.
 
-    Let `G` be a finite Abelian group. A *simple `(G,k)`-difference family* (or
-    a *`(G,k,1)`-difference family*) is a family `B = \{B_1,B_2,\ldots,B_b\}` of
-    `k`-subsets of `G` such that for each element of `G \backslash \{0\}` there
-    exists a unique `s \in \{1,\ldots,b\}` and a unique pair of distinct
-    elements `x,y \in B_s` such that `x - y = g`.
+    Let `G` be a group. A `(G,k,\lambda)`-*difference family* is a family `B =
+    \{B_1,B_2,\ldots,B_b\}` of `k`-subsets of `G` such that for each element of
+    `G \backslash \{0\}` there exists exactly `\lambda` pairs of elements
+    `(x,y)`, `x` and `y` belonging to the same block, such that `x - y = g` (or
+    x y^{-1} = g` in multiplicative notation).
 
-    If `\{B_1, B_2, \ldots, B_b\}` is a simple `(G,k)`-difference family then
-    its set of translates `\{B_i + g; i \in \{1,\ldots,b\}, g \in G\}` is a
-    `(v,k,1)`-BIBD where `v` is the cardinality of `G`.
+    If `\{B_1, B_2, \ldots, B_b\}` is a `(G,k,\lambda)`-difference family then
+    its set of translates `\{B_i \cdot g; i \in \{1,\ldots,b\}, g \in G\}` is a
+    `(v,k,\lambda)`-BIBD where `v` is the cardinality of `G`.
 
     INPUT::
 
     - ``G`` - a finite additive Abelian group
 
-    - ``D`` - a difference family on ``G``.
+    - ``D`` - a difference family on ``G`` (short blocks are allowed).
+
+    - ``lambd`` - the `\lambda` parameter (optional, only used if ``check`` is
+      ``True``)
 
     - ``check`` - whether or not we check the output (default: ``True``)
 
@@ -526,10 +533,27 @@ def BIBD_from_difference_family(G, D, check=True):
          [19, 20, 2, 12, 14],
          [20, 0, 3, 13, 15]]
     """
-    r = {e:i for i,e in enumerate(G)}
-    bibd = [[r[G(x)+g] for x in d] for d in D for g in r]
+    from difference_family import group_law, block_stabilizer
+    identity, mul, inv = group_law(G)
+    bibd = []
+    Gset = set(G)
+    p_to_i = {g:i for i,g in enumerate(Gset)}
+    for b in D:
+        b = map(G,b)
+        S = block_stabilizer(G,b)
+        GG = Gset.copy()
+        while GG:
+            g = GG.pop()
+            if S: GG.difference_update(mul(s,g) for s in S)
+            bibd.append([p_to_i[mul(i,g)] for i in b])
+
     if check:
-        assert is_pairwise_balanced_design(bibd, G.cardinality(), [len(D[0])], 1)
+        if lambd is None:
+            k = len(bibd[0])
+            v = G.cardinality()
+            lambd = (len(bibd) * k * (k-1)) // (v * (v-1))
+        assert is_pairwise_balanced_design(bibd, G.cardinality(), [len(D[0])], lambd=lambd)
+
     return bibd
 
 ################
@@ -575,8 +599,13 @@ def v_4_1_BIBD(v, check=True):
         sage: _ = designs.difference_family(25,4)
         sage: assert designs.difference_family(37,4,existence=True)
         sage: _ = designs.difference_family(37,4)
+
+    Check some larger `(v,4,1)`-BIBD (see :trac:`17557`)::
+
+        sage: for v in range(400):                                      # long time
+        ....:     if v%12 in [1,4]:                                     # long time
+        ....:         _ = designs.balanced_incomplete_block_design(v,4) # long time
     """
-    from sage.rings.finite_rings.constructor import FiniteField
     k = 4
     if v == 0:
         return []
@@ -587,10 +616,11 @@ def v_4_1_BIBD(v, check=True):
     if v == 13:
         # note: this construction can also be obtained from difference_family
         from block_design import projective_plane
-        return projective_plane(3).blocks(copy=False)
+        return projective_plane(3)._blocks
     if v == 16:
         from block_design import AffineGeometryDesign
-        return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks(copy=False)
+        from sage.rings.finite_rings.constructor import FiniteField
+        return AffineGeometryDesign(2,1,FiniteField(4,'x'))._blocks
     if v == 25 or v == 37:
         from difference_family import difference_family
         G,D = difference_family(v,4)
@@ -751,7 +781,7 @@ def PBD_4_5_8_9_12(v, check=True):
     elif v == 13 or v == 28:
         PBD = v_4_1_BIBD(v, check=False)
     elif v == 29:
-        TD47 = transversal_design(4,7).blocks(copy=False)
+        TD47 = transversal_design(4,7)._blocks
         four_more_sets = [[28]+[i*7+j for j in range(7)] for i in range(4)]
         PBD = TD47 + four_more_sets
     elif v == 41:
@@ -765,14 +795,14 @@ def PBD_4_5_8_9_12(v, check=True):
                 +[[i*9+j for j in range(9)] for i in range(4)]
                 +[[36,37,38,39,40,41,42,43]])
     elif v == 45:
-        TD59 = transversal_design(5,9)
+        TD59 = transversal_design(5,9)._blocks
         PBD = (TD59+[[i*9+j for j in range(9)] for i in range(5)])
     elif v == 48:
-        TD4_12 = transversal_design(4,12)
+        TD4_12 = transversal_design(4,12)._blocks
         PBD = (TD4_12+[[i*12+j for j in range(12)] for i in range(4)])
     elif v == 49:
         # Lemma 7.16 : A (49,{4,13})-PBD
-        TD4_12 = transversal_design(4,12)
+        TD4_12 = transversal_design(4,12)._blocks
 
         # Replacing the block of size 13 with a BIBD
         BIBD_13_4 = v_4_1_BIBD(13)
@@ -1038,7 +1068,6 @@ def BIBD_5q_5_for_q_prime_power(q):
         sage: for q in [25, 45, 65, 85, 125, 145, 185, 205, 305, 405, 605]: # long time
         ....:     _ = BIBD_5q_5_for_q_prime_power(q/5)                      # long time
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
 
     if q%4 != 1 or not is_prime_power(q):
@@ -1096,13 +1125,19 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
     def __init__(self, points, blocks, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor
+
+        EXAMPLE::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
+
         """
         try:
-            int(points)
-        except:
+            i = int(points)
+        except TypeError:
             pass
         else:
-            points = range(points)
+            points = range(i)
 
         GroupDivisibleDesign.__init__(self,
                                       points,
@@ -1119,6 +1154,9 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         Returns a string describing the PBD
 
         EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
         """
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
 
