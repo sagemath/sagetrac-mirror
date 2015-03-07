@@ -552,7 +552,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         elif implementation == 'pari':
             self.Element = PowerSeries_pari
         else:
-            raise ValueError('unknown power series implementation: %s' % implementation)
+            raise ValueError('unknown power series implementation: %r' % implementation)
 
         commutative_ring.CommutativeRing.__init__(self, base_ring, names=name,
                                                   category=getattr(self,'_default_category',
