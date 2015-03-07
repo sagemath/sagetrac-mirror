@@ -50,7 +50,7 @@ cdef class PowerSeries_pari(PowerSeries):
         cdef long t
         cdef str v = parent.variable_name()
 
-        if not check and PY_TYPE_CHECK(f, pari_gen):
+        if not check and isinstance(f, pari_gen):
             # Fast construction for PARI objects of suitable type
             # (series, polynomials, scalars and rational functions).
             # We ignore the precision argument and use the precision
@@ -72,7 +72,7 @@ cdef class PowerSeries_pari(PowerSeries):
         R = parent.base_ring()
         P = parent._poly_ring()
 
-        if PY_TYPE_CHECK(f, PowerSeries):  # not only PowerSeries_pari
+        if isinstance(f, PowerSeries):  # not only PowerSeries_pari
             f_parent = (<PowerSeries>f)._parent
             if f_parent is parent:
                 if prec is infinity:
@@ -84,7 +84,7 @@ cdef class PowerSeries_pari(PowerSeries):
                 if prec is infinity:
                     prec = f.prec()
                 g = f.polynomial().change_ring(R)._pari_()
-        elif PY_TYPE_CHECK(f, Polynomial):
+        elif isinstance(f, Polynomial):
             f_parent = (<Polynomial>f)._parent
             if f_parent is P:
                 g = f._pari_()
@@ -92,7 +92,7 @@ cdef class PowerSeries_pari(PowerSeries):
                 g = R.coerce(f)._pari_()
             else:
                 g = P.coerce(f)._pari_()
-        elif PY_TYPE_CHECK(f, pari_gen):
+        elif isinstance(f, pari_gen):
             g = f
             t = typ(g.g)
             if t == t_POL:
@@ -112,7 +112,7 @@ cdef class PowerSeries_pari(PowerSeries):
                 g = P(g.Polrev(v))._pari_()
             else:
                 g = R(g)._pari_()
-        elif PY_TYPE_CHECK(f, list) or PY_TYPE_CHECK(f, tuple):
+        elif isinstance(f, (list, tuple)):
             g = pari([R.coerce(x) for x in f]).Polrev(v)
         else:
             g = R.coerce(f)._pari_()
