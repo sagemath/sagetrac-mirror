@@ -796,10 +796,23 @@ class FormsSpace_abstract(FormsRing_abstract):
         the Rankin Cohen bracket) is returned instead, with arguments corresponding
         to the missing element(s).
 
-        TODO
+        The Rankin Cohen bracket is defined according to http://arxiv.org/abs/math/0509653.
+        In particular it is defined for quasi forms. The parameters ``s`` and ``t``
+        specify the desired depth arguments. The classical case is given by ``s=t=0``,
+        for non-quasi elements the definitions agree.
 
-        Note that the rankin cohen bracket is not bilinear unless fixed ``s`` and
-        ``t`` are specified (e.g. ``s=t=0``).
+        If ``s`` and ``t`` are not specified they are replaced by the depth of
+        ``f`` and ``g``.
+
+        Note that for non-fixed ``s`` and ``t`` the Rankin cohen bracket is no
+        longer bilinear resp. only bilinear for arguments with exactly one
+        quasi part (i.e. for arguments with an exact depth).
+
+        It is even defined for more general analytic types as long as ``E2``
+        occurs only homogeneous in the denominator of ``f`` and ``g`` (i.e.
+        both ``f`` and ``g`` have a depth, see :meth:`has_depth`).
+        Since this more general case is not yet analyzed in the literature
+        a warning will be printed.
 
         EXAMPLES::
 
@@ -812,8 +825,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: h = MF.f_inf()
             sage: RC = MF.rankin_cohen_bracket
 
+        We first consider the classical examples. Note that for the classical
+        definition has ``s=0`` and ``t=0``.
+
         The zero Rankin Cohen bracket is given by the multiplication, so it defines
         a commutative, associative algebra with 1. The unit has trivial higher brackets.
+
         ::
 
             sage: RC(f, g, m=0).parent()
@@ -824,20 +841,27 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: RC(f, g).parent()
             ModularForms(n=5, k=20/3, ep=1) over Integer Ring
+            sage: RC(f, g, s=0, t=0) == RC(f, g)
+            True
             sage: RC(f, g) == k*f*g.derivative() - l*f.derivative()*g
             True
             sage: RC(f, 1) == 0
             True
             sage: RC(f, g, m=2).parent()
             ModularForms(n=5, k=26/3, ep=-1) over Integer Ring
+            sage: RC(f, g, m=2, s=0, t=0) == RC(f, g, m=2)
+            True
             sage: RC(f, g, m=2) == k*(k+1)/2*f*g.derivative(2) - (k+1)*(l+1)*f.derivative()*g.derivative() + l*(l+1)/2*f.derivative(2)*g
             True
             sage: RC(f, 2, m=2) == 0
             True
 
         The first Rankin Cohen bracket defines a graded Lie-algebra.
+
         ::
 
+            sage: RC(derivative(f), g, s=0, t=0) + RC(f, derivative(g), s=0, t=0) == RC(derivative(f), g) + RC(f, derivative(g))
+            True
             sage: derivative(RC(f, g)) == RC(derivative(f), g) + RC(f, derivative(g))
             True
             sage: RC(f, g) == -RC(g, f)
@@ -846,12 +870,38 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
         In fact the combination of both structures gives a Poisson algebra:
+
         ::
 
             sage: RC(RC(f,g,m=0),h) + RC(RC(g,h,m=0),f) + RC(RC(h,f,m=0),g) == 0
             True
             sage: RC(RC(f,g,m=0),h) == RC(RC(g,h),f,m=0) - RC(RC(h,f),g,m=0)
             True
+
+        More generally the Rankin Cohen bracket is defined for quasi modular forms:
+
+        ::
+
+            sage: MF = ModularForms(n=3)
+            sage: E2 = MF.E2()
+            sage: E4 = MF.E4()
+            sage: Delta = MF.Delta()
+
+            sage: RC = MF.rankin_cohen_bracket(m=1)
+            sage: RC(E2,Delta) == Delta * E4
+            True
+            sage: RC(E4, derivative(E4)) == 960 * Delta
+            True
+            sage: K = RC(E2, Delta)
+            sage: RC(RC(K, Delta), Delta) == 24*Delta*K^2
+            True
+
+            sage: RC = MF.rankin_cohen_bracket(m=4)
+            sage: RC(E2, E2) == -48*Delta
+            True
+
+        See http://arxiv.org/abs/math/0509653v2 and http://arxiv.org/abs/1306.3634v2
+        for more information.
         """
 
         from sage.functions.other import binomial
@@ -869,7 +919,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             if not (f.parent().is_homogeneous() and g.parent().is_homogeneous()):
                 raise TypeError("both arguments f and g have to be (homogeneous) elements of form spaces!")
 
-            #TODO
+            if not (f.has_depth() and g.has_depth()):
+                raise TypeError("both arguments f and g need to have a depth defined!")
+
+            if not (f.is_holomorphic() and g.is_holomorphic()):
+                from warnings import warn
+                warn("The Rankin Cohen bracket is usually limited to holomorphic arguments!")
+
             if s is None:
                 s = f.depth()
             if t is None:
@@ -899,6 +955,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                     sage: RC = MF.rankin_cohen_bracket
                     sage: RCf = RC(f=f)
                     sage: RCf(g) == RC(f,g)
+                    doctest...UserWarning: The Rankin Cohen bracket is usually limited to holomorphic arguments!
                     True
                     sage: RCf(g).parent()
                     WeakModularForms(n=7, k=-28/5, ep=1) over Integer Ring

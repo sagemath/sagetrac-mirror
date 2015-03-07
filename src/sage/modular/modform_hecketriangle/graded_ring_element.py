@@ -438,7 +438,20 @@ class FormsRingElement(six.with_metaclass(
 
     def has_depth(self):
         r"""
-        Return whether ``self`` has a depth. TODO: description, examples.
+        Return whether ``self`` has a homogeneous denominator as a
+        polynomial in ``E2``. In that case ``self`` can be decomposed
+        into quasi parts and a depth can be defined.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: MR = QuasiMeromorphicModularFormsRing(n=5)
+            sage: el = MR.f_rho()/MR.E2() + MR.f_i()^2/MR.Delta()
+            sage: el.has_depth()
+            True
+            sage: el2 = el/(MR.E2()^2 + MR.E4())
+            sage: el2.has_depth()
+            False
         """
 
         (x,y,z,d) = self.parent().pol_ring().gens()
@@ -446,7 +459,27 @@ class FormsRingElement(six.with_metaclass(
 
     def depth(self):
         r"""
-        Return the depth of ``self``. TODO: description, examples.
+        If ``self`` has a depth, return it. The depth is defined as
+        the maximal degree in ``E2`` among all quasi parts of ``self``.
+
+        The case that ``E2`` occurs in the denominator is not really used.
+        In that case the depth (of the corresponding quasi part) is defined
+        as the negative degree of ``E2`` in the denominator which
+        is assumed to be homogeneous.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: MR = QuasiMeromorphicModularFormsRing(n=5)
+            sage: el = MR.f_rho()/MR.E2() + MR.f_i()^2/MR.Delta()
+            sage: el.depth()
+            0
+            sage: el2 = MR.E2()^3 + MR.f_rho()/MR.E2()
+            sage: el2.depth()
+            3
+            sage: el3 = MR.f_rho()/MR.E2()
+            sage: el3.depth()
+            -1
         """
 
         (x,y,z,d) = self.parent().pol_ring().gens()
@@ -760,6 +793,7 @@ class FormsRingElement(six.with_metaclass(
     def quasi_parts(self, depth=None):
         r"""
         Return the summands of ``self`` divided by their depths.
+        This assumes that ``self`` has a depth (see :meth:`has_depth`).
 
         INPUT:
 
@@ -776,28 +810,24 @@ class FormsRingElement(six.with_metaclass(
 
         EXAMPLES::
 
-            TODO
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: x,y,z,d = var("x,y,z,d")
             sage: el = QuasiMeromorphicModularFormsRing(n=5)((y^3-3*z^5-1)/(x^5-y^2)+5*y-d+x/z)
-            sage: hom_parts = el.homogeneous_parts()
+            sage: quasi_parts = el.quasi_parts()
 
-            sage: [v[0] for v in hom_parts]
-            [(-20/3, 1), (-2/3, -1), (0, 1), (10/3, -1)]
-            sage: [v[1].as_ring_element() for v in hom_parts]
-            [(-1)/(f_rho^5 - f_i^2),
-             f_rho/E2,
-             -d,
-             (5*f_rho^5*f_i - 3*E2^5 - 4*f_i^3)/(f_rho^5 - f_i^2)]
-            sage: el == sum([v[1] for v in hom_parts])
+            sage: [v[0] for v in quasi_parts]
+            [-1, 0, 5]
+            sage: [v[1] for v in quasi_parts]
+            [(-f_rho)/(-E2),
+             (5*f_rho^5*f_i - f_rho^5*d - 4*f_i^3 + f_i^2*d - 1)/(f_rho^5 - f_i^2),
+             (-3*E2^5)/(f_rho^5 - f_i^2)]
+            sage: el == sum([v[1] for v in quasi_parts])
             True
-            sage: el2 = el.homogeneous_parts(degree=(-2/3,-1))
+            sage: el2 = el.quasi_parts(depth=-1)
             sage: el2.parent()
-            QuasiMeromorphicModularForms(n=5, k=-2/3, ep=-1) over Integer Ring
-            sage: el2 == hom_parts[1][1]
+            QuasiMeromorphicModularFormsRing(n=5) over Integer Ring
+            sage: el2 == quasi_parts[0][1]
             True
-            sage: el2.as_ring_element()
-            f_rho/E2
         """
 
         if not self.has_depth():
