@@ -18,7 +18,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from sage.misc import six
-from sage.rings.all import ZZ, infinity, LaurentSeries, O
+from sage.rings.all import ZZ, QQ, infinity, LaurentSeries, O, PolynomialRing
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi
@@ -436,6 +436,28 @@ class FormsRingElement(six.with_metaclass(
 
         return (self._weight,self._ep)
 
+    def has_depth(self):
+        r"""
+        Return whether ``self`` has a depth. TODO: description, examples.
+        """
+
+        (x,y,z,d) = self.parent().pol_ring().gens()
+        return self.rat().denominator().polynomial(z).is_homogeneous()
+
+    def depth(self):
+        r"""
+        Return the depth of ``self``. TODO: description, examples.
+        """
+
+        (x,y,z,d) = self.parent().pol_ring().gens()
+
+        if self.is_zero():
+            return -infinity
+        elif not self.has_depth():
+            raise NotImplementedError("For denominators which are not homogeneous in E2 the depth is not implemented.")
+        else:
+            return self.rat().numerator().degree(z) - self.rat().denominator().degree(z)
+
     def is_modular(self):
         r"""
         Return whether ``self`` (resp. its homogeneous components)
@@ -648,6 +670,158 @@ class FormsRingElement(six.with_metaclass(
         # In general the denominator has a different weight than the original function...
         new_parent = self.parent().extend_type("holo", ring=True).reduce_type(["holo", "quasi"])
         return new_parent(res).reduce()
+
+    def homogeneous_parts(self, degree=None):
+        r"""
+        Return the homogeneous summands of ``self``.
+
+        INPUT:
+
+        - ``degree`` -- Either ``None`` (default) or a tuple (k, ep) where k is
+                        a rational number (the weight) and ep is +- 1 (the multiplier).
+
+        OUTPUT:
+
+        If ``degree`` is ``None`` a list of tuples (degree, degree_part) is returned,
+        consisting of all non-trivially occuring degrees and the corresponding homogeneous
+        parts of ``self``. The list is sorted by the degrees.
+
+        Otherwise only the homogeneous part corresponding to the specified ``degree`` is returned.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: x,y,z,d = var("x,y,z,d")
+            sage: el = QuasiMeromorphicModularFormsRing(n=5)((y^3-3*z^5-1)/(x^5-y^2)+5*y-d+x/z)
+            sage: hom_parts = el.homogeneous_parts()
+
+            sage: [v[0] for v in hom_parts]
+            [(-20/3, 1), (-2/3, -1), (0, 1), (10/3, -1)]
+            sage: [v[1].as_ring_element() for v in hom_parts]
+            [(-1)/(f_rho^5 - f_i^2),
+             f_rho/E2,
+             -d,
+             (5*f_rho^5*f_i - 3*E2^5 - 4*f_i^3)/(f_rho^5 - f_i^2)]
+            sage: el == sum([v[1] for v in hom_parts])
+            True
+            sage: el2 = el.homogeneous_parts(degree=(-2/3,-1))
+            sage: el2.parent()
+            QuasiMeromorphicModularForms(n=5, k=-2/3, ep=-1) over Integer Ring
+            sage: el2 == hom_parts[1][1]
+            True
+            sage: el2.as_ring_element()
+            f_rho/E2
+        """
+
+        R         = self.parent().pol_ring()
+        (x,y,z,d) = R.gens()
+        R2        = PolynomialRing(PolynomialRing(self.parent().base_ring(), 'd'), 'x,y,z')
+        dhom      = R.hom( R2.gens() + (R2.base().gen(),), R2)
+        n         = self.hecke_n()
+
+        f         = self.rat()
+        denom     = R(f.denominator())
+        deg_denom = self.denominator().degree()
+
+        # A degree function for monomials
+        def monomial_degree(monomial):
+            ep = ZZ(ZZ(1) - 2*(( sum([monomial.exponents()[0][m] for m in [1,2]]) )%2))
+            if (n == infinity):
+                weight = QQ(dhom(R(monomial.subs(x=x**4, y=y**2, z=z**2))).degree())
+            else:
+                weight = QQ(dhom(R(monomial.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))))).degree() / (n-2))
+            return (weight, ep)
+
+        parts = {}
+        num_monomials = R(f.numerator()).monomials()
+        num_coeffs = R(f.numerator()).coefficients()
+
+        for ind in range(0, len(num_monomials)):
+            g = num_coeffs[ind]*num_monomials[ind]
+            deg_num = monomial_degree(g)
+            deg_total = (QQ(deg_num[0]-deg_denom[0]), ZZ(deg_num[1]*deg_denom[1]))
+            if deg_total in parts:
+                parts[deg_total] += g/denom
+            else:
+                parts[deg_total] = g/denom
+
+        if degree is None:
+            L = [(deg, self.parent().reduce_type(degree=deg)(parts[deg])) for deg in parts]
+            L = sorted(L, key=lambda t: t[0])
+            return L
+        else:
+            degree = (QQ(degree[0]), ZZ(degree[1]))
+            new_parent = self.parent().reduce_type(degree=degree)
+            if not (degree in parts):
+                return new_parent(0)
+            else:
+                return new_parent(parts[degree])
+
+    def quasi_parts(self, depth=None):
+        r"""
+        Return the summands of ``self`` divided by their depths.
+
+        INPUT:
+
+        - ``depth`` -- Either ``None`` (default) or an integer.
+
+        OUTPUT:
+
+        If ``depth`` is ``None`` a list of tuples (depth, depth_part) is returned,
+        consisting of all non-trivially occuring depths and the corresponding
+        quasi parts of ``self`` that have exactly this depth. The list is sorted
+        by the depths.
+
+        Otherwise only the quasi part corresponding to the specified ``depth`` is returned.
+
+        EXAMPLES::
+
+            TODO
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: x,y,z,d = var("x,y,z,d")
+            sage: el = QuasiMeromorphicModularFormsRing(n=5)((y^3-3*z^5-1)/(x^5-y^2)+5*y-d+x/z)
+            sage: hom_parts = el.homogeneous_parts()
+
+            sage: [v[0] for v in hom_parts]
+            [(-20/3, 1), (-2/3, -1), (0, 1), (10/3, -1)]
+            sage: [v[1].as_ring_element() for v in hom_parts]
+            [(-1)/(f_rho^5 - f_i^2),
+             f_rho/E2,
+             -d,
+             (5*f_rho^5*f_i - 3*E2^5 - 4*f_i^3)/(f_rho^5 - f_i^2)]
+            sage: el == sum([v[1] for v in hom_parts])
+            True
+            sage: el2 = el.homogeneous_parts(degree=(-2/3,-1))
+            sage: el2.parent()
+            QuasiMeromorphicModularForms(n=5, k=-2/3, ep=-1) over Integer Ring
+            sage: el2 == hom_parts[1][1]
+            True
+            sage: el2.as_ring_element()
+            f_rho/E2
+        """
+
+        if not self.has_depth():
+            raise NotImplementedError("For denominators which are not homogeneous in E2 the quasi parts are not implemented.")
+
+        (x,y,z,d) = self.parent().pol_ring().gens()
+        denom = self.rat().denominator()
+        denom_depth = denom.degree(z)
+        num_parts = self.rat().numerator().polynomial(z).list()
+
+        if depth is None:
+            L = []
+            for num_depth in range(0, len(num_parts)):
+                if num_parts[num_depth] != 0:
+                    depth = ZZ(num_depth-denom_depth)
+                    quasi_part = self.parent()(num_parts[num_depth] * z**num_depth / denom)
+                    L.append((depth, quasi_part))
+
+            return L
+        elif depth < 0 - denom_depth or depth >= len(num_parts) - denom_depth:
+            return self.parent()(0)
+        else:
+            num_depth = depth + denom_depth
+            return self.parent()(num_parts[num_depth] * z**num_depth / denom)
 
     def _add_(self,other):
         r"""
@@ -1121,9 +1295,14 @@ class FormsRingElement(six.with_metaclass(
         return new_parent(res).reduce()
 
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
-    def derivative(self):
+    def derivative(self, m=ZZ(1)):
         r"""
         Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
+
+        INPUT:
+
+        - ``m`` -- A non-negative integer specifying how many times to
+                   take the derivative (default: 1).
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended
@@ -1179,13 +1358,25 @@ class FormsRingElement(six.with_metaclass(
             True
             sage: derivative(E2).parent()
             QuasiModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: derivative(f_i, 3)
+            -24*q + 192*q^2 - 2592*q^3 + 1536*q^4 + O(q^5)
         """
 
-        return self.diff_op(self.parent()._derivative_op(), self.parent().extend_type("quasi", ring=True))
+        m = ZZ(m)
+        if m < 0:
+            raise TypeError("m={} must be a non-negative integer.".format(m))
 
-    def serre_derivative(self):
+        return self.diff_op(self.parent()._derivative_op()**m, self.parent().extend_type("quasi", ring=True))
+
+    def serre_derivative(self, m=ZZ(1)):
         r"""
         Return the Serre derivative of ``self``.
+
+        INPUT:
+
+        - ``m`` -- A non-negative integer specifying how many times to
+                   take the serre derivative (default: 1).
 
         Note that the parent might (probably will) change.
         However a modular element is returned if ``self``
@@ -1226,6 +1417,9 @@ class FormsRingElement(six.with_metaclass(
             sage: E6.serre_derivative().parent()
             ModularForms(n=7, k=8, ep=1) over Integer Ring
 
+            sage: E6.serre_derivative(3).as_ring_element()
+            (-441*f_rho^15 - 1386*f_rho^8*f_i^2 - 48*f_rho*f_i^4)/686
+
             sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
             sage: Delta = MR.Delta().full_reduce()
             sage: E2 = MR.E2().full_reduce()
@@ -1250,7 +1444,11 @@ class FormsRingElement(six.with_metaclass(
             ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
-        return self.diff_op(self.parent()._serre_derivative_op(), self.parent().extend_type(ring=True))
+        m = ZZ(m)
+        if m < 0:
+            raise TypeError("m={} must be a non-negative integer.".format(m))
+
+        return self.diff_op(self.parent()._serre_derivative_op()**m, self.parent().extend_type(ring=True))
 
     @cached_method
     def order_at(self, tau=infinity):

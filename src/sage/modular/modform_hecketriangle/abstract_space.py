@@ -769,6 +769,199 @@ class FormsSpace_abstract(FormsRing_abstract):
                 t = M.acton(t)
         return aut_f
 
+    def rankin_cohen_bracket(self, f=None, g=None, m=ZZ(1), s=None, t=None):
+        r"""
+        Return the Rankin Cohen bracket [f,g]_m.
+
+        INPUT:
+
+        - ``f``   -- ``None`` (default, see below) or an element of
+                     a form space for the same group as ``self``.
+
+        - ``g``   -- ``None`` (default, see below) or an element of
+                     a form space for the same group as ``self``.
+
+        - ``m``   -- A non-negative integer (default: 1).
+
+        - ``s``   -- ``None`` (default) or an integer.
+
+        - ``t``   -- ``None`` (default) or an integer.
+
+        OUTPUT:
+
+        An element of a form space, namely the m'th Rankin Cohen bracket of f and g.
+        The analytic type of the output extends the analytic type of ``self``.
+
+        If either ``f`` or ``g`` or both are ``None`` then a function (which returns
+        the Rankin Cohen bracket) is returned instead, with arguments corresponding
+        to the missing element(s).
+
+        TODO
+
+        Note that the rankin cohen bracket is not bilinear unless fixed ``s`` and
+        ``t`` are specified (e.g. ``s=t=0``).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: MF = ModularForms(n=5)
+            sage: f = MF.f_i()
+            sage: k = f.weight()
+            sage: g = MF.f_rho()
+            sage: l = g.weight()
+            sage: h = MF.f_inf()
+            sage: RC = MF.rankin_cohen_bracket
+
+        The zero Rankin Cohen bracket is given by the multiplication, so it defines
+        a commutative, associative algebra with 1. The unit has trivial higher brackets.
+        ::
+
+            sage: RC(f, g, m=0).parent()
+            ModularForms(n=5, k=14/3, ep=-1) over Integer Ring
+            sage: RC(f, g, m=0) == f*g
+            True
+            sage: RC(f, 1, m=0) == f
+            True
+            sage: RC(f, g).parent()
+            ModularForms(n=5, k=20/3, ep=1) over Integer Ring
+            sage: RC(f, g) == k*f*g.derivative() - l*f.derivative()*g
+            True
+            sage: RC(f, 1) == 0
+            True
+            sage: RC(f, g, m=2).parent()
+            ModularForms(n=5, k=26/3, ep=-1) over Integer Ring
+            sage: RC(f, g, m=2) == k*(k+1)/2*f*g.derivative(2) - (k+1)*(l+1)*f.derivative()*g.derivative() + l*(l+1)/2*f.derivative(2)*g
+            True
+            sage: RC(f, 2, m=2) == 0
+            True
+
+        The first Rankin Cohen bracket defines a graded Lie-algebra.
+        ::
+
+            sage: derivative(RC(f, g)) == RC(derivative(f), g) + RC(f, derivative(g))
+            True
+            sage: RC(f, g) == -RC(g, f)
+            True
+            sage: RC(f, RC(g, h)) + RC(g, RC(h, f)) + RC(h, RC(f, g)) == 0
+            True
+
+        In fact the combination of both structures gives a Poisson algebra:
+        ::
+
+            sage: RC(RC(f,g,m=0),h) + RC(RC(g,h,m=0),f) + RC(RC(h,f,m=0),g) == 0
+            True
+            sage: RC(RC(f,g,m=0),h) == RC(RC(g,h),f,m=0) - RC(RC(h,f),g,m=0)
+            True
+        """
+
+        from sage.functions.other import binomial
+        from analytic_type import AnalyticType
+
+        m = ZZ(m)
+        if m < 0:
+            raise TypeError("m={} is not a nonnegative integer.".format(m))
+
+        if not (f is None or g is None):
+            one_element = self.one()
+            f *= one_element
+            g *= one_element
+
+            if not (f.parent().is_homogeneous() and g.parent().is_homogeneous()):
+                raise TypeError("both arguments f and g have to be (homogeneous) elements of form spaces!")
+
+            #TODO
+            if s is None:
+                s = f.depth()
+            if t is None:
+                t = g.depth()
+
+            L = [(-1)**r * binomial(f.weight() - s + m - 1, m - r) * binomial(g.weight() - t + m - 1, r) * f.derivative(r) * g.derivative(m-r) for r in range(0, m+1)]
+            # Because sum() always prepends "0" which would produce a ring element :(
+            res = reduce(lambda x,y: x + y, L)
+
+            # This avoids adding "quasi" to the type.
+            # Remark: Extension to holo does not seem necessary,
+            #         in fact we seem to end up with cusp forms for m > 0
+            AT = AnalyticType()
+            analytic_type = f.analytic_type().extend_by(g.analytic_type()).extend_by(AT("holo"))
+            return res.parent().reduce_type(analytic_type)(res)
+        elif not (f is None):
+            def rankin_cohen_bracket_fixed_f(G):
+                r"""
+                Return the Rankin Cohen bracket [f,G]_m (with f, m fixed).
+
+                EXAMPLES:
+
+                    sage: from sage.modular.modform_hecketriangle.space import ModularForms
+                    sage: MF = ModularForms(n=7)
+                    sage: f = MF.f_i()
+                    sage: g = MF.f_rho()/MF.f_inf()**2
+                    sage: RC = MF.rankin_cohen_bracket
+                    sage: RCf = RC(f=f)
+                    sage: RCf(g) == RC(f,g)
+                    True
+                    sage: RCf(g).parent()
+                    WeakModularForms(n=7, k=-28/5, ep=1) over Integer Ring
+                """
+
+                if G is None:
+                    raise TypeError("G is not set!")
+
+                return self.rankin_cohen_bracket(f, G, m, s, t)
+
+            return rankin_cohen_bracket_fixed_f
+        elif not (g is None):
+            def rankin_cohen_bracket_fixed_g(F):
+                r"""
+                Return the Rankin Cohen bracket [F,g]_m (with g, m fixed).
+
+                EXAMPLES:
+
+                    sage: from sage.modular.modform_hecketriangle.space import ModularForms
+                    sage: MF = ModularForms(n=3)
+                    sage: f = MF.f_i()
+                    sage: g = MF.f_rho()
+                    sage: RC = MF.rankin_cohen_bracket
+                    sage: RCg = RC(g=g)
+                    sage: RCg(f) == RC(f,g)
+                    True
+                """
+
+                if F is None:
+                    raise TypeError("F is not set!")
+
+                return self.rankin_cohen_bracket(F, g, m, s, t)
+
+            return rankin_cohen_bracket_fixed_g
+        else:
+            def rankin_cohen_bracket(F, G):
+                r"""
+                Return the Rankin Cohen bracket [F,G]_m (with m fixed).
+
+                EXAMPLES:
+
+                    sage: from sage.modular.modform_hecketriangle.space import ModularForms
+                    sage: MF = ModularForms(n=infinity)
+                    sage: f = MF.f_i()
+                    sage: g = MF.E2()**2
+                    sage: RC = MF.rankin_cohen_bracket
+                    sage: RC0 = MF.rankin_cohen_bracket(m=0)
+                    sage: RC2 = MF.rankin_cohen_bracket(m=2)
+                    sage: RC0(f,g) == RC(f,g,m=0)
+                    True
+                    sage: RC2(f,g) == RC(f,g,m=2)
+                    True
+                    sage: RC2(f,g).parent()
+                    QuasiModularForms(n=+Infinity, k=10, ep=-1) over Integer Ring
+                """
+
+                if F is None or G is None:
+                    raise TypeError("F or G is not set!")
+
+                return self.rankin_cohen_bracket(F, G, m, s, t)
+
+            return rankin_cohen_bracket
+
     @cached_method
     def F_simple(self, order_1=ZZ(0)):
         r"""
