@@ -24,7 +24,7 @@ AUTHORS:
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.matrix.matrix import is_Matrix
-from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.superseded import deprecated_function_alias
@@ -241,7 +241,7 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
             sage: TestSuite(d).run()
         """
         if isinstance(t, Graph):
-            if isinstance(t, DynkinDiagram_class):
+            if isinstance(t, CoxeterGraph_class):
                 self._cartan_type = t._cartan_type
             else:
                 self._cartan_type = None
@@ -313,7 +313,7 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
             sage: type(M)
             <class 'sage.combinat.root_system.cartan_matrix.CartanMatrix'>
         """
-        return self.cartan_matrix()._matrix_()
+        return self.coxeter_matrix()._matrix_()
 
     def add_edge(self, i, j, label=1):
         """
@@ -327,7 +327,7 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
             sage: list(sorted(d.edges()))
             [(2, 3, 1), (3, 2, 1)]
         """
-        DiGraph.add_edge(self, i, j, label)
+        Graph.add_edge(self, i, j, label)
         if not self.has_edge(j,i):
             self.add_edge(j,i,1)
 
@@ -387,14 +387,14 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
         """
         return tuple(self.vertices())
 
-    def cartan_type(self):
+    def coxeter_type(self):
         """
         EXAMPLES::
 
             sage: DynkinDiagram("A2","B2","F4").cartan_type()
             A2xB2xF4
         """
-        return self._cartan_type
+        return self._coxeter_type
 
     def rank(self):
         r"""
@@ -409,7 +409,7 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
         """
         return self.num_verts()
 
-    def dynkin_diagram(self):
+    def coxeter_graph(self):
         """
         EXAMPLES::
 
@@ -421,7 +421,7 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
         return self
 
     @cached_method
-    def cartan_matrix(self):
+    def coxeter_matrix(self):
         r"""
         Returns the Cartan matrix for this Dynkin diagram
 
@@ -433,51 +433,6 @@ class CoxeterGraph_class(Graph, CartanType_abstract):
             [ 0 -1  2]
         """
         return CartanMatrix(self)
-
-    def dual(self):
-        r"""
-        Returns the dual Dynkin diagram, obtained by reversing all edges.
-
-        EXAMPLES::
-
-            sage: D = DynkinDiagram(['C',3])
-            sage: D.edges()
-            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
-            sage: D.dual()
-            O---O=>=O
-            1   2   3
-            B3
-            sage: D.dual().edges()
-            [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
-            sage: D.dual() == DynkinDiagram(['B',3])
-            True
-
-        TESTS::
-
-            sage: D = DynkinDiagram(['A',0]); D
-            A0
-            sage: D.edges()
-            []
-            sage: D.dual()
-            A0
-            sage: D.dual().edges()
-            []
-            sage: D = DynkinDiagram(['A',1])
-            sage: D.edges()
-            []
-            sage: D.dual()
-            O
-            1
-            A1
-            sage: D.dual().edges()
-            []
-        """
-        result = DynkinDiagram_class(None)
-        result.add_vertices(self.vertices())
-        for source, target, label in self.edges():
-            result.add_edge(target, source, label)
-        result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
-        return result
 
     def is_finite(self):
         """
