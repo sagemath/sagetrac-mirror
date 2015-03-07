@@ -1,11 +1,11 @@
 r"""
 Cluster Triangulations
 
-A *cluster triangulation* (see [FominShapiroThurston]_) is a subset
-of an ideal triangulation, i.e. a maximal collection of distinct
+A *cluster triangulation* (see [FominShapiroThurston]_) is a subset of
+an ideal triangulation, i.e. a maximal collection of distinct
 non-crossing arcs. An ideal triangulation of a surface with marked
-points `(S,M)` is associated to a seed of a cluster algebra arising
-from `(S,M)`.
+points (S, M) is associated to a seed of a cluster algebra arising
+from (S, M).
 
 .. SEEALSO::
 
@@ -15,18 +15,18 @@ from `(S,M)`.
 
 REFERENCES:
 
-[MSW_Positivity]_ [MSW_Bases]_ [MW_MatrixFormulae]_ [FominShapiroThurston]_
+[MSW_Positivity]_, [MSW_Bases]_, [MW_MatrixFormulae]_, [FominShapiroThurston]_
 """
 from sage.structure.sage_object import SageObject
 
 
 class ClusterTriangulation(SageObject):
-    """
+    r"""
     An initial *ideal triangulation* associated to a surface
 
     INPUT:
 
-    - ``data`` -- can be any of the following::
+    - ``data`` -- can be any of the following
 
         * List of triangles - must be the list of 3-tuples (i.e. edge
           labels of a triangle) from an ideal triangulation (see
@@ -36,21 +36,21 @@ class ClusterTriangulation(SageObject):
 
     .. TODO::
 
-    - ``data`` -- can also be any of the following::
+        - ``data`` -- can also be any of the following
 
-        * Matrix - a skew-symmetrizable matrix arising from a tagged
-          triangulation (todo: not yet implemented)
+            * Matrix - a skew-symmetrizable matrix arising from a tagged
+              triangulation (not yet implemented)
 
-        * DiGraph - must be the input data for a quiver from a tagged
-          triangulation (todo: not yet implemented)
+            * DiGraph - must be the input data for a quiver from a tagged
+              triangulation (not yet implemented)
 
-        * List of edges - must be the edge list of a digraph for a
-          quiver from a tagged triangulation (todo: not yet
-          implemented)
+            * List of edges - must be the edge list of a digraph for a
+              quiver from a tagged triangulation (not yet
+              implemented)
 
-        * Objects that Theodosios Douvropoulos is currently working
-          with (not related to cluster algebras from surfaces) (todo:
-          not yet implemented)
+            * Objects that Theodosios Douvropoulos is currently
+              working with (not related to cluster algebras from
+              surfaces) (not yet implemented)
 
     EXAMPLES:
 
@@ -71,7 +71,6 @@ class ClusterTriangulation(SageObject):
         sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=[])
         sage: ClusterSeed(T).mutation_type()
         ['D', 8]
-
 
     Figure 6 of [MW_MatrixFormulae]_ ::
 
@@ -147,7 +146,7 @@ class ClusterTriangulation(SageObject):
         [ ['D', 6], ['A', 5] ]
     """
     def __init__(self, data, boundary_edges=None):
-        """
+        r"""
         .. TODO::
 
             See my data for the TestSuite. Is this good enough?
@@ -210,7 +209,8 @@ class ClusterTriangulation(SageObject):
 
     def __eq__(self, other):
         r"""
-        Returns True iff ``self`` represent the same cluster triangulation as ``other``.
+        Return ``True`` iff ``self`` represent the same cluster triangulation
+        as ``other``.
 
         EXAMPLES::
 
@@ -351,7 +351,7 @@ class ClusterTriangulation(SageObject):
 
     def mutate(self, sequence, inplace=True, user_labels=True):
         """
-        Mutates ``self`` at a diagonal or a sequence of diagonals
+        Mutate ``self`` at a diagonal or a sequence of diagonals.
 
         See :meth:`ClusterSeed.mutate`
 
