@@ -1,3 +1,11 @@
+"""
+Shuffle operads
+
+REFERENCES:
+
+.. [DoKo] V. Dotsenko and A. Khoroshkin, Anton, *Gröbner bases for operads*.
+   Duke Math. J. 153 (2010), no. 2, 363–396.
+"""
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 
@@ -8,7 +16,6 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     Generators are given as a list of labelled ordered trees
     """
-
     def __init__(self, R, gens, order='pathlex'):
         """
         EXAMPLES::
@@ -30,7 +37,7 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         """
         ordering according to a term order
 
-        possible values so far:
+        possible values so far for order:
 
         - 'pathlex'
         """
@@ -42,11 +49,11 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         """
         term order according to Dotsenko-Koroshkin
 
-        first one compares the number of leaves
+        First one compares the number of leaves,
 
-        then one compares the words one by one in deglex order
+        then one compares the words one by one in deglex order,
 
-        then one compares the permutations in revlex order
+        then one compares the permutations in revlex order.
 
         EXAMPLES::
 
@@ -88,7 +95,7 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     def gens(self):
         """
-        Return the generators of the given free shuffle operad
+        Return the generators of the given free shuffle operad.
 
         EXAMPLES::
 
@@ -103,6 +110,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     def _repr_(self):
         """
+        Return the string representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
@@ -112,23 +121,37 @@ class FreeShuffleOperad(CombinatorialFreeModule):
             sage: FreeShuffleOperad(QQ,(g,))            # indirect doctest
             The Free shuffle operad over Rational Field with generators (a[1[], 2[]],)
         """
-        return "The Free shuffle operad over %s with generators " % (self.base_ring()) + str(self.gens())
+        msg = "The Free shuffle operad over {} with generators {}"
+        return msg.format(self.base_ring(), self.gens())
 
     def degree_on_basis(self, x):
+        """
+        Return the degree of a basis element ``x`` (a planar tree).
+
+        This is the number of leaves.
+
+        EXAMPLES::
+
+            sage: TODO
+        """
         return len(x.leaf_labels())
 
     def shuffle_composition_on_basis_as_tree(self, x, y, i, sigma):
-        """
-        Returns the shuffle composition x o_{i,sigma} y of two planar
+        r"""
+        Return the shuffle composition of two planar
         trees in the free shuffle operad as a planar tree.
+
+        The shuffle composition x o_{i,sigma} y depends on a position i and
+        a permutation sigma.
 
         INPUT:
 
-        - x and y are labeled ordered trees
+        - ``x`` and ``y`` are labeled ordered trees
 
-        - i is an integer between 1 and the number of leaves of x
+        - ``i`` is an integer between 1 and the number of leaves of ``x``
 
-        - sigma is a permutation that fixes 1,..,i and is a shuffle on the rest
+        - ``sigma`` is a permutation that fixes 1,..,i and is a shuffle on
+          the rest
 
         EXAMPLES::
 
@@ -164,11 +187,14 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     def graft(self, x, y, i):
         """
-        simple grafting of y on leaf i of x, in a recursive way
+        Return the simple grafting of ``y`` on leaf ``i`` of ``x``.
 
-        assumes that all leaves have distinct labels
+        This is done in a recursive way, and assumes that all leaves
+        have distinct labels.
 
         EXAMPLES::
+
+            sage: TODO
         """
         if x.node_number() == 1:
             return y
@@ -181,16 +207,19 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     def shuffle_composition_on_basis(self, x, y, i, sigma):
         """
-        This computes the shuffle composition x o_{i,sigma} y as a
-        planar tree, for planar trees x and y.
+        Return the shuffle composition of two planar
+        trees in the free shuffle operad.
+
+        The shuffle composition x o_{i,sigma} y depends on a position i and
+        a permutation sigma.
 
         INPUT:
 
-        - x and y are labeled ordered trees
+        - ``x`` and ``y`` are labeled ordered trees
 
-        - i is an integer between 1 and the number of leaves of x
+        - ``i`` is an integer between 1 and the number of leaves of x
 
-        - sigma is a permutation
+        - ``sigma`` is a permutation
 
         EXAMPLES::
 
@@ -215,7 +244,7 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
     def shuffle_composition(self):
         """
-        The composition of the free shuffle operad
+        Return the composition operation of the free shuffle operad.
 
         By default, this is implemented from
         :meth:`.shuffle_composition_on_basis`, if available.
@@ -240,5 +269,4 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         """
         if self.shuffle_composition_on_basis is not NotImplemented:
             return self._module_morphism(self._module_morphism(self.shuffle_composition_on_basis, position=0, codomain=self), position=1)
-        else:
-            return NotImplemented
+        return NotImplemented
