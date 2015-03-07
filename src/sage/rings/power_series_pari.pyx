@@ -372,7 +372,7 @@ cdef class PowerSeries_pari(PowerSeries):
         from sage.rings.laurent_series_ring import LaurentSeriesRing_generic
         if isinstance(Q, pAdicGeneric):
             # Substitution of p-adic numbers in power series is
-            # currently not implemented in PARI (2.5.5).
+            # currently not implemented in PARI (2.8.0-development).
             t = a.valuation()
             if t <= 0:
                 raise ValueError("can only substitute elements of positive valuation")
@@ -380,7 +380,7 @@ cdef class PowerSeries_pari(PowerSeries):
         elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing_generic)):
             # In Sage, we want an error to be raised when trying to
             # substitute a series of non-positive valuation, but PARI
-            # (as of version 2.7.1) does not do this.  For example,
+            # (2.8.0-development) does not do this.  For example,
             # subst(1 + O(x), x, 1/y) yields O(y^-1).
             if a.valuation() <= 0:
                 raise ValueError("can only substitute elements of positive valuation")
