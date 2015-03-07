@@ -4,8 +4,8 @@ Cluster Triangulations
 A *cluster triangulation* (see [FominShapiroThurston]_) is a subset of
 an ideal triangulation, i.e. a maximal collection of distinct
 non-crossing arcs. An ideal triangulation of a surface with marked
-points (S, M) is associated to a seed of a cluster algebra arising
-from (S, M).
+points `(S, M)` is associated to a seed of a cluster algebra arising
+from `(S, M)`.
 
 .. SEEALSO::
 
@@ -596,12 +596,12 @@ class ClusterTriangulation(SageObject):
             b6
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
-        return _get_weighted_edge(a,self._triangulation_dictionary)
+        return _get_weighted_edge(a, self._triangulation_dictionary)
 
-    def get_edge_position(self,a):
+    def get_edge_position(self, a):
         """
-        Return the position of the variable corresponding to the label (given by user)
-        of an arc or a boundary edge.
+        Return the position of the variable corresponding to the label
+        (given by user) of an arc or a boundary edge.
 
         .. SEEALSO::
 
@@ -624,8 +624,7 @@ class ClusterTriangulation(SageObject):
             return arcs.index(a)
         elif a in boundary_edges:
             return boundary_edges.index(a)
-        else:
-            raise ValueError(a, " is not a user-given label of an arc/boundary edge.")
+        raise ValueError(a, " is not a user-given label of an arc/boundary edge.")
 
     def get_edge_user_label(self,var):
         """
@@ -633,8 +632,9 @@ class ClusterTriangulation(SageObject):
         corresponding to a variable x_i or b_i (or a product x_i*x_j).
 
         INPUT:
+
         - ``var`` -- a variable or a product of two variables from
-            self.triangulation_dictionary()
+          self.triangulation_dictionary()
 
         EXAMPLES::
 
