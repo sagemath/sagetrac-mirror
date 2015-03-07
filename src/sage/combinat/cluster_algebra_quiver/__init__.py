@@ -7,4 +7,6 @@ Cluster Algebras and Quivers
 - :ref:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type`
 - :ref:`sage.combinat.cluster_algebra_quiver.quiver`
 - :ref:`sage.combinat.cluster_algebra_quiver.cluster_seed`
+- :ref:`sage.combinat.cluster_algebra_quiver.cluster_triangulation`
+- :ref:`sage.combinat.cluster_algebra_quiver.surface`
 """
