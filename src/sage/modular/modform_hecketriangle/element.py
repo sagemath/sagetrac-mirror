@@ -346,3 +346,22 @@ class FormsElement(FormsRingElement):
         L.rename("L-series associated to the {} form {}".format("cusp" if self.is_cuspidal() else "modular", self))
 
         return L
+
+    def rc(self, g, m=1):
+        r"""
+        Return [self,g]_m, the ``m``th Rankin Cohen bracket of ``self`` with ``g``.
+        See ``self.parent().rankin_cohen_bracket`` for more information.
+
+        EXAMPLES:
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: MF = ModularForms(n=4)
+            sage: f = MF.f_i()
+            sage: g = MF.f_inf()
+            sage: f.rc(g) == MF.rankin_cohen_bracket(f,g)
+            True
+            sage: f.rc(g, m=2) == MF.rankin_cohen_bracket(f,g,m=2)
+            True
+        """
+
+        return self.parent().rankin_cohen_bracket(f=self, g=g, m=m)

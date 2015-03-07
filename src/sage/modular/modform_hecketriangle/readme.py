@@ -975,6 +975,46 @@ Modular forms ring and spaces for Hecke triangle groups:
       True
 
 
+- **Rankin Cohen brackets:**
+  The Rankin Cohen bracket(s) of forms can be calculated.
+
+  EXAMPLES::
+
+      sage: from sage.modular.modform_hecketriangle.space import ModularForms
+      sage: MF = ModularForms()
+      sage: E2 = MF.E2()
+      sage: E4 = MF.E4()
+      sage: Delta = MF.Delta()
+
+      sage: el = E2.rc(Delta)
+      sage: el == MF.rankin_cohen_bracket(E2, Delta, m=1)
+      True
+      sage: el.parent()
+      QuasiModularForms(n=3, k=16, ep=1) over Integer Ring
+      sage: el == Delta * E4
+      True
+
+      sage: el.as_ring_element()
+      f_rho^4*d - f_rho*f_i^2*d
+      sage: (Delta*E4).as_ring_element()
+      f_rho^4*d - f_rho*f_i^2*d
+
+      sage: RC = MF.rankin_cohen_bracket(m=4)
+      sage: RC(E2, E2) == -48*Delta
+      True
+
+      sage: el = E4.rc(derivative(E4))
+      sage: el == 960*Delta
+      True
+
+      sage: K = E2.rc(Delta)
+      sage: el = K.rc(Delta).rc(Delta)
+      sage: el.parent()
+      ModularForms(n=3, k=44, ep=1) over Integer Ring
+      sage: el == 24*Delta*K^2
+      True
+
+
 - **Basis for weakly holomorphic modular forms and Faber polynomials:**
   (Natural) generators of weakly holomorphic modular forms can
   be obtained using the corresponding generalized Faber polynomials.
