@@ -127,7 +127,7 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
     - ``prec`` -- A non-negative integer.
 
     - ``reduce`` -- A boolean (default: ``False``).  If ``True``
-                    restrict to `0 \le r \le m`.
+      restrict to `0 \le r \le m`.
 
     OUTPUT:
 
@@ -185,7 +185,7 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     - `m` -- A non-negative integer.
 
     - ``prec`` -- A non-negative integer that corresponds to a precision of
-                       the q-expansion.
+      the q-expansion.
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
 
@@ -699,7 +699,7 @@ class ClassicalWeakJacobiForms_factory:
         - `k` -- An integer. The weight of the weak Jacobi form to be computed.
         
         - ``is_integral`` -- A boolean. If ``True``, the ``fs`` have integral
-                             coefficients.
+          coefficients.
 
         TESTS::
             

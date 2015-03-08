@@ -12,19 +12,19 @@ REFERENCE:
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2012-2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
@@ -55,7 +55,7 @@ def vector_valued_modular_forms(k, L, prec):
 
     - `k` -- An integer.
 
-    - `L` -- A quadratic form over `\Z`.
+    - `L` -- A quadratic form over `\ZZ`.
 
     - ``prec`` -- A nonnegative integer.
 
@@ -113,7 +113,7 @@ def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
 
     - `k` -- An integer.
 
-    - `L` -- A quadratic form over `\Z`.
+    - `L` -- A quadratic form over `\ZZ`.
 
     - ``order`` -- A positive integer, the maximal pole order at infinity.
 
@@ -150,7 +150,7 @@ def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
         raise NotImplementedError("Only integral orders allowed.")
     if order <= 0:
         raise ValueError("Order at infinity must be negative.")
-        
+
     vvforms = vector_valued_modular_forms(k + 12*order, L, prec + order)
 
     delta = CuspForms(1,12).gen(0).qexp(prec + 1 + order)
@@ -165,7 +165,7 @@ def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
 
             fe_shift = min(fe.keys())
             fe_shift_reduced = (fe_shift.numerator() % fe_shift.denominator()) / fe_shift.denominator()
-            
+
             fe_poly = R([fe[n + fe_shift_reduced]
                          for n in range(prec + order if fe_shift_reduced == 0 else prec + order - 1)])
 
@@ -183,26 +183,26 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
     Raises ``ValueError`` if no such form exits.
 
     INPUT:
-    
+
     - `k` -- A half-integral.
-    
-    - `L` -- A quadratic form over `\Z`.
+
+    - `L` -- A quadratic form over `\ZZ`.
 
     - ``principal_part`` -- A dictionary whose keys represent elements
                             of the discriminant group and whose values
                             are dictionaries corresponding to Fourier
                             expansions of a component.  E.g.
                             {(0,): {-2: 2, -1: 2}, (1,): {-1/4: 3}}
-    
+
     - ``prec`` -- A positive integer.
 
     OUTPUT:
 
     A dictionary of dictionaries that represents the Fourier expansion
     of a weakly holomorphic modular form.
-    
+
     EXAMPLES::
-    
+
         sage: from sage.modular.jacobi.all import *
         sage: k = -1
         sage: L = QuadraticForm(matrix(2, [2, 1, 1, 2]))
@@ -231,7 +231,7 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
     mu_module = L_span.ambient_module() / L_span
     mu_indices = dict([(mu,ix) for (ix,mu) in enumerate(mu_module)])
 
-    
+
     pp_matrix = zero_matrix(QQ, len(mu_indices)*order, len(vvforms))
     for (col,vvf) in enumerate(vvforms):
         for (mu,fe) in vvf.items():
@@ -257,7 +257,7 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
             if n < 0:
                 assert n+n_shift in ZZ
                 pp_vector[mu_ix*order - (n+n_shift)] = coeff
-    
+
     try :
         coords = pp_matrix.solve_right(pp_vector)
     except :
@@ -344,7 +344,7 @@ def _mul_scalar_vvform(c, f) :
 
         sage: from sage.modular.jacobi.vector_valued import _mul_scalar_vvform
         sage: _mul_scalar_vvform(5, {(0,1): {-1: 4, 0: 2}})
-        {(0, 1): {-1: 20, 0: 10}} 
+        {(0, 1): {-1: 20, 0: 10}}
     """
     res = {}
     for (mu,fe) in f.items():
@@ -363,7 +363,7 @@ def _add_vvforms(f, g, L_span) :
     - `g` -- A dictionary representing the Fourier expansion of a
              weakly holomorphic modular forms.
 
-    - ``L_span`` -- A module over `\Z`.
+    - ``L_span`` -- A module over `\ZZ`.
 
     OUTPUT:
 
@@ -405,7 +405,7 @@ def _sum_mul_vvforms(coefficients, vvforms, L_span):
     - `vvforms` -- A list of dictionaries representing the Fourier expansion of a
                    weakly holomorphic modular forms.
 
-    - ``L_span`` -- A module over `\Z`.
+    - ``L_span`` -- A module over `\ZZ`.
 
     OUTPUT:
 
@@ -440,14 +440,14 @@ def stably_equivalent_positive_definite_quadratic_form(L, split_off_E8 = False):
     - `L` -- A quadratic form.
 
     - ``split_off_E8``  -- If ``True``, then split off as many copies
-                           of E8 as possible.
+      of E8 as possible.
 
     EXAMPLES::
 
         sage: from sage.modular.jacobi.all import *
         sage: m = QuadraticForm(diagonal_matrix([-2]))
         sage: stably_equivalent_positive_definite_quadratic_form(m)
-        Quadratic form in 7 variables over Integer Ring with coefficients: 
+        Quadratic form in 7 variables over Integer Ring with coefficients:
         [ 1 -1 -1 -1 -1 -1 1 ]
         [ * 1 1 1 1 1 0 ]
         [ * * 1 0 1 1 0 ]
@@ -496,7 +496,7 @@ def _split_off_hyperbolic(L):
         sage: from sage.modular.jacobi.vector_valued import _split_off_hyperbolic
         sage: m = QuadraticForm(diagonal_matrix([-4, 2]))
         sage: _split_off_hyperbolic(m)
-        Quadratic form in 8 variables over Integer Ring with coefficients: 
+        Quadratic form in 8 variables over Integer Ring with coefficients:
         [ 30 0 -4 4 -8 0 0 0 ]
         [ * 1 0 0 0 0 0 0 ]
         [ * * 1 -1 0 0 0 0 ]
@@ -600,7 +600,7 @@ def _split_off_E8(L):
         sage: E8mat = matrix(ZZ, 8, [2,-1,0,0,0,0,0,0,  -1,2,-1,0,0,0,0,0,  0,-1,2,-1, 0,0,0,-1,  0,0,-1,2,-1,0,0,0,  0,0,0,-1,2,-1,0,0,  0,0,0,0,-1,2,-1,0,  0,0,0,0,0,-1,2,0,  0,0,-1,0,0,0,0,2])
         sage: L = QuadraticForm(E8mat.block_sum(matrix([[2]])))
         sage: _split_off_E8(L)
-        Quadratic form in 1 variables over Integer Ring with coefficients: 
+        Quadratic form in 1 variables over Integer Ring with coefficients:
         [ 1 ]
 
     TESTS:

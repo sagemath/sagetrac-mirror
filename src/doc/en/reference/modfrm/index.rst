@@ -1,6 +1,9 @@
 Modular Forms
 =============
 
+Classical modular forms
+-----------------------
+
 .. toctree::
    :maxdepth: 2
 
@@ -24,5 +27,16 @@ Modular Forms
    sage/modular/modform/half_integral
    sage/modular/modform/find_generators
 
+Jacobi forms
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/modular/jacobi/classical
+   sage/modular/jacobi/classical_weak
+   sage/modular/jacobi/higherrank
+   sage/modular/jacobi/higherrank_dimension
+   sage/modular/jacobi/vector_valued
 
 .. include:: ../footer.txt

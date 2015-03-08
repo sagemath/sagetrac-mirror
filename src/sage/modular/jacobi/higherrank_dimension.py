@@ -2,13 +2,13 @@ r"""
 A dimension formula for vector-valued modular forms, and functions
 that apply it to the case of Jacobi forms.
 
-..TODO:
+.. TODO::
 
-For Jacobi forms there is a much better way to implement this
-formula.  This is ongoing work by Ehlen et al.  Replace this code by
-his work as soon as possible.  However, for general vector valued
-modular forms with diagonizable representation matrix `\rho([1, 1; 0,
-1])`, it is necessary to keep this method.
+    For Jacobi forms there is a much better way to implement this
+    formula. This is ongoing work by Ehlen et al.  Replace this code by
+    his work as soon as possible.  However, for general vector valued
+    modular forms with diagonalizable representation matrix `\rho([1, 1; 0,
+    1])`, it is necessary to keep this method.
 
 AUTHOR:
 
@@ -76,7 +76,7 @@ def nmb_isotropic_vectors(k, L):
 
     - `k` -- A half-integer.
 
-    - `L` -- A quadratic form over `\Z`.
+    - `L` -- A quadratic form over `\ZZ`.
 
     OUTPUT:
 
@@ -114,7 +114,8 @@ def vector_valued_dimension(k, L):
     - ``L`` -- An quadratic form.
 
     OUTPUT:
-        An integer.
+
+    An integer.
 
     TESTS::
 
@@ -263,7 +264,7 @@ def _discriminant_form_pmone(L, discriminant_form_exponents):
 
     INPUT:
 
-    - `L` -- A quadratic form over `\Z`.
+    - `L` -- A quadratic form over `\ZZ`.
 
     - ``discriminant_form_exponents`` -- A list of positive integers
                                          that correspond to the
@@ -313,19 +314,21 @@ def _discriminant_form_pmone(L, discriminant_form_exponents):
 
     return (singls, pairs)
 
+
 def _weil_representation(CC, L, singls, pairs, plus_basis,
-                         discriminant_form_exponents, disc_quadratic, disc_bilinear):
+                         discriminant_form_exponents, disc_quadratic,
+                         disc_bilinear):
     r"""
     Construct the Weil representation with values in a complex field
     (or intervall field).
 
-    INPUT:n
+    INPUT:
 
     - ``CC`` -- A complex field, a complex interval field, or any
                 field that allows for conversion of symbolic
                 expressions.
 
-    - `L` -- A quadratic form over `\Z`.
+    - `L` -- A quadratic form over `\ZZ`.
 
     - ``singls`` -- A list of tuples of integers.  See meth:`_discriminant_form_pmone`.
 
@@ -409,16 +412,17 @@ def _qr(mat) :
       ArithmeticError if the precision is insufficient to compute the
       decomposition.
 
-    NOTE:
+    .. NOTE::
 
-    This is an adoption of the implementation in mpmath by Andreas Strombergson.
+        This is an adoption of the implementation in mpmath by Andreas
+        Strombergson.
 
-    ..TODO:
+    .. TODO::
 
-    Naturally, this is a stub implementation.  It belongs into the
-    corresponding matrix class, but for the infrastructure of the
-    matrix class seems a bit too obscrure to me.  Can an expert help?
-    Ask Rob Beezer?
+        Naturally, this is a stub implementation.  It belongs into the
+        corresponding matrix class, but for the infrastructure of the
+        matrix class seems a bit too obscrure to me.  Can an expert help?
+        Ask Rob Beezer?
 
     EXAMPLES::
 

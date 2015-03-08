@@ -85,7 +85,7 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
     - ``prec`` -- A non-negative integer.
 
     - ``reduce`` -- A boolean (default: ``False``).  If ``True``
-                    restrict to `0 \le r \le m`.
+      restrict to `0 \le r \le m`.
 
     OUTPUT:
 
@@ -183,16 +183,16 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
     - `m` -- A non-negative integer.
 
     - ``prec`` -- A non-negative integer that corresponds to a
-                  precision of the `q`-expansion.
+      precision of the `q`-expansion.
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is
-                       implemented.
+      implemented.
 
     OUTPUT:
 
     A list of dictionaries, mapping indices `(n,r)` to rationals.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.modular.jacobi.classical import *
         sage: k = 4; m = 2; prec = 5
