@@ -97,9 +97,10 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
         sage: list(classical_jacobi_fe_indices(2, 3, True))
         [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (0, 0)]
         sage: list(classical_jacobi_fe_indices(2, 3, False))
-        [(1, 0), (1, 1), (1, -1), (1, 2), (1, -2), (2, 0), (2, 1), (2, -1), (2, 2), (2, -2), (2, 3), (2, -3), (0, 0), (2, 4), (2, -4)]
+        [(1, 0), (1, 1), (1, -1), (1, 2), (1, -2), (2, 0), (2, 1), (2, -1),
+        (2, 2), (2, -2), (2, 3), (2, -3), (0, 0), (2, 4), (2, -4)]
     """
-    fm = Integer(4*m)
+    fm = Integer(4 * m)
 
     if reduced :
         # positive definite forms

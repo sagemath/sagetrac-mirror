@@ -62,7 +62,7 @@ def vector_valued_modular_forms(k, L, prec):
     OUTPUT:
 
     A list of dictionaries that encode the Fourier coefficients of
-    vector valued modular forms.  See `meth:theta_decomposition` for a
+    vector valued modular forms. See :meth:`theta_decomposition` for a
     description of these expansions.
 
     EXAMPLES::
@@ -176,23 +176,23 @@ def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
 
     return wvvforms
 
-def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, principal_part, prec ) :
+def vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, principal_part, prec):
     r"""
     Return a weak holomorphic vector valued modular form with given principal part.
 
-    Raises ``ValueError`` if no such form exits.
+    Raises ``ValueError`` if no such form exists.
 
     INPUT:
 
-    - `k` -- A half-integral.
+    - `k` -- A half-integer.
 
     - `L` -- A quadratic form over `\ZZ`.
 
     - ``principal_part`` -- A dictionary whose keys represent elements
-                            of the discriminant group and whose values
-                            are dictionaries corresponding to Fourier
-                            expansions of a component.  E.g.
-                            {(0,): {-2: 2, -1: 2}, (1,): {-1/4: 3}}
+      of the discriminant group and whose values
+      are dictionaries corresponding to Fourier
+      expansions of a component.  E.g.
+      {(0,): {-2: 2, -1: 2}, (1,): {-1/4: 3}}
 
     - ``prec`` -- A positive integer.
 
@@ -273,7 +273,7 @@ def theta_decomposition(phi, m, r_classes):
     INPUT:
 
     - ``phi`` -- A dictionary representing the Fourier expansion of a
-                 Jacobi form.
+      Jacobi form.
 
     - `m` -- A quadratic form over `m`.
 

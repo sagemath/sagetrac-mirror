@@ -435,7 +435,7 @@ class ClassicalWeakJacobiForms_factory:
         
         INPUT:
         
-        - ``wronskian_adjoint`` -- A list of lists of power series over `\Z`.
+        - ``wronskian_adjoint`` -- A list of lists of power series over `\ZZ`.
         
         - ``weight_parity`` -- An integer (default: `0`).
 
@@ -460,7 +460,7 @@ class ClassicalWeakJacobiForms_factory:
     
     def _wronskian_adjoint(self, weight_parity = 0) :
         r"""
-        The matrix `W^\# \pmod{p}`, mentioned on page 142 of [Sk84].
+        The matrix `W^\# \pmod{p}`, mentioned on page 142 of [Sk84]_.
         This matrix is represented by a list of lists of q-expansions.
         
         The q-expansion is shifted by `-(m + 1) (2*m + 1) / 24` in the
@@ -613,7 +613,7 @@ class ClassicalWeakJacobiForms_factory:
         INPUT:
         
         - ``wronskian_invdeterminant`` -- A power series over `\ZZ`.
-        
+       
         - ``weight_parity`` -- An integer (default: `0`).
 
         TESTS::
@@ -635,7 +635,7 @@ class ClassicalWeakJacobiForms_factory:
     def _wronskian_invdeterminant(self, weight_parity = 0) :
         r"""
         The inverse determinant of `W`, which in the considered cases
-        is always a negative power of the eta function. See [Sk84] for details.
+        is always a negative power of the eta function. See [Sk84]_ for details.
         
         INPUT:
         
@@ -684,7 +684,7 @@ class ClassicalWeakJacobiForms_factory:
         ALGORITHM:
 
         We combine the theta decomposition and the heat operator as in
-        [Sk84]. This yields a bijections of the space of weak Jacobi
+        [Sk84]_. This yields a bijections of the space of weak Jacobi
         forms of weight `k` and index `m` with the product of spaces
         of elliptic modular forms `M_k \times S_{k+2} \times .. \times
         S_{k+2m}`.
@@ -692,9 +692,9 @@ class ClassicalWeakJacobiForms_factory:
         INPUT:
         
         - ``fs`` -- A list of functions that given an integer `p` return the
-                    q-expansion of a modular form with rational coefficients
-                    up to precision `p`.  These modular forms correspond to
-                    the components of the above product.
+          q-expansion of a modular form with rational coefficients
+          up to precision `p`.  These modular forms correspond to
+          the components of the above product.
         
         - `k` -- An integer. The weight of the weak Jacobi form to be computed.
         

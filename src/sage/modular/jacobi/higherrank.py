@@ -121,7 +121,7 @@ def higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span):
 
     - ``r_classes`` -- A list of lists of vectors.
 
-    - `m_adj` -- A quadratic form over `\ZZ`.
+    - ``m_adj`` -- A quadratic form over `\ZZ`.
 
     - ``m_span`` -- The row (or column) span `m`.
 
@@ -216,7 +216,7 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
 
     OUTPUT:
 
-    - A generator of pairs `(n, r)`, where `n` is an integer and `r` is a tupel.
+    - A generator of pairs `(n, r)`, where `n` is an integer and `r` is a tuple.
 
     EXAMPLES::
 
@@ -337,7 +337,7 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
     ALGORITHM:
 
-    See [Ra]. The algorithm in [Ra] is applied for precision
+    See [Ra]_. The algorithm in [Ra]_ is applied for precision
     ``relation_prec``.  After this, the remaining Fourier coefficients
     are determined using as few restrictions as possible.
 
@@ -354,7 +354,7 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
     OUTPUT:
 
     A list of dictionaries, which describes the Fourier expansion of
-    Jaocib forms.
+    Jacobi forms.
 
     EXAMPLES::
 

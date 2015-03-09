@@ -6,7 +6,7 @@ that apply it to the case of Jacobi forms.
 
     For Jacobi forms there is a much better way to implement this
     formula. This is ongoing work by Ehlen et al.  Replace this code by
-    his work as soon as possible.  However, for general vector valued
+    his work as soon as possible. However, for general vector valued
     modular forms with diagonalizable representation matrix `\rho([1, 1; 0,
     1])`, it is necessary to keep this method.
 
@@ -52,13 +52,14 @@ def jacobi_dimension(k, m):
     
     - `k` -- An integer.
     
-    - `m` -- A quadratic form or an even symmetric matrix (over `\Z`).
+    - `m` -- A quadratic form or an even symmetric matrix (over `\ZZ`).
     
     TESTS::
     
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
         sage: from sage.modular.jacobi.higherrank_dimension import jacobi_dimension
-        sage: assert all( len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, matrix([[2 * m]])) for k in range(8, 16) for m in range(1, 10) ) # long time
+        sage: all(len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, matrix([[2 * m]])) for k in range(8, 16) for m in range(1, 10) ) # long time
+        True
     """
     from sage.matrix.matrix import is_Matrix
 
@@ -66,6 +67,7 @@ def jacobi_dimension(k, m):
         return vector_valued_dimension(k - ZZ(m.ncols()) / 2, QuadraticForm(-m))
     else:
         return vector_valued_dimension(k - ZZ(m.dim()) / 2, m.scale_by_factor(-1))
+
 
 def nmb_isotropic_vectors(k, L):
     r"""
@@ -97,6 +99,7 @@ def nmb_isotropic_vectors(k, L):
 
     return len([a for a in (singls + pairs if plus_basis else pairs)
                 if disc_quadratic(*a) in ZZ])
+
 
 def vector_valued_dimension(k, L):
     r"""
