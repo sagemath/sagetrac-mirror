@@ -248,7 +248,7 @@ def prm_mul(p1, p2, mask_free, prec):
                 p[exp] += v
     return p
 
-def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
+def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None, algorithm="bipartite"):
     r"""
     Return the polynomial of the sums of permanental minors of ``A``.
 
@@ -262,6 +262,9 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
 
     - `prec` -- if prec is not None, truncate the polynomial at precision `prec`
 
+    - `algorithm` -- by default the "bipartite" algorithm; the "matching"
+      is faster for shuffled band matrices
+
 
     The polynomial of the sums of permanental minors is
 
@@ -274,7 +277,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     :meth:`~sage.matrix.matrix2.Matrix.permanental_minor` via
     ``A.permanental_minor(i)``).
 
-    The algorithm implemented by that function has been developed by P. Butera
+    The algorithms implemented by that function have been developed by P. Butera
     and M. Pernici, see [ButPer]. Its complexity is `O(2^n m^2 n)` where `m` and
     `n` are the number of rows and columns of `A`.  Moreover, if `A` is a banded
     matrix with width `w`, that is `A_{ij}=0` for `|i - j| > w` and `w < n/2`,
@@ -295,9 +298,13 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         sage: m = matrix([[1,1],[1,2]])
         sage: permanental_minor_polynomial(m)
         3*t^2 + 5*t + 1
+        sage: permanental_minor_polynomial(m, algorithm="matching")
+        3*t^2 + 5*t + 1
         sage: permanental_minor_polynomial(m, permanent_only=True)
         3
         sage: permanental_minor_polynomial(m, prec=2)
+        5*t + 1
+        sage: permanental_minor_polynomial(m, prec=2, algorithm='matching')
         5*t + 1
 
     ::
@@ -313,14 +320,14 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
 
         sage: M = MatrixSpace(QQ,2,2)
         sage: A = M([1/5,2/7,3/2,4/5])
-        sage: permanental_minor_polynomial(A, True)
+        sage: permanental_minor_polynomial(A, permanent_only=True)
         103/175
 
     An example with polynomial coefficients::
 
         sage: R.<a> = PolynomialRing(ZZ)
         sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
-        sage: permanental_minor_polynomial(A, True)
+        sage: permanental_minor_polynomial(A, permanent_only=True)
         a^2 + 2*a
 
     A usage of the ``var`` argument::
@@ -329,8 +336,31 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         sage: permanental_minor_polynomial(m, var='x')
         164*x^4 + 384*x^3 + 172*x^2 + 24*x + 1
 
+    An example with a matrix which can be reduced to band form::
+
+        sage: n, w = 20, 3
+        sage: m = matrix([[i*j + 1 if abs(i-j) <= w else 0 for i in range(n)] for j in range(n)])
+        sage: a = list(m); shuffle(a); b = zip(*a); shuffle(b); m1 = matrix(b)
+        sage: p = permanental_minor_polynomial(m)
+        sage: p1 = permanental_minor_polynomial(m1, algorithm='matching')
+        sage: assert p == p1
+
+    TESTS::
+
+        sage: R.<a> = PolynomialRing(ZZ)
+        sage: A = MatrixSpace(R,3)([[a^2,1,a],[1,2,a], [a,a+1,2*a]])
+        sage: p = permanental_minor_polynomial(A)
+        sage: p1 = permanental_minor_polynomial(A, algorithm='matching')
+        sage: assert p == p1
+        sage: m = matrix(ZZ,4,[1,2,3,4,2,3,4,1,3,4,1,2,4,1,2,3])
+        sage: permanental_minor_polynomial(m, var='x')
+        1060*x^4 + 1600*x^3 + 460*x^2 + 40*x + 1
+        sage: permanental_minor_polynomial(m, var='x', algorithm='matching')
+        1060*x^4 + 1600*x^3 + 460*x^2 + 40*x + 1
+
     ALGORITHM:
 
+        Let us describe the "bipartite" algorithm.
         The permanent `perm(A)` of a `n \times n` matrix `A` is the coefficient
         of the `x_1 x_2 \ldots x_n` monomial in
 
@@ -436,6 +466,10 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         In particular all operations on monomials are implemented via bitwise
         operations on the keys.
 
+        The "matching" algorithm is described in
+        :meth:`~sage.graphs.matchpoly.matching_generating_poly`;
+        it uses also the ring `K` described above.
+
     REFERENCES:
 
     .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
@@ -448,43 +482,68 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         if prec == 0:
             raise ValueError('the argument `prec` must be a positive integer')
 
-    K = PolynomialRing(A.base_ring(), var)
-    nrows = A.nrows()
-    ncols = A.ncols()
-    A = A.rows()
-    p = {0: K.one()}
-    t = K.gen()
-    vars_to_do = range(ncols)
-    for i in range(nrows):
-        # build the polynomial p1 = 1 + t sum A_{ij} eta_j
-        if permanent_only:
-            p1 = {}
-        else:
-            p1 = {0: K.one()}
-        a = A[i]   # the i-th row of A
-        for j in range(len(a)):
-            if a[j]:
-                p1[1<<j] = a[j] * t
-
-        # make the product with the preceding polynomials, taking care of
-        # variables that can be integrated
-        mask_free = 0
-        j = 0
-        while j < len(vars_to_do):
-            jj = vars_to_do[j]
-            if all(A[k][jj] == 0 for k in range(i+1, nrows)):
-                mask_free += 1 << jj
-                vars_to_do.remove(jj)
+    if algorithm == "bipartite":
+        K = PolynomialRing(A.base_ring(), var)
+        nrows = A.nrows()
+        ncols = A.ncols()
+        A = A.rows()
+        p = {0: K.one()}
+        t = K.gen()
+        vars_to_do = range(ncols)
+        for i in range(nrows):
+            # build the polynomial p1 = 1 + t sum A_{ij} eta_j
+            if permanent_only:
+                p1 = {}
             else:
-                j += 1
-        p = prm_mul(p, p1, mask_free, prec)
+                p1 = {0: K.one()}
+            a = A[i]   # the i-th row of A
+            for j in range(len(a)):
+                if a[j]:
+                    p1[1<<j] = a[j] * t
 
-    if not p:
-        return K.zero()
+            # make the product with the preceding polynomials, taking care of
+            # variables that can be integrated
+            mask_free = 0
+            j = 0
+            while j < len(vars_to_do):
+                jj = vars_to_do[j]
+                if all(A[k][jj] == 0 for k in range(i+1, nrows)):
+                    mask_free += 1 << jj
+                    vars_to_do.remove(jj)
+                else:
+                    j += 1
+            p = prm_mul(p, p1, mask_free, prec)
 
-    if len(p) != 1 or 0 not in p:
-        raise RuntimeError("Something is wrong! Certainly a problem in the"
-                           " algorithm... please contact sage-devel@googlegroups.com")
+        if not p:
+            return K.zero()
 
-    p = p[0]
-    return p[min(nrows,ncols)] if permanent_only else p
+        if len(p) != 1 or 0 not in p:
+            raise RuntimeError("Something is wrong! Certainly a problem in the"
+                               " algorithm... please contact sage-devel@googlegroups.com")
+
+        p = p[0]
+        return p[min(nrows,ncols)] if permanent_only else p
+    elif algorithm == "matching":
+        from sage.graphs.graph import Graph
+        from sage.graphs.matchpoly import matching_generating_poly
+        g = Graph()
+        nrows = A.nrows()
+        for i in range(nrows):
+            for j in range(A.ncols()):
+                v = A[i,j]
+                if v:
+                    g.add_edge((i, j + nrows, v))
+        if not var:
+            var = 't'
+        p = matching_generating_poly(g, labels=True)
+        if var != 'x':
+            if not var:
+                var = 't'
+            p = p.change_variable_name(var)
+        if prec:
+            p = p.truncate(prec)
+        if permanent_only:
+            return p[nrows]
+        return p
+    else:
+        raise ValueError('algorithm must be one of "bipartite" or "matching".')

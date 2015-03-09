@@ -235,22 +235,22 @@ def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'
             f += complete_poly(j) * f_comp[j] * (-1)**i
         return f
 
+    nedges = G.num_edges()
+
+    # Relabelling the vertices of the graph as [0...n-1] so that they are sorted
+    # in increasing order of degree
+
+    L = []
+    for v, d in G.degree_iterator(labels=True):
+        L.append((d, v))
+    L.sort()
+    d = {}
+    for i from 0 <= i < nverts:
+        d[L[i][1]] = i
+    G = G.relabel(d, inplace=False)
+    G.allow_loops(False)
+
     if algorithm == 'Godsil':
-        nedges = G.num_edges()
-
-        # Relabelling the vertices of the graph as [0...n-1] so that they are sorted
-        # in increasing order of degree
-
-        L = []
-        for v, d in G.degree_iterator(labels=True):
-            L.append((d, v))
-        L.sort()
-        d = {}
-        for i from 0 <= i < nverts:
-            d[L[i][1]] = i
-        G = G.relabel(d, inplace=False)
-        G.allow_loops(False)
-
         # Initialization of pol, edges* variables.
 
         # The edges_mem table is of size (2 * nedges * nedges), and is to be read as
@@ -483,9 +483,10 @@ class Hobj(object):
             sage: from sage.graphs.matchpoly import Hobj
             sage: p = {0: 1}
             sage: hb = Hobj()
-            sage: p = hb.iadd_object(p, 1, (0, 1), []); p
+            sage: x = polygen(ZZ, 'x')
+            sage: p = hb.iadd_object(p, x, (0, 1), []); p
             {0: 1, 3: x}
-            sage: p = hb.iadd_object(p, 1, (1, 2), [1]); p
+            sage: p = hb.iadd_object(p, x, (1, 2), [1]); p
             {0: 1, 1: x, 4: x}
 
         """
@@ -509,7 +510,7 @@ class Hobj(object):
         if t in links:
             raise ValueError('%s in %s' %(t, links))
         links.append(t)
-        valx = x*val
+        #valx = x*val
         if free:
             p1 = p
             p = {}
@@ -519,7 +520,6 @@ class Hobj(object):
             for i in free:
                 mask_free += 1 << i
             get = p.get
-            a = [1, (val, exp2)]
             for exp1, v1 in p1.iteritems():
                 # multiply by 1 + t*val*prod_i eta_i
                 for ii in range(2):
@@ -530,7 +530,7 @@ class Hobj(object):
                         if exp1 & exp2:
                             continue
                         exp = exp1 | exp2
-                        v = v1*valx
+                        v = v1*val
                     # eliminate the free elements from exp
                     if exp & mask_free:
                         for i in free:
@@ -548,7 +548,7 @@ class Hobj(object):
                 if exp1 & exp2:
                     continue
                 exp = exp1 | exp2
-                v = v1*valx
+                v = v1*val
                 try:
                     p[exp] = p[exp] + v
                 except KeyError:
@@ -644,20 +644,24 @@ def gen_count_hobj(objects, values=None):
         obj1 = tuple(dt[i] for i in obj)
         links.append(obj1)
     objects = links
-
     # add to each object the list of free indices
     obfr = obj_free(objects)
     hb = Hobj()
-    p = {0: 1}
+    if values:
+        K = values.values()[0].parent()
+    else:
+        K = ZZ
+    x = polygen(K, 'x')
+    p = {0: K.one()}
     if not values:
         for obj, free in obfr:
-            p = hb.iadd_object(p, 1, obj, free)
+            p = hb.iadd_object(p, x, obj, free)
     else:
         di = {}
         for k, v in dt.items():
             di[v] = k
         for obj, free in obfr:
-            p = hb.iadd_object(p, values[(di[obj[0]], di[obj[1]])], obj, free)
+            p = hb.iadd_object(p, x*values[(di[obj[0]], di[obj[1]])], obj, free)
 
     assert len(p) == 1
     return p[0]
@@ -670,7 +674,7 @@ def matching_generating_poly(g, links=None, labels=None):
 
     - ``g`` - graph
     - ``links`` - list of the edges of the graph
-    - ``labels`` - flag for computing `M` gor the weighted graph.
+    - ``labels`` - flag for computing `M` for the weighted graph.
 
     The matching generating polynomial of a simple graph is given by
 
@@ -686,6 +690,7 @@ def matching_generating_poly(g, links=None, labels=None):
 
     ALGORITHM:
 
+        The algorithm is described in [ButPer].
         Consider the algebra `R = K[\eta_1, \eta_2, \ldots, \eta_n]`
         where the `\eta_i` are commuting, nilpotent of order `2`
         (i.e. `\eta_i^2 = 0`), and where `n` is the order of the graph `G`.
@@ -745,6 +750,10 @@ def matching_generating_poly(g, links=None, labels=None):
         sage: g = Graph({0:[1,4], 1:[0,2], 2:[1,3], 3:[2,4], 4:[0,3]})
         sage: matching_generating_poly(g)
         5*x^2 + 5*x + 1
+        sage: g = Graph()
+        sage: g.add_edges([(0,2,1),(0,3,2),(1,2,3),(1,3,4)])
+        sage: matching_generating_poly(g, labels=True)
+        10*x^2 + 10*x + 1
     """
     from sage.graphs.graph_decompositions.active_nodes import ordered_links, _d_relabel
     d = g.to_dictionary()
@@ -765,7 +774,6 @@ def matching_generating_poly(g, links=None, labels=None):
     num_edges = sum([len(v) for v in d.values()]) // 2
     if num_edges != len(ord_links):
         raise ValueError('wrong number of links')
-
 
     if not labels:
         p = gen_count_hobj(ord_links)
