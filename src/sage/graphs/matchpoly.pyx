@@ -11,6 +11,8 @@ This module contains the following methods:
     :meth:`matching_polynomial` | Computes the matching polynomial of a given graph
     :meth:`complete_poly` | Compute the matching polynomial of the complete graph on `n` vertices.
 
+    :meth:`matching_generating_poly` | Computes the matching generating polynomial
+
 AUTHORS:
 
 - Robert Miller, Tom Boothby - original implementation
@@ -45,7 +47,7 @@ from sage.libs.flint.fmpz_poly cimport *
 x = polygen(ZZ, 'x')
 
 
-def matching_polynomial(G, complement=True, name=None):
+def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'):
     """
     Computes the matching polynomial of the graph `G`.
 
@@ -74,7 +76,7 @@ def matching_polynomial(G, complement=True, name=None):
 
     ALGORITHM:
 
-    The algorithm used is a recursive one, based on the following observation
+    The `Godsil` algorithm used is a recursive one, based on the following observation
     [Godsil93]_:
 
     - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`, and
@@ -95,6 +97,10 @@ def matching_polynomial(G, complement=True, name=None):
 
     Where `\overline{G}` is the complement of `G`, and `K_n` the complete graph
     on `n` vertices.
+
+    The `ButeraPernici` algorithm is faster on large graphs; for a
+    description of the algorithm see :meth:`matching_generating_poly`
+
 
     EXAMPLES::
 
@@ -197,11 +203,11 @@ def matching_polynomial(G, complement=True, name=None):
         x^12 - 66*x^10 + 1485*x^8 - 13860*x^6 + 51975*x^4 - 62370*x^2 + 10395
         sage: matching_polynomial(graphs.CompleteGraph(13), complement=False)
         x^13 - 78*x^11 + 2145*x^9 - 25740*x^7 + 135135*x^5 - 270270*x^3 + 135135*x
-        
+
     TESTS:
-    
-    Non-integer labels should work, (:trac:`15545`):: 
-    
+
+    Non-integer labels should work, (:trac:`15545`)::
+
         sage: G = Graph(10);
         sage: G.add_vertex((0,1))
         sage: G.add_vertex('X')
@@ -212,6 +218,7 @@ def matching_polynomial(G, complement=True, name=None):
     cdef int nverts, nedges, i, j, cur
     cdef int *edges1, *edges2, *edges_mem, **edges
     cdef fmpz_poly_t pol
+    cdef Integer c_ZZ
 
     if G.has_multiple_edges():
         raise NotImplementedError
@@ -228,75 +235,93 @@ def matching_polynomial(G, complement=True, name=None):
             f += complete_poly(j) * f_comp[j] * (-1)**i
         return f
 
-    nedges = G.num_edges()
+    if algorithm == 'Godsil':
+        nedges = G.num_edges()
 
-    # Relabelling the vertices of the graph as [0...n-1] so that they are sorted
-    # in increasing order of degree
+        # Relabelling the vertices of the graph as [0...n-1] so that they are sorted
+        # in increasing order of degree
 
-    L = []
-    for v, d in G.degree_iterator(labels=True):
-        L.append((d, v))
-    L.sort()
-    d = {}
-    for i from 0 <= i < nverts:
-        d[L[i][1]] = i
-    G = G.relabel(d, inplace=False)
-    G.allow_loops(False)
+        L = []
+        for v, d in G.degree_iterator(labels=True):
+            L.append((d, v))
+        L.sort()
+        d = {}
+        for i from 0 <= i < nverts:
+            d[L[i][1]] = i
+        G = G.relabel(d, inplace=False)
+        G.allow_loops(False)
 
-    # Initialization of pol, edges* variables.
+        # Initialization of pol, edges* variables.
 
-    # The edges_mem table is of size (2 * nedges * nedges), and is to be read as
-    # nedges blocks of size (2 * nedges). These blocks of size (2 * nedges) are
-    # themselves to be read as two blocks of length nedges, addressed as edges1
-    # and edges2
+        # The edges_mem table is of size (2 * nedges * nedges), and is to be read as
+        # nedges blocks of size (2 * nedges). These blocks of size (2 * nedges) are
+        # themselves to be read as two blocks of length nedges, addressed as edges1
+        # and edges2
 
-    # Only the first block of size (2*nedges) is here filled. The function
-    # delete_and_add will need the rest of the memory.
+        # Only the first block of size (2*nedges) is here filled. The function
+        # delete_and_add will need the rest of the memory.
 
-    fmpz_poly_init(pol)  # sets to zero
-    edges_mem = <int *> sage_malloc(2 * nedges * nedges * sizeof(int))
-    edges = <int **> sage_malloc(2 * nedges * sizeof(int *))
-    if edges_mem is NULL or edges is NULL:
-        if edges_mem is not NULL:
-            sage_free(edges_mem)
-        if edges is not NULL:
-            sage_free(edges)
-        raise MemoryError("Error allocating memory for matchpoly.")
+        fmpz_poly_init(pol)  # sets to zero
+        edges_mem = <int *> sage_malloc(2 * nedges * nedges * sizeof(int))
+        edges = <int **> sage_malloc(2 * nedges * sizeof(int *))
+        if edges_mem is NULL or edges is NULL:
+            if edges_mem is not NULL:
+                sage_free(edges_mem)
+            if edges is not NULL:
+                sage_free(edges)
+            raise MemoryError("Error allocating memory for matchpoly.")
 
-    for i from 0 <= i < 2 * nedges:
-        edges[i] = edges_mem + i * nedges
+        for i from 0 <= i < 2 * nedges:
+            edges[i] = edges_mem + i * nedges
 
-    edges1 = edges[0]
-    edges2 = edges[1]
+        edges1 = edges[0]
+        edges2 = edges[1]
 
-    cur = 0
-    for i, j in sorted(map(sorted, G.edges(labels=False))):
-        edges1[cur] = i
-        edges2[cur] = j
-        cur += 1
+        cur = 0
+        for i, j in sorted(map(sorted, G.edges(labels=False))):
+            edges1[cur] = i
+            edges2[cur] = j
+            cur += 1
 
-    # Computing the signless matching polynomial
+        # Computing the signless matching polynomial
 
-    sig_on()
-    delete_and_add(edges, nverts, nedges, nverts, 0, pol)
-    sig_off()
+        sig_on()
+        delete_and_add(edges, nverts, nedges, nverts, 0, pol)
+        sig_off()
+        # Building the actual matching polynomial
 
-    # Building the actual matching polynomial
+        coeffs_ZZ = []
+        for i from 0 <= i <= nverts:
+            c_ZZ = Integer(0)
+            fmpz_poly_get_coeff_mpz(c_ZZ.value, pol, i)
+            coeffs_ZZ.append(c_ZZ * (-1)**((nverts - i) / 2))
 
-    coeffs_ZZ = []
-    cdef Integer c_ZZ
-    for i from 0 <= i <= nverts:
-        c_ZZ = Integer(0)
-        fmpz_poly_get_coeff_mpz(c_ZZ.value, pol, i)
-        coeffs_ZZ.append(c_ZZ * (-1)**((nverts - i) / 2))
+        f = x.parent()(coeffs_ZZ)
+        sage_free(edges_mem)
+        sage_free(edges)
+        fmpz_poly_clear(pol)
+        if name is not None:
+            return f.change_variable_name(name)
+        return f
+    elif algorithm == 'ButeraPernici':
+        p = matching_generating_poly(G)
+        a = p.coefficients()
+        n = G.order()
+        b = [0]*(n + 1)
+        for i in range(len(a)):
+            b[n - 2*i] = a[i]*(-1)**i
+        if name is None:
+            K = x.parent()
+        else:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            K = PolynomialRing(ZZ, name)
+        p = K(b)
+        return p
+    else:
+        raise ValueError('algorithm must be one of "Godsil" or "ButeraPernici".')
 
-    f = x.parent()(coeffs_ZZ)
-    sage_free(edges_mem)
-    sage_free(edges)
-    fmpz_poly_clear(pol)
-    if name is not None:
-        return f.change_variable_name(name)
-    return f
+
+
 
 # The following is a cache of complete graph matching polynomials.
 
@@ -414,3 +439,341 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
 
     delete_and_add(edges, nverts - 2, new_nedges, totverts, depth + 1, pol)
     delete_and_add(edges, nverts, nedges, totverts, depth, pol)
+
+class Hobj(object):
+    """
+    class used to compute products of nilpotent quantities associated
+    to hard objects, like non-adjacent edges or non-adjacent vertices,
+    used respectively to compute the matching and the independence
+    polynomial.
+    """
+    def __init__(self):
+        self.links = []
+        self.dt = {}
+        self.freedt = list(range(1000, -1, -1))
+
+    def iadd_object(hb, p, val, obj, free):
+        """
+        Multiply ``p`` by ``(1 + t*val*eta_i*eta_j)``, for `obj=(i,j)`.
+
+        INPUT:
+            - ``p`` - polynomial
+
+            - ``val`` - value
+
+            - ``obj`` - a tuple of object labels
+
+            - ``free`` - list of free indices
+
+        ..NOTE::
+
+            ``p`` is changed only if ``free`` is empty
+
+            ``free`` is the list of indices of ``eta`` elements which
+            are integrated (that is, put to ``1`` after performing the product).
+
+            For example let `p = 1 + eta_0*eta_1`; multiply it by
+            `1 + t*eta_1*eta_2`, knowing that after performing the product
+            `eta_1` can be set to `1`, then
+            p*(1 + t*eta_1*eta_2) = 1 + t*eta_0 + t*eta_2
+            `val = `; obj = (1, 2); free = [1];
+
+        EXAMPLES::
+
+            sage: from sage.graphs.matchpoly import Hobj
+            sage: p = {0: 1}
+            sage: hb = Hobj()
+            sage: p = hb.iadd_object(p, 1, (0, 1), []); p
+            {0: 1, 3: x}
+            sage: p = hb.iadd_object(p, 1, (1, 2), [1]); p
+            {0: 1, 1: x, 4: x}
+
+        """
+        links = hb.links
+        dt = hb.dt
+        freedt = hb.freedt
+        exp2 = 0
+        # if an element is already present, get its pointer;
+        # else assign it a new pointer from freedt.
+        # Encode in binary the object
+        for i in obj:
+            if i in dt:
+                j = dt[i]
+            else:
+                j = freedt.pop()
+                dt[i] = j
+            exp2 += 1 << j
+        free = [dt[i] for i in free]
+        # check that the object is not considered twice; save it in links
+        t = tuple(sorted(obj))
+        if t in links:
+            raise ValueError('%s in %s' %(t, links))
+        links.append(t)
+        valx = x*val
+        if free:
+            p1 = p
+            p = {}
+
+            # encode free in binary
+            mask_free = 0
+            for i in free:
+                mask_free += 1 << i
+            get = p.get
+            a = [1, (val, exp2)]
+            for exp1, v1 in p1.iteritems():
+                # multiply by 1 + t*val*prod_i eta_i
+                for ii in range(2):
+                    if not ii:
+                        exp = exp1
+                        v = v1
+                    else:
+                        if exp1 & exp2:
+                            continue
+                        exp = exp1 | exp2
+                        v = v1*valx
+                    # eliminate the free elements from exp
+                    if exp & mask_free:
+                        for i in free:
+                            if exp & (1 << i):
+                                exp = exp.__xor__(1 << i)
+                    p[exp] = get(exp, 0) + v
+            # return the pointers not any more used to freedt
+            for exp in free:
+                freedt.append(exp)
+            return p
+
+        else:
+            a = []
+            for exp1, v1 in p.iteritems():
+                if exp1 & exp2:
+                    continue
+                exp = exp1 | exp2
+                v = v1*valx
+                try:
+                    p[exp] = p[exp] + v
+                except KeyError:
+                    a.append((exp, v))
+            # since `exp1 & exp2 = 0`, for `exp = exp1 | exp2`
+            # there is a unique `exp1`; therefore the entries `(exp, v)`
+            # in a have all different `exp`
+            for exp, v in a:
+                p[exp] = v
+
+        return p
+
+def obj_free(objects):
+    """
+    Return a list of tuples ``(obj, free)``
+
+    INPUT:
+
+        - ``objects`` - is a list of tuples (e.g 2-tuples in the case of dimers)
+
+    .. NOTE::
+
+        `free` is the list of elements in the tuple `obj`  which do not occur
+        in the following objects.
+
+        The objects are required to be in `range(n)`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.matchpoly import obj_free
+        sage: obj_free([(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)])
+        [((0, 1), []), ((1, 2), [1]), ((2, 3), [2]), ((3, 4), [3]), ((4, 0), [0, 4])]
+    """
+    # nvars number of elements in objects
+    s = set()
+    for t in objects:
+        for i in t:
+            s.add(i)
+    nvars = len(s)
+    b = list(sorted(s))
+    b.sort()
+    if b != list(range(nvars)):
+         raise ValueError('elements should be labelled in 0,...,nvars-1')
+
+    v = []
+    done = set()
+    n = len(objects)
+    for i in range(n):
+        free = []
+        obj = objects[i]
+        for j in range(nvars):
+            if j in done:
+                continue
+            hit = 0
+            for k in range(i + 1, n):
+                if j in objects[k]:
+                    hit = 1
+                    break
+            if not hit:
+                free.append(j)
+                done.add(j)
+        v.append((obj, free))
+    return v
+
+def gen_count_hobj(objects, values=None):
+    """
+    Counting polynomial for hard object from a list of edges
+
+    INPUT:
+
+        - ``objects`` - list of tuples of element indices
+
+    .. NOTE::
+
+        This function is used in `matching_generating_poly`
+        and `independence_poly`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.matchpoly import gen_count_hobj
+        sage: gen_count_hobj([(1, 0), (2, 1), (3, 2), (4, 0), (4, 3)])
+        5*x^2 + 5*x + 1
+    """
+    # relabel objects so that its elements are in 0,...,n-1
+    a = []
+    for obj in objects:
+        for i in obj:
+            if i not in a:
+                a.append(i)
+    dt = dict(zip(a, range(len(a))))
+    links = []
+    for obj in objects:
+        obj1 = tuple(dt[i] for i in obj)
+        links.append(obj1)
+    objects = links
+
+    # add to each object the list of free indices
+    obfr = obj_free(objects)
+    hb = Hobj()
+    p = {0: 1}
+    if not values:
+        for obj, free in obfr:
+            p = hb.iadd_object(p, 1, obj, free)
+    else:
+        di = {}
+        for k, v in dt.items():
+            di[v] = k
+        for obj, free in obfr:
+            p = hb.iadd_object(p, values[(di[obj[0]], di[obj[1]])], obj, free)
+
+    assert len(p) == 1
+    return p[0]
+
+def matching_generating_poly(g, links=None, labels=None):
+    r"""
+    Return the matching generating polynomial `M`.
+
+    INPUT:
+
+    - ``g`` - graph
+    - ``links`` - list of the edges of the graph
+    - ``labels`` - flag for computing `M` gor the weighted graph.
+
+    The matching generating polynomial of a simple graph is given by
+
+    .. MATH::
+
+        M(x)=\sum_{k \geq 0} p(G,k) x^{2k}
+
+    where `p(G, k)` denotes the number of `k`-matchings in `G`,
+    that is the number of configurations of non-intersecting edges (dimers).
+
+    If the graph has edge weights, `p(G, k)` denotes the sum of the product
+    of the weights of the edges of the `k`-matchings in `G`.
+
+    ALGORITHM:
+
+        Consider the algebra `R = K[\eta_1, \eta_2, \ldots, \eta_n]`
+        where the `\eta_i` are commuting, nilpotent of order `2`
+        (i.e. `\eta_i^2 = 0`), and where `n` is the order of the graph `G`.
+        We will mostly consider the ring `R[x]` of polynomials over `R`.
+
+        Introduce an "integration" operation `\langle p \rangle` over `R` and
+        `R[x]` consisting in the sum of the coefficients of the non-vanishing
+        monomials in `\eta_i`
+
+        A useful simplification property of `\langle . \rangle`
+        is the following: let
+        `p_1(\eta_1, \ldots, \eta_n)` and `p_2(\eta_j, \ldots, \eta_n)` be
+        polynomials in `R[x]` where `j \ge 1`.  Then one has
+
+        .. MATH::
+
+            \langle p_1(\eta_1, \ldots, \eta_n) p_2 \rangle =
+            \langle p_1(1, \ldots, 1, \eta_j, \ldots, \eta_n) p_2 \rangle
+
+        where `\eta_1,..,\eta_{j-1}` are replaced by `1` in `p_1`. Informally,
+        we can "integrate" these variables *before* performing the product. More
+        generally, if a monomial `\eta_i` is missing in one of the terms of a
+        product of two terms, then it can be integrated in the other term.
+
+        Associate to a dimer with endpoints `i, j` the quantity
+        ``O_{i,j} = 1 + x \eta_i \eta_j``; `1` represents the case in which
+        the dimer is absent; the other term represent the case in which the
+        dimer is present.
+        The matching generating polynomial is given by
+
+        .. MATH::
+
+            M(x) = \langle \prod_{(i,j) \in E(G)} (1 + x \eta_i \eta_j) \rangle
+
+        where `E(G)` is the set of edges of G.
+        Using the semplification property mentioned above, one can perform
+        `\prod_{(i,j) \in E_k}`, where `E_k` is included in `E(G)`,
+        replacing `\eta_i` with `1` as soon as the node `i` is absent from
+        `E(G) - E_k`.
+
+        The result of performing these product is independent from the
+        ordering, but the efficiency of the algorithm depends exponentially
+        from the number of `active nodes`, that is the nodes present in
+        `G_k`, the graph defined by `E_k`, and which have in `G`
+        degree greater than in `G_k` (if a node has the same degree in
+        `G_k` as in `G` it means that one can set `eta_k=1`.
+
+        A simple greedy algorithm tries to find an efficient ordering of
+        edges to compute the matching polynomial.
+
+        There is no guarantee that an efficient ordering of the edges is found.
+        Alternatively can provide explicitly the list of edges `links`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.matchpoly import matching_generating_poly
+        sage: g = Graph({0:[1,4], 1:[0,2], 2:[1,3], 3:[2,4], 4:[0,3]})
+        sage: matching_generating_poly(g)
+        5*x^2 + 5*x + 1
+    """
+    from sage.graphs.graph_decompositions.active_nodes import ordered_links, _d_relabel
+    d = g.to_dictionary()
+    for k in list(d.keys()):
+        if len(d[k]) == 0:
+            del d[k]
+    if not d:
+        return x.parent()(1)
+    # compute ord_links
+    if not links:
+        k0 = d.keys()[0]
+        links = [k0, d[k0][0]]
+        ord_links = ordered_links(d, *links)
+    else:
+        ord_links = links
+
+    # check that ord_links has the right number of edges
+    num_edges = sum([len(v) for v in d.values()]) // 2
+    if num_edges != len(ord_links):
+        raise ValueError('wrong number of links')
+
+
+    if not labels:
+        p = gen_count_hobj(ord_links)
+    else:
+        values = {}
+        for i, j, v in g.edges():
+            if i < j and i in d:
+                values[(i, j)] = v
+        p = gen_count_hobj(ord_links, values)
+    return p
+
