@@ -2089,13 +2089,6 @@ cdef class RingElement(ModuleElement):
             sage: ZI(1).is_prime()
             False
 
-        In fields, an element is never prime::
-
-            sage: RR(0).is_prime()
-            False
-            sage: RR(2).is_prime()
-            False
-
         For integers, prime numbers are redefined to be positive::
 
             sage: RingElement.is_prime(-2)
@@ -3141,6 +3134,22 @@ cdef class FieldElement(CommutativeRingElement):
             True
         """
         return not not self
+
+    def is_prime(self):
+        """
+        Is ``self`` a prime element?
+        
+        Since this question is meaningless for a field (applying the
+        definition, the answer is always ``False``), we raise an error.
+
+        EXAMPLES::
+
+            sage: QQ(2).is_prime()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: is_prime() is meaningless for elements of the field 'Rational Field'
+        """
+        raise ArithmeticError("is_prime() is meaningless for elements of the field '%s'" % self._parent)
 
     def _lcm(self, FieldElement other):
         """
