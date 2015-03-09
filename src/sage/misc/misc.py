@@ -2118,18 +2118,18 @@ def terminate_robustly(p):
     if p.poll() is not None:
         return
 
-    # On cygwin, using signals to terminate a process fails if
-    # the process still has data to output.
-    # use communicate() instead
-    import sys
-    if sys.platform == 'cygwin':
+    try:
+        p.terminate()
+    except OSError:
+        # terminate() fails on cygwin if the process still has
+        # data to output, and raises OSError
+        # use communicate() instead in this case
+
         # communicate tries to flush and close stdin
         # it fails if stdin exists but is already closed
         if p.stdin is not None and p.stdin.closed:
             p.stdin = None
         p.communicate()
-    else:
-        p.terminate()
 
 
 #############################################
