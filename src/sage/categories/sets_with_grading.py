@@ -7,7 +7,6 @@ Sets With a Grading
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from category_types import Category
@@ -183,11 +182,14 @@ class SetsWithGrading(Category):
             """
             return self.subset(grade)
 
+        @abstract_method(optional=True)
         def grading(self, elt):
             """
             Return the grading of the element ``elt`` of ``self``.
 
-            This default implementation calls ``elt.grade()``.
+            The grading of an element depends the parent. A same element
+            could generate by distinct parents which use distincts grading
+            so by default the parent should know the grading of its elements.
 
             EXAMPLES::
 
@@ -196,8 +198,9 @@ class SetsWithGrading(Category):
                 sage: N.grading(4)
                 4
             """
-            return elt.grade()
 
+        #@cached_method
+        @abstract_method(optional=True)
         def generating_series(self):
             """
             Default implementation for generating series.
@@ -213,10 +216,13 @@ class SetsWithGrading(Category):
                 sage: N.generating_series()
                 1/(-z + 1)
             """
-            from sage.combinat.species.series import LazyPowerSeriesRing
-            from sage.rings.integer_ring import ZZ
-            R = LazyPowerSeriesRing(ZZ)
-            R(self.graded_component(grade).cardinality() for grade in self.grading_set())
+            #from sage.combinat.species.stream import _integers_from
+            #from sage.combinat.species.series import LazyPowerSeriesRing
+            #from sage.rings.integer_ring import ZZ
+            #R = LazyPowerSeriesRing(ZZ)
+            #return R(self.graded_component(grade).cardinality() for grade in _integers_from(0))
+
+        gs = generating_series
 
         # TODO:
         #   * asymptotic behavior: we need an object for asymptotic behavior and
@@ -225,3 +231,20 @@ class SetsWithGrading(Category):
         #   theorem on asymptotic and be a tool to determine a strategy for
         #   algorithms.
 
+    class ElementMethods:
+
+        def grade(self):
+            """
+            Return the grading of the element.
+
+            An object could be use by differents graded components, so by default
+            an element ask to the grade to its parent.
+
+            EXAMPLES::
+
+                sage: N = SetsWithGrading().example(); N
+                Non negative integers
+                sage: N.grading(4)
+                4
+            """
+            return self.parent().grading(self)
