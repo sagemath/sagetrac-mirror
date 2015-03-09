@@ -2,14 +2,15 @@ r"""
 An example of set factory
 =========================
 
-The goal of this module is to exemplify the use of set factories. Note that
-the written code is intentionally kept minimal; many things and in particular
-several iterators could be written in a more efficient way.
+The goal of this module is to exemplify the use of set factories. Note
+that the code is intentionally kept minimal; many things and in
+particular several iterators could be written in a more efficient way.
 
-.. SEEALSO:: :mod:`.set_factories` for an introduction to set
+.. SEEALSO::
+
+    :mod:`.set_factories` for an introduction to set
     factories, their specifications, and examples of their use and
     implementation based on this module.
-
 """
 #*****************************************************************************
 #  Copyright (C) 2012 Florent Hivert <florent.hivert at lri.fr>
@@ -30,17 +31,20 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 MAX = 5
 
+
 class XYPairsFactory(SetFactory):
     r"""
-    An example of factory for sets of pairs of integers
+    An example of set factory, for sets of pairs of integers.
 
-    .. SEEALSO:: :mod:`.set_factories` for an introduction to factories.
+    .. SEEALSO::
+
+        :mod:`.set_factories` for an introduction to set factories.
     """
     def __call__(self, x=None, y=None, policy=None):
         r"""
-        Construct the subset from constraints
+        Construct the subset from constraints.
 
-        Consider the set `S` of couple `(x,y)` with `x` and `y` in
+        Consider the set `S` of couples `(x,y)` with `x` and `y` in
         `I:=\{0,1,2,3,4\}`. Returns the subsets of element of `S` satisfying
         some constraints.
 
@@ -50,17 +54,26 @@ class XYPairsFactory(SetFactory):
         - ``y=b`` -- where ``b`` is an integer (default to ``None``).
         - ``policy`` -- the policy passed to the created set.
 
-        .. SEEALSO:: :class:`.set_factories.SetFactoryPolicy`
+        .. SEEALSO::
 
-        EXAMPLES::
+            :class:`.set_factories.SetFactoryPolicy`
+
+        EXAMPLES:
+
+        Let us first create the set factory::
 
             sage: from sage.structure.set_factories_example import XYPairsFactory
             sage: XYPairs = XYPairsFactory()
+
+        One can then use the set factory to construct a set::
+
             sage: P = XYPairs(); P.list()
             [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (0, 4), (1, 4), (2, 4), (3, 4), (4, 4)]
 
-        .. note:: This function is actually the ``__call__`` method of
-                  :class:`XYPairsFactory`.
+        .. NOTE::
+
+            This function is actually the ``__call__`` method of
+            :class:`XYPairsFactory`.
         """
         if policy is None:
             policy = self._default_policy
@@ -68,19 +81,18 @@ class XYPairsFactory(SetFactory):
         if isinstance(x, (Integer, int)):
             if isinstance(y, (Integer, int)):
                 return SingletonPair(x, y, policy)
-            else:
-                return PairsX_(x, policy)
+            return PairsX_(x, policy)
         elif isinstance(y, (Integer, int)):
                 return Pairs_Y(y, policy)
-        else:
-            return AllPairs(policy)
+        return AllPairs(policy)
 
     def add_constraints(self, cons, (args, opts)):
         r"""
-        Add constraints to the set ``cons`` as per :meth:`SetFactory.add_constraints <.set_factories.SetFactory.add_constraints>`
+        Add constraints to the set ``cons`` as per
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
 
-        This is a very crude implementation which ignore optional arguments.
-        They will be handled directly by the factory :func:`XYPair`
+        This is a crude implementation for the sake of the demonstration which
+        should not be taken as an example.
 
         EXAMPLES::
 
@@ -95,15 +107,20 @@ class XYPairsFactory(SetFactory):
             (2, 3)
         """
         res = list(cons)
-        res += [None]*(2-len(res))
+        res += [None] * (2 - len(res))
+
         def set_args(argss):
             for i, v in enumerate(argss):
                 if res[i] is not None and v is not None:
-                    raise ValueError, "Duplicate value for constraints '%s': was %s now %s"%(
-                        ['x','y'][i], res[i], v)
-                if v is not None: res[i] = v
+                    raise ValueError("Duplicate value for constraints '{}': "
+                                     "was {} now {}".format(['x', 'y'][i],
+                                                            res[i], v))
+                if v is not None:
+                    res[i] = v
         set_args(args)
-        def parse_args(x=None,y=None): set_args((x,y))
+
+        def parse_args(x=None, y=None):
+            set_args((x, y))
         parse_args(**opts)
         if res == (None, None):
             return ()
@@ -134,9 +151,10 @@ class XYPairsFactory(SetFactory):
 XYPairs = XYPairsFactory()
 XYPairs.__doc__ = XYPairsFactory.__call__.__doc__
 
+
 class XYPair(ElementWrapper):
     r"""
-    A class for Element `(x,y)` with `x` and `y` in `\{0,1,2,3,4\}`
+    A class for Elements `(x,y)` with `x` and `y` in `\{0,1,2,3,4\}`.
 
     EXAMPLES::
 
@@ -158,17 +176,18 @@ class XYPair(ElementWrapper):
         """
         if check:
             if not isinstance(value, tuple):
-                raise ValueError, "Value %s must be a tuple"%value
+                raise ValueError("Value {} must be a tuple".format(value))
             if len(value) != 2:
-                raise ValueError, "Value must be of length 2"
+                raise ValueError("Value must be of length 2")
             if not all(int(x) in range(MAX) for x in value):
-                raise ValueError, "numbers must be in range(%s)"%MAX
+                raise ValueError("numbers must be in range({})".format(MAX))
         ElementWrapper.__init__(self, parent, value)
+
 
 class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
-    This parent show how one can use set factories together with
-    :class:`DisjointUnionEnumeratedSets`
+    This parent shows how one can use set factories together with
+    :class:`DisjointUnionEnumeratedSets`.
 
     TESTS::
 
@@ -184,11 +203,12 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: TestSuite(XYPairs()).run()
         """
         ParentWithSetFactory.__init__(self, (), policy,
-            category = FiniteEnumeratedSets())
-        DisjointUnionEnumeratedSets.__init__(
-            self, LazyFamily(range(MAX), self._single_pair),
-            facade=True, keepkey = False,
-            category = self.category())
+                                      category=FiniteEnumeratedSets())
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             LazyFamily(range(MAX),
+                                                        self._single_pair),
+                                             facade=True, keepkey=False,
+                                             category=self.category())
 
     def _single_pair(self, letter):
         r"""
@@ -224,9 +244,10 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         pass
 
+
 class PairsX_(ParentWithSetFactory, UniqueRepresentation):
     r"""
-    The set of pair `(x, 0), (x, 1), ..., (x, 4)`
+    The set of pairs `(x, 0), (x, 1), ..., (x, 4)`.
 
     TESTS::
 
@@ -242,8 +263,8 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
             sage: TestSuite(XYPairs(0)).run()
         """
         self._x = x
-        ParentWithSetFactory.__init__(self, (x,None), policy,
-            category = FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (x, None), policy,
+                                      category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -253,7 +274,7 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
             sage: XYPairs(x=1)
             {(1, b) | b in range(5)}
         """
-        return "{(%s, b) | b in range(%s)}"%(self._x, MAX)
+        return "{(%s, b) | b in range(%s)}" % (self._x, MAX)
 
     def an_element(self):
         r"""
@@ -279,7 +300,7 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
         """
         (x, y) = el.value
         if x != self._x:
-            raise ValueError, "Wrong first coordinate"
+            raise ValueError("Wrong first coordinate")
 
     def __iter__(self):
         r"""
@@ -293,10 +314,13 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
             yield self._element_constructor_((self._x, i), check=False)
 
 
-
 class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
-    The set of pair `(0, y), (1, y), ..., (4, y)`
+    The set of pairs `(0, y), (1, y), ..., (4, y)`.
+
+    .. WARNING::
+
+        Put a nice warning _single_pair
 
     TESTS::
 
@@ -313,11 +337,11 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         self._y = y
         ParentWithSetFactory.__init__(self, (None, y), policy,
-            category = FiniteEnumeratedSets())
+                                      category=FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, LazyFamily(range(MAX), self._single_pair),
-            facade=True, keepkey = False,
-            category = self.category()) # TODO remove and fix disjoint union.
+            facade=True, keepkey=False,
+            category=self.category())  # TODO remove and fix disjoint union.
 
     def _repr_(self):
         """
@@ -327,7 +351,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: XYPairs(y=1)
             {(a, 1) | a in range(5)}
         """
-        return "{(a, %s) | a in range(%s)}"%(self._y, MAX)
+        return "{(a, %s) | a in range(%s)}" % (self._y, MAX)
 
     def an_element(self):
         r"""
@@ -341,6 +365,8 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
     def _single_pair(self, letter):
         r"""
+        Comment that and put link to documentation caveat....
+
         TESTS::
 
             sage: from sage.structure.set_factories_example import XYPairs
@@ -363,7 +389,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         (x, y) = el.value
         if y != self._y:
-            raise ValueError, "Wrong second coordinate"
+            raise ValueError("Wrong second coordinate")
 
 
 class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
@@ -383,7 +409,7 @@ class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
         """
         self._xy = (x, y)
         ParentWithSetFactory.__init__(self, (x, y), policy,
-            category = FiniteEnumeratedSets())
+                                      category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -393,7 +419,7 @@ class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
             sage: XYPairs(x=2, y=1)
             {(2, 1)}
         """
-        return "{%s}"%(self._xy,)
+        return "{%s}" % (self._xy,)
 
     def check_element(self, el, check):
         r"""
@@ -411,7 +437,7 @@ class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
             ValueError: Wrong coordinate
         """
         if el.value != self._xy:
-            raise ValueError, "Wrong coordinate"
+            raise ValueError("Wrong coordinate")
 
     def __iter__(self):
         r"""

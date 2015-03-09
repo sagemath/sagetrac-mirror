@@ -66,6 +66,7 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
+from functools import reduce
 
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
@@ -641,7 +642,7 @@ class AbstractTree(object):
         stack = [self]
         while len(stack) > 0:
             node = stack[-1]
-            if node != None:
+            if node is not None:
                 # A "None" on the stack means that the node right before
                 # it on the stack has already been "exploded" into
                 # subtrees, and should not be exploded again, but instead
@@ -733,6 +734,114 @@ class AbstractTree(object):
             for subtree in node:
                 if not subtree.is_empty():
                     queue.insert(0, subtree)
+
+    def node_paths_generator(self, path=[]):
+        r"""
+        Return a generator of all node path of the tree.
+        
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[]], []]
+            ....: )
+            sage: list( T.node_paths_generator() )
+            [(), (0,), (0, 0), (0, 1), (0, 1, 0), (0, 1, 1), (0, 1, 1, 0), (1,), (2,), (2, 0), (3,)]
+            sage: T = OrderedTree( [[]] )
+            sage: list( T.node_paths_generator() )
+            [(), (0,)]
+            sage: T = OrderedTree( [[],[]] )
+            sage: list( T.node_paths_generator() )
+            [(), (0,), (1,)]
+            sage: T = OrderedTree( [] )
+            sage: list( T.node_paths_generator() )
+            [()]
+        """
+        yield tuple(path)
+        for i in range( len(self) ):
+            for p in self[i].node_paths_generator( path+[i] ):
+                yield p
+
+    def node_paths( self ):
+        r"""
+        Return a list of node paths.
+        
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[]], []]
+            ....: )
+            sage: T.node_paths()
+            [(), (0,), (0, 0), (0, 1), (0, 1, 0), (0, 1, 1), (0, 1, 1, 0), (1,), (2,), (2, 0), (3,)]
+            sage: T = OrderedTree( [[]] )
+            sage: T.node_paths()
+            [(), (0,)]
+            sage: T = OrderedTree( [[],[]] )
+            sage: T.node_paths()
+            [(), (0,), (1,)]
+            sage: T = OrderedTree( [] )
+            sage: T.node_paths()
+            [()]
+        """
+        return list( self.node_paths_generator() )
+
+    def get_node( self, path ):
+        r"""
+        Return the node associated with the path given in parameter.
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        If the path is not associated to any node in the tree, thenv the 
+        function returns None.
+
+        EXAMPLES::
+        
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[], []]], [], []]
+            ....: )
+            sage: T.get_node( tuple() )
+            [[[], [[], [[]]]], [], [[[], []]], [], []]
+            sage: T.get_node( (0,1) )
+            [[], [[]]]
+        """
+        if len(path) == 0:
+            return self
+        return self[ path[0] ].get_node( path[1:] )
+
+    def breadth_node_paths_generator(self, depth, path=[]):
+        r"""
+        Return a generator listing all node paths with a fixed depth.
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
+            ....: )
+            sage: list( T.breadth_node_paths_generator( 1 ) )
+            [()]
+            sage: list( T.breadth_node_paths_generator( 3 ) )
+            [(0, 0), (0, 1), (2, 0)]
+            sage: list( T.breadth_node_paths_generator( 5 ) )
+            [(0, 1, 1, 0)]
+            sage: list( T.breadth_node_paths_generator( 6 ) )
+            []
+            sage: T = OrderedTree( [] )
+            sage: list( T.breadth_node_paths_generator( 1 ) )
+            [()]
+        """
+        if( depth == 1 ):
+            yield tuple(path)
+        else:
+            for i in range( len(self) ):
+                for p in self[i].breadth_node_paths_generator(
+                    depth-1, path+[i]
+                ):
+                    yield p
 
     def subtrees(self):
         """
@@ -1219,7 +1328,7 @@ class AbstractTree(object):
                     # ==> n & n & ... & n' & n' & ...
                     try:
                         mat[i] += sep + mat2[i]
-                    except:
+                    except Exception:
                         if i >= lmat:
                             if i != 0:
                                 # mat[i] does not exist but
@@ -1302,7 +1411,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1391,7 +1500,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1723,11 +1832,35 @@ class AbstractLabelledTree(AbstractTree):
             1[None[42[], 21[]]]
             sage: LabelledOrderedTree(OrderedTree([[],[[],[]],[]]))
             None[None[], None[None[], None[]], None[]]
+
+        We test that inheriting from `LabelledOrderedTree` allows construction from a
+        `LabelledOrderedTree` (:trac:`16314`)::
+
+            sage: LBTS = LabelledOrderedTrees()
+            sage: class Foo(LabelledOrderedTree):
+            ....:     def bar(self):
+            ....:         print "bar called"
+            sage: foo = Foo(LBTS, [], label=1); foo
+            1[]
+            sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
+            42[21[]]
+            sage: foo2 = Foo(LBTS, foo1); foo2
+            42[21[]]
+            sage: foo2[0]
+            21[]
+            sage: foo2.__class__
+            <class '__main__.Foo'>
+            sage: foo2[0].__class__
+            <class '__main__.Foo'>
+            sage: foo2.bar()
+            bar called
+            sage: foo2.label()
+            42
         """
         # We must initialize the label before the subtrees to allows rooted
         # trees canonization. Indeed it needs that ``self``._hash_() is working
         # at the end of the call super(..., self).__init__(...)
-        if isinstance(children, self.__class__):
+        if isinstance(children, AbstractLabelledTree):
             if label is None:
                 self._label = children._label
             else:

@@ -3,36 +3,36 @@ Set factories
 =============
 
 
-A *set factory* `F` is a device for constructing :class:`Parent`s `P`
-that model subsets of a big set `S`. Typically, each such parent is
-constructed as the subset of `S` of all elements satisfying a certain
-collection of constraints `cons`. In such a hierarchy of subsets, one
-needs easy and flexible control on how elements are construted. For
-example, one may want to construct the elements of `P` in some
-subclass of the class of the elements of `S`. On other occasions, one
-also often needs `P` to be a facade parent, whose elements are
-represented as elements of `S` (see
-:func:`~sage.categories.facade_sets.Facade`).
+A *set factory* `F` is a device for constructing some :class:`Parent`
+`P` that models subsets of a big set `S`. Typically, each such parent
+is constructed as the subset of `S` of all elements satisfying a
+certain collection of constraints `cons`. In such a hierarchy of
+subsets, one needs an easy and flexible control on how elements are
+constructed. For example, one may want to construct the elements of
+`P` in some subclass of the class of the elements of `S`. On other
+occasions, one also often needs `P` to be a facade parent, whose
+elements are represented as elements of `S` (see
+:class:`~sage.categories.facade_sets.FacadeSets`).
 
 The role of a set factory is twofold:
 
-- *manage a database* of constructors for the different parents `P = F(cons)`
+- *Manage a database* of constructors for the different parents `P = F(cons)`
   depending on the various kinds of constraints `cons`. Note: currently there
   is no real support for that. We are gathering use cases before fixing the
   interface.
 
-- ensure that the elements `e = P(...)` created by the different parents
+- Ensure that the elements `e = P(...)` created by the different parents
   follows a consistent policy concerning their *class and parent*.
 
 .. RUBRIC:: Basic usage: constructing parents through a factory
 
 The file :mod:`sage.structure.set_factories_example` shows an example of a
 :class:`SetFactory` together with typical implementation. Note that the
-written code is intentionnally kept minimal, many thing and in particular
-several iterator could be written in a more efficient ways.
+written code is intentionally kept minimal, many things and in particular
+several iterators could be written in a more efficient way.
 
-Consider the set `S` of couple `(x,y)` with `x` and `y` in `I:=\{0,1,2,3,4\}`.
-We represent the element of `S` as 2-elements tuple, wrapped in a class
+Consider the set `S` of couples `(x,y)` with `x` and `y` in `I:=\{0,1,2,3,4\}`.
+We represent an element of `S` as a 2-elements tuple, wrapped in a class
 :class:`~.set_factories_example.XYPair` deriving from :class:`ElementWrapper`.
 You can create a :class:`~.set_factories_example.XYPair` with any
 :class:`Parent`::
@@ -52,11 +52,11 @@ Now, given `(a, b)\in S` we want to consider the following subsets of
     S_a^b := \{(x,y) \in S \mid x = a, y = b\}.
 
 The constraints considered here are admittedly trivial. In a realistic
-examples, there would be much more of them. And for some sets of constraints
+example, there would be much more of them. And for some sets of constraints
 no good enumeration algorithms would be known.
 
-In Sage, those sets are constructed passing the constraints to the factory. We
-first create the set with no constraints at all::
+In Sage, those sets are constructed by passing the constraints to the
+factory. We first create the set with no constraints at all::
 
     sage: XYPairs
     Factory for XY pairs
@@ -65,7 +65,7 @@ first create the set with no constraints at all::
     sage: S.cardinality()
     25
 
-Let's construct `S_2`, `S^3` and `S_2^3`::
+Let us construct `S_2`, `S^3` and `S_2^3`::
 
     sage: Sx2 = XYPairs(x=2); Sx2.list()
     [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)]
@@ -74,18 +74,18 @@ Let's construct `S_2`, `S^3` and `S_2^3`::
     sage: S23 = XYPairs(x=2, y=3); S23.list()
     [(2, 3)]
 
-Set factories provide an alternative way to build subsets of an already
-constructed set: each set constructed by a factory has a method
-:meth:`~ParentWithSetFactory.subset` which accept new constraints. Set
-constructed by the factory or the :meth:`~ParentWithSetFactory.subset` methods are
-identical::
+Set factories provide an alternative way to build subsets of an
+already constructed set: each set constructed by a factory has a
+method :meth:`~ParentWithSetFactory.subset` which accept new
+constraints. Sets constructed by the factory or the
+:meth:`~ParentWithSetFactory.subset` methods are identical::
 
     sage: Sx2s = S.subset(x=2); Sx2 is Sx2s
     True
     sage: Sx2.subset(y=3) is S23
     True
 
-It is not possible to change an already given constraints::
+It is not possible to change an already given constraint::
 
     sage: S23.subset(y=5)
     Traceback (most recent call last):
@@ -96,9 +96,9 @@ It is not possible to change an already given constraints::
 
 We now come to the point of factories: constructing custom elements. By
 default, the writer of :func:`~.set_factories_example.XYPairs` decided that
-the parent ``Sx2``, ``Sy3`` and ``S23`` are facade for parent ``S``. This
-means that each elements constructed by those subsets behaves as if they where
-directly constructed by ``S`` istelf::
+the parents ``Sx2``, ``Sy3`` and ``S23`` are facade for parent ``S``. This
+means that each element constructed by those subsets behaves as if they where
+directly constructed by ``S`` itself::
 
     sage: Sx2.an_element().parent()
     AllPairs
@@ -122,31 +122,31 @@ factory :func:`~.set_factories_example.XYPairs` with constraints ``()``. There
 is a lot of flexibility to change that. We now illustrate how to make two
 different choices.
 
-1 - In a first use case, we want to add some method to the constructed
+1 - In a first use case, we want to add some methods to the constructed
 elements. As illustration, we add here a new method ``sum`` which returns
 `x+y`. We therefore inherit from :class:`~.set_factories_example.XYPair`::
 
     sage: class NewXYPair(XYPair):
-    ...       def sum(self):
-    ...           return sum(self.value)
+    ....:     def sum(self):
+    ....:         return sum(self.value)
     sage: el = NewXYPair(Parent(), (2,3))
     sage: el.sum()
     5
 
 We now want to have subsets generating those new elements while still having a
-single real parent (the one with no constraints) for each element. The
-corresponding policy is called :class:`TopMostParentPolicy`. It takes tree
+single real parent (the one with no constraint) for each element. The
+corresponding policy is called :class:`TopMostParentPolicy`. It takes three
 parameters:
 
 - the factory;
-- the parameters for void constraints;
+- the parameters for void constraint;
 - the class used for elements.
 
 Calling the factory with this policy returns a new set which builds its
 elements with the new policy::
 
     sage: newpolicy = TopMostParentPolicy(XYPairs, (), NewXYPair)
-    sage: newS = XYPairs(policy = newpolicy)
+    sage: newS = XYPairs(policy=newpolicy)
     sage: el = newS.an_element(); el
     (0, 0)
     sage: el.sum()
@@ -154,7 +154,7 @@ elements with the new policy::
     sage: el.parent() is newS
     True
 
-Subsets now inherits the policy::
+Subsets now inherit the policy::
 
     sage: newS2 = newS.subset(x=2)
     sage: el2 = newS2.an_element(); el2
@@ -164,22 +164,22 @@ Subsets now inherits the policy::
     sage: el2.parent() is newS
     True
 
-2 - In a second use case, we want the elements to remember which parent
-created them. The corresponding policy is called
+2 - In a second use case, we want the elements to remember which
+parent created them. The corresponding policy is called
 :class:`SelfParentPolicy`. It takes only two parameters:
 
 - the factory;
 - the class used for elements.
 
-Here is an examples::
+Here is an example::
 
     sage: selfpolicy = SelfParentPolicy(XYPairs, NewXYPair)
-    sage: selfS = XYPairs(policy = selfpolicy)
+    sage: selfS = XYPairs(policy=selfpolicy)
     sage: el = selfS.an_element();
     sage: el.parent() is selfS
     True
 
-Now subsets are the parent of the element they created::
+Now all subsets are the parent of the elements that they create::
 
     sage: selfS2 = selfS.subset(x=2)
     sage: el2 = selfS2.an_element()
@@ -193,27 +193,32 @@ Here are the currently implemented policies:
 - :class:`FacadeParentPolicy`: reuse an existing parent together with
   its element_class
 
-- :class:`TopMostParentPolicy`: use a parent created by the factory itself and
-  provide a class ``Element`` for it. In this case, we need to specify for
-  which sets of constraints the constructed parent needs to be provided with
-  a class ``Element``.
+- :class:`TopMostParentPolicy`: use a parent created by the factory
+  itself and provide a class ``Element`` for it. In this case, we need
+  to specify the set of constraints which build this parent taking the
+  ownership of all elements and the class which will be used for the
+  ``Element``.
 
-- :class:`SelfParentPolicy`: provide systematically Element and
+- :class:`SelfParentPolicy`: provide systematically ``Element`` and
   element_class and ensure that the parent is ``self``.
 
-.. TODO:: Generalize :class:`TopMostParentPolicy` to be able to have several
-    topmost parent.
+.. TODO::
+
+    Generalize :class:`TopMostParentPolicy` to be able to have several
+    topmost parents.
 
 .. RUBRIC:: Technicalities: how policies inform parents
 
-Parent built from factories should inherits from
-:class:`ParentWithSetFactory`. This class provide a few methods related to
-factories and policies. The ``__init__`` method of :class:`ParentWithSetFactory`
-must be provided with the set of constraints and the policy. A parent built
-from a factory must creates element trough a call to the method
-``_element_constructor_``. The current way policies inform parents how to
-builds their elements is by setting a few attributes. So the class must accept
-attribute adding. The precise details of which attribute are set may be subject to change in the future.
+Parents built from factories should inherit from
+:class:`ParentWithSetFactory`. This class provide a few methods
+related to factories and policies. The ``__init__`` method of
+:class:`ParentWithSetFactory` must be provided with the set of
+constraints and the policy. A parent built from a factory must create
+elements through a call to the method ``_element_constructor_``. The
+current way in which policies inform parents how to builds their elements is
+set by a few attributes. So the class must accept attribute
+adding. The precise details of which attributes are set may be subject
+to change in the future.
 
 .. RUBRIC:: How to write a set factory
 
@@ -223,17 +228,19 @@ Here are the specifications:
 
 A parent built from a factory should
 
-- *inherit* from :class:`ParentWithSetFactory`. It should accept a ``policy``
-  argument and pass it verbatim to the ``__init__`` method of
-  :class:`ParentWithSetFactory` together with the set of constraints;
+- *inherit* from :class:`ParentWithSetFactory`. It should accept a
+  ``policy`` argument and pass it verbatim to the ``__init__`` method
+  of :class:`ParentWithSetFactory` together with the set of
+  constraints;
 
-- *create its elements* trough calls to the method ``_element_constructor_``;
+- *create its elements* through calls to the method
+   ``_element_constructor_``;
 
-- *define a method* :class:`ParentWithSetFactory.check_element` which checks if a
-  built element indeed belongs to it. The method should accept an extra
-  keyword parameter called ``check`` specifying which level of check should be
-  performed. It will only be called when ``bool(check)`` evaluates to
-  ``True``.
+- *define a method* :class:`ParentWithSetFactory.check_element` which
+  checks if a built element indeed belongs to it. The method should
+  accept an extra keyword parameter called ``check`` specifying which
+  level of check should be performed. It will only be called when
+  ``bool(check)`` evaluates to ``True``.
 
 The constructor of the elements of a parent from a factory should:
 
@@ -241,8 +248,8 @@ The constructor of the elements of a parent from a factory should:
 
 - accept an extra optional keyword parameter called ``check`` which is meant
   to tell if the input must be checked or not. The precise meaning of
-  ``check`` is intensionally left vague. The only intend is that if
-  ``bool(check)`` evaluates to ``False`` no check is performed at all.
+  ``check`` is intentionally left vague. The only intent is that if
+  ``bool(check)`` evaluates to ``False``, no check is performed at all.
 
 A factory should
 
@@ -256,12 +263,13 @@ A factory should
    the :class:`ParentWithSetFactory` if no policy is given to the factory.
 
 
-.. TODO:: There is currently no support for dealing with sets of
+.. TODO::
+
+    There is currently no support for dealing with sets of
     constraints. The set factory and the parents must cooperate to
     consistently handle them. More support, together with a generic mechanism
     to select the appropriate parent class from the constraints, will be added
-    shortly to sage, as soon as we have gathered sufficiently enough
-    use-cases.
+    as soon as we have gathered sufficiently enough use-cases.
 
 AUTHORS:
 
@@ -278,29 +286,40 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.misc.abstract_method import abstract_method
-from sage.misc.lazy_attribute import lazy_attribute
 
 ####################################################
 #                   Factories                      #
 ####################################################
 
+
 class SetFactory(UniqueRepresentation, SageObject):
     r"""
-    This class is currently just a stub we will be using to add more
-    structures on factories.
+    This class is currently just a stub that we will be using to add
+    more structures on factories.
+
+    TESTS::
+
+        sage: from sage.structure.set_factories import SetFactory
+        sage: S = SetFactory()
+        sage: S.__call__("foo")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: <abstract method __call__ at ...>
+        sage: S.add_constraints("foo")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: <abstract method add_constraints at ...>
     """
     @abstract_method
     def __call__(self, *constraints, **consdict):
         r"""
-        Construct the parent associated with the constraints
+        Construct the parent associated with the constraints in
+        argument. This should return a :class:`Parent`.
 
-        Should return a :class:`Parent`.
-
-        Currently there is no specification on how constraints are passed as
-        arguments.
+        Currently there is no specification on how constraints are
+        passed as arguments.
 
         EXAMPLES::
 
@@ -329,7 +348,7 @@ class SetFactory(UniqueRepresentation, SageObject):
     @abstract_method
     def add_constraints(self, cons, *args, **opts):
         r"""
-        Add constraints to the set cons
+        Add constraints to the set of constraints `cons`.
 
         Should return a set of constraints. Currently there is no
         specification on how constraints are passed as arguments.
@@ -353,25 +372,29 @@ class SetFactory(UniqueRepresentation, SageObject):
             NotImplementedError: <abstract method add_constraints at 0x...>
         """
 
-    # TODO ? default policy
+    # TODO : default policy ?
 
 ####################################################
 #                    Policies                      #
 ####################################################
+
+
 class SetFactoryPolicy(UniqueRepresentation, SageObject):
     r"""
     Abstract base class for policies.
 
     A policy is a device which is passed to a parent inheriting from
-    :class:`ParentWithSetFactory` in order to set-up the element construction
-    framework.
+    :class:`ParentWithSetFactory` in order to set-up the element
+    construction framework.
 
     INPUT:
 
     - ``factory`` -- a :class:`SetFactory`
 
-    .. WARNING:: This class is a base class for policies, one should not try
-       to create instances.
+    .. WARNING::
+
+        This class is a base class for policies, one should not try
+        to create instances.
     """
     def __init__(self, factory):
         r"""
@@ -387,7 +410,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
     def factory(self):
         r"""
-        Return the factory for ``self``
+        Return the factory for ``self``.
 
         EXAMPLES::
 
@@ -410,12 +433,12 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
     def _self_element_constructor_attributes(self, Element):
         r"""
-        Element Constructor Attributes for non facade parent
+        Element Constructor Attributes for non facade parent.
 
-        The list of attribute with must be set during the init of a non facade
-        parent with factory.
+        The list of attributes which must be set during the init of a
+        non facade parent with factory.
 
-        INPUT::
+        INPUT:
 
         - ``Element`` -- the class used for the elements
 
@@ -426,17 +449,16 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: pol._self_element_constructor_attributes(XYPair)
             {'_parent_for': 'self', 'Element': <class 'sage.structure.set_factories_example.XYPair'>}
         """
-        return {'_parent_for' : "self",
-                'Element' : Element}
+        return {'_parent_for': "self", 'Element': Element}
 
     def _facade_element_constructor_attributes(self, parent):
         r"""
-        Element Constructor Attributes for facade parent
+        Element Constructor Attributes for facade parent.
 
-        The list of attribute with must be set during the init of a facade
-        parent with factory.
+        The list of attributes which must be set during the init of a
+        facade parent with factory.
 
-        INPUT::
+        INPUT:
 
         - ``parent`` -- the actual parent for the elements
 
@@ -447,25 +469,25 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: pol._facade_element_constructor_attributes(XYPairs())
             {'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>, '_facade_for': AllPairs, '_parent_for': AllPairs}
         """
-        return {'_parent_for' : parent,
-                '_facade_for' : parent,
-                'element_class' : parent.element_class}
+        return {'_parent_for': parent,
+                '_facade_for': parent,
+                'element_class': parent.element_class}
 
     @abstract_method
     def _element_constructor_attributes(self, constraints):
         r"""
-        Element constructor attributes
+        Element constructor attributes.
 
         INPUT:
 
         - ``constraints`` -- a bunch of constraints
 
-        Should returns the attributes that are prerequisite for element
+        Should return the attributes that are prerequisite for element
         construction. This is coordinated with
-        :meth:`ParentWithSetFactory._element_constructor_`. Currently to standard
+        :meth:`ParentWithSetFactory._element_constructor_`. Currently two standard
         attributes are provided in
         :meth:`_facade_element_constructor_attributes` and
-        :meth:`_self_element_constructor_attributes`. You should returns to
+        :meth:`_self_element_constructor_attributes`. You should return to
         one needed depending on the given constraints.
 
         EXAMPLES::
@@ -478,17 +500,19 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             {'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>, '_facade_for': AllPairs, '_parent_for': AllPairs}
         """
 
+
 class SelfParentPolicy(SetFactoryPolicy):
     r"""
-    Policy where each parent is a standard parent
+    Policy where each parent is a standard parent.
 
     INPUT:
 
     - ``factory`` -- an instance of :class:`SetFactory`
     - ``Element`` -- a subclass of :class:`~.element.Element`
 
-    Given a factory ``F`` an a class ``E``, returns a policy for parent ``P``
-    creating element in class ``E`` and parent ``P`` itself.
+    Given a factory ``F`` and a class ``E``, returns a policy for
+    parent ``P`` creating elements in class ``E`` and parent ``P``
+    itself.
 
     EXAMPLES::
 
@@ -522,7 +546,7 @@ class SelfParentPolicy(SetFactoryPolicy):
 
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
+        Return the element constructor attributes as per
         :meth:`SetFactoryPolicy._element_constructor_attributes`
 
         INPUT:
@@ -548,11 +572,12 @@ class SelfParentPolicy(SetFactoryPolicy):
             sage: SelfParentPolicy(XYPairs, XYPair)    # indirect doctest
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent ``self``
         """
-        return "Set factory policy for %s with parent ``self``"%(self._Element)
+        return "Set factory policy for {} with parent ``self``".format(self._Element)
+
 
 class TopMostParentPolicy(SetFactoryPolicy):
     r"""
-    Policy where the parent of the element is the topmost parent
+    Policy where the parent of the elements is the topmost parent.
 
     INPUT:
 
@@ -560,8 +585,9 @@ class TopMostParentPolicy(SetFactoryPolicy):
     - ``top_constraints`` -- the empty set of constraints.
     - ``Element`` -- a subclass of :class:`~.element.Element`
 
-    Given a factory ``F`` and a class ``E``, returns a policy for parent ``P``
-    creating element in class ``E`` and parent ``factory(*top_constraints, policy)``.
+    Given a factory ``F`` and a class ``E``, returns a policy for
+    parent ``P`` creating element in class ``E`` and parent
+    ``factory(*top_constraints, policy)``.
 
     EXAMPLES::
 
@@ -586,8 +612,8 @@ class TopMostParentPolicy(SetFactoryPolicy):
 
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
-        :meth:`SetFactoryPolicy._element_constructor_attributes`
+        Return the element constructor attributes as per
+        :meth:`SetFactoryPolicy._element_constructor_attributes`.
 
         INPUT:
 
@@ -618,22 +644,23 @@ class TopMostParentPolicy(SetFactoryPolicy):
             sage: TopMostParentPolicy(XYPairs, (), XYPair)  # indirect doctest
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
         """
-        return "Set factory policy for %s with parent %s[=%s(%s)]"%(
+        return "Set factory policy for {} with parent {}[={}({})]".format(
             self._Element, self._factory(*self._top_constraints, policy=self),
             self._factory, self._top_constraints)
 
 
 class FacadeParentPolicy(SetFactoryPolicy):
     r"""
-    Policy for facade parent
+    Policy for facade parent.
 
     INPUT:
 
     - ``factory`` -- an instance of :class:`SetFactory`
     - ``parent`` -- an instance of :class:`Parent`
 
-    Given a factory ``F`` an a class ``E``, returns a policy for parent ``P``
-    creating element as if they were created by ``parent``
+    Given a factory ``F`` and a class ``E``, returns a policy for
+    parent ``P`` creating elements as if they were created by
+    ``parent``.
 
     EXAMPLES::
 
@@ -652,8 +679,8 @@ class FacadeParentPolicy(SetFactoryPolicy):
         sage: type(el) is P.element_class
         True
 
-    If ``parent`` is itself a facade parent, then transitivity is correctly
-    applied::
+    If ``parent`` is itself a facade parent, then transitivity is
+    correctly applied::
 
         sage: P =  XYPairs()
         sage: P2 = XYPairs(x=2)
@@ -680,35 +707,10 @@ class FacadeParentPolicy(SetFactoryPolicy):
         self._parent_for = parent
         SetFactoryPolicy.__init__(self, factory)
 
-    def category(self, constraints):
-        r"""
-        Return the policy category for given constraints
-
-        Return the policy category associated to ``self`` for parent
-        constructed with the given constraints as per
-        :meth:`SetFactoryPolicy.category`. Here constraints are ignored.
-
-        INPUT:
-
-        - ``constraints`` -- a set of constraints (ignored)
-
-        OUTPUT:
-
-        - an instance of :class:`FacadeParentPolicyCategory`.
-
-        EXAMPLE::
-
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
-            sage: F = FacadeParentPolicy(XYPairs, XYPairs())
-        """
-        # assert(isinstance(constraints, tuple))
-        return FacadeParentPolicyCategory(self._parent_for)
-
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
-        :meth:`SetFactoryPolicy._element_constructor_attributes`
+        Return the element constructor attributes as per
+        :meth:`SetFactoryPolicy._element_constructor_attributes`.
 
         INPUT:
 
@@ -736,7 +738,7 @@ class FacadeParentPolicy(SetFactoryPolicy):
             sage: FacadeParentPolicy(XYPairs, XYPairs())  # indirect doctest
             Set factory policy for facade parent AllPairs
         """
-        return "Set factory policy for facade parent %s"%(
+        return "Set factory policy for facade parent {}".format(
             self._parent_for)
 
 
@@ -744,9 +746,10 @@ class FacadeParentPolicy(SetFactoryPolicy):
 #                     Parent                       #
 ####################################################
 
+
 class ParentWithSetFactory(Parent):
     r"""
-    Abstract class for parent belonging to a set factory
+    Abstract class for parent belonging to a set factory.
 
     INPUT:
 
@@ -754,8 +757,8 @@ class ParentWithSetFactory(Parent):
     - ``policy`` -- the policy for element construction
     - ``category`` -- the category of the parent (default to ``None``)
 
-    Depending on the constraints and the policy, initialize the parent in a
-    proper category to set up element construction.
+    Depending on the constraints and the policy, initialize the parent
+    in a proper category to set up element construction.
 
     EXAMPLES::
 
@@ -767,7 +770,7 @@ class ParentWithSetFactory(Parent):
         sage: P.category()
         Category of facade finite enumerated sets
     """
-    def __init__(self, constraints, policy, category = None):
+    def __init__(self, constraints, policy, category=None):
         r"""
         TESTS::
 
@@ -776,12 +779,10 @@ class ParentWithSetFactory(Parent):
             sage: isinstance(XYPairs(3), ParentWithSetFactory)  # indirect doctest
             True
         """
-        # assert(isinstance(constraints, tuple))
         self._constraints = constraints
         assert(isinstance(policy, SetFactoryPolicy))
         self._policy = policy
         policy_attributes = policy._element_constructor_attributes(constraints)
-        # print self._constraints,  policy_attributes
         for attrname, attr in policy_attributes.items():
             if attr == "self":
                 setattr(self, attrname, self)
@@ -791,15 +792,15 @@ class ParentWithSetFactory(Parent):
         if '_facade_for' in attrname:
             category = Sets().Facades().or_subcategory(category)
         Parent.__init__(self,
-                        category = Sets().or_subcategory(category),
-                        facade = policy_attributes.get('_facade_for', None))
-
+                        category=Sets().or_subcategory(category),
+                        facade=policy_attributes.get('_facade_for', None))
 
     def constraints(self):
         r"""
-        Return the constraints for ``self``
+        Return the constraints defining ``self``.
 
-        Currently there is no specification on how constraints are handled.
+        Currently there is no specification on how constraints are
+        handled.
 
         EXAMPLES::
 
@@ -815,7 +816,7 @@ class ParentWithSetFactory(Parent):
 
     def policy(self):
         r"""
-        Return the policy used when ``self`` was created
+        Return the policy used when ``self`` was created.
 
         EXAMPLES::
 
@@ -829,7 +830,7 @@ class ParentWithSetFactory(Parent):
 
     def facade_policy(self):
         r"""
-        Return the policy for parent facade for ``self``
+        Return the policy for parent facade for ``self``.
 
         EXAMPLES::
 
@@ -857,7 +858,7 @@ class ParentWithSetFactory(Parent):
 
     def factory(self):
         r"""
-        Return the factory which built ``self``
+        Return the factory which built ``self``.
 
         EXAMPLES::
 
@@ -871,7 +872,7 @@ class ParentWithSetFactory(Parent):
 
     def subset(self, *args, **options):
         r"""
-        Return a subset of ``self`` by adding more constraints
+        Return a subset of ``self`` by adding more constraints.
 
         EXAMPLES::
 
@@ -891,14 +892,15 @@ class ParentWithSetFactory(Parent):
         factory = self.factory()
         constr = factory.add_constraints(self._constraints,
                                          (args, options))
-        return factory(*constr, policy = self._policy)
+        return factory(*constr, policy=self._policy)
 
     def _test_subset(self, **options):
         r"""
-        Tests that subsets with no extra parameters returns ``self``
+        Tests that subsets with no extra parameters returns
+        ``self``.
 
-        Currently only test that one gets the same parent is no more
-        constraints are added.
+        Currently, only the test that one gets the same parent when no
+        more constraints are given, is performed.
 
         .. TODO::
 
@@ -911,14 +913,13 @@ class ParentWithSetFactory(Parent):
             sage: S = XYPairs()
             sage: S._test_subset()
         """
-        #TODO verifie avec self.constraints
         tester = self._tester(**options)
         tester.assertTrue(self.subset() is self)
 
     @abstract_method
     def check_element(self, x, check):
         r"""
-        Check that ``x`` verifies the constraints of ``self``
+        Check that ``x`` verifies the constraints of ``self``.
 
         INPUT:
 
@@ -927,18 +928,21 @@ class ParentWithSetFactory(Parent):
         - ``check`` -- the level of checking to be performed (usually a
           boolean).
 
-        This method may assume that ``x`` was properly constructed by ``self``
-        or a possible super-set of ``self`` for which ``self`` is a facade. It
-        should return nothing is ``x`` verifies the constraints and raise a
-        :exc:`~exceptions.ValueError` explaining which constraints ``x``
-        fails otherwise.
+        This method may assume that ``x`` was properly constructed by
+        ``self`` or a possible super-set of ``self`` for which
+        ``self`` is a facade. It should return nothing if ``x``
+        verifies the constraints and raise a
+        :exc:`~exceptions.ValueError` explaining which constraints
+        ``x`` fails otherwise.
 
-        The method should accept an extra parameter check specifying which
-        level of check should be performed. It will only be called when
-        ``bool(check)`` evaluates to ``True``.
+        The method should accept an extra parameter check specifying
+        which level of check should be performed. It will only be
+        called when ``bool(check)`` evaluates to ``True``.
 
-        .. TODO:: Should we always call check element and let it decide which
-           check has to be performed ?
+        .. TODO::
+
+            Should we always call check element and let it decide
+            which check has to be performed ?
 
         EXAMPLES::
 
@@ -959,13 +963,13 @@ class ParentWithSetFactory(Parent):
 
     def __contains__(self, x):
         r"""
-        Default implementation for ``__contains__``:
+        Default implementation for ``__contains__``.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- any object
 
-        Check for class, parent and calls ``self.check_element(x)``
+        Check for class, parent and calls ``self.check_element(x)``.
 
         TESTS::
 
@@ -982,15 +986,14 @@ class ParentWithSetFactory(Parent):
             False
         """
         if (isinstance(x, self.element_class) and
-            x.parent() == self._parent_for): # TODO: is_parent_of ???
+            x.parent() == self._parent_for):  # TODO: is_parent_of ???
             try:
                 self.check_element(x, True)
             except ValueError:
                 return False
             else:
                 return True
-        else:
-            return False
+        return False
 
     def __call__(self, *args, **keywords):
         r"""
@@ -1026,7 +1029,7 @@ class ParentWithSetFactory(Parent):
 
     # QUESTION: Should we call:
     #     self._parent_for._element_constructor_
-    # currently we don't call it directly because:
+    # currently we do not call it directly because:
     #  - it may do some extra check we dont want to perform ?
     #  - calling directly element_class should be faster
     def _element_constructor_(self, *args, **keywords):
@@ -1046,9 +1049,8 @@ class ParentWithSetFactory(Parent):
             sage: XYPairs(x=3)((2,3), check=False) # Don't do this at home, kids
             (2, 3)
         """
-        check =  keywords.get("check", True)
+        check = keywords.get("check", True)
         res = self.element_class(self._parent_for, *args, **keywords)
         if check:
             self.check_element(res, check)
         return res
-

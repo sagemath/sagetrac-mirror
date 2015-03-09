@@ -21,9 +21,7 @@ A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
         sage: import gc
         sage: _ = gc.collect()
         sage: A
-        Traceback (most recent call last):
-        ...
-        RuntimeError: This action acted on a set that became garbage collected
+        <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
 
     To avoid garbage collection of the underlying set, it is sufficient to
     create a strong reference to it before the action is created.
@@ -126,7 +124,7 @@ cdef class Action(Functor):
     def is_left(self):
         return self._is_left
 
-    def __repr__(self):
+    def _repr_(self):
         side = "Left" if self._is_left else "Right"
         return "%s %s by %r on %r"%(side, self._repr_name_(), self.G,
                                     self.underlying_set())
@@ -181,9 +179,7 @@ cdef class Action(Functor):
             sage: import gc
             sage: _ = gc.collect()
             sage: A
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This action acted on a set that became garbage collected
+            <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
         """
         S = self.US()
         if S is None:
@@ -339,7 +335,7 @@ cdef class PrecomposedAction(Action):
     def __invert__(self):
         return PrecomposedAction(~self._action, self.left_precomposition, self.right_precomposition)
 
-    def __repr__(self):
+    def _repr_(self):
         s = repr(self._action)
         if self.left_precomposition is not None:
             s += "\nwith precomposition on left by %s" % self.left_precomposition._default_repr_()

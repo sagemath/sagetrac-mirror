@@ -198,15 +198,15 @@ class FormalSums(UniqueRepresentation, Module):
         """
         EXAMPLES::
 
-            sage: A = FormalSums(RR).get_action(RR); A     # indirect doctest
+            sage: A = FormalSums(RR);  A.get_action(RR)     # indirect doctest
             Right scalar multiplication by Real Field with 53 bits of precision on Abelian Group of all Formal Finite Sums over Real Field with 53 bits of precision
 
-            sage: A = FormalSums(ZZ).get_action(QQ); A
+            sage: A = FormalSums(ZZ);  A.get_action(QQ)
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
             with precomposition on left by Conversion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
-            sage: A = FormalSums(QQ).get_action(ZZ); A
+            sage: A = FormalSums(QQ);  A.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Abelian Group of all Formal Finite Sums over Rational Field
         """
         if op is operator.mul and isinstance(other, Parent):
@@ -302,7 +302,7 @@ class FormalSum(ModuleElement):
             try:
                 self._data = [(k(t[0]), t[1]) for t in self._data]
             except (IndexError, KeyError) as msg:
-                raise TypeError, "%s\nInvalid formal sum"%msg
+                raise TypeError("%s\nInvalid formal sum"%msg)
 
     def __iter__(self):
         """

@@ -6,7 +6,6 @@ from sage.graphs.all import DiGraph, Graph, graphs, digraphs
 from copy import deepcopy
 from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
 from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.interfaces.singular import singular
@@ -323,7 +322,7 @@ class Sandpile(DiGraph):
                 processed_g[v] = edges
             g = processed_g
         else:
-            raise SyntaxError, g
+            raise SyntaxError(g)
 
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
@@ -414,7 +413,7 @@ class Sandpile(DiGraph):
                 self._set_points()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def version(self):
         r"""
@@ -1377,7 +1376,7 @@ class Sandpile(DiGraph):
             else:
                 return [r.values() for r in result]
         else:
-            raise UserWarning, "The underlying graph must be undirected."
+            raise UserWarning("The underlying graph must be undirected.")
 
     def canonical_divisor(self):
         r"""
@@ -1401,7 +1400,7 @@ class Sandpile(DiGraph):
         if self.is_undirected():
             return SandpileDivisor(self,[self.out_degree(v)-2 for v in self.vertices()])
         else:
-            raise UserWarning, "Only for undirected graphs."
+            raise UserWarning("Only for undirected graphs.")
 
     def _set_invariant_factors(self):
         r"""
@@ -1446,8 +1445,6 @@ class Sandpile(DiGraph):
             [1, 1, 1, 1, 15]
         """
         return deepcopy(self._invariant_factors)
-
-    elementary_divisors = deprecated_function_alias(10618, invariant_factors)
 
     def _set_hilbert_function(self):
         """
@@ -2233,7 +2230,7 @@ class SandpileConfig(dict):
                         config[v] = c.pop()
                 dict.__init__(self,config)
         else:
-            raise SyntaxError, c
+            raise SyntaxError(c)
 
         self._sandpile = S
         self._vertices = S.nonsink_vertices()
@@ -2284,7 +2281,9 @@ class SandpileConfig(dict):
             sage: c.equivalent_recurrent()
             {1: 1, 2: 1}
             sage: c.__dict__
-            {'_sandpile': Digraph on 3 vertices, '_equivalent_recurrent': [{1: 1, 2: 1}, {1: 2, 2: 1}], '_vertices': [1, 2]}
+            {'_equivalent_recurrent': [{1: 1, 2: 1}, {1: 2, 2: 1}],
+             '_sandpile': Digraph on 3 vertices,
+             '_vertices': [1, 2]}
 
         NOTES:
 
@@ -2338,7 +2337,7 @@ class SandpileConfig(dict):
                 self._set_is_superstable()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -3453,7 +3452,7 @@ class SandpileDivisor(dict):
                     div[S.vertices()[i]] = D[i]
                     dict.__init__(self,div)
         else:
-            raise SyntaxError, D
+            raise SyntaxError(D)
 
         self._sandpile = S
         self._vertices = S.vertices()
@@ -3560,7 +3559,7 @@ class SandpileDivisor(dict):
                 self._set_life()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -4651,7 +4650,7 @@ def sandlib(selector=None):
                            }
                   },
     }
-    if selector==None:
+    if selector is None:
         print
         print '  Sandpiles in the sandlib:'
         for i in sandpiles:
@@ -4700,7 +4699,19 @@ def grid_sandpile(m,n):
 
         sage: G = grid_sandpile(3,4)
         sage: G.dict()
-        {(1, 2): {(1, 1): 1, (1, 3): 1, 'sink': 1, (2, 2): 1}, (3, 2): {(3, 3): 1, (3, 1): 1, 'sink': 1, (2, 2): 1}, (1, 3): {(1, 2): 1, (2, 3): 1, 'sink': 1, (1, 4): 1}, (3, 3): {(2, 3): 1, (3, 2): 1, (3, 4): 1, 'sink': 1}, (3, 1): {(3, 2): 1, 'sink': 2, (2, 1): 1}, (1, 4): {(1, 3): 1, (2, 4): 1, 'sink': 2}, (2, 4): {(2, 3): 1, (3, 4): 1, 'sink': 1, (1, 4): 1}, (2, 3): {(3, 3): 1, (1, 3): 1, (2, 4): 1, (2, 2): 1}, (2, 1): {(1, 1): 1, (3, 1): 1, 'sink': 1, (2, 2): 1}, (2, 2): {(1, 2): 1, (3, 2): 1, (2, 3): 1, (2, 1): 1}, (3, 4): {(2, 4): 1, (3, 3): 1, 'sink': 2}, (1, 1): {(1, 2): 1, 'sink': 2, (2, 1): 1}, 'sink': {}}
+        {'sink': {},
+         (1, 1): {'sink': 2, (1, 2): 1, (2, 1): 1},
+         (1, 2): {'sink': 1, (1, 1): 1, (1, 3): 1, (2, 2): 1},
+         (1, 3): {'sink': 1, (1, 2): 1, (1, 4): 1, (2, 3): 1},
+         (1, 4): {'sink': 2, (1, 3): 1, (2, 4): 1},
+         (2, 1): {'sink': 1, (1, 1): 1, (2, 2): 1, (3, 1): 1},
+         (2, 2): {(1, 2): 1, (2, 1): 1, (2, 3): 1, (3, 2): 1},
+         (2, 3): {(1, 3): 1, (2, 2): 1, (2, 4): 1, (3, 3): 1},
+         (2, 4): {'sink': 1, (1, 4): 1, (2, 3): 1, (3, 4): 1},
+         (3, 1): {'sink': 2, (2, 1): 1, (3, 2): 1},
+         (3, 2): {'sink': 1, (2, 2): 1, (3, 1): 1, (3, 3): 1},
+         (3, 3): {'sink': 1, (2, 3): 1, (3, 2): 1, (3, 4): 1},
+         (3, 4): {'sink': 2, (2, 4): 1, (3, 3): 1}}
         sage: G.group_order()
         4140081
         sage: G.invariant_factors()
@@ -4792,7 +4803,29 @@ def aztec_sandpile(n):
     EXAMPLES::
 
         sage: aztec_sandpile(2)
-        {'sink': {(3/2, 1/2): 2, (-1/2, -3/2): 2, (-3/2, 1/2): 2, (1/2, 3/2): 2, (1/2, -3/2): 2, (-3/2, -1/2): 2, (-1/2, 3/2): 2, (3/2, -1/2): 2}, (1/2, 3/2): {(-1/2, 3/2): 1, (1/2, 1/2): 1, 'sink': 2}, (1/2, 1/2): {(1/2, -1/2): 1, (3/2, 1/2): 1, (1/2, 3/2): 1, (-1/2, 1/2): 1}, (-3/2, 1/2): {(-3/2, -1/2): 1, 'sink': 2, (-1/2, 1/2): 1}, (-1/2, -1/2): {(-3/2, -1/2): 1, (1/2, -1/2): 1, (-1/2, -3/2): 1, (-1/2, 1/2): 1}, (-1/2, 1/2): {(-3/2, 1/2): 1, (-1/2, -1/2): 1, (-1/2, 3/2): 1, (1/2, 1/2): 1}, (-3/2, -1/2): {(-3/2, 1/2): 1, (-1/2, -1/2): 1, 'sink': 2}, (3/2, 1/2): {(1/2, 1/2): 1, (3/2, -1/2): 1, 'sink': 2}, (-1/2, 3/2): {(1/2, 3/2): 1, 'sink': 2, (-1/2, 1/2): 1}, (1/2, -3/2): {(1/2, -1/2): 1, (-1/2, -3/2): 1, 'sink': 2}, (3/2, -1/2): {(3/2, 1/2): 1, (1/2, -1/2): 1, 'sink': 2}, (1/2, -1/2): {(1/2, -3/2): 1, (-1/2, -1/2): 1, (1/2, 1/2): 1, (3/2, -1/2): 1}, (-1/2, -3/2): {(-1/2, -1/2): 1, 'sink': 2, (1/2, -3/2): 1}}
+        {'sink': {(-3/2, -1/2): 2,
+          (-3/2, 1/2): 2,
+          (-1/2, -3/2): 2,
+          (-1/2, 3/2): 2,
+          (1/2, -3/2): 2,
+          (1/2, 3/2): 2,
+          (3/2, -1/2): 2,
+          (3/2, 1/2): 2},
+         (-3/2, -1/2): {'sink': 2, (-3/2, 1/2): 1, (-1/2, -1/2): 1},
+         (-3/2, 1/2): {'sink': 2, (-3/2, -1/2): 1, (-1/2, 1/2): 1},
+         (-1/2, -3/2): {'sink': 2, (-1/2, -1/2): 1, (1/2, -3/2): 1},
+         (-1/2, -1/2): {(-3/2, -1/2): 1,
+          (-1/2, -3/2): 1,
+          (-1/2, 1/2): 1,
+          (1/2, -1/2): 1},
+         (-1/2, 1/2): {(-3/2, 1/2): 1, (-1/2, -1/2): 1, (-1/2, 3/2): 1, (1/2, 1/2): 1},
+         (-1/2, 3/2): {'sink': 2, (-1/2, 1/2): 1, (1/2, 3/2): 1},
+         (1/2, -3/2): {'sink': 2, (-1/2, -3/2): 1, (1/2, -1/2): 1},
+         (1/2, -1/2): {(-1/2, -1/2): 1, (1/2, -3/2): 1, (1/2, 1/2): 1, (3/2, -1/2): 1},
+         (1/2, 1/2): {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 3/2): 1, (3/2, 1/2): 1},
+         (1/2, 3/2): {'sink': 2, (-1/2, 3/2): 1, (1/2, 1/2): 1},
+         (3/2, -1/2): {'sink': 2, (1/2, -1/2): 1, (3/2, 1/2): 1},
+         (3/2, 1/2): {'sink': 2, (1/2, 1/2): 1, (3/2, -1/2): 1}}
         sage: Sandpile(aztec_sandpile(2),'sink').group_order()
         4542720
 
@@ -4999,7 +5032,14 @@ def glue_graphs(g,h,glue_g,glue_h):
         sage: glue_y = {0: 1, 1: 2, 3: 1}
         sage: z = glue_graphs(x,y,glue_x,glue_y)
         sage: z
-        {0: {}, 'y2': {'y1': 2}, 'y1': {0: 2}, 'x2': {'x0': 1, 'x1': 1}, 'x3': {'x2': 1, 'x0': 1, 'x1': 1}, 'y3': {0: 1, 'y2': 1}, 'x1': {'x0': 1}, 'x0': {0: 1, 'x3': 2, 'y3': 1, 'x1': 1, 'y1': 2}}
+        {0: {},
+         'x0': {0: 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
+         'x1': {'x0': 1},
+         'x2': {'x0': 1, 'x1': 1},
+         'x3': {'x0': 1, 'x1': 1, 'x2': 1},
+         'y1': {0: 2},
+         'y2': {'y1': 2},
+         'y3': {0: 1, 'y2': 1}}
         sage: S = Sandpile(z,0)
         sage: S.h_vector()
         [1, 6, 17, 31, 41, 41, 31, 17, 6, 1]
@@ -5338,7 +5378,7 @@ def wilmes_algorithm(M):
                 L[k] = L[k] + v
         return L
     else:
-        raise UserWarning, 'matrix not of full rank'
+        raise UserWarning('matrix not of full rank')
 
 ######### Notes ################
 """
