@@ -2,7 +2,7 @@ r"""
 The Tree-like tableaux
 =====================
 
-The goal of this module is to give some tools to manipulate the 
+The goal of this module is to give some tools to manipulate the
 tree-like tableaux.
 """
 #*****************************************************************************
@@ -16,17 +16,28 @@ tree-like tableaux.
 #*****************************************************************************
 
 from sage.structure.element_wrapper import ElementWrapper
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.family import Family
+
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.sets.set import Set
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy
 )
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
 from sage.combinat.partition import Partition
+from sage.rings.integer import Integer
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.misc.cachefunc import cached_method
+
 
 default_tikz_options = dict(
-    scale=1, line_size=1, ribbon_size=1, point_size=3, 
+    scale=1, line_size=1, ribbon_size=1, point_size=3,
     color_array='black', color_ribbon='red', color_point='black'
     , color_special_point='black', color_tabular='black'
     , translation=[0,0], rotation=0
@@ -78,8 +89,8 @@ TreeLikeTableauxOptions=GlobalOptions(
 class TreeLikeTableau( ClonableList ):
     r"""
     The class of Tree-Like tableaux.
-    
-    Ref: J.C. Aval, A. Boussicault, P. Nadeau, Tree-like tabelau, 
+
+    Ref: J.C. Aval, A. Boussicault, P. Nadeau, Tree-like tabelau,
     arXiv:1109.0371v2
     """
     __metaclass__ = ClasscallMetaclass
@@ -109,53 +120,64 @@ class TreeLikeTableau( ClonableList ):
     def __hash__(self):
         return hash(tuple(map(tuple,list(self))))
 
-    def height( self ):
-        r"""
-        Give the number of rows of the tree-like tableau.
-
-        EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
-            sage: tlt.height()
-            3
-            sage: tlt = TreeLiketableau( [[1]] )
-            1
-            sage: tlt = TreeLikeTableau( [[]] )
-            1
-        """
-        return ClonableList.__len__( self )
-
-    def width( self ):
-        r"""
-        Give the number of columns of the tree-like tableau.
-
-        EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
-            sage: tlt.height()
-            4
-            sage: tlt = TreeLiketableau( [[1]] )
-            1
-            sage: tlt = TreeLikeTableau( [[]] )
-            0
-        """
-        return len( ClonableList.__getitem__( self, 0 ) )
-
     def _check_it_is_a_list_of_lists_of_0s_1s( self ):
+        r"""
+        Check if the the elements of the list that was given, contains list
+        with only only O's and 1's inside them.
+        TESTS::
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],5,[0,1]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: The element of the list indexed by 1, i.e 5 , is not a list.
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[8,1],[0,1]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: The element at the intersection of the column 0 and the row 1, i.e 8, is not a 0 or a 1.
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt
+            [[1, 0, 1, 1], [1, 1], [0, 1]]
+        """
 
         for irow in range(len(self)):
             element = ClonableList.__getitem__( self, irow)
             if type(element) != list:
-                raise ValueError, "The %s element of the list is not a list."%(irow)
+                raise ValueError,\
+                "The element of the list indexed by %s, i.e %s , is not a list."\
+                 %(irow,element)
             for icol in range(len(element)):
                 if element[icol] != 0 and element[icol] !=1:
-                    raise ValueError, "The element %s of the row %s is not a 0 or a 1."%(icol,irow)
+                    raise ValueError,\
+                    "The element at the intersection of the column %s "%(icol)+\
+                    "and the row %s, i.e %s, is not a 0 or a 1."%(irow,\
+                    element[icol])
 
     def _check_there_is_a_root( self ):
+        r"""
+        Check if there is a 1 in the cell self[0][0].
+        TESTS::
+            sage: tlt = TreeLikeTableau( [[0,0,1,1],[1,1],[0,1]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no root.
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt
+            [[1, 0, 1, 1], [1, 1], [0, 1]]
+        """
         if not self[0][0]==1:
             raise ValueError, "There is no root."
 
     def _check_column_have_a_point( self, icol ):
+        r"""
+        Check if each column have a 1.
+        TESTS::
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,0],[1,0]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: The column 1 is empty.
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt
+            [[1, 0, 1, 1], [1, 1], [0, 1]]
+        """
         irow = 0
         while( self[irow][icol] != -1 ):
             if self[irow][icol] == 1:
@@ -164,6 +186,17 @@ class TreeLikeTableau( ClonableList ):
         raise ValueError, "The column %s is empty."%(icol)
 
     def _check_row_have_a_point( self, irow ):
+        r"""
+        Check if each column have a 1.
+        TESTS::
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,0],[1,0]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: The column 1 is empty.
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt
+            [[1, 0, 1, 1], [1, 1], [0, 1]]
+        """
         if not ( 1 in ClonableList.__getitem__( self, irow )):
             raise ValueError, "The row %s is empty."%(irow)
 
@@ -187,14 +220,12 @@ class TreeLikeTableau( ClonableList ):
 
     def check( self ):
         r"""
-        Check if the internal data contain valid information for a tree-like 
+        Check if the internal data contain valid information for a tree-like
         tableaux.
 
         EXAMPLES::
-            sage: NotImplemented
 
         TESTS::
-            sage: NotImplemented
         """
         if self._get_list() == [[]]:
             return
@@ -219,9 +250,7 @@ class TreeLikeTableau( ClonableList ):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]]
-             )
+            sage: tlt = TreeLikeTableau([[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]])
             sage: tlt
             [[1, 1, 0, 1], [1, 0, 1, 0], [0, 1], [0, 1], [1, 0]]
             sage: tlt = TreeLikeTableau( [[]] )
@@ -233,6 +262,103 @@ class TreeLikeTableau( ClonableList ):
             if not isinstance( value, (list, tuple) ) :
                 raise ValueError, "Value %s must be a list or a tuple.i"%(value)
             self.check()
+
+    def height( self ):
+        r"""
+        Give the number of rows of the tree-like tableau.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt.height()
+            3
+            sage: tlt = TreeLikeTableau( [[1]] )
+            sage: tlt.height()
+            1
+            sage: tlt = TreeLikeTableau( [[]] )
+            sage: tlt.height()
+            1
+        """
+        return ClonableList.__len__( self )
+
+    def width( self ):
+        r"""
+        Give the number of columns of the tree-like tableau.
+
+        EXAMPLES::
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt.width()
+            4
+            sage: tlt = TreeLikeTableau( [[1]] )
+            sage: tlt.width()
+            1
+            sage: tlt = TreeLikeTableau( [[]] )
+            sage: tlt.width()
+            0
+        """
+        return len( ClonableList.__getitem__( self, 0 ) )
+
+    def __getitem__(self, irow):
+        r"""
+        Get the entry of a tree-like-tableau.
+
+        EXAMPLES::
+            sage: tlt = TreeLikeTableau( [[1,1,0,0],[1,0,1,1],[1,0,0]] )
+            sage: tlt[0][0]
+            1
+            sage: tlt[0][2]
+            0
+            sage: tlt[2][3]
+            -1
+            sage: tlt[-1][0]
+            -1
+            sage: tlt[0]
+            [1, 1, 0, 0]
+            sage: tlt[-1]
+            Row outside the tree-like tableau.
+            sage: tlt[3]
+            Row outside the tree-like tableau.
+
+        TESTS::
+            sage: tlt[-1][-1]
+            -1
+            sage: tlt[0][-1]
+            -1
+            sage: tlt[2][4]
+            -1
+            sage: tlt[2][2]
+            0
+            sage: tlt[ [2, 2] ]
+            0
+        """
+        if( isinstance( irow, list )):
+            return self._row( self, irow[0] )[ irow[1] ]
+        return self._row( self, irow )
+
+    def __setitem__(self , irow, lst):
+        r"""
+        Modify an entry of the tree-like-tableau
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[1,0]] )
+            sage: with tlt.clone() as tlt1:
+            ....:     tlt1[2][0] = 0
+            ....:     tlt1[2][1] = 1
+            sage: tlt1
+            [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1]]
+            sage: l =  [0, 1, 0]
+            sage: with tlt.clone() as tlt2:
+            ....:     tlt2[2] = l
+            sage: tlt2
+            [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1, 0]]
+            sage: tlt2[2] == [0, 1, 0]
+            True
+            sage: tlt[2] is l
+            False
+        """
+        self._require_mutable()
+        ClonableList.__setitem__(self , irow, list(lst) )
 
     class _row:
         r"""
@@ -248,7 +374,7 @@ class TreeLikeTableau( ClonableList ):
                 self._lst = ClonableList.__getitem__( self._tlt, irow )
 
         def __getitem__( self, icol ):
-            if not self._lst:  
+            if not self._lst:
                 return -1
             elif icol < 0 or icol >= len( self._lst ):
                 return -1
@@ -266,96 +392,42 @@ class TreeLikeTableau( ClonableList ):
             if self._lst:
                 return str(self._lst)
             else:
-                return "Row outside the tree-like tableau"
+                return "Row outside the tree-like tableau."
 
         def __len__(self):
             r"""
-            Return le length of the row.
+            Return the length of the row.
             """
-            return len(self._lst)
+            list=self._lst
+            if list==None:
+                return 0
+            return len(list)
 
-    def __getitem__(self, irow):
-        r"""
-        Get the entry of a tree-like-tableau.
-        
-        EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,1,0,0],[1,0,1,1],[1,0,0]] )
-            sage: tlt[0][0]
-            1
-            sage: tlt[0][2]
-            0
-            sage: tlt[2][3]
-            -1
-            sage: tlt[-1][0]
-            -1
-            sage: tlt[0]
-            [1, 1, 0, 0]
-            sage: tlt[-1]
-            Row outside the tree-like tableau
-            sage: tlt[3]
-            Row outside the tree-like tableau
+        def __eq__(self,other):
+            r"""
+            When == is used on tlt[i], it compares the list describing the row.
 
-        TESTS::
-            sage: tlt[-1][-1]
-            -1
-            sage: tlt[0][-1]
-            -1
-            sage: tlt[2][4]
-            -1
-            sage: tlt[2][2]
-            -1
-            sage: tlt[ [2, 2] ]
-            -1
-        """
-        if( isinstance( irow, list )):
-            return self._row( self, irow[0] )[ irow[1] ]
-        return self._row( self, irow )
+            TESTS::
 
-    def __setitem__(self , irow, lst):
-        r"""
-        Modify an entry of the tree-like-tableau
+                sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[1,0]] )
+                sage: tlt[0]==[1,0,1,0]
+                True
+                sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[1,0]] )
+                sage: tlt[1]==[1,0,1,0]
+                False
+                sage: tlt = TreeLikeTableau( [[]] )
+                sage: tlt[0]==[]
+                True
+            """
+            return self._lst==other
 
-        EXAMPLES::
-
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[1,0]] )
-            sage: with tlt.clone() as tlt1:
-            sage:     tlt1[2][0] = 0
-            sage:     tlt1[2][1] = 1
-            sage: tlt1
-            [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1]]
-            sage: l =  [0, 1, 0]
-            sage: with tlt.clone() as tlt2:
-            sage:     tlt2[2] = l
-            sage: tlt2
-            [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1, 0]]
-            sage: tlt[2] == [0, 1, 0]
-            True
-            sage: tlt[2] is l
-            Flase
-        """
-        self._require_mutable()
-        ClonableList.__setitem__(self , irow, list(lst) )
-
-    def partition(self):
-        r"""
-        Give the partition given by the rows.
-
-        TESTS::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,0,1],[1,1],[1,0],[1]] )
-            sage. tlt.partition()
-            [3, 2, 2, 1]
-            sage: tlt = TreeLikeTableau( [[]] )
-            sage. tlt.partition()
-            []
-        """
-        return Partition([len(self[irow]) for irow in range(self.height())])
 
     def border_cells(self):
         r"""
         Give the list of the border cells starting from south-ouest to north-east.
+
+        EXAMPLES::
+            sage: tlt=TreeLikeTableau([[1,0,0,1],[1,0,1],[1,1]])
         """
         lst = []
         if self == TreeLikeTableau([[]]):
@@ -386,7 +458,7 @@ class TreeLikeTableau( ClonableList ):
         EXAMPLES::
 
             sage: tlt = TreeLikeTableau([[1,1,0,1,1,1],[0,0,0,0,0,1],[1,0,1,0]
-            ,[1,0,0],[0,0,1]])
+            ....: ,[1,0,0],[0,0,1]])
             sage: tlt.height()
             5
             sage: tlt.width()
@@ -395,7 +467,7 @@ class TreeLikeTableau( ClonableList ):
             [0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1]
 
             sage: tlt = TreeLikeTableau([[]])
-            sage: tlt.border_path
+            sage: tlt.border_path()
             [1]
         """
 
@@ -419,10 +491,11 @@ class TreeLikeTableau( ClonableList ):
 
         TESTS:: TODO clone check=false or enlever la mutabilite il y a une fonction qui le permet
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,1,1,0],[0,1,0,1],[1,0],[1]] )
-            sage: tlt.insert_ribbon(1, 5)
-            [[1,1,1,0],[0,1,0,1],[1,0,0,0],[1,0,0]]
+            sage: tlt._set_mutable()
+            sage: tlt._insert_ribbon(1, 5)
+            sage: tlt
+            [[1, 1, 1, 0], [0, 1, 0, 1], [1, 0, 0, 0], [1, 0, 0]]
 
 
         """
@@ -453,15 +526,16 @@ class TreeLikeTableau( ClonableList ):
 
         TESTS::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]] )
             sage: tlt._set_mutable()
             sage: tlt._insert_column(4,2)
+            sage: tlt
             [[1, 1, 0, 0, 1], [1, 0, 0, 1, 0], [0, 1, 0], [0, 1, 0], [1, 0, 1]]
 
             sage: tlt = TreeLikeTableau( [[]] )
             sage: tlt._set_mutable()
             sage: tlt._insert_column(0,0)
+            sage: tlt
             [[1]]
         """
         self._require_mutable()
@@ -476,10 +550,10 @@ class TreeLikeTableau( ClonableList ):
 
         TESTS::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,0,1],[1,0],[1,1]] )
             sage: tlt._set_mutable()
             sage: tlt._insert_row(1,2)
+            sage: tlt
             [[1, 0, 1], [0, 0, 1], [1, 0], [1, 1]]
         """
         self._require_mutable()
@@ -523,7 +597,7 @@ class TreeLikeTableau( ClonableList ):
             sage:
         """
         border_cells = self.border_cells()
-        for k in range(len(border_cells)-1,1,-1):
+        for k in range(len(border_cells)-1,0,-1):
             (irow, icol) = border_cells[k]
             if self[irow][icol] == 1 and border_cells[k-1][0] == irow:
                 return k
@@ -531,44 +605,43 @@ class TreeLikeTableau( ClonableList ):
     def insert_point(self, position ):
         r"""
         This is the insertion algortihm.
-        This method insert a new point inside the tree-like tableau on the 
+        This method insert a new point inside the tree-like tableau on the
         border number 'position' ((the border are numbered from left to right)
 
-        ( see definition 2.2 of the article "tree-like tableaux", J.C. Aval, 
+        ( see definition 2.2 of the article "tree-like tableaux", J.C. Aval,
           A. Boussicault, P. Nadeau, arXiv:1109.0371v2 )
 
         EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]] )
             sage: with tlt.clone() as tlt1:
-            sage:     tlt1.insert_point( 3 )
+            ....:     tlt1.insert_point( 3 )
             sage: tlt1
             [[1, 1, 0, 0, 1], [1, 0, 0, 1, 0], [0, 1, 0, 0], [0, 1, 1, 0], [1, 0]]
         """
         self._require_mutable()
         [irow, icol, direction] = self._border_position_to_coordinates_and_direction( position)
+        position_special_point=self.special_point()
         if direction == 'horizontal':
             self._insert_row(irow, icol)
         else:
             self._insert_column(irow, icol)
-        if position < self.special_point():
-            self._insert_ribbon(position + 1, self.special_point() + 1)
+        if position < position_special_point:
+            self._insert_ribbon(position + 1, position_special_point + 1)
 
     def _remove_ribbon(self):
         r"""
         This method correspond to the first step of remove_point.
 
         TESTS::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau([[1,0,1,1,1],[0,0,0,0,1],[1,1,0,0,0],[1,0,0,0,0],[0,1,0],[1]])
             sage: tlt._set_mutable()
             sage: tlt._remove_ribbon()
             sage: tlt
             [[1, 0, 1, 1, 1], [0, 0, 0, 0, 1], [1, 1, 0, 0], [1, 0], [0, 1], [1]]
 
-            sage: tlt = TreeLikeTableau([[1,1,1,0,1],[0,0,1,0,0],[0,1,0,1],[1,0,0],[1]]
+            sage: tlt = TreeLikeTableau([[1,1,1,0,1],[0,0,1,0,0],[0,1,0,1],[1,0,0],[1]])
             sage: tlt._set_mutable()
-            sage: tlt.remove_ribbon()
+            sage: tlt._remove_ribbon()
             sage: tlt
             [[1, 1, 1, 0, 1], [0, 0, 1, 0, 0], [0, 1, 0, 1], [1, 0, 0], [1]]
         """
@@ -576,14 +649,16 @@ class TreeLikeTableau( ClonableList ):
             return
         border_cells = self.border_cells()
         k = self.special_point()
+        if k+1 == len(border_cells):
+            return
         if border_cells[k][0] != border_cells[k+1][0]:
             return
-        k += 1
+        k=k+1
         (irow, icol) = border_cells[k]
-        old_self = copy(self)
+        old_self = self.__copy__()
         while old_self[irow][icol] == 0:
             self._get_list()[irow].pop()
-            k += 1
+            k = k+1
             (irow, icol) = border_cells[k]
 
     def _remove_column(self, icol):
@@ -592,7 +667,6 @@ class TreeLikeTableau( ClonableList ):
 
         TESTS::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau([[1,1,1,0,1],[0,0,1,0,0],[0,1,0,1],[1,0,0],[1]])
             sage: tlt._set_mutable()
             sage: tlt._remove_column(3)
@@ -610,7 +684,6 @@ class TreeLikeTableau( ClonableList ):
 
         TESTS::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau([[1,1,1,1],[0,0,0,1],[0,1],[1,0]])
             sage: tlt._set_mutable()
             sage: tlt._remove_row(1)
@@ -625,16 +698,16 @@ class TreeLikeTableau( ClonableList ):
         This method remove the special point from the tree-like tableau.
         This method return the position border of the removed point.
 
-        ( see article "tree-like tableaux", J.C. Aval, A. Boussicault, 
+        ( see article "tree-like tableaux", J.C. Aval, A. Boussicault,
           P. Nadeau, arXiv:1109.0371v2 )
 
         EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-        sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]] )
+            sage: tlt = TreeLikeTableau( [[1,1,0,1,1,1],[0,1,0,0,0,0],[1,0,0,0],[0,1,1,0],[1,0]] )
             sage: with tlt.clone() as tlt1:
-            sage:     tlt1.insert_point( 3 )
+            ....:     tlt1.remove_point()
+            3
             sage: tlt1
-            [[1, 1, 0, 0, 1], [1, 0, 0, 1, 0], [0, 1, 0, 0], [0, 1, 1, 0], [1, 0]]
+            [[1, 1, 1, 1, 1], [0, 1], [1, 0], [0, 1], [1, 0]]
         """
         self._require_mutable()
         border_sp = self.special_point()
@@ -647,6 +720,20 @@ class TreeLikeTableau( ClonableList ):
         self._remove_column(icol_sp)
         return border_sp
 
+    def partition(self):
+        r"""
+        Give the partition given by the rows.
+
+        TESTS::
+            sage: tlt = TreeLikeTableau( [[1,0,1],[1,1],[1,0],[1]] )
+            sage: tlt.partition()
+            [3, 2, 2, 1]
+            sage: tlt = TreeLikeTableau( [[]] )
+            sage: tlt.partition()
+            []
+        """
+        return Partition([len(self[irow]) for irow in range(self.height())])
+
     def transpose(self):
         r"""
         Transpose the tree-like tableau 'self'.
@@ -655,20 +742,19 @@ class TreeLikeTableau( ClonableList ):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1],[1]])
             sage: tlt
             [[1, 1, 0, 1], [1, 0, 1], [0, 1, 0], [0, 1], [1]]
-            sage: with tlt.clone as tlt1:
+            sage: with tlt.clone() as tlt1:
             ....:   tlt1.transpose()
             ....:   tlt1
-            [[1, 1, 0, 0, 1], [1, 1, 0, 1], [0, 1, 0], [1]]
+            [[1, 1, 0, 0, 1], [1, 0, 1, 1], [0, 1, 0], [1]]
             sage: tlt.partition() == tlt1.partition().conjugate()
             True
-            sage: tlt = TreeLikeTableau( [[])
+            sage: tlt = TreeLikeTableau( [[]] )
             sage: tlt
             [[]]
-            sage: with tlt.clone as tlt1:
+            sage: with tlt.clone() as tlt1:
             ....:   tlt1.transpose()
             ....:   tlt1
             [[]]
@@ -691,10 +777,9 @@ class TreeLikeTableau( ClonableList ):
         The text representation of a tree-like tableau
 
         EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
             sage: tlt
-            [[1, 0, 1, 0],[1, 1, 0, 1],[0, 1],[0, 1],[1, 0]
+            [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1], [0, 1], [1, 0]]
         """
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
@@ -718,17 +803,18 @@ class TreeLikeTableau( ClonableList ):
 
     def size( self ):
         r"""
-        Return the size of the tree-like tableaux : it is the number of point 
+        Return the size of the tree-like tableaux : it is the number of point
         (the 1's inside the tableau) inside the tableau.
 
         EXAMPLES::
-            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
             sage: tlt.size()
             8
             sage: tlt = TreeLikeTableau( [[1]] )
+            sage: tlt.size()
             1
-            sage: tlt = TreeLikeTableau( [ ] )
+            sage: tlt = TreeLikeTableau( [[]] )
+            sage: tlt.size()
             0
         """
         return self.height().__add__(self.width()) -1
@@ -753,7 +839,276 @@ class TreeLikeTableau( ClonableList ):
     def _latex_list( self ):
         NotImplemented
 
+    def top_points( self ):
+        r"""
+        Top points are the points of the first row except the root point.
 
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
+            sage: tlt.top_points()
+            [(0, 2)]
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1],[1]])
+            sage: tlt.top_points()
+            [(0, 1), (0, 3)]
+            sage: tlt = TreeLikeTableau( [[1,0,0],[1,0,1],[1,1]] )
+            sage: tlt.top_points()
+            []
+
+        TESTS::
+
+            sage: tlt = TreeLikeTableau([[]])
+            sage: tlt.top_points()
+            []
+        """
+        L=[]
+        row0=self[0]
+        for i in range(1,len(row0)):
+            if row0[i]==1:
+                L.append((0,i))
+        return L
+
+    def left_points( self ):
+        r"""
+        Left points are the points of the first column except the root point.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
+            sage: tlt.left_points()
+            [(1, 0), (4, 0)]
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1]])
+            sage: tlt.left_points()
+            [(1, 0)]
+            sage: tlt = TreeLikeTableau( [[1,1,0],[0,1,1],[0,1]] )
+            sage: tlt.left_points()
+            []
+
+        TESTS::
+
+            sage: tlt = TreeLikeTableau([[]])
+            sage: tlt.left_points()
+            []
+        """
+        L=[]
+        i=1
+        while self[i][0]!=-1:
+            if self[i][0]==1:
+                L.append((i,0))
+            i=i+1
+        return L
+
+    def crossings( self ):
+        r"""
+        A crossing is a cell which have a point above him in the same column
+        and at its left in the same row.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
+            sage: tlt.crossings()
+            [(1, 2), (4, 1)]
+            sage: tlt = TreeLikeTableau( [[1,1,1,1],[1,0,0,0],[1,0,0,0],[1,0,0,0]] )
+            sage: tlt.crossings()
+            [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3)]
+            sage: tlt = TreeLikeTableau( [[1,0,1,1,1],[0,0,0,0,1],[0,0,1],[1,0],[1,1]])
+            sage: tlt.crossings()
+            []
+
+        TESTS::
+
+            sage: tlt = TreeLikeTableau([[]])
+            sage: tlt.crossings()
+            []
+
+
+        """
+        L=[]
+        irow=0
+        icol=0
+        while self[irow][icol]!=-1:
+            while self[irow][icol]!=-1:
+                test_row=False
+                test_col=False
+                j=irow-1
+                while not test_row and self[j][icol]!=-1:
+                    test_row = self[j][icol]==1
+                    j=j-1
+                j=icol-1
+                while not test_col and self[irow][j]!=-1:
+                    test_col = self[irow][j]==1
+                    j=j-1
+                if test_row and test_col:
+                    L.append((irow,icol))
+                icol=icol+1
+            icol=0
+            irow=irow+1
+        return L
+
+
+    def corners( self ):
+        r"""
+        A corner is a cell for which the bottom and the right edges are border edges.
+        A corner correspond de the pattern 01 in the border path.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1],[1]])
+            sage: tlt.corners()
+            [(0, 3), (2, 2), (3, 1), (4, 0)]
+            sage: tlt = TreeLikeTableau([[1]])
+            sage: tlt.corners()
+            [(0, 0)]
+            sage: tlt=TreeLikeTableau([[]])
+            sage: tlt.corners()
+            []
+        """
+        return self.partition().corners()
+
+    def occupied_corners( self ):
+        r"""
+        An occupied corner is a corner which has a point.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1],[1]])
+            sage: tlt.occupied_corners()
+            [(0, 3), (3, 1), (4, 0)]
+            sage: tlt = TreeLikeTableau([[1]])
+            sage: tlt.occupied_corners()
+            [(0, 0)]
+            sage: tlt=TreeLikeTableau([[]])
+            sage: tlt.occupied_corners()
+            []
+        """
+        corners= self.corners()
+        j=0
+        for i in range(len(corners)):
+            (irow,icol)=corners[i-j]
+            if self[irow][icol]==0:
+                corners.pop(i-j)
+                j=j+1
+        return  corners
+
+    def empty_corners( self ):
+        r"""
+        An empty corner is a corner which doesn't have a point.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1],[0,1,0],[0,1],[1]])
+            sage: tlt.empty_corners()
+            [(2, 2)]
+            sage: tlt = TreeLikeTableau([[1]])
+            sage: tlt.empty_corners()
+            []
+            sage: tlt=TreeLikeTableau([[]])
+            sage: tlt.empty_corners()
+            []
+        """
+        corners= self.corners()
+        j=0
+        for i in range(len(corners)):
+            (irow,icol)=corners[i-j]
+            if self[irow][icol]==1:
+                corners.pop(i-j)
+                j=j+1
+        return  corners
+
+    def is_symmetric( self ):
+        r"""
+        A symetric tree-like tableau is a tree-like tableau invariant by
+        the axial symmetry with respect to its main diagonal.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
+            sage: tlt.is_symmetric()
+            True
+            sage: tlt = TreeLikeTableau([[1,1],[1]])
+            sage: tlt.is_symmetric()
+            True
+            sage: tlt = TreeLikeTableau([[1,1,1],[1,0,0],[0,1]])
+            sage: tlt.is_symmetric()
+            False
+            sage: tlt = TreeLikeTableau([[1]])
+            sage: tlt.is_symmetric()
+            True
+            sage: tlt = TreeLikeTableau([[]])
+            sage: tlt.is_symmetric()
+            False
+
+
+        """
+        if self == TreeLikeTableau([[]]):
+            return False
+        i=0
+        while i+1<=len(self[i]):
+            for j in range(i+1,len(self[i])+1):
+                if self[i][j]!=self[j][i]:
+                    return False
+            i=i+1
+        return True
+
+    def special_point_sym( self ):
+        r"""
+        EXAMPLES::
+
+            sage: tlt=TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
+            sage: tlt.special_point_sym()
+            1
+        """
+        if not self.is_symmetric:
+            raise ValueError, "The tree-like tableau is not symmetric."
+
+        border_cells = self.border_cells()
+        for k in range((len(border_cells)-1)/2-1,0,-1):
+            (irow, icol) = border_cells[k]
+            if self[irow][icol] == 1 and border_cells[k-1][0] == irow:
+                return k
+        return 0
+
+    def insert_point_sym( self, position, epsilon ):
+        r"""
+        EXAMPLES::
+
+            sage: tlt=TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
+        """
+        if not self.is_symmetric:
+            raise ValueError, "The tree-like tableau is not symmetric."
+
+        [irow, icol, direction] = self._border_position_to_coordinates_and_direction(position)
+        position_special_point_sym=self.special_point_sym()
+
+        if direction == 'horizontal':
+            self._insert_column(icol, irow)
+            self._insert_row(irow, icol)
+        else:
+            self._insert_row(icol, irow)
+            self._insert_column(irow+1, icol)
+        if epsilon == 1:
+            if position < position_special_point_sym:
+                self._insert_ribbon(position + 1, position_special_point_sym + 1)
+                self._insert_ribbon(self.size()-(position_special_point_sym+1),self.size()-(position+1))
+        else:
+                self._insert_ribbon(position+1,self.size()-(position+1))
+
+    def code( self ):
+        r"""
+        The code of a tree-like tableau T is the sequence of the indexes of
+        the border edges at which the consecutive insertions were done in order to
+        obtain T starting with the tree-like tableau of size 1.
+
+        EXAMPLES::
+        """
+        L=[]
+        tlt=self.__copy__()
+        for i in range(tlt.size()):
+            L.insert(0,tlt.remove_point())
+        return L
+
+    def to_permutations_by_the_code( self ):
+        NotImplemented
 class TreeLikeTableauxFactory(SetFactory):
     r"""
     The tree-like tableaux factory.
@@ -768,7 +1123,7 @@ class TreeLikeTableauxFactory(SetFactory):
             return TreeLikeTableaux_size(size, policy)
         if size is None:
             return TreeLikeTableaux_all(policy)
-        raise ValueError, "Invalide argument for Tre-like tableaux Factory."
+        raise ValueError, "Invalide argument for Tree-like tableaux Factory."
 
     def add_constraints(self, cons, (args, opts)):
         r"""
@@ -829,11 +1184,12 @@ class TreeLikeTableaux_size(ParentWithSetFactory, UniqueRepresentation):
         else:
             for tlt in TreeLikeTableaux(self._size - 1):#meilleure notation a trouver
                 for k in range(self._size):
-                    print tlt
-                    with tlt.clone() as new_tlt:
-                        new_tlt.insert_point(k)
-                    yield new_tlt
-                    
+                    tlt._set_mutable()
+                    tlt.insert_point(k)
+                    tlt.set_immutable()
+                    yield tlt
+                    tlt.remove_point()
+
 
     global_options = TreeLikeTableauxOptions
 
@@ -867,8 +1223,6 @@ class TreeLikeTableaux_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     def check_element(self, el, check):
         r"""
         TESTS::
-
-            sage: from sage.structure.set_factories_example import XYPairs
             sage: TLTS = TreeLikeTableaux()
             sage: TLTS.check_element(TLTS.an_element(), True)
         """
