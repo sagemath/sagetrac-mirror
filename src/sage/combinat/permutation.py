@@ -222,6 +222,7 @@ Classes and methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.combinatorial_structures import CombinatorialStructures
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
@@ -5666,7 +5667,19 @@ class StandardPermutations_all(Permutations):
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
         """
-        Permutations.__init__(self, category=InfiniteEnumeratedSets())
+        Permutations.__init__(self, category=CombinatorialStructures())
+
+    def graded_component(self, grade):
+        """
+        TESTS::
+
+            sage: Permutations().graded_component(4)
+            Standard permutations of 4
+        """
+        return StandardPermutations_n(grade)
+
+    def grading(self, sigma):
+        return len(sigma)
 
     def _repr_(self):
         """
@@ -5738,7 +5751,27 @@ class StandardPermutations_n(Permutations):
             sage: TestSuite(SP).run()
         """
         self.n = n
-        Permutations.__init__(self, category=FiniteEnumeratedSets())
+        Permutations.__init__(self,
+                        category=CombinatorialStructures.GradedComponents())
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Permutations(3).ambient()
+            Standard permutations
+        """
+        return StandardPermutations_all()
+
+    def grading(self):
+        """
+        TESTS::
+
+            sage: Permutations(3).grading()
+            3
+
+        """
+        return self.n
 
     def __call__(self, x):
         """
