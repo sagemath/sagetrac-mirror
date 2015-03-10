@@ -1180,7 +1180,7 @@ class IncidenceStructure(object):
     # real computations #
     #####################
 
-    def packing(self, solver=None, verbose=0):
+    def packing(self, solver=None, verbose=0, objective="cardinality"):
         r"""
         Return a maximum packing
 
@@ -1205,12 +1205,22 @@ class IncidenceStructure(object):
           verbosity. Set to 0 by default, which means quiet.
           Only useful when ``algorithm == "LP"``.
 
+        - ``objective`` -- (default: ``"cardinality"``) Specify whether the 
+          objective function is to maximize the cardinality of blocks in 
+          the packing (objective="cardinality") or to maximize the number of 
+          points covered by the packing (objective="coverage").
+
         EXAMPLE::
 
-            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
+            sage: IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
             [[1, 2], [3, 'A']]
             sage: len(designs.steiner_triple_system(9).packing())
             3
+            sage: IncidenceStructure([[0,1],[2,3],[4,5],[0,2,4,6],[1,3,5]]).packing()
+            [[0, 1], [2, 3], [4, 5]]
+            sage: IncidenceStructure([[0,1],[2,3],[4,5],[1,3,5],[0,2,4,6]]).packing(objective="coverage")
+            [[0, 2, 4, 6], [1, 3, 5]]
+
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1225,9 +1235,13 @@ class IncidenceStructure(object):
         for x,L in enumerate(d): # Set of disjoint blocks
             p.add_constraint(p.sum([b[i] for i in L]) <= 1)
 
-        # Maximum number of blocks
-        p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
-
+        # set the objective functon
+        if objective=="coverage":
+            p.set_objective(p.sum([b[i]*self.block_sizes()[i] for i in range(self.num_blocks())]))
+        else:
+            # Maximum number of blocks
+            p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
+        
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
