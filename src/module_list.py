@@ -1210,6 +1210,9 @@ ext_modules = [
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
+	Extension('sage.modular.jacobi.jacobi_form',
+ 		  sources = ['sage/modular/jacobi/jacobi_form.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
               libraries = ["gmp", "flint"],

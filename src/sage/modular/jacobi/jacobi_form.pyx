@@ -1,11 +1,11 @@
 """
 This package provides a method of representing Jacobi forms and
-computing Jacobi theta series. (See page 1 of [EZ1985] for a
+computing Jacobi theta series. (See page 1 of [EZ1985]_ for a
 definition of Jacobi theta series.)
 
 EXAMPLES:
 
-We can create the Jacobi-theta series for the E8 lattice with the
+We can create the Jacobi-theta series for the `E_8` lattice with the
 vector (0,1,0,0,0,0,0,0)::
 
     sage: ME8 = [[2, 0, 0, 0, 0, 0, 0, 1],\
@@ -17,8 +17,7 @@ vector (0,1,0,0,0,0,0,0)::
                  [0, 1, 1, 1, 1, 1, 2, 0],\
                  [1, 1, 1, 1, 1, 1, 0, 2]]
     sage: QE8 = QuadraticForm(matrix(QQ,8,8,ME8))
-    sage: J1=Jacobi_Form(QE8,[0,1,0,0,0,0,0,0],4)
-    sage: J1
+    sage: Jacobi_Form(QE8,[0,1,0,0,0,0,0,0],4)
     Jacobi Form of weight 4 and index 1 with Fourier expansion:
     1 + (Z^-2 + 56*Z^-1 + 126 + 56*Z + Z^2)*q + (126*Z^-2 + 576*Z^-1 +
     756 + 576*Z + 126*Z^2)*q^2 + (56*Z^-3 + 756*Z^-2 + 1512*Z^-1 +
@@ -26,31 +25,33 @@ vector (0,1,0,0,0,0,0,0)::
     2072*Z^-2 + 4032*Z^-1 + 4158 + 4032*Z + 2072*Z^2 + 576*Z^3 +
     Z^4)*q^4 + O(q^5)
 
-Note that the Jacobi theta series for the zero vector recovers the classical theta series::
+Note that the Jacobi theta series for the zero vector recovers the
+classical theta series::
 
-    sage: D=DiagonalQuadraticForm(ZZ,[1,2,3,4])
-    sage: J1 = Jacobi_Form(D,[0,0,0,0],9)
-    sage: J1
+    sage: D = DiagonalQuadraticForm(ZZ,[1,2,3,4])
+    sage: Jacobi_Form(D,[0,0,0,0],9)
     Jacobi Form of weight 2 and index 0 with Fourier expansion:
-     1 + 2*q + 2*q^2 + 6*q^3 + 8*q^4 + 8*q^5 + 16*q^6 + 16*q^7 + 14*q^8 + 22*q^9 + O(q^10)
+    1 + 2*q + 2*q^2 + 6*q^3 + 8*q^4 + 8*q^5 + 16*q^6 + 16*q^7 + 14*q^8
+    + 22*q^9 + O(q^10)
     sage: D.theta_series()
-    1 + 2*q + 2*q^2 + 6*q^3 + 8*q^4 + 8*q^5 + 16*q^6 + 16*q^7 + 14*q^8 + 22*q^9 + O(q^10)
+    1 + 2*q + 2*q^2 + 6*q^3 + 8*q^4 + 8*q^5 + 16*q^6 + 16*q^7 + 14*q^8
+    + 22*q^9 + O(q^10)
 
 ALGORITHMS:
 
-    Jacobi forms are created using the function
-    compute_theta_series. This algorithm is described in Section 5.2
-    of [deQ2010]. It uses the method of Lagrange multipliers to find
-    the vectors x in the lattice for which the quadratic form
-    q(x)<=the precision which we want for the Fourier expansion.
+Jacobi forms are created using the function
+``compute_theta_series``. This algorithm is described in Section 5.2
+of [deQ2010]_. It uses the method of Lagrange multipliers to find
+the vectors x in the lattice for which the quadratic form
+q(x) <= the precision which we want for the Fourier expansion.
 
 ..TODO::
 
-    Throw exceptions.
-    Change matrix in compute_theta_series to an integral matrix.
-    Consider other functions.
-    Add documentation for all the functions.
-    Copywrite statement.
+    - Throw exceptions.
+    - Change matrix in ``compute_theta_series`` to an integral matrix.
+    - Consider other functions.
+    - Add documentation for all the functions.
+    - Copywrite statement.
 
 REFERENCES:
 
@@ -64,22 +65,15 @@ REFERENCES:
 AUTHORS:
 
 - Victoria de Quehen
-
 - Andrew Fiori
-
 - David Roe
-
 """
-
 cdef extern from "math.h":
     double sqrt(double)
     double floor(double)
     double ceil(double)
     double round(double)
 include "../../ext/stdsage.pxi"
-
-#include "../../ext/cdefs.pxi"
-#include "../../ext/interrupt.pxi"
 
 # TODO -- Copywrite statement
 
@@ -226,37 +220,33 @@ from sage.rings.rational import Rational
 
 class Jacobi_Form():
     """
-
     A generalization of modular forms which can be represented by a
     Fourier expansion. Currently we can only create Jacobi theta
     series.
 
-    .. WARNING ::
+    .. WARNING::
 
-    If the precision is too small the Jacobi form could be represented
-    by a Fourier expansion that does not determine the Jacobi form
-    uniquely.
+        If the precision is too small the Jacobi form could be represented
+        by a Fourier expansion that does not determine the Jacobi form
+        uniquely.
 
-    .. TODO ::
+    .. TODO::
 
-    - fill in all the functions.
-    - add examples for all the functions.
+        - fill in all the functions.
+        - add examples for all the functions.
 
     AUTHORS:
 
     - Victoria de Quehen
-
     - Andrew Fiori
-
     - David Roe
-
     """
     def _reduce_basis(self, q, vec):
        """
-           Changes basis to try to minimize radius
+       Changes basis to try to minimize radius
 
-           TODO - enable once basis of short vectors works
-                  (ie fix basis of short vectors)
+       TODO - enable once basis of short vectors works
+       (ie fix basis of short vectors)
        """
 #       M = Matrix(q.basis_of_short_vectors());
 #       self._q = quadraticForm(M*q.matrix()*M.transpose())
@@ -267,28 +257,29 @@ class Jacobi_Form():
 
     def _compute_radius(self):
         """
-        Computes the radius of a circle that encloses the ellipse our
-        quadratic form defines
+        Compute the radius of a circle that encloses the ellipse our
+        quadratic form defines.
         """
         from sage.functions.all import sqrt
         MinEigen = min( self._q.matrix().eigenvalues() )
-        radius = floor(sqrt(self._prec/MinEigen)) + 1
+        radius = floor(sqrt(self._prec / MinEigen)) + 1
         return radius
 
     def _compute_rectangle(self):
         """
-        Computes a bounding rectangle for our elipse
+        Computes a bounding rectangle for our ellipse.
         """
         from sage.functions.all import sqrt
 
-        mtx=(self._q.matrix())/2
-        mtx_inv=mtx.inverse()
-        boundary=[floor(sqrt(self._prec*abs(mtx_inv[i,i]))) for i in range(self._q.dim())]
+        mtx = (self._q.matrix()) / 2
+        mtx_inv = mtx.inverse()
+        boundary = [floor(sqrt(self._prec*abs(mtx_inv[i, i])))
+                    for i in range(self._q.dim())]
 
     def compute_theta_series(self):
         """
-        Compute the the Fourier coeffiecients of this Jacobi theta
-        series. (See page 1 of [EZ1985] for a definition of Jacobi
+        Compute the the Fourier coefficients of this Jacobi theta
+        series. (See page 1 of [EZ1985]_ for a definition of Jacobi
         theta series.)
 
         INPUT:
@@ -318,9 +309,7 @@ class Jacobi_Form():
                          [0, 1, 1, 1, 1, 1, 2, 0],\
                          [1, 1, 1, 1, 1, 1, 0, 2]]
             sage: QE8 = QuadraticForm(matrix(QQ,8,8,ME8))
-            sage: J1=Jacobi_Form(QE8,[0,1,0,0,0,0,0,0],4)
-            sage: J1
-
+            sage: Jacobi_Form(QE8,[0,1,0,0,0,0,0,0],4)
             Jacobi Form of weight 4 and index 1 with Fourier
             expansion: 1 + (Z^-2 + 56*Z^-1 + 126 + 56*Z + Z^2)*q +
             (126*Z^-2 + 576*Z^-1 + 756 + 576*Z + 126*Z^2)*q^2 +
@@ -348,9 +337,7 @@ class Jacobi_Form():
                           [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0],\
                           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2]]
             sage: QD16 = QuadraticForm(matrix(QQ,16,16,MD16))
-            sage: J2=Jacobi_Form(QD16,[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],4)
-            sage: J2
-
+            sage: Jacobi_Form(QD16,[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],4)
             Jacobi Form of weight 8 and index 1 with Fourier
             expansion: 1 + (Z^-2 + 56*Z^-1 + 366 + 56*Z + Z^2)*q +
             (366*Z^-2 + 14016*Z^-1 + 33156 + 14016*Z + 366*Z^2)*q^2 +
@@ -361,7 +348,7 @@ class Jacobi_Form():
 
         ALGORITHM:
 
-        This algorithm is described in Section 5.2 of [deQ2010].  It
+        This algorithm is described in Section 5.2 of [deQ2010]_.  It
         involves iterating over all the vectors x in the lattice for
         which q(x)<= ``self._prec`` (the precision which we want for the
         Fourier expansion).  The vectors in the lattice which satisfy
@@ -410,36 +397,20 @@ class Jacobi_Form():
 
             Does not throw exceptions if given the wrong type of data.
 
-        .. TODO
+        .. TODO::
 
-        - use shortest basis and mention this in input
-
-        - are the lattice condition in input the right ones?
-
-        - general code cleanup
-
-        - change tabs to space
-
-        - throw exceptions
-
-        - use relations between coefficients to make the algorithm far
-          more efficient
-
-        REFERENCES:
-
-        .. [deQ2010] Victoria de Quehen. Jacobi Forms. Master's
-           thesis, Department of Mathematics, McGill University, 2010.
-
-        .. [EZ1985] Martin Eichler and Don Zagier. The Theory of
-           Jacobi Forms, Progress in Mathematics, 55, Boston, MA:
-           Birkhäuser Boston, 1985.
+            - use shortest basis and mention this in input
+            - are the lattice condition in input the right ones?
+            - general code cleanup
+            - change tabs to space
+            - throw exceptions
+            - use relations between coefficients to make the algorithm far
+              more efficient
 
         AUTHORS:
 
         - Victoria de Quehen
-
         - Andrew Fiori
-
         - David Roe
         """
 
@@ -501,41 +472,43 @@ class Jacobi_Form():
         # in the current dimension.
         # diff = Variable to compute distance between boundary and
         # first lattice point on during an iteration.
-
-
         """
-           This function computes the Fourier coeffiecients of this Jacobi
-              theta series.
-           In order to do this we must iterate over all the lattice points
-              such that q(x) <= _prec.
+        This function computes the Fourier coeffiecients of this Jacobi
+        theta series.
 
-           General Description of Algorithm:
-               We iterate over all points of the lattice such that
-           q(x) <= _prec by observing that if we intersect the ellipse
-           defined by this equation with a hyperplane we get a lower dimensional
-           ellipse. Thus, if we iterate over all integral hyperplanes in one
-           direction and follow a recursive proceedure we can iterate over all
-           of the integral points.
-               In order to perform this proceedure efficiently we will perform
-           the following steps:
-               1. Precomputations which allow us to effectively compute the
-               changing position of the centre and boundaries of the ellipses.
-               2. As we iterate through the hyperplane, we iteratively compute
-               the the values that change with each iteration (for example the
-               the center of the ellipse, the values of the quadratic and
-               bilinear forms). The computation is iterative in that it adjusts
-               the value from the previous iteration rather the completely
-               recomputing it.
-               3. As we recurse to the lower dimensions, we also iteratively
-               compute the changing values.
+        In order to do this we must iterate over all the lattice points
+        such that q(x) <= _prec.
 
-           TODO
-                - general code cleanup
-                - change tabs to space
-                - change variable names (consistend capitalization)
-                - Improve variable descriptions
-                - Most Arithmetic could be made integral, this would make things a little faster
-                     (LCM of the det of the upper principle minors for some stuff, 2 for mtx stuff)
+        General Description of Algorithm:
+        We iterate over all points of the lattice such that
+        q(x) <= _prec by observing that if we intersect the ellipse
+        defined by this equation with a hyperplane we get a lower dimensional
+        ellipse. Thus, if we iterate over all integral hyperplanes in one
+        direction and follow a recursive proceedure we can iterate over all
+        of the integral points.
+        In order to perform this proceedure efficiently we will perform
+        the following steps:
+
+        1. Precomputations which allow us to effectively compute the
+        changing position of the centre and boundaries of the ellipses.
+
+        2. As we iterate through the hyperplane, we iteratively compute
+        the the values that change with each iteration (for example the
+        the center of the ellipse, the values of the quadratic and
+        bilinear forms). The computation is iterative in that it adjusts
+        the value from the previous iteration rather the completely
+        recomputing it.
+
+        3. As we recurse to the lower dimensions, we also iteratively
+        compute the changing values.
+
+        .. TODO::
+
+            - general code cleanup
+            - change tabs to space
+            - change variable names (consistent capitalization)
+            - Improve variable descriptions
+            - Most Arithmetic could be made integral, this would make things a little faster (LCM of the det of the upper principle minors for some stuff, 2 for mtx stuff)
         """
         #### Variables that are precomputed
         # q = The Quadratic Form.
@@ -569,31 +542,30 @@ class Jacobi_Form():
         # top = The upper bound on iteration for x in the current dimension.
         # diff = Variable to compute distance between boundary and first lattice point on during an iteration.
 
-
         #### Initialize Various Values ####
         cdef int z_prec = Integer(4*self._index*self._prec).isqrt() + 1
         q = self._q
         cdef int dim = q.dim()
         cdef int dim_minus_one = dim - 1
-        cdef double error=.01
-        cdef double radius=<double>(self._prec)+.01
+        cdef double error = .01
+        cdef double radius = <double>(self._prec)+.01
         cdef double orig_radius = radius
 
         #### Precomputations ####
-        mtx=(q.matrix())
-        mtx_inv=mtx.inverse()
+        mtx = (q.matrix())
+        mtx_inv = mtx.inverse()
         mtxs = [copy(q.matrix())]
-        mtxs_inv=[mtxs[0].inverse()]
-        _adjust_center=[Matrix(QQ, [[0] for i in range(dim)])]
-        _adjust_radius=[0]
+        mtxs_inv = [mtxs[0].inverse()]
+        _adjust_center = [Matrix(QQ, [[0] for i in range(dim)])]
+        _adjust_radius = [0]
         for m in range(1, dim):
-             mtxs[m-1].subdivide(1,1)
-             M2=mtxs[m-1].subdivision(1,0)
+             mtxs[m-1].subdivide(1, 1)
+             M2 = mtxs[m-1].subdivision(1, 0)
              mtxs.append(copy(mtxs[m-1].subdivision(1,1)))
              mtxs_inv.append(mtxs[m].inverse())
              _adjust_center.append(-mtxs_inv[m]*M2)
              _adjust_radius.append(-(mtxs[m-1])[0,0]/2+(M2.transpose()*mtxs_inv[m]/2*M2)[0,0])
-        _bil_mtx = mtx*self._vec
+        _bil_mtx = mtx * self._vec
         LRing = LaurentSeriesRing(ZZ, 'Z')
         PRing = PowerSeriesRing(LRing, 'q')
 
@@ -643,10 +615,10 @@ class Jacobi_Form():
             cen[i] = 0
 
         #### Initialize ####
-        cdef int num_hyperpl=0
+        cdef int num_hyperpl = 0
         cdef int eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively.
         cdef int eval_q # eval_q = q(x), calculated iteratively.
-        cdef int adjust_eval_q = mtx_final_col[0]*x[0]
+        cdef int adjust_eval_q = mtx_final_col[0] * x[0]
         cdef int top
         cdef double diff
 
@@ -654,15 +626,15 @@ class Jacobi_Form():
         while 1:
             top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
             while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
-                num_hyperpl=num_hyperpl+1
+                num_hyperpl += 1
 
                 ## Compute new the boundary while we advance in hyperplanes.
-                radius=radius+adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
-                if -error<radius and radius<0:
+                radius += adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
+                if -error<radius and radius < 0:
                     # Correct any rounding errors.
-                    radius=0
+                    radius = 0
                 boundary[num_hyperpl]=sqrt(radius*mtxs_inv_tip[num_hyperpl]*2)
-                cen[num_hyperpl]=0
+                cen[num_hyperpl] = 0
                 ## Compute the new centre.
                 for i from 1 <= i <= num_hyperpl:
                     cen[num_hyperpl]=cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
@@ -725,17 +697,18 @@ class Jacobi_Form():
                     return
 
             #### Advance the next iteration ####
-            x[num_hyperpl]=x[num_hyperpl]+1
+            x[num_hyperpl] += 1
             eval_bil += bil_mtx[num_hyperpl]
             adjust_eval_q += mtx_final_col[num_hyperpl]
 
-    def __init__(self, form=None, vec=None, prec=5, weight=None, index=None, level=0, Fourier = None):
+    def __init__(self, form=None, vec=None, prec=5, weight=None,
+                 index=None, level=0, Fourier=None):
         """
-
         Calculate the Jacobi theta series for a given quadratic form and
-        vector. See [EZ1985] for the definition of a Jacobi theta series.
+        vector. See [EZ1985]_ for the definition of a Jacobi theta series.
 
         INPUT:
+
         2 or 3 objects in the following order:
 
         1. a positive-definite quadratic form with integral
@@ -747,57 +720,43 @@ class Jacobi_Form():
         3. (optional) the precision for the Jacobi form, that is,
            the highest power of q in the Fourier expansion.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: D=DiagonalQuadraticForm(ZZ,[1,1,1,1])
-        sage: Jacobi_Form(D,[0,1,0,0],5)
-
-        Jacobi Form of weight 2 and index 1 with Fourier expansion:
-        1 + (Z^-2 + 6 + Z^2)*q + (6*Z^-2 + 12 + 6*Z^2)*q^2 + (12*Z^-2
-        + 8 + 12*Z^2)*q^3 + (Z^-4 + 8*Z^-2 + 6 + 8*Z^2 + Z^4)*q^4 +
-        (6*Z^-4 + 6*Z^-2 + 24 + 6*Z^2 + 6*Z^4)*q^5 + O(q^6)
+            sage: D = DiagonalQuadraticForm(ZZ,[1,1,1,1])
+            sage: Jacobi_Form(D,[0,1,0,0],5)
+            Jacobi Form of weight 2 and index 1 with Fourier expansion:
+            1 + (Z^-2 + 6 + Z^2)*q + (6*Z^-2 + 12 + 6*Z^2)*q^2 + (12*Z^-2
+            + 8 + 12*Z^2)*q^3 + (Z^-4 + 8*Z^-2 + 6 + 8*Z^2 + Z^4)*q^4 +
+            (6*Z^-4 + 6*Z^-2 + 24 + 6*Z^2 + 6*Z^4)*q^5 + O(q^6)
 
         ALGORITHMS:
 
         Jacobi forms are created using the function
         compute_theta_series. This algorithm is described in Section
-        5.2 of [deQ2010]. It uses the method of Lagrange multipliers
+        5.2 of [deQ2010]_. It uses the method of Lagrange multipliers
         to find the vectors x in the lattice for which the quadratic
         form q(x)<=the precision which we want for the Fourier
         expansion.
 
         .. TODO::
 
-        -check weight,index,level,Fourier
-        -input, output, example
-        -input as Fourier series
-        -check that the above really is a Jacobi form
-
-        REFERENCES:
-
-        .. [deQ2010] Victoria de Quehen. Jacobi Forms. Master's
-           thesis, Department of Mathematics, McGill University, 2010.
-
-        .. [EZ1985] Martin Eichler and Don Zagier. The Theory of
-           Jacobi Forms, Progress in Mathematics, 55, Boston, MA:
-           Birkhäuser Boston, 1985.
+            - check weight, index, level, Fourier
+            - input, output, example
+            - input as Fourier series
+            - check that the above really is a Jacobi form
 
         AUTHORS:
 
-        -Victoria de Quehen
-
-        -Andrew Fiori
-
-        -David Roe
-
+        - Victoria de Quehen
+        - Andrew Fiori
+        - David Roe
         """
-
         if not isinstance(form,QuadraticForm):
             raise TypeError("Form must be a quadratic form.")
 
         if form.base_ring() is not ZZ:
             try:
-                form=QuadraticForm(form.matrix().change_ring(ZZ))
+                form = QuadraticForm(form.matrix().change_ring(ZZ))
             except TypeError as err:
                 raise TypeError("The matrix associated to the quadratic form must be integral (%s)."%err.msg)
         if not form.is_positive_definite():
@@ -805,7 +764,7 @@ class Jacobi_Form():
         if form.dim() % 2 != 0:
             raise ValueError("The quadratic form must be even dimensional.")
         self._q = form
-        self._weight = form.dim()//2
+        self._weight = form.dim() // 2
 
         try:
             self._vec = vector(ZZ,vec)
@@ -821,7 +780,6 @@ class Jacobi_Form():
         self._prec = prec
 
         self.compute_theta_series()
-
 
         # """
         #     Creates a Jacobi form object from the data without needing a basis.
@@ -844,40 +802,43 @@ class Jacobi_Form():
 
     def __repr__(self):
         """
-        Outputs a representation
-        TODO - level
+        Return the representation of self.
+        
+        .. TODO:: level
         """
-        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight,self._index,self._Fourier_expansion)
+        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight, self._index, self._Fourier_expansion)
 
     def _latex_(self):
         """
-        Outputs latex rep
-        TODO make pretty
+        Return the latex representation of self.
+
+        .. TODO:: make pretty
         """
-        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight,self._index,self._Fourier_expansion)
+        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight, self._index, self._Fourier_expansion)
 
     def __getitem__(self, ij):
         """
-        Returns the c(i,j) coefficient
+        Return the c(i,j) coefficient of self.
 
-        TODO - Return 0 if 'j' is large/small
-             - Return error if i > prec
-             - do we want J[3] to return the coef of q^3???
+        .. TODO::
+
+            - Return 0 if 'j' is large/small
+            - Return error if i > prec
+            - do we want J[3] to return the coef of q^3 ?
         """
-        i,j = ij
+        i, j = ij
         i = int(i)
         j = int(j)
         # gets the coefficient of q^i
-        L=self._Fourier_expansion.padded_list(i+1)[i]
+        L = self._Fourier_expansion.padded_list(i + 1)[i]
         # returns the coefficient of Z^j
         return L.list()[L.degree()+j]
 
     def __setitem__(self, ij, coeff):
         """
-        TODO - should maybe dissallow this...
+        TODO - should maybe disallow this...
         """
-        raise NotImplementedError, "Not allowed to set coefs of Jacobi forms"
-        return
+        raise NotImplementedError("Not allowed to set coeffs of Jacobi forms")
 
     def __eq__(self, right):
         """
@@ -895,29 +856,32 @@ class Jacobi_Form():
 
     def __add__(self, right):
         """
-        returns sum of jacobi forms
+        Return sum of Jacobi forms.
+
         ToDo check the congruence subgroup and level and create a new Jacobi form
 
         ToDo We might be able to do more things in the event of theta series if they are
              in the same space and vectors in diff irreducible lattices, this is a theta series
         """
         if self._index != right._index :
-            raise NotImplementedError, "Oops, the index should be the same."
+            raise NotImplementedError("Oops, the index should be the same")
         if self._weight != right._weight :
-            raise NotImplementedError, "Oops, the weight should be the same."
+            raise NotImplementedError("Oops, the weight should be the same")
         if self._level != right._level :
-            raise NotImplementedError, "Currently we do not know how to add modular forms of different levels."
+            raise NotImplementedError("Currently we do not know how to add modular forms of different levels")
         return Jacobi_Form(Fourier = self._Fourier_expansion+right._Fourier_expansion, adjust_radius = min(self._prec,right._prec), weight = self._weight, index = self._index)
 
     def __mul__(self, right):
         """
-        Multiply Not Yet implemented
+        Multiply Jacobi forms.
 
-                 The product of two jacobi theta series is a jacobi theta series
+        Not Yet implemented
+
+        The product of two jacobi theta series is a jacobi theta series
         ToDo we know the Quadratic form and vector to use, could track this
         """
         if self._level != right._level :
-            raise NotImplementedError, "Currently we do not know how to multiply modular forms of different levels."
+            raise NotImplementedError("Currently we do not know how to multiply modular forms of different levels")
         return Jacobi_Form(Fourier = self._Fourier_expansion*right._Fourier_expansion,adjust_radius = min(self._prec,right._prec) ,weight = self._weight+right._weight,index = self._index+right._index, level=self._level)
 
     def __call__(self, n1, n2):
@@ -928,31 +892,30 @@ class Jacobi_Form():
 
     def weight(self):
         """
-        Returns the weight of the Jacobi form.
+        Return the weight of the Jacobi form.
 
         EXAMPLES:
-
-
         """
         return self._weight
 
     def index(self):
         """
-        Returns the index of the Jacobi form.
+        Return the index of the Jacobi form.
         """
         return self._index
 
     def level(self):
         """
-        Returns the level of the Jacobi form.
+        Return the level of the Jacobi form.
+
         Not yet implemented.
         """
-        raise NotImplementedError, "NYI"
+        raise NotImplementedError("Not yet implemented")
         return self._level
 
     def Fourier_expansion(self):
         """
-        Returns the Fourier expansion of the Jacobi form.
+        Return the Fourier expansion of the Jacobi form.
         """
         return self._Fourier_expansion
 
