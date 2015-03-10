@@ -42,6 +42,8 @@ REFERENCES:
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
+.. [3] Charles J. Colbourn, Jeffery H. Dinitz (eds.), Handbook of Combinatorial Designs, Second Edition, Chapman & Hall/CRC, 2007.
+
 AUTHORS:
 
 - Peter Dobcsanyi and David Joyner (2007-2008)
@@ -50,6 +52,26 @@ AUTHORS:
   (version 0.6) written by Peter Dobcsanyi peter@designtheory.org.
 
 - Vincent Delecroix (2014): major rewrite
+
+- Brett Stevens (2015-03-09): 
+    - added reference [3];
+    - made method points() return points as ordered list so __eq__ works correctly (see Example in __eq__);
+    - created construction method derived_incidence_structure_at_point(pt);
+    - created construction method residual_incidence_strucre_at_point(pt);
+    - created construction method derived_incidence_structure_at_block(block);
+    - created construction method residual_incidence_structure_at_block(block);
+    - created construction method complementary_incidence_structure();
+    - created construction method supplementary_incidence_structure();
+    - created construction method delete_points(pts,threshold_to_keep);
+    - created construction method extract_blocks_by_size(block_sizes).
+
+TODO: 
+
+- Decide if derived_incidence_structure_at_block and residual_incidence_structure_at_block should not check for symmetry and do construction just on the Incidence structure.  If so then a similar block_design method could be written that performs the check and then calls this Incidence Structure methods.
+
+- Add group divisible Incidence Structure checking and routines, including transveral designs.
+
+- Use group divisible Incidence Structure checking and duality to implement Resolvability checking.
 
 Methods
 -------
@@ -837,6 +859,39 @@ class IncidenceStructure(object):
         else:
             return [[self._points[i] for i in b] for b in self._blocks]
 
+
+
+    def blocks_by_size(self, block_sizes):
+        """
+        Returns the list of blocks restricted to the sizes listed in ``block_sizes``.
+
+        INPUT:
+
+        - ``block_sizes`` - A list of block sizes to keep.
+        
+
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(7),[[0],[1],[2,3],[0,5],[1,3,5],[1,4],[2,4,5],[0,2,4,6],[3,4,2]])
+            sage: IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([4]))               
+            Incidence structure with 7 points and 1 blocks
+            sage: IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([1,4]))
+            Incidence structure with 7 points and 3 blocks
+            sage: BD2 = IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([1,2,3,4,5,6,7]))
+            sage: BD2 == BD1
+            True
+
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        if self._point_to_index is None:
+            return [b[:] for b in self._blocks if len(b) in block_sizes]
+        else:
+            return [[self._points[i] for i in b] for b in self._blocks if len(b) in block_sizes]
+
+
+
     def block_sizes(self):
         r"""
         Return the set of block sizes.
@@ -986,6 +1041,10 @@ class IncidenceStructure(object):
             True
             sage: designs.IncidenceStructure(3, [[0],[0]]).is_simple()
             False
+            sage: designs.IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[4,0,3]]).is_simple()
+            False
+    
+
 
             sage: V = [(0,'a'),(0,'b'),(1,'a'),(1,'b')]
             sage: B = [[V[0],V[1]], [V[1],V[2]]]
@@ -1930,3 +1989,344 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
+
+    def derived_incidence_structure_at_point(self, pt):
+        """
+        Constructs the derived incidence structure at point ``pt``. 
+        Given an incidence structure $(X,\mathcal{B})$  and a point $x \in X$, 
+        the point set of the incidence structure derived at $x$ is $X\setminus x$ 
+        and the blocks are $\{B\setminus x \mid x \in B \in \mathcal{B}\}$
+
+        INPUT:
+
+        - ``pt`` - The point in the Incidence Structure at which to derive.
+
+
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD1.derived_incidence_structure_at_point(8)
+            Traceback (most recent call last):
+            ...
+            ValueError: Point 8 is not in the base set.
+            sage: BD1.derived_incidence_structure_at_point(1)
+            Incidence structure with 6 points and 3 blocks
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        if not(pt in self.ground_set()):
+            raise ValueError('Point %s is not in the base set.'%pt)
+        new_points = self.ground_set()
+        new_points.remove(pt)
+        new_blocks = []
+        for b in self.blocks():
+            if pt in b:
+                new_block = b[:]
+                new_block.remove(pt)
+                new_block.sort()
+                new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+    def residual_incidence_structure_at_point(self, pt):
+        """
+        Constructs the residual incidence structure at point ``pt``.
+        Given an incidence structure $(X,\mathcal{B})$  and a point $x \in X$, 
+        the point set of the incidence structure derived at $x$ is $X\setminus x$ 
+        and the blocks are $\{B \mid x \\not\in B \in \mathcal{B}\}$
+
+        INPUT:
+
+        - ``pt`` - The point in the Incidence Structure at which to take the residue.
+        
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD1.residual_incidence_structure_at_point(8)
+            Traceback (most recent call last):
+            ...
+            ValueError: Point 8 is not in the base set.
+            sage: BD1.residual_incidence_structure_at_point(1)
+            Incidence structure with 6 points and 4 blocks
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        if not(pt in self.ground_set()):
+            raise ValueError('Point %s is not in the base set.'%pt)
+        new_points = self.ground_set()
+        new_points.remove(pt)
+        new_blocks = []
+        for b in self.blocks():
+            if not(pt in b):
+                new_block = b[:]
+                new_block.sort()
+                new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+    def derived_incidence_structure_at_block(self, block):
+        """
+        Constructs the derived incidence strucure at block ``block``.  This method requires 
+        the incidence structure to be symmetric. Given a symmetric incidenc structure
+        $(X,\mathcal{B})$  and a block $B \in \mathcal{B}$, 
+        the point set of the incidence structure derived at $B$ is  $B$ 
+        and the blocks are $\{B' \cap B \mid B'\\neq B, B' \in \mathcal{B}\}$
+        
+        WARNING: Note that the checking for symmetry is not very sophisticated.
+
+        INPUT:
+
+        - ``block`` - The block in the Incidence structure at which to derive.
+
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
+            sage: BD1.derived_incidence_structure_at_block([0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Design IncidenceStructure<...> is not symmetric.
+            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD2.derived_incidence_structure_at_block([0,2,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: Block [0, 2, 4] is not in the block set.
+            sage: BD2.derived_incidence_structure_at_block([0,1,2])
+            Incidence structure with 3 points and 6 blocks
+            sage: BD2.derived_incidence_structure_at_block([2,1,0])
+            Incidence structure with 3 points and 6 blocks
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        block.sort()
+        if not(block in self.blocks()):
+            raise ValueError('Block %s is not in the block set.'%block)
+        if not(len(self.ground_set())==len(self.blocks())):
+            raise ValueError('Design %s is not symmetric.'%self)
+        new_points = block[:]
+        new_blocks = []
+        for b in self.blocks():
+            if not(b==block):
+                new_block = []
+                for pt in block:
+                    if pt in b:
+                        new_block.append(pt)
+                new_block.sort()
+                new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+    def residual_incidence_structure_at_block(self, block):
+        """
+        Constructs the residual incidence structure at block ``block``.  This method only 
+        requires the incidence structrure to be symmetric, i.e. the same number of points and blocks.  
+        Given a symmetric incidence structure $(X,\mathcal{B})$  and a block $B \in \mathcal{B}$, 
+        the point set of the incidence structure derived at $B$ is  $X\setminus B$ 
+        and the blocks are $\{B'\setminus B \mid B'\\neq B, B' \in \mathcal{B}\}$
+        
+        WARNING: Note that the checking for symmetry is not very sophisticated.
+
+        INPUT:
+
+        - ``block`` - The block in the Incidence structure at which to take the residue.
+
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
+            sage: BD1.residual_incidence_structure_at_block([0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Design IncidenceStructure<...> is not symmetric.
+            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD2.residual_incidence_structure_at_block([0,2,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: Block [0, 2, 4] is not in the block set.
+            sage: BD2.residual_incidence_structure_at_block([0,1,2])
+            Incidence structure with 4 points and 6 blocks
+            sage: BD2.residual_incidence_structure_at_block([2,1,0])
+            Incidence structure with 4 points and 6 blocks
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        block.sort()
+        if not(block in self.blocks()):
+            raise ValueError('Block %s is not in the block set.'%block)
+        if not(len(self.ground_set())==len(self.blocks())):
+            raise ValueError('Design %s is not symmetric.'%self)
+        new_points = self.ground_set()
+        for pt in block:
+            new_points.remove(pt)
+        new_blocks = []
+        for b in self.blocks():
+            if not(b==block):
+                new_block = b[:]
+                for pt in block:
+                    if pt in new_block:
+                        new_block.remove(pt)
+                new_block.sort()
+                new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+    def supplementary_incidence_structure(self):
+        """
+        Constructs the supplementary incidence structure. We are using the terminology from [3], p.81.
+        That is, the supplementary incidenc structure of $(X,\mathcal{B})$ is the incidence structure
+        with pointset $X$ and containing the blocks $\{X\setminus B \mid B \in \mathcal{B}\}$
+        
+ 
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
+            sage: BD2 = BD1.supplementary_incidence_structure()
+            sage: BD2 
+            Incidence structure with 9 points and 12 blocks
+            sage: BD2.block_sizes()
+            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
+            sage: BD3 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD4= BD3.supplementary_incidence_structure()
+            sage: BD4
+            Incidence structure with 7 points and 7 blocks
+            sage: BD4.is_t_design(return_parameters=True)
+            (True, (2, 7, 4, 2))
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        new_points = self.ground_set()
+        new_blocks=[]
+        for b in self.blocks():
+            new_set = set(self.ground_set())
+            new_block=list(new_set.difference(set(b)))
+            new_block.sort()
+            new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+    def complementary_incidence_structure(self):
+        """
+        Constructs the complementary incidence structure. We are using the terminology from [3], p.81.
+        That is, the complementary incidence structure of $(X,\mathcal{B})$ is the incidence structure
+        with pointset $X$ and containing the blocks ${\mathcal{X} \choose k} \setminus \mathcal{B}$ 
+        This is ``complementary`` in the sense of a hypergraph.
+        This requires the incidence structure to be simple and to have a fixed block size.
+        
+ 
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[0,3,4]])
+            sage: BD1.complementary_incidence_structure()
+            Traceback (most recent call last):
+            ...
+            ValueError: Design IncidenceStructure<...> is not simple.
+            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD3= BD2.complementary_incidence_structure()
+            sage: BD3
+            Incidence structure with 7 points and 28 blocks
+            sage: BD3.is_t_design(return_parameters=True)
+            (True, (2, 7, 3, 4))
+            sage: BD4 = IncidenceStructure(range(6),[[0,1,2],[0,3,4],[0,5],[1,3,5],[1,4],[2,3],[2,4,5]])
+            sage: BD4.complementary_incidence_structure()
+            Traceback (most recent call last):
+            ...
+            ValueError: Design IncidenceStructure<...> does not have a fixed block size.
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+
+            
+        """
+        from sage.combinat.combination import Combinations        
+        if not(self.is_simple()):
+            raise ValueError('Design %s is not simple.'%self)
+        k = self.block_sizes()[1]
+        number_blocks = len(self.blocks())
+        if not(((self.block_sizes()).count(k))==number_blocks):
+            raise ValueError('Design %s does not have a fixed block size.'%self)
+        new_points = self.ground_set()
+        L1 = Combinations(self.ground_set(),k).list()
+        for b in self.blocks():
+            L1.remove(b)
+        L1.sort(cmp)
+        return IncidenceStructure(new_points, L1)
+
+
+    def delete_points(self, pts, threshold_to_keep=1):
+        """
+        Constructs the incidence structure with the points, ``pts``, deleted. 
+        Given an incidence structure $(X,\mathcal{B})$  and a subset $D \subset X$, 
+        the point set of the incidence structure with points $D$ deleted is $X\setminus D$ 
+        and the blocks are $\{B\setminus D \mid B \in \mathcal{B}\}$.  
+        Blocks of cardinality less than ``threshold_to_keep`` are ignored.
+
+        INPUT:
+
+        - ``pts`` - A list of points to delete from the design.
+        
+        - ``threshold_to_keep`` - The minimum size of resulting block to keep.
+          In strength $t$ designs is may be  useful to keep blocks of size smaller
+          than $t$ to preserve resolvability properties. See [4] for examples of 
+          strength 2 resolvable designs with blocks of size 1.
+
+
+
+        EXAMPLES::
+        
+            sage: BD1 = IncidenceStructure(range(6),[[0,1,2],[0,3,4],[0,5],[1,3,5],[1,4],[2,3],[2,4,5]])
+            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD3 = BD2.delete_points([0,5],1)
+            sage: BD3.block_sizes()
+            [2, 2, 3, 3, 2, 2, 1]
+            sage: BD3 = BD2.delete_points([0,5],2)
+            sage: BD3.block_sizes()
+            [2, 2, 3, 3, 2, 2]
+            sage: BD3 = BD2.delete_points([6])
+            sage: BD1 == BD3
+            True
+            sage: BD4 = IncidenceStructure([0,1,3,6],[[0,1],[0,3],[0,6],[1,3],[1,6],[3,6]])
+            sage: BD5 = BD2.delete_points([4,5,2])
+            sage: BD5 == BD4
+            True
+        
+        AUTHORS:
+
+        - Brett Stevens (2015-03-09)
+        """
+        for pt in pts:
+            if not(pt in self.ground_set()):
+                raise ValueError('Point %s is not in the base set.'%pt)
+        new_points = self.ground_set()
+        for pt in pts:
+            new_points.remove(pt)
+        new_blocks = []
+        for b in self.blocks():
+            new_block = b[:]
+            for pt in pts:
+                if pt in new_block:
+                    new_block.remove(pt)
+            if len(new_block)>=threshold_to_keep:
+                new_block.sort()
+                new_blocks.append(new_block)
+        new_blocks.sort(cmp)
+        return IncidenceStructure(new_points, new_blocks)
+
+
+
+
+
