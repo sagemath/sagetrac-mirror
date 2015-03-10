@@ -220,7 +220,7 @@ def RiemannTheta_Constructor(Omega, deriv=[], uniform=True,
     - ``uniform`` -- (default: ``True``) a unform approximation allows
       the accurate computation of the Riemann theta function without
       having to recompute the integer points over which to take the
-      finite sum. See [CRTF] for a more in-depth definition.
+      finite sum. See [CRTF]_ for a more in-depth definition.
 
     - ``deriv_accuracy_radius`` -- (default: 5) the guaranteed radius
       of accuracy in computing derivatives of theta. This parameter is
@@ -607,7 +607,7 @@ class Function_RiemannTheta(BuiltinFunction):
         theta at the complex point $z$ to the numerical precision given
         by the Riemann matirix base field precision.
 
-        The set `U_R` of [CRTF], (21).
+        The set `U_R` of [CRTF]_, (21).
 
         .. math::
 
@@ -635,7 +635,7 @@ class Function_RiemannTheta(BuiltinFunction):
             expensive, an ellipsoid centered at `0 \in \CC^g` with large
             radius is computed instead. This can cause accuracy issues with
             ill-conditioned Riemann matrices, that is, those that produce
-            long and narrow bounding ellipsoies. See [CRTF] Section ### for
+            long and narrow bounding ellipsoies. See [CRTF]_ Section ### for
             more information.
 
         INPUTS:
@@ -649,7 +649,7 @@ class Function_RiemannTheta(BuiltinFunction):
 
         - (list) -- a list of integer points in `\ZZ^g` that fall
           within the pointwise approximation ellipsoid defined in
-          [CRTF]
+          [CRTF]_
 
         .. warning::
 
@@ -658,7 +658,7 @@ class Function_RiemannTheta(BuiltinFunction):
             ill-conditioned input. The general computing theta functions with
             such ill-conditioned input will not be possible, so
             we do not concern outselves with this case. This can be resolved
-            by implementing the Siegel transformation discussed in [CRTF].
+            by implementing the Siegel transformation discussed in [CRTF]_.
 
         EXAMPLES:
         ``integer_points()`` returns the points over which the finite sum
@@ -755,7 +755,7 @@ class Function_RiemannTheta(BuiltinFunction):
         real / complex precision given by the input matrix. Used primarily
         by ``RiemannTheta.integer_points()``.
 
-        `R` is the radius of [CRTF] Theorems 2, 4, and 6.
+        `R` is the radius of [CRTF]_ Theorems 2, 4, and 6.
 
         INPUT:
 
