@@ -1769,7 +1769,7 @@ class DocTestWorker(multiprocessing.Process):
 
         # Create Queue for the result. Since we're running only one
         # doctest, this "queue" will contain only 1 element.
-        self.result_queue = multiprocessing.Queue(1)
+        self.result_queue = multiprocessing.JoinableQueue(1)
 
         # Temporary file for stdout/stderr of the child process.
         # Normally, this isn't used in the master process except to
@@ -2159,5 +2159,9 @@ class DocTestTask(object):
             result = (0, DictAsObject(dict(err=exc_info[0], tb=tb)))
 
         if result_queue is not None:
+            #reading result_queue state seems to resolve the race condition in docker container
+            #this is an ugly workaround
+            #trac ticket #17924
+            result_queue.empty()
             result_queue.put(result, False)
         return result
