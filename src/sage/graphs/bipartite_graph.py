@@ -894,7 +894,7 @@ class BipartiteGraph(Graph):
             kwds["pos"] = pos
         return Graph.plot(self, *args, **kwds)
 
-    def matching_polynomial(self, algorithm="Godsil", name=None):
+    def matching_polynomial(self, algorithm="matching", name=None):
         r"""
         Computes the matching polynomial.
 
@@ -907,8 +907,8 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``algorithm`` - a string which must be either "Godsil" (default)
-          or "rook"; "rook" is usually faster for larger graphs.
+        - ``algorithm`` - a string which must be either "matching" (default),
+          "Godsil" or "rook".
 
         - ``name`` - optional string for the variable name in the polynomial.
 
@@ -931,6 +931,15 @@ class BipartiteGraph(Graph):
             sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
             True
 
+        Compute the matching polynomial of a ladder graph
+        (checked with the recursion formula
+        ``d = {1:x^2 - 1, 2:x^4 - 4*x^2 + 2, 3: x^6 - 7*x^4 + 11*x^2 - 3}``
+        ``d[n] = d[n-3] - x^2*d[n-2] + (-2+x^2)*d[n-1]``,
+        see http://mathworld.wolfram.com/MatchingPolynomial.html)::
+
+            sage: BipartiteGraph(graphs.LadderGraph(60)).matching_polynomial()[0]
+            2504730781961
+
         The matching polynomial of a tree graphs is equal to its characteristic
         polynomial::
 
@@ -946,9 +955,14 @@ class BipartiteGraph(Graph):
             x^7 - 12*x^5 + 36*x^3 - 24*x
             sage: g.matching_polynomial(algorithm="rook")
             x^7 - 12*x^5 + 36*x^3 - 24*x
+            sage: g.matching_polynomial(algorithm="Godsil")
+            x^7 - 12*x^5 + 36*x^3 - 24*x
         """
-        if algorithm == "Godsil":
+        if algorithm == "matching":
             return Graph.matching_polynomial(self, complement=False, name=name)
+        elif algorithm == "Godsil":
+            return Graph.matching_polynomial(self, complement=False, name=name,
+                    algorithm="Godsil")
         elif algorithm == "rook":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             A = self.reduced_adjacency_matrix()
@@ -964,7 +978,7 @@ class BipartiteGraph(Graph):
             p = K(b)
             return p
         else:
-            raise ValueError('algorithm must be one of "Godsil" or "rook".')
+            raise ValueError('algorithm must be one of "matching", "Godsil" or "rook".')
 
     def load_afile(self, fname):
         r"""
