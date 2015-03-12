@@ -59,13 +59,11 @@ AUTHORS:
 
 - Vincent Delecroix (2014): major rewrite
 
-- Brett Stevens (2015): added reference [3] and added basic design theory methods.
+- Brett Stevens (2015): added reference [Col2007] and added basic design theory methods.
 
 TODO: 
 
-- Add group divisible Incidence Structure checking and routines, including transveral designs.
-
-- Use group divisible Incidence Structure checking and duality to implement Resolvability checking.
+- Add group divisible Incidence Structure checking which does not require user to hand groups to the method?  What would be most efficient method to do this?
 
 Methods
 -------
