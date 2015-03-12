@@ -2186,25 +2186,6 @@ class IncidenceStructure(object):
             else:
                 raise ValueError('You cannot simultaneously take the residue at a point and a block')
         
-
-
-
-        # if not(point in self.ground_set()):
-        #     raise ValueError('Point %s is not in the base set.'%point)
-        # new_points = self.ground_set()
-        # new_points.remove(point)
-        # new_blocks = []
-        # for b in self.blocks():
-        #     if not(point in b):
-        #         new_block = b[:]
-        #         new_block.sort()
-        #         new_blocks.append(new_block)
-        # new_blocks.sort(cmp)
-        # return IncidenceStructure(new_points, new_blocks)
-
-
-
-
     def supplementary_incidence_structure(self):
         r"""
         Return the supplementary incidence structure. 
@@ -2289,46 +2270,6 @@ class IncidenceStructure(object):
         return IncidenceStructure(self._points, L1)
 
 
-    # def delete_points(self, pts, threshold_to_keep=1):
-    #     """
-    #     Constructs the incidence structure with the points, ``pts``, deleted. 
-    #     Given an incidence structure `(X,\mathcal{B})`  and a subset `D \subset X`, 
-    #     the point set of the incidence structure with points `D` deleted is `X\setminus D` 
-    #     and the blocks are `\{B\setminus D \mid B \in \mathcal{B}\}`.  
-    #     Blocks of cardinality less than ``threshold_to_keep`` are ignored.
-
-    #     INPUT:
-
-    #     - ``pts`` - A list of points to delete from the design.
-        
-    #     - ``threshold_to_keep`` - The minimum size of resulting block to keep.
-    #       In strength `t` designs is may be  useful to keep blocks of size smaller
-    #       than `t` to preserve resolvability properties. See [4] for examples of 
-    #       strength 2 resolvable designs with blocks of size 1.
-
-
-
-    #     EXAMPLES::
-    #     """
-    #     for pt in pts:
-    #         if not(pt in self.ground_set()):
-    #             raise ValueError('Point %s is not in the base set.'%pt)
-    #     new_points = self.ground_set()
-    #     for pt in pts:
-    #         new_points.remove(pt)
-    #     new_blocks = []
-    #     for b in self.blocks():
-    #         new_block = b[:]
-    #         for pt in pts:
-    #             if pt in new_block:
-    #                 new_block.remove(pt)
-    #         if len(new_block)>=threshold_to_keep:
-    #             new_block.sort()
-    #             new_blocks.append(new_block)
-    #     new_blocks.sort(cmp)
-    #     return IncidenceStructure(new_points, new_blocks)
-
-
     def union(self, other):
         r"""
         Return the union of the two incidence structures
@@ -2353,8 +2294,4 @@ class IncidenceStructure(object):
         new_blocks.extend(other.blocks())
         return IncidenceStructure(new_points,new_blocks)
 
-        # if self._points != other._points:
-        #     p_to_i = self._point_to_index if self._point_to_index else range(self.num_points())
-        #     if any(p not in p_to_i for p in other.ground_set()):
-        #         raise ValueError('%s does not have the same point set as %s.'%self,%other)
 
