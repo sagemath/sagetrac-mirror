@@ -1293,7 +1293,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: R.<x> = QQ[]
             sage: legendre_P(4,x)
             35/8*x^4 - 15/4*x^2 + 3/8
-            sage: legendre_P(10000,x).coeffs()[1]
+            sage: legendre_P(10000,x).coefficients(sparse=False)[1]
             0
             sage: var('t,x')
             (t, x)
@@ -1423,7 +1423,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
 
         EXAMPLES::
             
-            sage: legendre_Q._maxima_init_evaled_(20,x).coeff(x^10)
+            sage: legendre_Q._maxima_init_evaled_(20,x).coefficients(sparse=False)[10]
             -29113619535/131072*log(-(x + 1)/(x - 1))
         """
         _init()
@@ -1502,7 +1502,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
         
             sage: legendre_Q(2,x,algorithm='recursive')
             3/4*x^2*(log(x + 1) - log(-x + 1)) - 3/2*x - 1/4*log(x + 1) + 1/4*log(-x + 1)
-            sage: legendre_Q.eval_recursive(20,x).expand().coeff(x^10)
+            sage: legendre_Q.eval_recursive(20,x).expand().coefficients(sparse=False)[10]
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
         """
         from sage.functions.log import ln
@@ -1541,7 +1541,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
             1/2*x*(log(x + 1) - log(-x + 1)) - 1
             sage: legendre_Q.eval_formula(2,x).expand().collect(log(1+x)).collect(log(1-x))
             1/4*(3*x^2 - 1)*log(x + 1) - 1/4*(3*x^2 - 1)*log(-x + 1) - 3/2*x
-            sage: legendre_Q.eval_formula(20,x).coeff(x^10)
+            sage: legendre_Q.eval_formula(20,x).coefficients(sparse=False)[10]
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
         """
         from sage.functions.log import ln
@@ -1669,7 +1669,7 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
 
         EXAMPLES::
         
-            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coeff(x^10)
+            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coefficients(sparse=False)[10]
             2508866163428625/128
         """
         _init()
