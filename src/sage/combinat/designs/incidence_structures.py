@@ -12,7 +12,6 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
     :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
     :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
-    :meth:`~IncidenceStructure.blocks_by_size` | Return blocks of given sizes.
     :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
     :meth:`~IncidenceStructure.complementary_incidence_structure` | Return complementary incidence structure.
     :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
@@ -46,7 +45,9 @@ REFERENCES:
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
-.. [3] Charles J. Colbourn, Jeffery H. Dinitz (eds.), Handbook of Combinatorial Designs, Second Edition, Chapman & Hall/CRC, 2007.
+.. [Col2007] Charles J. Colbourn, Jeffery H. Dinitz (eds.), 
+   Handbook of Combinatorial Designs, Second Edition, 
+   Chapman & Hall/CRC, 2007.
 
 AUTHORS:
 
@@ -878,38 +879,6 @@ class IncidenceStructure(object):
         else:
             return [[self._points[i] for i in b] for b in self._blocks]
 
-
-
-    def blocks_by_size(self, block_sizes):
-        """
-        Returns the list of blocks restricted to the sizes listed in ``block_sizes``.
-
-        INPUT:
-
-        - ``block_sizes`` - A list of block sizes to keep.
-
-        OUTPUT: 
-
-        A list of blocks.
-
-        EXAMPLES::
-        
-            sage: BD1 = IncidenceStructure(range(7),[[0],[1],[2,3],[0,5],[1,3,5],[1,4],[2,4,5],[0,2,4,6],[3,4,2]])
-            sage: IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([4]))               
-            Incidence structure with 7 points and 1 blocks
-            sage: IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([1,4]))
-            Incidence structure with 7 points and 3 blocks
-            sage: BD2 = IncidenceStructure(BD1.ground_set(),BD1.blocks_by_size([1,2,3,4,5,6,7]))
-            sage: BD2 == BD1
-            True
-        """
-        if self._point_to_index is None:
-            return [b[:] for b in self._blocks if len(b) in block_sizes]
-        else:
-            return [[self._points[i] for i in b] for b in self._blocks if len(b) in block_sizes]
-
-
-
     def block_sizes(self):
         r"""
         Return the set of block sizes.
@@ -1306,10 +1275,13 @@ class IncidenceStructure(object):
 
         # set the objective functon
         if objective=="coverage":
-            p.set_objective(p.sum([b[i]*self.block_sizes()[i] for i in range(self.num_blocks())]))
-        else:
-            # Maximum number of blocks
+            # Maximum size of union of blocks
+            p.set_objective(p.sum([b[i]*len(self._blocks[i]) for i in range(self.num_blocks())]))
+        elif objective == "cardinality":
+           # Maximum number of blocks 
             p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
+        else:
+            raise ValueError("'objective' must be equal to either 'coverage' or 'cardinality'")
         
         p.solve(log=verbose)
 
@@ -2194,14 +2166,7 @@ class IncidenceStructure(object):
         supplementary incidence structure of `(X,\mathcal{B})` 
         is the incidence structure with pointset `X` and 
         containing the blocks `\{X\setminus B \mid B \in \mathcal{B}\}`
- 
-   
-        REFERENCES:
-
-        .. [Col2007] Charles J. Colbourn, Jeffery H. Dinitz (eds.), 
-           Handbook of Combinatorial Designs, Second Edition, 
-           Chapman & Hall/CRC, 2007.
-    
+       
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
@@ -2232,14 +2197,7 @@ class IncidenceStructure(object):
         This is ``complementary`` in the sense of a hypergraph.
         This requires the incidence structure to be simple and 
         to have a fixed block size.
- 
-   
-        REFERENCES:
 
-        .. [Col2007] Charles J. Colbourn, Jeffery H. Dinitz (eds.), 
-           Handbook of Combinatorial Designs, Second Edition, 
-           Chapman & Hall/CRC, 2007.
-         
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[0,3,4]])
@@ -2284,12 +2242,23 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
+            sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[0,3,4]])
+            sage: BD1.union(GF(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Finite Field of size 3 is not an incidence structure.
+            sage: BD2 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
+            sage: BD1.union(BD2)
+            Incidence structure with 9 points and 19 blocks
+
+
         """
         if not isinstance(other, IncidenceStructure):
             raise ValueError('%s is not an incidence structure.'%other)
 
         new_points = self.ground_set()
         new_points.extend(other._points)
+        new_points = list(set(new_points))
         new_blocks = self.blocks()
         new_blocks.extend(other.blocks())
         return IncidenceStructure(new_points,new_blocks)
