@@ -29,20 +29,14 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
     :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
     :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
-<<<<<<< HEAD
     :meth:`~IncidenceStructure.isomorphic_substructures_iterator` | Iterates over all copies of ``H2`` contained in ``self``
-=======
->>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
     :meth:`~IncidenceStructure.num_points` | Return the size of the ground set.
     :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
     :meth:`~IncidenceStructure.packing` | Return a maximum packing
     :meth:`~IncidenceStructure.relabel` | Relabel the ground set
     :meth:`~IncidenceStructure.residual_incidence_structure` | Return residual incidence structure.
     :meth:`~IncidenceStructure.supplementary_incidence_structure` | Return suplementary incidence structure.
-<<<<<<< HEAD
-=======
     :meth:`~IncidenceStructure.trace` | Return the trace of a set of point.
->>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
 
 REFERENCES:
 
@@ -52,13 +46,9 @@ REFERENCES:
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
-<<<<<<< HEAD
 .. [Col2007] Charles J. Colbourn, Jeffery H. Dinitz (eds.), 
    Handbook of Combinatorial Designs, Second Edition, 
    Chapman & Hall/CRC, 2007.
-=======
-.. [3] Charles J. Colbourn, Jeffery H. Dinitz (eds.), Handbook of Combinatorial Designs, Second Edition, Chapman & Hall/CRC, 2007.
->>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
 
 AUTHORS:
 
