@@ -459,7 +459,7 @@ class OrthogonalPolynomial(BuiltinFunction):
         """
         return None
 
-    def __call__(self, n, *args, **kwds):
+    def __call__(self, *args, **kwds):
         """
         This overides the call method from SageObject to avoid problems with coercions,
         since the _eval_ method is able to handle more data types than symbolic functions
@@ -473,7 +473,15 @@ class OrthogonalPolynomial(BuiltinFunction):
             sage: chebyshev_T(5, a)
             16*a^2 + a - 4
         """
-        return super(OrthogonalPolynomial,self).__call__(n, *args, **kwds)
+        algorithm = kwds.get('algorithm', None)
+        if algorithm == 'pari':
+            return self.eval_pari(*args, **kwds)
+        elif algorithm == 'recursive':
+            return self.eval_recursive(*args, **kwds)
+        elif algorithm == 'maxima':
+            return self._maxima_init_evaled_(*args, **kwds)
+
+        return super(OrthogonalPolynomial,self).__call__(*args, **kwds)
 
 class ChebyshevPolynomial(OrthogonalPolynomial):
     """
@@ -1174,32 +1182,6 @@ class Func_legendre_P(OrthogonalPolynomial):
                 conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
 
-    def __call__(self, n, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-            
-            sage: legendre_P(1/2, I+1.)
-            1.05338240025858 + 0.359890322109665*I
-            sage: legendre_P(1/2, I+1, hold=True)
-            legendre_P(1/2, I + 1)
-        """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'pari':
-            return self.eval_pari(n, x)
-        elif algorithm == 'recursive':
-            return self.eval_recursive(n, x)
-        elif algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, x)
-        
-        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
-            ret = self._eval_(n, x, *args, **kwds)
-            if ret is not None:
-                return ret
-
-        return super(OrthogonalPolynomial,self).__call__(n, x, *args, **kwds)
-
     def _eval_(self, n, x, *args, **kwds):
         r"""
         Return an evaluation of this Legendre P expression.
@@ -1283,7 +1265,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             from sage.libs.mpmath.all import call as mpcall   
             return mpcall(mpmath.legenp, n, 0, x, parent=real_parent, prec=real_parent.prec())
 
-    def eval_pari(self, n, arg):
+    def eval_pari(self, n, arg, **kwds):
         """
         Use Pari to evaluate legendre_P for integer, symbolic, and
         polynomial argument.
@@ -1293,7 +1275,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: R.<x> = QQ[]
             sage: legendre_P(4,x)
             35/8*x^4 - 15/4*x^2 + 3/8
-            sage: legendre_P(10000,x).coefficients(sparse=False)[1]
+            sage: legendre_P(10000,x).coefficient(x,1)
             0
             sage: var('t,x')
             (t, x)
@@ -1301,7 +1283,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             35/8*t^4 - 15/4*t^2 + 3/8
             sage: legendre_P(4, x+1)
             35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
-            sage: legendre_P(4, sqrt(2)).simplify()
+            sage: legendre_P(4, sqrt(2))
             83/8
             sage: legendre_P(4, I*e)
             35/8*e^4 + 15/4*e^2 + 3/8
@@ -1361,30 +1343,6 @@ class Func_legendre_Q(OrthogonalPolynomial):
                 conversions={'maxima':'legendre_q', 'mathematica':'LegendreQ',
                     'maple':'LegendreQ'})
 
-    def __call__(self, n, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-            
-            sage: legendre_Q(1/2, I+1.)
-            -0.511424110789061 + 1.34356195297194*I
-            sage: legendre_Q(1/2, I+1, hold=True)
-            legendre_Q(1/2, I + 1)
-        """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, x)
-        elif algorithm == 'recursive':
-            return self.eval_recursive(n, x)
-
-        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
-            ret = self._eval_(n, x, *args, **kwds)
-            if ret is not None:
-                return ret
-
-        return super(OrthogonalPolynomial,self).__call__(n, x, *args, **kwds)
-
     def _eval_(self, n, x, *args, **kwds):
         r"""
         Return an evaluation of this Legendre Q expression.
@@ -1423,7 +1381,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
 
         EXAMPLES::
             
-            sage: legendre_Q._maxima_init_evaled_(20,x).coefficients(sparse=False)[10]
+            sage: legendre_Q._maxima_init_evaled_(20,x).coefficient(x,10)
             -29113619535/131072*log(-(x + 1)/(x - 1))
         """
         _init()
@@ -1502,7 +1460,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
         
             sage: legendre_Q(2,x,algorithm='recursive')
             3/4*x^2*(log(x + 1) - log(-x + 1)) - 3/2*x - 1/4*log(x + 1) + 1/4*log(-x + 1)
-            sage: legendre_Q.eval_recursive(20,x).expand().coefficients(sparse=False)[10]
+            sage: legendre_Q.eval_recursive(20,x).expand().coefficient(x,10)
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
         """
         from sage.functions.log import ln
@@ -1541,7 +1499,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
             1/2*x*(log(x + 1) - log(-x + 1)) - 1
             sage: legendre_Q.eval_formula(2,x).expand().collect(log(1+x)).collect(log(1-x))
             1/4*(3*x^2 - 1)*log(x + 1) - 1/4*(3*x^2 - 1)*log(-x + 1) - 3/2*x
-            sage: legendre_Q.eval_formula(20,x).coefficients(sparse=False)[10]
+            sage: legendre_Q.eval_formula(20,x).coefficient(x,10)
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
         """
         from sage.functions.log import ln
@@ -1617,28 +1575,6 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
                 conversions={'maxima':'assoc_legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
 
-    def __call__(self, n, m, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-        
-            sage: gen_legendre_P(2,1,x)
-            -3*sqrt(-x^2 + 1)*x
-            sage: gen_legendre_P(2,1,x,hold=True)
-            gen_legendre_P(2, 1, x)
-        """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, m, x)
-        
-        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
-            ret = self._eval_(n, m, x, *args, **kwds)
-            if ret is not None:
-                return ret
-
-        return super(OrthogonalPolynomial,self).__call__(n, m, x, *args, **kwds)
-
     def _eval_(self, n, m, x, *args, **kwds):
         r"""
         Return an evaluation of this Legendre P(n, m, x) expression.
@@ -1662,14 +1598,14 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_poly(n, m, x)
 
-    def _maxima_init_evaled_(self, n, m, x):
+    def _maxima_init_evaled_(self, n, m, x, **kwds):
         """
         Return a string which represents this function evaluated at
         ``n, m, x`` in Maxima.
 
         EXAMPLES::
         
-            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coefficients(sparse=False)[10]
+            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coefficient(x,10)
             2508866163428625/128
         """
         _init()
@@ -1812,24 +1748,6 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
                 conversions={'maxima':'assoc_legendre_q', 'mathematica':'LegendreQ',
                     'maple':'LegendreQ'})
 
-    def __call__(self, n, m, x, *args, **kwds):
-        r"""
-        Return an evaluation or call super.
-        
-        EXAMPLES::
-        
-        """
-        algorithm = kwds.get('algorithm', None)
-        if algorithm == 'maxima':
-            return self._maxima_init_evaled_(n, m, x)
-        
-        if (n in ZZ or SR(n).is_real()) and not kwds.get('hold', False):
-            ret = self._eval_(n, m, x, *args, **kwds)
-            if ret is not None:
-                return ret
-
-        return super(OrthogonalPolynomial,self).__call__(n, m, x, *args, **kwds)
-
     def _eval_(self, n, m, x, *args, **kwds):
         r"""
         Return an evaluation of this Legendre Q(n, m, x) expression.
@@ -1847,7 +1765,7 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_recursive(n, m, x)
 
-    def _maxima_init_evaled_(self, n, m, x):
+    def _maxima_init_evaled_(self, n, m, x, **kwds):
         """
         Return a string which represents this function evaluated at
         ``n, m, x`` in Maxima.
