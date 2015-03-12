@@ -29,13 +29,20 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
     :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
     :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
+<<<<<<< HEAD
     :meth:`~IncidenceStructure.isomorphic_substructures_iterator` | Iterates over all copies of ``H2`` contained in ``self``
+=======
+>>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
     :meth:`~IncidenceStructure.num_points` | Return the size of the ground set.
     :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
     :meth:`~IncidenceStructure.packing` | Return a maximum packing
     :meth:`~IncidenceStructure.relabel` | Relabel the ground set
     :meth:`~IncidenceStructure.residual_incidence_structure` | Return residual incidence structure.
     :meth:`~IncidenceStructure.supplementary_incidence_structure` | Return suplementary incidence structure.
+<<<<<<< HEAD
+=======
+    :meth:`~IncidenceStructure.trace` | Return the trace of a set of point.
+>>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
 
 REFERENCES:
 
@@ -45,9 +52,13 @@ REFERENCES:
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
+<<<<<<< HEAD
 .. [Col2007] Charles J. Colbourn, Jeffery H. Dinitz (eds.), 
    Handbook of Combinatorial Designs, Second Edition, 
    Chapman & Hall/CRC, 2007.
+=======
+.. [3] Charles J. Colbourn, Jeffery H. Dinitz (eds.), Handbook of Combinatorial Designs, Second Edition, Chapman & Hall/CRC, 2007.
+>>>>>>> dc5e9c654673101f1875cc3e1cc7221ce4c8d6c0
 
 AUTHORS:
 
@@ -1282,7 +1293,7 @@ class IncidenceStructure(object):
             p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
         else:
             raise ValueError("'objective' must be equal to either 'coverage' or 'cardinality'")
-        
+
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
@@ -2158,6 +2169,7 @@ class IncidenceStructure(object):
             else:
                 raise ValueError('You cannot simultaneously take the residue at a point and a block')
         
+
     def supplementary_incidence_structure(self):
         r"""
         Return the supplementary incidence structure. 
@@ -2166,7 +2178,7 @@ class IncidenceStructure(object):
         supplementary incidence structure of `(X,\mathcal{B})` 
         is the incidence structure with pointset `X` and 
         containing the blocks `\{X\setminus B \mid B \in \mathcal{B}\}`
-       
+
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
@@ -2250,8 +2262,6 @@ class IncidenceStructure(object):
             sage: BD2 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
             sage: BD1.union(BD2)
             Incidence structure with 9 points and 19 blocks
-
-
         """
         if not isinstance(other, IncidenceStructure):
             raise ValueError('%s is not an incidence structure.'%other)
@@ -2262,5 +2272,4 @@ class IncidenceStructure(object):
         new_blocks = self.blocks()
         new_blocks.extend(other.blocks())
         return IncidenceStructure(new_points,new_blocks)
-
 
