@@ -1217,11 +1217,11 @@ class Func_legendre_P(OrthogonalPolynomial):
             x
         """
         if n == 0 or n == -1:
-            return 1
+            return ZZ(1)
         if n == 1 or n == -2:
             return x
     
-    def _evalf_(self, n, x, **kwds):
+    def _evalf_(self, n, x, parent=None, **kwds):
         """
         EXAMPLES::
             
@@ -1238,32 +1238,9 @@ class Func_legendre_P(OrthogonalPolynomial):
         if ret is not None:
             return ret
         
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
-
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate legendre_P with parent {}".format(real_parent))
-
-        if real_parent.prec() <= 53:
-            from scipy.special import eval_legendre
-            if real_parent is RR:
-                return RR(eval_legendre(float(n), float(x)))
-            else:
-                return real_parent(eval_legendre(float(n), complex(x)))
-        else:
-            import mpmath
-            from sage.libs.mpmath.all import call as mpcall   
-            return mpcall(mpmath.legenp, n, 0, x, parent=real_parent, prec=real_parent.prec())
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        return mpcall(mpmath.legenp, n, 0, x, parent=parent)
 
     def eval_pari(self, n, arg, **kwds):
         """
@@ -1415,7 +1392,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
             except TypeError:
                 pass
 
-    def _evalf_(self, n, x, **kwds):
+    def _evalf_(self, n, x, parent=None, **kwds):
         """
         Float evaluation of Legendre Q(n, x) function.
         
@@ -1431,26 +1408,10 @@ class Func_legendre_Q(OrthogonalPolynomial):
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
-        
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
-
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate legendre_Q with parent {}".format(real_parent))
 
         import mpmath
         from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.legenq, n, 0, x, parent=real_parent, prec=real_parent.prec())
+        return mpcall(mpmath.legenq, n, 0, x, parent=parent)
 
     def eval_recursive(self, n, arg, **kwds):
         """
@@ -1635,7 +1596,7 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             2^m*cos(1/2*pi*(m + 3))*gamma(1/2*m + 2)/(sqrt(pi)*gamma(-1/2*m + 5/2))
         """
         if m > n:
-            return 0
+            return ZZ(0)
         if m == 0:
             return legendre_P(n, x)
         if n == m:
@@ -1648,7 +1609,7 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             elif isinstance(n, Expression) or isinstance(m, Expression):
                 return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma((n+m+1)/2)/gamma((n-m)/2+1))
 
-    def _evalf_(self, n, m, x, **kwds):
+    def _evalf_(self, n, m, x, parent=None, **kwds):
         """
         Float evaluation of Legendre P(n, m, x) function.
         
@@ -1665,25 +1626,9 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
         if ret is not None:
             return ret
         
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
-
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate legendre_Q with parent {}".format(real_parent))
-
         import mpmath
         from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.legenp, n, m, x, parent=real_parent, prec=real_parent.prec())
+        return mpcall(mpmath.legenp, n, m, x, parent=parent)
 
     def eval_poly(self, n, m, arg, **kwds):
         """
@@ -1799,7 +1744,7 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
             elif isinstance(n, Expression) or isinstance(m, Expression):
                 return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma((m+n+1)/2)/gamma((n-m)/2 + 1)*2**(m-1)
 
-    def _evalf_(self, n, m, x, **kwds):
+    def _evalf_(self, n, m, x, parent=None, **kwds):
         """
         Float evaluation of Legendre Q(n, m, x) function.
         
@@ -1813,26 +1758,10 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
             return ret
-        
-        real_parent = kwds.get('parent', None)
-        if real_parent is None:
-            real_parent = parent(x)
-
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
-                if x in RR:
-                    x = RR(x)
-                    real_parent = RR
-                elif x in CC:
-                    x = CC(x)
-                    real_parent = CC
-
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate legendre_Q with parent {}".format(real_parent))
 
         import mpmath
         from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.legenq, n, m, x, parent=real_parent, prec=real_parent.prec())
+        return mpcall(mpmath.legenq, n, m, x, parent=parent)
 
     def eval_recursive(self, n, m, x, **kwds):
         """
