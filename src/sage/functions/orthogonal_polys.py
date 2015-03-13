@@ -1481,7 +1481,7 @@ class Func_laguerre(OrthogonalPolynomial):
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
-        if isinstance(n, Integer):
+        if isinstance(n, (Integer, int)):
             if n >= 0 and not hasattr(x, 'prec'):
                 return self._pol_laguerre(n, x)
             elif n < 0:
@@ -1519,18 +1519,24 @@ class Func_laguerre(OrthogonalPolynomial):
             sage: laguerre(10,1+I)
             142511/113400*I + 95867/22680
         """
+        if hasattr(x, 'pyobject'):
+            try:
+                x = x.pyobject()
+            except TypeError:
+                pass
         P = parent(x)
         if not is_PolynomialRing(P):
-            return sum([binomial(n,k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
+            return SR(sum([binomial(n,k)*(-1)**k/factorial(k)*x**k for k in range(n+1)]))
         else:
             if x == P.gen():
-                return P([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+                R = P
             else:
                 R = PolynomialRing(QQ, 'x')
-                pol = R([binomial(n,k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+            pol = R([binomial(n,k)*(-1)**k/factorial(k) for k in range(n+1)])
+            if x != P.gen():
                 pol = pol.subs({pol.parent().gen():x})
                 pol = pol.change_ring(P.base_ring())
-                return pol
+            return pol
 
     def _evalf_(self, n, x, **kwds):
         """
