@@ -3400,7 +3400,8 @@ class GraphicsArray(SageObject):
         # Not clear if there is a way to do this
         raise NotImplementedError('Appending to a graphics array is not yet implemented')
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None, axes=None,
+    @keyword_only(positional=4, deprecation=16607, extra="axes")
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              **kwds):
         r"""
         Save the graphics array.
@@ -3467,9 +3468,9 @@ class GraphicsArray(SageObject):
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.matplotlib(filename, figure=figure, sub=subplot,
-                         verify=do_verify, axes = axes, **kwds)
+                         verify=do_verify, **kwds)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-               verify=do_verify, axes=axes, **kwds)
+               verify=do_verify, **kwds)
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -3493,6 +3494,7 @@ class GraphicsArray(SageObject):
         """
         self.save(filename, *args, **kwds)
 
+    @keyword_only(deprecation=16607, extra="filename,dpi,figsize,axes")
     def show(self, **kwds):
         r"""
         Show this graphics array immediately.
