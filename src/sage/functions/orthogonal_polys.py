@@ -1542,13 +1542,20 @@ class Func_laguerre(OrthogonalPolynomial):
             -0.638322077840648311606324...
             sage: laguerre(10,1.+I)
             4.22694003527337 + 1.25671075837743*I
+            sage: laguerre(-9, 2.)
+            1566.22186244286
         """
         the_parent = kwds.get('parent', None)
         if the_parent is None:
             the_parent = parent(x)
         import mpmath
-        from sage.libs.mpmath.all import call as mpcall   
-        return mpcall(mpmath.laguerre, n, 0, x, parent=the_parent)
+        from sage.libs.mpmath.all import call as mpcall
+        if n<0:
+            # work around mpmath issue 307
+            from sage.functions.log import exp
+            return exp(x) * mpcall(mpmath.laguerre, -n-1, 0, -x, parent=the_parent)
+        else:
+            return mpcall(mpmath.laguerre, n, 0, x, parent=the_parent)
 
     def _derivative_(self, n, x, *args,**kwds):
         """
