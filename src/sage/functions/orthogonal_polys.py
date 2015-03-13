@@ -1233,6 +1233,14 @@ class Func_legendre_P(OrthogonalPolynomial):
             1.05338240025858 + 0.359890322109665*I
             sage: legendre_P(1/2, I+1).n(59)
             1.0533824002585801 + 0.35989032210966539*I
+            sage: legendre_P(42, RR(12345678))
+            +infinity
+            sage: legendre_P(42, Reals(20)(12345678))
+            2.6632e309
+            sage: legendre_P(201/2, 0).n()
+            0.0561386178630179
+            sage: legendre_P(201/2, 0).n(100)
+            0.0561386178630179
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
