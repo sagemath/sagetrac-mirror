@@ -1149,6 +1149,33 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         return self(self.__R.gen(i))
 
+    def random_element(self, *args, **kwds):
+        """
+        Return a random element of this quotient ring.
+
+        INPUT:
+
+        - ``*args``, ``**kwds`` - Arguments for randomization that are passed
+          on to the ``random_element`` method of the polynomial ring, and from
+          there to the base ring
+
+        OUTPUT:
+
+        - Element of this quotient ring
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = ZZ[]
+            sage: I = Ideal(x^4 + y^6, x^3 - z^7)
+            sage: Q = QuotientRing(R, I)
+            sage: Q.random_element() # random
+            xbar^2 + ybar^2 - 3*zbar^2 - xbar + 1
+            sage: Q.random_element(degree = 5) # random
+            ybar^3*zbar^2 - ybar^4 + xbar^2 - 5*zbar
+            sage: Q.random_element(degree = 5, terms=1) # random
+            -2*ybar^2*zbar^2
+        """
+        return self(self.cover_ring().random_element(*args, **kwds))
 
     def _singular_(self, singular=singular_default):
         """
