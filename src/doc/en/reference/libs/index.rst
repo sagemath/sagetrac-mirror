@@ -37,6 +37,7 @@ to be aware of the modules described in this chapter.
    sage/libs/pari/pari_instance
    sage/libs/pari/gen
    sage/libs/ppl
+   sage/ext/interrupt
    sage/ext/pselect
    sage/libs/singular/function
    sage/libs/singular/option
