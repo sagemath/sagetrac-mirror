@@ -13,11 +13,11 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
     :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
     :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
-    :meth:`~IncidenceStructure.complementary_incidence_structure` | Return complementary incidence structure.
+    :meth:`~IncidenceStructure.complement` | Return the complementary incidence structure.
     :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
     :meth:`~IncidenceStructure.degree` | Return the degree of a point `p`
     :meth:`~IncidenceStructure.degrees` | Return the degree of all sets of given size, or the degree of all points.
-    :meth:`~IncidenceStructure.derived_incidence_structure` | Return derived incidence structure.
+    :meth:`~IncidenceStructure.derived` | Return the derived incidence structure.
     :meth:`~IncidenceStructure.dual` | Return the dual design.
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
     :meth:`~IncidenceStructure.ground_set` | Return the ground set (i.e the list of points).
@@ -34,9 +34,10 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
     :meth:`~IncidenceStructure.packing` | Return a maximum packing
     :meth:`~IncidenceStructure.relabel` | Relabel the ground set
-    :meth:`~IncidenceStructure.residual_incidence_structure` | Return residual incidence structure.
-    :meth:`~IncidenceStructure.supplementary_incidence_structure` | Return suplementary incidence structure.
+    :meth:`~IncidenceStructure.residual` | Return the residual incidence structure.
+    :meth:`~IncidenceStructure.supplement` | Return the supplementary incidence structure.
     :meth:`~IncidenceStructure.trace` | Return the trace of a set of point.
+    :meth:`~IncidenceStructure.union` | Return the union of two incidence structures.
 
 REFERENCES:
 
@@ -60,10 +61,6 @@ AUTHORS:
 - Vincent Delecroix (2014): major rewrite
 
 - Brett Stevens (2015): added reference [Col2007] and added basic design theory methods.
-
-TODO: 
-
-- Add group divisible Incidence Structure checking which does not require user to hand groups to the method?  What would be most efficient method to do this?
 
 Methods
 -------
@@ -361,7 +358,7 @@ class IncidenceStructure(object):
 
     def __eq__(self, other):
         """
-        Tests is the two incidence structures are equal
+        Tests if the two incidence structures are equal
 
         TESTS::
 
@@ -799,7 +796,7 @@ class IncidenceStructure(object):
         if self._point_to_index is None:
             n = self.num_points()
             if delete:
-                int_points = frozenset(int(x) for x in self._points if x not in points)
+                int_points = frozenset(self._points).difference(points)
             else:
                 int_points = frozenset(int(x) for x in points)
             for x in int_points:
@@ -808,7 +805,7 @@ class IncidenceStructure(object):
         else:
             try:
                 if delete:
-                    int_points = frozenset(self._point_to_index[x] for x in points if x not in points)
+                    int_points = frozenset(self._point_to_index[x] for x in points).difference(points)
                 else:
                     int_points = frozenset(self._point_to_index[x] for x in points)
             except KeyError as bad_pt:
@@ -1243,7 +1240,7 @@ class IncidenceStructure(object):
           Only useful when ``algorithm == "LP"``.
 
         - ``objective`` -- (default: ``"cardinality"``) Specify whether the 
-          objective function is to maximize the cardinality of blocks in 
+          objective function is to maximize the number of blocks in 
           the packing (objective="cardinality") or to maximize the number of 
           points covered by the packing (objective="coverage").
 
@@ -1275,9 +1272,10 @@ class IncidenceStructure(object):
         # set the objective functon
         if objective=="coverage":
             # Maximum size of union of blocks
-            p.set_objective(p.sum([b[i]*len(self._blocks[i]) for i in range(self.num_blocks())]))
+#            p.set_objective(p.sum([b[i]*len(self._blocks[i]) for i in range(self.num_blocks())]))
+            p.set_objective(p.sum([b[i]*len(bi) for i,bi in enumerate(self._blocks)]))
         elif objective == "cardinality":
-           # Maximum number of blocks 
+            # Maximum number of blocks 
             p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
         else:
             raise ValueError("'objective' must be equal to either 'coverage' or 'cardinality'")
@@ -1301,13 +1299,13 @@ class IncidenceStructure(object):
         INPUT:
 
         - ``t,v,k,l`` (integers) -- their value is set to ``None`` by
-          default. The function tests whether the design is a ``t-(v,k,l)``
+          default. The function tests whether the design is a `t-(v,k,l)`
           design using the provided values and guesses the others. Note that
-          `l`` cannot be specified if ``t`` is not.
+          `l` cannot be specified if `t` is not.
 
         - ``return_parameters`` (boolean)-- whether to return the parameters of
           the `t`-design. If set to ``True``, the function returns a pair
-          ``(boolean_answer,(t,v,k,l))``.
+          (boolean_answer,`(t,v,k,l)`).
 
         EXAMPLES::
 
@@ -1994,24 +1992,25 @@ class IncidenceStructure(object):
         return tex
 
 
-    def derived_incidence_structure(self, at_point=None, at_block=None):
+    def derived(self, at_point=None, at_block=None, keep_repeats=True):
         r"""
         Return the derived incidence structure.
 
-        Given an incidence structure `(X,\mathcal{B})`  and a point 
+        At **a point**: Given an incidence structure `(X,\mathcal{B})`  and a point 
         `x \in X`, the point set of the incidence structure derived 
         at point `x` is `X\setminus x` and the blocks are 
-        `\{B\setminus x \mid x \in B \in \mathcal{B}\}`.
+        `\{B\setminus x | x \in B \in \mathcal{B}\}`. This definition is taken
+        from p.80 of [Col2007].
 
-        Given an incidence structure `(X,\mathcal{B})` and a 
+        At **a block**: Given an incidence structure `(X,\mathcal{B})` and a 
         block `B \in \mathcal{B}`, the point set of the incidence 
         structure derived at block `B` is  `B` and the blocks are 
-        `\{B' \cap B \mid B'\\neq B, B' \in \mathcal{B}\}`
+        `\{B' \cap B | B' \neq B, B' \in \mathcal{B}\}`.  This definition 
+        is taken from p.25 of [Col2007].
         
         When the incidence structure is a symmetric block design,
         then the derived incidence structure at a block is also a 
-        block design. Otherwise there is no guarantee that the 
-        derived incidence structure at a block is a block design.
+        block design. 
         
 
         INPUT:
@@ -2020,6 +2019,11 @@ class IncidenceStructure(object):
 
         - ``at_block`` - a block in the incidence structure at which to derive
 
+        - ``keep_repeats`` (boolean) - whether to include blocks that derive from 
+          repeated copies of the given block. Set to ``True`` by default.
+        
+        Exactly one of ``at_point`` or ``at_block`` must be defined.
+
         OUTPUT: 
 
         The derived Incidence structure.  
@@ -2027,56 +2031,62 @@ class IncidenceStructure(object):
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD1.derived_incidence_structure(at_point=8)
+            sage: BD1.derived(at_point=8)
             Traceback (most recent call last):
             ...
             ValueError: Point 8 is not in the base set.
-            sage: BD1.derived_incidence_structure(at_point=1)
+            sage: BD1.derived(at_point=1)
             Incidence structure with 6 points and 3 blocks
-            sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
-            sage: BD1.derived_incidence_structure(at_block=[0,1,2])
+            sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6],[0,1,2]])
+            sage: BD1.derived(at_block=[1,0,2])
+            Incidence structure with 3 points and 12 blocks
+            sage: BD1.derived(at_block=[1,0,2],keep_repeats=False)
             Incidence structure with 3 points and 11 blocks
+
             sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD2.derived_incidence_structure(at_block=[0,2,4])
+            sage: BD2.derived(at_block=[0,2,4])
             Traceback (most recent call last):
             ...
             ValueError: Block [0, 2, 4] is not in the block set.
-            sage: BD2.derived_incidence_structure(at_block=[0,1,2])
+            sage: BD2.derived(at_block=[0,1,2])
             Incidence structure with 3 points and 6 blocks
-            sage: BD2.derived_incidence_structure(at_block=[2,1,0])
+            sage: BD2.derived(at_block=[2,1,0])
             Incidence structure with 3 points and 6 blocks
-            sage: BD3 = BD1.derived_incidence_structure()
-            doctest:...: UserWarning: no point nor block given to derive at.  Simply returning self.
-            sage: BD3 == BD1
-            True
-            sage: BD1.derived_incidence_structure(at_point=1,at_block=[0,1,2])
+            sage: BD3 = BD1.derived() 
+            Traceback (most recent call last):
+            ...
+            ValueError: Exactly one of at_block and at_point must be specified
+            sage: BD1.derived(at_point=1,at_block=[0,1,2])
             Traceback (most recent call last):
             ...
             ValueError: You cannot simultaneously derive at a point and a block
-        
-        TODO::
-
-            When the incidence structure is not simple and we derive at a 
-            repeated block, should the derived incidence structure contain 
-            the additional copies of the given block or not?
         """
+
 
         if at_point == None:
             if at_block == None:
-                from sage.misc.misc import warn
-                warn("no point nor block given to derive at.  Simply returning self.")
-                return self.copy()
+                raise ValueError("Exactly one of at_block and at_point must be specified")
             else:
-                # we need to sort the block to make sure the test if it is in self suceeds
-                at_block.sort()
-                if not(at_block in self.blocks()):
+                if at_block not in self:
                     raise ValueError('Block %s is not in the block set.'%at_block)
-                new_blocks = [[x for x in B if x in at_block] for B in self if B != at_block]
+                    #the block must be sorted so != behaves correctly
+                at_block.sort()
+#                print "at_block=",at_block
+#                print "is in: ",at_block in self
+                if keep_repeats:
+                    index = (self._blocks).index(at_block)
+#                    print "index=",index
+#                    print "at_block=",at_block
+#                    print "matching block=",self._blocks[index]
+                    new_blocks = [[x for x in B if x in at_block] for i,B in enumerate(self._blocks) if i != index]
+                else:
+                    new_blocks = [[x for x in B if x in at_block] for B in self if B != at_block]
                 return IncidenceStructure(at_block, new_blocks)
         else:
             if at_block == None:
-                if not(at_point in self._points):
+                if at_point not in self._points:
                     raise ValueError('Point %s is not in the base set.'%at_point)
+
                 new_points = self.ground_set()
                 new_points.remove(at_point)
                 new_blocks = [[x for x in B if x!=at_point] for B in self if at_point in B]
@@ -2085,30 +2095,35 @@ class IncidenceStructure(object):
                 raise ValueError('You cannot simultaneously derive at a point and a block')
         
             
-    def residual_incidence_structure(self, at_point=None, at_block=None):
+    def residual(self, at_point=None, at_block=None, keep_repeats=True):
         r"""
-        Return the residual incidence structure
+        Return the residual incidence structure.
 
-        Given an incidence structure `(X,\mathcal{B})`  and a point `x \in X`, 
+        At **a point**: Given an incidence structure `(X,\mathcal{B})`  and a point `x \in X`, 
         the point set of the incidence structure derived at `x` is `X\setminus x` 
-        and the blocks are `\{B \mid x \\not\in B \in \mathcal{B}\}`.  For 
-        deriving at a point, this function simply wraps induced_substructure method
+        and the blocks are `\{B | x \not\in B \in \mathcal{B}\}`.  For 
+        deriving at a point, this function simply wraps induced_substructure method.  
+        This definition is taken from p.81 of [Col2007].
 
-        Given an incidence structure `(X,\mathcal{B})` and a block
+        At **a block**: Given an incidence structure `(X,\mathcal{B})` and a block
         `B \in \mathcal{B}`, the point set of the incidence structure 
         derived at `B` is  `X\setminus B` and the blocks are 
-        `\{B'\setminus B \mid B'\\neq B, B' \in \mathcal{B}\}`
+        `\{B'\setminus B | B' \neq B, B' \in \mathcal{B}\}`.  This Definition
+        is taken from p.25 of [Col2007]
         
         When the incidence structure is a symmetric block design,
-        then the residual incidence structure is also a block design. 
-        Otherwise there is no guarantee that the residual incidence
-        structure is a block design.
+        then the residual incidence structure is also a block design.
 
         INPUT:
 
         - ``at_point`` - The point in the Incidence Structure at which to take the residue.
         
         - ``at_block`` - The block in the Incidence Structure at which to take the residue.
+
+        - ``keep_repeats`` (boolean) - whether to include blocks that descend from 
+          repeated copies of the given block. Set to ``True`` by default.
+
+        Exactly one of ``at_point`` or ``at_block`` must be defined.
 
         OUTPUT:
 
@@ -2117,38 +2132,45 @@ class IncidenceStructure(object):
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD1.residual_incidence_structure(at_point=1)
+            sage: BD1.residual(at_point=1)
             Incidence structure with 6 points and 4 blocks
-            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD2.residual_incidence_structure(at_block=[0,2,4])
+            sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5],[0,1,2]])
+            sage: BD2.residual(at_block=[0,2,4])
             Traceback (most recent call last):
             ...
             ValueError: Block [0, 2, 4] is not in the block set.
-            sage: BD2.residual_incidence_structure(at_block=[0,1,2])
+            sage: BD2.residual(at_block=[0,1,2])
+            Incidence structure with 4 points and 7 blocks
+            sage: BD2.residual(at_block=[0,1,2],keep_repeats=False)
             Incidence structure with 4 points and 6 blocks
-            sage: BD2.residual_incidence_structure(at_block=[2,1,0])
-            Incidence structure with 4 points and 6 blocks
-            sage: BD3 = BD1.residual_incidence_structure() # doctest: +ELLIPSIS
-            doctest:...: UserWarning: no point nor block given to derive at.  Simply returning self.
-            sage: BD3 == BD1
-            True
-            sage: BD1.residual_incidence_structure(at_point=1,at_block=[0,1,2])
+            sage: BD2.residual(at_block=[2,1,0])
+            Incidence structure with 4 points and 7 blocks
+            sage: BD3 = BD1.residual() 
+            Traceback (most recent call last):
+            ...
+            ValueError: Exactly one of at_block and at_point must be specified
+            sage: BD1.residual(at_point=1,at_block=[0,1,2])
             Traceback (most recent call last):
             ...
             ValueError: You cannot simultaneously take the residue at a point and a block
         """
         if at_point == None:
             if at_block == None:
-                from sage.misc.misc import warn
-                warn("no point nor block given to derive at.  Simply returning self.")
-                return self.copy()            
+                raise ValueError("Exactly one of at_block and at_point must be specified")
             else:
-                # we need to sort the block to guarantee correct outcome of test if in self.
-                at_block.sort()
-                if not(at_block in self.blocks()):
+                if at_block not in self:
                     raise ValueError('Block %s is not in the block set.'%at_block)
-                new_points = [x for x in self._points if x not in at_block]
-                new_blocks = [[x for x in B if x not in at_block] for B in self if B != at_block]
+                #the block must be sorted so != behaves correctly
+                at_block.sort()    
+                new_points = frozenset(self._points).difference(at_block)
+                if keep_repeats:
+                    index = (self._blocks).index(at_block)
+#                    print "index=",index
+#                    print "at_block=",at_block
+#                    print "matching block=",self._blocks[index]
+                    new_blocks = [frozenset(B).difference(at_block) for i,B in enumerate(self._blocks) if i != index]
+                else:    
+                    new_blocks = [frozenset(B).difference(at_block) for B in self if B != at_block]
                 return IncidenceStructure(new_points, new_blocks)
         else:
             if at_block == None:
@@ -2158,35 +2180,40 @@ class IncidenceStructure(object):
                 raise ValueError('You cannot simultaneously take the residue at a point and a block')
         
 
-    def supplementary_incidence_structure(self):
+    def supplement(self):
         r"""
         Return the supplementary incidence structure. 
 
         We are using the terminology from [Col2007], p.81. The 
         supplementary incidence structure of `(X,\mathcal{B})` 
         is the incidence structure with pointset `X` and 
-        containing the blocks `\{X\setminus B \mid B \in \mathcal{B}\}`
+        containing the blocks `\{X\setminus B | B \in \mathcal{B}\}`
 
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
-            sage: BD2 = BD1.supplementary_incidence_structure()
+            sage: BD2 = BD1.supplement()
             sage: BD2 
             Incidence structure with 9 points and 12 blocks
             sage: BD2.block_sizes()
             [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
             sage: BD3 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD4= BD3.supplementary_incidence_structure()
+            sage: BD4= BD3.supplement()
             sage: BD4
             Incidence structure with 7 points and 7 blocks
             sage: BD4.is_t_design(return_parameters=True)
             (True, (2, 7, 4, 2))
         """
-        new_blocks=[[x for x in self._points if x not in B] for B in self]
+        if self._point_to_index is None:
+            new_blocks=[frozenset(self._points).difference(B) for B in self]
+        else:
+            int_point_set = range(self.num_blocks())
+            int_new_blocks = [frozenset(int_point_set).difference(B) for B in self._blocks]
+            new_blocks = [[self._points[i] for i in B] for B in int_new_blocks]
         return IncidenceStructure(self._points, new_blocks)
 
 
-    def complementary_incidence_structure(self):
+    def complement(self):
         r"""
         Return the complementary incidence structure. 
 
@@ -2201,36 +2228,43 @@ class IncidenceStructure(object):
         EXAMPLES::
         
             sage: BD1 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[0,3,4]])
-            sage: BD1.complementary_incidence_structure()
+            sage: BD1.complement()
             Traceback (most recent call last):
             ...
             ValueError: Design IncidenceStructure<...> is not simple.
             sage: BD2 = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD3= BD2.complementary_incidence_structure()
+            sage: BD3= BD2.complement()
             sage: BD3
             Incidence structure with 7 points and 28 blocks
             sage: BD3.is_t_design(return_parameters=True)
             (True, (2, 7, 3, 4))
             sage: BD4 = IncidenceStructure(range(6),[[0,1,2],[0,3,4],[0,5],[1,3,5],[1,4],[2,3],[2,4,5]])
-            sage: BD4.complementary_incidence_structure()
+            sage: BD4.complement()
             Traceback (most recent call last):
             ...
             ValueError: Design IncidenceStructure<...> does not have a fixed block size.
         """
-        from sage.combinat.combination import Combinations        
+        from itertools import combinations
+#        from sage.combinat.combination import Combinations  
         if not(self.is_simple()):
             raise ValueError('Design %s is not simple.'%self)
         k = self.block_sizes()[1]
         number_blocks = len(self.blocks())
         if not(((self.block_sizes()).count(k))==number_blocks):
             raise ValueError('Design %s does not have a fixed block size.'%self)
-        L1 = [sorted(B) for B in Combinations(self._points,k) if sorted(B) not in self]
-        return IncidenceStructure(self._points, L1)
+        if self._point_to_index is None:
+            new_blocks = [B for B in combinations(self._points,k) if B not in self]
+        else:
+            int_point_set = range(self.num_blocks())
+            int_new_blocks = [B for B in combinations(int_point_set,k) if B not in self._blocks]
+            new_blocks = [[self._points[i] for i in B] for B in int_new_blocks]
+#        L1 = frozenset(Combinations(self._points,k)).difference(self._blocks)
+        return IncidenceStructure(self._points, new_blocks)
 
 
-    def union(self, other):
+    def union(self, other, simple=False):
         r"""
-        Return the union of the two incidence structures
+        Return the union of the two incidence structures.
 
         The union incidence structure of `(X,\mathcal{B})` and 
         `(Y,\mathcal{C})` is the incidence structure with pointset 
@@ -2239,6 +2273,9 @@ class IncidenceStructure(object):
         INPUT:
 
         - ``other`` - The other incidence structure to take the union with
+
+        - ``simlpe`` (boolean) - If set to true, blocks will be discarded 
+          to return a simple incidence structure. Set to ``False`` by default. 
 
         EXAMPLES::
 
@@ -2250,6 +2287,8 @@ class IncidenceStructure(object):
             sage: BD2 = IncidenceStructure(range(9),[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[1,5,6],[2,3,7],[0,5,7],[1,3,8],[2,4,6]])
             sage: BD1.union(BD2)
             Incidence structure with 9 points and 19 blocks
+            sage: BD1.union(BD2,simple=True)
+            Incidence structure with 9 points and 17 blocks
         """
         if not isinstance(other, IncidenceStructure):
             raise ValueError('%s is not an incidence structure.'%other)
@@ -2257,7 +2296,18 @@ class IncidenceStructure(object):
         new_points = self.ground_set()
         new_points.extend(other._points)
         new_points = list(set(new_points))
-        new_blocks = self.blocks()
-        new_blocks.extend(other.blocks())
+        if simple:
+            new_blocks = []
+            num_blocks_self = self.num_blocks()
+            for i, B in enumerate(self._blocks):
+                if i == num_blocks_self-1  or B != self._blocks[i + 1]:
+                    new_blocks.append(B)
+            num_blocks_other = other.num_blocks()
+            for i, B in enumerate(other._blocks):
+                if (i == num_blocks_other -1 or B not in other._blocks[i+1]) and B not in new_blocks:
+                    new_blocks.append(B)
+        else:
+            new_blocks = self.blocks()
+            new_blocks.extend(other)
         return IncidenceStructure(new_points,new_blocks)
 
