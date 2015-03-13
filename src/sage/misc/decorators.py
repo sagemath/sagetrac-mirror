@@ -789,7 +789,7 @@ def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
     A decorator to enforce passing certain arguments as keywords,
     not positional parameters.
 
-    This is similar in spirit to what Python 3 allows since `PEP 3102`_.
+    This is similar in spirit to what Python 3 allows since :pep:`3102`.
     But this use of the decorator comes at a performance cost,
     since it adds one layer of function call indirection.
     So weigh carefully the benefits of simpler implementations
@@ -797,7 +797,9 @@ def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
     In particular, don't use this decorator in stuff that is likely
     to be called inside a tight loop.
 
-    .. _PEP 3102: http://legacy.python.org/dev/peps/pep-3102/
+    Note that Cython already supports :pep:`3102` syntax,
+    so there should be no need ever to use this decorator
+    in a pyx file for Cython.
 
     INPUT:
 
