@@ -13748,32 +13748,27 @@ class GenericGraph(GenericGraph_pyx):
                             if w not in seen:
                                 queue.append((w, d+1))
 
-    def lex_BFS(self,reverse=False,tree=False, initial_vertex = None):
+    def lex_BFS(self,reverse=False,tree=False, initial_vertex = None, new_version=False):
         r"""
         Performs a Lex BFS on the graph.
 
-        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth
-        First Search used for the recognition of Chordal Graphs. For more
-        information, see the
-        `Wikipedia article on Lex-BFS
+        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth First
+        Search used for the recognition of Chordal Graphs. For more information,
+        see the `Wikipedia article on Lex-BFS
         <http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search>`_.
 
         INPUT:
 
-        - ``reverse`` (boolean) -- whether to return the vertices
-          in discovery order, or the reverse.
+        - ``reverse`` -- (default: ``False``) whether to return the vertices in
+          discovery order, or the reverse.
 
-          ``False`` by default.
+        - ``tree`` -- (default: ``False``) whether to return the discovery
+          directed tree (each vertex being linked to the one that saw it for the
+          first time) or not.
 
-        - ``tree`` (boolean) -- whether to return the discovery
-          directed tree (each vertex being linked to the one that
-          saw it for the first time)
+        - ``initial_vertex`` -- (default: ``None``) the first vertex to
+          consider.
 
-          ``False`` by default.
-
-        - ``initial_vertex`` -- the first vertex to consider.
-
-          ``None`` by default.
 
         ALGORITHM:
 
@@ -13782,13 +13777,9 @@ class GenericGraph(GenericGraph_pyx):
         vertex of maximal code ( according to the lexicographic
         order ) is then removed, and the codes are updated.
 
-        This algorithm runs in time `O(n^2)` ( where `n` is the
-        number of vertices in the graph ), which is not optimal.
-        An optimal algorithm would run in time `O(m)` ( where `m`
-        is the number of edges in the graph ), and require the use
-        of a doubly-linked list which are not available in python
-        and can not really be written efficiently. This could be
-        done in Cython, though.
+        This algorithm runs in time `O(n+m)` ( where `n` is the  number of
+        vertices and `m` is the number of edges in the  graph ). The
+        implementation follows [HMPV00]_.
 
         EXAMPLE:
 
@@ -13819,13 +13810,90 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        There were some problems with the following call in the past (trac 10899) -- now
-        it should be fine::
+        There were some problems with the following call in the past
+        (:trac:`10899`) -- now it should be fine::
 
             sage: Graph(1).lex_BFS(tree=True)
             ([0], Digraph on 1 vertex)
 
+        When an initial vertex is specified, it must be in the Graph::
+
+            sage: Graph(1).lex_BFS(initial_vertex="0_0")
+            Traceback (most recent call last):
+            ...
+            ValueError: The specified initial vertex is unknown.
+
+        REFERENCES: 
+
+        .. [HMPV00] Habib, McConnell, Paul and Viennot. Lex-BFS and Partition
+          Refinement, with Applications to Transitive Orientation, Interval
+          Graph Recognition and Consecutive Ones Testing. TCS 234, 2000.
         """
+        if not initial_vertex is None and not initial_vertex in self:
+            raise ValueError("The specified initial vertex is unknown.")
+
+        if new_version:
+            n = self.order()
+            perm_inv = self.vertices()
+            perm = dict(zip(perm_inv,range(n)))
+
+            if not initial_vertex is None:
+                i = perm[initial_vertex]
+                if i>0:
+                    v = perm_inv[0]
+                    perm[initial_vertex], perm[v] = 0, i
+                    perm_inv[i], perm_inv[0] = v, initial_vertex
+
+            slice_of   = [0]*n
+            slice_head = [0]*n
+            subslice   = [0]*n
+            pred       = {}
+
+            k = 1
+            for i in range(n):
+                old_k = k
+                v = perm_inv[i]
+
+                # We update the labeling of all unordered neighbors of v
+                for w in self.neighbor_iterator(v):
+                    j = perm[w]
+                    if j <= i:
+                        continue
+                    a = slice_of[j]
+                    if slice_head[a] <= i:
+                        slice_head[a] = i+1
+                    l = slice_head[a]
+                    if l==n-1 or slice_of[l+1] != a:
+                        continue
+                    if l != j:
+                        u = perm_inv[l]
+                        perm[u], perm[w] = j, l
+                        perm_inv[j], perm_inv[l] = u, w
+                        j = l
+                    slice_head[a] += 1
+                    if subslice[a] < old_k:
+                        subslice[a] = k
+                        slice_head[k] = j
+                        k += 1
+                    slice_of[j] = subslice[a]
+                    pred[w] = v
+
+            if reverse:
+                perm_inv.reverse()
+
+            if tree:
+                from sage.graphs.digraph import DiGraph
+                g = DiGraph(sparse=True)
+                g.add_vertices(perm)
+                g.add_edges(pred.items())
+                return perm_inv, g
+
+            else:
+                return perm_inv
+
+
+        # Initial version of the method. -- To be removed when the new version
+        # will be fixed.
         id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
         code = [[] for i in range(self.order())]
         m = self.am()
