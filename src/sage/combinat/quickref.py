@@ -16,7 +16,7 @@ Combinatorial objects::
     3616...315650422081868605887952568754066420592310556052906916435144
     sage: Combinations([1,3,7]).random_element()           # random
     sage: Compositions(5, max_part = 3).unrank(3)
-    [2, 2, 1]
+    [1, 2, 2]
 
     sage: DyckWord([1,0,1,0,1,1,0,0]).to_binary_tree()
     [., [., [[., .], .]]]

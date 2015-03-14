@@ -571,7 +571,13 @@ def Cores(k, length = None, **kwargs):
         sage: C = Cores(4, 6); C
         4-Cores of length 6
         sage: C.list()
-        [[6, 3], [5, 2, 1], [4, 1, 1, 1], [4, 2, 2], [3, 3, 1, 1], [3, 2, 1, 1, 1], [2, 2, 2, 1, 1, 1]]
+        [[6, 3],
+         [4, 2, 2],
+         [5, 2, 1],
+         [4, 1, 1, 1],
+         [3, 3, 1, 1],
+         [3, 2, 1, 1, 1],
+         [2, 2, 2, 1, 1, 1]]
         sage: C.cardinality()
         7
         sage: C.an_element()

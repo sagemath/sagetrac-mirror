@@ -555,6 +555,7 @@ class IntegerListsLexElement(ClonableArray):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(4)
             sage: C([4]).check()
             True
@@ -615,6 +616,7 @@ class IntegerListsLex(Parent):
 
     We create the combinatorial class of lists of length 3 and sum 2::
 
+        sage: from sage.combinat.integer_list import IntegerListsLex
         sage: C = IntegerListsLex(2, length=3)
         sage: C
         Integer lists of sum 2 satisfying certain constraints
@@ -867,6 +869,7 @@ class IntegerListsLex(Parent):
 
         TESTS::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: C == loads(dumps(C))
             True
@@ -964,6 +967,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(4)
             sage: C([4])
             [4]
@@ -979,6 +983,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: D = IntegerListsLex(4, length=3)
             sage: repr(C) == repr(D)
@@ -994,6 +999,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: C # indirect doctest
             Integer lists of sum 2 satisfying certain constraints
@@ -1018,6 +1024,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(4, length=2, min_part=1)
             sage: C.floor(0)
             1
@@ -1040,6 +1047,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(4, length=2, max_part=3)
             sage: C.ceiling(0)
             3
@@ -1067,6 +1075,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: C.build_args()
             [3,
@@ -1087,6 +1096,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: C.first()
             [2, 0, 0]
@@ -1103,6 +1113,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: list(C) #indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
@@ -1128,6 +1139,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: C.cardinality() == C.count()
             True
@@ -1147,6 +1159,7 @@ class IntegerListsLex(Parent):
 
         EXAMPLES::
 
+            sage: from sage.combinat.integer_list import IntegerListsLex
             sage: C = IntegerListsLex(2, length=3)
             sage: [2, 0, 0] in C
             True
@@ -1160,35 +1173,3 @@ class IntegerListsLex(Parent):
         if isinstance(v, self.element_class) or isinstance(v, __builtin__.list):
             return is_a(v, *(self.build_args())) and sum(v) in self.n_range
         return False
-
-class IntegerListsLexPublic(IntegerListsLex):
-    # Just use the doc for IntegerListsLex
-    __doc__ = IntegerListsLex.__doc__
-
-    def __init__(self,
-                 n,
-                 length = None, min_length=0, max_length=float('+inf'),
-                 floor=None, ceiling = None,
-                 min_part = 0, max_part = float('+inf'),
-                 min_slope=float('-inf'), max_slope=float('+inf'),
-                 name = None,
-                 element_constructor = None,
-                 element_class = None,
-                 global_options = None):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-        """
-        from sage.misc.stopgap import stopgap
-        stopgap("IntegerListsLex does not allow for arbitrary input;"
-                " non-allowed input can return wrong results,"
-                " please see the documentation for IntegerListsLex for details.",
-                17548)
-        IntegerListsLex.__init__(self, n, length, min_length, max_length,
-                                 floor, ceiling, min_part, max_part,
-                                 min_slope, max_slope, name, element_constructor,
-                                 element_class, global_options)
-

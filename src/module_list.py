@@ -183,6 +183,9 @@ ext_modules = [
               sources = ['sage/combinat/expnums.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.combinat.integer_lists_polyhedron',
+              sources = ['sage/combinat/integer_lists_polyhedron.pyx']),
+
     Extension('sage.combinat.matrices.dancing_links',
               sources = ['sage/combinat/matrices/dancing_links.pyx'],
               language='c++'),

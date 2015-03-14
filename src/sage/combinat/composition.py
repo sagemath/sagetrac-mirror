@@ -14,6 +14,39 @@ EXAMPLES::
     sage: list(Compositions(4))
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
+TESTS:
+
+Check that :trac:`17548` is fixed::
+
+    sage: Compositions(5, max_part=2, min_slope=1, inner=[2]).list()
+    []
+    sage: Compositions(4, min_slope=0, max_slope=0).list()
+    [[4], [2, 2], [1, 1, 1, 1]]
+    sage: Compositions(4, max_part=2, min_slope=1).list()
+    []
+    sage: Compositions(7, max_part=4, inner=[1], min_slope=1).list()
+    [[3, 4], [1, 2, 4]]
+    sage: Compositions(4, inner=[2], outer=[2,2], min_slope=0).list()
+    [[2, 2]]
+    sage: Compositions(10, inner=[1,1], max_slope=-1).list()
+    [[6, 4],
+     [7, 3],
+     [8, 2],
+     [9, 1],
+     [7, 2, 1],
+     [6, 3, 1],
+     [5, 3, 2],
+     [5, 4, 1],
+     [4, 3, 2, 1]]
+
+If the length bounds are contradictory, we get the empty list::
+
+    sage: Compositions(6, min_length=3, max_length=2).list()
+    []
+    sage: Compositions(3, max_length=2, inner=[1,1,1]).list()
+    []
+    sage: Compositions(10, outer=[4], inner=[1,1]).list()
+    []
 
 AUTHORS:
 
@@ -38,7 +71,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from integer_lists_polyhedron import IntegerLists_polyhedron as IntegerLists
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -1407,24 +1440,24 @@ class Compositions(Parent, UniqueRepresentation):
     given by::
 
         sage: Compositions(4, length=2).list()
-        [[3, 1], [2, 2], [1, 3]]
+        [[1, 3], [2, 2], [3, 1]]
         sage: Compositions(4, min_length=2).list()
-        [[3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[1, 3], [2, 2], [3, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: Compositions(4, max_length=2).list()
-        [[4], [3, 1], [2, 2], [1, 3]]
+        [[4], [1, 3], [2, 2], [3, 1]]
 
     Setting both ``min_length`` and ``max_length`` to the same value is
     equivalent to setting ``length`` to this value::
 
         sage: Compositions(4, min_length=2, max_length=2).list()
-        [[3, 1], [2, 2], [1, 3]]
+        [[1, 3], [2, 2], [3, 1]]
 
     The options ``inner`` and ``outer`` can be used to set part-by-part
     containment constraints. The list of compositions of 4 bounded
     above by ``[3,1,2]`` is given by::
 
         sage: list(Compositions(4, outer=[3,1,2]))
-        [[3, 1], [2, 1, 1], [1, 1, 2]]
+        [[3, 1], [1, 1, 2], [2, 1, 1]]
 
     ``outer`` sets ``max_length`` to the length of its argument. Moreover, the
     parts of ``outer`` may be infinite to clear the constraint on specific
@@ -1437,7 +1470,7 @@ class Compositions(Parent, UniqueRepresentation):
     This is the list of compositions of 4 bounded below by ``[1,1,1]``::
 
         sage: Compositions(4, inner=[1,1,1]).list()
-        [[2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
 
     The options ``min_slope`` and ``max_slope`` can be used to set constraints
     on the slope, that is the difference ``p[i+1]-p[i]`` of two
@@ -1445,18 +1478,18 @@ class Compositions(Parent, UniqueRepresentation):
     compositions of 4::
 
         sage: Compositions(4, min_slope=0).list()
-        [[4], [2, 2], [1, 3], [1, 1, 2], [1, 1, 1, 1]]
+        [[4], [1, 3], [2, 2], [1, 1, 2], [1, 1, 1, 1]]
 
     Here are the weakly decreasing ones::
 
         sage: Compositions(4, max_slope=0).list()
-        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        [[4], [2, 2], [3, 1], [2, 1, 1], [1, 1, 1, 1]]
 
     The following is the list of compositions of 4 such that two
     consecutive parts differ by at most one::
 
         sage: Compositions(4, min_slope=-1, max_slope=1).list()
-        [[4], [2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[4], [2, 2], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
 
     The constraints can be combined together in all reasonable ways.
     This is the list of compositions of 5 of length between 2 and 4
@@ -1464,12 +1497,21 @@ class Compositions(Parent, UniqueRepresentation):
     and 1::
 
         sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4).list()
-        [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2], [2, 1, 1, 1], [1, 2, 2], [1, 2, 1, 1], [1, 1, 2, 1], [1, 1, 1, 2]]
+        [[2, 3],
+         [3, 2],
+         [1, 2, 2],
+         [2, 1, 2],
+         [2, 2, 1],
+         [3, 1, 1],
+         [1, 1, 1, 2],
+         [1, 1, 2, 1],
+         [1, 2, 1, 1],
+         [2, 1, 1, 1]]
 
     We can do the same thing with an outer constraint::
 
         sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
-        [[2, 3], [2, 2, 1], [2, 1, 2], [1, 2, 2]]
+        [[2, 3], [1, 2, 2], [2, 2, 1], [2, 1, 2]]
 
     However, providing incoherent constraints may yield strange
     results. It is up to the user to ensure that the inner and outer
@@ -1478,17 +1520,14 @@ class Compositions(Parent, UniqueRepresentation):
     Note that if you specify ``min_part=0``, then the objects produced may
     have parts equal to zero. This violates the internal assumptions
     that the composition class makes. Use at your own risk, or
-    preferably consider using ``IntegerVectors`` instead::
+    preferably consider using ``IntegerLists`` instead::
 
         sage: Compositions(2, length=3, min_part=0).list()
         doctest:...: RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
-        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+        [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
 
-        sage: list(IntegerVectors(2, 3))
-        [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
-
-    The generation algorithm is constant amortized time, and handled
-    by the generic tool :class:`IntegerListsLex`.
+        sage: list(IntegerLists(2, length=3))
+        [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
 
     TESTS::
 
@@ -1520,33 +1559,42 @@ class Compositions(Parent, UniqueRepresentation):
         3
 
         sage: Compositions(4, length=2).list()
-        [[3, 1], [2, 2], [1, 3]]
+        [[1, 3], [2, 2], [3, 1]]
         sage: Compositions(4, min_length=2).list()
-        [[3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[1, 3], [2, 2], [3, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: Compositions(4, max_length=2).list()
-        [[4], [3, 1], [2, 2], [1, 3]]
+        [[4], [1, 3], [2, 2], [3, 1]]
         sage: Compositions(4, max_part=2).list()
-        [[2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[2, 2], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: Compositions(4, min_part=2).list()
         [[4], [2, 2]]
         sage: Compositions(4, outer=[3,1,2]).list()
-        [[3, 1], [2, 1, 1], [1, 1, 2]]
+        [[3, 1], [1, 1, 2], [2, 1, 1]]
         sage: Compositions(3, outer = Composition([3,2])).list()
-        [[3], [2, 1], [1, 2]]
+        [[3], [1, 2], [2, 1]]
         sage: Compositions(4, outer=[1,oo,1]).list()
         [[1, 3], [1, 2, 1]]
         sage: Compositions(4, inner=[1,1,1]).list()
-        [[2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: Compositions(4, inner=Composition([1,2])).list()
-        [[2, 2], [1, 3], [1, 2, 1]]
+        [[1, 3], [2, 2], [1, 2, 1]]
         sage: Compositions(4, min_slope=0).list()
-        [[4], [2, 2], [1, 3], [1, 1, 2], [1, 1, 1, 1]]
+        [[4], [1, 3], [2, 2], [1, 1, 2], [1, 1, 1, 1]]
         sage: Compositions(4, min_slope=-1, max_slope=1).list()
-        [[4], [2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        [[4], [2, 2], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4).list()
-        [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2], [2, 1, 1, 1], [1, 2, 2], [1, 2, 1, 1], [1, 1, 2, 1], [1, 1, 1, 2]]
+        [[2, 3],
+         [3, 2],
+         [1, 2, 2],
+         [2, 1, 2],
+         [2, 2, 1],
+         [3, 1, 1],
+         [1, 1, 1, 2],
+         [1, 1, 2, 1],
+         [1, 2, 1, 1],
+         [2, 1, 1, 1]]
         sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
-        [[2, 3], [2, 2, 1], [2, 1, 2], [1, 2, 2]]
+        [[2, 3], [1, 2, 2], [2, 2, 1], [2, 1, 2]]
     """
     @staticmethod
     def __classcall_private__(self, n=None, **kwargs):
@@ -1597,7 +1645,7 @@ class Compositions(Parent, UniqueRepresentation):
                         kwargs['min_length'] = max(len(inner), kwargs['min_length'])
                     else:
                         kwargs['min_length'] = len(inner)
-                return IntegerListsLex(n, **kwargs)
+                return IntegerLists(n, **kwargs)
 
     def __init__(self, is_infinite=False):
         """
@@ -1766,7 +1814,7 @@ class Compositions(Parent, UniqueRepresentation):
         return self.element_class(self, [L[i]-L[i-1] for i in range(1, len(L))] + [len(code)-L[-1]])
 
 # Allows to unpickle old constrained Compositions_constraints objects.
-class Compositions_constraints(IntegerListsLex):
+class Compositions_constraints(IntegerLists):
     def __setstate__(self, data):
         """
         TESTS::
@@ -1779,10 +1827,10 @@ class Compositions_constraints(IntegerListsLex):
             sage: si
             Integer lists of sum 4 satisfying certain constraints
             sage: si.list()
-            [[2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+            [[2, 2], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1, 1]]
         """
         n = data['n']
-        self.__class__ = IntegerListsLex
+        self.__class__ = IntegerLists
         constraints = {'min_part' : 1,
                        'element_class' : Composition}
         constraints.update(data['constraints'])

@@ -1936,7 +1936,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             The crystal of tableaux of type ['C', 2] and shape(s) [[], [1], [2], [1, 1], [2, 1], [2, 2]]
             sage: K = crystals.KirillovReshetikhin(['D',4,2], 2,3)
             sage: K.classical_decomposition()
-            The crystal of tableaux of type ['B', 3] and shape(s) [[], [1], [2], [1, 1], [3], [2, 1], [3, 1], [2, 2], [3, 2], [3, 3]]
+            The crystal of tableaux of type ['B', 3] and shape(s) [[], [1], [2], [1, 1], [3], [2, 1], [2, 2], [3, 1], [3, 2], [3, 3]]
         """
         return CrystalOfTableaux(self.cartan_type().classical(),
                                  shapes = partitions_in_box(self.r(),self.s()))

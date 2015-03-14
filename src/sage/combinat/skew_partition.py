@@ -72,10 +72,10 @@ column::
     9
     sage: SkewPartitions(3).list()
     [[3] / [],
-     [2, 1] / [],
-     [3, 1] / [1],
      [2, 2] / [1],
      [3, 2] / [2],
+     [2, 1] / [],
+     [3, 1] / [1],
      [1, 1, 1] / [],
      [2, 2, 1] / [1, 1],
      [2, 1, 1] / [1],
@@ -86,7 +86,7 @@ There are 4 connected skew partitions of size 3::
     sage: SkewPartitions(3, overlap=1).cardinality()
     4
     sage: SkewPartitions(3, overlap=1).list()
-    [[3] / [], [2, 1] / [], [2, 2] / [1], [1, 1, 1] / []]
+    [[3] / [], [2, 2] / [1], [2, 1] / [], [1, 1, 1] / []]
 
 This is the conjugate of the skew partition ``[[4,3,1], [2]]``
 
@@ -495,13 +495,13 @@ class SkewPartition(CombinatorialObject, Element):
 
             sage: ascii_art(SkewPartitions(3).list())
             [                        *   *   *    * ]
-            [      **   **   *    *  *   *  *    *  ]
-            [ ***, * , *  , **, ** , *, * , * , *   ]
+            [       *    *  **   **  *   *  *    *  ]
+            [ ***, **, ** , * , *  , *, * , * , *   ]
             sage: SkewPartitions.global_options(diagram_str='#', convention="French")
             sage: ascii_art(SkewPartitions(3).list())
             [                        #  #   #   #   ]
-            [      #   #    ##  ##   #   #  #    #  ]
-            [ ###, ##,  ##,  #,   #, #,  #,  #,   # ]
+            [      ##  ##   #   #    #   #  #    #  ]
+            [ ###,  #,   #, ##,  ##, #,  #,  #,   # ]
             sage: SkewPartitions.global_options.reset()
         """
         from sage.misc.ascii_art import AsciiArt
@@ -1429,10 +1429,10 @@ class SkewPartitions_all(SkewPartitions):
              [1, 1] / [],
              [2, 1] / [1],
              [3] / [],
-             [2, 1] / [],
-             [3, 1] / [1],
              [2, 2] / [1],
-             [3, 2] / [2]]
+             [3, 2] / [2],
+             [2, 1] / [],
+             [3, 1] / [1]]
         """
         n = 0
         while True:
@@ -1634,30 +1634,26 @@ class SkewPartitions_n(SkewPartitions):
 
             sage: SkewPartitions(3).list()
             [[3] / [],
-             [2, 1] / [],
-             [3, 1] / [1],
              [2, 2] / [1],
              [3, 2] / [2],
+             [2, 1] / [],
+             [3, 1] / [1],
              [1, 1, 1] / [],
              [2, 2, 1] / [1, 1],
              [2, 1, 1] / [1],
              [3, 2, 1] / [2, 1]]
-
             sage: SkewPartitions(3, overlap=0).list()
             [[3] / [],
-             [2, 1] / [],
-             [3, 1] / [1],
              [2, 2] / [1],
              [3, 2] / [2],
+             [2, 1] / [],
+             [3, 1] / [1],
              [1, 1, 1] / [],
              [2, 2, 1] / [1, 1],
              [2, 1, 1] / [1],
              [3, 2, 1] / [2, 1]]
             sage: SkewPartitions(3, overlap=1).list()
-            [[3] / [],
-             [2, 1] / [],
-             [2, 2] / [1],
-             [1, 1, 1] / []]
+            [[3] / [], [2, 2] / [1], [2, 1] / [], [1, 1, 1] / []]
             sage: SkewPartitions(3, overlap=2).list()
             [[3] / []]
             sage: SkewPartitions(3, overlap=3).list()

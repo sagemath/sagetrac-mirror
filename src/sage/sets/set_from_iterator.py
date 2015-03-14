@@ -217,10 +217,10 @@ class EnumeratedSetFromIterator(Parent):
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(Partitions(7,min_part=2).__iter__)
             sage: repr(E)    # indirect doctest
-            '{[7], [5, 2], [4, 3], [3, 2, 2]}'
+            '{[7], [4, 3], [5, 2], [3, 2, 2]}'
             sage: E = EnumeratedSetFromIterator(Partitions(9,min_part=2).__iter__)
             sage: repr(E)    # indirect doctest
-            '{[9], [7, 2], [6, 3], [5, 4], [5, 2, 2], ...}'
+            '{[9], [5, 4], [6, 3], [7, 2], [4, 3, 2], ...}'
             sage: E = EnumeratedSetFromIterator(Partitions(9,min_part=2).__iter__, name="Some partitions")
             sage: repr(E)    # indirect doctest
             'Some partitions'

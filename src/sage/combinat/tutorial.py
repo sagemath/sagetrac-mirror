@@ -1546,21 +1546,27 @@ and length `3`, with parts bounded below by `2`,
 `4` and `2` respectively::
 
     sage: IntegerVectors(10, 3, min_part = 2, max_part = 5,
-    ...                  inner = [2, 4, 2]).list()
+    ....:                inner = [2, 4, 2]).list()
     [[4, 4, 2], [3, 5, 2], [3, 4, 3], [2, 5, 3], [2, 4, 4]]
 
 The compositions of `5` with each part at most `3`, and
 with length `2` or `3`::
 
     sage: Compositions(5, max_part = 3,
-    ...                min_length = 2, max_length = 3).list()
-    [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2], [1, 3, 1],
-     [1, 2, 2], [1, 1, 3]]
+    ....:              min_length = 2, max_length = 3).list()
+    [[2, 3],
+     [3, 2],
+     [1, 1, 3],
+     [1, 2, 2],
+     [1, 3, 1],
+     [2, 1, 2],
+     [2, 2, 1],
+     [3, 1, 1]]
 
 The strictly decreasing partitions of `5`::
 
     sage: Partitions(5, max_slope = -1).list()
-    [[5], [4, 1], [3, 2]]
+    [[5], [3, 2], [4, 1]]
 
 These sets share the same underlying algorithmic structure, implemented
 in the more general – and slightly more cumbersome – class
@@ -1571,12 +1577,12 @@ the consecutive differences between the parts. Here are some more
 examples::
 
     sage: IntegerListsLex(10, length=3,
-    ...                   min_part = 2, max_part = 5,
-    ...                   floor = [2, 4, 2]).list()
+    ....:                 min_part = 2, max_part = 5,
+    ....:                 floor = [2, 4, 2]).list()
     [[4, 4, 2], [3, 5, 2], [3, 4, 3], [2, 5, 3], [2, 4, 4]]
 
     sage: IntegerListsLex(5, min_part = 1, max_part = 3,
-    ...                   min_length = 2, max_length = 3).list()
+    ....:                 min_length = 2, max_length = 3).list()
     [[3, 2], [3, 1, 1], [2, 3], [2, 2, 1], [2, 1, 2],
      [1, 3, 1], [1, 2, 2], [1, 1, 3]]
 
@@ -1584,7 +1590,7 @@ examples::
     [[5], [4, 1], [3, 2]]
 
     sage: list(Compositions(5, max_length=2))
-    [[5], [4, 1], [3, 2], [2, 3], [1, 4]]
+    [[5], [1, 4], [2, 3], [3, 2], [4, 1]]
 
     sage: list(IntegerListsLex(5, max_length=2, min_part=1))
     [[5], [4, 1], [3, 2], [2, 3], [1, 4]]

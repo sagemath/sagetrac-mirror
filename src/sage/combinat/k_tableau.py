@@ -3787,7 +3787,9 @@ class StrongTableau(ClonableList):
         TESTS::
 
             sage: StrongTableau([[None, None], [None]], 4).follows_tableau()
-            [[[None, None, -1], [None]], [[None, None], [None, -1]], [[None, None], [None], [-1]]]
+            [[[None, None], [None, -1]],
+             [[None, None, -1], [None]],
+             [[None, None], [None], [-1]]]
             sage: StrongTableau([],4).follows_tableau()
             [[[-1]]]
         """
@@ -4080,15 +4082,17 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.cardinality()
             14
             sage: StrongTableaux(3, [5,2,2], weight=[3,3,1]).list()
-            [[[-1, -1, -1, -2, -2], [-2, 2], [2, -3]], [[-1, -1, -1, 2, -2], [-2, -2], [2, -3]], [[-1, -1, -1, -2, -3], [-2, -2], [2, 2]]]
+            [[[-1, -1, -1, -2, -2], [-2, 2], [2, -3]],
+             [[-1, -1, -1, -2, -3], [-2, -2], [2, 2]],
+             [[-1, -1, -1, 2, -2], [-2, -2], [2, -3]]]
             sage: StrongTableaux(3, [4,1,1]).cardinality()
             10
             sage: StrongTableaux(3, [5,2,2], weight=[6,1]).list() # there are no strong column strict tableaux of shape [5,2,2] and weight (6,1)
             []
             sage: StrongTableaux(3, [[5,2,2], [3,1,1]], weight=[2,1]).list()
             [[[None, None, None, -1, -1], [None, 1], [None, -2]],
-             [[None, None, None, 1, -1], [None, -1], [None, -2]],
-             [[None, None, None, -1, -2], [None, -1], [None, 1]]]
+             [[None, None, None, -1, -2], [None, -1], [None, 1]],
+             [[None, None, None, 1, -1], [None, -1], [None, -2]]]
             sage: StrongTableaux(2, [[4,3,3,2,2,1,1], [2,1,1]], weight=[1,1,1,1]).cardinality()
             150
             sage: StrongTableaux(2, [[7,5,3,1], [2,1,1]], weight=[2,2]).cardinality()

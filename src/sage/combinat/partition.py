@@ -113,9 +113,9 @@ Here is the list of partitions of length at least `2` and the list of
 ones with length at most `2`::
 
     sage: Partitions(4, min_length=2).list()
-    [[3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+    [[2, 2], [3, 1], [2, 1, 1], [1, 1, 1, 1]]
     sage: Partitions(4, max_length=2).list()
-    [[4], [3, 1], [2, 2]]
+    [[4], [2, 2], [3, 1]]
 
 The options ``min_part`` and ``max_part`` can be used to set constraints
 on the sizes of all parts. Using ``max_part``, we can select
@@ -169,7 +169,7 @@ that the difference between two consecutive parts is between `-3` and
 `-1`::
 
     sage: Partitions(11,min_slope=-3,max_slope=-1,min_length=2,max_length=4).list()
-    [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
+    [[6, 5], [7, 4], [6, 3, 2], [6, 4, 1], [5, 4, 2], [5, 3, 2, 1]]
 
 Partition objects can also be created individually with :class:`Partition`::
 
@@ -313,7 +313,7 @@ import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists_polyhedron import IntegerLists_polyhedron as IntegerLists
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -3968,7 +3968,7 @@ class Partition(CombinatorialObject, Element):
         .. TODO::
 
             Reimplement like ``remove_horizontal_border_strip`` using
-            :class:`IntegerListsLex`
+            :class:`IntegerLists`
         """
         conj = self.conjugate().to_list()
         shelf = []
@@ -4013,19 +4013,19 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([5,3,1]).remove_horizontal_border_strip(0).list()
             [[5, 3, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(1).list()
-            [[5, 3], [5, 2, 1], [4, 3, 1]]
+            [[5, 3], [4, 3, 1], [5, 2, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(2).list()
-            [[5, 2], [5, 1, 1], [4, 3], [4, 2, 1], [3, 3, 1]]
+            [[4, 3], [5, 2], [3, 3, 1], [4, 2, 1], [5, 1, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(3).list()
-            [[5, 1], [4, 2], [4, 1, 1], [3, 3], [3, 2, 1]]
+            [[3, 3], [4, 2], [5, 1], [3, 2, 1], [4, 1, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(4).list()
-            [[4, 1], [3, 2], [3, 1, 1]]
+            [[3, 2], [4, 1], [3, 1, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(5).list()
             [[3, 1]]
             sage: Partition([5,3,1]).remove_horizontal_border_strip(6).list()
             []
 
-        The result is returned as an instance of :class:`IntegerListsLex`::
+        The result is returned as an instance of :class:`IntegerLists`::
 
             sage: Partition([5,3,1]).remove_horizontal_border_strip(5)
             The subpartitions of [5, 3, 1] obtained by removing an horizontal border strip of length 5
@@ -4041,7 +4041,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([]).remove_horizontal_border_strip(6).list()
             []
         """
-        return IntegerListsLex(n          = self.size()-k,
+        return IntegerLists(n          = self.size()-k,
                                min_length = len(self)-1,
                                max_length = len(self),
                                floor      = self[1:]+[0],
@@ -4574,7 +4574,7 @@ class Partitions(UniqueRepresentation, Parent):
     ``max_slope`` to get parts that differ by, say, 2::
 
         sage: Partitions(7, max_slope=-1).list()
-        [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
+        [[7], [4, 3], [5, 2], [6, 1], [4, 2, 1]]
         sage: Partitions(15, max_slope=-1).cardinality()
         27
 
@@ -4609,8 +4609,7 @@ class Partitions(UniqueRepresentation, Parent):
     ::
 
         sage: Partitions(10, min_part=2, length=3).list()
-        [[6, 2, 2], [5, 3, 2], [4, 4, 2], [4, 3, 3]]
-
+        [[6, 2, 2], [5, 3, 2], [4, 3, 3], [4, 4, 2]]
 
     Here are some further examples using various constraints::
 
@@ -4619,11 +4618,11 @@ class Partitions(UniqueRepresentation, Parent):
         sage: [x for x in Partitions(4, length=2)]
         [[3, 1], [2, 2]]
         sage: [x for x in Partitions(4, min_length=2)]
-        [[3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        [[2, 2], [3, 1], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(4, max_length=2)]
-        [[4], [3, 1], [2, 2]]
+        [[4], [2, 2], [3, 1]]
         sage: [x for x in Partitions(4, min_length=2, max_length=2)]
-        [[3, 1], [2, 2]]
+        [[2, 2], [3, 1]]
         sage: [x for x in Partitions(4, max_part=2)]
         [[2, 2], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(4, min_part=2)]
@@ -4639,9 +4638,9 @@ class Partitions(UniqueRepresentation, Parent):
         sage: [x for x in Partitions(4, min_slope=-1)]
         [[4], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4)]
-        [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
+        [[6, 5], [7, 4], [6, 3, 2], [6, 4, 1], [5, 4, 2], [5, 3, 2, 1]]
         sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4, outer=[6,5,2])]
-        [[6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2]]
+        [[6, 5], [5, 4, 2], [6, 4, 1], [6, 3, 2]]
 
     Note that if you specify ``min_part=0``, then it will treat the minimum
     part as being 1 (see :trac:`13605`)::
@@ -4651,24 +4650,23 @@ class Partitions(UniqueRepresentation, Parent):
         sage: [x for x in Partitions(4, min_length=3, min_part=0)]
         [[2, 1, 1], [1, 1, 1, 1]]
 
-    Except for very special cases, counting is done by brute force iteration
-    through all the partitions. However the iteration itself has a reasonable
-    complexity (constant memory, constant amortized time), which allow for
-    manipulating large partitions::
+    Counting is done by enumerating integral points in polyhedra. This
+    allows for manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()
         [[1000]]
 
-    In particular, getting the first element is also constant time::
+    The :class:`IntegerLists` backend uses an iterator, so getting the
+    first element can be done without computing all elements::
 
         sage: Partitions(30, max_part=29).first()
-        [29, 1]
+        [15, 15]
 
     TESTS::
 
         sage: TestSuite(Partitions(0)).run()
         sage: TestSuite(Partitions(5)).run()
-        sage: TestSuite(Partitions(5, min_part=2)).run() # Not tested: todo - IntegerListsLex needs to pickle properly
+        sage: TestSuite(Partitions(5, min_part=2)).run()  # known bug
 
         sage: repr( Partitions(5, min_part=2) )
         'Partitions of the integer 5 satisfying constraints min_part=2'
@@ -4684,15 +4682,15 @@ class Partitions(UniqueRepresentation, Parent):
         True
 
         sage: Partitions(5, inner=[2,1], min_length=3).list()
-        [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        [[2, 2, 1], [3, 1, 1], [2, 1, 1, 1]]
         sage: Partitions(5, inner=Partition([2,2]), min_length=3).list()
         [[2, 2, 1]]
         sage: Partitions(7, inner=(2, 2), min_length=3).list()
-        [[4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1], [2, 2, 2, 1], [2, 2, 1, 1, 1]]
+        [[3, 2, 2], [4, 2, 1], [3, 3, 1], [2, 2, 2, 1], [3, 2, 1, 1], [2, 2, 1, 1, 1]]
         sage: Partitions(5, inner=[2,0,0,0,0,0]).list()
-        [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        [[5], [3, 2], [4, 1], [2, 2, 1], [3, 1, 1], [2, 1, 1, 1]]
         sage: Partitions(6, length=2, max_slope=-1).list()
-        [[5, 1], [4, 2]]
+        [[4, 2], [5, 1]]
 
         sage: Partitions(length=2, max_slope=-1).list()
         Traceback (most recent call last):
@@ -4738,8 +4736,8 @@ class Partitions(UniqueRepresentation, Parent):
         ....:    print p
         [3, 3, 2]
         [3, 2, 2, 1]
-        [3, 2, 1, 1, 1]
         [2, 2, 2, 1, 1]
+        [3, 2, 1, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
@@ -4764,11 +4762,15 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P is P2
             True
 
-        Check that :trac:`17898` is fixed::
+        Check that :trac:`17548` is fixed::
 
             sage: P = Partitions(5, min_slope=0)
             sage: list(P)
-            [[5]]
+            [[5], [1, 1, 1, 1, 1]]
+            sage: Partitions(10, min_part=2, max_slope=-1).list()
+            [[10], [6, 4], [7, 3], [8, 2], [5, 3, 2]]
+            sage: Partitions(6, min_slope=-1, max_slope=-1).list()
+            [[6], [3, 2, 1]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4836,7 +4838,7 @@ class Partitions(UniqueRepresentation, Parent):
 
             kwargs['element_class'] = Partition
             kwargs['global_options'] = Partitions.global_options
-            return IntegerListsLex(n, **kwargs)
+            return IntegerLists(n, **kwargs)
         else:
             raise ValueError("n must be an integer or be equal to one of "+
                              "None, NN, NonNegativeIntegers()")
@@ -5230,7 +5232,7 @@ class Partitions_all_bounded(Partitions):
         """
         TESTS::
 
-            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run()
+            sage: TestSuite(sage.combinat.partition.Partitions_all_bounded(3)).run(max_runs=100)
         """
         self.k = k
         Partitions.__init__(self, is_infinite=True)
@@ -5276,7 +5278,7 @@ class Partitions_all_bounded(Partitions):
             sage: p = Partitions(max_part=3)
             sage: it = p.__iter__()
             sage: [next(it) for i in range(10)]
-            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [3, 1], [2, 2], [2, 1, 1]]
+            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [2, 2], [3, 1], [2, 1, 1]]
         """
         n = 0
         while True:
@@ -6421,7 +6423,7 @@ class PartitionsInBox(Partitions):
 
             return [self.element_class(self, [x for x in p if x!=0]) for p in l]
 
-class Partitions_constraints(IntegerListsLex):
+class Partitions_constraints(IntegerLists):
     """
     For unpickling old constrained ``Partitions_constraints`` objects created
     with sage <= 3.4.1. See :class:`Partitions`.
@@ -6437,7 +6439,7 @@ class Partitions_constraints(IntegerListsLex):
             [[2, 1], [1, 1, 1]]
         """
         n = data['n']
-        self.__class__ = IntegerListsLex
+        self.__class__ = IntegerLists
         constraints = {'max_slope' : 0,
                        'min_part' : 1,
                        'element_class' : Partition,
@@ -6595,7 +6597,7 @@ class OrderedPartitions(Partitions):
 # Partitions Greatest LE #
 ##########################
 
-class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
+class PartitionsGreatestLE(UniqueRepresentation, IntegerLists):
     """
     The class of all (unordered) "restricted" partitions of the integer `n`
     having parts less than or equal to the integer `k`.
@@ -6631,7 +6633,7 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
             (10, 2)
             sage: TestSuite(p).run()
         """
-        IntegerListsLex.__init__(self, n, max_slope = 0, min_part=1, max_part = k)
+        IntegerLists.__init__(self, n, max_slope = 0, min_part=1, max_part = k)
         self.n = n
         self.k = k
 
@@ -6653,7 +6655,7 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 # Partitions Greatest EQ #
 ##########################
 
-class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
+class PartitionsGreatestEQ(IntegerLists, UniqueRepresentation):
     """
     The class of all (unordered) "restricted" partitions of the integer `n`
     having its greatest part equal to the integer `k`.
@@ -6691,7 +6693,7 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
             (10, 2)
             sage: TestSuite(p).run()
         """
-        IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
+        IntegerLists.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
         self.k = k
 
     def _repr_(self):

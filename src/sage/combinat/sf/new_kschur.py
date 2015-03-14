@@ -817,13 +817,13 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 t^3 + t
                 sage: dks3 = Sym.kBoundedQuotient(3).dks()
                 sage: [ks3[3,2,1].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
-                [0, 1, 0, 0, 0, 0, 0]
+                [0, 0, 1, 0, 0, 0, 0]
                 sage: dks3 = Sym.kBoundedQuotient(3,t=1).dks()
                 sage: [ks3[2,2,2].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
-                [0, t - 1, 0, 1, 0, 0, 0]
+                [0, 1, t - 1, 0, 0, 0, 0]
                 sage: ks3 = Sym.kschur(3,t=1)
                 sage: [ks3[2,2,2].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
-                [0, 0, 0, 1, 0, 0, 0]
+                [0, 1, 0, 0, 0, 0, 0]
                 sage: kH = Sym.khomogeneous(4)
                 sage: kH([2,2,1]).scalar(ks3[2,2,1])
                 3
