@@ -38,7 +38,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from integer_list import IntegerListsLexPublic as IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map

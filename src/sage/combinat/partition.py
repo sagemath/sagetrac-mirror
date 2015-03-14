@@ -313,7 +313,7 @@ import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_list import IntegerListsLexPublic as IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 

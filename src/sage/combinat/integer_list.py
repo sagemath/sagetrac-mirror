@@ -1183,9 +1183,9 @@ class IntegerListsLexPublic(IntegerListsLex):
             sage: C = IntegerListsLex(2, length=3)
         """
         from sage.misc.stopgap import stopgap
-        stopgap("IntegerListsLex does not allow for arbitrary input;"
-                " non-allowed input can return wrong results,"
-                " please see the documentation for IntegerListsLex for details.",
+        stopgap("The functions Partitions(), Compositions() and IntegerListsLex() have known bugs yielding incorrect results; "
+                "there are also extra conditions on which kind of input is allowed, "
+                "please see the documentation for IntegerListsLex for details.",
                 17548)
         IntegerListsLex.__init__(self, n, length, min_length, max_length,
                                  floor, ceiling, min_part, max_part,
