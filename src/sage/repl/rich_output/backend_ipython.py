@@ -459,9 +459,7 @@ class BackendIPythonNotebook(BackendIPython):
             }, {})
         elif isinstance(rich_output, OutputSavedFile):
             url = self._make_temporary_serving_url(rich_output.filename)
-            html = '<a href="{0}" download="{1}">Download {1}</a>'.format(
-                url, os.path.basename(rich_output.filename))
-            return ({u'text/html':  html,
+            return ({u'text/html':  rich_output.html(url),
                      u'text/plain': rich_output.filename,
             }, {})            
         else:
@@ -542,7 +540,7 @@ class BackendIPythonNotebook(BackendIPython):
             fqn = os.path.join(path, dirent)
             try:
                 age = now - os.path.getatime(fqn)
-                if age >= 604800:    # 1 week in seconds
+                if age > 3600:
                     os.unlink(fqn)
             except OSError:
                 if os.path.exists(fqn):

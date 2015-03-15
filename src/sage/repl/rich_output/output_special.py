@@ -23,6 +23,32 @@ from sage.repl.rich_output.output_basic import OutputBase
 
 
 
+DOWNLOAD_SAVED_FILE_HTML = \
+"""
+<a href="{url}" 
+   download="{filename}" 
+   data-time="{timestamp_ms}"
+   id="sage-saved-file-{unique_id}">Download {filename}</a>
+"""
+
+DOWNLOAD_SAVED_FILE_SCRIPT = \
+"""
+<script>
+    var sage_saved_file = jQuery("a#sage-saved-file-{unique_id}");
+    /* IE and Safari suck as usual http://caniuse.com/#feat=download  */
+    /* If the browser does not understand "download" it'll navigate   */
+    /* to the link when we click on it. In that case, do not click.   */
+    if ((sage_saved_file.length > 0) && ("download" in document.createElement("a"))) {{
+        /* Avoid re-download e.g. when loading a saved worksheet      */
+        var age = Math.abs(new Date().getTime() - 
+                           parseInt(sage_saved_file.attr('data-time')));
+        if (age < 15*60*1000)
+            sage_saved_file.get(0).click()
+    }}
+</script>
+"""
+                  
+
 class OutputSavedFile(OutputBase):
 
     def __init__(self, filename, auto_download=True):
@@ -76,3 +102,36 @@ class OutputSavedFile(OutputBase):
         filename = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
         return OutputSavedFile(filename)
 
+    def html(self, url, download=True):
+        r"""
+        Generate HTML to download file
+
+        INPUT:
+
+        - ``url`` -- string. The serving URL of the file.
+
+        - ``download`` -- boolean (optional). Whether to try to
+          automatically initiate the download.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputSavedFile
+            sage: OutputSavedFile.example().html('http://foo/bar.txt')
+            '\n<a href="http://foo/bar.txt"...'
+        """
+        import uuid
+        import time
+        if download:
+            template = DOWNLOAD_SAVED_FILE_HTML + DOWNLOAD_SAVED_FILE_SCRIPT
+        else:
+            template = DOWNLOAD_SAVED_FILE_HTML
+        return template.format(
+            url=url,
+            filename=os.path.basename(self.filename),
+            unique_id=str(uuid.uuid4()),
+            timestamp_ms=int(time.time() * 1000)
+        )

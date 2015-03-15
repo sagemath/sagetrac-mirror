@@ -308,6 +308,7 @@ class BackendSageNB(BackendBase):
             OutputImagePdf, OutputImageSvg,
             SageNbOutputSceneJmol,
             OutputSceneCanvas3d,
+            OutputSavedFile,
         ])
 
     def display_immediately(self, plain_text, rich_output):
@@ -361,6 +362,11 @@ class BackendSageNB(BackendBase):
             rich_output.embed()
         elif isinstance(rich_output, OutputSceneCanvas3d):
             self.embed_image(rich_output.canvas3d, '.canvas3d')
+        elif isinstance(rich_output, OutputSavedFile):
+            url = self._make_symlink_to_cell(rich_output.filename)
+            print('<html>')
+            print(rich_output.html(url, download=False))
+            print('</html>')
         else:
             raise TypeError('rich_output type not supported, got {0}'.format(rich_output))
 
@@ -400,4 +406,45 @@ class BackendSageNB(BackendBase):
         output_buffer.save_as(filename)
         world_readable(filename)
 
+    def _make_symlink_to_cell(self, filename):
+        """
+        Return the name of a symlink inside the current cell directory
+
+        INPUT:
+
+        - ``filename`` -- string. The name of the file to serve.
+
+        OUTPUT:
+
+        String. Relative path from the worksheet url to the symlink.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_graphics import OutputImagePng
+            sage: png_file = OutputImagePng.example().png.filename(ext='filename.png')
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: cwd = os.getcwd()
+            sage: os.chdir(tmp_dir())
+            sage: lnk = backend._make_symlink_to_cell(png_file)
+            sage: lnk    # random output
+            '2c45d92a-03e6-4a8b-bba9-011d622b64c9.png'
+            sage: os.path.islink(lnk)
+            True
+            sage: os.chdir(cwd)
+            sage: os.path.islink(lnk)
+            False
+        """
+        try:
+            os.makedirs('.files')
+        except OSError:
+            pass
+        import uuid
+        basename, ext = os.path.splitext(filename)
+        unique_name = os.path.join('.files', str(uuid.uuid4()) + ext)
+        os.symlink(os.path.abspath(filename), unique_name)
+        from sagenb.notebook.interact import SAGE_CELL_ID
+        return 'cells/{0}/{1}'.format(
+            SAGE_CELL_ID,
+            unique_name)
 
