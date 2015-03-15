@@ -2098,9 +2098,9 @@ UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
     ext_modules.append(
         Extension('sage.misc.darwin_utilities',
-            sources = ['sage/misc/darwin_memory_usage.c',
-                       'sage/misc/darwin_utilities.pyx'],
-            depends = ['sage/misc/darwin_memory_usage.h'])
+            sources = ['sage/misc/darwin/darwin_memory_usage.c',
+                       'sage/misc/darwin/darwin_utilities.pyx'],
+            depends = ['sage/misc/darwin/darwin_memory_usage.h'])
         )
 
 
