@@ -161,9 +161,11 @@ class SavedFile(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output.output_catalog import OutputImagePng
+            sage: png_file = OutputImagePng.example().png.filename(ext='filename.png')
             sage: from sage.repl.saved_file import SavedFile
-            sage: SavedFile('/tmp/foo.png')
-            Saved file at /tmp/foo.png
+            sage: SavedFile(png_file)
+            Saved file at /...filename.png
         """
         self._filename = filename
         if rich_output is not None:
@@ -223,9 +225,11 @@ class SavedFile(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output.output_catalog import OutputImagePng
+            sage: png_file = OutputImagePng.example().png.filename(ext='.png')
             sage: from sage.repl.saved_file import SavedFile
-            sage: SavedFile('/tmp/foo.png').basename()
-            'foo.png'
+            sage: '/' in SavedFile(png_file).basename()
+            False
         """
         return os.path.basename(self._filename)
 

@@ -426,14 +426,9 @@ class BackendSageNB(BackendBase):
             sage: backend = BackendSageNB()
             sage: cwd = os.getcwd()
             sage: os.chdir(tmp_dir())
-            sage: lnk = backend._make_symlink_to_cell(png_file)
-            sage: lnk    # random output
-            '2c45d92a-03e6-4a8b-bba9-011d622b64c9.png'
-            sage: os.path.islink(lnk)
-            True
+            sage: backend._make_symlink_to_cell(png_file)    # random output
+            'cells/0/.files/5608054e-eb8f-4c56-9c20-3d581e0e56ef.png'
             sage: os.chdir(cwd)
-            sage: os.path.islink(lnk)
-            False
         """
         try:
             os.makedirs('.files')
