@@ -395,7 +395,8 @@ class BackendIPythonNotebook(BackendIPython):
         return set([
             OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
-            OutputImageSvg, OutputImagePdf, 
+            OutputImageSvg, OutputImagePdf,
+            OutputSavedFile,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -456,9 +457,15 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get(),
             }, {})
+        elif isinstance(rich_output, OutputSavedFile):
+            url = self._make_temporary_serving_url(rich_output.filename)
+            html = '<a href="{0}" download="{1}">Download {1}</a>'.format(
+                url, os.path.basename(rich_output.filename))
+            return ({u'text/html':  html,
+                     u'text/plain': rich_output.filename,
+            }, {})            
         else:
             raise TypeError('rich_output type not supported')
-
         
     def display_immediately(self, plain_text, rich_output):
         """
@@ -485,3 +492,64 @@ class BackendIPythonNotebook(BackendIPython):
             ({u'text/plain': 'Example plain text output'}, {})
         """
         return self.displayhook(plain_text, rich_output)
+    
+    def _make_temporary_serving_url(self, filename):
+        """
+        Return a URL where ``filename`` can be downloaded.
+
+        The URL is not guessable.
+
+        There is currently (IPy 3.0) not a really satisfactory way to
+        do this, see
+        :url:`https://github.com/ipython/ipython/issues/8053`. In
+        particular, this hack won't work if the kernel and notebook
+        run on machines with separate file systems. But then that is
+        currently not a recommended/working setup.
+
+        INPUT:
+
+        - ``filename`` -- string. The name of the file to serve.
+
+        OUTPUT:
+
+        String. The absolute path component of a URL, excluding the
+        host name part since the kernel doesn't really know it.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_graphics import OutputImagePng
+            sage: png_file = OutputImagePng.example().png.filename(ext='filename.png')
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend._make_temporary_serving_url(png_file)   # random output
+            '/nbextensions/sage-saved-files/2c45d92a-03e6-4a8b-bba9-011d622b64c9.png'
+        """
+        # We will create a symlink to the saved file here
+        from IPython.utils.path import get_ipython_dir
+        path = os.path.join(
+            get_ipython_dir(),
+            'nbextensions',
+            'sage-saved-files',
+        )
+        try:
+            os.makedirs(path)
+        except OSError:
+            pass
+        # First delete stale files
+        import time
+        now = time.time()
+        for dirent in os.listdir(path):
+            fqn = os.path.join(path, dirent)
+            try:
+                age = now - os.path.getatime(fqn)
+                if age >= 604800:    # 1 week in seconds
+                    os.unlink(fqn)
+            except OSError:
+                if os.path.exists(fqn):
+                    raise
+        # Then add our own randomly-named symlink
+        import uuid
+        basename, ext = os.path.splitext(filename)
+        unique_name = str(uuid.uuid4()) + ext
+        os.symlink(os.path.abspath(filename), os.path.join(path, unique_name))
+        return '/nbextensions/sage-saved-files/{0}'.format(unique_name)

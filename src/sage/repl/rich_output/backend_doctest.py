@@ -22,6 +22,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
 import sys
 from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
@@ -112,6 +113,7 @@ class BackendDoctest(BackendBase):
             OutputImagePng, OutputImageGif, OutputImageJpg, 
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
+            OutputSavedFile,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -246,5 +248,8 @@ class BackendDoctest(BackendBase):
             assert rich_output.mtl.get().startswith('newmtl ')
         elif isinstance(rich_output, OutputSceneCanvas3d):
             assert rich_output.canvas3d.get().startswith('[{vertices:')
+        elif isinstance(rich_output, OutputSavedFile):
+            assert os.path.exists(rich_output.filename)
+            assert os.path.isabs(rich_output.filename)
         else:
             raise TypeError('rich_output type not supported')

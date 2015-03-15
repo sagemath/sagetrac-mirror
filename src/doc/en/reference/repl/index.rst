@@ -50,6 +50,19 @@ is reloaded whenever it is changed.
    sage/repl/attach
 
 
+Wrapper Objects
+---------------
+
+These wrap existing data (like an image file) and try to display them
+nicely depending on the capabilities of the user interface.
+
+.. toctree::
+   :maxdepth: 2
+   
+   sage/image
+   sage/saved_file
+
+
 Pretty Printing
 ---------------
 
@@ -78,7 +91,9 @@ Display Backend Infrastructure
    sage/repl/rich_output/output_basic
    sage/repl/rich_output/output_graphics
    sage/repl/rich_output/output_graphics3d
+   sage/repl/rich_output/output_special
    sage/repl/rich_output/output_catalog
+   sage/repl/rich_output/guess_output
    
    sage/repl/rich_output/backend_base   
    sage/repl/rich_output/backend_test

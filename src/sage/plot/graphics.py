@@ -32,6 +32,7 @@ from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
+from sage.repl.saved_file import SavedFile
 from colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
@@ -2932,7 +2933,7 @@ class Graphics(SageObject):
             sage: filename = os.path.join(SAGE_TMP, 'test.png')
             sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
         """
-        self.save(filename, *args, **kwds)
+        return self.save(filename, *args, **kwds)
 
 
     # ALLOWED_EXTENSIONS is the list of recognized formats.
@@ -3083,6 +3084,7 @@ class Graphics(SageObject):
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                                            rcParams['text.usetex']) = rc_backup
+        return SavedFile(filename)
 
     def description(self):
         r"""
