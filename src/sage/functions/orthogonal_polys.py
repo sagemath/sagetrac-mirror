@@ -318,12 +318,14 @@ AUTHORS:
 import warnings
 
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, CC
+from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.calculus.calculus import maxima
 
-
+from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
 from sage.functions.other import factorial, binomial
@@ -409,9 +411,11 @@ class OrthogonalPolynomial(BuiltinFunction):
             sage: from sage.functions.orthogonal_polys import OrthogonalPolynomial
             sage: P = OrthogonalPolynomial('testo_P')
             sage: P._maxima_init_evaled_(2, 5) is None
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: _maxima_init_evaled_ not implemented
         """
-        return None
+        raise NotImplementedError("_maxima_init_evaled_ not implemented")
 
     def eval_formula(self, *args):
         """
@@ -1156,50 +1160,6 @@ class Func_chebyshev_U(ChebyshevPolynomial):
 chebyshev_U = Func_chebyshev_U()
 
 
-def gen_laguerre(n,a,x):
-    """
-    Returns the generalized Laguerre polynomial for integers `n > -1`.
-    Typically, `a = 1/2` or `a = -1/2`.
-
-    REFERENCES:
-
-    - Table on page 789 in [ASHandbook]_.
-
-    EXAMPLES::
-
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: gen_laguerre(2,1,x)
-        1/2*x^2 - 3*x + 3
-        sage: gen_laguerre(2,1/2,x)
-        1/2*x^2 - 5/2*x + 15/8
-        sage: gen_laguerre(2,-1/2,x)
-        1/2*x^2 - 3/2*x + 3/8
-        sage: gen_laguerre(2,0,x)
-        1/2*x^2 - 2*x + 1
-        sage: gen_laguerre(3,0,x)
-        -1/6*x^3 + 3/2*x^2 - 3*x + 1
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: gen_laguerre(0,1,x)
-        1
-
-        sage: gen_laguerre(-1,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -1
-
-        sage: gen_laguerre(-7,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -7
-    """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
-
-    _init()
-    return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
-
 def gen_legendre_P(n,m,x):
     r"""
     Returns the generalized (or associated) Legendre function of the
@@ -1367,45 +1327,6 @@ def jacobi_P(n,a,b,x):
     _init()
     return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)'%(ZZ(n),a,b)), locals={'x':x})
 
-def laguerre(n,x):
-    """
-    Return the Laguerre polynomial for integers `n > -1`.
-
-    REFERENCE:
-
-    - [ASHandbook]_ 22.5.16, page 778 and page 789.
-
-    EXAMPLES::
-
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: laguerre(2,x)
-        1/2*x^2 - 2*x + 1
-        sage: laguerre(3,x)
-        -1/6*x^3 + 3/2*x^2 - 3*x + 1
-        sage: laguerre(2,2)
-        -1
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: laguerre(0,x)
-        1
-
-        sage: laguerre(-1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -1
-
-        sage: laguerre(-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -7
-    """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
-
-    _init()
-    return sage_eval(maxima.eval('laguerre(%s,x)'%ZZ(n)), locals={'x':x})
-
 def legendre_P(n,x):
     """
     Returns the Legendre polynomial of the first kind.
@@ -1499,3 +1420,314 @@ def ultraspherical(n,a,x):
     return sage_eval(maxima.eval('ultraspherical(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
 
 gegenbauer = ultraspherical
+
+
+class Func_laguerre(OrthogonalPolynomial):
+    """
+    REFERENCE:
+ 
+    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    """
+    def __init__(self):
+        r"""
+        Init method for the Laguerre polynomials.
+
+        EXAMPLES::
+
+            sage: loads(dumps(laguerre))
+            laguerre
+        """
+        OrthogonalPolynomial.__init__(self, "laguerre", nargs=2, latex_name=r"L",
+                conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
+                    'maple':'LaguerreL'})
+
+    def _maxima_init_evaled_(self, n, x):
+        """
+        Evaluate the Laguerre polynomial ``self`` with maxima.
+
+        EXAMPLES::
+
+            sage: var('n, x')
+            (n, x)
+            sage: laguerre._maxima_init_evaled_(1,x)
+            '1-_SAGE_VAR_x'
+            sage: maxima(laguerre(n, laguerre(n, x)))
+            laguerre(_SAGE_VAR_n,laguerre(_SAGE_VAR_n,_SAGE_VAR_x))
+        """
+        return maxima.eval('laguerre({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
+
+    def _eval_(self, n, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Laguerre polynomial expression.
+        
+        EXAMPLES::
+            
+            sage: x = PolynomialRing(QQ, 'x').gen()
+            sage: laguerre(2,x)
+            1/2*x^2 - 2*x + 1
+            sage: laguerre(3,x)
+            -1/6*x^3 + 3/2*x^2 - 3*x + 1
+            sage: laguerre(2,2)
+            -1
+            sage: laguerre(-1, x)
+            e^x
+            sage: laguerre(-6, x)
+            1/120*(x^5 + 25*x^4 + 200*x^3 + 600*x^2 + 600*x + 120)*e^x
+            sage: laguerre(-9,2)
+            66769/315*e^2
+        """
+        from sage.rings.integer import Integer
+        from sage.functions.log import exp
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+        if isinstance(n, (Integer, int)):
+            if n >= 0 and not hasattr(x, 'prec'):
+                return self._pol_laguerre(n, x)
+            elif n < 0:
+                return exp(x)*laguerre(-n-1, -x)
+
+    def _eval_special_values_(self, n, x):
+        """
+        Special values known.
+        
+        EXAMPLES::
+            
+            sage: laguerre(0, 0)
+            1
+            sage: laguerre(1, x)
+            -x + 1
+        """
+        if n == 0:
+            return ZZ(1)
+        if n == 1:
+            return ZZ(1) - x
+
+    def _pol_laguerre(self, n, x):
+        """
+        Fast creation of Laguerre polynomial.
+        
+        EXAMPLES::
+        
+            sage: laguerre(3,sin(x))
+            -1/6*sin(x)^3 + 3/2*sin(x)^2 - 3*sin(x) + 1
+            sage: R.<x> = PolynomialRing(QQ, 'x')
+            sage: laguerre(4,x)
+            1/24*x^4 - 2/3*x^3 + 3*x^2 - 4*x + 1
+            sage: laguerre(4,x+1)
+            1/24*(x + 1)^4 - 2/3*(x + 1)^3 + 3*(x + 1)^2 - 4*x - 3
+            sage: laguerre(10,1+I)
+            142511/113400*I + 95867/22680
+        """
+        if hasattr(x, 'pyobject'):
+            try:
+                x = x.pyobject()
+            except TypeError:
+                pass
+        P = parent(x)
+        if not is_PolynomialRing(P):
+            return SR(sum([binomial(n,k)*(-1)**k/factorial(k)*x**k for k in range(n+1)]))
+        else:
+            if x == P.gen():
+                R = P
+            else:
+                R = PolynomialRing(QQ, 'x')
+            pol = R([binomial(n,k)*(-1)**k/factorial(k) for k in range(n+1)])
+            if x != P.gen():
+                pol = pol.subs({pol.parent().gen():x})
+                pol = pol.change_ring(P.base_ring())
+            return pol
+
+    def _evalf_(self, n, x, **kwds):
+        """
+        Return the evaluation of `laguerre(n,x)` with floating point `x`.
+        
+        EXAMPLES::
+            
+            sage: laguerre(100,RealField(300)(pi))
+            -0.638322077840648311606324...
+            sage: laguerre(10,1.+I)
+            4.22694003527337 + 1.25671075837743*I
+            sage: laguerre(-9, 2.)
+            1566.22186244286
+        """
+        the_parent = kwds.get('parent', None)
+        if the_parent is None:
+            the_parent = parent(x)
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        if n<0:
+            # work around mpmath issue 307
+            from sage.functions.log import exp
+            return exp(x) * mpcall(mpmath.laguerre, -n-1, 0, -x, parent=the_parent)
+        else:
+            return mpcall(mpmath.laguerre, n, 0, x, parent=the_parent)
+
+    def _derivative_(self, n, x, *args,**kwds):
+        """
+        Return the derivative of `laguerre(n,x)`.
+  
+        EXAMPLES:: 
+        
+            sage: n=var('n')
+            sage: diff(laguerre(n,x), x)
+            -gen_laguerre(n - 1, 1, x)
+            
+        TESTS::
+        
+            sage: diff(laguerre(x,x))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param'] 
+        if diff_param == 0:  
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else:
+            return -gen_laguerre(n-1,1,x)
+         
+laguerre = Func_laguerre()
+
+class Func_gen_laguerre(OrthogonalPolynomial):
+    """
+    REFERENCE:
+ 
+    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    """
+    def __init__(self):
+        r"""
+        Init method for the Laguerre polynomials.
+
+        EXAMPLES::
+
+            sage: loads(dumps(gen_laguerre))
+            gen_laguerre
+        """
+        OrthogonalPolynomial.__init__(self, "gen_laguerre", nargs=3, latex_name=r"L",
+                conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',
+                    'maple':'LaguerreL'})
+
+    def _maxima_init_evaled_(self, n, a, x):
+        """
+        Evaluate the Laguerre polynomial ``self`` with maxima.
+
+        EXAMPLES::
+
+            sage: a,n,x = var('a, n, x')
+            sage: gen_laguerre._maxima_init_evaled_(1,2,x)
+            '3*(1-_SAGE_VAR_x/3)'
+            sage: maxima(gen_laguerre(n, a, gen_laguerre(n, a, x)))
+            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
+        """
+        return maxima.eval('gen_laguerre({0},{1},{2})'.format(n._maxima_init_(), a._maxima_init_(), x._maxima_init_()))
+
+    def _eval_(self, n, a, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Laguerre polynomial expression.
+        
+        EXAMPLES::
+            
+            sage: gen_laguerre(2, 1, x)
+            1/2*x^2 - 3*x + 3
+            sage: gen_laguerre(2, 1/2, x)
+            1/2*x^2 - 5/2*x + 15/8
+            sage: gen_laguerre(2, -1/2, x)
+            1/2*x^2 - 3/2*x + 3/8
+            sage: gen_laguerre(2, 0, x)
+            1/2*x^2 - 2*x + 1
+            sage: gen_laguerre(3, 0, x)
+            -1/6*x^3 + 3/2*x^2 - 3*x + 1
+        """
+        from sage.rings.integer import Integer
+        ret = self._eval_special_values_(n, a, x)
+        if ret is not None:
+            return ret
+        if isinstance(n, Integer):
+            if n >= 0 and not hasattr(x, 'prec'):
+                return self._pol_gen_laguerre(n, a, x)
+
+    def _eval_special_values_(self, n, a, x):
+        """
+        Special values known.
+        
+        EXAMPLES::
+            
+            sage: gen_laguerre(0, 1, pi)
+            1
+            sage: gen_laguerre(1, 2, x)
+            -x + 3
+        """
+        if n == 0:
+            return ZZ(1)
+        if n == 1:
+            return ZZ(1) + a - x
+        if a == 0:
+            return laguerre(n, x)
+    
+    def _pol_gen_laguerre(self, n, a, x):
+        """
+        EXAMPLES::
+            
+            sage: gen_laguerre(3, 1/2, sin(x))
+            -1/6*sin(x)^3 + 7/4*sin(x)^2 - 35/8*sin(x) + 35/16
+            sage: R.<x> = PolynomialRing(QQ, 'x')
+            sage: gen_laguerre(4, -1/2, x)
+            1/24*x^4 - 7/12*x^3 + 35/16*x^2 - 35/16*x + 35/128
+            sage: gen_laguerre(4, -1/2, x+1)
+            1/24*(x + 1)^4 - 7/12*(x + 1)^3 + 35/16*(x + 1)^2 - 35/16*x - 245/128
+            sage: gen_laguerre(10, 1, 1+I)
+            25189/2100*I + 11792/2835
+        """
+        P = parent(x)
+        if not is_PolynomialRing(P):
+            return sum([binomial(n+a,n-k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
+        else:
+            if x == P.gen():
+                return P([binomial(n+a,n-k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+            else:
+                R = PolynomialRing(QQ, 'x')
+                pol = R([binomial(n+a,n-k)*(-1)**k/factorial(k) for k in xrange(n+1)])
+                pol = pol.subs({pol.parent().gen():x})
+                pol = pol.change_ring(P.base_ring())
+                return pol
+
+    def _evalf_(self, n, a, x, **kwds):
+        """
+        EXAMPLES::
+            
+            sage: gen_laguerre(100,1,RealField(300)(pi))
+            -0.89430788373354541911...
+            sage: gen_laguerre(10,1/2,1.+I)
+            5.34469635574906 + 5.23754057922902*I
+        """
+        the_parent = kwds.get('parent', None)
+        if the_parent is None:
+            the_parent = parent(x)
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall   
+        return mpcall(mpmath.laguerre, n, a, x, parent=the_parent)
+
+    def _derivative_(self, n, a, x, *args,**kwds):
+        """
+        Return the derivative of `gen_laguerre(n,a,x)`.
+  
+        EXAMPLES:: 
+        
+            sage: (a,n)=var('a,n')
+            sage: diff(gen_laguerre(n,a,x), x)
+            -gen_laguerre(n - 1, a + 1, x)
+            
+        TESTS::
+        
+            sage: diff(gen_laguerre(n,a,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param'] 
+        if diff_param == 0:  
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else:
+            return -gen_laguerre(n - 1, a + 1, x)
+         
+gen_laguerre = Func_gen_laguerre()
