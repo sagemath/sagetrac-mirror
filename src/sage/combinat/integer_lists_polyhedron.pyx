@@ -530,6 +530,21 @@ class IntegerLists_polyhedron(Parent):
          [5, 3, 2],
          [5, 4, 1],
          [4, 3, 2, 1]]
+        sage: L = IntegerLists(6)
+        sage: it = iter(L)
+        sage: while True:
+        ....:     if next(it) == L([1,2,3]):
+        ....:         break
+        sage: IntegerLists(5, floor=[2], ceiling=[2], min_slope=-1, max_slope=1, max_length=6).list()
+        [[2, 3],
+         [2, 1, 2],
+         [2, 2, 1],
+         [2, 1, 1, 1],
+         [2, 1, 0, 1, 1],
+         [2, 1, 1, 0, 1],
+         [2, 1, 0, 0, 1, 1],
+         [2, 1, 0, 1, 0, 1],
+         [2, 1, 1, 0, 0, 1]]
 
     Older tests::
 
