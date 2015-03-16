@@ -14,40 +14,6 @@ EXAMPLES::
     sage: list(Compositions(4))
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
-TESTS:
-
-Check that :trac:`17548` is fixed::
-
-    sage: Compositions(5, max_part=2, min_slope=1, inner=[2]).list()
-    []
-    sage: Compositions(4, min_slope=0, max_slope=0).list()
-    [[4], [2, 2], [1, 1, 1, 1]]
-    sage: Compositions(4, max_part=2, min_slope=1).list()
-    []
-    sage: Compositions(7, max_part=4, inner=[1], min_slope=1).list()
-    [[3, 4], [1, 2, 4]]
-    sage: Compositions(4, inner=[2], outer=[2,2], min_slope=0).list()
-    [[2, 2]]
-    sage: Compositions(10, inner=[1,1], max_slope=-1).list()
-    [[6, 4],
-     [7, 3],
-     [8, 2],
-     [9, 1],
-     [7, 2, 1],
-     [6, 3, 1],
-     [5, 3, 2],
-     [5, 4, 1],
-     [4, 3, 2, 1]]
-
-If the length bounds are contradictory, we get the empty list::
-
-    sage: Compositions(6, min_length=3, max_length=2).list()
-    []
-    sage: Compositions(3, max_length=2, inner=[1,1,1]).list()
-    []
-    sage: Compositions(10, outer=[4], inner=[1,1]).list()
-    []
-
 AUTHORS:
 
 - Mike Hansen, Nicolas M. Thiery
@@ -1513,10 +1479,6 @@ class Compositions(Parent, UniqueRepresentation):
         sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
         [[2, 3], [1, 2, 2], [2, 2, 1], [2, 1, 2]]
 
-    However, providing incoherent constraints may yield strange
-    results. It is up to the user to ensure that the inner and outer
-    compositions themselves satisfy the parts and slope constraints.
-
     Note that if you specify ``min_part=0``, then the objects produced may
     have parts equal to zero. This violates the internal assumptions
     that the composition class makes. Use at your own risk, or
@@ -1530,6 +1492,38 @@ class Compositions(Parent, UniqueRepresentation):
         [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
 
     TESTS::
+
+    Check that :trac:`17548` is fixed::
+
+        sage: Compositions(5, max_part=2, min_slope=1, inner=[2]).list()
+        []
+        sage: Compositions(4, min_slope=0, max_slope=0).list()
+        [[4], [2, 2], [1, 1, 1, 1]]
+        sage: Compositions(4, max_part=2, min_slope=1).list()
+        []
+        sage: Compositions(7, max_part=4, inner=[1], min_slope=1).list()
+        [[3, 4], [1, 2, 4]]
+        sage: Compositions(4, inner=[2], outer=[2,2], min_slope=0).list()
+        [[2, 2]]
+        sage: Compositions(10, inner=[1,1], max_slope=-1).list()
+        [[6, 4],
+         [7, 3],
+         [8, 2],
+         [9, 1],
+         [7, 2, 1],
+         [6, 3, 1],
+         [5, 3, 2],
+         [5, 4, 1],
+         [4, 3, 2, 1]]
+
+    If the length bounds are contradictory, we get the empty list::
+
+        sage: Compositions(6, min_length=3, max_length=2).list()
+        []
+        sage: Compositions(3, max_length=2, inner=[1,1,1]).list()
+        []
+        sage: Compositions(10, outer=[4], inner=[1,1]).list()
+        []
 
         sage: C = Compositions(4, length=2)
         sage: C == loads(dumps(C))
