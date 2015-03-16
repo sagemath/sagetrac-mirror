@@ -84,6 +84,8 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     # Check trivial cases, and standardize min_length to be at least 1
     if n < 0:
         return None
+    if min_length > max_length:
+        return None
     if max_length <= 0:
         if n == 0:
             return []
@@ -108,7 +110,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             return None
 
         ceil = ceiling(min_length)
-        if ceil == 0 and max_slope <= 0 or ceil < floor(min_length):
+        if (ceil == 0 and max_slope <= 0) or ceil < floor(min_length):
             return None
 
         N += ceil
@@ -118,6 +120,29 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         if n < floor(1):
             return None
         return [n]
+
+    # Special case for equal slopes
+    if min_slope == max_slope:
+        # Find the maximum length
+        N = n - min_length*floor(1) + min_slope * ((min_length-1) * min_length / 2)
+        max_length = min_length
+        while N > 0:
+            max_length += 1
+            fl = floor(max_length)
+            if fl < 0:
+                break
+            N -= fl
+
+        R = range(floor(1), ceiling(1)+1)
+        while min_length <= max_length:
+            for i in reversed(R):
+                total = min_length*i + min_slope * ((min_length-1) * min_length / 2)
+                if total == n:
+                    return [i + min_slope*j for j in range(min_length)]
+                if total < n:
+                    break
+            min_length += 1
+        return None
 
     if max_slope < min_slope:
         return None
@@ -171,11 +196,6 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             result[high_x+i-1] = high_y + min_slope * i - 1
         for i in range(-n, low_x-high_x+1):
             result[high_x+i-1] = high_y + min_slope * i
-
-    # Special check for equal slopes
-    if min_slope == max_slope and any(val + min_slope != result[i+1]
-                                      for i,val in enumerate(result[:-1])):
-            return None
 
     return result
 
@@ -356,6 +376,15 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: next([0,1,1], *params)
         [0, 0, 2]
     """
+    # Special case when the slopes are equal since there will never be a pivot
+    if min_slope == max_slope:
+        if not comp:
+            return None
+        new_ceiling = lambda i: comp[0]-1 if i == 1 else ceiling(i)
+        f = first(sum(comp), min_length, max_length,
+                  floor, new_ceiling, min_slope, max_slope)
+        return f
+
     x = rightmost_pivot( comp, min_length, max_length, floor, ceiling, min_slope, max_slope)
     if x is None:
         return None
@@ -378,8 +407,7 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     else:
         new_ceiling = lambda i: min(ceiling(x+(i-1)), high+(i-1)*max_slope)
 
-    res = []
-    res += comp[:x-1]
+    res = comp[:x-1]
     f = first(sum(comp[x-1:]), max(min_length-x+1, 0), max_length-x+1,
                  new_floor, new_ceiling, min_slope, max_slope)
     if f is None: # Check to make sure it is valid
@@ -851,6 +879,18 @@ class IntegerListsLex(Parent):
         []
         sage: IntegerListsLex(6, min_part=1, max_part=3, max_slope=-4).list()
         []
+
+    Check various issues on :trac:`17548` are fixed::
+
+        sage: I = IntegerListsLex(6, min_length=3, max_length=2)
+        sage: list(I)
+        []
+        sage: I = IntegerListsLex(4, min_slope=0, max_slope=0, min_part=1)
+        sage: list(I)
+        [[4], [2, 2], [1, 1, 1, 1]]
+        sage: I = IntegerListsLex(6, min_slope=-1, max_slope=-1, min_part=1)
+        sage: list(I)
+        [[6], [3, 2, 1]]
     """
     def __init__(self,
                  n,
@@ -1029,8 +1069,12 @@ class IntegerListsLex(Parent):
         """
         if i < len(self.floor_list):
             return max(self.min_part, self.floor_list[i])
-        if self.min_slope != float('-inf') and self.min_slope > 0:
-            return self.min_part + (i - len(self.floor_list)) * self.min_slope
+        if self.min_slope >= 0:
+            if self.floor_list and self.floor_list[-1] > self.min_part:
+                min_part = self.floor_list[-1]
+            else:
+                min_part = self.min_part
+            return min_part + (i - len(self.floor_list)) * self.min_slope
         return self.min_part
 
     def ceiling(self, i):
@@ -1051,8 +1095,12 @@ class IntegerListsLex(Parent):
         """
         if i < len(self.ceiling_list):
             return min(self.max_part, self.ceiling_list[i])
-        if self.max_slope != float('inf') and self.max_slope < 0:
-            return self.max_part + (i - len(self.ceiling_list)) * self.max_slope
+        if self.max_slope <= 0:
+            if self.ceiling_list and self.ceiling_list[-1] < self.max_part:
+                max_part = self.celing_list[-1]
+            else:
+                max_part = self.max_part
+            return max_part + (i - len(self.ceiling_list)) * self.max_slope
         return self.max_part
 
     # Temporary adapter to use the preexisting list/iterator/is_a function above.

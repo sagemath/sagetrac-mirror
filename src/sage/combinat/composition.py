@@ -1607,6 +1607,17 @@ class Compositions(Parent, UniqueRepresentation):
 
             sage: C = Compositions()
             sage: TestSuite(C).run()
+
+        TESTS:
+
+        We check that issues on :trac:`17548` are fixed::
+
+            sage: C = Compositions(10, outer=[4], inner=[1,1])
+            sage: list(C)
+            []
+            sage: C = Compositions(4, inner=[2], outer=[2,2], min_slope=0)
+            sage: list(C)
+            [[2, 2]]
         """
         if is_infinite:
             Parent.__init__(self, category=InfiniteEnumeratedSets())

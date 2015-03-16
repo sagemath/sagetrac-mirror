@@ -4768,7 +4768,7 @@ class Partitions(UniqueRepresentation, Parent):
 
             sage: P = Partitions(5, min_slope=0)
             sage: list(P)
-            [[5]]
+            [[5], [1, 1, 1, 1, 1]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
