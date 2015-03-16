@@ -478,7 +478,6 @@ cdef class Graphics3d(SageObject):
                 a_max[i] = a_max[i] + 1
         return a_min, a_max
 
-
     def bounding_box(self):
         """
         Return the lower and upper corners of a 3d bounding box for ``self``.
@@ -627,6 +626,8 @@ cdef class Graphics3d(SageObject):
         """
         Return the viewpoint of this plot.
 
+        The default position is at (0,1,6).
+
         Currently only a stub for x3d.
 
         EXAMPLES::
@@ -635,7 +636,7 @@ cdef class Graphics3d(SageObject):
             <class 'sage.plot.plot3d.base.Viewpoint'>
         """
         # This should probably be reworked somehow.
-        return Viewpoint(0,0,6)
+        return Viewpoint((0, 1, 6))
 
     def default_render_params(self):
         """
@@ -676,7 +677,7 @@ cdef class Graphics3d(SageObject):
             <meta name='title' content='sage3d'/>
             </head>
             <Scene>
-            <Viewpoint position='0 0 6'/>
+            <Viewpoint position='0 1 6'/>
             <Transform translation='1 2 3'>
             <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
@@ -690,7 +691,7 @@ cdef class Graphics3d(SageObject):
             <meta name='title' content='sage3d'/>
             </head>
             <Scene>
-            <Viewpoint position='0 0 6'/>
+            <Viewpoint position='0 1 6'/>
             <Shape>
             <IndexedFaceSet coordIndex='...'>
               <Coordinate point='...'/>
@@ -1968,6 +1969,9 @@ class Viewpoint(Graphics3d):
     """
     This class represents a viewpoint, necessary for x3d.
 
+    Here a viewpoint means a place from where the scene is seen. This is
+    also often called a camera.
+
     In the future, there could be multiple viewpoints, and they could have
     more properties. (Currently they only hold a position).
     """
@@ -1977,19 +1981,33 @@ class Viewpoint(Graphics3d):
 
             sage: sage.plot.plot3d.base.Viewpoint(1, 2, 4).x3d_str()
             "<Viewpoint position='1 2 4'/>"
+            sage: sage.plot.plot3d.base.Viewpoint(1, 4, 4)
+            Viewpoint at position (1, 4, 4)
         """
         if isinstance(x[0], (tuple, list)):
             x = tuple(x[0])
         self.pos = x
+
+    def __repr__(self):
+        """
+        Return the string representation of the viewpoint
+
+        EXAMPLES::
+
+            sage: sphere((0,0,0), 100).viewpoint()
+            Viewpoint at position (0, 1, 6)
+        """
+        return "Viewpoint at position ({}, {}, {})".format(*self.pos)
 
     def x3d_str(self):
         """
         EXAMPLES::
 
             sage: sphere((0,0,0), 100).viewpoint().x3d_str()
-            "<Viewpoint position='0 0 6'/>"
+            "<Viewpoint position='0 1 6'/>"
         """
-        return "<Viewpoint position='%s %s %s'/>"%self.pos
+        txt = "<Viewpoint position='{} {} {}'/>"
+        return txt.format(*self.pos)
 
 
 cdef class PrimitiveObject(Graphics3d):
