@@ -1014,18 +1014,28 @@ class Function_gamma_inc_lower(BuiltinFunction):
             -0.1581584032951798 - 0.5104218539302277*I
             sage: gamma_inc_lower(RDF(1), 3)
             0.950212931632136
-            sage: gamma_inc_lower(3,2)
+            sage: gamma_inc_lower(3, 2, hold=True)
             gamma_inc_lower(3, 2)
-            sage: gamma_inc_lower(x,0)
+            sage: gamma_inc_lower(3, 2)
+            -10*e^(-2) + 2
+            sage: gamma_inc_lower(x, 0)
             0
-            sage: latex(gamma_inc_lower(3,2))
-            \gamma\left(3, 2\right)
-            sage: loads(dumps((gamma_inc_lower(3,2))))
-            gamma_inc_lower(3, 2)
+            sage: latex(gamma_inc_lower(x, x))
+            \gamma\left(x, x\right)
+            sage: loads(dumps((gamma_inc_lower(x, x))))
+            gamma_inc_lower(x, x)
             sage: i = ComplexField(30).0; gamma_inc_lower(2, 1 + i)
             0.29290790 + 0.42035364*I
             sage: gamma_inc_lower(2., 5)
             0.959572318005487
+
+        Interfaces to other software::
+
+            sage: import sympy
+            sage: sympy.sympify(gamma_inc_lower(x,x))
+            lowergamma(x, x)
+            sage: maxima(gamma_inc_lower(x,x))
+            gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
 
     .. SEEALSO::
 
@@ -1033,7 +1043,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
                 conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
-                    'maple':'GAMMA'})
+                    'maple':'GAMMA', 'sympy':'lowergamma'})
 
     def _eval_(self, x, y):
         """
@@ -1055,6 +1065,12 @@ class Function_gamma_inc_lower(BuiltinFunction):
             -e^(-2) + 1
             sage: gamma_inc_lower(0,2)
             +Infinity
+            sage: gamma_inc_lower(2,377/79)
+            -456/79*e^(-377/79) + 1
+            sage: gamma_inc_lower(3,x)
+            -x^2*e^(-x) - 2*x*e^(-x) - 2*e^(-x) + 2
+            sage: gamma_inc_lower(9/2,37/7)
+            105/16*sqrt(pi)*erf(1/7*sqrt(259)) - 836473/19208*sqrt(259)*e^(-37/7)
         """
         if y == 0:
             return 0
@@ -1063,8 +1079,8 @@ class Function_gamma_inc_lower(BuiltinFunction):
             return Infinity
         elif x == 1:
             return 1-exp(-y)
-        elif x == Rational(1)/2: #only for x>0
-            return sqrt(pi)*erf(sqrt(y))
+        elif (2*x).is_integer():
+            return self(x,y,hold=True)._sympy_()
         else:
             return None
 
@@ -1114,6 +1130,24 @@ class Function_gamma_inc_lower(BuiltinFunction):
             return R(v)
         else:
             return C(v)
+
+    def _derivative_(self, x, y, diff_param=None):
+        """
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: gamma_inc_lower(x,y).diff(y)
+            y^(x - 1)*e^(-y)
+            sage: gamma_inc_lower(x,y).diff(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot differentiate gamma_inc_lower in the first parameter
+        """
+        if diff_param == 0:
+            raise NotImplementedError("cannot differentiate gamma_inc_lower in the"
+                                      " first parameter")
+        else:
+            return exp(-y)*y**(x - 1)
 
 # synonym.
 gamma_inc_lower = Function_gamma_inc_lower()
