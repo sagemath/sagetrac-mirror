@@ -373,7 +373,7 @@ class ComplexField_class(field.Field):
             True
             sage: NaN in CC
             False
-            sage: RealField(10)(1/3) in RR
+            sage: RealField(10)(1/3) in CC
             True
         """
         from sage.rings.all import CC
