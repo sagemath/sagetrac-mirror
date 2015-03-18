@@ -979,6 +979,35 @@ cdef class RealField_class(sage.rings.ring.Field):
         else:
             return RealField(prec, self.sci_not, _rounding_modes[self.rnd])
 
+    def __contains__(self, item):
+        r"""
+        True if item is an element of self.
+
+        EXAMPLES::
+
+            sage: Qp(3)(8) in RR
+            False
+            sage: pi in RR
+            True
+            sage: infinity in RR
+            True
+            sage: sqrt(2) in RR
+            True
+            sage: I in RR
+            False
+            sage: sin(1) in RR
+            True
+        """
+        from sage.rings.complex_field import ComplexField
+        if isinstance(item, list) or isinstance(item, tuple):
+            return all(x in self for x in item)
+        try:
+            c = ComplexField()(item)
+        except TypeError:
+            return False
+        else:
+            return c.imag_part().is_zero()
+
     # int mpfr_const_pi (mpfr_t rop, mp_rnd_t rnd)
     def pi(self):
         r"""

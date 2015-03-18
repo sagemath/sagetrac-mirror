@@ -350,6 +350,37 @@ class ComplexField_class(field.Field):
             x = x, im
         return Parent.__call__(self, x)
 
+    def __contains__(self, item):
+        r"""
+        True if item is an element of self.
+
+        EXAMPLES::
+
+            sage: Qp(3)(8) in CC
+            False
+            sage: pi in CC
+            True
+            sage: infinity in CC
+            True
+            sage: sqrt(2) in CC
+            True
+            sage: I in CC
+            True
+            sage: sin(1) in CC
+            True
+            sage: tan(pi/20) in CC
+            True
+        """
+        from sage.misc.functional import numerical_approx
+        if isinstance(item, list) or isinstance(item, tuple):
+            return all(x in self for x in item)
+        try:
+            _ = numerical_approx(item)
+        except TypeError:
+            return False
+        else:
+            return True
+
     def _element_constructor_(self, x):
         """
         Construct a complex number.
