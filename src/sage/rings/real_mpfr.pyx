@@ -981,7 +981,8 @@ cdef class RealField_class(sage.rings.ring.Field):
 
     def __contains__(self, item):
         r"""
-        True if item is an element of self.
+        True if ``item`` is an element of `\mathbb{R}`, the mathematical field
+        of real numbers, regardless of precision.
 
         EXAMPLES::
 
@@ -997,16 +998,19 @@ cdef class RealField_class(sage.rings.ring.Field):
             False
             sage: sin(1) in RR
             True
+            sage: NaN in RR
+            False
+            sage: RealField(10)(1/3) in RR
+            True
         """
-        from sage.rings.complex_field import ComplexField
-        if isinstance(item, list) or isinstance(item, tuple):
-            return all(x in self for x in item)
+        from sage.rings.all import CC
+        from sage.symbolic.constants import NaN
         try:
-            c = ComplexField()(item)
-        except TypeError:
+            c = CC(item)
+        except (TypeError,ValueError):
             return False
         else:
-            return c.imag_part().is_zero()
+            return c.imag_part().is_zero() and c != CC(NaN)
 
     # int mpfr_const_pi (mpfr_t rop, mp_rnd_t rnd)
     def pi(self):

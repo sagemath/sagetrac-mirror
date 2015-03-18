@@ -352,7 +352,8 @@ class ComplexField_class(field.Field):
 
     def __contains__(self, item):
         r"""
-        True if item is an element of self.
+        True if ``item`` is an element of `\mathbb{C}`, the mathematical field
+        of complex numbers, regardless of precision.
 
         EXAMPLES::
 
@@ -370,16 +371,19 @@ class ComplexField_class(field.Field):
             True
             sage: tan(pi/20) in CC
             True
+            sage: NaN in CC
+            False
+            sage: RealField(10)(1/3) in RR
+            True
         """
-        from sage.misc.functional import numerical_approx
-        if isinstance(item, list) or isinstance(item, tuple):
-            return all(x in self for x in item)
+        from sage.rings.all import CC
+        from sage.symbolic.constants import NaN
         try:
-            _ = numerical_approx(item)
-        except TypeError:
+            c = CC(item)
+        except (TypeError,ValueError):
             return False
         else:
-            return True
+            return c != CC(NaN)
 
     def _element_constructor_(self, x):
         """
