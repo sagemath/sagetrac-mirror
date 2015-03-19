@@ -15,7 +15,9 @@ Reference
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from sage.rings.rational_field import QQ
 from sage.categories.cycle_index_series import CycleIndexSeries
+from sage.combinat.sf.sf import SymmetricFunctions
 from sage.structure.parent import Parent
 
 
@@ -97,7 +99,7 @@ class RecursiveCIS(Parent):
                 res = self._def_.Frobenius_characteristic(n)
                 self._active_.pop()
             else:
-                res =  0
+                res =  SymmetricFunctions(QQ).zero()
             return res
 
         self._active_ = [n]
