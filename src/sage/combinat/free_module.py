@@ -12,9 +12,7 @@ Free modules
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element, have_same_parent
 from sage.structure.parent import Parent
-from sage.structure.element import have_same_parent
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.modules.free_module_element import vector
 from sage.modules.module import Module
 from sage.misc.misc import repr_lincomb
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
@@ -30,11 +28,9 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.category import Category, JoinCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
-from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.cartesian_product import CartesianProduct
+from sage.categories.all import Sets
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
-from sage.sets.family import Family
-from sage.misc.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 
@@ -998,7 +994,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     - ``category`` - the category in which this module lies (optional,
       default None, in which case use the "category of modules with
-      basis" over the base ring ``R``)
+      basis" over the base ring ``R``); this should be a subcategory
+      of :class:`ModulesWithBasis`
 
     For the options controlling the printing of elements, see
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
@@ -1093,11 +1090,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         sage: F2.print_options(prefix='F') #reset for following doctests
 
-    The default category is the category of modules with basis over
-    the base ring::
+    The constructed module is in the category of modules with basis
+    over the base ring::
 
-        sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of vector spaces with basis over Finite Field of size 3
+        sage: CombinatorialFreeModule(QQ, Partitions()).category()
+        Category of vector spaces with basis over Rational Field
+
+    If furthermore the index set is finite (i.e. in the category
+    ``Sets().Finite()``), then the module is declared as being finite
+    dimensional::
+
+        sage: CombinatorialFreeModule(QQ, [1,2,3,4]).category()
+        Category of finite dimensional vector spaces with basis over Rational Field
+        sage: CombinatorialFreeModule(QQ, Partitions(3),
+        ....:                         category=Algebras(QQ).WithBasis()).category()
+        Category of finite dimensional algebras with basis over Rational Field
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1225,19 +1232,27 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of vector spaces with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
             sage: F.category()
-            Category of algebras with basis over Rational Field
+            Category of finite dimensional algebras with basis over Rational Field
+
+            sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
+            ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
+            sage: F.category()
+            Join of Category of finite semigroups
+                 and Category of finite dimensional modules with basis over Finite Field of size 3
+                 and Category of vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
+
             sage: TestSuite(F).run()
 
         TESTS:
@@ -1272,9 +1287,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if R not in Rings():
             raise TypeError("Argument R must be a ring.")
 
-        if category is None:
-            category = ModulesWithBasis(R)
-
         if element_class is not None:
             self.Element = element_class
 
@@ -1290,6 +1302,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             kwds['generator_cmp'] = kwds['monomial_cmp']
             del kwds['monomial_cmp']
         IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
+
+        if category is None:
+            category = ModulesWithBasis(R)
+        elif isinstance(category, tuple):
+            category = Category.join(category)
+        if basis_keys in Sets().Finite():
+            category = category.FiniteDimensional()
 
         Parent.__init__(self, base = R, category = category,
                         # Could we get rid of this?
