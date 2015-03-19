@@ -24,6 +24,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.category import Category
+from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.categories.species import Species
 
 from sage.sets.set import Set, is_Set
 
@@ -32,7 +35,6 @@ import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.infinity import infinity
@@ -1202,7 +1204,7 @@ class SetPartitions_all(SetPartitions):
             sage: S = SetPartitions()
             sage: TestSuite(S).run()
         """
-        SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
+        SetPartitions.__init__(self, category=Category.join([Species(), CombinatorialStructures()]))
 
     def _repr_(self):
         """
@@ -1231,6 +1233,64 @@ class SetPartitions_all(SetPartitions):
             for x in SetPartitions_set(frozenset(range(1, n+1))):
                 yield self.element_class(self, list(x))
             n += 1
+
+    def transport(self, sigma):
+        """
+        The transport of structure of partitions along `\sigma`:
+
+        MATH::
+
+            Par[\sigma](\{\lambda_i\}_{i \in I}) := \{\sigma(\lambda_i)\}_{i \in I}\,.
+
+        :param sigma: a bijection `U \to V`
+
+        TESTS::
+
+            sage: SP = SetPartitions()
+            sage: sigma = lambda i: chr(96 + i)
+            sage: p = SetPartition([[1,2,3], [4,5,6,7]])
+            sage: SP.transport(sigma)(p)
+            {{'a', 'b', 'c'}, {'d', 'e', 'f', 'g'}}
+
+            sage: id = lambda i: i
+            sage: SP.transport(id)(p) == p
+            True
+
+        """
+        def Parsigma(pi):
+            return self.element_class(self, list(Set(map(sigma, S)) for S in pi))
+
+        return Parsigma
+
+    def grading(self, pi):
+        """
+        TESTS::
+
+            sage: SetPartitions().grading(SetPartition([[1,2,3],[4,5,6,7]]))
+            7
+
+        """
+        return pi.base_set_cardinality()
+
+    def structures(self, U):
+        """
+        TESTS::
+
+            sage: SetPartitions().structures(Set(['a', 'b', 'c']))
+            Set partitions of {'a', 'c', 'b'}
+
+        """
+        return SetPartitions_set(U)
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: SetPartitions().graded_component(4)
+            Set partitions of {1, 2, 3, 4}
+
+        """
+        return SetPartitions_set(Set(range(1, n+1)))
 
 class SetPartitions_set(SetPartitions):
     """

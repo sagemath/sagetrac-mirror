@@ -21,6 +21,8 @@ References
 #*******************************************************************************
 from sage.categories.category import Category
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import Infinity
 
 
 class Species(Category):
@@ -57,18 +59,7 @@ class Species(Category):
     def super_categories(self):
         return []
 
-    def zero(self):
-        """
-        The species `0` defined by
-
-        MATH::
-
-            0[U] := \emptyset
-
-        for any finite set `U`.
-        """
-        pass
-
+    @cached_method
     def one(self):
         """
         The species `1`, characteristic of the *empty set*, defined by
@@ -82,7 +73,40 @@ class Species(Category):
 
         for any finite set `U`.
         """
-        pass
+        from sage.combinat.species2.one import OneSpecies
+        return OneSpecies()
+
+    @cached_method
+    def zero(self):
+        """
+        The species `0` defined by
+
+        MATH::
+
+            0[U] := \emptyset
+
+        for any finite set `U`.
+        """
+        from sage.combinat.species2.zero import ZeroSpecies
+        return ZeroSpecies()
+
+    @cached_method
+    def singleton(self):
+        """
+        The species `X`, characteristic of *singletons*
+
+        MATH::
+
+            X[U] = \begin{dcases*}
+                \{U\} & if `|U| = 1`,\\
+                \emptyset & otherwise,
+            \end{dcases*}
+
+        for any finite set `U`.
+
+        """
+        from sage.combinat.species2.singletons import SingletonsSpecies
+        return SingletonsSpecies()
 
     class ParentMethods:
 
@@ -286,13 +310,14 @@ class Species(Category):
             for each `(F + G)`-structure `s`.
             (section 1.3, _[BBL])
             """
-            # TODO
+            from sage.combinat.species2.operations.add import Add
+            return Add(self, G)
 
         __add__ = add
 
         # TODO use the method sum to define some tricky parametred species (like generalized parking functions)
 
-        def restricted(self, min=0, max=None):
+        def restricted(self, min=0, max=Infinity):
             """
             The restriction of the species `F` to finite set of cardinal `n` with `min \leqslant n \leqstant max`.
 
@@ -316,7 +341,8 @@ class Species(Category):
 
                 F_{[\min, \max]} := F_\min + F_{\min+1} + \cdots + F_{\max}\,.
             """
-            # TODO
+            from sage.combinat.species2.operations.restriction import Restriction
+            return Restriction(self, min=min, max=max)
 
         def product(self, G):
             """
@@ -344,6 +370,50 @@ class Species(Category):
 
             where `sigma_i = \sigma_{|U_i}` is the restriction of `\sigma` on `U_i`, for each `(F + G)`-structure `s`.
             """
-            # TODO
+            from sage.combinat.species2.operations.product import Prod
+            return Prod(self, G)
 
-        __mul__ = product
+        _mul_ = product
+
+        def composite(self, G):
+            """
+            (Partitional) Composite of species.
+
+            Let `F` and `G` be two species such that `G[\emptyset] = \emptyset`.
+            The species `F \circ G`, also denoted `F(G)`, the (partitional) composite of `G` in `F`, is defined as follows:
+            An `(F \circ G)`-structure on `U` is a triplet `s = (\pi, \varphi, \gamma)`, where
+
+             - `\pi` is a partition of `U`,
+             - `\varphi` is an `F`-structure on the set of classes of `\pi`,
+             - `\gamma = (\gamma_p)_{p \in \pi}`, where for each class `p` of `\pi`, `\gamma_p` is a `G`-structure on `p`.
+
+            In other words, for any finite set `U`, one has
+
+            MATH::
+
+                (F \circ G)[U] = \sum_{\pi \text{ partition of } U} F[\pi] \times \prod_{p \in \pi} G[p]\,,
+
+            the (disjoint) sum being taken over the set of partitions `\pi` of `U` (*i.e.*, `\pi \in Par[U]`).
+
+            The transport along a bijection `\sigma : U \to V` is carried out by setting, for any `(F \circ G)`-structure
+            `s = (\pi, \varphi, (\gamma_p)_{p \in \pi})` on `U`,
+
+            MATH::
+
+                (F \circ G)[\sigma](s) = (\bar\pi, \bar\varphi, (\bar\gamma_{\bar{p}})_{\bar{p} \in \bar\pi})\,,
+
+            where
+
+             - `\bar\pi` is the partition of `V` obtained by the transport of `\pi` along `\sigma`,
+             - for each `\bar{p} = \sigma(p) \in \bar\pi`, the structure `\bar\gamma_{\bar{p}}` is obtained from the structure
+             `gamma_p` by `G`-transport along `\sigma_{|p}`,
+             - the structure `\bar\varphi` is obtained from the transport `\varphi` by `F`-transport along the bijection
+             `\bar\sigma` induced on `\pi` by `\sigma`.
+
+            (section 1.4, _[BBL])
+            """
+            from sage.combinat.species2.operations.composite import Composite
+            return Composite(self, G)
+
+        # FIXME: Could we use the _call_ method such that we can to use F(G).
+        ## the coercion system seems to forbid overload...
