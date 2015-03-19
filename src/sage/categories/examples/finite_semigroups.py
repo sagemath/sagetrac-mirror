@@ -101,7 +101,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
         running ._test_some_elements() . . . pass
     """
 
-    def __init__(self, alphabet=('a','b','c','d')):
+    def __init__(self, alphabet=('a','b','c','d'), category=None):
         r"""
         A left regular band.
 
@@ -114,7 +114,9 @@ class LeftRegularBand(UniqueRepresentation, Parent):
             sage: TestSuite(S).run()
         """
         self.alphabet = alphabet
-        Parent.__init__(self, category = FiniteSemigroups())
+        if category == None:
+            category = FiniteSemigroups()
+        Parent.__init__(self, category = category)
 
     def _repr_(self):
         r"""

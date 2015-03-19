@@ -46,9 +46,15 @@ from finite_lattice_posets import FiniteLatticePosets
 
 # finite groups/...
 from finite_semigroups import FiniteSemigroups
-from finite_monoids import FiniteMonoids
 from finite_groups import FiniteGroups
 from finite_permutation_groups import FinitePermutationGroups
+
+#monoids/...
+from finite_monoids import FiniteMonoids
+from h_trivial_monoids import HTrivialMonoids
+from r_trivial_monoids import RTrivialMonoids
+from l_trivial_monoids import LTrivialMonoids
+from j_trivial_monoids import JTrivialMonoids
 
 # fields
 from number_fields import NumberFields
