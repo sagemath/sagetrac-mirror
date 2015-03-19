@@ -549,8 +549,8 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             sage: chebyshev_T(100001/2, 2)
             doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
             chebyshev_T(100001/2, 2)
-            sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
-            True
+            sage: chebyshev_U._eval_(1.5, Mod(8,9))
+            63.8753125671848
         """
         # n is an integer => evaluate algebraically (as polynomial)
         if n in ZZ:
@@ -669,9 +669,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: chebyshev_T(1/2, 3/2)
             1.11803398874989
             sage: chebyshev_T._evalf_(1.5, Mod(8,9))
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot evaluate chebyshev_T with parent Ring of integers modulo 9
+            31.8198051533946
 
         This simply evaluates using :class:`RealField` or :class:`ComplexField`::
 
@@ -1049,9 +1047,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U(10,3).n(75)
             4.661117900000000000000e7
             sage: chebyshev_U._evalf_(1.5, Mod(8,9))
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot evaluate chebyshev_U with parent Ring of integers modulo 9
+            63.8753125671848
         """
         try:
             real_parent = kwds['parent']

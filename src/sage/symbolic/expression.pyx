@@ -2161,7 +2161,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert( SR(-oo) <= SR(oo) )
             sage: assert( SR(oo) >= SR(-oo) )
             sage: assert( SR(oo) != SR(-oo) )
-            sage: assert( sqrt(2)*oo != I*oo )
+            sage: bool( sqrt(2)*oo != I*oo )
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite but not with +/- phase
 
         The expression may be zero with integers but is not
         when in the complex domain (:trac:`15571`)::
@@ -2178,16 +2181,61 @@ cdef class Expression(CommutativeRingElement):
             sage: expr.is_zero()
             False
             sage: forget()
+
+        Treat constants, wrapped pyobjects, infinity correctly (:trac:`12967`)::
+
+            sage: assert( pi < Infinity )
+            sage: assert( pi > -Infinity )
+            sage: assert( SR(pi) < Infinity )
+            sage: assert( SR(pi) > -Infinity )
+            sage: assert( SR(2) < Infinity )
+            sage: assert( SR(2) > -Infinity )
+            sage: assert( SR(2) < SR(pi) )
+            sage: assert( sqrt(2) < Infinity )
+            sage: assert( sqrt(2) > -Infinity )
         """
         if self.is_relational():
-            # constants are wrappers around Sage objects, compare directly
-            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
-                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+            lhs = self.lhs()
+            rhs = self.rhs()
+            lhs_is_numeric = rhs_is_numeric = False
+            if lhs.is_constant():
+                lhs = lhs.n()
+                lhs_is_numeric = True
+            elif lhs.is_numeric():
+                lhs = lhs.pyobject()
+                lhs_is_numeric = True
+            if rhs.is_constant():
+                rhs = rhs.n()
+                rhs_is_numeric = True
+            elif rhs.is_numeric():
+                rhs = rhs.pyobject()
+                rhs_is_numeric = True
+
+            if lhs_is_numeric and rhs_is_numeric:
+                return self.operator()(lhs, rhs)
+
+            from sage.rings.infinity import InfinityRing
+            P = InfinityRing
+            lhs_is_infinity = rhs_is_infinity = False
+            if hasattr(lhs, 'is_infinity') and lhs.is_infinity():
+                try:
+                    _ = rhs.n()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    return self.operator()(P(lhs), P(rhs))
+                lhs_is_infinity = True
+            if hasattr(rhs, 'is_infinity') and rhs.is_infinity():
+                try:
+                    _ = lhs.n()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    return self.operator()(P(lhs), P(rhs))
+                rhs_is_infinity = True
 
             pynac_result = relational_to_bool(self._gobj)
-
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
+            if lhs_is_infinity or rhs_is_infinity:
                 return pynac_result
 
             if pynac_result:
