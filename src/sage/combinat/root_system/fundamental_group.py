@@ -504,6 +504,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1])
             sage: F.gens()
             (pi[0], pi[1], pi[6])
@@ -517,6 +518,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup("A2").an_element()
             pi[2]
 
@@ -582,6 +584,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1],general_linear=True) # indirect doctest
             Fundamental group of GL(3)
 
@@ -615,6 +618,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         EXAMPLES::
 
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).some_elements()
             [pi[-2], pi[2], pi[5]]
 

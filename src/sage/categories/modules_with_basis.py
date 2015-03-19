@@ -468,7 +468,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: M = tensor([A,A,A], category=ModulesWithBasis(QQ)); M
                 A # A # A
                 sage: M.category()
-                Join of Category of tensor products of modules with basis over Rational Field and Category of vector spaces with basis over Rational Field and Category of tensor products of vector spaces over Rational Field
+                Category of tensor products of vector spaces with basis over Rational Field
 
                 sage: A.rename()
 
