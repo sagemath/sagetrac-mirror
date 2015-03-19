@@ -362,7 +362,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: f.count([2,1])
             6
         """
-        t = Partition(t)
+        t = Partition(map(int, t))
         return t.aut() * self.coefficient_cycle_type(t)
 
     def coefficient_cycle_type(self, t):

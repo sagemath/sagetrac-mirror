@@ -16,8 +16,8 @@ from sage.combinat.structures import Structures as Structs
 
 def partition_to_permutation(pi):
     it = iter(PositiveIntegers())
-    return Permutation([tuple([it.next() for _ in range(i)])
-                        for i in pi])
+    return Permutation([tuple([it.next() for _ in range(part)])
+                        for part in pi])
 
 class DefaultSpeciesIsoTypes(Structs.GradedComponent):
 

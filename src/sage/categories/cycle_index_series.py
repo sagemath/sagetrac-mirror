@@ -8,7 +8,7 @@ Reference
 .. [BBL] Combinatorial species and tree-like structures,
   François Bergeron, Gilbert Labelle and Pierre Leroux
   Cambridge University Press, 1998
-}
+
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Jean-Baptiste Priez <jbp at kerios.fr>
@@ -16,6 +16,9 @@ Reference
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from sage.rings.infinity import Infinity
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
 from sage.categories.category import Category
 from sage.categories.formal_power_series import FormalPowerSeries
 from sage.combinat.partition import Partition
@@ -47,6 +50,50 @@ class CycleIndexSeries(Category):
 
     def super_categories(self):
         return []
+
+    def zero(self):
+
+        class Z0(UniqueRepresentation, Parent):
+            def __init__(self):
+                Parent.__init__(self, category=CycleIndexSeries())
+            def Frobenius_characteristic(self, n):
+                return SymmetricFunctions(QQ).zero()
+            def _repr_(self):
+                return "Z_0"
+
+        return Z0()
+
+    def one(self):
+
+        class One(UniqueRepresentation, Parent):
+            def __init__(self):
+                Parent.__init__(self, category=CycleIndexSeries())
+            def Frobenius_characteristic(self, n):
+                if n == 0:
+                    return SymmetricFunctions(QQ).one()
+                return SymmetricFunctions(QQ).zero()
+            def _repr_(self):
+                return "Z_1"
+
+        return One()
+
+    def singletons(self):
+
+        class SingletonsCIS(UniqueRepresentation, Parent):
+            def __init__(self):
+                Parent.__init__(self, category=CycleIndexSeries())
+            def Frobenius_characteristic(self, n):
+                if n == 1:
+                    return SymmetricFunctions(QQ).p().monomial(Partition([1]))
+                return SymmetricFunctions(QQ).zero()
+            def _repr_(self):
+                return "Z_X"
+
+        return SingletonsCIS()
+
+    def sets(self):
+        from sage.combinat.species2.cycle_index_series.cis_sets import CISSets
+        return CISSets()
 
     class ParentMethods:
 
@@ -104,11 +151,17 @@ class CycleIndexSeries(Category):
                     ch = self._cis_.Frobenius_characteristic(n)
                     if z.parent(ch) == p:
                         # ch(F[n]) is a sum of power sum
-                        return p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))\
-                                   .coefficients()[0]
+
+                        res = p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))
+                        if res == p.zero():
+                            return Integer(0)
+                        return res.coefficients()[0]
                     # otherwise we convert into a homogeneous basis and h_lambda |--> multinomial(lambda)
-                    return h(ch).map_item(lambda I, c: (Partition([n]), c * multinomial(sum(I[:]))))\
-                                   .coefficients()[0]
+                    res = h(ch).map_item(lambda I, c: (Partition([n]), c * multinomial(I[:])))
+                    if res == p.zero():
+                        return Integer(0)
+                    return res.coefficients()[0]
+
             return EGS(self)
 
         exponential_generating_series = generating_series
@@ -150,19 +203,130 @@ class CycleIndexSeries(Category):
                     ch = self._cis_.Frobenius_characteristic(n)
                     if z.parent(ch) == p:
                         # ch(F[n]) is a sum of power sum
-                        return p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))\
-                                   .coefficients()[0]
+                        res = p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))
+                        if res == p.zero():
+                            return Integer(0)
+                        return res.coefficients()[0]
                     # otherwise we convert into a homogeneous basis and h_lambda |--> 1
-                    return h(ch).map_item(lambda I, c: (Partition([n]), c)).coefficients()[0]
+                    res = h(ch).map_item(lambda I, c: (Partition([n]), c))
+                    if res == p.zero():
+                        return Integer(0)
+                    return res.coefficients()[0]
 
             return OGS(self)
 
-        
+        def add(ZF, ZG):
+            """
+            The *sum of cycle index series* `Z_F` and `Z_G`:
+
+            MATH::
+
+                (Z_F + Z_G)(p_1, p_2, p_3, \cdots) = Z_F(p_1, p_2, p_3, \cdots) + Z_G(p_1, p_2, p_3, \cdots)
+
+            (section 1.3, _[BBL])
+
+            :param ZF, ZG: are cycle index series
+            """
+            from sage.combinat.species2.cycle_index_series.operations.add import Add
+            return Add((ZF,1), (ZG,1))
+
+        __add__ = add
 
         def product(ZF, ZG):
             """
+            The *product of cycles index series* `Z_F` and `Z_G`:
 
-            :param other_cis:
-            :return:
+            MATH::
+
+                (Z_F \cdot Z_G)(p_1, p_2, p_3, \cdots) = Z_F(p_1, p_2, p_3, \cdots) \cdots Z_G(p_1, p_2, p_3, \cdots)
+
+            (section 1.3, _[BBL])
+
+            :param ZF, ZG: are cycle index series
             """
-            pass
+            from sage.combinat.species2.cycle_index_series.operations.product import Prod
+            return Prod((ZF, 1), (ZG, 1))
+
+        _mul_ = product
+
+        def restriction(self, min=0, max=Infinity):
+            """
+            The *restriction* of the cycle index series `Z_F` to order `n` with `min \leqslant n \leqslant max`.
+
+            :param min and max: non-negative integers
+            """
+            from sage.combinat.species2.cycle_index_series.operations.restriction import RestrictionCIS
+            return RestrictionCIS(self, min, max)
+
+        def partitional_composite(ZF, ZG):
+            """
+            The *(partitional) composite* of `Z_G` into `Z_F`.
+
+            :param ZF and ZG: cycles index series
+
+            """
+            from sage.combinat.species2.cycle_index_series.operations.partitional_composite import Composite
+            return Composite(ZF, ZG)
+
+        composite = partitional_composite
+
+        def derivative(ZF):
+            """
+            The *derivative* of `Z_F`.
+
+            MATH::
+
+                Z_F'(p_1, p_2, p_3, \cdots) = \left(\frac{\partial}{\partial p_1} Z_F\right)(p_1, p_2, p_3, \cdots)\,.
+
+            """
+            from sage.combinat.species2.cycle_index_series.operations.derivative import Derivative
+            return Derivative(ZF)
+
+        def pointing(ZF):
+            """
+            The *pointing* of `Z_F`:
+
+            MATH::
+
+                Z_F^\bullet(p_1, p_2, p_3, \cdots) = p_1 \left(
+                    \frac{\partial}{\partial p_1} Z_F
+                \right) (p_1, p_2, p_3, \cdots)\,.
+
+            """
+            return ZF.category().singletons() * ZF.derivative()
+
+        def Hadamard_product(ZF, ZG):
+            """
+            The *Hadamard product* of cycles index series
+
+            MATH::
+
+                (Z_F \times Z_G)(p_1, p_2, p_3, \cdots) = Z_F(p_1, p_2, p_3, \cdots) \times Z_G(p_1, p_2, p_3, \cdots)\,.
+
+            """
+            from sage.combinat.species2.cycle_index_series.operations.hadamard_product import HadamardProduct
+            return HadamardProduct((ZF, 1), (ZG, 1))
+
+        def functorial_composition(self, ZG):
+            """
+            The *functorial composition* of cycle index series
+
+            MATH::
+
+                (Z_F \Box Z_G)(p_1, p_2, p_3, \cdots) = ??
+
+            """
+            from sage.combinat.species2.cycle_index_series.operations.functorial_composite import FunctorialComposite
+            return FunctorialComposite(self, ZG)
+
+        def arithmetic_product(ZF, ZG):
+            """
+
+            Reference:
+            ----------
+            .. On the arithmetic product of combinatorial species
+               Manuel Maia and Miguel Méndez
+               2008
+
+            """
+            NotImplemented
