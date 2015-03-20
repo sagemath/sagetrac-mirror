@@ -105,10 +105,16 @@ class QuaternionAlgebraFactory(UniqueFactory):
         Quaternion Algebra (2, 3) with base ring Finite Field of size 5
         sage: QuaternionAlgebra(QQ[sqrt(2)](-1), -5)
         Quaternion Algebra (-1, -5) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
-        sage: QuaternionAlgebra(sqrt(-1), sqrt(-3))
-        Quaternion Algebra (I, sqrt(-3)) with base ring Symbolic Ring
         sage: QuaternionAlgebra(1r,1)
         Quaternion Algebra (1, 1) with base ring Rational Field
+
+    The elements ``a`` and ``b`` are not allowed to lie in the
+    symbolic ring, because this is not a field:
+
+        sage: QuaternionAlgebra(sqrt(-1), sqrt(-3))
+        Traceback (most recent call last):
+        ...
+        TypeError: base ring of quaternion algebra must be a field
 
     Python ints, longs and floats may be passed to the
     ``QuaternionAlgebra(a, b)`` constructor, as may  all pairs of nonzero
