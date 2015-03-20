@@ -172,10 +172,12 @@ TableauOptions=GlobalOptions(name='tableaux',
                              compact='minimal length string representation'),
                  alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
                  case_sensitive=False),
-    ascii_art=dict(default="repr",
+    ascii_art=dict(default="plain",
                  description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
+                 values=dict(repr='default pretty print',
+                             plain='default pretty print',
+                             table='elaborate picture with filled boxes',
+                             boxes='elaborate picture with filled boxes',
                              compact='minimal length ascii art'),
                  case_sensitive=False),
     latex=dict(default="diagram",
@@ -425,7 +427,7 @@ class Tableau(CombinatorialObject, Element):
             [                        |1| ]
             [          |1|3|  |1|2|  |2| ]
             [ |1|2|3|, |2|  , |3|  , |3| ]
-            sage: Tableaux.global_options(convention="french", ascii_art="table")
+            sage: Tableaux.global_options(convention="french", ascii_art="boxes")
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -434,7 +436,7 @@ class Tableau(CombinatorialObject, Element):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.global_options(ascii_art="repr")
+            sage: Tableaux.global_options(ascii_art="plain")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
             [              2       3       2 ]
@@ -446,6 +448,7 @@ class Tableau(CombinatorialObject, Element):
         return AsciiArt(ascii.splitlines())
 
     _ascii_art_repr = _repr_diagram
+    _ascii_art_plain = _repr_diagram
 
     def _ascii_art_table(self):
         """
@@ -533,6 +536,8 @@ class Tableau(CombinatorialObject, Element):
             return "\n".join(matr)
         else:
             return "\n".join(reversed(matr))
+
+    _ascii_art_boxes = _ascii_art_table
 
     def _ascii_art_compact(self):
         """
