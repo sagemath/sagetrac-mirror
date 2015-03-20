@@ -152,17 +152,17 @@ TableauOptions=GlobalOptions(name='tableaux',
         sage: ascii_art(t)
           1  2  3
           4  5
-        sage: Tableaux.global_options(ascii_art="normal")
+        sage: Tableaux.global_options(ascii_art="boxes")
         sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
         +---+---+---+
         | 1 | 2 | 3 |
         +---+---+---+
+        | 4 | 5 |
+        +---+---+
         sage: Tableaux.global_options(ascii_art="compact")
         sage: ascii_art(t)
-        |4|5|
         |1|2|3|
+        |4|5|
         sage: Tableaux.global_options.reset()
     """,
     display=dict(default="list",
