@@ -4,7 +4,12 @@ Abstract Tableau(x) classes.
 
 from sage.structure.element import Element
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.rings.integer_ring import ZZ
+from sage.categories.sets_cat import Sets
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 from collections import defaultdict
 
@@ -135,7 +140,6 @@ class AbstractTableau(Element):
         sorted_cells = sorted(_dict.keys(), cmp=mixed_lex)
         for cell in sorted_cells:
             yield _dict[cell]
-
     
     def word_by_row(self):
         r"""
@@ -169,16 +173,225 @@ class AbstractTableau(Element):
         """
         return len(self._dict_unsafe())
 
-#    filter, restrict, append, reflect, transpose
+    #    filter, restrict, append, reflect, transpose
 
-class ExampleTableau(AbstractTableau):
-    def __init__(self, d=None):
-        if d is None:
-            d = {(0,1): 3, (-3, 5): 17, (1,1): "a"}
-        self._dict = d
+class BadShapeTableau(AbstractTableau):
+    r"""
+    Tableaux of bad shape
+    
+    A BadShapeTableau is specified by a dictionary
+    whose keys are pairs of integers.
+    """
+    def __init__(self, dictionary=None, check=True):
+        r"""
+        Initialize the BadShapeTableau.
+        
+        INPUT:
+        
+        - ``dictionary`` -- a dictionary whose keys are assumed to be pairs
+          of integers
+        - ``check`` -- (default: ``True``) if ``True``, then check that
+          the keys of ``dict`` are in fact pairs of integers
+        """
+        if check and not all(i in ZZ and j in ZZ for i, j in
+                             dictionary.iteritems()):
+            raise ValueError('keys must be pairs of integers')
+        self._dict = dictionary
         
     def _dict_unsafe(self):
+        r"""
+        Return the dictionary containing the defining data of ``self``.
+        
+        OUTPUT:
+        
+        A dictionary.
+        """
         return self._dict
 
     def _repr_(self):
-        return repr(self._dict)
+        r"""
+        Return the representation string.
+        
+        OUTPUT:
+        
+        A string.
+        """
+        return repr(self._dict_unsafe())
+    
+    def filter_by_cells(self, predicate):
+        r"""
+        Return a tableau whose cells satisfy the given
+        ``predicate``.
+            
+        INPUT:
+            
+        - ``predicate`` -- a function accepting two parameters and returning
+        ``True`` or ``False``
+            
+        OUTPUT:
+            
+        A BadShapeTableau
+        """
+        data = {i:j for i, j in self._dict_unsafe() if predicate(*i)}
+        return self.__class__(dictionary=data, check=False)
+    
+    def filter_by_values(self, predicate):
+        r"""
+        Return a tableau whose values satisfy the given
+        ``predicate``.
+        
+        INPUT:
+        
+        - ``predicate`` -- a function accepting one parameter and returning
+          ``True`` or ``False``
+          
+        OUTPUT:
+        
+        A BadShapeTableau
+        """
+        data = {i:j for i, j in self._dict_unsafe() if predicate(j)}
+        return self.__class__(dictionary=data, check=False)
+
+    def transpose(self):
+        r"""
+        Return the transposition of ``self``.
+        
+        OUTPUT:
+        
+        A BadShapeTableau.
+        """
+        data = {(i[1], i[0]):j for i, j in self._dict_unsafe()}
+        return self.__class__(dictionary=data, check=False)
+
+
+
+class SkewTableau(BadShapeTableau):
+
+    def __init__(self, l=[], dictionary={}, check=False):
+        r"""
+        Initialize the SkewTableau.
+        
+        Input can be specified either in terms of a
+        dictionary or a list. If both are specified,
+        then the dictionary data is skipped.
+        """
+        if not l and dictionary:
+            rows = defaultdict(dict)
+            min_row_index = None
+            max_row_index = None
+            min_col_index = None
+            for i, j in dictionary.iteritems():
+                rows[i[0]][i[1]] = j
+                if (min_row_index is None) or (min_row_index > i[0]):
+                    min_row_index = i[0]
+                if (max_row_index is None) or (min_row_index < i[0]):
+                    max_row_index = i[0]
+                if (min_col_index is None) or (min_col_index > i[1]):
+                    min_col_index = i[1]
+            # Create list
+            l = []
+            for row_index in range(min_row_index, max_row_index + 1):
+                row = rows[row_index]
+                if not row:
+                    l.append([])
+                    continue
+                tmp = [None]*(max(row.keys()) - min_col_index + 1)
+                for col_index, value in row.iteritems():
+                    tmp[col_index - min_col_index] = value
+                l.append(tmp)
+        
+        # We don't have to do the checking of BadShapeTableau, that
+        # happens above anyway, since the cells are used as list indices
+        BadShapeTableau.__init__(self, dictionary={}, check=False)
+        # Check
+        if check:
+            raise NotImplementedError
+        self._list = tuple(map(tuple, l))
+
+    @cached_method
+    def _dict_unsafe(self):
+        d = {(i, j): k for i, row in enumerate(self._tuple())
+            for j, k in enumerate(row)}
+        return d
+
+    def _tuple(self):
+        r"""
+        Return the tuple of tuples that defines ``self``.
+        """
+        return self._list
+
+    def _repr_(self):
+        r"""
+        Return the representation string.
+        
+        OUTPUT:
+        
+        A string.
+        """
+        return repr(self.to_list())
+
+    def to_list(self):
+        r"""
+        Return the list of lists that defines ``self``.
+        
+        This is a copy of the defining data.
+        
+        OUTPUT:
+        
+        A list of lists.
+        """
+        return [list(i) for i in self._tuple()]
+
+
+
+
+
+
+
+
+
+class ExampleTableau(BadShapeTableau):
+    def __init__(self):
+        BadShapeTableau.__init__(self, d = {(0,1): 3, (-3, 5): 17, (1,1): "a"})
+
+
+
+
+
+
+
+
+
+class AbstractTableaux(UniqueRepresentation, Parent):
+    Element = AbstractTableau
+
+    def __init__(self):
+        r"""
+        Initialize the parent.
+        """
+        Parent.__init__(self, category=Sets())
+                        
+    def _repr_(self):
+        r"""
+        Return the representation string.
+        
+        OUTPUT:
+        
+        A string.
+        """
+        return "Abstract Tableaux"
+                        
+
+                        
+class BadShapeTableaux(AbstractTableaux):
+    Element = BadShapeTableau
+    
+    def _repr_(self):
+        r"""
+        Return the representation string.
+        
+        OUTPUT:
+        
+        A string.
+        """
+        return "Bad Shape Tableaux"
