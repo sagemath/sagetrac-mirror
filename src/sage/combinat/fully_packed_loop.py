@@ -552,10 +552,56 @@ class FullyPackedLoop(SageObject):
         We can extract the underlying link pattern (a non-crossing
         partition) from a fully packed loop::
  
-            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: A = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
             sage: fpl = FullyPackedLoop(A)
             sage: fpl.link_pattern()
             [(1, 2), (3, 6), (4, 5)]
+            
+            sage: ASMs = AlternatingSignMatrices(3).list()
+            sage: fpl = FullyPackedLoop(ASMs[1]).link_pattern() # fpl's gyration orbit size is 2
+            sage: ncp = fpl.link_pattern()
+            sage: fpl.gyration() ==  PerfectMatching(map(lambda (a,b): (((a+1)%5)+1,((b+1)%5)+1), ncp)) # one of these should fail
+            True
+            sage: fpl.gyration() == PerfectMatching(map(lambda (a,b): (((a-1)%5)-1,((b-1)%5)-1), ncp)) # one of these should fail
+            True
+            
+            sage: fpl = FullyPackedLoop(ASMs[0]).link_pattern() # fpl's gyration size is 3
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a+1)%5)+1,((b+1)%5)+1), ncp)) 
+            sage: fpl.gyration() ==  ncp # one of these should fail
+            True
+            sage: fpl.gyration().gyration() == PerfectMatching(map(lambda (a,b):(((a+1)%5)+1,((b+1)%5)+1), ncp)) 
+            True
+            
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a-1)%5)-1,((b-1)%5)-1), ncp))
+            sage: fpl.gyration() == ncp # one of these should fail
+            True
+            sage: fpl.gyration().gyration() == PerfectMatching(map(lambda (a,b):(((a-1)%5)+1,((b-1)%5)+1), ncp)) 
+            True
+            
+            sage: fpl = FullyPackedLoop([0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],[0,0,1,0,0,0,0],\
+            [0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]) # n=7
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a+1)%13)+1,((b+1)%13)+1), ncp))
+            sage: fpl.gyration() ==  ncp # one of these will fail
+            True
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a-1)%13)-1,((b-1)%13)-1), ncp))
+            sage: fpl.gyration() ==  ncp # one of these will fail
+            True
+            
+            sage: fpl = FullyPackedLoop([0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], \
+            [0,0,1,0,0,0], [0,0,0,0,1,0]) # n =6
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a+1)%11)+1,((b+1)%11)+1), ncp))
+            sage: fpl.gyration() ==  ncp # one of these will fail
+            True
+            sage: ncp = fpl.link_pattern()
+            sage: ncp = PerfectMatching(map(lambda (a,b):(((a-1)%11)-1,((b-1)%11)-1), ncp))
+            sage: fpl.gyration() ==  ncp # one of these will fail
+            True
+            
         """
         link_pattern = []
         svm = self.six_vertex_model
