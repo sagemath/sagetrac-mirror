@@ -259,6 +259,8 @@ class BipartiteGraph(Graph):
             sage: partition = [range(5), range(5,10)]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
+        from sage.misc.superseded import deprecation
+        deprecation(1000,"This graph will soon disappear. Please use 'Graph' instead")
         if data is None:
             if partition is not None and check:
                 if partition[0] or partition[1]:
