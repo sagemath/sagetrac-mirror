@@ -17,12 +17,15 @@ class AbstractTableau(Element):
     r"""
     Abstract class for the various element classes of Tableau.
     
-    Tableau are thought of as a mapping from pairs (x, y) to some
+    A Tableau is thought of as a mapping from pairs (x, y) to some
     arbitrary labels. Two x-coordinates or two y-coordinates are assumed
     to be comparable via `>` and `<`. Subclasses are welcome to add further
     data (ex. shape).
     
-    Tableau are assumed to be immutable; see `trac`:15862.
+    Tableau are assumed to be immutable; see :trac:`15862`.
+    
+    This is an abstract class. Child classes must implement
+    :meth:`_dict_unsafe`.
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -44,8 +47,6 @@ class AbstractTableau(Element):
     def _dict_unsafe(self):
         r"""
         Return a dictionary representing the underlying data.
-        
-        May or may not be a copy. Child classes will likely override.
         """
         pass
 
@@ -183,7 +184,7 @@ class BadShapeTableau(AbstractTableau):
     whose keys are pairs of integers.
     """
     @staticmethod
-    def __classcall_private__(cls, dictionary, check=False):
+    def __classcall_private__(cls, dictionary, check=True):
         r"""
         Return the BadShapeTableau defined by ``dictionary``.
         """
@@ -363,6 +364,12 @@ class SkewTableau(BadShapeTableau):
         return [list(i) for i in self._tuple()]
 
 
+class StraightTableau(SkewTableau):
+
+    def __init__(self, parent, l=[], dictionary=[], check=False):
+        SkewTableau.__init__(self, parent, l, dictionary, check)
+
+
 
 
 
@@ -416,7 +423,7 @@ class BadShapeTableaux(AbstractTableaux):
         """
         return "Bad Shape Tableaux"
 
-class SkewTableaux(AbstractTableaux):
+class SkewTableaux(BadShapeTableaux):
     Element = SkewTableau
     
     def _repr_(self):
@@ -428,3 +435,17 @@ class SkewTableaux(AbstractTableaux):
             A string.
             """
         return "Skew Tableaux"
+
+
+class StraightTableaux(SkewTableaux):
+    Element = SkewTableau
+    
+    def _repr_(self):
+        r"""
+            Return the representation string.
+            
+            OUTPUT:
+            
+            A string.
+            """
+        return "Straight Tableaux"
