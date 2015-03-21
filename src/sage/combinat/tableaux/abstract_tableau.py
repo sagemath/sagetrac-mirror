@@ -182,7 +182,17 @@ class BadShapeTableau(AbstractTableau):
     A BadShapeTableau is specified by a dictionary
     whose keys are pairs of integers.
     """
-    def __init__(self, dictionary=None, check=True):
+    @staticmethod
+    def __classcall_private__(cls, dictionary, check=False):
+        r"""
+        Return the BadShapeTableau defined by ``dictionary``.
+        """
+        if isinstance(dictionary, cls):
+            return dictionary
+        
+        return BadShapeTableaux()(dictionary, check)
+    
+    def __init__(self, parent, dictionary, check=True):
         r"""
         Initialize the BadShapeTableau.
         
@@ -194,9 +204,10 @@ class BadShapeTableau(AbstractTableau):
           the keys of ``dict`` are in fact pairs of integers
         """
         if check and not all(i in ZZ and j in ZZ for i, j in
-                             dictionary.iteritems()):
+                             dictionary.keys()):
             raise ValueError('keys must be pairs of integers')
         self._dict = dictionary
+        Element.__init__(self, parent)
         
     def _dict_unsafe(self):
         r"""
@@ -266,8 +277,17 @@ class BadShapeTableau(AbstractTableau):
 
 
 class SkewTableau(BadShapeTableau):
+    
+    @staticmethod
+    def __classcall_private__(cls, l=[], dictionary=[], check=False):
+        r"""
+        Return the SkewTableau corresponding to the defining data.
+        """
+        if isinstance(l, cls):
+            return l
+        return SkewTableaux()(l, dictionary, check)
 
-    def __init__(self, l=[], dictionary={}, check=False):
+    def __init__(self, parent, l=[], dictionary={}, check=False):
         r"""
         Initialize the SkewTableau.
         
@@ -302,7 +322,7 @@ class SkewTableau(BadShapeTableau):
         
         # We don't have to do the checking of BadShapeTableau, that
         # happens above anyway, since the cells are used as list indices
-        BadShapeTableau.__init__(self, dictionary={}, check=False)
+        BadShapeTableau.__init__(self, parent, dictionary={}, check=False)
         # Check
         if check:
             raise NotImplementedError
@@ -395,3 +415,16 @@ class BadShapeTableaux(AbstractTableaux):
         A string.
         """
         return "Bad Shape Tableaux"
+
+class SkewTableaux(AbstractTableaux):
+    Element = SkewTableau
+    
+    def _repr_(self):
+        r"""
+            Return the representation string.
+            
+            OUTPUT:
+            
+            A string.
+            """
+        return "Skew Tableaux"
