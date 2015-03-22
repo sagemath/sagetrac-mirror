@@ -2097,10 +2097,10 @@ if is_package_installed('arb'):
 UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
     ext_modules.append(
-        Extension('sage.platforms.darwin.darwin_utilities',
-            sources = ['sage/platforms/darwin/darwin_memory_usage.c',
-                       'sage/platforms/darwin/darwin_utilities.pyx'],
-            depends = ['sage/platforms/darwin/darwin_memory_usage.h'])
+        Extension('sage.platforms.darwin.utilities',
+            sources = ['sage/platforms/darwin/memory_usage.c',
+                       'sage/platforms/darwin/utilities.pyx'],
+            depends = ['sage/platforms/darwin/memory_usage.h'])
         )
 
 
