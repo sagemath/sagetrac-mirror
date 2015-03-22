@@ -115,7 +115,7 @@ def get_memory_usage(t=None):
         m = linux_memory_usage()
     elif U == 'darwin':
         try:
-            from sage.misc.darwin_utilities import darwin_memory_usage
+            from sage.platforms.darwin.darwin_utilities import darwin_memory_usage
             m = float(darwin_memory_usage()) / (1024 * 1024)
         except ImportError:
             # darwin_utilities is not supported on some versions of OS X.
