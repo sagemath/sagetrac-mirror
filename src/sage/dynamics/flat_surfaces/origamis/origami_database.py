@@ -11,13 +11,15 @@ EXAMPLES:
 We found the Eierlegende Wollmilchsau and the Ornythorinque in the database from
 their property of complete degeneracy::
 
-    sage: q = D.query(sum_of_L_exp=1, stratum=AbelianStratum(1,1,1,1))
+    sage: D = OrigamiDatabase()
+
+    sage: q = D.query(sum_of_L_exp=1)
     sage: len(q)
     2
     sage: o0, o1 = q.list()
-    sage: o0.is_isomorphic(origamis.CyclicCover([1,1,1,1])
+    sage: o0.is_isomorphic(origamis.CyclicCover([1,1,1,1]))
     True
-    sage: o1.is_isomorphic(origamis.CyclicCover([1,1,1,3])
+    sage: o1.is_isomorphic(origamis.CyclicCover([1,1,1,3]))
     True
 
 We check the classification of arithmetic Teichmueller curves in H(2) from
@@ -42,11 +44,11 @@ Hubert-Lelievre and McMullen::
     15 2
     16 1
 
-And look at the conjecture of Delecroix-Lelievre in H(1,1)::
+And look at the conjecture of Delecroix-Lelievre in the stratum H(1,1)::
 
     sage: A = AbelianStratum(1,1)
     sage: for n in xrange(4,20):
-    ....:     q = D.query(stratum=A, nb_squares=n)
+    ....:     q = D.query(stratum=A, nb_squares=n, primitive=True)
     ....:     print "%2d %d"%(n, q.number_of())
      4 1
      5 1
@@ -268,14 +270,14 @@ def real_tuple_to_data(t):
     EXAMPLES::
 
         sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
-        sage: odb.real_tuple_to_data((1.23,-4))
+        sage: odb.real_tuple_to_data((1.23,-4.0))
         '1h 1 1ijk9vqiyzy -1g -1 18ce53un18g -1e'
 
     We may check that the first part consists of the precision::
 
         sage: Integer('1h', 36)
         53
-        sage: RealField().precision()
+        sage: RR.precision()
         53
 
     And then of the two real numbers we input::
@@ -283,12 +285,13 @@ def real_tuple_to_data(t):
         sage: sign = Integer('1', 36)
         sage: mantissa = Integer('1ijk9vqiyzy', 36)
         sage: exponent = Integer('-1g', 36)
-        sage: R(sign * mantissa * 2 ** exponent)
+        sage: RR(sign * mantissa * 2 ** exponent)
         1.23000000000000
 
         sage: sign = Integer('-1', 36)
         sage: mantissa = Integer('18ce53un18g', 36)
         sage: exponent = Integer('-1e', 36)
+        sage: RR(sign * mantissa * 2 ** exponent)
         -4.00000000000000
 
     TESTS::
@@ -327,13 +330,12 @@ def data_to_real_tuple(s):
         sage: t = (R(1), R(pi))
         sage: s = odb.real_tuple_to_data(t)
         sage: tt = odb.data_to_real_tuple(s)
-        sage: s
-        (1.00000, 3.14159)
-
-        sage: s[0].parent() == R
+        sage: tt == t
         True
-        sage: s[1].parent() == R
-        True
+        sage: tt[0].parent()
+        Real Field with 22 bits of precision
+        sage: tt[1].parent()
+        Real Field with 22 bits of precision
     """
     if not s:
         return ()
@@ -431,6 +433,16 @@ rational_to_data = str
 def data_to_rational(s):
     r"""
     Convert a string into a rational.
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
+        sage: odb.data_to_rational('41/1806')
+        41/1806
+
+    .. TODO::
+
+        allow unicode input to QQ and remove this function.
     """
     return QQ(str(s))
 
@@ -519,6 +531,12 @@ def data_to_stratum(s):
     Convert a string into a stratum.
 
     For encoding convention, see `meth:stratum_to_data`.
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
+        sage: odb.data_to_stratum('f f 2')
+        H_17(15^2, 2)
     """
     return AbelianStratum(data_to_integer_tuple(s))
 
@@ -528,6 +546,15 @@ data_to_L_exp_approx = data_to_real_tuple
 pole_partition_to_data = small_positive_integer_tuple_to_data
 
 def data_to_pole_partition(s):
+    r"""
+    TESTS::
+
+        sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
+        sage: odb.data_to_pole_partition('0aFe')
+        (0, 10, 15, 14)
+        sage: odb.data_to_pole_partition('') is None
+        True
+    """
     if s:
         return data_to_small_positive_integer_tuple(s)
     return None
@@ -540,8 +567,8 @@ def format_pole_partition(p):
 
         sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
         sage: s = odb.pole_partition_to_data((0,3,5,1))
-        sage: odb.pole_partition_format(s)
-        '0, (3,5,1)'
+        sage: odb.format_pole_partition(s)
+        '0 (3,5,1)'
     """
     p = data_to_pole_partition(p)
     if p is None:
@@ -561,10 +588,10 @@ def orientation_stratum_to_data(q):
 
         sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
         sage: q = QuadraticStratum(2,2,0,-1,-1,-1,-1)
-        sage: s = odb.orientation_cover_stratum_to_data(q)
+        sage: s = odb.orientation_stratum_to_data(q)
         sage: isinstance(s,str)
         True
-        sage: q == odb.data_to_orientation_cover_stratum(s)
+        sage: q == odb.data_to_orientation_stratum(s)
         True
     """
     if q is None:
@@ -575,8 +602,6 @@ def data_to_orientation_stratum(s):
     if s:
         return QuadraticStratum(data_to_integer_tuple(s))
     return None
-
-
 
 
 from sage.dynamics.flat_surfaces.abelian_strata import ASC, HypASC, NonHypASC, EvenASC, OddASC
@@ -776,6 +801,15 @@ class OrigamiQuery:
     def database(self):
         r"""
         Returns the database of that query.
+
+        EXAMPLES::
+
+            sage: D = OrigamiDatabase()
+            sage: q = D.query(stratum=AbelianStratum(6))
+            sage: q.database()
+            Database of origamis
+            sage: q.database() is D
+            True
         """
         return self._db
 
@@ -790,13 +824,13 @@ class OrigamiQuery:
             sage: O = OrigamiDatabase()
             sage: q = O.query()
             sage: q.cols()
-            ["representative"]
+            ['representative']
             sage: q.cols("nb_squares")
             sage: q.cols()
-            ["nb_squares"]
+            ['nb_squares']
             sage: q.cols("veech_group_index","primitive")
             sage: q.cols()
-            ["veech_group_index", "primitive"]
+            ['veech_group_index', 'primitive']
         """
         if not cols:
             return self._cols[:]
@@ -850,6 +884,16 @@ class OrigamiQuery:
     def get_query_string(self):
         r"""
         Output the query string in sql format.
+
+        EXAMPLES::
+
+            sage: D = OrigamiDatabase()
+            sage: q = D.query(('stratum','=',AbelianStratum(1,1)), ('nb_squares','<', 13))
+            sage: q.get_query_string()
+            "SELECT representative FROM origamis WHERE stratum='1 1' AND nb_squares<13 ORDER BY nb_squares ASC"
+            sage: q.order(("nb_squares",1),("pole_partition",-1))
+            sage: q.get_query_string()
+            "SELECT representative FROM origamis WHERE stratum='1 1' AND nb_squares<13 ORDER BY nb_squares ASC,pole_partition DESC"
         """
         query = 'SELECT ' + ','.join(self._cols) + ' FROM origamis'
         if self._query_string:
@@ -918,7 +962,7 @@ class OrigamiQuery:
 
         EXAMPLES::
 
-            sage: D = OrigamiDatabase(old_version=0)
+            sage: D = OrigamiDatabase()
             sage: q = D.query(stratum=AbelianStratum(1,1), nb_squares=8)
             sage: q.cols('teich_curve_genus')
             sage: q.dict()
@@ -948,24 +992,6 @@ class OrigamiQuery:
 
     __len__ = number_of
 
-    def latex(self):
-        r"""
-        Returns a nice latex array for that query.
-        """
-        from sage.misc.latex import Latex
-        latex = Latex()
-
-        l.append("\\begin{array}{|" + "c|"*len(self._cols) + "}")
-        l.append("\\hline")
-        l.append("&".join(map(str,self._cols)) + "\\\\")
-        l.append("\\hline")
-        for l in self:
-            print '&'.join(latex(x) for x in l) + '\\\\'
-        l.append("\\end{array}")
-        return "\n".join(l)
-
-    _latex_ = latex
-
     def show(self, **opts):
         r"""
         Output a text array with the results of that query.
@@ -978,9 +1004,9 @@ class OrigamiQuery:
             sage: q = O.query(("nb_squares","=",6))
             sage: q.cols(("stratum","sum_of_L_exp","L_exp_approx"))
             sage: q.show()
-            Traceback (most recent call last):
+            Stratum              Sum of L exp         L exp approx
+            ------------------------------------------------------------
             ...
-            TypeError: XXX
         """
         opts['format_cols'] = self._db._get_format(self._cols)
         opts['relabel_cols'] = relabel_cols
@@ -1003,10 +1029,10 @@ def build_local_data(o):
 
         sage: o = Origami('(1,2)','(1,3)')
         sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
-        sage: data = odb.build_local_data(o) # optional -- database_gap
-        sage: data['stratum']
+        sage: data = odb.build_local_data(o) # optional - database_gap
+        sage: data['stratum']                # optional - database_gap
         H_2(2)
-        sage: data['nb_squares']
+        sage: data['nb_squares']             # optional - database_gap
         3
     """
     from sage.functions.other import factorial
@@ -1037,13 +1063,6 @@ def build_local_data(o):
         data['monodromy_name'] = gap.StructureDescription(G)
         data['optimal_degree'] = o.nb_squares()
 
-        data['relative_monodromy_order']     = data['monodromy_order']
-        data['relative_monodromy_index']     = data['monodromy_index']
-        data['relative_monodromy_signature'] = data['monodromy_signature']
-        data['relative_monodromy_solvable']  = data['monodromy_solvable']
-        data['relative_monodromy_nilpotent'] = data['monodromy_nilpotent']
-        data['relative_monodromy_gap_primitive_id'] = data['monodromy_gap_primitive_id']
-
         d = o.orientation_data()
         if d:
             data['orientation_cover'] = True
@@ -1065,6 +1084,14 @@ def build_local_data(o):
             data['monodromy_gap_primitive_id'] = gap.PrimitiveIdentification(G)
         else:
             data['monodromy_gap_primitive_id'] = None
+
+        data['relative_monodromy_order']     = data['monodromy_order']
+        data['relative_monodromy_index']     = data['monodromy_index']
+        data['relative_monodromy_signature'] = data['monodromy_signature']
+        data['relative_monodromy_solvable']  = data['monodromy_solvable']
+        data['relative_monodromy_nilpotent'] = data['monodromy_nilpotent']
+        data['relative_monodromy_name'] = data['monodromy_name']
+        data['relative_monodromy_gap_primitive_id'] = data['monodromy_gap_primitive_id']
 
     else: # not primitive
         from sage.functions.other import factorial
@@ -1132,8 +1159,13 @@ def build_lyapunov_exponents(o, nb_iterations=0X10000, nb_experiments=10):
     Compute the lyapunov exponents for the origami ``o`` and update the
     database.
 
-    TODO: when possible, separate exponents with respect to invariant subbundle
-    of the Hodge bundle.
+    EXAMPLES::
+
+        sage: o = Origami('(1,2)', '(1,3)')
+        sage: import sage.dynamics.flat_surfaces.origamis.origami_database as odb
+        sage: data = odb.build_lyapunov_exponents(o)
+        sage: data       # abs tol 1e-2
+        {'L_exp_approx': [0.333348091]}
     """
     data = {}
 
@@ -1148,6 +1180,26 @@ def build_global_data(o, c=None):
     Compute the global data that are obtained from the Teichmueller curve of the
     origami ``o``. If the Teichmueller curve ``c`` is not provided, then it is
     recomputed from scratch (and may be long).
+
+    EXAMPLES::
+
+        sage: o = Origami('(1,2)', '(1,3)')
+        sage: from sage.dynamics.flat_surfaces.origamis.origami_database import build_global_data
+        sage: data = build_global_data(o)
+        sage: data
+        {'max_hom_dim': 2,
+         'max_nb_of_cyls': 2,
+         'min_hom_dim': 1,
+         'min_nb_of_cyls': 1,
+         'minus_identity_invariant': True,
+         'sum_of_L_exp': 4/3,
+         'teich_curve_genus': 0,
+         'teich_curve_ncusps': 2,
+         'teich_curve_nu2': 1,
+         'teich_curve_nu3': 0,
+         'veech_group_congruence': True,
+         'veech_group_index': 3,
+         'veech_group_level': 2}
     """
     data = {}
 
@@ -1212,8 +1264,6 @@ class OrigamiDatabase(SQLDatabase):
         146
         sage: l = q.list()
         sage: o = l[0]
-        (1)(2)(3)(4)(5)(6)(7)(8)(9,10)(11,12)
-        (1,2,3,4,5,6,7,8,9)(10,11)(12)
         sage: o.genus()
         3
         sage: o.nb_squares()
@@ -1349,11 +1399,12 @@ class OrigamiDatabase(SQLDatabase):
 
         EXAMPLES::
 
-            sage: O = OrigamiDatbase()
+            sage: O = OrigamiDatabase()
             sage: cols = O.cols()
             sage: "representative" in cols
             True
             sage: len(cols)
+            45
         """
         if self._old_version is not False:
             return OLDS[self._old_version][1][:]
@@ -1377,6 +1428,23 @@ class OrigamiDatabase(SQLDatabase):
 
         - ``verbose`` - boolean - if True, print useful interactive informations
           during the process.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: db_name = os.path.join(SAGE_TMP, 'my_db.db')
+            sage: D = OrigamiDatabase(db_name, read_only=False)
+            sage: D.build(AbelianStratum(4).odd_component(), 8) # optional - database_gap
+            sage: D.info()                                      # optional - database_gap
+            genus 2
+            =======
+            <BLANKLINE>
+            genus 3
+            =======
+             H_3(4)^odd   :  8 T. curves (up to  7 squares)
+            <BLANKLINE>
+            <BLANKLINE>
+             Total: 14 Teichmueller curves
         """
         assert not self.__read_only__, "The database should be not in read only"
         import sys
@@ -1551,6 +1619,25 @@ class OrigamiDatabase(SQLDatabase):
 
         - ``verbose`` - boolean - if True, displays information during the
           transfer.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: db1_name = os.path.join(SAGE_TMP, 'the_first_one.db')
+            sage: db2_name = os.path.join(SAGE_TMP, 'the_second_one.db')
+            sage: D1 = OrigamiDatabase(db1_name, read_only=False)
+            sage: D2 = OrigamiDatabase(db2_name, read_only=False)
+            sage: D1.build(AbelianStratum(1,1).unique_component(), 7)  # optional - database_gap
+            sage: D2.build(AbelianStratum(2).unique_component(), 5)    # optional - database_gap
+            sage: D2.update(D1)                                        # optional - database_gap
+            sage: D2.info()                                            # optional - database_gap
+            genus 2
+            =======
+             H_2(2)^hyp  :   2 T. curves (up to  4 squares)
+             H_2(1^2)^hyp:   8 T. curves (up to  6 squares)
+            <BLANKLINE>
+            <BLANKLINE>
+              Total: 10 Teichmueller curves
         """
         assert not self.__read_only__, "the database should not be in read only mode"
 
@@ -1753,9 +1840,9 @@ class OrigamiDatabase(SQLDatabase):
 
             sage: O = OrigamiDatabase()
             sage: O.max_nb_squares(AbelianStratum(2))
-            25
+            55
             sage: O.max_nb_squares()
-            4
+            11
         """
         from sage.dynamics.flat_surfaces.abelian_strata import \
         AbelianStratum,  AbelianStratumComponent, AbelianStrata
@@ -1799,7 +1886,9 @@ class OrigamiDatabase(SQLDatabase):
 
         EXAMPLES::
 
-            sage: OrigamiDatabase().show() #indirect doctest
+            sage: OrigamiDatabase()._get_format(['representative', 'stratum'])
+            {'representative': <function format_representative at ...>,
+             'stratum': <function data_to_stratum at ...>}
         """
         format_cols = {}
         for key in cols:
@@ -1819,21 +1908,22 @@ class OrigamiDatabase(SQLDatabase):
 
             sage: D = OrigamiDatabase()
             sage: for o in D.query(stratum=AbelianStratum(1,1), nb_squares=6):
-            ...    print o,"\n"
+            ...    print o,"\n---------------"
             (1)(2)(3,4,5,6)
             (1,2,3)(4,5,6)
-
+            ---------------
             (1)(2)(3)(4,5,6)
             (1,2,3,4)(5,6)
-
+            ---------------
             (1)(2)(3,4)(5)(6)
             (1,2,3)(4,5,6)
-
+            ---------------
             (1)(2)(3)(4,5)(6)
             (1,2,3,4)(5,6)
-
+            ---------------
             (1)(2,3)(4,5)(6)
             (1,2,4)(3,5,6)
+            ---------------
         """
         if self._old_version:
             skeleton,columns = OLDS[self._old_version]

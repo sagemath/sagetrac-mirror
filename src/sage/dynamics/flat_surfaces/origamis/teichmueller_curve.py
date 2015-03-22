@@ -1,7 +1,5 @@
 r"""
 Teichmueller curves of Origamis.
-
-This is just a tiny refinement of the general classes for subgroups of SL(2,Z).
 """
 
 from sage.structure.sage_object import SageObject
@@ -84,9 +82,9 @@ def TeichmuellerCurveOfOrigami(origami):
 
         sage: o = Origami('(1,2)','(1,3)')
         sage: o.teichmueller_curve() #indirect test
-        Projective Teichmueller curve of the origami
-        (1,2)(3)
+        Teichmueller curve of the origami
         (1)(2,3)
+        (1,2)(3)
     """
     origami = origami.to_standard_form()
 
@@ -219,7 +217,7 @@ class TeichmuellerCurveOfOrigami_class(TeichmuellerCurve):
             sage: o = Origami('(1,2)','(1,3)')
             sage: t = o.teichmueller_curve()
             sage: t.stratum()
-            H(2)
+            H_2(2)
         """
         return self[0].stratum()
 
@@ -234,8 +232,8 @@ class TeichmuellerCurveOfOrigami_class(TeichmuellerCurve):
             sage: o = Origami('(1,2)','(1,3)')
             sage: t = o.teichmueller_curve()
             sage: t.origami()
-            (1,2)(3)
             (1)(2,3)
+            (1,2)(3)
         """
         return self._mapping[0]
 
@@ -332,12 +330,12 @@ class TeichmuellerCurveOfOrigami_class(TeichmuellerCurve):
 
             sage: o = Origami('(1,2)','(1,3)')
             sage: o.stratum()
-            H(2)
+            H_2(2)
             sage: o.sum_of_lyapunov_exponents()
             4/3
             sage: o = Origami('(1,2,3)(4,5,6)','(1,5,7)(2,6)(3,4)')
             sage: o.stratum()
-            H(2)
+            H_2(2)
             sage: o.sum_of_lyapunov_exponents()
             4/3
 
@@ -345,12 +343,12 @@ class TeichmuellerCurveOfOrigami_class(TeichmuellerCurve):
 
             sage: o = Origami('(1,2)','(1,3)(2,4)')
             sage: o.stratum()
-            H(1, 1)
+            H_2(1^2)
             sage: o.sum_of_lyapunov_exponents()
             3/2
             sage: o = Origami('(1,2,3,4,5,6,7)','(2,6)(3,7)')
             sage: o.stratum()
-            H(1, 1)
+            H_2(1^2)
             sage: o.sum_of_lyapunov_exponents()
             3/2
 

@@ -19,23 +19,16 @@ The constructors available in this database are organized as follows
 - :meth:`Podium <OrigamiGenerators.Podium>`
 - :meth:`Stair <OrigamiGenerators.Stair>`
 - :meth:`ProjectiveLine <OrigamiGenerators.ProjectiveLine>`
-
-TODO:
-    L in genus 2 (S. Lelièvre and P. Hubert)
-    Heisenberg
-    Generalized quaternion (D. Zmiaikou)
-    Matheus-Forni degenerate spectrum example in genus 4
-    Symmetric and alternate origamis for classical generating systems
-    ... to be completed
 """
 
 from origami import Origami
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.dynamics.flat_surfaces.separatrix_diagram import CylinderDiagram
 
 class OrigamiGenerators():
     r"""
-    A class for constructing several common origamis.
+    Examples of origamis.
     """
     def __repr__(self):
         r"""
@@ -43,7 +36,8 @@ class OrigamiGenerators():
         """
         return "Origami generators"
 
-    def Escalator(self, n):
+    @staticmethod
+    def Escalator(n):
         r"""
         Escalator origamis
 
@@ -70,7 +64,8 @@ class OrigamiGenerators():
         o = Origami(lr,lu,positions=positions,name=name)
         return o
 
-    def EierlegendeWollmilchsau(self):
+    @staticmethod
+    def EierlegendeWollmilchsau():
         r"""
         Eierlegende Wollmilchsau origami.
 
@@ -101,7 +96,8 @@ class OrigamiGenerators():
         o = Origami(r,u,check=False,as_tuple=True,positions=positions,name=name)
         return o
 
-    def CyclicCover(self,a,M=None):
+    @staticmethod
+    def CyclicCover(a, M=None):
         r"""
         Return the Abelian differential associated to the quadruple ``a``
         
@@ -194,7 +190,8 @@ class OrigamiGenerators():
         
         return Origami(r,u,as_tuple=True,name="M_%d(%d,%d,%d,%d)" %(M,a[0],a[1],a[2],a[3]))
 
-    def Stair(self,n):
+    @staticmethod
+    def Stair(n):
         r"""
         Stair origamis
 
@@ -243,7 +240,8 @@ class OrigamiGenerators():
         o = Origami(r,u,as_tuple=True,positions=positions,name="Stair origami with %d squares" %n)
         return o
 
-    def Podium(self,data):
+    @staticmethod
+    def Podium(data):
         r"""
         If ``data`` is an integer than the standard podium with ``data`` steps is
         returned. Otherwise, ``data`` should be a weakly decreasing list of integers
@@ -287,14 +285,17 @@ class OrigamiGenerators():
 
         return Origami(r,u,positions=positions,name="Podium origami with partition %s" %str(p),as_tuple=True)
 
-    def ProjectiveLine(self, p, r=None, u=None):
+    @staticmethod
+    def ProjectiveLine(p, r=None, u=None):
         r"""
         Return the projective line with action given by the matrices ``r``
         and ``u`` on the projective line over the field with ``p`` elements.
 
         If ``r`` and ``u`` are None, then r and u are choosen to be
 
-        r: z -> z+1         u: z -> 1/z
+        .. MATH::
+
+            r: z \mapsto z+1   \qquad    u: z \mapsto 1/z
 
         The monodromy of this origami is included in `PGL(2,\ZZ/p\ZZ)`.
 
@@ -309,7 +310,7 @@ class OrigamiGenerators():
              r = [1 1]    u = [0 1]
                  [0 1]        [1 0]
             sage: o.stratum()
-            H(2)
+            H_2(2)
             sage: o.veech_group().index()
             9
             sage: o.sum_of_lyapunov_exponents()
@@ -320,7 +321,7 @@ class OrigamiGenerators():
              r = [1 1]    u = [0 1]
                  [0 1]        [1 0]
             sage: o.stratum()
-            H(2^2)
+            H_3(2^2)
             sage: o.veech_group().index()
             9
             sage: o.sum_of_lyapunov_exponents()
@@ -331,7 +332,7 @@ class OrigamiGenerators():
              r = [1 1]    u = [0 1]
                  [0 1]        [1 0]
             sage: o.stratum()
-            H(2^2)
+            H_3(2^2)
             sage: o.veech_group().index()
             45
             sage: o.sum_of_lyapunov_exponents()
@@ -349,25 +350,17 @@ class OrigamiGenerators():
             10
             sage: o.sum_of_lyapunov_exponents()
             9/5
-
-            sage: o = origamis.ProjectiveLine(7,r,u); o
-            Projective line origami on GF(7)
-             r = [1 3]    u = [1 0]
-                 [0 1]        [3 1]
-            sage: o.stratum()
-            H(2^2)
-            sage: o.sum_of_lyapunov_exponents()
-            2
+            sage: o.stratum_component()
+            H_3(4)^hyp
         """
         from sage.rings.arith import is_prime
         from sage.rings.finite_rings.constructor import GF
-        from sage.groups.matrix_gps.general_linear import GL
+        from sage.groups.matrix_gps.linear import GL
         from sage.modules.free_module import VectorSpace
 
-        p = int(p)
-
-        if not is_prime(p):
-            raise ValueError, "p (=%d) should be a prime number"%p
+        p = ZZ(p)
+        if not p.is_prime():
+            raise ValueError("p (={}) must be a prime number".format(p))
 
         G = GL(2,GF(p))
         V = VectorSpace(GF(p),2)
@@ -425,12 +418,40 @@ class OrigamiGenerators():
             name="Projective line origami on GF(%d)\n r = %s    u = %s\n     %s        %s"%(p,sr[0],su[0],sr[1],su[1]))
         return o
 
-    def Heisenberg(self, p):
+    @staticmethod
+    def Heisenberg(p):
         r"""
         Return the Heisenberg origami.
+
+        EXAMPLES::
+
+            sage: h2 = origamis.Heisenberg(2)
+            sage: h2.stratum_component()
+            H_3(1^4)^c
+            sage: h2.veech_group().index()
+            3
+            sage: h2.sum_of_lyapunov_exponents()
+            2
+
+            sage: h3 = origamis.Heisenberg(3)
+            sage: h3.stratum_component()
+            H_10(2^9)^even
+            sage: h3.veech_group().index()
+            1
+            sage: h3.sum_of_lyapunov_exponents()
+            5
+
+            sage: h5 = origamis.Heisenberg(5)
+            sage: h5.stratum_component()
+            H_51(4^25)^even
+            sage: h5.veech_group().index()
+            1
+            sage: h5.sum_of_lyapunov_exponents()
+            15
         """
-        from sage.rings.arith import is_prime
-        assert is_prime(p)
+        p = ZZ(p)
+        if not p.is_prime():
+            raise ValueError("p (={}) must be prime".format(p))
         N = p**3  # map (a,b,d) -> a*p**2 + b*p + d
         pp = p*p
         r = [None]*N
@@ -446,15 +467,3 @@ class OrigamiGenerators():
                 name="Heisenberg origami on GF(%d)"%p)
 
 origamis = OrigamiGenerators()
-
-class PillowcaseGenerators():
-    r"""
-    Generators for several common pillowcases.
-    """
-    def __repr__(self):
-        r"""
-        String representation
-        """
-        return "Pillowcase generators"
-
-pillowcases = PillowcaseGenerators()

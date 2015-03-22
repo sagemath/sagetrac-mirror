@@ -5,9 +5,6 @@ An *origami* is a pair `(r,u)` of permutations up to conjugacy. The computation
 of canonic representative of an origami is performed by an independant C
 program in normal_form.c
 
-The two permutations r and u are contiguous in memory and for each
-initialization we perform only one call to sage_malloc.
-
 A *pillowcase cover* is a quadruple `(g_0, g_1, g_2, g_3)` of permutations such
 that the product `g_0 g_1 g_2 g_3` is the identity. It is sometimes called a
 4-constellations. The computation of canonic representative is performed by an
@@ -56,10 +53,14 @@ def lattice(vectors):
 
         sage: from sage.dynamics.flat_surfaces.origamis.origami_dense import lattice
 
-        sage: lattice([(2,0),(3,1)])
+        sage: lattice([(2,0), (3,1)])
         (2, 1, 1)
-        sage: lattice([(2,0),(3,1),(2,1)])
+        sage: lattice([(2,0), (3,1), (2,1)])
         (1, 0, 1)
+        sage: lattice([(1,2), (3,6), (5,10)])
+        Traceback (most recent call last):
+        ...
+        ValueError: all input vectors are collinear
 
     TESTS::
 
@@ -100,7 +101,7 @@ def lattice(vectors):
     cdef Integer a,m
     cdef int i, n = len(vectors)
     cdef list w
-    
+
     if isinstance(vectors,list):
         w = vectors[:]
     else:
@@ -218,7 +219,7 @@ cdef tuple projectivize_edges(l):
             o2._set_standard_form()
             if o2 < o1:
                 o = o2
-            
+
             for i in xrange(len(l)):
                 oo1 = l[i][o1]
                 oo2 = oo1.inverse()
@@ -368,7 +369,7 @@ cdef class Origami_dense_pyx:
 
         if self._r == NULL:
             raise MemoryError, "not able to allocate"
-       
+
         for i from 0 <= i < self._n:
             self._r[i] = r[i]
             self._u[i] = u[i]
@@ -394,7 +395,7 @@ cdef class Origami_dense_pyx:
         other._n = self._n
         other._r = rr_and_uu
         other._u = rr_and_uu + self._n
-        
+
         other._l_edges = self._l_edges
         other._i_edges = self._i_edges
 
@@ -428,13 +429,6 @@ cdef class Origami_dense_pyx:
         r"""
         Comparison
 
-         0: <
-         1: <=
-         2: ==
-         3: !=
-         4: >
-         5: >=
-        
         EXAMPLES:
 
         First compare the number of squares::
@@ -463,11 +457,17 @@ cdef class Origami_dense_pyx:
             sage: (o1 > o2) or (o1 >= o2)
             False
         """
+        # 0: <
+        # 1: <=
+        # 2: ==
+        # 3: !=
+        # 4: >
+        # 5: >=
         cdef Origami_dense_pyx s
         cdef Origami_dense_pyx o
 
-        if not isinstance(other, Origami_dense_pyx):
-            return NotImplemented
+        if not isinstance(self, Origami_dense_pyx) or not isinstance(other, Origami_dense_pyx):
+            return TypeError("origamis can only be compared to origamis")
 
         s = <Origami_dense_pyx> self
         o = <Origami_dense_pyx> other
@@ -505,7 +505,7 @@ cdef class Origami_dense_pyx:
         """
         cdef int i, h=0, br=12, bu=37
 
-        for i from 0 <= i < self._n:
+        for i in range(self._n):
             h += self._r[i]*br + self._u[i]*bu
             br *= 503
             bu *= 251
@@ -538,7 +538,8 @@ cdef class Origami_dense_pyx:
             sage: o.r_tuple()
             (1, 0, 2)
         """
-        return array_to_tuple(self._r, self._n)
+        cdef int i
+        return tuple(self._r[i] for i in range(self._n))
 
     def r_inv_tuple(self):
         r"""
@@ -562,7 +563,8 @@ cdef class Origami_dense_pyx:
             sage: o.u_tuple()
             (2, 1, 0)
         """
-        return array_to_tuple(self._u, self._n)
+        cdef int i
+        return tuple(self._u[i] for i in range(self._n))
 
     def u_inv_tuple(self):
         r"""
@@ -764,8 +766,22 @@ cdef class Origami_dense_pyx:
         The optimal degree of self is the degree of the map to the largest
         torus.
 
-        Any origami X -> T factor as i o pi_opt where i is an isogeny. The
-        optimal degree is the degree of pi_opt.
+        Any origami `X \to T` factor as `i \circ \pi_{opt}` where `i` is an
+        isogeny. The optimal degree is the degree of `\pi_{opt}`.
+
+        EXAMPLES::
+
+            sage: E = origamis.EierlegendeWollmilchsau()
+            sage: E.optimal_degree()
+            2
+
+            sage: o = Origami('(1,2)(3,4)', '(2,3)')
+            sage: o.optimal_degree()
+            2
+
+            sage: o = Origami('(1,2)', '(1,3)')
+            sage: o.optimal_degree()
+            3
         """
         a,t,u = self.lattice_of_absolute_periods()
         return self.nb_squares() / (a*u)
@@ -798,8 +814,7 @@ cdef class Origami_dense_pyx:
 
             sage: o = Origami('(1)(2)(3)','(1,2,3)')
             sage: o.is_reduced()
-            XXX
-
+            False
         """
         return self.lattice_of_periods() == (smallInteger(1),smallInteger(0),smallInteger(1))
 
@@ -807,7 +822,7 @@ cdef class Origami_dense_pyx:
     # standard form (canonic labels)
     #
 
-    cpdef _set_standard_form(self,return_map=False):
+    cpdef _set_standard_form(self, return_map=False):
         r"""
         Renumerote the origami in its standard form and the map associated to
         the renumerotation if ``return_map`` is set to True.
@@ -831,13 +846,13 @@ cdef class Origami_dense_pyx:
             (1, 0, 2)
         """
         cdef int *ren = <int *> sage_malloc(self._n * sizeof(int))
-        cdef object m = None
+        m = None
 
         if self._n != 1:
-            origami_normal_form(self._r,self._u,ren,self._n)
+            origami_normal_form(self._r, self._u, ren, self._n)
 
         if return_map:
-            m = array_to_tuple(ren,self._n)
+            m = array_to_tuple(ren, self._n)
 
         sage_free(ren)
         return m
@@ -914,8 +929,6 @@ cdef class Origami_dense_pyx:
                 return o,m
             return o
 
-
-
     #
     # GL(2,Z), SL(2,Z), PGL(2,Z) and PSL(2,Z) actions
     #
@@ -954,7 +967,7 @@ cdef class Origami_dense_pyx:
         cdef int i
         cdef int *rr = <int *>sage_malloc(2*self._n*sizeof(int))
         cdef int *uu = rr + self._n
-    
+
         for i from 0 <= i < self._n:
             rr[self._r[i]] = i
             uu[self._u[i]] = i
@@ -1039,7 +1052,7 @@ cdef class Origami_dense_pyx:
         cdef int i
         cdef int *rr = <int *>sage_malloc(2*self._n*sizeof(int))
         cdef int *uu = rr + self._n
-    
+
         for i in range(self._n):
             rr[i] = self._u[i]
             uu[i] = self._r[i]
@@ -1113,7 +1126,7 @@ cdef class Origami_dense_pyx:
         cdef int i
         cdef int *rr = <int *>sage_malloc(2*self._n*sizeof(int))
         cdef int *uu = rr + self._n
-    
+
         for i from 0 <= i < self._n:
             uu[i] = self._u[i]
             if width <= 0:
@@ -1578,7 +1591,7 @@ cdef class Origami_dense_pyx:
         return res[:nb_vectors]
 
 
-cdef gl2z_orbits(origamis,int n, int limit):
+cdef gl2z_orbits(origamis, int n, int limit):
     r"""
     Compute the action of `GL(2,\ZZ)` on the set ``origamis`` whose elements
     should be in normal form and have same number of squares ``n``. An optional
@@ -1614,12 +1627,12 @@ cdef gl2z_orbits(origamis,int n, int limit):
 
     while origamis:
         o = origamis.pop()
-        if o._l_edges: # TODO: if data is here... use it instead of clear!
+        if o._l_edges:
             o._l_edges.clear()
             o._i_edges.clear()
         rr = <int *> sage_malloc(N)
         uu = rr+n
-        if VERBOSE: 
+        if VERBOSE:
             print "pop origami\n r=%s\n u=%s"%(str(o.r()),str(o.u()))
             print "check:"
             print "  l = %s at %d"%(o._l_edges, id(o._l_edges))
@@ -1636,21 +1649,21 @@ cdef gl2z_orbits(origamis,int n, int limit):
         # rr,uu is memory allocated
         # r,u   pointed by o
         while True:
-            if VERBOSE: 
+            if VERBOSE:
                 print "start new cusp..."
             if o in l_edges:
                 raise ValueError("%s seen before" %str(o))
-    
+
             # we compute backward the l-orbit of o
             for i from 0 <= i < n:
                 rr[i] = r[i]
                 uu[i] = r[u[i]]
             origami_normal_form(rr, uu, renum, n)
-    
+
             ooo = o
             while origami_diff(r,rr,n):
                 oo = o._new_c(rr)
-                if VERBOSE: 
+                if VERBOSE:
                     print " new elt in cusp"
                     print " r = %s"%oo.r()
                     print " u = %s"%oo.u()
@@ -1671,19 +1684,19 @@ cdef gl2z_orbits(origamis,int n, int limit):
                     rr[i] = rrr[i]
                     uu[i] = rrr[uuu[i]]
                 origami_normal_form(rr,uu,renum,n)
-    
+
             # at this point rr is memory allocated
 
             l_edges[o] = ooo
             if limit > 0 and len(l_edges) > limit: # test the size
-                if VERBOSE: 
+                if VERBOSE:
                     print "oversize"
                 l_edges.clear()
                 i_edges.clear()
                 waiting.clear()
                 r = rr; u = uu
                 break
-   
+
             # then we create i-edges until we find a new guy
             # we set r,u to be available
             if VERBOSE: print "end of cusp, apply symmetry"
@@ -1722,9 +1735,9 @@ cdef gl2z_orbits(origamis,int n, int limit):
             else:
                 break
 
-        if l_edges: # append if we do not quit because of oversize        
+        if l_edges: # append if we do not quit because of oversize
             orbits.append((l_edges,i_edges))
-            if VERBOSE: 
+            if VERBOSE:
                     print "new orbit of size %d"%(len(l_edges))
                     print "check: waiting=",waiting
 
@@ -1733,21 +1746,20 @@ cdef gl2z_orbits(origamis,int n, int limit):
 
     return orbits
 
-cpdef sl2z_orbits(origamis,int n,int limit):
+cpdef sl2z_orbits(origamis, int n, int limit):
     r"""
     Action of the matrices l,r,s
 
-    L =
-    1 1
-    0 1
+    EXAMPLES::
 
-    R =
-    1 0
-    1 1
-
-    S = L~RL =
-    0 -1
-    1 0
+        sage: from sage.dynamics.flat_surfaces.origamis.origami_dense import sl2z_orbits
+        sage: C = AbelianStratum(2,2).odd_component()
+        sage: origamis = C.origamis(10)
+        sage: len(origamis)
+        8955
+        sage: slorbits = sl2z_orbits(origamis, 10, 0)
+        sage: len(slorbits)
+        19
     """
     slorbits = []
     glorbits = gl2z_orbits(origamis,n,limit)
@@ -1792,7 +1804,7 @@ cdef class PillowcaseCover_dense_pyx:
 
         if self._g == NULL:
             raise MemoryError, "not able to allocate"
-       
+
         for i from 0 <= i < self._n:
             self._g[i]     = g0[i]
             self._g[i+1*self._n] = g1[i]
@@ -1804,6 +1816,97 @@ cdef class PillowcaseCover_dense_pyx:
 
     def __dealloc__(self):
         if self._g != NULL: sage_free(self._g)
+
+    def __hash__(self):
+        r"""
+        This hash is not very good. The returned value is always a multiple of
+        2.
+
+        TESTS::
+
+            sage: p = PillowcaseCover([2,1,3,4],[1,3,2,4],[4,2,3,1])
+            sage: hash(p)
+            -416597224
+
+            sage: p = PillowcaseCover([1,2,4,3],[3,2,1,4],[2,4,3,1])
+            sage: hash(p)
+            1452027672
+        """
+        cdef int i, h=0, b=17
+
+        for i in range(4*self._n):
+            h += self._g[i]*b
+            b *= 50312161
+
+        return h
+
+    def __richcmp__(self,other,i):
+        r"""
+        Comparison
+
+        EXAMPLES::
+
+            sage: p3 = PillowcaseCover([2,3,1],[3,2,1],[2,1,3])
+            sage: p4 = PillowcaseCover([1,3,2,4],[3,2,4,1],[2,1,3,4])
+            sage: p3 < p4
+            True
+            sage: p3 == p4 or p3 >= p4
+            False
+
+            sage: p = PillowcaseCover([2,1,3,4],[1,3,2,4],[4,2,3,1])
+            sage: q = PillowcaseCover([2,1,3,4],[2,3,1,4],[4,3,2,1])
+            sage: r = PillowcaseCover([2,1,3,4],[3,2,1,4],[3,4,2,1])
+
+            sage: p < q and q < r and p < r
+            True
+            sage: q > p and r > q and r > p
+            True
+            sage: p == p and p <= p and p >= p
+            True
+            sage: p == q or p == r or q == r
+            False
+            sage: q < p or r < q or r < p
+            False
+            sage: q <= p or r <= q or r <= p
+            False
+            sage: p >= q or q >= r or p >= r
+            False
+        """
+         #0: <
+         #1: <=
+         #2: ==
+         #3: !=
+         #4: >
+         #5: >=
+        cdef PillowcaseCover_dense_pyx s
+        cdef PillowcaseCover_dense_pyx o
+
+        if not isinstance(self, PillowcaseCover_dense_pyx) or not isinstance(other, PillowcaseCover_dense_pyx):
+            return TypeError("Pillowcase covers can only be compared to pillow case covers")
+
+        s = <PillowcaseCover_dense_pyx> self
+        o = <PillowcaseCover_dense_pyx> other
+
+        # compare the number of squares
+        if s._n != o._n:
+            if i < 2: return s._n < o._n
+            if i > 3: return s._n > o._n
+            return i == 3
+
+        # find the first index where self and other differ and make the
+        # difference.
+        cdef int j, test=0
+        for j in range(4*s._n):
+            if s._g[j] != o._g[j]:
+                test = s._g[j] - o._g[j]
+                break
+        else:
+            # all indices are equal
+            return i != 0 and i != 3 and i != 4
+
+        if i < 2: return test < 0
+        if i > 3: return test > 0
+        return i == 3
 
     cdef PillowcaseCover_dense_pyx _new_c(self, int * g):
         r"""
@@ -1819,12 +1922,12 @@ cdef class PillowcaseCover_dense_pyx:
 
         other._n = self._n
         other._g = g
-        
+
         other._l_edges = self._l_edges
         other._i_edges = self._i_edges
 
         return other
-    
+
     def __copy__(self):
         r"""
         Return a copy of the origami
@@ -1859,17 +1962,22 @@ cdef class PillowcaseCover_dense_pyx:
             (3, 1, 2, 0)
             sage: p.g_tuple(3)
             (3, 0, 1, 2)
+
+            sage: p.g_tuple(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: the index i (=4) must be in {0,1,2,3}
         """
         if i < 0 or i > 3:
-            raise ValueError
-        return array_to_tuple(self._g+i*self._n,self._n)
+            raise IndexError("the index i (={}) must be in {{0,1,2,3}}".format(i))
+        return array_to_tuple(self._g+i*self._n, self._n)
 
     def degree(self):
         r"""
         The degree of the covering.
-        
+
         EXAMPLES::
-        
+
             sage: p = PillowcaseCover([2,1,3,4],[3,2,1,4],[4,2,3,1])
             sage: p.degree()
             4
