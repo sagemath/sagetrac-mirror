@@ -23,6 +23,7 @@ import sage.modular.arithgroup.all as arithgroup
 import ambient
 import cuspidal_submodule
 import eisenstein_submodule
+from itertools import combinations
 
 from sage.sets.set import Set
 from sage.misc.misc_c import prod
@@ -204,25 +205,29 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
 
         INPUT:
 
-        - S -- a list or set of numbers
+        - S -- a set of numbers
 
         EXAMPLES::
 
-            sage: ModularForms(100, 2)._atkin_lehner_closure([4])
+            sage: ModularForms(100, 2)._atkin_lehner_closure(set([4]))
             {1, 4}
-            sage: ModularForms(120, 2)._atkin_lehner_closure([24, 20])
-            {1, 4, 5, 6, 24, 20, 120, 30}
-            sage: ModularForms(120, 2)._atkin_lehner_closure([6, 20])
+            sage: ModularForms(120, 2)._atkin_lehner_closure(set([24, 20]))
+            {1, 4, 5, 6, 20, 24, 30, 120}
+            sage: ModularForms(120, 2)._atkin_lehner_closure(set([6, 20]))
             {1, 4, 5, 6, 20, 30}
-            sage: ModularForms(120, 2)._atkin_lehner_closure([6, 7, 20])
-            {1, 35, 4, 5, 6, 7, 42, 140, 210, 20, 28, 30}
+            sage: ModularForms(120, 2)._atkin_lehner_closure(set([6, 7, 20]))
+            {1, 4, 5, 6, 7, 20, 28, 30, 35, 42, 140, 210}
         """
-        S = Set([s for s in S])
-        T = Set([floor(P * Q / GCD(P, Q) ** 2) for P in S for Q in S])
-        ClosureS = S.union(T)
-        if ClosureS == S:
-            return S
-        return self._atkin_lehner_closure(ClosureS)
+        stop = False
+        while not stop:
+            T = set([P * Q // P.gcd(Q) ** 2 for P, Q in combinations(S, 2)])
+            ClosureS = S.union(T)
+            if len(ClosureS) == len(S):
+                stop = True
+            else:
+                S = ClosureS
+        ClosureS.add(ZZ.one())
+        return ClosureS
 
     def atkin_lehner_quotient_genus_X0(self, Q):
         """
@@ -257,7 +262,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
         N = self.level()
         if N == 1:
             return 0
-        S = self._atkin_lehner_closure(S)
+        S = self._atkin_lehner_closure(set(S))
         t = ZZ(len(S)).valuation(2)
         R = sum([self.atkin_lehner_ramification(Q) for Q in S])
         return floor((arithgroup.Gamma0(N).genus()
@@ -412,7 +417,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             raise ValueError("bad input")
         if (N == M) or (M == 1):
             return 0
-        S = ZZ(N / (M * R ** 2))
+        S = N // (M * R ** 2)
         SuppN = N.prime_divisors()
         if not len(w) == len(SuppN):
             raise ValueError('length of w is not the number of prime divisors')
