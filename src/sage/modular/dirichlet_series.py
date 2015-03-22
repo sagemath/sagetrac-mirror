@@ -14,7 +14,10 @@
 #*****************************************************************************
 
 import types
-
+from copy import deepcopy
+from sage.structure.sage_object import SageObject
+from sage.rings.infinity import Infinity
+from sage.rings.integer_ring import ZZ
 
 
 ###################################################################
@@ -22,7 +25,7 @@ import types
 ###################################################################
 
 
-class DirichletSeries():
+class DirichletSeries(SageObject):
     """
     Class for manipulation of Dirichlet series over a ring R.
     """
@@ -32,13 +35,13 @@ class DirichletSeries():
         """
 
         INPUT:
-            DirichletSeries(R, coeff_list) -- initialize a Dirichlet series 
+            dirichlet_series(R, coeff_list) -- initialize a Dirichlet series 
                     with coeffs in R from a list of coefficients
 
-            DirichletSeries(R, f, b) -- Initialize a Dirichlet series over R 
+            dirichlet_series(R, f, b) -- Initialize a Dirichlet series over R 
                     from an arithmetic function, with b terms (so + O((b+1)^s))
 
-            DirichletSeries(object) -- create a Dirichlet series from an object,
+            dirichlet_series(object) -- create a Dirichlet series from an object,
                     which should call the .dirichlet_series()method of that object.
 
         We will be able to set the formal variable later if we want... but for 
@@ -46,19 +49,22 @@ class DirichletSeries():
         
         
         EXAMPLES:
-            sage: DirichletSeries(ZZ, "zeta", 20)
+            sage: dirichlet_series(ZZ, "zeta", 20)
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + 1/(11^s) + 1/(12^s) + 1/(13^s) + 1/(14^s) + 1/(15^s) + 1/(16^s) + 1/(17^s) + 1/(18^s) + 1/(19^s) + 1/(20^s) + O(21^(-s))
-            sage: DirichletSeries(ZZ, "zeta", 10)
+            sage: dirichlet_series(ZZ, "zeta", 10)
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
-            sage: DirichletSeries(ZZ, "zeta", 2)
+            sage: dirichlet_series(ZZ, "zeta", 2)
             1 + 1/(2^s) + O(3^(-s))
         
             
             
         """
+        from sage.functions.generalized import kronecker_delta
+        from sage.rings.arith import moebius
+
         ## SANITY CHECK:  Check that R is a ring
         ## -------------------------------------
-        if not is_Ring(R):
+        if not hasattr(R, 'is_ring') or not R.is_ring():
             raise TypeError, "The first argument must be a ring!"
         
 
@@ -210,14 +216,13 @@ class DirichletSeries():
         Form the sum of two Dirichlet series.
 
         EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
-            sage: 
+            sage: D1 = dirichlet_series(ZZ, [1,1,1,1]);
             sage: D1 + D1
             2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
             sage: D1 + D1 + D1
             3 + 3/(2^s) + 3/(3^s) + 3/(4^s) + O(5^(-s))
 
-            sage: D2 = DirichletSeries(ZZ, "zeta", 10); D2
+            sage: D2 = dirichlet_series(ZZ, "zeta", 10); D2
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
             sage: D1 + D2
             2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
@@ -231,7 +236,7 @@ class DirichletSeries():
 
         ## Assume that these are just given by lists of coefficients for now!
         sum_coeff_list = [self[i] + other[i]  for i in range(1, min(self.precision(), other.precision()) + 1)]
-        D_sum = DirichletSeries(self.base_ring(), sum_coeff_list)
+        D_sum = dirichlet_series(self.base_ring(), sum_coeff_list)
 
         return D_sum
 
@@ -253,12 +258,13 @@ class DirichletSeries():
         Form the sum of two Dirichlet series.
 
         EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
+            sage: D1 = dirichlet_series(ZZ, [1,1,1,1]);
             sage: D1 - D1
-
-            sage: D2 = DirichletSeries(ZZ, "zeta", 10); D2
+            0 + O(5^(-s))
+            sage: D2 = dirichlet_series(ZZ, "zeta", 10); D2
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
             sage: D1 - D2
+            0 + O(5^(-s))
 
         """
         return self + (other * (-1))
@@ -270,36 +276,21 @@ class DirichletSeries():
         Define the product of two Dirichlet series, or of a Dirichlet series and a number.
 
         EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]); D1
+            sage: D1 = dirichlet_series(ZZ, [1,1,1,1]);
+            sage: D1 = dirichlet_series(ZZ, [1,1,1,1]); D1
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
             sage: D1 * 3
             3 + 3/(2^s) + 3/(3^s) + 3/(4^s) + O(5^(-s))
-            sage: 3 * D1 
-            ---------------------------------------------------------------------------
-            TypeError                                 Traceback (most recent call last)
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/<ipython console> in <module>()
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/local/lib/python2.6/site-packages/sage/structure/element.so in sage.structure.element.RingElement.__mul__ (sage/structure/element.c:11399)()
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/local/lib/python2.6/site-packages/sage/structure/coerce.so in sage.structure.coerce.CoercionModel_cache_maps.bin_op (sage/structure/coerce.c:6995)()
-
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<type 'instance'>'
-            sage:
-
-
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]); D1
+            sage: 3 * D1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': ...
+            sage: D1 = dirichlet_series(ZZ, [1,1,1,1]); D1
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
             sage: D1 * D1
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + O(5^(-s))
-            sage: 
-            sage: 
-            sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
+            sage: D2 = dirichlet_series(ZZ, "zeta", 8); D2
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-            sage: 
-            sage: 
-            sage: 
             sage: D22 = D2 * D2
             new_coeff_list = [1, 2, 2, 3, 2, 4, 2, 4]
             sage: D22
@@ -307,11 +298,12 @@ class DirichletSeries():
 
 
         """
+        from sage.rings.arith import divisors
         R = self.base_ring()
         try:
             ## Scalar multiplication
             scale_factor = R(other)
-            return DirichletSeries(R, [scale_factor * self[i]  for i in range(1, self.precision() + 1)])
+            return dirichlet_series(R, [scale_factor * self[i]  for i in range(1, self.precision() + 1)])
 
         except:
             ## Dirichlet Multiplication
@@ -326,7 +318,7 @@ class DirichletSeries():
                 
             new_coeff_list = [sum([self[d] * other[n/d]  for d in divisors(n)])  for n in range(1, new_precision + 1)]
             new_exact_flag = self.is_exact() and other.is_exact()
-            return DirichletSeries(R, new_coeff_list, is_exact_flag=new_exact_flag)
+            return dirichlet_series(R, new_coeff_list, is_exact_flag=new_exact_flag)
 
 
     def __pow__(self, n):
@@ -334,7 +326,7 @@ class DirichletSeries():
         Take any integer power of the current Dirichlet series.
 
         EXAMPLES:
-            sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
+            sage: D2 = dirichlet_series(ZZ, "zeta", 8); D2
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
             sage: D2^2
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + 4/(8^s) + O(9^(-s))
@@ -347,7 +339,7 @@ class DirichletSeries():
 
         """
         R = self.base_ring()
-        Identity_series = DirichletSeries(R, "identity", self.precision(), is_exact_flag=True)
+        Identity_series = dirichlet_series(R, "identity", self.precision(), is_exact_flag=True)
         
         ## SANITY CHECK: Check that n is an integer
         if not n in ZZ:
@@ -383,15 +375,14 @@ class DirichletSeries():
         """
         Compute the inverse Dirichlet series under Dirichlet multiplication.
 
-        sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
+        sage: D2 = dirichlet_series(ZZ, "zeta", 8); D2
         1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-        sage: 
-        sage: 
         sage: D2.inverse()
         1 + -1/(2^s) + -1/(3^s) + 0/(4^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + 0/(8^s) + O(9^(-s))
         sage: D2 * D2.inverse()
         1 + 0/(2^s) + 0/(3^s) + 0/(4^s) + 0/(5^s) + 0/(6^s) + 0/(7^s) + 0/(8^s) + O(9^(-s))
         """
+        from sage.rings.arith import divisors
         R = self.base_ring()
 
         ## Check if the first coefficient is invertible in R
@@ -405,7 +396,7 @@ class DirichletSeries():
             extended_inv_coeff_list.append(-a1_inv * sum([self[n/d] * extended_inv_coeff_list[d]  for d in divisors(n)[:-1]]))
 #        print "extended_inv_coeff_list = " + str(extended_inv_coeff_list)
 
-        return DirichletSeries(R, extended_inv_coeff_list[1:])
+        return dirichlet_series(R, extended_inv_coeff_list[1:])
 
 
 
@@ -436,7 +427,7 @@ class DirichletSeries():
 
         ## Return the new Dirichlet series
         R = self.base_ring()
-        return DirichletSeries(R, new_coeff_list[1:], is_exact_flag=self.is_exact())
+        return dirichlet_series(R, new_coeff_list[1:], is_exact_flag=self.is_exact())
 
         
     def shift_variable_by(self, a):
@@ -453,9 +444,9 @@ class DirichletSeries():
 
         ## Return the new Dirichlet series
         R = self.base_ring()
-        return DirichletSeries(R, new_coeff_list, is_exact_flag=self.is_exact())
+        return dirichlet_series(R, new_coeff_list, is_exact_flag=self.is_exact())
 
-
+dirichlet_series = DirichletSeries
 
 ##############################################################################################################
 ## Some simple constructors:
@@ -465,14 +456,14 @@ def zeta__series(n):
     """
     Returns the Dirichlet series of the Riemann zeta function, with precision n.
     """
-    return DirichletSeries(QQ, "zeta", n)
+    return dirichlet_series(QQ, "zeta", n)
 
 
 def L__series(chi, n):
     """
     Returns the L-series of a quadratic Dirichlet character chi, with precision n.
     """
-    return DirichletSeries(QQ, chi, n)
+    return dirichlet_series(QQ, chi, n)
 
 
 
