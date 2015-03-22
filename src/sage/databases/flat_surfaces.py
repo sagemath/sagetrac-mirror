@@ -422,6 +422,26 @@ class CylinderDiagrams(GenericRepertoryDatabase):
         assert isinstance(stratum, AbelianStratum), "the argument must be a stratum of Abelian differential"
         return self.has_component(stratum.one_component())
 
+    def _files(self):
+        r"""
+        Iterator over the list of files.
+
+        TESTS::
+
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            sage: C = CylinderDiagrams()
+            sage: C._files()
+            <generator object _files at ...>
+            sage: it = C._files()
+            sage: it.next()  # random
+            'cyl_diags-...'
+            sage: it.next()  # random
+            'cyl_diags-...'
+        """
+        for f in os.listdir(self.path):
+            if f.startswith('cyl_diags-'):
+                yield f
+
     def list_strata(self):
         r"""
         List available strata in that database.
@@ -448,10 +468,9 @@ class CylinderDiagrams(GenericRepertoryDatabase):
         from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum
         from sage.rings.integer import Integer
         s = set()
-        for f in os.listdir(self.path):
-            if f.startswith('cyl_diags-'):
-                g = f[10:]
-                s.add(g[:g.index('-')])
+        for f in self._files():
+            g = f[10:]
+            s.add(g[:g.index('-')])
 
         return [AbelianStratum(map(Integer, g.split('_'))) for g in s]
 
@@ -512,29 +531,67 @@ class CylinderDiagrams(GenericRepertoryDatabase):
             line = f.readline()
         f.close()
 
-    def _remove_symmetries(self, filename):
-        filename = os.path.join(self.path, filename)
-        n = 0
-        s = set()
-        for c in self._one_file_iterator(filename):
-            n += 1
+    def _check_symmetries(self, filename):
+        r"""
+        TESTS::
 
+            sage: from sage.databases.flat_surfaces import CylinderDiagrams
+            sage: C = CylinderDiagrams()
+            sage: C._check_symmetries('cyl_diags-4_2-odd-5')
+            sage: for filename in C._files():          # not tested -- very long time, ~1h
+            ....:     C._check_symmetries(filename)    # not tested -- very long time, ~1h
+        """
+        filename = os.path.join(self.path, filename)
+        for c in self._one_file_iterator(filename):
+            if c != c.relabel(inplace=False):
+                raise ValueError("in file {}, {} does not have canonical labels".format(
+                    filename, c))
             c1 = c.horizontal_symmetry()
             c1.relabel(inplace=True)
             if c1 < c:
-                continue
-
+                raise ValueError("in file {}, {} is not minimal... {} is the good one!".format(
+                    filename, c,c1))
             c1 = c.vertical_symmetry()
             c1.relabel(inplace=True)
             if c1 < c:
-                continue
-
+                raise ValueError("in file {}, {} is not minimal... {} is the good one!".format(
+                    filename, c,c1))
             c1 = c.inverse()
             c1.relabel(inplace=True)
             if c1 < c:
+                raise ValueError("in file {}, {} is not minimal... {} is the good one!".format(
+                    filename,c,c1))
+
+    def _remove_symmetries(self, filename):
+        r"""
+        Use this at your own risk! It modifies the file of the database
+        inplace!!!
+        """
+        filename = os.path.join(self.path, filename)
+        n = 0
+        s = set()
+        garbage = set()
+        for c in self._one_file_iterator(filename):
+            n += 1
+            if c in garbage:
                 continue
 
-            s.add(c)
+            cc = [c]
+
+            c1 = c.horizontal_symmetry()
+            c1.relabel(inplace=True)
+            cc.append(c1)
+
+            c1 = c.vertical_symmetry()
+            c1.relabel(inplace=True)
+            cc.append(c1)
+
+            c1 = c.inverse()
+            c1.relabel(inplace=True)
+            cc.append(c1)
+
+            s.add(min(cc))
+            garbage.update(cc)
 
         print "old cardinality:", n
         print "new cardinality:", len(s)
