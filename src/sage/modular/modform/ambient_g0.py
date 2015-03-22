@@ -29,8 +29,6 @@ from sage.sets.set import Set
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
 from sage.rings.arith import GCD
-from sage.interfaces.gp import gp
-from sage.rings.number_field.number_field import QuadraticField
 from sage.rings.arith import factor
 from sage.rings.integer_ring import ZZ
 from sage.misc.mrange import cartesian_product_iterator
@@ -175,11 +173,10 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
                 # (-4Q |--> -Q) and duals (-Q |--> -4Q).
                 R += ((primitive_ideal_number(-Q, M) +
                        2 * primitive_ideal_number(-Q, floor(M / 2)) *
-                       (2 - (-Q).kronecker(2))) *
-                      QuadraticField(-Q, 'a').class_number())
+                       (2 - (-Q).kronecker(2))) * (-Q).class_number())
             else:
-                R += primitive_ideal_number(-r, M) * (gp.qfbclassno(-Q))
-        return R + primitive_ideal_number(-4 * Q, M) * (gp.qfbclassno(-4 * Q))
+                R += primitive_ideal_number(-r, M) * ((-Q).class_number())
+        return R + primitive_ideal_number(-4 * Q, M) * ((-4 * Q).class_number())
 
     def atkin_lehner_ramification_B(self):
         r"""
