@@ -41,7 +41,15 @@ def cycles_to_list(t):
         sage: from sage.misc.permutation import cycles_to_list
         sage: cycles_to_list([[1,3,5],[0,2,4],[6]])
         [2, 3, 4, 5, 0, 1, 6]
+
+        sage: cycles_to_list([])
+        []
+        sage: cycles_to_list([[],[]])
+        []
     """
+    if not any(tt for tt in t):
+        return []
+
     res = range(max(map(max, t))+1)
 
     for c in t:
@@ -63,9 +71,16 @@ def str_to_cycles(s):
         [[0, 1]]
         sage: str_to_cycles('(0,1)(3,2)')
         [[0, 1], [3, 2]]
+
+        sage: str_to_cycles('()(0,1)()(2,3)')
+        [[0, 1], [2, 3]]
     """
-    return [map(int, c_str.replace(' ', '').split(','))
-            for c_str in s[1:-1].split(')(')]
+    r = []
+    for c_str in s[1:-1].split(')('):
+        if not c_str:
+            continue
+        r.append(map(int, c_str.replace(' ', '').split(',')))
+    return r
 
 
 def init_perm(data):
@@ -77,18 +92,26 @@ def init_perm(data):
         sage: from sage.misc.permutation import init_perm
         sage: init_perm([3,2,1,4])
         [3, 2, 1, 4]
-
         sage: init_perm(([2,1],[3,4,0]))
         [3, 2, 1, 4, 0]
-
         sage: init_perm('(0,1)(3,2)')
         [1, 0, 3, 2]
+        sage: init_perm([3,1,None,0])
+        [3, 1, None, 0]
+        sage: init_perm([[2,1],[3,4,0]])
+        [3, 2, 1, 4, 0]
+        sage: init_perm([])
+        []
+        sage: init_perm([[]])
+        []
     """
-    if isinstance(data, list):
-        return map(int, data)
-
-    if isinstance(data, tuple):
-        return cycles_to_list(data)
+    if isinstance(data, (tuple,list)):
+        if not data:
+            return []
+        if isinstance(data[0], (tuple,list)):
+            return cycles_to_list(data)
+        else:
+            return [x if (x is None or isinstance(x,int)) else int(x) for x in data]
 
     if isinstance(data, str):
         c = str_to_cycles(data)
@@ -125,17 +148,39 @@ def perm_check(l):
     EXAMPLES::
 
         sage: from sage.misc.permutation import perm_check
+
+    Good permutations::
+
+        sage: perm_check([1r, 0r, 3r, 2r])
+        sage: perm_check([None, None])
+        sage: perm_check([None, 3r, None, 1r])
+
+    Bad permutations::
+
         sage: perm_check([1, 0, 3, 2])
+        Traceback (most recent call last):
+        ...
+        TypeError: entries must be int or None, not Integer
+        sage: perm_check([2r, 0r])
+        Traceback (most recent call last):
+        ...
+        ValueError: permutation value 2 out of range
+        sage: perm_check([1r,0r,1r])
+        Traceback (most recent call last):
+        ...
+        ValueError: 1 is repeated
     """
     n = len(l)
     seen = [False]*n
     for i in xrange(n):
+        if l[i] is None:
+            continue
         if type(l[i]) != int:
-            raise TypeError("wrong type, should be an int")
-        if l[i] < 0 or l[i] > n:
-            raise ValueError("wrong entries in permutation %s" % str(l))
+            raise TypeError("entries must be int or None, not {}".format(type(l[i]).__name__))
+        if l[i] < 0 or l[i] >= n:
+            raise ValueError("permutation value {} out of range".format(l[i]))
         if seen[l[i]]:
-            raise ValueError("repetition in permutation %s" % str(l))
+            raise ValueError("{} is repeated".format(l[i]))
         seen[l[i]] = True
 
 
@@ -151,10 +196,16 @@ def perm_invert(l):
         True
         sage: all(perm_compose(p,perm_invert(p)) == range(3) for p in permutations(range(3)))
         True
+
+        sage: perm_invert([2, None, 5, 0, None, 3])
+        [3, None, 0, 5, None, 2]
     """
     res = [0]*len(l)
     for i in xrange(len(l)):
-        res[l[i]] = i
+        if l[i] is None:
+            res[i] = None
+        else:
+            res[l[i]] = i
     return res
 
 
@@ -172,9 +223,14 @@ def perm_compose(l1, l2):
         sage: from sage.misc.permutation import perm_compose
         sage: perm_compose([0,2,1],[0,2,1])
         [0, 1, 2]
+        sage: perm_compose([None,2,3,1],[None,2,1,3])
+        [None, 1, 3, 2]
     """
-    return [l2[l1[i]] for i in xrange(len(l1))]
-
+    r = [None] * len(l1)
+    for i in xrange(len(l1)):
+        if l1[i] is not None and l1[i] < len(l2):
+            r[i] = l2[l1[i]]
+    return r
 
 def perm_compose_i(l1, l2):
     r"""
@@ -235,12 +291,15 @@ def perm_cycle_tuples(p, singletons=False):
         ([1, 2],)
         sage: perm_cycle_tuples([0,2,1],True)
         ([0], [1, 2])
+
+        sage: perm_cycle_tuples([2,None,0])
+        ([0, 2],)
     """
     seen = [1]*len(p)
     res = []
 
     for i in xrange(len(p)):
-        if seen[i]:
+        if seen[i] and p[i] is not None:
             cycle = []
             j = i
             while seen[j]:
