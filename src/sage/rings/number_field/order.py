@@ -1968,28 +1968,32 @@ def primitive_ideal_number(D, Q):
         2
         sage: primitive_ideal_number(-359, 63)
         0
+        sage: primitive_ideal_number(-1556, 5043)
+        4
     """
-    from sage.rings.number_field.number_field import QuadraticField
-    DK = QuadraticField(D, 'a').discriminant()
-    xx = (D / DK).floor().squarefree_part()
-    m = ((D / DK).floor() / xx).sqrt()
+    # discriminant of the quadratic field
+    D = ZZ(D)
+    DK = D.squarefree_part()
+    if DK % 4 != 1:
+        DK *= 4
+    DDK = D // DK
+    xx = DDK.squarefree_part()
+    m = (DDK // xx).sqrt()
     n = 1
     for p in Q.prime_divisors():
         xp = DK.kronecker(p)
         s = Q.valuation(p)
         r = m.valuation(p)
         if r == 0:
-            n = n * (1 + xp) * xp ** (2 * (s - 1))
-        else:
-            if s < 2 * r:
-                if (s % 2) == 0:
-                    t = (s / 2).floor()
-                    n = n * (p - 1) * p ** (t - 1)
-                else:
-                    return 0
-            elif s == 2 * r:
-                n = n * (p - xp - 1) * p ** (r - 1)
+            n *= (1 + xp) * xp ** (2 * (s - 1))
+        elif s < 2 * r:
+            if (s % 2) == 0:
+                n *= (p - 1) * p ** (s // 2 - 1)
             else:
-                n = n * ((1 + xp) * xp ** (2 * (s - 2 * r - 1)) *
-                         (p - xp) * p ** (r - 1))
+                return 0
+        elif s == 2 * r:
+            n *= (p - xp - 1) * p ** (r - 1)
+        else:
+            n *= ((1 + xp) * xp ** (2 * (s - 2 * r - 1)) *
+                  (p - xp) * p ** (r - 1))
     return n
