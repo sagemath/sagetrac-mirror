@@ -162,6 +162,12 @@ class Stratum(SageObject):
             return False
         return type(self) == type(other) and self.zeros() == other.zeros()
 
+    def __ne__(self, other):
+        r"""
+        Difference test.
+        """
+        return not self.__eq__(other)
+
     def __cmp__(self, other):
         r"""
         Comparison
@@ -312,6 +318,36 @@ class Stratum(SageObject):
             return self.components()[-1]
         from sage.categories.sets_cat import EmptySetError
         raise EmptySetError, "The stratum is empty"
+
+    def unique_component(self):
+        r"""
+        Returns the unique component of self or raise a ValueError.
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(1,1); a
+            H_2(1^2)
+            sage: a.unique_component()
+            H_2(1^2)^hyp
+
+            sage: a = AbelianStratum(3,2,1); a
+            H_4(3, 2, 1)
+            sage: a.unique_component()
+            H_4(3, 2, 1)^c
+
+            sage: QuadraticStratum({1:1, -1:5}).unique_component()
+            Q_0(1, -1^5)^c
+            sage: QuadraticStratum(3,2,-1).unique_component()
+            Q_2(3, 2, -1)^nonhyp
+
+            sage: QuadraticStratum(12).unique_component()
+            Traceback (most recent call last):
+            ...
+            ValueError: several components for this stratum
+        """
+        if len(self._cc) != 1:
+            raise ValueError("several components for this stratum")
+        return self._cc[0](self)
 
     def random_component(self):
         r"""

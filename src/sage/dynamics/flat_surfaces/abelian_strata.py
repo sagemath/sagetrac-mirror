@@ -223,7 +223,7 @@ class AbelianStratum(Stratum):
         if len(l) == 1:
             try:
                 Integer(l[0])
-            except StandardError:
+            except TypeError:
                 l = l[0]
 
         if isinstance(l, dict):
@@ -237,7 +237,7 @@ class AbelianStratum(Stratum):
 
         if self._zeros == []:
             if self._nb_fake_zeros == 0:
-                raise ValueError, "there must be at least one zero"
+                raise ValueError("there must be at least one zero")
 
         s = sum(self._zeros)
         if s%2:
@@ -438,25 +438,6 @@ class AbelianStratum(Stratum):
         z = self.zeros()
         return len(z) == 2 and z[0] == z[1] and z[0]%2 == 1 and z[0] > 1
 
-    def unique_component(self):
-        r"""
-        If the stratum is connected, return the unique component.
-
-        EXAMPLES::
-
-            sage: a = AbelianStratum(1,1); a
-            H_2(1^2)
-            sage: a.unique_component()
-            H_2(1^2)^hyp
-
-            sage: a = AbelianStratum(3,2,1); a
-            H_4(3, 2, 1)
-            sage: a.unique_component()
-            H_4(3, 2, 1)^c
-        """
-        if self.is_connected(): return self._cc[0](self)
-        raise ValueError, "The stratum is not connected"
-
     def odd_component(self):
         r"""
         Return the odd component of self (if any).
@@ -469,7 +450,7 @@ class AbelianStratum(Stratum):
             H_3(2^2)^odd
         """
         if OddASC in self._cc: return OddASC(self)
-        raise ValueError, "No odd spin component in this stratum"
+        raise ValueError("No odd spin component in this stratum")
 
     def even_component(self):
         r"""
@@ -483,7 +464,7 @@ class AbelianStratum(Stratum):
             H_5(2^4)^even
         """
         if EvenASC in self._cc: return EvenASC(self)
-        raise ValueError, "No even spin component in this stratum"
+        raise ValueError("No even spin component in this stratum")
 
     def hyperelliptic_component(self):
         r"""
@@ -497,7 +478,7 @@ class AbelianStratum(Stratum):
             H_6(10)^hyp
         """
         if HypASC in self._cc: return HypASC(self)
-        raise ValueError, "No hyperelliptic component in this stratum"
+        raise ValueError("No hyperelliptic component in this stratum")
 
     def non_hyperelliptic_component(self):
         r"""
@@ -511,7 +492,7 @@ class AbelianStratum(Stratum):
             H_4(3^2)^nonhyp
         """
         if NonHypASC in self._cc: return NonHypASC(self)
-        raise ValueError, "No non hyperelliptic component in this stratum"
+        raise ValueError("No non hyperelliptic component in this stratum")
 
 
     #
@@ -653,17 +634,21 @@ class AbelianStratum(Stratum):
             ....:     print c
             (0,2,1)-(0,3,4) (3)-(2) (4)-(1)
             (0,2,1)-(0,3,4) (3)-(1) (4)-(2)
-            (0,1)-(0,3,4) (2,4)-(1) (3)-(2)
             (0,1)-(0,3,4) (2,3)-(1) (4)-(2)
             (0,2)-(4) (1,4)-(2,3) (3)-(0,1)
             (0,2)-(0,3) (1,3)-(1,4) (4)-(2)
             (0,1)-(0,3) (2,3)-(1,4) (4)-(2)
+
+            sage: sum(1 for _ in A.cylinder_diagram_iterator(3, force_computation=True))
+            6
+            sage: sum(1 for _ in A.cylinder_diagram_iterator(3, force_computation=False))
+            6
         """
         if ncyls is not None:
-            if not isinstance(ncyls, (int,Integer)):
+            if not isinstance(ncyls, (int,long,Integer)):
                 raise TypeError("ncyls should be None or an integer")
             if ncyls < 0 or ncyls > self.genus() + self.nb_zeros()-1:
-                raise ValueError
+                raise ValueError("ncyls is not valid")
 
         if not force_computation:
             for cc in self.components():
@@ -779,17 +764,52 @@ class AbelianStratum(Stratum):
     def cylinder_diagrams_number(self, ncyls=None, force_computation=False):
         r"""
         Return the number of cylinder diagram that belongs to this stratum.
+
+        EXAMPLES::
+
+            sage: H22 = AbelianStratum(2,2)
+            sage: H22.cylinder_diagrams_number(3)
+            18
+            sage: H22.cylinder_diagrams_number(4)
+            7
+
+        If ``force_computation`` is set to ``True`` then the database is not
+        used. It might be slower for large strata::
+
+            sage: H22.cylinder_diagrams_number(3, force_computation=True)
+            18
+            sage: H22.cylinder_diagrams_number(4, force_computation=True)
+            7
+
+            sage: H31 = AbelianStratum(3,1)
+            sage: for d in range(1,5):
+            ....:     print H31.cylinder_diagrams_number(d, False),
+            ....:     print H31.cylinder_diagrams_number(d, True)
+            2 2
+            12 12
+            16 16
+            4 4
+
+            sage: H211 = AbelianStratum(2,1,1)
+            sage: for d in range(1,6):
+            ....:     print H211.cylinder_diagrams_number(d, False),
+            ....:     print H211.cylinder_diagrams_number(d, True)
+            5 5
+            29 29
+            53 53
+            27 27
+            8 8
         """
         if ncyls is not None and ncyls > self.genus() + self.nb_zeros() - 1:
             return 0
         if not force_computation:
             from sage.databases.flat_surfaces import CylinderDiagrams
-            try:
-                return sum(CylinderDiagrams().count(cc, ncyls) for cc in self.components())
-            except ValueError:
-                pass
+            CDB = CylinderDiagrams()
+            if all(CDB.has_component(cc) for cc in self.components()):
+                return CDB.count(self, ncyls)
+            return sum(cc.cylinder_diagrams_number(ncyls) for cc in self.components())
 
-        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
+        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls, True))
 
 class AbelianStratumComponent(StratumComponent):
     r"""
@@ -1128,7 +1148,7 @@ class AbelianStratumComponent(StratumComponent):
         if reduced:
             return Integer(rdc.gamma_irr(profile))
 
-        raise NotImplementedError, "not known formula for labeled extended Rauzy classes"
+        raise NotImplementedError("not known formula for labeled extended Rauzy classes")
 
     def standard_permutations_number(self, left_degree=None):
         r"""
@@ -1256,7 +1276,14 @@ class AbelianStratumComponent(StratumComponent):
 
     def cylinder_diagram_iterator(self, ncyls=None, force_computation=False):
         r"""
-        Use computation only.
+        An iterator over the cylinder diagrams.
+
+        INPUT::
+
+        - ``ncyls`` -- (optional) a fixed number of cylinders
+
+        - ``force_computation`` -- (default ``False``) whether the database
+          should be used or not
 
         EXAMPLES::
 
@@ -1264,24 +1291,38 @@ class AbelianStratumComponent(StratumComponent):
             sage: cc = A.unique_component()
             sage: it = cc.cylinder_diagram_iterator(3)
             sage: cyl = it.next(); cyl
-            (0,1,3,2,4)-(0,2,1,5,6,7) (5,7)-(4) (6)-(3)
+            (0,7)-(0,5) (1,6)-(1,4) (2,4,3,5)-(2,7,3,6)
             sage: cyl.stratum_component()
             H_3(1^4)^c
             sage: cyl.ncyls()
             3
+
+        Note that if you set ``force_computation`` to ``True`` the order of the
+        iteration might be different (and not sorted)::
+
+            sage: it = cc.cylinder_diagram_iterator(3, force_computation=True)
+            sage: it.next()
+            (0,1,3,2,4)-(0,2,1,5,6,7) (5,7)-(4) (6)-(3)
+
+        But up to this order the list are exactly the same::
+
+            sage: s1 = list(cc.cylinder_diagram_iterator(3, force_computation=False))
+            sage: s2 = list(cc.cylinder_diagram_iterator(3, force_computation=True))
+            sage: s2.sort()
+            sage: s1 == s2
+            True
         """
         if ncyls is not None:
             if not isinstance(ncyls, (int,Integer)):
-                raise TypeError, "ncyls should be None or an integer"
+                raise TypeError("ncyls should be None or an integer")
             if ncyls < 0 or ncyls > self.stratum().genus() + self.stratum().nb_zeros()-1:
-                raise ValueError
+                raise ValueError("ncyls is not valid")
 
         if not force_computation:
             from sage.databases.flat_surfaces import CylinderDiagrams
-            try:
-                return CylinderDiagrams().get_iterator(self, ncyls)
-            except ValueError:
-                pass
+            CDB = CylinderDiagrams()
+            if CDB.has_component(self):
+                return CDB.get_iterator(self, ncyls)
 
         return self._cylinder_diagram_iterator(ncyls)
 
@@ -1321,42 +1362,59 @@ class AbelianStratumComponent(StratumComponent):
         - ``ncyls`` - integer or list of integers (default: None) - restrict the
           counting to a given number of cylinders.
 
+        - ``force_computation`` - (default: ``False``) whether we use the
+          database or compute explicitely using the the generation algorithm.
+
         EXAMPLES::
 
             sage: C = AbelianStratum(3,1).unique_component()
             sage: C.cylinder_diagrams_number(1)
             2
             sage: C.cylinder_diagrams_number(2)
-            13
+            12
             sage: C.cylinder_diagrams_number(3)
-            20
+            16
             sage: C.cylinder_diagrams_number(4)
-            5
+            4
+
+        Note that when setting ``force_computation`` to ``True`` we got the
+        same numbers::
+
+            sage: for i in range(1,5):
+            ....:     print C.cylinder_diagrams_number(i, force_computation=True)
+            2
+            12
+            16
+            4
 
             sage: C = AbelianStratum(6)
             sage: C_hyp = C.hyperelliptic_component()
             sage: C_odd = C.odd_component()
             sage: C_even = C.even_component()
             sage: for i in xrange(1,5): print C.cylinder_diagrams_number(i),
-            16  76 139  86
+            16 76 130 67
             sage: for i in xrange(1,5): print C_hyp.cylinder_diagrams_number(i),
             1 3 8 4
             sage: for i in xrange(1,5): print C_odd.cylinder_diagrams_number(i),
-            11 49 85 54
-            sage: for i in xrange(1,5): print C_even.cylinder_diagrams_number(i),
-            4 24 46 28
+            11 49 80 42
+
+            sage: for i in xrange(1,5):
+            ....:     print C_even.cylinder_diagrams_number(i, False),
+            4 24 42 21
+            sage: for i in xrange(1,5):                               # long time
+            ....:     print C_even.cylinder_diagrams_number(i, True), # long time
+            4 24 42 21
         """
         if ncyls is not None and ncyls > self.stratum().genus() + self.stratum().nb_zeros() - 1:
             return 0
 
         if not force_computation:
             from sage.databases.flat_surfaces import CylinderDiagrams
-            try:
-                return CylinderDiagrams().count(self,ncyls)
-            except ValueError:
-                force_computation=True
+            CDB = CylinderDiagrams()
+            if CDB.has_component(self):
+                return CDB.count(self, ncyls)
 
-        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls,force_computation))
+        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls,True))
 
     def one_origami(self):
         r"""
@@ -1400,17 +1458,18 @@ class AbelianStratumComponent(StratumComponent):
             sage: it = cc.origami_iterator(13)
             sage: o = it.next()
             sage: o
-            (1)(2,3,4,5,6)(7,8,9,10,11)(12)(13)
-            (1,2,7,4,9,12,6,11)(3,8,5,10,13)
+            (1,2,3,4,5,6,7,8,9,10,11,12,13)
+            (1,8,2)(3,12,6,11,5,13,7,9)(4,10)
             sage: o.stratum_component()
             H_4(6)^even
         """
         reduced = not reduced
         primitive = not primitive
         for c in self.cylinder_diagram_iterator():
-            do_h = c.horizontal_symmetry().relabel(inplace=False) != c
-            do_v = c.horizontal_symmetry().relabel(inplace=False) != c
-            do_i = c.inverse().relabel(inplace=False) != c
+            do_h, do_v, do_i = c.symmetries()
+            do_h = not do_h
+            do_v = not do_v
+            do_i = not do_i
             for o in c.origami_iterator(n):
                 if ((reduced or o.is_reduced()) and (primitive or o.is_primitive())):
                     o.relabel(inplace=True)
@@ -1791,7 +1850,7 @@ class HypAbelianStratumComponent(ASC):
 
         if reduced is False:
             if left_degree is None:
-                raise NotImplementedError, "no formula known for cardinality of labeled extended Rauzy classes"
+                raise NotImplementedError("no formula known for cardinality of labeled extended Rauzy classes")
             zeros = self.stratum().zeros()
             profile = Partition([x+1 for x in zeros])
             if self.stratum().nb_zeros(fake_zeros=False) == 1:
@@ -1905,7 +1964,7 @@ class HypAbelianStratumComponent(ASC):
         stratum = self.stratum()
 
         if stratum.nb_fake_zeros():
-            raise ValueError
+            raise ValueError("the stratum has fake zeros")
 
         z = stratum.zeros()
 
@@ -1998,7 +2057,7 @@ class NonHypAbelianStratumComponent(ASC):
             n_hyp = hyp.rauzy_class_cardinality()
 
         else:
-            raise NotImplementedError, "no formula known for cardinality of extended labeled Rauzy classes"
+            raise NotImplementedError("no formula known for cardinality of  extended labeled Rauzy classes")
 
 
         return n - n_hyp
@@ -2026,7 +2085,6 @@ class NonHypAbelianStratumComponent(ASC):
         profile = map(lambda x: x+1, self.stratum().zeros())
         return rdc.number_of_standard_permutations(profile) - self.stratum().hyperelliptic_component().standard_permutations_number()
 
-
     def _cylinder_diagram_iterator(self, ncyls=None):
         r"""
         Return the list of cylinder diagrams (or completely periodic
@@ -2037,13 +2095,13 @@ class NonHypAbelianStratumComponent(ASC):
             sage: cc = AbelianStratum(3,3).non_hyperelliptic_component()
             sage: it = cc.cylinder_diagram_iterator()
             sage: c0 = it.next(); c0
-            (0,1,4,3,2)-(0,1,5,6,7) (5)-(4) (6)-(2) (7)-(3)
+            (0,1,4,6,2,5,3,7)-(0,1,4,5,3,6,2,7)
             sage: c0.stratum_component()
             H_4(3^2)^nonhyp
 
             sage: it = cc.cylinder_diagram_iterator(4, force_computation=True)
             sage: c0 = it.next(); c0
-            (0,1,4,3,2)-(0,1,5,6,7) (5)-(4) (6)-(2) (7)-(3)
+            (0,1,4,3,2)-(0,1,5,6,7) (5)-(3) (6)-(4) (7)-(2)
             sage: c0.stratum_component()
             H_4(3^2)^nonhyp
             sage: all(it.next().stratum_component() == cc for _ in xrange(10))
@@ -2162,12 +2220,12 @@ class EvenAbelianStratumComponent(ASC):
 
         if left_degree is not None:
             if not isinstance(left_degree, (int,Integer)):
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+                raise ValueError("left_degree (=%d) should be one of the degree"%left_degree)
             if left_degree == 0:
                 if n == 0:
                     raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
             elif left_degree not in z:
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+                raise ValueError("left_degree (=%d) should be one of the degree"%left_degree)
             else:
                 z.remove(left_degree)
                 z.insert(0,left_degree)
@@ -2445,12 +2503,12 @@ class OddAbelianStratumComponent(ASC):
 
         if left_degree is not None:
             if not isinstance(left_degree, (int,Integer)):
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+                raise ValueError("left_degree (=%d) should be one of the degree"%left_degree)
             if left_degree == 0:
                 if n == 0:
                     raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
             elif left_degree not in zeros:
-                raise ValueError, "left_degree (=%d) should be one of the degree"%left_degree
+                raise ValueError("left_degree (=%d) should be one of the degree"%left_degree)
             else:
                 zeros.remove(left_degree)
                 zeros.insert(0,left_degree)
@@ -2577,7 +2635,7 @@ class OddAbelianStratumComponent(ASC):
                         self.rauzy_class_cardinality(left_degree-1, reduced=True))
 
         elif reduced is False:
-            raise NotImplementedError, "no formula known for labeled extended Rauzy classes"
+            raise NotImplementedError("no formula known for labeled extended Rauzy classes")
 
         N = sum(rdc.gamma_irr(profile,left_degree) + rdc.delta_irr(profile,left_degree))//2
 
@@ -2939,7 +2997,7 @@ class AbelianStrata_g(AbelianStrata):
         Return a random stratum.
         """
         if self._genus == 0:
-            raise ValueError, "No stratum with that genus"
+            raise ValueError("No stratum with that genus")
         if self._genus == 1:
             return AbelianStratum([0])
         return AbelianStratum(Partitions(2*self._genus - 2).random_element())
