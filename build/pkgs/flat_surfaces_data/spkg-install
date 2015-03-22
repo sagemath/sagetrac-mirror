@@ -1,4 +1,9 @@
 #!/bin/sh
 
+if [ -d "$SAGE_SHARE"/flat_surfaces ]
+then
+	rm -rf "$SAGE_SHARE"/flat_surfaces
+fi
+
 mkdir -p "$SAGE_SHARE"/flat_surfaces
 mv src/* "$SAGE_SHARE"/flat_surfaces
