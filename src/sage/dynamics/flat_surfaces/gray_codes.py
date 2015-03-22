@@ -46,7 +46,7 @@ class TuplesGraySwitch:
 
     EXAMPLES::
 
-        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import TuplesGraySwitch
+        sage: from sage.dynamics.flat_surfaces.gray_codes import TuplesGraySwitch
         sage: l = [0,0,0]
         sage: for i,j in TuplesGraySwitch([3,3,3]):
         ....:     l[i] += j
@@ -113,7 +113,7 @@ class TuplesGraySwitch:
 
         TESTS::
 
-            sage: from sage.dynamics.flat_surfaces.separatrix_diagramimport TuplesGraySwitch
+            sage: from sage.dynamics.flat_surfaces.gray_codes import TuplesGraySwitch
             sage: G = TuplesGraySwitch([2,3,4])
             sage: iter(G) is G
             True
@@ -126,14 +126,14 @@ class TuplesGraySwitch:
 
         EXAMPLES::
 
-            sage: from sage.dynamics.flat_surfaces.separatrix_diagram import TuplesGraySwitch
+            sage: from sage.dynamics.flat_surfaces.gray_codes import TuplesGraySwitch
             sage: G = TuplesGraySwitch([2,2,2])
             sage: G.next()
             (0, 1)
             sage: G.next()
-            (0, 1)
-            sage: G.next()
             (1, 1)
+            sage: G.next()
+            (0, -1)
         """
         j = self.f[0]
         if j == self.n:
@@ -161,6 +161,7 @@ def revolving_door_switch_iterator(n,t,verbose=False):
 
     EXAMPLES::
 
+        sage: from sage.dynamics.flat_surfaces.gray_codes import revolving_door_switch_iterator
         sage: b = [1, 1, 1, 0, 0]
         sage: for i,j in revolving_door_switch_iterator(5,3):
         ...      b[i] = 0; b[j] = 1
