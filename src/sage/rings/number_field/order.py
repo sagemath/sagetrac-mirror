@@ -1412,12 +1412,12 @@ class RelativeOrder(Order):
             sage: OK([3, 4])
             4*a + 3
 
-        The following used to fail; see trac #5276::
+        The following used to fail; see :trac:`5276`::
 
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
-        We test that trac #4193 is also fixed::
+        We test that :trac:`4193` is also fixed::
 
             sage: K1.<a> = NumberField(x^3 - 2)
             sage: R.<y> = PolynomialRing(K1)
@@ -1754,7 +1754,6 @@ def absolute_order_from_ring_generators(gens, check_is_integral=True,
     if check_is_integral and not each_is_integral(gens):
         raise ValueError("each generator must be integral")
     gens = Sequence(gens)
-    K = gens.universe()
     n = [x.absolute_minpoly().degree() for x in gens]
     module_gens = monomials(gens, n)
     return absolute_order_from_module_generators(module_gens,
@@ -1884,7 +1883,6 @@ def absolute_order_from_module_generators(gens,
             # Now alpha generates a subfield there W is an order
             # (with the right rank).
             # We move each element of W to this subfield.
-            c = alpha.coordinates_in_terms_of_powers()
 
     elif check_rank:
         if W.rank() != K.degree():
@@ -1954,3 +1952,44 @@ def relative_order_from_ring_generators(gens,
                                                        check_rank=check_rank)
 
     return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
+
+
+def primitive_ideal_number(D, Q):
+    """
+    Return the number of cyclic ideals of norm `Q` in the quadratic
+    order of discriminant `D`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.number_field.order import primitive_ideal_number
+        sage: primitive_ideal_number(-7, 23)
+        2
+        sage: primitive_ideal_number(-1556, 5077)
+        2
+        sage: primitive_ideal_number(-359, 63)
+        0
+    """
+    from sage.rings.number_field.number_field import QuadraticField
+    DK = QuadraticField(D, 'a').discriminant()
+    xx = (D / DK).floor().squarefree_part()
+    m = ((D / DK).floor() / xx).sqrt()
+    n = 1
+    for p in Q.prime_divisors():
+        xp = DK.kronecker(p)
+        s = Q.valuation(p)
+        r = m.valuation(p)
+        if r == 0:
+            n = n * (1 + xp) * xp ** (2 * (s - 1))
+        else:
+            if s < 2 * r:
+                if (s % 2) == 0:
+                    t = (s / 2).floor()
+                    n = n * (p - 1) * p ** (t - 1)
+                else:
+                    return 0
+            elif s == 2 * r:
+                n = n * (p - xp - 1) * p ** (r - 1)
+            else:
+                n = n * ((1 + xp) * xp ** (2 * (s - 2 * r - 1)) *
+                         (p - xp) * p ** (r - 1))
+    return n
