@@ -2556,9 +2556,9 @@ class CylinderDiagram(SeparatrixDiagram):
         if len(cc) == 1:
             return cc[0](stratum)
 
+        from abelian_strata import HypASC
         if cc[0] is HypASC:
             if self.is_hyperelliptic():
-                from abelian_strata import HypASC
                 return HypASC(stratum)
             elif len(cc) == 2:
                 return cc[1](stratum)
