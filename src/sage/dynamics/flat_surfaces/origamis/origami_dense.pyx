@@ -958,10 +958,8 @@ cdef class Origami_dense_pyx:
 
             sage: c = o.cylinder_diagram()
             sage: cs1 = o.cylinder_diagram().inverse()
-            sage: cs1.relabel()
             sage: cs2 = os.cylinder_diagram()
-            sage: cs2.relabel()
-            sage: cs1 == cs2
+            sage: cs1.is_isomorphic(cs2)
             True
         """
         cdef int i
@@ -989,10 +987,8 @@ cdef class Origami_dense_pyx:
         diagram::
 
             sage: cv1 = o.cylinder_diagram().vertical_symmetry()
-            sage: cv1.relabel()
             sage: cv2 = ov.cylinder_diagram()
-            sage: cv2.relabel()
-            sage: cv1 == cv2
+            sage: cv1.is_isomorphic(cv2)
             True
         """
         cdef int i
@@ -1020,10 +1016,8 @@ cdef class Origami_dense_pyx:
         diagram::
 
             sage: ch1 = o.cylinder_diagram().horizontal_symmetry()
-            sage: ch1.relabel()
             sage: ch2 = oh.cylinder_diagram()
-            sage: ch2.relabel()
-            sage: ch1 == ch2
+            sage: ch1.is_isomorphic(ch2)
             True
         """
         cdef int i
