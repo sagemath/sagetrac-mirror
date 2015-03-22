@@ -51,7 +51,6 @@ class TuplesGraySwitch:
         sage: for i,j in TuplesGraySwitch([3,3,3]):
         ....:     l[i] += j
         ....:     print l
-        ....:     
         [1, 0, 0]
         [2, 0, 0]
         [2, 1, 0]
@@ -107,7 +106,7 @@ class TuplesGraySwitch:
         self.f = range(self.n+1)  # focus pointer (dynamic)
         self.o = [1]*self.n       # +1 or -1 for the switch (dynamic)
         self.a = [0]*self.n       # the current tuple (dynamic)
-        
+
     def __iter__(self):
         r"""
         Return itself.
@@ -120,7 +119,7 @@ class TuplesGraySwitch:
             True
         """
         return self
-         
+
     def next(self):
         r"""
         Return the next switch
@@ -137,10 +136,10 @@ class TuplesGraySwitch:
             (1, 1)
         """
         j = self.f[0]
-        if j == self.n: 
+        if j == self.n:
             raise StopIteration
-        self.f[0] = 0            
-        o = self.o[j]            
+        self.f[0] = 0
+        o = self.o[j]
         self.a[j] += o
         if self.a[j] == 0 or self.a[j] == self.m[j]:
             self.f[j] = self.f[j+1]
