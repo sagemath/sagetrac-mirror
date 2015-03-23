@@ -19,8 +19,10 @@ Class for formal manipulation of Dirichlet series
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.libs.pari.pari_instance import pari
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.misc.defaults import series_precision
 from sage.symbolic.expression import Expression
 from sage.functions.transcendental import zeta
@@ -77,46 +79,42 @@ class DirichletSeries(SageObject):
 
         if not isinstance(arg, list):
             if arg == 1:  # identity
-                self.__coefficient_list = [0,1] + [0] * (precision-1)
+                self._coeffs = [1] + [0] * (precision-1)
             elif isinstance(arg, Expression):
                 vars = arg.variables()
                 if len(vars) != 1:
                     raise ValueError('Generating function must have exactly one variable')
                 if arg.operator() == zeta and arg.operands()[0].is_symbol():
-                    self.__coefficient_list = [1] * (1 + precision)
+                    self._coeffs = [1] * precision
                 else:
                     raise NotImplementedError
 
             ## Initialize the Internal variables
-            self.__base_ring = base_ring
-            self.__creation_function_expression = arg
-            self.__number_of_coeffs = len(self.__coefficient_list) - 1
-            self.__is_exact = is_exact_flag
-            self.__s_variable = default_var_string
+            self._base_ring = base_ring
+            self._creation_function_expression = arg
+            self._var = default_var_string
 
         else:
             tmp_coeff_list = [base_ring(x) for x in arg]
     
             ## Initialize the Internal variables
-            self.__base_ring = base_ring
-            self.__creation_function_expression = []
-            self.__coefficient_list = ['X'] + tmp_coeff_list
-            self.__number_of_coeffs = len(self.__coefficient_list) - 1
-            self.__is_exact = is_exact_flag
-            self.__s_variable = default_var_string
+            self._base_ring = base_ring
+            self._creation_function_expression = []
+            self._coeffs = tmp_coeff_list
+            self._var = default_var_string
 
     def base_ring(self):
         """
         Returns the base ring of the Dirichlet series.
         """
-        return self.__base_ring
+        return self._base_ring
 
         
     def precision(self):
         """
         Returns the computed precision of the Dirichlet series.
         """
-        return self.__number_of_coeffs
+        return len(self._coeffs)
     
 
     def extend_precision_to(self, n):
@@ -135,7 +133,7 @@ class DirichletSeries(SageObject):
         """
         Return if the series is an exact (finite) Dirichlet series
         """
-        return self.__is_exact
+        return False
 
     def nonzero_coeffs(self):
         """
@@ -148,8 +146,8 @@ class DirichletSeries(SageObject):
         """
         Return the value of the n-th coefficient.
         """
-        if (n >=1) and (n <= self.precision()):                 ## This check is probably too slow!
-            return self.__coefficient_list[n]
+        if (n >=0) and (n < self.precision()):                 ## This check is probably too slow!
+            return self._coeffs[n]
         elif self.is_exact() and (n > self.precision()):    ## Allow arbitrary evaluation precision of exact series! =)
             return self.base_ring()(0)
         else:
@@ -164,16 +162,16 @@ class DirichletSeries(SageObject):
         
         ## Add the first coefficient
         if n_prec >= 1:
-            out_str += str(self.__coefficient_list[1])
+            out_str += str(self._coeffs[0])
 
         ## Add all other non-zero coefficients up to the desired precision
-        for i in range(2, n_prec + 1):
-            if (self.__coefficient_list[i] != 0):
-                out_str += " + " + str(self.__coefficient_list[i]) + "/(" + str(i) + "^" + self.__s_variable + ")"
+        for i in range(1, n_prec):
+            if (self._coeffs[i] != 0):
+                out_str += " + " + str(self._coeffs[i]) + "/(" + str(i+1) + "^" + self._var + ")"
             
         ## Add the error term, if the result is not exact.
-        if not self.__is_exact:
-            out_str += " + O(" + str(n_prec + 1) + "^(-" + self.__s_variable + "))"
+        if not self.is_exact():
+            out_str += " + O(" + str(n_prec + 1) + "^(-" + self._var + "))"
             
         ## Return the output string
         return out_str
@@ -200,7 +198,7 @@ class DirichletSeries(SageObject):
             raise NotImplementedError, "For now the base rings must be the same!  TO DO: Add ring coersion!"
 
         ## Assume that these are just given by lists of coefficients for now!
-        sum_coeff_list = [self[i] + other[i]  for i in range(1, min(self.precision(), other.precision()) + 1)]
+        sum_coeff_list = [self[i] + other[i]  for i in range(min(self.precision(), other.precision()))]
         D_sum = dirichlet_series(sum_coeff_list)
 
         return D_sum
@@ -241,33 +239,21 @@ class DirichletSeries(SageObject):
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + O(5^(-s))
             sage: D2 = dirichlet_series(zeta(s), precision=8); D2
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-            sage: D22 = D2 * D2
-            new_coeff_list = [1, 2, 2, 3, 2, 4, 2, 4]
-            sage: D22
+            sage: D22 = D2 * D2; D22
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + 4/(8^s) + O(9^(-s))
 
         """
         from sage.rings.arith import divisors
         R = self.base_ring()
         try:
-            ## Scalar multiplication
+            _ = RR(other)
+        except TypeError:
+            new_precision = min(self.precision(), other.precision())
+            new_coeff_list = pari(self.list()).dirmul(other.list()).sage()
+            return dirichlet_series(new_coeff_list)
+        else:
             scale_factor = R(other)
-            return dirichlet_series([scale_factor * self[i]  for i in range(1, self.precision() + 1)])
-
-        except:
-            ## Dirichlet Multiplication
-            if not self.is_exact() and not other.is_exact():
-                new_precision = min(self.precision(), other.precision())
-            elif self.is_exact() and other.is_exact():
-                new_precision = max(self.precision(), other.precision())     ## If both are exact, we can take the precision of th
-            elif self.is_exact():
-                new_precision = other.precision()   
-            elif other.is_exact():
-                new_precision = self.precision()                
-                
-            new_coeff_list = [sum([self[d] * other[n/d]  for d in divisors(n)])  for n in range(1, new_precision + 1)]
-            new_exact_flag = self.is_exact() and other.is_exact()
-            return dirichlet_series(new_coeff_list, is_exact_flag=new_exact_flag)
+            return dirichlet_series([scale_factor * self[i]  for i in range(self.precision())])
 
     def __pow__(self, n):
         """
@@ -283,9 +269,9 @@ class DirichletSeries(SageObject):
             sage: D2^5
             1 + 5/(2^s) + 5/(3^s) + 15/(4^s) + 5/(5^s) + 25/(6^s) + 5/(7^s) + 35/(8^s) + O(9^(-s))
             sage: D2^0
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
+            1 + O(9^(-s))
             sage: D2^(-1)
-            1 + -1/(2^s) + -1/(3^s) + 0/(4^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + 0/(8^s) + O(9^(-s))
+            1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(9^(-s))
 
         """
         R = self.base_ring()
@@ -320,35 +306,33 @@ class DirichletSeries(SageObject):
         """
         Compute the inverse Dirichlet series under Dirichlet multiplication.
 
-        sage: s = var('s')
-        sage: D2 = dirichlet_series(zeta(s), precision=8); D2
-        1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-        sage: D2.inverse()
-        1 + -1/(2^s) + -1/(3^s) + 0/(4^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + 0/(8^s) + O(9^(-s))
-        sage: D2 * D2.inverse()
-        1 + 0/(2^s) + 0/(3^s) + 0/(4^s) + 0/(5^s) + 0/(6^s) + 0/(7^s) + 0/(8^s) + O(9^(-s))
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: D2 = dirichlet_series(zeta(s), precision=8); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
+            sage: D2.inverse()
+            1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(9^(-s))
+            sage: D2 * D2.inverse()
+            1 + O(9^(-s))
         """
         from sage.rings.arith import divisors
         R = self.base_ring()
 
         ## Check if the first coefficient is invertible in R
-        a1 = self[1]
+        a1 = self[0]
         a1_inv = a1^(-1)
         if not a1_inv in R:
             raise RuntimeError, "The leading term is not invertible in R, so the Dirichlet series is not invertible."
         
-        extended_inv_coeff_list = ["X", a1_inv] 
-        for n in range(2, self.precision() + 1):
-            extended_inv_coeff_list.append(-a1_inv * sum([self[n/d] * extended_inv_coeff_list[d]  for d in divisors(n)[:-1]]))
-#        print "extended_inv_coeff_list = " + str(extended_inv_coeff_list)
-
-        return dirichlet_series(extended_inv_coeff_list[1:])
+        new_coeff_list = pari(dirichlet_series(1).list()).dirdiv(self.list()).sage()
+        return dirichlet_series(new_coeff_list)
 
     def list(self):
         """
         Returns the list of coefficients of the Dirichlet series, where the zeroth coefficient is 'X'.
         """
-        return self.__coefficient_list
+        return self._coeffs
 
     def scale_variable_by(self, a):
         """
