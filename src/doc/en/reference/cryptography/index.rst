@@ -15,6 +15,7 @@ Cryptography
    sage/crypto/block_cipher/miniaes
 
    sage/crypto/public_key/blum_goldwasser
+   sage/crypto/public_key/rsa_cryptosystem
 
    sage/crypto/stream
    sage/crypto/stream_cipher
