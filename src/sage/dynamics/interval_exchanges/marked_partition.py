@@ -1,5 +1,5 @@
 r"""
-Marked partition.
+Marked partition
 
 The suspensions of interval exchanges have a natural geometric structure which
 is a translation surface. The singularities of the interval exchanges yield

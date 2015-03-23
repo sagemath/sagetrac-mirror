@@ -439,7 +439,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
             sage: p=iet.Permutation('a b','b a',reduced=True)
             sage: p.stratum()
-            H(0)
+            H_1(0)
             sage: p.rauzy_diagram()
             Rauzy diagram with 1 permutation
             sage: p.rauzy_class_cardinality()
@@ -447,7 +447,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
             sage: p = iet.Permutation('a 1 b','b 1 a',reduced=True)
             sage: p.stratum()
-            H(0^2)
+            H_1(0^2)
             sage: p.rauzy_diagram()
             Rauzy diagram with 3 permutations
             sage: p.rauzy_class_cardinality()
@@ -455,7 +455,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
             sage: p = iet.Permutation('a 1 2 b','b 1 2 a',reduced=True)
             sage: p.stratum()
-            H(0^3)
+            H_1(0^3)
             sage: p.rauzy_diagram()
             Rauzy diagram with 6 permutations
             sage: p.rauzy_class_cardinality()
@@ -476,10 +476,10 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
             sage: p = iet.Permutation('a b c d e f g','g c b f e d a',reduced=True)
             sage: p.marked_profile()
-            (2o4 [4, 2])
+            2o4 [4, 2]
             sage: pp = p.left_right_inverse()
             sage: pp.marked_profile()
-            (4o2 [4, 2])
+            4o2 [4, 2]
             sage: p.rauzy_class_cardinality()
             261
             sage: pp.rauzy_class_cardinality()
@@ -519,12 +519,12 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
         p = mp.partition()
 
         if extended:
-            return self.connected_component().rauzy_class_cardinality()
+            return self.stratum_component().rauzy_class_cardinality()
 
         if s.is_connected():  # easy stuff
             return gamma_irr(p,mp.left())
 
-        cc = self.connected_component()
+        cc = self.stratum_component()
         zeros = s.zeros(fake_zeros=False)
         g = s.genus()
         if zeros == [2*g-2] or zeros == [g-1,g-1]:  # hyp component + others
@@ -547,7 +547,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
                 if cc == s.hyperelliptic_component(): # hyp
                     return nb_hyp
 
-                if s.nb_connected_components() == 2: # other is alone
+                if s.number_of_components() == 2: # other is alone
                     N = gamma_irr(p,mp.left())
 
                 else: # others are odd and even

@@ -1,8 +1,8 @@
 r"""
 Cardinality of Rauzy classes
 
-The following functions implement algorithms relative to article [Del10]_ and
-[Boi10]_ where are given formulas for the cardinality of Rauzy classes of
+The following functions implement algorithms relative to article [Del2010]_ and
+[Boi2010]_ where are given formulas for the cardinality of Rauzy classes of
 permutations.
 
   - ``c``: number of standard labeled permutations
@@ -22,73 +22,21 @@ Vincent Delecroix
 
 REFERENCES:
 
-..[Vee82] Veech 1982
+.. [Boi2010] Boissy 2010
 
-..[Boi10] Boissy 2010
+.. [Del2010] Delecroix 2010
 
-..[Del10] Delecroix 2010
+.. [Vee1982] W. Veech, "Gauss measures for transformations on the space of
+   interval exchange maps", Ann. of Math., vol. 115, no. 2 (1982), pp. 201-242.
+
 """
+
+from sage.misc.cachefunc import cached_function
+
 from sage.rings.integer import Integer
 
-from sage.misc.cachefunc import CachedFunction
-from sage.structure.sage_object import SageObject
-
-from itertools import ifilter
-
-from sage.combinat.partition import Partitions,Partition
-from sage.functions.other import factorial
-from sage.rings.arith import binomial
-
-#TODO: to move in combinat
-############################
-# IRREDUCIBLE PERMUTATIONS #
-############################
-
-#@CachedFunction
-#def _fact_and_irr(k):
-#    r"""
-#    intermediate function to accelerate the computation of
-#    number_of_irreducible_permutations
-#
-#    the length of the result is k-1
-#
-#    [p(j)*factorial(k-j)]
-#
-#    TESTS::
-#
-#        sage: _fact_and_irr(1) == ()
-#        True
-#        sage: _fact_and_irr(2) == (1,)
-#        True
-#        sage: _fact_and_irr(3) == (2,1)
-#        True
-#    """
-#    if k == 1: return ()
-#    rec = _fact_and_irr(k-1)
-#    return (number_of_irreducible_permutations(k-1),) + tuple((j+2)*rec[j] for j in xrange(k-2))
-#
-#@CachedFunction
-#def number_of_irreducible_permutations(k):
-#    r"""
-#    Return the number of irreducible permutations on k letters.
-#
-#    Sloane A003319 (see also A158882, A167894)
-#
-#    EXAMPLES::
-#
-#        sage: for i in xrange(6): print i, number_of_irreducible_permutations(i)
-#        0 1
-#        1 1
-#        2 1
-#        3 3
-#        4 13
-#        5 71
-#    """
-#    if k <= 0: return 0
-#    return (factorial(k) - sum(_fact_and_irr(k)))
-#
-#number_of_connected_permutations = number_of_irreducible_permutations
-
+from sage.combinat.partition import Partition
+from sage.rings.arith import factorial, binomial
 
 #########################
 # PROFILES AND MARKINGS #
@@ -97,6 +45,20 @@ from sage.rings.arith import binomial
 def marking_iterator(profile,left=None,standard=False):
     r"""
     Returns the marked profile associated to a partition
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rcc
+        sage: p = Partition([3,2,2])
+        sage: list(rcc.marking_iterator(p))
+        [(1, 2, 0),
+         (1, 2, 1),
+         (1, 3, 0),
+         (1, 3, 1),
+         (1, 3, 2),
+         (2, 2, 2),
+         (2, 2, 3),
+         (2, 3, 2)]
     """
     e = Partition(sorted(profile,reverse=True)).to_exp_dict()
 
@@ -125,11 +87,11 @@ def split(p,k,i=0):
 
     INPUT:
 
-    - `p` - a partition
+    - ``p`` - a partition
 
-    - `k` - an integer between 2 and p[i]
+    - ``k`` - an integer between 2 and p[i]
 
-    - `i` - integer - the index of the element to split
+    - ``i`` - integer - the index of the element to split
 
     OUTPUT: a partition
 
@@ -157,9 +119,9 @@ def collapse(p,i,j):
 
     INPUT:
 
-    - `p` - a partition
+    - ``p`` - a partition
 
-    - `i,j` - two different indices of p
+    - ``i,j`` - two different indices of p
 
     OUTPUT:
 
@@ -190,50 +152,109 @@ def collapse(p,i,j):
     return Partition(l)
 
 def check_std_marking(p, marking):
+    r"""
+    Tiny internal function that checks the validity of ``marking`` on the
+    partition ``p``.
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rcc
+        sage: p = Partition([3,2,2])
+        sage: rcc.check_std_marking(p, (1,3,1))
+        (1, 3, 1)
+        sage: rcc.check_std_marking(p, (1,3,0))
+        Traceback (most recent call last):
+        ...
+        ValueError: marking[2] is not good
+    """
     if len(marking) != 3:
-        raise ValueError, "marking must be a 3-tuple (t,i,j)"
+        raise ValueError("marking must be a 3-tuple (t,i,j)")
 
     if marking[0] == 1:
         if marking[1] not in p:
-            raise ValueError, "marking[1] not in p"
+            raise ValueError("marking[1] not in p")
         if marking[2] < 1 or marking[2] > marking[1]-2:
-            raise ValueError, "marking[2] is not good"
+            raise ValueError("marking[2] is not good")
 
     elif marking[0] == 2:
         if marking[1] == marking[2]:
             if not p.to_exp(marking[1]) > 1:
-                raise ValueError, "wrong marking type 2"
+                raise ValueError("wrong marking type 2")
         elif marking[1] not in p or marking[2] not in p:
-            raise ValueError, "marking not in p"
+            raise ValueError("marking not in p")
     else:
-        raise ValueError, "marking[0] must be 1 or 2"
+        raise ValueError("marking[0] must be 1 or 2")
 
     return tuple(marking)
 
 def check_marking(p, marking):
+    r"""
+    Tiny internal function that checks that ``marking`` is compatible with ``p``.
+
+    OUTPUT:
+
+        A 3-tuple.
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rcc
+        sage: p = Partition([3,2,2])
+        sage: rcc.check_marking(p, (1,3,1))
+        (1, 3, 1)
+        sage: rcc.check_marking(p, (1,3,2))
+        (1, 3, 2)
+        sage: rcc.check_marking(p, (1,3,3))
+        Traceback (most recent call last):
+        ...
+        ValueError: marking[2] is not good
+        sage: rcc.check_marking(p, (1,3,-1))
+        Traceback (most recent call last):
+        ...
+        ValueError: marking[2] is not good
+        sage: rcc.check_marking(p, (2,3,2))
+        (2, 3, 2)
+        sage: rcc.check_marking(p, (2,3,3))
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong marking type 2
+    """
     if len(marking) != 3:
-        raise ValueError, "marking must be a 3-tuple (t,i,j)"
+        raise ValueError("marking must be a 3-tuple (t,i,j)")
 
     if marking[0] == 1:
         if marking[1] not in p:
-            raise ValueError, "marking[1] not in p"
+            raise ValueError("marking[1] not in p")
         if marking[2] < 0 or marking[2] > marking[1]-1:
-            raise ValueError, "marking[2] is not good"
+            raise ValueError("marking[2] is not good")
 
     elif marking[0] == 2:
         if marking[1] == marking[2]:
             if not p.to_exp_dict()[marking[1]] > 1:
-                raise ValueError, "wrong marking type 2"
+                raise ValueError("wrong marking type 2")
         elif marking[1] not in p or marking[2] not in p:
-            raise ValueError, "marking not in p"
+            raise ValueError("marking not in p")
     else:
-        raise ValueError, "marking[0] must be 1 or 2"
+        raise ValueError("marking[0] must be 1 or 2")
 
     return tuple(marking)
 
 def bidecompositions(p):
     r"""
-    Returns the family q1,q2 of partitions such that (q1,q2) is p
+    Iterator through the pair of partitions ``(q1,q2)`` such that the union of
+    the parts of ``q1`` and ``q2`` equal ``p``.
+
+    EXAMPLES::
+
+        sage: import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rcc
+        sage: list(rcc.bidecompositions(Partition([3,1])))
+        [([], [3, 1]), ([3], [1]), ([1], [3]), ([3, 1], [])]
+        sage: list(rcc.bidecompositions(Partition([2,1,1])))
+        [([], [2, 1, 1]),
+         ([2], [1, 1]),
+         ([1], [2, 1]),
+         ([2, 1], [1]),
+         ([1, 1], [2]),
+         ([2, 1, 1], [])]
     """
     from itertools import product
 
@@ -243,15 +264,17 @@ def bidecompositions(p):
         p2 = Partition(exp=[exp[j]-i[j] for j in xrange(len(exp))])
         yield p1,p2
 
-
 #########################
 # STANDARD PERMUTATIONS #
 #########################
 
 # number of permutations
 
-@CachedFunction
+@cached_function
 def _c_rec(p):
+    r"""
+    Recurrence function that is called by :func:`c`.
+    """
     if p[0] == 1: return factorial(len(p)-1)
 
     return (
@@ -262,13 +285,14 @@ def c(p):
     r"""
     Number of labeled standard permutations with given profile
 
-    We have an explicit formula which is not useful for partition with big
-    length
+    There is an explicit formula for this number
 
     .. MATH::
 
         c(p) = \frac{2 (n-1)!}{n+1} \left( \sum_{q \subset (p_2,p_3,\ldots,p_k)} (-1)^{s(q)-l(q)} \binom{n}{s(q)}^{-1} \right).
 
+    Though, for huge partition `p` this is not very useful. This function
+    implements an induction formula to compute `c(p)`.
 
     EXAMPLES::
 
@@ -552,9 +576,11 @@ spin_difference_for_standard_permutations = delta_std
 # FROM STANDARD PERMUTATIONS TO ALL #
 #####################################
 
-
-@CachedFunction
+@cached_function
 def _gamma_irr_rec(p, marking):
+    r"""
+    Internal recursive function called by :func:`gamma_irr`
+    """
     if len(p) == 0:
         return 1
 
@@ -694,8 +720,11 @@ def gamma_irr(profile=None, marking=None):
 
 number_of_irreducible_permutations = gamma_irr
 
-@CachedFunction
+@cached_function
 def _delta_irr_rec(p, marking):
+    r"""
+    Internal recursive function called by :func:`delta_irr`.
+    """
     if len(p) == 0:
         return 0
 
@@ -832,10 +861,4 @@ def delta_irr(profile, marking=None):
     return _delta_irr_rec(p, marking)
 
 spin_difference_for_irreducible_permutations = delta_irr
-
-
-##########################
-# LABELED RAUZY DIAGRAMS #
-##########################
-#TODO
 

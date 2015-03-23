@@ -1,11 +1,11 @@
 r"""
-Interval exchange transformations.
+Interval exchange transformations
 
 This library is designed for the usage and manipulation of interval
 exchange transformations and linear involutions. It defines specialized
-types of permutation (constructed using :meth:`iet.Permutation`) some
-associated graph (constructed using :meth:`iet.RauzyGraph`) and some maps
-of intervals (constructed using :meth:`iet.IntervalExchangeTransformation`).
+types of permutation (constructed using :func:`Permutation`) some
+associated graph (constructed using :func:`iet.RauzyGraph`) and some maps
+of intervals (constructed using :func:`IntervalExchangeTransformation`).
 
 
 EXAMPLES:
@@ -28,7 +28,7 @@ It can also be initialized using permutation (group theoritic ones)::
     3 2 1
 
 
-As the iet's are functions, you can compose and invert them
+As the iet's are functions, you can compose and invert them::
 
     sage: T = iet.IntervalExchangeTransformation(('a b','b a'),(sqrt(2),1))
     sage: T*T

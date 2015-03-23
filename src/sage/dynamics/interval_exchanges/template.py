@@ -1,5 +1,5 @@
 r"""
-Permutations template
+Template for permutations of interval exchange transformations
 
 This file define high level operations on permutations (alphabet,
 the different rauzy moves, ...) shared by reduced and labeled
@@ -1849,74 +1849,74 @@ class PermutationLI(Permutation):
 
             sage: Q = QuadraticStratum(9,-1)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(9, -1)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(9, -1)^irr
 
             sage: Q = QuadraticStratum(6,3,-1)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(6, 3, -1)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(6, 3, -1)^irr
 
             sage: Q = QuadraticStratum(3,3,3,-1)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(3^3, -1)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_3(3^3, -1)^irr
 
         Test the exceptionnal strata in genus 4::
 
             sage: Q = QuadraticStratum(12)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_4(12)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_4(12)^irr
 
             sage: Q = QuadraticStratum(9,3)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 1.5sec
             Q_4(9, 3)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 2sec
             Q_4(9, 3)^irr
 
             sage: Q = QuadraticStratum(6,6)
             sage: p = Q.hyperelliptic_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_4(6^2)^hyp
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 1sec
             Q_4(6^2)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 1sec
             Q_4(6^2)^irr
 
             sage: Q = QuadraticStratum(6,3,3)
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 3sec
             Q_4(6, 3^2)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 3sec
             Q_4(6, 3^2)^irr
 
             sage: Q = QuadraticStratum(3,3,3,3)
             sage: p = Q.hyperelliptic_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()
             Q_4(3^4)^hyp
             sage: p = Q.regular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 5sec
             Q_4(3^4)^reg
             sage: p = Q.irregular_component().permutation_representative()
-            sage: p.stratum_component()  # long time
+            sage: p.stratum_component()  # long time - 5sec
             Q_4(3^4)^irr
         """
         stratum = self.stratum()
