@@ -195,7 +195,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
             sage: latex(CartanType(['F', 4, 1]).dual())
             F_4^{(1)\vee}
         """
-        return self._type._latex_()+"^"+self.global_options('dual_latex')
+        return self._dual._latex_()+"^"+self.global_options('dual_latex')
 
     def __reduce__(self):
         """
@@ -203,10 +203,11 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
 
             sage: CartanType(['F', 4, 1]).dual().__reduce__()
             (*.dual(), (['F', 4, 1],))
-        """
-        return (attrcall("dual"), (self._type,))
 
-    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
+        """
+        return (attrcall("dual"), (self._dual,))
+
+    def _latex_dynkin_diagram(self, label = lambda x: x, edge_dist=2):
         r"""
         EXAMPLES::
 
@@ -219,18 +220,16 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
             \draw (2 cm, -0.1 cm) -- +(2 cm,0);
             \draw (4.0 cm,0) -- +(2 cm,0);
             \draw[shift={(2.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
             }
-            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$0$};
         """
-        if node is None:
-            node = self._latex_draw_node
-        return self._type._latex_dynkin_diagram(label, node, node_dist, dual=True)
+        return self._dual._latex_dynkin_diagram(label, edge_dist, dual=True)
 
-    def ascii_art(self, label=lambda i: i, node=None):
+    def ascii_art(self, label = lambda x: x):
         """
         Return an ascii art representation of this Cartan type
 
@@ -258,9 +257,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
             O=>=O---O---O=>=O
             0   1   2   3   4
         """
-        if node is None:
-            node = self._ascii_art_node
-        res = self._type.ascii_art(label, node)
+        res = self.dual().ascii_art(label)
         # swap, like a computer science freshman!
         # This assumes that the oriented multiple arrows are always ascii arted as =<= or =>=
         res = res.replace("=<=", "=?=")
@@ -290,7 +287,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         """
         if other.__class__ != self.__class__:
             return cmp(self.__class__, other.__class__)
-        return cmp(self._type, other._type)
+        return cmp(self._dual, other._dual)
 
     def dual(self):
         """
@@ -300,7 +297,27 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
            sage: ct.dual()
            ['F', 4, 1]
         """
-        return self._type
+        return self._dual
+
+    def rank(self):
+        """
+        EXAMPLES::
+
+           sage: ct = CartanType(['F', 4, 1]).dual()
+           sage: ct.rank()
+           5
+        """
+        return self._dual.rank()
+
+    def index_set(self):
+        """
+        EXAMPLES::
+
+           sage: ct = CartanType(['F', 4, 1]).dual()
+           sage: ct.index_set()
+           (0, 1, 2, 3, 4)
+        """
+        return self._dual.index_set()
 
     def dynkin_diagram(self):
         """
@@ -312,7 +329,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
             0   1   2   3   4
             F4~*
         """
-        return self._type.dynkin_diagram().dual()
+        return self._dual.dynkin_diagram().dual()
 
 ###########################################################################
 
@@ -617,16 +634,16 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
                 return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
                 return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
-            elif self._type.type() == 'C':
-                return "D_{%s}^{(2)}"%(self.rank)()
-            elif self._type.type() == 'F':
+            elif self.dual().type() == 'C':
+                return "D_{%s}^{(2)}"%(self.rank)
+            elif self.dual().type() == 'F':
                 return "E_6^{(2)}"
         result = self._type._latex_()
         import re
         if re.match(".*\^{\(\d\)}$", result):
             return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
         else:
-            return "{%s}^%s"%(result, self.global_options('dual_latex'))
+            return "{%s}^{%s}"%(result, self.global_options('dual_latex'))
 
     def _default_folded_cartan_type(self):
         """
@@ -664,4 +681,101 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if letter == 'G': # D_4^{(3)}
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
+
+    def hyperbolic(self):
+        r"""
+        Return the hyperbolic type corresponding to ``self``.
+        """
+        letter = self._dual.type()
+        raise NotImplementedError
+
+###########################################################################
+class CartanType_hyperbolic(CartanType, cartan_type.CartanType_hyperbolic):
+    def classical(self):
+        """
+        Return the classical Cartan type associated with ``self`` (which should
+        be hyperbolic).
+
+        EXAMPLES::
+        """
+        return self.dual().classical().dual()
+
+    def affine(self):
+        """
+        Return the affine Cartan type associated with ``self`` (which should
+        be hyperbolic).
+
+        EXAMPLES::
+        """
+        return self.dual().affine().dual()
+
+    def special_node(self):
+        """
+        Implement :meth:`CartanType_affine.special_node`
+
+        The special node of the dual of a hyperbolic type `T` is the
+        special node of `T`.
+
+        EXAMPLES::
+        """
+        return self.dual().special_node()
+
+    def overextended_node(self):
+        """
+        Implement :meth:`CartanType_lorenztian.overextended_node`
+
+        The overextended node of the dual of an hyperbolic type `T` is the
+        overextended node of `T`.
+
+        EXAMPLES::
+        """
+        return self.dual().overextended_node()
+
+    def _repr_(self, compact=False):
+        """
+        EXAMPLES::
+        """
+        dual_str = self.global_options('dual_str')
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                if compact:
+                    return 'A%s^2'%(self.classical().rank()*2-1)
+                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+            elif self.dual().type() == 'BC':
+                dual_str = '+'
+            elif self.dual().type() == 'C':
+                if compact:
+                    return 'D%s^2'%(self.rank())
+                return "['D', %s, 2]"%(self.rank())
+            elif self.dual().type() == 'F':
+                if compact:
+                    return 'E6^2'
+                return "['E', 6, 2]"
+        return CartanType._repr_(self, compact)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.global_options.reset()
+        """
+        ll = self.global_options('hyperbolic_latex')
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                return "A_{%s}^{(2) %S}"%(self.classical().rank()*2-1, ll)
+            elif self.dual().type() == 'BC':
+                return "A_{%s}^{(2)\\dagger %s}"%(2*self.classical().rank(), ll)
+            elif self.dual().type() == 'C':
+                return "D_{{{}}}^{{(2) {}}}".format(self.rank, ll)
+            elif self.dual().type() == 'F':
+                return "E_6^{{(2) {}}}".format(ll)
+        result = self._dual._latex_()
+        import re
+        if re.match(".*\^{\(\d\)}$", result):
+            return "%s%s\wedge}"%(result[:-1], ll)
+
+        return "{%s}^{%s}"%(result, ll)
 

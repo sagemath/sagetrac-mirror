@@ -559,6 +559,14 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return self._cartan_type.is_affine()
         return self.cartan_matrix().is_affine()
 
+    def is_hyperbolic(self):
+        """
+        Check if ``self`` corresponds to a hyperbolic type.
+        """
+        if self._cartan_type is not None:
+            return self._cartan_type.is_hyperbolic()
+        return self.cartan_matrix().is_hyperbolic()
+
     def is_irreducible(self):
         """
         Check if ``self`` corresponds to an irreducible root system.
