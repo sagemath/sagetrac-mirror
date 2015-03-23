@@ -1,5 +1,6 @@
 r"""
 Strata of quadratic differentials on Riemann surfaces
+
 More precisely, we are interested in meromorphic quadratic differentials
 with at most simple poles on closed compact connected Riemann surfaces,
 which are not globally the square of an abelian differential.
@@ -11,7 +12,7 @@ themselves are complex orbifolds. Most strata are connected but some
 (infinitely many) are not.
 
 A stratum corresponds to the Sage object
-:class:`~sage.dynamics.flat_surfaces.strata.QuadraticStratum`.
+:class:`~QuadraticStratum`.
 
 The classification of connected components of strata of quadratic
 differentials was established by Erwan Lanneau in [Lan08],
@@ -20,39 +21,41 @@ and Zorich in [KonZor03]_.
 
 Each stratum has one or two connected components and each
 component is associated to an extended Rauzy class. The
-:meth:`~sage.dynamics.flat_surfaces.strata.QuadraticStratum.components`
+:meth:`~sage.dynamics.flat_surfaces.strata.Stratum.components`
 method gives the decomposition of a stratum into its connected components.
 
 A representative for each connected component of stratum is given by Zorich in [Zor08]_.
 
 This is implemented here following [Zor08]_:
 
-- genus zero stratum :meth:`~GZQSC.permutation_representative`
+- genus zero stratum :meth:`~GenusZeroQuadraticStratumComponent.permutation_representative`
 
-- genus one stratum :meth:`~GOQSC.permutation_representative`
+- genus one stratum :meth:`~GenusOneQuadraticStratumComponent.permutation_representative`
 
-- genus two hyperellitic component :meth:`~GTHQSC.permutation_representative`
+- genus two hyperellitic component :meth:`~GenusTwoHyperellipticQuadraticStratumComponent.permutation_representative`
 
-- genus two non-hyperellitic component :meth:`~GTNQSC.permutation_representative`
+- genus two non-hyperellitic component :meth:`~ConnectedQuadraticStratumComponent.permutation_representative`
 
-- hyperelliptic component :meth:`~HQSC.permutation_representative`
+- connected component
+  :meth:`~ConnectedQuadraticStratumComponent.permutation_representative`
 
-- non-hyperelliptic component :meth:`~NQSC.permutation_representative`
+- hyperelliptic component :meth:`~HyperellipticQuadraticStratumComponent.permutation_representative`
 
-- regular component of exceptional stratum :meth:`~REQSC.permutation_representative`
+- non-hyperelliptic component is similar to connected components
 
-- irregular component of exceptional stratum :meth:`~IEQSC.permutation_representative`
+- regular component of exceptional stratum :meth:`~RegularExceptionalQuadraticStratumComponent.permutation_representative`
+
+- irregular component of exceptional stratum :meth:`~IrregularExceptionalQuadraticStratumComponent.permutation_representative`
 
 The inverse operation, i.e., starting from a permutation, determine
 the connected component it lives in, is partially written in [KonZor03]_.
-
 See:
-:meth:`~sage.dynamics.interval_exchanges.template.PermutationIET.connected_component`.
+:meth:`~sage.dynamics.interval_exchanges.template.PermutationLI.stratum_component`.
 
 The code here implements the descriptions in [Zor08]_. Zorich already
 implemented all this for Mathematica in [ZS]_.
 
-See also :mod:`abelian_strata` for Abelian strata.
+See also :mod:`~sage.dynamics.flat_surfaces.abelian_strata` for Abelian strata.
 
 AUTHORS:
 
@@ -119,16 +122,6 @@ List the connected components of a stratum::
     sage: p = c.permutation_representative(); p
     0 1 2 3 1 4 5
     2 6 5 4 6 3 0
-
-.. TODO::
-
-    implement connected components for generalized permutations
-    iterators for quadratic strata with constraints on genus and/or dimension
-    implement an "alphabet" option for the "permutation_representative" method
-    include examples with fake zeros in documentation
-    include an attribute "hyp" / "nonhyp" for components of strata?
-    include __init__ for all classes of connected components? no
-
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -468,7 +461,7 @@ class QuadraticStratum(Stratum):
             return HQSC(self)
         if GTHQSC in self._cc:
             return GTHQSC(self)
-        raise ValueError, "the stratum has no hyperelliptic component"
+        raise ValueError("the stratum has no hyperelliptic component")
 
     def has_non_hyperelliptic_component(self):
         r"""
@@ -501,7 +494,7 @@ class QuadraticStratum(Stratum):
             return NQSC(self)
         elif GTNQSC in self._cc:
             return GTNQSC(self)
-        raise ValueError, "no non hyperelliptic component"
+        raise ValueError("no non hyperelliptic component")
 
     def has_regular_and_irregular_components(self):
         r"""
@@ -537,7 +530,7 @@ class QuadraticStratum(Stratum):
         """
         if REQSC in self._cc:
             return REQSC(self)
-        raise ValueError, "no regular component for this stratum"
+        raise ValueError("no regular component for this stratum")
 
     def irregular_component(self):
         r"""
@@ -554,7 +547,7 @@ class QuadraticStratum(Stratum):
         """
         if IEQSC in self._cc:
             return IEQSC(self)
-        raise ValueError, "no irregular component for this stratum"
+        raise ValueError("no irregular component for this stratum")
 
     def random_cylindric_permutation(self):
         r"""
@@ -1021,7 +1014,7 @@ class GenusTwoHyperellipticQuadraticStratumComponent(QSC):
             l0 = ll + [6, 1, 5, 6, 4, 3]
             l1 = [1, 2, 3, 4, 2, 5]
         else:
-            raise ValueError, "Wrong stratum for GenusTwoHyperellipticQuadraticStratumComponent"
+            raise ValueError("Wrong stratum for GenusTwoHyperellipticQuadraticStratumComponent")
 
         l1.extend(ll)
 
@@ -1153,7 +1146,7 @@ class HyperellipticQuadraticStratumComponent(QSC):
         elif len(z) == 4: r = z[0]+1; s = z[2]+1
         elif len(z) == 3 and z[0]%2: r = z[0]+1; s = z[2]//2
         elif len(z) == 3: r = z[0]//2; s = z[2]+1
-        else: raise ValueError, "This stratum has no hyperelliptic component!"
+        else: raise ValueError("This stratum has no hyperelliptic component!")
 
         l0 = ll + ['A']
         l0.extend(range(1,r+1))
@@ -1361,7 +1354,7 @@ class RegularExceptionalQuadraticStratumComponent(QSC):
             l0 = ll + [1, 2, 3, 4, 2, 3, 5, 5, 6]
             l1 = [7, 1, 8, 7, 8, 4, 6]
         else:
-            raise ValueError, "RegularExceptionalQuadraticStratumComponent applies only to the 4 exceptional strata"
+            raise ValueError("RegularExceptionalQuadraticStratumComponent applies only to the 4 exceptional strata")
 
         l1.extend(ll)
 
@@ -1450,7 +1443,7 @@ class IrregularExceptionalQuadraticStratumComponent(QSC):
             l0 = ll + [1, 2, 3, 4, 5, 1, 6, 2, 3, 4, 5, 6, 7]
             l1 = [7, 8, 8]
         else:
-            raise ValueError, "IrregularExceptionalQuadraticStratumComponent applies only to the 4 exceptional strata"
+            raise ValueError("IrregularExceptionalQuadraticStratumComponent applies only to the 4 exceptional strata")
 
         l1.extend(ll)
 
@@ -1563,7 +1556,7 @@ def QuadraticStrata(genus=None, dimension=None, min_nb_poles=None, max_nb_poles=
                 max_nb_poles = Integer(max_nb_poles)
 
         if max_nb_poles < min_nb_poles:
-            raise ValueError, "min_nb_poles should be less or equal than max_nb_poles"
+            raise ValueError("min_nb_poles should be less or equal than max_nb_poles")
 
     if genus is None:
         if dimension is None:
@@ -1788,7 +1781,7 @@ class QuadraticStrata_g(QuadraticStrata_class):
         g = self._genus
         if g == 1: # Q(0) and Q(1,-1) are empty
             if p == 0 or p == 1:
-                raise NotImplementedError, "empty list"
+                raise NotImplementedError("empty list")
         elif g == 2 and p == 0:  # Q(4) and Q(3,1) are empty
             return QuadraticStratum(2,2)
         return QuadraticStratum([4*g-4+p]+[-1]*p)
