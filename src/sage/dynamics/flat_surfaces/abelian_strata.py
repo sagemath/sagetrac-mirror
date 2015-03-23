@@ -4,7 +4,7 @@ Strata of differentials on Riemann surfaces
 The space of Abelian differentials on Riemann surfaces of a given genus is
 stratified by degrees of zeros. Each stratum has one, two or three connected
 components each of which is associated to an extended Rauzy class. The
-:meth:`~sage.combinat.iet.strata.AbelianStratum.components` method
+:meth:`~sage.dynamics.flat_surfaces.strata.Stratum.components` method
 lists connected components of a stratum.
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
@@ -14,17 +14,17 @@ stratum to the associated Rauzy class (for both interval exchange
 transformations and linear involutions) in [Zor08]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
-- for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.permutation_representative`
+- for connected stratum :meth:`~AbelianStratumComponent.permutation_representative`
 
 - for hyperellitic component
-  :meth:`~HypConnectedComponentOfAbelianStratum.permutation_representative`
+  :meth:`~HypAbelianStratumComponent.permutation_representative`
 
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
 
-- for odd component :meth:`~OddConnectedComponentOfAbelianStratum.permutation_representative`
+- for odd component :meth:`~OddAbelianStratumComponent.permutation_representative`
 
-- for even component :meth:`~EvenConnectedComponentOfAbelianStratum.permutation_representative`
+- for even component :meth:`~EvenAbelianStratumComponent.permutation_representative`
 
 The inverse operation (pass from an interval exchange transformation to
 the connected component) is partially written in [KonZor03]_ and
@@ -1340,6 +1340,9 @@ class AbelianStratumComponent(StratumComponent):
 
         - ``ncyls`` - integer or list of integers (default: None) - consider
           only the cylinder diagrams with a given number of cylinders.
+
+        - ``force_computation`` -- boolean (default ``False``). If ``True``, the
+          database of cylinder diagrams is not used.
 
         EXAMPLES::
 
