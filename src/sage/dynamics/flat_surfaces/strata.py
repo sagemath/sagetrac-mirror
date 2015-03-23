@@ -1,10 +1,9 @@
 r"""
 Strata of differential on Riemann surfaces
 
-The templates above are intended to be unifying for both Abelian and quadratic
-differentials. Moreover it provides the general structure for the parentship
-relation between stratum and its connected components. It also provides the
-necessary __reduce__ method for pickling.
+This file gather common code used in
+:mod:`~sage.dynamics.flat_surfaces.abelian_strata` and
+:mod:`~sage.dynamics.flat_surfaces.quadratic_strata`.
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -47,25 +46,26 @@ class Stratum(SageObject):
 
     Assumes there are
 
-    - a method .zeros() which returns the list of all zeros
+    - a method ``.zeros()`` which returns the list of all zeros
 
-    - a method .nb_zeros() which returns the number of zeros with an option
+    - a method ``.nb_zeros()`` which returns the number of zeros with an option
       fake_zeros which could be true or false
 
-    - a method .nb_fake_zeros() which returns the number of fake zeros
+    - a method ``.nb_fake_zeros()`` which returns the number of fake zeros (or
+      marked points)
 
-    - a method .dimension() which returns the dimension of the stratum
+    - a method ``.dimension()`` which returns the dimension of the stratum
 
-    - an attribute ._cc which is a list of classes associated to the
+    - an attribute ``._cc`` which is a list of classes associated to the
       connected components of self
 
     There may be
 
-    - an attribute ._name which corresponds to the begining of the string
+    - an attribute ``._name`` which corresponds to the begining of the string
       representation (default is the empty string)
 
-    - an attribute ._latex_name which corresponds to the begining of the latex
-      string representation (uses _name by default)
+    - an attribute ``._latex_name`` which corresponds to the begining of the latex
+      string representation (uses ``_name`` by default)
 
     """
     _name = ''
@@ -106,8 +106,10 @@ class Stratum(SageObject):
         """
         TESTS::
 
-            sage: repr(AbelianStratum(1,1))   #indirect doctest
+            sage: repr(AbelianStratum(1,1))       # indirect doctest
             'H_2(1^2)'
+            sage: repr(QuadraticStratum(1,1,1,1)) # indirect doctest
+            'Q_2(1^4)'
         """
         return self._name + "_" + str(self.genus()) + "(" + self._zero_str() + ")"
 
@@ -158,8 +160,6 @@ class Stratum(SageObject):
             sage: AbelianStratum(2,0) == AbelianStratum(2)
             False
         """
-        if not isinstance(other, Stratum):
-            return False
         return type(self) == type(other) and self.zeros() == other.zeros()
 
     def __ne__(self, other):
@@ -232,9 +232,7 @@ class Stratum(SageObject):
         r"""
         Test if the strata is connected.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: AbelianStratum([2]).is_connected()
             True
@@ -317,7 +315,7 @@ class Stratum(SageObject):
         if self.components():
             return self.components()[-1]
         from sage.categories.sets_cat import EmptySetError
-        raise EmptySetError, "The stratum is empty"
+        raise EmptySetError("The stratum is empty")
 
     def unique_component(self):
         r"""
@@ -365,7 +363,7 @@ class Stratum(SageObject):
             from sage.misc.prandom import choice
             return choice(self.components())
         from sage.categories.sets_cat import EmptySetError
-        raise EmptySetError, "The stratum is empty"
+        raise EmptySetError("The stratum is empty")
 
     def components(self):
         """
@@ -377,30 +375,25 @@ class Stratum(SageObject):
 
         EXAMPLES:
 
-        ::
+        Some abelian strata::
 
             sage: AbelianStratum(0).components()
             [H_1(0)^hyp]
-
-        ::
-
             sage: AbelianStratum(2).components()
             [H_2(2)^hyp]
-            sage: AbelianStratum(1,1).components()
-            [H_2(1^2)^hyp]
-
-        ::
-
             sage: AbelianStratum(4).components()
             [H_3(4)^hyp, H_3(4)^odd]
-            sage: AbelianStratum(3,1).components()
-            [H_3(3, 1)^c]
             sage: AbelianStratum(2,2).components()
             [H_3(2^2)^hyp, H_3(2^2)^odd]
-            sage: AbelianStratum(2,1,1).components()
-            [H_3(2, 1^2)^c]
             sage: AbelianStratum(1,1,1,1).components()
             [H_3(1^4)^c]
+
+        Some quadratic strata::
+
+            sage: QuadraticStratum(12).components()
+            [Q_4(12)^reg, Q_4(12)^irr]
+            sage: QuadraticStratum(6,-1,-1).components()
+            [Q_2(6, -1^2)^hyp, Q_2(6, -1^2)^nonhyp]
         """
         return map(lambda x: x(self), self._cc)
 
@@ -551,4 +544,7 @@ class StratumComponent(SageObject):
 #
 
 class Strata(Parent):
+    r"""
+    Strata of Abelian or Quadratic differentials.
+    """
     pass
