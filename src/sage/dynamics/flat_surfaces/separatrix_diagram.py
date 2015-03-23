@@ -20,15 +20,14 @@ This representation of a surface is used in various constructions:
 
 - description of the cusp of Teichmueller curves
 
-TODO::
+.. TODO::
 
-- We need a more general structure to encode configurations of structure of
-  saddle connections (which need not be completely periodic directions (see
-  [EMZ]_, [MZ]_)
+    - We need a more general structure to encode configurations of structure of
+      saddle connections (which need not be completely periodic directions (see
+      [EMZ]_, [MZ]_)
 
-- Gray code for conjugacy classes of permutation in order to optimize the
-  generation of separatrix and cylinder diagrams.
-
+    - Gray code for conjugacy classes of permutation in order to optimize the
+      generation of separatrix and cylinder diagrams.
 
 REFERENCES:
 
@@ -141,7 +140,7 @@ class SeparatrixDiagram(SageObject):
     ``bot`` and ``top`` share the same number of cycles.
 
     bot (resp. top) has to be thought a bottom (resp. top) of a potential face
-    as in the following
+    as in the following::
 
             -- bot -->
         -------------------
@@ -1763,13 +1762,14 @@ class CylinderDiagram(SeparatrixDiagram):
     Separatrix diagram with pairing.
 
     Each cylinder is stored as a couple (bot,top) for which the orientation is
-    as follows
-
-     ---------------------
-    |     <-- top --      |
-    |                     |
-    |     -- bot -->      |
-     ---------------------
+    as follows::
+    
+        +--------------------+
+        |     <-- top --     |
+        |                    |
+        |                    |
+        |      -- bot -->    |
+        +--------------------+
 
     INPUT:
 
@@ -2493,7 +2493,7 @@ class CylinderDiagram(SeparatrixDiagram):
 
         The output matrix has size `ncyls \times nseps`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         For a one cylinder diagram, there is no relations::
 
