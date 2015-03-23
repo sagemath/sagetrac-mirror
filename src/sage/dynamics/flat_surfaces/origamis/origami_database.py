@@ -1286,8 +1286,8 @@ class OrigamiDatabase(SQLDatabase):
 
         sage: A = AbelianStratum(2)
         sage: for n in xrange(3, 15):
-        ...     q = D.query(stratum=A, nb_squares=n)
-        ...     print "%2d %d"%(n, q.number_of())
+        ....:     q = D.query(stratum=A, nb_squares=n)
+        ....:     print "%2d %d"%(n, q.number_of())
          3 1
          4 1
          5 2
@@ -1897,18 +1897,18 @@ class OrigamiDatabase(SQLDatabase):
         return format_cols
 
     def query(self, *query_list, **kwds):
-        """
+        r"""
         From a list of restriction, returns a list of possible entry in the
         database. By default, returns only the found origamis.
 
         Where to find the possible entries self.cols() then a sign among '='
-        (equality), '<>' (difference), '<', '>', '<=', >=' (comparisons).
+        (equality), '<>' (difference), '<', '>', '<=', '>=' (comparisons).
 
         EXAMPLES::
 
             sage: D = OrigamiDatabase()
             sage: for o in D.query(stratum=AbelianStratum(1,1), nb_squares=6):
-            ...    print o,"\n---------------"
+            ....:     print o,"\n---------------"
             (1)(2)(3,4,5,6)
             (1,2,3)(4,5,6)
             ---------------

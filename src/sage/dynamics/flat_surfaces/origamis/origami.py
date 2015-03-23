@@ -10,6 +10,18 @@ An origami is:
 - gluing of squares
 
 - Abelian differential on Riemann surface with rational periods
+
+EXAMPLES::
+
+    sage: E = origamis.EierlegendeWollmilchsau()
+    sage: E.r()
+    (1,2,3,4)(5,6,7,8)
+    sage: E.u()
+    (1,5,3,7)(2,8,4,6)
+    sage: E.stratum_component()
+    H_3(1^4)^c
+    sage: E.lyapunov_exponents_approx()
+    [0.0000485630931783940, 0.0000452662733371477]
 """
 from origami_dense import Origami_dense_pyx
 
@@ -2013,10 +2025,16 @@ class OrigamiObjects(Parent):
 
     @cached_method
     def cycle_space(self):
+        r"""
+        The space of cycles.
+        """
         return self.derivative().right_kernel()
 
     @cached_method
     def border_space(self):
+        r"""
+        The border space.
+        """
         return self.derivative().column_space()
 
 class OrigamiFaces(OrigamiObjects):
@@ -2443,6 +2461,9 @@ class OrigamiVertex(Element):
 
     @cached_method
     def edge_positions(self):
+        r"""
+        The position of the edges.
+        """
         d_in = {}
         d_out = {}
         e_in = self.incoming_edge_indices()
