@@ -9038,6 +9038,60 @@ cdef class gen(gen_auto):
             return P.new_gen(nextprime(gaddsg(1, self.g)))
         return P.new_gen(nextprime(self.g))
 
+    def dirmul(self, other):
+        """
+        Return ``self`` multiplied with ``other``, with both
+        operands and the output being lists containing the
+        coefficients of a Dirichlet series.
+
+        EXAMPLES::
+
+            sage: zeta = pari([1]*20); zeta
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: o = pari([1]+[0]*19); o
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: zeta.dirmul(o)
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: o.dirmul(zeta)
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: zeta.dirmul(zeta)
+            [1, 2, 2, 3, 2, 4, 2, 4, 3, 4, 2, 6, 2, 4, 4, 5, 2, 6, 2, 6]
+            sage: zeta.dirmul(zeta).dirmul(zeta)
+            [1, 3, 3, 6, 3, 9, 3, 10, 6, 9, 3, 18, 3, 9, 9, 15, 3, 18, 3, 18]
+        """
+        cdef gen selfgen = objtogen(self)
+        cdef gen othergen = objtogen(other)
+        pari_catch_sig_on()
+        return P.new_gen(dirmul(selfgen.g, othergen.g))
+
+    def dirdiv(self, other):
+        """
+        Return ``self`` divided by ``other``, with both
+        operands and the output being lists containing the
+        coefficients of a Dirichlet series.
+
+        EXAMPLES::
+
+            sage: zeta = pari([1]*20); zeta
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: o = pari([1]+[0]*19); o
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: zeta.dirdiv(zeta)
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: o.dirdiv(o)
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: zeta.dirdiv(o)
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: o.dirdiv(zeta)
+            [1, -1, -1, 0, -1, 1, -1, 0, 0, 1, -1, 0, -1, 1, 1, 0, -1, 0, -1, 0]
+            sage: o.dirdiv(zeta).dirdiv(zeta)
+            [1, -2, -2, 1, -2, 4, -2, 0, 1, 4, -2, -2, -2, 4, 4, 0, -2, -2, -2, -2]
+        """
+        cdef gen selfgen = objtogen(self)
+        cdef gen othergen = objtogen(other)
+        pari_catch_sig_on()
+        return P.new_gen(dirdiv(selfgen.g, othergen.g))
+
     def change_variable_name(self, var):
         """
         In ``self``, which must be a ``t_POL`` or ``t_SER``, set the
