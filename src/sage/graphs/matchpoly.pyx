@@ -442,12 +442,30 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
 
 class Hobj(object):
     """
-    class used to compute products of nilpotent quantities associated
+    Class used to compute products of nilpotent quantities associated
     to hard objects, like non-adjacent edges or non-adjacent vertices,
     used respectively to compute the matching and the independence
     polynomial.
     """
     def __init__(self):
+        """
+        Create an empty `Hobj` object.
+
+        `links` is the list of tuples representing hard objects.
+
+        `dt` is the dictionary associating elements, like `i` in `\eta_i`,
+        to a pointer to the object.
+
+        `freedt` is a free store of pointers.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.matchpoly import Hobj
+            sage: hb = Hobj()
+            sage: hb.links
+            []
+
+        """
         self.links = []
         self.dt = {}
         self.freedt = list(range(1000, -1, -1))
@@ -472,11 +490,15 @@ class Hobj(object):
             ``free`` is the list of indices of ``eta`` elements which
             are integrated (that is, put to ``1`` after performing the product).
 
-            For example let `p = 1 + eta_0*eta_1`; multiply it by
+            For example let `p = 1 + t*eta_0*eta_1`; multiply it by
             `1 + t*eta_1*eta_2`, knowing that after performing the product
             `eta_1` can be set to `1`, then
             p*(1 + t*eta_1*eta_2) = 1 + t*eta_0 + t*eta_2
-            `val = `; obj = (1, 2); free = [1];
+            `val = 1`; obj = (1, 2); free = [1];
+
+            polynomials are represented in dictionary form: to a variable
+            `\eta_i` is associated ``(1 << j)`, where `j` is a pointer
+            to `i`, obtained from a free store.
 
         EXAMPLES::
 
@@ -624,7 +646,7 @@ def gen_count_hobj(objects, values=None):
     .. NOTE::
 
         This function is used in `matching_generating_poly`
-        and `independence_poly`.
+        (and `independence_poly`, to be added in a future pull request).
 
     EXAMPLES::
 
@@ -731,15 +753,15 @@ def matching_generating_poly(g, links=None, labels=None):
         replacing `\eta_i` with `1` as soon as the node `i` is absent from
         `E(G) - E_k`.
 
-        The result of performing these product is independent from the
+        The result of performing these products is independent from the
         ordering, but the efficiency of the algorithm depends exponentially
         from the number of `active nodes`, that is the nodes present in
         `G_k`, the graph defined by `E_k`, and which have in `G`
         degree greater than in `G_k` (if a node has the same degree in
-        `G_k` as in `G` it means that one can set `eta_k=1`.
+        `G_k` as in `G` it means that one can set `eta_k=1`).
 
         A simple greedy algorithm tries to find an efficient ordering of
-        edges to compute the matching polynomial.
+        edges to compute the matching generating polynomial.
 
         There is no guarantee that an efficient ordering of the edges is found.
         Alternatively can provide explicitly the list of edges `links`.
