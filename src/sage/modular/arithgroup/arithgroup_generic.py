@@ -425,7 +425,8 @@ class ArithmeticSubgroup(group.Group):
 
         from all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
-            if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu2() == 0:
+            if (self.is_subgroup(Gamma0(self.level())) and
+                    Gamma0(self.level()).nu2() == 0):
                 return 0
 
         # Otherwise, the number of elliptic points is the number of g
@@ -437,7 +438,7 @@ class ArithmeticSubgroup(group.Group):
 
         count = 0
         for g in self.coset_reps():
-            if g * SL2Z([0,1,-1,0]) * (~g) in self:
+            if g * SL2Z([0, 1, -1, 0]) * (~g) in self:
                 count += 1
         return count
 
@@ -455,23 +456,23 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(Gamma0(1729)) == 8
             True
 
-        We test that a bug in handling of subgroups not containing -1 is fixed: ::
+        We test that a bug in handling of subgroups not containing -1
+        is fixed: ::
 
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(GammaH(7, [2]))
             2
         """
-
-        # Cheap trick: if self is a subgroup of something with no elliptic points,
-        # then self has no elliptic points either.
-
+        # Cheap trick: if self is a subgroup of something with no
+        # elliptic points, then self has no elliptic points either.
         from all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
-            if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu3() == 0:
+            if (self.is_subgroup(Gamma0(self.level())) and
+                    Gamma0(self.level()).nu3() == 0):
                 return 0
 
         count = 0
         for g in self.coset_reps():
-            if g * SL2Z([0,1,-1,-1]) * (~g) in self:
+            if g * SL2Z([0, 1, -1, -1]) * (~g) in self:
                 count += 1
 
         if self.is_even():
@@ -516,10 +517,10 @@ class ArithmeticSubgroup(group.Group):
 
     def is_finite(self):
         r"""
-        Return True if this arithmetic subgroup is finite.
+        Return ``True`` if this arithmetic subgroup is finite.
 
         Since arithmetic subgroups are always infinite, this always
-        returns False.
+        returns ``False``.
 
         EXAMPLES::
 
@@ -536,10 +537,12 @@ class ArithmeticSubgroup(group.Group):
 
     def is_subgroup(self, right):
         r"""
-        Return True if self is a subgroup of right, and False otherwise. For
-        generic arithmetic subgroups this is done by the absurdly slow
-        algorithm of checking all of the generators of self to see if they are
-        in right.
+        Return ``True`` if ``self`` is a subgroup of ``right``, and
+        ``False`` otherwise.
+
+        For generic arithmetic subgroups this is done by the absurdly
+        slow algorithm of checking all of the generators of ``self``
+        to see if they are in ``right``.
 
         EXAMPLES::
 
@@ -551,16 +554,12 @@ class ArithmeticSubgroup(group.Group):
             True
         """
         # ridiculously slow generic algorithm
-
-        w = self.gens()
-        for g in w:
-            if not (g in right):
-                return False
-        return True
+        return all(g in right for g in self.gens())
 
     def is_normal(self):
         r"""
-        Return True precisely if this subgroup is a normal subgroup of SL2Z.
+        Return ``True`` precisely if this subgroup is a normal
+        subgroup of SL2Z.
 
         EXAMPLES::
 
@@ -569,15 +568,12 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(3).is_normal()
             False
         """
-        for x in self.gens():
-            for y in SL2Z.gens():
-                if y*SL2Z(x)*(~y) not in self:
-                    return False
-        return True
+        return all(y * SL2Z(x) * (~y) in self for x in self.gens()
+                   for y in SL2Z.gens())
 
     def is_odd(self):
         r"""
-        Return True precisely if this subgroup does not contain the
+        Return ``True`` precisely if this subgroup does not contain the
         matrix -1.
 
         EXAMPLES::
@@ -595,7 +591,7 @@ class ArithmeticSubgroup(group.Group):
 
     def is_even(self):
         r"""
-        Return True precisely if this subgroup contains the matrix -1.
+        Return ``True`` precisely if this subgroup contains the matrix -1.
 
         EXAMPLES::
 
@@ -612,7 +608,7 @@ class ArithmeticSubgroup(group.Group):
 
     def to_even_subgroup(self):
         r"""
-        Return the smallest even subgroup of `SL(2, \ZZ)` containing self.
+        Return the smallest even subgroup of `SL(2, \ZZ)` containing ``self``.
 
         EXAMPLE::
 
@@ -623,8 +619,7 @@ class ArithmeticSubgroup(group.Group):
         """
         if self.is_even():
             return self
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def order(self):
         r"""
@@ -667,13 +662,15 @@ class ArithmeticSubgroup(group.Group):
 
     def cusps(self, algorithm='default'):
         r"""
-        Return a sorted list of inequivalent cusps for self, i.e. a set of
+        Return a sorted list of inequivalent cusps for ``self``, i.e. a set of
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
+
         These should be returned in a reduced form where this makes sense.
 
         INPUTS:
 
-        - ``algorithm`` -- which algorithm to use to compute the cusps of self.
+        - ``algorithm`` -- which algorithm to use to compute the cusps
+          of ``self``.
           ``'default'`` finds representatives for a known complete set of
           cusps. ``'modsym'`` computes the boundary map on the space of weight
           two modular symbols associated to self, which finds the cusps for
@@ -742,15 +739,16 @@ class ArithmeticSubgroup(group.Group):
                 L.append(ai)
         return L
 
-    def are_equivalent(self, x, y, trans = False):
+    def are_equivalent(self, x, y, trans=False):
         r"""
-        Test whether or not cusps x and y are equivalent modulo self.
+        Test whether or not cusps x and y are equivalent modulo ``self``.
 
-        If self has a reduce_cusp() method, use that; otherwise do a
+        If ``self`` has a reduce_cusp() method, use that; otherwise do a
         slow explicit test.
 
-        If trans = False, returns True or False. If trans = True, then return
-        either False or an element of self mapping x onto y.
+        If trans = False, returns ``True`` or ``False``. If trans =
+        True, then return either ``False`` or an element of ``self`` mapping x
+        onto y.
 
         EXAMPLE::
 
@@ -773,32 +771,33 @@ class ArithmeticSubgroup(group.Group):
             except NotImplementedError:
                 pass
 
-        vx = lift_to_sl2z(x.numerator(),x.denominator(), 0)
+        vx = lift_to_sl2z(x.numerator(), x.denominator(), 0)
         dx = SL2Z([vx[2], -vx[0], vx[3], -vx[1]])
-        vy = lift_to_sl2z(y.numerator(),y.denominator(), 0)
+        vy = lift_to_sl2z(y.numerator(), y.denominator(), 0)
         dy = SL2Z([vy[2], -vy[0], vy[3], -vy[1]])
 
         for i in xrange(self.index()):
-            # Note that the width of any cusp is bounded above by the index of self.
-            # If self is congruence, then the level of self is a much better bound, but
-            # this method is written to work with non-congruence subgroups as well,
-            if dy * SL2Z([1,i,0,1])*(~dx) in self:
+            # Note that the width of any cusp is bounded above by the
+            # index of self. If self is congruence, then the level of
+            # self is a much better bound, but this method is written
+            # to work with non-congruence subgroups as well.
+            if dy * SL2Z([1, i, 0, 1]) * (~dx) in self:
                 if trans:
-                    return dy * SL2Z([1,i,0,1]) * ~dx
+                    return dy * SL2Z([1, i, 0, 1]) * ~dx
                 else:
                     return True
-            elif (self.is_odd() and dy * SL2Z([-1,-i,0,-1]) * ~dx in self):
+            elif (self.is_odd() and dy * SL2Z([-1, -i, 0, -1]) * ~dx in self):
                 if trans:
-                    return dy * SL2Z([-1,-i,0,-1]) * ~dx
+                    return dy * SL2Z([-1, -i, 0, -1]) * ~dx
                 else:
                     return True
         return False
 
     def cusp_data(self, c):
         r"""
-        Return a triple (g, w, t) where g is an element of self generating the
-        stabiliser of the given cusp, w is the width of the cusp, and t is 1 if
-        the cusp is regular and -1 if not.
+        Return a triple (g, w, t) where g is an element of ``self``
+        generating the stabiliser of the given cusp, w is the width of
+        the cusp, and t is 1 if the cusp is regular and -1 if not.
 
         EXAMPLES::
 
@@ -812,19 +811,21 @@ class ArithmeticSubgroup(group.Group):
 
         # first find an element of SL2Z sending infinity to the given cusp
         w = lift_to_sl2z(c.denominator(), c.numerator(), 0)
-        g = SL2Z([w[3], w[1], w[2],w[0]])
+        g = SL2Z([w[3], w[1], w[2], w[0]])
 
-        for d in xrange(1,1+self.index()):
-            if g * SL2Z([1,d,0,1]) * (~g) in self:
-                return (g * SL2Z([1,d,0,1]) * (~g), d, 1)
-            elif g * SL2Z([-1,-d,0,-1]) * (~g) in self:
-                return (g * SL2Z([-1,-d,0,-1]) * (~g), d, -1)
+        for d in xrange(1, 1 + self.index()):
+            if g * SL2Z([1, d, 0, 1]) * (~g) in self:
+                return (g * SL2Z([1, d, 0, 1]) * (~g), d, 1)
+            elif g * SL2Z([-1, -d, 0, -1]) * (~g) in self:
+                return (g * SL2Z([-1, -d, 0, -1]) * (~g), d, -1)
         raise ArithmeticError("Can't get here!")
 
     def is_regular_cusp(self, c):
         r"""
-        Return True if the orbit of the given cusp is a regular cusp for self,
-        otherwise False. This is automatically true if -1 is in self.
+        Return ``True`` if the orbit of the given cusp is a regular
+        cusp for ``self``, otherwise ``False.``
+
+        This is automatically true if -1 is in ``self``.
 
         EXAMPLES::
 
@@ -833,7 +834,8 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(4).is_regular_cusp(Cusps(oo))
             True
         """
-        if self.is_even(): return True
+        if self.is_even():
+            return True
         return (self.cusp_data(c)[2] == 1)
 
     def cusp_width(self, c):
@@ -900,8 +902,10 @@ class ArithmeticSubgroup(group.Group):
 
     def projective_index(self):
         r"""
-        Return the index of the image of self in `{\rm PSL}_2(\ZZ)`. This is equal
-        to the index of self if self contains -1, and half of this otherwise.
+        Return the index of the image of ``self`` in `{\rm PSL}_2(\ZZ)`.
+
+        This is equal to the index of ``self`` if ``self`` contains
+        -1, and half of this otherwise.
 
         This is equal to the degree of the natural map from the modular curve
         of self to the `j`-line.
@@ -913,15 +917,13 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(5).projective_index()
             12
         """
-
         if self.is_even():
             return self.index()
-        else:
-            return self.index() // 2
+        return self.index() // 2
 
     def is_congruence(self):
         r"""
-        Return True if self is a congruence subgroup.
+        Return ``True`` if ``self`` is a congruence subgroup.
 
         EXAMPLE::
 
@@ -932,12 +934,11 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError
         """
-
         raise NotImplementedError
 
     def genus(self):
         r"""
-        Return the genus of the modular curve of self.
+        Return the genus of the modular curve of ``self``.
 
         EXAMPLES::
 
@@ -953,17 +954,17 @@ class ArithmeticSubgroup(group.Group):
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 2, 2]
             sage: [n for n in [1..200] if Gamma0(n).genus() == 1]
             [11, 14, 15, 17, 19, 20, 21, 24, 27, 32, 36, 49]
-
-
         """
-
-        return ZZ(1 + (self.projective_index()) / ZZ(12)  - (self.nu2())/ZZ(4) - (self.nu3())/ZZ(3) - self.ncusps()/ZZ(2))
+        return ZZ(1 + (self.projective_index()) / ZZ(12) -
+                  (self.nu2()) / ZZ(4) - (self.nu3()) / ZZ(3) -
+                  self.ncusps() / ZZ(2))
 
     def farey_symbol(self):
         r"""
-        Return the Farey symbol associated to this subgroup. See the
-        :mod:`~sage.modular.arithgroup.farey_symbol` module for more
-        information.
+        Return the Farey symbol associated to this subgroup.
+
+        See the :mod:`~sage.modular.arithgroup.farey_symbol` module
+        for more information.
 
         EXAMPLE::
 
@@ -976,7 +977,9 @@ class ArithmeticSubgroup(group.Group):
     @cached_method
     def generators(self, algorithm="farey"):
         r"""
-        Return a list of generators for this congruence subgroup. The result is cached.
+        Return a list of generators for this congruence subgroup.
+
+        The result is cached.
 
         INPUT:
 
@@ -1005,12 +1008,13 @@ class ArithmeticSubgroup(group.Group):
             [0 1], [ 0 -1], [-2  1], [ 0 -1], [-2  3], [ 2 -1], [2 1]
             ]
         """
-        if algorithm=="farey":
+        if algorithm == "farey":
             return self.farey_symbol().generators()
         elif algorithm == "todd-coxeter":
             return self.todd_coxeter()[1]
-        else:
-            raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)
+
+        msg = "Unknown algorithm '{}' (should be 'farey' or 'todd-coxeter')"
+        raise ValueError(msg.format(algorithm))
 
     def gens(self, *args, **kwds):
         r"""
@@ -1102,7 +1106,8 @@ class ArithmeticSubgroup(group.Group):
         if self.is_even():
             return 0
         else:
-            return ZZ(len([c for c in self.cusps() if not self.is_regular_cusp(c)]))
+            return ZZ(len([c for c in self.cusps()
+                           if not self.is_regular_cusp(c)]))
 
     def dimension_modular_forms(self, k=2):
         r"""
@@ -1134,36 +1139,39 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
-
         k = ZZ(k)
-        if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
+        if k < 0:
+            return ZZ.zero()
+        if k == 0:
+            return ZZ.one()
 
         if not (k % 2):
             # k even
+            return (k - 1) * (self.genus() - 1) + (k // ZZ(4)) * self.nu2() + (k // ZZ(3)) * self.nu3() + (k // ZZ(2)) * self.ncusps()
 
-            return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2))*self.ncusps()
+        # k odd
+        if self.is_even():
+            return ZZ.zero()
 
-        else:
-            # k odd
-            if self.is_even():
-                return ZZ(0)
-            else:
-                e_reg = self.nregcusps()
-                e_irr = self.nirregcusps()
+        e_reg = self.nregcusps()
+        e_irr = self.nirregcusps()
 
-                if k > 1:
-                    return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k * e_reg)/ZZ(2) + (k-1)/ZZ(2) * e_irr
-                else:
-                    if e_reg > 2*self.genus() - 2:
-                        return e_reg / ZZ(2)
-                    else:
-                        raise NotImplementedError("Computation of dimensions of weight 1 modular forms spaces not implemented in general")
+        if k > 1:
+            return (k - 1) * (self.genus() - 1) + (k // ZZ(3)) * self.nu3() + (k * e_reg) / ZZ(2) + (k - 1) / ZZ(2) * e_irr
+
+        if e_reg > 2 * self.genus() - 2:
+            return e_reg / ZZ(2)
+
+        raise NotImplementedError("Computation of dimensions of weight 1"
+                                  " modular forms spaces not implemented "
+                                  "in general")
 
     def dimension_cusp_forms(self, k=2):
         r"""
         Return the dimension of the space of weight k cusp forms for this
-        group. This is given by a standard formula in terms of k and various
+        group.
+
+        This is given by a standard formula in terms of k and various
         invariants of the group; see Diamond + Shurman, "A First Course in
         Modular Forms", section 3.5 and 3.6. If k is not given, default to k =
         2.
@@ -1191,7 +1199,8 @@ class ArithmeticSubgroup(group.Group):
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         k = ZZ(k)
-        if k <= 0: return ZZ(0)
+        if k <= 0:
+            return ZZ.zero()
 
         if not (k % 2):
             # k even
@@ -1199,24 +1208,23 @@ class ArithmeticSubgroup(group.Group):
             if k == 2:
                 return self.genus()
 
-            else:
-                return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2) - 1)*self.ncusps()
+            return (k - 1) * (self.genus() - 1) + (k // ZZ(4)) * self.nu2() + (k // ZZ(3)) * self.nu3() + (k // ZZ(2) - 1) * self.ncusps()
 
         else:
             # k odd
 
             if self.is_even():
-                return ZZ(0)
+                return ZZ.zero()
 
             else:
                 e_reg = self.nregcusps()
                 e_irr = self.nirregcusps()
 
                 if k > 1:
-                    return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k-2)/ZZ(2) * e_reg + (k-1)/ZZ(2) * e_irr
+                    return (k - 1) * (self.genus() - 1) + (k // ZZ(3)) * self.nu3() + (k - 2) / ZZ(2) * e_reg + (k - 1) / ZZ(2) * e_irr
                 else:
-                    if e_reg > 2*self.genus() - 2:
-                        return ZZ(0)
+                    if e_reg > 2 * self.genus() - 2:
+                        return ZZ.zero()
                     else:
                         raise NotImplementedError("Computation of dimensions of weight 1 cusp forms spaces not implemented in general")
 
@@ -1241,23 +1249,24 @@ class ArithmeticSubgroup(group.Group):
             sage: GammaH(33, [4]).dimension_eis(1)
             4
         """
+        if k < 0:
+            return ZZ.zero()
+        if k == 0:
+            return ZZ.one()
 
-        if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
-
-        if not (k % 2): # k even
+        if not (k % 2):  # k even
             if k > 2:
                 return self.ncusps()
-            else: # k = 2
+            else:  # k = 2
                 return self.ncusps() - 1
 
-        else: # k odd
+        else:  # k odd
             if self.is_even():
                 return 0
             if k > 1:
                 return self.nregcusps()
-            else: # k = 1
-                return ZZ(self.nregcusps()/ ZZ(2))
+            else:  # k = 1
+                return ZZ(self.nregcusps() / ZZ(2))
 
     def as_permutation_group(self):
         r"""
@@ -1284,7 +1293,7 @@ class ArithmeticSubgroup(group.Group):
             sage: P.an_element() in G
             True
         """
-        _,_,l_edges,s2_edges=self.todd_coxeter()
+        _, _, l_edges, s2_edges = self.todd_coxeter()
         n = len(l_edges)
         s3_edges = [None] * n
         r_edges = [None] * n
@@ -1294,16 +1303,18 @@ class ArithmeticSubgroup(group.Group):
             r_edges[ii] = s2_edges[i]
         if self.is_even():
             from sage.modular.arithgroup.arithgroup_perm import EvenArithmeticSubgroup_Permutation
-            g=EvenArithmeticSubgroup_Permutation(S2=s2_edges,S3=s3_edges,L=l_edges,R=r_edges)
+            g = EvenArithmeticSubgroup_Permutation(S2=s2_edges, S3=s3_edges,
+                                                   L=l_edges, R=r_edges)
         else:
             from sage.modular.arithgroup.arithgroup_perm import OddArithmeticSubgroup_Permutation
-            g=OddArithmeticSubgroup_Permutation(S2=s2_edges,S3=s3_edges,L=l_edges,R=r_edges)
+            g = OddArithmeticSubgroup_Permutation(S2=s2_edges, S3=s3_edges,
+                                                  L=l_edges, R=r_edges)
         g.relabel()
         return g
 
     def sturm_bound(self, weight=2):
         r"""
-        Returns the Sturm bound for modular forms of the given weight and level
+        Return the Sturm bound for modular forms of the given weight and level
         this subgroup.
 
         INPUT:
@@ -1311,6 +1322,7 @@ class ArithmeticSubgroup(group.Group):
         -  ``weight`` - an integer `\geq 2` (default: 2)
 
         EXAMPLES::
+
             sage: Gamma0(11).sturm_bound(2)
             2
             sage: Gamma0(389).sturm_bound(2)
@@ -1552,11 +1564,13 @@ class ArithmeticSubgroup(group.Group):
         algorithm works over ZZ, or arbitrary modules. ::
 
             sage: Pol12 = PolynomialRing(ZZ, "X", 12); Pol12
-            Multivariate Polynomial Ring in X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11 over Integer Ring
+            Multivariate Polynomial Ring in X0, X1, X2, X3, X4, X5, X6, X7,
+            X8, X9, X10, X11 over Integer Ring
             sage: indata = [Pol12("X"+str(i)) for i in range(12)]; indata
             [X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11]
             sage: Gamma0(11).z_integrality_algorithm(indata)
-            [0, -X0 + X1, 0, 0, 0, 0, 0, 0, 0, 0, -X4 + X5 + X6 - X7 - X8 + X10, -X4 + X5 + X6 - X7 - X9 + X11]
+            [0, -X0 + X1, 0, 0, 0, 0, 0, 0, 0, 0, -X4 + X5 + X6 - X7 - X8 +
+            X10, -X4 + X5 + X6 - X7 - X9 + X11]
 
         Explicitly, one could take the module of homogeneous
         polynomials in two variables in degree k - 1 over the integers
@@ -1692,8 +1706,8 @@ class ArithmeticSubgroup(group.Group):
     def z_wellformed_SZ_graph(self):
         from sage.all import Graph
         graph = Graph(multiedges=True)
-        #vertices == orbits of i and zeta_6, on the Riemann surface of self
-        #edges == orbits of the geodesic path joining i and zeta_6
+        # vertices == orbits of i and zeta_6, on the Riemann surface of self
+        # edges == orbits of the geodesic path joining i and zeta_6
         #
         # for a 2-relation [A, AS], both A and AS map i to the same point
         # for a 3-relation [A, AZ, AZZ], all three map zeta_6 to the same point
@@ -1701,21 +1715,21 @@ class ArithmeticSubgroup(group.Group):
         wf_list = self.z_wellformed_coset_reps_and_relations()
         sublist = wf_list[0]
         graph.add_edge(str(firstrel), str(sublist[3]),
-                       label = str(sublist[0]))
+                       label=str(sublist[0]))
         for index in xrange(1, len(wf_list)):
             sublist = wf_list[index]
             thisrel = sublist[3]
             if len(thisrel) == 1:
                 thisrel = [thisrel[0], index]
             graph.add_edge(str(wf_list[sublist[4]][3]), str(thisrel),
-                label = sublist[0])
+                           label=sublist[0])
         return graph
 
     def z_wellformed_cusps_graph(self):
         from sage.all import Graph
         graph = Graph(multiedges=True)
-        #vertices == cusps
-        #edges == unimodular paths
+        # vertices == cusps
+        # edges == unimodular paths
         return graph
 
     def z_wellformed_coset_reps_and_relations(self):
@@ -1859,135 +1873,139 @@ class ArithmeticSubgroup(group.Group):
             [ 4 -1], 'ZSZZSZZSZZ', 8, [14], 13]]
         """
         Id = SL2Z.one()
-
         minusId = -Id
 
-        S = SL2Z([0,-1,     #   S^2 == minusId  and  S^4 == Id
-                  1, 0])    #   S fixes i in the upper half plane
+        S = SL2Z([0, -1,     # S^2 == minusId  and  S^4 == Id
+                  1, 0])    # S fixes i in the upper half plane
 
-        Z = SL2Z([0,-1,     #   Z^3 == Id
-                  1,-1])    #   Z fixes zeta_6 in the upper half plane
+        Z = SL2Z([0, -1,     # Z^3 == Id
+                  1, -1])    # Z fixes zeta_6 in the upper half plane
 
-        ret_list = []     #list of sublists (currently empty) to return
-        listlength = 0      #helper variable,  listlength == len(ret_list)
-        start = 0      #first of the sublists with relations to be filled
-        ret_list.append([Id,       #coset representative as matrix in SL2Z
-                         "",       #and as word in S and R (empty word for Id)
-                         1,        #Id counts as one "digit", alone or before Z
-                         [],       #relation beginning with Id (filled later)
-                         None ])   #(index of) predecessor (None for Id)
-        listlength += 1            #ret_list now has one more sublist
+        ret_list = []     # list of sublists (currently empty) to return
+        listlength = 0      # helper variable,  listlength == len(ret_list)
+        start = 0      # first of the sublists with relations to be filled
+        ret_list.append([Id,       # coset representative as matrix in SL2Z
+                         "",       # and as word in S and R (empty word for Id)
+                         1,        # Id counts as one "digit", alone or before Z
+                         [],       # relation beginning with Id (filled later)
+                         None])    # (index of) predecessor (None for Id)
+        listlength += 1            # ret_list now has one more sublist
         if not S in self:
-            ret_list.append([S,    #possibly later overwritten by Z or Z*Z
-                             "S",  #possibly later overwritten by "Z" or "ZZ"
-                             1,    #S also counts as one "digit"
-                             [],   #to be filled next round
-                             0 ])  #the predecesor of S is Id (and has index 0)
-            listlength += 1        #ret_list now has one more sublist
+            ret_list.append([S,    # possibly later overwritten by Z or Z*Z
+                             "S",  # possibly later overwritten by "Z" or "ZZ"
+                             1,    # S also counts as one "digit"
+                             [],   # to be filled next round
+                             0])   # the predecesor of S is Id (and has index 0)
+            listlength += 1        # ret_list now has one more sublist
         #  Remark
-        #Now, the relations (sublist[3]) still have to be filled in.
-        #In the course of doing so, ret_list may grow further.
-        #The relations belonging to such new sublists can't be filled in
-        #immediately, leading to another round to follow after the current one.
-        #The process stops after the first round, in which no new sublist
-        #had to be added.
-        #The rounds handle alternatingly either a "row" of sublists where
-        #the words (sublist[1]) end with either Z or ZZ, and one "S" is to be
-        #added; or else a "row" of sublists, where to the words one or two "Z"
-        #are to be added.
+        # Now, the relations (sublist[3]) still have to be filled in.
+        # In the course of doing so, ret_list may grow further.
+        # The relations belonging to such new sublists can't be filled in
+        # immediately, leading to another round to follow after the current one.
+        # The process stops after the first round, in which no new sublist
+        # had to be added.
+        # The rounds handle alternatingly either a "row" of sublists where
+        # the words (sublist[1]) end with either Z or ZZ, and one "S" is to be
+        # added; or else a "row" of sublists, where to the words one or two "Z"
+        # are to be added.
         while start < listlength:
-            cur_wordlength = ret_list[start][2]   #length of the word in digits
-            cur_row = range(start, listlength)    #may later become "holes"
-            start = listlength                    #(remember for next round)
-            if cur_wordlength%2 == 0: #all of the words end with either Z or ZZ
+            cur_wordlength = ret_list[start][2]  # length of the word in digits
+            cur_row = range(start, listlength)   # may later become "holes"
+            start = listlength                   # (remember for next round)
+            if cur_wordlength % 2 == 0:
+                # all of the words end with either Z or ZZ
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AS = A * S
-                    if AS * ~A in self:    #no need to test for the negative
-                        a_sublist[3] = [a, a]    #degenerated 2-relation
+                    if AS * ~A in self:    # no need to test for the negative
+                        a_sublist[3] = [a, a]    # degenerated 2-relation
                     else:
-                        #  Remark
-                        #The following "inner" loop essentially makes this
-                        #whole algorithm quadratic in the index of the group
-                        #self in SL2Z (i.e. in the number of cosets).
-                        #If at the start, there is some list of the coset reps
-                        #already available and a kind of lookup function, that
-                        #gives the index of the coset an arbitrary matrix
-                        #belongs to, then the inner loop(s) can be avoided, and
-                        #replaced by just a lookup in a table of coset reps
-                        #"already visited" so far, thus making this step O(1).
-                        #And making the entire algorithm linear in the index
-                        #(which is the best possible).
-                        #This is the case having M-symbols at hand, e.g. for
-                        #Gamma0(N), Gamma1(N), Gamma(N), see below.
-                        for b in cur_row[ cur_row.index(a) + 1 :  ]:
+                        # Remark
+                        # The following "inner" loop essentially makes
+                        # this whole algorithm quadratic in the index
+                        # of the group self in SL2Z (i.e. in the
+                        # number of cosets).  If at the start, there
+                        # is some list of the coset reps already
+                        # available and a kind of lookup function,
+                        # that gives the index of the coset an
+                        # arbitrary matrix belongs to, then the inner
+                        # loop(s) can be avoided, and replaced by just
+                        # a lookup in a table of coset reps "already
+                        # visited" so far, thus making this step O(1).
+                        # And making the entire algorithm linear in
+                        # the index (which is the best possible).
+                        # This is the case having M-symbols at hand,
+                        # e.g. for Gamma0(N), Gamma1(N), Gamma(N), see
+                        # below.
+                        for b in cur_row[cur_row.index(a) + 1:]:
                             b_sublist = ret_list[b]
                             B = b_sublist[0]
                             ASinvB = AS * ~B
                             if (ASinvB in self) or (minusId * ASinvB in self):
-                                a_sublist[3] = [a, b]         #2-relation
+                                a_sublist[3] = [a, b]      # 2-relation
                                 b_sublist[3] = [a]
-                                cur_row.remove(b)  #remove from outer for-loop
-                                break              #leave inner for-loop
-                        if len(a_sublist[3]) != 2: #results in new coset rep
-                            a_sublist[3] = [a, listlength]    #2-relation
+                                cur_row.remove(b)  # remove from outer for-loop
+                                break               # leave inner for-loop
+                        if len(a_sublist[3]) != 2:  # results in new coset rep
+                            a_sublist[3] = [a, listlength]    # 2-relation
                             ret_list.append([AS,
                                              a_sublist[1] + "S",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
+                                             [],   # to be filled next round
+                                             a])  # predecessor
                             listlength += 1
-            else:  #cur_wordlength%2 != 0 , the words end with neither Z nor ZZ
+            else:
+                # cur_wordlength%2 != 0 , the words end with neither Z nor ZZ
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AZ = A * Z
-                    if AZ * ~A in self:    #no need to test for the negative
-                        a_sublist[3] = [a, a, a]    #degenerated 3-relation
+                    if AZ * ~A in self:    # no need to test for the negative
+                        a_sublist[3] = [a, a, a]    # degenerated 3-relation
                     else:
-                        for b in cur_row[ cur_row.index(a) + 1 :  ]:
+                        for b in cur_row[cur_row.index(a) + 1:]:
                             b_sublist = ret_list[b]
                             B = b_sublist[0]
                             AZinvB = AZ * ~B
                             if (AZinvB in self) or (minusId * AZinvB in self):
-                                a_sublist[3] = [a, b]   #incomplete 3-relation
-                                b_sublist[0] = AZ                   #overwrite
-                                b_sublist[1] = a_sublist[1] + "Z"   #overwrite
-                                #b_sublist[2]==a_sublist[2]  #don't overwrite!
-                                b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                                b_sublist[4] = a                    #overwrite
-                                cur_row.remove(b)  #remove from outer for-loop
-                                break              #leave inner for-loop
-                        if len(a_sublist[3]) != 2: #results in new coset rep
-                            a_sublist[3] = [a, listlength]   #incomplete 3-rel.
+                                a_sublist[3] = [a, b]   # incomplete 3-relation
+                                b_sublist[0] = AZ                   # overwrite
+                                b_sublist[1] = a_sublist[1] + "Z"   # overwrite
+                                # b_sublist[2]==a_sublist[2]  # don't overwrite!
+                                b_sublist[3] = [b_sublist[4]]    # old pred.
+                                b_sublist[4] = a                   # overwrite
+                                cur_row.remove(b)  # remove from outer for-loop
+                                break              # leave inner for-loop
+                        if len(a_sublist[3]) != 2:  # results in new coset rep
+                            a_sublist[3] = [a, listlength]  # incomplete 3-rel.
                             ret_list.append([AZ,
                                              a_sublist[1] + "Z",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
+                                             [],   # to be filled next round
+                                             a])  # predecessor
                             listlength += 1
                         AZZ = AZ * Z
-                        for b in cur_row[ cur_row.index(a) + 1 :  ]:
+                        for b in cur_row[cur_row.index(a) + 1:]:
                             b_sublist = ret_list[b]
                             B = b_sublist[0]
                             AZZinvB = AZZ * ~B
-                            if (AZZinvB in self) or (minusId*AZZinvB in self):
-                                a_sublist[3] = a_sublist[3] + [b] #comp. 3-rel.
-                                b_sublist[0] = AZZ                  #overwrite
-                                b_sublist[1] = a_sublist[1] + "ZZ"  #overwrite
-                                #b_sublist[2]==a_sublist[2]  #don't overwrite!
-                                b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                                b_sublist[4] = a                    #overwrite
-                                cur_row.remove(b)  #remove from outer for-loop
-                                break              #leave inner for-loop
-                        if len(a_sublist[3]) != 3: #results in new coset rep
-                            a_sublist[3] = a_sublist[3] + [listlength]  #3-rel.
+                            if (AZZinvB in self) or (minusId * AZZinvB in self):
+                                a_sublist[3] = a_sublist[3] + [b]  # comp. 3-rel.
+                                b_sublist[0] = AZZ                  # overwrite
+                                b_sublist[1] = a_sublist[1] + "ZZ"  # overwrite
+                                # b_sublist[2]==a_sublist[2]  # don't overwrite!
+                                b_sublist[3] = [b_sublist[4]]     # old pred.
+                                b_sublist[4] = a                    # overwrite
+                                cur_row.remove(b)  # remove from outer for-loop
+                                break              # leave inner for-loop
+                        if len(a_sublist[3]) != 3:  # results in new coset rep
+                            a_sublist[3] = a_sublist[3] + [listlength]  # 3 -rel.
                             ret_list.append([AZZ,
-                                             a_sublist[1] + "ZZ", #ZZ counts as
-                                             a_sublist[2] + 1, #only one digit!
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
+                                             a_sublist[1] + "ZZ",  # ZZ counts as
+                                             a_sublist[2] + 1,  # only one digit!
+                                             [],   # to be filled next round
+                                             a])  # predecessor
                             listlength += 1
         return ret_list
 
@@ -2044,48 +2062,45 @@ class ArithmeticSubgroup(group.Group):
             raise TypeError("... only for Gamma1(N) ...")
 
         N = self.level()
-        checklist = [-1 for x in xrange(N*N)] #crude checklist for M-Symbols
+        checklist = [-1] * (N * N)  # crude checklist for M-Symbols
 
-        from all import SL2Z
+        Id = SL2Z.one()
 
-        Id      = SL2Z([ 1, 0,
-                         0, 1])
+        S = SL2Z([0, -1,     # S^2 == minusId  and  S^4 == Id
+                  1, 0])    # S fixes i in the upper half plane
 
-        S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
-                         1, 0])    #   S fixes i in the upper half plane
+        Z = SL2Z([0, -1,     # Z^3 == Id
+                  1, -1])    # Z fixes zeta_6 in the upper half plane
 
-        Z       = SL2Z([ 0,-1,     #   Z^3 == Id
-                         1,-1])    #   Z fixes zeta_6 in the upper half plane
-
-        ret_list   = []     #list of sublists (currently empty) to return
-        listlength = 0      #helper variable,  listlength == len(ret_list)
-        start      = 0      #first of the sublists with relations to be filled
-        ret_list.append([Id,       #coset representative as matrix in SL2Z
-                         "",       #and as word in S and R (empty word for Id)
-                         1,        #Id counts as one "digit", alone or before Z
-                         [],       #relation beginning with Id (filled later)
-                         None ])   #(index of) predecessor (None for Id)
-        checklist[N*0 + 1%N] = listlength       #Id.c() == 0    Id.d() == 1
-        listlength += 1            #ret_list now has one more sublist
+        ret_list = []     # list of sublists (currently empty) to return
+        listlength = 0      # helper variable,  listlength == len(ret_list)
+        start = 0      # first of the sublists with relations to be filled
+        ret_list.append([Id,       # coset representative as matrix in SL2Z
+                         "",       # and as word in S and R (empty word for Id)
+                         1,        # Id counts as one "digit", alone or before Z
+                         [],       # relation beginning with Id (filled later)
+                         None])   # (index of) predecessor (None for Id)
+        checklist[N * 0 + 1 % N] = listlength     # Id.c() == 0    Id.d() == 1
+        listlength += 1            # ret_list now has one more sublist
         if not S in self:
-            ret_list.append([S,    #possibly later overwritten by Z or Z*Z
-                             "S",  #possibly later overwritten by "Z" or "ZZ"
-                             1,    #S also counts as one "digit"
-                             [],   #to be filled next round
-                             0 ])  #the predecesor of S is Id (and has index 0)
-            checklist[N*1 + 0] = listlength     #S.c() == 1    S.d() == 0
-            listlength += 1        #ret_list now has one more sublist
+            ret_list.append([S,    # possibly later overwritten by Z or Z*Z
+                             "S",  # possibly later overwritten by "Z" or "ZZ"
+                             1,    # S also counts as one "digit"
+                             [],   # to be filled next round
+                             0])  # the predecesor of S is Id (and has index 0)
+            checklist[N * 1 + 0] = listlength     # S.c() == 1    S.d() == 0
+            listlength += 1        # ret_list now has one more sublist
         while start < listlength:
-            cur_wordlength = ret_list[start][2]   #length of the word in digits
-            cur_row = range(start, listlength)    #may later become "holes"
-            start = listlength                    #(remember for next round)
-            if cur_wordlength%2 == 0:
+            cur_wordlength = ret_list[start][2]   # length of the word in digits
+            cur_row = range(start, listlength)    # may later become "holes"
+            start = listlength                    # (remember for next round)
+            if cur_wordlength % 2 == 0:
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AS = A * S
-                    c    = AS.c()%N
-                    d    = AS.d()%N
+                    c = AS.c() % N
+                    d = AS.d() % N
                     negc = -c
                     negd = -d
                     if c < 0:
@@ -2096,35 +2111,35 @@ class ArithmeticSubgroup(group.Group):
                         d += N
                     if negd < 0:
                         negd += N
-                    checklist_index = N*c + d
-                    b = checklist[ checklist_index ]
+                    checklist_index = N * c + d
+                    b = checklist[checklist_index]
                     if b == -1:
-                        checklist_index = N*negc + negd
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * negc + negd
+                        b = checklist[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a]    #degenerated 2-relation
+                        a_sublist[3] = [a, a]    # degenerated 2-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]         #2-relation
-                            b_sublist    = ret_list[b]
+                            a_sublist[3] = [a, b]         # 2-relation
+                            b_sublist = ret_list[b]
                             b_sublist[3] = [a]
-                            cur_row.remove(b) #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]    #2-relation
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]    # 2-relation
                             ret_list.append([AS,
                                              a_sublist[1] + "S",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
-            else:    #cur_wordlength%2 != 0
+            else:    # cur_wordlength%2 != 0
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AZ = A * Z
-                    c    = AZ.c()%N
-                    d    = AZ.d()%N
+                    c = AZ.c() % N
+                    d = AZ.d() % N
                     negc = -c
                     negd = -d
                     if c < 0:
@@ -2135,35 +2150,35 @@ class ArithmeticSubgroup(group.Group):
                         d += N
                     if negd < 0:
                         negd += N
-                    checklist_index = N*c + d
-                    b = checklist[ checklist_index ]
+                    checklist_index = N * c + d
+                    b = checklist[checklist_index]
                     if b == -1:
-                        checklist_index = N*negc + negd
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * negc + negd
+                        b = checklist[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a, a]    #degenerated 3-relation
+                        a_sublist[3] = [a, a, a]    # degenerated 3-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]   #incomplete 3-relation
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZ                   #overwrite
-                            b_sublist[1] = a_sublist[1] + "Z"   #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]   #incomplete 3-rel.
+                            a_sublist[3] = [a, b]   # incomplete 3-relation
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZ                   # overwrite
+                            b_sublist[1] = a_sublist[1] + "Z"   # overwrite
+                            # b_sublist[2]==a_sublist[2]      # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]   # incomplete 3-rel.
                             ret_list.append([AZ,
                                              a_sublist[1] + "Z",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
                         AZZ = AZ * Z
-                        c    = AZZ.c()%N
-                        d    = AZZ.d()%N
+                        c = AZZ.c() % N
+                        d = AZZ.d() % N
                         negc = -c
                         negd = -d
                         if c < 0:
@@ -2174,30 +2189,29 @@ class ArithmeticSubgroup(group.Group):
                             d += N
                         if negd < 0:
                             negd += N
-                        checklist_index = N*c + d
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * c + d
+                        b = checklist[checklist_index]
                         if b == -1:
-                            checklist_index = N*negc + negd
-                            b = checklist[ checklist_index ]
-                        if b != -1:             #then b != a  by the above
-                            a_sublist[3] = a_sublist[3] + [b] #comp. 3-rel.
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZZ                  #overwrite
-                            b_sublist[1] = a_sublist[1] + "ZZ"  #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = a_sublist[3] + [listlength]  #3-rel.
+                            checklist_index = N * negc + negd
+                            b = checklist[checklist_index]
+                        if b != -1:             # then b != a  by the above
+                            a_sublist[3] = a_sublist[3] + [b]  # comp. 3-rel.
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZZ                  # overwrite
+                            b_sublist[1] = a_sublist[1] + "ZZ"  # overwrite
+                            # b_sublist[2]==a_sublist[2]      # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = a_sublist[3] + [listlength]  # 3-rel.
                             ret_list.append([AZZ,
                                              a_sublist[1] + "ZZ",
-                                             a_sublist[2] + 1, #only one digit!
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             a_sublist[2] + 1,  # only 1 digit!
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
-
         return ret_list
 
     @cached_method
@@ -2264,121 +2278,119 @@ class ArithmeticSubgroup(group.Group):
         N = self.level()
         import sage.modular.modsym.p1list as p1list
         P1N = p1list.P1List(N)
-        lookup_wf  = [-1 for x in xrange(len(P1N))]    #checklist
-        lookup_P1N = [ 0 for x in xrange(len(P1N))]
+        lookup_wf = [-1] * len(P1N)    # checklist
+        lookup_P1N = [0] * len(P1N)
 
-        from all import SL2Z
+        Id = SL2Z([1, 0,
+                   0, 1])
 
-        Id      = SL2Z([ 1, 0,
-                         0, 1])
+        S = SL2Z([0, -1,     # S^2 == minusId  and  S^4 == Id
+                  1, 0])    # S fixes i in the upper half plane
 
-        S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
-                         1, 0])    #   S fixes i in the upper half plane
+        Z = SL2Z([0, -1,     # Z^3 == Id
+                  1, -1])    # Z fixes zeta_6 in the upper half plane
 
-        Z       = SL2Z([ 0,-1,     #   Z^3 == Id
-                         1,-1])    #   Z fixes zeta_6 in the upper half plane
-
-        ret_list   = []     #list of sublists (currently empty) to return
-        listlength = 0      #helper variable,  listlength == len(ret_list)
-        start      = 0      #first of the sublists with relations to be filled
-        ret_list.append([Id,       #coset representative as matrix in SL2Z
-                         "",       #and as word in S and R (empty word for Id)
-                         1,        #Id counts as one "digit", alone or before Z
-                         [],       #relation beginning with Id (filled later)
-                         None ])   #(index of) predecessor (None for Id)
-        checklist_index = P1N.index_of_normalized_pair(0, 1%N) #Id.c==0 Id.d==1
+        ret_list = []    # list of sublists (currently empty) to return
+        listlength = 0   # helper variable,  listlength == len(ret_list)
+        start = 0        # first of the sublists with relations to be filled
+        ret_list.append([Id,       # coset representative as matrix in SL2Z
+                         "",       # and as word in S and R (empty word for Id)
+                         1,        # Id counts as one "digit", alone or before Z
+                         [],       # relation beginning with Id (filled later)
+                         None])   # (index of) predecessor (None for Id)
+        checklist_index = P1N.index_of_normalized_pair(0, 1 % N)  # Id.c==0 Id.d==1
         lookup_wf[checklist_index] = listlength
-        lookup_P1N[listlength]     = checklist_index
-        listlength += 1            #ret_list now has one more sublist
+        lookup_P1N[listlength] = checklist_index
+        listlength += 1            # ret_list now has one more sublist
         if not S in self:
-            ret_list.append([S,    #possibly later overwritten by Z or Z*Z
-                             "S",  #possibly later overwritten by "Z" or "ZZ"
-                             1,    #S also counts as one "digit"
-                             [],   #to be filled next round
-                             0 ])  #the predecesor of S is Id (and has index 0)
-            checklist_index            = P1N.index(1, 0)  #S.c()==1  S.d()==0
+            ret_list.append([S,    # possibly later overwritten by Z or Z*Z
+                             "S",  # possibly later overwritten by "Z" or "ZZ"
+                             1,    # S also counts as one "digit"
+                             [],   # to be filled next round
+                             0])  # the predecesor of S is Id (and has index 0)
+            checklist_index = P1N.index(1, 0)  # S.c()==1  S.d()==0
             lookup_wf[checklist_index] = listlength
-            lookup_P1N[listlength]     = checklist_index
-            listlength += 1        #ret_list now has one more sublist
+            lookup_P1N[listlength] = checklist_index
+            listlength += 1        # ret_list now has one more sublist
         while start < listlength:
-            cur_wordlength = ret_list[start][2]   #length of the word in digits
-            cur_row = range(start, listlength)    #may later become "holes"
-            start = listlength                    #(remember for next round)
-            if cur_wordlength%2 == 0:
+            cur_wordlength = ret_list[start][2]   # length of the word in digits
+            cur_row = range(start, listlength)    # may later become "holes"
+            start = listlength                    # (remember for next round)
+            if cur_wordlength % 2 == 0:
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AS = A * S
                     checklist_index = P1N.index(AS.c(), AS.d())
-                    b = lookup_wf[ checklist_index ]
+                    b = lookup_wf[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a]    #degenerated 2-relation
+                        a_sublist[3] = [a, a]    # degenerated 2-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]         #2-relation
-                            b_sublist    = ret_list[b]
+                            a_sublist[3] = [a, b]         # 2-relation
+                            b_sublist = ret_list[b]
                             b_sublist[3] = [a]
-                            cur_row.remove(b) #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]    #2-relation
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]    # 2-relation
                             ret_list.append([AS,
                                              a_sublist[1] + "S",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            lookup_wf[ checklist_index ] = listlength
-                            lookup_P1N[ listlength ]     = checklist_index
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            lookup_wf[checklist_index] = listlength
+                            lookup_P1N[listlength] = checklist_index
                             listlength += 1
-            else:    #cur_wordlength%2 != 0
+            else:    # cur_wordlength%2 != 0
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AZ = A * Z
                     checklist_index = P1N.index(AZ.c(), AZ.d())
-                    b = lookup_wf[ checklist_index ]
+                    b = lookup_wf[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a, a]    #degenerated 3-relation
+                        a_sublist[3] = [a, a, a]    # degenerated 3-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]   #incomplete 3-relation
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZ                   #overwrite
-                            b_sublist[1] = a_sublist[1] + "Z"   #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]   #incomplete 3-rel.
+                            a_sublist[3] = [a, b]   # incomplete 3-relation
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZ                   # overwrite
+                            b_sublist[1] = a_sublist[1] + "Z"   # overwrite
+                            # b_sublist[2]==a_sublist[2]      # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]   # incomplete 3-rel.
                             ret_list.append([AZ,
                                              a_sublist[1] + "Z",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            lookup_wf[ checklist_index ] = listlength
-                            lookup_P1N[ listlength ]     = checklist_index
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            lookup_wf[checklist_index] = listlength
+                            lookup_P1N[listlength] = checklist_index
                             listlength += 1
                         AZZ = AZ * Z
                         checklist_index = P1N.index(AZZ.c(), AZZ.d())
-                        b = lookup_wf[ checklist_index ]
-                        if b != -1:             #then b != a  by the above
-                            a_sublist[3] = a_sublist[3] + [b] #comp. 3-rel.
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZZ                  #overwrite
-                            b_sublist[1] = a_sublist[1] + "ZZ"  #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = a_sublist[3] + [listlength]  #3-rel.
+                        b = lookup_wf[checklist_index]
+                        if b != -1:             # then b != a  by the above
+                            a_sublist[3] = a_sublist[3] + [b]  # comp. 3-rel.
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZZ                  # overwrite
+                            b_sublist[1] = a_sublist[1] + "ZZ"  # overwrite
+                            # b_sublist[2]==a_sublist[2]      # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = a_sublist[3] + [listlength]  # 3-rel.
                             ret_list.append([AZZ,
                                              a_sublist[1] + "ZZ",
-                                             a_sublist[2] + 1, #only one digit!
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            lookup_wf[ checklist_index ] = listlength
-                            lookup_P1N[ listlength ]     = checklist_index
+                                             a_sublist[2] + 1,  # only 1 digit!
+                                             [],    # to be filled next round
+                                             a])   # predecessor
+                            lookup_wf[checklist_index] = listlength
+                            lookup_P1N[listlength] = checklist_index
                             listlength += 1
 
         return ret_list, lookup_wf, lookup_P1N
@@ -2419,55 +2431,54 @@ class ArithmeticSubgroup(group.Group):
         """
         import sage.modular.arithgroup.all as arithgroup
         if not arithgroup.is_Gamma(self):
-            if not arithgroup.is_SL2Z(self):     #which isn't is_Gamma ... sigh
+            if not arithgroup.is_SL2Z(self):   # which isn't is_Gamma ... sigh
                 raise TypeError("... only for Gamma(N) ...")
 
         N = self.level()
         import sage.modular.modsym.p1list as p1list
         P1N = p1list.P1List(N)
-        checklist = [-1 for x in xrange(len(P1N) * N * N)]
-
-        from all import SL2Z
+        checklist = [-1] * (len(P1N) * N * N)
 
         Id = SL2Z.one()
 
-        S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
-                         1, 0])    #   S fixes i in the upper half plane
+        S = SL2Z([0, -1,     # S^2 == minusId  and  S^4 == Id
+                  1, 0])    # S fixes i in the upper half plane
 
-        Z       = SL2Z([ 0,-1,     #   Z^3 == Id
-                         1,-1])    #   Z fixes zeta_6 in the upper half plane
+        Z = SL2Z([0, -1,     # Z^3 == Id
+                  1, -1])    # Z fixes zeta_6 in the upper half plane
 
-        ret_list   = []     #list of sublists (currently empty) to return
-        listlength = 0      #helper variable,  listlength == len(ret_list)
-        start      = 0      #first of the sublists with relations to be filled
-        ret_list.append([Id,       #coset representative as matrix in SL2Z
-                         "",       #and as word in S and R (empty word for Id)
-                         1,        #Id counts as one "digit", alone or before Z
-                         [],       #relation beginning with Id (filled later)
-                         None ])   #(index of) predecessor (None for Id)
-        checklist[ N*N*P1N.index_of_normalized_pair(1%N, 0) + N*0 + 1%N ] =  \
-                                                        listlength #Id.a,b,c,d
-        listlength += 1            #ret_list now has one more sublist
+        ret_list = []     # list of sublists (currently empty) to return
+        listlength = 0      # helper variable,  listlength == len(ret_list)
+        start = 0      # first of the sublists with relations to be filled
+        ret_list.append([Id,       # coset representative as matrix in SL2Z
+                         "",       # and as word in S and R (empty word for Id)
+                         1,        # Id counts as one "digit", alone or before Z
+                         [],       # relation beginning with Id (filled later)
+                         None])   # (index of) predecessor (None for Id)
+        idx = N * N * P1N.index_of_normalized_pair(1 % N, 0) + N * 0 + 1 % N
+        checklist[idx] = listlength  # Id.a,b,c,d
+        listlength += 1            # ret_list now has one more sublist
         if not S in self:
-            ret_list.append([S,    #possibly later overwritten by Z or Z*Z
-                             "S",  #possibly later overwritten by "Z" or "ZZ"
-                             1,    #S also counts as one "digit"
-                             [],   #to be filled next round
-                             0 ])  #the predecesor of S is Id (and has index 0)
-            checklist[ N*N*P1N.index(0, -1) + N*1 + 0 ] = listlength #S.a,b,c,d
-            listlength += 1        #ret_list now has one more sublist
+            ret_list.append([S,    # possibly later overwritten by Z or Z*Z
+                             "S",  # possibly later overwritten by "Z" or "ZZ"
+                             1,    # S also counts as one "digit"
+                             [],   # to be filled next round
+                             0])  # the predecesor of S is Id (and has index 0)
+            idx = N * N * P1N.index(0, -1) + N * 1 + 0
+            checklist[idx] = listlength  # S.a,b,c,d
+            listlength += 1        # ret_list now has one more sublist
         while start < listlength:
-            cur_wordlength = ret_list[start][2]   #length of the word in digits
-            cur_row = range(start, listlength)    #may later become "holes"
-            start = listlength                    #(remember for next round)
-            if cur_wordlength%2 == 0:
+            cur_wordlength = ret_list[start][2]   # length of the word in digits
+            cur_row = range(start, listlength)    # may later become "holes"
+            start = listlength                    # (remember for next round)
+            if cur_wordlength % 2 == 0:
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AS = A * S
                     upper_index = P1N.index(AS.a(), AS.b())
-                    c    = AS.c()%N
-                    d    = AS.d()%N
+                    c = AS.c() % N
+                    d = AS.d() % N
                     negc = -c
                     negd = -d
                     if c < 0:
@@ -2478,36 +2489,36 @@ class ArithmeticSubgroup(group.Group):
                         d += N
                     if negd < 0:
                         negd += N
-                    checklist_index = N*N*upper_index + N*c + d
-                    b = checklist[ checklist_index ]
+                    checklist_index = N * N * upper_index + N * c + d
+                    b = checklist[checklist_index]
                     if b == -1:
-                        checklist_index = N*N*upper_index + N*negc + negd
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * N * upper_index + N * negc + negd
+                        b = checklist[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a]    #degenerated 2-relation
+                        a_sublist[3] = [a, a]   # degenerated 2-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]         #2-relation
-                            b_sublist    = ret_list[b]
+                            a_sublist[3] = [a, b]     # 2-relation
+                            b_sublist = ret_list[b]
                             b_sublist[3] = [a]
-                            cur_row.remove(b) #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]    #2-relation
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]    # 2-relation
                             ret_list.append([AS,
                                              a_sublist[1] + "S",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
-            else:    #cur_wordlength%2 != 0
+            else:    # cur_wordlength%2 != 0
                 for a in cur_row:
                     a_sublist = ret_list[a]
                     A = a_sublist[0]
                     AZ = A * Z
                     upper_index = P1N.index(AZ.a(), AZ.b())
-                    c    = AZ.c()%N
-                    d    = AZ.d()%N
+                    c = AZ.c() % N
+                    d = AZ.d() % N
                     negc = -c
                     negd = -d
                     if c < 0:
@@ -2518,36 +2529,36 @@ class ArithmeticSubgroup(group.Group):
                         d += N
                     if negd < 0:
                         negd += N
-                    checklist_index = N*N*upper_index + N*c + d
-                    b = checklist[ checklist_index ]
+                    checklist_index = N * N * upper_index + N * c + d
+                    b = checklist[checklist_index]
                     if b == -1:
-                        checklist_index = N*N*upper_index + N*negc + negd
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * N * upper_index + N * negc + negd
+                        b = checklist[checklist_index]
                     if a == b:
-                        a_sublist[3] = [a, a, a]    #degenerated 3-relation
+                        a_sublist[3] = [a, a, a]    # degenerated 3-relation
                     else:
                         if b != -1:
-                            a_sublist[3] = [a, b]   #incomplete 3-relation
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZ                   #overwrite
-                            b_sublist[1] = a_sublist[1] + "Z"   #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = [a, listlength]   #incomplete 3-rel.
+                            a_sublist[3] = [a, b]   # incomplete 3-relation
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZ                   # overwrite
+                            b_sublist[1] = a_sublist[1] + "Z"   # overwrite
+                            # b_sublist[2]==a_sublist[2]  # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = [a, listlength]   # incomplete 3-rel.
                             ret_list.append([AZ,
                                              a_sublist[1] + "Z",
                                              a_sublist[2] + 1,
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
                         AZZ = AZ * Z
                         upper_index = P1N.index(AZZ.a(), AZZ.b())
-                        c    = AZZ.c()%N
-                        d    = AZZ.d()%N
+                        c = AZZ.c() % N
+                        d = AZZ.d() % N
                         negc = -c
                         negd = -d
                         if c < 0:
@@ -2558,28 +2569,28 @@ class ArithmeticSubgroup(group.Group):
                             d += N
                         if negd < 0:
                             negd += N
-                        checklist_index = N*N*upper_index + N*c + d
-                        b = checklist[ checklist_index ]
+                        checklist_index = N * N * upper_index + N * c + d
+                        b = checklist[checklist_index]
                         if b == -1:
-                            checklist_index = N*N*upper_index + N*negc + negd
-                            b = checklist[ checklist_index ]
-                        if b != -1:             #then b != a  by the above
-                            a_sublist[3] = a_sublist[3] + [b] #comp. 3-rel.
-                            b_sublist    = ret_list[b]
-                            b_sublist[0] = AZZ                  #overwrite
-                            b_sublist[1] = a_sublist[1] + "ZZ"  #overwrite
-                            #b_sublist[2]==a_sublist[2]      #don't overwrite!
-                            b_sublist[3] = [ b_sublist[4] ]     #old pred.
-                            b_sublist[4] = a                    #overwrite
-                            cur_row.remove(b)  #remove from for-loop
-                        else: # b == -1  results in new coset rep
-                            a_sublist[3] = a_sublist[3] + [listlength]  #3-rel.
+                            checklist_index = N * N * upper_index + N * negc + negd
+                            b = checklist[checklist_index]
+                        if b != -1:           # then b != a  by the above
+                            a_sublist[3] = a_sublist[3] + [b]  # comp. 3-rel.
+                            b_sublist = ret_list[b]
+                            b_sublist[0] = AZZ                  # overwrite
+                            b_sublist[1] = a_sublist[1] + "ZZ"  # overwrite
+                            # b_sublist[2]==a_sublist[2]      # don't overwrite!
+                            b_sublist[3] = [b_sublist[4]]     # old pred.
+                            b_sublist[4] = a                    # overwrite
+                            cur_row.remove(b)  # remove from for-loop
+                        else:  # b == -1  results in new coset rep
+                            a_sublist[3] = a_sublist[3] + [listlength]  # 3-rel.
                             ret_list.append([AZZ,
                                              a_sublist[1] + "ZZ",
-                                             a_sublist[2] + 1, #only one digit!
-                                             [],   #to be filled next round
-                                             a ])  #predecessor
-                            checklist[ checklist_index ] = listlength
+                                             a_sublist[2] + 1,  # only 1 digit!
+                                             [],   # to be filled next round
+                                             a])  # predecessor
+                            checklist[checklist_index] = listlength
                             listlength += 1
 
         return ret_list
@@ -2592,8 +2603,7 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma0(11).z_wellformed_2_relations()
             [[0, 1], [2, 3], [4, 6], [5, 7], [8, 10], [9, 11]]
         """
-        from all import SL2Z
-        S = SL2Z([ 0,-1, 1, 0])
+        S = SL2Z([0, -1, 1, 0])
         if S in self:
             Srels = [[0, 0]]
         else:
@@ -2625,7 +2635,8 @@ class ArithmeticSubgroup(group.Group):
         EXAMPLE::
 
             sage: Gamma0(11).z_wellformed_all_relations_but_one()
-            [[0, 2, 1], [2, 3], [3, 4, 5], [4, 6], [5, 7], [6, 8, 9], [7, 10, 11], [8, 10], [9, 11]]
+            [[0, 2, 1], [2, 3], [3, 4, 5], [4, 6], [5, 7], [6, 8, 9],
+            [7, 10, 11], [8, 10], [9, 11]]
         """
         rels = []
         for sublist in self.z_wellformed_coset_reps_and_relations():
@@ -2659,9 +2670,8 @@ class ArithmeticSubgroup(group.Group):
             [-11   8], [-1  0]
             [ 0 -1]], [1, 10, 11])
         """
-        from all import SL2Z
-        S = SL2Z([ 0,-1, 1, 0])
-        Z = SL2Z([ 0,-1, 1, -1])
+        S = SL2Z([0, -1, 1, 0])
+        Z = SL2Z([0, -1, 1, -1])
         minusId = -SL2Z.one()
         reps = []
         gens = []
@@ -2678,12 +2688,12 @@ class ArithmeticSubgroup(group.Group):
             reps.append(B)
             rel = sublist[3]
             if len(rel) == 1:
-                Asublist = wf_list[ rel[0] ]
+                Asublist = wf_list[rel[0]]
                 A = Asublist[0]
                 gens.append(A * S * ~B)
                 wf_manin_basis.append(index)
             else:
-                if rel[0] == rel[1]:    #degenerated relation
+                if rel[0] == rel[1]:    # degenerated relation
                     if len(rel) == 2:
                         twogens.append(B * S * ~B)
                     else:
@@ -2696,12 +2706,12 @@ class ArithmeticSubgroup(group.Group):
             for a in xrange(len(gens)):
                 if not gens[a] in self:
                     gens[a] *= minusId
-        else:    #maybe we have to care for minusId being added to the gens
-            if len(twogens) == 0:    #if A = twogens[0] exists, minusId == A^2
+        else:    # maybe we have to care for minusId being added to the gens
+            if len(twogens) == 0:    # if A = twogens[0] exists, minusId == A^2
                 if len(threegens) != 0:    # all threegens are of order 3
-                    threegens[0] *= minusId    #now the first has order 6, and
-                else:                          #minusId is its third power
-                    gens += [minusId]      #often necessary (maybe not always)
+                    threegens[0] *= minusId    # now the first has order 6, and
+                else:                          # minusId is its third power
+                    gens += [minusId]      # often necessary (maybe not always)
         gens = gens + twogens + threegens
         return reps, gens, wf_manin_basis
 
@@ -2743,15 +2753,15 @@ class ArithmeticSubgroup(group.Group):
             sage: wf_list = Gamma0(20011).z_wellformed_coset_reps_and_relations()
             sage: wf_list[-1]
             [[ 173 -300]
-            [ 440 -763], 'ZSZSZZSZSZZSZZSZZSZZSZZSZSZSZSZZSZSZSZZSZ', 34, [20010], 19990]
+            [ 440 -763], 'ZSZSZZSZSZZSZZSZZSZZSZZSZSZSZSZZSZSZSZZSZ', 34,
+            [20010], 19990]
             sage: Gamma0(20011).z_sl2z_SZ_word_to_matrix(wf_list[-1][1])
             [ 173 -300]
             [ 440 -763]
         """
-        from all import SL2Z
-        S = SL2Z([0,-1, 1, 0])
-        Z = SL2Z([0,-1, 1, -1])
-        ret_mat = SL2Z([1,0, 0, 1])
+        S = SL2Z([0, -1, 1, 0])
+        Z = SL2Z([0, -1, 1, -1])
+        ret_mat = SL2Z.one()
         for i in word:
             if i == "S":
                 ret_mat = ret_mat * S
@@ -2761,27 +2771,27 @@ class ArithmeticSubgroup(group.Group):
 
     def z_sl2z_SZ_matrix_to_word(self, matrix):
         """
-        #let A be the matix, then compare where zeta_6 lands by the action
-        #under AS, AZ, AZZ --- exactly one of the last alternatives maps zeta_6
-        #"nearest to i". To check this in Sage, we may and will work in
-        #CyclotomicField(3), looking at the values of real and imaginary parts.
-        #Knowing the result, we therefore know the last digit of A,
-        #can remove that, and restart from the beginning.
-        #(Of course the result of the algorithm in "arithgroup_perm" could also
-        #be used, translating from a word in Lm and Rm to a word in S and Z.)
+        let A be the matix, then compare where zeta_6 lands by the action
+        under AS, AZ, AZZ --- exactly one of the last alternatives maps zeta_6
+        "nearest to i". To check this in Sage, we may and will work in
+        CyclotomicField(3), looking at the values of real and imaginary parts.
+        Knowing the result, we therefore know the last digit of A,
+        can remove that, and restart from the beginning.
+        (Of course the result of the algorithm in "arithgroup_perm" could also
+        be used, translating from a word in Lm and Rm to a word in S and Z.)
         """
         return "TODO"
 
     def z_farey_symbol_data(self):
         """
-        #can be easily read off the output from
-        #self.z_wellformed_coset_reps_and_relations()
-        #One can then read off generators of the cuspidal subspace from the
-        #result. (Maybe all of them, by a pigeonhole-principle like argument??)
+        can be easily read off the output from
+        self.z_wellformed_coset_reps_and_relations()
+        One can then read off generators of the cuspidal subspace from the
+        result. (Maybe all of them, by a pigeonhole-principle like argument??)
         """
         return "TODO"
 
-    def z_wf_manin_gens_to_basis_slow(self):    #soooooo ssslloooooowwww
+    def z_wf_manin_gens_to_basis_slow(self):    # soooooo ssslloooooowwww
         r"""
 
         EXAMPLE::
@@ -2799,27 +2809,26 @@ class ArithmeticSubgroup(group.Group):
             [ 0  0 -1]
             [ 0  1  0]
             [ 0  0  1]
-
         """
         wf_list = self.z_wellformed_coset_reps_and_relations()
         reps, gens, wf_manin_basis = self.z_sl2z_todd_coxeter()
-        from sage.rings.all import ZZ
         import sage.matrix.all as mx
-        MaSp = mx.MatrixSpace(ZZ,len(wf_list),len(wf_manin_basis),sparse=True)
+        MaSp = mx.MatrixSpace(ZZ, len(wf_list),
+                              len(wf_manin_basis), sparse=True)
         ret_matrix = MaSp(0)
         row_list = range(len(wf_list))
-        for el_index in xrange(len(wf_manin_basis)):    #basis elements
+        for el_index in xrange(len(wf_manin_basis)):   # basis elements
             row_index = wf_manin_basis[el_index]
-            ret_matrix[ row_index, el_index ] = 1
+            ret_matrix[row_index, el_index] = 1
             row_list.remove(row_index)
-            Srow_index = wf_list[row_index][3][0]       #S-related to this one
-            ret_matrix[ Srow_index, el_index ] = -1
+            Srow_index = wf_list[row_index][3][0]      # S-related to this one
+            ret_matrix[Srow_index, el_index] = -1
             row_list.remove(Srow_index)
-        for row_index in reversed(row_list):    #build "bottom-up"
+        for row_index in reversed(row_list):    # build "bottom-up"
             rel = wf_list[row_index][3]
-            if rel[0] == rel[1]:    #degenerated relation, nothing to do
+            if rel[0] == rel[1]:    # degenerated relation, nothing to do
                 pass
-            else:       #not a basis element, and we have  row_index == rel[0]
+            else:       # not a basis element, and we have  row_index == rel[0]
                 ret_matrix.set_row_to_multiple_of_row(rel[0], rel[1], -1)
                 if len(rel) == 3:
                     ret_matrix.add_multiple_of_row(rel[0], rel[2], -1)
@@ -2842,39 +2851,40 @@ class ArithmeticSubgroup(group.Group):
         wf_list = self.z_wellformed_coset_reps_and_relations()
         reps, gens, wf_manin_basis = self.z_sl2z_todd_coxeter()
         mdict = dict()
-        #fill columns one after another
-        for el_index in xrange(len(wf_manin_basis)):    #basis elements
+        # fill columns one after another
+        for el_index in xrange(len(wf_manin_basis)):   # basis elements
             gen_index = wf_manin_basis[el_index]
-            alt_index = wf_list[gen_index][3][0]        #S-related to this one
-            mdict[(gen_index, el_index)] =  1
+            alt_index = wf_list[gen_index][3][0]      # S-related to this one
+            mdict[(gen_index, el_index)] = 1
             mdict[(alt_index, el_index)] = -1
             if alt_index == 0:
-                continue    #special case ("S" was overwritten by "Z" or "ZZ")
-            if wf_list[gen_index][2] > wf_list[alt_index][2]: #they differ by 2
-                gen_index = wf_list[gen_index][4]   #go back once
+                continue   # special case ("S" was overwritten by "Z" or "ZZ")
+            if wf_list[gen_index][2] > wf_list[alt_index][2]:
+                # they differ by 2
+                gen_index = wf_list[gen_index][4]   # go back once
                 mdict[(gen_index, el_index)] = -1
-                gen_index = wf_list[gen_index][4]   #go back twice
-                mdict[(gen_index, el_index)] =  1
-            #  Remark
-            #By construction, we have from now on that
+                gen_index = wf_list[gen_index][4]   # go back twice
+                mdict[(gen_index, el_index)] = 1
+            # Remark
+            # By construction, we have from now on that
             # gen_index[2] == alt_index[2]
-            #Going up both ways, we must end either "inside" one and the same
-            #Z-relation, or else in the S-relation [Id, S] by coming from left
-            #and from right.
-            #In each of the two cases, the job is done.
-            gen_index = wf_list[gen_index][4]       #chop off last Z resp. ZZ
-            alt_index = wf_list[alt_index][4]       #chop off last Z resp. ZZ
-            while gen_index != alt_index:       #if not, same Z-relation
-                mdict[(gen_index, el_index)] = -1   #alternate!
-                mdict[(alt_index, el_index)] =  1
+            # Going up both ways, we must end either "inside" one and the same
+            # Z-relation, or else in the S-relation [Id, S] by coming from left
+            # and from right.
+            # In each of the two cases, the job is done.
+            gen_index = wf_list[gen_index][4]       # chop off last Z resp. ZZ
+            alt_index = wf_list[alt_index][4]       # chop off last Z resp. ZZ
+            while gen_index != alt_index:       # if not, same Z-relation
+                mdict[(gen_index, el_index)] = -1   # alternate!
+                mdict[(alt_index, el_index)] = 1
                 if gen_index == 0 or alt_index == 0:
-                    break   #special case {gen, alt} is {0, 1} ([Id, S]) as set
-                gen_index = wf_list[gen_index][4]   #chop off last S
-                alt_index = wf_list[alt_index][4]   #chop off last S
-                mdict[(gen_index, el_index)] =  1
+                    break  # special case {gen, alt} is {0, 1} ([Id, S]) as set
+                gen_index = wf_list[gen_index][4]   # chop off last S
+                alt_index = wf_list[alt_index][4]   # chop off last S
+                mdict[(gen_index, el_index)] = 1
                 mdict[(alt_index, el_index)] = -1
-                gen_index = wf_list[gen_index][4]   #chop off last Z resp. ZZ
-                alt_index = wf_list[alt_index][4]   #chop off last Z resp. ZZ
+                gen_index = wf_list[gen_index][4]   # chop off last Z resp. ZZ
+                alt_index = wf_list[alt_index][4]   # chop off last Z resp. ZZ
         return len(wf_list), len(wf_manin_basis), mdict
 
     @cached_method
@@ -2898,7 +2908,6 @@ class ArithmeticSubgroup(group.Group):
             [ 0  0  1]
         """
         nrows, ncolumns, matrixdict = self.z_wf_manin_gens_to_basis_dict()
-        from sage.rings.all import ZZ
         import sage.matrix.all as mx
         return mx.Matrix(ZZ, nrows, ncolumns, matrixdict)
 
@@ -2930,9 +2939,8 @@ class ArithmeticSubgroup(group.Group):
             #      J = GL2Z([-1, 0,     #   J^2 == Id
             #                 0, 1])    #   J not in SL2Z
             #
-            #  J * GL2Z([a, b, c, d]) * J   ==  GL2Z([a, -b, -c, d])
+            #  J * GL2Z([a, b, c, d]) * J  ==  GL2Z([a, -b, -c, d])
             #
-            from all import SL2Z
             ret_val = True
             reps, gens, wf_manin_basis = self.z_sl2z_todd_coxeter()
             for g in gens:
@@ -2971,69 +2979,71 @@ class ArithmeticSubgroup(group.Group):
         if not self.z_is_normalized_by_J():
             raise TypeError("self is not normalized by J")
         wf_list = self.z_wellformed_coset_reps_and_relations()
-        symmetry_list = range(len(wf_list))   #preset as if all were self-symm.
+        symmetry_list = range(len(wf_list))   # preset as if all were self-symm.
         if len(wf_list) > 1:
             if wf_list[1][2] == 1:
                 symmetry_list[0] = 1
                 symmetry_list[1] = 0
-        max_round  = wf_list[-1][2]    #last entry
+        max_round = wf_list[-1][2]    # last entry
         listlength = 0
-        cur_round  = 1
-        while cur_round < max_round: #drop max_round, it brings no new reps
+        cur_round = 1
+        while cur_round < max_round:  # drop max_round, it brings no new reps
             cur_row = []
             while wf_list[listlength][2] == cur_round:
                 relation = wf_list[listlength][3]
-                if len(relation) > 1:              #don't append if basis el.
-                    if relation[0] != relation[1]: #don't append if degenerated
+                if len(relation) > 1:              # don't append if basis el.
+                    if relation[0] != relation[1]:
+                        # don't append if degenerated
                         cur_row.append(listlength)
                 listlength += 1
-            if cur_round%2 == 0:
+            if cur_round % 2 == 0:
                 for a in cur_row:
                     b = symmetry_list[a]
-                    if b != a:                 #symmetric pair
-                        a_newrep  = wf_list[a][3][1]
-                        if a_newrep >= listlength:  #really some new coset rep.
-                            b_newrep = wf_list[b][3][1]    #also new coset rep.
+                    if b != a:                 # symmetric pair
+                        a_newrep = wf_list[a][3][1]
+                        if a_newrep >= listlength:  # really some new coset rep.
+                            b_newrep = wf_list[b][3][1]   # also new coset rep.
                             symmetry_list[a_newrep] = b_newrep
                             symmetry_list[b_newrep] = a_newrep
                             cur_row.remove(b)
-            else:  #cur_round%2 != 0
+            else:  # cur_round % 2 != 0
                 for a in cur_row:
-                    az_newrep  = wf_list[a][3][1]
+                    az_newrep = wf_list[a][3][1]
                     azz_newrep = wf_list[a][3][2]
                     b = symmetry_list[a]
                     if b == a:
-                        if az_newrep >= listlength:  #azz_newrep >= listlength
-                            symmetry_list[az_newrep]  = azz_newrep
+                        if az_newrep >= listlength:  # azz_newrep >= listlength
+                            symmetry_list[az_newrep] = azz_newrep
                             symmetry_list[azz_newrep] = az_newrep
                     elif (b != az_newrep) and (b != azz_newrep):
-                        bz_newrep  = wf_list[b][3][1]
+                        bz_newrep = wf_list[b][3][1]
                         bzz_newrep = wf_list[b][3][2]
-                        if az_newrep >= listlength:  #bzz_newrep >= listlength
-                            symmetry_list[az_newrep]  = bzz_newrep
+                        if az_newrep >= listlength:  # bzz_newrep >= listlength
+                            symmetry_list[az_newrep] = bzz_newrep
                             symmetry_list[bzz_newrep] = az_newrep
-                        if azz_newrep >= listlength: #bz_newrep >= listlength
+                        if azz_newrep >= listlength:  # bz_newrep >= listlength
                             symmetry_list[azz_newrep] = bz_newrep
-                            symmetry_list[bz_newrep]  = azz_newrep
+                            symmetry_list[bz_newrep] = azz_newrep
                         cur_row.remove(b)
             cur_round += 1
         wf_manin_basis_hplus = []
-        sign_list            = []
-        cur_wf_list          = range(len(wf_list))    #will get holes
+        sign_list = []
+        cur_wf_list = range(len(wf_list))    # will get holes
         for a in cur_wf_list:
             a_rel = wf_list[a][3]
             if len(a_rel) == 1:
                 wf_manin_basis_hplus.append(a)
                 b = symmetry_list[a]    # b != a   by construction
-                if a_rel[0] == b:       #may happen for both S- and Z-relations
+                if a_rel[0] == b:       # may happen for both S- and Z-relations
                     sign_list.append(0)
                 else:
                     b_rel = wf_list[b][3]
-                    if len(b_rel) == 1: #also happens with both S- and Z-parity
+                    if len(b_rel) == 1:
+                        # also happens with both S- and Z-parity
                         sign_list.append(+1)
-                        cur_wf_list.remove(b)         #remove from for-loop
-                    else:                       #may happen only when adding S
-                        sign_list.append(-1)    #for c will hold: len(c_rel)==1
-                        c = b_rel[1]            #c == symmetry_list[a_rel[0]]
-                        cur_wf_list.remove(c)         #remove from for-loop
+                        cur_wf_list.remove(b)        # remove from for-loop
+                    else:                      # may happen only when adding S
+                        sign_list.append(-1)   # for c will hold: len(c_rel)==1
+                        c = b_rel[1]           # c == symmetry_list[a_rel[0]]
+                        cur_wf_list.remove(c)        # remove from for-loop
         return wf_manin_basis_hplus, sign_list, symmetry_list
