@@ -13,13 +13,11 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-
-
 import sage.groups.old as group
 from sage.rings.all import ZZ
 import sage.rings.arith as arith
 from sage.misc.cachefunc import cached_method
-from copy import copy # for making copies of lists of cusps
+from copy import copy  # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.modular.cusps import Cusp
 
@@ -29,30 +27,15 @@ from sage.structure.element import parent
 
 from arithgroup_element import ArithmeticSubgroupElement
 
-def is_ArithmeticSubgroup(x):
-    r"""
-    Return True if x is of type ArithmeticSubgroup.
-
-    EXAMPLE::
-
-        sage: from sage.modular.arithgroup.all import is_ArithmeticSubgroup
-        sage: is_ArithmeticSubgroup(GL(2, GF(7)))
-        False
-        sage: is_ArithmeticSubgroup(Gamma0(4))
-        True
-    """
-
-    return isinstance(x, ArithmeticSubgroup)
-
 
 class ArithmeticSubgroup(group.Group):
     r"""
-    Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not
-    intended to be used directly, but still includes quite a few
-    general-purpose routines which compute data about an arithmetic subgroup
-    assuming that it has a working element testing routine.
-    """
+    Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`.
 
+    Not intended to be used directly, but still includes quite a few
+    general-purpose routines which compute data about an arithmetic
+    subgroup assuming that it has a working element testing routine.
+    """
     Element = ArithmeticSubgroupElement
 
     def __init__(self):
@@ -69,7 +52,7 @@ class ArithmeticSubgroup(group.Group):
 
     def _repr_(self):
         r"""
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         NOTE: This function should be overridden by all subclasses.
 
@@ -97,7 +80,7 @@ class ArithmeticSubgroup(group.Group):
 
     def __reduce__(self):
         r"""
-        Used for pickling self.
+        Used for pickling ``self``.
 
         NOTE: This function should be overridden by all subclasses.
 
@@ -108,14 +91,15 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError: all subclasses must define a __reduce__ method
         """
-        raise NotImplementedError("all subclasses must define a __reduce__ method")
+        raise NotImplementedError("all subclasses must define"
+                                  " a __reduce__ method")
 
     def _element_constructor_(self, x, check=True):
         r"""
-        Create an element of this congruence subgroup from x.
+        Create an element of this congruence subgroup from ``x``.
 
-        If the optional flag check is True (default), check whether
-        x actually gives an element of self.
+        If the optional flag check is ``True`` (default), check whether
+        ``x`` actually gives an element of ``self``.
 
         EXAMPLES::
 
@@ -137,12 +121,15 @@ class ArithmeticSubgroup(group.Group):
         x = SL2Z(x, check)
         if not check or x in self:
             return x
-        raise TypeError("matrix %s is not an element of %s" % (x, self))
+        raise TypeError("matrix {} is not an element of {}".format(x, self))
 
     def __contains__(self, x):
         r"""
-        Test if x is an element of this group. This checks that x defines (is?) a 2x2 integer matrix of determinant 1, and
-        then hands over to the routine _contains_sl2, which derived classes should implement.
+        Test if x is an element of this group.
+
+        This checks that x defines (is?) a 2x2 integer matrix of
+        determinant 1, and then hands over to the routine
+        _contains_sl2, which derived classes should implement.
 
         EXAMPLES::
 
@@ -160,11 +147,12 @@ class ArithmeticSubgroup(group.Group):
         # Do not override this function! Derived classes should override
         # _contains_sl2.
         if isinstance(x, type([])) and len(x) == 4:
-            if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
+            if not all(cf in ZZ for cf in x):
                 return False
-            a,b,c,d = map(ZZ, x)
-            if a*d - b*c != 1: return False
-            return self._contains_sl2(a,b,c,d)
+            a, b, c, d = map(ZZ, x)
+            if a * d - b * c != 1:
+                return False
+            return self._contains_sl2(a, b, c, d)
         else:
             if parent(x) is not SL2Z:
                 try:
@@ -172,13 +160,14 @@ class ArithmeticSubgroup(group.Group):
                 except TypeError:
                     return False
                 x = y
-            return self._contains_sl2(x.a(),x.b(),x.c(),x.d())
+            return self._contains_sl2(x.a(), x.b(), x.c(), x.d())
 
-    def _contains_sl2(self, a,b,c,d):
+    def _contains_sl2(self, a, b, c, d):
         r"""
         Test whether the matrix [a,b;c,d], which may be assumed to have
-        determinant 1, is an element of self. This must be overridden by all
-        subclasses.
+        determinant 1, is an element of ``self``.
+
+        This must be overridden by all subclasses.
 
         EXAMPLE::
 
@@ -188,11 +177,12 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
         """
-        raise NotImplementedError("Please implement _contains_sl2 for %s" % self.__class__)
+        msg = "Please implement _contains_sl2 for {}".format(self.__class__)
+        raise NotImplementedError(msg)
 
     def __hash__(self):
         r"""
-        Return a hash of self.
+        Return a hash of ``self``.
 
         EXAMPLES::
 
@@ -207,8 +197,9 @@ class ArithmeticSubgroup(group.Group):
 
     def is_parent_of(self, x):
         r"""
-        Check whether this group is a valid parent for the element x. Required
-        by Sage's testing framework.
+        Check whether this group is a valid parent for the element ``x``.
+
+        Required by Sage's testing framework.
 
         EXAMPLE::
 
@@ -261,8 +252,8 @@ class ArithmeticSubgroup(group.Group):
         - ``G`` - intermediate subgroup (currently not implemented if diffferent
           from SL(2,Z))
 
-        - ``on_right`` - boolean (default: True) - if True return right coset
-          enumeration, if False return left one.
+        - ``on_right`` - boolean (default: ``True``) - if ``True``
+          return right coset enumeration, if ``False`` return left one.
 
         This is *extremely* slow in general.
 
@@ -323,17 +314,18 @@ class ArithmeticSubgroup(group.Group):
         if G is None:
             G = SL2Z
         if G != SL2Z:
-            raise NotImplementedError("Don't know how to compute coset reps for subgroups yet")
+            raise NotImplementedError("Don't know how to compute "
+                                      "coset reps for subgroups yet")
 
-        id = SL2Z([1,0,0,1])
-        l = SL2Z([1,1,0,1])
-        s = SL2Z([0,-1,1,0])
+        id = SL2Z([1, 0, 0, 1])
+        l = SL2Z([1, 1, 0, 1])
+        s = SL2Z([0, -1, 1, 0])
 
         reps = [id]       # coset representatives
-        reps_inv = {id:0} # coset representatives index
+        reps_inv = {id: 0}  # coset representatives index
 
-        l_wait_back = [id] # rep with no incoming s_edge
-        s_wait_back = [id] # rep with no incoming l_edge
+        l_wait_back = [id]  # rep with no incoming s_edge
+        s_wait_back = [id]  # rep with no incoming l_edge
         l_wait = [id]      # rep with no outgoing l_edge
         s_wait = [id]      # rep with no outgoing s_edge
 
@@ -349,15 +341,15 @@ class ArithmeticSubgroup(group.Group):
                 not_end = True
                 while not_end:
                     if on_right:
-                        y = y*l
+                        y = y * l
                     else:
-                        y = l*y
+                        y = l * y
                     for i in xrange(len(l_wait_back)):
                         v = l_wait_back[i]
                         if on_right:
-                            yy = y*~v
+                            yy = y * ~v
                         else:
-                            yy = ~v*y
+                            yy = ~v * y
                         if yy in self:
                             l_edges[reps_inv[x]] = reps_inv[v]
                             del l_wait_back[i]
@@ -381,15 +373,15 @@ class ArithmeticSubgroup(group.Group):
                 not_end = True
                 while not_end:
                     if on_right:
-                        y = y*s
+                        y = y * s
                     else:
-                        y = s*y
+                        y = s * y
                     for i in xrange(len(s_wait_back)):
                         v = s_wait_back[i]
                         if on_right:
-                            yy = y*~v
+                            yy = y * ~v
                         else:
-                            yy = ~v*y
+                            yy = ~v * y
                         if yy in self:
                             s_edges[reps_inv[x]] = reps_inv[v]
                             del s_wait_back[i]
@@ -423,25 +415,25 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu2(Gamma0(1105)) == 8
             True
         """
-
         # Subgroups not containing -1 have no elliptic points of order 2.
 
         if not self.is_even():
             return 0
 
-        # Cheap trick: if self is a subgroup of something with no elliptic points,
-        # then self has no elliptic points either.
+        # Cheap trick: if self is a subgroup of something with no
+        # elliptic points, then self has no elliptic points either.
 
         from all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu2() == 0:
                 return 0
 
-        # Otherwise, the number of elliptic points is the number of g in self \
-        # SL2Z such that the stabiliser of g * i in self is not trivial. (Note
-        # that the points g*i for g in the coset reps are not distinct, but it
-        # still works, since the failure of these points to be distinct happens
-        # precisely when the preimages are not elliptic.)
+        # Otherwise, the number of elliptic points is the number of g
+        # in self \ SL2Z such that the stabiliser of g * i in self is
+        # not trivial. (Note that the points g*i for g in the coset
+        # reps are not distinct, but it still works, since the failure
+        # of these points to be distinct happens precisely when the
+        # preimages are not elliptic.)
 
         count = 0
         for g in self.coset_reps():
@@ -700,19 +692,20 @@ class ArithmeticSubgroup(group.Group):
         """
         try:
             return copy(self._cusp_list[algorithm])
-        except (AttributeError,KeyError):
+        except (AttributeError, KeyError):
             self._cusp_list = {}
 
         from congroup_sl2z import is_SL2Z
         if is_SL2Z(self):
-            s = [Cusp(1,0)]
+            s = [Cusp(1, 0)]
 
         if algorithm == 'default':
             s = self._find_cusps()
         elif algorithm == 'modsym':
-            s = sorted([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
+            s = sorted([self.reduce_cusp(c)
+                        for c in self.modular_symbols().cusps()])
         else:
-            raise ValueError("unknown algorithm: %s"%algorithm)
+            raise ValueError("unknown algorithm: {}".format(algorithm))
 
         self._cusp_list[algorithm] = s
         return copy(s)
@@ -728,13 +721,15 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError
 
-        NOTE: There is a generic algorithm implemented at the top level that
-        uses the coset representatives of self. This is *very slow* and for all
-        the standard congruence subgroups there is a quicker way of doing it,
-        so this should usually be overridden in subclasses; but it doesn't have
-        to be.
+        .. NOTE::
+
+            There is a generic algorithm implemented at the top level
+            that uses the coset representatives of ``self``. This is *very
+            slow* and for all the standard congruence subgroups there
+            is a quicker way of doing it, so this should usually be
+            overridden in subclasses; but it does not have to be.
         """
-        i = Cusp([1,0])
+        i = Cusp([1, 0])
         L = [i]
         for a in self.coset_reps():
             ai = i.apply([a.a(), a.b(), a.c(), a.d()])
@@ -749,9 +744,10 @@ class ArithmeticSubgroup(group.Group):
 
     def are_equivalent(self, x, y, trans = False):
         r"""
-        Test whether or not cusps x and y are equivalent modulo self.  If self
-        has a reduce_cusp() method, use that; otherwise do a slow explicit
-        test.
+        Test whether or not cusps x and y are equivalent modulo self.
+
+        If self has a reduce_cusp() method, use that; otherwise do a
+        slow explicit test.
 
         If trans = False, returns True or False. If trans = True, then return
         either False or an element of self mapping x onto y.
@@ -894,7 +890,7 @@ class ArithmeticSubgroup(group.Group):
 
         ::
 
-            sage: G = CongruenceSubgroup(8, [ [1,1,0,1], [3,-1,4,-1] ])
+            sage: G = CongruenceSubgroup(8, [[1,1,0,1], [3,-1,4,-1]])
             sage: G.level()
             8
             sage: G.generalised_level()
@@ -1710,8 +1706,8 @@ class ArithmeticSubgroup(group.Group):
             sublist = wf_list[index]
             thisrel = sublist[3]
             if len(thisrel) == 1:
-                thisrel = [ thisrel[0], index ]
-            graph.add_edge(str(wf_list[ sublist[4] ][3]), str(thisrel),
+                thisrel = [thisrel[0], index]
+            graph.add_edge(str(wf_list[sublist[4]][3]), str(thisrel),
                 label = sublist[0])
         return graph
 
@@ -1862,22 +1858,19 @@ class ArithmeticSubgroup(group.Group):
             [-3  4], 'ZSZZSZZSZ', 8, [15], 13], [[ 3 -1]
             [ 4 -1], 'ZSZZSZZSZZ', 8, [14], 13]]
         """
-        from all import SL2Z
-
         Id = SL2Z.one()
 
-        minusId = SL2Z([-1, 0,     #   minusId == -Id  and  minusId^2 == Id
-                         0,-1])
+        minusId = -Id
 
-        S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
-                         1, 0])    #   S fixes i in the upper half plane
+        S = SL2Z([0,-1,     #   S^2 == minusId  and  S^4 == Id
+                  1, 0])    #   S fixes i in the upper half plane
 
-        Z       = SL2Z([ 0,-1,     #   Z^3 == Id
-                         1,-1])    #   Z fixes zeta_6 in the upper half plane
+        Z = SL2Z([0,-1,     #   Z^3 == Id
+                  1,-1])    #   Z fixes zeta_6 in the upper half plane
 
-        ret_list   = []     #list of sublists (currently empty) to return
+        ret_list = []     #list of sublists (currently empty) to return
         listlength = 0      #helper variable,  listlength == len(ret_list)
-        start      = 0      #first of the sublists with relations to be filled
+        start = 0      #first of the sublists with relations to be filled
         ret_list.append([Id,       #coset representative as matrix in SL2Z
                          "",       #and as word in S and R (empty word for Id)
                          1,        #Id counts as one "digit", alone or before Z
@@ -2048,7 +2041,7 @@ class ArithmeticSubgroup(group.Group):
         """
         import sage.modular.arithgroup.all as arithgroup
         if not arithgroup.is_Gamma1(self):
-            raise TypeError, "... only for Gamma1(N) ..."
+            raise TypeError("... only for Gamma1(N) ...")
 
         N = self.level()
         checklist = [-1 for x in xrange(N*N)] #crude checklist for M-Symbols
@@ -2057,9 +2050,6 @@ class ArithmeticSubgroup(group.Group):
 
         Id      = SL2Z([ 1, 0,
                          0, 1])
-
-        minusId = SL2Z([-1, 0,     #   minusId == -Id  and  minusId^2 == Id
-                         0,-1])
 
         S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
                          1, 0])    #   S fixes i in the upper half plane
@@ -2269,7 +2259,7 @@ class ArithmeticSubgroup(group.Group):
         """
         import sage.modular.arithgroup.all as arithgroup
         if not arithgroup.is_Gamma0(self):
-            raise TypeError, "... only for Gamma0(N) ..."
+            raise TypeError("... only for Gamma0(N) ...")
 
         N = self.level()
         import sage.modular.modsym.p1list as p1list
@@ -2281,9 +2271,6 @@ class ArithmeticSubgroup(group.Group):
 
         Id      = SL2Z([ 1, 0,
                          0, 1])
-
-        minusId = SL2Z([-1, 0,     #   minusId == -Id  and  minusId^2 == Id
-                         0,-1])
 
         S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
                          1, 0])    #   S fixes i in the upper half plane
@@ -2433,7 +2420,7 @@ class ArithmeticSubgroup(group.Group):
         import sage.modular.arithgroup.all as arithgroup
         if not arithgroup.is_Gamma(self):
             if not arithgroup.is_SL2Z(self):     #which isn't is_Gamma ... sigh
-                raise TypeError, "... only for Gamma(N) ..."
+                raise TypeError("... only for Gamma(N) ...")
 
         N = self.level()
         import sage.modular.modsym.p1list as p1list
@@ -2443,9 +2430,6 @@ class ArithmeticSubgroup(group.Group):
         from all import SL2Z
 
         Id = SL2Z.one()
-
-        minusId = SL2Z([-1, 0,     #   minusId == -Id  and  minusId^2 == Id
-                         0,-1])
 
         S       = SL2Z([ 0,-1,     #   S^2 == minusId  and  S^4 == Id
                          1, 0])    #   S fixes i in the upper half plane
@@ -2678,7 +2662,7 @@ class ArithmeticSubgroup(group.Group):
         from all import SL2Z
         S = SL2Z([ 0,-1, 1, 0])
         Z = SL2Z([ 0,-1, 1, -1])
-        minusId = - SL2Z.one()
+        minusId = -SL2Z.one()
         reps = []
         gens = []
         if S in self:
@@ -2723,29 +2707,29 @@ class ArithmeticSubgroup(group.Group):
 
     def z_sl2z_SZ_word_problem(self, word):
         """
-        #The words of the wellformed coset representatives have the property,
-        #that all of their start-words are also coset representatives.
-        #So among the coset reps which coincide with the start of the input
-        #word, there is exactly one with longest length (in "digits").
-        #Splitting off to the left (the word of a) generator of self, this
-        #start of the input word can then either replaced by a word with fewer
-        #digits, or by a word with the same number of digits but such that the
-        #"matching" length of the start with some of the coset reps grows.
-        #Since the latter possibility is exhausted after a finite number of
-        #times (there are only finitely many coset reps, so their length is
-        #bounded), ultimately the first possibility must be the case.
-        #So splitting off generatos of self to the left, we could reduce the
-        #word size (in digits) of the input word.
-        #By induction on the length of the input word, we finally get a
-        #representation of the input word as a product of generators of self,
-        #and one of the wellformed coset representatives.
-        #So one can either use this algorithm to get the representation of
-        #a group element of self in the generators of the group, or else
-        #one can calculate the coset (representative) with respect to self
-        #of an arbitrary element of SL2Z.
-        #A bit care has to be taken to carry around whether or not (and how
-        #many times) we have had to multiply with minusId.
-        #(Easy if self is even, but not really difficult if self is odd.)
+        The words of the wellformed coset representatives have the property,
+        that all of their start-words are also coset representatives.
+        So among the coset reps which coincide with the start of the input
+        word, there is exactly one with longest length (in "digits").
+        Splitting off to the left (the word of a) generator of self, this
+        start of the input word can then either replaced by a word with fewer
+        digits, or by a word with the same number of digits but such that the
+        "matching" length of the start with some of the coset reps grows.
+        Since the latter possibility is exhausted after a finite number of
+        times (there are only finitely many coset reps, so their length is
+        bounded), ultimately the first possibility must be the case.
+        So splitting off generatos of self to the left, we could reduce the
+        word size (in digits) of the input word.
+        By induction on the length of the input word, we finally get a
+        representation of the input word as a product of generators of self,
+        and one of the wellformed coset representatives.
+        So one can either use this algorithm to get the representation of
+        a group element of self in the generators of the group, or else
+        one can calculate the coset (representative) with respect to self
+        of an arbitrary element of SL2Z.
+        A bit care has to be taken to carry around whether or not (and how
+        many times) we have had to multiply with minusId.
+        (Easy if self is even, but not really difficult if self is odd.)
         """
         list_of_gens = []
         coset_rep = "TODO"
@@ -2765,9 +2749,9 @@ class ArithmeticSubgroup(group.Group):
             [ 440 -763]
         """
         from all import SL2Z
-        S = SL2Z([ 0,-1, 1, 0])
-        Z = SL2Z([ 0,-1, 1, -1])
-        ret_mat = SL2Z([ 1,0, 0, 1])
+        S = SL2Z([0,-1, 1, 0])
+        Z = SL2Z([0,-1, 1, -1])
+        ret_mat = SL2Z([1,0, 0, 1])
         for i in word:
             if i == "S":
                 ret_mat = ret_mat * S
@@ -2985,7 +2969,7 @@ class ArithmeticSubgroup(group.Group):
             ([1, 10], [0, -1], [1, 0, 2, 3, 5, 4, 7, 6, 11, 10, 9, 8])
         """
         if not self.z_is_normalized_by_J():
-            raise TypeError, "self is not normalized by J"
+            raise TypeError("self is not normalized by J")
         wf_list = self.z_wellformed_coset_reps_and_relations()
         symmetry_list = range(len(wf_list))   #preset as if all were self-symm.
         if len(wf_list) > 1:
