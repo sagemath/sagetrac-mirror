@@ -436,7 +436,21 @@ class Tableau(CombinatorialObject, Element):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
+            sage: Tableaux.global_options(convention="french", ascii_art="table")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                                      +---+ ]
+            [                                      | 3 | ]
+            [                +---+      +---+      +---+ ]
+            [                | 2 |      | 3 |      | 2 | ]
+            [ +---+---+---+  +---+---+  +---+---+  +---+ ]
+            [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
+            [ +---+---+---+, +---+---+, +---+---+, +---+ ]
             sage: Tableaux.global_options(ascii_art="plain")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              3 ]
+            [              2       3       2 ]
+            [   1  2  3,   1  3,   1  2,   1 ]
+            sage: Tableaux.global_options(ascii_art="repr")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
             [              2       3       2 ]
