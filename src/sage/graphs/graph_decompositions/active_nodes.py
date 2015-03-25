@@ -1,44 +1,55 @@
 """
-Given a list of edges `edges` defining a simple graph `G`, `edges[:i]`
+Active Nodes
+
+This module contains the following methods:
+
+    :meth:`ordered_links` | Returns a list ordering of edges with small number of active nodes.
+
+    :meth:`num_active_nodes` | Computes the number of the active nodes for a graph for an ordering ``links`` of edges.
+
+
+Given a list ordering `links` of the edges of a simple graph `G`, `links[:i]`
 defines a subgraph `G_i`. Define as `active nodes` of `G_i`
-the nodes of `G_i` which have degree less than in `G`.
-Define as number of active nodes for given `edges` the maximum among the
+the nodes of `G_i` which have degree less than in `G`, and greater than zero.
+Define as number of active nodes for given `links` the maximum among the
 number of active nodes of all `G_i`; the active node number of `G`
 is the minimum number of active nodes for all possible orderings
 of the edges of `G`.
+
 To compute efficiently the matching polynomial using the
 algorithm in [ButPer], one must find an ordering of edges
-with low number of active nodes.
+with low number of active nodes ``n``, since the complexity of the algorithm
+has a ''2^n`` factor.
 Here a greedy algorithm is used to compute a generally not optimal
 ordering of edges to compute the matching polynomial.
 """
 
 from collections import defaultdict, deque
 
-def _add_links_no_incr(links0, d1, d2):
+def _add_links_no_incr(links, d1, d2):
     """
-    Add links to `links0` without increasing the number of active nodes
+    Return list of added edges without increasing the number of active nodes
 
     INPUT:
 
-    - ``links0`` - links forming `d2`
+    - ``links`` - links forming `d2`
     - ``d1`` - adjacency dict of the graph
     - ``d2`` - adjacency dict of the part of the graph covered
 
     The active nodes are the nodes in `d2` with degree less than in `d1`.
-    The added links are appended to links0
+    The added links are appended to ``links``.
 
     EXAMPLES::
 
         sage: from collections import defaultdict
         sage: from sage.graphs.graph_decompositions.active_nodes import _add_links_no_incr
-        sage: links0=[(0, 1), (1, 2), (2, 3), (3, 4), (0, 4)]
+        sage: links = [(0, 1), (1, 2), (2, 3), (3, 4), (0, 4)]
         sage: d1 = {0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]}
         sage: d2 = defaultdict(list, {0:[1,4], 1:[0,2], 2:[1,3], 3:[2,4], 4:[3,0]})
-        sage: _add_links_no_incr(links0, d1, d2)
+        sage: _add_links_no_incr(links, d1, d2)
         [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9), (7, 9)]
     """
-    links = []
+    links1 = []
     hit = True
     while hit:
         hit = False
@@ -55,7 +66,7 @@ def _add_links_no_incr(links0, d1, d2):
                 d2[k].append(k1)
                 d2[k1].append(k)
                 hit = True
-                links.append((k, k1))
+                links1.append((k, k1))
         # it two nodes adjacent in d1 are present in d2, and there
         # is no edge between them in d2, add it
         for k1, a in d1.items():
@@ -67,15 +78,15 @@ def _add_links_no_incr(links0, d1, d2):
                     d2[k2].append(k1)
                     hit = True
                     if k1 < k2:
-                        links.append((k1, k2))
+                        links1.append((k1, k2))
                     else:
-                        links.append((k2, k1))
+                        links1.append((k2, k1))
 
-    links0.extend(links)
+    return links1
 
 def _append_link(dx, links, k1, k2):
     """
-    Add the edge `(k1, k2)` to links and update the defaultdict `dx`
+    Add the edge ``(k1, k2)`` to ``links`` and update the defaultdict ``dx``
 
     EXAMPLES::
 
@@ -143,20 +154,20 @@ def _short_path_active_nodes_all(d, dx, active):
 
     INPUT:
 
-    - ``d`` - dictionary of the graph G
-    - ``Gx`` - dictionary of a subgraph of G
-    - ``active`` - active nodes
+    - ``d`` - dictionary of the graph ``G``
+    - ``dx`` - defaultdict of a subgraph of ``G``
+    - ``active`` - list of active nodes
 
-    The returned path has the endpoints in `active` and the rest of the
-    nodes in `G - Gx`
+    The returned path has the endpoints in ``active`` and the rest of the
+    nodes in ``G - Gx``
 
     EXAMPLES::
 
         sage: from collections import defaultdict
         sage: from sage.graphs.graph_decompositions.active_nodes import _short_path_active_nodes_all
         sage: d = {0: [1,2,5], 1: [0,3,5], 2: [0,3,4,5], 3: [1,2], 4: [2,5], 5: [0,1,2,4]}
-        sage: dx=defaultdict(list, {0: [1], 1: [0]})
-        sage: active=[0, 1]
+        sage: dx = defaultdict(list, {0: [1], 1: [0]})
+        sage: active = [0, 1]
         sage: _short_path_active_nodes_all(d, dx, active)
         [1, 5, 0]
     """
@@ -173,12 +184,13 @@ def _short_path_active_nodes_all(d, dx, active):
         if a1 is not None and len(a1) < min_length:
             min_length = len(a1)
             min_path = a1
+
     return min_path
 
 
 def _d_relabel(d):
     """
-    Rrelabel `keys` to be in `range(len(keys))`
+    Relabel `keys` to be in `range(len(keys))`
 
     Return the relabeled graph and the mapping from old to new keys.
 
@@ -196,24 +208,23 @@ def _d_relabel(d):
         d1[dt[k]] = [dt[i] for i in v]
     return d1, dt
 
-def ordered_links(d, k0, k1):
+def ordered_links(d):
     """
-    Return ordered links starting from the link (k0, k1)
+    Return a list ordering of edges with small number of active nodes.
 
     INPUT:
 
     - ``d`` - dict for the graph
-    - ``k0, k1`` - two adjacent nodes of the graphs
 
     .. NOTE::
 
-        The vertices in `d` must be numbered in `0,..., len(d)-1`
+        The vertices in ``d`` must be numbered in ``0,..., len(d)-1``.
         The algorithm attempts to order the edges in such a way that
         the number of active nodes is kept small.
 
     ALGORITHM:
 
-        Starting with the active nodes `k0, k1`,
+        Starting with a pair of adjacent nodes ``k0, k1``,
         add edges without increasing the number of active nodes,
         if possible; otherwise add a short path between two active nodes.
         Keep following this procedure till all edges are produced.
@@ -222,31 +233,28 @@ def ordered_links(d, k0, k1):
 
         sage: from sage.graphs.graph_decompositions.active_nodes import ordered_links
         sage: d = {0:[1,4], 1:[0,2], 2:[1,3], 3:[2,4], 4:[0,3]}
-        sage: ordered_links(d, 0, 1)
+        sage: ordered_links(d)
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
-    Ladder graphs have active node number `2`; `ordered_links` gives
-    `2` or `4`, depending on the choice of `k0, k1`; with a generic
-    ordering of the edges the number of active nodes is generally larger::
+    Ladder graphs have active node number ``2``; ``ordered_links`` gives
+    a small numer of active nodes; with a generic
+    ordering of the edges the number of active nodes is usually larger::
 
         sage: from sage.graphs.graph_decompositions.active_nodes import num_active_nodes
         sage: g = graphs.LadderGraph(100)
         sage: d = g.to_dictionary()
-        sage: links = ordered_links(d, 0, 1)
+        sage: links = ordered_links(d)
         sage: num_active_nodes(d, links)
         2
-        sage: links = ordered_links(d, 30, d[30][0])
-        sage: num_active_nodes(d, links)
-        4
         sage: links = g.edges(labels=None)
         sage: num_active_nodes(d, links)
         100
-
     """
     d0 = d
-    assert k0 in d
-    assert k1 in d[k0]
+    k0 = d.keys()[0]
+    k1 = d[k0][0]
     links_all = []
+    short_path = None
     # dt relabels indices in range(len(d))
     while 1:
         # di maps to the original labelling
@@ -278,7 +286,7 @@ def ordered_links(d, k0, k1):
                         break
             continue
 
-        _add_links_no_incr(links, d, dx)
+        links.extend(_add_links_no_incr(links, d, dx))
         while 1:
             active = [k for k in dx if 0 < len(dx[k]) < len(d[k])]
             if not active:
@@ -292,7 +300,7 @@ def ordered_links(d, k0, k1):
                 if k2x < k1x:
                     k2x, k1x = k1x, k2x
                 _append_link(dx, links, k1x, k2x)
-            _add_links_no_incr(links, d, dx)
+            links.extend(_add_links_no_incr(links, d, dx))
 
         for i, j in links:
             if i < j:
@@ -317,7 +325,10 @@ def ordered_links(d, k0, k1):
         for i, j in edges1:
             d[i].append(j)
             d[j].append(i)
-        k0 = d.keys()[0]
+        if short_path is None and active:
+            k0 = active[0]
+        else:
+            k0 = d.keys()[0]
         k1 = d[k0][0]
 
     return links_all
@@ -325,7 +336,7 @@ def ordered_links(d, k0, k1):
 
 def num_active_nodes(d, links):
     """
-    Number of the active nodes for the graph defined by ``links``
+    Computes the number of the active nodes for a graph for an ordering ``links`` of edges.
 
     INPUT:
 
@@ -336,7 +347,7 @@ def num_active_nodes(d, links):
 
         sage: from sage.graphs.graph_decompositions.active_nodes import ordered_links, num_active_nodes
         sage: d = {0:[1,4], 1:[0,2], 2:[1,3], 3:[2,4], 4:[0,3]}
-        sage: links = ordered_links(d, 0, 1)
+        sage: links = ordered_links(d)
         sage: num_active_nodes(d, links)
         2
     """
@@ -350,4 +361,3 @@ def num_active_nodes(d, links):
         if max_active < nactivex:
             max_active = nactivex
     return max_active
-

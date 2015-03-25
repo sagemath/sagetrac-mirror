@@ -444,8 +444,8 @@ class Hobj(object):
     """
     Class used to compute products of nilpotent quantities associated
     to hard objects, like non-adjacent edges or non-adjacent vertices,
-    used respectively to compute the matching and the independence
-    polynomial.
+    used respectively to compute the matching generating polynomial,
+    and to compute the independence polynomial (not yet implemented in Sage).
     """
     def __init__(self):
         """
@@ -458,12 +458,42 @@ class Hobj(object):
 
         `freedt` is a free store of pointers.
 
+        ..NOTE::
+
+            The number of pointers used is close to the number of active nodes,
+            which can be much smaller than the order of the graph;
+            since the pointer ``i`` corresponds to the ``i``-th bit
+            in a polynomial term, memory use remains small in large
+            graphs with small active node number.
+
         EXAMPLES::
 
-            sage: from sage.graphs.matchpoly import Hobj
+            sage: from sage.graphs.matchpoly import Hobj, matching_generating_poly
             sage: hb = Hobj()
             sage: hb.links
             []
+
+        Compute the matching generating polynomial for a line with 7 nodes;
+        nodes are freed as soon as they are not active; only the pointers
+        ``0`` and ``1``, corresponding to the keys ``1`` and ``2`` are
+        used; this would be true also for a long line::
+
+            sage: x = polygen(ZZ, 'x')
+            sage: p = {0: ZZ.one()}
+            sage: p = hb.iadd_object(p, x, (0, 1), [0]); p
+            {0: 1, 2: x}
+            sage: p = hb.iadd_object(p, x, (1, 2), [1]); p
+            {0: x + 1, 1: x}
+            sage: p = hb.iadd_object(p, x, (2, 3), [2]); p
+            {0: 2*x + 1, 2: x^2 + x}
+            sage: p = hb.iadd_object(p, x, (3, 4), [3]); p
+            {0: x^2 + 3*x + 1, 1: 2*x^2 + x}
+            sage: p = hb.iadd_object(p, x, (4, 5), [4]); p
+            {0: 3*x^2 + 4*x + 1, 2: x^3 + 3*x^2 + x}
+            sage: p = hb.iadd_object(p, x, (5, 6), [5,6]); p
+            {0: 4*x^3 + 10*x^2 + 6*x + 1}
+            sage: matching_generating_poly(next(graphs.trees(7)))
+            4*x^3 + 10*x^2 + 6*x + 1
 
         """
         self.links = []
@@ -472,7 +502,7 @@ class Hobj(object):
 
     def iadd_object(hb, p, val, obj, free):
         """
-        Multiply ``p`` by ``(1 + t*val*eta_i*eta_j)``, for `obj=(i,j)`.
+        Multiply ``p`` by ``(1 + t*val*\eta_i*\eta_j)``, for `obj=(i,j)`.
 
         INPUT:
             - ``p`` - polynomial
@@ -487,13 +517,13 @@ class Hobj(object):
 
             ``p`` is changed only if ``free`` is empty
 
-            ``free`` is the list of indices of ``eta`` elements which
+            ``free`` is the list of indices of ``\eta`` elements which
             are integrated (that is, put to ``1`` after performing the product).
 
-            For example let `p = 1 + t*eta_0*eta_1`; multiply it by
-            `1 + t*eta_1*eta_2`, knowing that after performing the product
-            `eta_1` can be set to `1`, then
-            p*(1 + t*eta_1*eta_2) = 1 + t*eta_0 + t*eta_2
+            For example let `p = 1 + t*\eta_0*\eta_1`; multiply it by
+            `1 + t*\eta_1*\eta_2`, knowing that after performing the product
+            `\eta_1` can be set to `1`, then
+            p*(1 + t*\eta_1*\eta_2) = 1 + t*\eta_0 + t*\eta_2
             `val = 1`; obj = (1, 2); free = [1];
 
             polynomials are represented in dictionary form: to a variable
@@ -543,7 +573,7 @@ class Hobj(object):
                 mask_free += 1 << i
             get = p.get
             for exp1, v1 in p1.iteritems():
-                # multiply by 1 + t*val*prod_i eta_i
+                # multiply by 1 + t*val*prod_i \eta_i
                 for ii in range(2):
                     if not ii:
                         exp = exp1
@@ -688,14 +718,13 @@ def gen_count_hobj(objects, values=None):
     assert len(p) == 1
     return p[0]
 
-def matching_generating_poly(g, links=None, labels=None):
+def matching_generating_poly(g, labels=None):
     r"""
     Return the matching generating polynomial `M`.
 
     INPUT:
 
     - ``g`` - graph
-    - ``links`` - list of the edges of the graph
     - ``labels`` - flag for computing `M` for the weighted graph.
 
     The matching generating polynomial of a simple graph is given by
@@ -758,13 +787,12 @@ def matching_generating_poly(g, links=None, labels=None):
         from the number of `active nodes`, that is the nodes present in
         `G_k`, the graph defined by `E_k`, and which have in `G`
         degree greater than in `G_k` (if a node has the same degree in
-        `G_k` as in `G` it means that one can set `eta_k=1`).
+        `G_k` as in `G` it means that one can set `\eta_k=1`).
 
         A simple greedy algorithm tries to find an efficient ordering of
         edges to compute the matching generating polynomial.
 
         There is no guarantee that an efficient ordering of the edges is found.
-        Alternatively can provide explicitly the list of edges `links`.
 
     EXAMPLES::
 
@@ -784,13 +812,7 @@ def matching_generating_poly(g, links=None, labels=None):
             del d[k]
     if not d:
         return x.parent()(1)
-    # compute ord_links
-    if not links:
-        k0 = d.keys()[0]
-        links = [k0, d[k0][0]]
-        ord_links = ordered_links(d, *links)
-    else:
-        ord_links = links
+    ord_links = ordered_links(d)
 
     # check that ord_links has the right number of edges
     num_edges = sum([len(v) for v in d.values()]) // 2
@@ -806,4 +828,3 @@ def matching_generating_poly(g, links=None, labels=None):
                 values[(i, j)] = v
         p = gen_count_hobj(ord_links, values)
     return p
-
