@@ -335,7 +335,30 @@ PartitionOptions=GlobalOptions(name='partitions',
 
         sage: P = Partition([4,2,2,1])
         sage: P
-        [4, 2, 2, 1]
+            /\___/\
+           /       \
+          |  #    # |
+          \     @   |
+           \   _|_ /
+           /       \______
+          / _______ ___   \
+          |_____   \   \__/
+           |    \__/
+           |       |
+           |       |
+           |       |
+           |       |
+           |       |
+           |       |
+           ...
+           |       |
+           |       |
+           /        \
+          /   ____   \
+          |  /    \  |
+          | |      | |
+         /  |      |  \
+         \__/      \__/
         sage: Partitions.global_options(display="exp")
         sage: P
         1, 2^2, 4
