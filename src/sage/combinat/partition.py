@@ -113,9 +113,9 @@ Here is the list of partitions of length at least `2` and the list of
 ones with length at most `2`::
 
     sage: Partitions(4, min_length=2).list()
-    [[2, 2], [3, 1], [2, 1, 1], [1, 1, 1, 1]]
+    [[3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
     sage: Partitions(4, max_length=2).list()
-    [[4], [2, 2], [3, 1]]
+    [[4], [3, 1], [2, 2]]
 
 The options ``min_part`` and ``max_part`` can be used to set constraints
 on the sizes of all parts. Using ``max_part``, we can select
@@ -169,7 +169,7 @@ that the difference between two consecutive parts is between `-3` and
 `-1`::
 
     sage: Partitions(11,min_slope=-3,max_slope=-1,min_length=2,max_length=4).list()
-    [[6, 5], [7, 4], [6, 3, 2], [6, 4, 1], [5, 4, 2], [5, 3, 2, 1]]
+    [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
 
 Partition objects can also be created individually with :class:`Partition`::
 
@@ -4574,9 +4574,19 @@ class Partitions(UniqueRepresentation, Parent):
     ``max_slope`` to get parts that differ by, say, 2::
 
         sage: Partitions(7, max_slope=-1).list()
-        [[7], [4, 3], [5, 2], [6, 1], [4, 2, 1]]
+        [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
         sage: Partitions(15, max_slope=-1).cardinality()
         27
+
+    By default, the list of partitions is sorted in reverse
+    lexicographic order. If you don't care about this sorting, it is
+    more efficient to disable the sorting with the ``sort=None``
+    argument::
+
+        sage: Partitions(9, max_slope=-1).list()
+        [[9], [8, 1], [7, 2], [6, 3], [6, 2, 1], [5, 4], [5, 3, 1], [4, 3, 2]]
+        sage: Partitions(9, max_slope=-1, sort=None).list()
+        [[9], [5, 4], [6, 3], [7, 2], [8, 1], [5, 3, 1], [6, 2, 1], [4, 3, 2]]
 
     The number of partitions of `n` into odd parts equals the number of
     partitions into distinct parts. Let's test that for `n` from 10 to 20::
@@ -4609,7 +4619,7 @@ class Partitions(UniqueRepresentation, Parent):
     ::
 
         sage: Partitions(10, min_part=2, length=3).list()
-        [[6, 2, 2], [5, 3, 2], [4, 3, 3], [4, 4, 2]]
+        [[6, 2, 2], [5, 3, 2], [4, 4, 2], [4, 3, 3]]
 
     Here are some further examples using various constraints::
 
@@ -4618,11 +4628,11 @@ class Partitions(UniqueRepresentation, Parent):
         sage: [x for x in Partitions(4, length=2)]
         [[3, 1], [2, 2]]
         sage: [x for x in Partitions(4, min_length=2)]
-        [[2, 2], [3, 1], [2, 1, 1], [1, 1, 1, 1]]
+        [[3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(4, max_length=2)]
-        [[4], [2, 2], [3, 1]]
+        [[4], [3, 1], [2, 2]]
         sage: [x for x in Partitions(4, min_length=2, max_length=2)]
-        [[2, 2], [3, 1]]
+        [[3, 1], [2, 2]]
         sage: [x for x in Partitions(4, max_part=2)]
         [[2, 2], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(4, min_part=2)]
@@ -4638,9 +4648,9 @@ class Partitions(UniqueRepresentation, Parent):
         sage: [x for x in Partitions(4, min_slope=-1)]
         [[4], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4)]
-        [[6, 5], [7, 4], [6, 3, 2], [6, 4, 1], [5, 4, 2], [5, 3, 2, 1]]
+        [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
         sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4, outer=[6,5,2])]
-        [[6, 5], [5, 4, 2], [6, 4, 1], [6, 3, 2]]
+        [[6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2]]
 
     Note that if you specify ``min_part=0``, then it will treat the minimum
     part as being 1 (see :trac:`13605`)::
@@ -4656,10 +4666,11 @@ class Partitions(UniqueRepresentation, Parent):
         sage: Partitions(1000, max_length=1).list()
         [[1000]]
 
-    The :class:`IntegerLists` backend uses an iterator, so getting the
-    first element can be done without computing all elements::
+    The :class:`IntegerLists` backend uses an iterator. If sorting is
+    not required, getting the first element can be done without
+    computing all elements::
 
-        sage: Partitions(30, max_part=29).first()
+        sage: Partitions(30, max_part=29, sort=None).first()
         [15, 15]
 
     TESTS::
@@ -4682,15 +4693,15 @@ class Partitions(UniqueRepresentation, Parent):
         True
 
         sage: Partitions(5, inner=[2,1], min_length=3).list()
-        [[2, 2, 1], [3, 1, 1], [2, 1, 1, 1]]
+        [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
         sage: Partitions(5, inner=Partition([2,2]), min_length=3).list()
         [[2, 2, 1]]
         sage: Partitions(7, inner=(2, 2), min_length=3).list()
-        [[3, 2, 2], [4, 2, 1], [3, 3, 1], [2, 2, 2, 1], [3, 2, 1, 1], [2, 2, 1, 1, 1]]
+        [[4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1], [2, 2, 2, 1], [2, 2, 1, 1, 1]]
         sage: Partitions(5, inner=[2,0,0,0,0,0]).list()
-        [[5], [3, 2], [4, 1], [2, 2, 1], [3, 1, 1], [2, 1, 1, 1]]
+        [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
         sage: Partitions(6, length=2, max_slope=-1).list()
-        [[4, 2], [5, 1]]
+        [[5, 1], [4, 2]]
 
         sage: Partitions(length=2, max_slope=-1).list()
         Traceback (most recent call last):
@@ -4736,8 +4747,8 @@ class Partitions(UniqueRepresentation, Parent):
         ....:    print p
         [3, 3, 2]
         [3, 2, 2, 1]
-        [2, 2, 2, 1, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
@@ -4768,7 +4779,7 @@ class Partitions(UniqueRepresentation, Parent):
             sage: list(P)
             [[5], [1, 1, 1, 1, 1]]
             sage: Partitions(10, min_part=2, max_slope=-1).list()
-            [[10], [6, 4], [7, 3], [8, 2], [5, 3, 2]]
+            [[10], [8, 2], [7, 3], [6, 4], [5, 3, 2]]
             sage: Partitions(6, min_slope=-1, max_slope=-1).list()
             [[6], [3, 2, 1]]
         """
@@ -4835,6 +4846,9 @@ class Partitions(UniqueRepresentation, Parent):
                 else:
                     kwargs['min_length'] = len(inner)
                 del kwargs['inner']
+
+            if 'sort' not in kwargs:
+                kwargs['sort'] = "revlex"
 
             kwargs['element_class'] = Partition
             kwargs['global_options'] = Partitions.global_options

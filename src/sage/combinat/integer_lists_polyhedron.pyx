@@ -209,6 +209,36 @@ cdef inline signed_infinity(s):
         return -infinity
 
 
+def integer_or_infinity(x):
+    """
+    Convert ``x`` to an :class:`Integer` or to a signed ``Infinity``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_lists_polyhedron import integer_or_infinity
+        sage: integer_or_infinity(42.0)
+        42
+        sage: integer_or_infinity(Infinity)
+        +Infinity
+        sage: integer_or_infinity(float('-inf'))
+        -Infinity
+        sage: parent(integer_or_infinity(42r))
+        Integer Ring
+        sage: integer_or_infinity(sqrt(2))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert sqrt(2) to an integer
+    """
+    try:
+        return Integer(x)
+    except Exception:
+        if x == infinity:
+            return infinity
+        elif x == -infinity:
+            return -infinity
+        raise
+
+
 cdef class IntegerList_polyhedron(ClonableArray):
     """
     Element class for :class:`IntegerLists_polyhedron`.
@@ -282,6 +312,10 @@ class IntegerLists_polyhedron(Parent):
     - ``max_part_last`` -- an additional upper bound for the last part
       in the list, only used for lists of length *longer* than
       ``min_length``.
+
+    - ``sort`` -- either ``None`` (the default) or the string
+      ``"revlex"``. If ``None``, do not sort in any specific order.
+      If ``"revlex"``, sort in reverse lexicographic order.
 
     An *integer list* is a list `l` of integers, its *parts*. The
     *length* of `l` is the number of its parts; the *sum* of `l` is the
@@ -368,8 +402,13 @@ class IntegerLists_polyhedron(Parent):
         sage: list(IntegerLists(5, max_slope=0, max_length=3, floor=[2,1,1]))
         [[5], [3, 2], [4, 1], [2, 2, 1], [3, 1, 1]]
 
+    The same but sorted::
+
+        sage: list(IntegerLists(5, max_slope=0, max_length=3, floor=[2,1,1], sort="revlex"))
+        [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+
     Note that ``[5]`` is considered valid, because the lower bound
-    constraint only apply to existing positions in the list. To
+    constraint only applies to existing positions in the list. To
     obtain instead the partitions containing ``[2,1,1]``, one need to
     use ``min_length``::
 
@@ -494,7 +533,7 @@ class IntegerLists_polyhedron(Parent):
         ...
         RuntimeError: there seem to be infinitely many lists of length 3
 
-    TESTS::
+    TESTS:
 
     All these used to be broken (:trac:`17548`)::
 
@@ -642,7 +681,7 @@ class IntegerLists_polyhedron(Parent):
                  min_slope=-infinity, max_slope=infinity,
                  *, min_sum=0, max_sum=infinity,
                  min_part_last=1, max_part_last=infinity,
-                 name=None,
+                 sort=None, name=None,
                  element_constructor=None,
                  element_class=None,
                  **kwds):
@@ -668,6 +707,7 @@ class IntegerLists_polyhedron(Parent):
                 setattr(self, k, v)
 
         if n is not None:
+            n = integer_or_infinity(n)
             min_sum = n
             max_sum = n
             # Set self.n, which is not used by IntegerLists_polyhedron,
@@ -681,16 +721,16 @@ class IntegerLists_polyhedron(Parent):
         if min_length < 0:
             min_length = 0
 
-        self.min_sum = min_sum
-        self.max_sum = max_sum
-        self.min_length = min_length
-        self.max_length = max_length
-        self.min_part = min_part
-        self.max_part = max_part
-        self.min_part_last = min_part_last
-        self.max_part_last = max_part_last
-        self.min_slope = min_slope
-        self.max_slope = max_slope
+        self.min_sum = integer_or_infinity(min_sum)
+        self.max_sum = integer_or_infinity(max_sum)
+        self.min_length = integer_or_infinity(min_length)
+        self.max_length = integer_or_infinity(max_length)
+        self.min_part = integer_or_infinity(min_part)
+        self.max_part = integer_or_infinity(max_part)
+        self.min_part_last = integer_or_infinity(min_part_last)
+        self.max_part_last = integer_or_infinity(max_part_last)
+        self.min_slope = integer_or_infinity(min_slope)
+        self.max_slope = integer_or_infinity(max_slope)
 
         # Floor/ceiling should either be iterable, or a callable function
         if not floor:
@@ -709,6 +749,7 @@ class IntegerLists_polyhedron(Parent):
             except TypeError:
                 ceil_iter = _function_iter(ceiling)
 
+        self.sort = sort
         if name is not None:
             self.rename(name)
 
@@ -735,7 +776,8 @@ class IntegerLists_polyhedron(Parent):
             self.effective_max_length = max_length
 
         # try_length is the minimal length of lists to compute before
-        # we worry that there are no more possible lists.
+        # we worry that there are no more possible lists or that there
+        # are infinitely many.
         if self.effective_max_length < infinity:
             self.try_length = self.effective_max_length
         else:
@@ -853,7 +895,10 @@ class IntegerLists_polyhedron(Parent):
             s = " of sum at least {}".format(self.min_sum)
         else:
             s = " of sum in [{}, {}]".format(self.min_sum, self.max_sum)
-        return "Integer lists" + s + " satisfying certain constraints"
+        s = "Integer lists" + s + " satisfying certain constraints"
+        if self.sort is not None:
+            s += ", sorted in {} order".format(self.sort)
+        return s
 
     def floor(self, i):
         """
@@ -908,6 +953,49 @@ class IntegerLists_polyhedron(Parent):
             +Infinity
         """
         return self.get_floor_ceil(i)[1]
+
+    def floor_limit(self, level):
+        """
+        If the current floor level is ``level``, what is the "limit"
+        of the floor as the length goes to infinity?
+
+        EXAMPLES::
+
+            sage: L = IntegerLists(10, min_slope=0)
+            sage: L.floor_limit(-5)
+            0
+            sage: L.floor_limit(5)
+            5
+            sage: IntegerLists(10, min_slope=-1).floor_limit(5)
+            0
+            sage: IntegerLists(10, min_slope=0, min_part=-Infinity).floor_limit(5)
+            5
+            sage: IntegerLists(10, min_slope=-1, min_part=-Infinity).floor_limit(5)
+            -Infinity
+        """
+        if level == -infinity:
+            return self.min_part
+        else:
+            return max(self.min_part, level + signed_infinity(self.min_slope))
+
+    def ceiling_limit(self, level):
+        """
+        If the current ceiling level is ``level``, what is the "limit"
+        of the ceiling as the length goes to infinity?
+
+        EXAMPLES::
+
+            sage: IntegerLists(10).ceiling_limit(5)
+            +Infinity
+            sage: IntegerLists(10, max_slope=0).ceiling_limit(5)
+            5
+            sage: IntegerLists(10, max_part=1).ceiling_limit(5)
+            1
+        """
+        if level == infinity:
+            return self.max_part
+        else:
+            return min(self.max_part, level + signed_infinity(self.max_slope))
 
     def get_floor_ceil(self, Py_ssize_t i):
         """
@@ -1204,15 +1292,8 @@ class IntegerLists_polyhedron(Parent):
             if f >= c+1:
                 continue
 
-            # Limit of floor/ceiling for part index going to infinity
-            if f == -infinity:
-                flim = self.min_part
-            else:
-                flim = max(self.min_part, f + signed_infinity(self.min_slope))
-            if c == infinity:
-                clim = self.max_part
-            else:
-                clim = min(self.max_part, c + signed_infinity(self.max_slope))
+            flim = self.floor_limit(f)
+            clim = self.ceiling_limit(c)
 
             # Bounds on last part (which has index >= length)
             flast = max([self.min_part, self.min_part_last, min(f+self.min_slope, flim)])
@@ -1256,6 +1337,9 @@ class IntegerLists_polyhedron(Parent):
 
             P = P.convex_hull(Polyhedron_inf(ieqs=ieqs, base_ring=QQ))
 
+        if P.is_empty():
+            self.effective_max_length = min(self.effective_max_length, length-1)
+
         return P
 
     def __iter__(self):
@@ -1267,6 +1351,90 @@ class IntegerLists_polyhedron(Parent):
             sage: C = IntegerLists(2, length=3)
             sage: list(C)  # indirect doctest
             [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
+
+        TESTS::
+
+            sage: list(IntegerLists(5, sort="whatever"))
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown sort order 'whatever'
+        """
+        if self.sort is None:
+            return self._iter(constructor=self._element_constructor_)
+        if self.sort == "revlex":
+            return self._iter_revlex()
+        raise ValueError("unknown sort order %r" % self.sort)
+
+    def _iter(self, constructor=None, bint require_finite=False):
+        """
+        Iterate over the elements of ``self`` in no specific order.
+
+        INPUT:
+
+        - ``constructor`` -- (default: ``None``) if not ``None``, an
+          ``element_constructor`` function to call on the resulting
+          elements. If ``None``, return plain lists.
+
+        - ``require_finite`` -- (default: ``False``) if set to ``True``,
+          raise an exception if the iterator looks infinite.
+
+        EXAMPLES::
+
+            sage: C = IntegerLists(2, length=3)
+            sage: list(C._iter())
+            [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
+
+        With a custom ``constructor``::
+
+            sage: list(C._iter(constructor=tuple))
+            [(0, 0, 2), (0, 1, 1), (0, 2, 0), (1, 0, 1), (1, 1, 0), (2, 0, 0)]
+
+        When ``require_finite`` is ``True``, we get an error if there
+        are infinitely many lists::
+
+            sage: it = IntegerLists(2)._iter(require_finite=True)
+            sage: try:
+            ....:     while True:
+            ....:         print next(it)
+            ....: except Exception as E:
+            ....:     print E
+            [2]
+            [0, 2]
+            [1, 1]
+            [0, 0, 2]
+            [0, 1, 1]
+            [1, 0, 1]
+            [0, 0, 0, 2]
+            [0, 0, 1, 1]
+            [0, 1, 0, 1]
+            [1, 0, 0, 1]
+            [0, 0, 0, 0, 2]
+            [0, 0, 0, 1, 1]
+            [0, 0, 1, 0, 1]
+            [0, 1, 0, 0, 1]
+            [1, 0, 0, 0, 1]
+            [0, 0, 0, 0, 0, 2]
+            [0, 0, 0, 0, 1, 1]
+            [0, 0, 0, 1, 0, 1]
+            [0, 0, 1, 0, 0, 1]
+            [0, 1, 0, 0, 0, 1]
+            [1, 0, 0, 0, 0, 1]
+            [0, 0, 0, 0, 0, 0, 2]
+            [0, 0, 0, 0, 0, 1, 1]
+            [0, 0, 0, 0, 1, 0, 1]
+            [0, 0, 0, 1, 0, 0, 1]
+            [0, 0, 1, 0, 0, 0, 1]
+            [0, 1, 0, 0, 0, 0, 1]
+            [1, 0, 0, 0, 0, 0, 1]
+            [0, 0, 0, 0, 0, 0, 0, 2]
+            [0, 0, 0, 0, 0, 0, 1, 1]
+            [0, 0, 0, 0, 0, 1, 0, 1]
+            [0, 0, 0, 0, 1, 0, 0, 1]
+            [0, 0, 0, 1, 0, 0, 0, 1]
+            [0, 0, 1, 0, 0, 0, 0, 1]
+            [0, 1, 0, 0, 0, 0, 0, 1]
+            [1, 0, 0, 0, 0, 0, 0, 1]
+            lists can have an unbounded number of zeros
         """
         cdef list L = []
 
@@ -1277,21 +1445,70 @@ class IntegerLists_polyhedron(Parent):
         while length <= self.effective_max_length:
             sig_check()
             P = self.polyhedron(length)
-            if length > self.try_length and P.is_empty():
-                # Perhaps all following polyhedra are empty?
-                Q = self.polyhedron_more(length)
-                if Q.is_empty():
-                    self.effective_max_length = min(self.effective_max_length, length-1)
-                    return
-                elif length > self.try_length:  # Do nothing if try_length was increased
-                    raise RuntimeError("no more lists found, but cannot prove that there are none of length > {}".format(length))
-            elif not P.is_compact():
+            if not P.is_compact():
                 raise RuntimeError("there seem to be infinitely many lists of length {}".format(length))
 
+            if length > self.try_length:
+                if P.is_empty():
+                    # Perhaps all following polyhedra are empty?
+                    Q = self.polyhedron_more(length)
+                    if Q.is_empty():
+                        return
+                    if length > self.try_length:  # Do nothing if try_length was increased
+                        raise RuntimeError("no more lists found, but cannot prove that there are none of length > {}".format(length))
+                elif require_finite:
+                    # Perhaps there are infinitely many lists possible?
+                    Q = self.polyhedron_more(length)
+                    if not Q.is_compact():
+                        if length > self.try_length:  # Do nothing if try_length was increased
+                            raise RuntimeError("the total list sum seems unbounded")
+                    else:
+                        # OK, the total sum is bounded.
+                        # Check whether it is possible to make lists of
+                        # arbitrary length by inserting zeros.
+                        if self.effective_max_length == infinity:
+                            f, c = self.get_floor_ceil(length)
+                            if self.floor_limit(f) <= 0 and self.ceiling_limit(c) >= 0:
+                                raise RuntimeError("lists can have an unbounded number of zeros")
+                        # We do *not* allow a zero part in the limit and
+                        # the sum is bounded, so the length must be bounded!
+                        require_finite = False
+
             for x in P.integral_points():
-                yield self._element_constructor_(x.list())
+                if constructor is None:
+                    yield x.list()
+                else:
+                    yield constructor(x.list())
 
             length += 1
+
+    def _iter_revlex(self):
+        """
+        Iterate over the elements in reverse lexicographic order. This
+        is implemented by first generating a list of all elements and
+        then sorting.
+
+        EXAMPLES::
+
+            sage: it = IntegerLists(7, min_part=2)._iter_revlex()
+            sage: list(it)
+            [[7], [5, 2], [4, 3], [3, 4], [3, 2, 2], [2, 5], [2, 3, 2], [2, 2, 3]]
+
+        If the list is infinite, we get an error::
+
+            sage: list(IntegerLists(5)._iter_revlex())
+            Traceback (most recent call last):
+            ...
+            RuntimeError: lists can have an unbounded number of zeros
+            sage: list(IntegerLists(ceiling=[0], min_slope=1, max_slope=1)._iter_revlex())
+            Traceback (most recent call last):
+            ...
+            RuntimeError: the total list sum seems unbounded
+        """
+        L = [x for x in self._iter(require_finite=True)]
+        L.sort(key=lambda t: [-a for a in t])
+        for t in L:
+            yield self._element_constructor_(t)
 
     def count(self):
         """
@@ -1343,6 +1560,8 @@ class IntegerListsLex_polyhedron(IntegerLists_polyhedron):
         sage: def term(exponents):
         ....:     return x^exponents[0] * y^exponents[1] * z^exponents[2]
         sage: C = IntegerListsLex(4, length=len(m), ceiling=m, element_constructor=term)
+        sage: C
+        Integer lists of sum 4 satisfying certain constraints, sorted in revlex order
         sage: list(C)
         [x^3*y, x^3*z, x^2*y*z, x^2*z^2, x*y*z^2]
     """
@@ -1356,38 +1575,5 @@ class IntegerListsLex_polyhedron(IntegerLists_polyhedron):
             sage: C.list()
             [[7], [5, 2], [4, 3], [3, 4], [3, 2, 2], [2, 5], [2, 3, 2], [2, 2, 3]]
         """
-        # If element_constructor is given, don't pass it to
-        # IntegerLists_polyhedron but store it in a private attribute.
-        ec = kwds.pop('element_constructor', None)
-        if ec is not None:
-            self.__element_constructor = ec
-        else:
-            self.__element_constructor = self._element_constructor_
+        kwds['sort'] = "revlex"
         IntegerLists_polyhedron.__init__(self, *args, **kwds)
-
-    def _repr_(self):
-        """
-        Return the name of this combinatorial class.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(5, max_length=3)
-            sage: C
-            Integer lists of sum 5 satisfying certain constraints, in revlex order
-        """
-        return IntegerLists_polyhedron._repr_(self) + ", in revlex order"
-
-    def __iter__(self):
-        """
-        Return an iterator for the elements of ``self``.
-
-        EXAMPLES::
-
-            sage: C = IntegerListsLex(2, length=3)
-            sage: list(C)  # indirect doctest
-            [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
-        """
-        L = [x for x in IntegerLists_polyhedron.__iter__(self)]
-        L.sort(key=lambda t: [-a for a in t])
-        for t in L:
-            yield self.__element_constructor(t)

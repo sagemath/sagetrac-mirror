@@ -1566,7 +1566,7 @@ with length `2` or `3`::
 The strictly decreasing partitions of `5`::
 
     sage: Partitions(5, max_slope = -1).list()
-    [[5], [3, 2], [4, 1]]
+    [[5], [4, 1], [3, 2]]
 
 These sets share the same underlying algorithmic structure, implemented
 in the more general – and slightly more cumbersome – class
