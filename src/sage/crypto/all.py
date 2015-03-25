@@ -14,3 +14,7 @@ from lfsr import (
     lfsr_sequence,
     lfsr_autocorrelation,
     lfsr_connection_polynomial)
+
+from public_key.rsa_cryptosystem import (
+    RSACryptosystem
+    )
