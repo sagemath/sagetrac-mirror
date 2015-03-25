@@ -1148,7 +1148,7 @@ class GraphLatex(SageObject):
                     for key, x in value.items():
                         if not type(x) in [int, Integer, float, RealLiteral, list] or not x >= 0.0:
                             raise ValueError('%s option for %s needs to be a positive number or list of numbers, not %s' % (name, key, x))
-                        if type(x) == type([]) and not type(x[0]) in [int, Integer, float, RealLiteral, list] or not x >= 0.0:
+                        if type(x) == type([]) and not type(x[0]) in [int, Integer, float, RealLiteral] or not x >= 0.0:
                             raise ValueError('%s option for %s needs to be a list of positive numbers, not %s' % (name, key, x))
             elif name in boolean_dicts:
                 if not isinstance(value, dict):
@@ -1491,9 +1491,7 @@ class GraphLatex(SageObject):
         # match up exactly with the labels within the set.
         if self._graph.has_multiple_edges() and self.get_option('edge_labels'):
             if self.get_option('edge_colors') or self.get_option('edge_thicknesses'):
-                from sage.misc.stopgap import stopgap
-                stopgap("Multiple customizations of multiedges cannot be guaranteed to be matched correctly.",
-                    18046)
+                raise NotImplementedError("multiple customizations of multiedges cannot be guaranteed to be matched correctly.")
 
         from matplotlib.colors import ColorConverter
         from sage.misc.latex import latex
@@ -1951,15 +1949,15 @@ class GraphLatex(SageObject):
         s+=['%\n']
 
         # Create each edge or loop
-        emei = 0
-        prevedge = ""
+        multiedge_index = 0
+        previous_edge = ""
         for e in self._graph.edges():
             edge = (e[0],e[1])
             loop = e[0] == e[1]
-            if edge == prevedge:
-                emei += 1
+            if edge == previous_edge:
+                multiedge_index += 1
             else:
-                emei = 0
+                multiedge_index = 0
             if loop:
                 u=e[0]
                 s+=['\\Loop[']
@@ -1973,13 +1971,13 @@ class GraphLatex(SageObject):
                 if not loop:  # lw not available for loops!
                     et = e_thick[edge]
                     if type(et) == type([]):
-                        et = et[emei]
+                        et = et[multiedge_index]
                     s+=['lw=', str(round(scale*et,4)), units, ',']
                 s+=['style={']  # begin style list
                 if self._graph.is_directed():
                     s+=['->,']
                 if self._graph.is_directed() or self._graph.allows_multiple_edges() and not loop:
-                    s+=['bend right=', str(10+20*emei), ',']
+                    s+=['bend right=', str(10+20*multiedge_index), ',']
                 s+=['color=', edge_color_names[edge], ',']
                 if edge_fills:
                     s+=['double=', edge_fill_color_names[edge]]
@@ -1996,7 +1994,7 @@ class GraphLatex(SageObject):
                     s+=['},']
                     el = ""
                     if self._graph.allows_multiple_edges():
-                        el = self._graph.edge_label(edge[0],edge[1])[emei]
+                        el = self._graph.edge_label(edge[0],edge[1])[multiedge_index]
                     else:
                         el = self._graph.edge_label(edge[0],edge[1])
                     if edge_labels_math and not (isinstance(el, str) and el[0]=='$' and el[-1]=='$'):
@@ -2008,7 +2006,7 @@ class GraphLatex(SageObject):
             if not loop:
                 s+=['(', prefix, str(index_of_vertex[e[0]]), ')']
             s+=['(', prefix, str(index_of_vertex[e[1]]), ')\n']
-            prevedge = edge
+            previous_edge = edge
 
         # Wrap it up
         s+=['%\n']
