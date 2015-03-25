@@ -1146,8 +1146,10 @@ class GraphLatex(SageObject):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, x in value.items():
-                        if not type(x) in [int, Integer, float, RealLiteral] or not x >= 0.0:
-                            raise ValueError('%s option for %s needs to be a positive number, not %s' % (name, key, x))
+                        if not type(x) in [int, Integer, float, RealLiteral, list] or not x >= 0.0:
+                            raise ValueError('%s option for %s needs to be a positive number or list of numbers, not %s' % (name, key, x))
+                        if type(x) == type([]) and not type(x[0]) in [int, Integer, float, RealLiteral, list] or not x >= 0.0:
+                            raise ValueError('%s option for %s needs to be a list of positive numbers, not %s' % (name, key, x))
             elif name in boolean_dicts:
                 if not isinstance(value, dict):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
@@ -1481,12 +1483,17 @@ class GraphLatex(SageObject):
             \end{tikzpicture}
         """
 
-        # This routine does not handle multiple edges
-        # It will properly handle digraphs where a pair of vertices
-        # has an edge in each direction, since edges of a digraph are
-        # curved.
-        if self._graph.has_multiple_edges():
-            raise NotImplementedError('it is not possible create a tkz-graph version of a graph with multiple edges')
+        # This routine does not handle multiple customizations with multiedges
+        # This is because the order of the hashables of a dictionary are not
+        # guaranteed. Thus, if a set of edges between two specifics vertices
+        # each have labels AND they also have a list of further customizations
+        # (i.e. colors or thicknesses), the customizations will probably not
+        # match up exactly with the labels within the set.
+        if self._graph.has_multiple_edges() and self.get_option('edge_labels'):
+            if self.get_option('edge_colors') or self.get_option('edge_thicknesses'):
+                from sage.misc.stopgap import stopgap
+                stopgap("Multiple customizations of multiedges cannot be guaranteed to be matched correctly.",
+                    18046)
 
         from matplotlib.colors import ColorConverter
         from sage.misc.latex import latex
@@ -1944,9 +1951,15 @@ class GraphLatex(SageObject):
         s+=['%\n']
 
         # Create each edge or loop
+        emei = 0
+        prevedge = ""
         for e in self._graph.edges():
             edge = (e[0],e[1])
             loop = e[0] == e[1]
+            if edge == prevedge:
+                emei += 1
+            else:
+                emei = 0
             if loop:
                 u=e[0]
                 s+=['\\Loop[']
@@ -1958,10 +1971,15 @@ class GraphLatex(SageObject):
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 if not loop:  # lw not available for loops!
-                    s+=['lw=', str(round(scale*e_thick[edge],4)), units, ',']
+                    et = e_thick[edge]
+                    if type(et) == type([]):
+                        et = et[emei]
+                    s+=['lw=', str(round(scale*et,4)), units, ',']
                 s+=['style={']  # begin style list
-                if self._graph.is_directed() and not loop:
-                    s+=['post, bend right', ',']
+                if self._graph.is_directed():
+                    s+=['->,']
+                if self._graph.is_directed() or self._graph.allows_multiple_edges() and not loop:
+                    s+=['bend right=', str(10+20*emei), ',']
                 s+=['color=', edge_color_names[edge], ',']
                 if edge_fills:
                     s+=['double=', edge_fill_color_names[edge]]
@@ -1976,7 +1994,11 @@ class GraphLatex(SageObject):
                         s+=['pos=', str(round(el_placement[edge],4)), ',']  # no units needed
                     s+=['text=', edge_label_color_names[edge], ',']
                     s+=['},']
-                    el = self._graph.edge_label(edge[0],edge[1])
+                    el = ""
+                    if self._graph.allows_multiple_edges():
+                        el = self._graph.edge_label(edge[0],edge[1])[emei]
+                    else:
+                        el = self._graph.edge_label(edge[0],edge[1])
                     if edge_labels_math and not (isinstance(el, str) and el[0]=='$' and el[-1]=='$'):
                         lab = '\hbox{$%s$}' % latex(el)
                     else:
@@ -1986,6 +2008,7 @@ class GraphLatex(SageObject):
             if not loop:
                 s+=['(', prefix, str(index_of_vertex[e[0]]), ')']
             s+=['(', prefix, str(index_of_vertex[e[1]]), ')\n']
+            prevedge = edge
 
         # Wrap it up
         s+=['%\n']
