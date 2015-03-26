@@ -1,29 +1,85 @@
 r"""
 Database of reduced origamis.
 
-Origamis are cover of the torus over one point. The group SL(2,Z) act on them
+Origamis are cover of the torus over one point. The group `SL(2,\ZZ)` act on them
 (as their mapping class group). This file contains the implementation of a
 database of these SL(2,Z)-orbits. To do concrete computations with origamis see
-:mod:`origami`.
+:mod:`~sage.dynamics.flat_surfaces.origamis.origami`.
+
+The database of origamis contain informations about `SL(2,\ZZ)` orbits of the
+origamis that are *arithmetic Teichmueller curves*.
 
 EXAMPLES:
 
-We found the Eierlegende Wollmilchsau and the Ornythorinque in the database from
-their property of complete degeneracy::
+The most useful way to explore the database through queries. We develop several
+examples below and refer to the documentation in the method
+:meth:`OrigamiDatabase.query` for the complete specifications.
+
+Let us start by finding the two exceptional surfaces whose Teichmueller curves
+have a complete degenerate Lyapunov spectrum: the Eierlegende Wollmilchsau and
+the Ornythorinque::
 
     sage: D = OrigamiDatabase()
 
     sage: q = D.query(sum_of_L_exp=1)
-    sage: len(q)
+    sage: q.number_of()
     2
     sage: o0, o1 = q.list()
+    sage: o0
+    (1,2,3,4)(5,6,7,8)
+    (1,5,3,7)(2,8,4,6)
+    sage: o1
+    (1,2,3,4,5,6)(7,8,9,10,11,12)
+    (1,7,5,9,3,11)(2,8,4,12,6,10)
     sage: o0.is_isomorphic(origamis.CyclicCover([1,1,1,1]))
     True
     sage: o1.is_isomorphic(origamis.CyclicCover([1,1,1,3]))
     True
 
-We check the classification of arithmetic Teichmueller curves in H(2) from
-Hubert-Lelievre and McMullen::
+We show two methods to get information on a given query:
+:meth:`~OrigamiQuery.number_of` and :meth:`~OrigamiQuery.list`. To simply
+display the result on the screen in a table, one can use
+:meth:`~OrigamiQuery.show` of :class:`OrigamiQuery`::
+
+    sage: q.show()
+    Origami             
+    --------------------
+    r=1234 5678  u=1537 2846
+    r=123456 789abc  u=17593b 284c6a
+
+We can display much more informations by modifying the displayed columns::
+
+    sage: q.cols('nb_squares', 'stratum', 'component', 'regular', 'quasi_regular')
+    sage: q.show()
+    Nb squares           Stratum              Comp.                Regular              Quasi regular       
+    ----------------------------------------------------------------------------------------------------
+    8                    H_3(1^4)             c                    True                 True                
+    12                   H_4(2^3)             even                 False                True             
+
+And the complete list of columns in the database is obtained through::
+
+    sage: D.cols()
+    ['representative',
+     'stratum',
+     'component',
+     'primitive',
+     'quasi_primitive',
+     'orientation_cover',
+     'hyperelliptic',
+     'regular',
+     'quasi_regular',
+    ...
+     'relative_monodromy_nilpotent',
+     'relative_monodromy_gap_primitive_id',
+     'orientation_stratum',
+     'orientation_genus',
+     'pole_partition',
+     'automorphism_group_order',
+     'automorphism_group_name']
+
+Now, we do some simple counting of the number of primitive arithmetic
+Teichmueller curves. Let us first check the classification of arithmetic
+Teichmueller curves in H(2) from Hubert-Lelievre and McMullen::
 
     sage: A = AbelianStratum(2)
     sage: for n in xrange(3, 17):
@@ -67,23 +123,51 @@ And look at the conjecture of Delecroix-Lelievre in the stratum H(1,1)::
     18 2
     19 2
 
-.. NOTE::
+You can get an overview of the content of the database::
 
-    convention for pole_partition: if the origami is primitive, it is the
-    partition of the fiber of the poles determined by half integer points. Else,
-    if one of the orientation cover is hyperelliptic it is the partition with
-    respect to that one. Otherwise, it is None.
+    sage: D.info()
+    genus 2
+    =======
+     H_2(2)^hyp        :  79 T. curves (up to 55 squares)
+     H_2(1^2)^hyp      : 259 T. curves (up to 52 squares)
+    <BLANKLINE>
+    genus 3
+    =======
+     H_3(4)^hyp        : 163 T. curves (up to 51 squares)
+    ...
+    genus 6
+    =======
+     H_6(10)^hyp       :  46 T. curves (up to 15 squares)
+     H_6(10)^odd       :   4 T. curves (up to 11 squares)
+     H_6(10)^even      :  33 T. curves (up to 12 squares)
+    <BLANKLINE>
+    <BLANKLINE>
+    Total: 4369 Teichmueller curves
+
+Here is a last example of the list of regular origamis (i.e. such that their
+group of translation acts transitively on the set of squares)::
+
+    sage: q = D.query(regular=True)
+    sage: q.cols('nb_squares', 'stratum', 'automorphism_group_name')
+    sage: q.show()
+    Nb squares           Stratum              Automorphism        
+    ------------------------------------------------------------
+    6                    H_3(2^2)             S3                  
+    8                    H_3(1^4)             D8                  
+    8                    H_3(1^4)             Q8                  
+    10                   H_5(4^2)             D10                 
+    12                   H_4(1^6)             A4                  
 
 AUTHOR:
 
 - Vincent Delecroix (2011): initial version
 
 """
-from sage.all import Integer, RealField
+from sage.rings.integer import Integer
+from sage.rings.real_mpfr import RealField
 from sage.rings.all import ZZ,QQ,Integer
 from origami import Origami, Origami_dense
 from sage.dynamics.flat_surfaces.all import AbelianStratum, QuadraticStratum
-from sage.interfaces.gap import gap
 
 from sage.databases.sql_db import SQLDatabase, SQLQuery
 from sage.env import SAGE_SHARE
@@ -125,8 +209,6 @@ def are_skeleton_equal(sk1, sk2):
             if w1['sql'] != w2['sql']:
                 return False
             if w1.get('index',False) != w2.get('index',False):
-                s1 = w1.get('index',False)
-                s2 = w2.get('index',False)
                 return False
             if w1.get('unique',False) != w2.get('unique',False):
                 return False
@@ -216,6 +298,8 @@ ORIGAMI_DB_cols = ['representative', 'stratum', 'component', 'primitive',
 
 
 # backward compatibility with previous versions of the database
+# each line of ``added_cols`` correspond to a newly added information
+# once you modify the table structure, add a line there
 OLDS = []
 
 OLD_ORIGAMI_DB_skeleton = ORIGAMI_DB_skeleton['origamis'].copy()
@@ -752,15 +836,15 @@ class EnhancedSQLQuery(SQLQuery):
 class OrigamiQuery:
     r"""
     Origami database query.
+
+    A query for an instance of OrigamiDatabase. This class nicely wraps the
+    SQLQuery class located in sage.databases.database.py to make the query
+    constraints intuitive and with as many pre-definitions as possible. (i.e.:
+    since it has to be a OrigamiDatabase, we already know the table structure
+    and types; and since it is immutable, we can treat these as a guarantee).
     """
     def __init__(self, db, query_string, cols, **kwds):
         """
-        A query for an instance of OrigamiDatabase. This class nicely wraps
-        the SQLQuery class located in sage.databases.database.py to make
-        the query constraints intuitive and with as many pre-definitions as
-        possible. (i.e.: since it has to be a OrigamiDatabase, we already know
-        the table structure and types; and since it is immutable, we can
-        treat these as a guarantee).
 
         INPUT:
 
@@ -770,9 +854,9 @@ class OrigamiQuery:
         - ``cols`` - A list of column names (strings)
           to display in the result when running or showing a query.
 
-        - ``query_string`` - A string associated to a query (allow =, <=, <,
-          AND OR NOT). It consists only of the SQL statement which appear after
-          the 'WHERE' directive.
+        - ``query_string`` - A string associated to a query (allow =, <=, <, AND
+          OR NOT). It consists only of the part of the SQL statement which
+          appear after the 'WHERE' directive.
         """
         self._cols = cols
         self._query_string = query_string
@@ -817,7 +901,7 @@ class OrigamiQuery:
         r"""
         Get or modify columns.
 
-        In sql query, it corresponds to the clause 'SELECT'.
+        In a sql query, it corresponds to the clause 'SELECT'.
 
         EXAMPLES::
 
@@ -884,6 +968,9 @@ class OrigamiQuery:
     def get_query_string(self):
         r"""
         Output the query string in sql format.
+
+        This is the method where the attribute of this object are translated
+        into a sql query.
 
         EXAMPLES::
 
@@ -1036,6 +1123,7 @@ def build_local_data(o):
         3
     """
     from sage.functions.other import factorial
+    from sage.interfaces.gap import gap
 
     data = {}
 
@@ -1548,6 +1636,8 @@ class OrigamiDatabase(SQLDatabase):
           in ``other`` and each column added
         """
         assert not self.__read_only__, "the database should not be in read only mode"
+
+        from sage.interfaces.gap import gap
 
         if isinstance(other, OrigamiQuery):
             old_db = other.database()
