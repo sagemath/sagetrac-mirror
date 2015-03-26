@@ -17,16 +17,15 @@ from collections import defaultdict
 class AbstractTableau(Element):
     r"""
     Abstract class for the various element classes of Tableau.
-    
+
     A Tableau is thought of as a mapping from pairs (x, y) to some
     arbitrary labels. Two x-coordinates or two y-coordinates are assumed
     to be comparable via `>` and `<`. Subclasses are welcome to add further
-    data (ex. shape).
-    
+    data (ex. skew shape).
+
     Tableau are assumed to be immutable; see :trac:`15862`.
-    
-    This is an abstract class. Child classes must implement
-    :meth:`_dict_unsafe`.
+
+    Child classes must implement :meth:`_dict_unsafe`.
     """
 
     def __hash__(self):
@@ -62,45 +61,45 @@ class AbstractTableau(Element):
 
     def cells(self):
         r"""
-        Return a list of the cells in this tableau.
+        Return an iterable over the cells in this tableau.
         """
-        return self._dict_unsafe().keys()
+        return six.iterkeys(self._dict_unsafe())
 
-    def rows(self):
+    def _group_by(self, a, b):
         r"""
-        Return a list of rows of ``self`` in order of increasing row
-        index, where each row is a list.
+        Return a list of lists given by grouping the values of ``self``.
+        
+        Inner lists come from fibers of projection onto index `a` of keys,
+        sorted by index `b`. The outer list is sorted by index `a`.
         """
-        cols = defaultdict(list)
-        _dict = self._dict_unsafe()
-        for cell, label in six.iteritems(_dict):
-            cols[cell[0]].append((cell[1], label))
-        # Sort the columns
-        for x, col in six.iteritems(cols):
-            col_sorted = sorted(col, key=lambda v:v[0])
-            cols[x] = [k[1] for k in col_sorted]
-        # Sort the rows
-        cols = sorted(((x, col) for x, col in six.iteritems(cols)),
-                      key=lambda v: v[0])
-        return [col[1] for col in cols]
-
-    def cols(self):
-        r"""
-        Return a list of columns of ``self`` in order of increasing column
-        index, where each column is a list.
-        """
+        # We imagine a=0 and b=1, meaning we group into rows.
         rows = defaultdict(list)
         _dict = self._dict_unsafe()
         for cell, label in six.iteritems(_dict):
-            rows[cell[1]].append((cell[0], label))
-        # Sort the columns
-        for x, row in six.iteritems(rows):
-            row_sorted = sorted(row, key=lambda v:v[0])
-            rows[x] = [k[1] for k in row_sorted]
-        # Sort the rows
-        rows = sorted(((x, row) for x, row in six.iteritems(rows)),
-                      key=lambda v: v[0])
+            rows[cell[a]].append((cell[b], label))
+        # Sort inside each row by column index
+        for c, row in six.iteritems(rows):
+            row_sorted = sorted(row, key=lambda v: v[0])
+            rows[c] = [k[1] for k in row_sorted]
+        # Sort rows themselves
+        rows = sorted(six.iteritems(rows), key=lambda v: v[0])
         return [row[1] for row in rows]
+
+    def rows(self):
+        r"""
+        Return the values of ``self`` as a list of rows in order of
+        increasing row index, where each row is a list and has been sorted
+        by column index.
+        """
+        return self._group_by(0, 1)
+
+    def cols(self):
+        r"""
+        Return the values of ``self`` as a list of columns in order of
+        increasing columns index, where each column is a list and has been
+        sorted by row index.
+        """
+        return self._group_by(1, 0)
 
     def iter_by_row_reversed(self):
         r"""
@@ -278,14 +277,6 @@ class BadShapeTableau(AbstractTableau):
 
 class SkewTableau(BadShapeTableau):
     
-    @staticmethod
-    def __classcall_private__(cls, l=[], dictionary=[], check=False):
-        r"""
-        Return the SkewTableau corresponding to the defining data.
-        """
-        if isinstance(l, cls):
-            return l
-        return SkewTableaux()(l, dictionary, check)
 
     def __init__(self, parent, l=[], dictionary={}, check=False):
         r"""
