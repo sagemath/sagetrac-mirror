@@ -47,7 +47,7 @@ from sage.libs.flint.fmpz_poly cimport *
 x = polygen(ZZ, 'x')
 
 
-def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'):
+def matching_polynomial(G, complement=True, name=None, algorithm='ButPer'):
     """
     Computes the matching polynomial of the graph `G`.
 
@@ -98,7 +98,7 @@ def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'
     Where `\overline{G}` is the complement of `G`, and `K_n` the complete graph
     on `n` vertices.
 
-    The `ButeraPernici` algorithm is faster on large graphs; for a
+    The `ButPer` algorithm is faster on large graphs; for a
     description of the algorithm see :meth:`matching_generating_poly`
 
 
@@ -303,7 +303,7 @@ def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'
         if name is not None:
             return f.change_variable_name(name)
         return f
-    elif algorithm == 'ButeraPernici':
+    elif algorithm == 'ButPer':
         p = matching_generating_poly(G)
         a = p.coefficients()
         n = G.order()
@@ -318,7 +318,7 @@ def matching_polynomial(G, complement=True, name=None, algorithm='ButeraPernici'
         p = K(b)
         return p
     else:
-        raise ValueError('algorithm must be one of "Godsil" or "ButeraPernici".')
+        raise ValueError('algorithm must be one of "Godsil" or "ButPer".')
 
 
 
@@ -448,7 +448,7 @@ class Hobj(object):
     and to compute the independence polynomial (not yet implemented in Sage).
     """
     def __init__(self):
-        """
+        r"""
         Create an empty `Hobj` object.
 
         `links` is the list of tuples representing hard objects.
@@ -501,8 +501,8 @@ class Hobj(object):
         self.freedt = list(range(1000, -1, -1))
 
     def iadd_object(hb, p, val, obj, free):
-        """
-        Multiply ``p`` by ``(1 + t*val*\eta_i*\eta_j)``, for `obj=(i,j)`.
+        r"""
+        Multiply ``p`` by `(1 + t*val*\eta_i \eta_j)`, for `obj=(i,j)`.
 
         INPUT:
             - ``p`` - polynomial
@@ -517,7 +517,7 @@ class Hobj(object):
 
             ``p`` is changed only if ``free`` is empty
 
-            ``free`` is the list of indices of ``\eta`` elements which
+            ``free`` is the list of indices of `\eta` elements which
             are integrated (that is, put to ``1`` after performing the product).
 
             For example let `p = 1 + t*\eta_0*\eta_1`; multiply it by
@@ -613,8 +613,8 @@ class Hobj(object):
 
         return p
 
-def obj_free(objects):
-    """
+def _obj_free(objects):
+    r"""
     Return a list of tuples ``(obj, free)``
 
     INPUT:
@@ -623,15 +623,15 @@ def obj_free(objects):
 
     .. NOTE::
 
-        `free` is the list of elements in the tuple `obj`  which do not occur
+        ``free`` is the list of elements in the tuple ``obj``  which do not occur
         in the following objects.
 
-        The objects are required to be in `range(n)`
+        The objects are required to be in ``range(n)``.
 
     EXAMPLES::
 
-        sage: from sage.graphs.matchpoly import obj_free
-        sage: obj_free([(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)])
+        sage: from sage.graphs.matchpoly import _obj_free
+        sage: _obj_free([(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)])
         [((0, 1), []), ((1, 2), [1]), ((2, 3), [2]), ((3, 4), [3]), ((4, 0), [0, 4])]
     """
     # nvars number of elements in objects
@@ -666,7 +666,7 @@ def obj_free(objects):
     return v
 
 def gen_count_hobj(objects, values=None):
-    """
+    r"""
     Counting polynomial for hard object from a list of edges
 
     INPUT:
@@ -697,7 +697,7 @@ def gen_count_hobj(objects, values=None):
         links.append(obj1)
     objects = links
     # add to each object the list of free indices
-    obfr = obj_free(objects)
+    obfr = _obj_free(objects)
     hb = Hobj()
     if values:
         K = values.values()[0].parent()
@@ -767,7 +767,7 @@ def matching_generating_poly(g, labels=None):
         product of two terms, then it can be integrated in the other term.
 
         Associate to a dimer with endpoints `i, j` the quantity
-        ``O_{i,j} = 1 + x \eta_i \eta_j``; `1` represents the case in which
+        `O_{i,j} = 1 + x \eta_i \eta_j`; `1` represents the case in which
         the dimer is absent; the other term represent the case in which the
         dimer is present.
         The matching generating polynomial is given by
@@ -784,7 +784,7 @@ def matching_generating_poly(g, labels=None):
 
         The result of performing these products is independent from the
         ordering, but the efficiency of the algorithm depends exponentially
-        from the number of `active nodes`, that is the nodes present in
+        from the number of active nodes, that is the nodes present in
         `G_k`, the graph defined by `E_k`, and which have in `G`
         degree greater than in `G_k` (if a node has the same degree in
         `G_k` as in `G` it means that one can set `\eta_k=1`).

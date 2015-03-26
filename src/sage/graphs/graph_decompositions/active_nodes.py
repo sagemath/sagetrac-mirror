@@ -34,7 +34,7 @@ def _add_links_no_incr(links, d1, d2):
 
     - ``links`` - links forming `d2`
     - ``d1`` - adjacency dict of the graph
-    - ``d2`` - adjacency dict of the part of the graph covered
+    - ``d2`` - adjacency defaultdict of the part of the graph covered
 
     The active nodes are the nodes in `d2` with degree less than in `d1`.
     The added links are appended to ``links``.
