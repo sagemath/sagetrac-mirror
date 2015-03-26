@@ -2,10 +2,11 @@ r"""
 Abstract Tableau(x) classes.
 """
 
+import six
+from copy import deepcopy
 from sage.structure.element import Element
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.integer_ring import ZZ
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
@@ -27,13 +28,22 @@ class AbstractTableau(Element):
     This is an abstract class. Child classes must implement
     :meth:`_dict_unsafe`.
     """
-    __metaclass__ = ClasscallMetaclass
 
     def __hash__(self):
         r""""
         Return the hash of ``self``.
         """
-        return hash(tuple(self._dict_unsafe().iteritems()))
+        return hash(tuple(six.iteritems(self._dict_unsafe())))
+
+    def _repr_(self):
+        r"""
+        Return the representation string.
+        
+        OUTPUT:
+        
+        A string.
+        """
+        return repr(self._dict_unsafe())
 
     def dict(self):
         r"""
@@ -41,7 +51,7 @@ class AbstractTableau(Element):
         
         Keys are assumed to be pairs. 
         """
-        return {k:v for k, v in self._dict_unsafe().iteritems()}
+        return deepcopy(self._dict_unsafe())
 
     @abstract_method
     def _dict_unsafe(self):
@@ -63,17 +73,17 @@ class AbstractTableau(Element):
         """
         cols = defaultdict(list)
         _dict = self._dict_unsafe()
-        for cell, label in _dict.iteritems():
+        for cell, label in six.iteritems(_dict):
             cols[cell[0]].append((cell[1], label))
         # Sort the columns
-        for x, col in cols.iteritems():
+        for x, col in six.iteritems(cols):
             col_sorted = sorted(col, key=lambda v:v[0])
             cols[x] = [k[1] for k in col_sorted]
         # Sort the rows
-        cols = sorted(((x, col) for x, col in cols.iteritems()),
-                     key=lambda v: v[0])
+        cols = sorted(((x, col) for x, col in six.iteritems(cols)),
+                      key=lambda v: v[0])
         return [col[1] for col in cols]
-            
+
     def cols(self):
         r"""
         Return a list of columns of ``self`` in order of increasing column
@@ -81,14 +91,14 @@ class AbstractTableau(Element):
         """
         rows = defaultdict(list)
         _dict = self._dict_unsafe()
-        for cell, label in _dict.iteritems():
+        for cell, label in six.iteritems(_dict):
             rows[cell[1]].append((cell[0], label))
         # Sort the columns
-        for x, row in rows.iteritems():
+        for x, row in six.iteritems(rows):
             row_sorted = sorted(row, key=lambda v:v[0])
             rows[x] = [k[1] for k in row_sorted]
         # Sort the rows
-        rows = sorted(((x, row) for x, row in rows.iteritems()),
+        rows = sorted(((x, row) for x, row in six.iteritems(rows)),
                       key=lambda v: v[0])
         return [row[1] for row in rows]
 
@@ -113,7 +123,8 @@ class AbstractTableau(Element):
             return 0
 
         _dict = self._dict_unsafe()
-        sorted_cells = sorted(_dict.keys(), cmp=mixed_lex)
+        # TODO: replace cmp with key for Python 3 compatibility
+        sorted_cells = sorted(six.iterkeys(_dict), cmp=mixed_lex)
         for cell in sorted_cells:
             yield _dict[cell]
 
@@ -138,7 +149,8 @@ class AbstractTableau(Element):
             return 0
 
         _dict = self._dict_unsafe()
-        sorted_cells = sorted(_dict.keys(), cmp=mixed_lex)
+        # TODO: replace cmp with key for Python 3 compatibility
+        sorted_cells = sorted(six.iterkeys(_dict), cmp=mixed_lex)
         for cell in sorted_cells:
             yield _dict[cell]
     
@@ -166,7 +178,7 @@ class AbstractTableau(Element):
         Return a Counter mapping values of ``self'' to multiplicities.
         """
         from collections import Counter
-        return Counter(self._dict_unsafe().values())
+        return Counter(six.itervalues(self._dict_unsafe()))
 
     def size(self):
         r"""
@@ -174,42 +186,38 @@ class AbstractTableau(Element):
         """
         return len(self._dict_unsafe())
 
-    #    filter, restrict, append, reflect, transpose
+    # Alias
+    __len__ = size
+
 
 class BadShapeTableau(AbstractTableau):
     r"""
     Tableaux of bad shape
     
     A BadShapeTableau is specified by a dictionary
-    whose keys are pairs of integers.
+    whose keys are pairs of integers and whose values are
+    arbitrary.
     """
-    @staticmethod
-    def __classcall_private__(cls, dictionary, check=True):
-        r"""
-        Return the BadShapeTableau defined by ``dictionary``.
-        """
-        if isinstance(dictionary, cls):
-            return dictionary
-        
-        return BadShapeTableaux()(dictionary, check)
-    
     def __init__(self, parent, dictionary, check=True):
         r"""
         Initialize the BadShapeTableau.
         
         INPUT:
         
-        - ``dictionary`` -- a dictionary whose keys are assumed to be pairs
-          of integers
+        - ``dictionary`` -- a dictionary (or more generally something
+          passable to `dict`) whose keys are assumed to be pairs of integers
         - ``check`` -- (default: ``True``) if ``True``, then check that
           the keys of ``dict`` are in fact pairs of integers
         """
-        if check and not all(i in ZZ and j in ZZ for i, j in
-                             dictionary.keys()):
-            raise ValueError('keys must be pairs of integers')
-        self._dict = dictionary
-        Element.__init__(self, parent)
+        self._dict = deepcopy(dict(dictionary))
         
+        if check:
+            if not all(x in ZZ and y in ZZ for x, y
+                       in six.iterkeys(self._dict)):
+                raise ValueError('keys must be pairs of integers')
+
+        AbstractTableau.__init__(self, parent)
+
     def _dict_unsafe(self):
         r"""
         Return the dictionary containing the defining data of ``self``.
@@ -220,16 +228,6 @@ class BadShapeTableau(AbstractTableau):
         """
         return self._dict
 
-    def _repr_(self):
-        r"""
-        Return the representation string.
-        
-        OUTPUT:
-        
-        A string.
-        """
-        return repr(self._dict_unsafe())
-    
     def filter_by_cells(self, predicate):
         r"""
         Return a tableau whose cells satisfy the given
@@ -244,9 +242,10 @@ class BadShapeTableau(AbstractTableau):
             
         A BadShapeTableau
         """
-        data = {i:j for i, j in self._dict_unsafe() if predicate(*i)}
-        return self.__class__(dictionary=data, check=False)
-    
+        data = {k:v for k, v in six.iteritems(self._dict_unsafe()) 
+                if predicate(*k)}
+        return self.__class__(dictionary=data, check=True)
+
     def filter_by_values(self, predicate):
         r"""
         Return a tableau whose values satisfy the given
@@ -261,8 +260,9 @@ class BadShapeTableau(AbstractTableau):
         
         A BadShapeTableau
         """
-        data = {i:j for i, j in self._dict_unsafe() if predicate(j)}
-        return self.__class__(dictionary=data, check=False)
+        data = {k:v for k, v in six.iteritems(self._dict_unsafe()) 
+                if predicate(v)}
+        return self.__class__(dictionary=data, check=True)
 
     def transpose(self):
         r"""
@@ -272,9 +272,8 @@ class BadShapeTableau(AbstractTableau):
         
         A BadShapeTableau.
         """
-        data = {(i[1], i[0]):j for i, j in self._dict_unsafe()}
-        return self.__class__(dictionary=data, check=False)
-
+        data = {(k[1], k[0]):v for k, v in self._dict_unsafe()}
+        return self.__class__(dictionary=data, check=True)
 
 
 class SkewTableau(BadShapeTableau):
@@ -301,7 +300,7 @@ class SkewTableau(BadShapeTableau):
             min_row_index = None
             max_row_index = None
             min_col_index = None
-            for i, j in dictionary.iteritems():
+            for i, j in six.iteritems(dictionary):
                 rows[i[0]][i[1]] = j
                 if (min_row_index is None) or (min_row_index > i[0]):
                     min_row_index = i[0]
@@ -317,7 +316,7 @@ class SkewTableau(BadShapeTableau):
                     l.append([])
                     continue
                 tmp = [None]*(max(row.keys()) - min_col_index + 1)
-                for col_index, value in row.iteritems():
+                for col_index, value in six.iteritems(row):
                     tmp[col_index - min_col_index] = value
                 l.append(tmp)
         
