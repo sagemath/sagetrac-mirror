@@ -43,8 +43,8 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
         ``Tableaux()([[1, 2], [3]])``.
         
         Input validation should be done in parent classes, likely in
-        their own __classcall__ methods. Element class initialization
-        should be quite minimal.
+        their own _element_constructor_ methods or coercions. Element
+        class initialization should be quite minimal.
         
         Inherited by child classes, unlike __classcall_private__.
         """
@@ -307,6 +307,8 @@ class SkewTableau(BadShapeTableau):
     Cell locations are pairs of positive integers, though values are
     unrestricted. Cells must form a skew shape.
     """
+    _generic_parent = parent_class('SkewTableaux')
+
     def __init__(self, parent, inner, rows):
         r"""
         Initialize the SkewTableau.
@@ -391,6 +393,8 @@ class SkewTableau(BadShapeTableau):
 
 
 class StraightTableau(SkewTableau):
+    _generic_parent = parent_class('StraightTableaux')
+
     def __init__(self, parent, l=[], dictionary=[], check=False):
         SkewTableau.__init__(self, parent, l, dictionary, check)
 
