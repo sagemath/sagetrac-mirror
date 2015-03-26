@@ -1,36 +1,59 @@
 r"""
-Abstract Tableau(x) classes.
+Basic abstract tableau element classes.
 """
 
 import six
+from collections import defaultdict
 from copy import deepcopy
 from sage.structure.element import Element
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer_ring import ZZ
-from sage.categories.sets_cat import Sets
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.lazy_import import LazyImport
 
-from collections import defaultdict
 
-class AbstractTableau(Element):
+def parent_class(s):
+    r"""
+    Lazily import a parent class by name.
+    
+    Allows separating element and parent class files without circular
+    references.
+    """
+    return LazyImport('sage.combinat.tableaux.abstract_tableaux', s)
+
+class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     r"""
     Abstract class for the various element classes of Tableau.
 
     A Tableau is thought of as a mapping from pairs (x, y) to some
     arbitrary labels. Two x-coordinates or two y-coordinates are assumed
     to be comparable via `>` and `<`. Subclasses are welcome to add further
-    data (ex. skew shape).
-
-    Tableau are assumed to be immutable; see :trac:`15862`.
+    data (ex. skew shape). Tableau are assumed to be immutable; see
+    :trac:`15862`.
 
     Child classes must implement :meth:`_dict_unsafe`.
     """
+    # "Default" parent class. See __classcall__.
+    _generic_parent = parent_class('AbstractTableaux')
+
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        Provide shortcut syntax like ``Tableau([[1, 2], [3]])`` for
+        ``Tableaux()([[1, 2], [3]])``.
+        
+        Input validation should be done in parent classes, likely in
+        their own __classcall__ methods. Element class initialization
+        should be quite minimal.
+        
+        Inherited by child classes, unlike __classcall_private__.
+        """
+        return cls._generic_parent(*args, **kwds)
 
     def __hash__(self):
         r""""
-        Return the hash of ``self``.
+        Return the hash of ``self`` based on the underlying mapping of
+        cells to values.
         """
         return hash(tuple(six.iteritems(self._dict_unsafe())))
 
@@ -103,7 +126,7 @@ class AbstractTableau(Element):
 
     def iter_by_row_reversed(self):
         r"""
-        Iterate over entries of ``self``, row-by-row from higher row indices to lower,
+        Iterate over values of ``self``, row-by-row from higher row indices to lower,
         and within each row from lower column indexes to higher.
         """
         # Row index is more important than column index; higher row indices
@@ -129,7 +152,7 @@ class AbstractTableau(Element):
 
     def iter_by_col_reversed(self):
         r"""
-        Iterate over entries of ``self``, column-by-column from higher column indices to
+        Iterate over values of ``self``, column-by-column from higher column indices to
         lower, and within each column from lower row indexes to higher.
         """
         # Column index is more important than row index; higher column indices
@@ -191,24 +214,26 @@ class AbstractTableau(Element):
 
 class BadShapeTableau(AbstractTableau):
     r"""
-    Tableaux of bad shape
+    A tableau of bad shape.
     
     A BadShapeTableau is specified by a dictionary
     whose keys are pairs of integers and whose values are
     arbitrary.
     """
-    def __init__(self, parent, dictionary, check=True):
+    _generic_parent = parent_class('BadShapeTableaux')
+
+    def __init__(self, parent, dct, check=True):
         r"""
         Initialize the BadShapeTableau.
         
         INPUT:
         
-        - ``dictionary`` -- a dictionary (or more generally something
-          passable to `dict`) whose keys are assumed to be pairs of integers
+        - ``dct`` -- a dictionary (or more generally something
+          passable to ``dict``) whose keys are pairs of integers
         - ``check`` -- (default: ``True``) if ``True``, then check that
-          the keys of ``dict`` are in fact pairs of integers
+          the keys of ``dct`` are in fact pairs of integers
         """
-        self._dict = deepcopy(dict(dictionary))
+        self._dict = deepcopy(dict(dct))
         
         if check:
             if not all(x in ZZ and y in ZZ for x, y
@@ -276,12 +301,23 @@ class BadShapeTableau(AbstractTableau):
 
 
 class SkewTableau(BadShapeTableau):
-    
+    r"""
+    A tableau of skew shape.
 
-    def __init__(self, parent, l=[], dictionary={}, check=False):
+    Cell locations are pairs of positive integers, though values are
+    unrestricted. Cells must form a skew shape.
+    """
+    def __init__(self, parent, inner, rows):
         r"""
         Initialize the SkewTableau.
+
+        INPUT:
         
+        - ``inner`` -- an iterable of weakly decreasing non-negative
+          integers
+        - ``check`` -- (default: ``True``) if ``True``, then ensure
+          keys are positive integers and the shape is a skew shape.
+
         Input can be specified either in terms of a
         dictionary or a list. If both are specified,
         then the dictionary data is skipped.
@@ -310,7 +346,7 @@ class SkewTableau(BadShapeTableau):
                 for col_index, value in six.iteritems(row):
                     tmp[col_index - min_col_index] = value
                 l.append(tmp)
-        
+
         # We don't have to do the checking of BadShapeTableau, that
         # happens above anyway, since the cells are used as list indices
         BadShapeTableau.__init__(self, parent, dictionary={}, check=False)
@@ -355,7 +391,6 @@ class SkewTableau(BadShapeTableau):
 
 
 class StraightTableau(SkewTableau):
-
     def __init__(self, parent, l=[], dictionary=[], check=False):
         SkewTableau.__init__(self, parent, l, dictionary, check)
 
@@ -373,69 +408,3 @@ class ExampleTableau(BadShapeTableau):
 
 
 
-
-
-
-
-
-
-class AbstractTableaux(UniqueRepresentation, Parent):
-    Element = AbstractTableau
-
-    def __init__(self):
-        r"""
-        Initialize the parent.
-        """
-        Parent.__init__(self, category=Sets())
-                        
-    def _repr_(self):
-        r"""
-        Return the representation string.
-        
-        OUTPUT:
-        
-        A string.
-        """
-        return "Abstract Tableaux"
-                        
-
-                        
-class BadShapeTableaux(AbstractTableaux):
-    Element = BadShapeTableau
-    
-    def _repr_(self):
-        r"""
-        Return the representation string.
-        
-        OUTPUT:
-        
-        A string.
-        """
-        return "Bad Shape Tableaux"
-
-class SkewTableaux(BadShapeTableaux):
-    Element = SkewTableau
-    
-    def _repr_(self):
-        r"""
-            Return the representation string.
-            
-            OUTPUT:
-            
-            A string.
-            """
-        return "Skew Tableaux"
-
-
-class StraightTableaux(SkewTableaux):
-    Element = SkewTableau
-    
-    def _repr_(self):
-        r"""
-            Return the representation string.
-            
-            OUTPUT:
-            
-            A string.
-            """
-        return "Straight Tableaux"
