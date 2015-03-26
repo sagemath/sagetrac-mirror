@@ -20,7 +20,7 @@ EXAMPLES::
     (1,5,3,7)(2,8,4,6)
     sage: E.stratum_component()
     H_3(1^4)^c
-    sage: E.lyapunov_exponents_approx()
+    sage: E.lyapunov_exponents_approx()   # abs tol 1e-3
     [0.0000485630931783940, 0.0000452662733371477]
 """
 from origami_dense import Origami_dense_pyx
@@ -32,14 +32,16 @@ from sage.misc.cachefunc import cached_method
 from copy import copy
 from sage.matrix.constructor import matrix, identity_matrix
 
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
 from sage.rings.integer import Integer
-from sage.all import VectorSpace
-from sage.all import QQ
+from sage.modules.free_module import VectorSpace
+from sage.rings.rational_field import QQ
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 
-from sage.all import gap
+from sage.interfaces.gap import gap
 
 from sage.plot.plot import options
 
@@ -1996,14 +1998,13 @@ class Origami_dense(Origami_dense_pyx):
 #
 
 from sage.categories.action import Action
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-import operator
 
 class ActionOnOrigamiObjects(Action):
     r"""
     Generic action of the automorphism group of an origami.
     """
     def __init__(self, objects):
+        import operator
         o = objects.origami()
         # Action.__init__(G,S,is_left,op)
         Action.__init__(
