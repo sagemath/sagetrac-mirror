@@ -10,7 +10,7 @@ References
  1998, Cambridge University Press
 
 """
-#*******************************************************************************
+# *******************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,7 +18,8 @@ References
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+# *******************************************************************************
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.structures import Structure
 from sage.misc.lazy_attribute import lazy_class_attribute, lazy_attribute
@@ -78,16 +79,19 @@ class OneSpecies(SpeciesDesign):
         return 0
 
     def _repr_(self):
-        return "`1`"
+        return "1"
 
     def transport(self, sigma):
-        return lambda one: self._element_constructor_(sigma(one._label_))
+        return lambda one: one
 
     def some_elements(self):
         return iter([self.first()])
 
     def __iter__(self):
         yield self.graded_component(0).first()
+
+    def cycle_index_series(self):
+        return CycleIndexSeries().one()
 
     class Structures(SpeciesDesign.Structures):
 

@@ -222,12 +222,14 @@ Classes and methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.category import Category
 from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.categories.species import Species
+from sage.combinat.species2.cycle_index_series.permutations import PermutationsCIS
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.list_clone import ClonableArray
@@ -5667,7 +5669,7 @@ class StandardPermutations_all(Permutations):
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
         """
-        Permutations.__init__(self, category=CombinatorialStructures())
+        Permutations.__init__(self, category=Category.join([CombinatorialStructures(), Species()]))
 
     def graded_component(self, grade):
         """
@@ -5677,6 +5679,40 @@ class StandardPermutations_all(Permutations):
             Standard permutations of 4
         """
         return StandardPermutations_n(grade)
+
+    def structures(self, U):
+        """
+        :WARNING: return the `P[n]` with `n := |U|` but not `P[U]`... see the ..FIXME in the code...
+
+        :param U: a finite set
+        :return:
+        """
+        # FIXME: should be *return Permutations_set(U)* but... this class implements LINEAR_ORDER!!!
+        # FIXME: PLEASE clean PERMUTATIONS!!
+        return self.graded_component(U.cardinality())
+
+    def transport(self, sigma):
+        """
+        The transport of permutation structures.
+
+        TESTS::
+
+            sage: Psigma = P.transport(Permutation([1,3,2]))
+            sage: Psigma(Permutation([(1,3),(2,)])).to_cycles()
+            [(1, 2), (3,)]
+
+        :param sigma: a bijection `\sigma : U \to V`.
+
+        """
+        def Psigma(tau):
+            #FIXME: as previously, in species context a permutation should be describe by cycles...
+            # this function will fail if `sigma : U --> V` with V != [n].
+            return Permutation(map(lambda cy: tuple(map(sigma, cy)), tau.to_cycles()))
+
+        return Psigma
+
+    def cycle_index_series(self):
+        return PermutationsCIS()
 
     def grading(self, sigma):
         return len(sigma)

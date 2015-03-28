@@ -10,7 +10,7 @@ References
  1998, Cambridge University Press
 
 """
-#*******************************************************************************
+# *******************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,8 +18,10 @@ References
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+# *******************************************************************************
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2 import SpeciesDesign
+
 
 class ZeroSpecies(SpeciesDesign):
     """
@@ -69,7 +71,7 @@ class ZeroSpecies(SpeciesDesign):
         raise ValueError("We never should be here, there is no structure associated to this species")
 
     def _repr_(self):
-        return "`0`"
+        return "0"
 
     def transport(self, sigma):
         def trsprt(struct):
@@ -81,6 +83,9 @@ class ZeroSpecies(SpeciesDesign):
 
     def __iter__(self):
         return iter([])
+
+    def cycle_index_series(self):
+        return CycleIndexSeries().zero()
 
     class Structures(SpeciesDesign.Structures):
 

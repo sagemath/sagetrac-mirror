@@ -5,7 +5,7 @@ Product of species.
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
+ .. [BBL] Combinatorial species and tree-like structures,
  François Bergeron, Gilbert Labelle and Pierre Leroux,
  1998, Cambridge University Press
 
@@ -13,21 +13,25 @@ AUTHOR:
 
 - Jean-Baptiste Priez (2015)
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 from itertools import imap
+import operator
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.categories.species import Species
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.species2.operations.add import Add
+from sage.misc.lazy_import import LazyImport
 from sage.combinat.subset import Subsets
 from sage.functions.other import binomial
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.list_clone import ClonableArray
+LazyImport("sage.combinat.species2.operations.derivative", "Derivative")
 
 
 class ProdStructure(ClonableArray):
@@ -117,30 +121,31 @@ class Prod(SpeciesDesign):
     @staticmethod
     def __classcall_private__(cls, *args, **options):
 
-        ## Test the species 0
+        # # Test the species 0
         if Species().zero() in args:
             return Species().zero()
 
-        ## Filter the species 1
+        # # Filter the species 1
         args = filter(lambda F: F != Species().one(), args)
         if len(args) == 0:
             return Species.one()
         elif len(args) == 1:
             return args[0]
 
-        ## Distributivity F·(G + H)·I --> F·G·I + F·H·I
+        # # Distributivity F·(G + H)·I --> F·G·I + F·H·I
         for i in range(len(args)):
             F = args[i]
             if isinstance(F, Add):
                 return Add(*tuple(Prod(*(args[:i] + (G,) + args[i+1:]))
                                   for G in F._species_))
 
-        ## Associativity: `F · (G · H) --> F · G · H`
+        # # Associativity: `F · (G · H) --> F · G · H`
         nargs = []
         for F in args:
             if isinstance(F, cls): nargs.extend(F._species_)
             else:                  nargs.append(F)
 
+        # # otherwise
         return super(Prod, cls).__classcall__(cls, *nargs, **options)
 
     def __init__(self, *species):
@@ -150,7 +155,7 @@ class Prod(SpeciesDesign):
 
         """
         SpeciesDesign.__init__(self)
-        self._species_ =  species
+        self._species_ = species
 
     def _repr_(self):
 
@@ -161,10 +166,10 @@ class Prod(SpeciesDesign):
             if F == Flast:
                 acc += 1
             else:
-                r += ("" if r == "" else "·") + repr(Flast) + ("^%d"%acc if acc > 1 else "")
+                r += ("" if r == "" else "·") + repr(Flast) + ("^%d" % acc if acc > 1 else "")
                 acc = 1
             Flast = F
-        r += ("" if r == "" else "·") + repr(Flast) + ("^%d"%acc if acc > 1 else "")
+        r += ("" if r == "" else "·") + repr(Flast) + ("^%d" % acc if acc > 1 else "")
 
         return r
 
@@ -176,9 +181,27 @@ class Prod(SpeciesDesign):
 
         return Fsigma
 
+    def cycle_index_series(self):
+        """
+        The product of cycle index series
+
+        MATH::
+
+            Z_{F\cdotG}(p_1, p_2, \cdots) = Z_F(p_1, p_2, \cdots) Z_G(p_1, p_2, \cdots)\,.
+
+        (section 1.3, Proposition 8, _[BBL])
+        """
+        return reduce(operator.mul, imap(lambda F: F.cycle_index_series(), self._species_),
+                      CycleIndexSeries().one())
+
     def grading(self, s):
         assert(isinstance(s, ProdStructure))
         return sum(t.parent().grading(t) for t in s)
+
+    def is_pointing(self):
+        # TODO: overload this method for other operators...
+        return self._species_[0] is CycleIndexSeries().singletons() \
+               and isinstance(self._species_[1], Derivative)
 
     def _element_constructor_(self, *args, **options):
         return self.element_class(self, *args, **options)
@@ -229,7 +252,8 @@ class Prod(SpeciesDesign):
             """
             def rec_iter(U, species):
                 if len(species) == 0:
-                    if U.cardinality() == 0: yield()
+                    if U.cardinality() == 0:
+                        yield()
                     return
                 F = species[0]
                 for k in range(U.cardinality()+1):
@@ -242,6 +266,6 @@ class Prod(SpeciesDesign):
                                     yield (fstruct,) + tup
             return imap(self._element_constructor_,
                         rec_iter(self.finite_set(), self.ambient()._species_)
-            )
+                        )
 
     Element = ProdStructure

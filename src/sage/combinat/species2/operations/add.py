@@ -5,21 +5,21 @@ Sum of species.
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
- François Bergeron, Gilbert Labelle and Pierre Leroux,
- 1998, Cambridge University Press
+.. [BBL] Combinatorial species and tree-like structures,
+  François Bergeron, Gilbert Labelle and Pierre Leroux,
+  1998, Cambridge University Press
 
-AUTHOR:
-
-- Jean-Baptiste Priez (2015)
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
+from itertools import imap
+import operator
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.categories.species import Species
 from sage.combinat.species2 import SpeciesDesign
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -103,26 +103,25 @@ class Add(SpeciesDesign):
         sage: TestSuite(f).run()
 
     """
-    # FIXME: tests about associativity and commutativity should be somewhere else.
 
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **options):
         nargs = []
-        ## Filter the species 0
+        # # Filter the species 0
         args = filter(lambda F: F != Species().zero(), args)
         if len(args) == 0:
             return Species.zero()
         elif len(args) == 1:
             return args[0]
 
-        ## Associativity: `F + (G + H) --> F + G + H`
+        # # Associativity: `F + (G + H) --> F + G + H`
         for F in args:
             if isinstance(F, cls): nargs.extend(F._species_)
             else:                  nargs.append(F)
 
-        ## Commutativity: we sort species such that `F + G = G + F`
+        # # Commutativity: we sort species such that `F + G = G + F`
         args = tuple(sorted(nargs))
 
         return super(Add, cls).__classcall__(cls, *args, **options)
@@ -134,7 +133,7 @@ class Add(SpeciesDesign):
 
         """
         SpeciesDesign.__init__(self)
-        self._species_ =  species
+        self._species_ = species
 
     def _repr_(self):
         def repr_species(F):
@@ -159,6 +158,26 @@ class Add(SpeciesDesign):
 
     def _element_constructor_(self, *args, **options):
         return self.element_class(self, *args, **options)
+
+    def cycle_index_series(self):
+        """
+        The sum of cycle index series
+
+        MATH::
+
+            Z_{F + G}(p_1, p_2, \cdots) = Z_F(p_1, p_2, \cdots) + Z_G(p_1, p_2, \cdots)
+
+        (section 1.3, Proposition 3, _[BBL])
+
+        TESTS::
+
+            sage: P = Permutations()
+            sage: SP = SetPartitions()
+            sage: ch = lambda F, n: F.cycle_index_series().Frobenius_characteristic(n)
+            sage: for n in range(5): assert(ch(P, n) + ch(SP, n) == ch(P + SP, n))
+
+        """
+        return reduce(operator.add, imap(lambda F: F.cycle_index_series(), self._species_), CycleIndexSeries().zero())
 
     class Structures(SpeciesDesign.Structures):
 

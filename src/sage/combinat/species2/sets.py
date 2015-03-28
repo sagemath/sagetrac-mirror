@@ -5,12 +5,12 @@ The species `E`, of *sets*.
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
- François Bergeron, Gilbert Labelle and Pierre Leroux,
- 1998, Cambridge University Press
+.. [BBL] Combinatorial species and tree-like structures,
+  François Bergeron, Gilbert Labelle and Pierre Leroux,
+  1998, Cambridge University Press
 
 """
-#*******************************************************************************
+# *******************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,10 +18,12 @@ References
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+# *******************************************************************************
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2 import SpeciesDesign
 from sage.sets.set import Set_object_enumerated, Set
 from sage.structure.element_wrapper import ElementWrapper
+
 
 class SetStructure(ElementWrapper):
     # FIXME it could be convenient to use `Set(U)` with Set the current sage class (not this one)
@@ -74,19 +76,22 @@ class SetsSpecies(SpeciesDesign):
     """
 
     def _repr_(self):
-        return "`E`"
+        return "E"
     
     def transport(self, sigma):
 
         def Fsigma(U):
-            #assert(U == sigma.domain())
-            #print U, "-->", Set(map(sigma, U.value))
-            return self.element_class(self, Set(map(sigma, U.value))) # ??
+            # assert(U == sigma.domain())
+            # print U, "-->", Set(map(sigma, U.value))
+            return self.element_class(self, Set(map(sigma, U.value)))  # ??
 
         return Fsigma
 
     def grading(self, U):
         return U.cardinality()
+
+    def cycle_index_series(self):
+        return CycleIndexSeries().sets()
 
     class Structures(SpeciesDesign.Structures):
 

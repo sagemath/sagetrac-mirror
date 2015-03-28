@@ -199,30 +199,30 @@ class SetsWithGrading(Category):
                 4
             """
 
-        #@cached_method
-        @abstract_method(optional=True)
-        def generating_series(self):
-            """
-            Default implementation for generating series.
+        # #@cached_method
+        # @abstract_method(optional=True)
+        # def generating_series(self):
+        #     """
+        #     Default implementation for generating series.
+        #
+        #     OUTPUT:
+        #
+        #     A series, indexed by the grading set.
+        #
+        #     EXAMPLES::
+        #
+        #         sage: N = SetsWithGrading().example(); N
+        #         Non negative integers
+        #         sage: N.generating_series()
+        #         1/(-z + 1)
+        #     """
+        #     #from sage.combinat.species.stream import _integers_from
+        #     #from sage.combinat.species.series import LazyPowerSeriesRing
+        #     #from sage.rings.integer_ring import ZZ
+        #     #R = LazyPowerSeriesRing(ZZ)
+        #     #return R(self.graded_component(grade).cardinality() for grade in _integers_from(0))
 
-            OUTPUT:
-
-            A series, indexed by the grading set.
-
-            EXAMPLES::
-
-                sage: N = SetsWithGrading().example(); N
-                Non negative integers
-                sage: N.generating_series()
-                1/(-z + 1)
-            """
-            #from sage.combinat.species.stream import _integers_from
-            #from sage.combinat.species.series import LazyPowerSeriesRing
-            #from sage.rings.integer_ring import ZZ
-            #R = LazyPowerSeriesRing(ZZ)
-            #return R(self.graded_component(grade).cardinality() for grade in _integers_from(0))
-
-        gs = generating_series
+        # gs = generating_series
 
         # TODO:
         #   * asymptotic behavior: we need an object for asymptotic behavior and

@@ -5,12 +5,12 @@ The restriction of species.
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
- François Bergeron, Gilbert Labelle and Pierre Leroux,
- 1998, Cambridge University Press
+.. [BBL] Combinatorial species and tree-like structures,
+  François Bergeron, Gilbert Labelle and Pierre Leroux,
+  1998, Cambridge University Press
 
 """
-#*******************************************************************************
+# *******************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,7 +18,7 @@ References
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+# *******************************************************************************
 from sage.categories.species import Species
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.species2.singletons import SingletonsSpecies
@@ -90,15 +90,15 @@ class Restriction(SpeciesDesign):
                 return SingletonsSpecies()
         elif m == 0 and M == Infinity:
             return F
-        else:
-            return super(Restriction, cls).__classcall__(cls, F, **opts)
+        # otherwise
+        return super(Restriction, cls).__classcall__(cls, F, **opts)
 
     def __init__(self, F, min=Integer(0), max=Infinity):
         SpeciesDesign.__init__(self)
+        self.Element = F.Element
         self._F_ = F
         self._min_ = min
         self._max_ = max
-        self.Element = F.Element
 
     def transport(self, sigma):
 
@@ -124,9 +124,11 @@ class Restriction(SpeciesDesign):
         elif self._min_ == 0:
             s = "≤" + repr(self._max_)
         else:
-            s = "[%d, %d]"%(self._min_, self._max_)
+            s = "[%d, %d]" % (self._min_, self._max_)
         return repr(self._F_) + "_{" + s + "}"
 
+    def cycle_index_series(self):
+        return self._F_.cycle_index_series().restriction(min=self._min_, max=self._max_)
 
     class Structures(SpeciesDesign.Structures):
 

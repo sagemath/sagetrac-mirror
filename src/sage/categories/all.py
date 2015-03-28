@@ -135,3 +135,6 @@ from classical_crystals import ClassicalCrystals
 # polyhedra
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.polyhedra', 'PolyhedralSets')
+
+# species
+from species import Species

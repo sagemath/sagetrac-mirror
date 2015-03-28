@@ -5,9 +5,9 @@ Species category
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
- François Bergeron, Gilbert Labelle and Pierre Leroux,
- 1998, Cambridge University Press
+.. [BBL] Combinatorial species and tree-like structures,
+  François Bergeron, Gilbert Labelle and Pierre Leroux,
+  1998, Cambridge University Press
 
 """
 #*******************************************************************************
@@ -20,8 +20,8 @@ References
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 from sage.categories.category import Category
+from sage.categories.objects import Objects
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 
@@ -57,9 +57,8 @@ class Species(Category):
     """
 
     def super_categories(self):
-        return []
+        return [Objects()]
 
-    @cached_method
     def one(self):
         """
         The species `1`, characteristic of the *empty set*, defined by
@@ -76,7 +75,6 @@ class Species(Category):
         from sage.combinat.species2.one import OneSpecies
         return OneSpecies()
 
-    @cached_method
     def zero(self):
         """
         The species `0` defined by
@@ -90,8 +88,7 @@ class Species(Category):
         from sage.combinat.species2.zero import ZeroSpecies
         return ZeroSpecies()
 
-    @cached_method
-    def singleton(self):
+    def singletons(self):
         """
         The species `X`, characteristic of *singletons*
 
@@ -107,6 +104,37 @@ class Species(Category):
         """
         from sage.combinat.species2.singletons import SingletonsSpecies
         return SingletonsSpecies()
+
+    def sets(self):
+        """
+        The species `E`, of *sets*, defined by
+
+        MATH::
+
+            E[U] = \{U\}
+
+        for any finite set `U`.
+        """
+        from sage.combinat.species2.sets import SetsSpecies
+        return SetsSpecies()
+
+    def recursive_species(self, name="F"):
+        """
+        Return an (not defined) instance of a recursive species
+
+        :param name: a string
+
+        EXAMPLES::
+
+            sage: Sp = Species()
+            sage: O, X = Sp.one(), Sp.singletons()
+            sage: B = Sp.recursive_species(name="B")
+            sage: B.define(O + B*X*B); B
+
+            sage: list(B.type_generating_series().coefficients(10))
+        """
+        from sage.combinat.species2.operations.recursive_species import RecursiveSpecies
+        return RecursiveSpecies(name=name)
 
     class ParentMethods:
 
@@ -215,7 +243,7 @@ class Species(Category):
         #####                   Associated series                    ######
         ###################################################################
 
-        def exponential_generating_series(self):
+        def generating_series(self):
             """
             The *(exponential) generating series* of `F`.
 
@@ -233,12 +261,14 @@ class Species(Category):
             MATH::
 
                 \tilde{F}(x) = Z_F(x, 0, 0, \cdots)\,.
+
             """
-            return self.cycle_index_series().exponential_generating_series()
+            return self.cycle_index_series().generating_series()
 
-        egs = generating_series = exponential_generating_series
+        def exponential_generating_series(self): return self.generating_series()
+        def egs(self): return self.generating_series()
 
-        def isomorphism_type_generating_series(self):
+        def type_generating_series(self):
             """
             The *(isomorphism) type generating series* of `F`.
 
@@ -256,10 +286,13 @@ class Species(Category):
             MATH::
 
                 \tilde{F}(x) = Z_F(x, x^2, x^3, \cdots)\,.
+
             """
             return self.cycle_index_series().isomorphism_type_generating_series()
 
-        tgs = type_generating_series = isomorphism_type_generating_series
+        def ordinary_generating_series(self): return self.type_generating_series()
+        def ogs(self): return self.type_generating_series()
+        def isomorphism_type_generating_series(self): return self.type_generating_series()
 
         def cycle_index_series(self):
             """
@@ -276,10 +309,19 @@ class Species(Category):
             where `p_i` denotes the power sum symmetric functions, `S_n` denotes the group of permutations of `[n]` and
             `\mathtt{fix}\, F[\sigma]` the number of `F`-structures on `[n]` fixed by `F[\sigma]`.
             (Definition 6 and Remark 10, section 1.2, _[BBL])
-            """
-            # TODO give a generic implementation
 
-        cis = cycle_index_series
+            TESTS::
+
+                sage: P = Permutations()
+                sage: P.cis = Species().ParentMethods.cycle_index_series.f(P)
+                sage: for n in range(5):
+                ....:     assert(P.cis().Frobenius_characteristic(n) == P.cycle_index_series().Frobenius_characteristic(n))
+
+            """
+            from sage.combinat.species2.cycle_index_series.misc import genericCIS
+            return genericCIS(self)
+
+        def cis(self): return self.cycle_index_series()
 
         ###################################################################
         #####                   Operation                            ######
@@ -333,6 +375,7 @@ class Species(Category):
                     F[U] & if `|U| = n`,\\
                     \emptyset & otherwise.
                 \end{dcases*}
+
             (section 1.3, _[BBL])
 
             This method defines
@@ -369,6 +412,7 @@ class Species(Category):
                 (F \cdot G)[\sigma](s) = (F[\sigma_1](f), G[\sigma_2](g))
 
             where `sigma_i = \sigma_{|U_i}` is the restriction of `\sigma` on `U_i`, for each `(F + G)`-structure `s`.
+            (section 1.3, _[BBL])
             """
             from sage.combinat.species2.operations.product import Prod
             return Prod(self, G)
@@ -417,3 +461,116 @@ class Species(Category):
 
         # FIXME: Could we use the _call_ method such that we can to use F(G).
         ## the coercion system seems to forbid overload...
+
+        def derivative(self):
+            """
+            Derivative of species
+
+            The *derivative* of species `F`, noted `F'` is defined as follows:
+            An `F'`-structure on `U` is an `F`-structure on `U^+ = U \cup \{\ast\}` where `\ast` is an element chosen
+            outside of `U`. In other words, one sets `F'[U] = F[U^+]`.
+            The transport along a bijection `\sigma : U \to V` is carried out by setting, by setting
+
+            MATH::
+
+                F'[\sigma](s) = F[\sigma^+](s)
+
+            where `\sigma^+ : U \sqcup \{\ast\} \to V \sqcup \{\ast\}` is the canonical extension of `\sigma` obtained
+            by setting `\sigma^+(u) = \sigma(u)` if `u \in U` and `\sigma^+(\ast) = \ast`.
+
+            (section 1.4, _[BBL])
+            """
+            from sage.combinat.species2.operations.derivative import Derivative
+            return Derivative(self)
+
+        def pointing(self):
+            """
+            The point of species `F^\bullet` is defined as follows: An `F^\bullet`-structure on `U` is a pair
+            `s = (f, u)`, where
+
+             - `f` is an `F`-structure,
+             - `u \in U` (a *distinguished element).
+
+            The operations of pointing and derivative are related by the combinatorial equation
+
+            MATH::
+
+                F^\bullet = X \cdot F'\,.
+
+            MATH::
+
+                F^\bullet = F \times (X \cdot E)
+
+            (section 2.1, _[BBL])
+            """
+            # TODO implement the pointing operator.
+            return Species().singletons() * self.derivative()
+
+        def is_pointing(self):
+            """
+            Test if `F` (*self*) is a pointing of species.
+
+            This method
+            """
+            # Default implementation
+            return False
+
+        def cartesian_product(F, G):
+            """
+            The *cartesian product* of species
+
+            The species `F \times G`, called *Cartesian product* of `F` and `G`, is defined as follows:
+            An `(F \times G)`-structure on a finite set `U` is a pair `s = (f, g)`, where
+
+             - `f` is an `F`-structure on `U`,
+             - `g` is a `G`-structure on `U`.
+
+            In other words, for all finite sets `U`, one has
+
+            MATH::
+
+                (F \times G)[U] = F[U] \times G[U]\,.
+
+            The transport along a bijection `\sigma : U \to V` is carried out by setting
+
+            MATH::
+
+                (F \times G)[\sigma](s) = (F[\sigma](f), G[\sigma](g))\,,
+
+            for any `(F \times G)`-structure `s = (f, g)` on `U`.
+
+            (section 2.1, _[BBL])
+            """
+            from sage.combinat.species2.operations.cartesian_product import CartesianProduct
+            return CartesianProduct(F, G)
+
+        def functorial_composite(F, G):
+            """
+            The *functorial composite* of species
+
+            The species `F \Box G` (also denoted `F[G]`) is the *functorial composite* of `F` and `G`. It is defined as
+            follows: An `(F \Box G)`-structures on `U` is an `F`-structure placed on the set `G[U]` of all the
+            `G`-structures on `U`.
+
+            In other words, for any finite set `U`,
+
+            MATH::
+
+                (F \Box G)[U] = F[G[U]]\,.
+
+            The transport along a bijection `\sigma : U \to V` is carried out by setting
+
+            MATH::
+
+                (F \Box G)[\sigma] = F[G[\sigma]]\,.
+
+            (section 2.2, _[BBL])
+            """
+            from sage.combinat.species2.operations.functorial_composite import FunctorialComposite
+            return FunctorialComposite(F, G)
+
+        def _valuation_(self):
+            """
+            The valuation is the first degree `n` such that `F[n] \neq \emptyset`.
+            """
+            return self.generating_series()._valuation_()

@@ -16,18 +16,11 @@ Reference
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from sage.categories.objects import Objects
 from sage.rings.infinity import Infinity
-from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
 from sage.categories.category import Category
-from sage.categories.formal_power_series import FormalPowerSeries
-from sage.combinat.partition import Partition
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.functions.other import factorial
 from sage.misc.abstract_method import abstract_method
-from sage.rings.arith import multinomial
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 
 
 class CycleIndexSeries(Category):
@@ -49,51 +42,23 @@ class CycleIndexSeries(Category):
     """
 
     def super_categories(self):
-        return []
+        return [Objects()]
 
     def zero(self):
-
-        class Z0(UniqueRepresentation, Parent):
-            def __init__(self):
-                Parent.__init__(self, category=CycleIndexSeries())
-            def Frobenius_characteristic(self, n):
-                return SymmetricFunctions(QQ).zero()
-            def _repr_(self):
-                return "Z_0"
-
-        return Z0()
+        from sage.combinat.species2.cycle_index_series.some_characteristic_cis import ZeroCIS
+        return ZeroCIS()
 
     def one(self):
-
-        class One(UniqueRepresentation, Parent):
-            def __init__(self):
-                Parent.__init__(self, category=CycleIndexSeries())
-            def Frobenius_characteristic(self, n):
-                if n == 0:
-                    return SymmetricFunctions(QQ).one()
-                return SymmetricFunctions(QQ).zero()
-            def _repr_(self):
-                return "Z_1"
-
-        return One()
+        from sage.combinat.species2.cycle_index_series.some_characteristic_cis import OneCIS
+        return OneCIS()
 
     def singletons(self):
-
-        class SingletonsCIS(UniqueRepresentation, Parent):
-            def __init__(self):
-                Parent.__init__(self, category=CycleIndexSeries())
-            def Frobenius_characteristic(self, n):
-                if n == 1:
-                    return SymmetricFunctions(QQ).p().monomial(Partition([1]))
-                return SymmetricFunctions(QQ).zero()
-            def _repr_(self):
-                return "Z_X"
-
+        from sage.combinat.species2.cycle_index_series.some_characteristic_cis import SingletonsCIS
         return SingletonsCIS()
 
     def sets(self):
-        from sage.combinat.species2.cycle_index_series.cis_sets import CISSets
-        return CISSets()
+        from sage.combinat.species2.cycle_index_series.some_characteristic_cis import SetsCIS
+        return SetsCIS()
 
     class ParentMethods:
 
@@ -101,7 +66,7 @@ class CycleIndexSeries(Category):
             tester = self._tester(**options)
             z = self.Frobenius_characteristic(0)
             Q = z.base_ring()
-            tester.assertIn(z in SymmetricFunctions(Q))
+            tester.assertIn(z, SymmetricFunctions(Q))
 
         @abstract_method
         def Frobenius_characteristic(self, n):
@@ -134,37 +99,11 @@ class CycleIndexSeries(Category):
 
             (section 1.2, Theorem 8, _[BBL])
             """
-            class EGS(UniqueRepresentation, Parent):
-                def __init__(self, cis):
-                    Parent.__init__(self, category=FormalPowerSeries()) # FIXME exponential one
-                    self._cis_ = cis
+            from sage.combinat.species2.formal_power_series.misc import genericEGS
+            return genericEGS(self)
 
-                def coefficient(self, n):
-                    z = self._cis_.Frobenius_characteristic(0)
-                    Q = z.base_ring()
-                    p = SymmetricFunctions(Q).p()
-                    h = SymmetricFunctions(Q).h()
-
-                    def is_1k(I):
-                        return all(map(lambda i: i==1, I))
-
-                    ch = self._cis_.Frobenius_characteristic(n)
-                    if z.parent(ch) == p:
-                        # ch(F[n]) is a sum of power sum
-
-                        res = p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))
-                        if res == p.zero():
-                            return Integer(0)
-                        return res.coefficients()[0]
-                    # otherwise we convert into a homogeneous basis and h_lambda |--> multinomial(lambda)
-                    res = h(ch).map_item(lambda I, c: (Partition([n]), c * multinomial(I[:])))
-                    if res == p.zero():
-                        return Integer(0)
-                    return res.coefficients()[0]
-
-            return EGS(self)
-
-        exponential_generating_series = generating_series
+        def exponential_generating_series(self): return self.generating_series()
+        def egs(self): self.generating_series()
 
         def type_generating_series(self):
             """
@@ -185,35 +124,12 @@ class CycleIndexSeries(Category):
 
             (section 1.2, Theorem 8, _[BBL])
             """
-            class OGS(UniqueRepresentation, Parent):
+            from sage.combinat.species2.formal_power_series.misc import genericOGS
+            return genericOGS(self)
 
-                def __init__(self, cis):
-                    Parent.__init__(self, category=FormalPowerSeries()) # FIXME Ordinary one
-                    self._cis_ = cis
-
-                def coefficient(self, n):
-                    z = self._cis_.Frobenius_characteristic(0)
-                    Q = z.base_ring()
-                    p = SymmetricFunctions(Q).p()
-                    h = SymmetricFunctions(Q).h()
-
-                    def is_1k(I):
-                        return all(map(lambda i: i==1, I))
-
-                    ch = self._cis_.Frobenius_characteristic(n)
-                    if z.parent(ch) == p:
-                        # ch(F[n]) is a sum of power sum
-                        res = p(ch).map_item(lambda I, c: (I, c*factorial(sum(I[:]))) if is_1k(I) else (I, 0))
-                        if res == p.zero():
-                            return Integer(0)
-                        return res.coefficients()[0]
-                    # otherwise we convert into a homogeneous basis and h_lambda |--> 1
-                    res = h(ch).map_item(lambda I, c: (Partition([n]), c))
-                    if res == p.zero():
-                        return Integer(0)
-                    return res.coefficients()[0]
-
-            return OGS(self)
+        def isomorphism_type_generating_series(self): return self.type_generating_series()
+        def ordinary_generating_series(self): return self.type_generating_series()
+        def ogs(self): return self.type_generating_series()
 
         def add(ZF, ZG):
             """
@@ -247,7 +163,8 @@ class CycleIndexSeries(Category):
             from sage.combinat.species2.cycle_index_series.operations.product import Prod
             return Prod((ZF, 1), (ZG, 1))
 
-        _mul_ = product
+        __mul__ = _mul_ = product
+
 
         def restriction(self, min=0, max=Infinity):
             """
@@ -267,6 +184,8 @@ class CycleIndexSeries(Category):
             """
             from sage.combinat.species2.cycle_index_series.operations.partitional_composite import Composite
             return Composite(ZF, ZG)
+
+        __call__ = partitional_composite
 
         composite = partitional_composite
 
@@ -307,9 +226,12 @@ class CycleIndexSeries(Category):
             from sage.combinat.species2.cycle_index_series.operations.hadamard_product import HadamardProduct
             return HadamardProduct((ZF, 1), (ZG, 1))
 
-        def functorial_composition(self, ZG):
+        hadamard_product = Hadamard_product
+
+
+        def functorial_composite(self, ZG):
             """
-            The *functorial composition* of cycle index series
+            The *functorial composite* of cycle index series
 
             MATH::
 
@@ -318,6 +240,8 @@ class CycleIndexSeries(Category):
             """
             from sage.combinat.species2.cycle_index_series.operations.functorial_composite import FunctorialComposite
             return FunctorialComposite(self, ZG)
+
+        __getitem__ = functorial_composite
 
         def arithmetic_product(ZF, ZG):
             """
@@ -329,4 +253,8 @@ class CycleIndexSeries(Category):
                2008
 
             """
+            # TODO
             NotImplemented
+
+        def _valuation_(self):
+            return self.generating_series()._valuation_()

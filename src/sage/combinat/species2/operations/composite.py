@@ -9,17 +9,14 @@ References
  François Bergeron, Gilbert Labelle and Pierre Leroux,
  1998, Cambridge University Press
 
-AUTHOR:
-
-- Jean-Baptiste Priez (2015)
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 from sage.categories.species import Species
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.species2 import SpeciesDesign
@@ -88,29 +85,30 @@ class Composite(SpeciesDesign):
     def __classcall_private__(cls, *args, **opts):
         F = args[0]
         G = args[1]
-        ## Neutral element
-        if F == Species().singleton():
+        # # Neutral element
+        if F == Species().singletons():
             return G
-        if G == Species().singleton():
+        if G == Species().singletons():
             return F
 
-        ## Associativity re-orientation F ○ (G ○ H) --> (F ○ G) ○ H
+        # # Associativity re-orientation F ○ (G ○ H) --> (F ○ G) ○ H
         if isinstance(G, Composite):
             G, H = G._F_, G._G_
             return Composite(Composite(F, G), H)
 
-        ## Distrib +
+        # # Distrib +
         if isinstance(F, Add):
             return Add(*[Composite(H, G) for H in F._species_])
 
-        ## Distrib ·
+        # # Distrib ·
         if isinstance(F, Prod):
             return Prod(*[Composite(H, G) for H in F._species_])
 
+        # # otherwise
         return super(Composite, cls).__classcall__(cls, *args, **opts)
 
     def __init__(self, F, G):
-        assert(G.graded_component(0).cardinality() == 0), r"%s[∅] must be empty"%repr(G)
+        assert(G.generating_series().coefficient(0) == 0), r"%s[∅] must be empty" % repr(G)
         SpeciesDesign.__init__(self)
         self._F_ = F
         self._G_ = G
@@ -125,7 +123,7 @@ class Composite(SpeciesDesign):
         def Fsigma(s):
             phi, gamma = s[0], s[1]
             ##############
-            barsigma = lambda part: Set(map(sigma, part)) # ???
+            barsigma = lambda part: Set(map(sigma, part))  # ???
             barphi   = self._F_.transport(barsigma)(phi)
             bargamma = Set(self._G_.transport(sigma)(t) for t in gamma[:])
             return self._element_constructor_((barphi, bargamma))
@@ -134,6 +132,31 @@ class Composite(SpeciesDesign):
 
     def _element_constructor_(self, *args, **options):
         return self.element_class(self, *args, **options)
+
+    def cycle_index_series(self):
+        """
+        The cycle index series associated to the species `F \circ G`.
+
+        MATH::
+
+            Z_{F \circ G} (p_1, p_2, \cdots) = Z_{F}(Z_G(p_1, p_2, \cdots), Z_G(p_2, p_4, \cdots), \cdots)\,.
+
+        (section 1.4, Theorem 2, _[BBL])
+
+        TESTS::
+
+            sage: ch = lambda F, n: F.cycle_index_series().Frobenius_characteristic(n)
+            sage: from sage.combinat.species2.sets import SetsSpecies
+            sage: E = SetsSpecies()
+            sage: Ep = E.restricted(min=1)
+            sage: Par = E.composite(Ep)
+            sage: SP = SetPartitions()
+            sage: for n in range(6): assert(ch(Par, n) == ch(SP, n))
+
+        """
+        ZF = self._F_.cycle_index_series()
+        ZG = self._G_.cycle_index_series()
+        return ZF.partitional_composite(ZG)
 
     class Structures(SpeciesDesign.Structures):
 

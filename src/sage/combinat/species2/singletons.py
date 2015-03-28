@@ -5,12 +5,12 @@ The species `X`, characteristic of *singletons*.
 References
 ----------
 
- _[BBL] Combinatorial species and tree-like structures,
- François Bergeron, Gilbert Labelle and Pierre Leroux,
- 1998, Cambridge University Press
+ .. [BBL] Combinatorial species and tree-like structures,
+   François Bergeron, Gilbert Labelle and Pierre Leroux,
+   1998, Cambridge University Press
 
 """
-#*******************************************************************************
+# *******************************************************************************
 #       Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,10 +18,12 @@ References
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+# *******************************************************************************
+from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.structures import Structure
 from sage.misc.lazy_attribute import lazy_attribute
+
 
 class Singleton(Structure):
 
@@ -77,17 +79,20 @@ class SingletonsSpecies(SpeciesDesign):
     """
 
     def _repr_(self):
-        return "`X`"
+        return "X"
     
     def transport(self, sigma):
 
         def Fsigma(x):
-            return self._element_constructor_(sigma.codomain())
+            return self._element_constructor_(sigma(x._label_))
 
         return Fsigma
 
     def some_elements(self):
         return iter([self.first()])
+
+    def cycle_index_series(self):
+        return CycleIndexSeries().singletons()
 
     def grading(self, U):
         assert(isinstance(U, Singleton))

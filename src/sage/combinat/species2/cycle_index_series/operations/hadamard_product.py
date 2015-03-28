@@ -8,6 +8,7 @@ Reference
 .. [BBL] Combinatorial species and tree-like structures,
   François Bergeron, Gilbert Labelle and Pierre Leroux
   Cambridge University Press, 1998
+
 """
 # *****************************************************************************
 #  Copyright (C) 2015 Jean-Baptiste Priez <jbp at kerios.fr>
@@ -18,17 +19,18 @@ Reference
 from collections import defaultdict
 from itertools import imap
 from sage.categories.cycle_index_series import CycleIndexSeries
+from sage.categories.formal_power_series import ExponentialPowerSeries
 from sage.combinat.partition import Partitions
 from sage.combinat.sf.sf import SymmetricFunctions
+from sage.combinat.species2.cycle_index_series import CIS
 from sage.combinat.species2.cycle_index_series.operations.add import Add
+from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.misc import exists
 from sage.rings.integer import Integer
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 
 
-class HadamardProduct(UniqueRepresentation, Parent):
+class HadamardProduct(CIS):
     """
     The *Hadamard product* of cycles index series
 
@@ -43,12 +45,47 @@ class HadamardProduct(UniqueRepresentation, Parent):
      - Neutral element: `Z_E \times Z_F = Z_F \times Z_E = Z_F`,
      - Distributive: `(Z_F + Z_G) \times Z_H = Z_F \times Z_H + Z_G \times Z_H`.
 
+    EXAMPLE::
+
+        sage: ZP = Permutations().cycle_index_series()
+        sage: ZS = SetPartitions().cycle_index_series()
+        sage: ZPS = ZP.hadamard_product(ZS); ZPS
+        Z{Set..} x ZP
+        sage: ZP.Frobenius_characteristic(3)
+        p[1, 1, 1] + p[2, 1] + p[3]
+        sage: ZS.Frobenius_characteristic(3)
+        5/6*p[1, 1, 1] + 3/2*p[2, 1] + 2/3*p[3]
+        sage: ZPS.Frobenius_characteristic(3)
+        5*p[1, 1, 1] + 3*p[2, 1] + 2*p[3]
+
+    TESTS::
+
+        sage: from sage.categories.cycle_index_series import CycleIndexSeries
+        sage: CIS = CycleIndexSeries()
+        sage: Z0, ZE, ZX = CIS.zero(), CIS.sets(), CIS.singletons()
+        sage: ZP = Permutations().cycle_index_series()
+        sage: ZS = SetPartitions().cycle_index_series()
+
+        sage: ZS.hadamard_product(ZP) == ZP.hadamard_product(ZS)
+        True
+
+        sage: Z0.hadamard_product(ZP)
+        Z0
+
+        sage: ZP.hadamard_product(ZE)
+        ZP
+
+        sage: (ZP + ZS).hadamard_product(ZX) == ZP.hadamard_product(ZX) + ZS.hadamard_product(ZX)
+        True
+
+        sage: TestSuite(ZP.hadamard_product(ZS)).run()
+
     """
 
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(cls, *args, **opts):
+    def __classcall_private__(cls, *args):
 
         # commutativity
         dic_cis = defaultdict(Integer)
@@ -59,11 +96,12 @@ class HadamardProduct(UniqueRepresentation, Parent):
                 continue
             # absorbing element
             elif ZF == CycleIndexSeries().zero():
-                if nf != 0: return CycleIndexSeries().zero()
+                if nf != 0:
+                    return CycleIndexSeries().zero()
                 # else continue
             # distributive
             elif isinstance(ZF, Add):
-                return Add(*tuple(HadamardProduct(*(tuple(dic_cis.items()) + ((ZG, ng),) + args[i+1:]))
+                return Add(*tuple((HadamardProduct(*(tuple(dic_cis.items()) + ((ZG, ng),) + args[i+1:])), 1)
                                   for (ZG, ng) in ZF._dic_cis_.iteritems()))
             # associative
             elif isinstance(ZF, HadamardProduct):
@@ -73,7 +111,7 @@ class HadamardProduct(UniqueRepresentation, Parent):
             else:
                 dic_cis[ZF] += nf
 
-        ## cleanning ##
+        # # cleaning ##
         for (ZF, nf) in list(dic_cis.items()):
             if nf == 0:
                 del dic_cis[ZF]
@@ -88,7 +126,7 @@ class HadamardProduct(UniqueRepresentation, Parent):
             return super(HadamardProduct, cls).__classcall__(cls, tuple(dic_cis.items()))
 
     def __init__(self, dic_cis):
-        Parent.__init__(self, category=CycleIndexSeries())
+        CIS.__init__(self)
         self._dic_cis_ = dict(dic_cis)
         self._p_ = SymmetricFunctions(self._dic_cis_.keys()[0].Frobenius_characteristic(0).base_ring()).p()
 
@@ -105,6 +143,8 @@ class HadamardProduct(UniqueRepresentation, Parent):
             [0, p[1], 0, 0, 0, 0, 0, 0, 0, 0]
 
         """
+        if self._valuation_() > n:
+            return self._sym_.zero()
         p = self._p_
         list_ch = [(p(ZF.Frobenius_characteristic(n)), nf) for (ZF, nf) in self._dic_cis_.iteritems()]
 
@@ -130,6 +170,11 @@ class HadamardProduct(UniqueRepresentation, Parent):
 
         return acc
 
+    @cached_method
+    def generating_series(self):
+        from sage.combinat.species2.formal_power_series.operations.hadamard_product import HadamardProduct
+        return HadamardProduct(map(lambda (ZF, nf): (ZF.generating_series(), nf), self._dic_cis_))
+
     def _repr_(self):
-        return " x ".join(imap(lambda (ZF, nf): repr(ZF) + ("^{x%d}"%nf if nf != 1 else ""),
+        return " x ".join(imap(lambda (ZF, nf): repr(ZF) + ("^{x%d}" % nf if nf != 1 else ""),
                                self._dic_cis_.iteritems()))

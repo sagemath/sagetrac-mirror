@@ -3,7 +3,7 @@ from sage.categories.category import Category
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.species import Species
 from sage.combinat.partition import Partitions
-from sage.combinat.permutation import Permutation
+from sage.misc.lazy_import import LazyImport
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.set import Set
@@ -13,11 +13,14 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.structures import Structures as Structs
+Permutation = LazyImport('sage.combinat.permutation', 'Permutation')
+
 
 def partition_to_permutation(pi):
     it = iter(PositiveIntegers())
     return Permutation([tuple([it.next() for _ in range(part)])
                         for part in pi])
+
 
 class DefaultSpeciesIsoTypes(Structs.GradedComponent):
 
@@ -43,6 +46,7 @@ class DefaultSpeciesIsoTypes(Structs.GradedComponent):
     def cardinality(self):
         return self._isotypes_.number_of_subsets()
 
+
 class SpeciesDesign(UniqueRepresentation, Parent):
 
     def __init__(self):
@@ -50,7 +54,7 @@ class SpeciesDesign(UniqueRepresentation, Parent):
         self._structures = {}
 
     def structures(self, U):
-        if self._structures.has_key(U):
+        if U in self._structures:
             return self._structures[U]
         FU = self.Structures(self, U)
         self._structures[U] = FU
@@ -88,6 +92,9 @@ class SpeciesDesign(UniqueRepresentation, Parent):
         def finite_set(self):
             return self._finite_set_
 
+        def cardinality(self):
+            return self.ambient().cycle_index_series().generating_series().coefficient(self.grading())
+
         def grading(self):
             return self._finite_set_.cardinality()
 
@@ -95,7 +102,7 @@ class SpeciesDesign(UniqueRepresentation, Parent):
             return repr(self.ambient()) + "-structures on " + repr(self.finite_set())
 
         @lazy_attribute
-        def _element_constructor_(self, *args, **options):
+        def _element_constructor_(self):
             return self.ambient()._element_constructor_
 
     def isomorphism_types(self, n):
