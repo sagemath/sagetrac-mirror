@@ -2435,8 +2435,10 @@ class TernaryQF(SageObject):
 
             sage: Q = TernaryQF([7, 8, 8, -7, -3, -4])
             sage: Q.jordan_decomposition(2)
-            [[0, [[0 1]
-            [1 0]]], [0, [241155]]]
+            [[0, [
+            [0 1]
+            [1 0]
+            ]], [0, [241155]]]
             sage: Q.disc().factor()
             5 * 233
             sage: Q.jordan_decomposition(3)
