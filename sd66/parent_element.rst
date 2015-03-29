@@ -1,4 +1,4 @@
-.. escape-bckslashes
+.. escape-backslashes
 
 Parent, élément, coercion
 =========================
@@ -7,7 +7,7 @@ Parent, élément, coercion
 Parent, élément, coercion
 +++++++++++++++++++++++++
 
-Les éléments (nombres, matrices, ...) ont des parents (corps des nombre
+Les éléments (nombres, matrices, ...) ont des parents (corps des nombres
 rationnels, espaces de matrices, ...).
 
 ::
@@ -19,10 +19,6 @@ rationnels, espaces de matrices, ...).
     sage: RR.an_element()
 
     sage: RDF.random_element().parent()
-
-    sage: RR.is_parent_of(0.1)
-
-    sage: RDF.is_parent_of(0.1)
 
 
 Les parents aussi sont des objets avec leurs méthodes.
@@ -46,14 +42,27 @@ les transformant en éléments d'un parent commun.
 
 ::
 
+    sage: from sage.structure.element import get_coercion_model
+    sage: cm = get_coercion_model()
     sage: K = RDF
     sage: L = RealField(2)
-    sage: M = composite_field(K, L)
+    sage: M = cm.common_parent(K, L)
     sage: M
 
 ::
 
     sage: (K.an_element() + L.an_element()).parent()
+
+Voici un exemple plus subtile où le résultat de l'opération est un parent différent.
+
+::
+
+    sage: R = ZZ['x']
+    sage: cm.common_parent(R, QQ)
+
+::
+
+    sage: (R.an_element() + QQ.an_element()).parent()
 
 
 L'égalité aussi est effectuée dans un parent commun:
@@ -119,8 +128,9 @@ nombres flottants:
 ::
 
     sage: pi_approx = pi.numerical_approx()
-    sage: u_float = lambda n: n * log(1.0*n) * sqrt(2.0)
-    sage: z_float = lambda n: exp(2.0 * CC(0,1) * pi_approx * u_float(n))
+    sage: sqrt2_approx = (2.0).sqrt()
+    sage: u_float = lambda n: n * (1.0*n).log() * sqrt2_approx
+    sage: z_float = lambda n: (2.0 * CC(0,1) * pi_approx * u_float(n)).exp()
 
 ::
 
