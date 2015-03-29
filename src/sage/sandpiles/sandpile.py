@@ -234,7 +234,7 @@ class Sandpile(DiGraph):
     Class for Dhar's abelian sandpile model.
     """
 
-    def __init__(self, g, sink):
+    def __init__(self, g, sink, *args, **kwds):
         r"""
         Create a sandpile.
 
@@ -246,6 +246,10 @@ class Sandpile(DiGraph):
          - ``sink`` - A sink vertex.  Any outgoing edges from the designated
            sink are ignored for the purposes of stabilization.  It is assumed
            that every vertex has a directed path into the sink.
+
+         See DiGraph.__init__ for other arguments.
+
+         A sandpile is always a weighted graph.
 
         OUTPUT:
 
@@ -286,6 +290,21 @@ class Sandpile(DiGraph):
 
             sage: S = complete_sandpile(4)
             sage: TestSuite(S).run()
+
+        Make sure we can copy sandpiles. (trac #18032) ::
+
+            sage: G = complete_sandpile(4)
+            sage: G_copy = copy(G)
+            sage: G_copy == G
+            True
+
+        Make sure we cannot make an unweighted sandpile. (trac #18032) ::
+
+            sage: G = Sandpile({0:[]}, 0, weighted=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: sandpiles are always weighted digraphs, cannot make an unweighted one as asked
+
         """
         # preprocess a graph, if necessary
         if isinstance(g, dict) and isinstance(g.values()[0], dict):
@@ -324,8 +343,14 @@ class Sandpile(DiGraph):
         else:
             raise SyntaxError(g)
 
+        # Sandpiles must be weighted digraphs. Added to fix trac #18032.
+        if ("weighted" in kwds):
+            if (not kwds["weighted"]):
+                raise ValueError("sandpiles are always weighted digraphs, cannot make an unweighted one as asked")
+        kwds["weighted"] = True
+
         # create digraph and initialize some variables
-        DiGraph.__init__(self,g,weighted=True)
+        DiGraph.__init__(self,g,*args,**kwds)
         self._dict = deepcopy(g)
         self._sink = sink  # key for sink
         self._sink_ind = self.vertices().index(sink)
@@ -336,6 +361,23 @@ class Sandpile(DiGraph):
         temp = range(self.num_verts())
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
+
+    def _make_copy(self, *args, **kwds):
+        """
+        Make an instance of this class with the provided arguments.
+
+        Used internally by __copy__. Intended to be overriden by child-classes
+        that change the __init__ method's signature.
+
+        Added to fix trac #18032.
+
+        Sandpile makes two changes to Digraph's __init__.
+        1. Sandpiles require a sink vertex to be specified.
+        2. Sandpiles cannot be unweighted.
+
+        """
+        kwds["weighted"] = True
+        return self.__class__(self, self._sink, *args, **kwds)
 
     def __getattr__(self, name):
         """

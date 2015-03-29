@@ -774,6 +774,18 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
+    def _make_copy(self, *args, **kwds):
+        """
+        Make an instance of this class with the provided arguments.
+
+        Used internally by __copy__. Intended to be overriden by child-classes
+        that change the __init__ method's signature.
+
+        Added to fix trac #18032.
+
+        """
+        return self.__class__(self, *args, **kwds)
+
     def __copy__(self, weighted=None, implementation='c_graph', data_structure=None,
                  sparse=None, immutable=None):
         """
@@ -1021,10 +1033,10 @@ class GenericGraph(GenericGraph_pyx):
                 data_structure = "sparse"
 
         from copy import copy
-        G = self.__class__(self, name=self.name(), pos=copy(self._pos),
-                           boundary=copy(self._boundary), weighted=weighted,
-                           implementation=implementation,
-                           data_structure=data_structure)
+        G = self._make_copy(name=self.name(), pos=copy(self._pos),
+                            boundary=copy(self._boundary), weighted=weighted,
+                            implementation=implementation,
+                            data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:
