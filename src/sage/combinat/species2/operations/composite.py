@@ -108,7 +108,7 @@ class Composite(SpeciesDesign):
         return super(Composite, cls).__classcall__(cls, *args, **opts)
 
     def __init__(self, F, G):
-        assert(G.generating_series().coefficient(0) == 0), r"%s[∅] must be empty" % repr(G)
+        assert(G._valuation_() > 0), r"%s[∅] must be empty" % repr(G)
         SpeciesDesign.__init__(self)
         self._F_ = F
         self._G_ = G

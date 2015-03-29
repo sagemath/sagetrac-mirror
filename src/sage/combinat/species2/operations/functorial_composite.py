@@ -89,6 +89,9 @@ class FunctorialComposite(SpeciesDesign):
             return s
         return FBoxGsigma
 
+    def _repr_(self):
+        return repr(self._F_) + "[" + repr(self._G_) + "]"
+
     def grading(self, s):
         # FIXME
         F = self._F_
