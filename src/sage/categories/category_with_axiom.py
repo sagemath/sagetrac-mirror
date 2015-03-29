@@ -2011,15 +2011,15 @@ class CategoryWithAxiom(Category):
             sage: Sets().Infinite()
             Category of infinite sets
             sage: Sets().Infinite
-            Cached version of <function Infinite at ...>
-            sage: Sets().Infinite.f == Sets.SubcategoryMethods.Infinite.f
+            Cached version of <bound method Sets_with_category.Infinite of Category of sets>
+            sage: Sets().Infinite.f.im_func == Sets.SubcategoryMethods.Infinite.f.im_func
             True
 
         We check that this also works when the class is implemented in
         a separate file, and lazy imported::
 
             sage: Sets().Finite
-            Cached version of <function Finite at ...>
+            Cached version of <bound method Sets_with_category.Finite of Category of sets>
 
         There is no binding behavior when accessing ``Finite`` or
         ``Infinite`` from the class of the category instead of the

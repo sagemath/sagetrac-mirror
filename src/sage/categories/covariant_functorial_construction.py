@@ -240,7 +240,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
-            Cached version of <function Subquotients at ...>
+            Cached version of <bound method Sets_with_category.Subquotients of Category of sets>
         """
         if category is None:
             return cls

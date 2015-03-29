@@ -137,7 +137,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: L=NonCommutativeSymmetricFunctions(QQ).L()
                 sage: parent(L)
                 <class 'sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Elementary_with_category'>
-                sage: parent(L).one_basis()
+                sage: L.one_basis()
                 []
             """
             return Compositions()([])

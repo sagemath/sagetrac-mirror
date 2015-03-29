@@ -2848,7 +2848,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: S.category()
             Category of facade finite enumerated sets
             sage: super(Parent, S)._an_element_
-            Cached version of <function _an_element_from_iterator at ...>
+            Cached version of <bound method FiniteEnumeratedSet_with_category._an_element_from_iterator of {1, 2, 3}>
             sage: S._an_element_()
             1
             sage: S = FiniteEnumeratedSet([])

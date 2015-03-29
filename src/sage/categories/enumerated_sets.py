@@ -474,7 +474,7 @@ class EnumeratedSets(Category_singleton):
             TESTS::
 
                 sage: super(Parent, C)._an_element_
-                Cached version of <function _an_element_from_iterator at ...>
+                Cached version of <bound method Example_with_category._an_element_from_iterator of An example of a finite enumerated set: {1,2,3}>
             """
             it = self.__iter__()
             try:

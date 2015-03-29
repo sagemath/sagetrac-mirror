@@ -106,10 +106,19 @@ approach is still needed for cpdef methods::
     ....: '    wrapped_method = cached_method(test_meth,name="wrapped_method")']
     sage: cython(os.linesep.join(cython_code))
     sage: O = MyClass()
-    sage: O.direct_method
+
+By :trac:`15056`, cached methods are not just wrappers around functions but
+wrappers around callables bound to the same instance (or class) to which the
+cached method is bound to::
+
+    sage: MyClass.direct_method
     Cached version of <method 'direct_method' of '...MyClass' objects>
+    sage: MyClass.wrapped_method
+    Cached version of <unbound method MyClass.test_meth>
+    sage: O.direct_method
+    Cached version of <built-in method direct_method of ...MyClass object at ...>
     sage: O.wrapped_method
-    Cached version of <built-in function test_meth>
+    Cached version of <bound method MyClass.test_meth of <type '...MyClass'>>
     sage: O.wrapped_method.__name__
     'wrapped_method'
     sage: O.wrapped_method(5)
@@ -119,6 +128,12 @@ approach is still needed for cpdef methods::
     sage: O.direct_method(5)
     10
     sage: O.direct_method(5) is O.direct_method(5)
+    True
+
+By :trac:`15056`, an unbound cached method can be called in the same way as
+one would call a usual unbound method::
+
+    sage: O.wrapped_method(5) is MyClass.wrapped_method(O, 5)
     True
 
 In some cases, one would only want to keep the result in cache as long
@@ -351,6 +366,16 @@ ought to be chosen. A typical example is
     sage: type(I.groebner_basis)
     <type 'sage.misc.cachefunc.CachedMethodCaller'>
 
+An unbound cached method expects at least the argument ``self`` and is thus a
+:class:`CachedMethodCaller`, not a :class:`CachedMethodCallerNoArgs`::
+
+    sage: type(I).gens
+    Cached version of <unbound method MPolynomialIdeal.gens>
+    sage: type(type(I).gens)
+    <type 'sage.misc.cachefunc.CachedMethodCaller'>
+    sage: type(I).gens(I) is I.gens()
+    True
+
 By :trac:`12951`, the cached_method decorator is also supported on non-c(p)def
 methods of extension classes, as long as they either support attribute assignment
 or have a public attribute of type ``<dict>`` called ``__cached_methods``. The
@@ -480,6 +505,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
 from sage.misc.decorators import decorator_keywords
+from types import MethodType
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
@@ -1432,7 +1458,7 @@ class CachedMethodPickle(object):
          x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
          x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3]
         sage: I.groebner_basis
-        Cached version of <function groebner_basis at 0x...>
+        Cached version of <bound method MPolynomialIdeal.groebner_basis of Ideal (x^3 + y^3 + z^3, x^4 - y^4) of Multivariate Polynomial Ring in x, y, z over Rational Field>
 
     We now pickle and unpickle the ideal. The cached method
     ``groebner_basis`` is replaced by a placeholder::
@@ -1448,7 +1474,7 @@ class CachedMethodPickle(object):
         sage: J.groebner_basis.is_in_cache()
         True
         sage: J.groebner_basis
-        Cached version of <function groebner_basis at 0x...>
+        Cached version of <bound method MPolynomialIdeal.groebner_basis of Ideal (x^3 + y^3 + z^3, x^4 - y^4) of Multivariate Polynomial Ring in x, y, z over Rational Field>
         sage: J.groebner_basis() == I.groebner_basis()
         True
 
@@ -1571,14 +1597,14 @@ class CachedMethodPickle(object):
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
             sage: I.gens
-            Cached version of <function gens at 0x...>
+            Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
             sage: J = loads(dumps(I))
             sage: J.gens
             Pickle of the cached method "gens"
             sage: J.gens()   # indirect doctest
             [a, b]
             sage: J.gens
-            Cached version of <function gens at 0x...>
+            Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
 
         """
         self._instance.__dict__.__delitem__(self._name)
@@ -1617,7 +1643,7 @@ class CachedMethodPickle(object):
             sage: J.groebner_basis.is_in_cache()  #indirect doctest
             True
             sage: J.groebner_basis
-            Cached version of <function groebner_basis at 0x...>
+            Cached version of <bound method MPolynomialIdeal.groebner_basis of Ideal (x^3 + y^3 + z^3, x^4 - y^4) of Multivariate Polynomial Ring in x, y, z over Rational Field>
 
         """
         self._instance.__dict__.__delitem__(self._name)
@@ -1649,13 +1675,13 @@ cdef class CachedMethodCaller(CachedFunction):
         ....:        return x^2
         sage: a = A()
         sage: a.bar
-        Cached version of <function bar at 0x...>
+        Cached version of <bound method A.bar of <__main__.A instance at ...>>
         sage: type(a.bar)
         <type 'sage.misc.cachefunc.CachedMethodCaller'>
         sage: a.bar(2) is a.bar(x=2)
         True
     """
-    def __init__(self, CachedMethod cachedmethod, inst, cache=None, inst_in_key=False, name=None, key=None):
+    def __init__(self, CachedMethod cachedmethod, inst, cls, cache=None, inst_in_key=False, name=None, key=None):
         """
         EXAMPLES::
 
@@ -1679,7 +1705,14 @@ cdef class CachedMethodCaller(CachedFunction):
         # cached method.
         if cachedmethod._cachedfunc._argument_fixer is None:
             cachedmethod._cachedfunc.argfix_init()
-        self._common_init(cachedmethod._cachedfunc.f,
+        if inst_in_key:
+            bound_meth = cachedmethod._cachedfunc.f
+        else:
+            try:
+                bound_meth = cachedmethod._cachedfunc.f.__get__(inst,cls)
+            except AttributeError:
+                bound_meth = MethodType(cachedmethod._cachedfunc.f, inst, cls)
+        self._common_init(bound_meth,
                           cachedmethod._cachedfunc._argument_fixer,
                           name=name,
                           key=key)
@@ -1705,7 +1738,7 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: J.groebner_basis.is_in_cache()
             True
             sage: J.groebner_basis
-            Cached version of <function groebner_basis at 0x...>
+            Cached version of <bound method MPolynomialIdeal.groebner_basis of Ideal (x^3 + y^3 + z^3, x^4 - y^4) of Multivariate Polynomial Ring in x, y, z over Rational Field>
         """
         if isinstance(self._cachedmethod, CachedInParentMethod) or hasattr(self._instance,self._cachedmethod._cache_name):
             return CachedMethodPickle,(self._instance,self.__name__)
@@ -1727,7 +1760,9 @@ cdef class CachedMethodCaller(CachedFunction):
             True
 
         """
-        return self._cachedmethod._instance_call(self._instance, *args, **kwds)
+        if self._inst_in_key:
+            return self.f(self._instance, *args, **kwds)
+        return self.f(*args, **kwds)
 
     def _fix_to_pos_and_create_key(self, *args, **kwargs):
         r"""
@@ -1833,11 +1868,10 @@ cdef class CachedMethodCaller(CachedFunction):
             True
 
         """
+        # Deal with unbound methods
         if self._instance is None:
-            # cached method bound to a class
-            instance = args[0]
-            args = args[1:]
-            return self._cachedmethod.__get__(instance)(*args, **kwds)
+            print args, kwds
+            return self.__get__(args[0])(*(args[1:]), **kwds)
 
         # We shortcut a common case of no arguments
         # and we avoid calling another python function,
@@ -1879,7 +1913,7 @@ cdef class CachedMethodCaller(CachedFunction):
                 k = (_cache_key,_cache_key(k))
                 return cache[k]
         except KeyError:
-            w = self._cachedmethod._instance_call(self._instance, *args, **kwds)
+            w = self._instance_call(*args, **kwds)
             cache[k] = w
             return w
 
@@ -1930,10 +1964,10 @@ cdef class CachedMethodCaller(CachedFunction):
             return (self._instance,self._fix_to_pos(*args,**kwds))
         return self._fix_to_pos(*args,**kwds)
 
-    def __get__(self, inst, cls): #cls=None):
+    def __get__(self, inst, cls):
         r"""
-        Get a :class:`CachedMethodCaller` bound to a specific
-        instance of the class of the cached method.
+        Get a :class:`CachedMethodCaller` or a :class:`CachedMethodCallerNoArgs`
+        bound to a specific instance of the class of the cached method.
 
         NOTE:
 
@@ -2014,7 +2048,10 @@ cdef class CachedMethodCaller(CachedFunction):
             return (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__]
         except (AttributeError,TypeError,KeyError):
             pass
-        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__, key=self.key)
+        if self._cachedmethod.nargs == 1 and inst is not None:
+            Caller = CachedMethodCallerNoArgs(inst, cls, self._cachedmethod._cachedfunc.f, name=self._cachedmethod._cachedfunc.__name__)
+        else:
+            Caller = CachedMethodCaller(self._cachedmethod, inst, cls, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__, key=self.key)
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
@@ -2087,7 +2124,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
         sage: I.gens
-        Cached version of <function gens at 0x...>
+        Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
         sage: type(I.gens)
         <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
         sage: I.gens is I.gens
@@ -2099,7 +2136,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
     - Simon King (2011-04)
     """
-    def __init__(self, inst, f, cache=None, name=None):
+    def __init__(self, inst, cls, f, cache=None, name=None):
         """
         EXAMPLES::
 
@@ -2128,7 +2165,11 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
                 f = F.f
             else:
                 f = F
-        self._common_init(f, None, name=name)
+        try:
+            bound_meth = f.__get__(inst,cls)
+        except AttributeError:
+            bound_meth = MethodType(f, inst, cls)
+        self._common_init(bound_meth, None, name=name)
         # This is for unpickling a CachedMethodCallerNoArgs out
         # of an old CachedMethodCaller:
         cachename = '_cache__' + self.__name__
@@ -2160,14 +2201,14 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             sage: I.gens()
             [a, b]
             sage: I.gens
-            Cached version of <function gens at 0x...>
+            Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
             sage: J = loads(dumps(I))
             sage: J.gens
             Pickle of the cached method "gens"
             sage: J.gens.cache
             [a, b]
             sage: J.gens
-            Cached version of <function gens at 0x...>
+            Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
 
         """
         return CachedMethodPickle,(self._instance,self.__name__,self.cache)
@@ -2188,7 +2229,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             True
 
         """
-        return self.f(self._instance)
+        return self.f()
 
     def __call__(self):
         """
@@ -2206,7 +2247,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         if self.cache is None:
             f = self.f
-            self.cache = f(self._instance)
+            self.cache = f()
         return self.cache
 
     def set_cache(self, value):
@@ -2360,7 +2401,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             return (<dict>inst.__cached_methods)[self.__name__]
         except (AttributeError,TypeError,KeyError) as msg:
             pass
-        Caller = CachedMethodCallerNoArgs(inst, self.f, name=self.__name__)
+        Caller = CachedMethodCallerNoArgs(inst, cls, self.f, name=self.__name__)
         try:
             setattr(inst,self.__name__, Caller)
             return Caller
@@ -2409,13 +2450,22 @@ cdef class CachedMethod(object):
         True
 
     Note, however, that the :class:`CachedMethod` is replaced by a
-    :class:`CachedMethodCaller` or :class:`CachedMethodCallerNoArgs`
-    as soon as it is bound to an instance or class::
+    :class:`CachedMethodCaller` or :class:`CachedMethodCallerNoArgs` as soon
+    as it is bound to an instance or class. Since an unbound method will still
+    have the argument ``self``, the unbound cached method is
+    :class:`CachedMethodCaller`, but the bound method is
+    :class:`CachedMethodCallerNoArgs`::
 
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
         sage: type(I.__class__.gens)
+        <type 'sage.misc.cachefunc.CachedMethodCaller'>
+        sage: I.__class__.gens
+        Cached version of <unbound method MPolynomialIdeal.gens>
+        sage: type(I.gens)
         <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        sage: I.gens
+        Cached version of <bound method MPolynomialIdeal.gens of Ideal (a, b) of Multivariate Polynomial Ring in a, b, c, d over Rational Field>
 
     So, you would hardly ever see an instance of this class alive.
 
@@ -2492,9 +2542,9 @@ cdef class CachedMethod(object):
             sage: f.__module__
             '__main__'
         """
-        self._cache_name = '_cache__' + (name or f.__name__)
         self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key)
         self.__name__ = self._cachedfunc.__name__
+        self._cache_name = '_cache__' + self.__name__
         self.__module__ = self._cachedfunc.__module__
 
     def _instance_call(self, inst, *args, **kwds):
@@ -2614,7 +2664,8 @@ cdef class CachedMethod(object):
 
     def __get__(self, object inst, cls): #cls=None):
         """
-        Get a CachedMethodCaller bound to this specific instance of
+        Get a :class:`CachedMethodCaller` or a
+        :class:`CachedMethodCallerNoArg` bound to this specific instance of
         the class of the cached method.
 
         TESTS::
@@ -2675,17 +2726,23 @@ cdef class CachedMethod(object):
             args, varargs, keywords, defaults = sage_getargspec(f)
             if varargs is None and keywords is None and len(args)<=1:
                 self.nargs = 1
-                Caller = CachedMethodCallerNoArgs(inst, f, name=name)
+                if inst is None:
+                    Caller = CachedMethodCaller(self, inst, cls,
+                                                cache=self._get_instance_cache(inst),
+                                                name=name,
+                                                key=self._cachedfunc.key)
+                else:
+                    Caller = CachedMethodCallerNoArgs(inst, cls, f, name=name)
             else:
                 self.nargs = 2 # don't need the exact number
-                Caller = CachedMethodCaller(self, inst,
+                Caller = CachedMethodCaller(self, inst, cls,
                                             cache=self._get_instance_cache(inst),
                                             name=name,
                                             key=self._cachedfunc.key)
-        elif self.nargs==1:
-            Caller = CachedMethodCallerNoArgs(inst, f, name=name)
+        elif self.nargs==1 and (inst is not None):
+            Caller = CachedMethodCallerNoArgs(inst, cls, f, name=name)
         else:
-            Caller = CachedMethodCaller(self, inst,
+            Caller = CachedMethodCaller(self, inst, cls,
                                         cache=self._get_instance_cache(inst),
                                         name=name,
                                         key=self._cachedfunc.key)
@@ -2821,17 +2878,17 @@ cdef class CachedSpecialMethod(CachedMethod):
             args, varargs, keywords, defaults = sage_getargspec(f)
             if varargs is None and keywords is None and len(args)<=1:
                 self.nargs = 1
-                Caller = CachedMethodCallerNoArgs(inst, f, name=name)
+                Caller = CachedMethodCallerNoArgs(inst, cls, f, name=name)
             else:
                 self.nargs = 2 # don't need the exact number
-                Caller = CachedMethodCaller(self, inst,
+                Caller = CachedMethodCaller(self, inst, cls,
                                             cache=self._get_instance_cache(inst),
                                             name=name,
                                             key=self._cachedfunc.key)
         elif self.nargs == 1:
-            Caller = CachedMethodCallerNoArgs(inst, f, name=name)
+            Caller = CachedMethodCallerNoArgs(inst, cls, f, name=name)
         else:
-            Caller = CachedMethodCaller(self, inst,
+            Caller = CachedMethodCaller(self, inst, cls,
                                         cache=self._get_instance_cache(inst),
                                         name=name,
                                         key=self._cachedfunc.key)
@@ -3066,7 +3123,7 @@ cdef class CachedInParentMethod(CachedMethod):
         Get a CachedMethodCaller bound to this specific instance of
         the class of the cached-in-parent method.
         """
-        Caller = CachedMethodCaller(self, inst, cache=self._get_instance_cache(inst), inst_in_key=True, key=self._cachedfunc.key)
+        Caller = CachedMethodCaller(self, inst, cls, cache=self._get_instance_cache(inst), inst_in_key=True, key=self._cachedfunc.key)
         try:
             setattr(inst,self._cachedfunc.__name__, Caller)
         except AttributeError:
@@ -3593,7 +3650,7 @@ class ClearCacheOnPickle(object):
         And here is why the example works::
 
             sage: ST = I.__getstate__(); ST[0],sorted(ST[1].items())
-            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_cache__groebner_basis', {(('singular', None, None, False), ()): 'foo'}), ('_gb_by_ordering', {}), ('gens', Cached version of <function gens at 0x...>), ('groebner_basis', Cached version of <function groebner_basis at 0x...>)])
+            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_cache__groebner_basis', {(('singular', None, None, False), ()): 'foo'}), ('_gb_by_ordering', {}), ('gens', Cached version of <bound method MPolynomialIdeal.gens of Ideal ('b', 'a', 'r') of Multivariate Polynomial Ring in a, b, c, d over Rational Field>), ('groebner_basis', Cached version of <bound method MPolynomialIdeal.groebner_basis of Ideal ('b', 'a', 'r') of Multivariate Polynomial Ring in a, b, c, d over Rational Field>)])
             sage: ST = A.__getstate__(); ST[0],sorted(ST[1].items())
             (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_gb_by_ordering', {})])
 
