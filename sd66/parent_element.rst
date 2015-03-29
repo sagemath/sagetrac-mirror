@@ -16,6 +16,10 @@ rationnels, espaces de matrices, ...).
 
     sage: 3.parent() == ZZ
 
+    sage: m = matrix([[1,2,3],[4,5,6]])
+    sage: m.parent()
+    sage: m.parent() == MatrixSpace(ZZ,2,3)
+
     sage: RR.an_element()
 
     sage: RDF.random_element().parent()
