@@ -186,3 +186,6 @@ from sage.rings.continued_fraction import (farey, convergents,
    Hirzebruch_Jung_continued_fraction_list)
 # and deprecated continued fractions
 from sage.rings.contfrac import (CFF, ContinuedFractionField)
+
+# Arithmetic functions
+from arithmetic_functions import ArithmeticFunctions, ArithmeticFunction
