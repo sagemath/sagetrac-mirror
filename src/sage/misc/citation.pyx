@@ -1,5 +1,6 @@
 from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT
+from sage.repl.user_globals import get_globals
 
 systems = {}
 systems['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']
@@ -79,7 +80,7 @@ def get_systems(cmd):
 
     #Run the command and get the stats
     filename = tmp_filename()
-    cProfile.runctx(cmd, globals(), {}, filename)
+    cProfile.runctx(cmd, get_globals(), {}, filename)
     stats = pstats.Stats(filename)
 
     #Strings is a list of method names and modules which get run

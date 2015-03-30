@@ -2315,6 +2315,8 @@ def get_main_globals():
 
         sage: from sage.misc.misc import get_main_globals
         sage: G = get_main_globals()
+        doctest:...: DeprecationWarning: get_main_globals is deprecated, use sage.repl.user_globals.get_globals() instead
+        See http://trac.sagemath.org/18083 for details.
         sage: bla = 1
         sage: G['bla']
         1
@@ -2334,29 +2336,15 @@ def get_main_globals():
         ....:     G['blo'] = 42
         sage: bli = 14
         sage: f()
+        doctest:...: DeprecationWarning: get_main_globals is deprecated, use sage.repl.user_globals.get_globals() instead
+        See http://trac.sagemath.org/18083 for details.
         sage: blo
         42
-
-    ALGORITHM:
-
-    The main global namespace is discovered by going up the frame
-    stack until the frame for the :mod:`__main__` module is found.
-    Should this frame not be found (this should not occur in normal
-    operation), an exception "ValueError: call stack is not deep
-    enough" will be raised by ``_getframe``.
-
-    See :meth:`inject_variable_test` for a real test that this works
-    within deeply nested calls in a function defined in a Python
-    module.
     """
-    import sys
-    depth = 0
-    while True:
-        G = sys._getframe(depth).f_globals
-        if G.get("__name__", None) == "__main__":
-            break
-        depth += 1
-    return G
+    from sage.misc.superseded import deprecation
+    deprecation(18083, "get_main_globals is deprecated, use sage.repl.user_globals.get_globals() instead")
+    from sage.repl.user_globals import get_globals
+    return get_globals()
 
 
 def inject_variable(name, value):
@@ -2378,7 +2366,7 @@ def inject_variable(name, value):
     A warning is issued the first time an existing value is overwritten::
 
         sage: inject_variable("a", 271)
-        doctest:...: RuntimeWarning: redefining global value `a`
+        doctest:...: RuntimeWarning: redefining global value 'a'
         sage: a
         271
         sage: inject_variable("a", 272)
@@ -2398,9 +2386,10 @@ def inject_variable(name, value):
     # Using globals() does not work, even in Cython, because
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
-    G = get_main_globals()
+    from sage.repl.user_globals import get_globals
+    G = get_globals()
     if name in G:
-        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+        warn("redefining global value {!r}".format(name), RuntimeWarning, stacklevel=2)
     G[name] = value
 
 
@@ -2421,7 +2410,7 @@ def inject_variable_test(name, value, depth):
         sage: a2
         314
         sage: inject_variable_test("a2", 271, 2)
-        doctest:...: RuntimeWarning: redefining global value `a2`
+        doctest:...: RuntimeWarning: redefining global value 'a2'
         sage: a2
         271
 

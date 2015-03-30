@@ -519,10 +519,6 @@ def run_cythonize():
     Cython.Compiler.Options.directive_defaults['autotestdict'] = False
     Cython.Compiler.Options.directive_defaults['cdivision'] = True
     Cython.Compiler.Options.directive_defaults['fast_getattr'] = True
-    # The globals() builtin in Cython was fixed to return to the current scope,
-    # but Sage relies on the broken behavior of returning to the nearest
-    # enclosing Python scope (e.g. to perform variable injection).
-    Cython.Compiler.Options.old_style_globals = True
 
     debug = False
     if os.environ.get('SAGE_DEBUG', None) != 'no':
@@ -546,6 +542,7 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
+        'old_style_globals: False'
         'debug: ' + str(debug),
         'profile: ' + str(profile),
     ])

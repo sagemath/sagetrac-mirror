@@ -185,11 +185,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: Sym.inject_shorthands()
-        doctest:...: RuntimeWarning: redefining global value `h`
-        doctest:...: RuntimeWarning: redefining global value `s`
-        doctest:...: RuntimeWarning: redefining global value `e`
-        doctest:...: RuntimeWarning: redefining global value `m`
-        doctest:...: RuntimeWarning: redefining global value `p`
+        doctest:...: RuntimeWarning: redefining global value 'h'
+        doctest:...: RuntimeWarning: redefining global value 's'
+        doctest:...: RuntimeWarning: redefining global value 'e'
+        doctest:...: RuntimeWarning: redefining global value 'm'
+        doctest:...: RuntimeWarning: redefining global value 'p'
 
     We can then do conversions from one basis to another::
 

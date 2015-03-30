@@ -68,9 +68,9 @@ def unpickle_function(pickled):
         sage: unpickle_function(pickle_function(f))(3,5)
         15
     """
+    from sage.repl.user_globals import get_globals
     recovered = cPickle.loads(pickled)
-    return types.FunctionType(recovered, globals())
-
+    return types.FunctionType(recovered, get_globals())
 
 
 def call_pickled_function(fpargs):

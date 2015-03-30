@@ -76,10 +76,10 @@ def runsnake(command):
     """
     import cProfile, os
     from sage.misc.temporary_file import tmp_filename
-    from sage.misc.misc import get_main_globals
+    from sage.repl.user_globals import get_globals
     from sage.repl.preparse import preparse
     tmpfile = tmp_filename()
-    cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
+    cProfile.runctx(preparse(command.lstrip().rstrip()), get_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
 
 def import_statement_string(module, names, lazy):

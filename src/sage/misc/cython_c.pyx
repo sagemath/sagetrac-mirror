@@ -57,8 +57,10 @@ def cython(code,
         compiled once.
     """
     tmpfile = sage.misc.temporary_file.tmp_filename(ext=".spyx")
-    open(tmpfile,'w').write(code)
-    sage.server.support.cython_import_all(tmpfile, globals(),
+    with open(tmpfile, 'w') as f:
+        f.write(code)
+    from sage.repl.user_globals import get_globals
+    sage.server.support.cython_import_all(tmpfile, get_globals(),
                                          verbose=verbose, compile_message=compile_message,
                                          use_cache=use_cache,
                                          create_local_c_file=False)

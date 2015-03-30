@@ -2,6 +2,7 @@
 # inject variables into the global module scope.
 
 import sage.rings.all
+import sage.repl.user_globals
 
 _verbose=True
 _inject_mode_off = False
@@ -66,7 +67,7 @@ def inject_on(verbose=True):
     global _original_constructors
     _original_constructors = {}
     import sage.ext.interactive_constructors_c
-    G = globals()
+    G = sage.repl.user_globals.get_globals()
     if verbose:
         print "Redefining:",
     for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
@@ -74,7 +75,7 @@ def inject_on(verbose=True):
             if verbose:
                 print X,
             try:
-                _original_constructors[X] =  G[X] #sage.ext.interactive_constructors_c.__dict__[X]
+                _original_constructors[X] = G[X]
             except KeyError:
                 pass
             G[X] = sage.ext.interactive_constructors_c.__dict__[X]
@@ -84,8 +85,8 @@ def inject_on(verbose=True):
 def inject_off():
     global _original_constructors
     if not _original_constructors is None:
-        for X in _original_constructors.keys():
-            globals()[X] = _original_constructors[X]
+        for X in _original_constructors:
+            sage.repl.user_globals.set_global(X, _original_constructors[X])
 
 cdef _inject(X, do):
     if do:

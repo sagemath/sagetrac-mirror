@@ -193,7 +193,7 @@ from sage.misc.all import (LatexExpr,
                            randint,
                            random)
 from sage.misc.latex import EMBEDDED_MODE
-from sage.misc.misc import get_main_globals
+from sage.repl.user_globals import get_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
 from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
@@ -1760,7 +1760,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             x2 + 3*x1
         """
         if scope is None:
-            scope = get_main_globals()
+            scope = get_globals()
         try:
             self._R.inject_variables(scope, verbose)
         except AttributeError:

@@ -521,34 +521,20 @@ cdef class CategoryObject(sage_object.SageObject):
     def inject_variables(self, scope=None, verbose=True):
         """
         Inject the generators of self with their names into the
-        namespace of the Python code from which this function is
-        called.  Thus, e.g., if the generators of self are labeled
-        'a', 'b', and 'c', then after calling this method the
-        variables a, b, and c in the current scope will be set
-        equal to the generators of self.
-
-        NOTE: If Foo is a constructor for a Sage object with generators, and
-        Foo is defined in Cython, then it would typically call
-        ``inject_variables()`` on the object it creates.  E.g.,
-        ``PolynomialRing(QQ, 'y')`` does this so that the variable y is the
-        generator of the polynomial ring.
+        user-space globals namespace. Thus, e.g., if the generators of
+        self are labeled 'a', 'b', and 'c', then after calling this
+        method, the variables ``a``, ``b`` and ``c`` in the user-space
+        scope will be set equal to the generators of self.
         """
+        from sage.repl.user_globals import get_globals
         vs = self.variable_names()
         gs = self.gens()
         if scope is None:
-           scope = globals()
+           scope = get_globals()
         if verbose:
            print "Defining %s"%(', '.join(vs))
         for v, g in zip(vs, gs):
            scope[v] = g
-
-    def injvar(self, scope=None, verbose=True):
-        """
-        This is a deprecated synonym for :meth:`.inject_variables`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(4143, 'injvar is deprecated; use inject_variables instead.')
-        return self.inject_variables(scope=scope, verbose=verbose)
 
     #################################################################################################
     # Bases

@@ -1,4 +1,5 @@
 import sys
+from sage.repl.user_globals import get_globals
 
 # Exclude these from the reset command.
 # DATA, base64 -- needed by the notebook
@@ -65,7 +66,7 @@ def reset(vars=None, attached=False):
     if not vars is None:
         restore(vars)
         return
-    G = globals()  # this is the reason the code must be in Cython.
+    G = get_globals()
     T = type(sys)
     for k in G.keys():
         if k[0] != '_' and not isinstance(k, T) and k not in EXCLUDE:
@@ -118,7 +119,7 @@ def restore(vars=None):
         ...
         NameError: name 'ww' is not defined
     """
-    G = globals()  # this is the reason the code must be in Cython.
+    G = get_globals()
     if 'sage_mode' not in G:
         import sage.all
         D = sage.all.__dict__

@@ -1,5 +1,18 @@
+"""
+Symbolic variables
+"""
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import SR
+from sage.repl.user_globals import set_global, get_globals
 
 def var(*args, **kwds):
     r"""
@@ -109,40 +122,17 @@ def var(*args, **kwds):
         <type 'sage.symbolic.expression.Expression'>
         sage: parent(theta)
         Symbolic Ring
-
-    TESTS::
-
-        sage: var('q',ns=False)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer.
-        sage: q
-        Traceback (most recent call last):
-        ...
-        NameError: name 'q' is not defined
-        sage: var('q',ns=1)
-        doctest:...: DeprecationWarning: The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.
-        See http://trac.sagemath.org/6559 for details.
-        q
     """
     if len(args)==1:
         name = args[0]
     else:
         name = args
-    G = globals()  # this is the reason the code must be in Cython.
-    if 'ns' in kwds:
-        if kwds['ns']:
-            from sage.misc.superseded import deprecation
-            deprecation(6559, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.")
-        else:
-            raise NotImplementedError("The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer.")
-        kwds.pop('ns')
     v = SR.var(name, **kwds)
     if isinstance(v, tuple):
         for x in v:
-            G[repr(x)] = x
+            set_global(repr(x), x)
     else:
-        G[repr(v)] = v
+        set_global(repr(v), v)
     return v
 
 def function(s, *args, **kwds):
@@ -226,13 +216,12 @@ def function(s, *args, **kwds):
     if len(args) > 0:
         return function(s, **kwds)(*args)
 
-    G = globals()  # this is the reason the code must be in Cython.
     v = new_function(s, **kwds)
     if isinstance(v, tuple):
         for x in v:
-            G[repr(x)] = x
+            set_global(repr(x), x)
     else:
-        G[repr(v)] = v
+        set_global(repr(v), v)
     return v
 
 
@@ -259,7 +248,7 @@ def clear_vars():
         sage: k
         15
     """
-    G = globals()
+    G = get_globals()
     from sage.symbolic.ring import is_SymbolicVariable
     for i in range(65,65+26) + range(97,97+26):
         if chr(i) in G and is_SymbolicVariable(G[chr(i)]):
@@ -271,6 +260,3 @@ def clear_vars():
                 G[chr(i)].pyobject()
             except TypeError:
                 del G[chr(i)]
-
-
-

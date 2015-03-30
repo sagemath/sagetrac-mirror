@@ -141,7 +141,7 @@ related to the monomial symmetric functions by `m_\lambda =
 means the partition obtained by sorting the composition `c`::
 
     sage: SymmetricFunctions(QQ).inject_shorthands()
-    doctest:...: RuntimeWarning: redefining global value `e`
+    doctest:...: RuntimeWarning: redefining global value 'e'
     sage: m[2,1]
     m[2, 1]
     sage: M(m[2,1])

@@ -4,8 +4,6 @@ The ``timeit`` command
 This uses the function :func:`~sage.misc.sage_timeit.sage_timeit`.
 """
 
-# This is here in Cython so we can get the interpreter globals
-
 import sage_timeit
 
 
@@ -53,8 +51,8 @@ class SageTimeit:
 
         - ``code`` -- string of code to evaluate; may contain newlines.
 
-        - ``globs``  -- global variables; if not given, uses module scope
-          globals.
+        - ``globs``  -- global variables; if not given, uses the
+          user-space globals.
 
         - ``locals`` -- ignored completely.
 
@@ -77,7 +75,8 @@ class SageTimeit:
             3 loops, best of 3: ... ms per loop
         """
         if globs is None:
-            globs = globals()
+            from sage.repl.user_globals import get_globals
+            globs = get_globals()
         return sage_timeit.sage_timeit(code, globs, **kwds)
 
     def __call__(self, code, globals=None, preparse=None, **kwds):
@@ -87,10 +86,9 @@ class SageTimeit:
         - ``code`` -- a string. A line or block of code, which may
           contain newlines.
 
-        - ``globals`` -- optional global variables; if not given the
-          globals of the calling module are used (e.g., if using this
-          from the command line, the globals of the command line are
-          used).
+        - ``globals`` -- optional global variables; if not given, the
+          user-space globals are used (e.g., if using this from the
+          command line, the globals of the command line are used).
 
         - ``preparse`` -- Boolean or ``None`` (default). Whether or
           not to preparse the input code using the Sage preparser.  If

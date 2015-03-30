@@ -134,7 +134,7 @@ This involves an =-, but should still be turned into a symbolic
 expression::
 
     sage: preparse('a(x) =- 5')
-    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
+    'x=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -795,7 +795,7 @@ def preparse_calculus(code):
 
     into::
 
-       __tmp__=var("x,y,z")
+       x,y,z=var("x,y,z")
        f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)
 
     AUTHORS:
@@ -815,24 +815,24 @@ def preparse_calculus(code):
     EXAMPLES::
 
         sage: preparse("f(x) = x^3-x")
-        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        'x=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        'u,v=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
         sage: preparse("f(x) =-5")
-        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        'x=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+        'x_1,x_2=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end
     with a semicolon::
 
         sage: from sage.repl.preparse import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
-        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';t,s=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
-        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';t,s=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
 
     TESTS:
 
@@ -847,7 +847,7 @@ def preparse_calculus(code):
     preparsing a file an exception is raised because it is invalid python::
 
         sage: preparse_calculus(";f(1)=x;")
-        ';__tmp__=var("1"); f = symbolic_expression(x).function(1);'
+        ';1=var("1"); f = symbolic_expression(x).function(1);'
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(1)=x")
@@ -875,8 +875,8 @@ def preparse_calculus(code):
         vars = ','.join(stripped_vars)
 
         new_code.append(code[last_end:m.start()])
-        new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' %
-                        (ident, vars, func, expr, vars))
+        new_code.append(';%s%s=var("%s"); %s = symbolic_expression(%s).function(%s)' %
+                        (ident, vars, vars, func, expr, vars))
         last_end = m.end()
 
     if last_end == 0:

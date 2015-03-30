@@ -888,6 +888,7 @@ def load(*filename, compress=True, verbose=True):
         <fortran object>
     """
     import sage.repl.load
+    from sage.repl.user_globals import get_globals
     if len(filename) != 1:
         v = [load(file, compress=compress, verbose=verbose) for file in filename]
         # Return v if one of the filenames refers to an object and not
@@ -900,7 +901,7 @@ def load(*filename, compress=True, verbose=True):
     filename = filename[0]
 
     if sage.repl.load.is_loadable_filename(filename):
-        sage.repl.load.load(filename, globals())
+        sage.repl.load.load(filename, get_globals())
         return
 
     ## Check if filename starts with "http://" or "https://"
