@@ -10947,7 +10947,7 @@ cdef class Expression(CommutativeRingElement):
         return S
 
 
-    def evaluate(self, values=None, functions=None, ring=None, **kwargs):
+    def evaluate(self, values=None, functions=None, convert_to=None, **kwargs):
         r"""
         Evaluates this symbolic expression at the given values.
 
@@ -10959,12 +10959,12 @@ cdef class Expression(CommutativeRingElement):
         - ``functions`` -- a dictionary mapping symbolic functions
           to their evaluation function.
 
-        - ``ring`` -- (default: ``None``)
+        - ``convert_to`` -- (default: ``None``) a ring or list of rings.
           During the (recursive) evaluation it is tried to convert
           the (partial) results to this ring.
           If this is a list (or tuple) of rings, then it is converted
           to the first ring where this is possible. With an empty list,
-          no conversions are tried. If ``ring`` is ``None`` (not
+          no conversions are tried. If ``convert_to`` is ``None`` (not
           implemented at the moment), then the ring is automatically determined
           by ``values`` and ``kwargs``.
 
@@ -10989,13 +10989,13 @@ cdef class Expression(CommutativeRingElement):
         stay in the real interval field. Thus we use the
         ``evaluate``-function::
 
-            sage: E = (1+x).evaluate(ring=RIF, x=RIF(3.42))
+            sage: E = (1+x).evaluate(convert_to=RIF, x=RIF(3.42))
             sage: E, type(E)
             (4.4200000000000000?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
 
         TESTS::
 
-            sage: E = log(x).evaluate(ring=RIF, x=RIF(3.42))
+            sage: E = log(x).evaluate(convert_to=RIF, x=RIF(3.42))
             sage: E, type(E)
             (1.229640551074514?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
         """
@@ -11016,17 +11016,15 @@ cdef class Expression(CommutativeRingElement):
             d.update(values)
         functions = d
 
-        if ring is None:
+        if convert_to is None:
             raise NotImplementedError
-        if isinstance(ring, (list, tuple)):
-            rings = ring
-        else:
-            rings = [ring]
+        if not isinstance(convert_to, (list, tuple)):
+            convert_to = [convert_to]
 
-        return self._evaluate_(values, functions, rings)
+        return self._evaluate_(values, functions, convert_to)
 
 
-    def _evaluate_(self, values, functions, rings, level=0):
+    def _evaluate_(self, values, functions, convert_to, level=0):
         from sage.misc.misc import verbose
         from sage.all import add, mul
 
@@ -11037,7 +11035,7 @@ cdef class Expression(CommutativeRingElement):
             return values[self]
 
         # try conversions
-        for ring in rings:
+        for ring in convert_to:
             try:
                 return ring(self)
             except TypeError:
@@ -11048,7 +11046,7 @@ cdef class Expression(CommutativeRingElement):
             return self
 
         # disassemble expression and evaluate parts
-        operands = tuple(operand._evaluate_(values, functions, rings, level+1)
+        operands = tuple(operand._evaluate_(values, functions, convert_to, level+1)
                          for operand in self.operands())
 
         verbose("%s _assembling_ %s" % (level, self), level=level+1)
