@@ -11033,6 +11033,10 @@ cdef class Expression(CommutativeRingElement):
             sage: E, E.parent()
             (p, Power Series Ring in p over Integer Ring)
 
+        .. SEEALSO::
+
+            meth:`subs`, meth:`numerical_approx`.
+
         TESTS::
 
             sage: E = log(x).evaluate(x=RIF(3.42))
