@@ -11033,6 +11033,14 @@ cdef class Expression(CommutativeRingElement):
             sage: E, E.parent()
             (p, Power Series Ring in p over Integer Ring)
 
+        We also can do::
+
+            sage: P.<p> = ZZ[[]]
+            sage: var('a,b')
+            (a, b)
+            sage: (a+b).evaluate({a: p, b: p^2})
+            p + p^2
+
         .. SEEALSO::
 
             :meth:`subs`, :meth:`numerical_approx`.
