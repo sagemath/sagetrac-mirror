@@ -11035,7 +11035,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. SEEALSO::
 
-            meth:`subs`, meth:`numerical_approx`.
+            :meth:`subs`, :meth:`numerical_approx`.
 
         TESTS::
 
