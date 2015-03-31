@@ -11041,6 +11041,13 @@ cdef class Expression(CommutativeRingElement):
             sage: (a+b).evaluate({a: p, b: p^2})
             p + p^2
 
+        User defined functions can be evaluated as well::
+
+            sage: function('f')
+            f
+            sage: f(x).evaluate({x: RIF(golden_ratio)}, {f: lambda z: 1/z})
+            0.618033988749895?
+
         .. SEEALSO::
 
             :meth:`subs`, :meth:`numerical_approx`.
@@ -11065,7 +11072,7 @@ cdef class Expression(CommutativeRingElement):
         if functions is not None:
             if not isinstance(functions, dict):
                 raise TypeError('Functions are not given by a dictionary.')
-            d.update(values)
+            d.update(functions)
         functions = d
 
         if convert_to is None:
