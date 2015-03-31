@@ -10946,6 +10946,127 @@ cdef class Expression(CommutativeRingElement):
                 S = S.subs(di)
         return S
 
+
+    def eval(self, values=None, functions=None, ring=None, **kwargs):
+        r"""
+        Evaluates this symbolic expression at the given values.
+
+        INPUT:
+
+        - ``values`` -- a dictionary mapping symbolic expressions
+          to their evaluates.
+
+        - ``functions`` -- a dictionary mapping symbolic functions
+          to their evaluation function.
+
+        - ``ring`` -- (default: ``None``)
+          During the (recursive) evaluation it is tried to convert
+          the (partial) results to this ring.
+          If this is a list (or tuple) of rings, then it is converted
+          to the first ring where this is possible. With an empty list,
+          no conversions are tried. If ``ring`` is ``None`` (not
+          implemented at the moment), then the ring is automatically determined
+          by ``values`` and ``kwargs``.
+
+        - ``kwargs`` -- keyword arguments used as values.
+
+        OUTPUT:
+
+        The evaluated expressions as an element of the given ring.
+
+        EXAMPLES:
+
+        We want to insert a real interval field element into a symbolic
+        expression. We could do this by::
+
+            sage: E = (1+x).subs(x=RIF(3.42))
+            sage: E, type(E)
+            (4.4200000000000000?, <type 'sage.symbolic.expression.Expression'>)
+
+        However, the result lives in the symbolic ring, but we want to
+        stay in the real interval field. Thus we use the
+        ``eval``-function::
+
+            sage: E = (1+x).eval(ring=RIF, x=RIF(3.42))
+            sage: E, type(E)
+            (4.4200000000000000?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
+
+        TESTS::
+
+            sage: E = log(x).eval(ring=RIF, x=RIF(3.42))
+            sage: E, type(E)
+            (1.229640551074514?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
+        """
+        d = {}
+        if values is not None:
+            if not isinstance(values, dict):
+                raise TypeError('Values are not given by a dictionary.')
+            d.update(values)
+        if kwargs:
+            from sage.symbolic.ring import SR
+            d.update((SR.var(k), v) for k, v in kwargs.iteritems())
+        values = d
+
+        d = {}
+        if functions is not None:
+            if not isinstance(functions, dict):
+                raise TypeError('Functions are not given by a dictionary.')
+            d.update(values)
+        functions = d
+
+        if ring is None:
+            raise NotImplementedError
+        if isinstance(ring, (list, tuple)):
+            rings = ring
+        else:
+            rings = [ring]
+
+        return self._eval_(values, functions, rings)
+
+
+    def _eval_(self, values, functions, rings, level=0):
+        from sage.misc.misc import verbose
+        from sage.all import add, mul
+
+        verbose("%s _eval_ %s" % (level, self), level=level+1)
+
+        # return evaluate if possible
+        if self in values:
+            return values[self]
+
+        # try conversions
+        for ring in rings:
+            try:
+                return ring(self)
+            except TypeError:
+                pass
+
+        # do we have an atom?
+        if self.operator() is None:
+            return self
+
+        # disassemble expression and evaluate parts
+        operands = tuple(operand._eval_(values, functions, rings, level+1)
+                         for operand in self.operands())
+
+        verbose("%s _assembling_ %s" % (level, self), level=level+1)
+        verbose("%s _assembling_ %s" % (level, self), level=level+1)
+        verbose("  # %s(%s)" % (self.operator(), operands), level=level+1)
+
+        # handle operator
+        if self.operator() in functions:
+            result = functions[self.operator()](*operands)
+        elif self.operator() == operator.add:
+            result = add(operands)  # operator.add can only deal with two inputs
+        elif self.operator() == operator.mul:
+            result = mul(operands)  # operator.mul can only deal with two inputs
+        else:
+            result = self.operator()(*operands)
+
+        verbose("  # %s" % (result,), level=level+1)
+        return result
+
+
 cdef dict dynamic_class_cache = {}
 cdef get_dynamic_class_for_function(unsigned serial):
     r"""
