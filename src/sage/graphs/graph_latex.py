@@ -12,6 +12,7 @@ AUTHORS:
 - Fidel Barerra Cruz (2009-05-20): ``tkz-graph`` commands to render a graph
 - Nicolas M. Thiery (2010-02): dot2tex/graphviz interface
 - Rob Beezer (2010-05-29): Extended range of ``tkz-graph`` options
+- Jacob Laas (2015-03-31): added ability to render tkz-graph graphs with multiedges
 
 LaTeX Versions of Graphs
 -------------------------------------
@@ -776,7 +777,11 @@ class GraphLatex(SageObject):
         - ``edge_thicknesses`` -- a dictionary of thicknesses for
           some of the edges of a graph.  These values need only
           be specified for a proper subset of the vertices.  Specified
-          values will supersede a default value.
+          values will supersede a default value. If a tuple of vertices
+          points to a set of multiedges, you must specify thicknesses
+          as a list of numbers for the entire set of multiedges, where
+          the order of the values match the order in which the multiedges
+          were defined.
 
         - ``edge_labels`` -- default: ``False`` -- a boolean that
           determines if edge labels are shown.  If ``False`` subsequent
@@ -1040,7 +1045,8 @@ class GraphLatex(SageObject):
         #TODO: Needed improvements, possible extensions, dubious ideas
         #- digraph edges should be optionally curved or straight with
         #perhaps a variable curvature (exit angle from vertex).  Always
-        #curved now to allow for bidirectional.
+        #curved now to allow for bidirectional, and the curvature is
+        #varied across a set of multiedges.
         #- the "draw" option will make boxes around labels as
         #extensions of the edge color and thickness
         #- edge labels can have colored backgrounds (which look like
@@ -1060,9 +1066,6 @@ class GraphLatex(SageObject):
         #creation of affine transformation.
         #- "outer sep" causes edges to stop some distance before
         #reaching vertices.  Seems of limited value.
-        #- Multi-edges are not supported.  Need to recognize them,
-        #twiddle keys in dictionaries, plot with a spectrum of bends.
-        #Seems like a substantial project.
 
         from matplotlib.colors import ColorConverter
         from sage.rings.integer import Integer
@@ -1121,11 +1124,11 @@ class GraphLatex(SageObject):
                 raise ValueError('%s option must be True or False, not %s' % (name, value))
             elif name == 'vertex_shape' and not value in shape_names:
                 raise ValueError('%s option must be the shape of a vertex, not %s' % (name, value))
-            elif name in positive_scalars and not ( type(value) in number_types and (value >= 0.0) ):
+            elif name in positive_scalars and not ( isinstance(value, number_types) and (value >= 0.0) ):
                 raise ValueError( '%s option must be a positive number, not %s' % (name, value))
-            elif name == 'vertex_label_placement' and not( value == 'center') and not( isinstance(value, tuple) and len(value) == 2 and type(value[0]) in number_types and value[0]>=0 and type(value[1]) in number_types and value[1]>=0 ):
+            elif name == 'vertex_label_placement' and not( value == 'center') and not( isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], number_types) and value[0]>=0 and isinstance(value[1], number_types) and value[1]>=0 ):
                 raise ValueError( '%s option must be None, or a pair of positive numbers, not %s' % (name, value))
-            elif name == 'edge_label_placement' and not( ((type(value) in number_types) and (0<= value) and (value <= 1)) or (value in label_places)):
+            elif name == 'edge_label_placement' and not( (isinstance(value, number_types) and (0<= value) and (value <= 1)) or (value in label_places)):
                 raise ValueError( '%s option must be a number between 0.0 and 1.0 or a place (like "above"), not %s' % (name, value))
             elif name == 'loop_placement' and not( (isinstance(value, tuple)) and (len(value) == 2) and (value[0] >=0) and (value[1] in compass_points) ):
                 raise ValueError( '%s option must be a pair that is a positive number followed by a compass point abbreviation, not %s' % (name, value))
@@ -1146,10 +1149,10 @@ class GraphLatex(SageObject):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, x in value.items():
-                        if not type(x) in [int, Integer, float, RealLiteral, list] or not x >= 0.0:
-                            raise ValueError('%s option for %s needs to be a positive number or list of numbers, not %s' % (name, key, x))
-                        if type(x) == type([]) and not type(x[0]) in [int, Integer, float, RealLiteral] or not x >= 0.0:
+                        if isinstance(x, list) and (not isinstance(x[0], number_types) or not x[0] >= 0.0):
                             raise ValueError('%s option for %s needs to be a list of positive numbers, not %s' % (name, key, x))
+                        elif not isinstance(x, list) and (not isinstance(x, number_types) or not x >= 0.0):
+                            raise ValueError('%s option for %s needs to be a positive number, not %s' % (name, key, x))
             elif name in boolean_dicts:
                 if not isinstance(value, dict):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
@@ -1169,7 +1172,7 @@ class GraphLatex(SageObject):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, p in value.items():
-                        if not( p == 'center') and not( isinstance(p, tuple) and len(p) == 2 and type(p[0]) in number_types and p[0]>=0 and type(p[1]) in number_types and p[1]>=0 ):
+                        if not( p == 'center') and not( isinstance(p, tuple) and len(p) == 2 and isinstance(p[0], number_types) and p[0]>=0 and type(p[1]) in number_types and p[1]>=0 ):
                             raise ValueError('%s option for %s needs to be None or a pair of positive numbers, not %s' % (name, key, p))
             elif name == 'edge_label_placements':
                 if not isinstance(value, dict):
@@ -1188,7 +1191,7 @@ class GraphLatex(SageObject):
             # These have been verified as tuples before going into this next check
             elif name in positive_tuples:
                 for x in value:
-                    if not type(x) in [int, Integer, float, RealLiteral] or not x >= 0.0:
+                    if not isinstance(x, number_types) or not x >= 0.0:
                         raise ValueError( '%s option of %s cannot contain %s' % (name, value, x))
             #
             # Verified.  Set it.
@@ -1483,15 +1486,9 @@ class GraphLatex(SageObject):
             \end{tikzpicture}
         """
 
-        # This routine does not handle multiple customizations with multiedges
-        # This is because the order of the hashables of a dictionary are not
-        # guaranteed. Thus, if a set of edges between two specifics vertices
-        # each have labels AND they also have a list of further customizations
-        # (i.e. colors or thicknesses), the customizations will probably not
-        # match up exactly with the labels within the set.
-        if self._graph.has_multiple_edges() and self.get_option('edge_labels'):
-            if self.get_option('edge_colors') or self.get_option('edge_thicknesses'):
-                raise NotImplementedError("multiple customizations of multiedges cannot be guaranteed to be matched correctly.")
+        # This routine does not handle color customizations of multiedges.
+        if self._graph.has_multiple_edges() and self.get_option('edge_colors'):
+                raise NotImplementedError("Edge-specific colors are not available for multiedges.")
 
         from matplotlib.colors import ColorConverter
         from sage.misc.latex import latex
@@ -1969,14 +1966,15 @@ class GraphLatex(SageObject):
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 if not loop:  # lw not available for loops!
-                    et = e_thick[edge]
-                    if type(et) == type([]):
-                        et = et[multiedge_index]
-                    s+=['lw=', str(round(scale*et,4)), units, ',']
+                    edge_thickness = e_thick[edge]
+                    if  self._graph.allows_multiple_edges() and isinstance(edge_thickness, list):
+                        reverse_index = len(edge_thickness) - (multiedge_index+1)
+                        edge_thickness = edge_thickness[reverse_index]
+                    s+=['lw=', str(round(scale*edge_thickness,4)), units, ',']
                 s+=['style={']  # begin style list
                 if self._graph.is_directed():
                     s+=['->,']
-                if self._graph.is_directed() or self._graph.allows_multiple_edges() and not loop:
+                if (self._graph.is_directed() or self._graph.allows_multiple_edges()) and not loop:
                     s+=['bend right=', str(10+20*multiedge_index), ',']
                 s+=['color=', edge_color_names[edge], ',']
                 if edge_fills:
@@ -1992,15 +1990,14 @@ class GraphLatex(SageObject):
                         s+=['pos=', str(round(el_placement[edge],4)), ',']  # no units needed
                     s+=['text=', edge_label_color_names[edge], ',']
                     s+=['},']
-                    el = ""
                     if self._graph.allows_multiple_edges():
-                        el = self._graph.edge_label(edge[0],edge[1])[multiedge_index]
+                        edge_label_text = self._graph.edge_label(edge[0],edge[1])[multiedge_index]
                     else:
-                        el = self._graph.edge_label(edge[0],edge[1])
-                    if edge_labels_math and not (isinstance(el, str) and el[0]=='$' and el[-1]=='$'):
-                        lab = '\hbox{$%s$}' % latex(el)
+                        edge_label_text = self._graph.edge_label(edge[0],edge[1])
+                    if edge_labels_math and not (isinstance(edge_label_text, str) and edge_label_text[0]=='$' and edge_label_text[-1]=='$'):
+                        lab = '\hbox{$%s$}' % latex(edge_label_text)
                     else:
-                        lab = '\hbox{%s}' % el
+                        lab = '\hbox{%s}' % edge_label_text
                     s+=['label=', lab, ',']
             s+=[']']
             if not loop:
