@@ -69,6 +69,22 @@ Voici un exemple plus subtile où le résultat de l'opération est un parent dif
     sage: (R.an_element() + QQ.an_element()).parent()
 
 
+Exercice:
+
+::
+
+    sage: R = ZZ['x']
+    sage: x = R.gen()
+    sage: z0 = x
+    sage: z1 = x / 2
+    sage: z2 = x / 1
+    sage: z3 = 1 / x
+
+Pouvez-vous devinez (et vérifiez) quels sont les parents des expressions ``z_0``,
+``z_1``, ``z_2`` et ``z_3`` ci-dessus?  Utilisez ``get_coercion_model()`` comme
+auparavant pour prédire ce résultat.
+
+
 L'égalité aussi est effectuée dans un parent commun:
 
 ::
