@@ -11072,6 +11072,32 @@ cdef class Expression(CommutativeRingElement):
 
 
     def _evaluate_(self, values, functions, convert_to, level=0):
+        r"""
+        Helper function for :meth:`evaluate`, which is used during the
+        recursive evaluation.
+
+        INPUT:
+
+        - ``values`` -- a dictionary mapping symbolic expressions
+          to their evaluates.
+
+        - ``functions`` -- a dictionary mapping symbolic functions
+          to their evaluation function.
+
+        - ``convert_to`` -- (default: ``None``) a ring or list of rings.
+
+        - ``level`` -- (default: ``0``) an integer.
+
+        OUTPUT:
+
+        The evaluated expression.
+
+        TESTS::
+
+            sage: (x-1)._evaluate_(
+            ....:     {x: RIF(golden_ratio)}, dict(), convert_to=[ZZ])
+            0.618033988749895?
+        """
         from sage.misc.misc import verbose
         from sage.all import add, mul
 
