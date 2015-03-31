@@ -10978,26 +10978,66 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
 
-        We want to insert a real interval field element into a symbolic
-        expression. We could do this by::
+        A first simple example is::
+
+            sage: E = (1+x).evaluate(x=RIF(3.42))
+            sage: E
+            4.4200000000000000?
+
+        This is similar to :meth:`subs`, but the result of
+        :meth:`evaluate` lives in the same parent as the inserted
+        value::
+
+            sage: E.parent()
+            Real Interval Field with 53 bits of precision
+
+        whereas
 
             sage: E = (1+x).subs(x=RIF(3.42))
-            sage: E, type(E)
-            (4.4200000000000000?, <type 'sage.symbolic.expression.Expression'>)
+            sage: E, E.parent()
+            (4.4200000000000000?, Symbolic Ring)
 
-        However, the result lives in the symbolic ring, but we want to
-        stay in the real interval field. Thus we use the
-        ``evaluate``-function::
+        The reason is that :meth:`subs` convert its arguments to the
+        symbolic ring, so we even have::
 
-            sage: E = (1+x).evaluate(convert_to=RIF, x=RIF(3.42))
-            sage: E, type(E)
-            (4.4200000000000000?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
+            sage: x.subs(x=RIF(3.42)).parent()
+            Symbolic Ring
+
+        The :meth:`evaluate`-method prevents this conversion and
+        additionally tries to convert all parts of the symbolic
+        expressions to the given rings::
+
+            sage: (1+x).evaluate(x=RIF(3.42), convert_to=ZZ)
+            4.4200000000000000?
+
+        Here, `1` (of `1+x`) is first converted to ``ZZ`` and then
+
+            sage: ZZ(1) + RIF(3.42)
+            4.4200000000000000?
+
+        is performed.
+
+        While one could fix the example above by converting the
+        symbolic result to a ``RIF`` again, it stops working with, for
+        example, power series::
+
+            sage: P.<p> = ZZ[[]]
+            sage: x.subs(x=p)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Power Series Ring in p over Integer Ring to Symbolic Ring
+
+        :meth:`evaluate` comes over this::
+
+            sage: E = x.evaluate(x=p)
+            sage: E, E.parent()
+            (p, Power Series Ring in p over Integer Ring)
 
         TESTS::
 
-            sage: E = log(x).evaluate(convert_to=RIF, x=RIF(3.42))
-            sage: E, type(E)
-            (1.229640551074514?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
+            sage: E = log(x).evaluate(x=RIF(3.42))
+            sage: E, E.parent()
+            (1.229640551074514?, Real Interval Field with 53 bits of precision)
         """
         d = {}
         if values is not None:
