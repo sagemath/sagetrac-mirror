@@ -10964,8 +10964,8 @@ cdef class Expression(CommutativeRingElement):
           the (partial) results to this ring.
           If this is a list (or tuple) of rings, then it is converted
           to the first ring where this is possible. With an empty list,
-          no conversions are tried. If ``convert_to`` is ``None`` (not
-          implemented at the moment), then the ring is automatically determined
+          no conversions are tried. If ``convert_to`` is ``None``,
+          then the ring is automatically determined
           by ``values`` and ``kwargs``.
 
         - ``kwargs`` -- keyword arguments used as values.
@@ -11017,7 +11017,10 @@ cdef class Expression(CommutativeRingElement):
         functions = d
 
         if convert_to is None:
-            raise NotImplementedError
+            from sage.structure import element
+            cm = element.get_coercion_model()
+            convert_to = cm.common_parent(
+                *list(v.parent() for v in values.itervalues()))
         if not isinstance(convert_to, (list, tuple)):
             convert_to = [convert_to]
 
