@@ -10947,7 +10947,7 @@ cdef class Expression(CommutativeRingElement):
         return S
 
 
-    def eval(self, values=None, functions=None, ring=None, **kwargs):
+    def evaluate(self, values=None, functions=None, ring=None, **kwargs):
         r"""
         Evaluates this symbolic expression at the given values.
 
@@ -10985,15 +10985,15 @@ cdef class Expression(CommutativeRingElement):
 
         However, the result lives in the symbolic ring, but we want to
         stay in the real interval field. Thus we use the
-        ``eval``-function::
+        ``evaluate``-function::
 
-            sage: E = (1+x).eval(ring=RIF, x=RIF(3.42))
+            sage: E = (1+x).evaluate(ring=RIF, x=RIF(3.42))
             sage: E, type(E)
             (4.4200000000000000?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
 
         TESTS::
 
-            sage: E = log(x).eval(ring=RIF, x=RIF(3.42))
+            sage: E = log(x).evaluate(ring=RIF, x=RIF(3.42))
             sage: E, type(E)
             (1.229640551074514?, <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>)
         """
@@ -11021,14 +11021,14 @@ cdef class Expression(CommutativeRingElement):
         else:
             rings = [ring]
 
-        return self._eval_(values, functions, rings)
+        return self._evaluate_(values, functions, rings)
 
 
-    def _eval_(self, values, functions, rings, level=0):
+    def _evaluate_(self, values, functions, rings, level=0):
         from sage.misc.misc import verbose
         from sage.all import add, mul
 
-        verbose("%s _eval_ %s" % (level, self), level=level+1)
+        verbose("%s _evaluate_ %s" % (level, self), level=level+1)
 
         # return evaluate if possible
         if self in values:
@@ -11046,7 +11046,7 @@ cdef class Expression(CommutativeRingElement):
             return self
 
         # disassemble expression and evaluate parts
-        operands = tuple(operand._eval_(values, functions, rings, level+1)
+        operands = tuple(operand._evaluate_(values, functions, rings, level+1)
                          for operand in self.operands())
 
         verbose("%s _assembling_ %s" % (level, self), level=level+1)
