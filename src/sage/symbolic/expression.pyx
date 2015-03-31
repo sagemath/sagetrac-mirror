@@ -10978,18 +10978,29 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
 
-        A first simple example is::
+        A first example is::
 
-            sage: E = (1+x).evaluate(x=RIF(3.42))
-            sage: E
-            4.4200000000000000?
+            sage: P.<p> = ZZ[[]]
+            sage: E = x.evaluate(x=p)
+            sage: E, E.parent()
+            (p, Power Series Ring in p over Integer Ring)
 
-        This is similar to :meth:`subs`, but the result of
+        This cannot be done by :meth:`subs` since there is no coercion
+        from the power series ring to the symbolic ring::
+
+            sage: x.subs(x=p)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Power Series Ring in p over Integer Ring to Symbolic Ring
+
+        Inserting something that coerces to the symbolic ring gives a
+        result similar to :math:`subs`, but the result of
         :meth:`evaluate` lives in the same parent as the inserted
         value::
 
-            sage: E.parent()
-            Real Interval Field with 53 bits of precision
+            sage: E = (1+x).evaluate(x=RIF(3.42))
+            sage: E, E.parent()
+            (4.4200000000000000?, Real Interval Field with 53 bits of precision)
 
         whereas
 
@@ -10997,15 +11008,8 @@ cdef class Expression(CommutativeRingElement):
             sage: E, E.parent()
             (4.4200000000000000?, Symbolic Ring)
 
-        The reason is that :meth:`subs` convert its arguments to the
-        symbolic ring, so we even have::
-
-            sage: x.subs(x=RIF(3.42)).parent()
-            Symbolic Ring
-
-        The :meth:`evaluate`-method prevents this conversion and
-        additionally tries to convert all parts of the symbolic
-        expressions to the given rings::
+        The :meth:`evaluate`-method can try to convert all parts of
+        the symbolic expressions to the given rings::
 
             sage: (1+x).evaluate(x=RIF(3.42), convert_to=ZZ)
             4.4200000000000000?
@@ -11017,22 +11021,6 @@ cdef class Expression(CommutativeRingElement):
 
         is performed.
 
-        While one could fix the example above by converting the
-        symbolic result to a ``RIF`` again, it stops working with, for
-        example, power series::
-
-            sage: P.<p> = ZZ[[]]
-            sage: x.subs(x=p)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Power Series Ring in p over Integer Ring to Symbolic Ring
-
-        :meth:`evaluate` comes over this::
-
-            sage: E = x.evaluate(x=p)
-            sage: E, E.parent()
-            (p, Power Series Ring in p over Integer Ring)
-
         We also can do::
 
             sage: P.<p> = ZZ[[]]
@@ -11041,7 +11029,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (a+b).evaluate({a: p, b: p^2})
             p + p^2
 
-        User defined functions can be evaluated as well::
+        User defined functions can be handled as well::
 
             sage: function('f')
             f
