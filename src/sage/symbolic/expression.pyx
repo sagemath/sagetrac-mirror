@@ -10972,7 +10972,9 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        The evaluated expressions as an element of the given ring.
+        The evaluated expressions as an element of a ring (a ring to
+        which all (maybe converted) parts of the symbolic expressions
+        live in).
 
         EXAMPLES:
 
