@@ -1,6 +1,39 @@
 r"""
 Basic abstract tableau element classes.
+
+AUTHORS:
+
+.. TODO::
+
+    List authors. Include those of combinat/tableau.py?
+
+.. TODO::
+
+    List classes.
+
+.. TODO::
+
+    If the old tableau classes go into this file, merge doc and
+    copyright authors.
+
+This file implements classes of tableaux. They all are subclasses of
+:class:`AbstractTableau`.
 """
+#*****************************************************************************
+#       Copyright (C) 2015 Josh Swanson,
+#                     2015 Jan Keitel
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 import six
 from collections import defaultdict
@@ -10,12 +43,13 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_import import LazyImport
+from sage.rings.integer_ring import ZZ
 
 
 def parent_class(s):
     r"""
     Lazily import a parent class by name.
-    
+
     Allows separating element and parent class files without circular
     references.
     """
@@ -23,13 +57,19 @@ def parent_class(s):
 
 class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     r"""
-    Abstract class for the various element classes of Tableau.
+    Abstract class for the various element classes of tableaux.
 
-    A Tableau is thought of as a mapping from pairs (x, y) to some
-    arbitrary labels. Two x-coordinates or two y-coordinates are assumed
-    to be comparable via `>` and `<`. Subclasses are welcome to add further
-    data (ex. skew shape). Tableau are assumed to be immutable; see
-    :trac:`15862`.
+    A tableau is thought of as a mapping which sends some pairs
+    ``(x, y)`` (commonly, but not necessarily, pairs of nonnegative
+    integers) to some arbitrary objects. Any two x-coordinates are
+    assumed to be comparable via `>` and `<`, and so are any two
+    y-coordinates.
+    Subclasses are welcome to add further data (e.g., a skew shape).
+    Tableaux are assumed to be immutable; see :trac:`15862`.
+
+    The pairs ``(x, y)`` in the domain of a tableau are called its
+    *cells*, and their images under the tableaux are referred to as
+    its *entries* (in these cells).
 
     Child classes must implement :meth:`_dict_unsafe`.
     """
@@ -41,12 +81,12 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
         r"""
         Provide shortcut syntax like ``Tableau([[1, 2], [3]])`` for
         ``Tableaux()([[1, 2], [3]])``.
-        
+
         Input validation should be done in parent classes, likely in
-        their own _element_constructor_ methods or coercions. Element
-        class initialization should be quite minimal.
-        
-        Inherited by child classes, unlike __classcall_private__.
+        their own ``_element_constructor_`` methods or coercions.
+        Element class initialization should be quite minimal.
+
+        Inherited by child classes, unlike ``__classcall_private__``.
         """
         return cls._generic_parent(*args, **kwds)
 
@@ -60,9 +100,9 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     def _repr_(self):
         r"""
         Return the representation string.
-        
+
         OUTPUT:
-        
+
         A string.
         """
         return repr(self._dict_unsafe())
@@ -70,8 +110,12 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     def dict(self):
         r"""
         Return a dictionary which is a copy of the underlying data.
-        
-        Keys are assumed to be pairs. 
+
+        OUTPUT:
+
+        A dictionary. The value of this dictionary at the key
+        ``(x, y)`` is the entry of the tableau ``self`` in the cell
+        ``(x, y)``.
         """
         return deepcopy(self._dict_unsafe())
 
@@ -79,6 +123,13 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     def _dict_unsafe(self):
         r"""
         Return a dictionary representing the underlying data.
+
+        It is unsafe to alter this dictionary or pass it along, since
+        this might (and might not) mutate ``self``. That said, it is
+        also unsafe to try and mutate ``self`` by altering this
+        dictionary; this will often fail or result in broken objects.
+        The main use of ``_dict_unsafe`` should be getting entries
+        of ``self``.
         """
         pass
 
@@ -91,7 +142,7 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     def _group_by(self, a, b):
         r"""
         Return a list of lists given by grouping the values of ``self``.
-        
+
         Inner lists come from fibers of projection onto index `a` of keys,
         sorted by index `b`. The outer list is sorted by index `a`.
         """
@@ -175,7 +226,7 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
         sorted_cells = sorted(six.iterkeys(_dict), cmp=mixed_lex)
         for cell in sorted_cells:
             yield _dict[cell]
-    
+
     def word_by_row(self):
         r"""
         Return a flattened version of ``self.iter_by_row'' as a
@@ -197,7 +248,7 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
 
     def weight_dict(self):
         r"""
-        Return a Counter mapping values of ``self'' to multiplicities.
+        Return a Counter mapping values of ``self`` to multiplicities.
         """
         from collections import Counter
         return Counter(six.itervalues(self._dict_unsafe()))
@@ -215,26 +266,35 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
 class BadShapeTableau(AbstractTableau):
     r"""
     A tableau of bad shape.
-    
-    A BadShapeTableau is specified by a dictionary
-    whose keys are pairs of integers and whose values are
-    arbitrary.
+
+    A tableau of bad shape is a tableau whose cells belong to
+    `\ZZ^2` (that is, their coordinates are integers). It is
+    specified by a dictionary whose keys are pairs of integers
+    and whose values are arbitrary.
+
+    Straight and skew tableaux can be regarded as tableaux of
+    bad shape, but for skew tableaux this amounts to forgetting
+    part of the data. (In fact, a skew tableau "knows" its inner
+    shape and its outer shape, whereas a tableau of bad shape
+    only knows its cells and entries. Thus, the (empty) skew
+    tableaux of shapes `()/()` and `(1)/(1)` are equal when
+    regarded as tableaux of bad shape.)
     """
     _generic_parent = parent_class('BadShapeTableaux')
 
     def __init__(self, parent, dct, check=True):
         r"""
         Initialize the BadShapeTableau.
-        
+
         INPUT:
-        
+
         - ``dct`` -- a dictionary (or more generally something
           passable to ``dict``) whose keys are pairs of integers
         - ``check`` -- (default: ``True``) if ``True``, then check that
           the keys of ``dct`` are in fact pairs of integers
         """
         self._dict = deepcopy(dict(dct))
-        
+
         if check:
             if not all(x in ZZ and y in ZZ for x, y
                        in six.iterkeys(self._dict)):
@@ -245,64 +305,76 @@ class BadShapeTableau(AbstractTableau):
     def _dict_unsafe(self):
         r"""
         Return the dictionary containing the defining data of ``self``.
-        
+
         OUTPUT:
-        
+
         A dictionary.
         """
         return self._dict
 
     def filter_by_cells(self, predicate):
         r"""
-        Return a tableau whose cells satisfy the given
+        Return the subtableau of ``self`` which consists only of the
+        entries in the cells satisfying the given predicate
         ``predicate``.
-            
+
         INPUT:
-            
+
         - ``predicate`` -- a function accepting two parameters and returning
-        ``True`` or ``False``
-            
+          ``True`` or ``False``
+
         OUTPUT:
-            
+
         A BadShapeTableau
         """
-        data = {k:v for k, v in six.iteritems(self._dict_unsafe()) 
+        data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(*k)}
         return self.__class__(dictionary=data, check=True)
 
     def filter_by_values(self, predicate):
         r"""
-        Return a tableau whose values satisfy the given
-        ``predicate``.
-        
+        Return the subtableau of ``self`` which consists only of the
+        entries satisfying the given ``predicate``.
+
         INPUT:
-        
+
         - ``predicate`` -- a function accepting one parameter and returning
           ``True`` or ``False``
-          
+
         OUTPUT:
-        
+
         A BadShapeTableau
         """
-        data = {k:v for k, v in six.iteritems(self._dict_unsafe()) 
+        data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(v)}
         return self.__class__(dictionary=data, check=True)
 
     def transpose(self):
         r"""
-        Return the transposition of ``self``.
-        
+        Return the transpose of ``self``.
+
+        If `T` is a tableau of bad shape, then the transpose of `T`
+        is the tableau of bad shapes whose cells are the pairs
+        `(x, y)` for `(y, x)` being cells of `T`, and which sends
+        every `(x, y)` to `T(y, x)`.
+
         OUTPUT:
-        
+
         A BadShapeTableau.
         """
-        data = {(k[1], k[0]):v for k, v in self._dict_unsafe()}
+        data = {(k[1], k[0]): v for k, v in self._dict_unsafe()}
         return self.__class__(dictionary=data, check=True)
 
 
 class SkewTableau(BadShapeTableau):
     r"""
     A tableau of skew shape.
+
+    If `\lambda` and `\mu` are two partitions such that
+    `\mu \subseteq \lambda`, then a tableau of skew shape
+    `\lambda / \mu` means a map that sends the cells of this
+    skew shape to some objects. This map "knows" the
+    partitions `\lambda` and `\mu`.
 
     Cell locations are pairs of positive integers, though values are
     unrestricted. Cells must form a skew shape.
@@ -314,7 +386,7 @@ class SkewTableau(BadShapeTableau):
         Initialize the SkewTableau.
 
         INPUT:
-        
+
         - ``inner`` -- an iterable of weakly decreasing non-negative
           integers
         - ``check`` -- (default: ``True``) if ``True``, then ensure
@@ -325,6 +397,8 @@ class SkewTableau(BadShapeTableau):
         then the dictionary data is skipped.
         """
         if not l and dictionary:
+            # l and dictionary are not among the variables we call
+            # __init__ with. Maybe this should be a classcall?
             rows = defaultdict(dict)
             min_row_index = None
             max_row_index = None
@@ -353,7 +427,7 @@ class SkewTableau(BadShapeTableau):
         # happens above anyway, since the cells are used as list indices
         BadShapeTableau.__init__(self, parent, dictionary={}, check=False)
         # Check
-        if check:
+        if check: # That's not among our variables either.
             raise NotImplementedError
         self._list = tuple(map(tuple, l))
 
@@ -365,28 +439,30 @@ class SkewTableau(BadShapeTableau):
 
     def _tuple(self):
         r"""
-        Return the tuple of tuples that defines ``self``.
+        Return the tuple of tuples representing the entries of
+        ``self``.
         """
         return self._list
 
     def _repr_(self):
         r"""
         Return the representation string.
-        
+
         OUTPUT:
-        
+
         A string.
         """
         return repr(self.to_list())
 
     def to_list(self):
         r"""
-        Return the list of lists that defines ``self``.
-        
+        Return the list of lists representing the entries of
+        ``self``.
+
         This is a copy of the defining data.
-        
+
         OUTPUT:
-        
+
         A list of lists.
         """
         return [list(i) for i in self._tuple()]

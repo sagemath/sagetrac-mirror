@@ -22,9 +22,9 @@ class AbstractTableaux(UniqueRepresentation, Parent):
     def _repr_(self):
         r"""
         Return the representation string.
-        
+
         OUTPUT:
-        
+
         A string.
         """
         return "Abstract Tableaux"
@@ -33,13 +33,13 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         r"""
         Constructs an object from ``t`` as an element of ``self``,
         if possible.
-        
+
         INPUT:
-        
+
         - ``t`` -- Data which can be interpreted as a tableau
-        
+
         OUTPUT:
-        
+
         - The corresponding tableau object
         """
         if not t in self:
@@ -54,15 +54,15 @@ class BadShapeTableaux(AbstractTableaux):
     def _element_constructor_(cls, dct, check=True):
         r"""
         Construct a new BadShapeTableau, optionally validating input.
-        
+
         INPUT:
-        
+
         - ``dct`` -- a dictionary (or more generally something
           passable to ``dict``) whose keys are pairs of integers
         - ``check`` -- (default: ``True``) if ``True``, then check that
           the keys of ``dct`` are in fact pairs of integers
         """
-        dct = deepcopy(dict(dct))
+        dct = deepcopy(dict(dct)) # Do we really want deepcopy here?
 
         if check:
             if not all(x in ZZ and y in ZZ for x, y
@@ -74,24 +74,24 @@ class BadShapeTableaux(AbstractTableaux):
     def _repr_(self):
         r"""
         Return the representation string.
-        
+
         OUTPUT:
-        
+
         A string.
         """
         return "Bad Shape Tableaux"
 
 class SkewTableaux(BadShapeTableaux):
     Element = SkewTableau
-    
+
     def _repr_(self):
         r"""
-            Return the representation string.
-            
-            OUTPUT:
-            
-            A string.
-            """
+        Return the representation string.
+
+        OUTPUT:
+
+        A string.
+        """
         return "Skew Tableaux"
 
 
@@ -100,10 +100,11 @@ class StraightTableaux(SkewTableaux):
 
     def _repr_(self):
         r"""
-            Return the representation string.
-            
-            OUTPUT:
-            
-            A string.
-            """
+        Return the representation string.
+
+        OUTPUT:
+
+        A string.
+        """
         return "Straight Tableaux"
+
