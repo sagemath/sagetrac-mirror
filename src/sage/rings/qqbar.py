@@ -3100,7 +3100,7 @@ class ANDescr(SageObject):
         final result available as well.
 
         The function :func:`sage.symbolic.expression_conversions.algebraic`
-        will overwrite this method by a function which simply returns
+        will overwrite this method with a function which simply returns
         the symbolic expression that led to that algebraic number.
         So if the input is a symbolic expression, this is a shortcut.
 
@@ -3666,9 +3666,26 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         return number_field_elements_from_algebraics(self, minimal=minimal)
 
-    def exactify(self):
-        """
-        Compute an exact representation for this number.
+    def exactify(self, symbolic=None):
+        """Compute an exact representation for this number.
+
+        INPUT:
+
+        - ``symbolic`` (bool) -- Whether to attempt computing an exact value
+          using a minimal polynomial which was found numerically and
+          verified symbolically. This only works if there is an easy
+          symbolic expression representing this algebraic number.
+          For *some* numbers this approach may be faster than the
+          algebraic computation otherwise performed.
+          Note that different exactification algorithms can lead to
+          different representations for the same number, which in turn
+          can lead to performance differences in subsequent computations.
+
+          Currently, the default of ``None`` has the same effect as
+          explicitely setting the argument to ``False``.
+          But a future release may choose to select a suitable approach
+          automatically in some cases, leading to different meanings.
+          See :trac:`18122` for details on this.
 
         EXAMPLES::
 
@@ -3678,10 +3695,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: two.exactify()
             sage: two
             2
+
+        The following example would take *extremely* long without the
+        ``symbolic`` option introduced in :trac:`16222`::
+
+            sage: a = (443/96*I*sqrt(443)*sqrt(3) + 833939/1728)^(1/3)
+            sage: b = sqrt(144*a + 9205/a + 1176)/12
+            sage: c = QQbar(b)
+            sage: c.exactify(symbolic=True)
+            sage: c.minpoly()
+            x^6 - 49/2*x^4 + 133/16*x^2 + 225/4
+
         """
-        od = self._descr
-        if od.is_exact(): return
-        self._exact_symbolic()
+        if self._descr.is_exact(): return
+        if symbolic: self._symbolic_minpoly_root()
         self._set_descr(self._descr.exactify())
 
     def _set_descr(self, new_descr):
@@ -3708,31 +3735,67 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             self._value = self._value.intersection(new_val)
 
-    def _exact_symbolic(self):
+    def _symbolic_minpoly_root(self):
         r"""
-        Compute an exact representation of self using a known symbolic expression.
+        Attempts to compute a minpoly root using a symbolic expression.
 
         This makes use of the fact that numerically computing the
-        minimal polynomial of a complete symbolic expression can be a
-        lot faster than recursively combining the exact algebraic
-        representations of its components.
+        minimal polynomial of a symbolic expression for a single
+        number can be a lot faster than recursively combining the
+        exact algebraic representations of its descriptor DAG.
+        The minimal polynomial is computed numerically but verified
+        symbolically.
+
+        OUTPUT:
+
+        A boolean value, indicating whether a suitable polynomial root
+        could be found.  That root is automatically installed as the
+        current descriptor. It is not a number field element yet,
+        though.
 
         EXAMPLES::
 
             sage: a = (443/96*I*sqrt(443)*sqrt(3) + 833939/1728)^(1/3)
             sage: b = sqrt(144*a + 9205/a + 1176)/12
             sage: c = QQbar(b)
-            sage: c.minpoly() # indirect doctest
-            x^6 - 49/2*x^4 + 133/16*x^2 + 225/4
+            sage: c._descr
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+            sage: c._symbolic_minpoly_root()
+            True
+            sage: c._descr
+            Root 4.90482...? of x^6 - 49/2*x^4 + 133/16*x^2 + 225/4
+
+        Sometimes it is not possible to find a symbolic expression,
+        which in turn makes it impossible to verify any minimal
+        polynomial we might obtain.
+        In those cases, ``False`` is returned::
+
+            sage: z = QQ['x'](x^5 - x + 1).roots(AA, False)[0] + AA(sqrt(3))
+            sage: z._symbolic_minpoly_root()
+            False
+
+        TESTS::
+
+            sage: z = AA(7)/AA(5) - 1
+            sage: z._symbolic_minpoly_root()
+            True
+            sage: z._descr
+            Root 0.4000000000000000000? of 5*x - 2
+            sage: z = QQbar.zeta(5) + QQbar.zeta(3)
+            sage: z._symbolic_minpoly_root()
+            True
+            sage: z._descr
+            Root -0.190983...? + 1.81708192...?*I of x^8 ...
         """
         e = self._descr.quick_symbolic()
         if e is None:
-            return
+            return False
         try:
-            # Only numeric conversion is faster; algebraic would cause infinite recursion.
+            # Only numeric conversion is faster;
+            # algebraic would cause infinite recursion.
             p = e.minpoly(algorithm='numeric')
         except (NotImplementedError, ValueError):
-            return
+            return False
         K = QQbar if is_ComplexIntervalFieldElement(self._value) else AA
         r = p.roots(K, multiplicities=False)
         r = [z for z in r if z._value.overlaps(self._value)]
@@ -3743,6 +3806,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 z._more_precision()
             r = [z for z in r if z._value.overlaps(self._value)]
         self._set_descr(r[0]._descr)
+        return True
 
     def simplify(self):
         """
@@ -8147,7 +8211,7 @@ class ANBinaryExpr(ANDescr):
 
     def quick_symbolic(self):
         r"""
-        Apply this operation to the symbolic expression of its argument.
+        Apply this operation to the symbolic expression of its arguments.
 
         EXAMPLE::
 
