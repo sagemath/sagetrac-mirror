@@ -1,28 +1,27 @@
 r"""
-Rivest, Shamir, Adleman public-key encryption scheme.
+Rivest, Shamir, Adleman (RSA) public-key encryption scheme.
 
 The Rivest, Shamir, Adleman public-key encryption scheme.
-The Rivest-Shamir-Adleman (RSA) scheme is the most widely accepted and
-implemented general-purpose approach to public-key encryption. See also
-the `Wikipedia article <http://en.wikipedia.org/wiki/RSA>`_ on this scheme.
+The Rivest-Shamir-Adleman (RSA) scheme is a widely used approach to
+public-key encryption.
 
 REFERENCES:
 
-.. David Ireland. *RSA Algorithm*. http://www.di-mgt.com.au/rsa_alg.html. 19 March 2015.
+ * David Ireland. *RSA Algorithm*. http://www.di-mgt.com.au/rsa_alg.html. 19 March 2015.
 
-.. William Stallings. *Cryptography and Network Security, Priciples and Practices*, Fourth Edition. Prentice Hall, 16 November 2005.
+ * William Stallings. *Cryptography and Network Security, Priciples and Practices*, Fourth Edition. Prentice Hall, 16 November 2005.
 
-.. Brian Raiter. *Prime Number Hide-and-Seek: How the RSA Cipher Works*. http://www.muppetlabs.com/~breadbox/txt/rsa.html. Accessed 20 March 2015.
+ * Brian Raiter. *Prime Number Hide-and-Seek: How the RSA Cipher Works*. http://www.muppetlabs.com/~breadbox/txt/rsa.html. Accessed 20 March 2015.
 
-.. Thomas Pornin. *Should RSA public exponent be only in {3, 5, 17, 257 or 65537} due to security considerations?*. http://security.stackexchange.com/questions/2335/should-rsa-public-exponent-be-only-in-3-5-17-257-or-65537-due-to-security-c
+ * Thomas Pornin. *Should RSA public exponent be only in {3, 5, 17, 257 or 65537} due to security considerations?*. http://security.stackexchange.com/questions/2335/should-rsa-public-exponent-be-only-in-3-5-17-257-or-65537-due-to-security-c
 
-.. http://en.wikipedia.org/wiki/RSA_(cryptosystem)#Operation
+ * `Wikipedia: RSA Operation <http://en.wikipedia.org/wiki/RSA_(cryptosystem)#Operation>`_
 
 
 AUTHORS:
 
--Peter Story (2015-03)- major rewrite with the goal of a pedagogical implementation.
--Ajeesh R (2011-07)- initial procedural version released as public domain software.
+ * Peter Story (2015-03) Major rewrite with the goal of a pedagogical implementation.
+ * Ajeesh R (2011-07) Initial procedural version released as public domain software.
 
 """
 
@@ -55,18 +54,15 @@ from sage.sets.primes import Primes
 
 class RSACryptosystem(PublicKeyCryptosystem):
     r"""
-    The Rivest, Shamir, Adleman public-key encryption scheme.
+    The Rivest, Shamir, Adleman (RSA) public-key encryption scheme.
 
-    CAN PROBABLY REMOVE THIS
-    The RSA encryption and decryption algorithms as described in
-    :func:`encrypt() <RSACryptosystem.encrypt>` and
-    :func:`decrypt() <RSACryptosystem.decrypt>`, respectively, make use of the
+    Note: Throughout the documentation, the Euler Phi function is represented
+    as `\phi`.
 
     EXAMPLES:
 
     The following is an encryption/decryption example.::
 
-        sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
         sage: rc = RSACryptosystem(); rc
         The Rivest, Shamir, Adleman public-key encryption scheme.
         sage: p = 101; q = 103
@@ -93,12 +89,15 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         EXAMPLES::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc == loads(dumps(rc))
             True
         """
-        # no internal data for now; nothing to initialize
+        # In order to implement PublicKeyCryptosystem, it is important to pass: 
+        #   self, plaintext_space, ciphertext_space, 
+        #   key_space, block_length=1, period=None
+        # Currently unsure of what the appropriate values are.
+        #PublicKeyCryptosystem.__init__(self, S, S, S)
         pass
 
     def __eq__(self, other):
@@ -114,18 +113,22 @@ class RSACryptosystem(PublicKeyCryptosystem):
         - ``True`` if both ``self`` and ``other`` are ``RSACryptosystem``
           objects. ``False`` otherwise.
 
-        Two objects are ``RSACryptosystem`` objects if their string
-        representations are the same.
+        Since ``RSACryptosystem`` objects do not have state, any two
+        ``RSACryptosystem`` objects are equivalent. 
 
         EXAMPLES::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc1 = RSACryptosystem()
             sage: rc2 = RSACryptosystem()
             sage: rc1 == rc2
             True
+
+            sage: rc1 = RSACryptosystem()
+            sage: rc_str = "The Rivest, Shamir, Adleman public-key encryption scheme."
+            sage: rc1 == rc_str
+            False
         """
-        if self.__repr__() == other.__repr__():
+        if (self.__class__ == other.__class__):
             return True
         else:
             return False
@@ -140,7 +143,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         EXAMPLES::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: RSACryptosystem()
             The Rivest, Shamir, Adleman public-key encryption scheme.
         """
@@ -157,7 +159,7 @@ class RSACryptosystem(PublicKeyCryptosystem):
           using the RSA public-key encryption algorithm.
 
         - ``K`` -- a private key, stored as a tuple ``(n, d)`` where ``n``
-          is the modulus and ``d`` is inverse of the exponent ``mod (phi(n))``.
+          is the modulus and ``d`` is inverse of the exponent mod `(\phi(n))`.
 
         OUTPUT:
 
@@ -168,16 +170,15 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         The RSA public-key decryption algorithm is described as follows:
 
-        #. Let `C` be the ciphertext `C = (M^e) mod n`.
+        #. Let `C` be the ciphertext `C = (M^e) \text{ mod } (n)`.
         #. Let `(n, d)` be the private key whose corresponding
            public key is `(n, e)`.
-        #. The plaintext is `M = C^d = (M^e)^d mod n`.
+        #. The plaintext is `M = C^d = (M^e)^d \text{ mod } (n)`.
 
         EXAMPLES:
 
         An example of decryption.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103
             sage: public, private = rc.calculate_keys(p, q)
@@ -190,12 +191,14 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         TESTS:
 
-        Decryption should recover the original message.::
+        Setup for tests.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103; n = p * q
             sage: public, private = rc.calculate_keys(p, q)
+
+        Decryption should recover the original message.::
+
             sage: P = 42
             sage: C = rc.encrypt(P, public)
             sage: rc.decrypt(C, private) == P
@@ -207,46 +210,26 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Ciphertext outside the range ``[2, n-1]`` should be rejected.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = -5; rc.decrypt(C, private)
             Traceback (most recent call last):
             ...
             ValueError: The ciphertext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = 0; rc.decrypt(C, private)
             Traceback (most recent call last):
             ...
             ValueError: The ciphertext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = 1; rc.decrypt(C, private)
             Traceback (most recent call last):
             ...
             ValueError: The ciphertext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = n; rc.decrypt(C, private)
             Traceback (most recent call last):
             ...
             ValueError: The ciphertext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = n + 5; rc.decrypt(C, private)
             Traceback (most recent call last):
             ...
@@ -255,10 +238,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Ciphertext in the range ``[2, n-1]`` should be accepted.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: C = 2; M = rc.decrypt(C, private)
             sage: C = n - 1; M = rc.decrypt(C, private)
             sage: C = ZZ.random_element(2, n); M = rc.decrypt(C, private)
@@ -299,9 +278,9 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         #. Let `(n, e)` be a public key, where `n = pq` is the product of two
            distinct primes `p` and `q` and exponent `e` is a positive 
-           integer that is co-prime to euler_phi(n).
+           integer that is co-prime to `\phi(n)`.
         #. Let `P = a string` be the message (plaintext).
-        #. The ciphertext is `C = (P^e) mod n`.
+        #. The ciphertext is `C = (P^e) \text{ mod } (n)`.
 
 
         EXAMPLES:
@@ -309,7 +288,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         An example of encryption. 
         ``P = 42`` is our plaintext, and ``C = 6270`` is the resulting ciphertext.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103
             sage: public, private = rc.calculate_keys(p, q)
@@ -323,7 +301,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         ``P_1`` is our first plaintext, and ``P_2`` is a plaintext greater than 
         ``n - 1``, so it isn't encypted to a distinct value.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103; n = p * q
             sage: public, private = rc.calculate_keys(p, q)
@@ -340,48 +317,34 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         TESTS:
 
-        Plaintext outside the range ``[2, n-1]`` should be rejected.::
+        Setup for tests.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = 101; q = 103; n = p * q
             sage: public, private = rc.calculate_keys(p, q)
+
+        Plaintext outside the range ``[2, n-1]`` should be rejected.::
+
             sage: P = -5; rc.encrypt(P, public)
             Traceback (most recent call last):
             ...
             ValueError: The plaintext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: P = 0; rc.encrypt(P, public)
             Traceback (most recent call last):
             ...
             ValueError: The plaintext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: P = 1; rc.encrypt(P, public)
             Traceback (most recent call last):
             ...
             ValueError: The plaintext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: P = n; rc.encrypt(P, public)
             Traceback (most recent call last):
             ...
             ValueError: The plaintext must be an integer greater than 1 and less than n.
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: P = n + 5; rc.encrypt(P, public)
             Traceback (most recent call last):
             ...
@@ -390,10 +353,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Plaintext in the range ``[2, n-1]`` should be accepted.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
-            sage: rc = RSACryptosystem()
-            sage: p = 101; q = 103; n = p * q
-            sage: public, private = rc.calculate_keys(p, q)
             sage: P = 2; C = rc.encrypt(P, public)
             sage: P = n - 1; C = rc.encrypt(P, public)
             sage: P = ZZ.random_element(2, n); C = rc.encrypt(P, public)
@@ -428,9 +387,8 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         EXAMPLES:
 
-        Get a number relatively prime to ``phi_n``. 
+        Get a number relatively prime to ``phi_n``::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: phi_n = 11020
             sage: e = rc.choose_exponent(phi_n)
@@ -441,7 +399,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         The returned value must be relatively prime to ``phi_n``::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: phi_n = ZZ.random_element(50, 100)
             sage: e = rc.choose_exponent(phi_n)
@@ -451,7 +408,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Exercise the second method of finding a relatively prime exponent.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: e_options = [3, 5, 17, 257, 65537]
             sage: phi_n = prod(e_options)
@@ -493,16 +449,15 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         OUTPUT:
 
-        - The RSA public and private keys as a tuple `((n, e), (n, d))`.
+        - The RSA public and private keys as a tuple ``((n, e), (n, d))``.
 
 
         EXAMPLES:
 
         Compute an RSA public and private key pair corresponding to the 
         supplied primes. The ``d`` in the private key should be the 
-        multiplicative inverse of ``e`` mod ``\phi(n)``::
+        multiplicative inverse of `e \text{ mod } \phi(n)`::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: public, private = rc.calculate_keys(19, 23); public, private
             ((437, 5), (437, 317))
@@ -517,7 +472,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         ``561 = 3 * 11 * 17`` to generate the keys. Note that decrypting
         doesn't recover the original plaintext.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: public, private = rc.calculate_keys(17, 561, False); public, private
             ((9537, 3), (9537, 2987))
@@ -531,7 +485,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         ``p`` is not a prime. In this case, only certain plaintexts can be 
         recovered.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: public, private = rc.calculate_keys(4, 19, False); public, private
             ((76, 5), (76, 11))
@@ -545,7 +498,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         However, it is also possible to be build a cryptosystem using a 
         composite which works for all plaintexts.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: public, private = rc.calculate_keys(5, 6, False)
             sage: n = public[0]
@@ -560,7 +512,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Both of the inputs ``p`` and ``q`` must be distinct.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc.calculate_keys(23, 23)
             Traceback (most recent call last):
@@ -570,7 +521,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
 
         Both of the inputs ``p`` and ``q`` must be prime.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc.calculate_keys(13, 21)
             Traceback (most recent call last):
@@ -580,15 +530,13 @@ class RSACryptosystem(PublicKeyCryptosystem):
         Allow ``p`` or ``q`` to be composite if ``enforce_primes`` is set
         to ``False``.::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: rc.calculate_keys(13, 21, False)
             ((273, 17), (273, 113))
 
         The ``d`` in the private key should be the multiplicative inverse
-        of ``e`` mod ``\phi(n)``::
+        of `e \text{ mod } (\phi(n))`::
 
-            sage: from sage.crypto.public_key.rsa_cryptosystem import RSACryptosystem
             sage: rc = RSACryptosystem()
             sage: p = next_prime(ZZ.random_element(50, 100)); q = next_prime(ZZ.random_element(150, 200))
             sage: public, private = rc.calculate_keys(p, q)
