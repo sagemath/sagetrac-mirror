@@ -410,7 +410,7 @@ class BackendIPythonNotebook(BackendIPython):
             sage: supp = backend.supported_output();  supp     # random output
             set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
                  ...,
-                 <class 'sage.repl.rich_output.output_graphics.OutputImagePdf'>])
+                 <class 'sage.repl.rich_output.output_graphics.OutputImageSvg'>])
             sage: from sage.repl.rich_output.output_basic import OutputLatex
             sage: OutputLatex in supp
             True
@@ -425,7 +425,7 @@ class BackendIPythonNotebook(BackendIPython):
         return set([
             OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
-            OutputImageSvg, OutputImagePdf,
+            OutputImageSvg,
             OutputSceneJmol,
         ])
 
