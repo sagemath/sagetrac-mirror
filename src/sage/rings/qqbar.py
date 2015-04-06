@@ -7155,6 +7155,36 @@ class ANRoot(ANDescr):
         self._more_precision()
         return self._interval_fast(prec)
 
+    def quick_symbolic(self):
+        r"""
+        Return a symbolic representation of this element if quickly available.
+
+        EXAMPLES::
+
+            sage: a = AA(2).sqrt() + AA(3).sqrt()
+            sage: a._descr.quick_symbolic()
+            sqrt(3) + sqrt(2)
+            sage: a.nth_root(5)._descr.quick_symbolic()
+            (sqrt(3) + sqrt(2))^(1/5)
+
+        .. NOTE::
+
+            It might be a good idea to also consider complex roots. But in that
+            case one needs to fix the completely broken symbolic handling of
+            roots in the symbolic ring. For example, one has
+            ``(SR(-1)^(1/3))^2`` is currently equal to ``1``.
+        """
+        poly = self._poly._poly
+        d = poly.degree()
+        if not self._complex and not any(poly[i] for i in range(1,d)):
+            # here we have a polynomial of the form x^n - a
+            a = poly[0]._descr.quick_symbolic()
+            if a is None:
+                return 
+            return (-a) ** (~d)
+        else:
+            return 
+
 qq_generator = AlgebraicGenerator(QQ, ANRoot(AAPoly.gen() - 1, RIF(1)))
 
 _cyclotomic_gen_cache = {}
