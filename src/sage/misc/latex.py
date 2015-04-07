@@ -61,93 +61,7 @@ import types
 
 from sage.misc.temporary_file import tmp_dir
 import sage_eval
-from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
-
-@cached_function
-def have_latex():
-    """
-    Return ``True`` if this computer has the program ``latex``.
-
-    If this computer doesn't have LaTeX installed, you may obtain it
-    from http://ctan.org/.
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import have_latex
-        sage: have_latex() # random
-        True
-    """
-    return have_program('latex')
-
-
-@cached_function
-def have_pdflatex():
-    """
-    Return ``True`` if this computer has the program ``pdflatex``.
-
-    If this computer doesn't have pdflatex installed, you may obtain it
-    from http://ctan.org/.
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import have_pdflatex
-        sage: have_pdflatex() # random
-        True
-    """
-    return have_program('pdflatex')
-
-
-@cached_function
-def have_xelatex():
-    """
-    Return ``True`` if this computer has the program ``xelatex``.
-
-    If this computer doesn't have xelatex installed, you may obtain it
-    from http://ctan.org/.
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import have_xelatex
-        sage: have_xelatex() # random
-        True
-    """
-    return have_program('xelatex')
-
-
-@cached_function
-def have_dvipng():
-    """
-    Return ``True`` if this computer has the program ``dvipng``.
-
-    If this computer doesn't have dvipng installed, you may obtain it
-    from http://sourceforge.net/projects/dvipng/
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import have_dvipng
-        sage: have_dvipng() # random
-        True
-    """
-    return have_program('dvipng')
-
-
-@cached_function
-def have_convert():
-    """
-    Return ``True`` if this computer has the program ``convert``.
-
-    If this computer doesn't have convert installed, you may obtain it
-    (along with the rest of the ImageMagick suite) from
-    http://www.imagemagick.org
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import have_convert
-        sage: have_convert() # random
-        True
-    """
-    return have_program('convert')
 
 
 def list_function(x):
@@ -532,6 +446,30 @@ class LatexExpr(str):
         """
         return str(self)
 
+    def compile(self):
+        """
+        Return PDF output
+
+        OUTPUT:
+
+        :class:`~sage.repl.portable_document_format.PortableDocumentFormat`.
+
+        EXAMPLES:
+
+            sage: latex(1/2).compile()
+            PDF document (... bytes)
+        """
+        source = _latex_file_(self, title='{}')
+        print(source)
+        from sage.interfaces.cmdline.latex import compile_latex
+        from sage.interfaces.cmdline.tool import ToolMissingException
+        pdf = compile_latex(source)
+        try:
+            return pdf.trim()
+        except ToolMissingException:
+            return pdf
+    
+
 def has_latex_attr(x):
     """
     Return ``True`` if ``x`` has a ``_latex_`` attribute, except if ``x``
@@ -637,233 +575,8 @@ def latex_extra_preamble():
                      "\n".join(sage_latex_macros()),
                      _Latex_prefs._option['macros']])
 
-def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
-    """
-    This runs LaTeX on the TeX file "filename.tex".  It produces files
-    "filename.dvi" (or "filename.pdf"` if engine is either ``pdflatex``
-    or ``xelatex``) and if ``png`` is ``True``, "filename.png".  If ``png``
-    is ``True`` and dvipng can't convert the dvi file to png (because of
-    postscript specials or other issues), then dvips is called, and the
-    PS file is converted to a png file.
 
-    INPUT:
-
-    -  ``filename`` -- string: file to process, including full path
-
-    -  ``debug`` -- bool (optional, default ``False``): whether to print
-       verbose debugging output
-
-    -  ``density`` -- integer (optional, default 150): how big output
-       image is.
-
-    -  ``engine`` -- string: latex engine to use.
-
-    -  ``png`` -- bool (optional, default ``False``): whether to produce a
-       png file.
-
-    -  ``do_in_background`` -- bool (optional, default ``False``).  Unused,
-       kept for backwards compatibility.
-
-    OUTPUT:
-
-    A string which could be a string starting with 'Error' (if
-    there was a problem), or it could be 'pdf' or 'dvi'.  If
-    engine is latex or ``None``, then a dvi file is created, but if there
-    appear to be problems with it (because of PS special commands, for
-    example), then a pdf file is created instead.  The function
-    returns 'dvi' or 'pdf' to indicate which type of file is created.
-    (Detecting problems requires that dvipng be installed; if it is
-    not, then the dvi file is not checked for problems and 'dvi' is
-    returned.)  If engine is pdflatex or xelatex and there are no errors, then
-    'pdf' is returned.
-
-    .. WARNING::
-
-       If ``png`` is ``True``, then when using latex (the default), you
-       must have 'dvipng' (or 'dvips' and 'convert') installed on your
-       operating system, or this command won't work.  When using
-       pdflatex or xelatex, you must have 'convert' installed.
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import _run_latex_, _latex_file_
-        sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
-        sage: _run_latex_(file) # random - depends on whether latex is installed
-        'dvi'
-    """
-    if engine is None:
-        engine = _Latex_prefs._option["engine"]
-
-    if not engine or engine == "latex":
-        if not have_latex():
-            print("Error: LaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
-        command = "latex"
-        # 'suffix' is used in the 'convert' command list
-        suffix = "ps"
-        return_suffix = "dvi"
-    elif engine == "pdflatex":
-        if not have_pdflatex():
-            print("Error: PDFLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
-        command = "pdflatex"
-        suffix = "pdf"
-        return_suffix = "pdf"
-    elif engine == "xelatex":
-        if not have_xelatex():
-            print("Error: XeLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
-        command = "xelatex"
-        suffix = "pdf"
-        return_suffix = "pdf"
-    else:
-        raise ValueError("Unsupported LaTeX engine.")
-
-    # if png output + latex, check to see if dvipng or convert is installed.
-    if png:
-        if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
-            print()
-            print("Error: neither dvipng nor convert (from the ImageMagick suite)")
-            print("appear to be installed. Displaying LaTeX, PDFLaTeX output")
-            print("requires at least one of these programs, so please install")
-            print("and try again.")
-            print()
-            print("Go to http://sourceforge.net/projects/dvipng/ and")
-            print("http://www.imagemagick.org to download these programs.")
-            return "Error"
-    # if png output + pdflatex, check to see if convert is installed.
-        elif engine == "pdflatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying PDFLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
-        elif engine == "xelatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying XeLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
-    # check_validity: check to see if the dvi file is okay by trying
-    # to convert to a png file.  if this fails, return_suffix will be
-    # set to "pdf".  return_suffix is the return value for this
-    # function.
-    #
-    # thus if not png output, check validity of dvi output if dvipng
-    # or convert is installed.
-    else:
-        check_validity = have_dvipng()
-    # set up filenames, other strings:
-    base, filename = os.path.split(filename)
-    filename = os.path.splitext(filename)[0]  # get rid of extension
-    if len(filename.split()) > 1:
-        raise ValueError("filename must contain no spaces")
-    if not debug:
-        redirect = subprocess.PIPE
-    else:
-        redirect = None
-    # if do_in_background:
-    #     background = ' &'
-    # else:
-    #     background = ''
-
-    # Define the commands to be used:
-    lt = ['sage-native-execute', command, r'\nonstopmode', r'\input{' + filename + '.tex}']
-    # dvipng is run with the 'picky' option: this means that if
-    # there are warnings, no png file is created.
-    dvipng = ['sage-native-execute', 'dvipng', '--picky', '-q', '-T', 'tight',
-              '-D', str(density), filename + '.dvi', '-o', filename + '.png']
-
-    dvips = ['sage-native-execute', 'dvips', filename + '.dvi']
-
-    ps2pdf = ['sage-native-execute', 'ps2pdf', filename + '.ps']
-
-    # We seem to need a larger size when using convert compared to
-    # when using dvipng:
-    density = int(1.4 * density / 1.3)
-    convert = ['sage-native-execute', 'convert', '-density',
-               '{0}x{0}'.format(density), '-trim', filename + '.' + suffix,
-               filename + '.png']
-
-    e = False # it is possible to get through the following commands
-              # without running a program, so in that case we force error
-
-    # our standard way of calling programs here; change this if we want
-    # finer-grained analysis of the return code. Think of the output as
-    # a boolean: "the command exited normally"
-    subpcall = lambda x: not subprocess.call(x, stdout=redirect,
-                                             stderr=redirect, cwd=base)
-    if engine == "pdflatex" or engine == "xelatex":
-        if debug:
-            print(lt)
-            if png:
-                print(convert)
-        e = subpcall(lt)
-        if png:
-            e = e and subpcall(convert)
-    else:  # latex
-        if (png or check_validity):
-            if have_dvipng():
-                if debug:
-                    print(lt)
-                    print(dvipng)
-                e = subpcall(lt) and subpcall(dvipng)
-                dvipng_error = not os.path.exists(os.path.join(base, filename + '.png'))
-                # If there is no png file, then either the latex
-                # process failed or dvipng failed.  Assume that dvipng
-                # failed, and try running dvips and convert.  (If the
-                # latex process failed, then dvips and convert will
-                # fail also, so we'll still catch the error.)
-                if dvipng_error:
-                    if png:
-                        if have_convert():
-                            if debug:
-                                print("'dvipng' failed; trying 'convert' instead...")
-                                print(dvips)
-                                print(convert)
-                            e = subpcall(dvips) and subpcall(convert)
-                        else:
-                            print("Error: 'dvipng' failed and 'convert' is not installed.")
-                            return "Error: dvipng failed."
-                    else:  # not png, i.e., check_validity
-                        return_suffix = "pdf"
-                        if debug:
-                            print("bad dvi file; running dvips and ps2pdf instead...")
-                            print(dvips)
-                            print(ps2pdf)
-                        e = subpcall(dvips) and subpcall(ps2pdf)
-                        if not e:  # error running dvips and/or ps2pdf
-                            pdflt = lt[:]
-                            pdflt[1] = 'pdflatex'
-                            if debug:
-                                print("error running dvips and ps2pdf; trying pdflatex instead...")
-                                print(pdflt)
-                            e = subpcall(pdflt)
-            else:  # don't have dvipng, so must have convert.  run latex, dvips, convert.
-                if debug:
-                    print(lt)
-                    print(dvips)
-                    print(convert)
-                e = subpcall(lt) and subpcall(dvips) and subpcall(convert)
-    if not e:
-        print("An error occurred.")
-        try:
-            print(open(base + '/' + filename + '.log').read())
-        except IOError:
-            pass
-        return "Error latexing slide."
-    return return_suffix
-
-class LatexCall:
+class LatexCall(SageObject):
     """
     Typeset Sage objects via a ``__call__`` method to this class,
     typically by calling those objects' ``_latex_`` methods.  The
@@ -1086,8 +799,9 @@ class Latex(LatexCall):
             No pages of output.
             <BLANKLINE>
         """
+        from sage.misc.superseded import deprecation
+        deprecation(18116, 'the eval method is deprecated (it is only used by SageNB)')
         MACROS = latex_extra_preamble()
-
         if density is None:
             density = self.__density
         if filename is None:
@@ -1124,15 +838,20 @@ class Latex(LatexCall):
                 engine = _Latex_prefs._option["engine"]
             else:
                 engine = self.__engine
-        e = _run_latex_(os.path.join(base, filename + ".tex"), debug=debug,
-                               density=density, engine=engine, png=True)
-        if e.find("Error") == -1:
-            shutil.copy(os.path.join(base, filename + ".png"),
-                        os.path.join(orig_base, filename + ".png"))
+        with open(os.path.join(base, filename + ".tex"), 'rb') as f:
+            source = f.read()
+        from sage.interfaces.cmdline.latex import compile_latex
+        try:
+            pdf = compile_latex(source, implementation='automatic' if engine is None else engine)
+            png = pdf.to_png(dpi=density)
+        except subprocess.CalledProcessException:
+            return None
+        finally:
             shutil.rmtree(base)
-            return ''
-        else:
-            return
+        with open(os.path.join(orig_base, filename + ".png"), 'wb') as f:
+            f.write(png)
+        shutil.rmtree(base)
+        return ''
 
     def blackboard_bold(self, t = None):
         r"""nodetex
@@ -2005,8 +1724,9 @@ class MathJax:
             raise ValueError("mode must be either 'display', 'inline', or 'plain'")
         return MathJaxExpr(html.format(latex_string))
 
+    
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = None,
+        engine=None, tightpage=None,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2015,24 +1735,19 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     INPUT:
 
-    -  ``objects`` -- list (or object)
+    - ``objects`` -- list (or object)
 
-    -  ``title`` -- string (default: ``'Sage'``): title for the
+    - ``title`` -- string (default: ``'Sage'``): title for the
        document
 
-    -  ``debug`` -- bool (default: ``False``): print verbose
-       output
+    - ``debug`` -- bool (default: ``False``): print verbose output
 
-    -  ``sep`` -- string (default: ''): separator between
-       math objects
+    - ``sep`` -- string (default: ''): separator between math objects
 
-    -  ``tiny`` -- bool (default: ``False``): use tiny font.
+    - ``tiny`` -- bool (default: ``False``): use tiny font.
 
-    -  ``pdflatex`` -- bool (default: ``False``): use pdflatex. This is
-       deprecated. Use ``'engine'`` option instead.
-
-    -  ``engine`` -- string or ``None`` (default: ``None``). Can take the
-       following values:
+    - ``engine`` -- string or ``None`` (default: ``None``). Can take
+       the following values:
 
        - ``None`` -- the value defined in the LaTeX global preferences
          ``latex.engine()`` is used.
@@ -2045,11 +1760,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
          error occurs then tries dvi -> ps -> pdf. This is slower than
          ``'pdflatex'`` and known to be broken when overfull hbox are detected.
 
-    -  ``viewer`` -- string or ``None`` (default: ``None``): specify a viewer
-       to use; currently the only options are ``None`` and ``'pdf'``.
-
-    -  ``tightpage`` -- bool (default: ``False``): use the LaTeX package
-       'preview' with the 'tightpage' option.
+    - ``tightpage`` -- bool (default: ``False``): use the LaTeX
+       package 'preview' with the 'tightpage' option.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for
       displaymath or ``'inline'`` for inline math
@@ -2120,7 +1832,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     :meth:`latex.mathjax_avoid_list() <Latex.mathjax_avoid_list>`.  In
     this case, it creates and displays a png file.
 
-    EXAMPLES::
+    EXAMPLES:
 
         sage: sage.misc.latex.EMBEDDED_MODE = True
         sage: view(3)
@@ -2133,20 +1845,10 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     TESTS::
 
-        sage: from sage.misc.latex import _run_latex_, _latex_file_
-        sage: g = sage.misc.latex.latex_examples.graph()
-        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
-        sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w'); O.write(_latex_file_(g)); O.close()
-        sage: _run_latex_(file, engine="pdflatex") # optional - latex
-        'pdf'
-
-        sage: latex.extra_preamble('') # reset the preamble
-
         sage: view(4, engine="garbage")
         Traceback (most recent call last):
         ...
-        ValueError: Unsupported LaTeX engine.
+        ValueError: unknown implementation: garbage
         sage: sage.misc.latex.EMBEDDED_MODE = True
         sage: view(4, engine="garbage", viewer="pdf")
         Traceback (most recent call last):
@@ -2162,10 +1864,11 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     if engine is None:
         engine = _Latex_prefs._option["engine"]
-    if pdflatex or (viewer == "pdf" and engine == "latex"):
-        engine = "pdflatex"
-    # notebook
-    if EMBEDDED_MODE and viewer is None:
+    if EMBEDDED_MODE:
+        # This is all a horrible hack from the early days of
+        # SageNB. Can be removed as soon as we get rid of SageNB
+        if engine not in [None, 'latex', 'pdflatex', 'xelatex']:
+            raise ValueError('Unsupported LaTeX engine.')
         MathJax_okay = True
         for t in latex.mathjax_avoid_list():
             if s.find(t) != -1:
@@ -2183,33 +1886,14 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
                 debug=debug, engine=engine)
             print('<html><img src="{}"></html>'.format(png_link))  # put comma at end of line?
         return
-    # command line or notebook with viewer
-    tmp = tmp_dir('sage_viewer')
-    tex_file = os.path.join(tmp, "sage.tex")
-    open(tex_file,'w').write(s)
-    suffix = _run_latex_(tex_file, debug=debug, engine=engine, png=False)
-    if suffix == "pdf":
-        from sage.misc.viewer import pdf_viewer
-        viewer = pdf_viewer()
-    elif suffix == "dvi":
-        from sage.misc.viewer import dvi_viewer
-        viewer = dvi_viewer()
-    else:
-        print("Latex error")
-        return
-    output_file = os.path.join(tmp, "sage." + suffix)
-    # this should get changed if we switch the stuff in misc.viewer to
-    # producing lists
-    if not viewer.startswith('sage-native-execute '):
-        viewer = 'sage-native-execute ' + viewer
-    if debug:
-        print('viewer: "{}"'.format(viewer))
-    subprocess.call('%s %s' % (viewer, output_file), shell=True,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return
+    # end EMBEDDED_MODE only
+    from sage.interfaces.cmdline.latex import compile_latex
+    from sage.interfaces.cmdline.tool import ToolMissingException
+    return compile_latex(s, implementation=engine)
+        
 
 def png(x, filename, density=150, debug=False,
-        do_in_background=False, tiny=False, pdflatex=True, engine='pdflatex'):
+        tiny=False, engine='pdflatex'):
     """
     Create a png image representation of ``x`` and save to the given
     filename.
@@ -2225,13 +1909,7 @@ def png(x, filename, density=150, debug=False,
     -  ``debug`` -- bool (default: ``False``): print verbose
        output
 
-    -  ``do_in_background`` -- bool (default: ``False``): Unused,
-       kept for backwards compatibility
-
     -  ``tiny`` -- bool (default: ``False``): use 'tiny' font
-
-    -  ``pdflatex`` -- bool (default: ``True``): use pdflatex. This option is
-       deprecated. Use ``engine`` option instead. See below.
 
     -  ``engine`` -- (default: ``'pdflatex'``) ``'latex'``, ``'pdflatex'``,
        or ``'xelatex'``
@@ -2241,8 +1919,10 @@ def png(x, filename, density=150, debug=False,
         sage: from sage.misc.latex import png
         sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random - error if no latex
     """
-    if not pdflatex:
-        engine = "latex"
+    # This function can be removed when we get rid of SageNB
+    if not EMBEDDED_MODE:
+        from sage.misc.superseded import deprecation
+        deprecation(18116, 'the png function is deprecated (it is only used by SageNB)')
     import sage.plot.all
     if sage.plot.graphics.is_Graphics(x):
         x.save(filename)
@@ -2252,24 +1932,12 @@ def png(x, filename, density=150, debug=False,
                      debug=debug, tiny=tiny,
                      extra_preamble='\\textheight=2\\textheight')
     # path name for permanent png output
-    abs_path_to_png = os.path.abspath(filename)
-    # temporary directory to store stuff
-    tmp = tmp_dir('sage_viewer')
-    tex_file = os.path.join(tmp, "sage.tex")
-    png_file = os.path.join(tmp, "sage.png")
-    # write latex string to file
-    open(tex_file,'w').write(s)
-    # run latex on the file, producing png output to png_file
-    e = _run_latex_(tex_file, density=density, debug=debug,
-                    png=True, engine=engine)
-    if e.find("Error") == -1:
-        # if no errors, copy png_file to the appropriate place
-        shutil.copy(png_file, abs_path_to_png)
-    else:
-        print("Latex error")
-    if debug:
-        return s
-    return
+    # Save png
+    from sage.interfaces.cmdline.latex import compile_latex
+    pdf = compile_latex(s, implementation=engine)
+    png = pdf.to_png(dpi=density, trim=True)
+    with open(filename, 'wb') as f:
+        f.write(png)
 
 def coeff_repr(c):
     r"""
