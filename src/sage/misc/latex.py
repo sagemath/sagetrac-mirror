@@ -460,7 +460,6 @@ class LatexExpr(str):
             PDF document (... bytes)
         """
         source = _latex_file_(self, title='{}')
-        print(source)
         from sage.interfaces.cmdline.latex import compile_latex
         from sage.interfaces.cmdline.tool import ToolMissingException
         pdf = compile_latex(source)
