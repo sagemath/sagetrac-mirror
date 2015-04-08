@@ -22,6 +22,14 @@ EXAMPLES::
     H_3(1^4)^c
     sage: E.lyapunov_exponents_approx()   # abs tol 1e-3
     [0.0000485630931783940, 0.0000452662733371477]
+
+    sage: o = Origami('(1,2,3,4,5,6)','(1,7)')
+    sage: V = o.veech_group()
+    sage: V
+    Arithmetic subgroup of index 54
+    sage: G = V.coset_graph()
+    sage: G.diameter()
+    16
 """
 from origami_dense import Origami_dense_pyx
 
