@@ -1910,19 +1910,6 @@ class Origami_dense(Origami_dense_pyx):
             m[N+g(i+1)-1, N+i] = 1
         return m
 
-    def orbit_graph(self, return_map=False):
-        r"""
-        Return the graph of action of PSL on this origami
-
-        INPUT:
-
-        - ``return_map`` - return the list of origamis in the orbit
-
-        - ``projective`` - get the projective (i.e. PSL)
-
-        """
-        return self.teichmueller_curve().orbit_graph(return_map)
-
     def veech_group(self):
         r"""
         Returns the Veech group of this origami.
@@ -1972,6 +1959,18 @@ class Origami_dense(Origami_dense_pyx):
             sage: o = Origami('(1,2,3,4,5,6)','(6,7)')
             sage: o.veech_group().is_congruence()
             False
+
+        TESTS:
+
+        An error is raised if the origami is not connected::
+
+            sage: o = Origami('(1,2)','(3,4)')
+            Warning: the origami is not connected
+            sage: o.veech_group()
+            Traceback (most recent call last):
+            ...
+            ValueError: the origami is not connected! The Veech group
+            computation is disabled in that case.
         """
         return self.teichmueller_curve().veech_group()
 
@@ -1980,8 +1979,34 @@ class Origami_dense(Origami_dense_pyx):
         r"""
         Return the teichmueller curve of this origami
 
-        (the result is cached for future usage)
+        The result is cached for future usage.
+
+        .. SEEALSO::
+
+            :class:`~sage.dynamics.flat_surfaces.origamis.teichmueller_curve.TeichmuellerCurveOfOrigami_class`
+
+        EXAMPLES::
+
+            sage: o = Origami('(1,2)','(1,3)')
+            sage: t = o.teichmueller_curve()
+            sage: t
+            Teichmueller curve of the origami
+            (1)(2,3)
+            (1,2)(3)
+            sage: t.sum_of_lyapunov_exponents()
+            4/3
+            sage: for o in t.cusp_representatives():
+            ....:     print o[0]
+            ....:     print o[1]
+            (1)(2,3)
+            (1,2)(3)
+            2
+            (1,2,3)
+            (1)(2,3)
+            1
         """
+        if not self.is_connected():
+            raise ValueError("the origami is not connected! The Veech group computation is disabled in that case.")
         from teichmueller_curve import TeichmuellerCurveOfOrigami
         return TeichmuellerCurveOfOrigami(self)
 
@@ -1997,6 +2022,18 @@ class Origami_dense(Origami_dense_pyx):
             sage: o = Origami('(1,2)(3,4)','(2,3)')
             sage: o.sum_of_lyapunov_exponents()
             3/2
+
+        TESTS:
+
+        An error is raised if the origami is not connected::
+
+            sage: o = Origami('(1,2)','(3,4)')
+            Warning: the origami is not connected
+            sage: o.sum_of_lyapunov_exponents()
+            Traceback (most recent call last):
+            ...
+            ValueError: the origami is not connected! The Veech group
+            computation is disabled in that case.
         """
         return self.teichmueller_curve().sum_of_lyapunov_exponents()
 
