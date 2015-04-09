@@ -697,39 +697,34 @@ class AbstractLinearCode(module.Module):
     """
     Abstract class for linear codes.
     
-    This class contains all methods that can be used on Linear Codes
-    and on Linear Codes families. 
-    So, every Linear Code-related class should inherit from this abstract 
-    class.
+    This class contains methods that can be used on linear codes in general.
+    A class representing a family of linear codes should inherit from this
+    abstract class.
 
     This class provides:
 
-    - ``length``, the length of the code
+    - ``length``, the length of the code.
 
-    - numerous methods that will work for any linear code (including families)
+    - numerous methods that will work for any linear code.
 
-    To implement a linear code, you need to:
+    To implement a class representing a family of linear codes, you need to:
 
-    - inherit from AbstractLinearCode
+    - Inherit from AbstractLinearCode.
 
-    - call AbstractLinearCode ``__init__`` method in the subclass constructor. Example:
+    - Call ``AbstractLinearCode.__init__`` in the subclass' constructor. Example:
       ``super(SubclassName, self).__init__(base_field, length)``.
       By doing that, your subclass will have its ``length`` parameter
       initialized and will be properly set as a member of the category framework.
-      You need of course to complete the constructor by adding any additional parameter
-      needed to describe properly the code defined in the subclass.
+      Your constructor might of course afterwards initialise other things
+      related to your specific family of codes.
 
-    - reimplement ``generator_matrix()`` method
-
-    As AbstractLinearCode is not designed to be implemented, it does not have any representation
-    methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+    - Implement the ``_repr_`` and ``_latex_`` methods.
 
     .. NOTE::
 
         AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__`` or ``__eq__``. 
         As they are designed to fit for every linear code, they mostly use the generator matrix 
         and thus can be long for certain families of code. In that case, overriding these methods is encouraged.
-
     """
     def __init__(self, base_field, length):
         """
