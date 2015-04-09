@@ -3080,6 +3080,143 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.symmetric_form(self)
 
+        @cached_in_parent_method
+        def multiplicity(self):
+            r"""
+            Returns the multiplicity of `self`.
+
+            EXAMPLES::
+                
+                sage: alpha = RootSystem(['A',2]).root_lattice().simple_roots()
+                sage: (alpha[1]+alpha[2]).multiplicity()
+                1
+
+            An example in affine type::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: (alpha[0] + alpha[1] + 2*alpha[2]).multiplicity()
+                8
+
+            An example in hyperbolic type::
+
+                sage: Q = CartanMatrix([[2,-3],[-3,2]]).root_space()
+                sage: alpha = Q.simple_roots()
+                sage: (10*alpha[0] + 10*alpha[1]).multiplicity()
+                2278
+                sage: (alpha[0]-alpha[1]).multiplicity()
+                0
+            
+            .. NOTE::
+                The multiplicity will be nonzero only if ``self`` is a root in 
+                the corresponding (symmetrizable) Kac-Moody algebra.
+
+            .. WARNING::
+                Hyperbolic Cartan types are not yet implemented generally in 
+                sage, but we can define a hyperbolic Cartan matrix and obtain 
+                a root space as in the preceding example.
+            """
+            if not self.parent().cartan_type().cartan_matrix().is_symmetrizable():
+                raise NotImplementedError("only implemented for symmetrizable "
+                    " Cartan matrices")
+
+            mu = self
+            # if necessary, reflect to something with nonnegative coefficients
+            if all([i <= 0 for i in mu.coefficients()]):
+                mu = -mu
+
+            # return zero if some coefficients are still negative
+            if not all([i >= 0 for i in mu.coefficients()]):
+                return 0
+
+            # simple roots have multiplicity 1
+            if sum(mu.coefficients()) == 1:
+                return 1
+
+            alpha = self.parent().simple_roots()
+            lh = self.norm_squared() - sum([j*alpha[i].norm_squared() for i,j in list(mu)])
+            if lh == 0:
+                return 0
+
+            return mu._multiplicity_peterson() - mu._multiplicity_helper_d()
+       
+        @cached_in_parent_method
+        def _multiplicity_peterson(self):
+            """
+            Returns `C(self)`.
+
+            ALGORITHM::
+            
+            This method implements Peterson's recurrent root multiplicity 
+            formula:
+            
+            .. MATH::
+                (\\beta|\\beta - 2\\rho)C(\\beta) 
+                = 
+                \sum (\\alpha|\\beta-\\alpha)C(\\alpha)C(\\beta-\\alpha)
+
+            where the sum is on `\\alpha\in\Q^+` such that `\\beta-\\alpha > 0`
+            and where
+
+            .. MATH::
+                C(\\nu) 
+                = 
+                \sum_{d|\\nu} (1/d) \text{mult} \mathfrak{g}_{\frac{nu}{d}}.
+
+            REFERENCES:
+
+            .. [KKO2000] S.-J. Kang, J.-H. Kwon and Y.-T. Oh. *Peterson-Type 
+                Dimension Formulas for Graded Lie Superalgebras*. Nagoya Math. 
+                J., Vol. 163 (2001), 107-144
+                
+            """
+            if sum(self.coefficients()) == 1:
+                return 1
+
+            alpha = self.parent().simple_roots()
+            start = 0
+            if self.parent().cartan_type().is_finite():
+                start = 1
+
+            lh = self.norm_squared() - sum([j*alpha[i].norm_squared() for i,j in list(self)])
+            if lh == 0:
+                return self._multiplicity_helper_d()
+
+            self_list = list(self.to_vector())
+            sum_half = sum([x/2 for x in self_list])
+            sum_range = [range(i+1) for i in self_list]
+            summation = 0
+
+            from sage.combinat.cartesian_product import CartesianProduct
+            for beta in CartesianProduct(*sum_range).list():
+                if sum(beta) == 0 or sum(beta) > sum_half or beta == self_list:
+                    continue
+
+                self_minus_beta = [i-j for i,j in zip(self_list,beta)]
+
+                elt_beta = sum([j*alpha[i] for i,j in enumerate(beta, start)])
+                elt_self_minus_beta = sum([j*alpha[i] for i,j in enumerate(self_minus_beta,start)])
+
+                c_beta = elt_beta._multiplicity_peterson()
+                c_self_minus_beta = elt_self_minus_beta._multiplicity_peterson()
+                sym_prod = elt_beta.symmetric_form(elt_self_minus_beta)
+
+                factor = 2
+                if sum(beta) == sum_half:
+                    factor = 1
+                summation += factor * sym_prod * c_beta * c_self_minus_beta
+
+            return (1/lh)*summation
+
+        @cached_in_parent_method
+        def _multiplicity_helper_d(self):
+            """
+            Helper method for ``self.multiplicity``.
+            """
+            from sage.rings.arith import gcd, divisors
+            divs = divisors(gcd(self.coefficients()))
+            return sum([(1/d)*(self/d).multiplicity() for d in divs if d > 1])
+
         ##########################################################################
         # Action and orbits w.r.t. the Weyl group
         ##########################################################################
