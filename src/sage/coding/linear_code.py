@@ -1765,7 +1765,7 @@ class AbstractLinearCode(module.Module):
         return codeword
 
     def generator_matrix(self):
-        return NotImplementedError("This method must be set in subclasses") 
+        return NotImplementedError("No generator matrix has been defined for this linear code.") 
 
     def generator_matrix_systematic(self):
         """
