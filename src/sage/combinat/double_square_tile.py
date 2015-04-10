@@ -154,14 +154,18 @@ Plot a double square tile and plot its reduction::
 
     sage: D = DoubleSquare((34,21,34,21))
     sage: D.plot()                 # long time (1s)
+    Graphics object consisting of 12 graphics primitives
     sage: D.plot_reduction()       # long time (1s)
+    Graphics Array of size 3 x 3
 
 It is not said clear enough in the articles, but double square reduction
 also works for double square tiles that are 8-connected polyominoes::
 
     sage: D = DoubleSquare((55,34,55,34))
     sage: D.plot()                 # long time (1s)
+    Graphics object consisting of 12 graphics primitives
     sage: D.plot_reduction()       # long time (1s)
+    Graphics Array of size 4 x 3
 
 """
 #*****************************************************************************
@@ -642,7 +646,7 @@ class DoubleSquare(SageObject):
             sage: from sage.combinat.double_square_tile import DoubleSquare
             sage: D = DoubleSquare(words.fibonacci_tile(2))
             sage: D.alphabet()
-            set([0, 1, 2, 3])
+            {0, 1, 2, 3}
         """
         return set(self.boundary_word())
 
@@ -1386,6 +1390,7 @@ class DoubleSquare(SageObject):
             sage: from sage.combinat.double_square_tile import DoubleSquare
             sage: D = DoubleSquare(words.fibonacci_tile(1))
             sage: D.plot()              # long time (1s)
+            Graphics object consisting of 12 graphics primitives
         """
         path = self.boundary_word()
         points = list(path.points())
@@ -1414,6 +1419,7 @@ class DoubleSquare(SageObject):
             sage: from sage.combinat.double_square_tile import DoubleSquare
             sage: D = DoubleSquare(words.fibonacci_tile(2))
             sage: D.plot_reduction()          # long time (1s)
+            Graphics Array of size 2 x 3
 
         Using the color options::
 
@@ -1421,6 +1427,7 @@ class DoubleSquare(SageObject):
             sage: q = dict(rgbcolor='blue', alpha=1)
             sage: options = dict(endarrow=False,startpoint=False,pathoptions=p,filloptions=q)
             sage: D.plot_reduction(options=options)      # long time (1s)
+            Graphics Array of size 2 x 3
         """
         ds = self
         L = [ds]
