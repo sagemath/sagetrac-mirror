@@ -12,6 +12,8 @@ from dirichlet import (DirichletGroup,
                        kronecker_character, kronecker_character_upside_down,
                        trivial_character)
 
+from dirichlet_series import dirichlet_L, dirichlet_series
+
 from arithgroup.all import (Gamma0, Gamma1, GammaH, Gamma, SL2Z,
                             ArithmeticSubgroup_Permutation,
                             CongruenceSubgroup, FareySymbol)

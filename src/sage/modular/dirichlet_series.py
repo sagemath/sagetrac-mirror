@@ -1,5 +1,11 @@
+"""
+Class for manipulation of formal Dirichlet series
+=================================================
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2011 Jonathan Hanke
+#       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -13,467 +19,698 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import types
+from sage.structure.sage_object import SageObject
+from sage.interfaces.gp import gp
+from sage.libs.pari.pari_instance import pari
+from sage.rings.infinity import Infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
+from sage.rings.rational import Rational
+from sage.rings.real_mpfr import RR
+from sage.misc.defaults import series_precision
+from sage.symbolic.expression import Expression
+from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.ring import SR
+from sage.functions.transcendental import zeta
 
-
-
-###################################################################
-## Class for formal manipulation of Dirichlet series over a ring ## 
-###################################################################
-
-
-class DirichletSeries():
+class DirichletLFunction(BuiltinFunction):
     """
-    Class for manipulation of Dirichlet series over a ring R.
+    The Dirichlet L function is implemented as symbol for use
+    in :class:`DirichletSeries`.
     """
-
-
-    def __init__(self, R, B=None, C=None, is_exact_flag=False, default_var_string='s'):
+    def __init__(self):
         """
+        Initialize class.
+        """
+        BuiltinFunction.__init__(self, 'dirichlet_L', nargs=3,
+                                 latex_name=r'\operatorname{L}',
+                                 conversions={'mathematica': 'DirichletL'})
+
+    def _eval_(self, modulus, index, arg, **kwargs):
+        """
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: dirichlet_L(3, 2, s)
+            dirichlet_L(3, 2, s)
+        """
+        self._modulus = modulus
+        self._index = index
+        return None
+
+dirichlet_L = DirichletLFunction()
+
+class DirichletSeries(SageObject):
+    """
+    Class for manipulation of formal Dirichlet series.
+    """
+    def __init__(self, arg, precision=series_precision(), base_ring=ZZ):
+        """
+        Create a Dirichlet series from either a list of coefficients,
+        or a generating function (g.f.) expression. The g.f. can
+        be given as a product of zeta function, L-function, and other
+        expressions.
 
         INPUT:
-            DirichletSeries(R, coeff_list) -- initialize a Dirichlet series 
-                    with coeffs in R from a list of coefficients
 
-            DirichletSeries(R, f, b) -- Initialize a Dirichlet series over R 
-                    from an arithmetic function, with b terms (so + O((b+1)^s))
+            ``dirichlet_series(coeff_list, precision=b)`` -- initialize
+                    a Dirichlet series from a list of coefficients,
+                    with an absolute precision (order term) of `O(b^{-s})`
 
-            DirichletSeries(object) -- create a Dirichlet series from an object,
-                    which should call the .dirichlet_series()method of that object.
+            ``dirichlet_series(gf, precision=b)`` -- Initialize
+                    an exact Dirichlet series from a generating function,
+                    with an output precision of ``b`` (optional)
 
-        We will be able to set the formal variable later if we want... but for 
-        now it defaults to s.  We'll need to handle this when we do substitutions...
-        
-        
-        EXAMPLES:
-            sage: DirichletSeries(ZZ, "zeta", 20)
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + 1/(11^s) + 1/(12^s) + 1/(13^s) + 1/(14^s) + 1/(15^s) + 1/(16^s) + 1/(17^s) + 1/(18^s) + 1/(19^s) + 1/(20^s) + O(21^(-s))
-            sage: DirichletSeries(ZZ, "zeta", 10)
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
-            sage: DirichletSeries(ZZ, "zeta", 2)
-            1 + 1/(2^s) + O(3^(-s))
-        
-            
-            
+        The series is considered to be exact (has infinite absolute precision)
+        if it is created from a generating function.
+        If created from a list its output precision is equal to the relative
+        precision, i.e., the list length. If not given, the precision defaults
+        to the global series precision.
+
+        EXAMPLES::
+
+            sage: s,t = var('s,t')
+            sage: dirichlet_series(1)
+            1 + O(20^(-s))
+            sage: dirichlet_series(zeta(s))
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + 1/(11^s) + 1/(12^s) + 1/(13^s) + 1/(14^s) + 1/(15^s) + 1/(16^s) + 1/(17^s) + 1/(18^s) + 1/(19^s) + O(20^(-s))
+            sage: dirichlet_series(zeta(t), precision=3)
+            1 + 1/(2^t) + O(3^(-t))
+            sage: dirichlet_series([1,0,1,0,1,0,1])
+            1 + 1/(3^s) + 1/(5^s) + 1/(7^s) + O(8^(-s))
+            sage: dirichlet_series([1,0,1,0,1,0,1], precision=4)
+            1 + 1/(3^s) + O(4^(-s))
+
+        Creation from g.f. is limited to products of ``zeta(A*s+B)``,
+        ``dirichlet_L(C, D, s)``, and ``(1-E^(-s+F))``, with ``A,B,C,D,E,F`` positive
+        integers. This also ensures the multiplicativity of series
+        coefficients.
+
+            sage: dirichlet_series(zeta(s-1))
+            1 + 2/(2^s) + 3/(3^s) + 4/(4^s) + 5/(5^s) + 6/(6^s) + 7/(7^s)...
+            sage: dirichlet_series(zeta(s-2)/zeta(2*s))
+            1 + 4/(2^s) + 9/(3^s) + 15/(4^s) + 25/(5^s) + 36/(6^s) + ...
+            sage: dirichlet_series(zeta(s)/(1-2^(-s)))
+            1 + 1/(3^s) + 1/(5^s) + 1/(7^s) + 1/(9^s) + ...
+            sage: L2a = dirichlet_series(dirichlet_L(2,1,s))
+            sage: L2b = dirichlet_series(zeta(s)/(1-2^(-s)))
+            sage: assert(L2a.list() == L2b.list())
+            sage: dirichlet_series(zeta(s)*(1-2^(-s))/(1-2^(-s+1)))
+            1 + 1/(3^s) + -1/(4^s) + 1/(5^s) + 1/(7^s) + -2/(8^s) + ...
+            sage: dirichlet_series(dirichlet_L(4,2,s))
+            1 + -1/(3^s) + 1/(5^s) + -1/(7^s) + 1/(9^s) + -1/(11^s)...
+
+        TESTS::
+
+            sage: dirichlet_series(zeta(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: Generating function must have exactly one variable
+            sage: dirichlet_series(zeta(s)*zeta(t))
+            Traceback (most recent call last):
+            ...
+            ValueError: Generating function must have exactly one variable
+            sage: dirichlet_series(zeta(s)+1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot construct Dirichlet series ...
+            sage: dirichlet_series(zeta(s)*(1-2^(-s))/(1-2^(-2*s)))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot construct Dirichlet series ...
         """
-        ## SANITY CHECK:  Check that R is a ring
-        ## -------------------------------------
-        if not is_Ring(R):
-            raise TypeError, "The first argument must be a ring!"
+        if not hasattr(base_ring, 'is_ring') or not base_ring.is_ring():
+            raise TypeError, "The base_ring argument must be a ring!"
         
+        self._creation_function_expression = None
+        self._var = SR.var('s')
+        if not isinstance(arg, list):
+            if SR(arg).is_integer():
+                self._factors = [(base_ring(arg),1)]
+            elif isinstance(arg, Expression):
+                vars = arg.variables()
+                if len(vars) != 1:
+                    raise ValueError('Generating function must have exactly one variable')
+                self._var = vars[0]
 
-        ##  Set some default variables
-        tmp_coeff_list = None
-        defining_function = None
-
-
-        ## Parse the construction from an arithmetic function:
-        ## ---------------------------------------------------
-        if C != None:
-
-            ## Allow functions to be passed
-            if isinstance(B, types.FunctionType):
-                try:
-                    f = B(1)  ## Make sure we can evaluate the function at some natural number
-                    f = B  ## Set the function
-                except:
-                    raise TypeError, "The given arithmetic function f(n) doesn't make sense at n=1."
-
-            ## Allow special names for the arithmetic function (if its a string)
-            elif isinstance(B, str):
-                if B == "zeta":
-                    f = lambda x: 1
-                elif (B == "moebius") or (B == "mu"):
-                    f = moebius
-                elif B == "identity":
-                    f = lambda x: kronecker_delta(x,1)
-
-            ## Error if no allowed function initialization is detected
+                # the specific form of the factors returned by Maxima
+                # (see ticket #18081) makes masking necessary
+                arg = dirichlet_series._mask_exp_factors(arg)
+                self._factors = arg.factor_list()
+                self._check_construction()
             else:
-                raise TypeError, "Something is wrong with the arithmetic function argument..."
+                raise NotImplementedError
+            self._coeffs = []
+            self._creation_function_expression = arg
+        else:
+            self._coeffs = [base_ring(x) for x in arg]
+            self._creation_function_expression = None
 
+        self._precision = precision
+        self._base_ring = base_ring
 
-            ## Initialize the Internal variables
-            self.__base_ring = deepcopy(R)
-            self.__creation_function_expression = [f]
-            self.__coefficient_list = ['X'] + [f(n)  for n in range(1, C+1)]
-            self.__number_of_coeffs = len(self.__coefficient_list) - 1
-            self.__is_exact = False
-            self.__s_variable = deepcopy(default_var_string)
-            
+    def _check_construction(self):
+        for f,exp in self._factors:
+            if not (SR(f).is_integer()
+                or dirichlet_series._is_zeta_expr(f, self._var)
+                or dirichlet_series._is_dirichlet_L_expr(f, self._var)
+                or dirichlet_series._is_exp_expr(f, self._var)):
+                raise NotImplementedError('Cannot construct Dirichlet series from the factor {}'.format(f))
 
-                    
-    
-        ## Parse the construction from a list:
-        ## -----------------------------------
-        elif isinstance(B, list): #and isinstance(C, bool):
-            tmp_coeff_list = [R(x)  for x in B]
-    
-            ## Initialize the Internal variables
-            self.__base_ring = deepcopy(R)
-            self.__creation_function_expression = []
-            self.__coefficient_list = ['X'] + tmp_coeff_list
-            self.__number_of_coeffs = len(self.__coefficient_list) - 1
-            self.__is_exact = is_exact_flag
-            self.__s_variable = deepcopy(default_var_string)
+    def eval(self, precision):
+        """
+        Return a list with the coefficients of this series up to
+        a given index (if existing).
 
+        EXAMPLES::
 
-        
-        
+            sage: s = var('s')
+            sage: dirichlet_series(zeta(s-1)).eval(5)
+            [1, 2, 3, 4, 5]
+            sage: dirichlet_series(zeta(s-2)/zeta(2*s)).eval(5)
+            [1, 4, 9, 15, 25]
+            sage: dirichlet_series(zeta(s)/(1-2^(-s))).eval(9)
+            [1, 0, 1, 0, 1, 0, 1, 0, 1]
+        """
+        if not self.has_infinite_precision():
+            return self._coeffs
+        product = [self._base_ring(1)] + [0] * (precision-1)
+        for f,exp in self._factors:
+            if SR(f).is_integer():
+                fseries = [self._base_ring(f)] + [0] * (precision-1)
+            elif dirichlet_series._is_zeta_expr(f, self._var):
+                fseries = dirichlet_series._zeta_expr(f, self._var, precision)
+            elif dirichlet_series._is_dirichlet_L_expr(f, self._var):
+                fseries = dirichlet_series._dirichlet_L_expr(f, precision, self._base_ring)
+            elif dirichlet_series._is_exp_expr(f, self._var):
+                fseries = dirichlet_series._exp_expr(f, precision)
+            else:
+                raise NotImplementedError('Cannot construct exact Dirichlet series from the factor {}'.format(f))
+            if exp > 0:
+                for i in range(exp):
+                    product = pari(product).dirmul(fseries).sage()
+            else:
+                for i in range(-exp):
+                    product = pari(product).dirdiv(fseries).sage()
+        return product
+
+    class MaskFunction(BuiltinFunction):
+        def __init__(self):
+            BuiltinFunction.__init__(self, 'dummy', nargs=2)
+
+    @staticmethod
+    def _mask_exp_factors(ex):
+        """
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: dirichlet_series._mask_exp_factors(1-2^(-s))
+            dummy(2, -s)
+            sage: dirichlet_series._mask_exp_factors((1-3^(-s))^2*(1-5^(-s+1)))
+            dummy(5, -s + 1)*dummy(3, -s)^2
+            sage: dirichlet_series._mask_exp_factors(1/(1-2^(-s))^2*(1-3^(-s+2)))
+            dummy(3, -s + 2)/dummy(2, -s)^2
+        """
+        w0 = SR.wild(0); w1 = SR.wild(1)
+        ex = ex.subs(1-w0**w1 == dirichlet_series.MaskFunction()(w0, w1))
+        ex = ex.subs(w0**w1-1 == -dirichlet_series.MaskFunction()(w0, w1))
+        return ex
+
+    @staticmethod
+    def _is_zeta_expr(ex, var):
+        """
+        Return True if ``ex`` is of form ``dirichlet_L(a,b,var)``, with
+        ``a>1``,``b>0`` positive integers.
+
+        EXAMPLES::
+
+            sage: dirichlet_series._is_zeta_expr(sin(x),x)
+            False
+            sage: dirichlet_series._is_zeta_expr(zeta(x),x)
+            True
+            sage: dirichlet_series._is_zeta_expr(zeta(2*x),x)
+            True
+            sage: dirichlet_series._is_zeta_expr(zeta(-2*x),x)
+            False
+            sage: dirichlet_series._is_zeta_expr(zeta(x-1),x)
+            True
+            sage: dirichlet_series._is_zeta_expr(zeta(2*x-1),x)
+            True
+            sage: dirichlet_series._is_zeta_expr(zeta(-x+.5),x)
+            False
+
+        TESTS::
+
+            sage: dirichlet_series._is_zeta_expr(zeta(x,1),x)
+            Traceback (most recent call last):
+            ...
+            TypeError: Symbolic function zeta takes exactly 1 arguments (2 given)
+        """
+        if (ex.operator() == zeta and len(ex.operands()) == 1
+            and len(ex.variables()) == 1):
+            arg = ex.operands()[0]
+            if bool(arg == 1) or bool(arg == var):
+                return True
+            w0 = SR.wild(0); w1 = SR.wild(1)
+            d = arg.match(w0*var)
+            if d is not None:
+                factor = d.values()[0]
+                return factor.is_integer() and bool(factor > 1)
+            d = arg.match(var+w0)
+            if d is not None:
+                summand = d.values()[0]
+                return summand.is_integer()
+            d = arg.match(w0*var+w1)
+            if d is not None:
+                factor = d.get(w0)
+                summand = d.get(w1)
+                return factor.is_integer() and bool(factor > 1) and summand.is_integer()
+        return False
+
+    @staticmethod
+    def _is_dirichlet_L_expr(ex, var):
+        """
+        Return True if ``ex`` is of form ``dirichlet_L(a,b,var)``, with
+        ``a>1``,``b>0`` positive integers.
+
+        EXAMPLES::
+
+            sage: dirichlet_series._is_dirichlet_L_expr(sin(x),x)
+            False
+            sage: dirichlet_series._is_dirichlet_L_expr(dirichlet_L(2,1,x+1),x)
+            False
+            sage: dirichlet_series._is_dirichlet_L_expr(dirichlet_L(2,1,x),x)
+            True
+        """
+        # Most checks happened already in class DirichletLFunction
+        return ex.operator() == dirichlet_L and bool(ex.operands()[2] == var)
+
+    @staticmethod
+    def _is_exp_expr(ex, v):
+        import operator
+        w0 = SR.wild(0); w1 = SR.wild(1)
+        dummy = dirichlet_series.MaskFunction()
+        d = ex.match(dummy(w0, w1))
+        if d is None:
+            return False
+        var = ex.variables()[0]
+        arg2 = d.get(w1)
+        return (d is not None
+                and (arg2 == -var or arg2.operator() == operator.add))
+
+    @staticmethod
+    def _Lseries_coeff(m, r, prec, R=ZZ):
+        """
+        Return the coefficients of the Dirichlet series generated
+        by the L-function with given modulus ``m`` and representation
+        ``r``, with precision ``prec``.
+
+        EXAMPLES::
+
+            sage: dirichlet_series._Lseries_coeff(3, 2, 10)
+            [1, -1, 0, 1, -1, 0, 1, -1, 0, 1]
+            sage: dirichlet_series._Lseries_coeff(11, 3, 5, CyclotomicField(10))
+            [1, zeta10^2, -zeta10, zeta10^3 - zeta10^2 + zeta10 - 1, -zeta10^3]
+
+        REFERENCES:
+
+        .. [MatharTable2010] R. J. Mathar, Table of Dirichlet L-Series and Prime
+             Zeta Modulo functions for small moduli, :arxiv:`1008.2547`
+        """
+        from sage.modular.dirichlet import DirichletGroup
+        dg = DirichletGroup(m)
+        period = dg.list()[r-1].values()
+        l = len(period)
+        period = [R(elem) for elem in period]
+        period = period[1:] + [R(0)]
+        quo,rem = Integer(prec).quo_rem(l)
+        return period * quo + period[:rem]
+
+    @staticmethod
+    def _zeta_expr(ex, var, prec):
+        """
+        Return the coefficients of the Dirichlet series generated
+        by the zeta function expression with variable ``var`` and
+        precision ``prec``.
+
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: dirichlet_series._zeta_expr(zeta(s), s, 5)
+            [1, 1, 1, 1, 1]
+            sage: dirichlet_series._zeta_expr(zeta(s-1), s, 5)
+            [1, 2, 3, 4, 5]
+            sage: dirichlet_series._zeta_expr(zeta(2*s-1), s, 5)
+            [1, 0, 0, 2, 0]
+            sage: dirichlet_series._zeta_expr(zeta(2*s), s, 5)
+            [1, 0, 0, 1, 0]
+        """
+        arg = ex.operands()[0]
+        if bool(arg == var):
+            return [1] * prec
+        w0 = SR.wild(0); w1 = SR.wild(1)
+        d = arg.match(w0*var)
+        if d is not None:
+            factor = d.values()[0]
+            paricmd = "direuler(p=1,{0},1/(1-X^{1}))".format(prec, factor)
+            return gp(paricmd)
+        d = arg.match(var+w0)
+        if d is not None:
+            summand = d.values()[0]
+            paricmd = "direuler(p=1,{0},1/(1-p^{1}*X))".format(prec, -summand)
+            return gp(paricmd)
+        d = arg.match(w0*var+w1)
+        if d is not None:
+            factor = d.get(w0)
+            summand = d.get(w1)
+            paricmd = "direuler(p=1,{0},1/(1-p^{1}*X^{2}))".format(prec, -summand, factor)
+            return gp(paricmd)
+
+    @staticmethod
+    def _dirichlet_L_expr(ex, prec, R=ZZ):
+        """
+        Return the coefficients of the Dirichlet series generated
+        by the L-function expression with precision ``prec``.
+
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: dirichlet_series._dirichlet_L_expr(dirichlet_L(2,0,s), 9, ZZ)
+            [1, 0, 1, 0, 1, 0, 1, 0, 1]
+            sage: dirichlet_series._dirichlet_L_expr(dirichlet_L(3,0,s), 9, ZZ)
+            [1, -1, 0, 1, -1, 0, 1, -1, 0]
+            sage: dirichlet_series._dirichlet_L_expr(dirichlet_L(3,1,s), 9, ZZ)
+            [1, 1, 0, 1, 1, 0, 1, 1, 0]
+            sage: dirichlet_series._dirichlet_L_expr(dirichlet_L(9,0,s), 9, CyclotomicField(9))
+            [1, -zeta9^3, 0, -zeta9^3 - 1, zeta9^3 + 1, 0, zeta9^3, -1, 0]
+        """
+        m,r,_ = ex.operands()
+        return dirichlet_series._Lseries_coeff(m, r, prec, R)
+
+    @staticmethod
+    def _exp_expr(ex, prec):
+        """
+        Return the coefficients of the Dirichlet series generated
+        by the dummy expression with precision ``prec``.
+
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: dummy = dirichlet_series.MaskFunction()
+            sage: dirichlet_series._exp_expr(dummy(2, -s), 9)
+            [1, 1, 0, 1, 0, 0, 0, 1, 0]
+            sage: dirichlet_series._exp_expr(dummy(2, -s+1), 9)
+            [1, 2, 0, 4, 0, 0, 0, 8, 0]
+            sage: dirichlet_series._exp_expr(dummy(3, -s+1), 9)
+            [1, 0, 3, 0, 0, 0, 0, 0, 9]
+        """
+        w0 = SR.wild(0); w1 = SR.wild(1)
+        dummy = dirichlet_series.MaskFunction()
+        d1 = ex.match(dummy(w0, w1))
+        arg1 = d1.get(w0)
+        arg2 = d1.get(w1)
+        var = ex.variables()[0]
+        if arg2 == -var:
+            paricmd = "direuler(p=1,{0},if(p=={1},1/(1-X),1))".format(prec, arg1)
+            return gp(paricmd)
+        d2 = arg2.match(-var+w0)
+        summand = d2.values()[0]
+        paricmd = "direuler(p=1,{0},if(p=={1},1/(1-p^{2}*X),1))".format(prec, arg1, summand)
+        return gp(paricmd)
+
     def base_ring(self):
         """
-        Returns the base ring of the Dirichlet series.
+        Return the base ring of the Dirichlet series.
         """
-        return deepcopy(self.__base_ring)
-
-        
-    def precision(self):
-        """
-        Returns the computed precision of the Dirichlet series.
-        """
-        return self.__number_of_coeffs
-    
-
-    def extend_precision_to(self, n):
-        """
-        Extend the precision of the Dirichlet series to be O((n+1)^s).
-        """
-        pass
-
+        return self._base_ring
 
     def is_Eulerian(self):
         """
         Verify that the series is Eulerian up to the given precision, and cache the result.
         """
-        pass
+        # At the moment all generated series are Eulerian
+        raise self.has_infinite_precision()
 
-
-    def is_exact(self):
+    def has_infinite_precision(self):
         """
-        Return if the series is an exact (finite) Dirichlet series
+        Return if the Dirichlet series was generated from a generating function.
         """
-        return self.__is_exact
-
-
-    def nonzero_coeffs(self):
-        """
-        Return a list of the indices n (up to the precision) where the n-th coefficient is non-zero.
-        """
-        nonzero_list = [n  for n in range(1, self.precision() + 1)  if self[n] != 0]
-        return nonzero_list
-            
-
-
-
-    def __getitem__(self, n):
-        """
-        Return the value of the n-th coefficient.
-        """
-        if (n >=1) and (n <= self.precision()):                 ## This check is probably too slow!
-            return deepcopy(self.__coefficient_list[n])
-        elif self.is_exact() and (n > self.precision()):    ## Allow arbitrary evaluation precision of exact series! =)
-            return self.base_ring()(0)
-        else:
-            raise TypeError, "The coeffecient you requested (n = " + str(n) + ") is out of the precomputed range."
-
-
-#    def __call__(self, n):
-
-
+        return len(self._coeffs) == 0
 
     def __repr__(self, n_max=Infinity):
         """
-        Print first n coefficients of the Dirichlet series, using its internally specified variable.
+        Print first n coefficients of the Dirichlet series,
+        using its default variable.
         """
         out_str = ""
-        n_prec = min(self.precision(), n_max)
-        
+        n_prec = min(self._precision, n_max+1) - 1
+        if self.has_infinite_precision():
+            coeffs = self.eval(n_prec)
+        else:
+            coeffs = self._coeffs
+            n_prec = min(n_prec, len(self._coeffs))
+
         ## Add the first coefficient
         if n_prec >= 1:
-            out_str += str(self.__coefficient_list[1])
+            out_str += str(coeffs[0])
 
         ## Add all other non-zero coefficients up to the desired precision
-        for i in range(2, n_prec + 1):
-            if (self.__coefficient_list[i] != 0):
-                out_str += " + " + str(self.__coefficient_list[i]) + "/(" + str(i) + "^" + self.__s_variable + ")"
+        for i in range(1, n_prec):
+            if (coeffs[i] != 0):
+                out_str += " + " + str(coeffs[i]) + "/(" + str(i+1) + "^" + str(self._var) + ")"
             
-        ## Add the error term, if the result is not exact.
-        if not self.__is_exact:
-            out_str += " + O(" + str(n_prec + 1) + "^(-" + self.__s_variable + "))"
+        ## Add the error term, if the result has infinite precision.
+        out_str += " + O(" + str(n_prec + 1) + "^(-" + str(self._var) + "))"
             
         ## Return the output string
         return out_str
-
 
     def __add__(self, other):
         """
         Form the sum of two Dirichlet series.
 
-        EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
-            sage: 
+        Addition makes the precision finite because sums are
+        not supported as generating functions at the moment.
+
+        EXAMPLES::
+
+            sage: D1 = dirichlet_series([1,1,1,1]);
             sage: D1 + D1
             2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
             sage: D1 + D1 + D1
             3 + 3/(2^s) + 3/(3^s) + 3/(4^s) + O(5^(-s))
-
-            sage: D2 = DirichletSeries(ZZ, "zeta", 10); D2
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
+            sage: s = var('s')
+            sage: D2 = dirichlet_series(zeta(s), precision=10); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + O(10^(-s))
             sage: D1 + D2
             2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
 
         """
-
-        ## SANITY CHECK -- the rings are the same?
         if self.base_ring() != other.base_ring():
-            raise NotImplementedError, "For now the base rings must be the same!  TO DO: Add ring coersion!"
+            raise NotImplementedError, "For now the base rings must be the same!  TO DO: Add ring coercion!"
 
+        if self.has_infinite_precision():
+            self_prec = Infinity
+        else:
+            self_prec = self._precision
+        if other.has_infinite_precision():
+            other_prec = Infinity
+        else:
+            other_prec = other._precision
 
-        ## Assume that these are just given by lists of coefficients for now!
-        sum_coeff_list = [self[i] + other[i]  for i in range(1, min(self.precision(), other.precision()) + 1)]
-        D_sum = DirichletSeries(self.base_ring(), sum_coeff_list)
+        prec = min(self_prec, other_prec)
+        if prec == Infinity:
+            prec = min(self._precision, other._precision)
 
+        if self.has_infinite_precision():
+            self_list = self.eval(prec)
+        else:
+            self_list = self._coeffs
+        if other.has_infinite_precision():
+            other_list = other.eval(prec)
+        else:
+            other_list = other._coeffs
+
+        sum_coeff_list = [self_list[i] + other_list[i] for i
+                          in range(min(len(self_list), len(other_list)))]
+        D_sum = dirichlet_series(sum_coeff_list)
         return D_sum
-
-        #####################
-        ## CONVERSION RULES:
-        ## -----------------
-        ## Preserve the form of the local variable if it's the same in both, otherwise use the self variable.
-        
-        ## Take the min of the precisions if they're both made from lists (no defining functions), or bath from defining functions.
-        
-        ## Take the biggest precision if there is one list and one defining function.
-
-
-
-
 
     def __sub__(self, other):
         """
         Form the sum of two Dirichlet series.
 
-        EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
-            sage: D1 - D1
+        EXAMPLES::
 
-            sage: D2 = DirichletSeries(ZZ, "zeta", 10); D2
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + O(11^(-s))
+            sage: s = var('s')
+            sage: D1 = dirichlet_series([1,1,1,1]);
+            sage: D1 - D1
+            0 + O(5^(-s))
+            sage: D2 = dirichlet_series(zeta(s), precision=10); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + O(10^(-s))
             sage: D1 - D2
+            0 + O(5^(-s))
 
         """
         return self + (other * (-1))
-
-
 
     def __mul__(self, other):
         """
         Define the product of two Dirichlet series, or of a Dirichlet series and a number.
 
-        EXAMPLES:
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]);
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]); D1
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: D1 = dirichlet_series([1,1,1,1]);
+            sage: D1 = dirichlet_series([1,1,1,1]); D1
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
             sage: D1 * 3
             3 + 3/(2^s) + 3/(3^s) + 3/(4^s) + O(5^(-s))
-            sage: 3 * D1 
-            ---------------------------------------------------------------------------
-            TypeError                                 Traceback (most recent call last)
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/<ipython console> in <module>()
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/local/lib/python2.6/site-packages/sage/structure/element.so in sage.structure.element.RingElement.__mul__ (sage/structure/element.c:11399)()
-
-            /Users/jonhanke/Dropbox/SAGE/sage-4.6/local/lib/python2.6/site-packages/sage/structure/coerce.so in sage.structure.coerce.CoercionModel_cache_maps.bin_op (sage/structure/coerce.c:6995)()
-
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<type 'instance'>'
-            sage:
-
-
-            sage: D1 = DirichletSeries(ZZ, [1,1,1,1]); D1
+            sage: D1 = dirichlet_series([1,1,1,1]); D1
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
             sage: D1 * D1
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + O(5^(-s))
-            sage: 
-            sage: 
-            sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-            sage: 
-            sage: 
-            sage: 
-            sage: D22 = D2 * D2
-            new_coeff_list = [1, 2, 2, 3, 2, 4, 2, 4]
-            sage: D22
-            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + 4/(8^s) + O(9^(-s))
-
+            sage: D2 = dirichlet_series(zeta(s), precision=8); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(8^(-s))
+            sage: D22 = D2 * D2; D22
+            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + O(8^(-s))
 
         """
+        from sage.rings.arith import divisors
         R = self.base_ring()
         try:
-            ## Scalar multiplication
-            scale_factor = R(other)
-            return DirichletSeries(R, [scale_factor * self[i]  for i in range(1, self.precision() + 1)])
-
-        except:
-            ## Dirichlet Multiplication
-            if not self.is_exact() and not other.is_exact():
-                new_precision = min(self.precision(), other.precision())
-            elif self.is_exact() and other.is_exact():
-                new_precision = max(self.precision(), other.precision())     ## If both are exact, we can take the precision of th
-            elif self.is_exact():
-                new_precision = other.precision()   
-            elif other.is_exact():
-                new_precision = self.precision()                
-                
-            new_coeff_list = [sum([self[d] * other[n/d]  for d in divisors(n)])  for n in range(1, new_precision + 1)]
-            new_exact_flag = self.is_exact() and other.is_exact()
-            return DirichletSeries(R, new_coeff_list, is_exact_flag=new_exact_flag)
-
+            _ = RR(other)
+        except TypeError:
+            if self.has_infinite_precision() and other.has_infinite_precision():
+                new_prec = min(self._precision, other._precision)
+                return dirichlet_series(self._creation_function_expression
+                                        * other._creation_function_expression,
+                                        precision=new_prec,
+                                        base_ring=self._base_ring)
+            else:
+                new_coeff_list = pari(self.list()).dirmul(other.list()).sage()
+                return dirichlet_series(new_coeff_list)
+        else:
+            scale_factor = self._base_ring(other)
+            if self.has_infinite_precision():
+                return dirichlet_series(self._creation_function_expression * scale_factor)
+            else:
+                return dirichlet_series([scale_factor * self._coeffs[i]
+                                     for i in range(len(self._coeffs))])
 
     def __pow__(self, n):
         """
         Take any integer power of the current Dirichlet series.
 
-        EXAMPLES:
-            sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: D2 = dirichlet_series(zeta(s), precision=8); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(8^(-s))
             sage: D2^2
-            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + 4/(8^s) + O(9^(-s))
+            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + O(8^(-s))
             sage: D2^5
-            1 + 5/(2^s) + 5/(3^s) + 15/(4^s) + 5/(5^s) + 25/(6^s) + 5/(7^s) + 35/(8^s) + O(9^(-s))
+            1 + 5/(2^s) + 5/(3^s) + 15/(4^s) + 5/(5^s) + 25/(6^s) + 5/(7^s) + O(8^(-s))
             sage: D2^0
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
+            1 + O(8^(-s))
             sage: D2^(-1)
-            1 + -1/(2^s) + -1/(3^s) + 0/(4^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + 0/(8^s) + O(9^(-s))
+            1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(8^(-s))
 
         """
-        R = self.base_ring()
-        Identity_series = DirichletSeries(R, "identity", self.precision(), is_exact_flag=True)
-        
-        ## SANITY CHECK: Check that n is an integer
         if not n in ZZ:
             raise TypeError, "The power must be an integer!"
-
-        ## Identity (n=0)
-        if n == 0:
-            return Identity_series
-        
-        ## Use powers of self (n>0)
-        elif n > 0:
-            tmp_new_series = self
-            for i in range(n-1):
-                tmp_new_series = tmp_new_series * self  
-
-        ## Use powers of the inverse (n<0)
-        elif n < 0:
-            inv_series = self.inverse()
-            tmp_new_series = inv_series
-            for i in range(abs(n)-1):
-                tmp_new_series = tmp_new_series * inv_series  
-                
-
-        ## Return the series
-        return tmp_new_series
-
-        ## TO DO: Use binary to break the powers down to minimize the number of operations!
-
-
-
+        if self.has_infinite_precision():
+            if n == 0:
+                return dirichlet_series(1,
+                                    precision=self._precision,
+                                    base_ring=self._base_ring)
+            else:
+                return dirichlet_series(self._creation_function_expression ** n,
+                                    precision=self._precision,
+                                    base_ring=self._base_ring)
+        else:
+            if n == 0:
+                return dirichlet_series([1] + [0]*(len(self._coeffs)-1))
+            elif n > 0:
+                tmp_new_series = self
+                for i in range(n-1):
+                    tmp_new_series = tmp_new_series * self
+            elif n < 0:
+                inv_series = self.inverse()
+                tmp_new_series = inv_series
+                for i in range(abs(n)-1):
+                    tmp_new_series = tmp_new_series * inv_series
+            return tmp_new_series
 
     def inverse(self):
         """
         Compute the inverse Dirichlet series under Dirichlet multiplication.
 
-        sage: D2 = DirichletSeries(ZZ, "zeta", 8); D2
-        1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + O(9^(-s))
-        sage: 
-        sage: 
-        sage: D2.inverse()
-        1 + -1/(2^s) + -1/(3^s) + 0/(4^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + 0/(8^s) + O(9^(-s))
-        sage: D2 * D2.inverse()
-        1 + 0/(2^s) + 0/(3^s) + 0/(4^s) + 0/(5^s) + 0/(6^s) + 0/(7^s) + 0/(8^s) + O(9^(-s))
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: D2 = dirichlet_series(zeta(s), precision=8); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(8^(-s))
+            sage: D2.inverse()
+            1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(8^(-s))
+            sage: D2 * D2.inverse()
+            1 + O(8^(-s))
         """
+        from sage.rings.arith import divisors
         R = self.base_ring()
 
-        ## Check if the first coefficient is invertible in R
-        a1 = self[1]
-        a1_inv = a1^(-1)
-        if not a1_inv in R:
-            raise RuntimeError, "The leading term is not invertible in R, so the Dirichlet series is not invertible."
-        
-        extended_inv_coeff_list = ["X", a1_inv] 
-        for n in range(2, self.precision() + 1):
-            extended_inv_coeff_list.append(-a1_inv * sum([self[n/d] * extended_inv_coeff_list[d]  for d in divisors(n)[:-1]]))
-#        print "extended_inv_coeff_list = " + str(extended_inv_coeff_list)
+        if self.has_infinite_precision():
+            return self**(-1)
+        else:
+            ## Check if the first coefficient is invertible in R
+            a1 = self._coeffs[0]
+            a1_inv = a1**(-1)
+            if not a1_inv in R:
+                raise RuntimeError, "The leading term is not invertible in R, so the Dirichlet series is not invertible."
+            new_coeff_list = pari([1]+[0]*len(self._coeffs)).dirdiv(self.list()).sage()
+            return dirichlet_series(new_coeff_list)
 
-        return DirichletSeries(R, extended_inv_coeff_list[1:])
-
-
-
-#    def is_approx_identity(self):
-
-
-    def list_of_coefficients(self):
+    def list(self, n_prec=series_precision()):
         """
         Returns the list of coefficients of the Dirichlet series, where the zeroth coefficient is 'X'.
         """
-        return deepcopy(self.__coefficient_list)
-        
+        if self.has_infinite_precision():
+            return self.eval(n_prec)
+        else:
+            return self._coeffs
 
+    # def scale_variable_by(self, a):
+    #     """
+    #     Scale the variable s by any positive integer a >= 1.  This takes the a-th power
+    #     of all coefficient indices.
+    #     """
+    #     ## Check that a is a positive integer
+    #
+    #     ## Make the new coefficients
+    #     old_prec = self.precision()
+    #     new_prec = old_prec^a
+    #     new_coeff_list = ["X"] + [0  for i in range(1, new_prec + 1)]
+    #     for i in range(1, old_prec + 1):
+    #         new_coeff_list[i^a] = self[i]
+    #
+    #     ## Return the new Dirichlet series
+    #     R = self.base_ring()
+    #     return dirichlet_series(new_coeff_list[1:])
+    #
+    # def shift_variable_by(self, a):
+    #     """
+    #     Shift the variable s by any non-positive integer a <= 0, or by any integer if
+    #     the base ring contains QQ.  This multiplies each coefficient by the a-th power
+    #     of its index.
+    #     """
+    #     ## Perform some checks
+    #
+    #     ## Make the new coefficients
+    #     old_prec = self.precision()
+    #     new_coeff_list = [self[n] * (n^(-a)) for n in range(1, old_prec + 1)]
+    #
+    #     ## Return the new Dirichlet series
+    #     R = self.base_ring()
+    #     return dirichlet_series(new_coeff_list)
 
-    def scale_variable_by(self, a):
-        """
-        Scale the variable s by any positive integer a >= 1.  This takes the a-th power 
-        of all coefficient indices.
-        """
-        ## Check that a is a positive integer
-        
-        ## Make the new coefficients
-        old_prec = self.precision()
-        new_prec = old_prec^a
-        new_coeff_list = ["X"] + [0  for i in range(1, new_prec + 1)]
-        for i in range(1, old_prec + 1):
-            new_coeff_list[i^a] = self[i]
-
-        ## Return the new Dirichlet series
-        R = self.base_ring()
-        return DirichletSeries(R, new_coeff_list[1:], is_exact_flag=self.is_exact())
-
-        
-    def shift_variable_by(self, a):
-        """
-        Shift the variable s by any non-positive integer a <= 0, or by any integer if 
-        the base ring contains QQ.  This multiplies each coefficient by the a-th power 
-        of its index.
-        """
-        ## Perform some checks
-
-        ## Make the new coefficients
-        old_prec = self.precision()
-        new_coeff_list = [self[n] * (n^(-a)) for n in range(1, old_prec + 1)]
-
-        ## Return the new Dirichlet series
-        R = self.base_ring()
-        return DirichletSeries(R, new_coeff_list, is_exact_flag=self.is_exact())
-
-
-
-##############################################################################################################
-## Some simple constructors:
-## =========================
-
-def zeta__series(n):
-    """
-    Returns the Dirichlet series of the Riemann zeta function, with precision n.
-    """
-    return DirichletSeries(QQ, "zeta", n)
-
-
-def L__series(chi, n):
-    """
-    Returns the L-series of a quadratic Dirichlet character chi, with precision n.
-    """
-    return DirichletSeries(QQ, chi, n)
-
-
-
-
+dirichlet_series = DirichletSeries
