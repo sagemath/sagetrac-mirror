@@ -541,8 +541,8 @@ des exemples et fonctionnalités ci-dessus.
 
 .. seealso::
 
-- :ref:`linear_programming`
-- `<http://www-sop.inria.fr/members/Nathann.Cohen/tut/LP/>`_
+    - :ref:`linear_programming`
+    - `<http://www-sop.inria.fr/members/Nathann.Cohen/tut/LP/>`_
 
 Catégories
 ==========

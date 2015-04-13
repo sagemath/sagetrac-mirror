@@ -67,7 +67,6 @@ Thematic tutorial document tree
    explicit_methods_in_number_theory/index
    sws2rst
    talks
-   tutorial-programming-python
    tutorial-comprehensions
    tutorial-editing-sage-sources
    tutorial-first-exercises
