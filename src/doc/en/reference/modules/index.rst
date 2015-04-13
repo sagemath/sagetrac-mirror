@@ -30,4 +30,6 @@ Modules
 
    sage/modules/diamond_cutting
 
+   sage/modules/tutorial_free_modules
+
 .. include:: ../footer.txt

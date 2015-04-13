@@ -90,6 +90,8 @@ Monoids, representation Theory
 Combinatorics
 =============
 
+- :ref:`sage.combinat.designs`
+
 * :ref:`sage.combinat.demo_short`
 * :ref:`sage.combinat.demo`
 * :ref:`sage.combinat.tutorial`

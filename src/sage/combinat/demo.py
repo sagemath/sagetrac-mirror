@@ -1,5 +1,6 @@
 r"""
 Demonstration: Sage-Combinat
+============================
 
 ::
 

@@ -19,4 +19,4 @@ Tutorials
 
 * :ref:`tutorial-notebook-and-help`
 * :ref:`tutorial-first-exercises`
-* :ref:`sage.modules.tutorial_free-modules`
+* :ref:`sage.modules.tutorial_free_modules`
