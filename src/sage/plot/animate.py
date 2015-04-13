@@ -168,14 +168,6 @@ class Animation(SageObject):
         sage: a.show()          # optional -- ImageMagick
         sage: a[:5].show()      # optional -- ImageMagick
 
-    The :meth:`show` method takes arguments to specify the
-    delay between frames (measured in hundredths of a second, default
-    value 20) and the number of iterations (default value 0, which
-    means to iterate forever). To iterate 4 times with half a second
-    between each frame::
-
-        sage: a.show(delay=50, iterations=4) # optional -- ImageMagick
-
     An animation of drawing a parabola::
 
         sage: step = 0.1
@@ -641,7 +633,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         return display_manager.graphics_from_save(
             self.save, kwds, '.gif', OutputImageGif)
 
-    def show(self, delay=20, iterations=0):
+    def show(self):
         r"""
         Show this animation immediately.
 
@@ -650,14 +642,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         return to the command line. Be careful, calling it from within
         a loop will potentially launch a large number of external
         viewer programs.
-
-        INPUT:
-
-        -  ``delay`` -- (default: 20) delay in hundredths of a
-           second between frames
-
-        -  ``iterations`` -- integer (default: 0); number of
-           iterations of animation. If 0, loop forever.
 
         OUTPUT:
 
@@ -679,15 +663,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: a.show()       # optional -- ImageMagick
 
-        The preceding will loop the animation forever. If you want to show
-        only three iterations instead::
-
-            sage: a.show(iterations=3)    # optional -- ImageMagick
-
-        To put a half-second delay between frames::
-
-            sage: a.show(delay=50)        # optional -- ImageMagick
-
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -701,7 +676,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, delay=delay, iterations=iterations)
+        dm.display_immediately(self)
 
     def _have_ffmpeg(self):
         """
