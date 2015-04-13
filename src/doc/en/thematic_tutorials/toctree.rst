@@ -62,6 +62,10 @@ Thematic tutorial document tree
    coding_theory
    polytutorial
    sandpile
+   cython_interface
+   numerical_sage/index
+   explicit_methods_in_number_theory/index
+   sws2rst
    talks
    tutorial-programming-python
    tutorial-comprehensions
