@@ -31,7 +31,7 @@ import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
-from sage.misc.decorators import suboptions
+from sage.misc.decorators import suboptions, keyword_only
 from colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
