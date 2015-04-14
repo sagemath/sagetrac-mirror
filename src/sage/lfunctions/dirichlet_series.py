@@ -140,7 +140,7 @@ class DirichletSeries(SageObject):
             NotImplementedError: Cannot construct Dirichlet series ...
         """
         if not hasattr(base_ring, 'is_ring') or not base_ring.is_ring():
-            raise TypeError, "The base_ring argument must be a ring!"
+            raise TypeError("The base_ring argument must be a ring!")
         
         self._creation_function_expression = None
         self._var = SR.var('s')
@@ -449,7 +449,7 @@ class DirichletSeries(SageObject):
         Verify that the series is Eulerian up to the given precision, and cache the result.
         """
         # At the moment all generated series are Eulerian
-        raise self.has_infinite_precision()
+        return self.has_infinite_precision()
 
     def has_infinite_precision(self):
         """
@@ -507,7 +507,7 @@ class DirichletSeries(SageObject):
 
         """
         if self.base_ring() != other.base_ring():
-            raise NotImplementedError, "For now the base rings must be the same!  TO DO: Add ring coercion!"
+            raise NotImplementedError("For now the base rings must be the same!  TO DO: Add ring coercion!")
 
         if self.has_infinite_precision():
             self_prec = Infinity
@@ -618,7 +618,7 @@ class DirichletSeries(SageObject):
 
         """
         if not n in ZZ:
-            raise TypeError, "The power must be an integer!"
+            raise TypeError("The power must be an integer!")
         if self.has_infinite_precision():
             if n == 0:
                 return dirichlet_series(1,
@@ -666,7 +666,7 @@ class DirichletSeries(SageObject):
             a1 = self._coeffs[0]
             a1_inv = a1**(-1)
             if not a1_inv in R:
-                raise RuntimeError, "The leading term is not invertible in R, so the Dirichlet series is not invertible."
+                raise RuntimeError("The leading term is not invertible in R, so the Dirichlet series is not invertible.")
             new_coeff_list = pari([1]+[0]*len(self._coeffs)).dirdiv(self.list()).sage()
             return dirichlet_series(new_coeff_list)
 
@@ -678,39 +678,5 @@ class DirichletSeries(SageObject):
             return self.eval(n_prec)
         else:
             return self._coeffs
-
-    # def scale_variable_by(self, a):
-    #     """
-    #     Scale the variable s by any positive integer a >= 1.  This takes the a-th power
-    #     of all coefficient indices.
-    #     """
-    #     ## Check that a is a positive integer
-    #
-    #     ## Make the new coefficients
-    #     old_prec = self.precision()
-    #     new_prec = old_prec^a
-    #     new_coeff_list = ["X"] + [0  for i in range(1, new_prec + 1)]
-    #     for i in range(1, old_prec + 1):
-    #         new_coeff_list[i^a] = self[i]
-    #
-    #     ## Return the new Dirichlet series
-    #     R = self.base_ring()
-    #     return dirichlet_series(new_coeff_list[1:])
-    #
-    # def shift_variable_by(self, a):
-    #     """
-    #     Shift the variable s by any non-positive integer a <= 0, or by any integer if
-    #     the base ring contains QQ.  This multiplies each coefficient by the a-th power
-    #     of its index.
-    #     """
-    #     ## Perform some checks
-    #
-    #     ## Make the new coefficients
-    #     old_prec = self.precision()
-    #     new_coeff_list = [self[n] * (n^(-a)) for n in range(1, old_prec + 1)]
-    #
-    #     ## Return the new Dirichlet series
-    #     R = self.base_ring()
-    #     return dirichlet_series(new_coeff_list)
 
 dirichlet_series = DirichletSeries
