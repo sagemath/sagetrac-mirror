@@ -1,6 +1,38 @@
 """
 Class for manipulation of formal Dirichlet series
 =================================================
+
+        EXAMPLES::
+
+            sage: s,t = var('s,t')
+            sage: dirichlet_series(1)
+            1 + O(20^(-s))
+            sage: dirichlet_series(zeta(s))
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + 1/(8^s) + 1/(9^s) + 1/(10^s) + 1/(11^s) + 1/(12^s) + 1/(13^s) + 1/(14^s) + 1/(15^s) + 1/(16^s) + 1/(17^s) + 1/(18^s) + 1/(19^s) + O(20^(-s))
+            sage: dirichlet_series([1,0,1,0,1,0,1])
+            1 + 1/(3^s) + 1/(5^s) + 1/(7^s) + O(8^(-s))
+            sage: dirichlet_series([1,0,1,0,1,0,1], precision=4)
+            1 + 1/(3^s) + O(4^(-s))
+            sage: dirichlet_series(zeta(s-1))
+            1 + 2/(2^s) + 3/(3^s) + 4/(4^s) + 5/(5^s) + 6/(6^s) + 7/(7^s)...
+            sage: dirichlet_series(zeta(s)/(1-2^(-s)))
+            1 + 1/(3^s) + 1/(5^s) + 1/(7^s) + 1/(9^s) + ...
+            sage: dirichlet_series(dirichlet_L(4,2,s))
+            1 + -1/(3^s) + 1/(5^s) + -1/(7^s) + 1/(9^s) + -1/(11^s)...
+
+        ::
+
+            sage: D1 = dirichlet_series([1,1,1,1]);
+            sage: D1 + D1
+            2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
+            sage: D1 * D1
+            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + O(5^(-s))
+            sage: D2 = dirichlet_series(zeta(s), precision=8); D2
+            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(8^(-s))
+            sage: D2^2
+            1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + O(8^(-s))
+            sage: D2^(-1)
+            1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(8^(-s))
 """
 
 #*****************************************************************************
@@ -20,6 +52,7 @@ Class for manipulation of formal Dirichlet series
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.element import parent
 from sage.interfaces.gp import gp
 from sage.libs.pari.pari_instance import pari
 from sage.rings.infinity import Infinity
@@ -73,13 +106,14 @@ class DirichletSeries(SageObject):
 
         INPUT:
 
-            ``dirichlet_series(coeff_list, precision=b)`` -- initialize
-                    a Dirichlet series from a list of coefficients,
-                    with an absolute precision (order term) of `O(b^{-s})`
+        - ``arg`` -- a list with coefficients, or a generating function
+            as symbolic expression
 
-            ``dirichlet_series(gf, precision=b)`` -- Initialize
-                    an exact Dirichlet series from a generating function,
-                    with an output precision of ``b`` (optional)
+        - ``precision`` -- the output precision in case of a generated
+            series (default: global ``series_precision()``); equal to the
+            list length if the series is created from a list
+
+        - ``base_ring`` -- the coefficient ring
 
         The series is considered to be exact (has infinite absolute precision)
         if it is created from a generating function.
@@ -104,7 +138,7 @@ class DirichletSeries(SageObject):
         Creation from g.f. is limited to products of ``zeta(A*s+B)``,
         ``dirichlet_L(C, D, s)``, and ``(1-E^(-s+F))``, with ``A,B,C,D,E,F`` positive
         integers. This also ensures the multiplicativity of series
-        coefficients.
+        coefficients::
 
             sage: dirichlet_series(zeta(s-1))
             1 + 2/(2^s) + 3/(3^s) + 4/(4^s) + 5/(5^s) + 6/(6^s) + 7/(7^s)...
@@ -177,7 +211,7 @@ class DirichletSeries(SageObject):
                 or dirichlet_series._is_exp_expr(f, self._var)):
                 raise NotImplementedError('Cannot construct Dirichlet series from the factor {}'.format(f))
 
-    def eval(self, precision):
+    def _eval(self, precision):
         """
         Return a list with the coefficients of this series up to
         a given index (if existing).
@@ -185,11 +219,11 @@ class DirichletSeries(SageObject):
         EXAMPLES::
 
             sage: s = var('s')
-            sage: dirichlet_series(zeta(s-1)).eval(5)
+            sage: dirichlet_series(zeta(s-1))._eval(5)
             [1, 2, 3, 4, 5]
-            sage: dirichlet_series(zeta(s-2)/zeta(2*s)).eval(5)
+            sage: dirichlet_series(zeta(s-2)/zeta(2*s))._eval(5)
             [1, 4, 9, 15, 25]
-            sage: dirichlet_series(zeta(s)/(1-2^(-s))).eval(9)
+            sage: dirichlet_series(zeta(s)/(1-2^(-s)))._eval(9)
             [1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
         if not self.has_infinite_precision():
@@ -441,21 +475,47 @@ class DirichletSeries(SageObject):
     def base_ring(self):
         """
         Return the base ring of the Dirichlet series.
+
+        EXAMPLES::
+
+            sage: dirichlet_series(1).base_ring()
+            Integer Ring
         """
         return self._base_ring
-
-    def is_Eulerian(self):
-        """
-        Verify that the series is Eulerian up to the given precision, and cache the result.
-        """
-        # At the moment all generated series are Eulerian
-        return self.has_infinite_precision()
 
     def has_infinite_precision(self):
         """
         Return if the Dirichlet series was generated from a generating function.
+
+        EXAMPLES::
+
+            sage: dirichlet_series(1).has_infinite_precision()
+            True
+            sage: dirichlet_series([1]).has_infinite_precision()
+            False
         """
         return len(self._coeffs) == 0
+
+    def list(self, n_prec=series_precision()):
+        """
+        Return the list of coefficients of the Dirichlet series,
+        optionally up to a specific index (default: global
+        ``series_precision()``.
+
+        EXAMPLES::
+
+            sage: s = var('s')
+            sage: D = dirichlet_series(dirichlet_L(3,2,s))
+            sage: D.list()
+            [1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1]
+            sage: D.list(5)
+            [1, -1, 0, 1, -1]
+        """
+        if self.has_infinite_precision():
+            return self._eval(n_prec)
+        else:
+            l = min(len(self._coeffs), n_prec)
+            return self._coeffs[:l]
 
     def __repr__(self, n_max=Infinity):
         """
@@ -465,7 +525,7 @@ class DirichletSeries(SageObject):
         out_str = ""
         n_prec = min(self._precision, n_max+1) - 1
         if self.has_infinite_precision():
-            coeffs = self.eval(n_prec)
+            coeffs = self._eval(n_prec)
         else:
             coeffs = self._coeffs
             n_prec = min(n_prec, len(self._coeffs))
@@ -505,9 +565,18 @@ class DirichletSeries(SageObject):
             sage: D1 + D2
             2 + 2/(2^s) + 2/(3^s) + 2/(4^s) + O(5^(-s))
 
+        TESTS::
+
+            sage: D1 = dirichlet_series([1,1,1])
+            sage: D1 + 1
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot add DirichletSeries to 1
         """
+        if not isinstance(other, DirichletSeries):
+            raise NotImplementedError('cannot add DirichletSeries to {}'.format(other))
         if self.base_ring() != other.base_ring():
-            raise NotImplementedError("For now the base rings must be the same!  TO DO: Add ring coercion!")
+            raise NotImplementedError("addition of DirichletSeries having different base rings")
 
         if self.has_infinite_precision():
             self_prec = Infinity
@@ -523,11 +592,11 @@ class DirichletSeries(SageObject):
             prec = min(self._precision, other._precision)
 
         if self.has_infinite_precision():
-            self_list = self.eval(prec)
+            self_list = self._eval(prec)
         else:
             self_list = self._coeffs
         if other.has_infinite_precision():
-            other_list = other.eval(prec)
+            other_list = other._eval(prec)
         else:
             other_list = other._coeffs
 
@@ -552,7 +621,7 @@ class DirichletSeries(SageObject):
             0 + O(5^(-s))
 
         """
-        return self + (other * (-1))
+        return self + (other * ZZ(-1))
 
     def __mul__(self, other):
         """
@@ -561,11 +630,6 @@ class DirichletSeries(SageObject):
         EXAMPLES::
 
             sage: s = var('s')
-            sage: D1 = dirichlet_series([1,1,1,1]);
-            sage: D1 = dirichlet_series([1,1,1,1]); D1
-            1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
-            sage: D1 * 3
-            3 + 3/(2^s) + 3/(3^s) + 3/(4^s) + O(5^(-s))
             sage: D1 = dirichlet_series([1,1,1,1]); D1
             1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + O(5^(-s))
             sage: D1 * D1
@@ -575,12 +639,19 @@ class DirichletSeries(SageObject):
             sage: D22 = D2 * D2; D22
             1 + 2/(2^s) + 2/(3^s) + 3/(4^s) + 2/(5^s) + 4/(6^s) + 2/(7^s) + O(8^(-s))
 
+        TESTS::
+
+            sage: D1 = dirichlet_series([1,1,1])
+            sage: D1 * 0.5
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot multiply DirichletSeries with 0.500000000000000
         """
-        from sage.rings.arith import divisors
-        R = self.base_ring()
-        try:
-            _ = RR(other)
-        except TypeError:
+        if not isinstance(other, DirichletSeries) and not parent(other) is self.base_ring():
+            raise ValueError('cannot multiply DirichletSeries with {}'.format(other))
+        if isinstance(other, DirichletSeries):
+            if self.base_ring() != other.base_ring():
+                raise NotImplementedError("multiplication of DirichletSeries having different base rings")
             if self.has_infinite_precision() and other.has_infinite_precision():
                 new_prec = min(self._precision, other._precision)
                 return dirichlet_series(self._creation_function_expression
@@ -617,7 +688,7 @@ class DirichletSeries(SageObject):
             1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(8^(-s))
 
         """
-        if not n in ZZ:
+        if not SR(n).is_integer():
             raise TypeError("The power must be an integer!")
         if self.has_infinite_precision():
             if n == 0:
@@ -655,6 +726,14 @@ class DirichletSeries(SageObject):
             1 + -1/(2^s) + -1/(3^s) + -1/(5^s) + 1/(6^s) + -1/(7^s) + O(8^(-s))
             sage: D2 * D2.inverse()
             1 + O(8^(-s))
+
+        TESTS::
+
+            sage: D1 = dirichlet_series([2,1,1])
+            sage: D1^(-1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: The leading term is not invertible ...
         """
         from sage.rings.arith import divisors
         R = self.base_ring()
@@ -666,17 +745,8 @@ class DirichletSeries(SageObject):
             a1 = self._coeffs[0]
             a1_inv = a1**(-1)
             if not a1_inv in R:
-                raise RuntimeError("The leading term is not invertible in R, so the Dirichlet series is not invertible.")
+                raise RuntimeError("The leading term is not invertible in the base ring, so the Dirichlet series is not invertible.")
             new_coeff_list = pari([1]+[0]*len(self._coeffs)).dirdiv(self.list()).sage()
             return dirichlet_series(new_coeff_list)
-
-    def list(self, n_prec=series_precision()):
-        """
-        Returns the list of coefficients of the Dirichlet series, where the zeroth coefficient is 'X'.
-        """
-        if self.has_infinite_precision():
-            return self.eval(n_prec)
-        else:
-            return self._coeffs
 
 dirichlet_series = DirichletSeries

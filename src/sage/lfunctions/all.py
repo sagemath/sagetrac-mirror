@@ -1,4 +1,4 @@
-from dirichlet_series import dirichlet_L, dirichlet_series
+from dirichlet_series import dirichlet_L, dirichlet_series, DirichletSeries
 
 from dokchitser import Dokchitser
 
