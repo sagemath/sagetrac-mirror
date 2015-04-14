@@ -232,8 +232,16 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
     This also works for complex roots of unity::
 
-        sage: q_binomial(6,1,I)
-        1 + I
+        sage: q_binomial(6, 1, QQbar(I))
+        I + 1
+
+    Note that the following used to return ``1 + I`` thanks to bugs elsewhere
+    in Sage and now yields a suboptimal (yet correct) result::
+
+        sage: q_binomial(6, 1, I)
+        Mod(y + 1, y^2 + 1)
+
+    (see :trac:`14982` as well as the commit adding this line for details).
 
     Check that the algorithm does not matter::
 
