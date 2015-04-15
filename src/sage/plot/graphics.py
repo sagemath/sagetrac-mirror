@@ -3443,6 +3443,17 @@ class GraphicsArray(SageObject):
 
             sage: graphics_array([]).save(F)
             sage: graphics_array([[]]).save(F)
+
+        Calls without a filename or with a positional axes argument
+        have been working in the past, but are now deprecated::
+
+            sage: G.save(None, 50, 5, False)
+            doctest:...: DeprecationWarning: Please pass pass axes as keyword argument to save()
+            See http://trac.sagemath.org/16607 for details.
+            doctest:...: DeprecationWarning: the filename argument is now mandatory
+            See http://trac.sagemath.org/17234 for details.
+            doctest:...: DeprecationWarning: use tmp_filename instead
+            See http://trac.sagemath.org/17234 for details.
         """
         if figsize is not None:
             self._set_figsize_(figsize)
@@ -3494,7 +3505,6 @@ class GraphicsArray(SageObject):
         """
         self.save(filename, *args, **kwds)
 
-    @keyword_only(deprecation=16607, extra="filename,dpi,figsize,axes")
     def show(self, **kwds):
         r"""
         Show this graphics array immediately.
