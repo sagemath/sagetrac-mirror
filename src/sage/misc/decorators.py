@@ -846,7 +846,7 @@ def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
         sage: @keyword_only(deprecation=1111)
         ....: def f(foo, bar=None): print((foo, bar))
         sage: f(1,2)
-        doctest:...: DeprecationWarning: Please pass pass bar as keyword argument to f()
+        doctest:...: DeprecationWarning: Please pass bar as keyword argument to f()
         See http://trac.sagemath.org/1111 for details.
         (1, 2)
 
@@ -858,7 +858,7 @@ def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
         sage: @keyword_only(deprecation=2222, extra="bar,baz")
         ....: def f(foo, **kwds): print((foo, sorted(kwds.items())))
         sage: f(1, 2, huff=5)
-        doctest:...: DeprecationWarning: Please pass pass bar as keyword argument to f()
+        doctest:...: DeprecationWarning: Please pass bar as keyword argument to f()
         See http://trac.sagemath.org/2222 for details.
         (1, [('bar', 2), ('huff', 5)])
 
@@ -901,7 +901,7 @@ def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
                 raise TypeError(msg)
             # In the case of deprecation, maintain backwards compatibility
             import sage.misc.superseded
-            msg = ('Please pass pass {} as keyword argument to {}()'
+            msg = ('Please pass {} as keyword argument to {}()'
                    .format(', '.join(ks), wrapped.__name__))
             sage.misc.superseded.deprecation(deprecation, msg)
             args = args[:positional]

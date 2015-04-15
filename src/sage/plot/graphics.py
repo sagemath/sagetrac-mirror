@@ -3450,7 +3450,7 @@ class GraphicsArray(SageObject):
         have been working in the past, but are now deprecated::
 
             sage: G.save(None, 50, 5, False)
-            doctest:...: DeprecationWarning: Please pass pass axes as keyword argument to save()
+            doctest:...: DeprecationWarning: Please pass axes as keyword argument to save()
             See http://trac.sagemath.org/16607 for details.
             doctest:...: DeprecationWarning: the filename argument is now mandatory
             See http://trac.sagemath.org/17234 for details.
