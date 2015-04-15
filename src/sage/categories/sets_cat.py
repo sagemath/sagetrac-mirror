@@ -1387,6 +1387,10 @@ class Sets(Category_singleton):
               :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
               is used the determine category.
 
+            - ``extra_category`` -- (default: ``None``) this category is
+              added to the cartesian product additionally to the
+              categories obtained from the parents.
+
             OUTPUT:
 
             The cartesian product.
@@ -1421,12 +1425,18 @@ class Sets(Category_singleton):
                 TypeError: unknown parameters: blub
             """
             category = kwargs.pop('category', None)
+            extra_category = kwargs.pop('extra_category', None)
             if kwargs:
                 raise TypeError('unknown parameters: %s' %
                                 ', '.join(str(k) for k in kwargs.iterkeys()))
-            return parents[0].CartesianProduct(
-                parents,
-                category=category or cartesian_product.category_from_parents(parents))
+
+            category = category or cartesian_product.category_from_parents(parents)
+            if extra_category:
+                if isinstance(category, (list, tuple)):
+                    category = tuple(category) + (extra_category,)
+                else:
+                    category = category & extra_category
+            return parents[0].CartesianProduct(parents, category=category)
 
         def algebra(self, base_ring, category = None):
             """
