@@ -10082,37 +10082,38 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: solve_diophantine(3*x==4)
+            sage: solve_diophantine(3*x == 4)
             []
-            sage: solve_diophantine(x^2-9)
+            sage: solve_diophantine(x^2 - 9)
             [-3, 3]
-            sage: solve_diophantine(x^2+y^2==25)
-            [(-4, 3), (4, -3), (0, -5), (-4, -3), (0, 5), (4, 3)]
+            sage: sorted(solve_diophantine(x^2 + y^2 == 25))
+            [(-4, -3), (-4, 3), (0, -5), (0, 5), (4, -3), (4, 3)]
 
         The function is used when ``solve()`` is called with all variables are
         assumed integer::
 
-            sage: assume(x,'integer')
-            sage: assume(y,'integer')
-            sage: solve(x*y==1,(x,y))
-            [(1, 1), (-1, -1)]
+            sage: assume(x, 'integer')
+            sage: assume(y, 'integer')
+            sage: sorted(solve(x*y == 1, (x,y)))
+            [(-1, -1), (1, 1)]
 
         You can also pick specific variables, and get the solution as
         a dictionary::
 
-            sage: solve_diophantine(x*y==10, x)
+            sage: solve_diophantine(x*y == 10, x)
             [-10, -5, -2, -1, 1, 2, 5, 10]
-            sage: solve_diophantine(x*y-y==10, (x,y))
-            [(6, 2), (2, 10), (3, 5), (0, -10), (-1, -5), (11, 1), (-4, -2), (-9, -1)]
-            sage: solve_diophantine(x*y-y==10, solution_dict=True)
-            [{x: 6, y: 2},
-             {x: 2, y: 10},
-             {x: 3, y: 5},
-             {x: 0, y: -10},
-             {x: -1, y: -5},
-             {x: 11, y: 1},
-             {x: -4, y: -2},
-             {x: -9, y: -1}]
+            sage: sorted(solve_diophantine(x*y - y == 10, (x,y)))
+            [(-9, -1), (-4, -2), (-1, -5), (0, -10), (2, 10), (3, 5), (6, 2), (11, 1)]
+            sage: res = solve_diophantine(x*y - y == 10, solution_dict=True)
+            sage: res.sort(); res
+            [{y: -1, x: -9},
+             {y: -2, x: -4},
+             {y: -5, x: -1},
+             {y: -10, x: 0},
+             {y: 10, x: 2},
+             {y: 5, x: 3},
+             {y: 2, x: 6},
+             {y: 1, x: 11}]
 
         If the solution is parametrized the parameter(s) are not defined,
         but you can substitute them with specific integer values::
@@ -10122,14 +10123,14 @@ cdef class Expression(CommutativeRingElement):
             (t, t^2)
             sage: print [(sol[0].subs(t=t),sol[1].subs(t=t)) for t in range(-3,4)]
             [(-3, 9), (-2, 4), (-1, 1), (0, 0), (1, 1), (2, 4), (3, 9)]
-            sage: sol=solve_diophantine(x^2+y^2==z^2); sol
+            sage: sol = solve_diophantine(x^2 + y^2 == z^2); sol
             (2*p*q, p^2 - q^2, p^2 + q^2)
             sage: print [(sol[0].subs(p=p,q=q),sol[1].subs(p=p,q=q),sol[2].subs(p=p,q=q)) for p in range(1,4) for q in range(1,4)]
             [(2, 0, 2), (4, -3, 5), (6, -8, 10), (4, 3, 5), (8, 0, 8), (12, -5, 13), (6, 8, 10), (12, 5, 13), (18, 0, 18)]
 
         Solve Pell equations::
 
-            sage: sol=solve_diophantine(x^2-2*y^2==1); sol
+            sage: sol = solve_diophantine(x^2 - 2*y^2 == 1); sol
             (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
              3/4*sqrt(2)*(2*sqrt(2) + 3)^t - 3/4*sqrt(2)*(-2*sqrt(2) + 3)^t + (2*sqrt(2) + 3)^t + (-2*sqrt(2) + 3)^t)
             sage: print [(sol[0].subs(t=t).simplify_full(),sol[1].subs(t=t).simplify_full()) for t in range(-1,5)]
@@ -10137,7 +10138,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS::
 
-            sage: solve_diophantine(x^2-y,x,y)
+            sage: solve_diophantine(x^2 - y, x, y)
             Traceback (most recent call last):
             ...
             AttributeError: Please use a tuple or list for several variables.
