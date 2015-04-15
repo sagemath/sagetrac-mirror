@@ -72,7 +72,6 @@ all-sage: \
      $(INST)/$(MATHJAX) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
-     $(INST)/$(MISTUNE) \
      $(INST)/$(MPC) \
      $(INST)/$(MPFI) \
      $(INST)/$(MPFR) \
