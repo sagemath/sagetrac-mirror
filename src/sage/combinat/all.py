@@ -196,3 +196,5 @@ lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 # combinatorial expressions
 lazy_import('sage.combinat.combinatorial_expression',
             ['CombinatorialExpressionRing'])
+lazy_import('sage.combinat.combinatorial_expression',
+            ['comb_expressions'])

@@ -61,6 +61,8 @@ import sage
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 from itertools import izip
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from itertools import product
 from sage.combinat.composition import Compositions
 from sage.combinat.permutation import Permutations
 from sage.misc.flatten import flatten
@@ -1411,7 +1413,14 @@ class GenericExpression(
 
         EXAMPLES::
 
-            sage: TODO  # not tested -- add a lot of examples here
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing()
+            sage: GenericExpression(R)._iter_elements_({})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Iteration for an instance of
+            GenericExpression is not implemented.
         """
         return self._iter_elements_(self._preprocess_size_(size))
 
@@ -1441,11 +1450,34 @@ class GenericExpression(
             NotImplementedError: Iteration for an instance of
             GenericExpression is not implemented.
         """
-        return self._operands_[0].iter_elements(size);
-
+        raise NotImplementedError('Iteration for an instance of %s is '
+                                  'not implemented.' % (self._name_(),))
 
     #------------------------------------------------------------------------
 
+    def get_size_domain(self):
+        """
+        Returns the domain of the size of the expression.
+        
+        INPUT:
+            
+        Nothing
+
+        OUTPUT:
+        
+        The size-domain
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing()
+            sage: GenericExpression(R).get_size_domain()
+            Non negative integers
+            
+        """
+        
+        return NonNegativeIntegers()
 
     def random_element(self, size):
         """
@@ -1521,7 +1553,65 @@ class UnlabeledExpression(
         :class:`GenericFunction`,
         :class:`GenericSingleton`.
     """
-    pass
+    def _iter_elements_(self, size):
+        """
+        Return the actual iterator.
+
+        INPUT:
+
+        - ``size`` -- a dictionary.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import CombinatorialExpressionRingForRootedTrees
+            sage: from sage.combinat.combinatorial_expression import UnlabeledCartesianProduct
+            sage: R = CombinatorialExpressionRingForRootedTrees()
+            sage: e = R(sage.symbolic.ring.SR('1'), empty=True, unlabeled=True)
+            sage: z = R(sage.symbolic.ring.SR('z'), unlabeled=True)
+            sage: T = R(sage.symbolic.ring.SR('T'), unlabeled=True, function=True)
+            sage: T.assign(e + UnlabeledCartesianProduct(R, z, T, T));
+            sage: T
+            T = 1 + z*T*T
+            sage: len([b for b in T.iter_elements(3)])
+            5
+            sage: len([b for b in T.iter_elements(5)])
+            42
+            sage: [b for b in T.iter_elements(5)][15].adjacency_matrix()
+            [0 1 0 0 0 0 0 0 1 0 0]
+            [1 0 1 0 0 0 0 1 0 0 0]
+            [0 1 0 1 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0 0 0 0]
+            [0 0 1 0 0 1 1 0 0 0 0]
+            [0 0 0 0 1 0 0 0 0 0 0]
+            [0 0 0 0 1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0 0 0 0]
+            [1 0 0 0 0 0 0 0 0 1 1]
+            [0 0 0 0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0]
+             
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import CombinatorialExpressionRingForRootedTrees
+            sage: R = CombinatorialExpressionRingForRootedTrees()
+            sage: T = R(SR('T'), unlabeled=True, function=True)
+            sage: z = R(SR('z'), unlabeled=True)
+            sage: T.assign(z)
+            sage: [a for a in T.iter_elements(1)]
+            [Graph on 1 vertex]
+            sage: [a for a in T.iter_elements(2)]
+            []
+            sage: T.assign(z+z)
+            sage: [a for a in T.iter_elements(1)]
+            [Graph on 1 vertex, Graph on 1 vertex]
+            sage: e = R(SR('e'), unlabeled=True, empty=True)
+            sage: T.assign(e+z*z)
+
+        """
+        return self._operands_[0].iter_elements(size)
 
 
 # ----------------------------------------------------------------------------
@@ -1930,6 +2020,30 @@ class GenericSingleton(GenericExpression):
         """
         return self._size_
 
+    def get_size_domain(self):
+        """
+        Returns the size-domain of the singleton. Usualy the size of the 
+        singleton
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        The size-domain
+
+        EXAMPLES::
+            sage: R = CombinatorialExpressionRing()
+            sage: z = R(SR('z'))
+            sage: z.get_size_domain()
+            set([1])
+            sage: e = R(SR('1'), empty=True)
+            sage: e.get_size_domain()
+            set([0])
+
+        """
+        return {self.size()}
 
     #------------------------------------------------------------------------
 
@@ -2069,9 +2183,40 @@ class GenericSingleton(GenericExpression):
         return self.is_singleton() and self.size() == Integer(0)
 
     def _iter_elements_(self, size):
-        if size.values()[0] != self.size():
-            return
-        yield self.parent().build_element_step(self)
+        """
+        Returns an Iterator over this singleton.
+
+        INPUT:
+        
+        - ``size`` -- a dictionary.
+
+        OUTPUT:
+
+        An iterator.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import CombinatorialExpressionRingForRootedTrees
+            sage: R = CombinatorialExpressionRingForRootedTrees()
+            sage: e = R(sage.symbolic.ring.SR('1'), empty=True)
+            sage: z = R(sage.symbolic.ring.SR('1'))
+            sage: type(e._iter_elements_({e:0}))
+            <type 'generator'>
+            sage: for a in e._iter_elements_({e:0}): a
+            Graph on 1 vertex
+            sage: for a in z._iter_elements_({z:1}): a
+            Graph on 1 vertex
+            sage: len([a for a in e._iter_elements_({z:1})])
+            0
+            sage: for a in e._iter_elements_({z:0}): a
+            Graph on 1 vertex
+        """
+       
+        if (size.has_key(self) and size[self] == self.size()) or (
+           self.is_empty_singleton() and all(v == 0 for v in size.itervalues())): 
+            yield self.parent().build_element_step(self)
+        return
+        
       
 
 # ----------------------------------------------------------------------------
@@ -2452,9 +2597,43 @@ class UnlabeledDisjointUnion(
         1 + z
     """
     def _iter_elements_(self, size):
+        """
+        Returns an Iterator over this UnlabeledDisjointUnion.
+
+        INPUT:
+        
+        - ``size`` -- a dictionary.
+
+        OUTPUT:
+
+        An iterator.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing()
+            sage: z = R(SR('z'))
+            sage: e = R(SR('e'), empty=True)
+            sage: from sage.combinat.combinatorial_expression import UnlabeledDisjointUnion
+            sage: D = UnlabeledDisjointUnion(R, z, z)
+            sage: [a for a in D._iter_elements_({z:1})]
+            [(z,), (z,)]
+            sage: [a for a in D._iter_elements_({z:0})]
+            []
+            sage: D = UnlabeledDisjointUnion(R, e, z) 
+            sage: [a for a in D._iter_elements_({z:1})]
+            [(z,)]
+            sage: [a for a in D._iter_elements_({z:0})]
+            [(e,)]
+            sage: b = R(SR('b'), size=2)
+            sage: D = UnlabeledDisjointUnion(R, z, b)
+            sage: [a for a in D._iter_elements_({z:1})]
+            [(z,)]
+            sage: [a for a in D._iter_elements_({b:2})]
+            [(b,)]
+        """
         for op in self.iter_operands():
-	    for t in op.iter_elements(size):
-	        yield t
+            for t in op.iter_elements(size):
+                yield t
 
 
 # ----------------------------------------------------------------------------
@@ -2640,21 +2819,80 @@ class UnlabeledCartesianProduct(
         1*z
     """
     def _iter_elements_(self, size):
-      
-        def op_it(arr):
-            iter = None
-            num = 0
-            for op in self.iter_operands():
-                if iter == None:
-                    iter = op.iter_elements(arr[0])
-                else:
-                    iter = product(iter,op.iter_elements(arr[num]))
-                num = num + 1
-            return iter
+        """
+        Returns an Iterator over this UnlabeledCartesianProduct.
+
+        INPUT:
         
-        for arr in Compositions_0(size.values()[0], len(self._operands_)):
+        - ``size`` -- a dictionary.
+
+        OUTPUT:
+
+        An iterator.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing()
+            sage: z = R(SR('z'), unlabeled=True)
+            sage: e = R(SR('e'), empty=True)
+            sage: from sage.combinat.combinatorial_expression import UnlabeledCartesianProduct
+            sage: from sage.combinat.combinatorial_expression import UnlabeledDisjointUnion
+            sage: D = UnlabeledCartesianProduct(R, z, z)
+            sage: [a for a in D._iter_elements_({z:2})]
+            [(z, z)]
+            sage: [a for a in D._iter_elements_({z:0})]
+            []
+            sage: T = R(SR('T'), function=True, unlabeled=True)
+            sage: D = UnlabeledDisjointUnion(R, e, UnlabeledCartesianProduct(R, z, T))
+            sage: T.assign(D)
+            sage: [a for a in D._iter_elements_({z:2})]
+            [(z, z, e)]
+            sage: [a for a in D._iter_elements_({z:3})]
+            [(z, z, z, e)]
+            sage: D = UnlabeledDisjointUnion(R, e, UnlabeledCartesianProduct(R, z, T, T))
+            sage: T.assign(D)
+            sage: [a for a in D._iter_elements_({z:2})]
+            [(z, z, e, e, e), (z, e, z, e, e)]
+            sage: [a for a in D._iter_elements_({z:4})]
+            [(z, z, z, z, e, e, e, e, e),
+             (z, z, z, e, z, e, e, e, e),
+             (z, z, z, e, e, z, e, e, e),
+             (z, z, e, z, z, e, e, e, e),
+             (z, z, e, z, e, z, e, e, e),
+             (z, z, z, e, e, e, z, e, e),
+             (z, z, e, z, e, e, z, e, e),
+             (z, z, e, e, z, z, e, e, e),
+             (z, z, e, e, z, e, z, e, e),
+             (z, e, z, z, z, e, e, e, e),
+             (z, e, z, z, e, z, e, e, e),
+             (z, e, z, z, e, e, z, e, e),
+             (z, e, z, e, z, z, e, e, e),
+             (z, e, z, e, z, e, z, e, e)]
+        """
+
+        def op_it(arr):
+            iter = False
+            num = 0
+            for i in arr:
+                if not iter:
+                    iter = list(self.iter_operands())[num].iter_elements(i)
+                else:
+                    iter = product(iter, list(self.iter_operands())[num].iter_elements(i))
+                num = num+1
+            return iter
+        #Set inner and outer constraint
+        out = []
+        inn = []
+        for o in self.iter_operands():
+            s = o.get_size_domain()
+            if (not s == NonNegativeIntegers()):
+                out.append(max(s))
+                inn.append(min(s))
+            else:
+                out.append(size.values()[0])
+                inn.append(0)
+        for arr in Compositions(size.values()[0], inner=inn, outer=out):
             for opp in op_it(arr):
-                print 'size %s arr %s' %(size, arr)
                 yield self.parent().build_element_step(*flatten(opp))
 # ----------------------------------------------------------------------------
 
@@ -3386,8 +3624,6 @@ class CombinatorialExpressionRingForRootedTrees(CombinatorialExpressionRing):
                 raise ValueError('%s is not a singleton, therefore cannot create '
                                  'a vertex out of it.' % (root,))
         G = sage.graphs.graph.Graph()
-        if (type(root) is not sage.graphs.graph.Graph) and root.is_empty_singleton() and (len(parts) == 1):
-            return G
         root_label = Integer(0)
         G.add_vertex(root_label)
 
@@ -3535,53 +3771,35 @@ class Operators(sage.structure.sage_object.SageObject):
                                     *operands,
                                     parent=parent)
 
+class CombinatorialExpressionsGenerator(object):
+    """
+    A class consisting of constructors for several common Combinatorial Expressions.
+    """
+    def PlaneBinaryTreeExpression(self):
+        """
+        Returns the Combinatorial Expression for a unlabeled PlaneBinaryTreeExpression
 
-# ----------------------------------------------------------------------------      
-#Just a few test-structures
-def PlaneBTreeStruct():
-    R = CombinatorialExpressionRingForRootedTrees()
-    e = R(sage.symbolic.ring.SR('1'), empty=True, unlabeled=True)
-    z = R(sage.symbolic.ring.SR('z'), unlabeled=True)
-    T = R(sage.symbolic.ring.SR('T'), unlabeled=True, function=True)
-    T.assign(z + UnlabeledCartesianProduct(R, z,T,T));
-    return T
+        INPUT:
+        
+        Nothing
 
-def Plane3aryTreeStruct():
-    R = CombinatorialExpressionRingForRootedTrees()
-    e = R(sage.symbolic.ring.SR('1'), empty=True, unlabeled=True)
-    z = R(sage.symbolic.ring.SR('z'), unlabeled=True)
-    T = R(sage.symbolic.ring.SR('T'), unlabeled=True, function=True)
-    T.assign(z + UnlabeledCartesianProduct(R, z,T,T,T));
-    return T
+        OUTPUT:
 
-def IrgendwasStruct():
-    R = CombinatorialExpressionRingForRootedTrees()
-    e = R(sage.symbolic.ring.SR('1'), empty=True, unlabeled=True)
-    z = R(sage.symbolic.ring.SR('z'), unlabeled=True)
-    T = R(sage.symbolic.ring.SR('T'), unlabeled=True, function=True)
-    T.assign(e + UnlabeledCartesianProduct(R, z,T));
-    return T
+        The expression.
+
+        EXAMPLES::
+
+            sage: T = comb_expressions.PlaneBinaryTreeExpression()
+            sage: T
+            T = 1 + z*T*T
+        """
+
+        R = CombinatorialExpressionRingForRootedTrees()
+        e = R(sage.symbolic.ring.SR('1'), empty=True, unlabeled=True)
+        z = R(sage.symbolic.ring.SR('z'), unlabeled=True)
+        T = R(sage.symbolic.ring.SR('T'), unlabeled=True, function=True)
+        T.assign(e +  UnlabeledCartesianProduct(R,z,T,T));
+        return T
 #*****************************************************************************
-#Iterator over all Compositions of num with length length, inkluding these
-#with 0
-def Compositions_0(num, length):
-    for a in Compositions(num, max_length=length):
-        if len(a) < length:
-            for b in Permutations(flatten([list(a), 0]), length):
-                yield b
-        else:
-            yield a           
 
-#Builds the product of a few iterables
-def product(*iterables, **kwargs):
-    if len(iterables) == 0:
-        yield ()
-    else:
-        it = iterables[0]
-        for item in it() if callable(it) else iter(it):
-            for items in product(*iterables[1:]):
-                yield (item, ) + items
-
-
-
-
+comb_expressions = CombinatorialExpressionsGenerator()
