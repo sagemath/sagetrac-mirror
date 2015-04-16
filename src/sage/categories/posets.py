@@ -762,8 +762,25 @@ class Posets(Category):
         class ParentMethods:
 
             def __init_extra__(self):
+                r"""
+                Do some extra init, in particular add ``__le__`` to the
+                elements.
+
+                .. NOTE::
+
+                    This can be deleted once :trac:`10130` is fixed and
+                    provides these methods automatically. See also the
+                    comments in the source file.
+                """
                 self.element_class.__le__ = \
                     lambda left, right: left.parent().le(left, right)
+                self.element_class.__ge__ = \
+                    lambda left, right: right.__le__(left)
+                self.element_class.__lt__ = \
+                    lambda left, right: left.__le__(right) and not left == right
+                self.element_class.__gt__ = \
+                    lambda left, right: right.__le__(left) and not left == right
+
 
             def le(self, left, right):
                 r"""
@@ -816,12 +833,6 @@ class Posets(Category):
                     if S.le(r, l):
                         return False
                 return True  # equal
-
-
-        ## the following does not work; using __init_extra__ (see above)
-        #class ElementMethods:
-        #    def __le__(self, other):
-        #        return self.parent().le(self, other)
 
 
     class CompareComponentsCartesianProduct(Category):
@@ -883,8 +894,25 @@ class Posets(Category):
         class ParentMethods:
 
             def __init_extra__(self):
+                r"""
+                Do some extra init, in particular add ``__le__`` to the
+                elements.
+
+                .. NOTE::
+
+                    This can be deleted once :trac:`10130` is fixed and
+                    provides these methods automatically. See also the
+                    comments in the source file.
+                """
                 self.element_class.__le__ = \
                     lambda left, right: left.parent().le(left, right)
+                self.element_class.__ge__ = \
+                    lambda left, right: right.__le__(left)
+                self.element_class.__lt__ = \
+                    lambda left, right: left.__le__(right) and not left == right
+                self.element_class.__gt__ = \
+                    lambda left, right: right.__le__(left) and not left == right
+
 
             def le(self, left, right):
                 r"""
@@ -935,9 +963,3 @@ class Posets(Category):
                     S.le(l, r)
                     for l, r, S in
                     zip(left.value, right.value, self.cartesian_factors()))
-
-
-        ## the following does not work; using __init_extra__ (see above)
-        #class ElementMethods:
-        #    def __le__(self, other):
-        #        return self.parent().le(self, other)
