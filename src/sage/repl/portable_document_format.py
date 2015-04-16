@@ -20,7 +20,6 @@ or bitmap graphics.
 
 
 import os
-import warnings
 from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.buffer import OutputBuffer
 from sage.misc.cachefunc import cached_method
@@ -159,6 +158,7 @@ class PortableDocumentFormat(SageObject):
             sage: pdf._rich_repr_(dm)
             OutputImagePdf container
         """
+        dpi = kwds.get('dpi', 150)
         if display_manager.preferences.graphics == 'disable':
             return
         OutputImagePdf = display_manager.types.OutputImagePdf
@@ -170,15 +170,40 @@ class PortableDocumentFormat(SageObject):
         #    try:
         #        svg = self.to_svg()
         #    except ToolMissingException as exc:
-        #        warnings.warn(exc.message)
+        #        exc.convert_to_warning()
         #    return OutputImageSvg(svg)
         OutputImagePng = display_manager.types.OutputImagePng
         if OutputImagePng in display_manager.supported_output():
             try:
-                png = self.to_png(dpi=150)
+                png = self.to_png(dpi=dpi)
             except ToolMissingException as exc:
-                warnings.warn(exc.message)
+                exc.convert_to_warning()
             return OutputImagePng(png)
+
+    def show(self, dpi=150):
+        """
+        Show this document immediately.
+
+        This method attempts to display the document immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
+
+        INPUT:
+
+        - ``dpi`` -- integer. The resolution at which to raster the
+          pdf file if necessary.
+
+        EXAMPLES::
+
+            sage: from sage.repl.portable_document_format import PortableDocumentFormat
+            sage: pdf = PortableDocumentFormat._example()
+            sage: pdf.show(dpi=75)
+        """
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, dpi=dpi)
 
     def trim(self):
         """

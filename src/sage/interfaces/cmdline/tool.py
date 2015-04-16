@@ -65,7 +65,26 @@ class ToolMissingException(Exception):
             msg.append('* sudo apt-get install {0}'.format(deb))
         super(ToolMissingException, self).__init__('\n'.join(msg))
         
+    def convert_to_warning(self):
+        """
+        Display warning with the same exception message
 
+        EXAMPLES::
+
+            sage: from sage.interfaces.cmdline.tool import ToolMissingException
+            sage: from sage.interfaces.cmdline.posix import cat
+            sage: exc = ToolMissingException(cat)
+            sage: exc.convert_to_warning()
+            doctest:...: UserWarning: One or more of the following required tools is not installed:
+            * cat: Part of GNU coreutils
+            <BLANKLINE>
+            You might be able to install it with:
+            * sudo ...
+        """
+        import warnings
+        warnings.warn(self.message)
+    
+        
 class CalledToolError(subprocess.CalledProcessError):
 
     def __str__(self):

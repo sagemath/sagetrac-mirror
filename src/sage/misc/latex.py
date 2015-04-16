@@ -446,9 +446,14 @@ class LatexExpr(str):
         """
         return str(self)
 
-    def compile(self):
+    def compile(self, trim=True):
         """
         Return PDF output
+
+        INPUT:
+
+        - ``trim`` -- boolean. Whether to cut off margins of the
+          output pdf document.
 
         OUTPUT:
 
@@ -456,16 +461,19 @@ class LatexExpr(str):
 
         EXAMPLES:
 
-            sage: latex(1/2).compile()
+            sage: latex(1/2).compile()    # optional - latex
             PDF document (... bytes)
         """
         source = _latex_file_(self, title='{}')
         from sage.interfaces.cmdline.latex import compile_latex
         from sage.interfaces.cmdline.tool import ToolMissingException
         pdf = compile_latex(source)
+        if not trim:
+            return pdf
         try:
             return pdf.trim()
-        except ToolMissingException:
+        except ToolMissingException as exc:
+            exc.convert_to_warning()
             return pdf
     
 
