@@ -15,7 +15,12 @@ from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 from sage.combinat.words.words import Words
 from sage.rings.integer import Integer
-from itertools import izip
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 
 ################################################################################
 # Suffix Tries

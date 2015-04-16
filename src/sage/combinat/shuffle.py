@@ -192,7 +192,7 @@ class SetShuffleProduct(SageObject):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
 
         return itertools.chain.from_iterable(
-                itertools.imap(shuffle_elements, itertools.product(self._l1, self._l2)))
+                (shuffle_elements(i) for i in itertools.product(self._l1, self._l2)))
 
     def cardinality(self):
         """

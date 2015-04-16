@@ -191,7 +191,13 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import islice, izip, cycle
+from itertools import islice, cycle
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
@@ -4674,7 +4680,6 @@ class FiniteWord_class(Word_class):
             raise TypeError("p(=%s) is not a DisjointSet" % p)
 
         #Join the classes of each pair of letters that are one above the other
-        from itertools import islice, izip
         from sage.combinat.words.morphism import WordMorphism
         S = izip(islice(self, delay, None), other)
         if involution is None:
@@ -5816,7 +5821,6 @@ class FiniteWord_class(Word_class):
             (6, 3)
             (7, 1)
         """
-        from itertools import izip
         return izip(xrange(1, len(self)+1), self)
 
     def shuffle(self, other, overlap=0):
