@@ -72,8 +72,8 @@ class CombinatorialFreeModuleElement(Element):
 
     def __contains__(self, x):
         """
-        Returns whether or not a combinatorial object x indexing a basis
-        element is in the support of self.
+        Return whether or not a combinatorial object ``x`` indexing a
+        basis element is in the support of ``self``.
 
         EXAMPLES::
 
@@ -137,6 +137,16 @@ class CombinatorialFreeModuleElement(Element):
         indexing the basis as keys and their corresponding coefficients as
         values.
 
+        This internal dictionary contains only nonzero values, unless
+        the base ring is the zero ring (in which case, e.g.,
+        :meth:`monomial` can return an element with zero monomial
+        coefficients).
+
+        .. WARNING::
+
+            The claim in the previous paragraph might be violated in
+            some parts of the Sage library.
+
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
@@ -172,7 +182,7 @@ class CombinatorialFreeModuleElement(Element):
 
     def _sorted_items_for_printing(self):
         """
-        Returns the items (i.e terms) of ``self``, sorted for printing
+        Return the items (i.e., terms) of ``self``, sorted for printing.
 
         EXAMPLES::
 
@@ -214,7 +224,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: e['a'] + 2*e['b'] # indirect doctest
             'a' + 2 'b'
 
-        Controling the order of terms by providing a comparison
+        Controlling the order of terms by providing a comparison
         function on elements of the support::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
@@ -518,8 +528,8 @@ class CombinatorialFreeModuleElement(Element):
 
     def _coefficient_fast(self, m, default=None):
         """
-        Returns the coefficient of m in self, where m is key in
-        self._monomial_coefficients.
+        Return the coefficient of ``m`` in ``self``, where ``m`` is a
+        key in ``self._monomial_coefficients``.
 
         EXAMPLES::
 
@@ -548,7 +558,7 @@ class CombinatorialFreeModuleElement(Element):
             0
         """
         if default is None:
-            default = self.base_ring()(0)
+            default = self.base_ring().zero()
         return self._monomial_coefficients.get(m, default)
 
     __getitem__ = _coefficient_fast
@@ -595,7 +605,7 @@ class CombinatorialFreeModuleElement(Element):
 
     def is_zero(self):
         """
-        Returns True if and only self == 0.
+        Return ``True`` if and only if ``self == 0``.
 
         EXAMPLES::
 
@@ -618,12 +628,12 @@ class CombinatorialFreeModuleElement(Element):
             True
         """
         BR = self.parent().base_ring()
-        zero = BR( 0 )
+        zero = BR.zero()
         return all( v == zero for v in self._monomial_coefficients.values() )
 
     def __len__(self):
         """
-        Returns the number of basis elements of self with nonzero
+        Return the number of basis elements of ``self`` with nonzero
         coefficients.
 
         EXAMPLES::
@@ -645,7 +655,7 @@ class CombinatorialFreeModuleElement(Element):
 
     def length(self):
         """
-        Returns the number of basis elements of self with nonzero
+        Return the number of basis elements of ``self`` with nonzero
         coefficients.
 
         EXAMPLES::
@@ -662,15 +672,18 @@ class CombinatorialFreeModuleElement(Element):
             sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
             sage: z.length()
             4
+            sage: s.zero().length()
+            0
         """
         BR = self.parent().base_ring()
-        zero = BR( 0 )
-        return len( [ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ] )
+        zero = BR.zero()
+        return sum( 1 for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero )
 
     def support(self):
         """
-        Returns a list of the combinatorial objects indexing the basis
-        elements of self which non-zero coefficients.
+        Return a list of the combinatorial objects indexing the basis
+        elements of ``self`` which have non-zero coefficients in
+        ``self``.
 
         EXAMPLES::
 
@@ -688,7 +701,7 @@ class CombinatorialFreeModuleElement(Element):
             [[1], [1, 1, 1], [2, 1], [4]]
         """
         BR = self.parent().base_ring()
-        zero = BR( 0 )
+        zero = BR.zero()
 
         supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
@@ -709,8 +722,8 @@ class CombinatorialFreeModuleElement(Element):
         """
         P = self.parent()
         BR = P.base_ring()
-        zero = BR( 0 )
-        one = BR( 1 )
+        zero = BR.zero()
+        one = BR.one()
 
         supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
@@ -718,7 +731,7 @@ class CombinatorialFreeModuleElement(Element):
 
     def terms(self):
         """
-        Returns a list of the terms of ``self``
+        Return a list of the terms of ``self``.
 
         .. seealso:: :meth:`monomials`
 
@@ -731,15 +744,15 @@ class CombinatorialFreeModuleElement(Element):
             [B['a'], 2*B['c']]
         """
         BR = self.parent().base_ring()
-        zero = BR( 0 )
+        zero = BR.zero()
         v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         from_dict = self.parent()._from_dict
         return [ from_dict( { key : value } ) for key,value in v ]
 
     def coefficients(self):
         """
-        Returns a list of the coefficients appearing on the basis elements in
-        self.
+        Return a list of the coefficients appearing on the basis elements in
+        ``self``.
 
         EXAMPLES::
 
@@ -757,7 +770,7 @@ class CombinatorialFreeModuleElement(Element):
             [1, 1, 1, 1]
         """
         BR = self.parent().base_ring()
-        zero = BR( 0 )
+        zero = BR.zero()
         v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         return [ value for key,value in v ]
 
@@ -1815,28 +1828,35 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self._from_dict( dict_linear_combination( ( ( element._monomial_coefficients, coeff ) for element, coeff in iter_of_elements_coeff ), factor_on_left=factor_on_left ), remove_zeros=False )
 
-    def term(self, index, coeff=None):
+    def term(self, index, coeff=None, coerce=True):
         """
-        Constructs a term in ``self``
+        Return the term ``coeff * B[index]`` (where ``B`` is the basis
+        of ``self``) in ``self``.
 
         INPUT:
 
         - ``index`` -- the index of a basis element
-        - ``coeff`` -- an element of the coefficient ring (default: one)
+        - ``coeff`` -- an element of the coefficient ring (default: `1`)
 
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.term('a',3)
+            sage: u = F.term('a',3); u
             3*B['a']
+            sage: parent(u['a'])
+            Rational Field
             sage: F.term('a')
             B['a']
 
-        Design: should this do coercion on the coefficient ring?
+            sage: F3 = CombinatorialFreeModule(GF(3), ['a', 'b', 'c'])
+            sage: u = F3.term('a',3); u
+            0
         """
         if coeff is None:
             coeff = self.base_ring().one()
-        return self._from_dict( {index: coeff} )
+        if coerce:
+            coeff = self.base_ring()(coeff)
+        return self._from_dict({index: coeff}, coerce=False)
 
     def _monomial(self, index):
         """
@@ -1846,7 +1866,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F._monomial('a')
             B['a']
         """
-        return self._from_dict( {index: self.base_ring().one()}, remove_zeros = False )
+        return self._from_dict( {index: self.base_ring().one()}, coerce=False, remove_zeros=False )
 
     # This is generic, and should be lifted into modules_with_basis
     @lazy_attribute
@@ -1975,7 +1995,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     def _from_dict( self, d, coerce=False, remove_zeros=True ):
         """
-        Construct an element of ``self`` from an `{index: coefficient}` dictionary
+        Construct an element of ``self`` from an
+        ``{index: coefficient}`` dictionary.
 
         INPUT:
 
@@ -2015,7 +2036,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         .. warning::
 
-            With ``remove_zeros=True``, it is assumed that no
+            With ``remove_zeros=False``, it is assumed that no
             coefficient of the dictionary is zero. Otherwise, this may
             lead to illegal results::
 
@@ -2025,9 +2046,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = dict( (key, R(coeff)) for key,coeff in d.iteritems())
+            d = {key: R(coeff) for key, coeff in d.iteritems()}
         if remove_zeros:
-            d = dict( (key, coeff) for key, coeff in d.iteritems() if coeff)
+            d = {key: coeff for key, coeff in d.iteritems() if coeff}
         return self.element_class( self, d )
 
 
