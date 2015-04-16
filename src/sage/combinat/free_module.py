@@ -677,7 +677,7 @@ class CombinatorialFreeModuleElement(Element):
         """
         BR = self.parent().base_ring()
         zero = BR.zero()
-        return sum( 1 for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero )
+        return len([key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero])
 
     def support(self):
         """
