@@ -334,8 +334,10 @@ of its page. It indicates who has to work on it.
 - **needs_info** -- somebody has to answer a question before anything else can
   happen. It should be clear from the comments.
 
-- **positive_review** -- the ticket has been reviewed, and the release manager
-  will close it.
+- **positive_review** -- the ticket has been reviewed, and the release
+  manager will close it. Once a ticket is set to *positive_review*, do not
+  push new changes to this ticket because the release manager might
+  already be merging it. Instead, open a new ticket.
 
 The status of a ticket can be changed using a form at the bottom of the ticket's
 page. Leave a comment explaining your reasons whenever you change it.
@@ -420,8 +422,9 @@ comment on the ticket, explaining why it should be closed. If another
 developer agrees, he sets the ticket to *positive review*.
 
 A related issue is re-opening tickets. You should refrain from
-re-opening a ticket that is already closed. Instead, open a new ticket
-and provide a link in the description to the old ticket.
+re-opening a ticket that is already set to *positive_review*. Instead,
+open a new ticket and provide a link in the description to the old
+ticket.
 
 Reasons to Invalidate Tickets
 =============================
