@@ -72,9 +72,13 @@ if [ -n "${LDFLAGS+set}" ]; then
     fi
 fi
 
+
+python setup.py build
+
 rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
 
-python setup.py ${NUMPY_FCONFIG} build
+python setup.py install
+
 
 # Touch all includes such that dependency checking works properly:
 # the timestamp of the includes should be *now*, not the time when
