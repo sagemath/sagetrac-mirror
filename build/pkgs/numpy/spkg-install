@@ -75,13 +75,6 @@ fi
 rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
 
 python setup.py ${NUMPY_FCONFIG} build
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building numpy."
-    exit 1
-fi
-
-# Remove previous installation (if any):
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 
 # Touch all includes such that dependency checking works properly:
 # the timestamp of the includes should be *now*, not the time when
