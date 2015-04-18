@@ -230,7 +230,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     _no_generic_basering_coercion = True
 
     @staticmethod
-    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation='flint'):
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False):
         """
         Create with the command
 
@@ -247,8 +247,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
           columns
         - ``sparse`` -- (default false) whether or not matrices
           are given a sparse representation
-        - ``implementation`` -- (default 'flint') choose an
-          implementation (only applicable over `\Z`)
 
         OUTPUT:
 
@@ -293,31 +291,32 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         ::
 
-            sage: M = MatrixSpace(ZZ, 10, implementation="flint")
+            sage: M = MatrixSpace(ZZ, 10)
             sage: M
             Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
             sage: loads(M.dumps()) is M
             True
-
-        TESTS::
-
-            sage: MatrixSpace(ZZ, 10, implementation="foobar")
-            Traceback (most recent call last):
-            ...
-            ValueError: unknown matrix implementation 'foobar'
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
+
         if ncols is None: ncols = nrows
-        nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
+        nrows = int(nrows); ncols = int(ncols)
+        if nrows < 0:
+            raise ArithmeticError("nrows must be nonnegative")
+        if ncols < 0:
+            raise ArithmeticError("ncols must be nonnegative")
+        if nrows > sys.maxsize or ncols > sys.maxsize:
+            raise ValueError("number of rows and columns may be at most %s" % sys.maxsize)
+
+        sparse=bool(sparse)
         return super(MatrixSpace, cls).__classcall__(
-                cls, base_ring, nrows, ncols, sparse, implementation)
+                cls, base_ring, nrows, ncols, sparse)
 
     def __init__(self,  base_ring,
                         nrows,
                         ncols=None,
-                        sparse=False,
-                        implementation='flint'):
+                        sparse=False):
         """
         TEST:
 
@@ -340,7 +339,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         We check that :trac:`10095` is fixed::
 
-            sage: M = Matrix(QQ, [[1 for dummy in range(125)]])
+            sage: M = Matrix(QQ, [[1 for _ in range(125)]])
             sage: V = M.right_kernel()
             sage: V
             Vector space of degree 125 and dimension 124 over Rational Field
@@ -354,23 +353,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
         """
-        self._implementation = implementation
-
         if ncols is None: ncols = nrows
-        from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
-        # Temporary until the inheritance glitches are fixed
-        if base_ring not in _Rings:
-            raise TypeError("base_ring must be a ring")
-        nrows = int(nrows)
-        ncols = int(ncols)
-        if nrows < 0:
-            raise ArithmeticError("nrows must be nonnegative")
-        if ncols < 0:
-            raise ArithmeticError("ncols must be nonnegative")
-
-        if nrows > sys.maxsize or ncols > sys.maxsize:
-            raise ValueError("number of rows and columns may be at most %s" % sys.maxsize)
 
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -378,7 +362,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             self.__ncols = nrows
         else:
             self.__ncols = ncols
-        self.__matrix_class = _get_matrix_class(self.base_ring(), sparse)
+        self._matrix_class = _get_matrix_class(base_ring, sparse)
         if nrows == ncols:
             # For conversion from the base ring, multiplication with the one element is *slower*
             # than creating a new diagonal matrix. Hence, we circumvent
@@ -459,9 +443,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if self.__is_sparse:
             return False
-        elif self.__matrix_class is sage.matrix.matrix_mod2_dense.Matrix_mod2_dense:
+        elif self._matrix_class is sage.matrix.matrix_mod2_dense.Matrix_mod2_dense:
             return False
-        elif self.__matrix_class == sage.matrix.matrix_rational_dense.Matrix_rational_dense:
+        elif self._matrix_class == sage.matrix.matrix_rational_dense.Matrix_rational_dense:
             return False
         elif self.__nrows > 40 and self.__ncols > 40:
                 return False
@@ -1205,7 +1189,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MM.zero().is_mutable()
             False
         """
-        res = self.__matrix_class(self, 0, coerce=False, copy=False)
+        res = self._matrix_class(self, 0, coerce=False, copy=False)
         res.set_immutable()
         return res
 
@@ -1356,7 +1340,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             if self._copy_zero: # faster to copy than to create a new one.
                 return self.zero_matrix().__copy__()
             else:
-                return self.__matrix_class(self, None, False, False)
+                return self._matrix_class(self, None, False, False)
         if isinstance(x, (int, integer.Integer)) and x == 1:
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
@@ -1384,7 +1368,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             x = dict_to_list(x, m, n)
             coerce = True
             copy = False
-        MC = self.__matrix_class
+        MC = self._matrix_class
         if isinstance(x, (list, tuple)) and x:
             if len(x) == m:     # Try unpacking elements
                 unpacked = True
