@@ -39,7 +39,7 @@ class CoxeterGroups(Category_singleton):
         sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
-        [Category of groups, Category of enumerated sets]
+        [Category of finitely generated groups]
 
         sage: W = C.example(); W
         The symmetric group on {0, ..., 3}
@@ -117,9 +117,9 @@ class CoxeterGroups(Category_singleton):
         EXAMPLES::
 
             sage: CoxeterGroups().super_categories()
-            [Category of groups, Category of enumerated sets]
+            [Category of finitely generated groups]
         """
-        return [Groups(), EnumeratedSets()]
+        return [Groups().FinitelyGenerated()]
 
     Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
     Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
@@ -199,15 +199,15 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(["A",2,1])
                 sage: g = iter(W)
-                sage: g.next()
+                sage: next(g)
                 [1 0 0]
                 [0 1 0]
                 [0 0 1]
-                sage: g.next()
+                sage: next(g)
                 [-1  1  1]
                 [ 0  1  0]
                 [ 0  0  1]
-                sage: g.next()
+                sage: next(g)
                 [ 0 -1  2]
                 [ 1 -1  1]
                 [ 0  0  1]
@@ -632,7 +632,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup("A3")
                 sage: W.canonical_representation()
-                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
                 [1 3 2]
                 [3 1 3]
                 [2 3 1]

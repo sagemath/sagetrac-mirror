@@ -392,8 +392,10 @@ class PermutationGroup_generic(group.Group):
             sage: TestSuite(PermutationGroup([])).run()
             sage: TestSuite(PermutationGroup([(0,1)])).run()
         """
-        from sage.categories.finite_permutation_groups import FinitePermutationGroups
-        super(PermutationGroup_generic, self).__init__(category = FinitePermutationGroups().or_subcategory(category))
+        from sage.categories.permutation_groups import PermutationGroups
+        category = PermutationGroups().FinitelyGenerated().Finite() \
+                   .or_subcategory(category)
+        super(PermutationGroup_generic, self).__init__(category=category)
         if (gens is None and gap_group is None):
             raise ValueError("you must specify gens or gap_group")
 
@@ -2365,7 +2367,7 @@ class PermutationGroup_generic(group.Group):
         image_fp = libgap.Image( libgap.IsomorphismFpGroupByGenerators(self, self.gens()))
         image_gens = image_fp.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator object for variable names
-        F = FreeGroup([name_itr.next() for x in image_gens])
+        F = FreeGroup([next(name_itr) for x in image_gens])
 
         # Convert GAP relators to Sage relators using the Tietze word of each defining relation.
         ret_rls = tuple([F(rel_word.TietzeWordAbstractWord(image_gens).sage())
