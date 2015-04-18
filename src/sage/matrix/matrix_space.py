@@ -32,55 +32,39 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 # System imports
 import sys
-import types
 import operator
 
 # Sage matrix imports
 import matrix
-import matrix_generic_dense
-import matrix_generic_sparse
-
-import matrix_modn_sparse
-
-import matrix_mod2_dense
-import matrix_mod2e_dense
-
-import matrix_integer_dense
-import matrix_integer_sparse
-
-import matrix_rational_dense
-import matrix_rational_sparse
-
-import matrix_mpolynomial_dense
-
 
 # Sage imports
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.misc import is_iterator
+from sage.misc.all import lazy_attribute
+import sage.misc.latex as latex
 
-import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
-import sage.rings.integer as integer
-import sage.rings.number_field.all
-import sage.rings.finite_rings.integer_mod_ring
-import sage.rings.finite_rings.constructor
-import sage.rings.polynomial.multi_polynomial_ring_generic
-import sage.misc.latex as latex
-import sage.modules.free_module
+from sage.structure.element import Element
 from sage.structure.sequence import Sequence
+from sage.structure.element import is_Vector
+import sage.structure.coerce
+from sage.structure.coerce import py_scalar_to_element
 
-from sage.misc.all import lazy_attribute
+import sage.modules.free_module
 
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
+from sage.categories.modules import Modules
+from sage.categories.algebras import Algebras
+
+import sage.rings.integer as integer
 
 _Rings = Rings()
 _Fields = Fields()
-
 
 def is_MatrixSpace(x):
     """
