@@ -351,6 +351,9 @@ cdef class Parent(category_object.CategoryObject):
             if "__init_extra__" in cls.__dict__:
                 cls.__init_extra__(self)
 
+    def __hash__(self):
+        return hash(self.__repr__())
+
     def _init_category_(self, category):
         """
         Initialize the category framework
