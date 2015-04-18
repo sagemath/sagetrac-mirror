@@ -378,111 +378,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         deprecation(18231, "_copy_zero is deprecated")
         return True
 
-    def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
-        """
-        EXAMPLES::
-
-            sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
-            sage: g = G.0
-            sage: MatrixSpace(k,2)(g)
-            [1 1]
-            [0 1]
-
-        ::
-
-            sage: MS = MatrixSpace(ZZ,2,4)
-            sage: M2 = MS(range(8)); M2
-            [0 1 2 3]
-            [4 5 6 7]
-            sage: M2 == MS(M2.rows())
-            True
-
-        ::
-
-            sage: MS = MatrixSpace(ZZ,2,4, sparse=True)
-            sage: M2 = MS(range(8)); M2
-            [0 1 2 3]
-            [4 5 6 7]
-            sage: M2 == MS(M2.rows())
-            True
-
-        ::
-
-            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
-            sage: MS([1,2,3,4])
-            [1 2]
-            [3 4]
-
-            sage: MS = MatrixSpace(ZZ, 2)
-            sage: g = Gamma0(5)([1,1,0,1])
-            sage: MS(g)
-            [1 1]
-            [0 1]
-
-        ::
-
-            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
-            sage: mat = MS(); mat
-            [0 0]
-            [0 0]
-            sage: mat.is_mutable()
-            True
-            sage: mat2 = mat.change_ring(QQ); mat2.is_mutable()
-            True
-
-        TESTS:
-
-        Ensure that :trac:`12020` is fixed::
-
-            sage: x = polygen(QQ)
-            sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
-            ...             SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
-            ...             NumberField(x^3+2,'a'), CyclotomicField(4),
-            ...             PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
-            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
-            ...       B = A.augment(A)
-            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
-            ...       B = A.augment(A)
-
-        Check that :trac:`13012` is fixed::
-
-            sage: m = zero_matrix(2, 3)
-            sage: m
-            [0 0 0]
-            [0 0 0]
-            sage: M = MatrixSpace(ZZ, 3, 5)
-            sage: M.zero()
-            [0 0 0 0 0]
-            [0 0 0 0 0]
-            [0 0 0 0 0]
-            sage: M(m)
-            Traceback (most recent call last):
-            ...
-            ValueError: a matrix from
-            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
-            sage: M.matrix(m)
-            Traceback (most recent call last):
-            ...
-            ValueError: a matrix from
-            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
-
-        Check that trac:`15110` is fixed::
-
-            sage: S.<t> = LaurentSeriesRing(ZZ)
-            sage: MS = MatrixSpace(S,1,1)
-            sage: MS([[t]])   # given as a list of lists
-            [t]
-            sage: MS([t])     # given as a list of coefficients
-            [t]
-            sage: MS(t)       # given as a scalar matrix
-            [t]
-        """
-        return self.matrix(entries, coerce, copy)
-
     def change_ring(self, R):
         """
         Return matrix space over R with otherwise same parameters as self.
@@ -1261,6 +1156,105 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MatrixSpace(h,2,1)([h[1], h[2]])
             [h[1]]
             [h[2]]
+
+            sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
+            sage: g = G.0
+            sage: MatrixSpace(k,2)(g)
+            [1 1]
+            [0 1]
+
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,4)
+            sage: M2 = MS(range(8)); M2
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2 == MS(M2.rows())
+            True
+
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,4, sparse=True)
+            sage: M2 = MS(range(8)); M2
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M2 == MS(M2.rows())
+            True
+
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
+            sage: MS([1,2,3,4])
+            [1 2]
+            [3 4]
+
+            sage: MS = MatrixSpace(ZZ, 2)
+            sage: g = Gamma0(5)([1,1,0,1])
+            sage: MS(g)
+            [1 1]
+            [0 1]
+
+        ::
+
+            sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
+            sage: mat = MS(); mat
+            [0 0]
+            [0 0]
+            sage: mat.is_mutable()
+            True
+            sage: mat2 = mat.change_ring(QQ); mat2.is_mutable()
+            True
+
+        TESTS:
+
+        Ensure that :trac:`12020` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
+            ...             SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
+            ...             NumberField(x^3+2,'a'), CyclotomicField(4),
+            ...             PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
+            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
+            ...       B = A.augment(A)
+            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
+            ...       B = A.augment(A)
+
+        Check that :trac:`13012` is fixed::
+
+            sage: m = zero_matrix(2, 3)
+            sage: m
+            [0 0 0]
+            [0 0 0]
+            sage: M = MatrixSpace(ZZ, 3, 5)
+            sage: M.zero()
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            sage: M(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: a matrix from
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            cannot be converted to a matrix in
+            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+            sage: M.matrix(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: a matrix from
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            cannot be converted to a matrix in
+            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+
+        Check that trac:`15110` is fixed::
+
+            sage: S.<t> = LaurentSeriesRing(ZZ)
+            sage: MS = MatrixSpace(S,1,1)
+            sage: MS([[t]])   # given as a list of lists
+            [t]
+            sage: MS([t])     # given as a list of coefficients
+            [t]
+            sage: MS(t)       # given as a scalar matrix
+            [t]
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             return self.zero_matrix().__copy__()
@@ -1328,6 +1322,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 x = list_to_dict(x, m, n)
                 copy = False
         return MC(self, x, copy=copy, coerce=coerce)
+
+    __call__ = matrix
 
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
         """
