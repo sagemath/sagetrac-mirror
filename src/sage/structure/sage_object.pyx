@@ -232,8 +232,11 @@ cdef class SageObject:
         EXAMPLES::
 
             sage: hash(SageObject())
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'sage.structure.sage_object.SageObject'> is not hashable
         """
-        raise TypeError
+        raise TypeError("{} is not hashable".format(type(self)))
 
     def _cache_key(self):
         r"""
