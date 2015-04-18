@@ -361,36 +361,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
-    def full_category_initialisation(self):
-        """
-        Make full use of the category framework.
-
-        .. NOTE::
-
-            It turns out that it causes a massive speed regression in
-            computations with elliptic curves, if a full initialisation
-            of the category framework of matrix spaces happens at
-            initialisation: The elliptic curves code treats matrix spaces
-            as containers, not as objects of a category. Therefore,
-            making full use of the category framework is now provided by
-            a separate method (see :trac:`11900`).
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(QQ,8)
-            sage: TestSuite(MS).run()
-            sage: type(MS)
-            <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
-            sage: MS.full_category_initialisation()
-            doctest:...: DeprecationWarning: the full_category_initialization
-             method does nothing, as a matrix space now has its category
-             systematically fully initialized
-            See http://trac.sagemath.org/15801 for details.
-        """
-        deprecation(15801, "the full_category_initialization method does nothing,"
-                           " as a matrix space now has its category"
-                           " systematically fully initialized")
-
     @lazy_attribute
     def _copy_zero(self):
         """
