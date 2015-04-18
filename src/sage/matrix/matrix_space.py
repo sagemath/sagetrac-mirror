@@ -364,47 +364,19 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     @lazy_attribute
     def _copy_zero(self):
         """
-        Is it faster to copy a zero matrix or is it faster to create a
-        new matrix from scratch?
+        Deprecated.
 
         EXAMPLE::
 
             sage: MS = MatrixSpace(GF(2),20,20)
             sage: MS._copy_zero
-            False
-
-            sage: MS = MatrixSpace(GF(3),20,20)
-            sage: MS._copy_zero
+            doctest:...: DeprecationWarning: _copy_zero is deprecated
+            See http://trac.sagemath.org/18231 for details.
             True
-            sage: MS = MatrixSpace(GF(3),200,200)
-            sage: MS._copy_zero
-            False
-
-            sage: MS = MatrixSpace(ZZ,200,200)
-            sage: MS._copy_zero
-            False
-            sage: MS = MatrixSpace(ZZ,30,30)
-            sage: MS._copy_zero
-            True
-
-            sage: MS = MatrixSpace(QQ,200,200)
-            sage: MS._copy_zero
-            False
-            sage: MS = MatrixSpace(QQ,20,20)
-            sage: MS._copy_zero
-            False
-
         """
-        if self.__is_sparse:
-            return False
-        elif self._matrix_class is sage.matrix.matrix_mod2_dense.Matrix_mod2_dense:
-            return False
-        elif self._matrix_class == sage.matrix.matrix_rational_dense.Matrix_rational_dense:
-            return False
-        elif self.__nrows > 40 and self.__ncols > 40:
-                return False
-        else:
-            return True
+        from sage.misc.superseded import deprecation
+        deprecation(18231, "_copy_zero is deprecated")
+        return True
 
     def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
         """
@@ -1291,10 +1263,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [h[2]]
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
-            if self._copy_zero: # faster to copy than to create a new one.
-                return self.zero_matrix().__copy__()
-            else:
-                return self._matrix_class(self, None, False, False)
+            return self.zero_matrix().__copy__()
         if isinstance(x, (int, integer.Integer)) and x == 1:
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
