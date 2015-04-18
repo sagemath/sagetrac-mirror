@@ -225,7 +225,15 @@ cdef class SageObject:
         from sage.misc.ascii_art import AsciiArt
         return AsciiArt(repr(self).splitlines())
 
-    __hash__ = None
+    def __hash__(self):
+        r"""
+        Not implemented: mutable objects inherit from this class
+
+        EXAMPLES::
+
+            sage: hash(SageObject())
+        """
+        raise TypeError
 
     def _cache_key(self):
         r"""
