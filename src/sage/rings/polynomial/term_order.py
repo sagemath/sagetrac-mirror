@@ -791,6 +791,9 @@ class TermOrder(SageObject):
 
         self.__doc__ = description_mapping.get(self._name, "No description available")
 
+    def __hash__(self):
+         return hash((self._name, self._blocks, self._weights, self._matrix))
+
     def __copy(self, other):
         """
         Copy other term order to self.

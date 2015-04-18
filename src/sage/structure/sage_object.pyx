@@ -225,8 +225,7 @@ cdef class SageObject:
         from sage.misc.ascii_art import AsciiArt
         return AsciiArt(repr(self).splitlines())
 
-    def __hash__(self):
-        return hash(self.__repr__())
+    __hash__ = None
 
     def _cache_key(self):
         r"""
