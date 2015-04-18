@@ -59,6 +59,8 @@ import matrix_mpolynomial_dense
 
 # Sage imports
 from sage.misc.superseded import deprecation
+from sage.misc.cachefunc import cached_function, cached_method
+
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
@@ -99,6 +101,96 @@ def is_MatrixSpace(x):
     """
     return isinstance(x, MatrixSpace)
 
+@cached_function
+def _get_matrix_class(R, sparse=False):
+    r"""
+    Returns the class of matrices corresponding to a given ring ``R``.
+
+    INPUT:
+
+    - ``R`` - a ring
+
+    - ``sparse`` - (default to ``False``), whether the matrix is ``sparse``
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_space import _get_matrix_class
+
+        sage: _get_matrix_class(QQ, False)
+        <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+        sage: _get_matrix_class(ZZ, True)
+        <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+
+    Some indirect doctests::
+
+        sage: type(matrix(SR, 2, 2, 0))
+        <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+        sage: type(matrix(GF(7), 2, range(4)))
+        <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        sage: type(matrix(GF(16007), 2, range(4)))
+        <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+    """
+    from sage.rings.all import ZZ,QQ,RDF,CDF
+    from sage.symbolic.ring import SR
+
+    if sparse:
+        if R is ZZ:
+            import matrix_integer_sparse
+            return matrix_integer_sparse.Matrix_integer_sparse
+        elif R is QQ:
+            import matrix_rational_sparse
+            return matrix_rational_sparse.Matrix_rational_sparse
+        elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+            import matrix_modn_sparse
+            if R.order() < matrix_modn_sparse.MAX_MODULUS:
+                return matrix_modn_sparse.Matrix_modn_sparse
+            else:
+                import matrix_generic_sparse
+                return matrix_generic_sparse.Matrix_generic_sparse
+        else:
+            import matrix_generic_sparse
+            return matrix_generic_sparse.Matrix_generic_sparse
+
+    else:
+        if R is ZZ:
+            import matrix_integer_dense
+            return matrix_integer_dense.Matrix_integer_dense
+        elif R is QQ:
+            import matrix_rational_dense
+            return matrix_rational_dense.Matrix_rational_dense
+        elif sage.rings.number_field.number_field.is_CyclotomicField(R):
+            import matrix_cyclo_dense
+            return matrix_cyclo_dense.Matrix_cyclo_dense
+        elif R is RDF:
+            import matrix_real_double_dense
+            return matrix_real_double_dense.Matrix_real_double_dense
+        elif R is CDF:
+            import matrix_complex_double_dense
+            return matrix_complex_double_dense.Matrix_complex_double_dense
+        elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+            import matrix_modn_dense_double, matrix_modn_dense_float
+            if R.order() == 2:
+                import matrix_mod2_dense
+                return matrix_mod2_dense.Matrix_mod2_dense
+            elif R.order() < matrix_modn_dense_float.MAX_MODULUS:
+                return matrix_modn_dense_float.Matrix_modn_dense_float
+            elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
+                return matrix_modn_dense_double.Matrix_modn_dense_double
+            else:
+                import matrix_generic_dense
+                return matrix_generic_dense.Matrix_generic_dense
+        elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
+            import matrix_mod2e_dense
+            return matrix_mod2e_dense.Matrix_mod2e_dense
+        elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
+            import matrix_mpolynomial_dense
+            return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
+        elif R is SR:
+            import matrix_symbolic_dense
+            return matrix_symbolic_dense.Matrix_symbolic_dense
+        else:
+            import matrix_generic_dense
+            return matrix_generic_dense.Matrix_generic_dense
 
 class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     """
@@ -286,7 +378,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             self.__ncols = nrows
         else:
             self.__ncols = ncols
-        self.__matrix_class = self._get_matrix_class()
+        self.__matrix_class = _get_matrix_class(self.base_ring(), sparse)
         if nrows == ncols:
             # For conversion from the base ring, multiplication with the one element is *slower*
             # than creating a new diagonal matrix. Hence, we circumvent
@@ -923,75 +1015,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if isinstance(x, (int, long, integer.Integer)):
             return self.list()[x]
         return Rings.ParentMethods.__getitem__.__func__(self, x)
-
-    def _get_matrix_class(self):
-        r"""
-        Returns the class of self
-
-        EXAMPLES::
-
-            sage: MS1 = MatrixSpace(QQ,4)
-            sage: MS2 = MatrixSpace(ZZ,4,5,true)
-            sage: MS1._get_matrix_class()
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
-            sage: MS2._get_matrix_class()
-            <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
-            sage: type(matrix(SR, 2, 2, 0))
-            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
-            sage: type(matrix(GF(7), 2, range(4)))
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: type(matrix(GF(16007), 2, range(4)))
-            <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
-        """
-        R = self.base_ring()
-        if self.is_dense():
-            if sage.rings.integer_ring.is_IntegerRing(R):
-                if self._implementation != 'flint':
-                    raise ValueError("unknown matrix implementation %r" % self._implementation)
-                return matrix_integer_dense.Matrix_integer_dense
-            elif sage.rings.rational_field.is_RationalField(R):
-                return matrix_rational_dense.Matrix_rational_dense
-            elif sage.rings.number_field.number_field.is_CyclotomicField(R):
-                import matrix_cyclo_dense
-                return matrix_cyclo_dense.Matrix_cyclo_dense
-            elif R==sage.rings.real_double.RDF:
-                import matrix_real_double_dense
-                return matrix_real_double_dense.Matrix_real_double_dense
-            elif R==sage.rings.complex_double.CDF:
-                import matrix_complex_double_dense
-                return matrix_complex_double_dense.Matrix_complex_double_dense
-            elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
-                import matrix_modn_dense_double, matrix_modn_dense_float
-                if R.order() == 2:
-                    return matrix_mod2_dense.Matrix_mod2_dense
-                elif R.order() < matrix_modn_dense_float.MAX_MODULUS:
-                    return matrix_modn_dense_float.Matrix_modn_dense_float
-                elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
-                    return matrix_modn_dense_double.Matrix_modn_dense_double
-                return matrix_generic_dense.Matrix_generic_dense
-            elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
-                return matrix_mod2e_dense.Matrix_mod2e_dense
-            elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
-                return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
-            #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
-            #    return padics.matrix_padic_capped_relative_dense
-            # the default
-            else:
-                from sage.symbolic.ring import SR   # causes circular imports
-                if R is SR:
-                    import matrix_symbolic_dense
-                    return matrix_symbolic_dense.Matrix_symbolic_dense
-                return matrix_generic_dense.Matrix_generic_dense
-
-        else:
-            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
-                return matrix_modn_sparse.Matrix_modn_sparse
-            elif sage.rings.rational_field.is_RationalField(R):
-                return matrix_rational_sparse.Matrix_rational_sparse
-            elif sage.rings.integer_ring.is_IntegerRing(R):
-                return matrix_integer_sparse.Matrix_integer_sparse
-            # the default
-            return matrix_generic_sparse.Matrix_generic_sparse
 
     def basis(self):
         """
