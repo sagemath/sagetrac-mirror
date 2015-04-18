@@ -842,7 +842,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ]
         """
         v = [self.zero_matrix().__copy__() for _ in range(self.dimension())]
-        one = self.base_ring()(1)
+        one = self.base_ring().one()
         i = 0
         for r in range(self.__nrows):
             for c in range(self.__ncols):
@@ -876,7 +876,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         return (self.__nrows, self.__ncols)
 
-    from sage.misc.cachefunc import cached_method
     @cached_method
     def identity_matrix(self):
         """
@@ -903,6 +902,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         TESTS::
 
+            sage: MS1.one().is_mutable()
+            False
             sage: MS1.one()[1,2] = 3
             Traceback (most recent call last):
             ...
@@ -910,11 +911,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if self.__nrows != self.__ncols:
             raise TypeError("self must be a space of square matrices")
-        A = self.zero_matrix().__copy__()
-        for i in xrange(self.__nrows):
-            A[i,i] = 1
-        A.set_immutable()
-        return A
+        res = self._matrix_class(self, self.base_ring().one(), False, False)
+        res.set_immutable()
+        return res
 
     one = identity_matrix
 
@@ -1010,7 +1009,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MM.zero().is_mutable()
             False
         """
-        res = self._matrix_class(self, 0, coerce=False, copy=False)
+        res = self._matrix_class(self, self.base_ring().zero(), coerce=False, copy=False)
         res.set_immutable()
         return res
 
@@ -1373,6 +1372,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             raise TypeError("cannot construct an element of {} from {} of type {}!"
                             .format(self, entries, type(entries)))
 
+
     __call__ = matrix
 
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
@@ -1543,7 +1543,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             s = 'RMatrixSpace(%s,%s,%s)'%(K.name(), self.__nrows, self.__ncols)
         return s
 
-def dict_to_list(entries, nrows, ncols):
+def dict_to_list(entries, nrows, ncols, zero):
     """
     Given a dictionary of coordinate tuples, return the list given by
     reading off the nrows\*ncols matrix in row order.
@@ -1554,14 +1554,13 @@ def dict_to_list(entries, nrows, ncols):
         sage: d = {}
         sage: d[(0,0)] = 1
         sage: d[(1,1)] = 2
-        sage: dict_to_list(d, 2, 2)
-        [1, 0, 0, 2]
-        sage: dict_to_list(d, 2, 3)
-        [1, 0, 0, 0, 2, 0]
+        sage: dict_to_list(d, 2, 2, None)
+        [1, None, None, 2]
+        sage: dict_to_list(d, 2, 3, 'a')
+        [1, 'a', 'a', 'a', 2, 'a']
     """
-    v = [0]*(nrows*ncols)
-    for ij, y in entries.iteritems():
-        i,j = ij
+    v = [zero]*(nrows*ncols)
+    for (i,j), y in entries.iteritems():
         v[i*ncols + j] = y
     return v
 
@@ -1584,7 +1583,7 @@ def list_to_dict(entries, nrows, ncols, rows=True):
     if ncols == 0 or nrows == 0:
         return d
     for i, x in enumerate(entries):
-        if x != 0:
+        if x:
             col = i % ncols
             row = i // ncols
             if rows:
@@ -1592,7 +1591,6 @@ def list_to_dict(entries, nrows, ncols, rows=True):
             else:
                 d[(col,row)] = x
     return d
-
 
 def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     """
