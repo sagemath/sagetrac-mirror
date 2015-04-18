@@ -506,6 +506,8 @@ from sage.rings.arith import factor
 from sage.structure.element import generic_power, canonical_coercion
 import infinity
 from sage.misc.functional import cyclotomic_polynomial
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.big_oh import O as big_O
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
@@ -3476,7 +3478,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Return True if this number is a integer
 
         EXAMPLES::
-        
+
             sage: QQbar(2).is_integer()
             True
             sage: QQbar(1/2).is_integer()
@@ -4101,8 +4103,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 # We know that self.real() < 0, since self._value
                 # crosses the negative real line and self._value
                 # is known to be non-zero.
-                isgn = self.imag().sign()
+                simag = self.imag()
+                if simag == 0:
+                    raise NotImplementedError('FIXME: add code for this case')
+                isgn = simag.sign()
                 val = self._value
+
                 argument = val.argument()
                 if isgn == 0:
                     argument = argument.parent().pi()
@@ -7687,6 +7693,234 @@ class ANUnaryExpr(ANDescr):
             arg.exactify()
             return arg._descr.conjugate(None)
 
+def newton_sum(p, prec, typ=0):
+    """
+    Compute the truncated Newton series of the power of the roots of `p`.
+
+    INPUT:
+
+    - ``p`` -- a polynomial on rationals
+
+    - ``prec`` -- the Newton series is truncated at degree `prec`
+
+    - ``typ`` -- (default `0`) For `typ=0` one gets the truncated Newton
+      series; for `typ=1` one gets a related expression used in
+      meth:`composed_product`.
+
+    See [BFSS].
+
+    EXAMPLES:
+
+        sage: from sage.rings.qqbar import newton_sum
+        sage: R.<x> = QQ[]
+        sage: newton_sum(x^2 - 2, 5)
+        8*x^4 + 4*x^2 + 2
+
+    """
+    deg = p.degree()
+    p1 = p.reverse()
+    R = PowerSeriesRing(QQ, 'x', default_prec=prec)
+    p2 = R(QQ(1)/p1)
+    p3 = p1.derivative()*p2
+    if typ == 0:
+        res = deg - p3*R.gen()
+        return res.truncate(prec)
+    else:
+        return p3.truncate(prec)
+
+def _hadamard_exp(p, inverse=False):
+    """
+    Return `\sum f_i/i! x^i` given `p=\sum f_i x^i`
+
+    This is a routine used in meth:`composed_sum`
+
+    INPUT:
+
+    - ``p`` -- a polynomial
+
+    - ``inverse`` -- (default False) if True, return `\sum f_i i! x^i`
+
+    EXAMPLES:
+
+        sage: from sage.rings.qqbar import _hadamard_exp
+        sage: R.<x> = QQ[]
+        sage: p = 1 + x + x^2 + x^3
+        sage: _hadamard_exp(p)
+        1/6*x^3 + 1/2*x^2 + x + 1
+
+    """
+    a = p.list()
+    K = p.parent()
+    x = K.gen()
+    p1 = a[0]
+    fi = QQ(1)
+    if not inverse:
+        for i in range(1, len(a)):
+            fi = fi*i
+            p1 += a[i]*x**i / fi
+    else:
+        for i in range(1, len(a)):
+            fi = fi*i
+            p1 += a[i]*x**i * fi
+    return p1
+
+def hadamard_product(p1, p2):
+    """
+    Compute the pointwise product of two polynomials.
+
+    EXAMPLES:
+
+        sage: from sage.rings.qqbar import hadamard_product
+        sage: R.<x> = QQ[]
+        sage: p1 = 1 + x + 2*x^2 + x^3
+        sage: p2 = 2 + 3*x + 4*x^2
+        sage: hadamard_product(p1, p2)
+        8*x^2 + 3*x + 2
+    """
+    K = p1.parent()
+    x = K.gen()
+    p = K.zero()
+    a1 = p1.list()
+    a2 = p2.list()
+    for i in range(min(len(a1),len(a2))):
+        p = p + a1[i]*a2[i]*x**i
+    return p
+
+def composed_sum(p1, p2, algorithm="resultant"):
+    """
+    Compute the composed sum `\prod_{a:p1(a)=0,b:p2(b)=0}(x - (a + b))`
+    or `\prod_{p1(beta)=0} p2(x - beta)` of irreducible polynomials
+
+    INPUT:
+
+    - ``p1, p2`` -- polynomials
+
+    - ``algorithm`` -- (default "resultant") can be "resultant" or "BFSS";
+      the latter is faster for high degrees, and with it the degrees must
+      be at least `2`.
+
+    This composed sum can be computed as the resultant
+    `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been shown that it can be
+    computed using the power sums of roots of polynomials and
+    series expansions; for high degrees the latter method is faster.
+
+    EXAMPLES:
+
+        sage: from sage.rings.qqbar import composed_sum
+        sage: R.<x> = QQ[]
+        sage: p1 = x^2 - 2
+        sage: p2 = x^2 - 3
+        sage: composed_sum(p1, p2)
+        x^4 - 10*x^2 + 1
+        sage: composed_sum(p1, p2, "BFSS")
+        x^4 - 10*x^2 + 1
+
+    REFERENCES:
+
+    .. [BFSS] A. Bostan, P. Flajolet, B. Salvy and E. Schost,
+       "Fast Computation of special resultants",
+       Journal of Symbolic Computation 41 (2006), 1-29
+
+    """
+    if algorithm == "resultant":
+        lp = p1(QQxy_x - QQxy_y)
+        rp = p2(QQxy_y)
+        p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+        return p
+    elif algorithm == "BFSS":
+        prec = p1.degree() * p2.degree()
+        np1 = newton_sum(p1, prec + 1)
+        R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
+        x = R.gen()
+        np1e = _hadamard_exp(np1)
+        np2 = newton_sum(p2, prec + 1)
+        np2e = _hadamard_exp(np2)
+        np2e = R(np2e) + big_O(x**(prec+1))
+        np3e = np1e*np2e
+        np3 = _hadamard_exp(np3e, True)
+        np3a = (np3.coefficients()[0] - np3)/x
+        q = np3a.integral()
+        q = R(q)
+        q = q.exp()
+        q = q.polynomial().reverse()
+        dp = p1.degree() * p2.degree() - q.degree()
+        if dp:
+            q = q*QQx_x**dp
+        return q
+    else:
+        raise ValueError('algorithm must be "resultant" or "BFSS".')
+
+def composed_product(p1, p2, algorithm="resultant"):
+    """
+    Compute the composed product `\prod_{a:p1(a)=0,b:p2(b)=0}(x - a*b)`
+    of irreducible polynomials
+
+    INPUT:
+
+    - ``p1, p2`` -- polynomials
+
+    - ``algorithm`` -- (default "resultant") can be "resultant" or "BFSS";
+      the latter is faster for high degrees, and with it the degrees must
+      be at least `2`.
+
+    The composed product can be computed as a resultant;
+    in [BFSS] it has been shown that it can be
+    computed using the power sums of roots of polynomials and
+    series expansions; for high degrees the latter method is faster.
+
+    EXAMPLES:
+
+        sage: from sage.rings.qqbar import composed_product
+        sage: R.<x> = QQ[]
+        sage: p1 = x^2 - 2
+        sage: p2 = x^2 - 3
+        sage: composed_product(p1, p2)
+        x^4 - 12*x^2 + 36
+        sage: composed_product(p1, p2, "BFSS")
+        x^4 - 12*x^2 + 36
+
+    """
+
+    if algorithm == "resultant":
+        lp = p1(QQxy_x).homogenize(QQxy_y)
+        rp = p2(QQxy_y)
+        p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+        return p
+    elif algorithm == "BFSS":
+        prec = p1.degree() * p2.degree()
+        np1 = newton_sum(p1, prec, typ=1)
+        np2 = newton_sum(p2, prec, typ=1)
+        np = hadamard_product(np1, np2)
+        x = np.parent().gen()
+        a = np.list()
+        q = a[0]*x
+        for i in range(1, len(a)):
+            q = q + a[i]*x**(i+1)/(i+1)
+        R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
+        x = R.gen()
+        q = R(-q)
+        q = q.exp()
+        q = q.polynomial().reverse()
+        return q
+
+    prec = p1.degree() * p2.degree()
+    np1 = newton_sum(p1, None, prec, typ=1)
+    np2 = newton_sum(p2, None, prec, typ=1)
+    np = hadamard_product(np1, np2)
+    x = np.parent().gen()
+    a = np.list()
+    q = a[0]*x
+    for i in range(1, len(a)):
+        q = q + a[i]*x^(i+1)/(i+1)
+
+    R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
+    x = R.gen()
+    q = R(-q)
+    q = q.exp()
+    q = q.polynomial().reverse()
+    return q
+
+
 class ANBinaryExpr(ANDescr):
     def __init__(self, left, right, op):
         r"""
@@ -7878,6 +8112,19 @@ class ANBinaryExpr(ANDescr):
 
     def exactify(self):
         """
+
+        ALGORITHM:
+
+        To compute the minimal polynomial of a binary arithmetic
+        operation on two algebraic numbers, compute the appropriate
+        resultant, then look for a factor of the resultant which
+        has as a root the result of the operation on the two
+        algebraic numbers.
+        In the case in which the operation is the sum, the appropriate
+        resultant is `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been
+        shown that it can be computed faster using the power sums of roots
+        of polynomials and series expansions, see meth:`composed_sum`
+
         TESTS::
 
             sage: rt2c = QQbar.zeta(3) + AA(sqrt(2)) - QQbar.zeta(3)
@@ -7898,6 +8145,7 @@ class ANBinaryExpr(ANDescr):
 
         """
         import sys
+        from time import time
         old_recursion_limit = sys.getrecursionlimit()
         sys.setrecursionlimit(old_recursion_limit + 10)
         try:
@@ -7906,21 +8154,33 @@ class ANBinaryExpr(ANDescr):
             op = self._op
 
             lp = left.minpoly()
-            rp = right.minpoly()(QQxy_y)
+            rp = right.minpoly()
+            t0 = time()
             if op == '+':
-                lp = lp(QQxy_x - QQxy_y)
-            if op == '-':
-                lp = lp(QQxy_x + QQxy_y)
-            if op == '*':
-                lp = lp(QQxy_x).homogenize(QQxy_y)
-            if op == '/':
-                lp = lp(QQxy_x * QQxy_y)
-            p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+                if lp.degree() < 6 or rp.degree() < 6:
+                    p = composed_sum(lp, rp, "resultant")
+                else:
+                    p = composed_sum(lp, rp, "BFSS")
+            elif op == '*':
+                if lp.degree() < 6 or rp.degree() < 6:
+                    p = composed_product(lp, rp, "resultant")
+                else:
+                    p = composed_product(lp, rp, "BFSS")
+            else:
+                rp = rp(QQxy_y)
+                # these case are not used, so we can leave an inefficient
+                # implementation
+                if op == '-':
+                    lp = lp(QQxy_x + QQxy_y)
+                if op == '/':
+                    lp = lp(QQxy_x * QQxy_y)
+                p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+            t1 = time()
 
             lprec = left._value.prec()
             rprec = right._value.prec()
             prec = min(lprec, rprec)
-            # Can we get at the _vaue of our AlgebraicNumber instance?
+            # Can we get at the _value of our AlgebraicNumber instance?
             approx = self._interval_fast(prec)
             fs = p.factor()
             fs = [f[0] for f in fs if f[0](approx).contains_zero()]
