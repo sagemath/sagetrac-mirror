@@ -975,53 +975,6 @@ class AdditiveMagmas(Category_singleton):
                     return self._cartesian_product_of_elements(
                         _.zero() for _ in self.cartesian_factors())
 
-            class ElementMethods:
-                def __neg__(self):
-                    r"""
-                    Return the negation of ``self``.
-
-                    The inverse is computed by negating each cartesian
-                    factor and taking the cartesian product. Note that the inverse
-                    will belong to a different parent if the cartesian factors of the
-                    the input are not closed under negation.
-
-                    EXAMPLES::
-
-                        sage: G=GF(5); GG = G.cartesian_product(G)
-                        sage: oneone = GG([GF(5)(1),GF(5)(1)])
-                        sage: -oneone
-                        (4, 4)
-
-                        sage: NNSemiring = NonNegativeIntegerSemiring()
-                        sage: C = cartesian_product([ZZ,NNSemiring,RR])
-                        sage: -C([2,0,.4])
-                        (-2, 0, -0.400000000000000)
-
-                    The following is an example where ``-c`` lies outside the
-                    parent::
-
-                        sage: c = C.an_element(); c
-                        (1, 42, 1.00000000000000)
-                        sage: -c
-                        (-1, -42, -1.00000000000000)
-                        sage: (-c).parent()
-                        The cartesian product of (Integer Ring, Integer Ring, Real Field with 53 bits of precision)
-
-                    .. TODO::
-
-                        In the above example it is not currently possible to use
-                        ``NN`` instead of ``NNSemiring``. See :trac:`16406`.
-                        There is a further issue with ``NN`` being lazy imported
-                        which breaks the assertion that the inputs are parents
-                        in ``cartesian_product``::
-
-                            sage: cartesian_product([ZZ, NN, RR])
-                            Traceback (most recent call last):
-                            ...
-                            AssertionError
-                    """
-                    return cartesian_product(-x for x in self.cartesian_factors())
-
         class Algebras(AlgebrasCategory):
 
             def extra_super_categories(self):
