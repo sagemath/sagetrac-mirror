@@ -23,7 +23,7 @@ from sage.structure.sage_object import dumps, loads, load
 
 class Ruby(Expect):
     r"""
-    Expect interface to the \sage interpreter itself.
+    Expect interface to the Ruby interpreter.
 
     INPUT:
 
@@ -35,20 +35,20 @@ class Ruby(Expect):
 
     EXAMPLES:
 
-    We create an interface to a copy of \sage.  This copy of \sage runs
-    as an external process with its own memory space, etc. ::
+    We create an interface to Ruby.
 
-        sage: s = Ruby()
+        sage: from sage.interfaces.ruby import Ruby
+        sage: ru = Ruby()
 
     Create the element 2 in our new copy of \sage, and cubeit. ::
 
-        sage: a = s(2)
+        sage: a = ru(2)
         sage: a^3
         8
 
     Create a vector space of dimension $4$, and compute its generators::
 
-        sage: V = s('QQ^4')
+        sage: V = ru('QQ^4')
         sage: V.gens()
         ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 
@@ -68,40 +68,18 @@ class Ruby(Expect):
     We can still get the actual parent by using the name attribute of g,
     which is the variable name of the object in the child process. ::
 
-        sage: s('%s.parent()'%g.name())
+        sage: ru('%s.parent()'%g.name())
         Vector space of dimension 4 over Rational Field
 
     Note that the memory space is completely different. ::
 
         sage: x = 10
-        sage: s('x = 5')
+        sage: ru('x = 5')
         5
         sage: x
         10
-        sage: s('x')
+        sage: ru('x')
         5
-
-    We can have the child interpreter itself make another child
-    \sage process, so now three copies of \sage are running::
-
-        sage: s3 = s('Ruby()')
-        sage: a = s3(10)
-        sage: a
-        10
-
-    This $a=10$ is in a subprocess of a subprocesses of your original \sage. ::
-
-        sage: _ = s.eval('%s.eval("x=8")'%s3.name())
-        sage: s3('"x"')
-        8
-        sage: s('x')
-        5
-        sage: x
-        10
-
-    The double quotes are needed because the call to s3 first evaluates
-    its arguments using the s interpeter, so the call to s3 is passed
-    \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
     def __init__(self, logfile=None,
                        python=False,
@@ -131,6 +109,8 @@ class Ruby(Expect):
 
         EXAMPLES::
 
+            sage: from sage.interfaces.ruby import Ruby
+            sage: ruby = Ruby()
             sage: ruby.cputime()     # random output
             1.3530439999999999
             sage: ruby('factor(2^157-1)')
@@ -285,6 +265,8 @@ class RubyElement(ExpectElement):
 
         EXAMPLE::
 
+            sage: from sage.interfaces.ruby import Ruby
+            sage: ruby = Ruby()
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: F == ruby(F)._sage_()
@@ -330,7 +312,7 @@ def reduce_load_ruby():
 
 
 def reduce_load_element(s):
-    return ruby('loads(%s)' % s)
+    return ruby('loads({})'.format(s))
 
 
 def ruby_console():
