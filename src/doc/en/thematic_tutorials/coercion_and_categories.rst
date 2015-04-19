@@ -446,11 +446,11 @@ is not implemented on top of :class:`sage.rings.ring.Ring`.  However, if
 From the point of view of Python base classes, both cases are the same::
 
     sage: MS1 = MatrixSpace(QQ,2,3)
-    sage: isinstance(MS1, Ring)
-    False
+    sage: isinstance(MS1, MatrixSpace)
+    True
     sage: MS2 = MatrixSpace(QQ,2)
-    sage: isinstance(MS2, Ring)
-    False
+    sage: isinstance(MS2, MatrixSpace)
+    True
 
 .. end of output
 
@@ -465,13 +465,17 @@ Sage's category framework can differentiate the two cases::
 
 .. end of output
 
-And indeed, ``MS2`` has *more* methods than ``MS1``::
+And indeed, ``MS2`` and ``MS1`` have different classes::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    58
+    doctest:...: DeprecationWarning: _copy_zero is deprecated
+    See http://trac.sagemath.org/18231 for details.
+    55
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    86
+    83
+    sage: MS1.__class__ == MS2.__class__
+    False
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::

@@ -660,7 +660,11 @@ class GroupAlgebra(CombinatorialFreeModule):
         - ``x`` - an element of some group algebra or of a
           ring or of a group
 
-        OUTPUT: ``x`` as a member of ``self``.
+        OUTPUT:
+
+        ``x`` as a member of ``self``.
+
+        EXAMPLES::
 
             sage: G = KleinFourGroup()
             sage: f = G.gen(0)
@@ -685,7 +689,9 @@ class GroupAlgebra(CombinatorialFreeModule):
             sage: OG(FormalSum([ (1, G(2)), (2, RR(0.77)) ]) )
             Traceback (most recent call last):
             ...
-            TypeError: Attempt to coerce non-integral RealNumber to Integer
+            TypeError: cannot construct an element of Full MatrixSpace of 2 by 2
+            dense matrices over Finite Field of size 7 from 0.770000000000000 of
+            type <type 'sage.rings.real_mpfr.RealLiteral'>!
             sage: OG(OG.base_ring().gens()[1])
             sqrt5*[1 0]
             [0 1]

@@ -210,6 +210,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Traceback (most recent call last):
         ...
         ValueError: number of rows and columns may be at most...
+
+    .. TODO::
+
+        - Turn the `__call__` into an `_element_constructor_` (see
+          :class:`sage.structure.Parent`). It would allow other parents to
+          define conversions/coercions to a matrix space.
+
+        - Fix coercions between element of matrix groups and element of matrix
+          spaces
     """
     _no_generic_basering_coercion = True
 
@@ -1053,6 +1062,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
           * a dictionary whose keys are pairs of indices `(i,j)` and the
             corresponding value is the entry at position `(i,j)`
 
+          * elements that naturally converts to matrices (permutations)
+
         - ``coerce`` -- (default: ``True``) whether to coerce the entries to the
           base ring. If you set it to ``False`` then the elements *must* be
           elements of the base ring. Otherwise Sage might crash! On the other
@@ -1126,6 +1137,37 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [2.0 3.0]
             [4.0 5.0]
 
+        Initialization from objects that naturally converts into a matrix::
+
+            sage: p = SymmetricGroup(4).an_element()
+            sage: MatrixSpace(ZZ,4)(p)
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            [1 0 0 0]
+            sage: MatrixSpace(GF(2),4)(p)
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            [1 0 0 0]
+
+        ::
+
+            sage: k = GF(7)
+            sage: G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
+            sage: MatrixSpace(k,2)(G.0)
+            [1 1]
+            [0 1]
+
+            sage: MS = MatrixSpace(ZZ, 2)
+            sage: g = Gamma0(5)([1,1,0,1])
+            sage: MatrixSpace(ZZ,2)(g)
+            [1 1]
+            [0 1]
+            sage: MatrixSpace(RDF,2)(g)
+            [1.0 1.0]
+            [0.0 1.0]
+
         If the dimension of the input mismatch the dimension of the matrix space
         you get a ``TypeError``::
 
@@ -1164,37 +1206,22 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         TESTS::
 
-            sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
-            sage: MatrixSpace(k,2)(G.0)
-            [1 1]
-            [0 1]
-
-        ::
 
             sage: MS = MatrixSpace(ZZ,2,4)
             sage: M2 = MS(range(8))
             sage: M2 == MS(M2.rows())
             True
 
-        ::
-
             sage: MS = MatrixSpace(ZZ,2,4, sparse=True)
             sage: M2 = MS(range(8))
             sage: M2 == MS(M2.rows())
             True
-
-        ::
 
             sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
             sage: MS([1,2,3,4])
             [1 2]
             [3 4]
 
-            sage: MS = MatrixSpace(ZZ, 2)
-            sage: g = Gamma0(5)([1,1,0,1])
-            sage: MS(g)
-            [1 1]
-            [0 1]
 
         ::
 
@@ -1347,12 +1374,12 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     pass
                 else:
                     return MC(self, entries, copy=False, coerce=True)
-            from sage.groups.matrix_gps.group_element import \
-                is_MatrixGroupElement
-            from sage.modular.arithgroup.arithgroup_element import \
-                ArithmeticSubgroupElement
-            if is_MatrixGroupElement(entries) or isinstance(entries, ArithmeticSubgroupElement):
-                return self(entries.matrix(), copy=False)
+            try:
+                m = entries.matrix()
+            except AttributeError:
+                pass
+            else:
+                return self(m, copy=False)
 
         if is_iterator(entries) or isinstance(entries,xrange):
             entries = list(entries)

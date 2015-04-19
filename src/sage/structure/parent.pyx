@@ -2014,53 +2014,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: S3 = AlternatingGroup(3)
-            sage: G = SL(3, QQ)
-            sage: p = S3[2]; p.matrix()
-            [0 0 1]
-            [1 0 0]
-            [0 1 0]
-
-        In general one can't mix matrices and permutations::
-
-            sage: G(p)
-            Traceback (most recent call last):
-            ...
-            TypeError: entries must be coercible to a list or integer
-            sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
-            sage: phi(p)
-            [0 0 1]
-            [1 0 0]
-            [0 1 0]
-            sage: S3._unset_coercions_used()
-            sage: S3.register_embedding(phi)
-
-        By :trac:`14711`, coerce maps should be copied when using outside of
-        the coercion system::
-
-            sage: phi = copy(S3.coerce_embedding()); phi
-            Generic morphism:
-              From: Alternating group of order 3!/2 as a permutation group
-              To:   Special Linear Group of degree 3 over Rational Field
-            sage: phi(p)
-            [0 0 1]
-            [1 0 0]
-            [0 1 0]
-
-        This does not work since matrix groups are still old-style
-        parents (see :trac:`14014`)::
-
-            sage: G(p)                               # todo: not implemented
-
-        Though one can have a permutation act on the rows of a matrix::
-
-            sage: G(1) * p
-            [0 0 1]
-            [1 0 0]
-            [0 1 0]
-
-        Some more advanced examples::
-
             sage: x = QQ['x'].0
             sage: t = abs(ZZ.random_element(10^6))
             sage: K = NumberField(x^2 + 2*3*7*11, "a"+str(t))

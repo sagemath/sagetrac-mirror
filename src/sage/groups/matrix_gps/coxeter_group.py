@@ -305,7 +305,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         n = ZZ(coxeter_matrix.nrows())
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         if base_ring is UniversalCyclotomicField():
             val = lambda x: base_ring.gen(2*x) + ~base_ring.gen(2*x) if x != -1 else base_ring(2)
@@ -322,7 +322,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # Coxeter system, and might lead us out of our base ring.
         base_field = base_ring.fraction_field()
         MS2 = MatrixSpace(base_field, n, sparse=True)
-        MC2 = MS2._get_matrix_class()
+        MC2 = MS2._matrix_class
         self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_field(-2)
                                            for i in range(n) for j in range(n)
                                            if coxeter_matrix[i, j] != 2},
