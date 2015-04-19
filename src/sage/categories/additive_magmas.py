@@ -8,6 +8,8 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import itertools
+
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -960,14 +962,9 @@ class AdditiveMagmas(Category_singleton):
                     Return the negation of ``self``, if it exists.
 
                     The inverse is computed by negating each cartesian
-                    factor and converting the result back to the original parent.
-
-                    Occasionally, this can lead to inverses that lie actually
-                    outside of the current parent: for example, if one of the
-                    cartesian factor is an element ``x`` of `\NN`, the result of
-                    ``-x`` will be in `\ZZ`. If this is a problem the parent must
-                    implement a special ``_neg_`` method that adds extra sanity
-                    checks.
+                    factor and converting the result back to the original
+                    parent. If the inverse does not belong to the parent an
+                    error is raised.
 
                     EXAMPLES::
 
@@ -981,27 +978,33 @@ class AdditiveMagmas(Category_singleton):
                         sage: -C([2,0,.4])
                         (-2, 0, -0.400000000000000)
 
+                    The following is an example where ``-c`` lies outside the
+                    parent::
+
                         sage: c = C.an_element(); c
                         (1, 42, 1.00000000000000)
-                        sage: # the following is an example where -c lies outside the parent:
                         sage: -c
-                        (-1, -42, -1.00000000000000)
+                        Traceback (most recent call last):
+                        ...
+                        ValueError: Value -42 in not in Non negative integers.
 
                     .. TODO::
 
-                        Use plain ``NN`` above once it is a semiring.
-                        See :trac:`16406`. There is a further issue
-                        with ``NN`` being lazy imported which breaks
-                        the assertion that the inputs are parents in
-                        ``cartesian_product``::
+                        In the above example it is not currently possible to use
+                        ``NN`` instead of ``NNSemiring``. See :trac:`16406`.
+                        There is a further issue with ``NN`` being lazy imported
+                        which breaks the assertion that the inputs are parents
+                        in ``cartesian_product``::
 
                             sage: cartesian_product([ZZ, NN, RR])
                             Traceback (most recent call last):
                             ...
                             AssertionError
                     """
-                    return self.parent()._cartesian_product_of_elements(
-                        [-x for x in self.cartesian_factors()])
+                    P = self.parent()
+                    return P._cartesian_product_of_elements(
+                        [F(-x) for F,x in \
+                            itertools.izip(P.cartesian_factors(), self.cartesian_factors())])
 
         class Algebras(AlgebrasCategory):
 
