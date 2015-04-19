@@ -1424,7 +1424,7 @@ class Sets(Category_singleton):
                 sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
                 Category of sets
                 sage: cartesian_product([ZZ, ZZ], blub=None).category()
-                Traceback (most recent call last)
+                Traceback (most recent call last):
                 ...
                 TypeError: unknown parameters: blub
             """
