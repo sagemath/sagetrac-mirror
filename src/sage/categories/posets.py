@@ -701,3 +701,265 @@ class Posets(Category):
         #         sage: x <= y
         #     """
         #     return self.parent().le(self, other)
+
+
+    class CompareLexCartesianProduct(Category):
+        r"""
+
+        EXAMPLES::
+
+            sage: P = Poset((srange(10), lambda left, right: left <= right))
+            sage: Q = cartesian_product((P, P, P),
+            ....:                       extra_category=Posets().CompareLexCartesianProduct())
+            sage: T = [Q((0, 0, 0)), Q((1, 1, 1)), Q((0, 1, 2)), Q((2, 1, 0))]
+            sage: for a in T:
+            ....:     for b in T:
+            ....:         assert(Q.le(a, b) == (a <= b))
+            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            (0, 0, 0) <= (0, 0, 0) = True
+            (0, 0, 0) <= (1, 1, 1) = True
+            (0, 0, 0) <= (0, 1, 2) = True
+            (0, 0, 0) <= (2, 1, 0) = True
+            (1, 1, 1) <= (0, 0, 0) = False
+            (1, 1, 1) <= (1, 1, 1) = True
+            (1, 1, 1) <= (0, 1, 2) = False
+            (1, 1, 1) <= (2, 1, 0) = True
+            (0, 1, 2) <= (0, 0, 0) = False
+            (0, 1, 2) <= (1, 1, 1) = True
+            (0, 1, 2) <= (0, 1, 2) = True
+            (0, 1, 2) <= (2, 1, 0) = True
+            (2, 1, 0) <= (0, 0, 0) = False
+            (2, 1, 0) <= (1, 1, 1) = False
+            (2, 1, 0) <= (0, 1, 2) = False
+            (2, 1, 0) <= (2, 1, 0) = True
+        """
+
+        def super_categories(self):
+            r"""
+            Return a list of the (immediate) super categories,
+            as per :meth:`Category.super_categories`.
+
+            EXAMPLES::
+
+                sage: Posets().CompareLexCartesianProduct().super_categories()
+                [Category of Cartesian products of sets, Category of posets]
+            """
+            return [Sets().CartesianProducts(), Posets()]
+
+
+        def _repr_object_names(self):
+            r"""
+            The representation string of this category.
+
+            EXAMPLES:
+
+                sage: Posets().CompareLexCartesianProduct()
+                Category of Cartesian products of posets sorted lexicographically
+            """
+            return 'Cartesian products of posets sorted lexicographically'
+
+
+        class ParentMethods:
+
+            def __init_extra__(self):
+                r"""
+                Do some extra init, in particular add ``__le__`` to the
+                elements.
+
+                .. NOTE::
+
+                    This can be deleted once :trac:`10130` is fixed and
+                    provides these methods automatically. See also the
+                    comments in the source file.
+                """
+                self.element_class.__le__ = \
+                    lambda left, right: left.parent().le(left, right)
+                self.element_class.__ge__ = \
+                    lambda left, right: right.__le__(left)
+                self.element_class.__lt__ = \
+                    lambda left, right: left.__le__(right) and not left == right
+                self.element_class.__gt__ = \
+                    lambda left, right: right.__le__(left) and not left == right
+
+
+            def le(self, left, right):
+                r"""
+                Tests if ``left`` is lexicographically smaller or equal
+                to ``right``.
+
+                INPUT:
+
+                - ``left`` -- an element.
+
+                - ``right`` -- an element.
+
+                OUTPUT:
+
+                A boolean.
+
+                EXAMPLES::
+
+                    sage: P = Poset((srange(2), lambda left, right: left <= right))
+                    sage: Q = cartesian_product(
+                    ....:     (P, P), extra_category=Posets().CompareLexCartesianProduct())
+                    sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
+                    sage: for a in T:
+                    ....:     for b in T:
+                    ....:         assert(Q.le(a, b) == (a <= b))
+                    ....:         print '%s <= %s = %s' % (a, b, a <= b)
+                    (0, 0) <= (0, 0) = True
+                    (0, 0) <= (1, 1) = True
+                    (0, 0) <= (0, 1) = True
+                    (0, 0) <= (1, 0) = True
+                    (1, 1) <= (0, 0) = False
+                    (1, 1) <= (1, 1) = True
+                    (1, 1) <= (0, 1) = False
+                    (1, 1) <= (1, 0) = False
+                    (0, 1) <= (0, 0) = False
+                    (0, 1) <= (1, 1) = True
+                    (0, 1) <= (0, 1) = True
+                    (0, 1) <= (1, 0) = True
+                    (1, 0) <= (0, 0) = False
+                    (1, 0) <= (1, 1) = True
+                    (1, 0) <= (0, 1) = False
+                    (1, 0) <= (1, 0) = True
+                """
+                for l, r, S in \
+                        zip(left.value, right.value, self.cartesian_factors()):
+                    if l == r:
+                        continue
+                    if S.le(l, r):
+                        return True
+                    if S.le(r, l):
+                        return False
+                return True  # equal
+
+
+    class CompareComponentsCartesianProduct(Category):
+        r"""
+
+        EXAMPLES::
+
+            sage: P = Poset((srange(10), lambda left, right: left <= right))
+            sage: Q = cartesian_product((P, P, P),
+            ....:                       extra_category=Posets().CompareComponentsCartesianProduct())
+            sage: T = [Q((0, 0, 0)), Q((1, 1, 1)), Q((0, 1, 2)), Q((2, 1, 0))]
+            sage: for a in T:
+            ....:     for b in T:
+            ....:         assert(Q.le(a, b) == (a <= b))
+            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            (0, 0, 0) <= (0, 0, 0) = True
+            (0, 0, 0) <= (1, 1, 1) = True
+            (0, 0, 0) <= (0, 1, 2) = True
+            (0, 0, 0) <= (2, 1, 0) = True
+            (1, 1, 1) <= (0, 0, 0) = False
+            (1, 1, 1) <= (1, 1, 1) = True
+            (1, 1, 1) <= (0, 1, 2) = False
+            (1, 1, 1) <= (2, 1, 0) = False
+            (0, 1, 2) <= (0, 0, 0) = False
+            (0, 1, 2) <= (1, 1, 1) = False
+            (0, 1, 2) <= (0, 1, 2) = True
+            (0, 1, 2) <= (2, 1, 0) = False
+            (2, 1, 0) <= (0, 0, 0) = False
+            (2, 1, 0) <= (1, 1, 1) = False
+            (2, 1, 0) <= (0, 1, 2) = False
+            (2, 1, 0) <= (2, 1, 0) = True
+        """
+
+        def super_categories(self):
+            r"""
+            Return a list of the (immediate) super categories,
+            as per :meth:`Category.super_categories`.
+
+            EXAMPLES::
+
+                sage: Posets().CompareComponentsCartesianProduct().super_categories()
+                [Category of Cartesian products of sets, Category of posets]
+            """
+            return [Sets().CartesianProducts(), Posets()]
+
+
+        def _repr_object_names(self):
+            r"""
+            The representation string of this category.
+
+            EXAMPLES:
+
+                sage: Posets().CompareComponentsCartesianProduct()
+                Category of Cartesian products of posets sorted component-wise
+            """
+            return 'Cartesian products of posets sorted component-wise'
+
+
+        class ParentMethods:
+
+            def __init_extra__(self):
+                r"""
+                Do some extra init, in particular add ``__le__`` to the
+                elements.
+
+                .. NOTE::
+
+                    This can be deleted once :trac:`10130` is fixed and
+                    provides these methods automatically. See also the
+                    comments in the source file.
+                """
+                self.element_class.__le__ = \
+                    lambda left, right: left.parent().le(left, right)
+                self.element_class.__ge__ = \
+                    lambda left, right: right.__le__(left)
+                self.element_class.__lt__ = \
+                    lambda left, right: left.__le__(right) and not left == right
+                self.element_class.__gt__ = \
+                    lambda left, right: right.__le__(left) and not left == right
+
+
+            def le(self, left, right):
+                r"""
+                Tests if ``left`` is component-wise smaller or equal
+                to ``right``.
+
+                INPUT:
+
+                - ``left`` -- an element.
+
+                - ``right`` -- an element.
+
+                OUTPUT:
+
+                A boolean.
+
+                The comparison is ``True`` if the result of the
+                comparision in each component is ``True``.
+
+                EXAMPLES::
+
+                    sage: P = Poset((srange(2), lambda left, right: left <= right))
+                    sage: Q = cartesian_product(
+                    ....:     (P, P), extra_category=Posets().CompareComponentsCartesianProduct())
+                    sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
+                    sage: for a in T:
+                    ....:     for b in T:
+                    ....:         assert(Q.le(a, b) == (a <= b))
+                    ....:         print '%s <= %s = %s' % (a, b, a <= b)
+                    (0, 0) <= (0, 0) = True
+                    (0, 0) <= (1, 1) = True
+                    (0, 0) <= (0, 1) = True
+                    (0, 0) <= (1, 0) = True
+                    (1, 1) <= (0, 0) = False
+                    (1, 1) <= (1, 1) = True
+                    (1, 1) <= (0, 1) = False
+                    (1, 1) <= (1, 0) = False
+                    (0, 1) <= (0, 0) = False
+                    (0, 1) <= (1, 1) = True
+                    (0, 1) <= (0, 1) = True
+                    (0, 1) <= (1, 0) = False
+                    (1, 0) <= (0, 0) = False
+                    (1, 0) <= (1, 1) = True
+                    (1, 0) <= (0, 1) = False
+                    (1, 0) <= (1, 0) = True
+                """
+                return all(
+                    S.le(l, r)
+                    for l, r, S in
+                    zip(left.value, right.value, self.cartesian_factors()))
