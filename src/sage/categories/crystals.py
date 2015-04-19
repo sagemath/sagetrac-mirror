@@ -46,7 +46,8 @@ class Crystals(Category_singleton):
     - ``module_generators``: a list (or container) of distinct elements
       which generate the crystal using `f_i`
 
-    Furthermore, their elements should implement the following methods:
+    Furthermore, their elements ``x`` should implement the following
+    methods:
 
     - ``x.e(i)`` (returning `e_i(x)`)
 
@@ -1196,11 +1197,11 @@ class Crystals(Category_singleton):
             """
 
         def phi_minus_epsilon(self, i):
-            """
-            Return `\phi_i - \epsilon_i` of ``self``.
+            r"""
+            Return `\varphi_i - \varepsilon_i` of ``self``.
 
-            There are sometimes better implementations using the weight
-            for this. It is used for reflections along a string.
+            There are sometimes better implementations using the
+            weight for this. It is used for reflections along a string.
 
             EXAMPLES::
 
@@ -1352,7 +1353,7 @@ class Crystals(Category_singleton):
 
         def to_highest_weight(self, index_set = None):
             r"""
-            Yields the highest weight element `u` and a list `[i_1,...,i_k]`
+            Return the highest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1391,7 +1392,7 @@ class Crystals(Category_singleton):
 
         def to_lowest_weight(self, index_set = None):
             r"""
-            Yields the lowest weight element `u` and a list `[i_1,...,i_k]`
+            Return the lowest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = e_{i_1} ... e_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1432,8 +1433,8 @@ class Crystals(Category_singleton):
 
         def all_paths_to_highest_weight(self, index_set=None):
             r"""
-            Return all paths to the highest weight from ``self`` with respect
-            to `index_set`.
+            Iterate over all paths to the highest weight from ``self``
+            with respect to `index_set`.
 
             INPUT:
 

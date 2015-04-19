@@ -1644,8 +1644,8 @@ class KR_type_CElement(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self by mapping the element to the ambient crystal
-        and calculating `\epsilon_1` there.
+        Calculate `\varepsilon_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating `\varepsilon_1` there.
 
         EXAMPLES::
 
@@ -1659,8 +1659,8 @@ class KR_type_CElement(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self by mapping the element to the ambient crystal
-        and calculating `\phi_1` there.
+        Calculate `\varphi_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating `\varphi_1` there.
 
         EXAMPLES::
 
@@ -1910,8 +1910,8 @@ class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self by mapping the element to the ambient crystal
-        and calculating `\epsilon_1` there.
+        Calculate `\varepsilon_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating ``\varepsilon_1`` there.
 
         EXAMPLES::
 
@@ -1926,8 +1926,8 @@ class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self by mapping the element to the ambient crystal
-        and calculating `\phi_1` there.
+        Calculate `\varphi_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating `\varphi_1` there.
 
         EXAMPLES::
 
@@ -2167,8 +2167,8 @@ class KR_type_boxElement(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self by mapping the element to the ambient crystal
-        and calculating `\epsilon_0` there.
+        Calculate `\varepsilon_0` of ``self`` by mapping the element
+        to the ambient crystal and calculating `\varepsilon_0` there.
 
         EXAMPLES::
 
@@ -2182,8 +2182,8 @@ class KR_type_boxElement(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self by mapping the element to the ambient crystal
-        and calculating `\phi_0` there.
+        Calculate `\varphi_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating `\varphi_0` there.
 
         EXAMPLES::
 
@@ -2436,8 +2436,8 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self by mapping the element to the ambient crystal
-        and calculating `\epsilon_0` there.
+        Calculate `\varepsilon_0` of ``self`` by mapping the element
+        to the ambient crystal and calculating `\varepsilon_0` there.
 
         EXAMPLES::
 
@@ -2451,8 +2451,8 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self by mapping the element to the ambient crystal
-        and calculating `\phi_0` there.
+        Calculate `\varphi_0` of ``self`` by mapping the element to
+        the ambient crystal and calculating `\varphi_0` there.
 
         EXAMPLES::
 
@@ -2616,7 +2616,7 @@ class KR_type_CnElement(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self using Lemma 6.1 of [4].
+        Calculate `\varepsilon_0` of ``self`` using Lemma 6.1 of [4].
 
         EXAMPLES::
 
@@ -2633,7 +2633,7 @@ class KR_type_CnElement(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self.
+        Calculate `\varphi_0` of ``self``.
 
         EXAMPLES::
 
@@ -2907,7 +2907,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
 
     def epsilon0(self):
         r"""
-        Calculates `\epsilon_0` of self using Lemma 6.2 of [4].
+        Calculate `\varepsilon_0` of ``self`` using Lemma 6.2 of [4].
 
         EXAMPLES::
 
@@ -2925,7 +2925,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
 
     def phi0(self):
         r"""
-        Calculates `\phi_0` of self.
+        Calculate `\varphi_0` of ``self``.
 
         EXAMPLES::
 
