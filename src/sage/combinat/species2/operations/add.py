@@ -186,6 +186,7 @@ class Add(SpeciesDesign):
                           self.ambient()._species_, 0)
 
         def __iter__(self):
+            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
             for i, F in enumerate(self.ambient()._species_):
                 for s in F.structures(self.finite_set()):
                     yield self._element_constructor_(s, i)

@@ -5711,6 +5711,19 @@ class StandardPermutations_all(Permutations):
 
         return Psigma
 
+    def isomorphism_types(self, n=None):
+        """
+        The *isomorphism types* of the Permutations of order `n`: the partitions of `n`.
+
+        :param n: a non-negative integer
+
+        If `n` is *None* the method return the set of all partitions.
+        """
+        from sage.combinat.partition import Partitions
+        if n != None:
+            return Partitions().graded_component(n)
+        return Partitions()
+
     def cycle_index_series(self):
         return PermutationsCIS()
 

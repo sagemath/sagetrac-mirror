@@ -21,30 +21,47 @@ def partition_to_permutation(pi):
     return Permutation([tuple([it.next() for _ in range(part)])
                         for part in pi])
 
+class ClassOfIsoTypes(Structs):
 
-class DefaultSpeciesIsoTypes(Structs.GradedComponent):
+    def __init__(self, species):
+        Structs.__init__(self)
+        self._species_ = species
 
-    def __init__(self, ambient, n):
-        Structs.GradedComponent.__init__(self, ambient, n)
-        FU = self.ambient().graded_component(self.grading())
-        self._isotypes_ = DisjointSet(FU)
-        self.compute_equivalence_class()
+    Element = ElementWrapper
 
-    def compute_equivalence_class(self):
-        FU = self.ambient().graded_component(self.grading())
-        for s in FU:
-            for pi in Partitions(self.grading()):
-                sigma = partition_to_permutation(pi)
-                t = self.ambient().transport(sigma)(s)
-                self._isotypes_.union(s, t)
+    def _repr_(self):
+        return "Isomorphism types of %s"%repr(self._species_)
 
-    def __iter__(self):
-        for ts in self._isotypes_.root_to_elements_dict().values():
-            yield ElementWrapper(self, ts)
+    def generating_series(self):
+        return self._species_.isomorphism_type_generating_series()
 
-    @cached_method
-    def cardinality(self):
-        return self._isotypes_.number_of_subsets()
+    class GradedComponent(Structs.GradedComponent):
+
+        def __init__(self, ambient, n):
+            Structs.GradedComponent.__init__(self, ambient, n)
+            FU = self.ambient()._species_.structures(Set(range(1, self.grading()+1)))
+            self._isotypes_ = DisjointSet(FU)
+            self._is_computed_ = False
+
+        def compute_equivalence_class(self):
+            F = self.ambient()._species_
+            FU = F.structures(Set(range(1, self.grading()+1)))
+            for s in FU:
+                for pi in Partitions(self.grading()):
+                    sigma = partition_to_permutation(pi)
+                    t = F.transport(sigma)(s)
+                    self._isotypes_.union(s, t)
+
+        def __iter__(self):
+            if not self._is_computed_:
+                self.compute_equivalence_class()
+            for ts in self._isotypes_.root_to_elements_dict().values():
+                yield ElementWrapper(self.ambient(), ts)
+
+        @cached_method
+        def cardinality(self):
+            F = self.ambient()._species_
+            return F.isomorphism_type_generating_series().coefficient(self.grading())
 
 
 class SpeciesDesign(UniqueRepresentation, Parent):
@@ -93,7 +110,7 @@ class SpeciesDesign(UniqueRepresentation, Parent):
             return self._finite_set_
 
         def cardinality(self):
-            return self.ambient().cycle_index_series().generating_series().coefficient(self.grading())
+            return self.ambient().exponential_generating_series().coefficient(self.grading())
 
         def grading(self):
             return self._finite_set_.cardinality()
@@ -105,7 +122,4 @@ class SpeciesDesign(UniqueRepresentation, Parent):
         def _element_constructor_(self):
             return self.ambient()._element_constructor_
 
-    def isomorphism_types(self, n):
-        return self.IsomorphismTypes(self, n)
-
-    IsomorphismTypes = DefaultSpeciesIsoTypes
+    IsomorphismTypes = ClassOfIsoTypes

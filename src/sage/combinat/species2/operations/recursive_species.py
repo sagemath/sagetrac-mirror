@@ -23,6 +23,7 @@ from sage.categories.species import Species
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.species2.cycle_index_series.operations.recursive_cis import RecursiveCIS
 from sage.sets.set import Set
+from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 
 
@@ -106,6 +107,28 @@ class RecursiveSpecies(Parent):
 
     class Structures(SpeciesDesign.Structures):
 
-        def __iter__(self):
-            return iter([])
+        def __init__(self, ambient, U):
+            SpeciesDesign.Structures.__init__(self, ambient, U)
+            self._active_ = False
 
+        def __iter__(self):
+            """
+            TESTS::
+
+                sage: Sp = Species()
+                sage: B = Sp.recursive_species(name="B")
+                sage: X = Sp.singletons()
+                sage: O = Sp.one()
+                sage: B.define(O + B*X*B)
+                sage: B.structures(Set([1,2])).list()
+                [[·, 1, [·, 2, ·]],
+                 [·, 2, [·, 1, ·]],
+                 [[·, 1, ·], 2, ·],
+                 [[·, 2, ·], 1, ·]]
+
+            """
+            if self.ambient()._valuation_() > self.finite_set().cardinality():
+                return
+
+            for s in self.ambient()._def_.structures(self.finite_set()):
+                yield ElementWrapper(self.ambient(), s)

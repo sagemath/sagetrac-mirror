@@ -154,6 +154,7 @@ class Derivative(SpeciesDesign):
                  {{1}, {2}, {3}, {*}}]
 
             """
+            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
             for s in self.ambient()._F_.structures(Set([Ast()]).union(self.finite_set())):
                 s._set_parent(self.ambient())
                 yield s

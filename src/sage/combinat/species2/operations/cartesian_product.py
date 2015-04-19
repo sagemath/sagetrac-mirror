@@ -141,6 +141,7 @@ class CartesianProduct(SpeciesDesign):
                 [[[1, 2], [1, 2]], [[1, 2], [2, 1]], [[2, 1], [1, 2]], [[2, 1], [2, 1]]]
 
             """
+            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
             for s in product(*map(lambda F: F.structures(self.finite_set()), self.ambient()._species_)):
                 yield self._element_constructor_(s)
 

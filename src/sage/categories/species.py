@@ -189,11 +189,11 @@ class Species(Category):
             """
             return self.is_isomorphism_of(sigma, s, s)
 
-        def isomorphism_types(self, n):
+        def isomorphism_types(self, n=None):
             """
             The *isomorphism types* of `F`-structures of order `n`.
 
-            :param U: a finite set
+            :param n: a non-negative integer
 
             Let `\sim` be the equivalence relation on `F[n]` defined by `s \sim t` *iff* `s` and `t` have same
             isomorphism type.
@@ -205,7 +205,10 @@ class Species(Category):
 
             This method return the quotient `T(F[n]) := F[n]/\sim`.
             """
-            # TODO give a generic implementation
+            from sage.combinat.species2 import ClassOfIsoTypes
+            if n != None:
+                return ClassOfIsoTypes(self).graded_component(n)
+            return ClassOfIsoTypes(self)
 
         def Fix(self, sigma):
             """

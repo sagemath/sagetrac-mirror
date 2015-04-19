@@ -161,6 +161,9 @@ class Composite(SpeciesDesign):
     class Structures(SpeciesDesign.Structures):
 
         def __iter__(self):
+
+            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
+
             def rec_prod(pi):
                 if len(pi) == 0:
                     yield ()

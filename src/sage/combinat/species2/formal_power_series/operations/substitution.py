@@ -99,6 +99,5 @@ class Substitution(FPS):
         return sum(self._index_[k][0] * self._index_[k][1].coefficient(n) for k in range(n+1))
 
     def _valuation_(self):
-        # FIXME: naive implementation...
-        # I don't know how to define a good way to be deterministic and **finite**.
-        return self._f_._valuation_()
+        # FIXME: naive implementation... is it ok?
+        return self._f_._valuation_() * self._g_._valuation_()
