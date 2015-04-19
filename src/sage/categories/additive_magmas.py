@@ -8,13 +8,12 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import itertools
-
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
+from sage.categories.cartesian_product import cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
@@ -927,6 +926,26 @@ class AdditiveMagmas(Category_singleton):
                     """
                     return [AdditiveMagmas().AdditiveUnital().AdditiveInverse()]
 
+                class ElementMethods:
+                    def __neg__(self):
+                        """
+                        Return the negation of ``self``.
+
+                        EXAMPLES::
+
+                           sage: x = cartesian_product((GF(7)(2),17)) ; x
+                           (2, 17)
+                           sage: -x
+                           (5, -17)
+
+                        TESTS::
+
+                           sage: x.parent() in AdditiveMagmas().AdditiveUnital().AdditiveInverse().CartesianProducts()
+                           True
+                        """
+                        return self.parent()._cartesian_product_of_elements(
+                            [-x for x in self.cartesian_factors()])
+
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
@@ -959,12 +978,12 @@ class AdditiveMagmas(Category_singleton):
             class ElementMethods:
                 def __neg__(self):
                     r"""
-                    Return the negation of ``self``, if it exists.
+                    Return the negation of ``self``.
 
                     The inverse is computed by negating each cartesian
-                    factor and converting the result back to the original
-                    parent. If the inverse does not belong to the parent an
-                    error is raised.
+                    factor and taking the cartesian product. Note that the inverse
+                    will belong to a different parent if the cartesian factors of the
+                    the input are not closed under negation.
 
                     EXAMPLES::
 
@@ -973,7 +992,7 @@ class AdditiveMagmas(Category_singleton):
                         sage: -oneone
                         (4, 4)
 
-                        sage: NNSemiring = NonNegativeIntegers(category=Semirings() & InfiniteEnumeratedSets())
+                        sage: NNSemiring = NonNegativeIntegerSemiring()
                         sage: C = cartesian_product([ZZ,NNSemiring,RR])
                         sage: -C([2,0,.4])
                         (-2, 0, -0.400000000000000)
@@ -984,9 +1003,9 @@ class AdditiveMagmas(Category_singleton):
                         sage: c = C.an_element(); c
                         (1, 42, 1.00000000000000)
                         sage: -c
-                        Traceback (most recent call last):
-                        ...
-                        ValueError: Value -42 in not in Non negative integers.
+                        (-1, -42, -1.00000000000000)
+                        sage: (-c).parent()
+                        The cartesian product of (Integer Ring, Integer Ring, Real Field with 53 bits of precision)
 
                     .. TODO::
 
@@ -1001,10 +1020,7 @@ class AdditiveMagmas(Category_singleton):
                             ...
                             AssertionError
                     """
-                    P = self.parent()
-                    return P._cartesian_product_of_elements(
-                        [F(-x) for F,x in \
-                            itertools.izip(P.cartesian_factors(), self.cartesian_factors())])
+                    return cartesian_product(-x for x in self.cartesian_factors())
 
         class Algebras(AlgebrasCategory):
 
