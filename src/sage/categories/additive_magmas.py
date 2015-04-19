@@ -856,8 +856,14 @@ class AdditiveMagmas(Category_singleton):
                     sage: b._neg_.__module__
                     'sage.combinat.free_module'
                     sage: F = CombinatorialFreeModule(ZZ, ['a','b'])
+                    sage: a,b = F.gens()
                     sage: FF = cartesian_product((F,F))
-                    sage: -FF.an_element() # random - only test that negative can be taken
+                    sage: x = cartesian_product([a,2*a-3*b]) ; x
+                    B[(0, 'a')] + 2*B[(1, 'a')] - 3*B[(1, 'b')]
+                    sage: x.parent() is FF
+                    True
+                    sage: -x
+                    -B[(0, 'a')] - 2*B[(1, 'a')] + 3*B[(1, 'b')]
                 """
                 return self._neg_()
 
