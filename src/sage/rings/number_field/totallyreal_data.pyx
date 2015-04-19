@@ -2,14 +2,15 @@
 Enumeration of Totally Real Fields
 
 AUTHORS:
-    -- Craig Citro and John Voight (2007-11-04):
-        * Type checking and other polishing.
-    -- John Voight (2007-10-09):
-        * Improvements: Smyth bound, Lagrange multipliers for b.
-    -- John Voight (2007-09-19):
-        * Various optimization tweaks.
-    -- John Voight (2007-09-01):
-        * Initial version.
+
+- Craig Citro and John Voight (2007-11-04):
+  * Type checking and other polishing.
+- John Voight (2007-10-09):
+  * Improvements: Smyth bound, Lagrange multipliers for b.
+- John Voight (2007-09-19):
+  * Various optimization tweaks.
+- John Voight (2007-09-01):
+  * Initial version.
 """
 
 #*****************************************************************************
@@ -188,12 +189,16 @@ cdef void newton_in_intervals(int *f, int *df, int n, double *beta,
 
 cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     r"""
-    Private function.  Solves the equations which arise in the Lagrange multiplier
-    for degree 3: for each 1 <= r <= n-2, we solve
+    Private function. Solves the equations which arise in the Lagrange
+    multiplier for degree 3: for each 1 <= r <= n-2, we solve
+
+    .. MATH::
+
         r*x^i + (n-1-r)*y^i + z^i = s_i (i = 1,2,3)
-    where the s_i are the power sums determined by the coefficients a.
-    We output the largest value of z which occurs.
-    We use a precomputed elimination ideal.
+
+    where the `s_i` are the power sums determined by the coefficients a.
+    We output the largest value of z which occurs. We use a
+    precomputed elimination ideal.
 
     EXAMPLES::
 
@@ -313,9 +318,11 @@ for i from 0 <= i < 46:
 
 def int_has_small_square_divisor(sage.rings.integer.Integer d):
     r"""
-    Returns the largest a such that a^2 divides d and a has prime divisors < 200.
+    Return the largest a such that a^2 divides d and a has prime
+    divisors < 200.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.number_field.totallyreal_data import int_has_small_square_divisor
         sage: int_has_small_square_divisor(500)
         100
@@ -402,7 +409,8 @@ def easy_is_irreducible_py(f):
     """
     Used solely for testing easy_is_irreducible.
 
-    EXAMPLES:
+    EXAMPLES::
+
       sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2+1'))
       1
       sage: sage.rings.number_field.totallyreal_data.easy_is_irreducible_py(pari('x^2-1'))
@@ -446,17 +454,20 @@ cdef class tr_data:
         Initialization routine (constructor).
 
         INPUT:
-        n -- integer, the degree
-        B -- integer, the discriminant bound
-        a -- list (default: []), the coefficient list to begin with, where
-             a[len(a)]*x^n + ... + a[0]x^(n-len(a))
+
+        - n -- integer, the degree
+        - B -- integer, the discriminant bound
+        - a -- list (default: []), the coefficient list to begin with, where
+          a[len(a)]*x^n + ... + a[0]x^(n-len(a))
 
         OUTPUT:
+
         the data initialized to begin enumeration of totally real fields
         with degree n, discriminant bounded by B, and starting with
         coefficients a.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
             sage: T.printa()
             k = 0
@@ -517,7 +528,7 @@ cdef class tr_data:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1])
 
             k = n-len(a)
             self.k = k
@@ -552,7 +563,7 @@ cdef class tr_data:
                 self.gnk[(k+1)*n+i] = gnk[i]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > n+1"%len(a)
+            raise ValueError("a has length %s > n+1" % len(a))
 
     def __dealloc__(self):
         r"""
@@ -579,14 +590,16 @@ cdef class tr_data:
         polynomial.
 
         INPUT:
-            verbose -- boolean to print verbosely computational details
-            haltk -- integer, the level at which to halt the inductive
-                     coefficient bounds
-            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
-                   compute an improved Lagrange multiplier bound
+
+        - verbose -- boolean to print verbosely computational details
+        - haltk -- integer, the level at which to halt the inductive
+          coefficient bounds
+        - phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+          compute an improved Lagrange multiplier bound
 
         OUTPUT:
-            The next polynomial, as a sequence of integers
+
+        The next polynomial, as a sequence of integers
 
         EXAMPLES:
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
@@ -603,7 +616,7 @@ cdef class tr_data:
 
         f_out = <int *>sage_malloc(sizeof(int) * (self.n + 1))
         if f_out == NULL:
-            raise MemoryError, "unable to allocate coefficient list"
+            raise MemoryError("unable to allocate coefficient list")
         for i from 0 <= i < self.n:
             f_out[i] = 0
         f_out[self.n] = 1
@@ -632,16 +645,18 @@ cdef class tr_data:
         polynomial.
 
         INPUT:
-            f_out -- an integer sequence, to be written with the
-                     coefficients of the next polynomial
-            verbose -- boolean to print verbosely computational details
-            haltk -- integer, the level at which to halt the inductive
-                     coefficient bounds
-            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
-                   compute an improved Lagrange multiplier bound
+
+        - f_out -- an integer sequence, to be written with the
+          coefficients of the next polynomial
+        - verbose -- boolean to print verbosely computational details
+        - haltk -- integer, the level at which to halt the inductive
+          coefficient bounds
+        - phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+          compute an improved Lagrange multiplier bound
 
         OUTPUT:
-            None. The return value is stored in the variable f_out.
+
+        None. The return value is stored in the variable f_out.
         """
 
         cdef int n, np1, k, i, j, nk, kz
@@ -888,9 +903,10 @@ cdef class tr_data:
 
     def printa(self):
         """
-        Print relevant data for self.
+        Print relevant data for ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(3,2^10)
             sage: T.printa()
             k = 1
@@ -898,7 +914,6 @@ cdef class tr_data:
             amax = [0, 0, 0, 1]
             beta =  [...]
             gnk =  [...]
-
         """
         print "k =", self.k
         print "a =", [self.a[i] for i in range(self.n+1)]

@@ -12,8 +12,7 @@ AUTHORS:
 
 REFERENCES:
 
-..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic numbers
-    of bounded height, :arxiv:`1111.4963` (2013).
+[Doyle-Krumm]_
 """
 #*****************************************************************************
 #       Copyright (C) 2013 John Doyle and David Krumm
@@ -113,7 +112,7 @@ def bdd_height_iq(K, height_bound):
 
     ALGORITHM:
 
-    This is an implementation of Algorithm 5 in [Doyle-Krumm].
+    This is an implementation of Algorithm 5 in [Doyle-Krumm]_.
 
     INPUT:
 
@@ -363,7 +362,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
     ALGORITHM:
 
     This is an implementation of the main algorithm (Algorithm 3) in
-    [Doyle-Krumm].
+    [Doyle-Krumm]_.
 
     INPUT:
 
@@ -386,7 +385,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
     .. TODO::
 
         Should implement a version of the algorithm that guarantees correct
-        output. See Algorithm 4 in [Doyle-Krumm] for details of an
+        output. See Algorithm 4 in [Doyle-Krumm]_ for details of an
         implementation that takes precision issues into account.
 
     EXAMPLES:
