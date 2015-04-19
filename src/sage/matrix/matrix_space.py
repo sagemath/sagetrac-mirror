@@ -1039,25 +1039,28 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
           * ``None`` - corresponding to the zero matrix;
 
           * a scalar - corresponding to a diagonal matrix with this scalar on
-          the diagonal. In that case the number of rows must match the number of
-          columns;
+            the diagonal. In that case the number of rows must match the number of
+            columns;
 
           * a matrix, whose dimensions must match ``self`` and whose base ring
             must be convertible to the base ring of ``self``;
 
           * a list of entries of length corresponding to all elements of the new
-          matrix;
+            matrix;
 
           * a list of rows with each row given as a list or a vector;
 
           * a dictionary whose keys are pairs of indices `(i,j)` and the
-          corresponding value is the entry at position `(i,j)`
+            corresponding value is the entry at position `(i,j)`
 
-        - ``coerce`` -- (default: ``True``) whether to coerce ``x`` into self;
+        - ``coerce`` -- (default: ``True``) whether to coerce the entries to the
+          base ring. If you set it to ``False`` then the elements *must* be
+          elements of the base ring. Otherwise Sage might crash! On the other
+          hand, setting it to ``True`` might leads to a significant speedup.
 
         - ``copy`` -- (default: ``True``) whether to copy ``x`` during
-          construction (makes a difference only if ``x`` is a matrix in
-          ``self``).
+          construction (makes a difference if ``x`` is a matrix in
+          ``self`` or a plain list).
 
         EXAMPLES:
 
@@ -1085,6 +1088,20 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [3 0]
             [2 0]
 
+        Or equivalently::
+
+            sage: M.matrix(-3)
+            [-3  0]
+            [ 0 -3]
+            sage: M.matrix([[1,0],[0,-1]])
+            [ 1  0]
+            [ 0 -1]
+            sage: M.matrix({(0,0):3, (1,0):2})
+            [3 0]
+            [2 0]
+
+        Some more examples::
+
             sage: M = MatrixSpace(ZZ, 3, 2)
             sage: M(0)
             [0 0]
@@ -1102,7 +1119,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [4.0 5.0]
 
         Note that it is also possible to change the base ring using the method
-        ``base_ring``::
+        ``change_ring``::
 
             sage: m.change_ring(RDF)
             [0.0 1.0]
@@ -1145,7 +1162,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [0 1]
             [0 0]
 
-        TESTS:
+        TESTS::
 
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
             sage: MatrixSpace(k,2)(G.0)
