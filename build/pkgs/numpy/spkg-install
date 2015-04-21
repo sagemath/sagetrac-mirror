@@ -72,9 +72,12 @@ if [ -n "${LDFLAGS+set}" ]; then
     fi
 fi
 
+# Disable generic and arch dependent optimisations
+NUMPY_FCONFIG="config_fc --noopt --noarch"
 
-python setup.py build
+python setup.py ${NUMPY_FCONFIG} build
 
+# Remove previous installation (if any):
 rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
 
 python setup.py install
