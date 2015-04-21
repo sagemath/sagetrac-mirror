@@ -949,7 +949,7 @@ class CombinatorialFreeModuleElement(Element):
 
             return F._from_dict( D, remove_zeros=False )
         else:
-            return self.map_coefficients(lambda c: _divide_if_possible(c, x))
+            return self.map_coefficients(lambda c: _divide_if_possible(c, x), check=False)
 
 def _divide_if_possible(x, y):
     """

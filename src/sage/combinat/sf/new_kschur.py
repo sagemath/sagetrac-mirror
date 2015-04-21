@@ -738,7 +738,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             s = self.parent().realization_of().ambient()
             t = s.base_ring().gen()
             invert = lambda x: s.base_ring()(x.subs(t=1/t))
-            return self.parent()(s(self).map_coefficients(invert).omega())
+            return self.parent()(s(self).map_coefficients(invert, check=False).omega())
 
         def is_schur_positive(self, *args, **kwargs):
             r"""

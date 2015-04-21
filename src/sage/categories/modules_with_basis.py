@@ -1094,14 +1094,17 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.parent().term( *self.trailing_item(cmp=cmp) )
 
-        def map_coefficients(self, f):
-            """
-            Mapping a function on coefficients.
+        def map_coefficients(self, f, check=True):
+            """Mapping a function on coefficients.
 
             INPUT:
 
             - ``f`` -- an endofunction on the coefficient ring of the
               free module
+
+            - ``check``-- (default: ``True``) -- check whether all
+              images of coefficients under ``f`` are elements of the
+              coefficient ring.
 
             Return a new element of ``self.parent()`` obtained by applying the
             function ``f`` to all of the coefficients of ``self``.
@@ -1127,8 +1130,27 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: a = s([2,1])+2*s([3,2])
                 sage: a.map_coefficients(lambda x: x*2)
                 2*s[2, 1] + 4*s[3, 2]
+
+            If ``check`` is ``True`` and ``f`` is not an endofunction
+            for the coefficients at hand, an error is raised::
+
+                sage: a.map_coefficients(factor)
+                Traceback (most recent call last):
+                ...
+                ValueError: ModulesWithBasis.map_coefficients(f) expects that f produces values in the coefficient ring.
             """
-            return self.parent().sum_of_terms( (m, f(c)) for m,c in self )
+            if check:
+                R = self.parent().base_ring()
+                def f_check(c):
+                    r = f(c)
+                    if r in R:
+                        return r
+                    else:
+                        raise ValueError("ModulesWithBasis.map_coefficients(f) expects that f produces values in the coefficient ring.")
+
+                return self.parent().sum_of_terms( ((m, f_check(c)) for m,c in self), distinct=True )
+            else:
+                return self.parent().sum_of_terms( ((m, f(c)) for m,c in self), distinct=True )
 
         def map_support(self, f):
             """

@@ -658,7 +658,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         .. todo:: this should be a method on the elements (what's the standard name for such methods?)
         """
-        return x.map_coefficients(self._normalize_coefficients)
+        return x.map_coefficients(self._normalize_coefficients, check=False)
 
     def _normalize_morphism(self, category):
         r"""

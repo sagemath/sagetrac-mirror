@@ -1062,7 +1062,7 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
         for k in reversed(part):
             res = res.creation(k)
         res = res._omega_qt_in_schurs()
-        res = res.map_coefficients(lambda c: c(t,q))
+        res = res.map_coefficients(lambda c: c(t,q), check=False)
         f = lambda part2: res.coefficient(part2)
         return f
 

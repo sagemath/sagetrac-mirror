@@ -302,7 +302,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
         #assert(self in self.parent().roots() is not False)
         scaled_coroot = self.parent().to_coroot_space_morphism()(self)
         s = self.scalar(scaled_coroot)
-        return scaled_coroot.map_coefficients(lambda c: (2*c) // s)
+        return scaled_coroot.map_coefficients(lambda c: (2*c) // s, check=False)
 
     def quantum_root(self):
         r"""
