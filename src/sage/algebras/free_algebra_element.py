@@ -72,6 +72,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
     _add_ = CombinatorialFreeModuleElement._add_
     _sub_ = CombinatorialFreeModuleElement._sub_
     _neg_ = CombinatorialFreeModuleElement._neg_
+    __neg__ = CombinatorialFreeModuleElement.__neg__
 
     def _repr_(self):
         """

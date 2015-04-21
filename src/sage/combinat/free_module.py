@@ -30,6 +30,8 @@ from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
+from sage.misc.superseded import deprecated_function_alias
+
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -478,7 +480,7 @@ class CombinatorialFreeModuleElement(Element):
         F = self.parent()
         return F._from_dict( dict_addition( [ self._monomial_coefficients, other._monomial_coefficients ] ), remove_zeros=False )
 
-    def _neg_(self):
+    def __neg__(self):
         """
         EXAMPLES::
 
@@ -496,6 +498,8 @@ class CombinatorialFreeModuleElement(Element):
         """
         F = self.parent()
         return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, -1 ) ] ), remove_zeros=False )
+
+    _neg_ = deprecated_function_alias(18263, __neg__)
 
     def _sub_(self, other):
         """

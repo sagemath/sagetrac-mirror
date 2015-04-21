@@ -765,7 +765,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             eclass = self.__class__
             return eclass(self.parent(), dual=(self.dual()+y.dual()))
 
-        def _neg_(self):
+        def __neg__(self):
             """
             Return the negative of ``self``.
 
@@ -778,7 +778,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 -d_m[2, 1]
             """
             eclass = self.__class__
-            return eclass(self.parent(), dual=self.dual()._neg_())
+            return eclass(self.parent(), dual=-self.dual())
 
         def _sub_(self, y):
             """
