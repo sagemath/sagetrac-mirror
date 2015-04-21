@@ -99,5 +99,5 @@ class Substitution(FPS):
         return sum(self._index_[k][0] * self._index_[k][1].coefficient(n) for k in range(n+1))
 
     def _valuation_(self):
-        # FIXME: naive implementation... is it ok?
-        return self._f_._valuation_() * self._g_._valuation_()
+        # FIXME: naive implementation... I d'ont know how to do such that work with rescursive fps (T = E(XT)??)
+        return self._f_._valuation_() #* self._g_._valuation_()

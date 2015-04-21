@@ -104,8 +104,7 @@ class Composite(CIS):
         return super(Composite, cls).__classcall__(cls, ZF, ZG)
 
     def __init__(self, ZF, ZG):
-        ZG0 = ZG.Frobenius_characteristic(0)
-        assert(ZG0 == ZG0.parent().zero()), "The cycle index series should satisfy: `[0]Z_G = 0`."
+        assert(ZG._valuation_() > 0), "The cycle index series should satisfy: `[0]ZG = 0`."
         CIS.__init__(self)
         self._ZF_ = ZF
         self._ZG_ = ZG
