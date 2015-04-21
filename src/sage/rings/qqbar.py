@@ -8145,7 +8145,6 @@ class ANBinaryExpr(ANDescr):
 
         """
         import sys
-        from time import time
         old_recursion_limit = sys.getrecursionlimit()
         sys.setrecursionlimit(old_recursion_limit + 10)
         try:
@@ -8155,7 +8154,6 @@ class ANBinaryExpr(ANDescr):
 
             lp = left.minpoly()
             rp = right.minpoly()
-            t0 = time()
             if op == '+':
                 if lp.degree() < 6 or rp.degree() < 6:
                     p = composed_sum(lp, rp, "resultant")
@@ -8175,7 +8173,6 @@ class ANBinaryExpr(ANDescr):
                 if op == '/':
                     lp = lp(QQxy_x * QQxy_y)
                 p = lp.resultant(rp, QQxy_y).univariate_polynomial()
-            t1 = time()
 
             lprec = left._value.prec()
             rprec = right._value.prec()
@@ -8188,6 +8185,12 @@ class ANBinaryExpr(ANDescr):
                 K = QQbar
             else:
                 K = AA
+            if len(fs) == 1:
+                p1 = fs[0]
+                value1 = K.polynomial_root(p1, approx)
+                value1.exactify()
+                return value1._descr
+
             rs = prod(fs).roots(K, False)
             candidates = [r for r in rs if r._value.overlaps(approx)]
             if len(candidates) == 1:
