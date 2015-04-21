@@ -718,13 +718,13 @@ cdef init_libsingular():
             break
             
     if not libSingularFound : 
-            raise OSError, "did not find libsingular file!"
+           raise OSError, "did not find libsingular file!"
 
 
     if handle == NULL:
         dlerrormsg = dlerror()
         if not dlerrormsg == NULL:
-                print dlerrormsg
+          print dlerrormsg
         raise ImportError, " failed to dlopen " + lib  
 
     # load SINGULAR

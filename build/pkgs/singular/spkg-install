@@ -27,14 +27,15 @@ fi
 
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-    WITH_DEBUG="--with-debug"
-    ENABLE_DEBUGOUTPUT="--enable-debugoutput"
+    WITH_DEBUG="--enable-debug --disable-optimizationflags"
+    ENABLE_FACTORY_DEBUGOUTPUT="--enable-debugoutput --enable-streamio --without-Singular "
 
     CFLAGS="-O0 -g $CFLAGS"
     CXXFLAGS="-O0 -g $CXXFLAGS"
 else
-    WITH_DEBUG="--without-debug"
+    WITH_DEBUG="--disable-debug"
     ENABLE_DEBUGOUTPUT="--disable-debugoutput"
+    ENABLE_FACTORY_DEBUGOUTPUT="--disable-debugoutput "
 
     # By default, parts of Singular are compiled with -O2 and parts
     # with -O3.  If we do set any CFLAGS, this always overrides the
@@ -83,11 +84,11 @@ choose_patches()
 {
     cd "$PATCHES" || return $?
 
-    if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        # Remove old omalloc files, except for configure
-        mv "$SRC/omalloc/configure" configure_omalloc
-        mv configure_omalloc "$SRC/omalloc/configure"
-    fi
+    #if [ "x$SAGE_DEBUG" = "xyes" ]; then
+    #    # Remove old omalloc files, except for configure
+    #    mv "$SRC/omalloc/configure" configure_omalloc
+    #    mv configure_omalloc "$SRC/omalloc/configure"
+    #fi
 }
 
 apply_patches()
@@ -124,6 +125,7 @@ config()
     # 3) --without-debug doesn't work:
     #    http://www.singular.uni-kl.de:8002/trac/ticket/438
     #    Replace --with-debug by $WITH_DEBUG if this is fixed.
+    ./autogen.sh
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
@@ -134,8 +136,11 @@ config()
                 --enable-Singular \
                 --enable-factory \
                 --disable-doc \
+                $WITH_DEBUG \
                 $SINGULAR_CONFIGURE \
-                --with-debug
+                
+#               $ENABLE_DEBUGOUTPUT 
+                
 
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to configure Singular."
@@ -170,7 +175,10 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL" 
+                --with-gmp="$SAGE_LOCAL" \
+                $WITH_DEBUG \
+                
+                #$ENABLE_FACTORY_DEBUGOUTPUT
                 
                 
 #                --enable-streamio --without-Singular
