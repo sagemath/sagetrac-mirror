@@ -308,10 +308,11 @@ class BackendSageNB(BackendBase):
             OutputImagePdf, OutputImageSvg,
             SageNbOutputSceneJmol,
             OutputSceneCanvas3d,
+            OutputSavedFile,
         ])
 
     def display_immediately(self, plain_text, rich_output):
-        """
+        r"""
         Show output without waiting for the prompt.
 
         INPUT:
@@ -331,7 +332,7 @@ class BackendSageNB(BackendBase):
 
         This method does not return anything.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.repl.rich_output.output_catalog as catalog
             sage: plain_text = catalog.OutputPlainText.example()
@@ -361,6 +362,11 @@ class BackendSageNB(BackendBase):
             rich_output.embed()
         elif isinstance(rich_output, OutputSceneCanvas3d):
             self.embed_image(rich_output.canvas3d, '.canvas3d')
+        elif isinstance(rich_output, OutputSavedFile):
+            url = self._make_symlink_to_cell(rich_output.filename)
+            print('<html>')
+            print(rich_output.html(url, download=False))
+            print('</html>')
         else:
             raise TypeError('rich_output type not supported, got {0}'.format(rich_output))
 
@@ -400,4 +406,40 @@ class BackendSageNB(BackendBase):
         output_buffer.save_as(filename)
         world_readable(filename)
 
+    def _make_symlink_to_cell(self, filename):
+        """
+        Return the name of a symlink inside the current cell directory
+
+        INPUT:
+
+        - ``filename`` -- string. The name of the file to serve.
+
+        OUTPUT:
+
+        String. Relative path from the worksheet url to the symlink.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_graphics import OutputImagePng
+            sage: png_file = OutputImagePng.example().png.filename(ext='filename.png')
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: cwd = os.getcwd()
+            sage: os.chdir(tmp_dir())
+            sage: backend._make_symlink_to_cell(png_file)    # random output
+            'cells/0/.files/5608054e-eb8f-4c56-9c20-3d581e0e56ef.png'
+            sage: os.chdir(cwd)
+        """
+        try:
+            os.makedirs('.files')
+        except OSError:
+            pass
+        import uuid
+        basename, ext = os.path.splitext(filename)
+        unique_name = os.path.join('.files', str(uuid.uuid4()) + ext)
+        os.symlink(os.path.abspath(filename), unique_name)
+        from sagenb.notebook.interact import SAGE_CELL_ID
+        return 'cells/{0}/{1}'.format(
+            SAGE_CELL_ID,
+            unique_name)
 

@@ -61,6 +61,7 @@ class SageKernelSpec(object):
                 else:
                     raise
         mkdir_p(self._ipython_dir, 'nbextensions')
+        mkdir_p(self._ipython_dir, 'nbextensions', 'sage-saved-files')
 
     @classmethod
     def identifier(self):

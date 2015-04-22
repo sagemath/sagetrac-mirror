@@ -35,3 +35,7 @@ from .output_graphics3d import (
     OutputSceneWavefront,
     OutputSceneCanvas3d,
 )
+
+from .output_special import (
+    OutputSavedFile,
+)
