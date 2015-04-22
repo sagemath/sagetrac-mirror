@@ -398,6 +398,7 @@ class BackendIPythonNotebook(BackendIPython):
             OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
+            OutputSceneJmol,
             OutputSavedFile,
         ])
 
@@ -459,11 +460,17 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get(),
             }, {})
+        elif isinstance(rich_output, OutputSceneJmol):
+            from sage.repl.display.jsmol_iframe import JSMolHtml
+            jsmol = JSMolHtml(rich_output, height=500)
+            return ({u'text/html':  jsmol.iframe(),
+                     u'text/plain': plain_text.text.get(),
+            }, {})
         elif isinstance(rich_output, OutputSavedFile):
             url = self._make_temporary_serving_url(rich_output.filename)
             return ({u'text/html':  rich_output.html(url),
                      u'text/plain': rich_output.filename,
-            }, {})            
+            }, {})
         else:
             raise TypeError('rich_output type not supported')
         

@@ -22,6 +22,8 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.dyck_word import CompleteDyckWords_size
+from sage.categories.sets_cat import EmptySetError 
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -458,20 +460,15 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: t.to_poset()
             Finite poset containing 1 elements
             sage: p = OrderedTree([[[]],[],[]]).to_poset()
-            sage: p.cover_relations()
-            [[3, 4], [2, 4], [0, 1], [1, 4]]
-            sage: p = OrderedTree([[[]],[],[]]).to_poset(root_to_leaf=True)
-            sage: p.cover_relations()
-            [[0, 1], [0, 2], [0, 3], [3, 4]]
+            sage: p.height(), p.width()
+            (3, 3)
 
         If the tree is labelled, we use its labelling to label the poset.
         Otherwise, we use the poset canonical labelling::
 
-            sage: t = OrderedTree([[[]],[],[]]).canonical_labelling()
-            sage: t
-            1[2[3[]], 4[], 5[]]
-            sage: t.to_poset().cover_relations()
-            [[5, 1], [4, 1], [3, 2], [2, 1]]
+            sage: t = OrderedTree([[[]],[],[]]).canonical_labelling().to_poset()
+            sage: t.height(), t.width()
+            (3, 3)
         """
         if self in LabelledOrderedTrees():
             relabel = False
@@ -765,6 +762,33 @@ class OrderedTrees_size(OrderedTrees):
         else:
             from combinat import catalan_number
             return catalan_number(self._size-1)
+
+    def random_element(self):
+        """
+        Return a random ``OrderedTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` and then uses a
+        bijection between Dyck words and ordered trees.
+
+        EXAMPLES::
+
+            sage: OrderedTrees(5).random_element() # random
+            [[[], []], []]
+            sage: OrderedTrees(0).random_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: There are no ordered trees of size 0
+            sage: OrderedTrees(1).random_element()
+            []
+
+        TESTS::
+
+            sage: all([OrderedTrees(10).random_element() in OrderedTrees(10) for i in range(20)])
+            True
+        """
+        if self._size == 0:
+            raise EmptySetError("There are no ordered trees of size 0")
+        return CompleteDyckWords_size(self._size - 1).random_element().to_ordered_tree()
 
     def __iter__(self):
         """

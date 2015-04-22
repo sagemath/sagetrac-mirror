@@ -312,7 +312,7 @@ class BackendSageNB(BackendBase):
         ])
 
     def display_immediately(self, plain_text, rich_output):
-        """
+        r"""
         Show output without waiting for the prompt.
 
         INPUT:
@@ -332,7 +332,7 @@ class BackendSageNB(BackendBase):
 
         This method does not return anything.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.repl.rich_output.output_catalog as catalog
             sage: plain_text = catalog.OutputPlainText.example()

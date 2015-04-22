@@ -10,7 +10,6 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 #################################################################
@@ -400,6 +399,13 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: f.subs(pattern == x^2)
             arctan(x^2)
+
+        TESTS:
+
+        Check that :trac:`15047` is fixed::
+
+            sage: latex(SR.wild(0))
+            \$0
         """
         return new_Expression_from_GEx(self, g_wild(n))
 
@@ -492,6 +498,17 @@ cdef class SymbolicRing(CommutativeRing):
             True
         """
         return True
+
+    def is_finite(self):
+        """
+        Return False, since the Symbolic Ring is infinite.
+
+        EXAMPLES::
+
+            sage: SR.is_finite()
+            False
+        """
+        return False
 
     cpdef bint is_exact(self) except -2:
         """

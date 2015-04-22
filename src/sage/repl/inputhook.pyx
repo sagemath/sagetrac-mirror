@@ -17,7 +17,6 @@ disable Ctrl-C.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 
 cdef extern from 'pythonrun.h':
@@ -72,7 +71,7 @@ def uninstall():
 
 
 def sage_inputhook():
-    """
+    r"""
     The input hook.
 
     This function will be called every 100ms when IPython is idle at
