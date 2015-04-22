@@ -1470,7 +1470,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             sage: R.quotient_by_principal_ideal(x^2-1, names=('foo',))
             Univariate Quotient Polynomial Ring in foo over Rational Field with modulus x^2 - 1
 
-        TESTS:
+        TESTS::
 
         Quotienting by the zero ideal returns ``self`` (:trac:`5978`)::
 
@@ -1479,12 +1479,23 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             True
             sage: R.quotient_by_principal_ideal(0) is R
             True
+
+        Quotient by a non-unit constant polynomial (:trac:`5484`)::
+
+            sage: R = ZZ['x']
+            sage: R.quotient_by_principal_ideal(R(2))
+            Univariate Polynomial Ring in x over Ring of integers modulo 2 (using NTL)
         """
         from sage.rings.ideal import Ideal
         I = Ideal(f)
         if I.is_zero():
             return self
         f = I.gen()
+        if f.degree() == 0 and not f.is_unit():
+            base_ring = self.base_ring()
+            f = base_ring(f)
+            new_base = base_ring.quotient_ring(base_ring.ideal(f))
+            return self.change_ring(new_base)
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
         return PolynomialQuotientRing(self, f, names)
 
