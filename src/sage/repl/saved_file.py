@@ -3,7 +3,7 @@ r"""
 Saved File Proxy
 
 The purpose of :class:`SavedFile` is somewhat cryptic, it is the
-return value of `save()` methods. If the save command is the last
+return value of ``save()`` methods. If the save command is the last
 statement in a repl command or notebook, its return value is seen by
 the display hook. We use this to automatically download the saved file
 from a remote server.
