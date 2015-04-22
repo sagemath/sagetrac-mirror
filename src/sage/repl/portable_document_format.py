@@ -4,8 +4,8 @@ Portable Document Format (PDF) Wrapper
 
 This object is a wrapper around PDF documents, usually generated from
 (pdf)latex. The wrapper object can then be manipulated on the command
-line, for example it allows you to split pages or preview pages as svg
-or bitmap graphics.
+line, for example it allows you to preview pages as svg or bitmap
+graphics.
 """
 
 
@@ -39,9 +39,13 @@ class PortableDocumentFormat(SageObject):
         """
         Wrapper for a PDF Document
 
+        This wraps a in-memory pdf document. See also
+        :meth:`from_file` if you want to wrap a pdf document that is
+        already saved in a file.
+
         INPUT:
 
-        - ``pdf`` -- bytes (string). A PDF file.
+        - ``pdf`` -- bytes (string). A PDF document.
 
         EXAMPLES::
 
@@ -123,9 +127,30 @@ class PortableDocumentFormat(SageObject):
         INPUT:
 
         - ``filename`` -- string. The filename to save under.
-        """
-        raise NotImplementedError
 
+        OUTPUT:
+
+        A :class:`sage.repl.saved_file.SavedFile` instance.
+
+        EXAMPLES::
+
+            sage: from sage.repl.portable_document_format import PortableDocumentFormat
+            sage: pdf = PortableDocumentFormat._example()
+            sage: pdf.save(tmp_filename())
+            Saved file at /...
+
+        The returned wrapper object lets you access the file
+        metadata::
+
+            sage: filename = tmp_filename(ext='filename.pdf')
+            sage: saved_file = pdf.save(filename)
+            sage: saved_file.abspath()
+            '/...filename.pdf'
+        """
+        self._pdf.save_as(filename)
+        from sage.repl.saved_file import SavedFile
+        return SavedFile(filename)
+        
     def _repr_(self):
         """
         Return a string representation
@@ -231,7 +256,7 @@ class PortableDocumentFormat(SageObject):
 
         INPUT:
 
-        - ``trim`` -- boolean (default: ``True``). Whether to cut off
+        - ``trim`` -- boolean (optional). Whether to cut off
           white margins. Ignored if the ``pdfcrop`` command line tool
           is not installed.
 
@@ -270,6 +295,8 @@ class PortableDocumentFormat(SageObject):
         OUTPUT:
 
         String. The first page of the PDF document converted to PNG.
+
+        EXAMPLES::
 
             sage: from sage.repl.portable_document_format import PortableDocumentFormat
             sage: pdf = PortableDocumentFormat._example()

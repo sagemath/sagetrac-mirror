@@ -61,6 +61,7 @@ nicely depending on the capabilities of the user interface.
    
    sage/repl/image
    sage/repl/saved_file
+   sage/repl/portable_document_format
 
 
 Pretty Printing
