@@ -8474,7 +8474,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             # imaginary value).
             # Note that the test is done with NumberFieldElement and not with
             # NumberFieldElement_quadratic which requires somehow this flag.
-            # As a consequence, a value of __an_element with the wrong class
+            # As a consequence, a result of _an_element_() with the wrong class
             # is cached during the call to has_coerce_map_from. We reset the
             # cache afterwards.
             self._standard_embedding = not CDF.has_coerce_map_from(self) or CDF(self.gen()).imag() > 0
