@@ -59,8 +59,8 @@ nicely depending on the capabilities of the user interface.
 .. toctree::
    :maxdepth: 2
    
-   sage/image
-   sage/saved_file
+   sage/repl/image
+   sage/repl/saved_file
 
 
 Pretty Printing
