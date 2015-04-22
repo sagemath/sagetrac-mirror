@@ -18,6 +18,7 @@ q-Analogues
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
+from sage.structure.element import parent
 from sage.rings.all import ZZ
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.partition import Partition
@@ -215,7 +216,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(1/2,1)
         Traceback (most recent call last):
         ...
-        ValueError: arguments (1/2, 1) must be integers
+        TypeError: no conversion of this rational to integer
 
     One checks that `n` is nonnegative::
 
@@ -235,13 +236,10 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(6, 1, QQbar(I))
         I + 1
 
-    Note that the following used to return ``1 + I`` thanks to bugs elsewhere
-    in Sage and now yields a suboptimal (yet correct) result::
+    Note that the symbolic computation works (see :trac:`14982`)::
 
         sage: q_binomial(6, 1, I)
-        Mod(y + 1, y^2 + 1)
-
-    (see :trac:`14982` as well as the commit adding this line for details).
+        I + 1
 
     Check that the algorithm does not matter::
 
@@ -264,14 +262,10 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     - Frederic Chapoton, David Joyner and William Stein
     """
     # sanity checks
-    if not( n in ZZ and k in ZZ ):
-        raise ValueError("arguments (%s, %s) must be integers" % (n, k))
+    n = ZZ(n)
+    k = ZZ(k)
     if n < 0:
         raise ValueError('n must be nonnegative')
-    if not(0 <= k and k <= n):
-        return 0
-
-    k = min(n-k,k) # Pick the smallest k
 
     # polynomiality test
     if q is None:
@@ -281,10 +275,25 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     else:
         from sage.rings.polynomial.polynomial_element import Polynomial
         is_polynomial = isinstance(q, Polynomial)
-    from sage.symbolic.ring import SR
+
+    R = parent(q)
+    try:
+        zero = R.zero()
+    except AttributeError:
+        zero = R(0)
+    try:
+        one = R.one()
+    except AttributeError:
+        one = R(1)
+
+    if not(0 <= k and k <= n):
+        return zero
+
+    k = min(n-k,k) # Pick the smallest k
 
     # heuristic choice of the fastest algorithm
     if algorithm == 'auto':
+        from sage.symbolic.ring import SR
         if is_polynomial:
             if n <= 70 or k <= n/4:
                 algorithm = 'naive'
@@ -303,31 +312,29 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         raise ValueError("invalid algorithm choice")
 
     # the algorithms
-    try:
-        if algorithm == 'naive':
-            denomin = prod([1 - q**i for i in range(1, k+1)])
-            if denomin == 0: # q is a root of unity, use the cyclotomic algorithm
-                algorithm = 'cyclo_generic'
-            else:
-                numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
+    if algorithm == 'naive':
+        denom = prod(one - q**i for i in range(1, k+1))
+        if not denom: # q is a root of unity, use the cyclotomic algorithm
+            return cyclotomic_value(n, k, q, algorithm='cyclotomic')
+        else:
+            num = prod(one - q**i for i in range(n-k+1, n+1))
+            try:
+                return num//denom
+            except TypeError:
                 try:
-                    return numerat//denomin
-                except TypeError:
-                    return numerat/denomin
-        from sage.functions.all import floor
-        if algorithm == 'cyclo_generic':
-            from sage.rings.polynomial.cyclotomic import cyclotomic_value
-            return prod(cyclotomic_value(d,q)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
-        if algorithm == 'cyclo_polynomial':
-            R = q.parent()
-            return prod(R.cyclotomic_polynomial(d)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
-    except (ZeroDivisionError, TypeError):
-        # As a last attempt, do the computation formally and then substitute
-        return q_binomial(n, k)(q)
+                    return num/denom
+                except (TypeError,ZeroDivisionError):
+                    #try a substitution
+                    return q_binomial(n,k)(q)
+    elif algorithm == 'cyclo_generic':
+        from sage.rings.polynomial.cyclotomic import cyclotomic_value
+        return prod(cyclotomic_value(d,q)
+                    for d in range(2,n+1)
+                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+    elif algorithm == 'cyclo_polynomial':
+        return prod(R.cyclotomic_polynomial(d)
+                    for d in range(2,n+1)
+                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
     r"""
