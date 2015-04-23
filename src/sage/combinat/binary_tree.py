@@ -3058,7 +3058,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
         return self.element_class(self, *args, **keywords)
 
     def generating_series(self, var='x'):
-        """
+        r"""
         The generating series of the class of binary trees is given by
 
         MATH::
@@ -3072,6 +3072,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             -\\/ -4*x + 1  - 1/
             --------------------
                     2*x
+
         """
         R = PolynomialRing(RationalField(), var)
         x = R.gen()

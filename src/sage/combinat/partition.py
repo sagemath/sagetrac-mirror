@@ -277,6 +277,7 @@ We use the lexicographic ordering::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.combinatorial_structures import CombinatorialStructures
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -4846,7 +4847,7 @@ class Partitions(UniqueRepresentation, Parent):
             Partitions of the integer 2
         """
         if is_infinite:
-            Parent.__init__(self, category=InfiniteEnumeratedSets())
+            Parent.__init__(self, category=CombinatorialStructures())
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
@@ -4941,6 +4942,25 @@ class Partitions(UniqueRepresentation, Parent):
             raise ValueError("Invalid combination of arguments")
         return self
 
+
+    def grading(self, pi):
+        """
+        Default graduation of a partition
+
+        MATH::
+
+            |\lambda| = \sum_{\lambda_i} \lambda_i\,,
+
+        for any `\lambda = \{\lambda_i\}` a partition of integer.
+
+        TESTS::
+
+            sage: Partitions().grading(Partitions(17).random_element())
+            17
+
+        """
+        return sum(pi[:])
+
 class Partitions_all(Partitions):
     """
     Class of all partitions.
@@ -4958,7 +4978,7 @@ class Partitions_all(Partitions):
 
             sage: P = Partitions()
             sage: P.category()
-            Category of infinite enumerated sets
+            Category of combinatorial structures
             sage: Partitions().cardinality()
             +Infinity
             sage: TestSuite(P).run()
@@ -5212,6 +5232,7 @@ class Partitions_all(Partitions):
         new_w.sort(reverse=True)
         return self.element_class(self, [new_w[i]+i for i in range(len(new_w))])
 
+
 class Partitions_all_bounded(Partitions):
 
     def __init__(self, k):
@@ -5271,6 +5292,17 @@ class Partitions_all_bounded(Partitions):
             for p in Partitions(n, max_part=self.k):
                 yield self.element_class(self, p)
             n += 1
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import Partitions_all_bounded
+            sage: Partitions_all_bounded(3).graded_component(13) # some warning...
+            Partitions of 13 having parts less than or equal to 3
+
+        """
+        return Partitions(n, max_part=self.k)
 
 
 class Partitions_n(Partitions):
