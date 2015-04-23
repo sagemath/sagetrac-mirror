@@ -2975,8 +2975,9 @@ class Graphics(SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1), 1, color='red')
-            sage: filename = os.path.join(SAGE_TMP, 'test.png')
+            sage: filename = tmp_filename(ext='test.png')
             sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            Saved file at /...test.png
         """
         return self.save(filename, *args, **kwds)
 
@@ -3027,12 +3028,14 @@ class Graphics(SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1), 1, color='red')
-            sage: filename = os.path.join(SAGE_TMP, 'test.png')
+            sage: filename = tmp_filename(ext='test.png')
             sage: c.save(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            Saved file at /...test.png
 
         To make a figure bigger or smaller, use ``figsize``::
 
             sage: c.save(filename, figsize=5, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            Saved file at /...test.png
 
         By default, the figure grows to include all of the graphics and text,
         so the final image may not be exactly the figure size you specified.
@@ -3041,11 +3044,13 @@ class Graphics(SageObject):
 
             sage: c.save(filename, figsize=[8,4], fig_tight=False,
             ....:       xmin=-1, xmax=3, ymin=-1, ymax=3)
+            Saved file at /...test.png
 
         You can also pass extra options to the plot command instead of this
         method, e.g. ::
 
-            sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
+            sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(filename)
+            Saved file at /...test.png
 
         will save the same plot as the one shown by this command::
 
@@ -3061,8 +3066,8 @@ class Graphics(SageObject):
             sage: P = plot(x,(x,0,1),legend_label='$xyz$')
             sage: P.set_legend_options(back_color=(1,0,0))
             sage: P.set_legend_options(loc=7)
-            sage: filename=os.path.join(SAGE_TMP, 'test.png')
             sage: P.save(filename)
+            Saved file at /...test.png
 
         This plot should save with the frame shown, showing :trac:`7524`
         is fixed (same issue as :trac:`7981` and :trac:`8632`)::
@@ -3070,14 +3075,13 @@ class Graphics(SageObject):
             sage: var('x,y')
             (x, y)
             sage: a = plot_vector_field((x,-y),(x,-1,1),(y,-1,1))
-            sage: filename=os.path.join(SAGE_TMP, 'test2.png')
             sage: a.save(filename)
+            Saved file at /...test.png
 
         The following plot should show the axes; fixes :trac:`14782` ::
 
             sage: plot(x^2, (x, 1, 2), ticks=[[], []])
             Graphics object consisting of 1 graphics primitive
-
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)

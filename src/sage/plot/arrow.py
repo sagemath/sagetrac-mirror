@@ -347,6 +347,7 @@ class Arrow(GraphicPrimitive):
             sage: a = arrow((0,0), (1,1), linestyle='dashed')
             sage: filename = tmp_filename(ext='.eps')
             sage: a.save(filename=filename)
+            Saved file at /...eps
             sage: with open(filename, 'r') as f:
             ....:     contents = f.read().replace('\n', ' ')
             sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'

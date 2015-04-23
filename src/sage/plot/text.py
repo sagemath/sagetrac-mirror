@@ -275,7 +275,8 @@ def text(string, xy, **options):
 
     You can save text as part of PDF output::
 
-        sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(os.path.join(SAGE_TMP, 'a.pdf'))
+        sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(tmp_filename(ext='.pdf'))
+        Saved file at /...pdf
 
     Some examples of bounding box::
 
