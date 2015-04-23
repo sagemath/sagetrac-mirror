@@ -195,7 +195,8 @@ class Semigroups(CategoryWithAxiom):
                 sage: D4 = DihedralGroup(4); D4
                 Dihedral group of order 8 as a permutation group
                 sage: G = D4.cayley_graph()
-                sage: show(G, color_by_label=True, edge_labels=True)
+                sage: G.plot(color_by_label=True, edge_labels=True)
+                Graphics object consisting of 48 graphics primitives
                 sage: A5 = AlternatingGroup(5); A5
                 Alternating group of order 5!/2 as a permutation group
                 sage: G = A5.cayley_graph()

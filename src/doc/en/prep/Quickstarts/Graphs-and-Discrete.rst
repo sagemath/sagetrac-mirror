@@ -92,8 +92,9 @@ vertices.
     sage: b=matrix([[x,y],[z,w]])
     sage: a.set_immutable()
     sage: b.set_immutable()
-    sage: K=DiGraph({a:[b]})
-    sage: show(K, vertex_size=800)
+    sage: K = DiGraph({a:[b]})
+    sage: K.plot(vertex_size=800)
+    Graphics object consisting of 4 graphics primitives
 
 Edges can be labeled.
 
