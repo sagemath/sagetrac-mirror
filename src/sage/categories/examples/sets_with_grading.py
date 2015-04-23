@@ -75,24 +75,4 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         """
         return elt
 
-    def generating_series(self, var='z'):
-        r"""
-        Returns `1 / (1-z)`.
-
-
-        EXAMPLES::
-
-            sage: N = SetsWithGrading().example(); N
-            Non negative integers
-            sage: f = N.generating_series(); f
-            1/(-z + 1)
-            sage: LaurentSeriesRing(ZZ,'z')(f)
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + z^8 + z^9 + z^10 + z^11 + z^12 + z^13 + z^14 + z^15 + z^16 + z^17 + z^18 + z^19 + O(z^20)
-        """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.integer import Integer
-        R = PolynomialRing(IntegerRing(), var)
-        z = R.gen()
-        return Integer(1) / (Integer(1)-z)
-
 Example = NonNegativeIntegers
