@@ -469,7 +469,16 @@ Show each graph as you iterate through the results:
 ::
 
     sage: for g in Q:
-    ...     show(g)
+    ...     g.plot()
+    Graphics object consisting of 15 graphics primitives
+    Graphics object consisting of 15 graphics primitives
+    Graphics object consisting of 14 graphics primitives
+    Graphics object consisting of 14 graphics primitives
+    Graphics object consisting of 15 graphics primitives
+    Graphics object consisting of 15 graphics primitives
+    Graphics object consisting of 16 graphics primitives
+    Graphics object consisting of 16 graphics primitives
+    Graphics object consisting of 15 graphics primitives
 
 Visualization
 -------------

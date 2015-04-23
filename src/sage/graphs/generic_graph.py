@@ -14050,11 +14050,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph()
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
-            sage: show(G)
             sage: G.add_cycle(range(20)[10:20])
-            sage: show(G)
+            sage: G
+            Graph on 20 vertices
             sage: G.add_cycle(range(10))
-            sage: show(G)
+            sage: G
+            Graph on 20 vertices
 
         ::
 
@@ -14086,11 +14087,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph()
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
-            sage: show(G)
             sage: G.add_path(range(20)[10:20])
-            sage: show(G)
+            sage: G
+            Graph on 20 vertices
             sage: G.add_path(range(10))
-            sage: show(G)
+            sage: G
+            Graph on 20 vertices
 
         ::
 
