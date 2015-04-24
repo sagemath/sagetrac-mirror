@@ -751,7 +751,7 @@ class Posets(Category):
             r"""
             The representation string of this category.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: Posets().CompareLexCartesianProduct()
                 Category of Cartesian products of posets sorted lexicographically
