@@ -1378,9 +1378,26 @@ class Sets(Category_singleton):
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
-        def cartesian_product(*parents):
+        def cartesian_product(*parents, **kwargs):
             """
             Return the cartesian product of the parents.
+
+            INPUT:
+
+            - ``parents`` -- a list (or other iterable) of parents.
+
+            - ``category`` -- (default: ``None``) the category the
+              cartesian product belongs to. If ``None``, then
+              :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
+              is used the determine category.
+
+            - ``extra_category`` -- (default: ``None``) this category is
+              added to the cartesian product additionally to the
+              categories obtained from the parents.
+
+            OUTPUT:
+
+            The cartesian product.
 
             EXAMPLES::
 
@@ -1401,10 +1418,29 @@ class Sets(Category_singleton):
                 sage: C.category()
                 Join of Category of rings and ...
                     and Category of Cartesian products of commutative additive groups
+
+            ::
+
+                sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
+                Category of sets
+                sage: cartesian_product([ZZ, ZZ], blub=None).category()
+                Traceback (most recent call last):
+                ...
+                TypeError: unknown parameters: blub
             """
-            return parents[0].CartesianProduct(
-                parents,
-                category = cartesian_product.category_from_parents(parents))
+            category = kwargs.pop('category', None)
+            extra_category = kwargs.pop('extra_category', None)
+            if kwargs:
+                raise TypeError('unknown parameters: %s' %
+                                ', '.join(str(k) for k in kwargs.iterkeys()))
+
+            category = category or cartesian_product.category_from_parents(parents)
+            if extra_category:
+                if isinstance(category, (list, tuple)):
+                    category = tuple(category) + (extra_category,)
+                else:
+                    category = category & extra_category
+            return parents[0].CartesianProduct(parents, category=category)
 
         def algebra(self, base_ring, category=None):
             """
