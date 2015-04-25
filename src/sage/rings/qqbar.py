@@ -482,6 +482,15 @@ Verify that :trac:`10981` is fixed::
     sage: P = 1/(1+x^4)
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
+
+::
+
+    sage: from sage.calculus.calculus import minpoly
+    sage: x = SR.var('x')
+    sage: ex = solve(x^4 + x + 1 == 0, x)[0].rhs()
+    sage: minpoly(ex, algorithm='algebraic')
+    x^4 + x + 1
+
 """
 import itertools
 
@@ -4105,7 +4114,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 # is known to be non-zero.
                 simag = self.imag()
                 if simag == 0:
-                    raise NotImplementedError('FIXME: add code for this case')
+                    return QQbar(-1)**e * (-self)**e
                 isgn = simag.sign()
                 val = self._value
 
