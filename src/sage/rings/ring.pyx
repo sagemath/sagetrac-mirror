@@ -1,5 +1,5 @@
 """
-Rings
+Abstract class for rings
 
 This module provides the abstract base class :class:`Ring` from which
 all rings in Sage (used to) derive, as well as a selection of more

@@ -60,7 +60,7 @@ def bdd_norm_pr_gens_iq(K, norm_list):
 
     EXAMPLES:
 
-    In `QQ(i)`, there is one principal ideal of norm 4, two principal ideals of
+    In `\QQ(i)`, there is one principal ideal of norm 4, two principal ideals of
     norm 5, but no principal ideals of norm 7::
 
         sage: from sage.rings.number_field.bdd_height import bdd_norm_pr_gens_iq
@@ -147,7 +147,7 @@ def bdd_height_iq(K, height_bound):
         8.00000000000000
         8.00000000000000
 
-    There are 175 elements of height at most 10 in `QQ(\sqrt(-3))`::
+    There are 175 elements of height at most 10 in `\QQ(\sqrt(-3))`::
 
         sage: from sage.rings.number_field.bdd_height import bdd_height_iq
         sage: K.<a> = NumberField(x^2 + 3)
@@ -358,7 +358,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
     globally by using the number_field(True/False) switch.
 
     The function will only be called for number fields `K` with positive unit
-    rank. An error will occur if `K` is `QQ` or an imaginary quadratic field.
+    rank. An error will occur if `K` is `\QQ` or an imaginary quadratic field.
 
     ALGORITHM:
 

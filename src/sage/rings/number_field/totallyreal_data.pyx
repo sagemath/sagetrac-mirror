@@ -1,5 +1,9 @@
 """
-Enumeration of Totally Real Fields
+Helper functions for enumeration of Totally Real Fields
+
+This module contains auxiliary routine for enumeration of totally real fields:
+Hermite constant, naive Newton-Raphson, and a specialized Lagrange multiplier
+solver.
 
 AUTHORS:
 
@@ -39,13 +43,6 @@ from sage.rings.integer cimport Integer
 ZZx = PolynomialRing(ZZ, 'x')
 
 from libc.math cimport lrint, floor, ceil, fabs, round
-
-
-#*********************************************************************
-# Auxiliary routine
-# Hermite constant, naive Newton-Raphson, and a specialized Lagrange
-# multiplier solver.
-#*********************************************************************
 
 def hermite_constant(n):
     r"""
