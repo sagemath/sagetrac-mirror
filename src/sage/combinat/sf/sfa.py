@@ -2186,7 +2186,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             res = start - sub
 
             if hasattr(self, '_normalize_coefficients'):
-                res = res.map_coefficients(self._normalize_coefficients, check=False)
+                res = res.map_coefficients(self._normalize_coefficients)
             precomputed_elements.append(res)
             # Now, res == precomputed_elements[i]
             cache[l[i]] = {}
@@ -2752,7 +2752,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         pn_pleth = lambda f, n: f.map_support(scale_part(n))
 
         #Takes in a partition and applies
-        f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i), check=False), i) for i in part )
+        f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
         return parent(p._apply_module_morphism(p(self),f))
 
     __call__ = plethysm
