@@ -422,6 +422,26 @@ class Species(Category):
 
         _mul_ = product
 
+        def __pow__(self, k):
+            """
+            The *exponentiation* of `F` to the power `k`: `F^k`.
+            :param k: a non-negative integer
+
+            MATH::
+
+                F^k = F \cdot F^{k-1}
+
+            with `F^1 = F` and `F^0 = 1`.
+
+            """
+            assert(k >= 0), "`k` must be a non-negative integer."
+
+            if k == 0:
+                return Species().one()
+
+            from sage.combinat.species2.operations.product import Prod
+            return Prod(*([self]*k))
+
         def composite(self, G):
             """
             (Partitional) Composite of species.
