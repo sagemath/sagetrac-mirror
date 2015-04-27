@@ -186,22 +186,17 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self._basis_key_inverse[x]
 
-        def _dense_free_module(self, R=None):
+        def module(self, R=None, sparse=False):
             """
-            Return a dense free module associated to ``self`` over ``R``.
+            Return a free ``R``-module associated to ``self``.
 
             EXAMPLES::
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L._dense_free_module()
+                sage: L.module()
                 Vector space of dimension 3 over Rational Field
             """
-            if R is None:
-                R = self.base_ring()
-            from sage.modules.free_module import FreeModule
-            return FreeModule(R, self.dimension())
-
-        module = _dense_free_module
+            return self._free_module(R, sparse)
 
         def from_vector(self, v):
             """
@@ -1182,7 +1177,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             mats = []
             R = self.base_ring()
             S = dict(self.structure_coefficients())
-            V = self._dense_free_module()
+            V = self._free_module()
             zero_vec = V.zero()
             for k in K:
                 M = []

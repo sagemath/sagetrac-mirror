@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite dimensional modules with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2011 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2011 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -50,6 +51,121 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return tuple(self.basis())
 
+        @cached_method
+        def get_order(self):
+            """
+            Return the order of the indices of the basis of ``self``.
+
+            This is mainly used for conversions to/from vectors and
+            matrices.
+
+            .. SEEALSO::
+
+                - :meth:`matrix`
+
+            EXAMPLES::
+
+                sage: F = FreeModule(QQ,3)
+                sage: F._refine_category_(F.category().FiniteDimensional()) # not yet automatic
+                sage: F.get_order()
+                [0, 1, 2]
+                sage: F = CombinatorialFreeModule(QQ,['a','b','c'])
+                sage: F.get_order()
+                ['a', 'b', 'c']
+            """
+            from sage.sets.family import AbstractFamily
+            basis = self.basis()
+            if not isinstance(basis, AbstractFamily):
+                l = range(len(basis))
+            else:
+                l = list(basis.keys())
+            from sage.combinat.ranker import rank_from_list
+            self._rank_basis = rank_from_list(l)
+            return l
+
+        def matrix(self, vectors, base_ring=None, sparse=False, columns=False):
+            r"""
+            Return the matrix corresponding to a collection of elements
+            of ``self``.
+
+            INPUT:
+
+            - ``vectors`` -- a list of elements of ``self``
+            - ``base_ring`` -- the base ring of the constructed matrix
+              (default: ``None``, meaning the base ring of this module)
+            - ``sparse`` -- a boolean (default: ``False``);
+              whether to return a sparse matrix
+            - ``columns`` -- a boolean (default: ``False``);
+              whether to build a column matrix instead of a row matrix
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c','d'])
+                sage: vectors = [F.an_element(), F.zero(), F.monomial('c')]
+                sage: vectors
+                [2*B['a'] + 2*B['b'] + 3*B['c'], 0, B['c']]
+                sage: m = F.matrix(vectors, sparse=True); m
+                [2 2 3 0]
+                [0 0 0 0]
+                [0 0 1 0]
+                sage: m.parent()
+                Full MatrixSpace of 3 by 4 sparse matrices over Rational Field
+
+            The same, as a dense matrix::
+
+                sage: m = F.matrix(vectors); m
+                [2 2 3 0]
+                [0 0 0 0]
+                [0 0 1 0]
+                sage: m.parent()
+                Full MatrixSpace of 3 by 4 dense matrices over Rational Field
+
+            Here we build a column matrix instead; at this point this
+            simply transposes the constructed matrix, but the door is
+            open for optimizations in the future::
+
+                sage: m = F.matrix(vectors, columns=True); m
+                [2 0 0]
+                [2 0 0]
+                [3 0 1]
+                [0 0 0]
+                sage: m.parent()
+                Full MatrixSpace of 4 by 3 dense matrices over Rational Field
+
+            Constructing a sparse matrix with this method is currently
+            really much faster than building it from sparse vectors;
+            see :trac:`18312`::
+
+                sage: n = 10^3; F = CombinatorialFreeModule(QQ, range(n)); vectors = [F.zero()]*n
+                sage: %timeit m = F.matrix(vectors, sparse=True) # not tested
+                The slowest run ...
+                1000 loops, best of 3: 466 µs per loop
+                sage: %timeit m = matrix(QQ, [v._vector_(sparse=True) for v in vectors], sparse=True) # not tested
+                1 loops, best of 3: 1.19 s per loop
+
+            When :trac:`18312` will be fixed, using this method is
+            likely to still save some constant time factor.
+            """
+            from sage.matrix.matrix_space import MatrixSpace
+            if not isinstance(vectors, (list, tuple)):
+                vectors = list(vectors)
+            if base_ring is None:
+                base_ring = self.base_ring()
+            M = MatrixSpace(base_ring, len(vectors), self.dimension(),
+                            sparse=sparse)
+            if sparse:
+                self.get_order()
+                rank = self._rank_basis
+                data = {(i, rank(j)): c
+                          for i,v in enumerate(vectors)
+                          for j,c in v}
+            else:
+                data = [v._vector_() for v in vectors]
+            m = M.matrix(data, coerce=base_ring is not self.base_ring(), copy=False)
+            if columns:
+                m = m.transpose()
+            return m
+
         def annihilator(self, S, action=operator.mul, side='right', category=None):
             r"""
             Return the annihilator of a finite set.
@@ -60,7 +176,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``action`` -- a function (default: :obj:`operator.mul`)
 
-            - ``side`` -- 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (default: ``'right'``)
 
             - ``category`` -- a category
 
@@ -72,17 +188,17 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - The codomain is any vector space, and ``action`` is
               linear on its first argument; typically it is bilinear;
 
-            - If ``side`` is 'left', this is reversed.
+            - If ``side`` is ``'left'``, this is reversed.
 
             OUTPUT:
 
             The subspace of the elements `x` of ``self`` such that
             ``action(x,s) = 0`` for all `s\in S`. If ``side`` is
-            'left' replace the above equation by ``action(s,x) = 0``.
+            ``'left'`` replace the above equation by ``action(s,x) = 0``.
 
             If ``self`` is a ring, ``action`` an action of ``self`` on
             a module `M` and `S` is a subset of `M`, we recover the
-            :Wikipedia:`Annihilator_%28ring_theory%29`. Similarly this
+            :wikipedia:`Annihilator_(ring_theory)`. Similarly this
             can be used to compute torsion or orthogonals.
 
             .. SEEALSO:: :meth:`annihilator_basis` for lots of examples.
@@ -289,35 +405,40 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return QuotientModuleWithBasis(submodule, category=category)
 
         @cached_method
-        def _dense_free_module(self, base_ring=None):
+        def _free_module(self, base_ring=None, sparse=False):
             """
-            Return a dense free module of the same dimension as ``self``.
+            Return a free module of the same dimension.
 
             INPUT:
 
             - ``base_ring`` -- a ring or ``None``
 
-            If ``base_ring`` is ``None``, then the base ring of ``self``
-            is used.
+            If ``base_ring`` is None, then the base ring of ``self`` is used.
 
-            This method is mostly used by ``_vector_``
+            This method is mostly used by
+            :meth:`CombinatorialFreeModule.Element._vector_`.
+
+            .. SEEALSO:: :meth:`from_vector`
 
             EXAMPLES::
 
                 sage: C = CombinatorialFreeModule(QQ['x'], ['a','b','c']); C
                 Free module generated by {'a', 'b', 'c'} over
                  Univariate Polynomial Ring in x over Rational Field
-                sage: C._dense_free_module()
+                sage: C._free_module()
                 Ambient free module of rank 3 over the principal ideal domain
                  Univariate Polynomial Ring in x over Rational Field
-                sage: C._dense_free_module(QQ['x,y'])
+                sage: C._free_module(QQ['x,y'])
                 Ambient free module of rank 3 over the integral domain
                  Multivariate Polynomial Ring in x, y over Rational Field
+                sage: C._free_module(RR, sparse=True)
+                Sparse vector space of dimension 3 over
+                 Real Field with 53 bits of precision
             """
             if base_ring is None:
                 base_ring = self.base_ring()
             from sage.modules.free_module import FreeModule
-            return FreeModule(base_ring, self.dimension())
+            return FreeModule(base_ring, self.dimension(), sparse=sparse)
 
         def from_vector(self, vector, order=None):
             """
@@ -368,9 +489,15 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     order = range(self.parent().dimension())
             return [self[i] for i in order]
 
-        def _vector_(self, order=None):
+        def _vector_(self, new_base_ring=None, sparse=False):
             r"""
             Return ``self`` as a vector.
+
+            INPUT:
+
+            - ``new_base_ring`` -- a ring (default: ``None``)
+            - ``sparse`` -- a boolean (default: ``False``);
+              whether to return a sparse or dense vector
 
             EXAMPLES::
 
@@ -381,14 +508,20 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C.an_element()._vector_()
                 (2, 2, 3)
             """
-            dense_free_module = self.parent()._dense_free_module()
-            # We slightly break encapsulation for speed reasons
-            return dense_free_module.element_class(dense_free_module,
-                                                   self.dense_coefficient_list(order),
-                                                   coerce=True, copy=False)
+            parent = self.parent()
+            free_module = parent._free_module(new_base_ring, sparse=sparse)
+            if sparse:
+                self.get_order()
+                rank = parent._rank_basis
+                data = {rank(i): c for i,c in self}
+            else:
+                d = self._dense_coefficient_list()
+            return free_module.element_class(free_module, data,
+                                             coerce=new_base_ring is not None,
+                                             copy=False)
 
     class MorphismMethods:
-        def matrix(self, base_ring=None, side="left"):
+        def matrix(self, base_ring=None, side="left", sparse=False):
             r"""
             Return the matrix of this morphism in the distinguished
             bases of the domain and codomain.
@@ -398,9 +531,12 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``base_ring`` -- a ring (default: ``None``, meaning the
               base ring of the codomain)
 
-            - ``side`` -- "left" or "right" (default: "left")
+            - ``side`` -- (default: ``"left"``) ``"left"`` or ``"right"``
 
-            If ``side`` is "left", this morphism is considered as
+            - ``sparse`` -- a boolean (default: ``False``); whether to
+              return a sparse matrix
+
+            If ``side`` is ``"left"``, this morphism is considered as
             acting on the left; i.e. each column of the matrix
             represents the image of an element of the basis of the
             domain.
@@ -422,11 +558,16 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi.matrix(side="right")
                 [1 3]
                 [2 5]
+                sage: phi.matrix(sparse=True)
+                [1 2]
+                [3 5]
 
                 sage: phi.matrix().parent()
                 Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
                 sage: phi.matrix(QQ).parent()
                 Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+                sage: phi.matrix(sparse=True).parent()
+                Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring
 
             The resulting matrix is immutable::
 
@@ -471,14 +612,11 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Hom(X,Y).zero().matrix().parent()
                 Full MatrixSpace of 3 by 0 dense matrices over Rational Field
             """
-            if base_ring is None:
-                base_ring = self.codomain().base_ring()
-
             on_basis = self.on_basis()
             basis_keys = self.domain().basis().keys()
-            from sage.matrix.matrix_space import MatrixSpace
-            MS = MatrixSpace(base_ring, basis_keys.cardinality(), self.codomain().dimension())
-            m = MS([on_basis(x)._vector_() for x in basis_keys])
+            m = self.codomain().matrix([on_basis(x) for x in basis_keys],
+                                       base_ring=base_ring,
+                                       sparse=sparse)
             if side == "left":
                 m = m.transpose()
             m.set_immutable()

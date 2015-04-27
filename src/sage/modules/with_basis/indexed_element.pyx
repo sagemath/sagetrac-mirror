@@ -667,15 +667,17 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         """
         return self._coefficient_fast(m)
 
-    def _vector_(self, new_base_ring=None):
+    def _vector_(self, new_base_ring=None, sparse=False):
         """
-        Returns ``self`` as a dense vector
+        Return ``self`` as a vector.
 
         INPUT:
 
         - ``new_base_ring`` -- a ring (default: ``None``)
+        - ``sparse`` -- a boolean (default: ``False``);
+          whether to return a sparse or dense vector
 
-        OUTPUT: a dense :func:`FreeModule` vector
+        OUTPUT: a :func:`FreeModule` vector
 
         .. WARNING:: This will crash/run forever if ``self`` is infinite dimensional!
 
@@ -684,7 +686,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             - :func:`vector`
             - :meth:`CombinatorialFreeModule.get_order`
             - :meth:`CombinatorialFreeModule.from_vector`
-            - :meth:`CombinatorialFreeModule._dense_free_module`
+            - :meth:`CombinatorialFreeModule._free_module`
 
         EXAMPLES::
 
@@ -693,6 +695,18 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: f = B['a'] - 3*B['c']
             sage: f._vector_()
             (1, 0, -3)
+
+        By default, a dense vector is returned::
+
+            sage: _.parent()
+            Vector space of dimension 3 over Rational Field
+
+        One can instead request a sparse vector::
+
+            sage: f._vector_(sparse=True)
+            (1, 0, -3)
+            sage: _.parent()
+            Sparse vector space of dimension 3 over Rational Field
 
         One can use equivalently::
 
@@ -735,12 +749,18 @@ cdef class IndexedFreeModuleElement(ModuleElement):
              Other use cases may call for different or further
              optimizations.
         """
-        dense_free_module = self._parent._dense_free_module(new_base_ring)
-        d = self._monomial_coefficients
-        zero = dense_free_module.base_ring().zero()
-        return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in self._parent.get_order()],
-                                               coerce=True, copy=False)
+        parent = self.parent()
+        free_module = parent._free_module(new_base_ring, sparse=sparse)
+        if sparse:
+            rank = parent._rank_basis
+            data = {rank(i): c for i,c in self}
+        else:
+            d = self._monomial_coefficients
+            order = parent.get_order()
+            data = [d.get(m, 0) for m in order]
+        return free_module.element_class(free_module, data,
+                                         coerce=new_base_ring is not None,
+                                         copy=False)
 
     to_vector = _vector_
 

@@ -625,6 +625,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             c = self.base_ring()(c)
         return self.element_class(self, {i: c})
 
+    @cached_method
     def get_order(self):
         """
         Return an ordering of the basis indices.
@@ -642,6 +643,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             ('x', 'y')
         """
         try:
+            from sage.combinat.ranker import rank_from_list
+            self._rank_basis = rank_from_list(self._basis_ordering)
             return self._basis_ordering
         except AttributeError:
             raise ValueError("the Lie algebra is not finite dimensional with a basis")

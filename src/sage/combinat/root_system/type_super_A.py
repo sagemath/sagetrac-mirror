@@ -368,7 +368,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                 return h[al.inverse_family()[self]]
             except KeyError:
                 pass
-            V = P._dense_free_module()
+            V = P._free_module()
             dep = V.linear_dependence([self._vector_()] +
                                       [al[i]._vector_() for i in P.index_set()])[0]
             I = P.index_set()

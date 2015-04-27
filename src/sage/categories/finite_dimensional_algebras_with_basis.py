@@ -1036,35 +1036,57 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
 
-        def to_matrix(self, base_ring=None, action=operator.mul, side='left'):
+        def to_matrix(self, base_ring=None, action=operator.mul,
+                      side='left', sparse=False):
             """
             Return the matrix of the action of ``self`` on the algebra.
 
             INPUT:
 
             - ``base_ring`` -- the base ring for the matrix to be constructed
-            - ``action`` -- a bivariate function (default: :func:`operator.mul`)
-            - ``side`` -- 'left' or 'right' (default: 'left')
+            - ``action`` -- (default: :func:`operator.mul`) a bilinear function
+            - ``side`` -- (default: ``'left'``) ``'left'`` or ``'right'``
+            - ``sparse`` -- a boolean (default: ``False``); whether to
+              return a sparse matrix
+
+            OUTPUT: a matrix
+
+            If ``side`` is ``'left'``, then the `i`-th column of this
+            matrix contains the coefficients of ``action(self, b)``
+            where `b` is the `i`-th element of the basis. If ``side``
+            is ``'right'``, then instead the `i`-th row of this matrix
+            contains the coefficients of ``action(b, self)``.
+
+            The order of the rows and columns are ordered according to
+            the order of the basis (see
+            :meth:`CombinatorialFreeModule.get_order`).
+
+            These conventions, make the action compatible with the
+            product of matrices. In particular, with the default
+            values for ``base_ring`` and ``action``, this method
+            implements an algebra embedding from this algebra to the
+            algebra of matrices.
 
             EXAMPLES::
 
-                sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-                sage: a = QS3([2,1,3])
-                sage: a.to_matrix(side='left')
+                sage: QS3 = Permutations(3).algebra(QQ)
+                sage: s1 = QS3([2,1,3])
+                sage: s2 = QS3([1,3,2])
+                sage: s1.to_matrix(side='left')
                 [0 0 1 0 0 0]
                 [0 0 0 0 1 0]
                 [1 0 0 0 0 0]
                 [0 0 0 0 0 1]
                 [0 1 0 0 0 0]
                 [0 0 0 1 0 0]
-                sage: a.to_matrix(side='right')
+                sage: s1.to_matrix(side='right')
                 [0 0 1 0 0 0]
                 [0 0 0 1 0 0]
                 [1 0 0 0 0 0]
                 [0 1 0 0 0 0]
                 [0 0 0 0 0 1]
                 [0 0 0 0 1 0]
-                sage: a.to_matrix(base_ring=RDF, side="left")
+                sage: s1.to_matrix(base_ring=RDF, side="left")
                 [0.0 0.0 1.0 0.0 0.0 0.0]
                 [0.0 0.0 0.0 0.0 1.0 0.0]
                 [1.0 0.0 0.0 0.0 0.0 0.0]
@@ -1072,16 +1094,25 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0.0 1.0 0.0 0.0 0.0 0.0]
                 [0.0 0.0 0.0 1.0 0.0 0.0]
 
+            This method implements a multiplicative morphism::
+
+                sage: def m(x): return x.to_matrix(side='left')
+                sage: m(s1*s2) == m(s1) * m(s2)
+                True
+                sage: def m(x): return x.to_matrix(side='right')
+                sage: m(s1*s2) == m(s1) * m(s2)
+                True
+
             AUTHORS: Mike Hansen, ...
             """
-            basis = self.parent().basis()
-            action_left = action
+            monomial = self.parent().monomial
             if side == 'right':
-                action = lambda x: action_left(basis[x], self)
+                def action_on_basis(i): return action(monomial(i), self)
             else:
-                action = lambda x: action_left(self, basis[x])
-            endo = self.parent().module_morphism(on_basis=action, codomain=self.parent())
-            return endo.matrix(base_ring=base_ring)
+                def action_on_basis(i): return action(self, monomial(i))
+            endo = self.parent().module_morphism(on_basis=action_on_basis,
+                                                 codomain=self.parent())
+            return endo.matrix(base_ring=base_ring, side=side, sparse=sparse)
 
         _matrix_ = to_matrix  # For temporary backward compatibility
         on_left_matrix = to_matrix
