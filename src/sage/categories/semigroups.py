@@ -621,5 +621,5 @@ class Semigroups(CategoryWithAxiom):
                     sage: a * b + b * d * c * d
                     B['ab'] + B['bdc']
                 """
-                return self.monomial(g1 * g2)
+                return self.monomial(g1._mul_(g2))
 
