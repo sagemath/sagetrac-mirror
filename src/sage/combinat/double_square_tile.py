@@ -346,7 +346,7 @@ class DoubleSquare(SageObject):
         elif data in Words():
             self._w, rot180, steps = double_square_from_boundary_word(data)
         else:
-            raise TypeError, "Invalid arguments (=%s)" % data
+            raise TypeError("Invalid arguments (={})".format(data))
 
         if rot180 is None:
             rot180 = WordMorphism({0:2,2:0,3:1,1:3})
@@ -431,7 +431,7 @@ class DoubleSquare(SageObject):
         elif i == 7:
             return self.hat(self._w[2] * self._w[3])[len(self._w[2]):]
         else:
-            raise ValueError, 'i (=%s) must be between 0 and 7.'%i
+            raise ValueError('i (={}) must be between 0 and 7.'.format(i))
 
     @cached_method
     def d(self, i):
@@ -935,7 +935,7 @@ class DoubleSquare(SageObject):
             w = tuple(w[j] for j in range(-i % 8, 8) + range(0, -i % 8))
             return DoubleSquare(w, self.rot180, self._steps)
         else:
-            raise ValueError, 'trim cannot be applied on index %s of the following configuration\n%s'%(i,self)
+            raise ValueError('trim cannot be applied on index %s of the following configuration\n%s' % (i, self))
     def swap(self, i):
         r"""
         Apply `SWAP_i` on self.
@@ -1980,9 +1980,9 @@ def find_square_factorisation(ds, factorisation=None, alternate=True):
             return new
 
     if factorisation is None:
-        raise ValueError, 'no square factorization found'
+        raise ValueError('no square factorization found')
     else:
-        raise ValueError, 'no second square factorization found'
+        raise ValueError('no second square factorization found')
 
 def double_square_from_boundary_word(ds):
     r"""
@@ -2022,9 +2022,9 @@ def double_square_from_boundary_word(ds):
     parent = ds.parent()
     alphabet = parent.alphabet()
     if not hasattr(alphabet,'cardinality') or alphabet.cardinality() != 4:
-        raise ValueError, "The parent of ds must have a 4-letter alphabet."
-    e,n,w,s = alphabet
-    rot180 = WordMorphism({e:w,w:e,n:s,s:n},codomain=parent)
+        raise ValueError("The parent of ds must have a 4-letter alphabet.")
+    e, n, w, s = alphabet
+    rot180 = WordMorphism({e:w, w:e, n:s, s:n}, codomain=parent)
 
     # Define steps
     steps = {}
