@@ -92,6 +92,7 @@ Parents/Elements, Categories and algebraic structures
 -----------------------------------------------------
 
 * :ref:`coercion_and_categories`
+* :ref:`comparison`
 * :ref:`sage.categories.primer`
 * :ref:`sage.categories.tutorial`
 
