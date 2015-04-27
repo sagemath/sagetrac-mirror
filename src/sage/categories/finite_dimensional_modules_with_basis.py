@@ -1,15 +1,17 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite dimensional modules with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2011 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2011 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
 import operator
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -33,9 +35,41 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ParentMethods:
 
+        @cached_method
+        def get_order(self):
+            """
+            Return the order of the indices of the basis of ``self``.
+
+            This is mainly used for conversions to/from vectors and
+            matrices.
+
+            .. SEEALSO::
+
+                - :meth:`matrix`
+
+            EXAMPLES::
+
+                sage: F = FreeModule(QQ,3)
+                sage: F._refine_category_(F.category().FiniteDimensional()) # not yet automatic
+                sage: F.get_order()
+                [0, 1, 2]
+                sage: F = CombinatorialFreeModule(QQ,['a','b','c'])
+                sage: F.get_order()
+                ['a', 'b', 'c']
+            """
+            from sage.sets.family import AbstractFamily
+            basis = self.basis()
+            if not isinstance(basis, AbstractFamily):
+                l = range(len(basis))
+            else:
+                l = list(basis.keys())
+            from sage.combinat.ranker import rank_from_list
+            self._rank_basis = rank_from_list(l)
+            return l
+
         def matrix(self, vectors, base_ring=None, sparse=False, columns=False):
             r"""
-            Return the matrix corresponding to a collection of vectors.
+            Return the matrix corresponding to a collection of elements of ``self``.
 
             INPUT:
 
@@ -59,7 +93,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             Constructing a sparse matrix with this method is currently
             really much faster than building it from sparse vectors;
-            see :trac:``::
+            see :trac:`18312`::
 
                 sage: n = 10^3; F = CombinatorialFreeModule(QQ, range(n)); vectors = [F.zero()]*n
                 sage: %timeit m = F.matrix(vectors, sparse=True) # not tested
@@ -67,6 +101,9 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 1000 loops, best of 3: 466 µs per loop
                 sage: %timeit m = matrix(QQ, [v._vector_(sparse=True) for v in vectors], sparse=True) # not tested
                 1 loops, best of 3: 1.19 s per loop
+
+            When :trac:`18312` will be fixed using this method is
+            likely to still save some constant time factor.
             """
             from sage.matrix.matrix_space import MatrixSpace
             assert not columns
@@ -334,7 +371,8 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``side`` -- "left" or "right" (default: "left")
 
-            - ``sparse`` -- a boolean (default: False)
+            - ``sparse`` -- a boolean (default: False): whether to
+              return a sparse matrix
 
             If ``side`` is "left", this morphism is considered as
             acting on the left; i.e. each column of the matrix
