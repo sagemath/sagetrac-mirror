@@ -1,15 +1,13 @@
 r"""
-Huffman Coding
+Shannon-Fano Coding
 
-This module implements functionalities relating to Huffman encoding
+This module implements functionalities relating to Shannon-Fano encoding
 and decoding.
 
 AUTHORS:
 
-- Nathann Cohen (2010-05): initial version.
-
-- Jan Wabbersen (2015-04-27): adapted to new super class and generalized
-  to q-nary huffman.
+- Jan Wabbersen (2015-04-27): initial version based on concepts and
+  ideas of the Huffman module by Nathann Cohen
 """
 
 #*****************************************************************************
@@ -22,16 +20,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from heapq import heapify, heappush, heappop
+from operator import itemgetter
 
 from prefix_coding import PrefixCoding
 from misc import SimpleTable
 
-class Huffman(PrefixCoding):
+class ShannonFano(PrefixCoding):
     r"""
-    This class implements basic functionalities of Huffman coding.
+    This class implements basic functionalities of Shannon-Fano coding.
     
-    It can build a q-nary Huffman code from a given string, or from the
+    It can build a Shannon-Fano code from a given string, or from the
     information of a dictionary associating to each key (the elements
     of the alphabet) a weight (most of the time, a probability value
     or a number of occurrences).
@@ -40,7 +38,7 @@ class Huffman(PrefixCoding):
 
         - ``source`` -- can be either
 
-            - A string from which the Huffman encoding should be
+            - A string from which the Shannon-Fano encoding should be
               created.
     
             - A dictionary that associates to each symbol of an
@@ -56,9 +54,6 @@ class Huffman(PrefixCoding):
         - ``verbose`` -- (default: False) if True, print intermediate
           data of building the code.
           
-        - ``q`` -- (default: 2) the number of symbols in the code
-          alphabet. Supported is 2 <= q <= 10.
-          
         - ``char_per_symbol`` -- (default: 1) the number of characters
           that define one symbol.
           
@@ -67,7 +62,7 @@ class Huffman(PrefixCoding):
           faster decoding. Decoding tables with shorter keys consume
           less memory, but decoding may be slower.
     
-    In order to construct a Huffman encoding for an alphabet, we
+    In order to construct a Shannon-Fano encoding for an alphabet, we
     use exactly one of the following methods:
 
     #. Let ``source`` be a string of symbols over an alphabet and feed
@@ -85,88 +80,79 @@ class Huffman(PrefixCoding):
        
     EXAMPLES::
     
-        sage: from sage.coding.source_coding.huffman import Huffman
-        sage: h1 = Huffman("Encode me!")
-        sage: for symbol, code in h1.encoding_table().iteritems():
+        sage: from sage.coding.source_coding.shannon_fano import ShannonFano
+        sage: sf1 = ShannonFano("Encode me!")
+        sage: for symbol, code in sf1.encoding_table().iteritems():
         ....:     print "'" + symbol + "' : " + code
         ....:     
-        '!' : 1101
-        ' ' : 1100
-        'c' : 1111
-        'e' : 10
-        'd' : 000
-        'm' : 001
-        'o' : 011
-        'n' : 010
-        'E' : 1110
+        '!' : 010
+        ' ' : 0110
+        'c' : 0111
+        'e' : 00
+        'd' : 100
+        'm' : 101
+        'o' : 110
+        'n' : 1110
+        'E' : 1111
 
-    Now, we have a Huffman code for encoding strings consisting of
+    Now, we have a Shannon-Fano code for encoding strings consisting of
     symbols that are in the encoding table::
     
-        sage: encoded = h1.encode("Encode me!"); encoded
-        '11100101111011000101100001101101'
+        sage: encoded = sf1.encode("Encode me!"); encoded
+        '11111110011111010000011010100010'
         
     And we can decode the encoded string in the following way::
     
-        sage: h1.decode(encoded)
+        sage: sf1.decode(encoded)
         'Encode me!'
 
-    If we try to encode a string with ``h1`` that consists of symbols
+    If we try to encode a string with ``sf1`` that consists of symbols
     which are not part of the encoding table, we of course get an
     error::
     
-        sage: h1.encode("This string contains other symbols!")
+        sage: sf1.encode("This string contains other symbols!")
         Traceback (most recent call last):
         ...
         KeyError: 'T'
 
     If we want to encode multiple strings over an alphabet, it might be
-    a good idea to generate a Huffman code for this alphabet and a
+    a good idea to generate a Shannon-Fano code for this alphabet and a
     given probability distribution for the symbols::
     
         sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
-        sage: h2 = Huffman(d)
-        sage: for symbol, code in h2.encoding_table().iteritems():
+        sage: sf2 = ShannonFano(d)
+        sage: for symbol, code in sf2.encoding_table().iteritems():
         ....:     print "'" + symbol + "' : " + code
         ....:     
-        'a' : 1
-        'c' : 001
-        'b' : 01
-        'd' : 000
+        'a' : 0
+        'c' : 110
+        'b' : 10
+        'd' : 111
 
     We can also use frequencies or in general weights for the symbols::
     
         sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
-        sage: h3 = Huffman(d2)
-        sage: for symbol, code in h3.encoding_table().iteritems():
+        sage: sf3 = ShannonFano(d2)
+        sage: for symbol, code in sf3.encoding_table().iteritems():
         ....:     print "'" + symbol + "' : " + code
         ....:     
-        'a' : 1
-        'c' : 001
-        'b' : 01
-        'd' : 000
+        'a' : 0
+        'c' : 110
+        'b' : 10
+        'd' : 111
     
-    If you are interested in Huffman coding, you can output intermediate
-    data of the generation of the Huffman tree::
+    If you are interested in Shannon-Fano coding, you can output
+    intermediate data of the generation of the Shannon-Fano code::
     
-        sage: h4 = Huffman("huffman", verbose=True)
-        | merge | tree 0      | tree 1      |
-        | 1     | a           | h           |
-        | 2     | m           | n           |
-        | 3     | u           | [a, h]      |
-        | 4     | [m, n]      | f           |
-        | 5     | [u, [a, h]] | [[m, n], f] |
-        
-    If we want to encode with a larger code alphabet, we can use the
-    parameter ``q``::
-        
-        sage: str = "Sometimes a larger code alphabet is needed."
-        sage: h5 = Huffman(str, q=3)
-        sage: h5.encode(str)
-        '001122121222021021212220121112112011200011222002101012202222111120101012110022220221102201211002222022202000'
-        sage: h6 = Huffman(str, q=10)
-        sage: h6.encode(str)
-        '9110849808376799629482793158769997956928479837968858590'
+        sage: sf4 = ShannonFano("code", verbose=True)
+        | level | partition 1 | partition 2 | code |
+        | 1     | c, e        | d, o        |      |
+        | 2     | c           | e           | 0    |
+        |       | c           |             | 00   |
+        |       | e           |             | 01   |
+        | 2     | d           | o           | 1    |
+        |       | d           |             | 10   |
+        |       | o           |             | 11   |
         
     With ``char_per_symbol`` we are able to define symbols consisting
     of multiple characters. If we choose a dictionary for ``source``,
@@ -175,32 +161,32 @@ class Huffman(PrefixCoding):
     string for ``source``, we have to specify how many characters build
     one symbol::
     
-        sage: str2 = "Split me into symbols consisting of 3 characters"
-        sage: h6 = Huffman(str2, char_per_symbol=3)
-        sage: for symbol, code in h6.encoding_table().iteritems():
+        sage: str = "Split me into symbols consisting of 3 characters"
+        sage: sf5 = ShannonFano(str, char_per_symbol=3)
+        sage: for symbol, code in sf5.encoding_table().iteritems():
         ....:     print "'" + symbol + "' : " + code
         ....:     
-        'nsi' : 1010
-        'me ' : 1000
+        'nsi' : 0000
+        'me ' : 0011
         'int' : 0110
-        '3 c' : 0001
-        'it ' : 0111
-        'ols' : 1101
-        'of ' : 1100
-        'ng ' : 1001
-        ' co' : 0000
-        'ers' : 0100
-        'sti' : 1110
-        'act' : 0011
-        'ymb' : 1111
-        'Spl' : 0010
-        'o s' : 1011
-        'har' : 0101
+        '3 c' : 0111
+        'it ' : 1001
+        'ols' : 0100
+        'of ' : 0001
+        'ng ' : 0010
+        ' co' : 1111
+        'ers' : 0101
+        'sti' : 1000
+        'act' : 1010
+        'ymb' : 1011
+        'Spl' : 1100
+        'o s' : 1101
+        'har' : 1110
         
     Obviously, we have to make sure that the length of the string is a
     multiple of ``char_per_symbol`` or else we get an error::
     
-        sage: h7 = Huffman("four", char_per_symbol=3)
+        sage: sf6 = ShannonFano("four", char_per_symbol=3)
         Traceback (most recent call last):
         ...
         ValueError: The passed string does not match with the passed value for char_per_symbol.
@@ -210,74 +196,88 @@ class Huffman(PrefixCoding):
     a faster decoding. Or if you want to save memory when dealing with
     long codewords, you can set it to a smaller value::
         
-        sage: h8 = Huffman("Let's call it a day!", decoding_table_key_len=3)
+        sage: sf7 = ShannonFano("Let's call it a day!", decoding_table_key_len=3)
     """
     
-    def __init__(self, source, verbose=False, q=2, char_per_symbol=1,
+    def __init__(self, source, verbose=False, char_per_symbol=1,
                  decoding_table_key_len=8):
         r"""
-        Constructor for Huffman.
+        Constructor for ShannonFano.
 
         See the docstring of this class for full documentation.
 
         EXAMPLES::
 
-            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: str = "Give me an example!"
-            sage: h = Huffman(str, q=3, decoding_table_key_len=6)
+            sage: sf = ShannonFano(str, decoding_table_key_len=6)
 
         TESTS:
 
         Feeding anything else than a string or a dictionary::
 
-            sage: Huffman(Graph())
+            sage: ShannonFano(Graph())
             Traceback (most recent call last):
             ...
             ValueError: Input must be either a string or a dictionary.
         """
-        PrefixCoding.__init__(self, source, verbose, q, char_per_symbol,
+        self._v_table = SimpleTable(["level", "partition 1",
+                                     "partition 2", "code"])
+        PrefixCoding.__init__(self, source, verbose, 2, char_per_symbol,
                               decoding_table_key_len)
         
-        
-    def _build_code_from_tree(self, tree, q, prefix):
+    def _sf_split(self, s_w, code, verbose):#
         r"""
-        Build the Huffman code corresponding to a given tree, prefix
-        and code alphabet size.
+        Helper method for building the Shannon-Fano code.
 
         INPUT:
 
-        - ``tree`` -- list of list with maximum q strings
-
-        - ``q`` -- the code alphabet size
-
-        - ``prefix`` (string) -- string which is the prefix
-          of any element of the tree
-
+        - ``s_w`` -- a list of tuples containing a symbol and a
+          corresponding weight, sorted by weight.
+          
+        - ``code`` -- the codeword for the partition ``s_w``
+          
+        - ``verbose`` -- (default: False) if True, print intermediate
+          data of building the code.
+          
         EXAMPLES::
-
-            sage: from sage.coding.source_coding.huffman import Huffman
-            sage: h = Huffman("Some string.")
-            sage: tree = [['a', 'b'], 'c', 'd']  
-            sage: h._build_code_from_tree(tree, 3, "")
+        
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
+            sage: d = {'a': 5, 'b': 3.5, 'c': 1, 'd':0.4}
+            sage: sf = ShannonFano(d)
+            sage: l = [('a', 5), ('b', 3.5), ('c', 1), ('d', 0.4)]
+            sage: sf._sf_split(l, '', False)
         """
-        # This is really a recursive construction of a Huffman code. By
-        # feeding this class a sufficiently large alphabet, it is possible to
-        # exceed the maximum recursion depth and hence result in a
-        # RuntimeError.
-        try:
-            if isinstance(tree, list):
-                for i in range(q):
-                    self._build_code_from_tree(tree[i], q, prefix + str(i))
-            else:
-                self._character_to_code[tree] = prefix
-        # For q > 2, there can be a branch with fewer than q leaves.
-        except IndexError:
+        if len(s_w) == 1:
+            self._character_to_code[s_w[0][0]] = code
+            if verbose:
+                self._v_table.add_row(["", s_w[0][0], "", code])
             return
-
-    def _build_code(self, dic, verbose=False, q=2):
+        
+        total_sum = sum(w for s, w in s_w)
+        min_diff = total_sum
+        min_diff_i = 0
+        for i in range(1, len(s_w)):
+            first_sum = sum(w for s, w in s_w[:i])
+            second_sum = total_sum - first_sum
+            diff = abs(first_sum - second_sum)
+            if diff < min_diff:
+                min_diff = diff
+                min_diff_i = i
+                
+        if verbose:
+            left = ', '.join(s for s, w in s_w[:min_diff_i])
+            right = ', '.join(s for s, w in s_w[min_diff_i:])
+            level = str(len(code) + 1)
+            self._v_table.add_row([level, left, right, code])
+        
+        self._sf_split(s_w[:min_diff_i], code + '0', verbose)
+        self._sf_split(s_w[min_diff_i:], code + '1', verbose)
+        
+    def _build_code(self, dic, verbose=False):
         r"""
-        Constructs a Huffman code corresponding to an alphabet with the
-        given weight table.
+        Construct a Shannon-Fano code corresponding to an alphabet with
+        the given weight table.
 
         INPUT:
 
@@ -294,48 +294,18 @@ class Huffman(PrefixCoding):
         - ``verbose`` -- (default: False) if True, print intermediate
           data of building the code.
           
-        - ``q`` -- (default: 2) the number of symbols in the code
-          alphabet. Supported is 2 <= q <= 10.
-
         EXAMPLES::
-
-            sage: from sage.coding.source_coding.huffman import Huffman
+        
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: d = {'c': 4, 'o': 3, 'd': 2, 'e':1}
-            sage: h = Huffman(d)
-            sage: h._build_code(d)
+            sage: sf = ShannonFano(d)
+            sage: sf._build_code(d)
         """
+        # Sort characters by decreasing probability.
+        s_w = sorted(dic.items(), key=itemgetter(1), reverse=True)
+        self._sf_split(s_w, '', verbose)
         if verbose:
-            headings = ["merge"] + ["tree " + str(i) for i in range(q)]
-            table = SimpleTable(headings)
-            merge = 0
-            
-        # Switch s and w for heapify.
-        heap = [(w, s) for s, w in dic.items()]
-        heapify(heap)
-        # Number of trees to merge.
-        trees = q if q == 2 else len(dic) % (q-1)
-        if q != 2 and trees <= 1:
-            trees = q - 1 + trees
-        # Construct a Huffman tree.
-        while len(heap) > 1:
-            weight = 0
-            tree_list = []
-            for _ in range(trees):
-                w, t = heappop(heap)
-                weight += w
-                tree_list.append(t)
-            heappush(heap, (weight, tree_list))
-            if verbose:
-                merge += 1
-                row = [str(merge)] + \
-                      [str(t).replace("'", "") for t in tree_list] + \
-                      ["" for _ in range(trees, q)]
-                table.add_row(row)   
-            trees = q
-        tree = heap[0][1]
-        self._build_code_from_tree(tree, q, prefix="")
-        if verbose:
-            table.print_me()
+            self._v_table.print_me()
         
     def encode(self, string):
         r"""
@@ -347,17 +317,17 @@ class Huffman(PrefixCoding):
           
         OUTPUT:
 
-        - A Huffman encoding of ``string``.
+        - A Shannon-Fano encoding of ``string``.
         
         EXAMPLES:
         
         This example illustrates how to encode a string::
         
-            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: str = "Encode me!"
-            sage: h = Huffman(str) 
-            sage: h.encode(str)
-            '11100101111011000101100001101101'
+            sage: sf = ShannonFano(str)
+            sage: encoded = sf.encode(str); encoded
+            '11111110011111010000011010100010'
         """
         return PrefixCoding.encode(self, string)
     
@@ -371,19 +341,19 @@ class Huffman(PrefixCoding):
           
         OUTPUT:
 
-        - The Huffman decoding of ``string``.
+        - The Shannon-Fano decoding of ``string``.
         
         EXAMPLES:
         
         This example illustrates how to encode and then decode a
         string::
         
-            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: str = "Encode me!"
-            sage: h = Huffman(str)
-            sage: encoded = h.encode(str); encoded
-            '11100101111011000101100001101101'
-            sage: h.decode(encoded)
+            sage: sf = ShannonFano(str)
+            sage: encoded = sf.encode(str); encoded
+            '11111110011111010000011010100010'
+            sage: sf.decode(encoded)
             'Encode me!'
         
         TESTS:
@@ -393,11 +363,11 @@ class Huffman(PrefixCoding):
         a wrong decoding::
         
             sage: str2 = "I'm another string."
-            sage: h2 = Huffman(str2)
-            sage: encoded_h2 = h2.encode(str2); encoded_h2
-            '11100110100010010111010110011101000011110100010110010110000010111111111011'
-            sage: h.decode(encoded_h2)
-            'Eonmmoee EedcnmomodmocE '
+            sage: sf2 = ShannonFano(str2)
+            sage: encoded_sf2 = sf2.encode(str2); encoded_sf2
+            '10110101011000000111001110101101011110000100001111001100101110001100111111'
+            sage: sf.decode(encoded_sf2)
+            'mm!oeecenmmcdedeEeo!neocn'
         """
         return PrefixCoding.decode(self, string)
     
@@ -415,37 +385,37 @@ class Huffman(PrefixCoding):
 
         EXAMPLES::
         
-            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: str = "Show my encoding table!"
-            sage: h = Huffman(str)
-            sage: t = sorted(h.encoding_table().items())
+            sage: sf = ShannonFano(str)
+            sage: t = sorted(sf.encoding_table().items())
             sage: for symbol, code in t:
             ....:     print symbol, code
             ....:     
-              100
-            ! 10100
-            S 10101
-            a 10110
-            b 10111
-            c 11000
-            d 11001
+              000
+            ! 11011
+            S 11010
+            a 01110
+            b 1000
+            c 01111
+            d 10010
             e 001
-            g 11010
-            h 11011
-            i 11100
-            l 11101
-            m 11110
-            n 010
-            o 011
-            t 11111
-            w 0000
-            y 0001
+            g 10011
+            h 10110
+            i 1010
+            l 1100
+            m 10111
+            n 0110
+            o 010
+            t 1110
+            w 11110
+            y 11111
         """
         return PrefixCoding.encoding_table(self)
     
     def tree(self):
         r"""
-        Return the Huffman tree corresponding to the current encoding.
+        Return the tree corresponding to the current encoding.
 
         INPUT:
 
@@ -453,15 +423,15 @@ class Huffman(PrefixCoding):
 
         OUTPUT:
 
-        - The tree representing a Huffman code.
+        - The binary tree representing a Shannon-Fano code.
 
         EXAMPLES::
         
-            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: from sage.coding.source_coding.shannon_fano import ShannonFano
             sage: str = "Binary tree"
-            sage: h = Huffman(str, q=3)
-            sage: t = h.tree(); t
-            Digraph on 13 vertices
+            sage: sf = ShannonFano(str)
+            sage: t = sf.tree(); t
+            Digraph on 17 vertices
             sage: t.show(layout='tree', vertex_size=1800, figsize=[8,8])
         """
         return PrefixCoding.tree(self)
