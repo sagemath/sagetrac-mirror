@@ -950,7 +950,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
 
-        def to_matrix(self, base_ring=None, action=operator.mul, side='left'):
+        def to_matrix(self, base_ring=None, action=operator.mul,
+                      side='left', sparse=False):
             """
             Return the matrix of the action of ``self`` on the algebra.
 
@@ -995,7 +996,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             else:
                 action = lambda x: action_left(self, basis[x])
             endo = self.parent().module_morphism(on_basis=action, codomain=self.parent())
-            return endo.matrix(base_ring=base_ring)
+            return endo.matrix(base_ring=base_ring, side=side, sparse=sparse)
 
         _matrix_ = to_matrix  # For temporary backward compatibility
         on_left_matrix = to_matrix
