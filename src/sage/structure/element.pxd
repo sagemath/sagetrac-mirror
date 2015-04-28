@@ -2,6 +2,7 @@ from sage_object cimport SageObject
 from parent cimport Parent
 from cpython.number cimport PyNumber_Check
 
+
 cdef inline parent_c(x):
     if isinstance(x, Element):
         return (<Element>x)._parent
@@ -158,3 +159,7 @@ cdef class CoercionModel:
 
 
 cdef generic_power_c(a, nn, one)
+
+
+cdef extern from "sage/structure/typeinit.h":
+    pass

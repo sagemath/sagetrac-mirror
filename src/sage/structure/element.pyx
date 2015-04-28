@@ -151,7 +151,8 @@ include "sage/ext/python.pxi"
 include "coerce.pxi"
 from sage.ext.stdsage cimport *
 
-from cpython.ref cimport PyObject
+from cpython.object cimport PyObject, PyTypeObject
+
 
 import types
 cdef add, sub, mul, div, iadd, isub, imul, idiv
@@ -315,6 +316,34 @@ cdef class Element(SageObject):
     .. automethod:: _cmp_
     .. automethod:: _richcmp_
     """
+    def __typeinit__(cls):
+        """
+        Inherit comparison functions from the base class, even if the
+        Python rules would prevent that.
+
+        Remark that ``__typeinit__`` is called like a class method by
+        the machinery in ``typeinit.h``.
+
+        TESTS:
+
+        Check that we can call this from Python without segfaults::
+
+            sage: x = Element(ZZ)
+            sage: x.__typeinit__()
+            Traceback (most recent call last)
+            ...
+            TypeError: Expected type, got sage.structure.element.Element
+        """
+        cdef PyTypeObject* t = <PyTypeObject*><type?>cls
+        cdef PyTypeObject* b = t.tp_base
+        if b:
+            if t.tp_compare == NULL and b.tp_compare != NULL:
+                print "Inheriting __cmp__ from %r to %r"%(b.tp_name, t.tp_name)
+                t.tp_compare = b.tp_compare
+            if t.tp_richcompare == NULL and b.tp_richcompare != NULL:
+                print "Inheriting __richcmp__ from %r to %r"%(b.tp_name, t.tp_name)
+                t.tp_richcompare = b.tp_richcompare
+
     def __init__(self, parent):
         r"""
         INPUT:
