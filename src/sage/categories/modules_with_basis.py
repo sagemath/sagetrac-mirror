@@ -1094,7 +1094,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.parent().term( *self.trailing_item(cmp=cmp) )
 
-        def map_coefficients(self, f):
+        def map_coefficients(self, f, coerce=True):
             """
             Mapping a function on coefficients.
 
@@ -1102,6 +1102,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``f`` -- an endofunction on the coefficient ring of the
               free module
+
+            - ``coerce`` -- (default: ``True``) -- whether to try to
+              coerce the images of ``f`` to the coefficient ring, for
+              additional safety.
 
             Return a new element of ``self.parent()`` obtained by applying the
             function ``f`` to all of the coefficients of ``self``.
@@ -1127,8 +1131,16 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: a = s([2,1])+2*s([3,2])
                 sage: a.map_coefficients(lambda x: x*2)
                 2*s[2, 1] + 4*s[3, 2]
+
+            If ``coerce`` is ``True`` and ``f`` is not an endofunction
+            for the coefficients at hand, an error is raised::
+
+                sage: a.map_coefficients(factor)
+                Traceback (most recent call last):
+                ...
+                TypeError: Unable to coerce 2 (<class 'sage.structure.factorization.Factorization'>) to Rational
             """
-            return self.parent().sum_of_terms( (m, f(c)) for m,c in self )
+            return self.parent().sum_of_terms( ((m, f(c)) for m,c in self), distinct=True, coerce=coerce )
 
         def map_support(self, f):
             """

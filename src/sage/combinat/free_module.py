@@ -1869,14 +1869,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self._from_dict( dict_linear_combination( ( ( element._monomial_coefficients, coeff ) for element, coeff in iter_of_elements_coeff ), factor_on_left=factor_on_left ), remove_zeros=False )
 
-    def term(self, index, coeff=None):
+    def term(self, index, coeff=None, coerce=True):
         """
         Constructs a term in ``self``
 
         INPUT:
 
         - ``index`` -- the index of a basis element
+
         - ``coeff`` -- an element of the coefficient ring (default: one)
+
+        - ``coerce`` -- whether to try to coerce ``coeff`` into the
+          coefficient ring (default: ``True``)
 
         EXAMPLES::
 
@@ -1886,11 +1890,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.term('a')
             B['a']
 
-        Design: should this do coercion on the coefficient ring?
         """
         if coeff is None:
             coeff = self.base_ring().one()
-        return self._from_dict( {index: coeff} )
+        return self._from_dict( {index: coeff}, coerce=coerce )
 
     def _monomial(self, index):
         """
@@ -1965,14 +1968,19 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         # domain = sets of self.combinatorial_class(),
         return PoorManMap(self._sum_of_monomials, codomain = self)
 
-    def sum_of_terms(self, terms, distinct=False):
+    def sum_of_terms(self, terms, distinct=False, coerce=True):
         """
         Constructs a sum of terms of ``self``
 
         INPUT:
 
         - ``terms`` -- a list (or iterable) of pairs (index, coeff)
-        - ``distinct`` -- whether the indices are guaranteed to be distinct (default: ``False``)
+
+        - ``distinct`` -- whether the indices are guaranteed to be
+          distinct (default: ``False``)
+
+        - ``coerce`` -- whether to try to coerce the coefficients
+          ``coeff`` into the coefficient ring (default: ``True``)
 
         EXAMPLES::
 
@@ -1997,10 +2005,26 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: F.sum_of_terms([])
             0
+
+        If ``coerce`` is True, then coercion is attempted::
+
+            sage: r = F.sum_of_terms([('a', 1)], coerce = False)
+            sage: r.coefficient('a').parent()
+            Integer Ring
+
+            sage: r = F.sum_of_terms([('a', 1)], coerce = True)
+            sage: r.coefficient('a').parent()
+            Rational Field
+
+            sage: F.sum_of_terms([('a', [])], coerce = True)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce [] (<type 'list'>) to Rational
+
         """
         if distinct:
-            return self._from_dict(dict(terms))
-        return self.sum(self.term(index, coeff) for (index, coeff) in terms)
+            return self._from_dict(dict(terms), coerce = coerce)
+        return self.sum(self.term(index, coeff, coerce = coerce) for (index, coeff) in terms)
 
     def monomial_or_zero_if_none(self, i):
         """
@@ -2077,6 +2101,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
                 [([2, 1], 0)]
         """
         assert isinstance(d, dict)
+        coerce = True
         if coerce:
             R = self.base_ring()
             d = dict( (key, R(coeff)) for key,coeff in d.iteritems())
