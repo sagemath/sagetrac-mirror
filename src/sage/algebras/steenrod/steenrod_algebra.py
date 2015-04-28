@@ -1444,7 +1444,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(p=3, basis='serre-cartan').P(4).coproduct()
             1 # P^4 + P^1 # P^3 + P^2 # P^2 + P^3 # P^1 + P^4 # 1
             sage: SteenrodAlgebra(p=11, profile=((), (2,1,2))).Q(0,2).coproduct()
-            1 # Q_0 Q_2 + Q_0 # Q_2 + Q_0 Q_2 # 1 - Q_2 # Q_0
+            1 # Q_0 Q_2 + Q_0 # Q_2 + Q_0 Q_2 # 1 + 10*Q_2 # Q_0
         """
         # taken from categories.coalgebras_with_basis, then modified
         # to allow the use of the "algorithm" keyword
