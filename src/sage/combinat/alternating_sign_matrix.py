@@ -49,6 +49,41 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
 
+from sage.categories.morphism import Morphism
+
+class ASMToMat(Morphism):
+    r"""
+    Embedding from alternating sign matrices to the underlying matrix space
+
+    .. TODO::
+
+        this morphism can be safely removed once matrix spaces properly use the
+        coercion and do not override ``__call__`` anymore (:trac:`18258`).
+    """
+    def __init__(self, asm):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.alternating_sign_matrix import ASMToMat
+            sage: phi = ASMToMat(AlternatingSignMatrices(5))
+            sage: phi
+            Generic morphism:
+              From: Alternating sign matrices of size 5
+              To:   Full MatrixSpace of 5 by 5 dense matrices over Integer Ring
+        """
+        Morphism.__init__(self, asm, asm._matrix_space)
+
+    def _call_(self, m):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.alternating_sign_matrix import ASMToMat
+            sage: A = AlternatingSignMatrices(5)
+            sage: phi = ASMToMat(A)
+            sage: _ = phi(A.an_element())   # indirect doctest
+        """
+        return m._matrix
+
 class AlternatingSignMatrix(Element):
     r"""
     An alternating sign matrix.
@@ -82,6 +117,9 @@ class AlternatingSignMatrix(Element):
             [0 0 1]
         """
         asm = matrix(asm)
+        if asm.is_mutable():
+            asm = asm.__copy__()
+            asm.set_immutable()
         if not asm.is_square():
             raise ValueError("The alternating sign matrices must be square")
         P = AlternatingSignMatrices(asm.nrows())
@@ -102,6 +140,22 @@ class AlternatingSignMatrix(Element):
         self._matrix = asm
         Element.__init__(self, parent)
 
+    def _matrix_(self):
+        r"""
+        Return the underlying matrix
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(4)
+            sage: m = A.an_element()
+            sage: matrix(m)   # indirect doctest
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+        """
+        return self._matrix
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -116,10 +170,8 @@ class AlternatingSignMatrix(Element):
         """
         return repr(self._matrix)
 
-    def __eq__(self, other):
-        """
-        Check equality.
-
+    def _cmp_(self, other):
+        r"""
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
@@ -128,89 +180,29 @@ class AlternatingSignMatrix(Element):
             True
             sage: M == A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix == other._matrix
-        return self._matrix == other
-
-    def __ne__(self, other):
-        """
-        Check not equals. This is needed, see :trac:`14762`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             sage: M != A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             False
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
-        """
-        return not self.__eq__(other)
-
-    def __le__(self, other):
-        """
-        Check less than or equal to. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
             sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             sage: M <= A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             True
             sage: M <= A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix <= other._matrix
-        return False #return False if other is not an ASM
-
-    def __lt__(self, other):
-        """
-        Check less than. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             sage: M < A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix < other._matrix
-        return False #return False if other is not an ASM
-
-    def __ge__(self, other):
-        """
-        Check greater than or equal to. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
             sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             sage: M >= A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             True
             sage: M >= A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix >= other._matrix
-        return False #return False if other is not an ASM
 
-    def __gt__(self, other):
-        """
-        Check greater than. This is needed, see :trac:`15372`.
+        Check that coercion works as expected (:trac:`18305`)::
 
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            sage: M > A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            False
+            sage: M == identity_matrix(3)
+            True
         """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix > other._matrix
-        return False #return False if other is not an ASM
+        return cmp(self._matrix, other._matrix)
 
     def _latex_(self):
         r"""
@@ -243,7 +235,7 @@ class AlternatingSignMatrix(Element):
             sage: m.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
-        return copy.copy(self._matrix)
+        return self._matrix
 
     @combinatorial_map(name='to monotone triangle')
     def to_monotone_triangle(self):
@@ -942,6 +934,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             from sage.misc.superseded import deprecation
             deprecation(18208, 'use_monotone_triangles is deprecated')
         Parent.__init__(self, category=FiniteEnumeratedSets())
+        self._populate_coercion_lists_(embedding=ASMToMat(self))
 
     def _repr_(self):
         r"""
@@ -1035,7 +1028,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
         if asm in MonotoneTriangles(self._n):
             return self.from_monotone_triangle(asm)
-        return self.element_class(self, self._matrix_space(asm))
+        mat = self._matrix_space(asm)
+        mat.set_immutable()
+        return self.element_class(self, mat)
 
     Element = AlternatingSignMatrix
 
@@ -1081,7 +1076,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             asm.append(row)
             prev = v
 
-        return self.element_class(self, self._matrix_space(asm))
+        mat = self._matrix_space(asm)
+        mat.set_immutable()
+        return self.element_class(self, mat)
 
     def from_corner_sum(self, corner):
         r"""
