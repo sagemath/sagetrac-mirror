@@ -23,6 +23,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from functools import reduce
 
+from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE, py_rich_to_bool
 
 class FiniteDimensionalAlgebraIdeal(Ideal_generic):
     """
@@ -68,9 +69,11 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             self._basis_matrix = B.echelon_form().image().basis_matrix()
         Ideal_generic.__init__(self, A, gens)
 
-    def __eq__(self, other):
-        """
-        EXAMPLES::
+    def _richcmp_(self, other, op):
+        r"""
+        Comparisons
+
+        TESTS::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
@@ -90,30 +93,29 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I2 = A.ideal(A([1,1]))
             sage: I == I2
             True
+
+            sage: I != J, I != I, I != I+J
+            (True, False, False)
+            sage: I <= J, I <= I, I <= I+J
+            (False, True, True)
+            sage: I < J, I < I, I < I+J
+            (False, False, False)
+            sage: I >= J, I >= I, I >= I+J
+            (True, True, True)
+            sage: I > J, I > I, I > I+J
+            (True, False, False)
         """
-        if self is other:
+        if self.basis_matrix() == other.basis_matrix():
+            return op == op_EQ or op == op_LE or op == op_GE
+        elif op == op_EQ:
+            return False
+        elif op == op_NE:
             return True
-        if not isinstance(other, FiniteDimensionalAlgebraIdeal):
-            return False
-        if self.ring() != other.ring():
-            return False
-        return self.basis_matrix() == other.basis_matrix()
 
-    def __ne__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.ideal(A([1,1]))
-            sage: J = A.ideal(A([0,1]))
-            sage: I != J
-            True
-            sage: I != I
-            False
-            sage: I != I + J
-            False
-        """
-        return not self.__eq__(other)
+        if op == op_LE or op == op_LT:
+            return self.vector_space().is_subspace(other.vector_space())
+        elif op == op_GE or op == op_GT:
+            return other.vector_space().is_subspace(self.vector_space())
 
     def __contains__(self, elt):
         """
@@ -129,74 +131,6 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
         if self.ring() is not parent(elt):
             return False
         return elt.vector() in self.vector_space()
-
-    def __le__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.ideal(A([1,1]))
-            sage: J = A.ideal(A([0,1]))
-            sage: I <= J
-            False
-            sage: I <= I
-            True
-            sage: I <= I + J
-            True
-        """
-        if self is other:
-            return True
-        if self.ring() is not other.ring():
-            return False
-        return self.vector_space().is_subspace(other.vector_space())
-
-    def __lt__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.ideal(A([1,1]))
-            sage: J = A.ideal(A([0,1]))
-            sage: I < J
-            False
-            sage: I < I
-            False
-            sage: I < I + J
-            False
-        """
-        return self.__ne__(other) and self.__le__(other)
-
-    def __ge__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.ideal(A([1,1]))
-            sage: J = A.ideal(A([0,1]))
-            sage: I >= J
-            True
-            sage: I >= I
-            True
-            sage: I >= I + J
-            True
-        """
-        return other.__le__(self)
-
-    def __gt__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.ideal(A([1,1]))
-            sage: J = A.ideal(A([0,1]))
-            sage: I > J
-            True
-            sage: I > I
-            False
-            sage: I > I + J
-            False
-        """
-        return other.__lt__(self)
 
     def basis_matrix(self):
         """
