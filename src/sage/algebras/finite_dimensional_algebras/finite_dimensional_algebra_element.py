@@ -21,6 +21,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
 from sage.structure.element import AlgebraElement, is_Vector, parent
+from sage.structure.sage_object import py_rich_to_bool, op_EQ, op_NE
 
 
 class FiniteDimensionalAlgebraElement(AlgebraElement):
@@ -205,9 +206,11 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         from sage.misc.latex import latex
         return latex(self.matrix())
 
-    def __eq__(self, other):
-        """
-        EXAMPLES::
+    def _richcmp_(self, other, op):
+        r"""
+        Comparisons
+
+        TESTS::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(2) == 2
@@ -216,47 +219,17 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             False
             sage: A(2) == GF(5)(2)
             False
-        """
-        A = self.parent()
-        return (A.has_coerce_map_from(parent(other)) and
-                self.vector() == A(other).vector())
-
-    def __ne__(self, other):
-        """
-        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(1) != 0
             True
         """
-        return not self.__eq__(other)
+        if op == op_EQ:
+            return self.vector() == other.vector()
+        elif op == op_NE:
+            return self.vector() != other.vector()
 
-    def __gt__(self, other):
-        """
-        Raise a ``TypeError`` as there is no (natural) ordering defined on a
-        finite-dimensional algebra::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
-            sage: A(1) > 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
-            sage: A(1) < 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
-            sage: A(1) >= 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
-            sage: A(1) <= 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
-        """
         raise TypeError("there is no ordering defined on a finite-dimensional algebra")
-
-    __lt__ = __ge__ = __le__ = __gt__
 
     def _add_(self, other):
         """
