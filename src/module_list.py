@@ -69,6 +69,12 @@ givaro_extra_compile_args =['-D__STDC_LIMIT_MACROS']
 polybori_extra_compile_args = []
 polybori_major_version = '0.8'
 
+#########################################################
+### Symbolics settings
+#########################################################
+
+symbolics_extra_compile_args = ['-std=c++11']
+
 #############################################################
 ### List of modules
 ###
@@ -1994,12 +2000,15 @@ ext_modules = [
     ################################
 
     Extension('sage.symbolic.function',
-              sources = ['sage/symbolic/function.pyx']),
+              sources = ['sage/symbolic/function.pyx'],
+            extra_compile_args = symbolics_extra_compile_args),
 
     Extension('sage.symbolic.ring',
-              sources = ['sage/symbolic/ring.pyx']),
+              sources = ['sage/symbolic/ring.pyx'],
+            extra_compile_args = symbolics_extra_compile_args),
 
-    Extension('*', ['sage/symbolic/*.pyx']),
+    Extension('*', ['sage/symbolic/*.pyx'],
+            extra_compile_args = symbolics_extra_compile_args),
 
     ################################
     ##
