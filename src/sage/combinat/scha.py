@@ -34,11 +34,10 @@ coproducts are explicitly implemented for supercharacters and superclasses.
 Products and coproducts in other bases are computed using a change of basis to
 a basis in which it is implemented.
 
-TODO:
+.. TODO::
 
-- decide whether it is more efficient to convert to the powersum basis for
-  products and to superclasses for coproducts
-
+    - decide whether it is more efficient to convert to the powersum basis for
+      products and to superclasses for coproducts
 """
 #*****************************************************************************
 #       Copyright (C) 2010-2012 Franco Saliola <saliola@gmail.com>
@@ -66,14 +65,14 @@ from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.constructor import GF
 from sage.combinat.set_partition import SetPartitions, SetPartition
-from sage.sets.set import Set, Set_object_enumerated
+from sage.sets.set import Set_object_enumerated
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
 from sage.combinat.posets.lattices import LatticePoset
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
-from sage.sets.family import Family
+
 
 ##### Labelled set partitions
 def LabelledSetPartitions(arg1, arg2=None):
@@ -96,15 +95,18 @@ def LabelledSetPartitions(arg1, arg2=None):
     if arg2 is None:
         return LabelledSetPartitions_all(q=arg1)
     else:
-        return LabelledSetPartitions_n(n=arg1,q=arg2)
+        return LabelledSetPartitions_n(n=arg1, q=arg2)
+
 
 class LabelledSetPartition(CombinatorialObject):
     r"""
-    Class modelling a set partition with labelled arcs. These objects are
+    Class modelling a set partition with labelled arcs.
+
+    These objects are
     essentially modelled as a list of arcs.
-    
+
     EXAMPLES:
-    
+
     The set partition `\{ \{1,3,5\}, \{2,4\} \}` has arcs `(1,3)`, `(3,5)` and
     `(2,4)`. We label the arcs by 1, 3, and 4, respectively::
 
@@ -114,7 +116,7 @@ class LabelledSetPartition(CombinatorialObject):
     def __init__(self, n, arcs):
         r"""
         EXAMPLES:
-        
+
         The set partition `\{ \{1,3,5\}, \{2,4\} \}` has arcs `(1,3)`, `(3,5)` and
         `(2,4)`. We label the arcs by 1, 3, and 4, respectively::
 
@@ -127,19 +129,19 @@ class LabelledSetPartition(CombinatorialObject):
             if len(arc) == 3:
                 _arcs.append(tuple(arc))
             elif len(arc) == 2:
-                _arcs.append((arc[0],arc[1],1))
+                _arcs.append((arc[0], arc[1], 1))
             else:
-                raise ValueError, "arcs must be tuples of length 2 or 3"
-        super(LabelledSetPartition, self).__init__([Integer(n),sorted(_arcs)])
+                raise ValueError("arcs must be tuples of length 2 or 3")
+        super(LabelledSetPartition, self).__init__([Integer(n), sorted(_arcs)])
 
     def __repr__(self):
         r"""
         EXAMPLES::
-        
+
             sage: LabelledSetPartition(5, [(1,3,1), (3,5,3), (2,4,4)])
             [5, [(1, 3, 1), (2, 4, 4), (3, 5, 3)]]
         """
-        return "[%s, %s]" % (self[0],self[1])
+        return "[{}, {}]".format(self[0], self[1])
 
     def size(self):
         r"""
@@ -177,7 +179,7 @@ class LabelledSetPartition(CombinatorialObject):
             sage: phi.arcs_dict()
             {(1, 3): 1, (2, 4): 4, (3, 5): 3}
         """
-        return dict(((i,j),a) for (i,j,a) in self.arcs())
+        return dict(((i, j), a) for (i, j, a) in self.arcs())
 
     def to_set_partition(self):
         r"""
@@ -190,7 +192,7 @@ class LabelledSetPartition(CombinatorialObject):
             {{1, 3, 5}, {2, 4}}
         """
         from sage.graphs.graph import Graph
-        G = Graph(dict((i,[]) for i in range(1,self._n+1)))
+        G = Graph(dict((i, []) for i in range(1, self._n + 1)))
         for arc in self.arcs():
             G.add_edge(*arc)
         partition = G.connected_components()
@@ -199,7 +201,7 @@ class LabelledSetPartition(CombinatorialObject):
     def __cmp__(self, other):
         r"""
         Total order on labelled set partitions.
-        
+
         First, the size of the underlying sets are compared, then the number of
         arcs, and finally the (sorted) list of arcs.
 
@@ -228,10 +230,14 @@ class LabelledSetPartition(CombinatorialObject):
         return -cmp(self.arcs(), other.arcs())
 
     def _latex_(self):
+        """
+        Return the latex string.
+        """
         from sage.misc.latex import latex
         return latex(self.to_set_partition())
 
-class LabelledSetPartitions_n(UniqueRepresentation,CombinatorialClass):
+
+class LabelledSetPartitions_n(UniqueRepresentation, CombinatorialClass):
     r"""
     Set partitions of [n] with arcs labelled by elements of the Finite Field of
     size q.
@@ -243,16 +249,19 @@ class LabelledSetPartitions_n(UniqueRepresentation,CombinatorialClass):
     """
     def __init__(self, n, q):
         r"""
-        Set partitions of [n] with arcs labelled by elements of the Finite Field of size q
+        Set partitions of [n] with arcs labelled by elements
+        of the Finite Field of size q
 
         EXAMPLES::
 
             sage: LabelledSetPartitions(3,2)
-            Set partitions of [3] with arcs labelled by elements of Finite Field of size 2
+            Set partitions of [3] with arcs labelled by elements
+            of Finite Field of size 2
         """
         self._n = n
         self._q = q
         self._field = GF(q, 'a')
+
     def q(self):
         r"""
         Return the size of the finite field used for labels.
@@ -263,14 +272,18 @@ class LabelledSetPartitions_n(UniqueRepresentation,CombinatorialClass):
             2
         """
         return self._q
+
     def __repr__(self):
         r"""
         EXAMPLES::
 
             sage: LabelledSetPartitions(3,2)
-            Set partitions of [3] with arcs labelled by elements of Finite Field of size 2
+            Set partitions of [3] with arcs labelled by elements
+            of Finite Field of size 2
         """
-        return "Set partitions of [%s] with arcs labelled by elements of %s" % (self._n, self._field)
+        msg = "Set partitions of [{}] with arcs labelled by elements of {}"
+        return msg.format(self._n, self._field)
+
     def __iter__(self):
         r"""
         Iterate through all the labelled set partitions in this family.
@@ -289,17 +302,19 @@ class LabelledSetPartitions_n(UniqueRepresentation,CombinatorialClass):
             [2, [(1, 2, 1)]]
             [2, []]
         """
+        LSP = LabelledSetPartition
         for partition in SetPartitions(self._n):
             # convert set partition to arcs
             arcs = []
             for part in partition:
                 sorted_part = sorted(part)
-                for i in range(len(sorted_part)-1):
-                    arcs.append(sorted_part[i:i+2])
+                for i in range(len(sorted_part) - 1):
+                    arcs.append(sorted_part[i:i + 2])
             # label arcs with field elements
-            for labels in self._field**len(arcs):
+            for labels in self._field ** len(arcs):
                 if all(labels):
-                    yield LabelledSetPartition(self._n,[(i,j,a) for ((i,j),a) in zip(arcs,labels)])
+                    yield LSP(self._n, [(i, j, a)
+                                        for ((i, j), a) in zip(arcs, labels)])
 
     def __contains__(self, phi):
         r"""
@@ -349,6 +364,7 @@ class LabelledSetPartitions_n(UniqueRepresentation,CombinatorialClass):
         """
         return super(LabelledSetPartitions_n, self).rank(phi)
 
+
 class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
     r"""
     All set partitions with arcs labelled by elements of the Finite Field of
@@ -373,7 +389,8 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         """
         self._q = q
         self._field = GF(q, 'a')
-        Parent.__init__(self, category = (SetsWithGrading(), InfiniteEnumeratedSets()))
+        Parent.__init__(self, category=(SetsWithGrading(),
+                                        InfiniteEnumeratedSets()))
 
     def subset(self, size=None):
         """
@@ -439,7 +456,7 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         """
         from sage.sets.non_negative_integers import NonNegativeIntegers
         for n in NonNegativeIntegers():
-            for lsp in LabelledSetPartitions(n,self.q()):
+            for lsp in LabelledSetPartitions(n, self.q()):
                 yield lsp
 
     def __contains__(self, phi):
@@ -463,22 +480,23 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         """
         return isinstance(phi, LabelledSetPartition) and all(arc[2] in self._field for arc in phi.arcs())
 
+
 ##### Lattice of Set Partitions
 def LatticeOfSetPartitions(n):
     r"""
     The lattice of set partitions.
 
-    .. note::
+    .. NOTE::
 
         This is need expand the powersum basis in the homogeneous basis.
 
-    TODO:
+    .. TODO::
 
-    -  this should be improved and eventually included in Sage someplace
+        -  this should be improved and eventually included in Sage someplace
 
-    -  Example 3.10.4 of Stanley's Enumerative Combinatorics I gives an
-       explicit description of the Mobius function of the lattice of set
-       partitions. Use it to implement :meth:`mobius_function`.
+        -  Example 3.10.4 of Stanley's Enumerative Combinatorics I gives an
+           explicit description of the Mobius function of the lattice of set
+           partitions. Use it to implement :meth:`mobius_function`.
 
     EXAMPLES::
 
@@ -489,8 +507,8 @@ def LatticeOfSetPartitions(n):
         sage: from sage.combinat.scha import LatticeOfSetPartitions
         sage: L = LatticeOfSetPartitions(2)
         sage: for T in L:
-        ...      for S in L:
-        ...         print (T,S), L.is_lequal(T,S)
+        ....:    for S in L:
+        ....:       print (T,S), L.is_lequal(T,S)
         ({{1}, {2}}, {{1}, {2}}) True
         ({{1}, {2}}, {{1, 2}}) True
         ({{1, 2}}, {{1}, {2}}) False
@@ -500,24 +518,25 @@ def LatticeOfSetPartitions(n):
 
     def upper_covers_iter(x):
         l = list(x)
-        for (s,t) in Subsets(l,2):
+        for (s, t) in Subsets(l, 2):
             m = l[:]
             m.remove(s)
             m.remove(t)
             m.append(s.union(t))
             yield elements(m)
 
-    relns = [ (S,T) for S in elements for T in upper_covers_iter(S) ]
-    L = LatticePoset((elements,relns), cover_relations=False, facade=True)
+    relns = [(S, T) for S in elements for T in upper_covers_iter(S)]
+    L = LatticePoset((elements, relns), cover_relations=False, facade=True)
     # pre-compute the mobius function for speedup
     L.mobius_function_matrix()
 
-    def partial_order(T,S):
+    def partial_order(T, S):
         return all(any(set(t).issubset(set(s)) for s in S) for t in T)
 
     L.is_lequal = partial_order
 
     return L
+
 
 ##### The Hopf algebra of supercharacters
 class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
@@ -608,9 +627,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: phi = LabelledSetPartition(4,[(1,3,1),(2,4,1)])
             sage: K(H[phi])
             K[1|2|3|4] + K[1|2|34] + 2*K[1|24|3] + K[1|23|4] + K[14|2|3] + 2*K[13|2|4] + K[12|3|4] + 2*K[1|234] + K[14|23] + 2*K[134|2] + 4*K[13|24] + K[12|34] + 2*K[124|3] + 2*K[123|4] + 4*K[1234]
-
         """
-
         if isinstance(base_ring, (int, Integer)):
             if q is not None:
                 raise ValueError
@@ -625,9 +642,10 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
         q = Integer(q)
         self._q = q
         self._field = GF(q, 'a')
-        # TODO: the following line won't be needed when CategoryObject won't override base_ring
-        self._base = base_ring 
-        Parent.__init__(self, category = GradedHopfAlgebras(base_ring).WithRealizations())
+        # TODO: the following line won't be needed when CategoryObject
+        # won't override base_ring
+        self._base = base_ring
+        Parent.__init__(self, category=GradedHopfAlgebras(base_ring).WithRealizations())
 
         ######################
         # Register coercions #
@@ -666,14 +684,14 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             # powersum to elementary
             P.module_morphism(E._powersum_to_elementary_on_basis, codomain=E).register_as_coercion()
             # set the shorthands
-            self._shorthands = set(['X','K','P','H','E'])
+            self._shorthands = set(['X', 'K', 'P', 'H', 'E'])
         else:
             # these bases are not defined if q \neq 2
             self.Powersum = NotImplemented
             self.Homogeneous = NotImplemented
             self.Elementary = NotImplemented
             # set the shorthands
-            self._shorthands = set(['X','K'])
+            self._shorthands = set(['X', 'K'])
 
     def a_realization(self):
         if self.q() == 2:
@@ -699,7 +717,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: SupercharacterHopfAlgebra(3)._repr_()
             'Hopf algebra of supercharacters at q=3 over Cyclotomic Field of order 3 and degree 2'
         """
-        return "Hopf algebra of supercharacters at q=%s over %s"%(self.q(), self.base_ring())
+        return "Hopf algebra of supercharacters at q=%s over %s" % (self.q(), self.base_ring())
 
     def supercharacter_table(self, n):
         r"""
@@ -808,7 +826,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     phi = label_set_partition([key])
                 elif isinstance(key, Set_object_enumerated):
                     phi = label_set_partition(key)
-                elif isinstance(key[0], (int,Integer)):
+                elif isinstance(key[0], (int, Integer)):
                     phi = LabelledSetPartition(*key)
                 else:
                     phi = label_set_partition(key)
@@ -831,15 +849,14 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
             @cached_method
             def one_basis(self):
-                return LabelledSetPartition(0,[])
+                return LabelledSetPartition(0, [])
 
             @cached_method
             def some_elements(self):
-                return map(self, [LabelledSetPartition(0,[]),
-                    LabelledSetPartition(1,[]),
-                    LabelledSetPartition(2,[(1,2)]),
-                    LabelledSetPartition(2,[]),
-                    ]) + [self.an_element()]
+                return map(self, [LabelledSetPartition(0, []),
+                                  LabelledSetPartition(1, []),
+                                  LabelledSetPartition(2, [(1, 2)]),
+                                  LabelledSetPartition(2, [])]) + [self.an_element()]
 
             @cached_method
             def product_on_basis(self, phi, psi):
@@ -889,7 +906,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 """
                 K = self.realization_of().superclass_basis()
                 coprod = K(self[phi]).coproduct()
-                morphism = K.tensor_square().module_morphism(lambda (phi,psi): tensor([self(K[phi]),self(K[psi])]), codomain=self.tensor_square())
+                morphism = K.tensor_square().module_morphism(lambda (phi, psi): tensor([self(K[phi]), self(K[psi])]), codomain=self.tensor_square())
                 return morphism(coprod)
 
             @cached_method
@@ -904,8 +921,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                     sage: X = SupercharacterHopfAlgebra(2).X()
                     sage: for n in range(4):
-                    ...       for phi in X.basis(n).keys():
-                    ...           print "S(%s) = %s" % (X.basis()[phi],X.antipode_on_basis(phi))
+                    ....:     for phi in X.basis(n).keys():
+                    ....:         print "S(%s) = %s" % (X.basis()[phi],X.antipode_on_basis(phi))
                     S(X[]) = X[]
                     S(X[1]) = -X[1]
                     S(X[12]) = 2*X[1|2] - X[12]
@@ -921,8 +938,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     sage: X = SupercharacterHopfAlgebra(2).X()
                     sage: m = []
                     sage: for phi in X.basis(4).keys():
-                    ...       Sphi = X.antipode_on_basis(phi)
-                    ...       m.append([Sphi.coefficient(psi) for psi in X.basis(4).keys()])
+                    ....:     Sphi = X.antipode_on_basis(phi)
+                    ....:     m.append([Sphi.coefficient(psi) for psi in X.basis(4).keys()])
                     sage: matrix(m)
                     [ -1   2   0   0   2   2   0   0  -4   0  -4   0   0  -4   8]
                     [  0   0   0   0   1   0   0   0   0   0  -2   0   0  -2   4]
@@ -943,7 +960,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     True
 
                 We compute a few antipodes for `q=3`:
-                
+
                     sage: X = SupercharacterHopfAlgebra(3).X()
                     sage: X.antipode_on_basis(LabelledSetPartition(0,[]))
                     X0[]
@@ -956,10 +973,10 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 """
                 if phi.size() == 0:
                     return self.basis()[phi]
-                near_delta_bar = self.coproduct_on_basis(phi) - tensor([self.basis()[phi],self.one()])
+                near_delta_bar = self.coproduct_on_basis(phi) - tensor([self.basis()[phi], self.one()])
                 res = self.zero()
                 for (mono, coeff) in near_delta_bar.monomial_coefficients().iteritems():
-                    res += coeff*self.product(self.antipode_on_basis(mono[0]),self.basis()[mono[1]])
+                    res += coeff * self.product(self.antipode_on_basis(mono[0]), self.basis()[mono[1]])
                 return -res
 
             def omega(self, x):
@@ -971,7 +988,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 indexed by the set partition ``phi`` to the homogeneous basis
                 element indexed by ``phi``.
 
-                .. note::
+                .. NOTE::
 
                     The map :method:`omega1` is another implementation of this
                     endomorphism.
@@ -990,7 +1007,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                     sage: P = SupercharacterHopfAlgebra(2).powersum_basis()
                     sage: for a in P.basis(4):
-                    ...       P.omega(a)
+                    ....:     P.omega(a)
                     -P[1234]
                     P[1|234]
                     P[134|2]
@@ -1018,7 +1035,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 supercharacters defined on the powersum basis by
                 `\omega_1(P_\phi) = (-1)^{|\phi|-\ell(phi)} P_\phi`.
 
-                .. note::
+                .. NOTE::
 
                     The map :method:`omega` is another implementation of this
                     same endomorphism.
@@ -1063,8 +1080,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                     sage: X = SupercharacterHopfAlgebra(q=2).X()
                     sage: for m in range(4):
-                    ...       for phi in X.basis(m).keys():
-                    ...           print "%s --> %s" % (X[phi], X.omega2_on_basis(phi))
+                    ....:     for phi in X.basis(m).keys():
+                    ....:         print "%s --> %s" % (X[phi], X.omega2_on_basis(phi))
                     X[] --> X[]
                     X[1] --> X[1]
                     X[12] --> X[1|2]
@@ -1076,7 +1093,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     X[1|2|3] --> X[123]
                 """
                 X = self.realization_of().supercharacter_basis()
-                x = X[LabelledSetPartitions(phi.size(),2).first()]
+                x = X[LabelledSetPartitions(phi.size(), 2).first()]
                 return self.inner_tensor_product(self[phi], self(x))
 
             def omega3(self, x):
@@ -1102,9 +1119,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 Default implementation: compute in the supercharacter basis.
                 """
                 X = self.realization_of().supercharacter_basis()
-                return self(X.inner_tensor_product(X(x),X(y)))
+                return self(X.inner_tensor_product(X(x), X(y)))
 
-            def _test_antipode(self,**options):
+            def _test_antipode(self, **options):
                 r"""
                 Tests that the antipode satisfies its defining equations:
 
@@ -1122,12 +1139,12 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 tester = self._tester(**options)
                 T = self.tensor(self)
                 coprod = self.coproduct
-                S_Id = T.module_morphism(lambda (phi,psi): tensor([self.antipode_on_basis(phi),self.basis()[psi]]), codomain=T)
-                Id_S = T.module_morphism(lambda (phi,psi): tensor([self.basis()[phi],self.antipode_on_basis(psi)]), codomain=T)
-                prod = T.module_morphism(lambda (phi,psi): self.product_on_basis(phi,psi), codomain=self)
+                S_Id = T.module_morphism(lambda (phi, psi): tensor([self.antipode_on_basis(phi), self.basis()[psi]]), codomain=T)
+                Id_S = T.module_morphism(lambda (phi, psi): tensor([self.basis()[phi], self.antipode_on_basis(psi)]), codomain=T)
+                product = T.module_morphism(lambda (phi, psi): self.product_on_basis(phi, psi), codomain=self)
                 for x in tester.some_elements():
-                    tester.assert_(prod(S_Id(coprod(x)))==self.counit(x)*self.one())
-                    tester.assert_(prod(Id_S(coprod(x)))==self.counit(x)*self.one())
+                    tester.assert_(product(S_Id(coprod(x))) == self.counit(x) * self.one())
+                    tester.assert_(product(Id_S(coprod(x))) == self.counit(x) * self.one())
                     tester.assert_(self.antipode(self.antipode(x)) == x)
 
             def _test_coproduct(self, **options):
@@ -1148,11 +1165,11 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 coprod = self.coproduct
                 # test the zero
                 zero = self.zero()
-                tester.assert_(coprod(zero)==tensor([zero,zero]))
+                tester.assert_(coprod(zero) == tensor([zero, zero]))
                 # test coproduct is an algebra morphism
                 for x in tester.some_elements():
                     for y in tester.some_elements():
-                        tester.assert_(coprod(x*y) == coprod(x)*coprod(y))
+                        tester.assert_(coprod(x * y) == coprod(x) * coprod(y))
 
             @cached_method
             def rho_on_basis(self, phi):
@@ -1182,7 +1199,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 from sage.combinat.sf.sf import SymmetricFunctions
                 from sage.combinat.partition import Partition
                 pi = phi.to_set_partition()
-                la = Partition(sorted(map(len,pi),reverse=True))
+                la = Partition(sorted(map(len, pi), reverse=True))
                 shca = self.realization_of()
                 R = self.base_ring()
 
@@ -1269,7 +1286,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     sage: a.restriction(Set([2,3,4,5]))
                     12*X4[] + X4[(1, 4, 1)]
                 """
-                return self.parent().restriction(self,A)
+                return self.parent().restriction(self, A)
 
             def inner_tensor_product(self, x):
                 r"""
@@ -1408,7 +1425,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                                              )
 
         def _repr_(self):
-            return "%s %s"%(self.realization_of(), "on the %s basis"%(self._basis_name))
+            return "%s %s" % (self.realization_of(), "on the %s basis" % (self._basis_name))
 
         def _repr_term(self, phi):
             r"""
@@ -1440,7 +1457,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 X5[(1, 3, 1), (2, 4, 1), (3, 5, 2)]
             """
             if self.q() == 2:
-                return "%s[%s]" % (self._prefix, "|".join("".join(map(str,block)) for block in sorted(phi.to_set_partition(),key=min)))
+                return "%s[%s]" % (self._prefix, "|".join("".join(map(str, block)) for block in sorted(phi.to_set_partition(), key=min)))
             else:
                 return "%s%s%s" % (self._prefix, phi.size(), phi.arcs())
 
@@ -1469,9 +1486,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             """
             R = self.base_ring()
             a = self._field.gen()
-            phi = LabelledSetPartition(3, [(1,3,a)])
+            phi = LabelledSetPartition(3, [(1, 3, a)])
             psi = LabelledSetPartition(2, [])
-            return self.sum_of_terms([(phi,R(-3)),(psi,R(5))])
+            return self.sum_of_terms([(phi, R(-3)), (psi, R(5))])
 
     class Supercharacter(Basis):
         r"""
@@ -1571,8 +1588,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
             """
             shift = phi.size()
-            lsp = phi.arcs() + [(i+shift,j+shift,l) for (i,j,l) in psi.arcs()]
-            return self.basis()[LabelledSetPartition(phi.size()+psi.size(), lsp)]
+            lsp = phi.arcs() + [(i + shift, j + shift, l)
+                                for (i, j, l) in psi.arcs()]
+            return self.basis()[LabelledSetPartition(phi.size() + psi.size(), lsp)]
 
         ##### inner tensor product of characters
         @lazy_attribute
@@ -1580,7 +1598,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             r"""
             The inner tensor product of supercharacters.
 
-            See [1] for details.
+            See [Thiem]_ for details.
 
             EXAMPLES::
 
@@ -1595,11 +1613,11 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
             REFERENCES:
 
-            -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-                functions of unipotent upper-triangular matrices, J Algebr Comb
-                (2010) 31: 267--298
+            .. [Thiem] Nathaniel Thiem, Branching rules in the ring of
+               superclass functions of unipotent upper-triangular matrices,
+               J Algebr Comb (2010) 31: 267--298
             """
-            return self._module_morphism(self._module_morphism(self.inner_tensor_on_basis, position = 0, codomain=self), position = 1)
+            return self._module_morphism(self._module_morphism(self.inner_tensor_on_basis, position=0, codomain=self), position=1)
 
         @cached_method
         def inner_tensor_on_basis(self, phi, psi):
@@ -1613,9 +1631,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                 sage: q = 5
                 sage: F = GF(q)
-                sage: a,b,c,d = map(F, range(1,5)) 
+                sage: a,b,c,d = map(F, range(1,5))
                 sage: X = SupercharacterHopfAlgebra(q).X()
-                sage: mu = LabelledSetPartition(6, [(1,6,a)])
+                sage: mu = LabelledSetPartition(6, [(1,6, a)])
                 sage: nu = LabelledSetPartition(6, [(2,4,b)])
                 sage: X.inner_tensor_on_basis(mu,nu)
                 X6[(1, 6, 1), (2, 4, 2)]
@@ -1645,11 +1663,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X.inner_tensor_on_basis(mu,nu)
                 125*X6[(1, 6, 1), (2, 5, 1)] + 125*X6[(1, 6, 1), (2, 5, 1), (3, 4, 4)] + 125*X6[(1, 6, 1), (2, 5, 1), (3, 4, 3)] + 125*X6[(1, 6, 1), (2, 5, 1), (3, 4, 2)] + 125*X6[(1, 6, 1), (2, 5, 1), (3, 4, 1)]
 
-            REFERENCES:
-
-            -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-                functions of unipotent upper-triangular matrices, J Algebr Comb
-                (2010) 31: 267--298
+            REFERENCES: [Thiem]_
             """
             if phi.size() != psi.size():
                 return self.zero()
@@ -1658,10 +1672,10 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             arcs_psi = psi.arcs()
             if arcs_psi == []:
                 return self.basis()[phi]
-            return self.inner_tensor_product(self._inner_tensor_on_basis_by_arc(phi,arcs_psi.pop()),
+            return self.inner_tensor_product(self._inner_tensor_on_basis_by_arc(phi, arcs_psi.pop()),
                                          self.basis()[LabelledSetPartition(psi.size(), arcs_psi)])
 
-        def _inner_tensor_on_basis_by_arc(self, phi, (i,j,a)):
+        def _inner_tensor_on_basis_by_arc(self, phi, (i, j, a)):
             r"""
             The inner tensor product of the supercharacter indexed by ``phi`` by
             the arc from ``i`` to ``j`` with label ``a``.
@@ -1670,7 +1684,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                 sage: q = 5
                 sage: F = GF(q)
-                sage: a,b,c,d = map(F, range(1,5)) 
+                sage: a,b,c,d = map(F, range(1,5))
                 sage: X = SupercharacterHopfAlgebra(q).X()
                 sage: mu = LabelledSetPartition(6, [(1,6,a)])
                 sage: X._inner_tensor_on_basis_by_arc(mu,(2,4,b))
@@ -1680,15 +1694,17 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 X6[(1, 4, 3), (2, 5, 4)]
             """
             arcs_phi = phi.arcs()
-            for (k,arc) in enumerate(arcs_phi):
-                if arc[0]==i or arc[1]==j:
+            LSP = LabelledSetPartition
+            for (k, arc) in enumerate(arcs_phi):
+                if arc[0] == i or arc[1] == j:
                     del arcs_phi[k]
                     return self.inner_tensor_product(
-                            self.basis()[LabelledSetPartition(phi.size(),arcs_phi)],
-                            self._inner_tensor_of_two_arcs(arc,(i,j,a),phi.size())
-                            )
-            else:
-                return self.basis()[LabelledSetPartition(phi.size(), arcs_phi+[(i,j,a)])]
+                        self.basis()[LSP(phi.size(), arcs_phi)],
+                        self._inner_tensor_of_two_arcs(arc, (i, j, a),
+                                                       phi.size())
+                    )
+
+            return self.basis()[LSP(phi.size(), arcs_phi + [(i, j, a)])]
 
         def _inner_tensor_of_two_arcs(self, arc1, arc2, n):
             r"""
@@ -1737,49 +1753,49 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X._inner_tensor_of_two_arcs( (2,5,F(2)), (2,5,F(4)), 6 )
                 9*X6[(2, 5, 1)] + 4*X6[(2, 5, 1), (3, 4, 4)] + 4*X6[(2, 5, 1), (3, 4, 3)] + 4*X6[(2, 5, 1), (3, 4, 2)] + 4*X6[(2, 5, 1), (3, 4, 1)]
 
-            REFERENCES:
-
-            -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-                functions of unipotent upper-triangular matrices, J Algebr Comb
-                (2010) 31: 267--298
+            REFERENCES: [Thiem]_
             """
-            (i,k,a), (j,l,b) = sorted([arc1,arc2])
-            assert(i<k and j<l)
+            (i, k, a), (j, l, b) = sorted([arc1, arc2])
+            assert(i < k and j < l)
             q = self.q()
-            Bmap = lambda arcs: self[LabelledSetPartition(n,arcs)]
-            if (i,k) != (j,l):
-                if set([i,k]).intersection(set([j,l])) == set([]):
-                    return Bmap([(i,k,a),(j,l,b)])
+            Bmap = lambda arcs: self[LabelledSetPartition(n, arcs)]
+            if (i, k) != (j, l):
+                if set([i, k]).intersection(set([j, l])) == set([]):
+                    return Bmap([(i, k, a), (j, l, b)])
                 elif i < j == k < l:
-                    return Bmap([(i,j,a),(j,l,b)])
+                    return Bmap([(i, j, a), (j, l, b)])
                 elif i == j < k < l:
-                    return Bmap([(i,l,b)]) + self.sum(Bmap([(jj,k,c),(i,l,b)])
-                            for jj in range(i+1,k)
-                            for c in self._field if c != 0)
+                    return Bmap([(i, l, b)]) +\
+                        self.sum(Bmap([(jj, k, c),
+                                       (i, l, b)])
+                                 for jj in range(i + 1, k)
+                                 for c in self._field if c != 0)
                 elif i < j < k == l:
-                    return Bmap([(i,l,a)]) + self.sum(Bmap([(i,l,a),(j,kk,c)])
-                            for kk in range(j+1,l)
-                            for c in self._field if c != 0)
+                    return Bmap([(i, l, a)]) +\
+                        self.sum(Bmap([(i, l, a),
+                                       (j, kk, c)])
+                                 for kk in range(j + 1, l)
+                                 for c in self._field if c != 0)
             else:
                 if b == -a:
                     return Bmap([]) \
-                        + self.sum(Bmap([(i,jj,c)])
-                                for jj in range(i+1,l)
+                        + self.sum(Bmap([(i, jj, c)])
+                                for jj in range(i + 1, l)
                                 for c in self._field if c != 0) \
-                        + self.sum(Bmap([(kk,l,c)]) 
-                                for kk in range(i+1,l)
+                        + self.sum(Bmap([(kk, l, c)])
+                                for kk in range(i + 1, l)
                                 for c in self._field if c != 0) \
-                        + self.sum(Bmap([(i,jj,c),(kk,l,d)])
-                                for jj in range(i+1,l)
-                                for kk in range(i+1,l)
+                        + self.sum(Bmap([(i, jj, c), (kk, l, d)])
+                                for jj in range(i + 1, l)
+                                for kk in range(i + 1, l)
                                 for c in self._field if c != 0
                                 for d in self._field if d != 0)
                 else:
-                    return ((l-i-1)*(q-1)+1) * Bmap([(i,l,a+b)]) \
-                            + (q-1) * self.sum(Bmap([(jj,kk,c),(i,l,a+b)])
-                                    for jj in range(i+1,l-1)
-                                    for kk in range(jj+1,l)
-                                    for c in self._field if c != 0)
+                    return ((l - i - 1) * (q - 1) + 1) * Bmap([(i, l, a + b)]) \
+                        + (q - 1) * self.sum(Bmap([(jj, kk, c), (i, l, a + b)])
+                                           for jj in range(i + 1, l - 1)
+                                           for kk in range(jj + 1, l)
+                                           for c in self._field if c != 0)
 
         ##### restriction
         def _arc_to_partition(self, arc, A):
@@ -1792,13 +1808,13 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X = SupercharacterHopfAlgebra(q=2).X()
                 sage: X._arc_to_partition( (3,7,2), [3,5,7])
                 [3, [(1, 3, 2)]]
-
             """
             if arc == ():
                 return LabelledSetPartition(len(A), ())
             # standardize
-            std = dict((j,i+1) for (i,j) in enumerate(sorted(A)))
-            return LabelledSetPartition(len(A),[(std[arc[0]], std[arc[1]], arc[2])])
+            std = dict((j, i + 1) for (i, j) in enumerate(sorted(A)))
+            return LabelledSetPartition(len(A),
+                                        [(std[arc[0]], std[arc[1]], arc[2])])
 
         def _restriction_on_arc(self, arc, A):
             r"""
@@ -1818,44 +1834,41 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X._restriction_on_arc((2,5,a),A)
                 X4[(1, 4, a)]
                 sage: X._restriction_on_arc([1,5,F(1)],A)
-                X4[] + X4[(3, 4, a + 1)] + X4[(3, 4, a)] + X4[(3, 4, 1)] + X4[(2, 4, a + 1)] + X4[(2, 4, a)] + X4[(2, 4, 1)] + X4[(1, 4, a + 1)] + X4[(1, 4, a)] + X4[(1, 4, 1)] 
+                X4[] + X4[(3, 4, a + 1)] + X4[(3, 4, a)] + X4[(3, 4, 1)] + X4[(2, 4, a + 1)] + X4[(2, 4, a)] + X4[(2, 4, 1)] + X4[(1, 4, a + 1)] + X4[(1, 4, a)] + X4[(1, 4, 1)]
                 sage: X._restriction_on_arc([1,7,F(1)],A)
-                52*X4[] + 12*X4[(3, 4, a + 1)] + 12*X4[(3, 4, a)] + 12*X4[(3, 4, 1)] + 12*X4[(2, 4, a + 1)] + 12*X4[(2, 4, a)] + 12*X4[(2, 4, 1)] + 12*X4[(2, 3, a + 1)] + 12*X4[(2, 3, a)] + 12*X4[(2, 3, 1)] + 12*X4[(1, 4, a + 1)] + 12*X4[(1, 4, a)] + 12*X4[(1, 4, 1)] + 12*X4[(1, 3, a + 1)] + 12*X4[(1, 3, a)] + 12*X4[(1, 3, 1)] + 12*X4[(1, 2, a + 1)] + 12*X4[(1, 2, a)] + 12*X4[(1, 2, 1)] 
+                52*X4[] + 12*X4[(3, 4, a + 1)] + 12*X4[(3, 4, a)] + 12*X4[(3, 4, 1)] + 12*X4[(2, 4, a + 1)] + 12*X4[(2, 4, a)] + 12*X4[(2, 4, 1)] + 12*X4[(2, 3, a + 1)] + 12*X4[(2, 3, a)] + 12*X4[(2, 3, 1)] + 12*X4[(1, 4, a + 1)] + 12*X4[(1, 4, a)] + 12*X4[(1, 4, 1)] + 12*X4[(1, 3, a + 1)] + 12*X4[(1, 3, a)] + 12*X4[(1, 3, 1)] + 12*X4[(1, 2, a + 1)] + 12*X4[(1, 2, a)] + 12*X4[(1, 2, 1)]
                 sage: X._restriction_on_arc([5,7,F(1)],A)
                 4*X4[]
 
-            REFERENCES:
-
-            -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-                functions of unipotent upper-triangular matrices, J Algebr Comb
-                (2010) 31: 267--298
+            REFERENCES: [Thiem]_
             """
             q = self.q()
             if len(arc) == 0:
                 raise NotImplementedError
-            (i,l,a) = arc
-            Bmap = lambda arc: self[self._arc_to_partition(arc,A)]
+            (i, l, a) = arc
+            Bmap = lambda arc: self[self._arc_to_partition(arc, A)]
             if i in A:
                 if l in A:
-                    new_term = Bmap((i,l,a))
+                    new_term = Bmap((i, l, a))
                 else:
                     new_term = Bmap(()) + \
-                        self.sum(Bmap((i,k,b))
-                                for k in range(i+1,l) if k in A
+                        self.sum(Bmap((i, k, b))
+                                for k in range(i + 1, l) if k in A
                                 for b in self._field if b != 0)
             else:
                 if l in A:
-                    new_term = Bmap(()) + \
-                        self.sum(Bmap((j,l,b)) for j in range(i+1,l) if j in A
-                                        for b in self._field if b != 0)
+                    new_term = Bmap(())
+                    new_term += self.sum(Bmap((j, l, b))
+                                         for j in range(i + 1, l) if j in A
+                                         for b in self._field if b != 0)
                 else:
-                    new_term = (sum(1 for j in range(i,l) if j in A)*(q-1) + 1) * Bmap(())
+                    new_term = (sum(1 for j in range(i, l) if j in A) * (q - 1) + 1) * Bmap(())
                     for j in A:
                         if i < j < l:
                             for k in A:
                                 if j < k < l:
-                                    new_term += (q-1) * self.sum(Bmap((j,k,c)) for c in self._field if c!= 0)
-            return q**sum(1 for k in range(i+1,l) if k not in A) * new_term
+                                    new_term += (q - 1) * self.sum(Bmap((j, k, c)) for c in self._field if c != 0)
+            return q ** sum(1 for k in range(i + 1, l) if k not in A) * new_term
 
         @cached_method
         def restriction_on_basis(self, phi, A):
@@ -1869,7 +1882,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X = SupercharacterHopfAlgebra(2).X()
                 sage: arc = LabelledSetPartition(3,[(1,3,GF(2)(1))])
                 sage: for A in Subsets(3):
-                ...       print "Res_%s(%s) = %s" % (A,X[arc],X.restriction_on_basis(arc,A))
+                ....:     print "Res_%s(%s) = %s" % (A,X[arc],X.restriction_on_basis(arc,A))
                 Res_{}(X[13|2]) = 2*X[]
                 Res_{1}(X[13|2]) = 2*X[1]
                 Res_{2}(X[13|2]) = 2*X[1]
@@ -1888,23 +1901,19 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X.restriction_on_basis(LabelledSetPartition(5,[(2,5,a)]),A)
                 X4[(1, 4, a)]
                 sage: X.restriction_on_basis(LabelledSetPartition(5,[(1,5,F(1))]),A)
-                X4[] + X4[(3, 4, a + 1)] + X4[(3, 4, a)] + X4[(3, 4, 1)] + X4[(2, 4, a + 1)] + X4[(2, 4, a)] + X4[(2, 4, 1)] + X4[(1, 4, a + 1)] + X4[(1, 4, a)] + X4[(1, 4, 1)] 
+                X4[] + X4[(3, 4, a + 1)] + X4[(3, 4, a)] + X4[(3, 4, 1)] + X4[(2, 4, a + 1)] + X4[(2, 4, a)] + X4[(2, 4, 1)] + X4[(1, 4, a + 1)] + X4[(1, 4, a)] + X4[(1, 4, 1)]
                 sage: X.restriction_on_basis(LabelledSetPartition(5,[(1,7,F(1))]),A)
-                52*X4[] + 12*X4[(3, 4, a + 1)] + 12*X4[(3, 4, a)] + 12*X4[(3, 4, 1)] + 12*X4[(2, 4, a + 1)] + 12*X4[(2, 4, a)] + 12*X4[(2, 4, 1)] + 12*X4[(2, 3, a + 1)] + 12*X4[(2, 3, a)] + 12*X4[(2, 3, 1)] + 12*X4[(1, 4, a + 1)] + 12*X4[(1, 4, a)] + 12*X4[(1, 4, 1)] + 12*X4[(1, 3, a + 1)] + 12*X4[(1, 3, a)] + 12*X4[(1, 3, 1)] + 12*X4[(1, 2, a + 1)] + 12*X4[(1, 2, a)] + 12*X4[(1, 2, 1)] 
+                52*X4[] + 12*X4[(3, 4, a + 1)] + 12*X4[(3, 4, a)] + 12*X4[(3, 4, 1)] + 12*X4[(2, 4, a + 1)] + 12*X4[(2, 4, a)] + 12*X4[(2, 4, 1)] + 12*X4[(2, 3, a + 1)] + 12*X4[(2, 3, a)] + 12*X4[(2, 3, 1)] + 12*X4[(1, 4, a + 1)] + 12*X4[(1, 4, a)] + 12*X4[(1, 4, 1)] + 12*X4[(1, 3, a + 1)] + 12*X4[(1, 3, a)] + 12*X4[(1, 3, 1)] + 12*X4[(1, 2, a + 1)] + 12*X4[(1, 2, a)] + 12*X4[(1, 2, 1)]
                 sage: X.restriction_on_basis(LabelledSetPartition(5,[(5,7,F(1))]),A)
                 4*X4[]
 
-            REFERENCES:
-
-            -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-                functions of unipotent upper-triangular matrices, J Algebr Comb
-                (2010) 31: 267--298
+            REFERENCES: [Thiem]_
             """
             if phi.arcs() == []:
-                return self.basis()[LabelledSetPartition(len(A),[])]
+                return self.basis()[LabelledSetPartition(len(A), [])]
             res_on_arcs = self._restriction_on_arc
-            return reduce(self.inner_tensor_product,[res_on_arcs(arc,A) for arc in phi.arcs()])
-
+            return reduce(self.inner_tensor_product,
+                          [res_on_arcs(arc, A) for arc in phi.arcs()])
 
         @lazy_attribute
         def restriction(self):
@@ -1958,14 +1967,15 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 X[] # X[1|2|3] + 3*X[1] # X[1|2] + 3*X[1|2] # X[1] + X[1|2|3] # X[]
             """
             if phi.size() == 0:
-                return tensor([self.one(),self.one()])
+                return tensor([self.one(), self.one()])
             superrestriction = self.restriction_on_basis
-            res = tensor([self.one(),self.basis()[phi]]) \
-                    + tensor([self.basis()[phi],self.one()])
+            res = tensor([self.one(), self.basis()[phi]])
+            res += tensor([self.basis()[phi], self.one()])
             q = self.q()
-            for (J,Jcomp) in OrderedSetPartitions(phi.size(), 2):
-                res += q**(-sum(l-i-1 for (i,l,a) in phi.arcs())) \
-                        * tensor([superrestriction(phi,J), superrestriction(phi,Jcomp)])
+            for (J, Jcomp) in OrderedSetPartitions(phi.size(), 2):
+                res += (q ** (-sum(l - i - 1 for (i, l, a) in phi.arcs()))
+                        * tensor([superrestriction(phi, J),
+                                  superrestriction(phi, Jcomp)]))
             return res
 
     X = supercharacter_basis = Supercharacter
@@ -2017,9 +2027,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: X = scha.supercharacter_basis()
             sage: K = scha.superclass_basis()
             sage: for n in range(5):
-            ...       for phi in X.basis(n).keys():
-            ...           assert(K(X(K[phi]))==K[phi])
-            ...           assert(X(K(X[phi]))==X[phi])
+            ....:     for phi in X.basis(n).keys():
+            ....:         assert(K(X(K[phi]))==K[phi])
+            ....:         assert(X(K(X[phi]))==X[phi])
 
         ::
 
@@ -2028,9 +2038,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: X = scha.supercharacter_basis()
             sage: K = scha.superclass_basis()
             sage: for n in range(4):
-            ...       for phi in X.basis(n).keys():
-            ...           assert(K(X(K[phi]))==K[phi])
-            ...           assert(X(K(X[phi]))==X[phi])
+            ....:     for phi in X.basis(n).keys():
+            ....:         assert(K(X(K[phi]))==K[phi])
+            ....:         assert(X(K(X[phi]))==X[phi])
 
         We run the test suites::
 
@@ -2061,7 +2071,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 X[13|2]
             """
             scf = SupercharacterTable(q=self.q(), field=self._field, base_ring=self.base_ring()).supercharacter_formula
-            return self.sum_of_terms((psi,scf(phi,psi)) for psi in self.basis(phi.size()).keys())
+            return self.sum_of_terms((psi, scf(phi, psi)) for psi in self.basis(phi.size()).keys())
 
         @cached_method
         def _superclass_to_supercharcter_on_basis(self, phi):
@@ -2080,16 +2090,17 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             """
             n, q = phi.size(), self.q()
             X = self.realization_of().supercharacter_basis()
-            trans_mat = SupercharacterTable(q=self.q(), field=self._field, base_ring=self.base_ring()).table_inverse(n)
+            trans_mat = SupercharacterTable(q=self.q(), field=self._field,
+                                            base_ring=self.base_ring()).table_inverse(n)
             vec = trans_mat.row(self.basis(n).keys().rank(phi))
-            return X.sum_of_terms(zip(self.basis(n).keys(),vec))
+            return X.sum_of_terms(zip(self.basis(n).keys(), vec))
 
         @cached_method
         def coproduct_on_basis(self, phi):
             r"""
             The coproduct of the superclass indexed by ``phi``.
 
-            .. note::
+            .. NOTE::
 
                 This only works for `q=2`.
 
@@ -2109,18 +2120,18 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: XX = X.tensor_square()
                 sage: XX.module_morphism(lambda (phi,psi): tensor([K(X[phi]),K(X[psi])]), codomain=KK).register_as_coercion()
                 sage: for n in range(5):
-                ...       for a in K.basis(n):
-                ...           assert(a.coproduct() == KK(X(a).coproduct()))
+                ....:     for a in K.basis(n):
+                ....:         assert(a.coproduct() == KK(X(a).coproduct()))
             """
             if self.q() == 2:
                 A = list(phi.to_set_partition())
                 if phi.size() == 0:
-                    return tensor([self.one(),self.one()])
-                res = tensor([self.one(),self[phi]]) + tensor([self[phi],self.one()])
-                for (left, right) in OrderedSetPartitions(A,2):
+                    return tensor([self.one(), self.one()])
+                res = tensor([self.one(), self[phi]]) + tensor([self[phi], self.one()])
+                for (left, right) in OrderedSetPartitions(A, 2):
                     left = label_set_partition(standardize_set_partition(left))
                     right = label_set_partition(standardize_set_partition(right))
-                    res = res + tensor([self.monomial(left), self.monomial(right)])
+                    res += tensor([self.monomial(left), self.monomial(right)])
                 return res
             else:
                 return super(SuperclassBasis, self).coproduct_on_basis(phi)
@@ -2153,7 +2164,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: K.omega3_on_basis(LabelledSetPartition(4, [(3,4,1)]))
                 -K[1|2|34]
             """
-            return self((-1)**(phi.size()-len(phi.to_set_partition())) * self.basis()[phi])
+            return self((-1) ** (phi.size() - len(phi.to_set_partition())) * self.basis()[phi])
 
     K = Kappa = superclass_basis = Superclass
 
@@ -2163,7 +2174,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
         The definition of this basis is based on Theorem 3.1(i) of [NCSym].
 
-        .. note::
+        .. NOTE::
 
             This basis is only defined for `q=2`.
 
@@ -2208,9 +2219,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: X = scha.supercharacter_basis()
             sage: P = scha.powersum_basis()
             sage: for n in range(5):
-            ...       for phi in X.basis(n).keys():
-            ...           assert(P(X(P[phi]))==P[phi])
-            ...           assert(X(P(X[phi]))==X[phi])
+            ....:     for phi in X.basis(n).keys():
+            ....:         assert(P(X(P[phi]))==P[phi])
+            ....:         assert(X(P(X[phi]))==X[phi])
 
         We run the test suites::
 
@@ -2273,13 +2284,13 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: P = SupercharacterHopfAlgebra(2).powersum_basis()
                 sage: X = SupercharacterHopfAlgebra(2).supercharacter_basis()
                 sage: for a in P.basis(3):
-                ...       for b in P.basis(2):
-                ...           assert(X(a*b) == X(a)*X(b))
+                ....:     for b in P.basis(2):
+                ....:         assert(X(a*b) == X(a)*X(b))
             """
             shift = phi.size()
-            lsp = phi.arcs() + [(i+shift,j+shift,l) for (i,j,l) in psi.arcs()]
-            return self.basis()[LabelledSetPartition(phi.size()+psi.size(), lsp)]
-
+            lsp = phi.arcs() + [(i + shift, j + shift, l)
+                                for (i, j, l) in psi.arcs()]
+            return self.basis()[LabelledSetPartition(phi.size() + psi.size(), lsp)]
 
         @lazy_attribute
         def omega1(self):
@@ -2287,7 +2298,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             The endomorphism of the Hopf algebra of supercharacters obtained by
             linearly extending the `\omega_1` map.
 
-            .. note::
+            .. NOTE::
 
                 The map :method:`omega` is another implementation of this
                 same endomorphism.
@@ -2309,7 +2320,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             The endomorphism of ``self`` defined on the powersum basis
             by `\omega_1(P_\phi) = (-1)^{|\phi|-\ell(phi)} P_\phi`.
 
-            .. note::
+            .. NOTE::
 
                 The map :method:`omega` is another implementation of this
                 same endomorphism.
@@ -2320,7 +2331,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: P.omega1_on_basis(LabelledSetPartition(4, [(3,4,1)]))
                 -P[1|2|34]
             """
-            return self((-1)**(phi.size()-len(phi.to_set_partition())) * self.basis()[phi])
+            return self((-1) ** (phi.size() - len(phi.to_set_partition())) * self.basis()[phi])
 
     P = powersum_basis = Powersum
 
@@ -2328,7 +2339,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
         r"""
         The Hopf algebra of supercharacters on the homogeneous basis.
 
-        .. note::
+        .. NOTE::
 
             This basis is only defined for `q = 2`.
 
@@ -2373,9 +2384,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: X = scha.supercharacter_basis()
             sage: H = scha.homogeneous_basis()
             sage: for n in range(4):
-            ...       for phi in X.basis(n).keys():
-            ...           assert(H(X(H[phi]))==H[phi])
-            ...           assert(X(H(X[phi]))==X[phi])
+            ....:     for phi in X.basis(n).keys():
+            ....:         assert(H(X(H[phi]))==H[phi])
+            ....:         assert(X(H(X[phi]))==X[phi])
 
         We run the test suites::
 
@@ -2442,8 +2453,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             L = LatticeOfSetPartitions(phi.size())
             phi = L(phi.to_set_partition())
             mu = L.mobius_function
-            return 1/abs(mu(L.bottom(),phi)) * H.sum(mu(sigma,phi)*H[label_set_partition(sigma)]
-                    for sigma in L.order_ideal([phi]))
+            return H.sum(mu(sigma, phi) * H[label_set_partition(sigma)]
+                         for sigma in L.order_ideal([phi])) / abs(mu(L.bottom(), phi))
 
     H = homogeneous_basis = Homogeneous
 
@@ -2453,7 +2464,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
         The definition of this basis is based on Theorem 3.4 of [NCSym].
 
-        .. note::
+        .. NOTE::
 
             This basis is only defined for `q=2`.
 
@@ -2499,9 +2510,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: X = SupercharacterHopfAlgebra(2).supercharacter_basis()
             sage: E = SupercharacterHopfAlgebra(2).elementary_basis()
             sage: for n in range(5):
-            ...       for phi in X.basis(n).keys():
-            ...           assert(E(X(E[phi]))==E[phi])
-            ...           assert(X(E(X[phi]))==X[phi])
+            ....:     for phi in X.basis(n).keys():
+            ....:         assert(E(X(E[phi]))==E[phi])
+            ....:         assert(X(E(X[phi]))==X[phi])
 
         We run the test suites::
 
@@ -2573,7 +2584,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             mu = L.mobius_function
             pi = L(phi.to_set_partition())
             hat0 = L.bottom()
-            return P.sum(mu(hat0,sigma)*P[label_set_partition(sigma)]
+            return P.sum(mu(hat0, sigma) * P[label_set_partition(sigma)]
                         for sigma in L.order_ideal([pi]))
 
         @cached_method
@@ -2603,8 +2614,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             L = LatticeOfSetPartitions(phi.size())
             pi = L(phi.to_set_partition())
             mu = L.mobius_function
-            return 1/mu(L.bottom(),pi) * E.sum(mu(sigma,pi)*E[label_set_partition(sigma)]
-                    for sigma in L.order_ideal([pi]))
+            return E.sum(mu(sigma, pi) * E[label_set_partition(sigma)]
+                         for sigma in L.order_ideal([pi])) / mu(L.bottom(), pi)
 
         @lazy_attribute
         def omega(self):
@@ -2617,7 +2628,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             partition ``phi`` to the homogeneous basis element indexed by
             ``phi``.
 
-            .. note::
+            .. NOTE::
 
                 The map :method:`omega1` is another implementation of this
                 same endomorphism.
@@ -2640,7 +2651,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             The endomorphism of ``self`` defined on the powersum basis
             by `\omega_1(P_\phi) = (-1)^{|\phi|-\ell(phi)} P_\phi`.
 
-            .. note::
+            .. NOTE::
 
                 The map :method:`omega` is another implementation of this
                 same endomorphism.
@@ -2651,7 +2662,8 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: P.omega1_on_basis(LabelledSetPartition(4, [(3,4,1)]))
                 -P[1|2|34]
             """
-            return self((-1)**(phi.size()-len(phi.to_set_partition())) * self.basis()[phi])
+            return self((-1) ** (phi.size() - len(phi.to_set_partition())) *
+                        self.basis()[phi])
 
     E = elementary_basis = Elementary
 
@@ -2768,7 +2780,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
             sage: map(theta, GF(9,'a'))
             [1, zeta3, 1, zeta3, zeta3, -zeta3 - 1, 1, -zeta3 - 1, -zeta3 - 1]
         """
-        return self._zeta**(x.trace())
+        return self._zeta ** (x.trace())
 
     @cached_method
     def supercharacter_formula(self, phi, psi):
@@ -2790,11 +2802,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
             sage: sct(phi,psi)
             -zeta3 - 1
 
-        REFERENCES:
-
-        -   [1] Nathaniel Thiem, Branching rules in the ring of superclass
-            functions of unipotent upper-triangular matrices, J Algebr Comb
-            (2010) 31: 267--298
+        REFERENCES: [Thiem]_
         """
         if phi.size() != psi.size():
             return self._base_ring.zero()
@@ -2803,15 +2811,17 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
         res = self._base_ring.one()
         field_zero = self._field.zero()
         q = self._q
-        for (i,l) in phi_arcs:
-            if any((i,j) in psi_arcs for j in range(i+1,l)) or \
-               any((j,l) in psi_arcs for j in range(i+1,l)):
-                   res = self._base_ring.zero()
-                   break
+        for (i, l) in phi_arcs:
+            if (any((i, j) in psi_arcs for j in range(i + 1, l)) or
+                    any((j, l) in psi_arcs for j in range(i + 1, l))):
+                res = self._base_ring.zero()
+                break
             else:
-                res = res * q**(l-i-1) * \
-                        self.theta(phi_arcs.get((i,l),field_zero)*psi_arcs.get((i,l),field_zero)) \
-                        / q**sum(1 for (j,k) in psi_arcs if i<j<l and j<k<l)
+                res *= (q ** (l - i - 1) *
+                        self.theta(phi_arcs.get((i, l), field_zero) *
+                                   psi_arcs.get((i, l), field_zero))
+                        / q ** sum(1 for (j, k) in psi_arcs
+                                   if i < j < l and j < k < l))
         return res
 
     __call__ = supercharacter_formula
@@ -2821,10 +2831,10 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
         r"""
         The supercharacter table for degree ``n`` as a matrix.
 
-        .. note:
+        .. NOTE:
 
             The matrix is computed only once and then cached.
-            
+
         EXAMPLES::
 
             sage: from sage.combinat.scha import SupercharacterTable
@@ -2865,9 +2875,9 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
         supercharacter_formula = self.supercharacter_formula
         lsp = LabelledSetPartitions(n, self._q)
         M = {}
-        for (i,phi) in enumerate(lsp):
-            for (j,psi) in enumerate(lsp):
-                M[i,j] = supercharacter_formula(phi,psi)
+        for (i, phi) in enumerate(lsp):
+            for (j, psi) in enumerate(lsp):
+                M[i, j] = supercharacter_formula(phi, psi)
         return matrix(self._base_ring, M)
 
     @cached_method
@@ -2875,10 +2885,10 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
         r"""
         The inverse of supercharacter table for degree ``n``.
 
-        .. note::
+        .. NOTE::
 
             The matrix is computed only once and then cached.
-            
+
         EXAMPLES::
 
             sage: from sage.combinat.scha import SupercharacterTable
@@ -2898,6 +2908,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
         """
         return self.table(n).inverse()
 
+
 ##### Miscellaneous Code
 def set_partition_to_arcs(partition):
     r"""
@@ -2915,18 +2926,20 @@ def set_partition_to_arcs(partition):
     arcs = []
     for part in partition:
         sorted_part = sorted(part)
-        for i in range(len(sorted_part)-1):
-            arcs.append(tuple(sorted_part[i:i+2]+[one]))
+        for i in range(len(sorted_part) - 1):
+            arcs.append(tuple(sorted_part[i:i + 2] + [one]))
     return arcs
+
 
 def label_set_partition(partition):
     r"""
-    Create a labelled set partition from a set partition; the labels of the
-    arcs are taken to be 1.
+    Create a labelled set partition from a set partition.
 
-    .. note::
+    The labels of the arcs are taken to be 1.
 
-        This is need to expand the powersum basis in the homogeneous basis.
+    .. NOTE::
+
+        This is needed to expand the powersum basis in the homogeneous basis.
 
     EXAMPLES::
 
@@ -2937,9 +2950,13 @@ def label_set_partition(partition):
         [3, [(1, 3, 1)]]
     """
     arcs = set_partition_to_arcs(partition)
-    return LabelledSetPartition(sum(map(len,partition)), arcs)
+    return LabelledSetPartition(sum(map(len, partition)), arcs)
+
 
 def standardize_set_partition(S):
-    underlying_set = sorted(sum(map(list,S),[]))
-    std = dict((j,i+1) for (i,j) in enumerate(underlying_set))
-    return SetPartition([[std[i] for i in a] for a in S])
+    """
+    Return the standardized version of a set partition.
+    """
+    underlying_set = sorted(sum(map(list, S), []))
+    std = {j: i + 1 for (i, j) in enumerate(underlying_set)}
+    return SetPartition([[std[k] for k in a] for a in S])
