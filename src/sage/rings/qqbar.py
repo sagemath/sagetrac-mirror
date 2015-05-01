@@ -483,14 +483,6 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 
-::
-
-    sage: from sage.calculus.calculus import minpoly
-    sage: x = SR.var('x')
-    sage: ex = solve(x^4 + x + 1 == 0, x)[0].rhs()
-    sage: minpoly(ex, algorithm='algebraic')
-    x^4 + x + 1
-
 """
 import itertools
 
@@ -4079,6 +4071,19 @@ class AlgebraicNumber(AlgebraicNumber_base):
             0.6234898018587335? - 0.7818314824680299?*I
             sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
             1
+
+        TESTS:
+
+        This example tests the case in which the power of a negative
+        algebraic number is computed with precision greater than 128::
+
+            sage: from sage.calculus.calculus import minpoly
+            sage: a = (1/18*I*sqrt(229)*sqrt(3) + 1/2)^(1/3)
+            sage: b = -1/2*sqrt(1/3)*sqrt((3*a^2 + 4)/a)
+            sage: ex = b -1/2*sqrt(-a - 1/b -4/(3*a))
+            sage: minpoly(ex, algorithm='algebraic')
+            x^4 + x + 1
+
         """
         e = QQ._coerce_(e)
         n = e.numerator()
