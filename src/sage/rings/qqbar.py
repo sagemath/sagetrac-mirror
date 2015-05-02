@@ -7800,7 +7800,7 @@ def hadamard_product(p1, p2):
         p = p + a1[i]*a2[i]*x**i
     return p
 
-def composed_sum(p1, p2, algorithm="resultant"):
+def composed_sum(p1, p2, algorithm, op):
     """
     Compute the composed sum `\prod_{a:p1(a)=0,b:p2(b)=0}(x - (a + b))`
     or `\prod_{p1(beta)=0} p2(x - beta)` of irreducible polynomials
@@ -7809,9 +7809,11 @@ def composed_sum(p1, p2, algorithm="resultant"):
 
     - ``p1, p2`` -- polynomials
 
-    - ``algorithm`` -- (default "resultant") can be "resultant" or "BFSS";
+    - ``algorithm`` -- can be "resultant" or "BFSS";
       the latter is faster for high degrees, and with it the degrees must
       be at least `2`.
+
+    - ``op`` -- ``+`` or ``-``.
 
     This composed sum can be computed as the resultant
     `Res_y(p1(x-y), p2(y))`; in [BFSS] it has been shown that it can be
@@ -7824,9 +7826,9 @@ def composed_sum(p1, p2, algorithm="resultant"):
         sage: R.<x> = QQ[]
         sage: p1 = x^2 - 2
         sage: p2 = x^2 - 3
-        sage: composed_sum(p1, p2)
+        sage: composed_sum(p1, p2, "resultant", "+")
         x^4 - 10*x^2 + 1
-        sage: composed_sum(p1, p2, "BFSS")
+        sage: composed_sum(p1, p2, "BFSS", "+")
         x^4 - 10*x^2 + 1
 
     REFERENCES:
@@ -7836,12 +7838,19 @@ def composed_sum(p1, p2, algorithm="resultant"):
        Journal of Symbolic Computation 41 (2006), 1-29
 
     """
+    if op not in ("+", "-"):
+        raise ValueError('op must be "+" or "-".')
     if algorithm == "resultant":
-        lp = p1(QQxy_x - QQxy_y)
+        if op == "+":
+            lp = p1(QQxy_x - QQxy_y)
+        else:
+            lp = p1(QQxy_x + QQxy_y)
         rp = p2(QQxy_y)
         p = lp.resultant(rp, QQxy_y).univariate_polynomial()
         return p
     elif algorithm == "BFSS":
+        if op == "-":
+            p2 = p2(-QQx_x)
         prec = p1.degree() * p2.degree()
         np1 = newton_sum(p1, prec + 1)
         R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
@@ -7864,7 +7873,7 @@ def composed_sum(p1, p2, algorithm="resultant"):
     else:
         raise ValueError('algorithm must be "resultant" or "BFSS".')
 
-def composed_product(p1, p2, algorithm="resultant"):
+def composed_product(p1, p2, algorithm, op):
     """
     Compute the composed product `\prod_{a:p1(a)=0,b:p2(b)=0}(x - a*b)`
     of irreducible polynomials
@@ -7873,9 +7882,11 @@ def composed_product(p1, p2, algorithm="resultant"):
 
     - ``p1, p2`` -- polynomials
 
-    - ``algorithm`` -- (default "resultant") can be "resultant" or "BFSS";
+    - ``algorithm`` -- can be "resultant" or "BFSS";
       the latter is faster for high degrees, and with it the degrees must
       be at least `2`.
+
+    - ``op`` -- "*" or "/".
 
     The composed product can be computed as a resultant;
     in [BFSS] it has been shown that it can be
@@ -7888,20 +7899,26 @@ def composed_product(p1, p2, algorithm="resultant"):
         sage: R.<x> = QQ[]
         sage: p1 = x^2 - 2
         sage: p2 = x^2 - 3
-        sage: composed_product(p1, p2)
+        sage: composed_product(p1, p2, "resultant", "*")
         x^4 - 12*x^2 + 36
-        sage: composed_product(p1, p2, "BFSS")
+        sage: composed_product(p1, p2, "BFSS", "*")
         x^4 - 12*x^2 + 36
 
     """
-
+    if op not in ("*", "/"):
+        raise ValueError('op must be "*" or "/".')
     if algorithm == "resultant":
-        lp = p1(QQxy_x).homogenize(QQxy_y)
+        if op == '*':
+            lp = p1(QQxy_x).homogenize(QQxy_y)
+        else:
+            lp = p1(QQxy_x * QQxy_y)
         rp = p2(QQxy_y)
         p = lp.resultant(rp, QQxy_y).univariate_polynomial()
         return p
     elif algorithm == "BFSS":
         prec = p1.degree() * p2.degree()
+        if op == '/':
+            p2 = p2.reverse()
         np1 = newton_sum(p1, prec, typ=1)
         np2 = newton_sum(p2, prec, typ=1)
         np = hadamard_product(np1, np2)
@@ -7916,23 +7933,6 @@ def composed_product(p1, p2, algorithm="resultant"):
         q = q.exp()
         q = q.polynomial().reverse()
         return q
-
-    prec = p1.degree() * p2.degree()
-    np1 = newton_sum(p1, None, prec, typ=1)
-    np2 = newton_sum(p2, None, prec, typ=1)
-    np = hadamard_product(np1, np2)
-    x = np.parent().gen()
-    a = np.list()
-    q = a[0]*x
-    for i in range(1, len(a)):
-        q = q + a[i]*x^(i+1)/(i+1)
-
-    R = PowerSeriesRing(QQ, 'x', default_prec=prec+1)
-    x = R.gen()
-    q = R(-q)
-    q = q.exp()
-    q = q.polynomial().reverse()
-    return q
 
 
 class ANBinaryExpr(ANDescr):
@@ -8168,25 +8168,16 @@ class ANBinaryExpr(ANDescr):
 
             lp = left.minpoly()
             rp = right.minpoly()
-            if op == '+':
+            if op == '+' or op == '-':
                 if lp.degree() < 6 or rp.degree() < 6:
-                    p = composed_sum(lp, rp, "resultant")
+                    p = composed_sum(lp, rp, "resultant", op)
                 else:
-                    p = composed_sum(lp, rp, "BFSS")
-            elif op == '*':
+                    p = composed_sum(lp, rp, "BFSS", op)
+            elif op == '*' or op == '/':
                 if lp.degree() < 6 or rp.degree() < 6:
-                    p = composed_product(lp, rp, "resultant")
+                    p = composed_product(lp, rp, "resultant", op)
                 else:
-                    p = composed_product(lp, rp, "BFSS")
-            else:
-                rp = rp(QQxy_y)
-                # these case are not used, so we can leave an inefficient
-                # implementation
-                if op == '-':
-                    lp = lp(QQxy_x + QQxy_y)
-                if op == '/':
-                    lp = lp(QQxy_x * QQxy_y)
-                p = lp.resultant(rp, QQxy_y).univariate_polynomial()
+                    p = composed_product(lp, rp, "BFSS", op)
 
             lprec = left._value.prec()
             rprec = right._value.prec()
