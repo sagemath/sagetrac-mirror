@@ -51,7 +51,7 @@ Data corresponding to a final component of the transducer is stored in
     :meth:`~FSMFourierComponent.left_eigenvectors` | Left eigenvectors
     :meth:`~FSMFourierComponent.w` | Scaled left eigenvectors `\mathbf{w}_{jk}(0)`
     :meth:`~FSMFourierComponent.w_prime` | Derivative of the left eigenvector `\mathbf{w}'_{jk}(0)`
-    :meth:`~FSMFourierComponent.w_ell` | Left eigenvectors to given eigenvalue.
+    :meth:`~FSMFourierComponent.w_ell` | Left eigenvector to given eigenvalue.
 
 :class:`FSMFourierCache`
 ------------------------
@@ -137,7 +137,7 @@ from sage.functions.other import floor
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix_acb_dense cimport (
+from sage.matrix.matrix_complex_ball_dense cimport (
     matrix_to_acb_mat, acb_mat_to_matrix)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
@@ -146,7 +146,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module_element cimport FreeModuleElement_generic_dense
 import sage.rings.arith
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.rings.complex_interval_acb cimport ComplexIntervalFieldElement_to_acb
+from sage.rings.complex_ball_acb cimport ComplexIntervalFieldElement_to_acb
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.functions.other import ceil
 from sage.rings.infinity import infinity
@@ -304,8 +304,8 @@ def _hurwitz_zeta_(s, alpha,  m=0, max_approximation_error=0):
             2.125575661501? + 0.51121893221?*I
             sage: set_verbose(0)
 
-    -   The current implementation does not work well with negative real
-        values, all precision is lost::
+    -   The current implementation does not work well with values with negative real
+        part, all precision is lost::
 
             sage: _hurwitz_zeta_(CIF(-15+I), 1) # optional - arb
             0.?e12 + 0.?e12*I
@@ -771,7 +771,7 @@ class FSMFourierComponent(SageObject):
     def mu_prime(self):
         r"""
         Compute `\mu_{j0}'(0)`, the derivative of the dominant positive
-        eigenvector of `M(t)` corresponding to ``self`` at `t=0`.
+        eigenvalue of `M(t)` corresponding to ``self`` at `t=0`.
 
         INPUT:
 
@@ -1161,7 +1161,7 @@ cdef class FSMFourierCache(SageObject):
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
         """
         self.compute_b(r+1)
-        return acb_mat_to_matrix(self.bb[r], self.precision).column(0)
+        return acb_mat_to_matrix(self.bb[r], self.parent.CIF).column(0)
 
     cpdef fluctuation_empirical(self, unsigned long start,
                                 unsigned long end):
@@ -1383,7 +1383,7 @@ cdef class FSMFourierCache(SageObject):
             acb_pow(scalar, scalar, minuss, self.precision)
             acb_mat_scalar_addmul_acb(result, self.bb[r],
                                       scalar, self.precision)
-        result_vector = acb_mat_to_matrix(result, self.precision).column(0)
+        result_vector = acb_mat_to_matrix(result, self.parent.CIF).column(0)
 
         acb_clear(minuss)
         acb_clear(scalar)
@@ -1836,7 +1836,7 @@ class FSMFourier(SageObject):
         OUTPUT:
 
         A vector whose ``s``-th component is the sum of the output of
-        ``self`` when reading the empty word.
+        ``self`` when reading the empty word starting in the state ``s``.
 
 
         EXAMPLES::

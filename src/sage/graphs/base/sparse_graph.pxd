@@ -7,7 +7,6 @@
 #*******************************************************************************
 
 from c_graph cimport CGraph
-include 'sage/ext/stdsage.pxi'
 
 cdef struct SparseGraphLLNode:
     int label
@@ -26,7 +25,7 @@ cdef class SparseGraph(CGraph):
     cdef int hash_mask
     cdef SparseGraphBTNode **vertices
 
-    cdef int add_arc_label_unsafe(self, int, int, int)
+    cdef int add_arc_label_unsafe(self, int, int, int) except -1
     cdef int arc_label_unsafe(self, int, int)
     cpdef int arc_label(self, int u, int v)
     cdef int all_arcs_unsafe(self, int, int, int *, int)
