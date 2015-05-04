@@ -63,10 +63,13 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             I = self.get_order()
             product_on_basis = self.product_on_basis
-            return [self.matrix([product_on_basis(j,i) for j in I], sparse=True)
-                    for i in I]
-            # return [self.monomial(i).to_matrix(side=side, sparse=True)
-            #         for i in I]
+            if product_on_basis is not NotImplemented:
+                return [self.matrix([product_on_basis(j,i) if side=='right' else product_on_basis(i,j)
+                                     for j in I], sparse=True)
+                        for i in I]
+            else:
+                return [self.monomial(i).to_matrix(side=side, sparse=True)
+                        for i in I]
 
         @cached_method
         def radical_basis(self):
@@ -668,7 +671,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. SEEALSO::
 
-                - :meth:`orthogonal_idempotents_central_mod_rad`
+                - :meth:`orthogonal_idempotents_central_mod_radical`
                 - :meth:`peirce_decomposition`
                 - :meth:`isotypic_projective_modules`
 
@@ -853,7 +856,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             # Compute the bicharacter of the idempotents acting on self
             character_matrix_on_basis = self.character_as_bimodule_on_basis()
-            idempotents = self.matrix(self.orthogonal_idempotents_central_mod_rad())
+            idempotents = self.matrix(self.orthogonal_idempotents_central_mod_radical())
             character_matrix = idempotents * character_matrix_on_basis * idempotents.transpose()
 
             # Build the Cartan invariants matrix
