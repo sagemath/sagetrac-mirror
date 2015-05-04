@@ -2039,6 +2039,9 @@ cdef class Expression(CommutativeRingElement):
         return self._gobj.is_zero()
 
     def __nonzero__(self):
+        return self._nonzero_()
+
+    cdef bint _nonzero_(self) except +:
         """
         Return True unless this symbolic expression can be shown by Sage
         to be zero.  Note that deciding if an expression is zero is

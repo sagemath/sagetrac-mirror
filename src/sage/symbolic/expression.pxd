@@ -13,6 +13,7 @@ cdef class Expression(CommutativeRingElement):
     cpdef bint is_positive_infinity(self)
     cpdef bint is_negative_infinity(self)
     cpdef object pyobject(self)
+    cdef bint _nonzero_(self) except +
     cpdef Expression _subs_expr(self, expr)
     cpdef int _cmp_add(Expression left, Expression right) except -2
     cpdef int _cmp_mul(Expression left, Expression right) except -2
