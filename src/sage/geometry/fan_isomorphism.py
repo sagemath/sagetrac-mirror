@@ -127,15 +127,15 @@ def fan_isomorphism_generator(fan1, fan2):
         )
         sage: tuple(fan_isomorphism_generator(fan1, fan2))
         (
-        [18  1 -5]  [ 6 -3  7]
-        [ 4  0 -1]  [ 1 -1  2]
-        [ 5  0 -1], [ 2 -1  2]
+        [ 6 -3  7]  [18  1 -5]
+        [ 1 -1  2]  [ 4  0 -1]
+        [ 2 -1  2], [ 5  0 -1]
         )
         sage: tuple(fan_isomorphism_generator(fan2, fan1))
         (
         [ 0 -1  1]  [ 0 -1  1]
-        [ 1 -7  2]  [ 2 -2 -5]
-        [ 0 -5  4], [ 1  0 -3]
+        [ 2 -2 -5]  [ 1 -7  2]
+        [ 1  0 -3], [ 0 -5  4]
         )
     """
     if not fan_isomorphic_necessary_conditions(fan1, fan2):
