@@ -2181,6 +2181,14 @@ cdef class Expression(CommutativeRingElement):
             sage: expr.is_zero()
             False
             sage: forget()
+
+        We catch all exceptions from Pynac (:trac:`14211`), for example::
+
+            sage: f(x) = matrix()
+            sage: bool(f(x) == f(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

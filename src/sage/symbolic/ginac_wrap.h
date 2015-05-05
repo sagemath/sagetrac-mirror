@@ -11,6 +11,8 @@
 #include <pynac/ginac.h>
 #include <pynac/extern_templates.h>
 #include <string>
+#include <exception>
+#include <iostream>
 
 using namespace GiNaC;
 
@@ -63,10 +65,18 @@ ex g_function_eval3(unsigned serial, const ex& arg1, const ex& arg2,
 
 
 bool relational_to_bool(const ex& e) {
-    if (ex_to<relational>(e))
-        return 1;
-    else
-        return 0;
+    try
+    {
+        if (ex_to<relational>(e))
+            return 1;
+        else
+            return 0;
+    }
+    catch (std::exception& e)
+    {
+        std::cout << "Exception caught by relational_to_bool: " << e.what() << std::endl;
+    }
+    return 0;
 }
 
 bool g_is_a_terminating_series(const ex& e) {
