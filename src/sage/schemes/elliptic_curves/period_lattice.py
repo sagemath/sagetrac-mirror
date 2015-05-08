@@ -1048,10 +1048,10 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(K.embeddings(RealField())[0])
             sage: x1,x2,x3 = L.ei()
-            sage: abs(x1.real())+abs(x2.real())<1e-14
+            sage: x1.real().is_zero() and x2.real().is_zero()
             True
-            sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            sage: x1.imag(), x2.imag(), x3
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 
