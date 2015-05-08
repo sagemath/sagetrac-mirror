@@ -2049,7 +2049,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
 
     This is an helper function for comparison of algebraic elements (i.e. the
     methods :meth:`AlgebraicNumber._cmp_`, :meth:`AlgebraicNumber._richcmp_`,
-    :meth:`AlgberaicReal._cmp_` and :meth:`AlgebraicReal._richcmp_`).
+    :meth:`AlgebraicReal._cmp_` and :meth:`AlgebraicReal._richcmp_`).
 
     INPUT:
 
