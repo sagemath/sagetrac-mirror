@@ -488,12 +488,15 @@ cdef class PariInstance(PariInstance_auto):
         fflush(stdout)
 
     def __dealloc__(self):
-        """
+        r"""
         Deallocation of the Pari instance.
 
         NOTE:
 
-        Usually this deallocation happens only when Sage quits.
+        This function is never called as at the moment (2015-05) global module
+        variables (like 'pari,P,pari_instance' in this module) are not cleaned
+        automatically. We call `_dealloc` manually in the `quit_sage` function.
+
         We do not provide a direct test, since usually there
         is only one Pari instance, and when artificially creating
         another instance, C-data are shared.
@@ -501,6 +504,19 @@ cdef class PariInstance(PariInstance_auto):
         The fact that Sage does not crash when quitting is an
         indirect doctest. See the discussion at :trac:`13741`.
 
+        EXAMPLE::
+
+            sage: pari._dealloc() # not tested; indirect
+        """
+        self._dealloc()
+
+    def _dealloc(self):
+        r"""
+        A `__dealloc__` method that *can* be called explicitly.
+
+        EXAMPLE::
+
+            sage: pari._dealloc() # not tested; indirect
         """
         sage_free(<void*>pari_mainstack.vbot)
         pari_mainstack.rsize = 0

@@ -258,6 +258,10 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
+    # pari is not deallocated as global module variables point to it, and those
+    # are not automatically cleaned
+    pari._dealloc()
+
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
