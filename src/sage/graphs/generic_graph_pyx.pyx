@@ -17,7 +17,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
-from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
+from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free, check_calloc
 include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
@@ -26,6 +26,7 @@ from sage.misc.prandom import random
 # import from third-party library
 from sage.graphs.base.sparse_graph cimport SparseGraph
 
+import cython
 
 cdef class GenericGraph_pyx(SageObject):
     pass
@@ -60,8 +61,8 @@ def spring_layout_fast_split(G, **options):
     buffer = 1/sqrt(len(G))
     for g in Gs:
         cur_pos = spring_layout_fast(g, **options)
-        xmin = min([x[0] for x in cur_pos.values()])
-        xmax = max([x[0] for x in cur_pos.values()])
+        xmin = min(x[0] for x in cur_pos.itervalues())
+        xmax = max(x[0] for x in cur_pos.itervalues())
         if len(g) > 1:
             buffer = (xmax - xmin)/sqrt(len(g))
         for v, loc in cur_pos.iteritems():
@@ -125,32 +126,36 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     if n == 0:
         return {}
 
-    cdef double* pos = <double*>check_allocarray(n, dim * sizeof(double))
 
-    # convert or create the starting positions as a flat list of doubles
-    if vpos is None:  # set the initial positions randomly in 1x1 box
-        for i from 0 <= i < n*dim:
-            pos[i] = random()
+    cdef double* pos # position of each vertex (for dim=2: x1,y1,x2,y2,...)
+    cdef int* elist  # lexicographically ordered list of edges (u1,v1,u2,v2,...)
+    cdef double* cen # array of 'dim' doubles
+    try:
+        elist = <int*>    check_allocarray(2 * G.size() + 2, sizeof(int))
+        pos   = <double*> check_allocarray(     n*dim      , sizeof(double))
+        cen   = <double*> check_calloc(dim, sizeof(double))
+    except:
+        sage_free(pos)
+        sage_free(elist)
+        sage_free(cen)
+        raise
+
+    # Initialize the starting positions
+    if vpos is None:
+        for i in range(n*dim):
+            pos[i] = random() # random in 1x1 box
     else:
-        for i from 0 <= i < n:
+        for i in range(n):
             loc = vpos[vlist[i]]
-            for x from 0 <= x <dim:
+            for x in range(dim):
                 pos[i*dim + x] = loc[x]
 
 
-    # here we construct a lexicographically ordered list of all edges
-    # where elist[2*i], elist[2*i+1] represents the i-th edge
-    cdef int* elist
-    try:
-        elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
-    except MemoryError:
-        sage_free(pos)
-        raise
-
+    # Lexicographically ordered list of edges
     cdef int cur_edge = 0
 
-    for i from 0 <= i < n:
-        for j from i < j < n:
+    for i in range(n):
+        for j in range(i+1,n):
             if G.has_edge(vlist[i], vlist[j]):
                 elist[cur_edge] = i
                 elist[cur_edge+1] = j
@@ -158,50 +163,43 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     # finish the list with -1, -1 which never gets matched
     # but does get compared against when looking for the "next" edge
-    elist[cur_edge] = -1
+    elist[cur_edge]   = -1
     elist[cur_edge+1] = -1
 
     run_spring(iterations, dim, pos, elist, n, height)
 
-    # recenter
-    cdef double* cen
+    # Center the result
     cdef double r, r2, max_r2 = 0
     if rescale:
-        try:
-            cen = <double *>check_allocarray(dim, sizeof(double))
-        except MemoryError:
-            sage_free(elist)
-            sage_free(pos)
-            raise
-        for x from 0 <= x < dim: cen[x] = 0
-        for i from 0 <= i < n:
-            for x from 0 <= x < dim:
+        for i in range(n):
+            for x in range(dim):
                 cen[x] += pos[i*dim + x]
-        for x from 0 <= x < dim: cen[x] /= n
-        for i from 0 <= i < n:
+        for x in range(dim):
+            cen[x] /= n
+        for i in range(n):
             r2 = 0
-            for x from 0 <= x < dim:
+            for x in range(dim):
                 pos[i*dim + x] -= cen[x]
                 r2 += pos[i*dim + x] * pos[i*dim + x]
             if r2 > max_r2:
                 max_r2 = r2
         r = 1 if max_r2 == 0 else sqrt(max_r2)
-        for i from 0 <= i < n:
-            for x from 0 <= x < dim:
+        for i in range(n):
+            for x in range(dim):
                 pos[i*dim + x] /= r
-        sage_free(cen)
 
     # put the data back into a position dictionary
     vpos = {}
-    for i from 0 <= i < n:
-        vpos[vlist[i]] = [pos[i*dim+x] for x from 0 <= x < dim]
+    for i in range(n):
+        vpos[vlist[i]] = [pos[i*dim+x] for x in range(dim)]
 
     sage_free(pos)
     sage_free(elist)
+    sage_free(cen)
 
     return vpos
 
-
+@cython.cdivision(True)
 cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint height):
     """
     Find a locally optimal layout for this graph, according to the
@@ -256,20 +254,20 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
     sig_on()
 
-    for cur_iter from 0 <= cur_iter < iterations:
+    for cur_iter in range(iterations):
       cur_edge = 1 # offset by one for fast checking against 2nd element first
       # zero out the disp vectors
       memset(disp, 0, n * dim * sizeof(double))
-      for i from 0 <= i < n:
+      for i in range(n):
           disp_i = disp + (i*dim)
-          for j from i < j < n:
+          for j in range(i+1,n):
               disp_j = disp + (j*dim)
 
-              for x from 0 <= x < dim:
+              for x in range(dim):
                   delta[x] = pos[i*dim+x] - pos[j*dim+x]
 
               square_dist = delta[0] * delta[0]
-              for x from 1 <= x < dim:
+              for x in range(1,dim):
                   square_dist += delta[x] * delta[x]
 
               if square_dist < 0.01:
@@ -284,21 +282,21 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
                   cur_edge += 2
 
               # add this factor into each of the involved points
-              for x from 0 <= x < dim:
+              for x in range(dim):
                   disp_i[x] += delta[x] * force
                   disp_j[x] -= delta[x] * force
 
       # now update the positions
-      for i from 0 <= i < n:
+      for i in range(n):
           disp_i = disp + (i*dim)
 
           square_dist = disp_i[0] * disp_i[0]
-          for x from 1 <= x < dim:
+          for x in range(1,dim):
               square_dist += disp_i[x] * disp_i[x]
 
           scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
 
-          for x from 0 <= x < update_dim:
+          for x in range(update_dim):
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt

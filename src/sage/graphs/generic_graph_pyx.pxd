@@ -1,4 +1,5 @@
-
+cdef extern from "math.h":
+    double sqrt(double x)
 from sage.structure.sage_object cimport SageObject
 from sage.graphs.base.dense_graph cimport DenseGraph
 
