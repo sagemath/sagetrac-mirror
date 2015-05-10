@@ -1505,7 +1505,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         cdef Expression l, r
 
         l = left
@@ -3210,7 +3210,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare ``left`` and ``right``.
 

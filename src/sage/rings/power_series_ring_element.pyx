@@ -259,7 +259,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         return codomain(self(im_gens[0]))
 
-    def base_extend(self, R):
+    cpdef base_extend(self, R):
         """
         Return a copy of this power series but with coefficients in R.
 
@@ -328,7 +328,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Comparison of self and ``right``.
 
