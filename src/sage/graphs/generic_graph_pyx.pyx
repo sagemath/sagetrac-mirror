@@ -252,11 +252,12 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
 
     # k -- the equilibrium distance between two adjacent nodes
     cdef double t = 1, dt = t/(1e-20 + iterations), k = sqrt(1.0/n)
-    cdef double square_dist, force, scale
+    cdef double square_dist, dist, force, scale
     cdef double* disp_i
     cdef double* disp_j
     cdef double delta[3]
     cdef double d_tmp
+    cdef double xx,yy,zz
 
     cdef double* disp = <double*>check_allocarray(n, dim * sizeof(double))
 
@@ -279,19 +280,27 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
               for x in range(dim):
                   delta[x] = pos[i*dim+x] - pos[j*dim+x]
 
-              square_dist = delta[0] * delta[0]
-              for x in range(1,dim):
-                  square_dist += delta[x] * delta[x]
+              xx = delta[0] * delta[0]
+              yy = delta[1] * delta[1]
+              if dim == 2:
+                  square_dist = xx+yy
+              else:
+                  zz = delta[2] * delta[2]
+                  square_dist = xx+yy+zz
 
               if square_dist < 0.01:
                   square_dist = 0.01
 
               # they repel according to the (capped) inverse square law
-              force = k*k/square_dist
+              force = (k*k)/square_dist
 
               # and if they are neighbors, attract according Hooke's law
               if edges[cur_edge] == j and edges[cur_edge-1] == i:
-                  force -= sqrt(square_dist)/k
+                  if dim == 2:
+                      dist = sqrt_approx(delta[0],delta[1],xx,yy)
+                  else:
+                      dist = sqrt(square_dist)
+                  force -= dist/k
                   cur_edge += 2
 
               # add this factor into each of the involved points
@@ -314,10 +323,33 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt
-
     sig_off()
 
     sage_free(disp)
+
+cdef inline double sqrt_approx(double x,double y,double xx,double yy):
+    r"""
+    Approximation of sqrt(x^2+y^2).
+
+    Assuming that x>y>0, it is a taylor expansion at x^2. To see how 'bad' the
+    approximation is::
+
+        sage: def dist(x,y):
+        ....:    x = abs(x)
+        ....:    y = abs(y)
+        ....:    return max(x,y) + min(x,y)**2/(2*max(x,y))
+
+        sage: polar_plot([1,lambda x:dist(cos(x),sin(x))], (0, 2*pi))
+        Launched png viewer for Graphics object consisting of 2 graphics primitives
+
+    """
+    if xx<yy:
+        x,y = y,x
+        xx,yy = yy,xx
+
+    x = abs(x)
+
+    return x + yy/(2*x)
 
 def int_to_binary_string(n):
     """
