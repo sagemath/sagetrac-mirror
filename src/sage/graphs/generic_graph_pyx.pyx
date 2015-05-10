@@ -166,7 +166,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     elist[cur_edge]   = -1
     elist[cur_edge+1] = -1
 
-    run_spring(iterations, dim, pos, elist, n, height)
+    if dim == 2:
+        run_spring(<int> iterations, <D_TWO> NULL, <double*> pos, <int*>elist, <int> n, <int> G.size(), <bint> height)
+    elif dim == 3:
+        run_spring(<int> iterations, <D_THREE> NULL, <double*> pos, <int*>elist, <int> n, <int> G.size(), <bint> height)
+    else:
+        raise ValueError("'dim' must be equal to 2 or 3")
 
     # Center the result
     cdef double r, r2, max_r2 = 0
@@ -200,8 +205,8 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     return vpos
 
 @cython.cdivision(True)
-cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint height):
-    """
+cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n, int m, bint height):
+    r"""
     Find a locally optimal layout for this graph, according to the
     constraints that neighboring nodes want to be a fixed distance
     from each other, and non-neighboring nodes always repel.
@@ -215,7 +220,10 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
     INPUT:
         iterations -- number of steps to take
-        dim        -- number of dimensions of freedom
+        dim        -- number of dimensions of freedom. Provide a value of type
+                      `D_TWO` for 2 dimensions, or type `D_THREE` for three
+                      dimensions. The actual value does not matter: only its
+                      type is important.
         pos        -- already initialized initial positions
                       Each vertex is stored as [dim] consecutive doubles.
                       These doubles are then placed consecutively in the array.
@@ -233,9 +241,14 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     AUTHOR:
         Robert Bradshaw
     """
-
+    cdef int dim
     cdef int cur_iter, cur_edge
     cdef int i, j, x
+
+    if dimension_t is D_TWO:
+        dim = 2
+    else:
+        dim = 3
 
     # k -- the equilibrium distance between two adjacent nodes
     cdef double t = 1, dt = t/(1e-20 + iterations), k = sqrt(1.0/n)
