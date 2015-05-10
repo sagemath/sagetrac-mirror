@@ -255,11 +255,10 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
     cdef double square_dist, force, scale
     cdef double* disp_i
     cdef double* disp_j
-    cdef double* delta
+    cdef double delta[3]
     cdef double d_tmp
 
-    cdef double* disp = <double*>check_allocarray(n+1, dim * sizeof(double))
-    delta = &disp[n*dim]
+    cdef double* disp = <double*>check_allocarray(n, dim * sizeof(double))
 
     if height:
         update_dim = dim-1
