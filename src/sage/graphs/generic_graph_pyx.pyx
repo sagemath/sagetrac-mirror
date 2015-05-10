@@ -256,6 +256,7 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
     cdef double* disp_i
     cdef double* disp_j
     cdef double* delta
+    cdef double d_tmp
 
     cdef double* disp = <double*>check_allocarray(n+1, dim * sizeof(double))
     delta = &disp[n*dim]
@@ -296,8 +297,9 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
 
               # add this factor into each of the involved points
               for x in range(dim):
-                  disp_i[x] += delta[x] * force
-                  disp_j[x] -= delta[x] * force
+                  d_tmp = delta[x] * force
+                  disp_i[x] += d_tmp
+                  disp_j[x] -= d_tmp
 
       # now update the positions
       for i in range(n):
