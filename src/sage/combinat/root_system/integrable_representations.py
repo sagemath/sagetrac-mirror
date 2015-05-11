@@ -881,9 +881,38 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         mu = self.to_weight(n)
         return m_Lambda - self._inner_pp(mu,mu) / (2*k)
 
+    def _default_rule(self, i):
+        """
+        A branching rule that is frequently correct for types B,C and D.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+            sage: Lambda = RootSystem("D6~").weight_lattice(extended=true).fundamental_weights()
+            sage: IntegrableRepresentation(Lambda[0])._default_rule(3)
+            {0: 3, 1: 2, 2: 1, 4: 4, 5: 5, 6: 6}
+
+        """
+        r = self._classical_rank
+        d = {j:i-j for j in range(i)}
+        for j in range(i+1,r+1):
+            d[j]=j
+        return d
+
     def _get_branching_rule(self, i):
         """
         Returns a dictionary useable as the ``sequence`` in :meth:`branch`.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+            sage: Lambda = RootSystem("F4~").weight_lattice(extended=true).fundamental_weights()
+            sage: IntegrableRepresentation(Lambda[0])._get_branching_rule(2)
+            ['A2xA2', {0: 2, 1: 1, 3: 3, 4: 4}]
         """
         db = {("B",2,1):["B2",{0:1,2:2}], ("B",2,2):"A1xA1",("B",3,2):"A1xA1xA1",("B",3,3):["A3",{0:3,1:1,2:2}],("B",4,3):["A3xA1",{0:3,1:1,2:2,4:4}],
               ("D",4,2):"A1xA1xA1xA1", ("D",5,3):["A3xA1xA1", {0:1,1:3,2:2,4:4,5:5}], ("D",5,2):["A1xA1xA3",{0:1,1:2,4:3,3:4,5:5}],
@@ -899,11 +928,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
               ("E",8,3):["A1xA7",{1:1,2:2,4:3,5:4,6:5,7:6,8:7,0:8}],("E",8,4):["A1xA2xA5",{2:1,1:2,3:3,5:4,6:5,7:6,8:7,0:8}],
               ("E",8,5):["A4xA4",{1:1,3:2,4:3,2:4,6:5,7:6,8:7,0:8}],("E",8,6):["D5xA3",{1:1,3:2,4:3,2:4,5:5,7:6,8:7,0:8}],
               ("E",8,7):["E6xA2",{1:1,2:2,3:3,4:4,5:5,6:6,8:7,0:8}],("E",8,8):["E7xA1",{1:1,2:2,3:3,4:4,5:5,6:6,7:7,0:8}]}
-        def default_rule(r,i):
-            d = {j:i-j for j in range(i)}
-            for j in range(i+1,r+1):
-                d[j]=j
-            return d
         def right_rule(r,i,d):
             for j in range(i+1,r+1):
                 d[j]=j
@@ -921,53 +945,58 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         if db.has_key((letter,r,i)):
             rule = db[(letter,r,i)]
             if type(rule) is str:
-                return [rule, default_rule(r,i)]
+                return [rule, self._default_rule(i)]
             else:
                 return rule
         if letter == 'B':
             if i == 1:
-                return ["B%s"%r, default_rule(r,i)]
+                return ["B%s"%r, self._default_rule(i)]
             elif i == 2:
-                return ["A1xA1xB%s"%(r-2), default_rule(r,i)]
+                return ["A1xA1xB%s"%(r-2), self._default_rule(i)]
             elif i == 3:
                 return ["A3xB%s"%(r-3),right_rule(r,i,{0:1,1:3,2:2})]
             elif i == r:
-                return ["D%s"%r, default_rule(r,r)]
+                return ["D%s"%r, self._default_rule(r)]
             elif i == r-1:
-                return ["D%sxA1"%(r-1), default_rule(r,r-1)]
+                return ["D%sxA1"%(r-1), self._default_rule(r-1)]
             else:
-                return ["D%sxB%s"%((i,r-i)),default_rule(r,i)]
+                return ["D%sxB%s"%((i,r-i)),self._default_rule(i)]
         elif letter == "C":
             if i == 1:
-                return ["A1xC%s"%(r-1), default_rule(r,1)]
+                return ["A1xC%s"%(r-1), self._default_rule(1)]
             elif i == r:
-                return ["C%s"%r, default_rule(r,r)]
+                return ["C%s"%r, self._default_rule(r)]
             elif i == r-1:
-                return ["C%sxA1"%(r-1), default_rule(r,i)]
+                return ["C%sxA1"%(r-1), self._default_rule(i)]
             else:
-                return ["C%sxC%s"%((i,r-i)),default_rule(r,i)]
+                return ["C%sxC%s"%((i,r-i)),self._default_rule(i)]
         elif letter == "D":
             if i == 1:
-                return ["D%s"%r, default_rule(r,1)]
+                return ["D%s"%r, self._default_rule(1)]
             elif i == 2:
-                return ["A1xA1xD%s"%(r-2), default_rule(r,2)]
+                return ["A1xA1xD%s"%(r-2), self._default_rule(2)]
             elif i == r:
-                return ["D%s"%r, default_rule(r,r)]
+                return ["D%s"%r, self._default_rule(r)]
             elif i == r-1:
                 d = {j:r-j for j in range(r-1)}; d[r] = 1
                 return ["D%s"%r, d]
             elif i == r-2:
-                return ["D%sxA1xA1"%(r-2), default_rule(r,i)]
+                return ["D%sxA1xA1"%(r-2), self._default_rule(i)]
             elif i == r-3:
                 return ["D%sxA3"%(r-3), left_rule(r,i,{r:r,r-1:r-2,r-2:r-1})]
             elif i == 3:
                 return ["A3xD%s"%(r-3), right_rule(r,3,{0:1,1:3,2:2})]
             else:
-                return ["D%sxD%s"%(i,r-i), default_rule(r,i)]
+                return ["D%sxD%s"%(i,r-i), self._default_rule(i)]
     
-    def branch(self, i=None, weyl_character_ring=None, sequence=None, depth=5):
+    def branch(self, i=None, depth=5, show_rule=False, rule=None):
         r"""
         Return the branching rule on ``self``.
+
+        OPTIONAL:
+
+        - ``i`` -- an element of the index set (default: 0)
+        - ``show_rule`` -- set ``True`` for more information about the branching rule
 
         Removing any node from the extended Dynkin diagram of the affine
         Lie algebra results in the Dynkin diagram of a classical Lie
@@ -981,42 +1010,9 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         is assigned a grading by the number of times the simple root
         `\alpha_i` appears in `\Lambda-\mu`. Thus the branched
         representation is graded and we get sequence of finite-dimensional
-        representations which this method is able to compute.
+        representations which this method is able to compute::
 
-        OPTIONAL:
-
-        - ``i`` -- (default: 0) an element of the index set
-        - ``weyl_character_ring`` -- a WeylCharacterRing
-        - ``sequence`` -- a dictionary
-        - ``depth`` -- (default: 5) an upper bound for `k` determining
-          how many terms to give
-
-        In the default case where `i = 0`, you do not need to specify
-        anything else, though you may want to increase the depth if
-        you need more terms.
-
-        EXAMPLES::
-
-            sage: Lambda = RootSystem(['A',2,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: V = IntegrableRepresentation(2*Lambda[0])
-            sage: b = V.branch(); b
-            [A2(0,0),
-             A2(1,1),
-             A2(0,0) + 2*A2(1,1) + A2(2,2),
-             2*A2(0,0) + 2*A2(0,3) + 4*A2(1,1) + 2*A2(3,0) + 2*A2(2,2),
-             4*A2(0,0) + 3*A2(0,3) + 10*A2(1,1) + 3*A2(3,0) + A2(1,4) + 6*A2(2,2) + A2(4,1),
-             6*A2(0,0) + 9*A2(0,3) + 20*A2(1,1) + 9*A2(3,0) + 3*A2(1,4) + 12*A2(2,2) + 3*A2(4,1) + A2(3,3)]
-
-        If the parameter ``weyl_character_ring`` is omitted, the ring may be recovered
-        as the parent of one of the branched coefficients::
-
-            sage: A2 = b[0].parent(); A2
-            The Weyl Character Ring of Type A2 with Integer Ring coefficients
-
-        If `i` is not zero then you should specify the :class:`WeylCharacterRing` that you
-        are branching to. This is determined by the Dynkin diagram::
-
-            sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
+            sage: Lambda = RootSystem("B3~").weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[0])
             sage: V.cartan_type().dynkin_diagram()
                 O 0
@@ -1026,52 +1022,76 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             1   2   3   
             B3~
 
-        In this example, we observe that removing the `i=2` node from the
-        Dynkin diagram produces a reducible diagram of type ``A1xA1xA1``.
-        Thus we have a branching to
+        In this example, we observe that removing the `i=3` node from the
+        Dynkin diagram produces a reducible diagram of type ``A3``.
+        This is therefore a classical Lie algebra that may be embedded into
+        the affine Lie algebra of type `B_3^{(1)}`. Thus we have a branching to
         `\mathfrak{sl}(2) \times \mathfrak{sl}(2) \times \mathfrak{sl}(2)`::
 
-            sage: A1xA1xA1 = WeylCharacterRing("A1xA1xA1",style="coroots")
-            sage: V.branch(i=2,weyl_character_ring=A1xA1xA1)
-            [A1xA1xA1(1,0,0),
-             A1xA1xA1(0,1,2),
-             A1xA1xA1(1,0,0) + A1xA1xA1(1,2,0) + A1xA1xA1(1,0,2),
-             A1xA1xA1(2,1,2) + A1xA1xA1(0,1,0) + 2*A1xA1xA1(0,1,2),
-             3*A1xA1xA1(1,0,0) + 2*A1xA1xA1(1,2,0) + A1xA1xA1(1,2,2) + 2*A1xA1xA1(1,0,2) + A1xA1xA1(1,0,4) + A1xA1xA1(3,0,0),
-             A1xA1xA1(2,1,0) + 3*A1xA1xA1(2,1,2) + 2*A1xA1xA1(0,1,0) + 5*A1xA1xA1(0,1,2) + A1xA1xA1(0,1,4) + A1xA1xA1(0,3,2)]
+            sage: V.branch(i=3,show_rule=True)
+                O 0
+                |
+                |
+            O---O=>=O
+            1   2   3   
+            B3~
+            O---O---O
+            1   2   3   
+            A3
+            0 => 3
+            1 => 1
+            2 => 2
+            [A3(0,0,1),
+             A3(1,0,0),
+             A3(0,0,1) + A3(1,1,0),
+             2*A3(1,0,0) + A3(0,1,1),
+             3*A3(0,0,1) + 2*A3(1,1,0) + A3(1,0,2),
+             4*A3(1,0,0) + 3*A3(0,1,1) + A3(2,0,1)]
+            
+        Because we've specified ``show_rule=True`` here, a graphical
+        representation of the embedding of `A_3` into `B_3^{(1)} is given at
+        the top. First the Dynkin diagram of `B_3^{(1)}` with the nodes
+        labeled `0,1,2,3` is drawn, then the Dynkin diagram of type
+        `A_3`. Then come three lines beginning with ``0 => 3`` showing how the
+        roots of `B_3^{(1)}` restrict to roots of `A3`. This diagrammatical
+        representation of the embedding would be omitted if you did not
+        specify ``show_rule=True``.
+ 
+        OPTIONAL:
 
-        If the nodes of the two Dynkin diagrams are not in the same order, you
-        must specify an additional parameter, ``sequence`` which gives a dictionary
-        to the affine Dynkin diagram to the classical one.
+        - ``i`` -- (default: 0) an element of the index set
+        - ``depth`` -- (default: 5) an upper bound for `k` determining how many terms to give
+        - ``show_depth`` -- (default: False) display the embedding of Dynkin diagrams
 
         EXAMPLES::
 
-            sage: Lambda = RootSystem(['F',4,1]).weight_lattice(extended=true).fundamental_weights()
-            sage: V = IntegrableRepresentation(Lambda[0])
-            sage: V.cartan_type().dynkin_diagram()
+            sage: Lambda = RootSystem("F4~").weight_lattice(extended=true).fundamental_weights()
+            sage: V = IntegrableRepresentation(Lambda[1])
+            sage: b = V.branch(i=2,show_rule=True); b
             O---O---O=>=O---O
             0   1   2   3   4   
+            <BLANKLINE>            
             F4~
-            sage: A1xC3=WeylCharacterRing("A1xC3",style="coroots")
-            sage: A1xC3.dynkin_diagram()
-            O
-            1   
-            O---O=<=O
-            2   3   4   
-            A1xC3
+            O---O
+            1   2   
+            O---O
+            3   4   
+            A2xA2
+            0 => 2
+            1 => 1
+            3 => 3
+            4 => 4
+            [A2xA2(1,0,0,0),
+            A2xA2(0,1,2,0),
+            A2xA2(1,1,0,2) + A2xA2(0,0,0,2) + A2xA2(0,0,2,1),
+            2*A2xA2(1,0,0,0) + 2*A2xA2(1,0,1,1) + A2xA2(1,0,2,2) + A2xA2(0,2,0,0) + A2xA2(0,2,1,1) + A2xA2(2,1,0,0),
+            2*A2xA2(0,1,0,1) + 4*A2xA2(0,1,2,0) + 2*A2xA2(0,1,1,2) + A2xA2(0,1,0,4) + A2xA2(0,1,3,1) + 2*A2xA2(2,0,2,0) + A2xA2(2,0,1,2) + A2xA2(1,2,2,0),
+            A2xA2(0,3,0,2) + 2*A2xA2(1,1,1,0) + 6*A2xA2(1,1,0,2) + 3*A2xA2(1,1,2,1) + A2xA2(1,1,1,3) + A2xA2(1,1,4,0) + A2xA2(3,0,0,2) + 3*A2xA2(0,0,1,0) + 5*A2xA2(0,0,0,2) + 4*A2xA2(0,0,2,1) + 2*A2xA2(0,0,1,3) + A2xA2(0,0,4,0) + A2xA2(0,0,3,2)]
 
-        Observe that removing the `i=1` node from the ``F4~`` Dynkin diagram
-        gives the ``A1xC3`` diagram, but the roots are in a different order.
-        The nodes `0, 2, 3, 4` of ``F4~`` correspond to ``1, 4, 3, 2``
-        of ``A1xC3`` and so we encode this in a dictionary::
+        The WeylCharacterRing may be recovered as the parent of one of the branched coefficients::
 
-            sage: V.branch(i=1,weyl_character_ring=A1xC3,sequence={0:1,2:4,3:3,4:2}) # long time
-            [A1xC3(1,0,0,0),
-             A1xC3(0,0,0,1),
-             A1xC3(1,0,0,0) + A1xC3(1,2,0,0),
-             A1xC3(2,0,0,1) + A1xC3(0,0,0,1) + A1xC3(0,1,1,0),
-             2*A1xC3(1,0,0,0) + A1xC3(1,0,1,0) + 2*A1xC3(1,2,0,0) + A1xC3(1,0,2,0) + A1xC3(3,0,0,0),
-             2*A1xC3(2,0,0,1) + A1xC3(2,1,1,0) + A1xC3(0,1,0,0) + 3*A1xC3(0,0,0,1) + 2*A1xC3(0,1,1,0) + A1xC3(0,2,0,1)]
+            sage: A2xA2 = b[0].parent(); A2xA2
+            The Weyl Character Ring of Type A2xA2 with Integer Ring coefficients
 
         The branch method gives a way of computing the graded dimension of the integrable representation::
 
@@ -1085,20 +1105,18 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         if i is None:
             i = self._cartan_type.special_node()
-        if i == self._cartan_type.special_node() or self._cartan_type.type() == 'A':
-            if weyl_character_ring is None:
-                weyl_character_ring = WeylCharacterRing(self._cartan_type.classical(), style="coroots")
-            if weyl_character_ring.cartan_type() != self._cartan_type.classical():
-                raise ValueError("Cartan type of WeylCharacterRing must be %s"%self.cartan_type().classical())
-        elif weyl_character_ring is None:
-            raise ValueError("the argument weyl_character_ring cannot be omitted if i != 0")
+        if rule is None:
+            [wcr, sequence] = self._get_branching_rule(i)
+        else:
+            [wcr, sequence] = rule
         if sequence is None:
-            sequence = {}
-            for j in self._index_set:
-                if j < i:
-                    sequence[j] = j+1
-                elif j > i:
-                    sequence[j] = j
+            sequence = self._default_rule(i)
+        weyl_character_ring = WeylCharacterRing(wcr, style="coroots")
+        if show_rule:
+            print self.cartan_type().dynkin_diagram()
+            print weyl_character_ring.dynkin_diagram()
+            for j in sequence:
+                print "%s => %s"%(j,sequence[j])
         def next_level(x):
             ret = []
             for j in self._index_set:
