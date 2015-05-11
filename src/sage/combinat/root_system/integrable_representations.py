@@ -881,6 +881,90 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         mu = self.to_weight(n)
         return m_Lambda - self._inner_pp(mu,mu) / (2*k)
 
+    def _get_branching_rule(self, i):
+        """
+        Returns a dictionary useable as the ``sequence`` in :meth:`branch`.
+        """
+        db = {("B",2,1):["B2",{0:1,2:2}], ("B",2,2):"A1xA1",("B",3,2):"A1xA1xA1",("B",3,3):["A3",{0:3,1:1,2:2}],("B",4,3):["A3xA1",{0:3,1:1,2:2,4:4}],
+              ("D",4,2):"A1xA1xA1xA1", ("D",5,3):["A3xA1xA1", {0:1,1:3,2:2,4:4,5:5}], ("D",5,2):["A1xA1xA3",{0:1,1:2,4:3,3:4,5:5}],
+              ("D",5,3):["A3xA1xA1",{0:1,2:2,1:3,4:4,5:5}],("D",6,3):["A3xA3",{0:1,2:2,1:3,5:4,4:5,6:6}],("G",2,1):"A2",("G",2,2):"A1xA1",
+              ("F",4,1):["A1xC3",{0:1,2:4,3:3,4:2}], ("F",4,2):"A2xA2",("F",4,3):"A3xA1",("F",4,4):["B4",{0:1,1:2,2:3,3:4}],
+              ("E",6,1):["E6",{0:1,2:3,3:2,4:4,5:5,6:6}],("E",6,2):["A1xA5",{0:1,1:2,3:3,4:4,5:5,6:6}],("E",6,3):["A1xA5",{1:1,0:2,2:3,4:4,5:5,6:6}],
+              ("E",6,4):["A2xA2xA2",{0:1,2:2,1:3,3:4,5:5,6:6}], ("E",6,5):["A5xA1",{0:1,2:2,4:3,3:4,1:5,6:6}], 
+              ("E",6,6):["E6",{0:1,2:3,4:4,3:5,1:6,5:2}], ("E",7,1):["A1xD6",{0:1,7:2,6:3,5:4,4:5,3:6,2:7}],
+              ("E",7,2):["A7",{0:1,1:2,3:3,4:4,5:5,6:6,7:7}],("E",7,3):["A2xA5",{0:1,1:2,2:3,4:4,5:5,6:6,7:7}],
+              ("E",7,4):["A3xA3xA1",{0:1,1:2,3:3,5:4,6:5,7:6,2:7}], ("E",7,5):["A5xA2",{0:1,1:2,3:3,4:4,2:5,6:6,7:7}],
+              ("E",7,6):["D6xA1",{0:1,1:2,3:3,4:4,2:5,5:6,7:7}],("E",7,7):["E7",{6:1,2:2,5:3,4:4,3:5,1:6,0:7}],
+              ("E",8,1):["D8",{0:1,8:2,7:3,6:4,5:5,4:6,3:7,2:8}],("E",8,2):["A8",{1:1,3:2,4:3,5:4,6:5,7:6,8:7,0:8}],
+              ("E",8,3):["A1xA7",{1:1,2:2,4:3,5:4,6:5,7:6,8:7,0:8}],("E",8,4):["A1xA2xA5",{2:1,1:2,3:3,5:4,6:5,7:6,8:7,0:8}],
+              ("E",8,5):["A4xA4",{1:1,3:2,4:3,2:4,6:5,7:6,8:7,0:8}],("E",8,6):["D5xA3",{1:1,3:2,4:3,2:4,5:5,7:6,8:7,0:8}],
+              ("E",8,7):["E6xA2",{1:1,2:2,3:3,4:4,5:5,6:6,8:7,0:8}],("E",8,8):["E7xA1",{1:1,2:2,3:3,4:4,5:5,6:6,7:7,0:8}]}
+        def default_rule(r,i):
+            d = {j:i-j for j in range(i)}
+            for j in range(i+1,r+1):
+                d[j]=j
+            return d
+        def right_rule(r,i,d):
+            for j in range(i+1,r+1):
+                d[j]=j
+            return d
+        def left_rule(r,i,d):
+            for j in range(i):
+                d[j] = i-j
+            return d
+        letter = self._cartan_type.letter
+        r = self._classical_rank
+        if i == 0:
+            return ["%s%s"%(letter,r), None]
+        if letter == 'A':
+            return ["A%s"%r, {(i+j)%(r+1):j for j in range(1,r+1)}]
+        if db.has_key((letter,r,i)):
+            rule = db[(letter,r,i)]
+            if type(rule) is str:
+                return [rule, default_rule(r,i)]
+            else:
+                return rule
+        if letter == 'B':
+            if i == 1:
+                return ["B%s"%r, default_rule(r,i)]
+            elif i == 2:
+                return ["A1xA1xB%s"%(r-2), default_rule(r,i)]
+            elif i == 3:
+                return ["A3xB%s"%(r-3),right_rule(r,i,{0:1,1:3,2:2})]
+            elif i == r:
+                return ["D%s"%r, default_rule(r,r)]
+            elif i == r-1:
+                return ["D%sxA1"%(r-1), default_rule(r,r-1)]
+            else:
+                return ["D%sxB%s"%((i,r-i)),default_rule(r,i)]
+        elif letter == "C":
+            if i == 1:
+                return ["A1xC%s"%(r-1), default_rule(r,1)]
+            elif i == r:
+                return ["C%s"%r, default_rule(r,r)]
+            elif i == r-1:
+                return ["C%sxA1"%(r-1), default_rule(r,i)]
+            else:
+                return ["C%sxC%s"%((i,r-i)),default_rule(r,i)]
+        elif letter == "D":
+            if i == 1:
+                return ["D%s"%r, default_rule(r,1)]
+            elif i == 2:
+                return ["A1xA1xD%s"%(r-2), default_rule(r,2)]
+            elif i == r:
+                return ["D%s"%r, default_rule(r,r)]
+            elif i == r-1:
+                d = {j:r-j for j in range(r-1)}; d[r] = 1
+                return ["D%s"%r, d]
+            elif i == r-2:
+                return ["D%sxA1xA1"%(r-2), default_rule(r,i)]
+            elif i == r-3:
+                return ["D%sxA3"%(r-3), left_rule(r,i,{r:r,r-1:r-2,r-2:r-1})]
+            elif i == 3:
+                return ["A3xD%s"%(r-3), right_rule(r,3,{0:1,1:3,2:2})]
+            else:
+                return ["D%sxD%s"%(i,r-i), default_rule(r,i)]
+    
     def branch(self, i=None, weyl_character_ring=None, sequence=None, depth=5):
         r"""
         Return the branching rule on ``self``.
