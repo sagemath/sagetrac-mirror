@@ -1023,10 +1023,10 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             B3~
 
         In this example, we observe that removing the `i=3` node from the
-        Dynkin diagram produces a reducible diagram of type ``A3``.
-        This is therefore a classical Lie algebra that may be embedded into
-        the affine Lie algebra of type `B_3^{(1)}`. Thus we have a branching to
-        `\mathfrak{sl}(2) \times \mathfrak{sl}(2) \times \mathfrak{sl}(2)`::
+        Dynkin diagram produces a reducible diagram of type ``A3``. This
+        is the Dynkin diagram of `\mathfrak{sl}(4)`. This classical Lie algebra
+        may thus be embedded into the affine Lie algebra of type
+        `B_3^{(1)}` and so we have a branching to `\mathfrak{sl}(4)`::
 
             sage: V.branch(i=3,show_rule=True)
                 O 0
@@ -1049,11 +1049,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
              4*A3(1,0,0) + 3*A3(0,1,1) + A3(2,0,1)]
             
         Because we've specified ``show_rule=True`` here, a graphical
-        representation of the embedding of `A_3` into `B_3^{(1)} is given at
+        representation of the embedding of `A_3` into `B_3^{(1)}` is given at
         the top. First the Dynkin diagram of `B_3^{(1)}` with the nodes
         labeled `0,1,2,3` is drawn, then the Dynkin diagram of type
         `A_3`. Then come three lines beginning with ``0 => 3`` showing how the
-        roots of `B_3^{(1)}` restrict to roots of `A3`. This diagrammatical
+        roots of `B_3^{(1)}` restrict to roots of `A_3`. This diagrammatical
         representation of the embedding would be omitted if you did not
         specify ``show_rule=True``.
  
