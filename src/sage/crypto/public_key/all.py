@@ -1,1 +1,2 @@
 from blum_goldwasser import BlumGoldwasser
+from elgamal_cryptosystem import ElGamalCryptosystem
