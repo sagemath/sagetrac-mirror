@@ -42,7 +42,6 @@ AUTHORS:
 # http://www.gnu.org/licenses/
 ###########################################################################
 
-from sage.crypto.cryptosystem import PublicKeyCryptosystem
 from sage.rings.arith import euler_phi
 from sage.rings.arith import gcd
 from sage.rings.arith import is_prime
@@ -52,7 +51,7 @@ from sage.rings.finite_rings.integer_mod import Mod as mod
 from sage.rings.integer_ring import ZZ
 from sage.sets.primes import Primes
 
-class RSACryptosystem(PublicKeyCryptosystem):
+class RSACryptosystem:
     r"""
     The Rivest, Shamir, Adleman (RSA) public-key encryption scheme.
 
@@ -76,29 +75,6 @@ class RSACryptosystem(PublicKeyCryptosystem):
         sage: M == P
         True
     """
-
-    def __init__(self):
-        """
-        Construct the RSA public-key encryption scheme.
-
-        OUTPUT:
-
-        - A ``RSACryptosystem`` object representing the RSA public-key encryption scheme.
-
-        See the class docstring of ``RSACryptosystem`` for detailed documentation.
-
-        EXAMPLES::
-
-            sage: rc = RSACryptosystem()
-            sage: rc == loads(dumps(rc))
-            True
-        """
-        # In order to implement PublicKeyCryptosystem, it is important to pass: 
-        #   self, plaintext_space, ciphertext_space, 
-        #   key_space, block_length=1, period=None
-        # Currently unsure of what the appropriate values are.
-        #PublicKeyCryptosystem.__init__(self, S, S, S)
-        pass
 
     def __eq__(self, other):
         """
