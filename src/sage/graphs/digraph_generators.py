@@ -449,8 +449,8 @@ class DiGraphGenerators():
             [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
             [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(0, 2), (0, 3), (1, 0), (2, 1), (3, 1), (3, 2)]
-            sage: tournaments = digraphs.tournaments_nauty
-            sage: [len(list(tournaments(x))) for x in range(1,8)] # optional - nauty
+            sage: tournaments = digraphs.tournaments_nauty          # optional - nauty
+            sage: [len(list(tournaments(x))) for x in range(1,8)]   # optional - nauty
             [1, 1, 2, 4, 12, 56, 456]
             sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)] # optional - nauty
             [1, 0, 1, 1, 6, 35, 353, 6008]
