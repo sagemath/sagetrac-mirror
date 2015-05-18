@@ -793,7 +793,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compare the two polynomials self and other.
 
@@ -1672,7 +1672,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: x = polygen(QQ['u']['v'])
             sage: f = x - 1
             sage: f._pow(3)
             x^3 - 3*x^2 + 3*x - 1
@@ -1687,6 +1687,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS::
 
+            sage: x = polygen(QQ['u']['v'])
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
@@ -7366,7 +7367,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: loads(dumps(f)) == f
             True
 
-        Make sure we're testing the right method.
+        Make sure we're testing the right method::
+
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
         """
@@ -7375,8 +7377,24 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return len(self.__coeffs) > 0
 
-    cdef void __normalize(self):
-        x = self.__coeffs
+    cdef int __normalize(self) except -1:
+        """
+        TESTS:
+
+        Check that exceptions are propagated correctly (:trac:`18274`)::
+
+            sage: class BrokenRational(Rational):
+            ....:     def __nonzero__(self):
+            ....:         raise NotImplementedError("cannot check whether number is non-zero")
+            sage: z = BrokenRational()
+            sage: R.<x> = QQ[]
+            sage: from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
+            sage: Polynomial_generic_dense(R, [z])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot check whether number is non-zero
+        """
+        cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         while n >= 0 and not x[n]:
             del x[n]

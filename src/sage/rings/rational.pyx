@@ -53,6 +53,7 @@ import sys
 import operator
 
 from sage.misc.mathml import mathml
+from sage.misc.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
@@ -733,7 +734,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1
@@ -2337,7 +2338,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             if isinstance(n, Rational):
                 # Perhaps it can be done exactly
