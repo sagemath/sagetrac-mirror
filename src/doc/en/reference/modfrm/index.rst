@@ -1,8 +1,8 @@
 Modular Forms
 =============
 
-Module List
------------
+Classical modular forms
+-----------------------
 
 .. toctree::
    :maxdepth: 2
@@ -36,5 +36,17 @@ Design Notes
    :maxdepth: 2
 
    sage/modular/modform/notes
+
+Jacobi forms
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/modular/jacobi/classical
+   sage/modular/jacobi/classical_weak
+   sage/modular/jacobi/higherrank
+   sage/modular/jacobi/higherrank_dimension
+   sage/modular/jacobi/vector_valued
 
 .. include:: ../footer.txt
