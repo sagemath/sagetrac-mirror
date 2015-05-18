@@ -7,8 +7,25 @@ generating non-isomorphic graphs with certain properties, etc.
 
 == License ==
 
-Please note that the nauty license (see nauty.h) is NOT GPL-compatible, as it
-restricts the usage of its code to non-military applications.
+The original source code is NOT GPL-compatible, as it is shared with the
+following restrictions:
+
+    nauty and traces is subject to the following usage restrictions:
+
+    nauty is copyright (1984-2014) Brendan McKay. All rights reserved. Traces is
+    copyright (2008-2014) Adolfo Piperno. All rights reserved. Permission is
+    hereby given for use and/or distribution with the exception of sale for
+    profit or application with nontrivial military significance. You must not
+    remove this copyright notice, and you must document any changes that you
+    make to this program. This software is subject to this copyright only,
+    irrespective of any copyright attached to any package of which this is a
+    part.  Absolutely no guarantees or warranties are made concerning the
+    suitability, correctness, or any other aspect of this program. Any use is at
+    your own risk.
+
+    The above does not apply to the file planarity.c, which is copyright to the
+    Magma project and distributed with nauty by permission, nor to the file
+    watercluster2.c, which is copyright to Gunnar Brinkmann.
 
 == Upstream Contact ==
 
