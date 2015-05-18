@@ -241,6 +241,9 @@ ext_modules = [
     Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
               sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
 
+    Extension('sage.combinat.designs.evenly_distributed_sets',
+              sources=['sage/combinat/designs/evenly_distributed_sets.pyx']),
+
     ################################
     ##
     ## sage.crypto
@@ -386,6 +389,9 @@ ext_modules = [
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx'],
               libraries = ['gmp']),
+
+    Extension('sage.graphs.base.graph_backends',
+              sources = ['sage/graphs/base/graph_backends.pyx']),
 
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx'],
@@ -1555,10 +1561,6 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
-
-    Extension('sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c',
-              sources = ['sage/rings/universal_cyclotomic_field/universal_cyclotomic_field_c.pyx'],
-              libraries = ['gmp']),
 
     ################################
     ##
