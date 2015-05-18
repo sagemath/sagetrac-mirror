@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Run the system python.
+#
+# This script unsets the part of the Sage environment that is bound to
+# break the system Python. It can most likely be replaced with
+# sage-native-execute once http://trac.sagemath.org/ticket/9386 is
+# finished.
+
+unset PYTHONHOME
+unset PYTHONPATH
+
+if [ -z $SAGE_ORIG_LD_LIBRARY_PATH_SET ]; then
+    unset LD_LIBRARY_PATH
+else
+    export LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH"
+fi
+
+if [ -z $SAGE_ORIG_DYLD_LIBRARY_PATH_SET ]; then
+    unset DYLD_LIBRARY_PATH
+else
+    export DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH"
+fi
+
+export PATH="$SAGE_ORIG_PATH"
+
+exec python $@

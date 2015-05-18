@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-system-python
 
 #*****************************************************************************
 #  Copyright (C) 2013  Volker Braun <vbraun.name@gmail.com>
