@@ -67,7 +67,7 @@ cdef class KernelCallHandler(BaseCallHandler):
     cdef long cmd_n
 
 cdef class SingularFunction(SageObject):
-    cdef object _name
+    cdef public object __name__
     cdef MPolynomialRing_libsingular _ring
     cdef BaseCallHandler call_handler
 

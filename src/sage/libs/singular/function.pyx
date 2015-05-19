@@ -1164,7 +1164,7 @@ cdef class SingularFunction(SageObject):
             sage: SingularFunction('foobar')
             foobar (singular function)
         """
-        self._name = name
+        self.__name__ = name
         global currRingHdl
         if currRingHdl == NULL:
             currRingHdl = ggetid("my_awesome_sage_ring")
@@ -1192,7 +1192,7 @@ cdef class SingularFunction(SageObject):
             sage: SingularFunction('foobar') # indirect doctest
             foobar (singular function)
         """
-        return "%s (singular function)" %(self._name)
+        return "%s (singular function)" %(self.__name__)
 
     def __call__(self, *args, ring=None, bint interruptible=True, attributes=None):
         """
@@ -1294,7 +1294,7 @@ cdef class SingularFunction(SageObject):
             ring = self.common_ring(args, ring)
         if not (isinstance(ring, MPolynomialRing_libsingular) or \
                 isinstance(ring, NCPolynomialRing_plural)):
-            raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
+            raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self.__name__,type(ring)))
         return call_function(self, args, ring, interruptible, attributes)
 
     def _sage_doc_(self):
@@ -1347,9 +1347,9 @@ EXAMPLE::
      [x2, x1^2]]
 
 The Singular documentation for '%s' is given below.
-"""%(self._name,self._name)
+"""%(self.__name__,self.__name__)
         # Trac ticket #11268: Include the Singular documentation as a block of code
-        singular_doc = get_docstring(self._name).split('\n')
+        singular_doc = get_docstring(self.__name__).split('\n')
         return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
 
     cdef common_ring(self, tuple args, ring=None):
@@ -1416,7 +1416,7 @@ The Singular documentation for '%s' is given below.
             sage: groebner == loads(dumps(groebner))
             True
         """
-        return singular_function, (self._name,)
+        return singular_function, (self.__name__,)
 
     def __cmp__(self, other):
         """
@@ -1434,7 +1434,7 @@ The Singular documentation for '%s' is given below.
         if not isinstance(other, SingularFunction):
             return cmp(type(self),type(other))
         else:
-            return cmp(self._name, (<SingularFunction>other)._name)
+            return cmp(self.__name__, (<SingularFunction>other).__name__)
 
 cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=True, attributes=None):
     global currRingHdl
@@ -1485,7 +1485,7 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
     if errorreported:
         errorreported = 0
         raise RuntimeError("Error in Singular function call '%s':\n %s"%
-            (self._name, "\n ".join(error_messages)))
+            (self.__name__, "\n ".join(error_messages)))
 
     res = argument_list.to_python(_res)
 
@@ -1524,9 +1524,9 @@ cdef class SingularLibraryFunction(SingularFunction):
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(self.__name__)
         if singular_idhdl==NULL:
-            raise NameError("Function '%s' is not defined."%self._name)
+            raise NameError("Function '%s' is not defined."%self.__name__)
         if singular_idhdl.typ!=PROC_CMD:
             raise ValueError("Not a procedure")
 
@@ -1535,7 +1535,7 @@ cdef class SingularLibraryFunction(SingularFunction):
         return res
 
     cdef bint function_exists(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(self.__name__)
         return singular_idhdl!=NULL
 
 cdef class SingularKernelFunction(SingularFunction):
@@ -1567,15 +1567,15 @@ cdef class SingularKernelFunction(SingularFunction):
 
     cdef BaseCallHandler get_call_handler(self):
         cdef int cmd_n = -1
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(self.__name__, cmd_n) # call by reverence for CMD_n
         if cmd_n == -1:
-            raise NameError("Function '%s' is not defined."%self._name)
+            raise NameError("Function '%s' is not defined."%self.__name__)
 
         return KernelCallHandler(cmd_n, arity)
 
     cdef bint function_exists(self):
         cdef int cmd_n = -1
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(self.__name__, cmd_n) # call by reverence for CMD_n
         return cmd_n != -1
 
 
