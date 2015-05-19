@@ -26,6 +26,7 @@ All package management can also be done via the Sage command line.
 """
 
 import os
+import re
 
 __installed_packages = None
 
@@ -146,13 +147,9 @@ def install_package(package=None, force=False):
             __installed_packages = sorted(os.listdir(sage.env.SAGE_SPKG_INST))
         return __installed_packages
 
-
-
     import stopgap
     stopgap.stopgap("The Sage function 'install_packages' is currently broken: it does not correctly install new packages. Please use 'sage -i {}' from a shell prompt instead.".format(package), 16759)
     return
-
-
 
     # Get full package name / list of candidates:
     if force:
@@ -196,7 +193,7 @@ def is_package_installed(package):
     """
     return any(p.startswith(package) for p in install_package())
 
-def _package_lists_from_sage_output(package_type):
+def _package_lists_from_mirror(package_type):
     r"""
     Helper function for :func:`standard_packages`, :func:`optional_packages` and
     :func:`experimental_packages`.
@@ -219,36 +216,53 @@ def _package_lists_from_sage_output(package_type):
     if package_type not in ['standard','optional','experimental']:
         raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
 
-    R = os.popen('sage -'+package_type).read()
-    X = R.split('\n')
-    try:
-        X = X[2+X.index((package_type+' packages:').capitalize()):]
-        X = X[:X.index('')]
-    except ValueError as msg:
-        print(R)
-        print("The list of %s packages (shown above) appears to be currently" % package_type)
-        print("not available or corrupted (network error?).")
-        return [], []
+    # OLD-style packages (SPKGs) #
+    ##############################
+
+    # Get a mirror URL
+    URL = os.popen("sage-download-file --print-fastest-mirror").read().strip()
+
+    # Load the list of packages
+    import urllib
+    f = urllib.urlopen(URL+"/spkg/"+package_type+"/list")
+    packages_list_remote = f.read()
+    f.close()
+
+    if '<' in packages_list_remote:
+        raise RuntimeError("There was an error while downloading the list of packages")
 
     def pname_from_line(line):
         pname = line.split(' ')[0]
-        if '-' in pname:
-            return pname[:pname.rfind('-')]
+        pname = re.sub("(\.|-)p[0-9]+$","",pname) # strip .p0
+        pname = re.sub("(\.|-)[0-9].*","",pname)  # strip version number
+        return pname
+
+    packages_list_remote = [pname_from_line(p) for p in packages_list_remote.split('\n')]
+
+    # new-style packages #
+    ######################
+
+    from sage.env import SAGE_ROOT
+    packages_list_local_all = os.listdir(SAGE_ROOT+"/build/pkgs/")
+    packages_list_local = []
+    for p in packages_list_local_all: # filter the type
+        with open(SAGE_ROOT+"/build/pkgs/"+p+"/type") as f:
+            if f.read().strip() == package_type:
+                packages_list_local.append(p)
+
+    # Filter installed and return #
+    ###############################
+
+    installed = []
+    not_installed = []
+    packages_list = sorted(set(packages_list_remote+packages_list_local))
+    for p in packages_list:
+        if is_package_installed(p):
+            installed.append(p)
         else:
-            return pname
-
-    installed     = [pname_from_line(l) for l in X
-                     if ('already installed' in l or
-                         'installed version' in l)]
-
-    not_installed = [pname_from_line(l) for l in X
-                     if 'not installed' in l]
-
-    if len(X) != len(installed) + len(not_installed):
-        raise RuntimeError("Some package is missing from the list")
+            not_installed.append(p)
 
     return installed, not_installed
-
 
 def standard_packages():
     """
@@ -277,7 +291,7 @@ def standard_packages():
         True
 
     """
-    return _package_lists_from_sage_output('standard')
+    return _package_lists_from_mirror('standard')
 
 def optional_packages():
     """
@@ -306,7 +320,7 @@ def optional_packages():
         sage: max(installed+not_installed)                   # optional internet
         'zeromq'
     """
-    return _package_lists_from_sage_output('optional')
+    return _package_lists_from_mirror('optional')
 
 def experimental_packages():
     """
@@ -335,7 +349,7 @@ def experimental_packages():
         sage: max(installed+not_installed)                   # optional internet
         'yassl'
     """
-    return _package_lists_from_sage_output('experimental')
+    return _package_lists_from_mirror('experimental')
 
 #################################################################
 # Upgrade to latest version of Sage
