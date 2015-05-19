@@ -57,6 +57,12 @@ class PermutationsEPS(FPS):
         """
         return "P"
 
+    def _valuation_(self):
+        """
+        The valuation of the permutations generating series is `0`.
+        """
+        return 0
+
 class PermutationsOPS(FPS):
     """
     Formal power series of the isomorphism type of species of permutations
