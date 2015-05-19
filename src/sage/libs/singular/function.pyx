@@ -1163,6 +1163,15 @@ cdef class SingularFunction(SageObject):
             sage: from sage.libs.singular.function import SingularFunction
             sage: SingularFunction('foobar')
             foobar (singular function)
+
+        TESTS:
+
+        We test that :trac:`17872` is fixed::
+
+            sage: from sage.algebras.letterplace.free_algebra_element_letterplace import poly_reduce
+            sage: help(poly_reduce)
+            Help on NF (singular function)
+            ...
         """
         self.__name__ = name
         global currRingHdl
