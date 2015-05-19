@@ -68,6 +68,19 @@ Backends for Polyhedral Computations
    sage/geometry/polyhedron/base_QQ
    sage/geometry/polyhedron/base_ZZ
    sage/geometry/polyhedron/base_RDF
+
+
+Bott Bundles
+------------
+
+Cohomology calculator for some homogeneous vector bundles on flag manifolds
    
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/bott_bundles
+
+
 
 .. include:: ../footer.txt
