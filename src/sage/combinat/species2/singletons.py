@@ -23,6 +23,7 @@ from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.structures import Structure
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.structure.element import Element
 
 
 class Singleton(Structure):
@@ -42,6 +43,11 @@ class Singleton(Structure):
         if isinstance(other, type(self)):
             return other._label_ == self._label_
         return False
+
+    def __cmp__(self, other):
+        if not isinstance(other, type(self)):
+            return -1
+        return cmp(self._label_, other._label_)
 
 
 class SingletonsSpecies(SpeciesDesign):

@@ -22,6 +22,7 @@ References
 from sage.categories.species import Species
 from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.species2.cycle_index_series.operations.recursive_cis import RecursiveCIS
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.set import Set
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
@@ -105,11 +106,25 @@ class RecursiveSpecies(Parent):
     def cycle_index_series(self):
         return self._cis_
 
+    def transport(self, sigma):
+        def ssigma(f):
+            return self._element_constructor_(self._def_.transport(sigma)(f.value))
+        return ssigma
+
+    def _element_constructor_(self, *args, **options):
+        return self.element_class(self, *args, **options)
+
+    Element = ElementWrapper
+
     class Structures(SpeciesDesign.Structures):
 
         def __init__(self, ambient, U):
             SpeciesDesign.Structures.__init__(self, ambient, U)
             self._active_ = False
+
+        @lazy_attribute
+        def _element_constructor_(self):
+            return self.ambient()._element_constructor_
 
         def __iter__(self):
             """
@@ -131,4 +146,4 @@ class RecursiveSpecies(Parent):
                 return
 
             for s in self.ambient()._def_.structures(self.finite_set()):
-                yield ElementWrapper(self.ambient(), s)
+                yield self._element_constructor_(s)

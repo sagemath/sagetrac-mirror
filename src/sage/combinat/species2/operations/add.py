@@ -147,7 +147,7 @@ class Add(SpeciesDesign):
 
         def Fsigma(s):
             assert(isinstance(s, WrapperAddStructure))
-            return self._element_constructor_(s.value.parent().transport(sigma)(s),
+            return self._element_constructor_(s.value.parent().transport(sigma)(s.value),
                                               s._indice_)
 
         return Fsigma

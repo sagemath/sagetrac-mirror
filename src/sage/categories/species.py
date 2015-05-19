@@ -23,6 +23,7 @@ from sage.categories.category import Category
 from sage.categories.objects import Objects
 from sage.misc.abstract_method import abstract_method
 from sage.rings.infinity import Infinity
+from sage.sets.set import Set
 
 
 class Species(Category):
@@ -162,6 +163,16 @@ class Species(Category):
             We follow the _[BBL] notation: `\sigma \cdot s` to designate `F[\sigma](s)` the transport of `F`-structure
             along `\sigma`.
             """
+
+        def _test_transport(self, **options):
+
+            from sage.combinat.permutation import Permutation
+            tester = self._tester(**options)
+
+            for k in range(1, 3):
+                for s in self.structures(Set(range(1, k+1))):
+                    tester.assert_(self.transport(Permutation(range(1, k+1)))(s) == s)
+
 
         def is_isomorphism_of(self, sigma, s1, s2):
             """
