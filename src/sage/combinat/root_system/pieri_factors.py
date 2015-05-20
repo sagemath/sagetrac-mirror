@@ -611,7 +611,8 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         Test utility for :meth:`._test_nil_hecke_divisors`.
 
         INPUT:
-         - ``u``, ``v`` -- elements of the group
+
+        - ``u``, ``v`` -- elements of the group
 
         This assumes that ``u`` and ``v`` are the same as those used
         to construct ``self``.
@@ -624,7 +625,6 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: u = W.one(); v= s[1]*s[2]*s[1]
             sage: F = PF.nil_hecke_divisors(v, u)
             sage: F.optional_test_nil_hecke_divisors(v, u)
-
         """
         def nil_action(u, f):
             s = self.W.simple_reflections()
@@ -637,14 +637,15 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
     def nil_hecke_divisors(self, v, u, side = "right"):
         r"""
-        Returns the set of Pieri factors `f` such that `\pi_u\pi_f =
+        Return the set of Pieri factors `f` such that `\pi_u\pi_f =
         \pi_v`, where `\pi_f` is the operator corresponding to `f` in the
         nil-Hecke algebra (when side = "left", we instead want `\pi_f\pi_u =\pi_v`)
 
         This is the set of Pieri factors whose support:
-         - contains the support of f
-         - is contained in the union of the support of f and the descents of u
-         - contains no i such that i is in the support of f but i+1 is not
+
+        - contains the support of f
+        - is contained in the union of the support of f and the descents of u
+        - contains no i such that i is in the support of f but i+1 is not
 
         EXAMPLES::
 
@@ -720,9 +721,10 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
     def subset(self, length):
         r"""
         INPUT:
-         - ``length`` -- a non-negative integer
 
-        Returns the subset of the elements of ``self`` of length ``length``
+        - ``length`` -- a non-negative integer
+
+        Return the subset of the elements of ``self`` of length ``length``
 
             sage: PF = WeylGroup(["A", 3, 1]).pieri_factors(); PF
             Pieri factors for Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
