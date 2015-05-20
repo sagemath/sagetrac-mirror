@@ -532,6 +532,30 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         max_length = min(len(max_support), max_length, len(W.index_set()) - 1)
         return super(PieriFactors_type_A_affine, cls).__classcall__(cls, W, min_length, max_length, min_support, max_support)
 
+    def max_length(self):
+        """
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',5,1])
+            sage: W.pieri_factors().max_length()
+            5
+            sage: W.pieri_factors(max_length=2).max_length()
+            2
+        """
+        return self._max_length
+
+    def min_length(self):
+        """
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',5,1])
+            sage: W.pieri_factors().min_length()
+            0
+            sage: W.pieri_factors(min_length=2).min_length()
+            2
+        """
+        return self._min_length
+
     def __init__(self, W, min_length, max_length, min_support, max_support):
         r"""
         EXAMPLES::
@@ -581,6 +605,117 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
         self._min_length = min_length
         self._max_length = max_length
+
+    def optional_test_nil_hecke_divisors(self, u, v):
+        r"""
+        Test utility for :meth:`._test_nil_hecke_divisors`.
+
+        INPUT:
+         - ``u``, ``v`` -- elements of the group
+
+        This assumes that ``u`` and ``v`` are the same as those used
+        to construct ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["A", 5, 1])
+            sage: s = W.simple_reflections()
+            sage: PF = W.pieri_factors()
+            sage: u = W.one(); v= s[1]*s[2]*s[1]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: F.optional_test_nil_hecke_divisors(v, u)
+
+        """
+        def nil_action(u, f):
+            s = self.W.simple_reflections()
+            for i in f.reduced_word():
+                if not u.has_descent(i):
+                    u = u * s[i]
+            return u
+
+        set(self) == set(f for f in self.W.pieri_factors() if nil_action(u, f) == v)
+
+    def nil_hecke_divisors(self, v, u, side = "right"):
+        r"""
+        Returns the set of Pieri factors `f` such that `\pi_u\pi_f =
+        \pi_v`, where `\pi_f` is the operator corresponding to `f` in the
+        nil-Hecke algebra (when side = "left", we instead want `\pi_f\pi_u =\pi_v`)
+
+        This is the set of Pieri factors whose support:
+         - contains the support of f
+         - is contained in the union of the support of f and the descents of u
+         - contains no i such that i is in the support of f but i+1 is not
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["A", 5, 1])
+            sage: s = W.simple_reflections()
+            sage: PF = W.pieri_factors()
+            sage: u = W.one(); v= s[1]*s[2]*s[1]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run() # todo: not implemented
+            sage: F.generating_series()
+            0
+            sage: u = W.one(); v= s[2]*s[1]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^2
+            sage: u = s[1]; v= s[1]*s[3]*s[2]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^2
+            sage: u = s[5]; v= s[5]*s[1]*s[0]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^2
+            sage: u = s[1]; v= s[1]*s[4]*s[3]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^3 + z^2
+            sage: u = s[1]*s[5]; v= s[1]*s[5]*s[4]*s[3]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^4 + 2*z^3 + z^2
+            sage: u = s[0]*s[1]*s[0]*s[3]*s[4]*s[3]; v= s[0]*s[1]*s[0]*s[3]*s[4]*s[3]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^4 + 4*z^3 + 6*z^2 + 4*z + 1
+            sage: u = s[0]*s[1]*s[0]*s[3]*s[4]*s[3]; v= s[0]*s[1]*s[0]*s[3]*s[4]*s[3] * s[5] * s[2]
+            sage: F = PF.nil_hecke_divisors(v, u)
+            sage: TestSuite(F).run(); F.optional_test_nil_hecke_divisors(v, u)
+            sage: F.generating_series()
+            z^4 + 2*z^3 + z^2
+        """
+        if side == "right":
+            f_min = ~u * v
+        else:
+            f_min = v * ~u
+        if f_min.length() + u.length() != v.length() or f_min not in self:
+            # Returns the empty set
+
+            # We currently return a fake element of self, to be
+            # consistent and make sure the result has check &
+            # generating series
+            return self.__class__(self.W, min_length=0, max_length = -1)
+
+        min_support = set(f_min.reduced_word())
+        rank = len(self.W.index_set())
+        if side == "right":
+            forbidden = set(((i-1) % rank) for i in min_support).difference(min_support)
+        else:
+            forbidden = set(((i+1) % rank) for i in min_support).difference(min_support)
+        max_support = min_support.union(set(u.descents()).difference(forbidden))
+        return self.__class__(self.W,
+                              min_support = min_support,
+                              max_support = max_support,
+                              min_length = max(self._min_length, len(min_support)),
+                              max_length = min(self._max_length, len(max_support)))
 
     def subset(self, length):
         r"""
