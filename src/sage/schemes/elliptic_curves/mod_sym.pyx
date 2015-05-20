@@ -112,7 +112,7 @@ from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.misc import verbose
 from sage.rings.arith import kronecker_symbol
 
