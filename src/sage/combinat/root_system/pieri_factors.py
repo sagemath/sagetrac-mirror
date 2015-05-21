@@ -864,20 +864,20 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
     def cardinality(self):
         r"""
+        Return the cardinality.
+
         EXAMPLES::
 
             sage: WeylGroup(["A", 3, 1]).pieri_factors().cardinality()
             15
         """
-        if self._min_length == len(self._min_support) and self._max_length == len(self._max_support) -1:
-            return Integer(2**(len(self._extra_support)) - 1)
-        else:
-            return self.generating_series(weight = ConstantFunction(1))
+        if self._min_length == len(self._min_support) and self._max_length == len(self._max_support) - 1:
+            return Integer(2 ** (len(self._extra_support)) - 1)
+        return self.generating_series(weight=ConstantFunction(Integer(1)))
 
-
-    def generating_series(self, weight = None):
+    def generating_series(self, weight=None):
         r"""
-        Returns a length generating series for the elements of ``self``
+        Return a length generating series for the elements of ``self``.
 
         EXAMPLES::
 
@@ -887,17 +887,16 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: W.pieri_factors().generating_series()
             4*z^3 + 6*z^2 + 4*z + 1
         """
-
         if weight is None:
             weight = self.default_weight()
         l_min = len(self._min_support)
         l_max = len(self._max_support)
-        return sum(binomial(l_max-l_min, l-l_min) * weight(l)
-                   for l in range(self._min_length, self._max_length+1))
+        return sum(binomial(l_max - l_min, l - l_min) * weight(l)
+                   for l in range(self._min_length, self._max_length + 1))
 
     def __iter__(self):
         r"""
-        Returns an iterator over the elements of ``self``
+        Return an iterator over the elements of ``self``.
 
         EXAMPLES::
 
