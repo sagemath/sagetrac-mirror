@@ -103,7 +103,7 @@ class CycleIndexSeries(Category):
             return genericEGS(self)
 
         def exponential_generating_series(self): return self.generating_series()
-        def egs(self): self.generating_series()
+        def egs(self): return self.generating_series()
 
         def type_generating_series(self):
             """
@@ -164,6 +164,19 @@ class CycleIndexSeries(Category):
             return Prod((ZF, 1), (ZG, 1))
 
         __mul__ = _mul_ = product
+
+        def __pow__(ZF, n):
+            """
+            The *exponentiation of cycles index series* `Z_F^n`.
+
+            :param ZF: a cycle index series
+            :param k: an integer
+            """
+            if n < 0:
+                raise NotImplementedError
+
+            from sage.combinat.species2.cycle_index_series.operations.product import Prod
+            return Prod((ZF, n))
 
 
         def restriction(self, min=0, max=Infinity):
