@@ -85,7 +85,7 @@ class WordDatatype_callable(WordDatatype):
             domain = itertools.count()
         else:
             domain = xrange(self._len)
-        return itertools.imap(self._func, domain)
+        return (self._func(d) for d in domain)
 
     def __getitem__(self, key):
         r"""

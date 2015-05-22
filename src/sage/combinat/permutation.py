@@ -247,6 +247,12 @@ from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
 from combinat import CombinatorialElement, catalan_number
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
@@ -3891,7 +3897,6 @@ class Permutation(CombinatorialElement):
             [[0, 1, 3], [2, 3, 5], [2, 4, 5]]
         """
         p = self
-
         return [list(pos) for pos in itertools.combinations(range(len(p)), len(patt))
                 if to_standard(map(lambda z: p[z], pos)) == patt]
 
@@ -4108,7 +4113,7 @@ class Permutation(CombinatorialElement):
             (6, 5)
             (7, 4)
         """
-        return itertools.izip(xrange(1, len(self)+1), self)
+        return izip(xrange(1, len(self)+1), self)
 
     @combinatorial_map(name='Robinson-Schensted insertion tableau')
     def left_tableau(self):

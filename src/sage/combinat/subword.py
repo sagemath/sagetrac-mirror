@@ -485,7 +485,7 @@ class Subwords_wk(Subwords_w):
         if self._element_constructor is tuple:
             return iterator
         else:
-            return itertools.imap(self._build, iterator)
+            return (self._build(i) for i in iterator)
 
 
 def smallest_positions(word, subword, pos=0):

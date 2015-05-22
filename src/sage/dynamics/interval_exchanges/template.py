@@ -2792,10 +2792,7 @@ class RauzyDiagram(SageObject):
             a b c d
             d c b a
         """
-        from itertools import imap
-        return imap(
-            lambda x: self._vertex_to_permutation(x),
-            self._succ.keys())
+        return (self._vertex_to_permutation(x) for x in self._succ.keys())
 
     def edges(self,labels=True):
         r"""

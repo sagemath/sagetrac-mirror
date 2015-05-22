@@ -1628,7 +1628,13 @@ class WordGenerator(object):
 
         - Sebastien Labbe (2009-12-18): initial version
         """
-        from itertools import tee,izip
+        from itertools import tee
+        try:
+            # Python 2
+            from itertools import izip
+        except ImportError:
+            # Python 3
+            izip = zip
         sequence_it,sequence = tee(sequence)
         m = next(sequence_it)
         codomain = m.codomain()
