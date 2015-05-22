@@ -14,7 +14,6 @@ EXAMPLES::
     sage: list(Compositions(4))
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
-
 AUTHORS:
 
 - Mike Hansen, Nicolas M. Thiery
@@ -129,6 +128,20 @@ class Composition(CombinatorialElement):
             [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
             sage: Composition(code=_)
             [4, 1, 2, 3, 5]
+
+        TESTS:
+
+        Let us check that :trac:`14862` is solved::
+
+            sage: C = Compositions()
+            sage: C([3,-1,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: elements must be nonnegative integers
+            sage: C("strawberry")
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=s) to an integer
         """
         if descents is not None:
             if isinstance(descents, tuple):
@@ -142,7 +155,7 @@ class Composition(CombinatorialElement):
         elif isinstance(co, Composition):
             return co
         else:
-            return Compositions()(list(co))
+            return Compositions()(co)
 
     def _ascii_art_(self):
         """
@@ -1555,7 +1568,7 @@ class Compositions(Parent, UniqueRepresentation):
             return Compositions_all()
         else:
             if len(kwargs) == 0:
-                if isinstance(n, (int,Integer)):
+                if isinstance(n, (int, Integer)):
                     return Compositions_n(n)
                 else:
                     raise ValueError("n must be an integer")
@@ -1618,7 +1631,7 @@ class Compositions(Parent, UniqueRepresentation):
             lst = list(lst)
         elt = self.element_class(self, lst)
         if elt not in self:
-            raise ValueError("%s not in %s"%(elt, self))
+            raise ValueError("%s not in %s" % (elt, self))
         return elt
 
     def __contains__(self, x):
@@ -1672,7 +1685,7 @@ class Compositions(Parent, UniqueRepresentation):
             sage: Compositions().from_descents([1,0,4,8,11])
             [1, 1, 3, 4, 3]
         """
-        d = [x+1 for x in sorted(descents)]
+        d = [x + 1 for x in sorted(descents)]
         if nps is None:
             nps = d.pop()
         return self.from_subset(d, nps)
@@ -1719,13 +1732,14 @@ class Compositions(Parent, UniqueRepresentation):
                 return self.element_class(self, [n])
 
         if n <= d[-1]:
-            raise ValueError("S (=%s) is not a subset of {1, ..., %s}" % (d,n-1))
+            raise ValueError("S (=%s) is not a subset of {1, ..., %s}"
+                             % (d, n - 1))
         else:
             d.append(n)
 
         co = [d[0]]
-        for i in range(len(d)-1):
-            co.append(d[i+1]-d[i])
+        for i in range(len(d) - 1):
+            co.append(d[i + 1] - d[i])
 
         return self.element_class(self, co)
 
