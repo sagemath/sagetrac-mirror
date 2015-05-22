@@ -2048,8 +2048,10 @@ ext_modules = [
 
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
+
 ]
 
 # Add auto-generated modules
 import sage_setup.autogen.interpreters
 ext_modules += sage_setup.autogen.interpreters.modules
+
