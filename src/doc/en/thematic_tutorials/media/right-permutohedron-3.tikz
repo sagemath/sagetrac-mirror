@@ -1,0 +1,25 @@
+\begin{tikzpicture}[>=latex,join=bevel,baseline=(current bounding box.east)]
+%%
+  \node (N_1) at (25bp,150bp) [draw,draw=none] {$123$};
+
+  \node (N_3) at ( 0bp,100bp) [draw,draw=none] {$213$};
+  \node (N_2) at (50bp,100bp) [draw,draw=none] {$132$};
+
+  \node (N_4) at (50bp,50bp) [draw,draw=none] {$312$};
+  \node (N_5) at ( 0bp,50bp) [draw,draw=none] {$231$};
+
+  \node (N_6) at (25bp, 0bp) [draw,draw=none] {$321$};
+
+  \pgfsetstrokecolor{black}
+  \draw [red,->] (N_1) -- (N_2);
+  \draw [blue,->] (N_1) -- (N_3);
+  \draw [red,->] (N_4) -- (N_6);
+  \draw [blue,->] (N_5) -- (N_6);
+  \draw [red,->] (N_3) -- (N_5);
+  \draw [blue,->] (N_2) -- (N_4);
+\end{tikzpicture}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

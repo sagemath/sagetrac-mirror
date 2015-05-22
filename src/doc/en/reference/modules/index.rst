@@ -4,6 +4,8 @@ Modules
 .. toctree::
    :maxdepth: 2
 
+   sage/modules/tutorial_free_modules
+
    sage/modules/module
    sage/modules/free_module
    sage/modules/free_module_integer
@@ -31,5 +33,6 @@ Modules
    sage/modules/with_basis/__init__
    sage/modules/with_basis/morphism
    sage/modules/with_basis/subquotient
+   sage/modules/tutorial_free_modules
 
 .. include:: ../footer.txt
