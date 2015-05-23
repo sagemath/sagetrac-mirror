@@ -137,15 +137,16 @@ class Composition(CombinatorialElement):
             sage: C([3,-1,1])
             Traceback (most recent call last):
             ...
-            ValueError: elements must be nonnegative integers
+            ValueError: not a composition
             sage: C("strawberry")
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=s) to an integer
+            ValueError: not a composition
         """
         if descents is not None:
             if isinstance(descents, tuple):
-                return Compositions().from_descents(descents[0], nps=descents[1])
+                return Compositions().from_descents(descents[0],
+                                                    nps=descents[1])
             else:
                 return Compositions().from_descents(descents)
         elif code is not None:
@@ -154,8 +155,8 @@ class Composition(CombinatorialElement):
             return Compositions().from_subset(*from_subset)
         elif isinstance(co, Composition):
             return co
-        else:
-            return Compositions()(co)
+
+        return Compositions()(co)
 
     def _ascii_art_(self):
         """
@@ -1627,8 +1628,10 @@ class Compositions(Parent, UniqueRepresentation):
             sage: P([3,3,1]) # indirect doctest
             [3, 3, 1]
         """
-        if isinstance(lst, Composition):
-            lst = list(lst)
+        # input can be an iterator, and one has to use it twice
+        lst = list(lst)
+        if any(not isinstance(x, (int, Integer)) or x < 0 for x in lst):
+            raise ValueError('not a composition')
         elt = self.element_class(self, lst)
         if elt not in self:
             raise ValueError("%s not in %s" % (elt, self))
@@ -1791,6 +1794,7 @@ class Compositions_constraints(IntegerListsLex):
         constraints.update(data['constraints'])
         self.__init__(n, **constraints)
 
+
 class Compositions_all(Compositions):
     """
     Class of all compositions.
@@ -1850,6 +1854,7 @@ class Compositions_all(Compositions):
                 yield self.element_class(self, list(c))
             n += 1
 
+
 class Compositions_n(Compositions):
     """
     Class of compositions of a fixed `n`.
@@ -1892,7 +1897,7 @@ class Compositions_n(Compositions):
             sage: repr(Compositions(3))
             'Compositions of 3'
         """
-        return "Compositions of %s"%self.n
+        return "Compositions of %s" % self.n
 
     def __contains__(self, x):
         """
@@ -1975,4 +1980,3 @@ class Compositions_n(Compositions):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
-
