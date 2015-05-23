@@ -1043,10 +1043,16 @@ cdef class Element(SageObject):
             return rich_to_bool(op, -1)
 
     ####################################################################
-    # For a Cython class, you must define either _cmp_ (if your subclass
-    # is totally ordered), _richcmp_ (if your subclass is partially
-    # ordered), or both (if your class has both a total order and a
-    # partial order, or if implementing both gives better performance).
+    # For a derived Cython class, you **must** put the __richcmp__
+    # method below in your subclasses, in order for it to take
+    # advantage of the above generic comparison code. If you want to use cmp()
+    # but did not implement a rich comparison, then you must copy paste the
+    # __cmp__ method below.
+    #
+    # In a Cython or a Python class, you must define either _cmp_
+    # (if your subclass is totally ordered), _richcmp_ (if your subclass
+    # is partially ordered), or both (if your class has both a total order
+    # and a partial order, or if that gives better performance).
     #
     # Rich comparisons (like a < b) will default to using _richcmp_,
     # three-way comparisons (like cmp(a,b)) will default to using
