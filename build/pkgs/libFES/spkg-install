@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+unset RM
+
+cd src
+
+autoreconf -i -v
+if [ $? -ne 0 ]; then
+    echo "Error running autoreconf for libFES"
+    exit 1
+fi
+
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared \
+    --disable-static
+if [ $? -ne 0 ]; then
+    echo "Error configuring libFES"
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo "Error building libFES"
+    exit 1
+fi
+
+$MAKE -j1 install
+if [ $? -ne 0 ]; then
+    echo "Error installing libFES"
+    exit 1
+fi
+

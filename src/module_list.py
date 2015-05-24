@@ -689,7 +689,7 @@ ext_modules = [
              ["sage/libs/fes.pyx"],
              language = "c",
              libraries = ['fes'],
-             package = 'fes'),
+             package = 'libFES'),
 
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
