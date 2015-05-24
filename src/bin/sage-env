@@ -312,15 +312,6 @@ GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
-if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://www.sagemath.org/"
-    export SAGE_SERVER
-fi
-
-if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
-    export SAGE_UPSTREAM
-fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS
@@ -425,9 +416,12 @@ if [ $? -eq 0 ]; then
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
-# Unset these variables which interfere with R
+# Make sure that a system-wide R installation does not interfere
 unset R_HOME
 unset R_PROFILE
+# Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
+R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+R_MAKEVARS_USER="$SAGE_LOCAL/lib/R/share/Makevars.user" && export R_MAKEVARS_USER
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 

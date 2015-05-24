@@ -1,5 +1,25 @@
 r"""
 Dense univariate polynomials over `\RR`, implemented using MPFR
+
+TESTS:
+
+Check that operations with numpy elements work well (see :trac:`18076` and
+:trac:`8426`)::
+
+    sage: import numpy
+    sage: x = polygen(RR)
+    sage: x * numpy.int32('1')
+    x
+    sage: numpy.int32('1') * x
+    x
+    sage: x * numpy.int64('1')
+    x
+    sage: numpy.int64('1') * x
+    x
+    sage: x * numpy.float32('1.5')
+    1.50000000000000*x
+    sage: numpy.float32('1.5') * x
+    1.50000000000000*x
 """
 
 include "sage/ext/stdsage.pxi"
@@ -62,10 +82,6 @@ cdef class PolynomialRealDense(Polynomial):
             TypeError: Cannot evaluate symbolic expression to a numeric value.
             sage: sig_on_count()
             0
-            sage: alarm(0.5); PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
-            Traceback (most recent call last):
-            ...
-            AlarmInterrupt
 
         Test that we don't clean up uninitialized coefficients (#9826)::
 
@@ -595,49 +611,6 @@ cdef class PolynomialRealDense(Polynomial):
         sig_off()
         r._normalize()
         return q, r * leading
-
-    @coerce_binop
-    def gcd(self, other):
-        """
-        Returns the gcd of self and other as a monic polynomial. Due to the
-        inherit instability of division in this inexact ring, the results may
-        not be entirely stable.
-
-        EXAMPLES::
-
-            sage: R.<x> = RR[]
-            sage: (x^3).gcd(x^5+1)
-            1.00000000000000
-            sage: (x^3).gcd(x^5+x^2)
-            x^2
-            sage: f = (x+3)^2 * (x-1)
-            sage: g = (x+3)^5
-            sage: f.gcd(g)
-            x^2 + 6.00000000000000*x + 9.00000000000000
-
-        Unless the division is exact (i.e. no rounding occurs) the returned gcd is
-        almost certain to be 1. ::
-
-            sage: f = (x+RR.pi())^2 * (x-1)
-            sage: g = (x+RR.pi())^5
-            sage: f.gcd(g)
-            1.00000000000000
-
-        """
-        aval = self.valuation()
-        a = self >> aval
-        bval = other.valuation()
-        b = other >> bval
-        if b.degree() > a.degree():
-            a, b = b, a
-        while b: # this will be exactly zero when the previous b is degree 0
-            q, r = a.quo_rem(b)
-            a, b = b, r
-        if a.degree() == 0:
-            # make sure gcd of "relatively prime" things is exactly 1
-            return self._parent(1) << min(aval, bval)
-        else:
-            return a * ~a[a.degree()] << min(aval, bval)
 
     def __call__(self, *args, **kwds):
         """

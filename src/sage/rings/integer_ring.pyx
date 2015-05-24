@@ -59,6 +59,7 @@ import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -282,6 +283,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     TESTS::
 
         sage: TestSuite(ZZ).run()
+        sage: list(ZZ)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: len() of an infinite set
     """
 
     def __init__(self):
@@ -359,9 +364,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: cmp(ZZ,QQ)
             -1
         """
-        return (<Parent>left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    def _cmp_(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -373,7 +378,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-
         if isinstance(right,IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
@@ -401,21 +405,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             \Bold{Z}
         """
         return "\\Bold{Z}"
-
-    def __len__(self):
-        r"""
-        Return the length of the integers `\ZZ`. This throws a ``TypeError``
-        since `\ZZ` is an infinite set.
-
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class().__len__()
-            Traceback (most recent call last):
-            ...
-            TypeError: len() of unsized object
-        """
-        raise TypeError, 'len() of unsized object'
 
     def _div(self, integer.Integer left, integer.Integer right):
         """
@@ -603,6 +592,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             TypeError: no canonical coercion from Rational Field to Integer Ring
 
+        Coercions are available from numpy integer types::
+
+            sage: import numpy
+            sage: ZZ.coerce(numpy.int8('1'))
+            1
+            sage: ZZ.coerce(numpy.int32('32'))
+            32
+            sage: ZZ.coerce(numpy.int64('-12'))
+            -12
+            sage: ZZ.coerce(numpy.uint64('11'))
+            11
+
         TESTS::
 
             sage: 5r + True
@@ -633,6 +634,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return sage.rings.integer.long_to_Z()
         elif S is bool:
             return True
+        elif is_numpy_type(S):
+            import numpy
+            if issubclass(S, numpy.integer):
+                return True
+            else:
+                return None
         else:
             None
 
