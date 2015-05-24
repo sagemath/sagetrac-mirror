@@ -7439,28 +7439,33 @@ cdef class Matrix(matrix1.Matrix):
         window = self.matrix_window(row, col, block.nrows(), block.ncols(), check=True)
         window.set(block.matrix_window())
 
-    def subdivide(self, row_lines=None, col_lines=None):
+    def subdivide(self, row_lines=None, col_lines=None, copy=False):
         """
-        Divides self into logical submatrices which can then be queried and
+        Divides ``self`` into logical submatrices which can then be queried and
         extracted. If a subdivision already exists, this method forgets the
         previous subdivision and flushes the cache.
 
         INPUT:
 
-
-        -  ``row_lines`` - None, an integer, or a list of
+        -  ``row_lines`` - ``None``, an integer, or a list of
            integers
 
-        -  ``col_lines`` - None, an integer, or a list of
+        -  ``col_lines`` - ``None``, an integer, or a list of
            integers
 
+        -  ``copy`` - default: ``False``, if ``True`` the routine
+           returns a copy with the requested subdivision
 
-        OUTPUT: changes self
+        OUTPUT: default (with ``copy=False``) modifies the matrix
+        in place and returns ``None``.  With ``copy=True`` a copy
+        of the matrix is output with the requested subdivisions.
 
         .. note::
 
            One may also pass a tuple into the first argument which
-           will be interpreted as (row_lines, col_lines)
+           will be interpreted as (row_lines, col_lines).  If this
+           syntax is used along with the third argument, be sure to
+           specify the ``copy`` keyword.
 
         EXAMPLES::
 
@@ -7484,6 +7489,19 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.subdivisions()
             ([2], [3])
             sage: M.subdivide(None, [1,3]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [73|79 83|89 97]
+
+        Default behavior (``copy=False``) is to modify the
+        matrix in place and return ``None``. With ``copy=True``
+        a copy of the matrix is created, the requested 
+        subdivisions added, and the new matrix is returned. ::
+
+            sage: M.subdivide([2], 3)
+            sage: N = M.subdivide(None, [1,3]); M
             [ 2| 3  5| 7 11]
             [13|17 19|23 29]
             [31|37 41|43 47]
@@ -7521,12 +7539,19 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.subdivision(2,4)
             [37 41 43 47]
 
+        The ``copy`` keyword must be ``True`` or ``False``. ::
+
+            sage: M.subdivide([2,5], [1,3], copy='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'copy' keyword should be True or False, not junk
+
         AUTHORS:
 
         - Robert Bradshaw (2007-06-14)
         """
+        cdef Matrix mat
 
-        self.check_mutability()
         if col_lines is None and row_lines is not None and isinstance(row_lines, tuple):
             tmp = row_lines
             row_lines, col_lines = tmp
@@ -7538,11 +7563,20 @@ cdef class Matrix(matrix1.Matrix):
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
+        if not(copy in [True, False]):
+            mesg = "'copy' keyword should be True or False, not {}".format(copy)
+            raise ValueError(mesg)
         row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
         col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
-        if self._subdivisions is not None:
-            self.clear_cache()
-        self._subdivisions = (row_lines, col_lines)
+        if not(copy):
+            self.check_mutability()
+            # side effect of check_mutability(): clears cache
+            self._subdivisions = (row_lines, col_lines)
+        else:
+            mat = self.__copy__()
+            # copy is mutable, cache is empty
+            mat._subdivisions = (row_lines, col_lines)
+            return mat
 
     def subdivision(self, i, j):
         """
