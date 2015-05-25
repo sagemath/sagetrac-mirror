@@ -289,7 +289,7 @@ class Function_abs(GinacFunction):
 
 abs = abs_symbolic = Function_abs()
 
-class Function_ceil(BuiltinFunction):
+class Function_ceil1(BuiltinFunction):
     def __init__(self):
         r"""
         The ceiling function.
@@ -375,6 +375,15 @@ class Function_ceil(BuiltinFunction):
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
                                                     sympy='ceiling'))
+
+    def _derivative_(self, x, diff_param=None):
+        """
+        Return the derivative of the ceiling function.
+
+        EXAMPLES::
+
+        """
+        return floor(1,x)
 
     def _print_latex_(self, x):
         r"""
@@ -464,7 +473,7 @@ class Function_ceil(BuiltinFunction):
                 return Integer(int(math.ceil(x)))
         return None
 
-    def _evalf_(self, x, **kwds):
+    def _evalf_(self, x, n=0, **kwds):
         """
         TESTS::
 
@@ -474,10 +483,100 @@ class Function_ceil(BuiltinFunction):
         """
         return self._eval_(x)
 
-ceil = Function_ceil()
+ceil1 = Function_ceil1()
+
+class Function_ceil2(BuiltinFunction):
+    def __init__(self):
+        """
 
 
-class Function_floor(BuiltinFunction):
+        EXAMPLES::
+
+
+        """
+        BuiltinFunction.__init__(self, "ceil", nargs=2,
+                                 conversions=dict(sympy='ceil'))
+
+    def _eval_(self, n, z):
+        """
+        EXAMPLES::
+
+
+        TESTS:
+
+
+        """
+        if (isinstance(n, Expression) and n.is_trivial_zero()) or n==0:
+            return ceil1(z)
+        elif n<0 or not isinstance(n, (Integer, int)):
+            raise ValueError("first argument must be a nonnegative integer")
+        elif bool(z==ceil(z)) or isinstance(z, (Integer, int)):
+            raise ValueError("derivatives of ceiling function are undefined at integer values")
+        elif isinstance(z,Expression):
+            return None  # leaves the expression unevaluated
+        elif not bool(z==ceil(z)):
+            return 0
+        else:
+            return None  # leaves the expression unevaluated
+
+    def _evalf_(self, n, x, **kwds):
+        """
+        TESTS::
+
+
+        """
+        return self._eval_(n, x)
+
+
+    def _derivative_(self, n, z, diff_param=None):
+        """
+        nth Derivative of the ceiling function
+
+        EXAMPLES::
+
+
+        TESTS::
+
+
+        """
+        if n in ZZ and n >= 0:
+            return ceil2(1,z)
+        else:
+            raise ValueError("The derivative of this function is only implemented for n = 0, 1, 2, 3, ...")
+
+ceil2 = Function_ceil2()
+
+
+def ceil(x, *args, **kwds):
+    r"""
+    The ceil function, `\ceil(n,x)`, is the nth derivative of the
+    ceil function.
+
+    We represent the `n`-th derivative of the ceiling function with
+    `ceil(n, x)`.
+
+    EXAMPLES::
+
+
+
+    ::
+
+
+    TESTS::
+
+    """
+    if not args:
+        return ceil1(x, **kwds)
+    if len(args) > 1:
+        raise TypeError("Symbolic function ceil takes at most 2 arguments (%s given)"%(len(args)+1))
+    return ceil2(x,args[0],**kwds)
+
+# We have to add the wrapper function manually to the symbol_table when we have
+# two functions with different number of arguments and the same name
+symbol_table['functions']['ceil'] = ceil
+
+
+class Function_floor1(BuiltinFunction):
     def __init__(self):
         r"""
         The floor function.
@@ -503,13 +602,14 @@ class Function_floor(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: floor(5.4)
+            sage: from sage.functions.other import floor1
+            sage: floor1(5.4)
             5
-            sage: type(floor(5.4))
+            sage: type(floor1(5.4))
             <type 'sage.rings.integer.Integer'>
             sage: var('x')
             x
-            sage: a = floor(5.4 + x); a
+            sage: a = floor1(5.4 + x); a
             floor(x + 5.40000000000000)
             sage: a.simplify()
             floor(x + 0.4000000000000004) + 5
@@ -523,35 +623,55 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(factorial(50)/exp(1))
+            sage: floor1(factorial(50)/exp(1))
             11188719610782480504630258070757734324011354208865721592720336800
-            sage: floor(SR(10^50 + 10^(-50)))
+            sage: floor1(SR(10^50 + 10^(-50)))
             100000000000000000000000000000000000000000000000000
-            sage: floor(SR(10^50 - 10^(-50)))
+            sage: floor1(SR(10^50 - 10^(-50)))
             99999999999999999999999999999999999999999999999999
-            sage: floor(int(10^50))
+            sage: floor1(int(10^50))
             100000000000000000000000000000000000000000000000000
 
         ::
 
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
-            sage: floor(a)
+            sage: floor1(a)
             array([ 0.,  0.,  0.,  1.,  1.,  2.])
 
         Test pickling::
 
-            sage: loads(dumps(floor))
+            sage: loads(dumps(floor1))
             floor
         """
-        BuiltinFunction.__init__(self, "floor",
+        BuiltinFunction.__init__(self, "floor", nargs=1,
                                  conversions=dict(sympy='floor'))
+
+    def _derivative_(self, x, diff_param=None):
+        """
+        Return the derivative of the floor function.
+
+        EXAMPLES::
+
+        TESTS::
+
+            sage: from sage.functions.other import floor1
+            sage: from sage.functions.other import floor1
+            sage: derivative(floor1(x),x)
+            floor(1, x)
+            sage: derivative(floor1(x),x,2)
+            floor(1, x)
+            sage: derivative(floor1(3),x,5)
+            0
+        """
+        return floor(1,x)
+
 
     def _print_latex_(self, x):
         r"""
         EXAMPLES::
 
-            sage: latex(floor(x))
+            sage: latex(floor1(x))
             \left \lfloor x \right \rfloor
         """
         return r"\left \lfloor %s \right \rfloor"%latex(x)
@@ -646,7 +766,139 @@ class Function_floor(BuiltinFunction):
         """
         return self._eval_(x)
 
-floor = Function_floor()
+floor1 = Function_floor1()
+
+class Function_floor2(BuiltinFunction):
+    def __init__(self):
+        """
+
+
+        EXAMPLES::
+
+
+        """
+        BuiltinFunction.__init__(self, "floor", nargs=2,
+                                 conversions=dict(sympy='floor'))
+
+    def _eval_(self, n, x):
+        """
+        EXAMPLES::
+
+
+        TESTS:
+
+
+        """
+        if (isinstance(n, Expression) and n.is_trivial_zero()) or n==0:
+            return floor(x)
+        elif n<0 or not isinstance(n, (Integer, int)):
+            raise ValueError("first argument must be a nonnegative integer")
+        elif bool(x==floor(x)) or isinstance(x, (Integer, int)):
+            raise ValueError("derivatives of floor function are undefined at integer values")
+        elif isinstance(x,Expression):
+            return None  # leaves the expression unevaluated
+        elif not bool(x==floor(x)):
+            return 0
+        else:
+            return None  # leaves the expression unevaluated
+
+    def _evalf_(self, n, x, **kwds):
+        """
+        TESTS::
+
+        sage: floor(1,5,hold=True)
+        floor(1, 5)
+        sage: floor(x)
+        floor(x)
+        sage: floor(.5)
+        0
+        sage: floor(3)
+        0
+        sage: floor(-1,3.2)
+        Traceback (most recent call last):
+        ...
+        ValueError: negative derivatives are undefined
+        sage: floor(1, 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: derivatives of floor function are undefined at integer values
+
+        """
+        return self._eval_(n, x)
+
+
+    def _derivative_(self, n, x, diff_param=None):
+        """
+        nth Derivative of floor function
+
+        EXAMPLES::
+
+            sage: derivative(floor1(1,x),x,2)
+            floor(1, x)
+            sage: derivative(floor2(3,x),x)
+            floor(1, x)
+
+        TESTS::
+
+            sage: diff(floor2(1,x))
+            floor(1, x)
+            sage: derivative(floor2(3,x),x).subs(x==1.5)
+            Exception RuntimeError: 'maximum recursion depth exceeded while calling a Python object' in 'sage.structure.parent.good_as_coerce_domain' ignored
+            0
+            sage: derivative(floor2(3,x),x).subs(x==1.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: derivatives of floor function are undefined at integer values
+
+        """
+        if n in ZZ and n >= 0:
+            return floor(1,x)
+        else:
+            raise ValueError("The derivative of this function is only implemented for n = 0, 1, 2, 3, ...")
+
+floor2 = Function_floor2()
+
+
+def floor(x, *args, **kwds):
+    r"""
+    The floor function, `\floor(n,x)`, is the nth derivative of the
+    floor function.
+
+    We represent the `n`-th derivative of the floor function with
+    `floor(n, x)`.
+
+    EXAMPLES::
+
+        sage: floor(1,5,hold=True)
+        floor(1, 5)
+        sage: floor(x)
+        floor(x)
+        sage: floor(.5)
+        0
+        sage: floor(3.2)
+        3
+        sage: floor(3.0)
+        3
+
+    ::
+
+
+    TESTS::
+
+        sage: floor(2, x, 3)
+        Traceback (most recent call last):
+        ...
+        TypeError: Symbolic function floor takes at most 2 arguments (3 given)
+    """
+    if not args:
+        return floor1(x, **kwds)
+    if len(args) > 1:
+        raise TypeError("Symbolic function floor takes at most 2 arguments (%s given)"%(len(args)+1))
+    return floor2(x,args[0],**kwds)
+
+# We have to add the wrapper function manually to the symbol_table when we have
+# two functions with different number of arguments and the same name
+symbol_table['functions']['floor'] = floor
 
 class Function_gamma(GinacFunction):
     def __init__(self):
