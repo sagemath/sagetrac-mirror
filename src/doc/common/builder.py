@@ -12,6 +12,7 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 """
 
 import logging, optparse, os, shutil, subprocess, sys, re
+import six
 
 import sphinx.cmdline
 import sphinx.util.console
@@ -1224,7 +1225,7 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
             s += "\n" + " " * indent
         s += "{0:{1}{2}}".format(lst[i], align, size)
     s += "\n"
-    return unicode(s)
+    return six.u(s)
 
 def help_usage(s=u"", compact=False):
     """
