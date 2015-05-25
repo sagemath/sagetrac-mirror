@@ -57,6 +57,9 @@ from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
+from structs cimport point_c
+from index_face_set cimport IndexFaceSet
+
 # Helper function to check that Box input is right
 def validate_frame_size(size):
     """
@@ -104,7 +107,7 @@ class Box(IndexFaceSet):
         sage: from sage.plot.plot3d.shapes import Box
 
     A square black box::
-    
+
         sage: show(Box([1,1,1]), color='black')
 
     A red rectangular box::
@@ -112,11 +115,11 @@ class Box(IndexFaceSet):
         sage: show(Box([2,3,4], color="red"))
 
     A stack of boxes::
-    
+
         sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
 
     A sinusoidal stack of multicolored boxes::
-    
+
         sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
         sage: show(B, figsize=6)
     """

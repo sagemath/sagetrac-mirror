@@ -12,7 +12,7 @@
 
 from libc.math cimport sin, cos, sqrt
 
-include "point_c.pxi"
+from structs cimport *
 
 from sage.rings.real_double import RDF
 

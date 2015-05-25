@@ -83,7 +83,7 @@ from cStringIO import StringIO
 cimport numpy as np
 import numpy as np
 
-from sage.plot.plot3d.transform cimport point_c, face_c, color_c, Transformation
+from sage.plot.plot3d.transform cimport Transformation
 from sage.plot.plot3d.base cimport PrimitiveObject
 from sage.plot.plot3d.base import RenderParams, default_texture
 from sage.plot.plot3d.index_face_set cimport IndexFaceSet
@@ -92,9 +92,11 @@ from sage.plot.misc import setup_for_eval_on_grid
 
 include 'sage/ext/cdefs.pxi'
 include 'sage/gsl/gsl.pxi'
+include "sage/ext/interrupt.pxi"
 from cpython.string cimport *
 
-include "point_c.pxi"
+from sage.ext.memory cimport sage_malloc
+from structs cimport *
 
 # The default value for plot_points (a keyword argument to implicit_plot3d()),
 # assumed when plot_points is set to "automatic".
@@ -134,8 +136,8 @@ cdef class VertexInfo:
     # The gradient at this point in "evaluation space"
     cdef point_c gradient
 
-    # (R,G,B) color ; a color triple
-    cdef color_c color
+    # texture ; contains a color triple
+    cdef texture_c texture
 
     # This point in "evaluation space"
     cdef point_c eval_pt
@@ -522,7 +524,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
                                                    cur[y+i,z+1] if z<nz-1 else 0)
                             interpolate_point_c(&v.gradient, frac, gradients)
                     if not(self.color_function is None):
-                        self.apply_color_func(&v.color, self.color_function,
+                        self.apply_color_func(&v.texture.color, self.color_function,
                                               self.colormap, v)
                     y_vertices[y,z] = v
                 else:
@@ -556,7 +558,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
                                                    cur[y,z+i+1] if z+i<nz-1 else 0)
                             interpolate_point_c(&v.gradient, frac, gradients)
                     if not(self.color_function is None):
-                        self.apply_color_func(&v.color, self.color_function,
+                        self.apply_color_func(&v.texture.color, self.color_function,
                                               self.colormap, v)
                     z_vertices[y,z] = v
                 else:
@@ -631,7 +633,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
                                                right[y,z+1] if z<nz-1 else 0)
                             interpolate_point_c(&v.gradient, frac, gradients)
                     if not(self.color_function is None):
-                        self.apply_color_func(&v.color, self.color_function,
+                        self.apply_color_func(&v.texture.color, self.color_function,
                                               self.colormap, v)
                     x_vertices[y,z] = v
                 else:
@@ -823,9 +825,9 @@ cdef class MarchingCubesTriangles(MarchingCubes):
         face = (v1_ev_pt, v2_ev_pt, v3_ev_pt)
 
         if not(self.color_function is None):
-            v1_col = v1.color
-            v2_col = v2.color
-            v3_col = v3.color
+            v1_col = v1.texture.color
+            v2_col = v2.texture.color
+            v3_col = v3.texture.color
             face += (v1_col, v2_col, v3_col)
 
         if self.smooth:
@@ -1208,8 +1210,10 @@ cdef class ImplicitSurface(IndexFaceSet):
                           src_face[j]['b'])
                          for j in range(3, 6)]
                 ct = (sum(clist[j][i] for j in range(3)) / 3 for i in range(3))
+                if dest_face.texture == NULL or dest_face.texture == self.global_texture:
+                    dest_face.texture = <texture_c *>sage_malloc(sizeof(texture_c))
                 # ct is the mean of the colors of vertices
-                dest_face.color.r, dest_face.color.g, dest_face.color.b = ct
+                dest_face.texture.color.r, dest_face.texture.color.g, dest_face.texture.color.b = ct
 
             for j from 0 <= j < 3:
                 dest_face.vertices[j] = (3 * i) + j

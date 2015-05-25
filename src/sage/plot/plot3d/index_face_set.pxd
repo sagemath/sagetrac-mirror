@@ -1,10 +1,10 @@
 from sage.plot.plot3d.base cimport PrimitiveObject
 
-from transform cimport point_c, face_c, color_c
+from structs cimport *
 
 cdef class IndexFaceSet(PrimitiveObject):
     cdef bint enclosed
-    cdef bint global_texture
+    cdef texture_c *global_texture
     cdef Py_ssize_t vcount, fcount, icount
     cdef realloc(self, vcount, fcount, icount)
     # array of {x,y,z}
