@@ -59,7 +59,7 @@ class BadShapeTableaux(AbstractTableaux):
             except:
                 raise ValueError('keys must be pairs of integers')
 
-        return self.element_class(self, dct)
+        return self._new_element(dct)
 
     def _repr_(self):
         r"""

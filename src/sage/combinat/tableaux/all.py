@@ -1,5 +1,9 @@
 r"""
 Tableaux features that are imported by default in the interpreter namespace
 """
-from abstract_tableaux import BadShapeTableaux, SkewTableaux
-from abstract_tableau  import BadShapeTableau,  SkewTableau
+from abstract_tableaux  import AbstractTableaux
+from abstract_tableau   import AbstractTableau
+from bad_shape_tableaux import BadShapeTableaux
+from bad_shape_tableau  import BadShapeTableau
+from skew_tableaux      import SkewTableaux     as SSkewTableaux # change back
+from skew_tableau       import SkewTableau      as SSkewTableau

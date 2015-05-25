@@ -24,7 +24,6 @@ AUTHORS:
 #*****************************************************************************
 
 import six
-from copy import deepcopy
 from collections import defaultdict
 
 from sage.combinat.tableaux.abstract_tableau import AbstractTableau
@@ -46,7 +45,7 @@ class BadShapeTableau(AbstractTableau):
     tableaux of shapes `()/()` and `(1)/(1)` are equal when
     regarded as tableaux of bad shape.)
     """
-    _generic_parent = BadShapeTableau._gp(
+    _generic_parent = AbstractTableau._gp(
                       'sage.combinat.tableaux.bad_shape_tableaux',
                       'BadShapeTableaux')
 
@@ -56,12 +55,10 @@ class BadShapeTableau(AbstractTableau):
 
         INPUT:
 
-        - ``dct`` -- a dictionary (or more generally something
-          passable to ``dict``) whose keys are pairs of integers
+        - ``dct`` -- a dictionary whose keys are pairs of integers
         """
-        self._dict = deepcopy(dict(dct))
-
-        AbstractTableau.__init__(self, parent)
+        self._parent = parent
+        self._dict = dict(dct)
 
     def _dict_unsafe(self):
         r"""

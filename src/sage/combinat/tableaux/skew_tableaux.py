@@ -84,7 +84,7 @@ class SkewTableaux(BadShapeTableaux):
                 # TODO: make sure None's are contiguous and left-justified;
                 # make sure shape is a skew tableau
 
-            return self.element_class(self, skp)
+            return self._new_element(skp)
         
         if expr is not None:
             return self.from_expr(expr, check)
@@ -96,7 +96,7 @@ class SkewTableaux(BadShapeTableaux):
         if dct is not None:
             return self.from_dict(dct, check)
 
-        return self.element_class(self, [[]])
+        return self._new_element([[]])
 
     def from_expr(self, expr, check=True):
         r"""
@@ -124,7 +124,7 @@ class SkewTableaux(BadShapeTableaux):
         for i in range(len(outer)):
             skp.append( [None]*(inner[i]) + outer[-(i+1)] )
 
-        return self.element_class(self, skp)
+        return self._new_element(skp)
 
     def from_shape_and_word(self, shape, word, check=True):
         r"""
@@ -150,7 +150,7 @@ class SkewTableaux(BadShapeTableaux):
                     skp[i][j] = word[w_count]
                     w_count += 1
 
-        return self.element_class(self, skp)
+        return self._new_element(skp)
     
     def from_dict(self, dct, check=True):
         r"""
@@ -182,7 +182,7 @@ class SkewTableaux(BadShapeTableaux):
                 tmp[col_index - min_col_index] = value
             skp.append(tmp)
         
-        return self.element_class(self, skp)
+        return self._new_element(skp)
 
     def _repr_(self):
         r"""

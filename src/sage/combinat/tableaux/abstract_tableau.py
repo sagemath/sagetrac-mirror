@@ -53,31 +53,44 @@ class AbstractTableau(Element):
     __metaclass__ = ClasscallMetaclass
 
     # "Default" parent class. See __classcall__.
-    _generic_parent = AbstractTableau._gp(
+    _generic_parent = LazyImport(
                       'sage.combinat.tableaux.abstract_tableaux',
                       'AbstractTableaux')
 
-    @static_method
+    def __init__(self, parent, *args, **kwds):
+        r"""
+        Initialize the AbstractTableau.
+
+        Input validation should be done in parent classes, likely in
+        their ``_element_constructor_`` method or coercions.
+        Element class initialization should be quite minimal.
+
+        We need to either call Element's __init__ method or
+        set _parent by hand.
+        """
+        self._parent = parent
+
+    @staticmethod
     def _gp(m, c):
         r"""
         Lazily import a parent class by name.
 
         Allows separating element and parent class files while also
-        using __classcall_private__ shortcuts on element classes
+        using __classcall__ shortcuts on element classes
         without circular references. One could simply call LazyImport
-        directly, but this way allows child classes to ignore more
-        details.
+        directly in subclasses, but this way allows subclasses to
+        ignore more details.
         """
         return LazyImport(m, c)
 
     @staticmethod
-    def __classcall_private__(cls, *args, **kwds):
+    def __classcall__(cls, *args, **kwds):
         r"""
         Provide shortcut syntax like ``Tableau([[1, 2], [3]])`` for
         ``Tableaux()([[1, 2], [3]])``.
 
         Input validation should be done in parent classes, likely in
-        their own ``_element_constructor_`` methods or coercions.
+        their ``_element_constructor_`` method or coercions.
         Element class initialization should be quite minimal.
 
         Inherited by child classes, unlike ``__classcall_private__``.

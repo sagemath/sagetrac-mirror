@@ -32,6 +32,7 @@ CLASSES:
 #*****************************************************************************
 
 import six
+from sage.misc.cachefunc import cached_method
 
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
 
@@ -48,7 +49,9 @@ class SkewTableau(BadShapeTableau):
     Cell locations are pairs of non-negative integers, though values are
     unrestricted. Cells must form a skew shape.
     """
-    _generic_parent = parent_class('SkewTableaux')
+    _generic_parent = BadShapeTableau._gp(
+                      'sage.combinat.tableaux.skew_tableaux',
+                      'SkewTableaux')
 
     def __init__(self, parent, skp):
         """
@@ -71,13 +74,13 @@ class SkewTableau(BadShapeTableau):
             ...
             TypeError: 'tuple' object does not support item assignment
         """
+        self._parent = parent
+
         try:
             skp = tuple(tuple(row) for row in skp)
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
         self._skp = skp
-
-        AbstractTableau.__init__(self, parent)
 
     @cached_method
     def _dict_unsafe(self):

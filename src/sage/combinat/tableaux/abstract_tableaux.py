@@ -56,20 +56,16 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         """
         return "Abstract Tableaux"
 
-    def _element_constructor_(self, t):
+    def _element_constructor_(self, *args, **kwds):
         r"""
-        Constructs an object from ``t`` as an element of ``self``,
+        Constructs an object from as an element of ``self``,
         if possible. Input validation and normalization should be done here.
-
-        INPUT:
-
-        - ``t`` -- Data which can be interpreted as a tableau
 
         OUTPUT:
 
         - The corresponding tableau object
         """
-        if not t in self:
-            raise ValueError("%s is not an element of %s."%(t, self))
+        return self._new_element(*args, **kwds)
 
-        return self.element_class(self, t)
+    def _new_element(self, *args, **kwds):
+        return type.__call__(self.element_class, self, *args, **kwds)

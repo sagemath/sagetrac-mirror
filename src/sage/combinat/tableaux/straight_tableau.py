@@ -41,8 +41,10 @@ import six
 
 from sage.combinat.tableaux.skew_tableau import SkewTableau
 
-class StraightTableau(SkewTableau):
-    _generic_parent = parent_class('StraightTableaux')
+class Tableau(SkewTableau):
+    _generic_parent = SkewTableau._gp(
+                      'sage.combinat.tableaux.straight_tableaux',
+                      'Tableaux')
 
     def __init__(self, parent, l=[], dictionary=[], check=False):
         SkewTableau.__init__(self, parent, l, dictionary, check)
