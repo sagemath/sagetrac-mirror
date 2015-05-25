@@ -68,6 +68,8 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
 
+from renderers.jmol import JMOLRenderer
+
 
 # --------------------------------------------------------------------
 # Fast routines for generating string representations of the polygons.
@@ -942,7 +944,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                       for i from 0 <= i < self.vcount]
         else:
             points = []
-            for i from 0 <= i < self.vcount:
+            for i in range(self.vcount):
                 transform.transform_point_c(&res, self.vs[i])
                 PyList_Append(points, format_pmesh_vertex(res))
 
@@ -957,7 +959,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         # If a face has more than 4 vertices, it gets chopped up in
         # format_pmesh_face
         cdef Py_ssize_t extra_faces = 0
-        for i from 0 <= i < self.fcount:
+        for i in range(self.fcount):
             if self._faces[i].n >= 5:
                 extra_faces += self._faces[i].n-3
 
@@ -994,6 +996,8 @@ cdef class IndexFaceSet(PrimitiveObject):
         if render_params.dots:
             s += '\npmesh %s dots\n' % name
         return [s]
+
+
 
     def dual(self, **kwds):
         """

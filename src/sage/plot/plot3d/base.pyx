@@ -52,6 +52,8 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
+from renderers.jmol import JMOLRenderer
+
 # import the double infinity constant
 cdef extern from "math.h":
      enum: INFINITY
@@ -133,7 +135,8 @@ cdef class Graphics3d(SageObject):
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            return self._rich_repr_jmol(**opts)
+            rrr = JMOLRenderer()
+            return rrr.rich_repr_graphics3d(self, **opts)
         elif viewer == 'tachyon':
             preferred = (
                 types.OutputImagePng,
@@ -206,64 +209,6 @@ cdef class Graphics3d(SageObject):
         else:
             raise ValueError('output_container not supported')
         return output_container(buf)
-
-    def _rich_repr_jmol(self, **kwds):
-        """
-        Rich Representation as JMol scene
-
-        INPUT:
-
-        Optional keyword arguments are passed to JMol.
-
-        OUTPUT:
-
-        Instance of
-        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneJmol`.
-
-        EXAMPLES::
-
-            sage: sphere()._rich_repr_jmol()
-            OutputSceneJmol container
-        """
-        from sage.misc.temporary_file import tmp_dir
-        root_dir = os.path.abspath(tmp_dir())
-        scene_zip     = os.path.join(root_dir, 'scene.spt.zip')
-        preview_png   = os.path.join(root_dir, 'preview.png')
-        opts = self._process_viewing_options(kwds)
-        zoom = opts['zoom']
-        T = self._prepare_for_jmol(
-            opts['frame'],
-            opts['axes'],
-            opts['frame_aspect_ratio'],
-            opts['aspect_ratio'],
-            zoom,
-        )
-        T.export_jmol(scene_zip, **opts)
-        from sage.interfaces.jmoldata import JmolData
-        jdata = JmolData()
-        if not jdata.is_jvm_available():
-            # We can only use JMol to generate preview if a jvm is installed
-            from sage.repl.rich_output.output_graphics import OutputImagePng
-            tachyon = self._rich_repr_tachyon(OutputImagePng, **opts)
-            tachyon.png.save_as(preview_png)
-        else:
-            # Java needs absolute paths
-            # On cygwin, they should be native ones
-            scene_native = scene_zip
-            import sys
-            if sys.platform == 'cygwin':
-                from subprocess import check_output, STDOUT
-                scene_native = check_output(['cygpath', '-w', scene_native],
-                                            stderr=STDOUT).rstrip()
-            script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
-            jdata.export_image(targetfile=preview_png, datafile=script,
-                               image_type="PNG",
-                               figsize=opts['figsize'][0])
-        from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
-        from sage.repl.rich_output.buffer import OutputBuffer
-        scene_zip     = OutputBuffer.from_file(scene_zip)
-        preview_png   = OutputBuffer.from_file(preview_png)
-        return OutputSceneJmol(scene_zip, preview_png)
 
     def _rich_repr_wavefront(self, **kwds):
         r"""
@@ -1398,7 +1343,8 @@ end_scene""" % (render_params.antialiasing,
             render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            scene = self._rich_repr_jmol(**opts)
+            rrr = JMOLRenderer()
+            scene = rrr.rich_repr_graphics3d(self, **opts)
             scene.preview_png.save_as(filename)
         else:
             raise ValueError('cannot use viewer={0} to render image'.format(viewer))

@@ -2,6 +2,7 @@
 class Graphics3dRenderer(object):
 
     def render_3d_group(self, obj):
+        pass
 
     def render_sphere(self, obj):
         """
