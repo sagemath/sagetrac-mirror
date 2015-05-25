@@ -274,6 +274,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         # nmp.s=2
 
 
+        _param = <GFInfo *>omAlloc(sizeof(GFInfo))
+            
         _param.GFChar     = characteristic
         _param.GFDegree   = base_ring.degree()
         
@@ -301,15 +303,17 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             print  " creating IntegerModRing : char is power of 2"
             exponent = ch.nbits() -1
             
-            assert( exponent == base_ring.degree() )
+            #assert( exponent == base_ring.degree() )
 
             cexponent = exponent
+
+            _param = <GFInfo *>omAlloc(sizeof(GFInfo))
             
             _param.GFChar     = ch;
             _param.GFDegree   = base_ring.degree();
             _param.GFPar_name = omStrDup(base_ring.gen());   
         
-            if is_64_bit:
+            if sizeof(long) > 4:
             
                 # it seems Singular uses ints somewhere
                 # internally, cf. #6051 (Sage) and #138 (Singular)
