@@ -449,6 +449,20 @@ cdef class Matrix(matrix0.Matrix):
             sage: matrix(ZZ, 50, 50, {(9,17):1})._sage_input_(SageInputBuilder(), False)
             {call: {atomic:matrix}({atomic:ZZ}, {atomic:50}, {atomic:50}, {dict: {{atomic:(9,17)}:{atomic:1}}})}
 
+        If a matrix has subdivisions, the expression for input will
+        create a matrix with those same subdivisions.  ::
+
+            sage: A = matrix(3, 4, range(12))
+            sage: A.subdivide([1], [1,2])
+            sage: sage_input(A)
+            matrix(ZZ, [[0, 1, 2, 3], [4, 5, 6, 7],
+              [8, 9, 10, 11]]).subdivide([1], [1, 2], copy=True)
+            sage: B = A.sparse_matrix()
+            sage: sage_input(B)
+            matrix(ZZ, 3, 4, {(0,1):1, (0,2):2, (0,3):3, (1,0):4,
+              (1,1):5, (1,2):6, (1,3):7, (2,0):8, (2,1):9, (2,2):10,
+              (2,3):11}).subdivide([1], [1, 2], copy=True)
+
         TESTS::
 
             sage: sage_input(matrix(RR, 0, 3, []), verify=True)
@@ -460,24 +474,41 @@ cdef class Matrix(matrix0.Matrix):
             sage: sage_input(matrix(RR, 0, 0, []), verify=True)
             # Verified
             matrix(RR, 0, 0)
+
+        We verify that subdivision construction is correct. ::
+
+            sage: A = matrix(3, 4, range(12))
+            sage: A.subdivide([1], [1,2])
+            sage: sage_input(A, verify=True)
+            # Verified
+            matrix(ZZ, [[0, 1, 2, 3], [4, 5, 6, 7],
+              [8, 9, 10, 11]]).subdivide([1], [1, 2], copy=True)
         """
+        from sage.rings.integer_ring import ZZ
         if self.is_sparse():
             entries = list(self.dict().items())
             entries.sort()
             # We hand-format the keys to get rid of the space that would
             # normally follow the comma
             entries = [(sib.name('(%d,%d)'%k), sib(v, 2)) for k,v in entries]
-            return sib.name('matrix')(self.base_ring(),
+            mat = sib.name('matrix')(self.base_ring(),
                                       sib.int(self.nrows()),
                                       sib.int(self.ncols()),
                                       sib.dict(entries))
         elif self.nrows() == 0 or self.ncols() == 0:
-            return sib.name('matrix')(self.base_ring(),
+            mat = sib.name('matrix')(self.base_ring(),
                                       sib.int(self.nrows()),
                                       sib.int(self.ncols()))
         else:
             entries = [[sib(v, 2) for v in row] for row in self.rows()]
-            return sib.name('matrix')(self.base_ring(), entries)
+            mat = sib.name('matrix')(self.base_ring(), entries)
+        if not self._subdivisions:
+            return mat
+        else:
+            rows, cols = self.subdivisions()
+            rows = sib(map(ZZ, rows))
+            cols = sib(map(ZZ, cols))
+            return sib(mat.subdivide(rows, cols, copy=True))
 
 
     def numpy(self, dtype=None):
