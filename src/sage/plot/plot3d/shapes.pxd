@@ -1,5 +1,4 @@
 from base cimport PrimitiveObject
-from index_face_set cimport IndexFaceSet, point_c, face_c
 from parametric_surface cimport ParametricSurface
 
 

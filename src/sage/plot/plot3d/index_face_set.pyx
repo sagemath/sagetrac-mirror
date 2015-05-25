@@ -32,7 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
+from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free, sage_malloc
 
 cdef extern from *:
     void memset(void *, int, Py_ssize_t)
@@ -51,9 +51,6 @@ cdef extern from "math.h":
 
 from cpython.list cimport *
 from cpython.string cimport *
-
-include "point_c.pxi"
-
 
 from math import sin, cos, sqrt
 from random import randint
@@ -143,9 +140,9 @@ cdef inline format_pmesh_face(face_c face, int has_color):
     # if the face has an individual color, has_color is -1
     # otherwise it is 1
     if has_color == -1:
-        color = float_to_integer(face.color.r,
-                                 face.color.g,
-                                 face.color.b)
+        color = float_to_integer(face.texture.color.r,
+                                 face.texture.color.g,
+                                 face.texture.color.b)
         # it seems that Jmol does not like the 0 color at all
         if color == 0:
             color = 1
@@ -263,11 +260,13 @@ cdef class IndexFaceSet(PrimitiveObject):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL
+
     def __init__(self, faces, point_list=None,
                  enclosed=False, texture_list=None, **kwds):
         PrimitiveObject.__init__(self, **kwds)
 
-        self.global_texture = (texture_list is None)
+        if texture_list is None and self.global_texture == NULL:
+            self.global_texture = <texture_c *>sage_malloc(sizeof(texture_c))
 
         self.enclosed = enclosed
 
@@ -306,10 +305,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         for i from 0 <= i < self.fcount:
             self._faces[i].n = len(faces[i])
             self._faces[i].vertices = &self.face_indices[cur_pt]
-            if self.global_texture:
-                self._faces[i].color.r, self._faces[i].color.g, self._faces[i].color.b = self.texture.color
+            if self.global_texture == NULL:
+                self._faces[i].texture = <texture_c *>sage_malloc(sizeof(texture_c))
+                self._faces[i].texture.color.r, self._faces[i].texture.color.g, self._faces[i].texture.color.b = texture_list[i].color
             else:
-                self._faces[i].color.r, self._faces[i].color.g, self._faces[i].color.b = texture_list[i].color
+                self._faces[i].texture = self.global_texture
             for ix in faces[i]:
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1
@@ -477,6 +477,13 @@ cdef class IndexFaceSet(PrimitiveObject):
         return self.vcount, self.fcount, self.icount
 
     def __dealloc__(self):
+        cdef int i
+        if self.global_texture != NULL:
+            sage_free(self.global_texture)
+        for i in range(self.fcount):
+            if self._faces[i].texture == NULL:
+                continue
+            sage_free(self._faces[i].texture)
         sage_free(self.vs)
         sage_free(self._faces)
         sage_free(self.face_indices)
@@ -648,10 +655,10 @@ cdef class IndexFaceSet(PrimitiveObject):
         coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
                                             for j from 0 <= j < self._faces[i].n])
                                   for i from 0 <= i < self.fcount])
-        if not self.global_texture:
-            colorIndex = ",".join([str(self._faces[i].color.r) + " "
-                                   + str(self._faces[i].color.g) + " "
-                                   + str(self._faces[i].color.b)
+        if self.global_texture == NULL:
+            colorIndex = ",".join([str(self._faces[i].texture.color.r) + " "
+                                   + str(self._faces[i].texture.color.g) + " "
+                                   + str(self._faces[i].texture.color.b)
                                    for i from 0 <= i < self.fcount])
             return """
 <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='%s,-1'>
@@ -806,10 +813,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                 Q = self.vs[face.vertices[1]]
                 R = self.vs[face.vertices[2]]
             PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-            if self.global_texture:
-                PyList_Append(lines, self.texture.id)
+            if self.global_texture == NULL:
+                lines.append(format_tachyon_texture(face.texture.color))
             else:
-                PyList_Append(lines, format_tachyon_texture(face.color))
+                lines.append(self.texture.id)
             if face.n > 3:
                 for k from 3 <= k < face.n:
                     Q = R
@@ -818,10 +825,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                     else:
                         R = self.vs[face.vertices[k]]
                     PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-                    if self.global_texture:
-                        PyList_Append(lines, self.texture.id)
+                    if self.global_texture == NULL:
+                        lines.append(format_tachyon_texture(face.texture.color))
                     else:
-                        PyList_Append(lines, format_tachyon_texture(face.color))
+                        lines.append(self.texture.id)
         sig_off()
 
         return lines
@@ -868,17 +875,17 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
                                             for i from 0 <= i < self.fcount]))
-        if self.global_texture:
-            color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{vertices:%s,faces:%s,color:%s}" %
-                    (vertices_str, faces_str, color_str)]
-        else:
+        if self.global_texture == NULL:
             color_str = "[{}]".format(",".join(["'{}'".format(
-                    Color(self._faces[i].color.r,
-                          self._faces[i].color.g,
-                          self._faces[i].color.b).html_color())
+                    Color(self._faces[i].texture.color.r,
+                          self._faces[i].texture.color.g,
+                          self._faces[i].texture.color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
             return ["{vertices:%s,faces:%s,face_colors:%s}" %
+                    (vertices_str, faces_str, color_str)]
+        else:
+            color_str = "'#{}'".format(self.texture.hex_rgb())
+            return ["{vertices:%s,faces:%s,color:%s}" %
                     (vertices_str, faces_str, color_str)]
 
     def obj_repr(self, render_params):
@@ -947,11 +954,11 @@ cdef class IndexFaceSet(PrimitiveObject):
                 PyList_Append(points, format_pmesh_vertex(res))
 
         # activation of coloring in jmol
-        if self.global_texture:
-            faces = [format_pmesh_face(self._faces[i], 1)
+        if self.global_texture == NULL:
+            faces = [format_pmesh_face(self._faces[i], -1)
                      for i from 0 <= i < self.fcount]
         else:
-            faces = [format_pmesh_face(self._faces[i], -1)
+            faces = [format_pmesh_face(self._faces[i], 1)
                      for i from 0 <= i < self.fcount]
 
         # If a face has more than 4 vertices, it gets chopped up in
@@ -982,11 +989,11 @@ cdef class IndexFaceSet(PrimitiveObject):
                 f.write('\n')
             f.close()
 
-        if self.global_texture:
+        if self.global_texture == NULL:
+            s = 'pmesh {} "{}"'.format(name, filename)
+        else:
             s = 'pmesh {} "{}"\n{}'.format(name, filename,
                                            self.texture.jmol_str("pmesh"))
-        else:
-            s = 'pmesh {} "{}"'.format(name, filename)            
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:

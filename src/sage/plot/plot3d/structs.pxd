@@ -1,27 +1,24 @@
-#*****************************************************************************
-#      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-
-# Utility functions for operating on the point_c struct.
-# These would be macros, but inline functions should do the same job.
-
-
 cdef extern from "math.h":
     double stdmath_sqrt "sqrt" (double)
     int isfinite(double x)
 
+cdef struct point_c:
+    double x
+    double y
+    double z
+
+cdef struct color_c:
+    double r
+    double g
+    double b
+
+cdef struct texture_c:
+    color_c color
+
+cdef struct face_c:
+    int n
+    int *vertices
+    texture_c *texture
 
 cdef inline bint point_c_set(point_c* res, P) except -2:
     res.x, res.y, res.z = P[0], P[1], P[2]
@@ -141,4 +138,3 @@ cdef inline double sin_face_angle(face_c F, face_c E, point_c* vlist):
     face_c_normal(&nE, E, vlist)
     cdef double dot = point_c_dot(nF, nE)
     return stdmath_sqrt(1-(dot*dot)/(point_c_dot(nF, nF)*point_c_dot(nE, nE)))
-

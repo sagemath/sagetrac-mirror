@@ -47,8 +47,8 @@ from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 from sage.misc.temporary_file import tmp_filename
 from texture import Texture, is_Texture
-from transform cimport Transformation, point_c, face_c
-include "point_c.pxi"
+from transform cimport Transformation, point_c
+from structs cimport point_c, point_c_update_finite_upper_bound, point_c_update_finite_lower_bound
 
 from sage.interfaces.tachyon import tachyon_rt
 

@@ -84,7 +84,7 @@ Another colored example::
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
-include "point_c.pxi"
+from structs cimport point_c, face_c, texture_c, point_c_eq
 
 from math import cos, sin
 from sage.rings.all import RDF
@@ -440,7 +440,8 @@ cdef class ParametricSurface(IndexFaceSet):
                 face.n = 4
                 face.vertices = &self.face_indices[4*ix]
                 if self.color_function is not None:
-                    face.color.r, face.color.g, face.color.b, _ = self.colormap(self.color_function(urange[i], vrange[j]))
+                    face.texture = <texture_c *>sage_malloc(sizeof(texture_c))
+                    face.texture.color.r, face.texture.color.g, face.texture.color.b, _ = self.colormap(self.color_function(urange[i], vrange[j]))
 
                 # Connect to the i-1 row
                 if i == 0:
@@ -693,7 +694,7 @@ class MobiusStrip(ParametricSurface):
 
         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
         sage: M = MobiusStrip(3,3)
-        sage: M.show() 
+        sage: M.show()
     """
 
     def __init__(self, r, width, twists=1, **kwds):
