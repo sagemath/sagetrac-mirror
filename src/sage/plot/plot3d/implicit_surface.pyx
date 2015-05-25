@@ -1042,6 +1042,11 @@ cdef class ImplicitSurface(IndexFaceSet):
             my_plot_points.append(n)
         self.plot_points = tuple(my_plot_points)
 
+
+        # just do the triangulation in init
+        self.triangulate()
+
+
     def bounding_box(self):
         """
         Return a bounding box for the ``ImplicitSurface``, as a tuple of two
@@ -1059,92 +1064,92 @@ cdef class ImplicitSurface(IndexFaceSet):
         return ((self.xrange[0], self.yrange[0], self.zrange[0]),
                 (self.xrange[1], self.yrange[1], self.zrange[1]))
 
-    def obj_repr(self, render_params):
-        """
-        Return a representation of this object in the .obj format.
+    # def obj_repr(self, render_params):
+    #     """
+    #     Return a representation of this object in the .obj format.
 
-        TESTS:
+    #     TESTS:
 
-        We graph a simple plane::
+    #     We graph a simple plane::
 
-            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: obj = G.obj_repr(G.default_render_params())
-            sage: vertices = obj[2]
+    #         sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+    #         sage: var('x,y,z')
+    #         (x, y, z)
+    #         sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+    #         sage: obj = G.obj_repr(G.default_render_params())
+    #         sage: vertices = obj[2]
 
-        The number of vertices in the OBJ representation should equal the number
-        of vertices in the face set::
+    #     The number of vertices in the OBJ representation should equal the number
+    #     of vertices in the face set::
 
-            sage: len(vertices) == len(G.vertex_list())
-            True
+    #         sage: len(vertices) == len(G.vertex_list())
+    #         True
 
-        The vertices in the OBJ representation should also be approximately equal
-        to the vertices in the face set -- the small error is due to rounding
-        which occurs during output (we test only the first 20 points for the
-        sake of speed)::
+    #     The vertices in the OBJ representation should also be approximately equal
+    #     to the vertices in the face set -- the small error is due to rounding
+    #     which occurs during output (we test only the first 20 points for the
+    #     sake of speed)::
 
-            sage: def points_equal(a, b, epsilon=(1e-5)):
-            ....:     return all(abs(x0-x1) < epsilon for x0, x1 in zip(a, b))
-            sage: list = []
-            sage: assert len(vertices) >= 20 # I should hope so, we're rendering at the default resolution!
-            sage: for vertex, surf_vertex in zip(vertices, G.vertex_list())[0:20]:
-            ....:     list.append(points_equal(map(float, vertex.split(' ')[1:]), surf_vertex))
-            sage: all(list)
-            True
-        """
-        self.triangulate()
-        return IndexFaceSet.obj_repr(self, render_params)
+    #         sage: def points_equal(a, b, epsilon=(1e-5)):
+    #         ....:     return all(abs(x0-x1) < epsilon for x0, x1 in zip(a, b))
+    #         sage: list = []
+    #         sage: assert len(vertices) >= 20 # I should hope so, we're rendering at the default resolution!
+    #         sage: for vertex, surf_vertex in zip(vertices, G.vertex_list())[0:20]:
+    #         ....:     list.append(points_equal(map(float, vertex.split(' ')[1:]), surf_vertex))
+    #         sage: all(list)
+    #         True
+    #     """
+    #     self.triangulate()
+    #     return IndexFaceSet.obj_repr(self, render_params)
 
-    def tachyon_repr(self, render_params):
-        """
-        Return a representation of this object suitable for use with the Tachyon
-        renderer.
+    # def tachyon_repr(self, render_params):
+    #     """
+    #     Return a representation of this object suitable for use with the Tachyon
+    #     renderer.
 
-        TESTS::
+    #     TESTS::
 
-            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: G.tachyon_repr(G.default_render_params())[0].startswith('TRI')
-            True
-        """
-        self.triangulate()
-        return IndexFaceSet.tachyon_repr(self, render_params)
+    #         sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+    #         sage: var('x,y,z')
+    #         (x, y, z)
+    #         sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+    #         sage: G.tachyon_repr(G.default_render_params())[0].startswith('TRI')
+    #         True
+    #     """
+    #     self.triangulate()
+    #     return IndexFaceSet.tachyon_repr(self, render_params)
 
-    def jmol_repr(self, render_params):
-        """
-        Return a representation of this object suitable for use with the Jmol
-        renderer.
+    # def jmol_repr(self, render_params):
+    #     """
+    #     Return a representation of this object suitable for use with the Jmol
+    #     renderer.
 
-        TESTS::
+    #     TESTS::
 
-            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: show(G, viewer='jmol')   # indirect doctest
-        """
-        self.triangulate()
-        return IndexFaceSet.jmol_repr(self, render_params)
+    #         sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+    #         sage: var('x,y,z')
+    #         (x, y, z)
+    #         sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+    #         sage: show(G, viewer='jmol')   # indirect doctest
+    #     """
+    #     self.triangulate()
+    #     return IndexFaceSet.jmol_repr(self, render_params)
 
-    def json_repr(self, render_params):
-        """
-        Return a representation of this object in JavaScript Object Notation (JSON).
+    # def json_repr(self, render_params):
+    #     """
+    #     Return a representation of this object in JavaScript Object Notation (JSON).
 
-        TESTS::
+    #     TESTS::
 
-            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: G.json_repr(G.default_render_params())[0].startswith('{vertices:')
-            True
-        """
-        self.triangulate()
-        return IndexFaceSet.json_repr(self, render_params)
+    #         sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+    #         sage: var('x,y,z')
+    #         (x, y, z)
+    #         sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+    #         sage: G.json_repr(G.default_render_params())[0].startswith('{vertices:')
+    #         True
+    #     """
+    #     self.triangulate()
+    #     return IndexFaceSet.json_repr(self, render_params)
 
     def triangulate(self, force=False):
         """

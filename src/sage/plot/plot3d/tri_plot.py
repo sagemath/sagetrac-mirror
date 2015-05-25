@@ -277,6 +277,12 @@ class TrianglePlot(IndexFaceSet):
 
         self._fcn = fcn
 
+        self.triangulate()
+
+        IndexFaceSet.__init__(self, faces=self._faces, gradients=self._gradients)
+
+
+    def triangulate():
 
         # generate the necessary data to kick-start the recursion
         mid_x = (min_x + max_x)/2
@@ -299,8 +305,6 @@ class TrianglePlot(IndexFaceSet):
         self._to_face_list(outer.right, outer.right_c)
         self._to_face_list(outer.bottom, outer.bottom_c)
             
-        IndexFaceSet.__init__(self, faces=self._faces, gradients=self._gradients)
-
         zrange = self._max - self._min
         if num_colors is not None and zrange != 0:
             colors = triangle_factory.get_colors([hue(float(i/num_colors)) for i in range(num_colors)])

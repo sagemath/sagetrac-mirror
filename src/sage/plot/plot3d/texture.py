@@ -416,3 +416,5 @@ class Texture_class(SageObject):
         return "color %s %s [%s,%s,%s]" % (obj, translucent,
                 int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
 
+
+

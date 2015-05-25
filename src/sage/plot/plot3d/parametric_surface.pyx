@@ -195,6 +195,13 @@ cdef class ParametricSurface(IndexFaceSet):
             self.colormap = color_data[1]
             IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
 
+        # just do the triangulation in init
+        try:
+            render_params = RenderParams(**kwds['render_params'])
+        except KeyError:
+            render_params = self.default_render_params()
+        self.triangulate(render_params)
+
     def default_render_params(self):
         """
         Return an instance of RenderParams suitable for plotting this object.
@@ -207,87 +214,87 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         return RenderParams(ds=.075, crease_threshold=.35)
 
-    def x3d_geometry(self):
-        r"""
-        Return XML-like representation of the coordinates of all points
-        in a triangulation of the object along with an indexing of those
-        points.
+    # def x3d_geometry(self):
+    #     r"""
+    #     Return XML-like representation of the coordinates of all points
+    #     in a triangulation of the object along with an indexing of those
+    #     points.
 
-        TESTS::
+    #     TESTS::
 
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.x3d_str()    # indirect doctest
-            sage: s[:100]
-            "<Shape>\n<IndexedFaceSet coordIndex='0,1,..."
-        """
-        self.triangulate(self.default_render_params())
-        return IndexFaceSet.x3d_geometry(self)
+    #         sage: _ = var('x,y')
+    #         sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+    #         sage: s = P.x3d_str()    # indirect doctest
+    #         sage: s[:100]
+    #         "<Shape>\n<IndexedFaceSet coordIndex='0,1,..."
+    #     """
+    #     self.triangulate(self.default_render_params())
+    #     return IndexFaceSet.x3d_geometry(self)
 
-    def tachyon_repr(self, render_params):
-        """
-        Return representation of the object suitable for plotting
-        using Tachyon ray tracer.
+    # def tachyon_repr(self, render_params):
+    #     """
+    #     Return representation of the object suitable for plotting
+    #     using Tachyon ray tracer.
 
-        TESTS::
+    #     TESTS::
 
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.tachyon_repr(P.default_render_params())
-            sage: s[:2]
-            ['TRI V0 -2 -2 0 V1 -2 -1.89744 0.399737 V2 -1.89744 -1.89744 0', 'texture...']
-        """
-        self.triangulate(render_params)
-        return IndexFaceSet.tachyon_repr(self, render_params)
+    #         sage: _ = var('x,y')
+    #         sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+    #         sage: s = P.tachyon_repr(P.default_render_params())
+    #         sage: s[:2]
+    #         ['TRI V0 -2 -2 0 V1 -2 -1.89744 0.399737 V2 -1.89744 -1.89744 0', 'texture...']
+    #     """
+    #     self.triangulate(render_params)
+    #     return IndexFaceSet.tachyon_repr(self, render_params)
 
-    def obj_repr(self, render_params):
-        """
-        Return a complete representation of object with name, texture, and
-        lists of vertices, faces, and back-faces.
+    # def obj_repr(self, render_params):
+    #     """
+    #     Return a complete representation of object with name, texture, and
+    #     lists of vertices, faces, and back-faces.
 
-        TESTS::
+    #     TESTS::
 
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.obj_repr(P.default_render_params())
-            sage: s[:2]+s[2][:3]+s[3][:3]
-            ['g obj_1', 'usemtl texture...', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
-        """
-        self.triangulate(render_params)
-        return IndexFaceSet.obj_repr(self, render_params)
+    #         sage: _ = var('x,y')
+    #         sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+    #         sage: s = P.obj_repr(P.default_render_params())
+    #         sage: s[:2]+s[2][:3]+s[3][:3]
+    #         ['g obj_1', 'usemtl texture...', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
+    #     """
+    #     self.triangulate(render_params)
+    #     return IndexFaceSet.obj_repr(self, render_params)
 
-    def jmol_repr(self, render_params):
-        r"""
-        Return a representation of the object suitable for plotting
-        using Jmol.
+    # def jmol_repr(self, render_params):
+    #     r"""
+    #     Return a representation of the object suitable for plotting
+    #     using Jmol.
 
-        TESTS::
+    #     TESTS::
 
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.jmol_repr(P.testing_render_params())
-            sage: s[:10]
-            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
-        """
-        self.triangulate(render_params)
-        return IndexFaceSet.jmol_repr(self, render_params)
+    #         sage: _ = var('x,y')
+    #         sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+    #         sage: s = P.jmol_repr(P.testing_render_params())
+    #         sage: s[:10]
+    #         ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+    #     """
+    #     self.triangulate(render_params)
+    #     return IndexFaceSet.jmol_repr(self, render_params)
 
-    def json_repr(self, render_params):
-        """
-        Return a representation of the object in JSON format as
-        a list with one element, which is a string of a dictionary
-        listing vertices, faces and colors.
+    # def json_repr(self, render_params):
+    #     """
+    #     Return a representation of the object in JSON format as
+    #     a list with one element, which is a string of a dictionary
+    #     listing vertices, faces and colors.
 
-        TESTS::
+    #     TESTS::
 
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.json_repr(P.default_render_params())
-            sage: s[0][:100]
-            '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
-        """
-        self.triangulate(render_params)
-        return IndexFaceSet.json_repr(self, render_params)
+    #         sage: _ = var('x,y')
+    #         sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+    #         sage: s = P.json_repr(P.default_render_params())
+    #         sage: s[0][:100]
+    #         '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
+    #     """
+    #     self.triangulate(render_params)
+    #     return IndexFaceSet.json_repr(self, render_params)
 
     def is_enclosed(self):
         """
@@ -352,30 +359,30 @@ cdef class ParametricSurface(IndexFaceSet):
             raise NotImplementedError("This is only implemented for enclosed surfaces")
         return IndexFaceSet.dual(self)
 
-    def bounding_box(self):
-        """
-        Return the lower and upper corners of a 3D bounding box for ``self``.
+    # def bounding_box(self):
+    #     """
+    #     Return the lower and upper corners of a 3D bounding box for ``self``.
 
-        This is used for rendering and ``self`` should fit entirely within this
-        box.
+    #     This is used for rendering and ``self`` should fit entirely within this
+    #     box.
 
-        Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points in
-        ``self``, and the second point is the supremum.
+    #     Specifically, the first point returned should have x, y, and z
+    #     coordinates should be the respective infimum over all points in
+    #     ``self``, and the second point is the supremum.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-            sage: M = MobiusStrip(7,3,2)
-            sage: M.bounding_box()
-            ((-10.0, -7.53907349250478..., -2.9940801852848145), (10.0, 7.53907349250478..., 2.9940801852848145))
-        """
-        # We must triangulate before computing the bounding box; otherwise
-        # we'll get an empty bounding box, as the bounding box is computed
-        # using the triangulation, and before triangulating the triangulation
-        # is empty.
-        self.triangulate()
-        return IndexFaceSet.bounding_box(self)
+    #         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+    #         sage: M = MobiusStrip(7,3,2)
+    #         sage: M.bounding_box()
+    #         ((-10.0, -7.53907349250478..., -2.9940801852848145), (10.0, 7.53907349250478..., 2.9940801852848145))
+    #     """
+    #     # We must triangulate before computing the bounding box; otherwise
+    #     # we'll get an empty bounding box, as the bounding box is computed
+    #     # using the triangulation, and before triangulating the triangulation
+    #     # is empty.
+    #     self.triangulate()
+    #     return IndexFaceSet.bounding_box(self)
 
     def triangulate(self, render_params=None):
         r"""
