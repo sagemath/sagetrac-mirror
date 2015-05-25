@@ -14,7 +14,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -40,9 +39,6 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
-
-from sage.misc.misc_c import is_64_bit
 
 
 # mapping str --> SINGULAR representation
@@ -242,19 +238,19 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         print "ring with prime coefficient field created"
 
 
-    elif PY_TYPE_CHECK(base_ring, RationalField):
+    elif isinstance(base_ring, RationalField):
         characteristic = 0
         _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         print "ring with rational coefficient field created"
         
 
-    elif PY_TYPE_CHECK(base_ring, IntegerRing_class):
+    elif isinstance(base_ring, IntegerRing_class):
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         print "polynomial ring over integers created"
          
 
-    elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
+    elif isinstance(base_ring, FiniteField_generic):
         print "creating generic finite field"
         # raise "Ring disabled "
         print "Warning: minpoly in Sage and in Singular may differ(not checked yet) "
@@ -287,7 +283,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         
 
-    elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
+    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         raise "create ring: temporarily disabled for NumberField basering "
         characteristic = 1
         try:
