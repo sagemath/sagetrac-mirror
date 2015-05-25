@@ -58,8 +58,9 @@ class AbstractTableaux(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, *args, **kwds):
         r"""
-        Constructs an object from as an element of ``self``,
-        if possible. Input validation and normalization should be done here.
+        Constructs an Element of ``self``.
+        
+        Input validation and normalization should be done here.
 
         OUTPUT:
 
@@ -68,4 +69,12 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         return self._new_element(*args, **kwds)
 
     def _new_element(self, *args, **kwds):
+        r"""
+        Constructs an Element of ``self``.
+        
+        We assume the Element class will implement __classcall__, which
+        will pick an appropriate Parent class to construct a new Element.
+        Hence we must use __call__ directly to bypass using __classcall__,
+        which would be circular.
+        """
         return type.__call__(self.element_class, self, *args, **kwds)
