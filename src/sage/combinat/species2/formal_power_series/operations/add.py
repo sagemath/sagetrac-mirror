@@ -88,4 +88,4 @@ class Add(FPS):
                                self._dic_fs_.iteritems()))
 
     def _valuation_(self):  # TODO: cached or not cached?
-        return min(*map(lambda f: f._valuation_(), self._dic_fs_.keys()))
+        return min(map(lambda f: f._valuation_(), self._dic_fs_.keys()))
