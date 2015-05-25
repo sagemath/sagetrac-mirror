@@ -290,7 +290,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         cdef Py_ssize_t i
         cdef Py_ssize_t index_len = 0
-        for i from 0 <= i < len(faces):
+        for i in range(len(faces)):
             index_len += len(faces[i])
 
         self.vcount = len(point_list)
@@ -299,7 +299,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         self.realloc(self.vcount, self.fcount, index_len)
 
-        for i from 0 <= i < self.vcount:
+        for i in range(self.vcount):
             self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
 
         cdef int cur_pt = 0

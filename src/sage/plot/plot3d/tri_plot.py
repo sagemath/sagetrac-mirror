@@ -26,6 +26,8 @@ from sage.plot.colors import hue
 from math import sqrt
 import random
 
+from sage.plot.plot3d.index_face_set import IndexFaceSet
+
 class Triangle:
     """
     A graphical triangle class.
@@ -219,26 +221,27 @@ class TriangleFactory:
 
 
 
-class TrianglePlot:
+class TrianglePlot(IndexFaceSet):
     """
     Recursively plots a function of two variables by building squares of 4 triangles, checking at
     every stage whether or not each square should be split into four more squares.  This way,
     more planar areas get fewer triangles, and areas with higher curvature get more triangles.
     """
+    
+    # # this is basically a tachyon frontend function
+    # def str(self):
+    #     """
+    #     Returns a string listing the objects in the instance of the TrianglePlot class.
 
-    def str(self):
-        """
-        Returns a string listing the objects in the instance of the TrianglePlot class.
+    #     TESTS::
 
-        TESTS::
-
-            sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
-            sage: tf = TriangleFactory()
-            sage: t = TrianglePlot(tf, lambda x,y: x^3+y*x-1, (-1, 3), (-2, 100), max_depth = 4)
-            sage: len(t.str())
-            68980
-        """
-        return "".join([o.str() for o in self._objects])
+    #         sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
+    #         sage: tf = TriangleFactory()
+    #         sage: t = TrianglePlot(tf, lambda x,y: x^3+y*x-1, (-1, 3), (-2, 100), max_depth = 4)
+    #         sage: len(t.str())
+    #         68980
+    #     """
+    #     return "".join([o.str() for o in self._objects])
 
     def __init__(self, triangle_factory, f, min_x__max_x, min_y__max_y, g = None,
                        min_depth=4, max_depth=8, num_colors = None, max_bend=.3):
@@ -260,7 +263,8 @@ class TrianglePlot:
         self._min_depth = min_depth
         self._max_depth = max_depth
         self._max_bend = max_bend
-        self._objects = []
+        self._faces = []
+        self._gradients = None if g is None else [] 
         if min(max_x - min_x, max_y - min_y) == 0:
             raise ValueError('Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.')
         self._num_colors = num_colors
@@ -290,20 +294,21 @@ class TrianglePlot:
         outer = self.plot_block(min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, 0)
 
         # build the boundary triangles
-        self.triangulate(outer.left, outer.left_c)
-        self.triangulate(outer.top, outer.top_c)
-        self.triangulate(outer.right, outer.right_c)
-        self.triangulate(outer.bottom, outer.bottom_c)
+        self._to_face_list(outer.left, outer.left_c)
+        self._to_face_list(outer.top, outer.top_c)
+        self._to_face_list(outer.right, outer.right_c)
+        self._to_face_list(outer.bottom, outer.bottom_c)
+            
+        IndexFaceSet.__init__(self, faces=self._faces, gradients=self._gradients)
 
         zrange = self._max - self._min
         if num_colors is not None and zrange != 0:
             colors = triangle_factory.get_colors([hue(float(i/num_colors)) for i in range(num_colors)])
 
-            for o in self._objects:
-                vertices = o.get_vertices()
+            for o in self._faces:
+                vertices = o
                 avg_z = (vertices[0][2] + vertices[1][2] + vertices[2][2])/3
-                o.set_color(colors[int(num_colors * (avg_z - self._min) / zrange)])
-
+                #do some texture thing?!
 
     def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
         """
@@ -498,11 +503,11 @@ class TrianglePlot:
 
         m.append(p[-1])
 
-        self.triangulate(m, mpc)
-        self.triangulate(m, mqc)
+        self._to_face_list(m, mpc)
+        self._to_face_list(m, mqc)
 
-
-    def triangulate(self, p, c):
+    # was called triangulate
+    def _to_face_list(self, p, c):
         """
         Pass in a list of edge points (p) and center points (c).
         Triangles will be rendered between consecutive edge points and the
@@ -513,18 +518,13 @@ class TrianglePlot:
             sage: from sage.plot.plot3d.tri_plot import TrianglePlot, TriangleFactory
             sage: tf = TriangleFactory()
             sage: t = TrianglePlot(tf, lambda x,y: x^2 - y*x, (0, -2), (0, 2))
-            sage: t.triangulate([[[1,0,0],[0,0,1]],[[0,1,1],[1,1,1]]],[[[0,3,1]]])
+            sage: t._to_face_list([[[1,0,0],[0,0,1]],[[0,1,1],[1,1,1]]],[[[0,3,1]]])
             sage: t._objects[-1].get_vertices()
             ([1, 0, 0], [0, 1, 1], [0, 3, 1])
         """
-
-        if self._g is None:
-            for i in range(0,len(p)-1):
-                self._objects.append(self._triangle_factory.triangle(p[i][0], p[i+1][0], c[i][0]))
-        else:
-            for i in range(0,len(p)-1):
-                self._objects.append(self._triangle_factory.smooth_triangle(p[i][0], p[i+1][0], c[i][0],p[i][1], p[i+1][1], c[i][1]))
-
+        self._faces.extend([p[i][0], p[i+1][0], c[i][0]] for i in range(0,len(p)-1))
+        if self._g is not None:
+            self._gradients.extend([p[i][1], p[i+1][1], c[i][1]] for i in range(0,len(p)-1))
 
     def extrema(self, list):
         """

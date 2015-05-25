@@ -1002,7 +1002,7 @@ class Tachyon(SageObject):
         factory = TachyonTriangleFactory(self,texture)
         plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
                              min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)
-        self._objects.append(plot)
+        self._objects.append(TachyonIndexFaceSet(plot))
 
 
     def parametric_plot(self, f, t_0, t_f, tex, r=.1, cylinders = True, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
@@ -1020,13 +1020,12 @@ class Tachyon(SageObject):
             Scene contains 514 objects.
             ...
         """
-        self._objects.append(
-            ParametricPlot(
-                f, t_0, t_f, tex, r=r, cylinders=cylinders,
-                min_depth=min_depth, max_depth=max_depth,
-                e_rel=.01,e_abs=.01
-            )
+        plot = ParametricPlot(
+            f, t_0, t_f, tex, r=r, cylinders=cylinders,
+            min_depth=min_depth, max_depth=max_depth,
+            e_rel=.01,e_abs=.01
         )
+        self._objects.append(TachyonIndexFaceSet(plot))
 
 
 class Light(object):
@@ -1725,3 +1724,28 @@ def tostr(s, length=3, out_type=float):
         output = output + str(out_type(an_item)) + ' '
     return output
 
+def tostr2(v, out_type=float):
+    r"""
+    better method to convert iterators to tachyon-ready strings
+    """
+    return ' '.join([str(out_type(_)) for _ in v])
+
+
+class TachyonIndexFaceSet(SageObject):
+    def __init__(self,ifs):
+        self.ifs = ifs
+        self._g = ifs._g
+        self.faces = list(ifs.faces())  #returns iterator over faces
+        self.gradients = ifs._gradients
+        self.texture = 'texdef t2 ambient 0.1 diffuse 0.9 specular 0.5 opacity 1.0\n        phong PLASTIC 0.0 phong_size 0.5\n        color  1.0 0.0 0.0  texfunc 0\n        \n ' #fixme
+    def str(self):
+        if self._g is None:
+            tri_str = "TRI V0 {0} V1 {1} V2 {2} t2\n"
+            objects = self.faces
+        else:
+            tri_str = "STRI V0 {0} V1 {1} V2 {2} N0 {3} N1 {4} N2 {5} t2\n"
+            objects = [f+g for f,g in zip(self.faces,self.gradients)]
+        s = ''
+        for x in objects:
+            s += tri_str.format(*[tostr2(pt) for pt in x])
+        return s

@@ -939,7 +939,8 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
                         min_depth=initial_depth, max_depth=max_depth,
                         max_bend=max_bend, num_colors = None)
 
-    P = IndexFaceSet(plot._objects)
+    #P = IndexFaceSet(plot._objects)
+    P = plot
     if isinstance(texture, (list, tuple)):
         if len(texture) == 2:
             # do a grid coloring
