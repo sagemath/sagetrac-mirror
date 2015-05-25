@@ -400,6 +400,11 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: ceil(int(10^50))
             100000000000000000000000000000000000000000000000000
+
+        We check that :trac:`15786` is fixed::
+            sage: x = -(1725033*pi - 5419351)/(25510582*pi - 80143857)
+            sage: ceil(x)
+            3
         """
         try:
             return x.ceil()
@@ -420,26 +425,19 @@ class Function_ceil(BuiltinFunction):
         # we get the ceiling at each of the endpoints is the same.
         # The precision will continue to be increased up to maximum_bits
         # of precision at which point it will raise a value error.
-        bits = 53
         try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_ceil = x_interval.upper().ceil()
-            lower_ceil = x_interval.lower().ceil()
-
-            while upper_ceil != lower_ceil and bits < maximum_bits:
-                bits += 100
-                x_interval = RealIntervalField(bits)(x)
-                upper_ceil = x_interval.upper().ceil()
-                lower_ceil = x_interval.lower().ceil()
-
-            if bits < maximum_bits:
-                return lower_ceil
-            else:
+            bits = 53
+            while bits < maximum_bits:
                 try:
-                    return ceil(SR(x).full_simplify().canonicalize_radical())
+                    return RealIntervalField(bits)(x).unique_ceil()
                 except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
+                    bits *= 2
+                    continue
+            try:
+                return ceil(SR(x).full_simplify().canonicalize_radical())
+            except ValueError:
+                pass
+            raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -571,6 +569,11 @@ class Function_floor(BuiltinFunction):
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
+
+        We check that :trac:`15786` is fixed::
+            sage: x = -(1725033*pi - 5419351)/(25510582*pi - 80143857)
+            sage: floor(x)
+            2
         """
         try:
             return x.floor()
@@ -592,26 +595,19 @@ class Function_floor(BuiltinFunction):
         # we get the floor at each of the endpoints is the same.
         # The precision will continue to be increased up to maximum_bits
         # of precision at which point it will raise a value error.
-        bits = 53
         try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_floor = x_interval.upper().floor()
-            lower_floor = x_interval.lower().floor()
-
-            while upper_floor != lower_floor and bits < maximum_bits:
-                bits += 100
-                x_interval = RealIntervalField(bits)(x)
-                upper_floor = x_interval.upper().floor()
-                lower_floor = x_interval.lower().floor()
-
-            if bits < maximum_bits:
-                return lower_floor
-            else:
+            bits = 53
+            while bits < maximum_bits:
                 try:
-                    return floor(SR(x).full_simplify().canonicalize_radical())
+                    return RealIntervalField(bits)(x).unique_floor()
                 except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
+                    bits *= 2
+                    continue
+            try:
+                return floor(SR(x).full_simplify().canonicalize_radical())
+            except ValueError:
+                pass
+            raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -1054,7 +1050,7 @@ def gamma(a, *args, **kwds):
 
             sage: gamma(3/4).n(100)
             1.2254167024651776451290983034
-            
+
         The gamma function only works with input that can be coerced to the
         Symbolic Ring::
 
