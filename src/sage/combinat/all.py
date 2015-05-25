@@ -89,6 +89,7 @@ from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, Semist
 from ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from composition_tableau import CompositionTableau, CompositionTableaux
+from tableaux.all import *
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux

@@ -1,23 +1,11 @@
 r"""
-Basic abstract tableau element classes.
+AbstractTableau Element class.
+
+See AbstractTableaux for the corresponding Parent class.
 
 AUTHORS:
 
-.. TODO::
-
-    List authors. Include those of combinat/tableau.py?
-
-.. TODO::
-
-    List classes.
-
-.. TODO::
-
-    If the old tableau classes go into this file, merge doc and
-    copyright authors.
-
-This file implements classes of tableaux. They all are subclasses of
-:class:`AbstractTableau`.
+- Josh Swanson (and others) (2015): initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Josh Swanson,
@@ -40,22 +28,10 @@ from collections import defaultdict
 from copy import deepcopy
 from sage.structure.element import Element
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_import import LazyImport
-from sage.rings.integer_ring import ZZ
 
-
-def parent_class(s):
-    r"""
-    Lazily import a parent class by name.
-
-    Allows separating element and parent class files without circular
-    references.
-    """
-    return LazyImport('sage.combinat.tableaux.abstract_tableaux', s)
-
-class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
+class AbstractTableau(Element):
     r"""
     Abstract class for the various element classes of tableaux.
 
@@ -71,13 +47,31 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
     *cells*, and their images under the tableaux are referred to as
     its *entries* (in these cells).
 
-    Child classes must implement :meth:`_dict_unsafe`.
+    Subclasses must implement :meth:`_dict_unsafe`.
     """
+    # See __classcall__.
+    __metaclass__ = ClasscallMetaclass
+
     # "Default" parent class. See __classcall__.
-    _generic_parent = parent_class('AbstractTableaux')
+    _generic_parent = AbstractTableau._gp(
+                      'sage.combinat.tableaux.abstract_tableaux',
+                      'AbstractTableaux')
+
+    @static_method
+    def _gp(m, c):
+        r"""
+        Lazily import a parent class by name.
+
+        Allows separating element and parent class files while also
+        using __classcall_private__ shortcuts on element classes
+        without circular references. One could simply call LazyImport
+        directly, but this way allows child classes to ignore more
+        details.
+        """
+        return LazyImport(m, c)
 
     @staticmethod
-    def __classcall__(cls, *args, **kwds):
+    def __classcall_private__(cls, *args, **kwds):
         r"""
         Provide shortcut syntax like ``Tableau([[1, 2], [3]])`` for
         ``Tableaux()([[1, 2], [3]])``.
@@ -88,7 +82,7 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
 
         Inherited by child classes, unlike ``__classcall_private__``.
         """
-        return cls._generic_parent(*args, **kwds)
+        return cls._generic_parent()(*args, **kwds)
 
     def __hash__(self):
         r""""
@@ -261,230 +255,3 @@ class AbstractTableau(six.with_metaclass(ClasscallMetaclass, Element)):
 
     # Alias
     __len__ = size
-
-
-class BadShapeTableau(AbstractTableau):
-    r"""
-    A tableau of bad shape.
-
-    A tableau of bad shape is a tableau whose cells belong to
-    `\ZZ^2` (that is, their coordinates are integers). It is
-    specified by a dictionary whose keys are pairs of integers
-    and whose values are arbitrary.
-
-    Straight and skew tableaux can be regarded as tableaux of
-    bad shape, but for skew tableaux this amounts to forgetting
-    part of the data. (In fact, a skew tableau "knows" its inner
-    shape and its outer shape, whereas a tableau of bad shape
-    only knows its cells and entries. Thus, the (empty) skew
-    tableaux of shapes `()/()` and `(1)/(1)` are equal when
-    regarded as tableaux of bad shape.)
-    """
-    _generic_parent = parent_class('BadShapeTableaux')
-
-    def __init__(self, parent, dct, check=True):
-        r"""
-        Initialize the BadShapeTableau.
-
-        INPUT:
-
-        - ``dct`` -- a dictionary (or more generally something
-          passable to ``dict``) whose keys are pairs of integers
-        - ``check`` -- (default: ``True``) if ``True``, then check that
-          the keys of ``dct`` are in fact pairs of integers
-        """
-        self._dict = deepcopy(dict(dct))
-
-        if check:
-            if not all(x in ZZ and y in ZZ for x, y
-                       in six.iterkeys(self._dict)):
-                raise ValueError('keys must be pairs of integers')
-
-        AbstractTableau.__init__(self, parent)
-
-    def _dict_unsafe(self):
-        r"""
-        Return the dictionary containing the defining data of ``self``.
-
-        OUTPUT:
-
-        A dictionary.
-        """
-        return self._dict
-
-    def filter_by_cells(self, predicate):
-        r"""
-        Return the subtableau of ``self`` which consists only of the
-        entries in the cells satisfying the given predicate
-        ``predicate``.
-
-        INPUT:
-
-        - ``predicate`` -- a function accepting two parameters and returning
-          ``True`` or ``False``
-
-        OUTPUT:
-
-        A BadShapeTableau
-        """
-        data = {k:v for k, v in six.iteritems(self._dict_unsafe())
-                if predicate(*k)}
-        return self.__class__(dictionary=data, check=True)
-
-    def filter_by_values(self, predicate):
-        r"""
-        Return the subtableau of ``self`` which consists only of the
-        entries satisfying the given ``predicate``.
-
-        INPUT:
-
-        - ``predicate`` -- a function accepting one parameter and returning
-          ``True`` or ``False``
-
-        OUTPUT:
-
-        A BadShapeTableau
-        """
-        data = {k:v for k, v in six.iteritems(self._dict_unsafe())
-                if predicate(v)}
-        return self.__class__(dictionary=data, check=True)
-
-    def transpose(self):
-        r"""
-        Return the transpose of ``self``.
-
-        If `T` is a tableau of bad shape, then the transpose of `T`
-        is the tableau of bad shapes whose cells are the pairs
-        `(x, y)` for `(y, x)` being cells of `T`, and which sends
-        every `(x, y)` to `T(y, x)`.
-
-        OUTPUT:
-
-        A BadShapeTableau.
-        """
-        data = {(k[1], k[0]): v for k, v in self._dict_unsafe()}
-        return self.__class__(dictionary=data, check=True)
-
-
-class SkewTableau(BadShapeTableau):
-    r"""
-    A tableau of skew shape.
-
-    If `\lambda` and `\mu` are two partitions such that
-    `\mu \subseteq \lambda`, then a tableau of skew shape
-    `\lambda / \mu` means a map that sends the cells of this
-    skew shape to some objects. This map "knows" the
-    partitions `\lambda` and `\mu`.
-
-    Cell locations are pairs of positive integers, though values are
-    unrestricted. Cells must form a skew shape.
-    """
-    _generic_parent = parent_class('SkewTableaux')
-
-    def __init__(self, parent, inner, rows):
-        r"""
-        Initialize the SkewTableau.
-
-        INPUT:
-
-        - ``inner`` -- an iterable of weakly decreasing non-negative
-          integers
-        - ``check`` -- (default: ``True``) if ``True``, then ensure
-          keys are positive integers and the shape is a skew shape.
-
-        Input can be specified either in terms of a
-        dictionary or a list. If both are specified,
-        then the dictionary data is skipped.
-        """
-        if not l and dictionary:
-            # l and dictionary are not among the variables we call
-            # __init__ with. Maybe this should be a classcall?
-            rows = defaultdict(dict)
-            min_row_index = None
-            max_row_index = None
-            min_col_index = None
-            for i, j in six.iteritems(dictionary):
-                rows[i[0]][i[1]] = j
-                if (min_row_index is None) or (min_row_index > i[0]):
-                    min_row_index = i[0]
-                if (max_row_index is None) or (min_row_index < i[0]):
-                    max_row_index = i[0]
-                if (min_col_index is None) or (min_col_index > i[1]):
-                    min_col_index = i[1]
-            # Create list
-            l = []
-            for row_index in range(min_row_index, max_row_index + 1):
-                row = rows[row_index]
-                if not row:
-                    l.append([])
-                    continue
-                tmp = [None]*(max(row.keys()) - min_col_index + 1)
-                for col_index, value in six.iteritems(row):
-                    tmp[col_index - min_col_index] = value
-                l.append(tmp)
-
-        # We don't have to do the checking of BadShapeTableau, that
-        # happens above anyway, since the cells are used as list indices
-        BadShapeTableau.__init__(self, parent, dictionary={}, check=False)
-        # Check
-        if check: # That's not among our variables either.
-            raise NotImplementedError
-        self._list = tuple(map(tuple, l))
-
-    @cached_method
-    def _dict_unsafe(self):
-        d = {(i, j): k for i, row in enumerate(self._tuple())
-            for j, k in enumerate(row)}
-        return d
-
-    def _tuple(self):
-        r"""
-        Return the tuple of tuples representing the entries of
-        ``self``.
-        """
-        return self._list
-
-    def _repr_(self):
-        r"""
-        Return the representation string.
-
-        OUTPUT:
-
-        A string.
-        """
-        return repr(self.to_list())
-
-    def to_list(self):
-        r"""
-        Return the list of lists representing the entries of
-        ``self``.
-
-        This is a copy of the defining data.
-
-        OUTPUT:
-
-        A list of lists.
-        """
-        return [list(i) for i in self._tuple()]
-
-
-class StraightTableau(SkewTableau):
-    _generic_parent = parent_class('StraightTableaux')
-
-    def __init__(self, parent, l=[], dictionary=[], check=False):
-        SkewTableau.__init__(self, parent, l, dictionary, check)
-
-
-
-
-
-
-
-
-
-class ExampleTableau(BadShapeTableau):
-    def __init__(self):
-        BadShapeTableau.__init__(self, d = {(0,1): 3, (-3, 5): 17, (1,1): "a"})
-
-
-
