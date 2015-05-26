@@ -52,6 +52,7 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
+from renderers import registered_renderers
 
 import renderers.jmol
 import renderers.json
@@ -119,7 +120,7 @@ cdef class Graphics3d(SageObject):
             sage: g._rich_repr_(dm)
             OutputSceneJmol container
         """
-        viewer = opts.pop('viewer', None)
+        viewer = kwds.pop('viewer', None)
         supported_output = display_manager.supported_output()
         if viewer is None:
             if display_manager.preferences.graphics3d is None:
@@ -142,7 +143,7 @@ cdef class Graphics3d(SageObject):
                 raise ValueError(
                         "'%s' is not supported by the current display manager")
 
-        return renderer.rich_repr(self, **opts)
+        return renderer.rich_repr(self, **kwds)
 
     def _rich_repr_tachyon(self, output_container, **kwds):
         """
