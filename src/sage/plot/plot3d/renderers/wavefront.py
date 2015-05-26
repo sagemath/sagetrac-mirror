@@ -1,12 +1,10 @@
-"""
-Doc.
+from __future__ import absolute_import
 
-* Each subclass of Graphics3d has a render_method naming the method which should be used to render it.
-* To implement a new renderer for 3d graphics, make a subclass of Graphics3dRenderer and implement rendering methods.
-* To implement a new 3d graphics class, update the API here with a rendering method and fallback.  Update existing renderer methods as appropriate.
+import os
+from . import register, Graphics3dRenderer
 
-"""
-class Graphics3dRenderer(object):
+
+class WavefrontRenderer(object):
 
     def render_graphics3d(self, obj, render_params):
         """
@@ -50,4 +48,5 @@ class Graphics3dRenderer(object):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
 
+register(WavefrontRenderer)
 

@@ -94,7 +94,7 @@ from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_eval import fast_float
 
-from renderers.jmol import JMOLRenderer
+import renderers
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
@@ -271,7 +271,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: s[:10]
             ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
         """
-        rrr = JMOLRenderer()
+        rrr = renderers.jmol.JMOLRenderer()
         return rrr.render_implicit_surface(self, render_params)
 
     def json_repr(self, render_params):

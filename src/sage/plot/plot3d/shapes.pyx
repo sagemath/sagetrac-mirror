@@ -57,7 +57,7 @@ from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
-from renderers.jmol import JMOLRenderer
+import renderers
 
 # Helper function to check that Box input is right
 def validate_frame_size(size):
@@ -739,7 +739,7 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        rrr = JMOLRenderer()
+        rrr = renderers.jmol.JMOLRenderer()
         return rrr.render_sphere(self, render_params)
     def get_grid(self, double ds):
         """

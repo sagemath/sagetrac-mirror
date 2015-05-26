@@ -68,7 +68,8 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
 
-from renderers.jmol import JMOLRenderer
+import renderers
+
 
 
 # --------------------------------------------------------------------
@@ -854,84 +855,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 back_faces]
 
     def jmol_repr(self, render_params):
-        rrr = JMOLRenderer()
+        rrr = renderers.jmol.JMOLRenderer()
         return [rrr.render_index_face_set(self, render_params)]
-
-
-        """
-        Return a jmol representation for ``self``.
-
-        TESTS::
-
-            sage: from sage.plot.plot3d.shapes import *
-            sage: S = Cylinder(1,1)
-            sage: S.show(viewer='jmol')   # indirect doctest
-        """
-        cdef Transformation transform = render_params.transform
-        cdef Py_ssize_t i
-        cdef point_c res
-
-        self._seperate_creases(render_params.crease_threshold)
-
-        sig_on()
-        if transform is None:
-            points = [format_pmesh_vertex(self.vs[i])
-                      for i from 0 <= i < self.vcount]
-        else:
-            points = []
-            for i in range(self.vcount):
-                transform.transform_point_c(&res, self.vs[i])
-                PyList_Append(points, format_pmesh_vertex(res))
-
-        # activation of coloring in jmol
-        if self.global_texture:
-            faces = [format_pmesh_face(self._faces[i], 1)
-                     for i from 0 <= i < self.fcount]
-        else:
-            faces = [format_pmesh_face(self._faces[i], -1)
-                     for i from 0 <= i < self.fcount]
-
-        # If a face has more than 4 vertices, it gets chopped up in
-        # format_pmesh_face
-        cdef Py_ssize_t extra_faces = 0
-        for i in range(self.fcount):
-            if self._faces[i].n >= 5:
-                extra_faces += self._faces[i].n-3
-
-        sig_off()
-
-        all = [str(self.vcount),
-               points,
-               str(self.fcount + extra_faces),
-               faces]
-
-        from base import flatten_list
-        name = render_params.unique_name('obj')
-        all = flatten_list(all)
-        if render_params.output_archive:
-            filename = "%s.pmesh" % (name)
-            render_params.output_archive.writestr(filename, '\n'.join(all))
-        else:
-            filename = "%s-%s.pmesh" % (render_params.output_file, name)
-            f = open(filename, 'w')
-            for line in all:
-                f.write(line)
-                f.write('\n')
-            f.close()
-
-        if self.global_texture:
-            s = 'pmesh {} "{}"\n{}'.format(name, filename,
-                                           self.texture.jmol_str("pmesh"))
-        else:
-            s = 'pmesh {} "{}"'.format(name, filename)
-
-        # Turn on display of the mesh lines or dots?
-        if render_params.mesh:
-            s += '\npmesh %s mesh\n' % name
-        if render_params.dots:
-            s += '\npmesh %s dots\n' % name
-        return [s]
-
 
 
     def dual(self, **kwds):
