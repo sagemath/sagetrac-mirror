@@ -5,7 +5,7 @@ from . import register, Graphics3dRenderer
 
 class JMOLRenderer(Graphics3dRenderer):
 
-    def rich_repr_graphics3d(self, obj, **kwds):
+    def rich_repr(self, obj, **kwds):
         """
         Rich Representation as JMol scene
 
@@ -29,14 +29,15 @@ class JMOLRenderer(Graphics3dRenderer):
         preview_png   = os.path.join(root_dir, 'preview.png')
         opts = obj._process_viewing_options(kwds)
         zoom = opts['zoom']
-        T = obj._prepare_for_jmol(
+        T = self._prepare_for_jmol(
+            obj,
             opts['frame'],
             opts['axes'],
             opts['frame_aspect_ratio'],
             opts['aspect_ratio'],
             zoom,
         )
-        T.export_jmol(scene_zip, **opts)
+        self.export_jmol(T, scene_zip, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
         # Java needs absolute paths
@@ -56,6 +57,130 @@ class JMOLRenderer(Graphics3dRenderer):
         scene_zip     = OutputBuffer.from_file(scene_zip)
         preview_png   = OutputBuffer.from_file(preview_png)
         return OutputSceneJmol(scene_zip, preview_png)
+
+    def _prepare_for_jmol(self, obj, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
+        from sage.plot.plot import EMBEDDED_MODE
+        if EMBEDDED_MODE:
+            s = 6
+        else:
+            s = 3
+        box_min, box_max = obj._rescale_for_frame_aspect_ratio_and_zoom(s, frame_aspect_ratio, zoom)
+        a_min, a_max = obj._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
+        return obj._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
+                                               axes=axes, thickness=1,
+                                               labels = True)   # jmol labels are implemented
+
+    def export_jmol(self, obj, filename='jmol_shape.jmol', force_reload=False,
+                    zoom=1, spin=False, background=(1,1,1), stereo=False,
+                    mesh=False, dots=False,
+                    perspective_depth = True,
+                    orientation = (-764,-346,-545,76.39), **ignored_kwds):
+                    # orientation chosen to look same as tachyon
+        """
+        A jmol scene consists of a script which refers to external files.
+        Fortunately, we are able to put all of them in a single zip archive,
+        which is the output of this call.
+
+        EXAMPLES::
+
+            sage: out_file = tmp_filename(ext=".jmol")
+            sage: G = sphere((1, 2, 3), 5) + cube() + sage.plot.plot3d.shapes.Text("hi")
+            sage: G.export_jmol(out_file)
+            sage: import zipfile
+            sage: z = zipfile.ZipFile(out_file)
+            sage: z.namelist()
+            ['obj_...pmesh', 'SCRIPT']
+
+            sage: print z.read('SCRIPT')
+            data "model list"
+            2
+            empty
+            Xx 0 0 0
+            Xx 5.5 5.5 5.5
+            end "model list"; show data
+            select *
+            wireframe off; spacefill off
+            set labelOffset 0 0
+            background [255,255,255]
+            spin OFF
+            moveto 0 -764 -346 -545 76.39
+            centerAt absolute {0 0 0}
+            zoom 100
+            frank OFF
+            set perspectivedepth ON
+            isosurface sphere_1  center {1.0 2.0 3.0} sphere 5.0
+            color isosurface  [102,102,255]
+            pmesh obj_... "obj_...pmesh"
+            color pmesh  [102,102,255]
+            select atomno = 1
+            color atom  [102,102,255]
+            label "hi"
+            isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;
+
+            sage: print z.read(z.namelist()[0])
+            24
+            0.5 0.5 0.5
+            -0.5 0.5 0.5
+            ...
+            -0.5 -0.5 -0.5
+            6
+            5
+            0
+            1
+            ...
+        """
+        render_params = obj.default_render_params()
+        render_params.mesh = mesh
+        render_params.dots = dots
+        render_params.output_file = filename
+        render_params.force_reload = render_params.randomize_counter = force_reload
+        render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
+        # Render the data
+        all = flatten_list([obj.render(render_params,self), ""])
+
+        f = StringIO()
+
+        if render_params.atom_list:
+            # Load the atom model
+            f.write('data "model list"\n')
+            f.write('%s\nempty\n' % (len(render_params.atom_list) + 1))
+            for atom in render_params.atom_list:
+                f.write('Xx %s %s %s\n' % atom)
+            f.write('Xx 5.5 5.5 5.5\n') # so the zoom fits the box
+            f.write('end "model list"; show data\n')
+            f.write('select *\n')
+            f.write('wireframe off; spacefill off\n')
+            f.write('set labelOffset 0 0\n')
+
+
+        # Set the scene background color
+        f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
+        if spin:
+            f.write('spin ON\n')
+        else:
+            f.write('spin OFF\n')
+        if stereo:
+            if stereo is True: stereo = "redblue"
+            f.write('stereo %s\n' % stereo)
+        if orientation:
+            f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
+
+        f.write('centerAt absolute {0 0 0}\n')
+        f.write('zoom {0}\n'.format(zoom * 100))
+        f.write('frank OFF\n') # jmol logo
+
+        if perspective_depth:
+            f.write('set perspectivedepth ON\n')
+        else:
+            f.write('set perspectivedepth OFF\n')
+
+        # Put the rest of the object in
+        f.write("\n".join(all))
+        # Make sure the lighting is correct
+        f.write("isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;\n")
+
+        render_params.output_archive.writestr('SCRIPT', f.getvalue())
+        render_params.output_archive.close()
 
 
     def render_graphics3d_image(self,obj):
