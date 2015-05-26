@@ -14,15 +14,20 @@ cdef class IndexFaceSet(PrimitiveObject):
     # pointers into face_indices marking the begining of each face
     cdef face_c* _faces
 
-cdef class FaceIter:
-    cdef Py_ssize_t i
+cdef class Vertex(object):
+    cdef readonly double x, y, z
+
+cdef class VertexSequence(object):
     cdef IndexFaceSet set
 
-cdef class EdgeIter:
+cdef class Face(object):
+    cdef IndexFaceSet set
+    cdef face_c *face
+
+cdef class FaceSequence(object):
+    cdef IndexFaceSet set
+
+cdef class EdgeIter(object):
     cdef Py_ssize_t i, j
     cdef object seen
-    cdef IndexFaceSet set
-
-cdef class VertexIter:
-    cdef Py_ssize_t i
     cdef IndexFaceSet set

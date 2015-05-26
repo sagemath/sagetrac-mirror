@@ -535,7 +535,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: list(S.faces()) == S.face_list()
             True
         """
-        return FaceIter(self)
+        return FaceSequence(self)
 
     def face_list(self):
         """
@@ -593,7 +593,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: list(S.vertices()) == S.vertex_list()
             True
         """
-        return VertexIter(self)
+        return VertexSequence(self)
 
     def vertex_list(self):
         """
@@ -988,7 +988,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             s = 'pmesh {} "{}"\n{}'.format(name, filename,
                                            self.texture.jmol_str("pmesh"))
         else:
-            s = 'pmesh {} "{}"'.format(name, filename)            
+            s = 'pmesh {} "{}"'.format(name, filename)
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:
@@ -1116,39 +1116,126 @@ cdef class IndexFaceSet(PrimitiveObject):
             all.append(sticker(faces[k], width, hover))
         return IndexFaceSet(all, **kwds)
 
+cdef class Vertex(object):
+    def __init__(self, double x, double y, double z):
+        self.x = x
+        self.y = y
+        self.z = z
 
-cdef class FaceIter:
+    def __repr__(self):
+        return "Vertex(" + ", ".join(repr(c) for c in self) + ")"
+
+    def __len__(self):
+        return 3
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.z
+
+    def __getitem__(self, int i):
+        if i < 0 or i >= 3:
+            raise KeyError('index out of range')
+        if i == 0:
+            return self.x
+        elif i == 1:
+            return self.y
+        else: # i == 2
+            return self.z
+
+cdef Vertex new_Vertex(point_c *p):
+    cdef Vertex v
+    v = Vertex.__new__(Vertex)
+    v.x = p.x
+    v.y = p.y
+    v.z = p.z
+    return v
+
+cdef class VertexSequence(object):
     """
-    A class for iteration over faces
+    A class for iteration over vertices
 
     EXAMPLES::
 
         sage: from sage.plot.plot3d.shapes import *
         sage: S = Box(1,2,3)
-        sage: len(list(S.faces())) == 6   # indirect doctest
+        sage: len(list(S.vertices())) == 8   # indirect doctest
         True
     """
-    def __init__(self, face_set):
-        """
-        """
+    def __init__(self, IndexFaceSet face_set):
         self.set = face_set
-        self.i = 0
+
+    def __len__(self):
+        return self.set.vcount
 
     def __iter__(self):
-        return self
+        cdef int i
+        for i in range(self.set.vcount):
+            yield new_Vertex(&self.set.vs[i])
 
-    def __next__(self):
-        cdef point_c P
-        if self.i >= self.set.fcount:
-            raise StopIteration
-        else:
-            face = []
-            for j from 0 <= j < self.set._faces[self.i].n:
-                P = self.set.vs[self.set._faces[self.i].vertices[j]]
-                PyList_Append(face, (P.x, P.y, P.z))
-            self.i += 1
-            return face
+    def __getitem__(self, int i):
+        if i < 0 or i >= self.set.vcount:
+            raise KeyError('index out of range')
+        return new_Vertex(&self.set.vs[i])
 
+cdef class Face(object):
+    def __init__(self, IndexFaceSet face_set, int i):
+        self.set = face_set
+        self.face = &face_set._faces[i]
+
+    def __repr__(self):
+        return "Face(" + ", ".join(repr(v) for v in self) + ")"
+
+    def __len__(self):
+        return self.face.n
+
+    def __iter__(self):
+        cdef int j
+        for j in range(self.face.n):
+            yield new_Vertex(&self.set.vs[self.face.vertices[j]])
+
+    def __getitem__(self, int j):
+        if j < 0 or j >= self.face.n:
+            raise KeyError('index out of range')
+        return new_Vertex(&self.set.vs[self.face.vertices[j]])
+
+cdef Face new_Face(IndexFaceSet face_set, int i):
+    cdef Face f
+    f = Face.__new__(Face)
+    f.set = face_set
+    f.face = &face_set._faces[i]
+    return f
+
+cdef class FaceSequence(object):
+    """
+    A class for exposing the faces in an index face set.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Box
+        sage: S = Box(1,2,3)
+        sage: fs = S.faces()
+        sage: len(fs)
+        6
+        sage: a, b, c, d, e, f = fs
+        sage: a == fs[0]
+        True
+    """
+    def __init__(self, IndexFaceSet face_set):
+        self.set = face_set
+
+    def __len__(self):
+        return self.set.fcount
+
+    def __iter__(self):
+        cdef int i
+        for i in range(self.set.fcount):
+            yield new_Face(self.set, i)
+
+    def __getitem__(self, int i):
+        if i < 0 or i >= self.set.fcount:
+            raise KeyError('index out of range')
+        return new_Face(self.set, i)
 
 cdef class EdgeIter:
     """
@@ -1199,34 +1286,6 @@ cdef class EdgeIter:
                         self.seen[edge] = edge
                         return edge
         raise StopIteration
-
-
-cdef class VertexIter:
-    """
-    A class for iteration over vertices
-
-    EXAMPLES::
-
-        sage: from sage.plot.plot3d.shapes import *
-        sage: S = Box(1,2,3)
-        sage: len(list(S.vertices())) == 8   # indirect doctest
-        True
-    """
-    def __init__(self, face_set):
-        self.set = face_set
-        self.i = 0
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.i >= self.set.vcount:
-            raise StopIteration
-        else:
-            self.i += 1
-            return (self.set.vs[self.i-1].x, self.set.vs[self.i-1].y, self.set.vs[self.i-1].z)
-
-
 def len3d(v):
     """
     Return the norm of a vector in three dimensions.
