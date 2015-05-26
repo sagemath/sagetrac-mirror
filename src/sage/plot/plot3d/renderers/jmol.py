@@ -62,15 +62,15 @@ class JMOLRenderer(Graphics3dRenderer):
         scene = obj._rich_repr_jmol(**opts)
         scene.preview_png.save_as(filename)
 
-    def repr_index_face_set(self, obj, render_params):
+    def render_index_face_set(self, obj, render_params):
         pass
 
-    def repr_implicit_surface(self, obj, render_params):
+    def render_implicit_surface(self, obj, render_params):
         obj.triangulate()
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         return IndexFaceSet.jmol_repr(obj, render_params)
 
-    def repr_parametric_surface(self, obj, render_params):
+    def render_parametric_surface(self, obj, render_params):
         obj.triangulate()
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         return IndexFaceSet.jmol_repr(obj, render_params)
