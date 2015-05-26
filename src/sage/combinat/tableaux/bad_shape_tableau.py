@@ -107,11 +107,11 @@ class BadShapeTableau(AbstractTableau):
                 if predicate(v)}
         return self.__class__(dictionary=data, check=True)
 
-    def transpose(self):
+    def conjugate(self):
         r"""
-        Return the transpose of ``self``.
+        Return the conjugate of ``self``.
 
-        If `T` is a tableau of bad shape, then the transpose of `T`
+        If `T` is a tableau of bad shape, then the conjugate of `T`
         is the tableau of bad shapes whose cells are the pairs
         `(x, y)` for `(y, x)` being cells of `T`, and which sends
         every `(x, y)` to `T(y, x)`.
@@ -122,3 +122,6 @@ class BadShapeTableau(AbstractTableau):
         """
         data = {(k[1], k[0]): v for k, v in self._dict_unsafe()}
         return self.__class__(dictionary=data, check=True)
+
+    # Alias
+    transpose = conjugate

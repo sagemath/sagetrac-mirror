@@ -13,6 +13,14 @@ AUTHORS:
 CLASSES:
 
 .. TODO:: List classes.
+
+Orphaned tests::
+
+    sage: T = SkewTableau([[None, None, 1], [3], [4]])
+    sage: T in SkewTableaux()
+    True
+    sage: [[None,1],[2,3]] in SkewTableaux()
+    True
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -38,6 +46,101 @@ import six
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
 from sage.combinat.tableaux.skew_tableau import SkewTableau
 
+TableauOptions=GlobalOptions(name='skew tableaux',
+    doc=r"""
+    Sets the global options for elements of the SkewTableau class.
+    By default, they are displayed as a list, LaTeXed as a Young
+    diagram, and English convention is used.
+    """,
+    end_doc=r"""
+
+    .. NOTE::
+
+        Changing the ``convention`` for tableaux also changes the
+        ``convention`` for partitions.
+
+    TODO: GlobalOptions docs are not currently doctested. Manually make sure
+    these tests (and possibly the Partitions tests?) work after refactoring
+    has been completed.
+
+    If no parameters are set, then the function returns a copy of the
+    options dictionary.
+
+    EXAMPLES::
+
+        sage: T = Tableau([[1,2,3],[4,5]])
+        sage: T
+        [[1, 2, 3], [4, 5]]
+        sage: Tableaux.global_options(display="array")
+        sage: T
+          1  2  3
+          4  5
+        sage: Tableaux.global_options(convention="french")
+        sage: T
+          4  5
+          1  2  3
+
+    Changing the ``convention`` for tableaux also changes the ``convention``
+    for partitions and vice versa::
+
+        sage: P = Partition([3,3,1])
+        sage: print P.ferrers_diagram()
+        *
+        ***
+        ***
+        sage: Partitions.global_options(convention="english")
+        sage: print P.ferrers_diagram()
+        ***
+        ***
+        *
+        sage: T
+          1  2  3
+          4  5
+
+    The ASCII art can also be changed::
+
+        sage: t = Tableau([[1,2,3],[4,5]])
+        sage: ascii_art(t)
+          1  2  3
+          4  5
+        sage: Tableaux.global_options(ascii_art="table")
+        sage: ascii_art(t)
+        +---+---+
+        | 4 | 5 |
+        +---+---+---+
+        | 1 | 2 | 3 |
+        +---+---+---+
+        sage: Tableaux.global_options(ascii_art="compact")
+        sage: ascii_art(t)
+        |4|5|
+        |1|2|3|
+        sage: Tableaux.global_options.reset()
+    """,
+    display=dict(default="list",
+                 description='Controls the way in which tableaux are printed',
+                 values=dict(list='print tableaux as lists',
+                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                             compact='minimal length string representation'),
+                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                 case_sensitive=False),
+    ascii_art=dict(default="repr",
+                 description='Controls the ascii art output for tableaux',
+                 values=dict(repr='display using the diagram string representation',
+                             table='display as a table',
+                             compact='minimal length ascii art'),
+                 case_sensitive=False),
+    latex=dict(default="diagram",
+               description='Controls the way in which tableaux are latexed',
+               values=dict(list='as a list', diagram='as a Young diagram'),
+               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+               case_sensitive=False),
+    convention=dict(default="English",
+                    description='Sets the convention used for displaying tableaux and partitions',
+                    values=dict(English='use the English convention',French='use the French convention'),
+                    case_sensitive=False),
+    notation = dict(alt_name="convention")
+)
+
 class SkewTableaux(BadShapeTableaux):
     r"""
     Parent class of all skew tableaux.
@@ -46,7 +149,10 @@ class SkewTableaux(BadShapeTableaux):
     """
     Element = SkewTableau
 
-    def _element_constructor_(self, skp=None, expr=None, shape_word=None,
+    # Convenient shortcut to global options
+    global_options = TableauOptions
+
+    def _element_constructor_(self, st=None, expr=None, shape_word=None,
                                     dct=None, check=True):
         r"""
         Construct a new SkewTableau using one of several input formats,
@@ -56,7 +162,7 @@ class SkewTableaux(BadShapeTableaux):
         no format is specified, the "trivial" skew tableau is returned.
 
         INPUT:
-        - ``skp`` -- an iterable of rows from top to bottom in English
+        - ``st`` -- an iterable of rows from top to bottom in English
           notation, where each row is an iterable of entries from left
           to right but where ``None``'s do not give cells of the skew
           tableau
@@ -74,25 +180,27 @@ class SkewTableaux(BadShapeTableaux):
           ensure ``st`` or the cells of ``dct`` actually form a skew shape,
           etc.
         """
-        if skp is not None:
+        if st is not None:
+            # TODO: normalize st input by removing rows with all None's and
+            # empty rows.
             if check:
                 try:
-                    skp = tuple(tuple(row) for row in skp)
+                    st = tuple(tuple(row) for row in st)
                 except TypeError:
                     raise TypeError("each element of the skew tableau must be an iterable")
 
                 # TODO: make sure None's are contiguous and left-justified;
                 # make sure shape is a skew tableau
 
-            return self._new_element(skp)
-        
+            return self._new_element(st)
+
         if expr is not None:
             return self.from_expr(expr, check)
-        
+
         if shape_word is not None:
             shape, word = shape_word
             return self.from_shape_and_word(shape, word, check)
-        
+
         if dct is not None:
             return self.from_dict(dct, check)
 
@@ -120,11 +228,11 @@ class SkewTableaux(BadShapeTableaux):
             # is skew
             pass
 
-        skp = []
+        st = []
         for i in range(len(outer)):
-            skp.append( [None]*(inner[i]) + outer[-(i+1)] )
+            st.append( [None]*(inner[i]) + outer[-(i+1)] )
 
-        return self._new_element(skp)
+        return self._new_element(st)
 
     def from_shape_and_word(self, shape, word, check=True):
         r"""
@@ -142,15 +250,15 @@ class SkewTableaux(BadShapeTableaux):
         inner, outer = shape
         
         
-        skp = [ [None]*row_length for row_length in inner ]
+        st = [ [None]*row_length for row_length in inner ]
         w_count = 0
         for i in reversed(range(len(inner))):
             for j in range(inner[i]):
                 if i >= len(outer) or j >= outer[i]:
-                    skp[i][j] = word[w_count]
+                    st[i][j] = word[w_count]
                     w_count += 1
 
-        return self._new_element(skp)
+        return self._new_element(st)
     
     def from_dict(self, dct, check=True):
         r"""
@@ -171,25 +279,27 @@ class SkewTableaux(BadShapeTableaux):
             if (min_col_index is None) or (min_col_index > i[1]):
                 min_col_index = i[1]
 
-        skp = []
+        st = []
         for row_index in range(min_row_index, max_row_index + 1):
             row = rows[row_index]
             if not row:
-                skp.append([])
+                st.append([])
                 continue
             tmp = [None]*(max(row.keys()) - min_col_index + 1)
             for col_index, value in six.iteritems(row):
                 tmp[col_index - min_col_index] = value
-            skp.append(tmp)
+            st.append(tmp)
         
-        return self._new_element(skp)
+        return self._new_element(st)
 
     def _repr_(self):
-        r"""
-        Return the representation string.
-
-        OUTPUT:
-
-        A string.
         """
-        return "Skew Tableaux"
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SkewTableaux()
+            Skew tableaux
+        """
+        return "Skew tableaux"
+

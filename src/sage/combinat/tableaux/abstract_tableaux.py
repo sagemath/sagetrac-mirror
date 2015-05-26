@@ -40,21 +40,14 @@ class AbstractTableaux(UniqueRepresentation, Parent):
     """
     Element = AbstractTableau
 
-    def __init__(self):
+    def __init__(self, category=None):
         r"""
         Initialize the parent.
         """
-        Parent.__init__(self, category=Sets())
-
-    def _repr_(self):
-        r"""
-        Return the representation string.
-
-        OUTPUT:
-
-        A string.
-        """
-        return "Abstract Tableaux"
+        if category is None:
+            Parent.__init__(self, category=Sets())
+        else:
+            Parent.__init__(self, category=category)
 
     def _element_constructor_(self, *args, **kwds):
         r"""
@@ -78,3 +71,14 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         which would be circular.
         """
         return type.__call__(self.element_class, self, *args, **kwds)
+
+    def _repr_(self):
+        r"""
+        Return the representation string.
+
+        OUTPUT:
+
+        A string.
+        """
+        return "Abstract tableaux"
+

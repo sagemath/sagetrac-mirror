@@ -70,6 +70,26 @@ class AbstractTableau(Element):
         """
         self._parent = parent
 
+    def __eq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other`` by comparing
+        the underlying mapping dictionaries.
+        """
+        try:
+            return self._dict_unsafe() == other._dict_unsafe()
+        except AttributeError:
+            return False
+
+    def __neq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other`` by comparing
+        the underlying mapping dictionaries.
+        """
+        try:
+            return self._dict_unsafe() != other._dict_unsafe()
+        except AttributeError:
+            return True
+
     @staticmethod
     def _gp(m, c):
         r"""
@@ -124,6 +144,7 @@ class AbstractTableau(Element):
         ``(x, y)`` is the entry of the tableau ``self`` in the cell
         ``(x, y)``.
         """
+        # TODO: do we really want a deepcopy here? or just dict(...)?
         return deepcopy(self._dict_unsafe())
 
     @abstract_method
@@ -182,6 +203,18 @@ class AbstractTableau(Element):
         """
         return self._group_by(1, 0)
 
+    def iter_cells():
+        r"""
+        Iterate over the cells of ``self`` in no particular order.
+        """
+        return six.iterkeys(self._dict_unsafe())
+
+    def iter_entries():
+        r"""
+        Iterate over the entries of ``self`` in no particular order.
+        """
+        return six.itervalues(self._dict_unsafe())
+
     def iter_by_row_reversed(self):
         r"""
         Iterate over values of ``self``, row-by-row from higher row indices to lower,
@@ -234,7 +267,104 @@ class AbstractTableau(Element):
         for cell in sorted_cells:
             yield _dict[cell]
 
-    def word_by_row(self):
+    def cells_by_content(self, c):
+        """
+        Return the coordinates of the cells in ``self`` with content ``c``.
+        
+        The content of a cell `(a, b)` is defined as `b-a`.
+
+        EXAMPLES::
+
+            sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
+            sage: s.cells_by_content(0)
+            [(1, 1)]
+            sage: s.cells_by_content(1)
+            [(0, 1), (1, 2)]
+            sage: s.cells_by_content(2)
+            [(0, 2)]
+            sage: s.cells_by_content(-1)
+            [(1, 0)]
+            sage: s.cells_by_content(-2)
+            [(2, 0)]
+        """
+        return [(a, b) for (a, b) in self.iter_cells()
+                                  if b-a == c]
+
+    def entries_by_content(self, c):
+        """
+        Return the entries in ``self`` with content ``c``.
+
+        EXAMPLES::
+
+            sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
+            sage: s.entries_by_content(0)
+            [4]
+            sage: s.entries_by_content(1)
+            [1, 5]
+            sage: s.entries_by_content(2)
+            [2]
+            sage: s.entries_by_content(-1)
+            [3]
+            sage: s.entries_by_content(-2)
+            [6]
+        """
+        return [v for (a,b), v in six.iteritems(self._dict_unsafe())
+                               if b-a==c]
+
+    def cells(self):
+        """
+        Return a list of cells in ``self``.
+
+        EXAMPLES::
+
+            sage: s = SkewTableau([[None,1,2],[3],[6]])
+            sage: s.cells()
+            [(0, 1), (0, 2), (1, 0), (2, 0)]
+        """
+        return list(self.iter_cels())
+
+    def cells_containing(self, i):
+        r"""
+        Return the list of cells in which the letter ``i`` appears in the
+        tableau ``self``.
+        
+        The list is ordered by column index, with no guarantee on row
+        index ordering.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,None,3],[None,3,5],[4,5]])
+            sage: t.cells_containing(5)
+            [(2, 1), (1, 2)]
+            sage: t.cells_containing(4)
+            [(2, 0)]
+            sage: t.cells_containing(2)
+            []
+
+            sage: t = SkewTableau([[None,None,None,None],[None,4,5],[None,5,6],[None,9],[None]])
+            sage: t.cells_containing(2)
+            []
+            sage: t.cells_containing(4)
+            [(1, 1)]
+            sage: t.cells_containing(5)
+            [(2, 1), (1, 2)]
+
+            sage: SkewTableau([]).cells_containing(3)
+            []
+
+            sage: SkewTableau([[None,None],[None]]).cells_containing(3)
+            []
+        """
+        def second_coord(P, Q):
+            return P[1] - Q[1]
+
+        # TODO: replace cmp with key for Python 3 compatibility
+        sorted_cells = sorted(six.iterkeys(self._dict_unsafe()),
+                              cmp=second_coord)
+
+        return sorted_cells
+
+    def to_word_by_row(self):
         r"""
         Return a flattened version of ``self.iter_by_row'' as a
         :class:`sage.combinat.words.word.FiniteWord_list`.
@@ -242,7 +372,7 @@ class AbstractTableau(Element):
         from sage.combinat.words.word import Word
         return Word(sum(self.iter_by_row_reversed(), []))
 
-    def word_by_col(self):
+    def to_word_by_column(self):
         r"""
         Return a flattened version of ``self.iter_by_col'' as a
         :class:`sage.combinat.words.word.FiniteWord_list`.
@@ -251,14 +381,14 @@ class AbstractTableau(Element):
         return Word(sum(self.iter_by_col_reversed(), []))
 
     # Alias
-    word = word_by_row
+    to_word = to_word_by_row
 
     def weight_dict(self):
         r"""
         Return a Counter mapping values of ``self`` to multiplicities.
         """
         from collections import Counter
-        return Counter(six.itervalues(self._dict_unsafe()))
+        return Counter(self.iter_entries())
 
     def size(self):
         r"""

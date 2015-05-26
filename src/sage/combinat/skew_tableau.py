@@ -1384,7 +1384,6 @@ class SkewTableau(ClonableList):
         kshapes = [ la.k_conjugate(k) for la in shapes ]
         return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
-
 def _label_skew(list_of_cells, sk):
     """
     Return a filled-in standard standard skew tableau given an
