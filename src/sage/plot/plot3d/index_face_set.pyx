@@ -132,76 +132,6 @@ cdef inline format_obj_face_back(face_c face, int off):
         return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
     return PyString_FromStringAndSize(ss, r)
 
-cdef inline format_pmesh_vertex(point_c P):
-    cdef char ss[100]
-    # PyString_FromFormat doesn't do floats?
-    cdef Py_ssize_t r = sprintf_3d(ss, "%g %g %g", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
-
-cdef inline format_pmesh_face(face_c face, int has_color):
-    cdef char ss[100]
-    cdef Py_ssize_t r, i
-    cdef int color
-    # if the face has an individual color, has_color is -1
-    # otherwise it is 1
-    if has_color == -1:
-        color = float_to_integer(face.color.r,
-                                 face.color.g,
-                                 face.color.b)
-        # it seems that Jmol does not like the 0 color at all
-        if color == 0:
-            color = 1
-
-    if face.n == 3:
-        if has_color == 1:
-            r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[0])
-        else:
-            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[0], color)
-    elif face.n == 4:
-        if has_color == 1:
-            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[3],
-                           face.vertices[0])
-        else:
-            r = sprintf_7i(ss, "%d\n%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[3],
-                           face.vertices[0], color)
-    else:
-        # Naive triangulation
-        all = []
-        if has_color == 1:
-            for i from 1 <= i < face.n - 1:
-                r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                               face.vertices[0],
-                               face.vertices[i],
-                               face.vertices[i + 1],
-                               face.vertices[0])
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
-        else:
-            for i from 1 <= i < face.n - 1:
-                r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
-                               face.vertices[0],
-                               face.vertices[i],
-                               face.vertices[i + 1],
-                               face.vertices[0], color)
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
-        return "\n".join(all)
-    # PyString_FromFormat is almost twice as slow
-    return PyString_FromStringAndSize(ss, r)
 
 
 cdef class IndexFaceSet(PrimitiveObject):
@@ -923,6 +853,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                 back_faces]
 
     def jmol_repr(self, render_params):
+        rrr = JMOLRenderer()
+        return rrr.render_index_face_set(self, render_params)
+
+            
         """
         Return a jmol representation for ``self``.
 

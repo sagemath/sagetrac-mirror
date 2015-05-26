@@ -1408,6 +1408,9 @@ ext_modules = [
     Extension('sage.plot.plot3d.transform',
               sources = ['sage/plot/plot3d/transform.pyx']),
 
+    Extension('sage.plot.plot3d.renderers.jmol',
+              sources = ['sage/plot/plot3d/renderers/jmol.pyx']),
+
     ################################
     ##
     ## sage.quadratic_forms
