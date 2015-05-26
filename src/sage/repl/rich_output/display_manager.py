@@ -125,7 +125,7 @@ class restricted_output(object):
         """
         self._display_manager = display_manager
         self._output_classes = frozenset(output_classes)
-        
+
     def __enter__(self):
         """
         Enter the restricted output context
@@ -158,7 +158,7 @@ class restricted_output(object):
         self._original_prefs = DisplayPreferences(dm.preferences)
         dm.preferences.graphics = 'disable'
         dm.preferences.supplemental_plot = 'never'
-        
+
     def __exit__(self, exception_type, value, traceback):
         """
         Exit the restricted output context
@@ -261,7 +261,7 @@ class DisplayManager(SageObject):
         """
         import sage.repl.rich_output.output_catalog
         return sage.repl.rich_output.output_catalog
-    
+
     def switch_backend(self, backend, **kwds):
         """
         Switch to a new backend
@@ -307,7 +307,7 @@ class DisplayManager(SageObject):
             self._backend.uninstall()
         except AttributeError:
             pass   # first time we switch
-        # clear caches    
+        # clear caches
         self._output_promotions = dict()
         self._supported_output = frozenset(
             map(self._demote_output_class, backend.supported_output()))
@@ -372,7 +372,7 @@ class DisplayManager(SageObject):
         """
         if not isinstance(self._backend, backend_class):
             raise RuntimeError('check failed: current backend is invalid')
-        
+
     def _demote_output_class(self, output_class):
         """
         Helper for :meth:`switch_backend`.
@@ -385,7 +385,7 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         The underlying container class that it was derived from.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
@@ -449,7 +449,7 @@ class DisplayManager(SageObject):
             return output
         output.__class__ = specialized_class
         return output
-        
+
     def _preferred_text_formatter(self, obj, plain_text=None, **kwds):
         """
         Return the preferred textual representation
@@ -490,7 +490,7 @@ class DisplayManager(SageObject):
             OutputAsciiArt container
 
             sage: dm.preferences.text = 'latex'
-            sage: dm._preferred_text_formatter([1/42])          
+            sage: dm._preferred_text_formatter([1/42])
             \newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputLatex|\phantom{\verb!x!}\verb|container|
 
             sage: del dm.preferences.text   # reset to default
@@ -519,10 +519,10 @@ class DisplayManager(SageObject):
     def _call_rich_repr(self, obj, rich_repr_kwds):
         """
         Call the ``_rich_repr_`` method
-        
+
         This method calls ``obj._rich_repr_``. If this raises an
         exception, it is caught and a suitable warning is displayed.
-        
+
         INPUT:
 
         - ``obj`` -- anything.
@@ -596,7 +596,12 @@ class DisplayManager(SageObject):
             plain_text = rich_output
         elif has_rich_repr:
             with restricted_output(self, [OutputPlainText]):
-                plain_text = self._call_rich_repr(obj, rich_repr_kwds)
+                try:
+                    plain_text = self._call_rich_repr(obj, rich_repr_kwds)
+                except Exception:
+                    # ignore plain text rich repr errors,
+                    # we can always fall back on to normal reprs
+                    pass
         if plain_text is None:
             plain_text = self._backend.plain_text_formatter(obj, **rich_repr_kwds)
         if rich_output is None:
@@ -614,19 +619,19 @@ class DisplayManager(SageObject):
             raise OutputTypeException(
                 'output container not supported: {0}'.format(type(rich_output)))
         return plain_text, rich_output
-    
-    def graphics_from_save(self, save_function, save_kwds, 
+
+    def graphics_from_save(self, save_function, save_kwds,
                            file_extension, output_container,
                            figsize=None, dpi=None):
         r"""
         Helper to construct graphics.
-    
+
         This method can be used to simplify the implementation of a
         ``_rich_repr_`` method of a graphics object if there is
         already a function to save graphics to a file.
 
         INPUT:
-        
+
         - ``save_function`` -- callable that can save graphics to a file
           and accepts options like
           :meth:`sage.plot.graphics.Graphics.save`.
@@ -641,16 +646,16 @@ class DisplayManager(SageObject):
           :class:`sage.repl.rich_output.output_basic.OutputBase`. The
           output container to use. Must be one of the types in
           :meth:`supported_output`.
-    
+
         - ``figsize`` -- pair of integers (optional). The desired graphics
           size in pixels. Suggested, but need not be respected by the
           output.
-    
+
         - ``dpi`` -- integer (optional). The desired resolution in dots
           per inch. Suggested, but need not be respected by the output.
-    
+
         OUTPUT:
-    
+
         Return an instance of ``output_container``.
 
         EXAMPLES::
@@ -683,11 +688,11 @@ class DisplayManager(SageObject):
         from sage.repl.rich_output.buffer import OutputBuffer
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
-    
+
     def supported_output(self):
         """
         Return the output container classes that can be used.
-        
+
         OUTPUT:
 
         Frozen set of subclasses of
@@ -709,7 +714,7 @@ class DisplayManager(SageObject):
     def displayhook(self, obj):
         """
         Implementation of the displayhook
-        
+
         Every backend must pass the value of the last statement of a
         line / cell to this method. See also
         :meth:`display_immediately` if you want do display rich output
@@ -744,7 +749,7 @@ class DisplayManager(SageObject):
         object when we are not returning to the command line prompt,
         for example during program execution. Typically, it is being
         called by :meth:`sage.plot.graphics.Graphics.show`.
-        
+
         INPUT:
 
         - ``obj`` -- anything. The object to be shown.
@@ -763,6 +768,6 @@ class DisplayManager(SageObject):
         self._backend.display_immediately(plain_text, rich_output)
 
 
-        
+
 
 get_display_manager = DisplayManager.get_instance

@@ -131,7 +131,7 @@ cdef class Graphics3d(SageObject):
                 if (renderer is not None and
                         renderer.output_type in supported_output):
                     break
-            if renderer is None:
+            else:
                 raise RuntimeError("could not find a viewer "
                         "capable of displaying 3d graphics")
         else:
@@ -140,8 +140,8 @@ cdef class Graphics3d(SageObject):
             except KeyError:
                 raise ValueError("unknown viewer (='%s')"%viewer)
             if renderer.output_type not in supported_output:
-                raise ValueError(
-                        "'%s' is not supported by the current display manager")
+                raise ValueError("'%s' is not supported "%viewer
+                        "by the current display manager")
 
         return renderer.rich_repr(self, **kwds)
 
