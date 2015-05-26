@@ -1250,6 +1250,17 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
+    def is_sublattice(self, other):
+        r"""
+        To be written.
+        """
+        n = len(other)
+        for i in range(0, n):
+            for j in range(i+1, n):
+                if not self._meet[i, j] in other or not self._join[i, j] in other:
+                    return False
+        return True
+
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
         Returns ``True`` if ``self`` is the Hasse diagram of a

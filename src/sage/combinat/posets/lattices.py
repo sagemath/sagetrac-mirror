@@ -845,6 +845,50 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next.append(H.neighbor_in_iterator(cur))
         return True
 
+    def is_sublattice(self, other):
+        r"""
+        Return ``True`` if ``other`` is a sublattice of this lattice,
+        and ``False`` otherwise.
+
+        By sublattice we mean a subset of elements that is closed under both
+        meet and join operation of the lattice. If ``other`` is a
+        lattice, it must also be an induced subposet of this lattice.
+
+        INPUT:
+
+            - ``other`` -- a list of elements or a lattice.
+
+        EXAMPLES::
+
+            A subposet may be lattice but fails to be sublattice. Here join
+            of 2 and 3 is not on M.
+
+                sage: L = LatticePoset(([], [[1,2], [1,3], [2,4], [3,4], [4,5]]))
+                sage: M = L.subposet([1,2,3,5])
+                sage: M.is_lattice()
+                True
+                sage: L.is_sublattice(M)
+                False
+
+            ``other`` need not be a poset or lattice. Here is example of
+            plain list:
+
+                sage: L.is_sublattice([1,2,3,4])
+                True
+
+            If ``other`` is a lattice, it must have same order:
+
+                sage: L.is_sublattice(Poset({2:[1]}))
+                False
+                sage: L.is_sublattice(Poset({1:[2]}))
+                True
+        """
+        if hasattr(other, 'hasse_diagram'):
+            if not other.hasse_diagram().is_subgraph(self.hasse_diagram()):
+                return False
+        L = [self._element_to_vertex(e) for e in other]
+        return self._hasse_diagram.is_sublattice(L)
+        
 ############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
