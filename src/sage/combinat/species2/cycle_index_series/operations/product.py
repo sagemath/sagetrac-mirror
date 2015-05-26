@@ -220,7 +220,6 @@ class Prod(CIS):
 @cached_function
 def _Zexp_(Zp, n, ex, base):
     if ex == 0:
-        print "???"
         if n > 0: return base.zero()
         else:     return base.one()
     elif ex == 1: return Zp.Frobenius_characteristic(n)
