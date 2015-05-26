@@ -1757,6 +1757,9 @@ class TransformGroup(Graphics3dGroup):
         return self._bounding_box
 
     def x3d_str(self):
+        rrr = renderers.x3d.X3dRenderer()
+        return rrr.render_transform_group(self, render_params=None)
+
         r"""
         To apply a transformation to a set of objects in x3d, simply make them
         all children of an x3d Transform node.
@@ -1779,6 +1782,9 @@ class TransformGroup(Graphics3dGroup):
         return s
 
     def json_repr(self, render_params):
+        rrr = renderers.json.JsonRenderer()
+        return rrr.render_transform_group(self, render_params)
+
         """
         Transformations are applied at the leaf nodes.
 
@@ -1795,6 +1801,9 @@ class TransformGroup(Graphics3dGroup):
         return rep
 
     def tachyon_repr(self, render_params):
+        rrr = renderers.tachyon.TachyonRenderer()
+        return rrr.render_transform_group(self, render_params)
+
         """
         Transformations for Tachyon are applied at the leaf nodes.
 
@@ -1810,6 +1819,9 @@ class TransformGroup(Graphics3dGroup):
         return rep
 
     def obj_repr(self, render_params):
+        rrr = renderers.obj.ObjRenderer()
+        return rrr.render_transform_group(self, render_params)
+
         """
         Transformations for .obj files are applied at the leaf nodes.
 
@@ -1841,6 +1853,9 @@ class TransformGroup(Graphics3dGroup):
         return rep
 
     def jmol_repr(self, render_params):
+        rrr = renderers.jmol.JMOLRenderer()
+        return rrr.render_transform_group(self, render_params)
+
         r"""
         Transformations for jmol are applied at the leaf nodes.
 

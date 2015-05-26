@@ -32,7 +32,27 @@ class X3dRenderer(Graphics3dRenderer):
         return "\n".join([g.x3d_str() for g in obj.all])
 
     def render_transform_group(self, obj, render_params):
-        return self.render_graphics3d_group(obj, render_params)
+        r"""
+        To apply a transformation to a set of objects in x3d, simply make them
+        all children of an x3d Transform node.
+
+        EXAMPLES::
+
+            sage: sphere((1,2,3)).x3d_str()
+            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+        """
+        from sage.plot.plot3d.base import Graphics3dGroup
+        s = "<Transform"
+        if obj._rot is not None:
+            s += " rotation='%s %s %s %s'"%tuple(obj._rot)
+        if obj._trans is not None:
+            s += " translation='%s %s %s'"%tuple(obj._trans)
+        if obj._scale is not None:
+            s += " scale='%s %s %s'"%tuple(obj._scale)
+        s += ">\n"
+        s += Graphics3dGroup.x3d_str(obj)
+        s += "\n</Transform>"
+        return s
 
     def render_primitive_object(self, obj, render_params):
         return self.render_graphics3d(obj, render_params)

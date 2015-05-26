@@ -15,8 +15,8 @@ class Canvas3dRenderer(Graphics3dRenderer):
 
     # def render_graphics3d_group(self, obj, render_params):
     #     return self.render_graphics3d(obj, render_params)
-    def render_transform_group(self, obj, render_params):
-        return self.render_graphics3d_group(obj, render_params)
+    # def render_transform_group(self, obj, render_params):
+    #     return self.render_graphics3d_group(obj, render_params)
 
     def render_primitive_object(self, obj, render_params):
         return self.render_graphics3d(obj, render_params)

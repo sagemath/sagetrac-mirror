@@ -16,8 +16,8 @@ class ObjRenderer(Graphics3dRenderer):
 
     # def render_graphics3d_group(self, grob, render_params):
     #     return self.render_graphics3d(grob, render_params)
-    def render_transform_group(self, grob, render_params):
-        return self.render_graphics3d_group(grob, render_params)
+    # def render_transform_group(self, grob, render_params):
+    #     return self.render_graphics3d_group(grob, render_params)
 
     def render_primitive_grobect(self, grob, render_params):
         return self.render_graphics3d(grob, render_params)

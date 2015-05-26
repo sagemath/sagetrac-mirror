@@ -16,9 +16,18 @@ class Graphics3dRenderer(object):
         return ''
 
     def render_graphics3d_group(self, obj, render_params):
+        """
+        By default, apply render to each object in the group
+        """
         return [g.render(render_params, renderer=self) for g in obj.all]
     def render_transform_group(self, obj, render_params):
-        return self.render_graphics3d_group(obj, render_params)
+        """
+        Apply transformation to leaf nodes.
+        """
+        render_params.push_transform(obj.get_transformation())
+        rep = [g.render(render_params, renderer=self) for g in obj.all]
+        render_params.pop_transform()
+        return rep
 
     def render_primitive_object(self, obj, render_params):
         return self.render_graphics3d(obj, render_params)

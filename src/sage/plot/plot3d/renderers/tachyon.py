@@ -4,7 +4,7 @@ import os
 from . import register, Graphics3dRenderer
 
 
-class JsonRenderer(Graphics3dRenderer):
+class TachyonRenderer(Graphics3dRenderer):
 
     def render_graphics3d(self, obj, render_params):
         """
@@ -26,16 +26,17 @@ class JsonRenderer(Graphics3dRenderer):
         return self.render_primitive_object(obj, render_params)
 
     def render_index_face_set(self, obj, render_params):
-        """
-        Return a json representation for ``self``.
 
-        TESTS:
+        """
+        Return a tachyon object for ``self``.
+
+        EXAMPLES:
 
         A basic test with a triangle::
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
-            sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'#0000ff'}"]
+            sage: s = G.tachyon_repr(G.default_render_params()); s
+            ['TRI V0 0 0 1 V1 1 1 1 V2 2 0 1', ...]
 
         A simple colored one::
 
@@ -46,36 +47,39 @@ class JsonRenderer(Graphics3dRenderer):
             sage: col = rainbow(10, 'rgbtuple')
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
-            sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
+            sage: S.tachyon_repr(S.default_render_params())
+            ['TRI V0 2 0 0 V1 1 0 1 V2 1 1 0',
+            'TEXTURE... AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0... COLOR 1 0 0 ... TEXFUNC 0',...]
         """
         transform = render_params.transform
-        vertices = obj.vertices()
+        lines = []
         faces = obj.faces()
 
         if transform is None:
-            vertices_str = "[{}]".format(",".join(["{x:%g,y:%g,z:%g}"%tuple(v) for v in vertices]))
+            transform_point = tuple
         else:
-            vertices_str = "[{}]".format(",".join(
-                ["{x:%g,y:%g,z:%g}"%transform.transform_point(v) for v in vertices]
-            ))
+            transform_point = transform.transform_point
 
-        faces_str = "[{}]".format(",".join(
-            ["[{}]".format(",".join(
-                [str(v) for v in face.iter_index()]
-            )) for face in faces]
-        ))
-
-        if True:#obj.global_texture:
-            color_str = "'#{}'".format(obj.texture.hex_rgb())
-            return "{vertices:%s,faces:%s,color:%s}"%(vertices_str, faces_str, color_str)
-        # else:
-        #     color_str = "[{}]".format(",".join(["'{}'".format(
-        #             Color(obj._faces[i].color.r,
-        #                   obj._faces[i].color.g,
-        #                   obj._faces[i].color.b).html_color())
-        #                                     for i from 0 <= i < obj.fcount]))
-        #     return "{vertices:%s,faces:%s,face_colors:%s}"%(vertices_str, faces_str, color_str)
+        for face in faces:
+            P = transform_point(face[0])
+            Q = transform_point(face[1])
+            R = transform_point(face[2])
+            lines.append(format_tachyon_triangle(P, Q, R))
+            if True:#obj.global_texture:
+                lines.append(obj.texture.id)
+            else:
+                lines.append(format_tachyon_texture(face.color))
+            # stupid triangulation of polygon
+            if len(face) > 3:
+                for k in range(3,len(face)):
+                    Q = R
+                    R = transform_point(face[k])
+                    lines.append(format_tachyon_triangle(P, Q, R))
+                    if True:#obj.global_texture:
+                        lines.append(obj.texture.id)
+                    else:
+                        lines.append(format_tachyon_texture(face.color))
+        return lines
 
 
     def render_box(self, obj, render_params):
@@ -99,15 +103,17 @@ class JsonRenderer(Graphics3dRenderer):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
 
-register(JsonRenderer)
+register(TachyonRenderer)
 
 
-# cdef inline format_json_vertex(point_c P):
-#     cdef char ss[100]
-#     cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
-#     return PyString_FromStringAndSize(ss, r)
+def format_tachyon_texture(rgb):
+    return "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0\n" % (rgb.r, rgb.g, rgb.b)
 
-# cdef inline format_json_face(face_c face):
-#     return "[{}]".format(",".join([str(face.vertices[i])
-#                                    for i from 0 <= i < face.n]))
+def format_tachyon_triangle(P, Q, R):
+    return "TRI V0 %g %g %g "%P + "V1 %g %g %g "%Q + "V2 %g %g %g\n"%R
+
+
+
+
+
 
