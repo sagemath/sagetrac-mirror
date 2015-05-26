@@ -119,47 +119,30 @@ cdef class Graphics3d(SageObject):
             sage: g._rich_repr_(dm)
             OutputSceneJmol container
         """
-        ### First, figure out the best graphics format
-        types = display_manager.types
-        can_view_jmol = (types.OutputSceneJmol in display_manager.supported_output())
-        can_view_canvas3d  = (types.OutputSceneCanvas3d in display_manager.supported_output())
-        can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
-        opts = self._process_viewing_options(kwds)
-        viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
-        # make sure viewer is one of the supported options
-        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
-            import warnings
-            warnings.warn('viewer={0} is not supported'.format(viewer))
-            viewer = None
-        # select suitable default
+        viewer = opts.pop('viewer', None)
+        supported_output = display_manager.supported_output()
         if viewer is None:
-            viewer = 'jmol'
-        # fall back to 2d image if necessary
-        if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
-        if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
-        if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
-        ### Second, return the corresponding graphics file
-        if viewer == 'jmol':
-            rrr = renderers.jmol.JMOLRenderer()
-            return rrr.rich_repr_graphics3d(self, **opts)
-        elif viewer == 'tachyon':
-            preferred = (
-                types.OutputImagePng,
-                types.OutputImageJpg,
-                types.OutputImageGif,
-            )
-            for output_container in preferred:
-                if output_container in display_manager.supported_output():
-                    return self._rich_repr_tachyon(output_container, **opts)
-        elif viewer == 'canvas3d':
-            return self._rich_repr_canvas3d(**opts)
-        elif viewer == 'wavefront':
-            return self._rich_repr_wavefront(**opts)
+            if display_manager.preferences.graphics3d is None:
+                return None
+
+            for preferred in display_manager.preferences.graphics3d:
+                renderer = registered_renderers.get(preferred)
+                if (renderer is not None and
+                        renderer.output_type in supported_output):
+                    break
+            if renderer is None:
+                raise RuntimeError("could not find a viewer "
+                        "capable of displaying 3d graphics")
         else:
-            assert False   # unreachable
+            try:
+                renderer = registered_renderers[viewer]
+            except KeyError:
+                raise ValueError("unknown viewer (='%s')"%viewer)
+            if renderer.output_type not in supported_output:
+                raise ValueError(
+                        "'%s' is not supported by the current display manager")
+
+        return renderer.rich_repr(self, **opts)
 
     def _rich_repr_tachyon(self, output_container, **kwds):
         """
@@ -782,7 +765,7 @@ end_scene""" % (render_params.antialiasing,
 
     def render(self, render_params, renderer):
         return getattr(renderer,self.render_method)(self, render_params)
-        
+
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=1, spin=False, background=(1,1,1), stereo=False,
                     mesh=False, dots=False,
