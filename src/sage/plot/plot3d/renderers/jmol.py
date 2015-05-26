@@ -62,7 +62,7 @@ class JMOLRenderer(Graphics3dRenderer):
         scene = obj._rich_repr_jmol(**opts)
         scene.preview_png.save_as(filename)
 
-    def render_index_face_set(self, obj, render_params):            
+    def render_index_face_set(self, obj, render_params):
         """
         Return a jmol representation for ``obj``.
 
@@ -72,9 +72,7 @@ class JMOLRenderer(Graphics3dRenderer):
             sage: S = Cylinder(1,1)
             sage: S.show(viewer='jmol')   # indirect doctest
         """
-        cdef Transformation transform = render_params.transform
-        cdef Py_ssize_t i
-        cdef point_c res
+        transform = render_params.transform
         vertices = obj.vertices()
         faces = obj.faces()
 
@@ -87,20 +85,31 @@ class JMOLRenderer(Graphics3dRenderer):
             points = ["%g %g %g"%transform.transform_point(v) for v in vertices]
 
 
+        pmesh_faces = []
+        for f in faces:
+            if len(f) <= 4:
+                s = "%d\n"%(len(f)+1)
+                s += "\n".join("%d"%index for index in f.iter_index())
+                s += "\n%d"%f.get_index(0)
+                pmesh_faces.append(s)
+            else:
+                # stupid trianglulation
+                f0 = f.get_index(0)
+                for i in range(1, len(f)-1):
+                    pmesh_faces.append("%d\n%d\n%d\n%d\n%d"%(4,f0,f.get_index(i),f.get_index(i+1),f0))
+
         # activation of coloring in jmol
-        if obj.global_texture:
-            pmesh_faces = [format_pmesh_face(f, 1) for f in faces]
-        else:
-            pmesh_faces = [format_pmesh_face(f, -1) for f in faces]
+        #if obj.global_texture:
+        #    pmesh_faces = [format_pmesh_face(f, 1) for f in faces]
+        #else:
+        #    pmesh_faces = [format_pmesh_face(f, -1) for f in faces]
 
         # If a face has more than 4 vertices, it gets chopped up in
         # format_pmesh_face
-        cdef Py_ssize_t extra_faces = 0
+        extra_faces = 0
         for f in faces:
             if len(f) >= 5:
                 extra_faces += len(f)-3
-
-        sig_off()
 
         all = [str(len(vertices)),
                points,
@@ -134,7 +143,7 @@ class JMOLRenderer(Graphics3dRenderer):
             s += '\npmesh %s dots\n' % name
         return [s]
 
-        
+
 
     def render_implicit_surface(self, obj, render_params):
         obj.triangulate()
@@ -146,79 +155,6 @@ class JMOLRenderer(Graphics3dRenderer):
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         return IndexFaceSet.jmol_repr(obj, render_params)
 
-
-
-cdef inline format_pmesh_vertex(P):
-    return "%g %g %g"%P
-    cdef char ss[100]
-    # PyString_FromFormat doesn't do floats?
-    cdef Py_ssize_t r = sprintf_3d(ss, "%g %g %g", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
-
-cdef inline format_pmesh_face(face_c face, int has_color):
-    cdef char ss[100]
-    cdef Py_ssize_t r, i
-    cdef int color
-    # if the face has an individual color, has_color is -1
-    # otherwise it is 1
-    if has_color == -1:
-        color = float_to_integer(face.color.r,
-                                 face.color.g,
-                                 face.color.b)
-        # it seems that Jmol does not like the 0 color at all
-        if color == 0:
-            color = 1
-
-    if face.n == 3:
-        if has_color == 1:
-            r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[0])
-        else:
-            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[0], color)
-    elif face.n == 4:
-        if has_color == 1:
-            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[3],
-                           face.vertices[0])
-        else:
-            r = sprintf_7i(ss, "%d\n%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
-                           face.vertices[0],
-                           face.vertices[1],
-                           face.vertices[2],
-                           face.vertices[3],
-                           face.vertices[0], color)
-    else:
-        # Naive triangulation
-        all = []
-        if has_color == 1:
-            for i from 1 <= i < face.n - 1:
-                r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                               face.vertices[0],
-                               face.vertices[i],
-                               face.vertices[i + 1],
-                               face.vertices[0])
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
-        else:
-            for i from 1 <= i < face.n - 1:
-                r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
-                               face.vertices[0],
-                               face.vertices[i],
-                               face.vertices[i + 1],
-                               face.vertices[0], color)
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
-        return "\n".join(all)
-    # PyString_FromFormat is almost twice as slow
-    return PyString_FromStringAndSize(ss, r)
 
 
 

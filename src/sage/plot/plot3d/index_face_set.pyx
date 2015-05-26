@@ -856,7 +856,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         rrr = JMOLRenderer()
         return rrr.render_index_face_set(self, render_params)
 
-            
+
         """
         Return a jmol representation for ``self``.
 
@@ -1127,6 +1127,14 @@ cdef class Face(object):
         cdef int j
         for j in range(self.face.n):
             yield new_Vertex(&self.set.vs[self.face.vertices[j]])
+
+    def iter_index(self):
+        cdef int j
+        for j in range(self.face.n):
+            yield self.face.vertices[j]
+
+    def get_index(self, int i):
+        return self.face.vertices[i]
 
     def __getitem__(self, int j):
         if j < 0 or j >= self.face.n:
