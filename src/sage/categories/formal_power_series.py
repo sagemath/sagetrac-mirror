@@ -100,7 +100,12 @@ class FormalPowerSeries(Category):
             elif power == 1:
                 return self
             else:
-                return self * self ** (power-1)
+                if self.category() == ExponentialPowerSeries():
+                    from sage.combinat.species2.formal_power_series.operations.product import ExponentialProd
+                    return ExponentialProd((self, power))
+                else:
+                    from sage.combinat.species2.formal_power_series.operations.product import OrdinaryProd
+                    return OrdinaryProd((self, power))
 
         def restricted(self, min=Integer(0), max=Infinity):
             """

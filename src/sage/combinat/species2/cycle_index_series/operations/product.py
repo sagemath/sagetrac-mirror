@@ -169,23 +169,6 @@ class Prod(CIS):
 
         return rec_prod(cis, n)
 
-        def rec_prod(cis, n):
-            ZF = cis[0]
-            if len(cis) == 1:
-                return ZF.Frobenius_characteristic(n)
-
-            acc = h.zero()
-            for k in range(ZF._valuation_(), n+1):
-                chZFk = ZF.Frobenius_characteristic(k)
-                if chZFk != h.zero():
-                    acc += chZFk * rec_prod(cis[1:], n-k)
-            return acc
-
-        cis = reduce(lambda e, f: e+f, tuple((ZF,)*nf for ZF, nf in self._dic_cis_.iteritems()), ())
-        h = cis[0].Frobenius_characteristic(0).parent()
-
-        return rec_prod(cis, n)
-
     @cached_method
     def generating_series(self):
         from sage.combinat.species2.formal_power_series.operations.product import ExponentialProd

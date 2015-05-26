@@ -17,12 +17,13 @@ Reference
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
 from collections import defaultdict
-from itertools import imap
+from itertools import imap, product, tee
 from sage.categories.formal_power_series import ExponentialPowerSeries, OrdinaryPowerSeries
 from sage.combinat.species2.formal_power_series import FPS
 from sage.combinat.species2.formal_power_series.operations.add import Add
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.misc_c import prod
 from sage.rings.arith import binomial
 from sage.rings.integer import Integer
 
@@ -31,7 +32,6 @@ def clcall_private(ClassProd, cls, *args):
 
         # commutativity
         dic_fs = defaultdict(Integer)
-
         for i, (f, nf) in enumerate(args):
             # neutral element
             if f == f.category().one():
@@ -42,8 +42,14 @@ def clcall_private(ClassProd, cls, *args):
                     return f.category().zero()
             # distributivity f ⋅ (g + h) ⋅ r |--> f ⋅ g ⋅ r + f ⋅ h ⋅ r
             elif isinstance(f, Add):
-                return Add(*tuple((ClassProd(*(tuple(dic_fs.items()) + ((g, ng),) + args[i+1:])), 1)
-                                  for (g, ng) in f._dic_fs_.iteritems()), category=f.category())
+                summ = []
+                for lgng in product(*(tee(f._dic_fs_.iteritems(), nf))):
+                    fjh = [(g,1) for g, _ in lgng]
+                    fjh += args[i+1:]
+                    coefjh = prod(ng for _, ng in lgng)
+                    summ.append((ClassProd(*(dic_fs.items() + fjh)), coefjh))
+                return Add(*summ, category=f.category())
+
             # associativity f ⋅ (g ⋅ h) |--> f ⋅ g ⋅ h
             elif isinstance(f, ClassProd):
                 for (g, ng) in f._dic_fs_.iteritems():
