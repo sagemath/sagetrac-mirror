@@ -6,10 +6,10 @@ registered_renderers = {}
 
 def register(renderer):
     global registered_renderers
-    registered_renderers[renderer.__name__] = renderer
+    registered_renderers[renderer.name] = renderer()
 
 def unregister(renderer):
-    del registered_renderers[renderer.__name__]
+    del registered_renderers[renderer.name]
 
 
 
