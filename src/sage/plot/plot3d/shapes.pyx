@@ -57,7 +57,15 @@ from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
-import renderers
+import renderers.jmol
+import renderers.json
+import renderers.canvas3d
+import renderers.x3d
+import renderers.obj
+import renderers.tachyon
+import renderers.wavefront
+
+
 
 # Helper function to check that Box input is right
 def validate_frame_size(size):
@@ -706,6 +714,8 @@ cdef class Sphere(ParametricSurface):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_repr(self, render_params):
+        rrr = renderers.tachyon.TachyonRenderer()
+        return [rrr.render_sphere(self, render_params)]
         r"""
         Tachyon can natively handle spheres. Ellipsoids rendering is done
         as a parametric surface.

@@ -89,7 +89,39 @@ class TachyonRenderer(Graphics3dRenderer):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
     def render_sphere(self, obj, render_params):
-        return self.render_parametric_surface(obj, render_params)
+        r"""
+        Tachyon can natively handle spheres. Ellipsoids rendering is done
+        as a parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: S = Sphere(2)
+            sage: S.tachyon_repr(S.default_render_params())
+            'Sphere center 0 0 0 Rad 2.0 texture...'
+            sage: S.translate(1, 2, 3).scale(3).tachyon_repr(S.default_render_params())
+            [['Sphere center 3.0 6.0 9.0 Rad 6.0 texture...']]
+            sage: S.scale(1,1/2,1/4).tachyon_repr(S.default_render_params())
+            [['TRI V0 0 0 -0.5 V1 0.308116 0.0271646 -0.493844 V2 0.312869 0 -0.493844',
+              'texture...',
+               ...
+              'TRI V0 0.308116 -0.0271646 0.493844 V1 0.312869 0 0.493844 V2 0 0 0.5',
+              'texture...']]
+        """
+        from math import sqrt
+        transform = render_params.transform
+        if not (transform is None or transform.is_uniform()):
+            return self.render_parametric_surface(obj, render_params)
+
+        if transform is None:
+            cen = (0,0,0)
+            rad = obj.radius
+        else:
+            cen = transform.transform_point((0,0,0))
+            radv = transform.transform_vector((obj.radius,0,0))
+            rad = sqrt(sum([x*x for x in radv]))
+        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, obj.texture.id)
+
     def render_cylinder(self, obj, render_params):
         return self.render_parametric_surface(obj, render_params)
     def render_torus(self, obj, render_params):

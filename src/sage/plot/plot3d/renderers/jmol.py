@@ -191,7 +191,7 @@ class JMOLRenderer(Graphics3dRenderer):
         name = render_params.unique_name('sphere')
         transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
-            return ParametricSurface.jmol_repr(obj, render_params)
+            return self.render_parametric_surface(obj, render_params)
 
         if transform is None:
             cen = (0,0,0)
