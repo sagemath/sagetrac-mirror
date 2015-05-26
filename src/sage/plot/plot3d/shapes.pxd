@@ -14,7 +14,7 @@ cdef class Cylinder(ParametricSurface):
     cdef bint closed
 
 cdef class Sphere(ParametricSurface):
-    cdef double radius
+    cdef readonly double radius
 
 cdef class Torus(ParametricSurface):
     cdef double R, r

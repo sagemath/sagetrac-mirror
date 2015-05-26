@@ -57,6 +57,8 @@ from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
+from renderers.jmol import JMOLRenderer
+
 # Helper function to check that Box input is right
 def validate_frame_size(size):
     """
@@ -668,6 +670,7 @@ cdef class Sphere(ParametricSurface):
         sage: S = Sphere(1).scale(1,2,1/2)
         sage: S.show(aspect_ratio=1)
     """
+    render_method='render_sphere'
     def __init__(self, radius, **kwds):
         """
         TESTS::
@@ -736,47 +739,8 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.plot.plot3d.shapes import Sphere
-
-        Jmol has native code for handling spheres::
-
-            sage: S = Sphere(2)
-            sage: S.jmol_repr(S.default_render_params())
-            ['isosurface sphere_1  center {0 0 0} sphere 2.0\ncolor isosurface  [102,102,255]']
-            sage: S.translate(10, 100, 1000).jmol_repr(S.default_render_params())
-            [['isosurface sphere_1  center {10.0 100.0 1000.0} sphere 2.0\ncolor isosurface  [102,102,255]']]
-
-        It cannot natively handle ellipsoids::
-
-            sage: Sphere(1).scale(2, 3, 4).jmol_repr(S.testing_render_params())
-            [['pmesh obj_2 "obj_2.pmesh"\ncolor pmesh  [102,102,255]']]
-
-        Small spheres need extra hints to render well::
-
-            sage: Sphere(.01).jmol_repr(S.default_render_params())
-            ['isosurface sphere_1 resolution 100 center {0 0 0} sphere 0.01\ncolor isosurface  [102,102,255]']
-        """
-        name = render_params.unique_name('sphere')
-        transform = render_params.transform
-        if not (transform is None or transform.is_uniform()):
-            return ParametricSurface.jmol_repr(self, render_params)
-
-        if transform is None:
-            cen = (0,0,0)
-            rad = self.radius
-        else:
-            cen = transform.transform_point((0,0,0))
-            radv = transform.transform_vector((self.radius,0,0))
-            rad = sqrt(sum([x*x for x in radv]))
-        if rad < 0.5:
-            res = "resolution %s" % min(int(7/rad), 100)
-        else:
-            res = ""
-        return ["isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, self.texture.jmol_str("isosurface"))]
-
+        rrr = JMOLRenderer()
+        return rrr.render_sphere(self, render_params)
     def get_grid(self, double ds):
         """
         Return the range of variables to be evaluated on to render as a

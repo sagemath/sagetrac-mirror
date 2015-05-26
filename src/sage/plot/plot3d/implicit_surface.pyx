@@ -945,6 +945,7 @@ cdef class ImplicitSurface(IndexFaceSet):
     cdef readonly object colormap
     cdef readonly tuple plot_points
 
+    render_method='render_implicit_surface'
     def __init__(self, f, xrange, yrange, zrange,
                  contour=0, plot_points="automatic",
                  region=None, smooth=True, gradient=None,
@@ -1131,7 +1132,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: show(G, viewer='jmol')   # indirect doctest
         """
         rrr = JMOLRenderer()
-        rrr.repr_implicit_surface(self, render_params)
+        return rrr.render_implicit_surface(self, render_params)
 
     def json_repr(self, render_params):
         """

@@ -191,6 +191,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage: S.show(viewer='tachyon')
 
     """
+    render_method='render_index_face_set'
     def __cinit__(self):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
@@ -854,7 +855,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def jmol_repr(self, render_params):
         rrr = JMOLRenderer()
-        return rrr.render_index_face_set(self, render_params)
+        return [rrr.render_index_face_set(self, render_params)]
 
 
         """

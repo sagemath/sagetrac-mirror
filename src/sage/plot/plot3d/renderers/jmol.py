@@ -78,7 +78,6 @@ class JMOLRenderer(Graphics3dRenderer):
 
         obj._seperate_creases(render_params.crease_threshold)
 
-        sig_on()
         if transform is None:
             points = ["%g %g %g"%v for v in vertices]
         else:
@@ -116,7 +115,7 @@ class JMOLRenderer(Graphics3dRenderer):
                str(len(faces) + extra_faces),
                pmesh_faces]
 
-        from base import flatten_list
+        from ..base import flatten_list
         name = render_params.unique_name('obj')
         all = flatten_list(all)
         if render_params.output_archive:
@@ -130,7 +129,7 @@ class JMOLRenderer(Graphics3dRenderer):
                 f.write('\n')
             f.close()
 
-        if obj.global_texture:
+        if True:#obj.global_texture:
             s = 'pmesh {} "{}"\n{}'.format(name, filename,
                                            obj.texture.jmol_str("pmesh"))
         else:
@@ -141,20 +140,89 @@ class JMOLRenderer(Graphics3dRenderer):
             s += '\npmesh %s mesh\n' % name
         if render_params.dots:
             s += '\npmesh %s dots\n' % name
-        return [s]
+        return s
 
 
 
-    def render_implicit_surface(self, obj, render_params):
-        obj.triangulate()
-        from sage.plot.plot3d.index_face_set import IndexFaceSet
-        return IndexFaceSet.jmol_repr(obj, render_params)
+    def render_graphics3d(self, obj, render_params):
+        return ''
+
+    def render_graphics3d_group(self, obj, render_params):
+        return [g.render(render_params, renderer=self) for g in obj.all]
+    def render_transform_group(self, obj, render_params):
+        return self.render_graphics3d_group(obj, render_params)
+
+    def render_primitive_object(self, obj, render_params):
+        return self.render_graphics3d(obj, render_params)
+    def render_line(self, obj, render_params):
+        return self.render_primitive_objectd(obj, render_params)
+    def render_point(self, obj, render_params):
+        return self.render_primitive_object(obj, render_params)
+
+    def render_index_face_set(self, obj, render_params):
+        return self.render_graphics3d(obj, render_params)
+    def render_box(self, obj, render_params):
+        return self.render_index_face_set(obj, render_params)
 
     def render_parametric_surface(self, obj, render_params):
         obj.triangulate()
-        from sage.plot.plot3d.index_face_set import IndexFaceSet
-        return IndexFaceSet.jmol_repr(obj, render_params)
+        return self.render_index_face_set(obj, render_params)
+    def render_sphere(self, obj, render_params):
+        r"""
+        EXAMPLES::
 
+            sage: from sage.plot.plot3d.shapes import Sphere
+
+        Jmol has native code for handling spheres::
+
+            sage: S = Sphere(2)
+            sage: S.jmol_repr(S.default_render_params())
+            ['isosurface sphere_1  center {0 0 0} sphere 2.0\ncolor isosurface  [102,102,255]']
+            sage: S.translate(10, 100, 1000).jmol_repr(S.default_render_params())
+            [['isosurface sphere_1  center {10.0 100.0 1000.0} sphere 2.0\ncolor isosurface  [102,102,255]']]
+
+        It cannot natively handle ellipsoids::
+
+            sage: Sphere(1).scale(2, 3, 4).jmol_repr(S.testing_render_params())
+            [['pmesh obj_2 "obj_2.pmesh"\ncolor pmesh  [102,102,255]']]
+
+        Small spheres need extra hints to render well::
+
+            sage: Sphere(.01).jmol_repr(S.default_render_params())
+            ['isosurface sphere_1 resolution 100 center {0 0 0} sphere 0.01\ncolor isosurface  [102,102,255]']
+        """
+        from math import sqrt
+        name = render_params.unique_name('sphere')
+        transform = render_params.transform
+        if not (transform is None or transform.is_uniform()):
+            return ParametricSurface.jmol_repr(obj, render_params)
+
+        if transform is None:
+            cen = (0,0,0)
+            rad = obj.radius
+        else:
+            cen = transform.transform_point((0,0,0))
+            radv = transform.transform_vector((obj.radius,0,0))
+            rad = sqrt(sum([x*x for x in radv]))
+        if rad < 0.5:
+            res = "resolution %s" % min(int(7/rad), 100)
+        else:
+            res = ""
+        return ["isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, obj.texture.jmol_str("isosurface"))]
+
+
+    def render_cylinder(self, obj, render_params):
+        return self.render_parametric_surface(obj, render_params)
+    def render_torus(self, obj, render_params):
+        return self.render_parametric_surface(obj, render_params)
+    def render_cone(self, obj, render_params):
+        return self.render_parametric_surface(obj, render_params)
+    def render_mobius_strip(self, obj, render_params):
+        return self.render_parametric_surface(obj, render_params)
+
+    def render_implicit_surface(self, obj, render_params):
+        obj.triangulate()
+        return self.render_index_face_set(obj, render_params)
 
 
 

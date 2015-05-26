@@ -772,6 +772,9 @@ end_scene""" % (render_params.antialiasing,
         """
         return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
 
+    def render(self, render_params, renderer):
+        return getattr(renderer,self.render_method)(self, render_params)
+        
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=1, spin=False, background=(1,1,1), stereo=False,
                     mesh=False, dots=False,

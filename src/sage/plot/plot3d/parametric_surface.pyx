@@ -163,7 +163,7 @@ cdef class ParametricSurface(IndexFaceSet):
         ....:   srange(-5,5.0,0.1)),color=(c,cm))
         sage: P.show(viewer='tachyon')
     """
-
+    render_method='render_parametric_surface'
     def __init__(self, f=None, domain=None, **kwds):
         """
         Create the graphics primitive :class:`ParametricSurface`.  See the
@@ -272,7 +272,7 @@ cdef class ParametricSurface(IndexFaceSet):
             ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
         """
         rrr = JMOLRenderer()
-        rrr.repr_implicit_surface(self, render_params)
+        return rrr.render_implicit_surface(self, render_params)
 
     def json_repr(self, render_params):
         """
