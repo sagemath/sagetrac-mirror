@@ -78,7 +78,7 @@ from sage.structure.sage_object import SageObject
 
 
 class Property(property):
-    
+
     def __init__(self, name, allowed_values, doc=None):
         r"""
         Preference item
@@ -87,10 +87,11 @@ class Property(property):
 
         - ``name`` -- string. The name of the property.
 
-        - ``allowed_values`` -- list/tuple/iterable of allowed values.
+        - ``allowed_values`` -- list/tuple/iterable of allowed values,
+                                or ``None`` if all values are allowed
 
         - ``doc`` -- string (optional). The docstring of the property.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.preferences import Property
@@ -102,7 +103,10 @@ class Property(property):
         """
         self.name = name
         self.underscore_name = '_{0}'.format(name)
-        self.allowed_values = tuple(allowed_values)
+        if allowed_values is None:
+            self.allowed_values = None
+        else:
+            self.allowed_values = tuple(allowed_values)
         self.__doc__ = doc = self._make_doc(doc)
         super(Property, self).__init__(
             fget=self.getter, fset=self.setter, fdel=self.deleter, doc=doc)
@@ -138,6 +142,8 @@ class Property(property):
             * 2
         """
         doc = dedent(doc)
+        if self.allowed_values is None:
+            return doc
         doc += '\n\n'
         doc += 'Allowed values:\n\n'
         values_doc = []
@@ -162,11 +168,11 @@ class Property(property):
             'foo'
         """
         return self.name
-            
+
     def getter(self, prefs):
         """
         Get the current value of the property
-        
+
         INPUT:
 
         - ``prefs`` -- the :class:`PreferencesABC` instance that the
@@ -191,11 +197,11 @@ class Property(property):
             return getattr(prefs, self.underscore_name)
         except AttributeError:
             return None
-        
+
     def setter(self, prefs, value):
         """
         Get the current value of the property
-        
+
         INPUT:
 
         - ``prefs`` -- the :class:`PreferencesABC` instance that the
@@ -229,7 +235,7 @@ class Property(property):
         if value is None:
             return self.deleter(prefs)
         allowed = self.allowed_values
-        if value not in allowed:
+        if allowed is not None and value not in allowed:
             raise ValueError('value must be unset (None) or one of {0}, got {1}'
                              .format(allowed, value))
         setattr(prefs, self.underscore_name, value)
@@ -237,7 +243,7 @@ class Property(property):
     def deleter(self, prefs):
         """
         Delete the current value of the property
-        
+
         INPUT:
 
         - ``prefs`` -- the :class:`PreferencesABC` instance that the
@@ -263,7 +269,7 @@ class Property(property):
 
 
 class PreferencesABC(SageObject):
-    
+
     def __init__(self, *args, **kwds):
         """
         Preferences for displaying graphics
@@ -277,7 +283,7 @@ class PreferencesABC(SageObject):
           instances. The property values will be inherited from left
           to right, that is, later parents override values from
           earlier parents.
-        
+
         - ``**kwds`` -- keyword arguments. Will be used to initialize
           properties, and override inherited values if necessary.
 
@@ -347,7 +353,7 @@ class PreferencesABC(SageObject):
         """
         prop = Property(name, values, doc)
         setattr(cls, name, prop)
-    
+
     def available_options(self):
         """
         Return the available options
@@ -368,7 +374,7 @@ class PreferencesABC(SageObject):
             if isinstance(value, Property):
                 options.append(value)
         return tuple(sorted(options, key=str))
-    
+
     def _repr_(self):
         r"""
         Return a string representation
@@ -426,4 +432,12 @@ DisplayPreferences._add_option(
 )
 
 
-
+DisplayPreferences._add_option(
+        'graphics3d',
+        None,
+        """
+        List that gives the order of preference of renderers for
+        3d graphics. If ``None``, assumes that the backend doesn't
+        support 3d graphics.
+        """
+)
