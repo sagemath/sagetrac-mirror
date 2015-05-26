@@ -418,3 +418,15 @@ class Texture_class(SageObject):
 
 
 
+class TextureMap(SageObject):
+    """
+    a base class for general texture maps
+    """
+    def __init__(self,f):
+        """
+        a function which returns Texture objects
+        """
+        self.map = f
+    def __call__(self,x):
+        return self.map(x)
+    
