@@ -4,7 +4,7 @@ import os
 from . import register, Graphics3dRenderer
 
 
-class WavefrontRenderer(object):
+class WavefrontRenderer(Graphics3dRenderer):
 
     def render_graphics3d(self, obj, render_params):
         """
@@ -13,8 +13,8 @@ class WavefrontRenderer(object):
         """
         return ''
 
-    def render_graphics3d_group(self, obj, render_params):
-        return self.render_graphics3d(obj, render_params)
+    # def render_graphics3d_group(self, obj, render_params):
+    #     return self.render_graphics3d(obj, render_params)
     def render_transform_group(self, obj, render_params):
         return self.render_graphics3d_group(obj, render_params)
 

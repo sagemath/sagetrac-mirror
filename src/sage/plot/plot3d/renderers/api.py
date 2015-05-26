@@ -16,7 +16,7 @@ class Graphics3dRenderer(object):
         return ''
 
     def render_graphics3d_group(self, obj, render_params):
-        return self.render_graphics3d(obj, render_params)
+        return [g.render(render_params, renderer=self) for g in obj.all]
     def render_transform_group(self, obj, render_params):
         return self.render_graphics3d_group(obj, render_params)
 

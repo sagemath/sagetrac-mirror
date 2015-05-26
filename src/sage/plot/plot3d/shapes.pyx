@@ -740,7 +740,7 @@ cdef class Sphere(ParametricSurface):
 
     def jmol_repr(self, render_params):
         rrr = renderers.jmol.JMOLRenderer()
-        return rrr.render_sphere(self, render_params)
+        return [rrr.render_sphere(self, render_params)]
     def get_grid(self, double ds):
         """
         Return the range of variables to be evaluated on to render as a

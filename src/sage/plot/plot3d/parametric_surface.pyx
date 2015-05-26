@@ -272,7 +272,7 @@ cdef class ParametricSurface(IndexFaceSet):
             ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
         """
         rrr = renderers.jmol.JMOLRenderer()
-        return rrr.render_implicit_surface(self, render_params)
+        return [rrr.render_implicit_surface(self, render_params)]
 
     def json_repr(self, render_params):
         """

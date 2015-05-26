@@ -52,7 +52,14 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-from renderers.jmol import JMOLRenderer
+
+import renderers.jmol
+import renderers.json
+import renderers.canvas3d
+import renderers.x3d
+import renderers.obj
+import renderers.tachyon
+import renderers.wavefront
 
 # import the double infinity constant
 cdef extern from "math.h":
@@ -69,6 +76,7 @@ cdef class Graphics3d(SageObject):
     .. automethod:: __add__
     .. automethod:: _rich_repr_
     """
+    render_method = "render_graphics3d"
     def __cinit__(self):
         """
         The Cython constructor
@@ -135,7 +143,7 @@ cdef class Graphics3d(SageObject):
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            rrr = JMOLRenderer()
+            rrr = renderers.jmol.JMOLRenderer()
             return rrr.rich_repr_graphics3d(self, **opts)
         elif viewer == 'tachyon':
             preferred = (
@@ -1346,7 +1354,7 @@ end_scene""" % (render_params.antialiasing,
             render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            rrr = JMOLRenderer()
+            rrr = renderers.jmol.JMOLRenderer()
             scene = rrr.rich_repr_graphics3d(self, **opts)
             scene.preview_png.save_as(filename)
         else:
@@ -1457,6 +1465,7 @@ class Graphics3dGroup(Graphics3d):
     This class represents a collection of 3d objects. Usually they are formed
     implicitly by summing.
     """
+    render_method = "render_graphics3d_group"
     def __init__(self, all=(), rot=None, trans=None, scale=None, T=None):
         """
         EXAMPLES::
@@ -1570,7 +1579,8 @@ class Graphics3dGroup(Graphics3d):
             sage: G.json_repr(G.default_render_params())
             [[["{vertices:..."]], [["{vertices:..."]]]
         """
-        return [g.json_repr(render_params) for g in self.all]
+        rrr = renderers.json.JsonRenderer()
+        return rrr.render_graphics3d_group(self, render_params)
 
     def tachyon_repr(self, render_params):
         """
@@ -1584,25 +1594,13 @@ class Graphics3dGroup(Graphics3d):
             [['Sphere center 0.0 0.0 0.0 Rad 1.0 texture...'],
              ['Sphere center 1.0 2.0 3.0 Rad 1.0 texture...']]
         """
-        return [g.tachyon_repr(render_params) for g in self.all]
+        rrr = renderers.tachyon.TachyonRenderer()
+        return rrr.render_graphics3d_group(self, render_params)
 
     def x3d_str(self):
-        """
-        The x3d representation of a group is simply the concatenation of
-        the representation of its objects.
+        rrr = renderers.x3d.X3dRenderer()
+        return rrr.render_graphics3d_group(self, render_params=None)
 
-        EXAMPLES::
-
-            sage: G = sphere() + sphere((1,2,3))
-            sage: print G.x3d_str()
-            <Transform translation='0 0 0'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
-            </Transform>
-            <Transform translation='1 2 3'>
-            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
-            </Transform>
-        """
-        return "\n".join([g.x3d_str() for g in self.all])
 
     def obj_repr(self, render_params):
         """
@@ -1630,7 +1628,8 @@ class Graphics3dGroup(Graphics3d):
                ['f 5 6 7', 'f 6 8 7', 'f 5 7 8', 'f 5 8 6'],
                []]]]
         """
-        return [g.obj_repr(render_params) for g in self.all]
+        rrr = renderers.obj.ObjRenderer()
+        return rrr.render_graphics3d_group(self, render_params)
 
     def jmol_repr(self, render_params):
         r"""
@@ -1644,7 +1643,8 @@ class Graphics3dGroup(Graphics3d):
             [[['isosurface sphere_1  center {0.0 0.0 0.0} sphere 1.0\ncolor isosurface  [102,102,255]']],
              [['isosurface sphere_2  center {1.0 2.0 3.0} sphere 1.0\ncolor isosurface  [102,102,255]']]]
         """
-        return [g.jmol_repr(render_params) for g in self.all]
+        rrr = renderers.jmol.JMOLRenderer()
+        return rrr.render_graphics3d_group(self, render_params)
 
     def texture_set(self):
         """
@@ -1701,6 +1701,7 @@ class TransformGroup(Graphics3dGroup):
     This class is a container for a group of objects with a common
     transformation.
     """
+    render_method = "render_transform_group"
     def __init__(self, all=[], rot=None, trans=None, scale=None, T=None):
         """
         EXAMPLES::
@@ -1952,6 +1953,7 @@ cdef class PrimitiveObject(Graphics3d):
     """
     This is the base class for the non-container 3d objects.
     """
+    render_method = "render_primitive_object"
     def __init__(self, **kwds):
         if 'texture' in kwds:
             self.texture = kwds['texture']

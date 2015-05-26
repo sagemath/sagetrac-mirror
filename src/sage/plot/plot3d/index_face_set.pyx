@@ -68,71 +68,20 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
 
-import renderers
+import renderers.jmol
+import renderers.json
+import renderers.canvas3d
+import renderers.x3d
+import renderers.obj
+import renderers.tachyon
+import renderers.wavefront
+
 
 
 
 # --------------------------------------------------------------------
 # Fast routines for generating string representations of the polygons.
 # --------------------------------------------------------------------
-
-cdef inline format_tachyon_texture(color_c rgb):
-    cdef char rs[200]
-    cdef Py_ssize_t cr = sprintf_3d(rs,
-                                   "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0",
-                                   rgb.r, rgb.g, rgb.b)
-    return PyString_FromStringAndSize(rs, cr)
-
-
-cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
-    cdef char ss[250]
-    # PyString_FromFormat doesn't do floats?
-    cdef Py_ssize_t r = sprintf_9d(ss,
-                                   "TRI V0 %g %g %g V1 %g %g %g V2 %g %g %g",
-                                   P.x, P.y, P.z,
-                                   Q.x, Q.y, Q.z,
-                                   R.x, R.y, R.z )
-    return PyString_FromStringAndSize(ss, r)
-
-
-cdef inline format_json_vertex(point_c P):
-    cdef char ss[100]
-    cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
-
-cdef inline format_json_face(face_c face):
-    return "[{}]".format(",".join([str(face.vertices[i])
-                                   for i from 0 <= i < face.n]))
-
-cdef inline format_obj_vertex(point_c P):
-    cdef char ss[100]
-    # PyString_FromFormat doesn't do floats?
-    cdef Py_ssize_t r = sprintf_3d(ss, "v %g %g %g", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
-
-cdef inline format_obj_face(face_c face, int off):
-    cdef char ss[100]
-    cdef Py_ssize_t r, i
-    if face.n == 3:
-        r = sprintf_3i(ss, "f %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off)
-    elif face.n == 4:
-        r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off, face.vertices[3] + off)
-    else:
-        return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
-    # PyString_FromFormat is almost twice as slow
-    return PyString_FromStringAndSize(ss, r)
-
-cdef inline format_obj_face_back(face_c face, int off):
-    cdef char ss[100]
-    cdef Py_ssize_t r, i
-    if face.n == 3:
-        r = sprintf_3i(ss, "f %d %d %d", face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
-    elif face.n == 4:
-        r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
-    else:
-        return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
-    return PyString_FromStringAndSize(ss, r)
-
 
 
 cdef class IndexFaceSet(PrimitiveObject):
@@ -699,160 +648,16 @@ cdef class IndexFaceSet(PrimitiveObject):
         return all
 
     def tachyon_repr(self, render_params):
-        """
-        Return a tachyon object for ``self``.
-
-        EXAMPLES:
-
-        A basic test with a triangle::
-
-            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
-            sage: s = G.tachyon_repr(G.default_render_params()); s
-            ['TRI V0 0 0 1 V1 1 1 1 V2 2 0 1', ...]
-
-        A simple colored one::
-
-            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
-            sage: from sage.plot.plot3d.texture import Texture
-            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
-            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
-            sage: col = rainbow(10, 'rgbtuple')
-            sage: t_list=[Texture(col[i]) for i in range(10)]
-            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
-            sage: S.tachyon_repr(S.default_render_params())
-            ['TRI V0 2 0 0 V1 1 0 1 V2 1 1 0',
-            'TEXTURE... AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0... COLOR 1 0 0 ... TEXFUNC 0',...]
-        """
-        cdef Transformation transform = render_params.transform
-        lines = []
-        cdef point_c P, Q, R
-        cdef face_c face
-        cdef Py_ssize_t i, k
-        sig_on()
-        for i from 0 <= i < self.fcount:
-            face = self._faces[i]
-            if transform is not None:
-                transform.transform_point_c(&P, self.vs[face.vertices[0]])
-                transform.transform_point_c(&Q, self.vs[face.vertices[1]])
-                transform.transform_point_c(&R, self.vs[face.vertices[2]])
-            else:
-                P = self.vs[face.vertices[0]]
-                Q = self.vs[face.vertices[1]]
-                R = self.vs[face.vertices[2]]
-            PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-            if self.global_texture:
-                PyList_Append(lines, self.texture.id)
-            else:
-                PyList_Append(lines, format_tachyon_texture(face.color))
-            if face.n > 3:
-                for k from 3 <= k < face.n:
-                    Q = R
-                    if transform is not None:
-                        transform.transform_point_c(&R, self.vs[face.vertices[k]])
-                    else:
-                        R = self.vs[face.vertices[k]]
-                    PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-                    if self.global_texture:
-                        PyList_Append(lines, self.texture.id)
-                    else:
-                        PyList_Append(lines, format_tachyon_texture(face.color))
-        sig_off()
-
-        return lines
+        rrr = renderers.tachyon.TachyonRenderer()
+        return rrr.render_index_face_set(self, render_params)
 
     def json_repr(self, render_params):
-        """
-        Return a json representation for ``self``.
-
-        TESTS:
-
-        A basic test with a triangle::
-
-            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
-            sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'#0000ff'}"]
-
-        A simple colored one::
-
-            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
-            sage: from sage.plot.plot3d.texture import Texture
-            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
-            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
-            sage: col = rainbow(10, 'rgbtuple')
-            sage: t_list=[Texture(col[i]) for i in range(10)]
-            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
-            sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
-        """
-        cdef Transformation transform = render_params.transform
-        cdef point_c res
-
-        if transform is None:
-            vertices_str = "[{}]".format(
-                ",".join([format_json_vertex(self.vs[i])
-                          for i from 0 <= i < self.vcount]))
-        else:
-            vertices_str = "["
-            for i from 0 <= i < self.vcount:
-                transform.transform_point_c(&res, self.vs[i])
-                if i > 0:
-                    vertices_str += ","
-                vertices_str += format_json_vertex(res)
-            vertices_str += "]"
-
-        faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
-                                            for i from 0 <= i < self.fcount]))
-        if self.global_texture:
-            color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{vertices:%s,faces:%s,color:%s}" %
-                    (vertices_str, faces_str, color_str)]
-        else:
-            color_str = "[{}]".format(",".join(["'{}'".format(
-                    Color(self._faces[i].color.r,
-                          self._faces[i].color.g,
-                          self._faces[i].color.b).html_color())
-                                            for i from 0 <= i < self.fcount]))
-            return ["{vertices:%s,faces:%s,face_colors:%s}" %
-                    (vertices_str, faces_str, color_str)]
+        rrr = renderers.json.JsonRenderer()
+        return [rrr.render_index_face_set(self, render_params)]
 
     def obj_repr(self, render_params):
-        """
-        Return an obj representation for ``self``.
-
-        TESTS::
-
-            sage: from sage.plot.plot3d.shapes import *
-            sage: S = Cylinder(1,1)
-            sage: s = S.obj_repr(S.default_render_params())
-        """
-        cdef Transformation transform = render_params.transform
-        cdef int off = render_params.obj_vertex_offset
-        cdef Py_ssize_t i
-        cdef point_c res
-
-        sig_on()
-        if transform is None:
-            points = [format_obj_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
-        else:
-            points = []
-            for i from 0 <= i < self.vcount:
-                transform.transform_point_c(&res, self.vs[i])
-                PyList_Append(points, format_obj_vertex(res))
-
-        faces = [format_obj_face(self._faces[i], off) for i from 0 <= i < self.fcount]
-        if not self.enclosed:
-            back_faces = [format_obj_face_back(self._faces[i], off) for i from 0 <= i < self.fcount]
-        else:
-            back_faces = []
-
-        render_params.obj_vertex_offset += self.vcount
-        sig_off()
-
-        return ["g " + render_params.unique_name('obj'),
-                "usemtl " + self.texture.id,
-                points,
-                faces,
-                back_faces]
+        rrr = renderers.obj.ObjRenderer()
+        return rrr.render_index_face_set(self, render_params)
 
     def jmol_repr(self, render_params):
         rrr = renderers.jmol.JMOLRenderer()

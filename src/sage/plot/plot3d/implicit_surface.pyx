@@ -1132,7 +1132,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: show(G, viewer='jmol')   # indirect doctest
         """
         rrr = renderers.jmol.JMOLRenderer()
-        return rrr.render_implicit_surface(self, render_params)
+        return [rrr.render_implicit_surface(self, render_params)]
 
     def json_repr(self, render_params):
         """

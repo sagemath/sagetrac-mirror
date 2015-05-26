@@ -62,6 +62,21 @@ class JMOLRenderer(Graphics3dRenderer):
         scene = obj._rich_repr_jmol(**opts)
         scene.preview_png.save_as(filename)
 
+    def render_graphics3d(self, obj, render_params):
+        return ''
+
+    def render_graphics3d_group(self, obj, render_params):
+        return [g.render(render_params, renderer=self) for g in obj.all]
+    def render_transform_group(self, obj, render_params):
+        return self.render_graphics3d_group(obj, render_params)
+
+    def render_primitive_object(self, obj, render_params):
+        return self.render_graphics3d(obj, render_params)
+    def render_line(self, obj, render_params):
+        return self.render_primitive_objectd(obj, render_params)
+    def render_point(self, obj, render_params):
+        return self.render_primitive_object(obj, render_params)
+
     def render_index_face_set(self, obj, render_params):
         """
         Return a jmol representation for ``obj``.
@@ -79,7 +94,7 @@ class JMOLRenderer(Graphics3dRenderer):
         obj._seperate_creases(render_params.crease_threshold)
 
         if transform is None:
-            points = ["%g %g %g"%v for v in vertices]
+            points = ["%g %g %g"%tuple(v) for v in vertices]
         else:
             points = ["%g %g %g"%transform.transform_point(v) for v in vertices]
 
@@ -142,25 +157,6 @@ class JMOLRenderer(Graphics3dRenderer):
             s += '\npmesh %s dots\n' % name
         return s
 
-
-
-    def render_graphics3d(self, obj, render_params):
-        return ''
-
-    def render_graphics3d_group(self, obj, render_params):
-        return [g.render(render_params, renderer=self) for g in obj.all]
-    def render_transform_group(self, obj, render_params):
-        return self.render_graphics3d_group(obj, render_params)
-
-    def render_primitive_object(self, obj, render_params):
-        return self.render_graphics3d(obj, render_params)
-    def render_line(self, obj, render_params):
-        return self.render_primitive_objectd(obj, render_params)
-    def render_point(self, obj, render_params):
-        return self.render_primitive_object(obj, render_params)
-
-    def render_index_face_set(self, obj, render_params):
-        return self.render_graphics3d(obj, render_params)
     def render_box(self, obj, render_params):
         return self.render_index_face_set(obj, render_params)
 
@@ -208,7 +204,7 @@ class JMOLRenderer(Graphics3dRenderer):
             res = "resolution %s" % min(int(7/rad), 100)
         else:
             res = ""
-        return ["isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, obj.texture.jmol_str("isosurface"))]
+        return "isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, obj.texture.jmol_str("isosurface"))
 
 
     def render_cylinder(self, obj, render_params):
