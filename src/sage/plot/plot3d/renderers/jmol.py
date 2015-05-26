@@ -2,9 +2,12 @@ from __future__ import absolute_import
 
 import os
 from . import register, Graphics3dRenderer
+from sage.repl.rich_output.buffer import OutputBuffer
+from sage.repl.rich_output.output_graphics3d  import OutputSceneJmol
 
 class JMOLRenderer(Graphics3dRenderer):
-
+    name = 'Jmol'
+    output_type = OutputSceneJmol
     def rich_repr(self, obj, **kwds):
         """
         Rich Representation as JMol scene
@@ -129,6 +132,9 @@ class JMOLRenderer(Graphics3dRenderer):
             1
             ...
         """
+        from cStringIO import StringIO
+        import zipfile
+        from ..base import flatten_list
         render_params = obj.default_render_params()
         render_params.mesh = mesh
         render_params.dots = dots

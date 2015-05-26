@@ -5,7 +5,7 @@ from . import register, Graphics3dRenderer
 
 
 class X3dRenderer(Graphics3dRenderer):
-
+    name = 'X3d'
     def render_graphics3d(self, obj, render_params):
         """
         Unless otherwise changed, all rendering methods fall back to this

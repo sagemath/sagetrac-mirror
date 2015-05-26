@@ -5,7 +5,7 @@ from . import register, Graphics3dRenderer
 
 
 class TachyonRenderer(Graphics3dRenderer):
-
+    name = 'Tachyon'
     def render_graphics3d(self, obj, render_params):
         """
         Unless otherwise changed, all rendering methods fall back to this

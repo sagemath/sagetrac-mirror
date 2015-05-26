@@ -5,7 +5,7 @@ from . import register, Graphics3dRenderer
 
 
 class JsonRenderer(Graphics3dRenderer):
-
+    name='Json'
     def render_graphics3d(self, obj, render_params):
         """
         Unless otherwise changed, all rendering methods fall back to this

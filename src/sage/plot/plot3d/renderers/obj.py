@@ -5,7 +5,7 @@ from . import register, Graphics3dRenderer
 
 
 class ObjRenderer(Graphics3dRenderer):
-
+    name = 'Obj'
     # grob = (gr)aphics (ob)ject
     def render_graphics3d(self, grob, render_params):
         """
