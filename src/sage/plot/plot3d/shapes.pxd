@@ -4,17 +4,17 @@ from parametric_surface cimport ParametricSurface
 
 
 cdef class Cone(ParametricSurface):
-    cdef double radius
-    cdef double height
-    cdef bint closed
+    cdef readonly double radius
+    cdef readonly double height
+    cdef readonly bint closed
 
 cdef class Cylinder(ParametricSurface):
-    cdef double radius
-    cdef double height
-    cdef bint closed
+    cdef readonly double radius
+    cdef readonly double height
+    cdef readonly bint closed
 
 cdef class Sphere(ParametricSurface):
     cdef readonly double radius
 
 cdef class Torus(ParametricSurface):
-    cdef double R, r
+    cdef readonly double R, r
