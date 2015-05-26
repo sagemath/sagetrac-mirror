@@ -17,12 +17,12 @@ Reference
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
 from collections import defaultdict
-from itertools import imap
+from copy import copy
+from itertools import imap, product, tee
 from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.species2.cycle_index_series import CIS
 from sage.combinat.species2.cycle_index_series.operations.add import Add
-from sage.combinat.species2.formal_power_series.operations.product import OrdinaryProd
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.misc_c import prod
 from sage.rings.integer import Integer
@@ -105,12 +105,23 @@ class Prod(CIS):
                 # else continue
             # distributivity ZF ⋅ (ZG + ZH) ⋅ ZR |--> ZF ⋅ ZG ⋅ ZR + ZF ⋅ ZH ⋅ ZR
             elif isinstance(ZF, Add):
-                return Add(*tuple((Prod(*(tuple(dic_cis.items()) + ((ZG, ng),) + args[i+1:])), 1)
-                                  for (ZG, ng) in ZF._dic_cis_.iteritems()))
+                # ZJ = "dic_cis" ~ ZK^k ⋅ ZD^d
+                # ZF = ZG + ZH
+                # Y := ZJ ⋅ (ZG + ZH)^f -> ((ZJ ⋅ ZG) + (ZJ ⋅ ZH)) ⋅ (ZG + ZH)^(f-1)
+                summ = []
+                for lZGng in product(*(tee(ZF._dic_cis_.iteritems(), nf))):
+                    ZJH = [(ZG,1) for ZG, _ in lZGng]
+                    ZJH += args[i+1:]
+                    coefjh = prod(ng for _, ng in lZGng)
+                    summ.append((Prod(*(dic_cis.items() + ZJH)), coefjh))
+                # Y ⋅ ZR
+
+                return Add(*summ)
+
             # associativity ZF ⋅ (ZG ⋅ ZH) |--> ZF ⋅ ZG ⋅ ZH
             elif isinstance(ZF, Prod):
                 for (ZG, ng) in ZF._dic_cis_.iteritems():
-                    dic_cis[ZG] += ng
+                    dic_cis[ZG] += ng * nf
             # otherwise
             else:
                 dic_cis[ZF] += nf
@@ -145,6 +156,18 @@ class Prod(CIS):
 
         :param n: a non-negative integer
         """
+
+        def rec_prod(cis, n):
+            (ZF, ex) = cis[0]
+            if len(cis) == 1:
+                return _Zexp_(ZF, n, ex, base)
+            return sum(_Zexp_(ZF, k, ex, base) * rec_prod(cis[1:], n-k)
+                       for k in range(n+1))
+
+        cis = list(self._dic_cis_.iteritems())
+        base = cis[0][0].Frobenius_characteristic(0).parent()
+
+        return rec_prod(cis, n)
 
         def rec_prod(cis, n):
             ZF = cis[0]
@@ -193,3 +216,13 @@ class Prod(CIS):
             ZGd = Derivative(ZG)
             return ZGd in self._dic_cis_.keys() and self._dic_cis_[ZGd] == 1
         return False
+
+@cached_function
+def _Zexp_(Zp, n, ex, base):
+    if ex == 0:
+        print "???"
+        if n > 0: return base.zero()
+        else:     return base.one()
+    elif ex == 1: return Zp.Frobenius_characteristic(n)
+    else:         return sum(Zp.Frobenius_characteristic(k) * _Zexp_(Zp, n-k, ex-1, base)
+                             for k in range(n+1))
