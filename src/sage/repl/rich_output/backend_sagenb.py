@@ -61,14 +61,14 @@ from sage.repl.rich_output.output_catalog import *
 def world_readable(filename):
     """
     All SageNB temporary files must be world-writeable.
-    
+
     Discussion of this design choice can be found at :trac:`17743`.
 
     EXAMPLES::
 
         sage: import os, stat
         sage: f = tmp_filename()
-    
+
     At least on a sane system the temporary files are only readable by
     the user, but not by others in the group or total strangers::
 
@@ -100,7 +100,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
         sage: SageNbOutputSceneJmol.example()
         SageNbOutputSceneJmol container
     """
-    
+
     @cached_method
     def sagenb_launch_script_filename(self):
         """
@@ -147,7 +147,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
         filename = self.sagenb_launch_script_filename()
         assert filename.endswith(dot_jmol)
         return filename[:-len(dot_jmol)]
-    
+
     @cached_method
     def scene_zip_filename(self):
         """
@@ -194,7 +194,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
     def save_launch_script(self):
         """
         Save the Jmol launch script
-        
+
         See :meth:`sagenb_launch_script_filename`.
 
         EXAMPLES::
@@ -219,7 +219,7 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
     def save_preview(self):
         """
         Save the preview PNG image
-        
+
         See :meth:`preview_filename`.
 
         EXAMPLES::
@@ -236,11 +236,11 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
         sage_makedirs('.jmol_images')
         self.preview_png.save_as(self.preview_filename())
         world_readable(self.preview_filename())
-    
+
     def embed(self):
         """
         Save all files necessary to embed jmol
-        
+
         EXAMPLES:
 
         Switch to a new empty temporary directory::
@@ -263,10 +263,35 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
 
 class BackendSageNB(BackendBase):
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * graphics3d = ('jmol', 'tachyon', 'canvas3d', 'wavefront')
+            * supplemental_plot is not specified
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(
+                graphics3d=('jmol', 'tachyon', 'canvas3d', 'wavefront'),
+                )
+
     def _repr_(self):
         """
         Return the string representation
-        
+
         OUTPUT:
 
         String
@@ -279,7 +304,7 @@ class BackendSageNB(BackendBase):
             'SageNB'
         """
         return 'SageNB'
-    
+
     def supported_output(self):
         """
         Return the outputs that are supported by the SageNB backend.
@@ -295,7 +320,7 @@ class BackendSageNB(BackendBase):
             sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
             sage: backend = BackendSageNB()
             sage: supp = backend.supported_output();  supp     # random output
-            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
+            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>,
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputCanvas3d'>])
             sage: from sage.repl.rich_output.output_basic import OutputLatex
@@ -376,7 +401,7 @@ class BackendSageNB(BackendBase):
         - ``output_buffer`` --
           :class:`~sage.repl.rich_output.buffer.Buffer`. A buffer
           holding the image data.
-        
+
         - ``file_ext`` -- string. The file extension to use for saving
           the image.
 

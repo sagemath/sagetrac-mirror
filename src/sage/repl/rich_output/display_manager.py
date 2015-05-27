@@ -148,6 +148,7 @@ class restricted_output(object):
             ....:    dm.preferences
             Display preferences:
             * graphics = disable
+            * graphics3d is not specified
             * supplemental_plot = never
             * text is not specified
             sage: dm.preferences.supplemental_plot = 'never'
@@ -338,6 +339,7 @@ class DisplayManager(SageObject):
             sage: dm.preferences
             Display preferences:
             * graphics is not specified
+            * graphics3d is not specified
             * supplemental_plot = never
             * text is not specified
         """

@@ -141,12 +141,15 @@ class BackendIPythonCommandline(BackendIPython):
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
-            * graphics3d is not specified
+            * graphics3d = ('jmol', 'tachyon', 'wavefront')
             * supplemental_plot = never
             * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences
-        return DisplayPreferences(supplemental_plot='never')
+        return DisplayPreferences(
+                supplemental_plot='never',
+                graphics3d=('jmol', 'tachyon', 'wavefront'),
+                )
 
     def _repr_(self):
         """
@@ -419,12 +422,14 @@ class BackendIPythonNotebook(BackendIPython):
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
-            * graphics3d = ('Jmol', 'Tachyon')
+            * graphics3d = ('jmol', 'tachyon')
             * supplemental_plot is not specified
             * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences
-        return DisplayPreferences(graphics3d=('Jmol', 'Tachyon'))
+        return DisplayPreferences(
+                graphics3d=('jmol', 'tachyon'),
+                )
 
     def _repr_(self):
         """

@@ -27,7 +27,7 @@ from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
 
 
-    
+
 class BackendDoctest(BackendBase):
 
     def _repr_(self):
@@ -53,7 +53,7 @@ class BackendDoctest(BackendBase):
 
         Matches the IPython command line display preferences to keep
         the differences between that and the doctests to a minimum.
-        
+
         OUTPUT:
 
         Instance of
@@ -61,11 +61,12 @@ class BackendDoctest(BackendBase):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
-            sage: backend = BackendIPythonCommandline()
+            sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
+            sage: backend = BackendDoctest()
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
+            * graphics3d is not specified
             * supplemental_plot = never
             * text is not specified
         """
@@ -86,7 +87,7 @@ class BackendDoctest(BackendBase):
         backend.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
             sage: backend = BackendDoctest()
             sage: backend.install()
@@ -94,7 +95,7 @@ class BackendDoctest(BackendBase):
         """
         self._old_displayhook = sys.displayhook
         sys.displayhook = self.get_display_manager().displayhook
-    
+
     def uninstall(self):
         """
         Switch away from the doctest backend
@@ -104,7 +105,7 @@ class BackendDoctest(BackendBase):
         should never call it by hand.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
             sage: backend = BackendDoctest()
             sage: backend.install()
@@ -115,7 +116,7 @@ class BackendDoctest(BackendBase):
     def supported_output(self):
         """
         Return the supported output types
-        
+
         OUTPUT:
 
         Set of subclasses of
@@ -134,7 +135,7 @@ class BackendDoctest(BackendBase):
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputLatex,
-            OutputImagePng, OutputImageGif, OutputImageJpg, 
+            OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
         ])
@@ -212,7 +213,7 @@ class BackendDoctest(BackendBase):
     def validate(self, rich_output):
         """
         Perform checks on ``rich_output``
-        
+
         INPUT:
 
         - ``rich_output`` -- instance of a subclass of
