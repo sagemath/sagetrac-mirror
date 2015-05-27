@@ -8,12 +8,28 @@ Doc.
 """
 class Graphics3dRenderer(object):
 
+    # renderer's are singletons
+    _instance = None
+    def __new__(cls):
+        """
+        TEST::
+
+            sage: from sage.plot.plot3d.renderers.api import Graphics3dRenderer
+            sage: Graphics3dRenderer() is Graphics3dRenderer()
+            True
+        """
+        if cls._instance.__class__ is cls:
+            return cls._instance
+        else:
+            cls._instance = object.__new__(cls)
+            return cls._instance
+
     def render_graphics3d(self, obj, render_params):
         """
         Unless otherwise changed, all rendering methods fall back to this
         one.
         """
-        return ''
+        return []
 
     def render_graphics3d_group(self, obj, render_params):
         """
@@ -58,5 +74,3 @@ class Graphics3dRenderer(object):
     def render_implicit_surface(self, obj, render_params):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
-
-
