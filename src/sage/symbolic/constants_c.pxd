@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -std=c++11
+
 from ginac cimport GConstant
 
 cdef class PynacConstant:

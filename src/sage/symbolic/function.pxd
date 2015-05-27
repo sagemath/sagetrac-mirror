@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -std=c++11 -Wno-c++11-compat
+
 from sage.structure.sage_object cimport SageObject
 
 cdef class Function(SageObject):
