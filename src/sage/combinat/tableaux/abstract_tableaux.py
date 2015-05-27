@@ -49,11 +49,12 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, category=category)
 
-    def _element_constructor_(self, *args, **kwds):
+    def _element_constructor_(self, x, *args, **kwds):
         r"""
         Constructs an Element of ``self``.
         
         Input validation and normalization should be done here.
+        The argument ``x`` can be ignored.
 
         OUTPUT:
 

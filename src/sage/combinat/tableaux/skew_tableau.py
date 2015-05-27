@@ -20,7 +20,7 @@ Orphaned tests:
     sage: t = SkewTableau([[None, None, 1], [2, 4], [], [3, 4, 5]])
     Traceback (most recent call last):
     ...
-    TypeError: a skew tableau cannot have an empty list for a row
+    ValueError: Input must be of skew shape
 
     sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).size()
     4
@@ -62,6 +62,7 @@ import six
 from sage.misc.cachefunc import cached_method
 from sage.combinat.partition import Partition
 from sage.combinat.skew_partition import SkewPartition
+from sage.rings.all import ZZ
 
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
 
@@ -109,6 +110,9 @@ class SkewTableau(BadShapeTableau):
 
     def __init__(self, parent, st):
         """
+        Note: ``st`` is used as-is. Validation, normalization, etc.
+        should be done in the Parent class.
+
         TESTS::
 
             sage: st = SkewTableau([[None, 1],[2,3]])
@@ -118,7 +122,7 @@ class SkewTableau(BadShapeTableau):
         A skew tableau is immutable, see :trac:`15862`::
 
             sage: T = SkewTableau([[None,2],[2]])
-            sage: t0 = T[0]
+            sage: t0 = list(T)[0]
             sage: t0[1] = 3
             Traceback (most recent call last):
             ...
@@ -126,20 +130,28 @@ class SkewTableau(BadShapeTableau):
             sage: T[0][1] = 5
             Traceback (most recent call last):
             ...
-            TypeError: 'tuple' object does not support item assignment
+            TypeError: 'SkewTableaux_with_category.element_class' object does not support indexing
         """
-        self._parent = parent
-
-        try:
-            st = tuple(tuple(row) for row in st)
-        except TypeError:
-            raise TypeError("each element of the skew tableau must be an iterable")
+        self._set_parent(parent)
         self._st = st
+
+    def __iter__(self):
+        return self._st.__iter__()
+
+    def __len__(self):
+        r"""
+        Returns the number of rows of ``self``.
+        
+        Note: this differs from the behavior for :class:`BadShapeTableaux`,
+        where :meth:`__len__` returns the number of cells.
+        """
+        return len(self._st)
 
     @cached_method
     def _dict_unsafe(self):
-        d = {(i, j): k for i, row in enumerate(self._tuple())
-                       for j, k in enumerate(row)}
+        d = {(i, j): k for i, row in enumerate(self._st)
+                       for j, k in enumerate(row)
+                       if k is not None}
         return d
 
     def to_tuple(self):
@@ -225,7 +237,7 @@ class SkewTableau(BadShapeTableau):
             sage: Tableau([])._repr_compact()
             '-'
         """
-        if not self:
+        if not len(self):
             return '-'
         str_rep = lambda x: '%s'%x if x is not None else '.'
         return '/'.join(','.join(str_rep(r) for r in row) for row in self)
@@ -270,7 +282,7 @@ class SkewTableau(BadShapeTableau):
             }
         """
         from sage.combinat.output import tex_from_array
-        return tex_from_array(self)
+        return tex_from_array(self._st)
 
     ##################################################################
     ###                      Functionality                         ###
@@ -352,8 +364,9 @@ class SkewTableau(BadShapeTableau):
         conj = [[None]*row_length for row_length in conj_shape]
 
         for i in range(len(conj)):
-            for j in range(len(conj[i])):
-                conj[i][j] = self[j][i]
+            conj_i = conj[i]
+            for j in range(len(conj_i)):
+                conj_i[j] = self._st[j][i]
 
         return self.__class__(conj)
 
@@ -404,11 +417,11 @@ class SkewTableau(BadShapeTableau):
             True
         """
         d = self.weight_dict()
-        if d:
+        if not d:
             return []
         ret = [0]*max(d)
         for k, v in six.iteritems(d):
-            ret[k] = v
+            ret[k-1] = v
         return ret
 
     # Alias
@@ -558,7 +571,7 @@ class SkewTableau(BadShapeTableau):
             True
             sage: SkewTableau([[None, 2, 3], [1, 2]]).is_semistandard()
             False
-            sage: SkewTableau([[None, 2, 3], [None, None, 4]]).is_semistandard()
+            sage: SkewTableau([[None, None, 3], [None, 2, 3]]).is_semistandard()
             False
         """
         return self.is_column_strict() and self.is_row_increasing()
@@ -619,20 +632,20 @@ class SkewTableau(BadShapeTableau):
             True
 
         """
-        if not self:
+        if not self.size():
             return True
 
         from collections import Counter
         content_counts = Counter(i - j for i,j in self.iter_cells())
         
         # Ensure no more than one entry is on each diagonal
-        if any(count > 1 for count in six.itervalues(content_counts):
+        if any(count > 1 for count in six.itervalues(content_counts)):
             return False
         
         # Ensure all entries are consecutive
-        content_counts = sorted(content for content
-                                  in six.iterentires(content_counts)
-                                  if content > 0)
+        content_counts = sorted(content for content, count
+                                  in six.iteritems(content_counts)
+                                  if count > 0)
         return content_counts == range(content_counts[0], content_counts[-1]+1)
 
 
@@ -642,10 +655,10 @@ class SkewTableau(BadShapeTableau):
 
         EXAMPLES::
 
-            sage: t = SkewTableau([[None,2,3],[2,3],[3]])
+            sage: t = SemistandardSkewTableau([[None,2,3],[2,3],[3]])
             sage: t.is_k_tableau(3)
             True
-            sage: t = SkewTableau([[None,1,3],[2,2],[3]])
+            sage: t = SemistandardSkewTableau([[None,1,3],[2,2],[3]])
             sage: t.is_k_tableau(3)
             False
         """
@@ -689,7 +702,9 @@ class SkewTableau(BadShapeTableau):
         if self.inner_size() != 0:
             raise ValueError("the inner size of the skew tableau must be 0")
         else:
-            from sage.combinat.tableaux.straight_tableau import Tableau
+            # TODO: make this use the new tableaux
+            #from sage.combinat.tableaux.straight_tableau import Tableau
+            from sage.combinat.tableau import Tableau
             return Tableau(self)
 
     def to_ribbon(self, check_input=True):
@@ -738,7 +753,7 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
+            sage: st = SemistandardSkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
             sage: st.slide((2,0))
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
 
@@ -814,10 +829,10 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: s = SkewTableau([[None,1],[2,3]])
+            sage: s = SemistandardSkewTableau([[None,1],[2,3]])
             sage: s.rectify()
             [[1, 3], [2]]
-            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            sage: SemistandardSkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
             [[1, 3, 4, 6], [2, 5]]
 
         TESTS::
@@ -856,7 +871,7 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: t = SkewTableau([[None,None,3,4,7,19],[None,4,4,8],[None,5,16,17],[None],[2],[3]])
+            sage: t = SemistandardSkewTableau([[None,None,3,4,7,19],[None,4,4,8],[None,5,16,17],[None],[2],[3]])
             sage: t.standardization()
             [[None, None, 3, 6, 8, 12], [None, 4, 5, 9], [None, 7, 10, 11], [None], [1], [2]]
 
@@ -870,7 +885,7 @@ class SemistandardSkewTableau(SkewTableau):
         The reading word of the standardization is the
         standardization of the reading word::
 
-            sage: t = SkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
+            sage: t = SemistandardSkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
             sage: t.to_word().standard_permutation() == t.standardization().to_permutation()
             True
 
@@ -878,10 +893,10 @@ class SemistandardSkewTableau(SkewTableau):
 
         Some corner cases::
 
-            sage: t = SkewTableau([[None,None],[None]])
+            sage: t = SemistandardSkewTableau([[None,None],[None]])
             sage: t.standardization()
             [[None, None], [None]]
-            sage: t = SkewTableau([])
+            sage: t = SemistandardSkewTableau([])
             sage: t.standardization()
             []
         """
@@ -937,7 +952,7 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: t = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
+            sage: t = SemistandardSkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
             sage: t
             [[None, None, None, 4, 4, 5, 6, 7], [None, 2, 4, 6, 7, 7, 7], [None, 4, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [4]]
             sage: t.bender_knuth_involution(1)
@@ -957,7 +972,7 @@ class SemistandardSkewTableau(SkewTableau):
 
         The Bender--Knuth involution is an involution::
 
-            sage: t = SkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
+            sage: t = SemistandardSkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
             sage: all(t.bender_knuth_involution(k).bender_knuth_involution(k) == t for k in range(1,4))
             True
 
@@ -980,10 +995,10 @@ class SemistandardSkewTableau(SkewTableau):
 
         TESTS::
 
-            sage: t = SkewTableau([])
+            sage: t = SemistandardSkewTableau([])
             sage: t.bender_knuth_involution(3)
             []
-            sage: t = SkewTableau([[None,None],[None]])
+            sage: t = SemistandardSkewTableau([[None,None],[None]])
             sage: t.bender_knuth_involution(3)
             [[None, None], [None]]
 
@@ -1058,11 +1073,11 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,1],[2],[3]]).restrict(2)
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(2)
             [[None, 1], [2]]
-            sage: SkewTableau([[None,1],[2],[3]]).restrict(1)
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(1)
             [[None, 1]]
-            sage: SkewTableau([[None,1],[1],[2]]).restrict(1)
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).restrict(1)
             [[None, 1], [1]]
         """
         return self.__class__((x for x in row if x is None or x <= n)
@@ -1077,11 +1092,11 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,None],[2,3],[3,4]]).restriction_outer_shape(3)
+            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_outer_shape(3)
             [2, 2, 1]
-            sage: SkewTableau([[None,2],[None],[4],[5]]).restriction_outer_shape(2)
+            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_outer_shape(2)
             [2, 1]
-            sage: T = SkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
             sage: T.restriction_outer_shape(0)
             [2, 1]
             sage: T.restriction_outer_shape(2)
@@ -1094,7 +1109,7 @@ class SemistandardSkewTableau(SkewTableau):
             [4, 3, 1]
         """
         from sage.combinat.partition import Partition
-        return Partition(sum(1 for x in row if x is not None or x <= n)
+        return Partition(sum(1 for x in row if x is None or x <= n)
                          for row in self)
 
     def restriction_shape(self, n):
@@ -1106,11 +1121,11 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,None],[2,3],[3,4]]).restriction_shape(3)
+            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_shape(3)
             [2, 2, 1] / [2]
-            sage: SkewTableau([[None,2],[None],[4],[5]]).restriction_shape(2)
+            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_shape(2)
             [2, 1] / [1, 1]
-            sage: T = SkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
             sage: T.restriction_shape(0)
             [2, 1] / [2, 1]
             sage: T.restriction_shape(2)
@@ -1136,55 +1151,54 @@ class SemistandardSkewTableau(SkewTableau):
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,1],[2],[3]]).to_chain()
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).to_chain()
             [[1], [2], [2, 1], [2, 1, 1]]
-            sage: SkewTableau([[None,1],[1],[2]]).to_chain()
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain()
             [[1], [2, 1], [2, 1, 1]]
-            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=2)
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=2)
             [[1], [2, 1], [2, 1, 1]]
-            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=3)
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=3)
             [[1], [2, 1], [2, 1, 1], [2, 1, 1]]
-            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=1)
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=1)
             [[1], [2, 1]]
-            sage: SkewTableau([[None,None,2],[None,3],[None,5]]).to_chain(max_entry=6)
+            sage: SemistandardSkewTableau([[None,None,2],[None,3],[None,5]]).to_chain(max_entry=6)
             [[2, 1, 1], [2, 1, 1], [3, 1, 1], [3, 2, 1], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
-            sage: SkewTableau([]).to_chain()
+            sage: SemistandardSkewTableau([]).to_chain()
             [[]]
-            sage: SkewTableau([]).to_chain(max_entry=1)
+            sage: SemistandardSkewTableau([]).to_chain(max_entry=1)
             [[], []]
 
         TESTS:
 
         Check that :meth:`to_chain()` does not skip letters::
 
-            sage: t = SkewTableau([[None, 2, 3], [3]])
+            sage: t = SemistandardSkewTableau([[None, 2, 3], [3]])
             sage: t.to_chain()
             [[1], [1], [2], [3, 1]]
 
-            sage: T = SkewTableau([[None]])
+            sage: T = SemistandardSkewTableau([[None]])
             sage: T.to_chain()
             [[1]]
         """
         if max_entry is None:
-            if not self:
+            if not self.size():
                 max_entry = 0
             else:
                 max_entry = max(self.iter_entries())
         return [self.restriction_outer_shape(n) for n in range(max_entry+1)]
 
-
 class StandardSkewTableau(SemistandardSkewTableau):
     r"""
     A standard tableau of skew shape.
 
-    See :class:`SkewTableau` for more details and construction options
+    See :class:`SkewTableau` for more details and construction options.
     These tableau are in addition standard, meaning they are strictly
     increasing along rows and columns, and they use entries from 1
     through the size of the tableau precisely once each.
     """
     _generic_parent = SkewTableau._gp(
                       'sage.combinat.tableaux.skew_tableaux',
-                      'SemistandardSkewTableaux')
+                      'StandardSkewTableaux')
 
     def to_permutation(self):
         """
@@ -1195,14 +1209,14 @@ class StandardSkewTableau(SemistandardSkewTableau):
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,2],[3,4],[None],[1]]).to_permutation()
+            sage: StandardSkewTableau([[None, None,2],[None, 3,4],[None],[1]]).to_permutation()
             [1, 3, 4, 2]
-            sage: SkewTableau([[None,2],[None,4],[1],[3]]).to_permutation()
+            sage: StandardSkewTableau([[None,2],[None,4],[1],[3]]).to_permutation()
             [3, 1, 4, 2]
-            sage: SkewTableau([[None]]).to_permutation()
+            sage: StandardSkewTableau([[None]]).to_permutation()
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(i for row in reversed(self)
+        return Permutation(i for row in reversed(list(self))
                              for i in row
                              if i is not None)

@@ -115,7 +115,7 @@ class AbstractTableau(Element):
 
         Inherited by child classes, unlike ``__classcall_private__``.
         """
-        return cls._generic_parent()(*args, **kwds)
+        return cls._generic_parent()(0, *args, **kwds)
 
     def __hash__(self):
         r""""
@@ -195,7 +195,7 @@ class AbstractTableau(Element):
         """
         return self._group_by(0, 1)
 
-    def cols(self):
+    def columns(self):
         r"""
         Return the values of ``self`` as a list of columns in order of
         increasing columns index, where each column is a list and has been
@@ -203,13 +203,13 @@ class AbstractTableau(Element):
         """
         return self._group_by(1, 0)
 
-    def iter_cells():
+    def iter_cells(self):
         r"""
         Iterate over the cells of ``self`` in no particular order.
         """
         return six.iterkeys(self._dict_unsafe())
 
-    def iter_entries():
+    def iter_entries(self):
         r"""
         Iterate over the entries of ``self`` in no particular order.
         """
@@ -217,11 +217,11 @@ class AbstractTableau(Element):
 
     def iter_by_row_reversed(self):
         r"""
-        Iterate over values of ``self``, row-by-row from higher row indices to lower,
+        Iterate over entries of ``self``, row-by-row from higher row indexes to lower,
         and within each row from lower column indexes to higher.
         """
-        # Row index is more important than column index; higher row indices
-        #   are earlier; lower column indices are earlier
+        # Row index is more important than column index; higher row indexes
+        #   are earlier; lower column indiexes are earlier
         def mixed_lex((x1, y1), (x2, y2)):
             if x1 < x2:
                 return 1
@@ -243,11 +243,11 @@ class AbstractTableau(Element):
 
     def iter_by_col_reversed(self):
         r"""
-        Iterate over values of ``self``, column-by-column from higher column indices to
+        Iterate over entries of ``self``, column-by-column from higher column indexes to
         lower, and within each column from lower row indexes to higher.
         """
-        # Column index is more important than row index; higher column indices
-        #   are earlier; lower row indices are earlier
+        # Column index is more important than row index; higher column indexes
+        #   are earlier; lower row indexes are earlier
         def mixed_lex((x1, y1), (x2, y2)):
             if y1 < y2:
                 return 1
@@ -370,7 +370,7 @@ class AbstractTableau(Element):
         :class:`sage.combinat.words.word.FiniteWord_list`.
         """
         from sage.combinat.words.word import Word
-        return Word(sum(self.iter_by_row_reversed(), []))
+        return Word(x for x in self.iter_by_row_reversed())
 
     def to_word_by_column(self):
         r"""
@@ -378,7 +378,7 @@ class AbstractTableau(Element):
         :class:`sage.combinat.words.word.FiniteWord_list`.
         """
         from sage.combinat.words.word import Word
-        return Word(sum(self.iter_by_col_reversed(), []))
+        return Word(x for x in self.iter_by_col_reversed())
 
     # Alias
     to_word = to_word_by_row

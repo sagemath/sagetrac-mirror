@@ -60,7 +60,15 @@ Orphaned tests::
 #*****************************************************************************
 
 import six
+from itertools import ifilter
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.skew_partition import SkewPartition, SkewPartitions
+from sage.rings.all import Integer
 from sage.rings.infinity import PlusInfinity
+from sage.structure.global_options import GlobalOptions
+
+# TODO: rethink imports here vs. in-function, and likewise in skew_tableau.py
 
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
 from sage.combinat.tableaux.skew_tableau import (
@@ -172,16 +180,17 @@ class SkewTableaux(BadShapeTableaux):
     # Convenient shortcut to global options
     global_options = TableauOptions
 
-    def _element_constructor_(self, st=None, expr=None, shape_word=None,
+    def _element_constructor_(self, x, st=None, expr=None, shape_word=None,
                                     dct=None, check=True):
         r"""
         Construct a new SkewTableau using one of several input formats,
-        optionally validating input.
-        
+        optionally validating and normalizing input.
+
         If multiple formats are specified, the left-most is used. If
         no format is specified, the "trivial" skew tableau is returned.
 
         INPUT:
+        - ``x`` -- used in :meth:`Parent.__call__` and can be ignored here.
         - ``st`` -- an iterable of rows from top to bottom in English
           notation, where each row is an iterable of entries from left
           to right but where ``None``'s do not give cells of the skew
@@ -196,23 +205,15 @@ class SkewTableaux(BadShapeTableaux):
           row reading
         - ``dct`` -- a dictionary whose keys are pairs of non-negative
           integers
-        - ``check`` -- (default: ``True``) if ``True``, then validate input:
-          ensure ``st`` or the cells of ``dct`` actually form a skew shape,
+        - ``check`` -- (default: ``True``) if ``True``, then validate 
+          and normalize input: ensure ``st`` or the cells of ``dct``
+          actually form a skew shape, remove empty rows from ``st``,
           etc.
         """
+        # TODO: normalize st input by removing empty rows
+
         if st is not None:
-            # TODO: normalize st input by removing rows with all None's and
-            # empty rows.
-            if check:
-                try:
-                    st = tuple(tuple(row) for row in st)
-                except TypeError:
-                    raise TypeError("each element of the skew tableau must be an iterable")
-
-                # TODO: make sure None's are contiguous and left-justified;
-                # make sure shape is a skew tableau
-
-            return self._new_element(st)
+            return self.from_st(st, check)
 
         if expr is not None:
             return self.from_expr(expr, check)
@@ -224,7 +225,42 @@ class SkewTableaux(BadShapeTableaux):
         if dct is not None:
             return self.from_dict(dct, check)
 
-        return self._new_element([[]])
+        return self._new_element(())
+
+    def from_st(self, st, check=True):
+        if check:
+            try:
+                # Remove empty rows
+                st = tuple( ifilter(lambda t: t,
+                            (tuple(row) for row in st)) )
+            except TypeError:
+                raise TypeError("each element of the skew tableau must be an iterable")
+
+            # Make sure rows begin with blocks of nones
+            inner = [0]*len(st)
+            outer = [0]*len(st)
+            for i in range(len(st)):
+                row = st[i]
+
+                finishedNones = False
+                noneCount = 0
+                for j, val in enumerate(row):
+                    if val is None:
+                        if finishedNones:
+                            raise ValueError("Row %s does not start with a block of Nones"%str(row))
+                        noneCount += 1
+                    else:
+                        finishedNones = True
+
+                inner[i] = noneCount
+                outer[i] = len(row)
+
+                # Make sure inner and outer are partitions
+                if (any(inner[i+1] > inner[i] for i in range(len(st) - 1)) or
+                    any(outer[i+1] > outer[i] for i in range(len(st) - 1))):
+                    raise ValueError("Input must be of skew shape")
+
+            return self._new_element(st)
 
     def from_expr(self, expr, check=True):
         r"""
@@ -267,9 +303,10 @@ class SkewTableaux(BadShapeTableaux):
             sage: SkewTableaux().from_shape_and_word(shape, word)
             [[None, 1, 3], [None, 2], [4]]
         """
+        # TODO: add validation
+
         inner, outer = shape
-        
-        
+
         st = [ [None]*row_length for row_length in inner ]
         w_count = 0
         for i in reversed(range(len(inner))):
@@ -424,6 +461,8 @@ class SemistandardSkewTableaux(SkewTableaux):
             sage: SkewTableau([[None]]) in SemistandardSkewTableaux(2)
             True
     """
+    Element = SemistandardSkewTableau
+
     @staticmethod
     def __classcall_private__(cls, p=None, mu=None, max_entry=None):
         """
@@ -533,7 +572,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         while True:
             for ssst in SemistandardSkewTableaux_size(n, min(n, self.max_entry)):
                 # TODO: why isn't this just yielding ssst?
-                yield self.element_class(self, ssst)
+                yield self._new_element(ssst)
             n += 1
 
 class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
@@ -594,7 +633,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
         for p in SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_shape(p, self.max_entry):
                 # TODO: why isn't this just yielding ssst?
-                yield self.element_class(self, ssst)
+                yield self._new_element(ssst)
 
 class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
     r"""
@@ -657,7 +696,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
         for p in SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_shape_weight(p, self.mu):
                 # TODO: should this just yield ssst?
-                yield self.element_class(self, ssst)
+                yield self._new_element(ssst)
 
 class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
     r"""
@@ -752,7 +791,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         for mu in IntegerVectors(self.p.size(), self.max_entry):
             for ssst in SemistandardSkewTableaux_shape_weight(self.p, mu):
                 # TODO: should this just yield ssst?
-                yield self.element_class(self, ssst)
+                yield self._new_element(ssst)
 
 class StandardSkewTableaux(SemistandardSkewTableaux):
     """
@@ -849,7 +888,7 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
         while True:
             for st in StandardSkewTableaux_size(n):
                 # TODO: should this just yield st?
-                yield self.element_class(self, st)
+                yield self._new_element(st)
             n += 1
 
 class StandardSkewTableaux_size(StandardSkewTableaux):
@@ -920,7 +959,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         for skp in SkewPartitions(self.n):
             for sst in StandardSkewTableaux_shape(skp):
                 # TODO: should this just yield sst?
-                yield self.element_class(self, sst)
+                yield self._new_element(sst)
 
 class StandardSkewTableaux_shape(StandardSkewTableaux):
     r"""
@@ -1015,7 +1054,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         for le in le_list:
             # TODO: switch to _new_element to avoid a circular reference
             # and work in the _label_skew code.
-            yield self.element_class(self, _label_skew(le, empty))
+            yield self._new_element(_label_skew(le, empty))
 
 def _label_skew(list_of_cells, sk):
     """

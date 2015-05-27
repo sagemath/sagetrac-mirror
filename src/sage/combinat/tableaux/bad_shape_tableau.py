@@ -57,7 +57,7 @@ class BadShapeTableau(AbstractTableau):
 
         - ``dct`` -- a dictionary whose keys are pairs of integers
         """
-        self._parent = parent
+        self._set_parent(parent)
         self._dict = dict(dct)
 
     def _dict_unsafe(self):
