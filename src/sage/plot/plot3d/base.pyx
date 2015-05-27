@@ -1182,7 +1182,7 @@ end_scene""" % (render_params.antialiasing,
             render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            rrr = renderers.jmol.JMOLRenderer()
+            rrr = renderers.jmol.JmolRenderer()
             scene = rrr.rich_repr_graphics3d(self, **opts)
             scene.preview_png.save_as(filename)
         else:

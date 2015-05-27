@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from . import register, Graphics3dRenderer
+from .api import Graphics3dRenderer
 
 # needs to go somewhere:
 """
@@ -133,8 +133,3 @@ class ObjRenderer(Graphics3dRenderer):
     def render_implicit_surface(self, grob, render_params):
         grob.triangulate()
         return self.render_index_face_set(grob, render_params)
-
-register(ObjRenderer)
-
-def format_obj_face(indexed_face, off, order=1):
-    return "f "+" ".join("%d"%(j+off) for j in indexed_face[::order])

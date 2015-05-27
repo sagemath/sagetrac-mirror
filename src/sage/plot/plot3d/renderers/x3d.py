@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from . import register, Graphics3dRenderer
+from .api import Graphics3dRenderer
 
 
 class X3dRenderer(Graphics3dRenderer):
@@ -83,6 +83,3 @@ class X3dRenderer(Graphics3dRenderer):
     def render_implicit_surface(self, obj, render_params):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
-
-register(X3dRenderer)
-

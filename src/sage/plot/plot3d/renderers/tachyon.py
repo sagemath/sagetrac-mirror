@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from . import register, Graphics3dRenderer
+from .api import Graphics3dRenderer
 
 
 # Needs to go somewhere:
@@ -194,17 +194,8 @@ class TachyonRenderer(Graphics3dRenderer):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
 
-register(TachyonRenderer)
-
-
 def format_tachyon_texture(rgb):
     return "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0\n" % (rgb.r, rgb.g, rgb.b)
 
 def format_tachyon_triangle(P, Q, R):
     return "TRI V0 %g %g %g "%P + "V1 %g %g %g "%Q + "V2 %g %g %g\n"%R
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from . import register, Graphics3dRenderer
+from .api import Graphics3dRenderer
 from sage.repl.rich_output.buffer import OutputBuffer
 from sage.repl.rich_output.output_graphics3d  import OutputSceneJmol
 
@@ -35,7 +35,7 @@ EXAMPLES::
     [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
 """
 
-class JMOLRenderer(Graphics3dRenderer):
+class JmolRenderer(Graphics3dRenderer):
     name = 'jmol'
     output_types = (OutputSceneJmol,)
     def rich_repr(self, obj, **kwds):
@@ -427,12 +427,3 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
         return self.render_parametric_surface(obj, render_params)
     def render_mobius_strip(self, obj, render_params):
         return self.render_parametric_surface(obj, render_params)
-
-    def render_implicit_surface(self, obj, render_params):
-        obj.triangulate()
-        return self.render_index_face_set(obj, render_params)
-
-
-
-
-register(JMOLRenderer)

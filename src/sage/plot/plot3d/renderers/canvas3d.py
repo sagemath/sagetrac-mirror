@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from . import register, Graphics3dRenderer
+from .api import Graphics3dRenderer
 
 from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
 
@@ -153,16 +153,3 @@ class Canvas3dRenderer(Graphics3dRenderer):
     def render_implicit_surface(self, obj, render_params):
         obj.triangulate()
         return self.render_index_face_set(obj, render_params)
-
-register(Canvas3dRenderer)
-
-
-# cdef inline format_json_vertex(point_c P):
-#     cdef char ss[100]
-#     cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
-#     return PyString_FromStringAndSize(ss, r)
-
-# cdef inline format_json_face(face_c face):
-#     return "[{}]".format(",".join([str(face.vertices[i])
-#                                    for i from 0 <= i < face.n]))
-
