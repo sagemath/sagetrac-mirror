@@ -69,7 +69,6 @@ from sage.plot.plot3d.base import Graphics3dGroup
 from transform cimport Transformation
 
 import renderers.jmol
-import renderers.json
 import renderers.canvas3d
 import renderers.x3d
 import renderers.obj
@@ -652,16 +651,16 @@ cdef class IndexFaceSet(PrimitiveObject):
         return rrr.render_index_face_set(self, render_params)
 
     def json_repr(self, render_params):
-        rrr = renderers.json.JsonRenderer()
+        rrr = renderers.canvas3d.Canvas3dRenderer()
         return [rrr.render_index_face_set(self, render_params)]
 
     def obj_repr(self, render_params):
         rrr = renderers.obj.ObjRenderer()
         return rrr.render_index_face_set(self, render_params)
 
-    def jmol_repr(self, render_params):
-        rrr = renderers.jmol.JMOLRenderer()
-        return [rrr.render_index_face_set(self, render_params)]
+    # def jmol_repr(self, render_params):
+    #     rrr = renderers.jmol.JMOLRenderer()
+    #     return [rrr.render_index_face_set(self, render_params)]
 
 
     def dual(self, **kwds):

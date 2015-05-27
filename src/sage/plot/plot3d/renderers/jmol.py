@@ -6,8 +6,8 @@ from sage.repl.rich_output.buffer import OutputBuffer
 from sage.repl.rich_output.output_graphics3d  import OutputSceneJmol
 
 class JMOLRenderer(Graphics3dRenderer):
-    name = 'Jmol'
-    output_type = OutputSceneJmol
+    name = 'jmol'
+    output_types = (OutputSceneJmol,)
     def rich_repr(self, obj, **kwds):
         """
         Rich Representation as JMol scene
@@ -43,18 +43,25 @@ class JMOLRenderer(Graphics3dRenderer):
         self.export_jmol(T, scene_zip, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
-        # Java needs absolute paths
-        # On cygwin, they should be native ones
-        scene_native = scene_zip
-        import sys
-        if sys.platform == 'cygwin':
-            from subprocess import check_output, STDOUT
-            scene_native = check_output(['cygpath', '-w', scene_native],
-                                        stderr=STDOUT).rstrip()
-        script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
-        jdata.export_image(targetfile=preview_png, datafile=script,
-                           image_type="PNG",
-                           figsize=opts['figsize'][0])
+        if not jdata.is_jvm_available():
+            # We can only use JMol to generate preview if a jvm is installed
+            from sage.repl.rich_output.output_graphics import OutputImagePng
+            opts['viewer'] = 'Tachyon'
+            tachyon = obj._rich_repr_(OutputImagePng, **opts)
+            tachyon.png.save_as(preview_png)
+        else:
+            # Java needs absolute paths
+            # On cygwin, they should be native ones
+            scene_native = scene_zip
+            import sys
+            if sys.platform == 'cygwin':
+                from subprocess import check_output, STDOUT
+                scene_native = check_output(['cygpath', '-w', scene_native],
+                                            stderr=STDOUT).rstrip()
+            script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
+            jdata.export_image(targetfile=preview_png, datafile=script,
+                               image_type="PNG",
+                               figsize=opts['figsize'][0])
         from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
         from sage.repl.rich_output.buffer import OutputBuffer
         scene_zip     = OutputBuffer.from_file(scene_zip)

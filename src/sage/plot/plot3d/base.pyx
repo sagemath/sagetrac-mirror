@@ -55,7 +55,6 @@ from sage.interfaces.tachyon import tachyon_rt
 from renderers import registered_renderers
 
 import renderers.jmol
-import renderers.json
 import renderers.canvas3d
 import renderers.x3d
 import renderers.obj
@@ -128,9 +127,11 @@ cdef class Graphics3d(SageObject):
 
             for preferred in display_manager.preferences.graphics3d:
                 renderer = registered_renderers.get(preferred)
-                if (renderer is not None and
-                        renderer.output_type in supported_output):
-                    break
+                if renderer is not None:
+                    good_types = [t for t in renderer.output_types if t in supported_output]
+                    if good_types:
+                        kwds['output_type'] = good_types[0]
+                        break
             else:
                 raise RuntimeError("could not find a viewer "
                         "capable of displaying 3d graphics")
@@ -139,9 +140,12 @@ cdef class Graphics3d(SageObject):
                 renderer = registered_renderers[viewer]
             except KeyError:
                 raise ValueError("unknown viewer (='%s')"%viewer)
-            if renderer.output_type not in supported_output:
-                raise ValueError("'%s' is not supported "%viewer
-                        "by the current display manager")
+            good_types = [t for t in renderer.output_types if t in supported_output]
+            if good_types:
+                kwds['output_type'] = good_types[0]
+            else:
+                raise ValueError("'%s' is not supported "%viewer +
+                                 "by the current display manager")
 
         return renderer.rich_repr(self, **kwds)
 
@@ -176,7 +180,7 @@ cdef class Graphics3d(SageObject):
         """
         filename = tmp_filename(ext='.png')
         opts = self._process_viewing_options(kwds)
-        T = self._prepare_for_tachyon(
+        T = self._prepare_for_render(
             opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
             opts['aspect_ratio'], opts['zoom']
         )
@@ -232,38 +236,7 @@ cdef class Graphics3d(SageObject):
         return OutputSceneWavefront(obj, self.mtl_str())
 
     def _rich_repr_canvas3d(self, **kwds):
-        r"""
-        Rich Representation as Canvas3D Scene
-
-        INPUT:
-
-        Optional keyword arguments.
-
-        OUTPUT:
-
-        Instance of
-        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneCanvas3d`.
-
-        EXAMPLES::
-
-            sage: out = sphere()._rich_repr_canvas3d()
-            sage: out
-            OutputSceneCanvas3d container
-            sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},...,color:'#6666ff'}]"
-        """
-        opts = self._process_viewing_options(kwds)
-        aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
-        frame_aspect_ratio = opts['frame_aspect_ratio']
-        zoom = opts['zoom']
-        frame = opts['frame']
-        axes = opts['axes']
-        T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-        data = flatten_list(T.json_repr(T.default_render_params()))
-        canvas3d = '[' + ','.join(data) + ']'
-        from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
-        return OutputSceneCanvas3d(canvas3d)
-
+        pass
     def __str__(self):
         """
         EXAMPLES::
@@ -932,7 +905,7 @@ end_scene""" % (render_params.antialiasing,
         box_min = tuple([-w*zoom for w in box_max])
         return box_min, box_max
 
-    def _prepare_for_tachyon(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
+    def _prepare_for_render(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(1.0, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max,
@@ -1439,7 +1412,7 @@ class Graphics3dGroup(Graphics3d):
             sage: G.json_repr(G.default_render_params())
             [[["{vertices:..."]], [["{vertices:..."]]]
         """
-        rrr = renderers.json.JsonRenderer()
+        rrr = renderers.canvas3d.Canvas3dRenderer()
         return rrr.render_graphics3d_group(self, render_params)
 
     def tachyon_repr(self, render_params):
@@ -1621,7 +1594,7 @@ class TransformGroup(Graphics3dGroup):
         return rrr.render_transform_group(self, render_params=None)
 
     def json_repr(self, render_params):
-        rrr = renderers.json.JsonRenderer()
+        rrr = renderers.canvas3d.Canvas3dRenderer()
         return rrr.render_transform_group(self, render_params)
 
         """

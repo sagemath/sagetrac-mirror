@@ -58,7 +58,6 @@ from sage.plot.misc import rename_keyword
 from base import Graphics3dGroup, Graphics3d
 
 import renderers.jmol
-import renderers.json
 import renderers.canvas3d
 import renderers.x3d
 import renderers.obj
