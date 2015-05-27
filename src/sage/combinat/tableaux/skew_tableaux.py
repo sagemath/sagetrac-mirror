@@ -63,8 +63,11 @@ import six
 from itertools import ifilter
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
-from sage.rings.all import Integer
+from sage.matrix.all import zero_matrix
+from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.arith import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.structure.global_options import GlobalOptions
 
@@ -211,6 +214,7 @@ class SkewTableaux(BadShapeTableaux):
           etc.
         """
         # TODO: normalize st input by removing empty rows
+        # TODO: implement this using coercions
 
         if st is not None:
             return self.from_st(st, check)
@@ -360,6 +364,7 @@ class SkewTableaux(BadShapeTableaux):
         """
         return "Skew tableaux"
 
+# TODO: make this into a factory function rather than a class
 class SemistandardSkewTableaux(SkewTableaux):
     r"""
     Semistandard skew tableaux.
@@ -613,7 +618,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
             sage: SemistandardSkewTableaux(2).cardinality()
             8
         """
-        return sum(SemistandardSKewTableaux_shape(p, self.max_entry).cardinality()
+        return sum(SemistandardSkewTableaux_shape(p, self.max_entry).cardinality()
                    for p in SkewPartitions(self.n))
 
     def __iter__(self):
@@ -792,6 +797,65 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
             for ssst in SemistandardSkewTableaux_shape_weight(self.p, mu):
                 # TODO: should this just yield ssst?
                 yield self._new_element(ssst)
+
+class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
+    r"""
+    Class of semistandard skew tableaux of a fixed skew shape `\lambda / \nu`
+    and weight `\mu`.
+    """
+    @staticmethod
+    def __classcall_private__(cls, p, mu):
+        """
+        Normalize our input to ensure we have a unique representation.
+
+        EXAMPLES::
+
+            sage: S = SemistandardSkewTableaux([[2,1],[]], [2,1])
+            sage: S2 = SemistandardSkewTableaux(SkewPartition([[2,1],[]]), (2,1))
+            sage: S is S2
+            True
+        """
+        # TODO: is the whole point of this method for use in the cardinality and
+        # __iter__ methods? If so, remove in favor of a more direct call
+        p = SkewPartition(p)
+        mu = tuple(mu)
+        return super(SemistandardSkewTableaux_shape_weight, cls).__classcall__(cls, p, mu)
+
+    def __init__(self, p, mu):
+        """
+        EXAMPLES::
+
+            sage: S = SemistandardSkewTableaux([[2,1],[]],[2,1])
+            sage: S == loads(dumps(S))
+            True
+            sage: TestSuite(S).run()
+        """
+        self.p = p
+        self.mu = mu
+        SemistandardSkewTableaux.__init__(self, category=FiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: SemistandardSkewTableaux([[2,1],[]],[2,1])
+            Semistandard skew tableaux of shape [2, 1] / [] and weight [2, 1]
+        """
+        return "Semistandard skew tableaux of shape %s and weight %s"%(repr(self.p), list(self.mu))
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
+            [[[1, 1], [2]]]
+        """
+        from sage.combinat.ribbon_tableau import RibbonTableaux_shape_weight_length
+        for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
+            # TODO: should this just yield x?
+            yield self._new_element(x)
 
 class StandardSkewTableaux(SemistandardSkewTableaux):
     """
