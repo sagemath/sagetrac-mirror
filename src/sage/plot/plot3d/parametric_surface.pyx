@@ -258,22 +258,6 @@ cdef class ParametricSurface(IndexFaceSet):
         self.triangulate(render_params)
         return IndexFaceSet.obj_repr(self, render_params)
 
-    def jmol_repr(self, render_params):
-        r"""
-        Return a representation of the object suitable for plotting
-        using Jmol.
-
-        TESTS::
-
-            sage: _ = var('x,y')
-            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.jmol_repr(P.testing_render_params())
-            sage: s[:10]
-            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
-        """
-        rrr = renderers.jmol.JMOLRenderer()
-        return [rrr.render_implicit_surface(self, render_params)]
-
     def json_repr(self, render_params):
         """
         Return a representation of the object in JSON format as
@@ -695,7 +679,7 @@ class MobiusStrip(ParametricSurface):
 
         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
         sage: M = MobiusStrip(3,3)
-        sage: M.show() 
+        sage: M.show()
     """
 
     def __init__(self, r, width, twists=1, **kwds):

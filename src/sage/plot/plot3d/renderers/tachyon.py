@@ -4,6 +4,29 @@ import os
 from . import register, Graphics3dRenderer
 
 
+# Needs to go somewhere:
+    """
+    The tachyon representation of a group is simply the concatenation of
+    the representations of its objects.
+
+    EXAMPLES::
+
+        sage: G = sphere() + sphere((1,2,3))
+        sage: G.tachyon_repr(G.default_render_params())
+        [['Sphere center 0.0 0.0 0.0 Rad 1.0 texture...'],
+         ['Sphere center 1.0 2.0 3.0 Rad 1.0 texture...']]
+    """
+        """
+        Transformations for Tachyon are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = sphere((1,2,3)).scale(2)
+            sage: G.tachyon_repr(G.default_render_params())
+            [['Sphere center 2.0 4.0 6.0 Rad 2.0 texture...']]
+        """
+
+
 class TachyonRenderer(Graphics3dRenderer):
     name = 'Tachyon'
     def render_graphics3d(self, obj, render_params):

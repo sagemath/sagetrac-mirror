@@ -5,6 +5,36 @@ from . import register, Graphics3dRenderer
 from sage.repl.rich_output.buffer import OutputBuffer
 from sage.repl.rich_output.output_graphics3d  import OutputSceneJmol
 
+# needs to go somewhere:
+        """
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
+            sage: G
+            Graphics3d Object
+            sage: G.set_texture(color='yellow')
+            sage: G
+            Graphics3d Object
+        """
+        r"""
+        Transformations for jmol are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = sphere((1,2,3)).scale(2)
+            sage: G.jmol_repr(G.default_render_params())
+            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
+        """
+        r"""
+        Transformations for jmol are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = sphere((1,2,3)).scale(2)
+            sage: G.jmol_repr(G.default_render_params())
+            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
+        """
+
 class JMOLRenderer(Graphics3dRenderer):
     name = 'jmol'
     output_types = (OutputSceneJmol,)
@@ -203,11 +233,6 @@ class JMOLRenderer(Graphics3dRenderer):
     def render_graphics3d(self, obj, render_params):
         return ''
 
-    # def render_graphics3d_group(self, obj, render_params):
-    #     return [g.render(render_params, renderer=self) for g in obj.all]
-    # def render_transform_group(self, obj, render_params):
-    #     return self.render_graphics3d_group(obj, render_params)
-
     def render_primitive_object(self, obj, render_params):
         return self.render_graphics3d(obj, render_params)
     def render_line(self, obj, render_params):
@@ -224,6 +249,22 @@ class JMOLRenderer(Graphics3dRenderer):
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Cylinder(1,1)
             sage: S.show(viewer='jmol')   # indirect doctest
+            sage: _ = var('x,y')
+
+        From parametric_surface::
+
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.jmol_repr(P.testing_render_params())
+            sage: s[:10]
+            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+
+        From implicit_surface::
+
+            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+            sage: show(G, viewer='jmol')   # indirect doctest
         """
         transform = render_params.transform
         vertices = obj.vertices()
@@ -298,9 +339,6 @@ class JMOLRenderer(Graphics3dRenderer):
     def render_box(self, obj, render_params):
         return self.render_index_face_set(obj, render_params)
 
-    def render_parametric_surface(self, obj, render_params):
-        obj.triangulate()
-        return self.render_index_face_set(obj, render_params)
     def render_sphere(self, obj, render_params):
         r"""
         EXAMPLES::
@@ -346,7 +384,43 @@ class JMOLRenderer(Graphics3dRenderer):
 
 
     def render_cylinder(self, obj, render_params):
-        return self.render_parametric_surface(obj, render_params)
+        r"""
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+
+        For thin cylinders, lines are used::
+
+            sage: C = Cylinder(.1, 4)
+            sage: C.jmol_repr(C.default_render_params())
+            ['\ndraw line_1 width 0.1 {0 0 0} {0 0 4.0}\ncolor $line_1  [102,102,255]\n']
+
+        For anything larger, we use a pmesh::
+
+            sage: C = Cylinder(3, 1, closed=False)
+            sage: C.jmol_repr(C.testing_render_params())
+            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+        """
+        transform = render_params.transform
+        base, top = self.get_endpoints(transform)
+        rad = self.get_radius(transform)
+
+        ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
+
+        if ratio > .02:
+            if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
+                # Jmol can't do squashed
+                return ParametricSurface.jmol_repr(self, render_params)
+
+        name = render_params.unique_name('line')
+        return ["""
+draw %s width %s {%s %s %s} {%s %s %s}\n%s
+""" % (name,
+       rad,
+       base[0], base[1], base[2],
+       top [0], top [1], top [2],
+       self.texture.jmol_str("$" + name)) ]
+
     def render_torus(self, obj, render_params):
         return self.render_parametric_surface(obj, render_params)
     def render_cone(self, obj, render_params):

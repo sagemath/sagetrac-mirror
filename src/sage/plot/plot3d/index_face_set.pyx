@@ -68,13 +68,6 @@ from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
 
-import renderers.jmol
-import renderers.canvas3d
-import renderers.x3d
-import renderers.obj
-import renderers.tachyon
-import renderers.wavefront
-
 
 
 
@@ -645,23 +638,6 @@ cdef class IndexFaceSet(PrimitiveObject):
             all[part] = face_set
         sage_free(partition)
         return all
-
-    def tachyon_repr(self, render_params):
-        rrr = renderers.tachyon.TachyonRenderer()
-        return rrr.render_index_face_set(self, render_params)
-
-    def json_repr(self, render_params):
-        rrr = renderers.canvas3d.Canvas3dRenderer()
-        return [rrr.render_index_face_set(self, render_params)]
-
-    def obj_repr(self, render_params):
-        rrr = renderers.obj.ObjRenderer()
-        return rrr.render_index_face_set(self, render_params)
-
-    # def jmol_repr(self, render_params):
-    #     rrr = renderers.jmol.JMOLRenderer()
-    #     return [rrr.render_index_face_set(self, render_params)]
-
 
     def dual(self, **kwds):
         """

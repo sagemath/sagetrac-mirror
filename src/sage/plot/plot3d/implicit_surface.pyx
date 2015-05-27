@@ -1118,22 +1118,6 @@ cdef class ImplicitSurface(IndexFaceSet):
         self.triangulate()
         return IndexFaceSet.tachyon_repr(self, render_params)
 
-    def jmol_repr(self, render_params):
-        """
-        Return a representation of this object suitable for use with the Jmol
-        renderer.
-
-        TESTS::
-
-            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: show(G, viewer='jmol')   # indirect doctest
-        """
-        rrr = renderers.jmol.JMOLRenderer()
-        return [rrr.render_implicit_surface(self, render_params)]
-
     def json_repr(self, render_params):
         """
         Return a representation of this object in JavaScript Object Notation (JSON).

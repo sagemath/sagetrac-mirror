@@ -5,6 +5,27 @@ from . import register, Graphics3dRenderer
 
 from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
 
+# needs to go somewhere:
+        """
+        The JSON representation of a group is simply the concatenation of the
+        representations of its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1, 2, 3))
+            sage: G.json_repr(G.default_render_params())
+            [[["{vertices:..."]], [["{vertices:..."]]]
+        """
+        """
+        Transformations are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = cube().rotateX(0.2)
+            sage: G.json_repr(G.default_render_params())
+            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+        """
+
 class Canvas3dRenderer(Graphics3dRenderer):
     name='canvas3d'
     output_types=(OutputSceneCanvas3d,)
@@ -39,7 +60,7 @@ class Canvas3dRenderer(Graphics3dRenderer):
         data = flatten_list(T.render(T.default_render_params(), renderer=self))
         canvas3d = '[' + ','.join(data) + ']'
         return OutputSceneCanvas3d(canvas3d)
-        
+
     def render_graphics3d(self, obj, render_params):
         """
         Unless otherwise changed, all rendering methods fall back to this

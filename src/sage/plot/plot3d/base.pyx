@@ -55,11 +55,6 @@ from sage.interfaces.tachyon import tachyon_rt
 from renderers import registered_renderers
 
 import renderers.jmol
-import renderers.canvas3d
-import renderers.x3d
-import renderers.obj
-import renderers.tachyon
-import renderers.wavefront
 
 # import the double infinity constant
 cdef extern from "math.h":
@@ -1401,84 +1396,6 @@ class Graphics3dGroup(Graphics3d):
         for g in self.all:
             g.set_texture(**kwds)
 
-    def json_repr(self, render_params):
-        """
-        The JSON representation of a group is simply the concatenation of the
-        representations of its objects.
-
-        EXAMPLES::
-
-            sage: G = sphere() + sphere((1, 2, 3))
-            sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
-        """
-        rrr = renderers.canvas3d.Canvas3dRenderer()
-        return rrr.render_graphics3d_group(self, render_params)
-
-    def tachyon_repr(self, render_params):
-        """
-        The tachyon representation of a group is simply the concatenation of
-        the representations of its objects.
-
-        EXAMPLES::
-
-            sage: G = sphere() + sphere((1,2,3))
-            sage: G.tachyon_repr(G.default_render_params())
-            [['Sphere center 0.0 0.0 0.0 Rad 1.0 texture...'],
-             ['Sphere center 1.0 2.0 3.0 Rad 1.0 texture...']]
-        """
-        rrr = renderers.tachyon.TachyonRenderer()
-        return rrr.render_graphics3d_group(self, render_params)
-
-    def x3d_str(self):
-        rrr = renderers.x3d.X3dRenderer()
-        return rrr.render_graphics3d_group(self, render_params=None)
-
-
-    def obj_repr(self, render_params):
-        """
-        The obj representation of a group is simply the concatenation of
-        the representation of its objects.
-
-        EXAMPLES::
-
-            sage: G = tetrahedron() + tetrahedron().translate(10, 10, 10)
-            sage: G.obj_repr(G.default_render_params())
-            [['g obj_1',
-              'usemtl ...',
-              ['v 0 0 1',
-               'v 0.942809 0 -0.333333',
-               'v -0.471405 0.816497 -0.333333',
-               'v -0.471405 -0.816497 -0.333333'],
-              ['f 1 2 3', 'f 2 4 3', 'f 1 3 4', 'f 1 4 2'],
-              []],
-             [['g obj_2',
-               'usemtl ...',
-               ['v 10 10 11',
-                'v 10.9428 10 9.66667',
-                'v 9.5286 10.8165 9.66667',
-                'v 9.5286 9.1835 9.66667'],
-               ['f 5 6 7', 'f 6 8 7', 'f 5 7 8', 'f 5 8 6'],
-               []]]]
-        """
-        rrr = renderers.obj.ObjRenderer()
-        return rrr.render_graphics3d_group(self, render_params)
-
-    def jmol_repr(self, render_params):
-        r"""
-        The jmol representation of a group is simply the concatenation of
-        the representation of its objects.
-
-        EXAMPLES::
-
-            sage: G = sphere() + sphere((1,2,3))
-            sage: G.jmol_repr(G.default_render_params())
-            [[['isosurface sphere_1  center {0.0 0.0 0.0} sphere 1.0\ncolor isosurface  [102,102,255]']],
-             [['isosurface sphere_2  center {1.0 2.0 3.0} sphere 1.0\ncolor isosurface  [102,102,255]']]]
-        """
-        rrr = renderers.jmol.JMOLRenderer()
-        return rrr.render_graphics3d_group(self, render_params)
-
     def texture_set(self):
         """
         The texture set of a group is simply the union of the textures of
@@ -1588,99 +1505,6 @@ class TransformGroup(Graphics3dGroup):
         w = sum([T.transform_bounding_box(obj.bounding_box()) for obj in self.all], ())
         self._bounding_box = point_list_bounding_box(w)
         return self._bounding_box
-
-    def x3d_str(self):
-        rrr = renderers.x3d.X3dRenderer()
-        return rrr.render_transform_group(self, render_params=None)
-
-    def json_repr(self, render_params):
-        rrr = renderers.canvas3d.Canvas3dRenderer()
-        return rrr.render_transform_group(self, render_params)
-
-        """
-        Transformations are applied at the leaf nodes.
-
-        EXAMPLES::
-
-            sage: G = cube().rotateX(0.2)
-            sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
-        """
-
-        render_params.push_transform(self.get_transformation())
-        rep = [g.json_repr(render_params) for g in self.all]
-        render_params.pop_transform()
-        return rep
-
-    def tachyon_repr(self, render_params):
-        rrr = renderers.tachyon.TachyonRenderer()
-        return rrr.render_transform_group(self, render_params)
-
-        """
-        Transformations for Tachyon are applied at the leaf nodes.
-
-        EXAMPLES::
-
-            sage: G = sphere((1,2,3)).scale(2)
-            sage: G.tachyon_repr(G.default_render_params())
-            [['Sphere center 2.0 4.0 6.0 Rad 2.0 texture...']]
-        """
-        render_params.push_transform(self.get_transformation())
-        rep = [g.tachyon_repr(render_params) for g in self.all]
-        render_params.pop_transform()
-        return rep
-
-    def obj_repr(self, render_params):
-        rrr = renderers.obj.ObjRenderer()
-        return rrr.render_transform_group(self, render_params)
-
-        """
-        Transformations for .obj files are applied at the leaf nodes.
-
-        EXAMPLES::
-
-            sage: G = cube().scale(4).translate(1, 2, 3)
-            sage: G.obj_repr(G.default_render_params())
-            [[['g obj_1',
-               'usemtl ...',
-               ['v 3 4 5',
-                'v -1 4 5',
-                'v -1 0 5',
-                'v 3 0 5',
-                'v 3 4 1',
-                'v -1 4 1',
-                'v 3 0 1',
-                'v -1 0 1'],
-               ['f 1 2 3 4',
-                'f 1 5 6 2',
-                'f 1 4 7 5',
-                'f 6 5 7 8',
-                'f 7 4 3 8',
-                'f 3 2 6 8'],
-               []]]]
-        """
-        render_params.push_transform(self.get_transformation())
-        rep = [g.obj_repr(render_params) for g in self.all]
-        render_params.pop_transform()
-        return rep
-
-    def jmol_repr(self, render_params):
-        rrr = renderers.jmol.JMOLRenderer()
-        return rrr.render_transform_group(self, render_params)
-
-        r"""
-        Transformations for jmol are applied at the leaf nodes.
-
-        EXAMPLES::
-
-            sage: G = sphere((1,2,3)).scale(2)
-            sage: G.jmol_repr(G.default_render_params())
-            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
-        """
-        render_params.push_transform(self.get_transformation())
-        rep = [g.jmol_repr(render_params) for g in self.all]
-        render_params.pop_transform()
-        return rep
 
     def get_transformation(self):
         """

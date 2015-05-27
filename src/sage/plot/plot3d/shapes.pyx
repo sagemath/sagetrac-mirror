@@ -57,14 +57,6 @@ from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
-import renderers.jmol
-import renderers.canvas3d
-import renderers.x3d
-import renderers.obj
-import renderers.tachyon
-import renderers.wavefront
-
-
 
 # Helper function to check that Box input is right
 def validate_frame_size(size):
@@ -113,7 +105,7 @@ class Box(IndexFaceSet):
         sage: from sage.plot.plot3d.shapes import Box
 
     A square black box::
-    
+
         sage: show(Box([1,1,1]), color='black')
 
     A red rectangular box::
@@ -121,11 +113,11 @@ class Box(IndexFaceSet):
         sage: show(Box([2,3,4], color="red"))
 
     A stack of boxes::
-    
+
         sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
 
     A sinusoidal stack of multicolored boxes::
-    
+
         sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
         sage: show(B, figsize=6)
     """
@@ -373,48 +365,6 @@ cdef class Cylinder(ParametricSurface):
         """
         return "<Cylinder radius='%s' height='%s'/>" % (self.radius,
                                                         self.height)
-
-    def tachyon_repr(self, render_params):
-        rrr = renderers.tachyon.TachyonRenderer()
-        return rrr.render_cylinder(self, render_params)
-
-    def jmol_repr(self, render_params):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.plot.plot3d.shapes import Cylinder
-
-        For thin cylinders, lines are used::
-
-            sage: C = Cylinder(.1, 4)
-            sage: C.jmol_repr(C.default_render_params())
-            ['\ndraw line_1 width 0.1 {0 0 0} {0 0 4.0}\ncolor $line_1  [102,102,255]\n']
-
-        For anything larger, we use a pmesh::
-
-            sage: C = Cylinder(3, 1, closed=False)
-            sage: C.jmol_repr(C.testing_render_params())
-            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
-        """
-        transform = render_params.transform
-        base, top = self.get_endpoints(transform)
-        rad = self.get_radius(transform)
-
-        cdef double ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
-
-        if ratio > .02:
-            if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
-                # Jmol can't do squashed
-                return ParametricSurface.jmol_repr(self, render_params)
-
-        name = render_params.unique_name('line')
-        return ["""
-draw %s width %s {%s %s %s} {%s %s %s}\n%s
-""" % (name,
-       rad,
-       base[0], base[1], base[2],
-       top [0], top [1], top [2],
-       self.texture.jmol_str("$" + name)) ]
 
     def get_endpoints(self, transform=None):
         """
@@ -678,13 +628,6 @@ cdef class Sphere(ParametricSurface):
         """
         return "<Sphere radius='%s'/>"%(self.radius)
 
-    def tachyon_repr(self, render_params):
-        rrr = renderers.tachyon.TachyonRenderer()
-        return [rrr.render_sphere(self, render_params)]
-
-    def jmol_repr(self, render_params):
-        rrr = renderers.jmol.JMOLRenderer()
-        return [rrr.render_sphere(self, render_params)]
     def get_grid(self, double ds):
         """
         Return the range of variables to be evaluated on to render as a
