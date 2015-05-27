@@ -4,57 +4,56 @@ import os
 from . import register, Graphics3dRenderer
 
 # needs to go somewhere:
-        """
-        The obj representation of a group is simply the concatenation of
-        the representation of its objects.
+"""
+The obj representation of a group is simply the concatenation of
+the representation of its objects.
 
-        EXAMPLES::
+EXAMPLES::
 
-            sage: G = tetrahedron() + tetrahedron().translate(10, 10, 10)
-            sage: G.obj_repr(G.default_render_params())
-            [['g obj_1',
-              'usemtl ...',
-              ['v 0 0 1',
-               'v 0.942809 0 -0.333333',
-               'v -0.471405 0.816497 -0.333333',
-               'v -0.471405 -0.816497 -0.333333'],
-              ['f 1 2 3', 'f 2 4 3', 'f 1 3 4', 'f 1 4 2'],
-              []],
-             [['g obj_2',
-               'usemtl ...',
-               ['v 10 10 11',
-                'v 10.9428 10 9.66667',
-                'v 9.5286 10.8165 9.66667',
-                'v 9.5286 9.1835 9.66667'],
-               ['f 5 6 7', 'f 6 8 7', 'f 5 7 8', 'f 5 8 6'],
-               []]]]
-        """
+    sage: G = tetrahedron() + tetrahedron().translate(10, 10, 10)
+    sage: G.obj_repr(G.default_render_params())
+    [['g obj_1',
+      'usemtl ...',
+      ['v 0 0 1',
+       'v 0.942809 0 -0.333333',
+       'v -0.471405 0.816497 -0.333333',
+       'v -0.471405 -0.816497 -0.333333'],
+      ['f 1 2 3', 'f 2 4 3', 'f 1 3 4', 'f 1 4 2'],
+      []],
+     [['g obj_2',
+       'usemtl ...',
+       ['v 10 10 11',
+        'v 10.9428 10 9.66667',
+        'v 9.5286 10.8165 9.66667',
+        'v 9.5286 9.1835 9.66667'],
+       ['f 5 6 7', 'f 6 8 7', 'f 5 7 8', 'f 5 8 6'],
+       []]]]
+"""
+"""
+Transformations for .obj files are applied at the leaf nodes.
 
-        """
-        Transformations for .obj files are applied at the leaf nodes.
+EXAMPLES::
 
-        EXAMPLES::
-
-            sage: G = cube().scale(4).translate(1, 2, 3)
-            sage: G.obj_repr(G.default_render_params())
-            [[['g obj_1',
-               'usemtl ...',
-               ['v 3 4 5',
-                'v -1 4 5',
-                'v -1 0 5',
-                'v 3 0 5',
-                'v 3 4 1',
-                'v -1 4 1',
-                'v 3 0 1',
-                'v -1 0 1'],
-               ['f 1 2 3 4',
-                'f 1 5 6 2',
-                'f 1 4 7 5',
-                'f 6 5 7 8',
-                'f 7 4 3 8',
-                'f 3 2 6 8'],
-               []]]]
-        """
+    sage: G = cube().scale(4).translate(1, 2, 3)
+    sage: G.obj_repr(G.default_render_params())
+    [[['g obj_1',
+       'usemtl ...',
+       ['v 3 4 5',
+        'v -1 4 5',
+        'v -1 0 5',
+        'v 3 0 5',
+        'v 3 4 1',
+        'v -1 4 1',
+        'v 3 0 1',
+        'v -1 0 1'],
+       ['f 1 2 3 4',
+        'f 1 5 6 2',
+        'f 1 4 7 5',
+        'f 6 5 7 8',
+        'f 7 4 3 8',
+        'f 3 2 6 8'],
+       []]]]
+"""
 class ObjRenderer(Graphics3dRenderer):
     name = 'Obj'
     # grob = (gr)aphics (ob)ject

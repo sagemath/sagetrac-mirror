@@ -6,34 +6,34 @@ from sage.repl.rich_output.buffer import OutputBuffer
 from sage.repl.rich_output.output_graphics3d  import OutputSceneJmol
 
 # needs to go somewhere:
-        """
-        EXAMPLES::
+"""
+EXAMPLES::
 
-            sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
-            sage: G
-            Graphics3d Object
-            sage: G.set_texture(color='yellow')
-            sage: G
-            Graphics3d Object
-        """
-        r"""
-        Transformations for jmol are applied at the leaf nodes.
+    sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
+    sage: G
+    Graphics3d Object
+    sage: G.set_texture(color='yellow')
+    sage: G
+    Graphics3d Object
+"""
+r"""
+Transformations for jmol are applied at the leaf nodes.
 
-        EXAMPLES::
+EXAMPLES::
 
-            sage: G = sphere((1,2,3)).scale(2)
-            sage: G.jmol_repr(G.default_render_params())
-            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
-        """
-        r"""
-        Transformations for jmol are applied at the leaf nodes.
+    sage: G = sphere((1,2,3)).scale(2)
+    sage: G.jmol_repr(G.default_render_params())
+    [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
+"""
+r"""
+Transformations for jmol are applied at the leaf nodes.
 
-        EXAMPLES::
+EXAMPLES::
 
-            sage: G = sphere((1,2,3)).scale(2)
-            sage: G.jmol_repr(G.default_render_params())
-            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
-        """
+    sage: G = sphere((1,2,3)).scale(2)
+    sage: G.jmol_repr(G.default_render_params())
+    [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
+"""
 
 class JMOLRenderer(Graphics3dRenderer):
     name = 'jmol'

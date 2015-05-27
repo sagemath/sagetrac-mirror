@@ -6,25 +6,25 @@ from . import register, Graphics3dRenderer
 from sage.repl.rich_output.output_catalog import OutputSceneCanvas3d
 
 # needs to go somewhere:
-        """
-        The JSON representation of a group is simply the concatenation of the
-        representations of its objects.
+"""
+The JSON representation of a group is simply the concatenation of the
+representations of its objects.
 
-        EXAMPLES::
+EXAMPLES::
 
-            sage: G = sphere() + sphere((1, 2, 3))
-            sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
-        """
-        """
-        Transformations are applied at the leaf nodes.
+    sage: G = sphere() + sphere((1, 2, 3))
+    sage: G.json_repr(G.default_render_params())
+    [[["{vertices:..."]], [["{vertices:..."]]]
+"""
+"""
+Transformations are applied at the leaf nodes.
 
-        EXAMPLES::
+EXAMPLES::
 
-            sage: G = cube().rotateX(0.2)
-            sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
-        """
+    sage: G = cube().rotateX(0.2)
+    sage: G.json_repr(G.default_render_params())
+    [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+"""
 
 class Canvas3dRenderer(Graphics3dRenderer):
     name='canvas3d'
