@@ -68,10 +68,12 @@ List of Poset methods
     :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Return ``True`` if the poset is totally ordered, and False otherwise.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
+    :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual` \* | Return ``True`` if the poset is isomorphic to its dual. (On category :class:`~sage.categories.finite_posets.FinitePosets`.)
     :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
     :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
+    :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice` \* | Return ``True`` if the poset is lattice. (On category :class:`~sage.categories.finite_posets.FinitePosets`.)
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.
     :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if self has a meet operation, and False otherwise.
 
