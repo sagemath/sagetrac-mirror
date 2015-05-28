@@ -310,9 +310,22 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
     """
     Returns the matrix obtained from the edge list of a quiver (possibly with loops, two-cycles, multiply-listed edges).
 
-    .. NOTE::
+    .. NOTE:
 
-        This function differs from :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix`.
+    This function does not ignore duplicates. Compare this to
+    :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix` 
+    which ignores duplicates::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
+        sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,2,(1,-1)),(2,0,(1,-1)),(2,0,(1,-1))],3,0)
+        [ 0  1 -1]
+        [-1  0  1]
+        [ 1 -1  0]
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix
+        sage: _surface_edge_list_to_matrix([(0,1,None),(1,2,None),(2,0,None),(2,0,None)],[0,1,2],[],3)
+        [ 0  1 -2]
+        [-1  0  1]
+        [ 2 -1  0]
 
     INPUT:
 
