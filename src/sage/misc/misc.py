@@ -1235,7 +1235,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
 
     TESTS:
 
-    These are doctests from trac ticket #6409::
+    These are doctests from trac ticket :trac:`6409`::
 
         sage: list(xsrange(1,QQ(0),include_endpoint=True))
         []
@@ -1245,6 +1245,14 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         Traceback (most recent call last):
         ...
         ValueError: xsrange() step argument must not be zero
+
+    Since it is an iterator, xsrange should provide a `.next()` method when
+    called with Python ints or longs (see :trac:`18538`)::
+
+        sage: type(xsrange(int(42)))
+        <type 'rangeiterator'>
+        sage: xsrange(int(42)).next()
+        0
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -1266,7 +1274,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
             end += step
             include_endpoint = False
         if universe is not ZZ:
-            return xrange(start, end, step)
+            return xrange(start, end, step).__iter__()
 
     count = (end-start)/step
     if not isinstance(universe, type) and universe.is_exact():
