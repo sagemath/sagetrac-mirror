@@ -260,16 +260,15 @@ cdef class IndexFaceSet(PrimitiveObject):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL
-
+        self._gradients = <point_c *>NULL
+        self._textures = <texture_c *>NULL
     def __init__(self, faces, point_list=None,
-                 enclosed=False, texture_list=None, **kwds):
+                 enclosed=False, gradients=None, textures=None, smooth=False, **kwds):
         PrimitiveObject.__init__(self, **kwds)
-
-        if texture_list is None and self.global_texture == NULL:
-            self.global_texture = <texture_c *>sage_malloc(sizeof(texture_c))
 
         self.enclosed = enclosed
 
+        # create indexed faces
         if point_list is None:
             face_list = faces
             faces = []
@@ -298,18 +297,34 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         self.realloc(self.vcount, self.fcount, index_len)
 
+        if textures is None:
+            #set a default
+            textures = [(1.0,.5,.5)]*self.fcount
+        ##
+        ## old
+        ##
+        # if textures is None and self.global_texture == NULL:
+        #     self.global_texture = <texture_c *>sage_malloc(sizeof(texture_c))
+
+        # if self.smooth and gradients is None:
+        #     # better idea: a thing with __getitem__ that just always returns None
+        #     gradients = [None]*self.fcount
+
         for i in range(self.vcount):
             self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
 
+
+        # put gradient and texture info into faces
         cdef int cur_pt = 0
         for i from 0 <= i < self.fcount:
             self._faces[i].n = len(faces[i])
             self._faces[i].vertices = &self.face_indices[cur_pt]
-            if self.global_texture == NULL:
-                self._faces[i].texture = <texture_c *>sage_malloc(sizeof(texture_c))
-                self._faces[i].texture.color.r, self._faces[i].texture.color.g, self._faces[i].texture.color.b = texture_list[i].color
-            else:
-                self._faces[i].texture = self.global_texture
+            if self.smooth:
+                # does this need a malloc thing as with texture below?
+                self._faces[i].gradient = self.gradients[i]
+
+            self._faces[i].texture = <texture_c *>sage_malloc(sizeof(texture_c))
+            self._faces[i].texture = texture_list[i]
             for ix in faces[i]:
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1

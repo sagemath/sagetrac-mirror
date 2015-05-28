@@ -1014,7 +1014,10 @@ cdef class ImplicitSurface(IndexFaceSet):
 
         # Since IndexFaceSet doesn't even support smooth shading, we overwrite
         # the passed-in smooth parameter.
-        smooth=False
+        ##
+        ## NO MORE!
+        ##
+        #smooth=False
 
         self.smooth = smooth
         if smooth and gradient is None:

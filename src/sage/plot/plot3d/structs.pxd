@@ -18,7 +18,9 @@ cdef struct texture_c:
 cdef struct face_c:
     int n
     int *vertices
+    point_c gradient
     texture_c *texture
+
 
 cdef inline bint point_c_set(point_c* res, P) except -2:
     res.x, res.y, res.z = P[0], P[1], P[2]

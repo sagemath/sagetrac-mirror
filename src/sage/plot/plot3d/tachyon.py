@@ -1731,21 +1731,49 @@ def tostr2(v, out_type=float):
     return ' '.join([str(out_type(_)) for _ in v])
 
 
+# strings for formatting
+_tachyon_texture_string = """texdef {name} 
+  ambient {ambient:f} diffuse {diffuse:f} specular {specular:f} opacity {opacity:f}
+  phong {phongtype} {phongnum:f} phong_size {phong_size:f}
+  color  {color[0]:f} {color[1]:f} {color[2]:f} texfunc {texfunc}
+
+"""
+
+_tachyon_triangle_string = "TRI V0 {v[0]:f} V1 {v[1]:f} V2 {v[2]:f} {texture_name}\n"
+
+_tachyon_smooth_triangle_string = "STRI V0 {v[0]:f} V1 {v[1]:f} V2 {v[2]:f} N0 {n[0]:f} N1 {n[1]:f} N2 {n[2:f]} {texture_name}\n"
+
+
+
 class TachyonIndexFaceSet(SageObject):
     def __init__(self,ifs):
         self.ifs = ifs
         self._g = ifs._g
         self.faces = list(ifs.faces())  #returns iterator over faces
         self.gradients = ifs._gradients
-        self.texture = 'texdef t2 ambient 0.1 diffuse 0.9 specular 0.5 opacity 1.0\n        phong PLASTIC 0.0 phong_size 0.5\n        color  1.0 0.0 0.0  texfunc 0\n        \n ' #fixme
+        self.textures = ifs._textures
+        
     def str(self):
-        if self._g is None:
-            tri_str = "TRI V0 {0} V1 {1} V2 {2} t2\n"
-            objects = self.faces
-        else:
-            tri_str = "STRI V0 {0} V1 {1} V2 {2} N0 {3} N1 {4} N2 {5} t2\n"
-            objects = [f+g for f,g in zip(self.faces,self.gradients)]
         s = ''
-        for x in objects:
-            s += tri_str.format(*[tostr2(pt) for pt in x])
+        for t in self.textures:
+            # should read from t
+            s += _tachyon_texture_string.format({'name':'tmptex',
+                                                 'ambient':0.1,
+                                                 'diffuse':0.9,
+                                                 'specular':.5,
+                                                 'opacity':1.0,
+                                                 'phongtype':PLASTIC,
+                                                 'phongnum':0.0,
+                                                 'phong_size':0.5,
+                                                 'color':(1.0, 0.0, 0.0),
+                                                 'texfunc':0,
+                                             })
+        for f,g,t in zip(self.faces,self.gradients,self.textures):
+            if g is None:
+                tri_str = _tachyon_triangle_string
+            else:
+                tri_str = _tachyon_smooth_triangle_string
+
+            # maybe best to get texture name as hash of Texture object
+            s += tri_str.format(**{'v':f, 'n':g, 'texture_name':t['name'])
         return s

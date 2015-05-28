@@ -259,27 +259,29 @@ class TrianglePlot(IndexFaceSet):
         (min_y, max_y) = min_y__max_y
         self._triangle_factory = triangle_factory
         self._f = f
+        if g is None:
+            # just say the gradient at each point is None
+            def g(x,y):
+                return None
         self._g = g
         self._min_depth = min_depth
         self._max_depth = max_depth
         self._max_bend = max_bend
         self._faces = []
-        self._gradients = None if g is None else [] 
+        self._gradients = []
+        self._textures = []
         if min(max_x - min_x, max_y - min_y) == 0:
             raise ValueError('Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.')
         self._num_colors = num_colors
-        if g is None:
-            def fcn(x,y):
-                return [self._f(x,y)]
-        else:
-            def fcn(x,y):
-                return [self._f(x,y), self._g(x,y)]
+
+        def fcn(x,y):
+            return [self._f(x,y), self._g(x,y)]
 
         self._fcn = fcn
 
         self.triangulate()
 
-        IndexFaceSet.__init__(self, faces=self._faces, gradients=self._gradients)
+        IndexFaceSet.__init__(self, faces=self._faces, gradients=self._gradients, textures=self._textures)
 
 
     def triangulate():
@@ -438,18 +440,11 @@ class TrianglePlot(IndexFaceSet):
 
         else:
             # just build the square we're in
-            if self._g is None:
-                sw = [(min_x,min_y,sw_z[0])]
-                nw = [(min_x,max_y,nw_z[0])]
-                se = [(max_x,min_y,se_z[0])]
-                ne = [(max_x,max_y,ne_z[0])]
-                c  = [[(mid_x,mid_y,mid_z[0])]]
-            else:
-                sw = [(min_x,min_y,sw_z[0]),sw_z[1]]
-                nw = [(min_x,max_y,nw_z[0]),nw_z[1]]
-                se = [(max_x,min_y,se_z[0]),se_z[1]]
-                ne = [(max_x,max_y,ne_z[0]),ne_z[1]]
-                c  = [[(mid_x,mid_y,mid_z[0]),mid_z[1]]]
+            sw = [(min_x,min_y,sw_z[0]),sw_z[1]]
+            nw = [(min_x,max_y,nw_z[0]),nw_z[1]]
+            se = [(max_x,min_y,se_z[0]),se_z[1]]
+            ne = [(max_x,max_y,ne_z[0]),ne_z[1]]
+            c  = [[(mid_x,mid_y,mid_z[0]),mid_z[1]]]
 
 
             left     = [sw,nw]
@@ -527,8 +522,7 @@ class TrianglePlot(IndexFaceSet):
             ([1, 0, 0], [0, 1, 1], [0, 3, 1])
         """
         self._faces.extend([p[i][0], p[i+1][0], c[i][0]] for i in range(0,len(p)-1))
-        if self._g is not None:
-            self._gradients.extend([p[i][1], p[i+1][1], c[i][1]] for i in range(0,len(p)-1))
+        self._gradients.extend([p[i][1], p[i+1][1], c[i][1]] for i in range(0,len(p)-1))
 
     def extrema(self, list):
         """
