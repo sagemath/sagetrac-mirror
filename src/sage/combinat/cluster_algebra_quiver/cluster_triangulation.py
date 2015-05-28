@@ -81,14 +81,14 @@ class ClusterTriangulation(SageObject):
         sage: ClusterSeed(T).mutation_type()
         ['A', [2, 2], 1]
         sage: T.triangulation_dictionary()
-        [('tau1', x0),
-        ('tau2', x1),
-        ('tau3', x2),
-        ('tau4', x3),
-        ('bd1', b4),
-        ('bd2', b5),
-        ('bd3', b6),
-        ('bd4', b7)]
+        {'bd1': b4,
+        'bd2': b5,
+        'bd3': b6,
+        'bd4': b7,
+        'tau1': x0,
+        'tau2': x1,
+        'tau3': x2,
+        'tau4': x3}
 
     Figure 15 of [MSW_Positivity]_ ::
 
@@ -99,20 +99,20 @@ class ClusterTriangulation(SageObject):
         sage: ClusterSeed(T).mutation_type()
         'undetermined finite mutation type'
         sage: T.triangulation_dictionary()
-        [(1, x0*x1),
-        (2, x1),
-        (3, x2),
-        (4, x3),
-        (5, x4),
-        (6, x5),
-        (7, x6),
-        (8, x7),
-        (9, x8),
-        (10, x9),
-        (11, b10),
-        (12, b11),
-        (13, b12),
-        (14, b13)]
+        {1: x0*x1,
+        2: x1,
+        3: x2,
+        4: x3,
+        5: x4,
+        6: x5,
+        7: x6,
+        8: x7,
+        9: x8,
+        10: x9,
+        11: b10,
+        12: b11,
+        13: b12,
+        14: b13}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
@@ -156,7 +156,7 @@ class ClusterTriangulation(SageObject):
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
             sage: TestSuite(CT).run()
         """
-        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_user_label_triangulation, _get_weighted_triangulation
+        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
         from sage.rings.all import QQ
         from sage.rings.all import FractionField, PolynomialRing
         from copy import copy
@@ -185,6 +185,7 @@ class ClusterTriangulation(SageObject):
             self._cluster = list(self._R.gens()[0:self._n])
             self._boundary_edges_vars = list(self._R.gens()[self._n:]) if boundary_edges else []
             self._triangulation_dictionary = _get_triangulation_dictionary (self._triangles, self._cluster, self._boundary_edges, self._boundary_edges_vars)
+            self._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (self._triangulation_dictionary)
             self._triangulation = _get_user_label_triangulation(self._triangles)
             self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._triangulation_dictionary)
 
@@ -201,6 +202,7 @@ class ClusterTriangulation(SageObject):
             self._cluster = copy(data._cluster)
             self._boundary_edges_vars = copy(data._boundary_edges_vars)
             self._triangulation_dictionary = copy(data._triangulation_dictionary)
+            self._triangulation_dictionary_variable_to_label = copy(data.triangulation_dictionary_variable_to_label)
             self._triangulation = copy(data._triangulation)
             self._weighted_triangulation = copy(data._weighted_triangulation)
 
@@ -395,7 +397,7 @@ class ClusterTriangulation(SageObject):
             True
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
-        _get_triangulation_dictionary, _get_user_label_triangulation, _get_weighted_triangulation
+        _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
 
         if inplace:
             ct = self
@@ -452,6 +454,7 @@ class ClusterTriangulation(SageObject):
                 ct._M.mutate(pos)
 
         ct._triangulation_dictionary = _get_triangulation_dictionary (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
+        ct._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (ct._triangulation_dictionary)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
         ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._triangulation_dictionary)
 
@@ -516,8 +519,8 @@ class ClusterTriangulation(SageObject):
 
     def triangulation_dictionary(self):
         """
-        Return the correspondence between user-given labels (integers)
-        and variables of ``self``.
+        Return a dictionary with keys user-given labels (numbers or strings)
+        and items variables x_i/b_i of ``self``.
 
         EXAMPLES:
 
@@ -527,9 +530,26 @@ class ClusterTriangulation(SageObject):
             sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
             sage: T.triangulation_dictionary()
-            [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
+            {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
         """
         return self._triangulation_dictionary
+        
+    def triangulation_dictionary_variable_to_label(self):
+        """
+        Return a dictionary with keys variables x_i/b_i 
+        and items user-given labels (numbers or strings) of ``self``.
+
+        EXAMPLES:
+
+         2 self-folded triangles and 1 triangle with one vertex (affine D),
+         Figure 10 (bottom) of [FominShapiroThurston]_::
+
+            sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
+            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
+            sage: T.triangulation_dictionary_variable_to_label()
+            {b4: 1, x3: 5, x1: 3, x2*x3: 4, x0*x1: 2}
+        """
+        return self._triangulation_dictionary_variable_to_label
 
     def triangulation(self):
         """
@@ -648,7 +668,7 @@ class ClusterTriangulation(SageObject):
             'j2'
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_edge_user_label
-        edge_user_label = _get_edge_user_label(var,self._triangulation_dictionary)
+        edge_user_label = _get_edge_user_label(var,self._triangulation_dictionary_variable_to_label)
         if edge_user_label is not None:
             return edge_user_label
         else:

@@ -366,10 +366,11 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
             if tau not in boundary_edges:
                 arcs.append(tau)
 
-    dic = []
+    #dic = []
     if len(arcs) == arcs_count:
-        for pos in range(0,arcs_count):
-            dic.append((arcs[pos], pos))
+        dic = dict((arcs[pos],pos) for pos in range(0,arcs_count))
+        #for pos in range(0,arcs_count):
+        #    dic.append((arcs[pos], pos))
 
     M = matrix(ZZ,arcs_count,arcs_count,sparse=True)
 
@@ -377,9 +378,11 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
         if user_edge[0] in boundary_edges or user_edge[1] in boundary_edges:
             continue
         if user_edge[2] is None: # todo: arrows coming from surfaces will not have weight, so the elif should be removed
-            edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[1],dic), (1,-1))
+            #edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[1],dic), (1,-1))
+            edge = (dic[user_edge[0]],dic[user_edge[1]],(1,-1))
         elif user_edge[2] in ZZ:
-            edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[2],dic), (user_edge[2],-user_edge[2]))
+            #edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[2],dic), (user_edge[2],-user_edge[2]))
+            edge = (dic[user_edge[0]],dic[user_edge[1]],(2,-2))
         #print 'edge: ', edge
         v1,v2,(a,b) = edge
 
@@ -410,8 +413,8 @@ def _get_user_arc_labels(T):
 
 def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_vars):
     """
-    Return a list of tuples ``t=(a,b)`` where ``a`` is a user-given label from input ``T``
-    and ``b`` is the variable x_i or b_i corresponding to ``a``.
+    Return a dictionary of tuples ``{a:b, ...}`` where ``a`` is a user-given label from input ``T``
+    and ``b`` is the variable x_i or b_i corresponding to ``a1``.
 
     See :class:`ClusterTriangulation`
 
@@ -428,19 +431,19 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
         sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
-        [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
+        {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
         sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
-        [(0, x0), (1, x1), (2, x1*x2), (3, x3), (4, x3*x4), (6, x5), (7, x6)]
+        {0: x0, 1: x1, 2: x1*x2, 3: x3, 4: x3*x4, 6: x5, 7: x6}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
         sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
-        [('a', x0), ('b', x1), ('d', x2), ('g', x3), ('r', x4), ('e', b5), ('n', b6)]
+        {'a': x0, 'b': x1, 'd': x2, 'e': b5, 'g': x3, 'n': b6, 'r': x4}
     """
-    dic = []
+    #dic = []
     list_radius = []
     list_ell = []
 
@@ -453,10 +456,15 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
             arcs.append(l)
 
     if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
-        for pos in range(0,len(cluster)):
-            dic.append((arcs[pos], cluster[pos]))
-        for pos in range(0,len(boundary_edges_vars)):
-            dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
+        dic_x = dict((arcs[pos],cluster[pos]) for pos in range(0,len(cluster)))
+        dic_b = dict((boundary_edges[pos],boundary_edges_vars[pos]) for pos in range(0,len(boundary_edges_vars)))
+        dic = dict(list(dic_x.items()) + list(dic_b.items()))
+        
+        #for pos in range(0,len(cluster)):
+        #    dic.append((arcs[pos], cluster[pos]))
+        #for pos in range(0,len(boundary_edges_vars)):
+        #    dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
+            
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded(triangle)
@@ -468,15 +476,47 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
             list_radius.append(radius)
             list_ell.append(ell)
 
-    for pos in range(0,len(dic)): # Assign a noose to the product of r * r\notch
-        cluster_var = dic[pos][1]
+    #for pos in range(0,len(dic.keys())): # Assign a noose to the product of r * r\notch
+    for user_label in dic:
+        cluster_var = dic.get(user_label) #dic[pos][1]
         if list_ell.count(cluster_var):
             ind = list_ell.index(cluster_var)
-            dic[pos] = (dic[pos][0], list_ell[ind] * list_radius[ind])
+            dic[user_label] =  list_ell[ind] * list_radius[ind]
 
     return dic
 
-def _get_edge_user_label(edge_var, triangulation_dictionary):
+def _get_triangulation_dictionary_reversed(td):
+    """
+    Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and 
+    ``a`` is the user-given label corresponding to ``b``.
+
+    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_triangulation_dictionary` 
+
+    INPUT:
+
+    - ``td``: a dictionary from edge labels to variables x_i or b_i
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary, _get_triangulation_dictionary_reversed
+        sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
+        sage: T = ClusterTriangulation(Triangles)
+        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        {x7: 7, x6: 6, x5: 5, x4: 4, x3: 3, x2: 2, x1: 1, x0: 0}
+
+        sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
+        sage: T = ClusterTriangulation(twice_punctured_bigon)
+        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        {x6: 7, x5: 6, x3: 3, x1: 1, x0: 0, x3*x4: 4, x1*x2: 2}
+
+        sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
+        sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
+        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        {b6: 'n', b5: 'e', x4: 'r', x3: 'g', x2: 'd', x1: 'b', x0: 'a'}
+    """
+    return {v: k for k, v in td.items()}
+
+def _get_edge_user_label(edge_var, triangulation_dictionary_variable_to_label):
     """
     Return tuple[0] if the input ``edge`` if tuple[1] is in the the input
     ``triangulation dictionary``
@@ -485,29 +525,31 @@ def _get_edge_user_label(edge_var, triangulation_dictionary):
 
     - ``edge_var`` -- a variable x_i or b_i returned by :
         meth:`ClusterTriangulation.cluster` or :meth:`ClusterTriangulation.boundary_edges_vars`
-    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
+    - ``triangulation_dictionary_variable_to_label`` -- see :meth:`ClusterTriangulation.triangulation_dictionary_variable_to_label`
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_edge_user_label
         sage: S = ClusterSeed(['A',4])
-        sage: _get_edge_user_label(S.x(3), [(1,S.x(0)),(6,S.x(1)),(7,S.x(2)),(-9,S.x(3))])
+        sage: _get_edge_user_label(S.x(3), {S.x(0):1,S.x(1):6,S.x(2):7,S.x(3):-9})
         -9
 
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-        sage: T.triangulation_dictionary()
-        [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
-        sage: _get_edge_user_label(T._cluster[2]*T._cluster[3], T._triangulation_dictionary)
+        sage: T.triangulation_dictionary_variable_to_label()
+        {b4: 1, x3: 5, x1: 3, x2*x3: 4, x0*x1: 2}
+        sage: _get_edge_user_label(T._cluster[2]*T._cluster[3], T._triangulation_dictionary_variable_to_label)
         4
 
         sage: TT = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
-        sage: _get_edge_user_label(TT._cluster[1]*TT._cluster[2], TT._triangulation_dictionary)
+        sage: _get_edge_user_label(TT._cluster[1]*TT._cluster[2], TT._triangulation_dictionary_variable_to_label)
         'j2'
     """
-    for td in triangulation_dictionary:
-        if td[1] == edge_var:
-            return td[0]
+    if triangulation_dictionary_variable_to_label.has_key(edge_var):
+        return triangulation_dictionary_variable_to_label[edge_var]
+    #for td in triangulation_dictionary:
+    #    if td[1] == edge_var:
+    #        return td[0]
 
 def _get_weighted_edge(arc, triangulation_dictionary):
     """
@@ -526,7 +568,7 @@ def _get_weighted_edge(arc, triangulation_dictionary):
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
         sage: T.triangulation_dictionary()
-        [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
+        {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
         sage: _get_weighted_edge((5, 'clockwise'), T._triangulation_dictionary)
         (x3, 'clockwise')
         sage: _get_weighted_edge(2, T._triangulation_dictionary)
@@ -544,9 +586,12 @@ def _get_weighted_edge(arc, triangulation_dictionary):
     else:
         arc_label = arc
 
-    for td in triangulation_dictionary:
-        if td[0] == arc_label:
-            return (td[1], dir) if dir else td[1]
+    if triangulation_dictionary.has_key(arc_label):
+        return (triangulation_dictionary[arc_label], dir) if dir else triangulation_dictionary[arc_label]
+        
+    #for td in triangulation_dictionary:
+    #    if td[0] == arc_label:
+    #        return (td[1], dir) if dir else td[1]
 
 def _get_weighted_edges(edges, triangulation_dictionary):
     """
@@ -565,7 +610,7 @@ def _get_weighted_edges(edges, triangulation_dictionary):
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
         sage: T.triangulation_dictionary()
-        [(2, x0*x1), (3, x1), (4, x2*x3), (5, x3), (1, b4)]
+        {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
         sage: _get_weighted_edges([4, (5, 'clockwise'), 4, 2], T._triangulation_dictionary)
         [x2*x3, (x3, 'clockwise'), x2*x3, x0*x1]
         sage: _get_weighted_edges([2,1], T._triangulation_dictionary)
@@ -595,7 +640,7 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_triangulation
         sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
         sage: T._triangulation_dictionary
-        [(0, x0), (1, x1), (2, x2), (3, x3), (4, x4), (5, x5), (6, x6), (7, x7)]
+        {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
         sage: _get_weighted_triangulation(T._triangles, T._triangulation_dictionary)
         [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
     """
@@ -1667,21 +1712,21 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
         sage: Tri = ClusterTriangulation([(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)], boundary_edges=[11,12,13,0])
-        sage: Tri.triangulation_dictionary()
-        [(1, x0),
-        (2, x0*x1),
-        (3, x2),
-        (4, x3),
-        (5, x4),
-        (6, x5),
-        (7, x6),
-        (8, x7),
-        (9, x8),
-        (10, x9),
-        (0, b10),
-        (11, b11),
-        (12, b12),
-        (13, b13)]
+        sage: Tri.triangulation_dictionary()       
+        {0: b10,
+        1: x0,
+        2: x0*x1,
+        3: x2,
+        4: x3,
+        5: x4,
+        6: x5,
+        7: x6,
+        8: x7,
+        9: x8,
+        10: x9,
+        11: b11,
+        12: b12,
+        13: b13}
 
         sage: try_to_find_end_triangles_for_one_crossed_arc (Tri._weighted_triangulation,Tri.cluster()[3], None,None,True,False)
         [(x3, x2, b12), (b10, x3, x4)]
