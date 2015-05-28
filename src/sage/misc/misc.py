@@ -1235,7 +1235,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
 
     TESTS:
 
-    These are doctests from trac ticket :trac:`6409`::
+    These are doctests from :trac:`6409`::
 
         sage: list(xsrange(1,QQ(0),include_endpoint=True))
         []
