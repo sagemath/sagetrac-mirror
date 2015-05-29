@@ -1487,6 +1487,18 @@ def ellipsis_iter(*args, **kwds):
         []
         sage: list(100,102,..,10,..,20)
         [10, 12, 14, 16, 18, 20]
+
+    Check that Python ints are handled correctly, see ::trac`18538`::
+
+        sage: r = lambda n: (n-(n%2))//2
+        sage: for n in range(6):
+        ....:     print [r(n-k) + r(n+k) for k in (-n..n)]
+        [0]
+        [1, 0, 1]
+        [2, 1, 2, 1, 2]
+        [3, 2, 3, 2, 3, 2, 3]
+        [4, 3, 4, 3, 4, 3, 4, 3, 4]
+        [5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 5]
     """
     # Use kwds so step not absorbed into *args
     step_magic = 0
