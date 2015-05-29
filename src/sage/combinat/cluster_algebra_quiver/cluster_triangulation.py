@@ -17,10 +17,10 @@ REFERENCES:
 
 [MSW_Positivity]_, [MSW_Bases]_, [MW_MatrixFormulae]_, [FominShapiroThurston]_
 """
-from sage.structure.sage_object import SageObject
+#from sage.structure.sage_object import SageObject
+from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
 
-
-class ClusterTriangulation(SageObject):
+class ClusterTriangulation(ClusterSeed):
     r"""
     An initial *ideal triangulation* associated to a surface
 
@@ -157,6 +157,7 @@ class ClusterTriangulation(SageObject):
             sage: TestSuite(CT).run()
         """
         from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
+        from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         from sage.rings.all import QQ
         from sage.rings.all import FractionField, PolynomialRing
         from copy import copy
@@ -172,12 +173,14 @@ class ClusterTriangulation(SageObject):
             data = remove_duplicate_triangles (data, boundary_edges)
 
             self._n = len(self._arcs) - len(self._boundary_edges) #if boundary_edges else len(self._arcs)
+            #self._m = len(self._boundary_edges)
             self._triangles = data
 
             all_arrows = _triangulation_to_arrows(self._triangles)
             M = _surface_edge_list_to_matrix (all_arrows, self._arcs, self._boundary_edges, self._n)
             self._M = M[:self._n,:self._n] # In this implementation, we ignore the boundary edges (TODO)
-            self._is_cluster_algebra = True
+            self._quiver = ClusterQuiver(self._M, from_surface=True)
+            #self._is_cluster_algebra = True
             self._description = 'An ideal triangulation associated with cluster algebra of rank %d'  %(self._n)
             if boundary_edges:
                 self._description += ' with %d boundary edges' %(len(self._boundary_edges))
@@ -196,7 +199,8 @@ class ClusterTriangulation(SageObject):
             self._n = data._n
             self._triangles = copy( data._triangles )
             self._M = data._M[:data._n,:data._n]
-            self._is_cluster_algebra = data._is_cluster_algebra
+            self._quiver = ClusterQuiver(data._quiver)
+            #self._is_cluster_algebra = data._is_cluster_algebra
             self._description = copy( data._description )
             self._R = copy(data._R)
             self._cluster = copy(data._cluster)
@@ -207,7 +211,11 @@ class ClusterTriangulation(SageObject):
             self._weighted_triangulation = copy(data._weighted_triangulation)
 
         else:
-            raise ValueError('Input must be a list of three-tuples')
+            raise ValueError('Input must be a list of three-tuples. You entered data: ', data)
+            
+        self._m = 0
+        ClusterSeed.__init__(self, self._quiver, from_surface=True)
+        #super(ClusterSeed, self).__init__(self._M)
 
     def __eq__(self, other):
         r"""
@@ -220,9 +228,13 @@ class ClusterTriangulation(SageObject):
             sage: CT1 = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')])
             sage: CT.__eq__(CT1)
             False
+            sage: ClusterTriangulation(CT).__eq__(CT)
+            True
 
             sage: CT2 = ClusterTriangulation([('aa','dd','cc'), ('aa','ll','bb'), ('rr','rr','ll'),('bb','ff','ee')], boundary_edges=['ee','dd','cc','ff'])
             sage: CT.__eq__(CT2)
+            True
+            sage: ClusterSeed(CT) == ClusterSeed(CT2)
             True
         """
         from sage.combinat.cluster_algebra_quiver.surface import _rearrange_triangle_small_first
@@ -395,6 +407,15 @@ class ClusterTriangulation(SageObject):
             True
             sage: T.mutate('i0',inplace=False) == Tmu04020
             True
+            
+        A once-punctured square's triangulation with self-folded
+        triangle, border edges are labeled 4,5,6,7, 2nd triangulation
+        in oral paper ell-loop is labeled 3, radius is labeled 0::
+
+            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
+            sage: T.mutate(0)
+            sage: T.triangles()
+            [(1, 7, 4), (1, 5, 2), (2, 3, 0), (0, 3, 6)]
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
         _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
@@ -403,6 +424,10 @@ class ClusterTriangulation(SageObject):
             ct = self
         else:
             ct = ClusterTriangulation( self )
+            
+        S = ClusterSeed(ct)
+            
+        #print "I am in ClusterTriangulation.mutate with ct: ", ct # TODO ERASE
 
         n = ct._n
         V = range(n)
@@ -426,9 +451,9 @@ class ClusterTriangulation(SageObject):
         if not isinstance(seq, list):
             raise ValueError('The ideal triangulation can only be mutated at a diagonal or at a sequence of diagonals')
         if not isinstance(inplace, bool):
-            raise ValueError('The second parameter must be boolean. To mutate at a sequence of length 2, input it as a list.')
+            raise ValueError('The second parameter must be boolean. To mutate at a sequence of length 2, input list of diagonals.')
         if not isinstance(user_labels, bool):
-            raise ValueError('The third parameter must be boolean. To mutate at a sequence of length 3, input it as a list.')
+            raise ValueError('The third parameter must be boolean. To mutate at a sequence of length 3, input a list of diagonals.')
 
         if user_labels:
             if any( a not in arcs for a in seq ):
@@ -447,16 +472,24 @@ class ClusterTriangulation(SageObject):
                 pos = ct.get_edge_position(diagonal)
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal)
                 ct._M.mutate(pos)
+                ct._quiver.mutate(pos)
+                S = S.mutate(pos, inplace=False)
             else:
                 pos = diagonal
                 diagonal_label = ct._arcs[pos]
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal_label)
                 ct._M.mutate(pos)
+                ct._quiver.mutate(pos)
+                S = S.mutate(pos, inplace=False)
 
         ct._triangulation_dictionary = _get_triangulation_dictionary (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
         ct._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (ct._triangulation_dictionary)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
         ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._triangulation_dictionary)
+
+        ct._cluster = S._cluster
+        #ct._M = S._M
+        #ct._quiver = S._quiver
 
         if not inplace:
             return ct
@@ -722,7 +755,7 @@ class ClusterTriangulation(SageObject):
 
             sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0]) # Counterclockwise
             sage: c = [item for item in T.cluster()]
-            sage: ClusterSeed(T).arc_laurent_expansion([c[0],c[1],c[2],c[3],c[0]], user_labels=False) == ClusterSeed(T).arc_laurent_expansion([c[0],c[3],c[2],c[1],c[0]], user_labels=False)
+            sage: T.arc_laurent_expansion([c[0],c[1],c[2],c[3],c[0]], user_labels=False) == T.arc_laurent_expansion([c[0],c[3],c[2],c[1],c[0]], user_labels=False)
             True
             sage: T.list_snake_graph([c[0],c[1],c[2],c[3],c[0]],user_labels=False)
             [[(1, (x3, x0, x4)), (2, (x1, x0, b6), 'RIGHT')],
@@ -737,7 +770,7 @@ class ClusterTriangulation(SageObject):
             sage: c = [item for item in T.cluster()]
             sage: r = c[1-1]
             sage: ell = c[2-1]* r
-            sage: ClusterSeed(T).arc_laurent_expansion([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)== ClusterSeed(T).arc_laurent_expansion([c[6-1],c[5-1],c[4-1],c[3-1], ell,(r,'clockwise'), ell], user_labels=False) # Gamma_1
+            sage: T.arc_laurent_expansion([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)== T.arc_laurent_expansion([c[6-1],c[5-1],c[4-1],c[3-1], ell,(r,'clockwise'), ell], user_labels=False) # Gamma_1
             True
             sage: T.list_snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1, user_labels=False) # Gamma_1
             [[(-1, (x2, x0*x1, b11)),
@@ -760,7 +793,7 @@ class ClusterTriangulation(SageObject):
             [(-1, (x6, x5, x8)), (-2, (x9, x5, x4), 'ABOVE')],
             [(1, (x9, x4, x5)), (2, (x3, x4, b10), 'ABOVE')]]
 
-            sage: ClusterSeed(T).arc_laurent_expansion([c[4],c[5],c[6],c[7],c[8],c[5],c[4]], user_labels=False) == ClusterSeed(T).arc_laurent_expansion([c[4],c[5],c[8],c[7],c[6],c[5],c[4]], user_labels=False) # Ell_p
+            sage: T.arc_laurent_expansion([c[4],c[5],c[6],c[7],c[8],c[5],c[4]], user_labels=False) == T.arc_laurent_expansion([c[4],c[5],c[8],c[7],c[6],c[5],c[4]], user_labels=False) # Ell_p
             True
 
         Thrice-punctured square of Figure 10 of 'Positivity for Cluster Algebras from Surfaces', [MSW_Positivity]_::
@@ -1138,3 +1171,233 @@ class ClusterTriangulation(SageObject):
         drawing.show ( axes=False, figsize=fig_size)
         if verbose:
             return lifted_polygon
+
+    def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
+                              final_triangle=None, verbose=False,
+                              fig_size=4, user_labels=True):
+        """Return the Laurent expansion of a generalized arc gamma
+        (i.e. a curve between marked point/s) which crosses the arc in
+        crossed_arcs
+
+        INPUT:
+
+        - ``crossed_arcs`` -- labels from
+          self.cluster_triangulation().triangulation() (if
+          ``user_labels`` is ``True``) and variables from
+          ``self.cluster_triangulation().cluster()`` if
+          (``user_labels`` is ``False``) corresponding to arcs that
+          are crossed by gamma If curve crosses a self-folded triangle
+          (ell,r,ell), then specify ``ell, (r, 'counterclockwise),
+          ell`` (if, as gamma is about to cross r, the puncture is to
+          the right of gamma) or ``ell, (r, clockwise), ell`` (if, as
+          gamma is about to cross r, the puncture is to the left of
+          gamma)
+
+        - ``first_triangle`` -- (default:``None``) the first triangle
+          crossed by curve
+
+        - ``final_triangle`` -- (default:``None``) the last triangle
+          crossed by curve
+
+        - ``verbose`` -- (default:``False``) display the image of the
+          perfect matchings of the snake graph if ``True``
+
+        - ``fig_size`` -- (default:4) image size
+
+        - ``user_labels`` -- (default:``True``) whether or not
+          ``crossed_arcs`` is a list of labels
+
+        .. SEEALSO::
+
+            :meth:`loop_laurent_expansion`,
+            :meth:`ClusterTriangulation.draw_lifted_arc`
+
+        ALGORITHM:
+
+        See the perfect matching formula from in [MSW_Positivity]_ (section 4).
+
+        EXAMPLES:
+
+        An ideal triangulation of a once-punctured square having 2 radii, and the boundary edges are labeled 4,5,6,7::
+
+            sage: once_punctured_square = [(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=[4,5,6,7])
+            sage: Q = ClusterQuiver(T)
+            sage: S = ClusterSeed(Q)
+            sage: c = [item for item in T.cluster()]
+            sage: T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
+            sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            True
+            sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)],user_labels=False)
+            True
+            sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
+            True
+
+        A once-punctured square's triangulation with self-folded
+        triangle, border edges are labeled 4,5,6,7, 2nd triangulation
+        in oral paper ell-loop is labeled 3, radius is labeled 0::
+
+            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
+            sage: S = ClusterSeed(T)
+            sage: S.mutation_type()
+            ['D', 4]
+            sage: c = [item for item in T.cluster()]
+            sage: r=c[0]
+            sage: ell=c[3]*r
+            sage: T.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+            (x2^3 + x0*x1*x3 + 3*x2^2 + 3*x2 + 1)/(x0*x1*x2*x3)
+            sage: gamma = T.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True)
+            sage: gamma == T.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
+            True
+            sage: gamma == T.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+            True
+            sage: gamma == T.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
+            True
+
+        An 8-gon triangulation from Figure 2 of [SchifflerThomas]_
+        where tau_i = i and tau_13 is labeled 0::
+
+            sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0])
+            sage: S = ClusterSeed(T)
+            sage: c = [item for item in S.cluster()]
+            sage: gamma = T.arc_laurent_expansion([c[1-1],c[3-1],c[5-1]], user_labels=False)
+            sage: gamma == T.arc_laurent_expansion([5,3,1])
+            True
+            sage: S.mutate([1-1,3-1,5-1], inplace=True)
+            sage: S.cluster_variable(5-1) == gamma
+            True
+
+        Affine A(2,2) triangulation from Figure 3 of
+        [SchifflerThomas]_ where tau_i = i and tau_8 is labeled 0::
+
+            sage: T = ClusterTriangulation([(7,4,3),(4,1,5),(3,6,2),(2,1,0)], boundary_edges=[5,6,7,0])
+            sage: S = ClusterSeed(T)
+            sage: c = [item for item in T.cluster()]
+            sage: gamma = T.arc_laurent_expansion([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+            sage: gamma == T.arc_laurent_expansion([1,4,3,2,1])
+            True
+            sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
+            sage: S.cluster_variable(2) == gamma
+            True
+            sage: S.mutation_type()
+            ['A', [2, 2], 1]
+
+            sage: T= ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+            sage: S = ClusterSeed(T)
+            sage: S1 = S.mutate(0, inplace=False)
+            sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.x(0)], user_labels=False)
+            True
+
+            sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
+            sage: S = ClusterSeed(once_punctured_torus)
+            sage: c = S.cluster()
+            sage: once_punctured_torus.arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == S.mutate([0,1,2], inplace=False).cluster_variable(2)
+            True
+
+        """
+        from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
+        CT = self#._cluster_triangulation
+
+        if user_labels:
+            crossed_arcs = _get_weighted_edges(crossed_arcs,
+                                               CT._triangulation_dictionary)
+            first_triangle = _get_weighted_edges(first_triangle,
+                                                 CT._triangulation_dictionary)
+            final_triangle = _get_weighted_edges(final_triangle,
+                                                 CT._triangulation_dictionary)
+        return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+
+    def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
+                               final_triangle=None, verbose=False,
+                               fig_size=4, user_labels=True):
+        """Return the Laurent expansion of a loop (living in the
+        surface's interior) in the variables of
+        ``self.cluster_triangulation().cluster()``.
+
+        See algorithm in [MSW_Bases]_ sections 3.1-3.2::
+
+            #. Pick an orientation of the closed loop gamma and an ideal triangle Delta0 (not a self-folded triangle) crossed by gamma.
+            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of [MSW_Bases]_, this edge is labeled ``c``).
+            #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
+
+        .. SEEALSO::
+
+            :meth:`arc_laurent_expansion`,
+            :meth:`ClusterTriangulation.draw_lifted_loop`
+
+        INPUT:
+
+        - ``crossed_arcs`` -- labels from
+          self.cluster_triangulation().triangulation() (if
+          ``user_labels`` is ``True``) and variables from
+          self.cluster_triangulation().cluster() if (``user_labels``
+          is ``False``) corresponding to arcs that are crossed by
+          curve If curve crosses a self-folded triangle (ell,r,ell),
+          then specify ``ell, (r, 'counterclockwise), ell`` (if, as
+          gamma is about to cross r, the puncture is to the right of
+          gamma) or ``ell, (r, clockwise), ell`` (if, as gamma is
+          about to cross r, the puncture is to the left of gamma)
+
+        - ``first_triangle`` -- (default:``None``) the first triangle
+          crossed by loop
+
+        - ``final_triangle`` -- (default:``None``) the last triangle
+          crossed by loop
+
+        - ``verbose`` -- (default:``False``) display the image of the
+          perfect matchings of the band graph if ``True``
+
+        - ``fig_size`` -- (default:4) image size
+
+        - ``user_labels`` -- (default:``True``) whether or not
+          ``crossed_arcs`` is a list of labels
+
+        EXAMPLES:
+
+        Figure 6 of [MW_MatrixFormulae]_ where tau_4, tau_1, tau_2,
+        tau_3 = ``0``,``1``,``2``,``3`` and
+        b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.  We pick tau_1 to
+        be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1]::
+
+            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: c = [item for item in T.cluster()]
+            sage: T.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+            (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
+            sage: T.loop_laurent_expansion([1,2,3,0,1], user_labels=True) == T.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+            True
+
+        Example 3.6 from [DupontThomas]_::
+
+            sage: T = ClusterTriangulation([(0,1,2),(0,1,3)], boundary_edges=[2,3])
+            sage: c = [item for item in T.cluster()]
+            sage: T.loop_laurent_expansion([1,0,1,0,1],first_triangle=(0,1,2)) == T.loop_laurent_expansion([0,1,0,1,0],first_triangle=(0,1,2))
+            True
+            sage: T.loop_laurent_expansion([1,0,1,0,1],first_triangle=(0,1,2)) == T.loop_laurent_expansion([0,1,0,1,0],first_triangle=(0,1,3))
+            True
+
+            sage: crossed_arcs = [c[0], c[1], c[0]] # loop z_1 with no self-intersection
+            sage: T.loop_laurent_expansion( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
+            (x0^2 + x1^2 + 1)/(x0*x1)
+            sage: crossed_arcs = [c[0], c[1], c[0], c[1], c[0]] # loop z_2 with 1 self-intersection
+            sage: T.loop_laurent_expansion(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
+            (x0^4 + x1^4 + 2*x0^2 + 2*x1^2 + 1)/(x0^2*x1^2)
+
+        Once-punctured square with 2 radii and boundary edges labeled
+        4,5,6,7 where the loop is contractible to the puncture::
+
+            sage: once_punctured_square = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
+            sage: once_punctured_square.loop_laurent_expansion(crossed_arcs=[0,3,0], first_triangle = [0,3,6], user_labels=True)
+            2
+        """
+        from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
+        CT = self#._cluster_triangulation
+
+        if user_labels:
+            crossed_arcs = _get_weighted_edges(crossed_arcs,
+                                               CT._triangulation_dictionary)
+            first_triangle = _get_weighted_edges(first_triangle,
+                                                 CT._triangulation_dictionary)
+            final_triangle = _get_weighted_edges(final_triangle,
+                                                 CT._triangulation_dictionary)
+        return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)

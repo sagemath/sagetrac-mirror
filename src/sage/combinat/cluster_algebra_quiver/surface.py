@@ -709,6 +709,10 @@ def _triangles_mutate(T,diagonal):
     list ``T``, and replace them with two new triangles
     (after_tau_A, diagonal, before_tau_B) and (after_tau_B, diagonal, before_tau_A).
     Note that the input list ``T`` will be modified.
+    Note that the new arc k' is labeled k.
+    Note that if diagonal is a self-folded triangle's radius, then applying the 
+    function twice will give a symmetric but different list of triangles,
+    which may not be a desirable outcome TODO
 
     See :meth:`ClusterTriangulation.mutate`
 
@@ -720,6 +724,19 @@ def _triangles_mutate(T,diagonal):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate
+        
+        sage: once_punctured_disk = [('r','r','ell'),('a','ell','b')]
+        sage: _triangles_mutate(once_punctured_disk, 'r')
+        [('a', 'ell', 'r'), ('r', 'ell', 'b')]
+        sage: _triangles_mutate(once_punctured_disk, 'r')
+        [('a', 'r', 'b'), ('ell', 'r', 'ell')]
+        sage: once_punctured_disk
+        [('a', 'r', 'b'), ('ell', 'r', 'ell')]
+        
+        sage: twice_punctured_disk = [(0,0,1),(1,3,2),(2,5,4),(4,6,3)]
+        sage: _triangles_mutate(twice_punctured_disk,0)
+        [(2, 5, 4), (4, 6, 3), (2, 1, 0), (0, 1, 3)]
+        
         sage: four_punc_sphere = [(1,0,5),(3,5,4),(2,1,3),(0,2,4)]
         sage: Tmu0 = _triangles_mutate(four_punc_sphere,0)
         sage: Tmu0
@@ -738,10 +755,14 @@ def _triangles_mutate(T,diagonal):
         sage: Tmu04020 = _triangles_mutate(four_punc_sphere,0)
         sage: Tmu04020
         [(5, 4, 5), (3, 2, 3), (4, 0, 2), (1, 0, 1)]
+        sage: Tmu040203 = _triangles_mutate(four_punc_sphere,3)
+        sage: Tmu040203
+        [(5, 4, 5), (1, 0, 1), (0, 2, 3), (3, 2, 4)]
     """
     two_triangles = _get_triangle(T, diagonal, None)
-    triangleA, triangleB = two_triangles[0], two_triangles[1]
+    
     if len(two_triangles) == 2:
+        triangleA, triangleB = two_triangles[0], two_triangles[1]
         T.remove(triangleA)
         T.remove(triangleB)
         triangleA = _rearrange_triangle_for_snakegraph(triangleA, diagonal, 1)
@@ -749,6 +770,23 @@ def _triangles_mutate(T,diagonal):
         before_tau_A, after_tau_A = triangleA[0], triangleA[2]
         before_tau_B, after_tau_B = triangleB[0], triangleB[2]
         T.extend([(after_tau_A, diagonal, before_tau_B),(after_tau_B, diagonal, before_tau_A)])
+    elif len(two_triangles) == 1:
+        selffolded_rrl = two_triangles[0]
+        if is_selffolded(selffolded_rrl):
+            r,r,ell = is_selffolded(selffolded_rrl)
+        else:
+            raise ValueError('There is only one triangle ', triangleA, ', not a self-folded triangle, with side ', diagonal)
+        two_triangles_with_side_ell = _get_triangle(T, ell, None)
+        two_triangles_with_side_ell.remove(selffolded_rrl)
+        three_distinct_vertex_triangle = two_triangles_with_side_ell[0]
+        
+        T.remove(selffolded_rrl)
+        T.remove(three_distinct_vertex_triangle)
+        
+        three_distinct_vertex_triangle = _rearrange_triangle_for_snakegraph(three_distinct_vertex_triangle, ell, 1)
+        before_ell, after_ell = three_distinct_vertex_triangle[0], three_distinct_vertex_triangle[2]
+        
+        T.extend([(before_ell, ell, r), (r, ell, after_ell)])
     else:
         raise ValueError('The search for the two triangles with edge ', diagonal, ' returns ', two_triangles)
 
@@ -823,7 +861,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
         sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
         sage: S = ClusterSeed(T)
         sage: S1=S.mutate(0,inplace=False)
-        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None)
+        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(T.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None)
         True
 
     Figure 6 of Musiker and Williams' "Matrix Formulae and Skein
@@ -837,7 +875,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
         sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
         sage: S = ClusterSeed(T)
         sage: c = [item for item in S.cluster()]
-        sage: LaurentExpansionFromSurface(S._cluster_triangulation.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
+        sage: LaurentExpansionFromSurface(T.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
         (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
     """
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
