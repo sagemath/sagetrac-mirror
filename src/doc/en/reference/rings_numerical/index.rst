@@ -36,8 +36,8 @@ when implementations aren't otherwise available.
    sage/rings/complex_interval_field
    sage/rings/complex_interval
 
-.. Modules depending on optional packages:
-.. sage/rings/real_arb
+   sage/rings/real_arb
+   sage/rings/complex_ball_acb
 
 .. include:: ../footer.txt
 
