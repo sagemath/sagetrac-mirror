@@ -1250,6 +1250,26 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
+    def has_sublattice(self, elms):
+        r"""
+        Return ``True`` if ``elms`` is closed under meet and join of
+        the lattice.
+
+        EXAMPLES::
+
+                sage: L = LatticePoset(([], [[1,2], [1,3], [2,4], [3,4], [4,5]]))
+                sage: L.has_sublattice([1,2,3,5])
+                False
+                sage: L.has_sublattice([1,2,4])
+                True
+        """
+        from itertools import combinations
+        for a,b in combinations(elms, 2):
+                if (not self._meet[a, b] in elms or
+                not self._join[a, b] in elms):
+                    return False
+        return True
+
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
         Returns ``True`` if ``self`` is the Hasse diagram of a

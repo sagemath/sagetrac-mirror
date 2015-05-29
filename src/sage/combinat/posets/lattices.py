@@ -923,6 +923,35 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return LatticePoset(self.subposet(current_set))
 
+    def has_sublattice(self, elms):
+        r"""
+        Return ``True`` if ``elms`` is closed under meet and join in the
+        lattice.
+
+        INPUT:
+
+            - ``elms`` -- a list of elements of the lattice.
+
+        EXAMPLES::
+
+            A subposet may be a lattice but fails to be sublattice. Here join
+            of 2 and 3 is not on M.
+
+                sage: L = LatticePoset(([], [[1,2], [1,3], [2,4], [3,4], [4,5]]))
+                sage: elms = [1,2,3,5]
+                sage: L.subposet(elms).is_lattice()
+                True
+                sage: L.has_sublattice(elms)
+                False
+
+            Simplest example of sublattice is any chain:
+
+                sage: L.has_sublattice([1,2,4,5])
+                True
+        """
+        L = [self._element_to_vertex(e) for e in elms]
+        return self._hasse_diagram.has_sublattice(L)
+        
 ############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
