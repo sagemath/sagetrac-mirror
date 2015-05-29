@@ -1250,14 +1250,23 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
-    def is_sublattice(self, other):
+    def has_sublattice(self, elms):
         r"""
-        To be written.
+        Return ``True`` if ``elms`` is closed under meet and join of
+        the lattice.
+
+        EXAMPLES::
+
+                sage: L = LatticePoset(([], [[1,2], [1,3], [2,4], [3,4], [4,5]]))
+                sage: L.has_sublattice([1,2,3,5])
+                False
+                sage: L.has_sublattice([1,2,4])
+                True
         """
-        n = len(other)
-        for i in range(0, n):
-            for j in range(i+1, n):
-                if not self._meet[i, j] in other or not self._join[i, j] in other:
+        from itertools import combinations
+        for a,b in combinations(elms, 2):
+                if (not self._meet[a, b] in elms or
+                not self._join[a, b] in elms):
                     return False
         return True
 
