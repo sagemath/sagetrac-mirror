@@ -15,7 +15,32 @@ from `(S, M)`.
 
 REFERENCES:
 
-[MSW_Positivity]_, [MSW_Bases]_, [MW_MatrixFormulae]_, [FominShapiroThurston]_
+.. [MSW_Positivity] Musiker - Schiffler - Williams,
+*Positivity for Cluster Algebras from Surfaces*,
+:arxiv:`0906.0748`
+
+.. [MSW_Bases] Musiker - Schiffler - Williams,
+*Bases for Cluster Algebras from Surfaces*,
+:arxiv:`1110.4364`
+
+.. [MW_MatrixFormulae] Musiker and Williams,
+*Matrix Formulae and Skein Relations for Cluster Algebras
+from Surfaces*,
+:arxiv:`1108.3382`
+
+.. [FominShapiroThurston] Fomin - Shapiro - Thurston,
+*Cluster algebras and triangulated surfaces. part I: Cluster
+complexes*,
+:arxiv:`math/0608367`
+
+.. [SchifflerThomas] Shiffler - Thomas,
+*On cluster algebras arising from unpunctured surfaces*,
+:arxiv:`abs/0712.4131`
+
+.. [DupontThomas] Dupont - Thomas,
+*Atomic Basis in Types A and Affine A*,
+:arxiv:`1106.3758`
+
 """
 #from sage.structure.sage_object import SageObject
 from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
@@ -166,18 +191,21 @@ class ClusterTriangulation(ClusterSeed):
         if isinstance(data,list) and \
         all(type(triangle) in [list,tuple] and len(triangle)==3 for triangle in data):
             self._boundary_edges = boundary_edges if boundary_edges else []
-            self._arcs = _get_user_arc_labels(data)
+            self._edges = _get_user_arc_labels(data)
+            self._arcs = list(self._edges)
+            for b in self._boundary_edges:
+                self._arcs.remove(b)
 
-            if not set(self._boundary_edges).issubset(self._arcs):
-                raise ValueError(boundary_edges, ' are not a subset of ', self._arcs, ' .Optional parameter boundary_edges must be a list of edges that are part of the triangulation')
+            if not set(self._boundary_edges).issubset(self._edges):
+                raise ValueError(boundary_edges, ' are not a subset of ', self._edges, ' .Optional parameter boundary_edges must be a list of edges that are part of the triangulation')
             data = remove_duplicate_triangles (data, boundary_edges)
 
-            self._n = len(self._arcs) - len(self._boundary_edges) #if boundary_edges else len(self._arcs)
+            self._n = len(self._edges) - len(self._boundary_edges) #if boundary_edges else len(self._edges)
             #self._m = len(self._boundary_edges)
             self._triangles = data
 
             all_arrows = _triangulation_to_arrows(self._triangles)
-            M = _surface_edge_list_to_matrix (all_arrows, self._arcs, self._boundary_edges, self._n)
+            M = _surface_edge_list_to_matrix (all_arrows, self._edges, self._boundary_edges, self._n)
             self._M = M[:self._n,:self._n] # In this implementation, we ignore the boundary edges (TODO)
             self._quiver = ClusterQuiver(self._M, from_surface=True)
             #self._is_cluster_algebra = True
@@ -195,6 +223,7 @@ class ClusterTriangulation(ClusterSeed):
         # Construct data from a cluster triangulation
         elif isinstance(data, ClusterTriangulation):
             self._boundary_edges = copy(data._boundary_edges)
+            self._edges = copy(data._edges)
             self._arcs = copy(data._arcs)
             self._n = data._n
             self._triangles = copy( data._triangles )
@@ -384,6 +413,14 @@ class ClusterTriangulation(ClusterSeed):
         Twice-punctured monogon with 3 (non-ordinary) ideal triangles (affine D)::
 
             sage: T = ClusterTriangulation([('i1','i4','i2'),('i3','i4','i3'),('i2','i0','i1')])
+            sage: T.mutate('i1', inplace=False).cluster()
+            [x0, (x3*x4 + x0)/x1, x2, x3, x4]
+            sage: T.mutate('i2', inplace=False).cluster()
+            [x0, x1, (x3*x4 + x0)/x2, x3, x4]
+            sage: T.mutate('i3', inplace=False).cluster()
+            [x0, x1, x2, (x1 + x2)/x3, x4]
+            sage: ClusterSeed(T._M).mutate(T.get_edge_position('i3'), inplace=False).cluster() == T.mutate('i3', inplace=False).cluster()
+            True
 
         Two self-folded triangles and 1 triangle with one vertex (affine D)::
 
@@ -413,9 +450,18 @@ class ClusterTriangulation(ClusterSeed):
         in oral paper ell-loop is labeled 3, radius is labeled 0::
 
             sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
+            sage: S = ClusterSeed(T); S.cluster()
+            [x0, x1, x2, x3]
+            sage: S.mutate(T.get_edge_position(0),inplace=False).cluster()
+            [(x2 + 1)/x0, x1, x2, x3]
             sage: T.mutate(0)
             sage: T.triangles()
             [(1, 7, 4), (1, 5, 2), (2, 3, 0), (0, 3, 6)]
+            sage: T.cluster()
+            [(x2 + 1)/x0, x1, x2, x3]
+            sage: ClusterSeed(T).cluster()
+            [(x2 + 1)/x0, x1, x2, x3]
+            
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
         _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
@@ -431,10 +477,10 @@ class ClusterTriangulation(ClusterSeed):
 
         n = ct._n
         V = range(n)
-        arcs = self._arcs
+        edges = ct._edges
 
         if user_labels:
-            if sequence in arcs:
+            if sequence in edges:
                 seq = [sequence]
             else:
                 seq = sequence
@@ -456,8 +502,8 @@ class ClusterTriangulation(ClusterSeed):
             raise ValueError('The third parameter must be boolean. To mutate at a sequence of length 3, input a list of diagonals.')
 
         if user_labels:
-            if any( a not in arcs for a in seq ):
-                a = filter( lambda a: a not in arcs, seq )[0]
+            if any( a not in edges for a in seq ):
+                a = filter( lambda a: a not in edges, seq )[0]
                 raise ValueError(str( a ) + ' is not an arc in the triangulation')
             if any( b in ct._boundary_edges for b in seq ):
                 b = filter( lambda b: b in ct._boundary_edges, seq )[0]
@@ -476,7 +522,7 @@ class ClusterTriangulation(ClusterSeed):
                 S = S.mutate(pos, inplace=False)
             else:
                 pos = diagonal
-                diagonal_label = ct._arcs[pos]
+                diagonal_label = ct._edges[pos]
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal_label)
                 ct._M.mutate(pos)
                 ct._quiver.mutate(pos)
@@ -496,7 +542,7 @@ class ClusterTriangulation(ClusterSeed):
 
     def arcs(self):
         """
-        Return the sorted list of labels of diagonals and boundary edges of
+        Return the sorted list of labels of diagonals of
         ``self`` given by user.
 
         EXAMPLES::
@@ -504,7 +550,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: annulus22 = [('bd1','tau1','tau2'),('tau2','tau3','bd4'),('tau1','tau4','bd2'),('tau3','bd3','tau4')]
             sage: T = ClusterTriangulation(annulus22, boundary_edges=['bd3','bd2','bd1','bd4'])
             sage: T.arcs()
-            ['bd1', 'bd2', 'bd3', 'bd4', 'tau1', 'tau2', 'tau3', 'tau4']
+            ['tau1', 'tau2', 'tau3', 'tau4']
         """
         return self._arcs
 
@@ -668,7 +714,13 @@ class ClusterTriangulation(ClusterSeed):
             sage: T.get_edge_position('i0')
             0
             sage: T.get_edge_position('i6')
-            6
+            2
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: T.get_edge_position('r')
+            3
+            sage: T.get_edge_position('c')
+            0
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
         arcs = list(self._arcs)

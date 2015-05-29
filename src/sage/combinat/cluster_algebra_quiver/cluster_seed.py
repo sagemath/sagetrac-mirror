@@ -84,9 +84,18 @@ class ClusterSeed(SageObject):
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
 
-        sage: Tri = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)],boundary_edges=[11,12,13,0])
-        sage: S = ClusterSeed(Tri);S
-        An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
+        sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+        sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+        sage: S = ClusterSeed(T); S
+        An ideal triangulation associated with cluster algebra of rank 4 with 4 boundary edges
+        sage: S.cluster()
+        [x0, x1, x2, x3]
+        
+        sage: T.mutate(['a','b','r'])
+        sage: S = ClusterSeed(T); S
+        An ideal triangulation associated with cluster algebra of rank 4 with 4 boundary edges
+        sage: S.cluster()
+        [(x2*x3 + x1)/x0, (x2*x3 + x0 + x1)/(x0*x1), x2, (x2*x3 + x0 + x1)/(x0*x3)]
 
     """
     def __init__(self, data, frozen=None, is_principal=None, from_surface=False):
@@ -2052,49 +2061,6 @@ class ClusterSeed(SageObject):
         else:
             raise ValueError("Greedy elements are only currently "
                              "defined for cluster seeds of rank two.")
-
-#    def cluster_triangulation(self):
-        """
-        Return the triangulation class associated to ``self``.
-
-        See :class:`ClusterTriangulation`.
-
-        EXAMPLES::
-
-            sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
-            sage: Q = ClusterSeed(T)
-            sage: Q.cluster_triangulation()._triangles
-            [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
-
-        REFERENCES:
-
-        .. [MSW_Positivity] Musiker - Schiffler - Williams,
-          *Positivity for Cluster Algebras from Surfaces*,
-          :arxiv:`0906.0748`
-
-        .. [MSW_Bases] Musiker - Schiffler - Williams,
-          *Bases for Cluster Algebras from Surfaces*,
-          :arxiv:`1110.4364`
-
-        .. [MW_MatrixFormulae] Musiker and Williams,
-          *Matrix Formulae and Skein Relations for Cluster Algebras
-          from Surfaces*,
-          :arxiv:`1108.3382`
-
-        .. [FominShapiroThurston] Fomin - Shapiro - Thurston,
-          *Cluster algebras and triangulated surfaces. part I: Cluster
-          complexes*,
-          :arxiv:`math/0608367`
-
-        .. [SchifflerThomas] Shiffler - Thomas,
-          *On cluster algebras arising from unpunctured surfaces*,
-          :arxiv:`abs/0712.4131`
-
-        .. [DupontThomas] Dupont - Thomas,
-          *Atomic Basis in Types A and Affine A*,
-          :arxiv:`1106.3758`
-        """
-#        return self._cluster_triangulation
 
 def _bino(n, k):
     """
