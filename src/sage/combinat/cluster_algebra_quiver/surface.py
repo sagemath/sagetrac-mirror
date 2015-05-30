@@ -100,6 +100,8 @@ def remove_duplicate_triangles(data,boundary_edges=None):
     The only exception: The once-punctured torus' triangulation has
     two triangles with identical labels.
 
+    This function also checks for triangulations that are not allowed.
+
     See :class:`ClusterQuiver`
 
     INPUT:
@@ -117,8 +119,9 @@ def remove_duplicate_triangles(data,boundary_edges=None):
     """
     list_triangles = []
 
-    if len(data) == 1:
-        raise ValueError('A triangle with no puncture is not allowed. The following surfaces are not allow: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.')
+    # Triangle/once-punctured monogon and thrice-punctured sphere are not allowed
+    if len(data) == 1 or (len(data)==2 and are_triangles_equal(data[0],(data[1][::-1]))):
+        raise ValueError('The following surfaces are not allowed: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.')
 
     if len(data) == 2 and are_triangles_equal(data[0],data[1]):
         if boundary_edges:
@@ -249,7 +252,10 @@ def _triangulation_to_arrows(list_triangles):
             radius = selffolded[0]
             ell = selffolded[2]
             selffolded_triangles.append([radius,radius, ell])
-            nooses.append(ell)
+            if _is_arc_mutable(list_triangles, ell)[0]:
+                nooses.append(ell)
+            else:
+                raise ValueError('A noose of a self-folded triangle must be a side of another triangle.')
         else:
             raise ValueError('An ideal triangle has to have 3 distinct edges or 2 distinct edges')
             break
@@ -313,9 +319,9 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
     .. NOTE:
 
     This function does not ignore duplicates. Compare this to
-    :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix` 
+    :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._edge_list_to_matrix`
     which ignores duplicates::
-    
+
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
         sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,2,(1,-1)),(2,0,(1,-1)),(2,0,(1,-1))],3,0)
         [ 0  1 -1]
@@ -459,12 +465,12 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
         dic_x = dict((arcs[pos],cluster[pos]) for pos in range(0,len(cluster)))
         dic_b = dict((boundary_edges[pos],boundary_edges_vars[pos]) for pos in range(0,len(boundary_edges_vars)))
         dic = dict(list(dic_x.items()) + list(dic_b.items()))
-        
+
         #for pos in range(0,len(cluster)):
         #    dic.append((arcs[pos], cluster[pos]))
         #for pos in range(0,len(boundary_edges_vars)):
         #    dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
-            
+
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded(triangle)
@@ -487,10 +493,10 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
 def _get_triangulation_dictionary_reversed(td):
     """
-    Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and 
+    Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and
     ``a`` is the user-given label corresponding to ``b``.
 
-    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_triangulation_dictionary` 
+    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_triangulation_dictionary`
 
     INPUT:
 
@@ -588,7 +594,7 @@ def _get_weighted_edge(arc, triangulation_dictionary):
 
     if triangulation_dictionary.has_key(arc_label):
         return (triangulation_dictionary[arc_label], dir) if dir else triangulation_dictionary[arc_label]
-        
+
     #for td in triangulation_dictionary:
     #    if td[0] == arc_label:
     #        return (td[1], dir) if dir else td[1]
@@ -701,6 +707,106 @@ def _get_user_label_triangulation(T):
 ##########################################################################################
 ########################################### BEGINS: MUTATE A TRIANGULATION ###############
 
+def _is_arc_mutable(T, diagonal):
+    """
+    Return True if ``diagonal`` is the side of two triangles
+    or if ``diagonal`` is the radius of a self-folded triangle which noose
+    is the side of another triangle
+
+    INPUT:
+
+    - ``diagonal`` -- a side of one of the triangles
+    - ``T`` -- list of triangles (3-tuples of user-given labels)
+
+    EXAMPLES::
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _is_arc_mutable
+
+        sage: once_punctured_disk = [('r','r','ell'),('a','ell','b')]
+        sage: _is_arc_mutable(once_punctured_disk, 'r')
+        (True, [('r', 'r', 'ell'), ('a', 'ell', 'b')], True)
+        sage: _is_arc_mutable(once_punctured_disk, 'ell')
+        (True, [('r', 'r', 'ell'), ('a', 'ell', 'b')], False)
+        sage: _is_arc_mutable(once_punctured_disk, 'b')
+        (False,
+        ('The ideal triangulation cannot be mutated at ',
+        'b',
+        '.There is only one triangle ',
+        ('a', 'ell', 'b'),
+        ', not a self-folded triangle, with side ',
+        'b'),
+        False)
+
+        sage: once_punctured_torus = [(0,1,2),(0,1,2)]
+        sage: _is_arc_mutable(once_punctured_torus, 2)
+        (True, [(0, 1, 2), (0, 1, 2)], False)
+
+        sage: bad_surface = [(0,0,1)] + once_punctured_disk
+        sage: _is_arc_mutable(bad_surface, 1)
+        (False,
+        ('The ideal triangulation cannot be mutated at ',
+        1,
+        '. There is only one triangle, ',
+        (0, 0, 1),
+        ', with side ',
+        1,
+        ', but ',
+        1,
+        ' is the noose, not the radius'),
+        False)
+
+        sage: _is_arc_mutable(bad_surface, 0)
+        (False,
+        ('The ideal triangulation cannot be mutated at radius ',
+        0,
+        '. The noose surrounding it is not the side of any triangle with three distinct sides.'),
+        True)
+    """
+    two_triangles = _get_triangle(T, diagonal, None)
+    if len(two_triangles) == 2:
+        return (True, two_triangles, False)
+    elif len(two_triangles) == 1:
+        selffolded_tri = two_triangles[0]
+        rrl = is_selffolded(selffolded_tri)
+        if not rrl:
+            #raise ValueError(
+            ErrorMessage = 'The ideal triangulation cannot be mutated at ', diagonal, \
+            '.There is only one triangle ', selffolded_tri, \
+            ', not a self-folded triangle, with side ', diagonal
+            return (False, ErrorMessage, False)
+
+        r = rrl[0]
+        ell = rrl[2]
+
+        #selffolded_rrl = (r,r,ell)
+        if r != diagonal:
+            ErrorMessage = 'The ideal triangulation cannot be mutated at ', diagonal, \
+            '. There is only one triangle, ', selffolded_tri, \
+            ', with side ', diagonal, \
+            ', but ', diagonal, ' is the noose, not the radius'
+            return (False, ErrorMessage, False)
+                #raise ValueError('The ideal triangulation cannot be mutated at ', diagonal, \
+                #'. There is only one triangle ', selffolded_tri, \
+                #', and ', diagonal, ' is the noose, not the radius')
+
+        two_triangles_with_side_ell = _get_triangle(T, ell, None)
+        if len(two_triangles_with_side_ell) < 2:
+            #raise ValueError(
+            ErrorMessage = 'The ideal triangulation cannot be mutated at radius ', diagonal, \
+            '. The noose surrounding it is not the side of any triangle with three distinct sides.'
+            return (False, ErrorMessage, True)
+
+        if len(two_triangles_with_side_ell) > 2:
+            ErrorMessage = 'The ideal triangulation cannot be mutated at radius ', diagonal, \
+            '. The noose surrounding it is the side of too many triangles: ', two_triangles_with_side_ell
+            return (False, ErrorMessage, True)
+
+        if len(two_triangles_with_side_ell) == 2:
+            two_triangles_with_side_ell.remove(selffolded_tri)
+            three_distinct_vertex_triangle = two_triangles_with_side_ell[0]
+            return (True, [selffolded_tri, three_distinct_vertex_triangle], True)
+    elif len(two_triangles) > 2:
+        raise ValueErro('TODO: is this user error or bug? There should not be more than two triangles with side ', diagonal)
+
 def _triangles_mutate(T,diagonal):
     """
     Return a list of triangles after we mutate at ``diagonal``, i.e.
@@ -710,7 +816,7 @@ def _triangles_mutate(T,diagonal):
     (after_tau_A, diagonal, before_tau_B) and (after_tau_B, diagonal, before_tau_A).
     Note that the input list ``T`` will be modified.
     Note that the new arc k' is labeled k.
-    Note that if diagonal is a self-folded triangle's radius, then applying the 
+    Note that if diagonal is a self-folded triangle's radius, then applying the
     function twice will give a symmetric but different list of triangles,
     which may not be a desirable outcome TODO
 
@@ -724,7 +830,7 @@ def _triangles_mutate(T,diagonal):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate
-        
+
         sage: once_punctured_disk = [('r','r','ell'),('a','ell','b')]
         sage: _triangles_mutate(once_punctured_disk, 'r')
         [('a', 'ell', 'r'), ('r', 'ell', 'b')]
@@ -732,11 +838,15 @@ def _triangles_mutate(T,diagonal):
         [('a', 'r', 'b'), ('ell', 'r', 'ell')]
         sage: once_punctured_disk
         [('a', 'r', 'b'), ('ell', 'r', 'ell')]
-        
+        sage: _triangles_mutate(once_punctured_disk, 'a')
+        Traceback (most recent call last):
+        ...
+        ValueError: ('The ideal triangulation cannot be mutated at ', 'a', '.There is only one triangle ', ('a', 'r', 'b'), ', not a self-folded triangle, with side ', 'a')
+
         sage: twice_punctured_disk = [(0,0,1),(1,3,2),(2,5,4),(4,6,3)]
         sage: _triangles_mutate(twice_punctured_disk,0)
         [(2, 5, 4), (4, 6, 3), (2, 1, 0), (0, 1, 3)]
-        
+
         sage: four_punc_sphere = [(1,0,5),(3,5,4),(2,1,3),(0,2,4)]
         sage: Tmu0 = _triangles_mutate(four_punc_sphere,0)
         sage: Tmu0
@@ -759,10 +869,17 @@ def _triangles_mutate(T,diagonal):
         sage: Tmu040203
         [(5, 4, 5), (1, 0, 1), (0, 2, 3), (3, 2, 4)]
     """
-    two_triangles = _get_triangle(T, diagonal, None)
-    
-    if len(two_triangles) == 2:
-        triangleA, triangleB = two_triangles[0], two_triangles[1]
+    #two_triangles = _get_triangle(T, diagonal, None)
+
+    #if len(two_triangles) == 2:
+    #    triangleA, triangleB = two_triangles[0], two_triangles[1]
+    is_mutable, two_triangles, is_selffolded_radius = _is_arc_mutable(T, diagonal)
+    if not is_mutable:
+        ErrorMessage = two_triangles
+        raise ValueError(ErrorMessage)
+
+    if is_mutable and not is_selffolded_radius:
+        triangleA, triangleB = two_triangles
         T.remove(triangleA)
         T.remove(triangleB)
         triangleA = _rearrange_triangle_for_snakegraph(triangleA, diagonal, 1)
@@ -770,25 +887,40 @@ def _triangles_mutate(T,diagonal):
         before_tau_A, after_tau_A = triangleA[0], triangleA[2]
         before_tau_B, after_tau_B = triangleB[0], triangleB[2]
         T.extend([(after_tau_A, diagonal, before_tau_B),(after_tau_B, diagonal, before_tau_A)])
-    elif len(two_triangles) == 1:
-        selffolded_rrl = two_triangles[0]
-        if is_selffolded(selffolded_rrl):
-            r,r,ell = is_selffolded(selffolded_rrl)
-        else:
-            raise ValueError('There is only one triangle ', triangleA, ', not a self-folded triangle, with side ', diagonal)
-        two_triangles_with_side_ell = _get_triangle(T, ell, None)
-        two_triangles_with_side_ell.remove(selffolded_rrl)
-        three_distinct_vertex_triangle = two_triangles_with_side_ell[0]
-        
-        T.remove(selffolded_rrl)
+    elif is_mutable and is_selffolded_radius:
+    #elif len(two_triangles) == 1:
+    #    selffolded_tri = two_triangles[0]
+    #    if is_selffolded(selffolded_tri):
+    #        r,r,ell = is_selffolded(selffolded_tri)
+    #        if r != diagonal:
+    #            raise ValueError('The ideal triangulation cannot be mutated at ', diagonal, \
+    #            '. There is only one triangle ', selffolded_tri, \
+    #            ', and ', diagonal, ' is the noose, not the radius')
+    #    else:
+    #        raise ValueError('The ideal triangulation cannot be mutated at ', diagonal, \
+    #        '.There is only one triangle ', selffolded_tri, \
+    #        ', not a self-folded triangle, with side ', diagonal)
+    #    two_triangles_with_side_ell = _get_triangle(T, ell, None)
+    #    if len(two_triangles_with_side_ell) == 2:
+    #        two_triangles_with_side_ell.remove(selffolded_tri)
+    #        three_distinct_vertex_triangle = two_triangles_with_side_ell[0]
+    #    else:
+    #        raise ValueError('The ideal triangulation cannot be mutated at radius ', diagonal, \
+    #        '. The noose surrounding it is not the side of any triangle with three distinct sides.')
+        selffolded_tri, three_distinct_vertex_triangle = two_triangles
+        T.remove(selffolded_tri)
         T.remove(three_distinct_vertex_triangle)
-        
+
+        rrl = is_selffolded(selffolded_tri)
+        ell = rrl[2]#; print 'ell :', ell #TODO erase
+        r = rrl[0]#; print 'r :', r #TODO erase
         three_distinct_vertex_triangle = _rearrange_triangle_for_snakegraph(three_distinct_vertex_triangle, ell, 1)
+        #print 'three_distinct_vertex_triangle after rearrange: ', three_distinct_vertex_triangle #TODO Erase
         before_ell, after_ell = three_distinct_vertex_triangle[0], three_distinct_vertex_triangle[2]
-        
+
         T.extend([(before_ell, ell, r), (r, ell, after_ell)])
-    else:
-        raise ValueError('The search for the two triangles with edge ', diagonal, ' returns ', two_triangles)
+    #else:
+    #    raise ValueError(ErrorMessage) #('The search for the two triangles with edge ', diagonal, ' returns ', two_triangles)
 
     return T
 
@@ -1750,7 +1882,7 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
         sage: Tri = ClusterTriangulation([(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)], boundary_edges=[11,12,13,0])
-        sage: Tri.triangulation_dictionary()       
+        sage: Tri.triangulation_dictionary()
         {0: b10,
         1: x0,
         2: x0*x1,

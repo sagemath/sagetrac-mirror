@@ -169,6 +169,32 @@ class ClusterTriangulation(ClusterSeed):
         sage: T = ClusterTriangulation([(1,2,3),(3,4,5),(1,5,6),(10,20,30),(30,40,50)])
         sage: ClusterSeed(T).mutation_type()
         [ ['D', 6], ['A', 5] ]
+
+    Surfaces that are not allowed::
+
+        sage: one_selffolded_triangle = [(1,1,2)]
+        sage: ClusterTriangulation(one_selffolded_triangle)
+        Traceback (most recent call last):
+        ...
+        ValueError: The following surfaces are not allowed: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.
+
+        sage: one_triangle = [(0,1,2)]
+        sage: ClusterTriangulation(one_triangle)
+        Traceback (most recent call last):
+        ...
+        ValueError: The following surfaces are not allowed: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.
+
+        sage: thrice_punctured_sphere = [(0,1,2),(2,1,0)]
+        sage: ClusterTriangulation(thrice_punctured_sphere)
+        Traceback (most recent call last):
+        ...
+        ValueError: The following surfaces are not allowed: a sphere with 1, 2, or 3 punctures; a monogon with zero or 1 puncture; a bigon or triangle without punctures.
+
+        sage: selffolded_triangle_and_ordinary_triangle = [(0,0,1),(2,3,4)]
+        sage: ClusterTriangulation(selffolded_triangle_and_ordinary_triangle)
+        Traceback (most recent call last):
+        ...
+        ValueError: A noose of a self-folded triangle must be a side of another triangle.
     """
     def __init__(self, data, boundary_edges=None):
         r"""
@@ -241,7 +267,7 @@ class ClusterTriangulation(ClusterSeed):
 
         else:
             raise ValueError('Input must be a list of three-tuples. You entered data: ', data)
-            
+
         self._m = 0
         ClusterSeed.__init__(self, self._quiver, from_surface=True)
         #super(ClusterSeed, self).__init__(self._M)
@@ -410,7 +436,7 @@ class ClusterTriangulation(ClusterSeed):
 
         EXAMPLES:
 
-        Twice-punctured monogon with 3 (non-ordinary) ideal triangles (affine D)::
+        Twice-punctured monogon (labeled 'i0') with 3 (non-ordinary) ideal triangles (affine D)::
 
             sage: T = ClusterTriangulation([('i1','i4','i2'),('i3','i4','i3'),('i2','i0','i1')])
             sage: T.mutate('i1', inplace=False).cluster()
@@ -421,6 +447,14 @@ class ClusterTriangulation(ClusterSeed):
             [x0, x1, x2, (x1 + x2)/x3, x4]
             sage: ClusterSeed(T._M).mutate(T.get_edge_position('i3'), inplace=False).cluster() == T.mutate('i3', inplace=False).cluster()
             True
+
+        An edge that is only contained in one triangle and is not a
+        self-folded triangle's radius is not mutable::
+
+            sage: T.mutate('i0')
+            Traceback (most recent call last):
+            ...
+            ValueError: ('The ideal triangulation cannot be mutated at ', 'i0', '.There is only one triangle ', ('i2', 'i0', 'i1'), ', not a self-folded triangle, with side ', 'i0')
 
         Two self-folded triangles and 1 triangle with one vertex (affine D)::
 
@@ -444,7 +478,7 @@ class ClusterTriangulation(ClusterSeed):
             True
             sage: T.mutate('i0',inplace=False) == Tmu04020
             True
-            
+
         A once-punctured square's triangulation with self-folded
         triangle, border edges are labeled 4,5,6,7, 2nd triangulation
         in oral paper ell-loop is labeled 3, radius is labeled 0::
@@ -461,7 +495,7 @@ class ClusterTriangulation(ClusterSeed):
             [(x2 + 1)/x0, x1, x2, x3]
             sage: ClusterSeed(T).cluster()
             [(x2 + 1)/x0, x1, x2, x3]
-            
+
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
         _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
@@ -470,9 +504,9 @@ class ClusterTriangulation(ClusterSeed):
             ct = self
         else:
             ct = ClusterTriangulation( self )
-            
+
         S = ClusterSeed(ct)
-            
+
         #print "I am in ClusterTriangulation.mutate with ct: ", ct # TODO ERASE
 
         n = ct._n
@@ -612,10 +646,10 @@ class ClusterTriangulation(ClusterSeed):
             {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
         """
         return self._triangulation_dictionary
-        
+
     def triangulation_dictionary_variable_to_label(self):
         """
-        Return a dictionary with keys variables x_i/b_i 
+        Return a dictionary with keys variables x_i/b_i
         and items user-given labels (numbers or strings) of ``self``.
 
         EXAMPLES:
