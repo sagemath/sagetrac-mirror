@@ -581,10 +581,7 @@ print("Discovered Python source, time: %.2f seconds." % (time.time() - t))
 
 python_package_data = {}
 for package in python_packages:
-  if 'ext' in package:
-    python_package_data[package] = ['*.pyx', '*.pxd', '*.pxi','*.h']
-  else:
-    python_package_data[package] = ['*.pyx', '*.pxd', '*.pxi']
+  python_package_data[package] = ['*.pxd', '*.pxi','*.h']
 
 python_data_files = [(os.path.join(SAGE_LIB, 'sage', 'ext', 'interrupt'),
                       ['build/cythonized/sage/ext/interrupt/interrupt_api.h',

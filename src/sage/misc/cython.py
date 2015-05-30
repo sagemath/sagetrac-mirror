@@ -17,7 +17,7 @@ AUTHORS:
 
 from __future__ import print_function
 
-import os, sys, platform, numpy
+import os, sys, platform
 import distutils.sysconfig
 
 from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
@@ -71,7 +71,7 @@ def atlas():
 include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
                 os.path.join(SAGE_LOCAL,'include'), \
                 distutils.sysconfig.get_python_inc(), \
-                numpy.get_include(), \
+                os.path.join(SAGE_LIB,'numpy','core','include'), \
                 os.path.join(SAGE_LIB,'sage','ext'), \
                 os.path.join(SAGE_LIB)]
 
@@ -212,7 +212,7 @@ def pyx_preparse(s):
         ['.../include/csage',
         '.../include',
         '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
+        '.../lib/python2.7/site-packages/numpy/core/include',
         '.../sage/ext',
         '...'],
         'c',
@@ -239,7 +239,7 @@ def pyx_preparse(s):
         '.../include/csage',
         '.../include',
         '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
+        '.../lib/python2.7/site-packages/numpy/core/include',
         '.../sage/ext',
         '...']
 
