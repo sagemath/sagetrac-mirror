@@ -413,7 +413,8 @@ class ClusterTriangulation(ClusterSeed):
             sage: B == Tmu040.b_matrix()
             True
             sage: Tmu0402 = Tmu040.mutate(2,inplace=False)
-            sage: Tmu0402 == ClusterTriangulation([(1,0,4),(4,5,5),(1,2,0),(3,2,3)])
+            sage: Tmu0402.triangulation() == \
+            ....: ClusterTriangulation([(1,0,4),(4,5,5),(1,2,0),(3,2,3)]).triangulation()
             True
         """
         return self._M
@@ -443,18 +444,26 @@ class ClusterTriangulation(ClusterSeed):
             [x0, (x3*x4 + x0)/x1, x2, x3, x4]
             sage: T.mutate('i2', inplace=False).cluster()
             [x0, x1, (x3*x4 + x0)/x2, x3, x4]
+
+        Mutating at a self-folded triangle (r,r,ell)'s radius r is an involution except that
+        mutating at r twice returns the original triangulation with the label r and ell switched::
+
             sage: T.mutate('i3', inplace=False).cluster()
             [x0, x1, x2, (x1 + x2)/x3, x4]
             sage: ClusterSeed(T._M).mutate(T.get_edge_position('i3'), inplace=False).cluster() == T.mutate('i3', inplace=False).cluster()
             True
-
-        An edge that is only contained in one triangle and is not a
-        self-folded triangle's radius is not mutable::
-
-            sage: T.mutate('i0')
-            Traceback (most recent call last):
-            ...
-            ValueError: ('The ideal triangulation cannot be mutated at ', 'i0', '.There is only one triangle ', ('i2', 'i0', 'i1'), ', not a self-folded triangle, with side ', 'i0')
+            sage: T.mutate(['i3','i3'], inplace=False).cluster()
+            [x0, x1, x2, x3, x4]
+            sage: T.mutate(['i3','i3'], inplace=False).weighted_triangulation()
+            [(x2, x0, x1),
+            (x1, x3*x4, x2),
+            ((x4, 'counterclockwise'), (x4, 'clockwise'), x3*x4)]
+            sage: T.weighted_triangulation()
+            [(x1, x3*x4, x2),
+            ((x3, 'counterclockwise'), (x3, 'clockwise'), x3*x4),
+            (x2, x0, x1)]
+            sage: T.mutate(['i4','i4'], inplace=False) == T
+            True
 
         Two self-folded triangles and 1 triangle with one vertex (affine D)::
 
@@ -474,9 +483,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: T.b_matrix() == Tmu0402.b_matrix()
             True
             sage: Tmu04020 = ClusterTriangulation([(1,0,1),(4,5,5),(4,0,2),(3,2,3)])
-            sage: T.mutate('i0',inplace=False).b_matrix() == Tmu04020.b_matrix()
-            True
-            sage: T.mutate('i0',inplace=False) == Tmu04020
+            sage: T.mutate('i0',inplace=False).quiver() == Tmu04020.quiver()
             True
 
         A once-punctured square's triangulation with self-folded
@@ -486,7 +493,8 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
             sage: S = ClusterSeed(T); S.cluster()
             [x0, x1, x2, x3]
-            sage: S.mutate(T.get_edge_position(0),inplace=False).cluster()
+            sage: S.mutate(T.get_edge_position(0))
+            sage: S.cluster()
             [(x2 + 1)/x0, x1, x2, x3]
             sage: T.mutate(0)
             sage: T.triangles()
@@ -495,7 +503,37 @@ class ClusterTriangulation(ClusterSeed):
             [(x2 + 1)/x0, x1, x2, x3]
             sage: ClusterSeed(T).cluster()
             [(x2 + 1)/x0, x1, x2, x3]
+            sage: T.quiver() == S.quiver()
+            True
 
+        A once-punctured torus::
+
+            sage: T = ClusterTriangulation([('a','b','c'),('c','a','b')])
+            sage: S = ClusterSeed(T)
+            sage: S.mutate(T.get_edge_position('a'))
+            sage: T.mutate('a')
+            sage: T.triangulation()
+            [('b', 'a', 'c'), ('b', 'a', 'c')]
+            sage: T.cluster()
+            [(x1^2 + x2^2)/x0, x1, x2]
+            sage: S.cluster() == T.cluster()
+            True
+            sage: S.b_matrix() == T.b_matrix()
+            True
+            sage: S.quiver() == T.quiver()
+            True
+            sage: T.mutate('a')
+            sage: T == ClusterTriangulation([('a','b','c'),('c','a','b')])
+            True
+
+        An edge that is only contained in one triangle and is not a
+        self-folded triangle's radius is not mutable::
+
+            sage: twice_punc_monogon = ClusterTriangulation([('i1','i4','i2'),('i3','i4','i3'),('i2','i0','i1')])
+            sage: twice_punc_monogon.mutate('i0')
+            Traceback (most recent call last):
+            ...
+            ValueError: ('The ideal triangulation cannot be mutated at ', 'i0', '.There is only one triangle ', ('i2', 'i0', 'i1'), ', not a self-folded triangle, with side ', 'i0')
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
         _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
@@ -562,12 +600,14 @@ class ClusterTriangulation(ClusterSeed):
                 ct._quiver.mutate(pos)
                 S = S.mutate(pos, inplace=False)
 
+        ct._cluster = S._cluster
+
         ct._triangulation_dictionary = _get_triangulation_dictionary (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
         ct._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (ct._triangulation_dictionary)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
         ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._triangulation_dictionary)
 
-        ct._cluster = S._cluster
+
         #ct._M = S._M
         #ct._quiver = S._quiver
 
