@@ -27,7 +27,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from parsing import SageDocTestParser
 from util import NestedName
 from sage.structure.dynamic_class import dynamic_class
-from sage.env import SAGE_SRC, SAGE_LOCAL
+from sage.env import SAGE_SRC, SAGE_LOCAL, SAGE_LIB
 
 # Python file parsing
 triple_quotes = re.compile("\s*[rRuU]*((''')|(\"\"\"))")
@@ -80,7 +80,7 @@ def get_basename(path):
     # If the file is in the sage library, we can use our knowledge of
     # the directory structure
     dev = SAGE_SRC
-    sp = os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages')
+    sp = os.path.join(SAGE_LIB)
     if path.startswith(dev):
         # there will be a branch name
         i = path.find(os.path.sep, len(dev))

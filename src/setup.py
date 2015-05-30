@@ -38,6 +38,7 @@ include_dirs = [SAGE_INC,
                 SAGE_SRC,
                 os.path.join(SAGE_SRC, 'c_lib', 'include'),
                 os.path.join(SAGE_SRC, 'sage', 'ext'),
+                os.path.join(SAGE_SRC, 'build', 'cythonized', 'sage', 'ext'),
                 os.path.join(numpy.get_include())]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
@@ -574,6 +575,23 @@ python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
 print("Discovered Python source, time: %.2f seconds." % (time.time() - t))
 
+#########################################################
+### Extra files to install
+#########################################################
+
+python_package_data = {}
+for package in python_packages:
+  if 'ext' in package:
+    python_package_data[package] = ['*.pyx', '*.pxd', '*.pxi','*.h']
+  else:
+    python_package_data[package] = ['*.pyx', '*.pxd', '*.pxi']
+
+python_data_files = [(os.path.join(SAGE_LIB, 'sage', 'ext', 'interrupt'),
+                      ['build/cythonized/sage/ext/interrupt/interrupt_api.h',
+                       'build/cythonized/sage/ext/interrupt/interrupt.h']),
+                     (os.path.join(SAGE_LIB, 'sage', 'libs', 'linkages', 'padics'),
+                      ['sage/libs/linkages/padics/API.pxi',
+                       'sage/libs/linkages/padics/mpz.pxi'])]
 
 #########################################################
 ### Clean
@@ -601,6 +619,8 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
+      package_data= python_package_data,
+      data_files  = python_data_files,
       scripts = [],
       cmdclass = { 'build_ext': sage_build_ext },
       ext_modules = ext_modules)

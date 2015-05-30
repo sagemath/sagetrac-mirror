@@ -17,9 +17,10 @@ AUTHORS:
 
 from __future__ import print_function
 
-import os, sys, platform
+import os, sys, platform, numpy
+import distutils.sysconfig
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from misc import SPYX_TMP
 
 def cblas():
@@ -69,11 +70,10 @@ def atlas():
 
 include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
                 os.path.join(SAGE_LOCAL,'include'), \
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
-                os.path.join(SAGE_SRC,'sage','ext'), \
-                os.path.join(SAGE_SRC), \
-                os.path.join(SAGE_SRC,'sage','gsl')]
+                distutils.sysconfig.get_python_inc(), \
+                numpy.get_include(), \
+                os.path.join(SAGE_LIB,'sage','ext'), \
+                os.path.join(SAGE_LIB)]
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
@@ -214,8 +214,7 @@ def pyx_preparse(s):
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
         '.../sage/ext',
-        '...',
-        '.../sage/gsl'],
+        '...'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -242,8 +241,7 @@ def pyx_preparse(s):
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
         '.../sage/ext',
-        '...',
-        '.../sage/gsl']
+        '...']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
