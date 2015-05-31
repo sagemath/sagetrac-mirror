@@ -1246,12 +1246,13 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         ...
         ValueError: xsrange() step argument must not be zero
 
-    Since it is an iterator, xsrange should provide a `.next()` method when
-    called with Python ints or longs (see :trac:`18538`)::
+    Since it is an iterator, xsrange should provide a ``.next()`` or a
+    ``.__next__()`` method when called with Python ints or longs (see
+    :trac:`18538`)::
 
         sage: type(xsrange(int(42)))
         <type 'rangeiterator'>
-        sage: xsrange(int(42)).next()
+        sage: next(xsrange(int(42)))
         0
     """
     from sage.structure.sequence import Sequence
