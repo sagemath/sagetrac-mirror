@@ -241,6 +241,14 @@ class DocTestController(SageObject):
                 options.optional = True
             else:
                 options.optional = set(s.split(','))
+
+                # we replace the 'installed' tag by all installed packages
+                if 'installed' in options.optional:
+                    from sage.misc.package import _package_lists_from_sage_output
+                    from string import join
+                    options.optional.discard('installed')
+                    options.optional.update(_package_lists_from_sage_output('installed',local=True)[0])
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):

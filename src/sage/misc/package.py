@@ -203,8 +203,8 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
 
     INPUT:
 
-    - ``package_type`` (string) -- one of `"standard"`, `"optional"` or
-      `"experimental"`
+    - ``package_type`` (string) -- one of `"standard"`, `"optional"`,
+      `"experimental"` or `"installed"`.
 
     - ``version`` (boolean) -- whether to return the version of each package.
 
@@ -229,7 +229,7 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
         sage: 'glpk' in installed
         True
     """
-    if package_type not in ['standard','optional','experimental']:
+    if package_type not in ['standard','optional','experimental','installed']:
         raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
 
     cmd = 'sage -{} --dump'.format(package_type)
