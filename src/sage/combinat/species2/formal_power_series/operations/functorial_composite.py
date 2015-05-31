@@ -73,7 +73,8 @@ class FunctorialComposite(FPS):
         self._f_, self._g_ = f, g
 
     def _valuation_(self):
-        return self._g_.coefficient(self._g_._valuation_())
+        # FIXME
+        return self._f_._valuation_() #* self._g_._valuation_()
 
     def coefficient(self, n):
         """

@@ -155,8 +155,21 @@ class Prod(CIS):
             [n](Z_F \cdot Z_G) = \sum_{i + j = n} [i]Z_F \times [j]Z_G
 
         :param n: a non-negative integer
+
         """
 
+        def rec_prod(cis, n):
+            ZF = cis[0]
+            if len(cis) == 1:
+                return ZF.Frobenius_characteristic(n)
+            else:
+                return sum(ZF.Frobenius_characteristic(k) * rec_prod(cis[1:], n-k)
+                           for k in range(n+1))
+
+        cis = reduce(lambda e, f: e+f, tuple((f,)*nf for f, nf in self._dic_cis_.iteritems()), ())
+        return rec_prod(cis, n)
+
+        # FIXME I don't know why this code does not work...
         def rec_prod(cis, n):
             (ZF, ex) = cis[0]
             if len(cis) == 1:
@@ -202,7 +215,7 @@ class Prod(CIS):
 
 @cached_function
 def _Zexp_(Zp, n, ex, base):
-    if ex == 0:
+    if n == 0:
         if n > 0: return base.zero()
         else:     return base.one()
     elif ex == 1: return Zp.Frobenius_characteristic(n)

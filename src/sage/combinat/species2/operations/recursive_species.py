@@ -80,13 +80,16 @@ class RecursiveSpecies(Parent):
         self._cis_.define(self._def_.cycle_index_series())
 
     def _repr_(self):
+        return self._name_
+
+    def print_def(self):
         if self._active_:
             return self._name_
         self._active_ = True
         s = self._name_ + " := " + repr(self._def_)
         self._active_ = False
 
-        return s
+        print s
 
     def grading(self, s):
         pass

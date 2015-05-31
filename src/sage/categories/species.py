@@ -23,6 +23,7 @@ from sage.categories.category import Category
 from sage.categories.objects import Objects
 from sage.misc.abstract_method import abstract_method
 from sage.rings.infinity import Infinity
+from sage.rings.integer import Integer
 from sage.sets.set import Set
 
 
@@ -119,6 +120,20 @@ class Species(Category):
         from sage.combinat.species2.sets import SetsSpecies
         return SetsSpecies()
 
+    def cycles(self):
+        """
+        The species `C`, of *cycles*, where `C[U]` is the set of all cycles on `U` for any finite set `U`
+        and
+
+        MATH::
+
+            C[\sigma]((c_1, c_2, \cdots, c_k)) := (\sigma(c_1), \sigma(c_2), \cdots, \sigma(c_k))\,,
+
+        for any bijection `\sigma : U \to V`.
+        """
+        from sage.combinat.species2.cycles import Cycles
+        return Cycles()
+
     def recursive_species(self, name="F"):
         """
         Return an (not defined) instance of a recursive species
@@ -130,9 +145,12 @@ class Species(Category):
             sage: Sp = Species()
             sage: O, X = Sp.one(), Sp.singletons()
             sage: B = Sp.recursive_species(name="B")
-            sage: B.define(O + B*X*B); B
+            sage: B.define(O + B*X*B)
+            sage: B.print_def()
+            B := 1 + B·X·B
 
             sage: list(B.type_generating_series().coefficients(10))
+            [1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
         """
         from sage.combinat.species2.operations.recursive_species import RecursiveSpecies
         return RecursiveSpecies(name=name)
@@ -370,6 +388,8 @@ class Species(Category):
             return Add(self, G)
 
         __add__ = add
+
+        # TODO implement some methods such that `3 * F` returns `F + F + F`.
 
         # TODO use the method sum to define some tricky parametred species (like generalized parking functions)
 

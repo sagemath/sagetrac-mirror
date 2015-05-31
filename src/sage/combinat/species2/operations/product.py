@@ -113,6 +113,18 @@ class Prod(SpeciesDesign):
         sage: E * (E * Z)
         `0`
 
+        sage: Sp = Species()
+        sage: A = Sp.recursive_species('a')
+        sage: B = Sp.recursive_species('b')
+        sage: C = Sp.recursive_species('c')
+        sage: (A+B)*C
+        a·c + b·c
+
+        sage: A^2*(B+C)
+        a^2·c + a^2·b
+        sage: (A^2 + B+B)*C^3
+        2·b·c^3 + a^2·c^3
+
     """
     # FIXME: tests about associativity,commutativity and distributivity should be somewhere else.
 
@@ -200,7 +212,7 @@ class Prod(SpeciesDesign):
 
     def is_pointing(self):
         # TODO: overload this method for other operators...
-        return self._species_[0] is CycleIndexSeries().singletons() \
+        return self._species_[0] is Species().singletons() \
                and isinstance(self._species_[1], Derivative)
 
     def _element_constructor_(self, *args, **options):

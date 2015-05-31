@@ -64,40 +64,45 @@ class Substitution(FPS):
         f = self._f_
         g = self._g_
 
-        self._index_ = [(f.coefficient(0), ExponentialPowerSeries().one())] * (self._valuation_()+1)
-        self._last_index_ = self._valuation_()
+        # [0]f(t)
+        self._index_ = [(f.coefficient(0), ExponentialPowerSeries().one())]
+
+        self._last_index_ = 0
 
         while True:
             n = (yield)
             while self._last_index_ < n:
                 self._last_index_ += 1
 
-                # f_n
-                coef = f.coefficient(self._last_index_) / factorial(self._last_index_)
+                # [n]f(t)
+                fn = f.coefficient(self._last_index_) / factorial(self._last_index_)
                 # t^n --> g(t)^n
-                self._index_.append((coef, g**self._last_index_))
-                # [t^n]f(g(t)) |---> [t^n](f_0 + f_1 g(t) + f_2 g(t)^2 + f_3 g(t)^3 + ...)
+                gtn = g**self._last_index_
+
+                self._index_.append((fn, gtn))
+                # [t^n]f(g(t)) |---> [t^n](f_0 + f_1 g(t) + f_2 g(t)^2 + f_3 g(t)^3 + ... + f_n g(t)^n)
 
     @cached_method
     def coefficient(self, n):
         """
         MATH::
 
-            \begin{align*}
-                f(g(t)) &= \sum_{n \geqslant 0} f_n g(t)^n\\
-                        &= \sum_{n \geqslant 0} \left(
-                            \sum_{k | n} f_k [t^n]g(t)^k
-                        \right) t^n
-            \end{align*}
+                f(g(t)) = \sum_{n \geqslant 0} f_n g(t)^n
+
+        TESTS::
+
+            sage: Sp = Species()
+            sage: X, E = Sp.singletons(), Sp.sets()
+            sage: T = Sp.recursive_species("T")
+            sage: T.define(E.composite(X*T)); T.print_def()
+            T := (E○(X·T))
+            sage: list(T.egs().coefficients(10))
+            [1, 1, 3, 16, 125, 1296, 16807, 262144, 4782969, 100000000, 2357947691]
 
         """
-        n = Integer(n)
-        if n == 0:
-            return self._f_.coefficient(0)
-
         self._gen.send(n)
         return sum(self._index_[k][0] * self._index_[k][1].coefficient(n) for k in range(n+1))
 
     def _valuation_(self):
-        # FIXME: naive implementation... I d'ont know how to do such that work with rescursive fps (T = E(XT)??)
+        # FIXME: naive implementation... I don't know how to do such that work with rescursive fps (T = E(XT)??)
         return self._f_._valuation_() #* self._g_._valuation_()

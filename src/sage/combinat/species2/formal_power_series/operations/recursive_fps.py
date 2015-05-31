@@ -106,6 +106,9 @@ class RecursiveFormalPowerSeries(CategoryObject):
         return res
 
     def _repr_(self):
+        return self._name_
+
+    def print_def(self):
         if self._active_:
             return self._name_
 
@@ -113,7 +116,7 @@ class RecursiveFormalPowerSeries(CategoryObject):
         s = self._name_ + " := " + repr(self._def_)
         self._active_ = False
 
-        return s
+        print s
 
     def _valuation_(self):
         return self._valuation

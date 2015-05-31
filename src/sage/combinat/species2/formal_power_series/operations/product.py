@@ -53,7 +53,7 @@ def clcall_private(ClassProd, cls, *args):
             # associativity f ⋅ (g ⋅ h) |--> f ⋅ g ⋅ h
             elif isinstance(f, ClassProd):
                 for (g, ng) in f._dic_fs_.iteritems():
-                    dic_fs[g] += ng
+                    dic_fs[g] += ng * nf
             # otherwise
             else:
                 dic_fs[f] += nf
@@ -174,13 +174,14 @@ class ExponentialProd(GenericProd):
             [1, 1, 4, 30, 336, 5040, 95040, 2162160, 57657600, 1764322560, 60949324800]
 
         """
+
         def rec_prod(fs, n):
             f = fs[0]
             if len(fs) == 1:
                 return f.coefficient(n)
 
             acc = Integer(0)
-            for i in range(f._valuation_(), n+1):
+            for i in range(n+1):
                 fi = f.coefficient(i)
                 if fi != 0:
                     acc += binomial(n, i) * fi * rec_prod(fs[1:], n-i)

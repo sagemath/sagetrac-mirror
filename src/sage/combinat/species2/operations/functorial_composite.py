@@ -22,6 +22,7 @@ from sage.combinat.species2 import SpeciesDesign
 from sage.combinat.species2.operations.add import Add
 from sage.combinat.species2.operations.cartesian_product import CartesianProduct
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.sets.set import Set
 
 
 class FunctorialComposite(SpeciesDesign):
@@ -107,12 +108,9 @@ class FunctorialComposite(SpeciesDesign):
 
     class Structures(SpeciesDesign.Structures):
 
-        def cardinality(self):
-            pass
-
         def __iter__(self):
             if self.ambient()._valuation_() > self.finite_set().cardinality(): return
             F, G = self.ambient()._F_, self.ambient()._G_
-            for s in F.structures(G.structures(self.finite_set())):
+            for s in F.structures(Set(G.structures(self.finite_set()))):
                 s._set_parent(self.ambient())
                 yield s

@@ -85,6 +85,9 @@ class RecursiveCIS(CategoryObject):
         self.Frobenius_characteristic = self._Frobenius_characteristic_def_
 
     def _repr_(self):
+        return self._name_
+
+    def print_def(self):
         if self._active_:
             return self._name_
 
@@ -92,7 +95,7 @@ class RecursiveCIS(CategoryObject):
         s = self._name_ + " := " + repr(self._def_)
         self._active_ = False
 
-        return s
+        print s
     
     def Frobenius_characteristic(self, n):
         return SymmetricFunctions(QQ).zero()

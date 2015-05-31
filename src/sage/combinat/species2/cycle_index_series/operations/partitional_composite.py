@@ -16,6 +16,7 @@ Reference
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
+from operator import add
 from sage.categories.cycle_index_series import CycleIndexSeries
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.species2.cycle_index_series import CIS
@@ -117,11 +118,12 @@ class Composite(CIS):
         ZG = self._ZG_
         p = SymmetricFunctions(ZF.Frobenius_characteristic(0).base_ring()).p()
 
-        self._index_ = [ZeroCIS(p, ZF.Frobenius_characteristic(0))] * (self._valuation_()+1)
-        self._last_index_ = self._valuation_()
+        self._index_ = [ZeroCIS(p, ZF.Frobenius_characteristic(0))] #* (self._valuation_()+1)
+        self._last_index_ = 0 #self._valuation_()
         
         while True:
             n = (yield)
+
             while self._last_index_ < n:
                 self._last_index_ += 1
                 self._index_.append(CycleIndexSeries().zero())
@@ -129,12 +131,41 @@ class Composite(CIS):
                 for pi, coef in p(ZF.Frobenius_characteristic(self._last_index_)):
                     if coef == p.zero():
                         continue
-                    acc = ZeroCIS(p, coef)
-                    acc *= prod(StretchCIS(ZG, part) for part in pi)
-                    self._index_[-1] += acc
+                    acc = prod(StretchCIS(ZG, part, p) for part in pi)
+                    self._index_[-1] += Add((acc, coef))
 
     @cached_method
     def Frobenius_characteristic(self, n):
+        """
+        MATH::
+
+            Z_{F \circ G} (p_1, p_2, \cdots) =
+                Z_F (Z_G (p_1, p_2, \cdots), Z_G (p_2, p_4, \cdots), \cdots)
+
+        TESTS::
+
+            sage: Sp = Species()
+            sage: T = Sp.recursive_species()
+            sage: E  = Sp.sets()
+            sage: X = Sp.singletons()
+            sage: T.define(E.composite(X*T))
+            sage: ZT = T.cycle_index_series()
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: for n in range(7): print m(ZT.Frobenius_characteristic(n))
+            m[]
+            m[1]
+            3*m[1, 1] + 2*m[2]
+            16*m[1, 1, 1] + 9*m[2, 1] + 4*m[3]
+            125*m[1, 1, 1, 1] + 67*m[2, 1, 1] + 37*m[2, 2] + 26*m[3, 1] + 9*m[4]
+            1296*m[1, 1, 1, 1, 1] + 680*m[2, 1, 1, 1] + 359*m[2, 2, 1] + 251*m[3, 1, 1] + 134*m[3, 2] + 75*m[4, 1] + 20*m[5]
+            16807*m[1, 1, 1, 1, 1, 1] + 8716*m[2, 1, 1, 1, 1] + 4530*m[2, 2, 1, 1] + 2365*m[2, 2, 2] + 3135*m[3, 1, 1, 1] + 1636*m[3, 2, 1] + 596*m[3, 3] + 888*m[4, 1, 1] + 469*m[4, 2] + 214*m[5, 1] + 48*m[6]
+
+            sage: list(T.egs().coefficients(6))
+            [1, 1, 3, 16, 125, 1296, 16807]
+            sage: list(T.ogs().coefficients(6))
+            [1, 1, 2, 4, 9, 20, 48]
+
+        """
         self._gen.send(n)
         return sum(self._index_[k].Frobenius_characteristic(n) for k in range(n+1))
 
@@ -149,13 +180,27 @@ class Composite(CIS):
 
 
 class StretchCIS(CIS):
+    """
+    The plethystic substitution:
 
-    def __init__(self, ZF, k):
+    MATH::
+
+        p_k [ Z_F (p_1, p_2, p_3, \cdots) ] = Z_F (p_k, p_{2k}, p_{3k}, \cdots)\,.
+
+    """
+
+    @staticmethod
+    def __classcall_private__(cls, ZF, k, p):
+        if k == 1:
+            return ZF
+        return super(StretchCIS, cls).__classcall__(cls, ZF, k, p)
+
+    def __init__(self, ZF, k, p):
         CIS.__init__(self)
         self._ZF_ = ZF
         self._k_ = Integer(k)
         ###
-        self._p_ = SymmetricFunctions(ZF.Frobenius_characteristic(0).base_ring()).p()
+        self._p_ = p
 
     @cached_method
     def Frobenius_characteristic(self, n):
@@ -165,6 +210,9 @@ class StretchCIS(CIS):
 
         return p[k].plethysm(ZF.Frobenius_characteristic(int(n/k))) \
             if k.divides(n) else p.zero()
+
+    def _repr_(self):
+        return "Z[%s, %d]"%(self._ZF_, int(self._k_))
 
 
 class ZeroCIS(CIS):
@@ -177,3 +225,6 @@ class ZeroCIS(CIS):
     def Frobenius_characteristic(self, n):
         return self._p_(self._coeff_) \
             if n == 0 else self._p_.zero()
+
+    def _repr_(self):
+        return "Z0[%s]"%repr(self._coeff_)
