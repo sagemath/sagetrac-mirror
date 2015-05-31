@@ -87,13 +87,13 @@ class ClusterSeed(SageObject):
         sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
         sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
         sage: S = ClusterSeed(T); S
-        A cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
+        A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
         sage: S.cluster()
         [x0, x1, x2, x3]
 
         sage: T.mutate(['a','b','r'])
         sage: S = ClusterSeed(T); S
-        A cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
+        A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
         sage: S.cluster()
         [(x2*x3 + x1)/x0, (x2*x3 + x0 + x1)/(x0*x1), x2, (x2*x3 + x0 + x1)/(x0*x3)]
 
@@ -106,8 +106,9 @@ class ClusterSeed(SageObject):
             sage: TestSuite(S).run()
         """
         from quiver import ClusterQuiver
+        from cluster_triangulation import ClusterTriangulation
 
-        if type(data) in [ClusterSeed, ClusterQuiver]:
+        if type(data) in [ClusterSeed, ClusterQuiver, ClusterTriangulation]:
             self._from_surface = from_surface if from_surface else data._from_surface
         else:
             self._from_surface = from_surface
