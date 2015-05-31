@@ -49,14 +49,14 @@ class DihedralGroup(UniqueRepresentation, Parent):
         sage: list(G)
         [(),
         (1,),
-        (1, 2),
+        (2, 1),
         (1, 2, 1),
-        (1, 2, 1, 2),
+        (2, 1, 2, 1),
         (1, 2, 1, 2, 1),
         (2,),
-        (2, 1),
+        (1, 2),
         (2, 1, 2),
-        (2, 1, 2, 1)]
+        (1, 2, 1, 2)]
 
     This reduced word is unique, except for the longest element where
     the choosen reduced word is `(1,2,1,2\dots)`::
@@ -126,7 +126,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
         """
         assert n >= 2
-        Parent.__init__(self, category = FiniteCoxeterGroups())
+        Parent.__init__(self, category = CoxeterGroups().Finite().Irreducible())
         self.n = n
 
     def _repr_(self):
@@ -229,7 +229,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
                 sage: D5 = FiniteCoxeterGroups().example(5)
                 sage: [i^2 for i in D5]
-                [(), (), (1, 2, 1, 2), (), (2, 1), (), (), (2, 1, 2, 1), (), (1, 2)]
+                [(), (), (2, 1, 2, 1), (), (1, 2), (), (), (1, 2, 1, 2), (), (2, 1)]
                 sage: [i^5 for i in D5]
                 [(), (1,), (), (1, 2, 1), (), (1, 2, 1, 2, 1), (2,), (), (2, 1, 2), ()]
             """

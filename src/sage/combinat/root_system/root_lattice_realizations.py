@@ -23,6 +23,7 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
@@ -684,9 +685,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                                 import DisjointUnionEnumeratedSets
                 return DisjointUnionEnumeratedSets([self.positive_real_roots(),
                                                     self.positive_imaginary_roots()])
-            if not self.cartan_type().is_finite():
-                raise NotImplementedError("Only implemented for finite and"
-                                          " affine Cartan types")
+            #if not self.cartan_type().is_finite() or self.weyl_group().is_finite():
+            #    raise NotImplementedError("Only implemented for finite and"
+            #                              " affine Cartan types")
             if index_set is None:
                 index_set = tuple(self.cartan_type().index_set())
             return RecursivelyEnumeratedSet([self.simple_root(i) for i in index_set],
@@ -979,7 +980,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             INPUT:
 
-            - ``index_set`` -- (default:None) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
+            - ``index_set`` -- (default:``None``) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
 
             EXAMPLES::
 
@@ -998,11 +999,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             .. WARNING::
 
                 This returns an error if the Cartan type is not finite.
-
             """
 
             if not self.cartan_type().is_finite():
-                raise ValueError("Cartan type %s is not finite"%(self.cartan_type()))
+                raise ValueError("Cartan type %s is not finite" % self.cartan_type())
             if index_set is None or index_set == tuple(self.cartan_type().index_set()):
                 return self.zero()
             return sum(self.positive_roots_nonparabolic(index_set))
@@ -1011,12 +1011,14 @@ class RootLatticeRealizations(Category_over_base_ring):
             r"""
             Returns the (restricted) root poset associated to ``self``.
 
-            The elements are given by the positive roots (resp. non-simple, positive roots), and
-            `\alpha \leq \beta` iff `\beta - \alpha` is a non-negative linear combination of simple roots.
+            The elements are given by the positive roots
+            (resp. non-simple, positive roots), and `\alpha \leq
+            \beta` iff `\beta - \alpha` is a non-negative linear
+            combination of simple roots.
 
             INPUT:
 
-            - ``restricted`` -- (default:False) if True, only non-simple roots are considered.
+            - ``restricted`` -- (default:``False``) if True, only non-simple roots are considered.
             - ``facade`` -- (default:False) passes facade option to the poset generator.
 
             EXAMPLES::
@@ -1065,7 +1067,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def nonnesting_partition_lattice(self, facade=False):
             r"""
-            Return the lattice of nonnesting partitions
+            Return the lattice of nonnesting partitions.
 
             This is the lattice of order ideals of the root poset.
 
@@ -1191,7 +1193,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Algorithm: negate the positive roots
 
             """
-            if not self.cartan_type().is_finite():
+            if not self.cartan_type().is_finite() or self.weyl_group().is_finite():
                 raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
             from sage.combinat.combinat import MapCombinatorialClass
             return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
@@ -1214,7 +1216,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.root_system.coroot_lattice()
 
-        def coroot_space(self, base_ring = QQ):
+        def coroot_space(self, base_ring = None):
             """
             Returns the coroot space over ``base_ring``
 
@@ -1231,6 +1233,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Coroot space over the Univariate Polynomial Ring in q over Rational Field of the Root system of type ['A', 2]
 
             """
+            if base_ring is None:
+                base_ring = UniversalCyclotomicField()
             return self.root_system.coroot_space(base_ring = base_ring)
 
 
@@ -4034,6 +4038,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                 index_set = self.parent().cartan_type().index_set()
             alphavee = self.parent().coroot_lattice().basis()
             return [i for i in index_set if self.scalar(alphavee[i]) == 0]
+
+        def to_negative(self):
+            if not self.is_positive_root():
+                return []
+            i = self.first_descent(positive=True)
+            return self.simple_reflection(i).to_negative() + [i]
+
+        def length(self):
+            return len(self.to_negative())
 
         def is_parabolic_root(self, index_set):
             r"""

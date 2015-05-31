@@ -1,17 +1,33 @@
-"""
-Coxeter Groups
+r"""
+Coxeter groups
+
+AUTHORS:
+
+- Christian Stump
+
+.. note::
+
+    - For definitions and classification types of finite complex reflection
+      groups, see :wikipedia:`Complex_reflection_group`.
+    - Uses the GAP3 package *chevie*.
+
+Version: 2011-04-26
+
+EXAMPLES::
+
+
 """
 #*****************************************************************************
-#       Copyright (C) 2010 Nicolas Thiery <nthiery at users.sf.net>
+#       Copyright (C) 2011 Christian Stump <christian.stump at lacim.ca>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.misc.cachefunc import cached_function, cached_method
+from copy import copy
+from sage.misc.all import prod
+from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
 from sage.categories.category import Category
-from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
 from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -20,8 +36,216 @@ from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 
+from sage.rings.all import ZZ, QQ
+from sage.matrix.all import Matrix, identity_matrix
+from sage.matrix.matrix import is_Matrix
+from sage.interfaces.gap3 import GAP3Record, gap3
+from sage.interfaces.gap import gap
+from sage.combinat.words.word import Word
+from sage.rings.arith import gcd, lcm
+from sage.combinat.root_system.complex_reflection_group import FiniteComplexReflectionGroup, IrreducibleFiniteComplexReflectionGroup, assert_chevie_available
+from sage.categories.coxeter_groups import CoxeterGroups
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
+
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.groups.matrix_gps.coxeter_group', 'CoxeterMatrixGroup')
+
+class FiniteCoxeterGroup(FiniteComplexReflectionGroup):
+    def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
+        r"""
+        TESTS::
+
+            sage: W = CoxeterGroups().example()
+            sage: TestSuite(W).run()
+        """
+        W_types = tuple( tuple( W_type ) if isinstance(W_type,(list,tuple)) else W_type for W_type in W_types )
+        cartan_types = []
+        for W_type in W_types:
+            W_type = CartanType(W_type)
+            assert W_type.is_finite()
+            assert W_type.is_irreducible()
+            cartan_types.append( W_type )
+        if len(W_types) == 1:
+            cls = IrreducibleFiniteComplexReflectionGroup
+        else:
+            cls = FiniteComplexReflectionGroup
+        cls.__init__(self, W_types, index_set=index_set,
+                                    hyperplane_index_set=hyperplane_index_set,
+                                    reflection_index_set=reflection_index_set,
+                                    is_coxeter_group = True)
+        N = self.nr_reflections()
+        self._is_positive_root = [None] + [ True ] * N + [False]*N
+
+    __iter__ = CoxeterGroups.ParentMethods.__iter__.__func__
+
+    def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+        
+            sage: W = CoxeterGroup(['A',3],['B',2],['I',5],['I',6]); W
+            Reducible finite Coxeter group of rank 9 and type A3 x B2 x I2(5) x G2
+        """
+        type_str = ''
+        for W_type in self._type:
+            type_str += self._irrcomp_repr_(W_type)
+            type_str += ' x '
+        type_str = type_str[:-3]
+        return 'Reducible finite Coxeter group of rank {} and type {}'.format(self._rank,type_str)
+
+    @cached_method
+    def bipartite_index_set(self):
+        r"""
+        Return the bipartite index set of a finite real reflection group.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(["A",5])
+            sage: W.bipartite_index_set()
+            [[0, 2, 4], [1, 3]]
+
+            sage: W = CoxeterGroup(["A",5],index_set=['a','b','c','d','e'])
+            sage: W.bipartite_index_set()
+            [['a', 'c', 'e'], ['b', 'd']]
+        """
+        index_family = self._index_set
+        keys = index_family.keys()
+        L,R = self._gap_group.BipartiteDecomposition().sage()
+        L = [ i for i in keys if index_family[i]+1 in L ]
+        R = [ i for i in keys if index_family[i]+1 in R ]
+        return [L,R]
+
+    def irreducible_components(self):
+        r"""
+        Return a list containing the irreducible components of ``self``
+        as finite reflection groups.
+
+        EXAMPLES::
+
+            tba
+        """
+        if self.nr_irreducible_components() == 1:
+            irr_comps = [self]
+        else:
+            irr_comps = []
+            for W_type in self._type:
+                W_str = [ W_type["series"], W_type["rank"] ]
+                if W_type["series"] == "I":
+                    W_str[1] = W_type["bond"]
+                irr_comps.append( CoxeterGroup(W_str) )
+        return irr_comps
+
+    def cartan_type(self):
+        if len(self._type) == 1:
+            ct = self._type[0]
+            return CartanType([ct['series'],ct['rank']])
+        else:
+            return [ W.cartan_type() for W in self.irreducible_components() ]
+
+    @cached_method
+    def cartan_matrix(self):
+        from sage.matrix.constructor import matrix
+        return matrix(self._gap_group.CartanMat().sage())
+
+    def simple_root(self,i):
+        return self.simple_roots()[self._index_set[i]]
+
+    def positive_roots(self):
+        return self.roots()[:self.nr_reflections()]
+
+    def almost_positive_roots(self):
+        return [ -beta for beta in self.simple_roots() ] + self.positive_roots()
+
+    def root_to_reflection(self,root):
+        Phi = self.roots()
+        R = self.reflections()
+        i = Phi.index(root)+1
+        j = Phi.index(-root)+1
+        for r in R:
+            if r(i) == j:
+                return r
+        raise ValueError("there is a bug in root_to_reflection")
+
+    def reflection_to_positive_root(self,r):
+        Phi = self.roots()
+        N = len(Phi)/2
+        for i in range(1,N+1):
+            if r(i) == i+N:
+                return Phi[i-1]
+        raise ValueError("there is a bug in reflection_to_positive_root")
+
+    @cached_method
+    def fundamental_weights(self):
+        m = self.cartan_matrix().transpose().inverse()
+        S = self.simple_roots()
+        zero = S[0] - S[0]
+        weights = [ sum( [ m[i,j] * S[j] for j in range(len(S)) ], zero )
+                    for i in range(len(S)) ]
+        for weight in weights:
+            weight.set_immutable()
+        return weights
+
+    def fundamental_weight(self,i):
+        return self.fundamental_weights()[self._index_set[i]]
+
+    def permutahedron(self,coefficients=None):
+        n = self.rank()
+        weights = self.fundamental_weights()
+        if coefficients is None:
+            coefficients = [1]*n
+        v = sum( coefficients[i] * weights[i] for i in range(n) )
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        return Polyhedron( vertices=[ v*(~w).as_matrix() for w in self] )
+
+    class Element(FiniteComplexReflectionGroup.Element):
+
+        has_descent = CoxeterGroups.ElementMethods.has_descent.__func__
+        reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
+
+        def has_left_descent(self, i):
+            r"""
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(["A",3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]).has_left_descent(1)
+                True
+                sage: (s[1]*s[2]).has_left_descent(2)
+                False
+            """
+            W = self.parent()
+            assert i in W.index_set()
+            return not W._is_positive_root[self(W._index_set[i]+1)]
+
+        def act_on_root(self,root):
+            Phi = self.parent().roots()
+            return Phi[ (~self)(Phi.index(root)+1)-1 ]
+
+        def inversion_set(self):
+            Phi_plus = set(self.parent().positive_roots())
+            return [ root for root in Phi_plus if self.act_on_root(root) not in Phi_plus ]
+
+class IrreducibleFiniteCoxeterGroup(FiniteCoxeterGroup, IrreducibleFiniteComplexReflectionGroup):
+    def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: for i in [2..7]: print CoxeterGroup(["I",i])
+            Reducible finite Coxeter group of rank 2 and type A1 x A1
+            Irreducible finite Coxeter group of rank 2 and type A2
+            Irreducible finite Coxeter group of rank 2 and type B2
+            Irreducible finite Coxeter group of rank 2 and type I2(5)
+            Irreducible finite Coxeter group of rank 2 and type G2
+            Irreducible finite Coxeter group of rank 2 and type I2(7)
+        """
+        type_str = self._irrcomp_repr_(self._type[0])
+        return 'Irreducible finite Coxeter group of rank {} and type {}'.format(self._rank,type_str)
+
+    class Element(FiniteCoxeterGroup.Element,IrreducibleFiniteComplexReflectionGroup.Element):
+        pass
 
 def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=None):
     """
@@ -123,7 +347,8 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = groups.misc.CoxeterGroup(["H",3])
     """
-    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
+    if implementation not in ["permutation", "matrix", "coxeter3",
+                              "reflection", None]:
         raise ValueError("invalid type implementation")
 
     try:
@@ -143,7 +368,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
             raise RuntimeError("coxeter3 must be installed")
         else:
             return CoxeterGroup(cartan_type)
-    if implementation == "permutation" and is_chevie_available() and \
+    if implementation == "permutation" and assert_chevie_available() and \
        cartan_type.is_finite() and cartan_type.is_irreducible():
         return CoxeterGroupAsPermutationGroup(cartan_type)
     elif implementation == "matrix":
@@ -153,184 +378,3 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
     raise NotImplementedError("Coxeter group of type {} as {} group not implemented".format(cartan_type, implementation))
 
-@cached_function
-def is_chevie_available():
-    r"""
-    Tests whether the GAP3 Chevie package is available
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.coxeter_group import is_chevie_available
-        sage: is_chevie_available() # random
-        False
-        sage: is_chevie_available() in [True, False]
-        True
-    """
-    try:
-        from sage.interfaces.gap3 import gap3
-        gap3._start()
-        gap3.load_package("chevie")
-        return True
-    except Exception:
-        return False
-
-class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_generic):
-
-    @staticmethod
-    def __classcall__(cls, cartan_type):
-        """
-        TESTS::
-
-            sage: from sage.combinat.root_system.coxeter_group import CoxeterGroupAsPermutationGroup
-            sage: W1 = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - chevie
-            sage: W2 = CoxeterGroupAsPermutationGroup(["H",3])             # optional - chevie
-            sage: W1 is W2                                                 # optional - chevie
-            True
-        """
-        cartan_type = CartanType(cartan_type)
-        return super(CoxeterGroupAsPermutationGroup, cls).__classcall__(cls, cartan_type)
-
-    def __init__(self, cartan_type):
-        """
-        Construct this Coxeter group as a Sage permutation group, by
-        fetching the permutation representation of the generators from
-        Chevie's database.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.coxeter_group import CoxeterGroupAsPermutationGroup
-            sage: W = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - chevie
-            sage: TestSuite(W).run()             # optional - chevie
-        """
-        assert cartan_type.is_finite()
-        assert cartan_type.is_irreducible()
-        self._semi_simple_rank = cartan_type.n
-        from sage.interfaces.gap3 import gap3
-        gap3._start()
-        gap3.load_package("chevie")
-        self._gap_group = gap3('CoxeterGroup("%s",%s)'%(cartan_type.letter,cartan_type.n))
-        # Following #9032, x.N is an alias for x.numerical_approx in every Sage object ...
-        N = self._gap_group.__getattr__("N").sage()
-        generators = [str(x) for x in self._gap_group.generators]
-        self._is_positive_root = [None] + [ True ] * N + [False]*N
-        PermutationGroup_generic.__init__(self, gens = generators,
-                                          category = Category.join([FinitePermutationGroups(), FiniteCoxeterGroups()]))
-
-    def _element_class(self):
-        """
-        A temporary workaround for compatibility with Sage's
-        permutation groups
-
-        TESTS::
-
-            sage: W = CoxeterGroup(["H",3])                                  # optional - chevie
-            sage: W._element_class() is W.element_class                      # optional - chevie
-            True
-        """
-        return self.element_class
-
-    def index_set(self):
-        """
-        Returns the index set of this Coxeter group
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(["H",3], implementation = "permutation")  # optional - chevie
-            sage: W.index_set() # optional - chevie
-            [1, 2, 3]
-
-        """
-        return range(1, self._semi_simple_rank+1)
-
-    @cached_method
-    def reflection(self, i):
-        """
-        Returns the `i`-th reflection of ``self``.
-
-        For `i` in `1,\dots,n`, this gives the `i`-th simple
-        reflection of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(["H",3], implementation = "permutation") # optional - chevie
-            sage: W.simple_reflection(1) # optional - chevie
-            (1,16)(2,5)(4,7)(6,9)(8,10)(11,13)(12,14)(17,20)(19,22)(21,24)(23,25)(26,28)(27,29)
-            sage: W.simple_reflection(2) # optional - chevie
-            (1,4)(2,17)(3,6)(5,7)(9,11)(10,12)(14,15)(16,19)(18,21)(20,22)(24,26)(25,27)(29,30)
-            sage: W.simple_reflection(3) # optional - chevie
-            (2,6)(3,18)(4,8)(5,9)(7,10)(11,12)(13,14)(17,21)(19,23)(20,24)(22,25)(26,27)(28,29)
-            sage: W.reflection(4)        # optional - chevie
-            (1,5)(2,22)(3,11)(4,19)(7,17)(8,12)(9,13)(10,15)(16,20)(18,26)(23,27)(24,28)(25,30)
-            sage: W.reflection(5)        # optional - chevie
-            (1,22)(2,4)(3,9)(5,20)(6,13)(7,16)(8,14)(12,15)(17,19)(18,24)(21,28)(23,29)(27,30)
-            sage: W.reflection(6)        # optional - chevie
-            (1,8)(2,18)(3,17)(5,12)(6,21)(7,11)(9,10)(13,15)(16,23)(20,27)(22,26)(24,25)(28,30)
-        """
-        return self(str(self._gap_group.Reflection(i)))
-
-    simple_reflection = reflection
-
-    class Element(PermutationGroupElement):
-
-        def has_descent(self, i, side = 'right', positive=False):
-            """
-            Returns whether `i` is a (left/right) descent of ``self``.
-
-            See :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.descents` for a
-            description of the options.
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroup(["A",3])
-                sage: s = W.simple_reflections()
-                sage: w = s[1] * s[2] * s[3]
-                sage: w.has_descent(3)
-                True
-                sage: [ w.has_descent(i)                  for i in [1,2,3] ]
-                [False, False, True]
-                sage: [ w.has_descent(i, side = 'left')   for i in [1,2,3] ]
-                [True, False, False]
-                sage: [ w.has_descent(i, positive = True) for i in [1,2,3] ]
-                [True, True, False]
-
-            This implementation is a plain copy of that of
-            ``CoxeterGroups``. It is there as a workaround since
-            `PermutationGroupElement` currently redefines abusively
-            :meth:`has_descent` as if the group was the full symmetric
-            group.
-            """
-            assert isinstance(positive, bool)
-            if side == 'right':
-                return self.has_right_descent(i) != positive
-            else:
-                assert side == 'left'
-                return self.has_left_descent(i)  != positive
-
-        def has_left_descent(self, i):
-            r"""
-            Returns whether ``i`` is a descent of ``self`` by testing
-            whether ``i`` is mapped to a negative root.
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroup(["A",3], implementation = "permutation") # optional - chevie
-                sage: s = W.simple_reflections() # optional - chevie
-                sage: (s[1]*s[2]).has_left_descent(1) # optional - chevie
-                True
-                sage: (s[1]*s[2]).has_left_descent(2) # optional - chevie
-                False
-            """
-            return not self.parent()._is_positive_root[self(i)]
-
-        def __cmp__(self, other):
-            r"""
-            Without this comparison method, the initialization of this
-            permutation group fails ...
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroup(["B",3], implementation = "permutation") # optional - chevie
-                sage: cmp(W.an_element(), W.one())        # optional - chevie
-                1
-            """
-            return super(CoxeterGroupAsPermutationGroup.Element, self).__cmp__(other)

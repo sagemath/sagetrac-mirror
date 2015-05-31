@@ -30,6 +30,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
@@ -224,6 +225,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: cm.index_set()
             ('a', 'b')
         """
+        extend = False
         # Special case with 0 args and kwds has Cartan type
         if "cartan_type" in kwds and len(args) == 0:
             args = (CartanType(kwds["cartan_type"]),)
@@ -260,6 +262,8 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 data = {(i, i): 2 for i in range(n)}
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
+                    if l not in ZZ:
+                        extend = True
             else:
                 M = matrix(args[0])
                 if not is_generalized_cartan_matrix(M):
@@ -286,7 +290,11 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             else:
                 raise ValueError("too many arguments")
 
-        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, cartan_type, index_set)
+        if extend:
+            P = MatrixSpace(UniversalCyclotomicField(), n, sparse=True)
+        else:
+            P = MatrixSpace(ZZ, n, sparse=True)
+        mat = typecall(cls, P, data, cartan_type, index_set)
         mat._subdivisions = subdivisions
         return mat
 

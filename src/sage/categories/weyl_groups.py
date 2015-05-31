@@ -9,6 +9,7 @@ Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
@@ -79,6 +80,16 @@ class WeylGroups(Category_singleton):
 
     class ParentMethods:
 
+        @abstract_method(optional=True)
+        def cartan_type(self):
+            r"""
+            Returns the Cartan type of self.
+
+            EXAMPLES::
+
+                tba
+            """
+
         def pieri_factors(self, *args, **keywords):
             r"""
             Returns the set of Pieri factors in this Weyl group.
@@ -106,7 +117,7 @@ class WeylGroups(Category_singleton):
                 sage: W = WeylGroup(['B',3])
                 sage: PF = W.pieri_factors()
                 sage: [w.reduced_word() for w in PF]
-                [[1, 2, 3, 2, 1], [1, 2, 3, 2], [2, 3, 2], [2, 3], [3, 1, 2, 1], [1, 2, 1], [2], [1, 2], [1], [], [2, 1], [3, 2, 1], [3, 1], [2, 3, 2, 1], [3], [3, 2], [1, 2, 3], [1, 2, 3, 1], [3, 1, 2], [2, 3, 1]]
+                [[1, 2, 3, 2, 1], [1, 2, 3, 2], [2, 3, 2], [2, 3, 2, 1], [3, 1, 2, 1], [3, 2], [3, 1, 2], [1, 2], [3, 1], [2], [2, 3], [3, 2, 1], [2, 3, 1], [1], [1, 2, 3, 1], [1, 2, 3], [3], [1, 2, 1], [], [2, 1]]
 
                 sage: W = WeylGroup(['C',4,1])
                 sage: PF = W.pieri_factors()
@@ -192,7 +203,6 @@ class WeylGroups(Category_singleton):
             """
 
             return self in self.parent().pieri_factors()
-
 
         def left_pieri_factorizations(self, max_length = infinity):
             r"""

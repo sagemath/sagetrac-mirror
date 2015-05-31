@@ -12,6 +12,8 @@ from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from weight_lattice_realizations import WeightLatticeRealizations
+from sage.rings.all import QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 
 class WeightSpace(CombinatorialFreeModule):
     r"""
@@ -178,6 +180,11 @@ class WeightSpace(CombinatorialFreeModule):
             basis_keys = tuple(basis_keys) + ("delta",)
 
         self.root_system = root_system
+        if base_ring is None:
+            if root_system.cartan_type().is_crystallographic():
+                base_ring = QQ
+            else:
+                base_ring = UniversalCyclotomicField()
         CombinatorialFreeModule.__init__(self, base_ring,
                                          basis_keys,
                                          prefix = "Lambdacheck" if root_system.dual_side else "Lambda",

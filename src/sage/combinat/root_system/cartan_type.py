@@ -665,7 +665,7 @@ class CartanTypeFactory(SageObject):
                         import type_H
                         return type_H.CartanType(n)
                 if letter == "I":
-                    if n == 1:
+                    if n == 2:
                         return CartanType([["A", 1], ["A", 1]])
                     if n == 3:
                         return CartanType(["A", 2])
@@ -673,9 +673,10 @@ class CartanTypeFactory(SageObject):
                         return CartanType(["C", 2])
                     if n == 6:
                         return CartanType(["G", 2])
-                    if n >= 1:
+                    if n >= 2:
                         import type_I
                         return type_I.CartanType(n)
+                    raise ValueError("the Cartan type ['I', {}] does not exist".format(n))
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
                     if letter == "A":
@@ -1094,6 +1095,22 @@ class CartanType_abstract(object):
         m.set_immutable()
         return m
 
+    @cached_method
+    def cartan_matrix(self):
+        """
+        Return the Cartan matrix associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).cartan_matrix()
+            [ 2 -1  0  0]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [ 0  0 -1  2]
+        """
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+        return CartanMatrix(self.dynkin_diagram())
+
     def dual(self):
         """
         Return the dual Cartan type, possibly just as a formal dual.
@@ -1508,22 +1525,6 @@ class CartanType_crystallographic(CartanType_abstract):
             Derived subclasses should typically implement this as a cached
             method.
         """
-
-    @cached_method
-    def cartan_matrix(self):
-        """
-        Return the Cartan matrix associated with ``self``.
-
-        EXAMPLES::
-
-            sage: CartanType(['A',4]).cartan_matrix()
-            [ 2 -1  0  0]
-            [-1  2 -1  0]
-            [ 0 -1  2 -1]
-            [ 0  0 -1  2]
-        """
-        from sage.combinat.root_system.cartan_matrix import CartanMatrix
-        return CartanMatrix(self.dynkin_diagram())
 
     @cached_method
     def coxeter_diagram(self):

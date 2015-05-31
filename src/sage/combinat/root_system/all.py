@@ -11,6 +11,7 @@ from coxeter_matrix import coxeter_matrix
 from root_system import RootSystem, WeylDim
 from weyl_group import WeylGroup, WeylGroupElement
 from coxeter_group import CoxeterGroup
+from complex_reflection_group import ComplexReflectionGroup
 from weyl_characters import WeylCharacterRing, WeightRing
 from branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')

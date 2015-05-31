@@ -142,6 +142,19 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         """
         return range(self.n-1)
 
+    def cartan_type(self):
+        r"""
+        Returns the Cartan type `['A',n-1]` of ``self``.
+
+        EXAMPLES::
+
+            sage: S = FiniteWeylGroups().example()
+            sage: S.cartan_type()
+            ['A', 4]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        return CartanType(['A',self.n])
+
     def simple_reflection(self, i):
         """
         Implements :meth:`CoxeterGroups.ParentMethods.simple_reflection`
@@ -170,6 +183,18 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         return self(tuple(x.value[i] for i in y.value))
 
     class Element(ElementWrapper):
+
+        def apply_simple_reflection_right(self, i):
+            """
+            Implements :meth:`CoxeterGroups.ParentMethods.simple_reflection` 
+            by returning the transposition `(i, i+1)`.
+
+            EXAMPLES::
+
+                sage: FiniteWeylGroups().example().simple_reflection(2)
+                (0, 1, 3, 2)
+            """
+            return self*self.parent().simple_reflection(i)
 
         def has_right_descent(self, i):
             """
