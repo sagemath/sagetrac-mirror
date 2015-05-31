@@ -7,39 +7,39 @@ non-crossing arcs. An ideal triangulation of a surface with marked
 points `(S, M)` is associated to a seed of a cluster algebra arising
 from `(S, M)`.
 
+REFERENCES:
+
+.. [MSW_Positivity] Musiker - Schiffler - Williams,
+   *Positivity for Cluster Algebras from Surfaces*,
+   :arxiv:`0906.0748`
+
+.. [MSW_Bases] Musiker - Schiffler - Williams,
+   *Bases for Cluster Algebras from Surfaces*,
+   :arxiv:`1110.4364`
+
+.. [MW_MatrixFormulae] Musiker and Williams,
+   *Matrix Formulae and Skein Relations for Cluster Algebras
+   from Surfaces*,
+   :arxiv:`1108.3382`
+
+.. [FominShapiroThurston] Fomin - Shapiro - Thurston,
+   *Cluster algebras and triangulated surfaces. part I: Cluster
+   complexes*,
+   :arxiv:`math/0608367`
+
+.. [SchifflerThomas] Shiffler - Thomas,
+   *On cluster algebras arising from unpunctured surfaces*,
+   :arxiv:`abs/0712.4131`
+
+.. [DupontThomas] Dupont - Thomas,
+   *Atomic Basis in Types A and Affine A*,
+   :arxiv:`1106.3758`
+
 .. SEEALSO::
 
     Cluster triangulations closely interact with
     :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`,
     :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
-
-REFERENCES:
-
-.. [MSW_Positivity] Musiker - Schiffler - Williams,
-*Positivity for Cluster Algebras from Surfaces*,
-:arxiv:`0906.0748`
-
-.. [MSW_Bases] Musiker - Schiffler - Williams,
-*Bases for Cluster Algebras from Surfaces*,
-:arxiv:`1110.4364`
-
-.. [MW_MatrixFormulae] Musiker and Williams,
-*Matrix Formulae and Skein Relations for Cluster Algebras
-from Surfaces*,
-:arxiv:`1108.3382`
-
-.. [FominShapiroThurston] Fomin - Shapiro - Thurston,
-*Cluster algebras and triangulated surfaces. part I: Cluster
-complexes*,
-:arxiv:`math/0608367`
-
-.. [SchifflerThomas] Shiffler - Thomas,
-*On cluster algebras arising from unpunctured surfaces*,
-:arxiv:`abs/0712.4131`
-
-.. [DupontThomas] Dupont - Thomas,
-*Atomic Basis in Types A and Affine A*,
-:arxiv:`1106.3758`
 
 """
 #from sage.structure.sage_object import SageObject
@@ -254,7 +254,8 @@ class ClusterTriangulation(ClusterSeed):
             self._n = data._n
             self._triangles = copy( data._triangles )
             self._M = data._M[:data._n,:data._n]
-            self._quiver = ClusterQuiver(data._quiver)
+            #self._quiver = ClusterQuiver(data._quiver)
+            self._quiver = ClusterQuiver( data._quiver ) if data._quiver else None
             #self._is_cluster_algebra = data._is_cluster_algebra
             self._description = copy( data._description )
             self._R = copy(data._R)
@@ -269,6 +270,10 @@ class ClusterTriangulation(ClusterSeed):
             raise ValueError('Input must be a list of three-tuples. You entered data: ', data)
 
         self._m = 0
+        #self._quiver = ClusterQuiver(self._M)
+        if not self._quiver:
+            self._quiver = ClusterQuiver(self._M, from_surface=True)
+        #ClusterSeed.__init__(self, self._quiver)
         ClusterSeed.__init__(self, self._quiver, from_surface=True)
         #super(ClusterSeed, self).__init__(self._M)
 
@@ -589,27 +594,28 @@ class ClusterTriangulation(ClusterSeed):
             if user_labels:
                 pos = ct.get_edge_position(diagonal)
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal)
-                ct._M.mutate(pos)
-                ct._quiver.mutate(pos)
-                S = S.mutate(pos, inplace=False)
+                #ct._M.mutate(pos)
+                #ct._quiver.mutate(pos)
+                #S = S.mutate(pos, inplace=False)
             else:
                 pos = diagonal
                 diagonal_label = ct._edges[pos]
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal_label)
-                ct._M.mutate(pos)
-                ct._quiver.mutate(pos)
-                S = S.mutate(pos, inplace=False)
+                #ct._M.mutate(pos)
+                #ct._quiver.mutate(pos)
+                #S = S.mutate(pos, inplace=False)
+
+            ct._M.mutate(pos)
+            S = S.mutate(pos, inplace=False)
 
         ct._cluster = S._cluster
-
         ct._triangulation_dictionary = _get_triangulation_dictionary (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
         ct._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (ct._triangulation_dictionary)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
         ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._triangulation_dictionary)
 
-
         #ct._M = S._M
-        #ct._quiver = S._quiver
+        ct._quiver = None
 
         if not inplace:
             return ct
@@ -953,11 +959,11 @@ class ClusterTriangulation(ClusterSeed):
                                 first_triangle, final_triangle, is_arc=True,
                                 first_tile_orientation=first_tile_orientation,
                                 boundary_edges=self._boundary_edges)
-
-        return _snake_graph(self._weighted_triangulation, crossed_arcs,
-                            first_triangle, final_triangle, is_arc=True,
-                            first_tile_orientation=first_tile_orientation,
-                            boundary_edges=self._boundary_edges_vars)
+        else:
+            return _snake_graph(self._weighted_triangulation, crossed_arcs,
+                                first_triangle, final_triangle, is_arc=True,
+                                first_tile_orientation=first_tile_orientation,
+                                boundary_edges=self._boundary_edges_vars)
 
     def list_band_graph(self, crossed_arcs, first_triangle=None,
                         final_triangle=None, first_tile_orientation=1,
@@ -1032,12 +1038,12 @@ class ClusterTriangulation(ClusterSeed):
                                 is_loop=True,
                                 first_tile_orientation=first_tile_orientation,
                                 boundary_edges=self._boundary_edges)
-
-        return _snake_graph(self._weighted_triangulation, crossed_arcs,
-                            first_triangle, final_triangle, is_arc=False,
-                            is_loop=True,
-                            first_tile_orientation=first_tile_orientation,
-                            boundary_edges=self._boundary_edges_vars)
+        else:
+            return _snake_graph(self._weighted_triangulation, crossed_arcs,
+                                first_triangle, final_triangle, is_arc=False,
+                                is_loop=True,
+                                first_tile_orientation=first_tile_orientation,
+                                boundary_edges=self._boundary_edges_vars)
 
     def draw_snake_graph(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, first_tile_orientation=1,

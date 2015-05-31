@@ -2066,7 +2066,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
         if print_user_labels:
             drawing = drawing + text('$'+str(matching_weight)+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'gray')
         else:
-            drawing = drawing + text('$'+str(matching_weight).replace('x','x_').replace('*',' ')+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
+            drawing = drawing + text('$'+str(matching_weight).replace('x','x_{').replace('b','b_{').replace('*','}')+'}$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
     if not(pos is None):
         pos_str = '$(' + str(pos) + ')$. '
         drawing = drawing + text(pos_str, (x ,y-0.2), rgbcolor=(0,1,0.2))
