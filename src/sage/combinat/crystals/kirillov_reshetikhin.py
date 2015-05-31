@@ -28,8 +28,7 @@ from sage.misc.functional import is_even, is_odd
 from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
-from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.kr_crystals import KirillovReshetikhinCrystals
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
 from sage.combinat.crystals.affine import AffineCrystalFromClassical, \
@@ -454,9 +453,17 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             1
             sage: K.s()
             1
+
+            sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_box(['A',4,2], 1, 1)
+            sage: K
+            Kirillov-Reshetikhin crystal of type ['BC', 2, 2] with (r,s)=(1,1)
+            sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_box(['D',4,2], 1, 1)
+            sage: K
+            Kirillov-Reshetikhin crystal of type ['C', 3, 1]^* with (r,s)=(1,1)
+            sage: TestSuite(K).run()
         """
         # We need this here for the classical_decomposition() call
-        Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
         if dual is None:
             self._cartan_type = cartan_type
         else:
@@ -464,7 +471,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         self._r = r
         self._s = s
         self._dual = dual
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
+        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition(), category=KirillovReshetikhinCrystals())
 
     def _repr_(self):
         """
@@ -822,9 +829,10 @@ KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalEle
 class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
                                               AffineCrystalFromClassicalAndPromotion):
     r"""
-    This generic class assumes that the Kirillov-Reshetikhin crystal is constructed
-    from a classical crystal 'classical_decomposition' and an automorphism 'promotion' and its inverse
-    which corresponds to a Dynkin diagram automorphism 'dynkin_diagram_automorphism'.
+    This generic class assumes that the Kirillov-Reshetikhin crystal is
+    constructed from a classical crystal ``classical_decomposition``
+    and an automorphism ``promotion`` and its inverse, which corresponds
+    to a Dynkin diagram automorphism ``dynkin_diagram_automorphism``.
 
     Each instance using this class needs to implement the methods:
 
@@ -845,7 +853,8 @@ class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
         KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r, s)
         AffineCrystalFromClassicalAndPromotion.__init__(self, cartan_type, self.classical_decomposition(),
                                                         self.promotion(), self.promotion_inverse(),
-                                                        self.dynkin_diagram_automorphism(0))
+                                                        self.dynkin_diagram_automorphism(0),
+                                                        KirillovReshetikhinCrystals())
 
 class KirillovReshetikhinCrystalFromPromotionElement(AffineCrystalFromClassicalAndPromotionElement,
                                                      KirillovReshetikhinGenericCrystalElement):
@@ -1909,23 +1918,6 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
         sage: b.e(0)
         [[-1]]
     """
-    def __init__(self, cartan_type, r, s):
-        r"""
-        Initializes a Kirillov-Reshetikhin crystal ``self``.
-
-        TESTS::
-
-            sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_box(['A',4,2], 1, 1)
-            sage: K
-            Kirillov-Reshetikhin crystal of type ['BC', 2, 2] with (r,s)=(1,1)
-            sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_box(['D',4,2], 1, 1)
-            sage: K
-            Kirillov-Reshetikhin crystal of type ['C', 3, 1]^* with (r,s)=(1,1)
-            sage: TestSuite(K).run()
-        """
-        KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
-
     def classical_decomposition(self):
         r"""
         Specifies the classical crystal underlying the Kirillov-Reshetikhin crystal of type `A_{2n}^{(2)}`

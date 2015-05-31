@@ -164,73 +164,32 @@ class WeightLatticeRealizations(Category_over_base_ring):
             """
 
         def is_extended(self):
-          """
-          Returns whether this is a realization of the extended weight lattice
-
-          .. seealso:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
-
-          EXAMPLES::
-
-              sage: RootSystem(["A",3,1]).weight_lattice().is_extended()
-              False
-              sage: RootSystem(["A",3,1]).weight_lattice(extended=True).is_extended()
-              True
-
-          This method is irrelevant for finite root systems, since the
-          weight lattice need not be extended to ensure that the root
-          lattice embeds faithfully::
-
-              sage: RootSystem(["A",3]).weight_lattice().is_extended()
-              False
-
-          """
-          return False
-
-        def __init_extra__(self):
             """
-            Registers the embedding of the weight lattice into ``self``
+            Return whether this is a realization of the extended
+            weight lattice.
 
-            Also registers the embedding of the weight space over the same
-            base field `K` into ``self`` if `K` is not `\ZZ`.
+            .. SEEALSO::
 
-            If ``self`` is a realization of the extended weight lattice,
-            then the embeddings from the extended weight space/lattices
-            are registered instead.
+                :class:`sage.combinat.root_system.weight_space.WeightSpace`
 
-            EXAMPLES:
+            EXAMPLES::
 
-            We embed the fundamental weight `\Lambda_1` of the weight
-            lattice in the ambient lattice::
+                sage: RootSystem(["A",3,1]).weight_lattice().is_extended()
+                False
+                sage: RootSystem(["A",3,1]).weight_lattice(extended=True).is_extended()
+                True
 
-                sage: R = RootSystem(["A",3])
-                sage: Lambda = R.root_lattice().simple_roots()
-                sage: L = R.ambient_space()
-                sage: L(Lambda[2])
-                (0, 1, -1, 0)
+            This method is irrelevant for finite root systems, since the
+            weight lattice need not be extended to ensure that the root
+            lattice embeds faithfully::
 
-            .. note::
-
-                More examples are given in :class:`WeightLatticeRealizations`;
-                The embeddings are systematically tested in
-                :meth:`_test_weight_lattice_realization`.
+                sage: RootSystem(["A",3]).weight_lattice().is_extended()
+                False
             """
-            from sage.rings.all import ZZ
-            from weight_space import WeightSpace
-            K = self.base_ring()
-            # If self is the root lattice or the root space, we don't want
-            # to register its trivial embedding into itself. This builds
-            # the domains from which we want to register an embedding.
-            domains = []
-            if not isinstance(self, WeightSpace) or K is not ZZ:
-                domains.append(self.root_system.weight_lattice(extended=self.is_extended()))
-            if not isinstance(self, WeightSpace):
-                domains.append(self.root_system.weight_space(K,extended=self.is_extended()))
-            # Build and register the embeddings
-            for domain in domains:
-                domain.module_morphism(self.fundamental_weight,
-                                       codomain = self
-                                       ).register_as_coercion()
-
+            from sage.misc.superseded import deprecation
+            deprecation(18453, "X.is_extended() is deprecated. Please use isinstance(X, ExtendedAffineWeightSpace) instead")
+            from sage.combinat.root_system.weight_space import ExtendedAffineWeightSpace
+            return isinstance(self, ExtendedAffineWeightSpace)
 
         def _test_weight_lattice_realization(self, **options):
             """

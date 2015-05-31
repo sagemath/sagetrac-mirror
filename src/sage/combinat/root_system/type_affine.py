@@ -11,6 +11,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.free_module import CombinatorialFreeModule
 from weight_lattice_realizations import WeightLatticeRealizations
+from sage.rings.all import ZZ
 
 class AmbientSpace(CombinatorialFreeModule):
     r"""
@@ -158,6 +159,20 @@ class AmbientSpace(CombinatorialFreeModule):
         coroot_lattice = self.root_system.coroot_lattice()
         coroot_lattice.module_morphism(self.simple_coroot, codomain=self).register_as_coercion()
 
+        from weight_space import WeightSpace
+        # If self is the root lattice or the root space, we don't want
+        # to register its trivial embedding into itself. This builds
+        # the domains from which we want to register an embedding.
+        domains = [self.root_system.weight_space(base_ring)]
+        if base_ring is not ZZ:
+            domains.append(self.root_system.weight_lattice())
+
+        # Build and register the embeddings
+        for domain in domains:
+            domain.module_morphism(self.fundamental_weight,
+                                   codomain = self
+                                   ).register_as_coercion()
+
     def _name_string(self, capitalize=True, base_ring=False, type=True):
         r"""
         Utility to implement _repr_
@@ -208,22 +223,6 @@ class AmbientSpace(CombinatorialFreeModule):
             return self.classical().zero()
         else:
             return self.classical().monomial(i)
-
-    def is_extended(self):
-        r"""
-        Return whether this is a realization of the extended weight lattice: yes!
-
-        .. SEEALSO::
-
-            - :class:`sage.combinat.root_system.weight_space.WeightSpace`
-            - :meth:`sage.combinat.root_sytem.weight_lattice_realizations.WeightLatticeRealizations.ParentMethods.is_extended`
-
-        EXAMPLES::
-
-            sage: RootSystem(['A',3,1]).ambient_space().is_extended()
-            True
-        """
-        return True
 
     @cached_method
     def fundamental_weight(self, i):

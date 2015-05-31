@@ -531,7 +531,7 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
         [[[2]], [[1]], [[3]]]
     """
 
-    def __init__(self, cartan_type, classical_crystal, p_automorphism, p_inverse_automorphism, dynkin_node):
+    def __init__(self, cartan_type, classical_crystal, p_automorphism, p_inverse_automorphism, dynkin_node, category=None):
         """
         Input is an affine Cartan type ``cartan_type``, a classical crystal
         ``classical_crystal``, and promotion automorphism and its inverse
@@ -556,7 +556,7 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
 
             sage: TestSuite(A).run()
         """
-        AffineCrystalFromClassical.__init__(self, cartan_type, classical_crystal)
+        AffineCrystalFromClassical.__init__(self, cartan_type, classical_crystal, category)
         self.p_automorphism = p_automorphism
         self.p_inverse_automorphism = p_inverse_automorphism
         self.dynkin_node = dynkin_node

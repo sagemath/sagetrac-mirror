@@ -155,15 +155,16 @@ class Crystals(Category_singleton):
                 sage: C = crystals.Letters(['A', 5])
                 sage: C.weight_lattice_realization()
                 Ambient space of the Root system of type ['A', 5]
+
+                sage:
                 sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
                 sage: K.weight_lattice_realization()
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
             F = self.cartan_type().root_system()
-            if F.is_finite() and F.ambient_space() is not None:
+            if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
-            else:
-                return F.weight_lattice()
+            return F.weight_lattice()
 
         def cartan_type(self):
             """
