@@ -102,7 +102,7 @@ class ClusterTriangulation(ClusterSeed):
         sage: annulus22 = [('bd1','tau1','tau2'),('tau2','tau3','bd4'),('tau1','tau4','bd2'),('tau3','bd3','tau4')]
         sage: T = ClusterTriangulation(annulus22, boundary_edges=['bd3','bd2','bd1','bd4'])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 4 with 4 boundary edges
+        A cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges
         sage: ClusterSeed(T).mutation_type()
         ['A', [2, 2], 1]
         sage: T.triangulation_dictionary()
@@ -120,9 +120,9 @@ class ClusterTriangulation(ClusterSeed):
         sage: thrice_punctured_square = [(2,2,1), (1,3,11), (3,12,4), (4,5,14), (5,6,10), (6,7,9), (8,10,9), (7,13,8)]
         sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[14,12,13,11])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
+        A cluster algebra associated with an ideal triangulation of rank 10 with 4 boundary edges
         sage: ClusterSeed(T).mutation_type()
-        'undetermined finite mutation type'
+        'undetermined finite mutation type from a surface'
         sage: T.triangulation_dictionary()
         {1: x0*x1,
         2: x1,
@@ -142,27 +142,27 @@ class ClusterTriangulation(ClusterSeed):
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 5 with 2 boundary edges
+        A cluster algebra associated with an ideal triangulation of rank 5 with 2 boundary edges
         sage: ClusterSeed(T).mutation_type()
-        'undetermined finite mutation type'
+        'undetermined finite mutation type from a surface'
 
         sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 6 with 1 boundary edges
+        A cluster algebra associated with an ideal triangulation of rank 6 with 1 boundary edges
 
         sage: T = ClusterTriangulation ( [(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 7
+        A cluster algebra associated with an ideal triangulation of rank 7
 
         sage: Triangles = [(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)]
         sage: T = ClusterTriangulation(Triangles, boundary_edges=[11,12,13,0])
         sage: T
-        An ideal triangulation associated with cluster algebra of rank 10 with 4 boundary edges
+        A cluster algebra associated with an ideal triangulation of rank 10 with 4 boundary edges
 
         sage: once_punctured_torus = ClusterTriangulation([(1,2,3),(3,1,2)])
         sage: S = ClusterSeed(once_punctured_torus).mutation_type()
         sage: S
-        'undetermined finite mutation type'
+        'undetermined finite mutation type from a surface'
 
     Triangles do not need to be connected::
 
@@ -196,7 +196,7 @@ class ClusterTriangulation(ClusterSeed):
         ...
         ValueError: A noose of a self-folded triangle must be a side of another triangle.
     """
-    def __init__(self, data, boundary_edges=None):
+    def __init__(self, data, boundary_edges=None, is_principal=None):
         r"""
         .. TODO::
 
@@ -212,6 +212,8 @@ class ClusterTriangulation(ClusterSeed):
         from sage.rings.all import QQ
         from sage.rings.all import FractionField, PolynomialRing
         from copy import copy
+
+        self._from_surface = True
 
         # if data is a list of triangles (forming a triangulation)
         if isinstance(data,list) and \
@@ -235,7 +237,7 @@ class ClusterTriangulation(ClusterSeed):
             self._M = M[:self._n,:self._n] # In this implementation, we ignore the boundary edges (TODO)
             self._quiver = ClusterQuiver(self._M, from_surface=True)
             #self._is_cluster_algebra = True
-            self._description = 'An ideal triangulation associated with cluster algebra of rank %d'  %(self._n)
+            self._description = 'A cluster algebra associated with an ideal triangulation of rank %d'  %(self._n)
             if boundary_edges:
                 self._description += ' with %d boundary edges' %(len(self._boundary_edges))
             self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
@@ -245,6 +247,10 @@ class ClusterTriangulation(ClusterSeed):
             self._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (self._triangulation_dictionary)
             self._triangulation = _get_user_label_triangulation(self._triangles)
             self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._triangulation_dictionary)
+            self._mutation_type = self._quiver.mutation_type()
+            if self._mutation_type == 'undetermined finite mutation type':
+                self._mutation_type += ' from a surface'
+            self._is_principal = is_principal
 
         # Construct data from a cluster triangulation
         elif isinstance(data, ClusterTriangulation):
@@ -265,16 +271,19 @@ class ClusterTriangulation(ClusterSeed):
             self._triangulation_dictionary_variable_to_label = copy(data.triangulation_dictionary_variable_to_label)
             self._triangulation = copy(data._triangulation)
             self._weighted_triangulation = copy(data._weighted_triangulation)
+            self._mutation_type = data._mutation_type
+            self._is_principal = copy(data._is_principal)
 
         else:
-            raise ValueError('Input must be a list of three-tuples. You entered data: ', data)
+            raise ValueError('Input must be a list of three-tuples or a ClusterTriangulation class. You entered data: ', data)
 
         self._m = 0
         #self._quiver = ClusterQuiver(self._M)
-        if not self._quiver:
-            self._quiver = ClusterQuiver(self._M, from_surface=True)
+        #if not self._quiver:
+        #    self._quiver = ClusterQuiver(self._M, from_surface=True)
         #ClusterSeed.__init__(self, self._quiver)
-        ClusterSeed.__init__(self, self._quiver, from_surface=True)
+        ##ClusterSeed.__init__(self, self._quiver, from_surface=True)
+        ClusterSeed.__init__(self, self, from_surface=True)
         #super(ClusterSeed, self).__init__(self._M)
 
     def __eq__(self, other):
@@ -316,7 +325,7 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: T = ClusterTriangulation([(4, 5, 1), (4, 3, 2), (3, 7, 2), (2, 1, 6), (1, 4, 5)])
             sage: T._repr_()
-            'An ideal triangulation associated with cluster algebra of rank 7'
+            'A cluster algebra associated with an ideal triangulation of rank 7'
         """
         name = self._description
         return name
@@ -868,8 +877,6 @@ class ClusterTriangulation(ClusterSeed):
         - ``first_tile_orientation`` -- (default:1) the orientation
           (either +1 or -1) for the first tile of the snake graph
 
-        - ``fig_size`` -- (default:``None``) image size
-
         - ``user_labels`` -- (default:``True``) whether or not
           ``crossed_arcs`` is a list of labels
 
@@ -1306,7 +1313,7 @@ class ClusterTriangulation(ClusterSeed):
 
     def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
                               final_triangle=None, verbose=False,
-                              fig_size=4, user_labels=True):
+                              fig_size=1, user_labels=True):
         """Return the Laurent expansion of a generalized arc gamma
         (i.e. a curve between marked point/s) which crosses the arc in
         crossed_arcs
@@ -1334,7 +1341,7 @@ class ClusterTriangulation(ClusterSeed):
         - ``verbose`` -- (default:``False``) display the image of the
           perfect matchings of the snake graph if ``True``
 
-        - ``fig_size`` -- (default:4) image size
+        - ``fig_size`` -- (default:1) image size
 
         - ``user_labels`` -- (default:``True``) whether or not
           ``crossed_arcs`` is a list of labels
@@ -1442,7 +1449,7 @@ class ClusterTriangulation(ClusterSeed):
 
     def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
                                final_triangle=None, verbose=False,
-                               fig_size=4, user_labels=True):
+                               fig_size=1, user_labels=True):
         """Return the Laurent expansion of a loop (living in the
         surface's interior) in the variables of
         ``self.cluster_triangulation().cluster()``.
@@ -1480,7 +1487,7 @@ class ClusterTriangulation(ClusterSeed):
         - ``verbose`` -- (default:``False``) display the image of the
           perfect matchings of the band graph if ``True``
 
-        - ``fig_size`` -- (default:4) image size
+        - ``fig_size`` -- (default:1) image size
 
         - ``user_labels`` -- (default:``True``) whether or not
           ``crossed_arcs`` is a list of labels

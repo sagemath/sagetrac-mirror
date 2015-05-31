@@ -935,7 +935,7 @@ def _triangles_mutate(T,diagonal):
 def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
                                 final_triangle=None, is_arc=None,
                                 is_loop=None, verbose=False,
-                                boundary_edges=None, fig_size=4):
+                                boundary_edges=None, fig_size=1):
     """
     Return the Laurent expansion of the cluster algebra element
     (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
@@ -964,7 +964,7 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
     - ``verbose`` -- (default:``False``) display the image of all
       perfect matchings of the snake graph if ``True``
 
-    - ``fig_size`` -- (default:4) image size
+    - ``fig_size`` -- (default:1) image size
 
     ALGORITHM:
 
@@ -986,6 +986,9 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
         In case parameter ``verbose`` is set to ``True``, user may
         want to specify that the perfect matchings should be labeled
         by user-given labels (and not the weights from the variables)
+
+        Currently the number of perfect matchings that can be displayed
+        without error messages are very limited.
 
     EXAMPLES::
 
@@ -1033,7 +1036,9 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
             drawing += matching_drawing + draw_G
 
         drawing.set_aspect_ratio(1)
-        drawing.show(axes=False, figsize=[fig_size*(len(all_matchings)+1), fig_size])
+        #fig_size = fig_size*2*n/3
+        fig_size = 0.8*fig_size
+        drawing.show(axes=False,figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
 
     return SumOfMonomialTerms(G, all_matchings, boundary_edges)/ GetDenominator(G)
 
