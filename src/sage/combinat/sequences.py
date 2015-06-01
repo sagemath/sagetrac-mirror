@@ -1,6 +1,28 @@
 r"""
 Common Sequences
 
+Sequences in SageMath can be built through the ``sequences``
+object, which contains common sequences. For example,
+
+::
+
+    sage: C = sequences.catalan(stop=10); C
+    <generator object ...>
+    sage: tuple(C)
+    (1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862)
+
+generates the first `10` catalan numbers; they are returned as an
+iterator expression.
+
+**Sequences**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Sequences.catalan` | the sequence of catalan numbers
+    :meth:`~Sequences.fibonacci` | the sequence of fibonacci numbers
 
 AUTHORS:
 
