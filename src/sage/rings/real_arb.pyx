@@ -386,9 +386,9 @@ class RealBallField(UniqueRepresentation, Parent):
         Various symbolic constants can be converted without going through real
         intervals. (This is faster and yields tighter error bounds.) ::
 
-            sage: RBF(e)  # optional - arb
+            sage: RBF(e)  # optional - arb; abs tol 1e-16
             [2.718281828459045 +/- 5.49e-16]
-            sage: RBF(pi)  # optional - arb
+            sage: RBF(pi)  # optional - arb; abs tol 1e-17
             [3.141592653589793 +/- 5.62e-16]
         """
         try:
@@ -539,7 +539,7 @@ class RealBallField(UniqueRepresentation, Parent):
             0
             sage: RBF.sinpi(1/3)  # optional - arb
             [0.866025403784439 +/- 5.15e-16]
-            sage: RBF.sinpi(1 + 2^(-100))  # optional - arb
+            sage: RBF.sinpi(1 + 2^(-100))  # optional - arb; abs tol 1e-47
             [-2.478279624546525e-30 +/- 5.92e-46]
 
         TESTS::
@@ -631,7 +631,7 @@ class RealBallField(UniqueRepresentation, Parent):
             24.00000000000000
             sage: RBF.gamma(10**20)  # optional - arb
             [+/- 5.92e+1956570551809674821757]
-            sage: RBF.gamma(1/3)  # optional - arb
+            sage: RBF.gamma(1/3)  # optional - arb; abs tol 1e-17
             [2.678938534707747 +/- 9.06e-16]
             sage: RBF.gamma(-5)  # optional - arb
             nan
@@ -917,13 +917,13 @@ cdef class RealBall(RingElement):
             [3.141592653589793 +/- 5.62e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Log2()) # abs tol 1e-16, optional - arb
             [0.693147180559945 +/- 4.06e-16]
-            sage: RealBall(RBF, sage.symbolic.constants.Catalan())  # optional - arb
+            sage: RealBall(RBF, sage.symbolic.constants.Catalan())  # optional - arb; abs tol 1e-16
             [0.915965594177219 +/- 9.43e-17]
             sage: RealBall(RBF, sage.symbolic.constants.Khinchin())  # optional - arb
             [2.685452001065306 +/- 6.82e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Glaisher())  # optional - arb
             [1.282427129100623 +/- 6.02e-16]
-            sage: RealBall(RBF, sage.symbolic.constants.e)  # optional - arb
+            sage: RealBall(RBF, sage.symbolic.constants.e)  # optional - arb; abs tol 1e-16
             [2.718281828459045 +/- 5.49e-16]
         """
         cdef fmpz_t tmpz
@@ -1959,7 +1959,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
-            sage: RBF(pi)/RBF(e)  # optional - arb
+            sage: RBF(pi)/RBF(e)  # optional - arb; abs tol 1e-17
             [1.155727349790922 +/- 8.49e-16]
             sage: RBF(2)/RBF(0)  # optional - arb
             [+/- inf]
@@ -1975,13 +1975,13 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
-            sage: RBF(e)^17  # optional - arb
+            sage: RBF(e)^17  # optional - arb; abs tol 1e-6
             [24154952.753575 +/- 3.47e-7]
-            sage: RBF(e)^(-1)  # optional - arb
+            sage: RBF(e)^(-1)  # optional - arb; abs tol 1e-17
             [0.367879441171442 +/- 4.52e-16]
-            sage: RBF(e)^(1/2)  # optional - arb
+            sage: RBF(e)^(1/2)  # optional - arb; abs tol 1e-17
             [1.648721270700128 +/- 5.00e-16]
-            sage: RBF(e)^RBF(pi)  # optional - arb
+            sage: RBF(e)^RBF(pi)  # optional - arb; abs tol 1e-15
             [23.1406926327793 +/- 9.20e-14]
 
         ::
@@ -1995,9 +1995,9 @@ cdef class RealBall(RingElement):
 
         TESTS::
 
-            sage: RBF(e)**(2r)  # optional - arb
+            sage: RBF(e)**(2r)  # optional - arb; abs tol 1e-16
             [7.38905609893065 +/- 4.75e-15]
-            sage: RBF(e)**(-1r)  # optional - arb
+            sage: RBF(e)**(-1r)  # optional - arb; abs tol 1e-17
             [0.367879441171442 +/- 4.52e-16]
         """
         cdef fmpz_t tmpz
@@ -2475,7 +2475,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
-            sage: RBF(1/2).gamma()  # optional - arb
+            sage: RBF(1/2).gamma()  # optional - arb; abs tol 1e-16
             [1.772453850905516 +/- 3.72e-16]
         """
         cdef RealBall res = self._new()
@@ -2580,11 +2580,11 @@ cdef class RealBall(RingElement):
             sage: from sage.rings.real_arb import RBF  # optional - arb
             sage: polylog(0, -1)  # optional - arb
             -1/2
-            sage: RBF(-1).polylog(0)  # optional - arb
+            sage: RBF(-1).polylog(0)  # optional - arb; abs tol 1e-15
             [-0.50000000000000 +/- 1.78e-15]
             sage: polylog(1, 1/2)  # optional - arb
             -log(1/2)
-            sage: RBF(1/2).polylog(1)  # optional - arb
+            sage: RBF(1/2).polylog(1)  # optional - arb; abs tol 1e-15
             [0.6931471805599 +/- 5.08e-14]
             sage: RBF(1/3).polylog(1/2)  # optional - arb
             [0.44210883528067 +/- 6.75e-15]
