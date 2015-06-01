@@ -180,3 +180,15 @@ class subsequence_options(object):
 
         return subsequence
 
+
+class Sequences(object):
+    r"""
+    A class consisting of constructors for several common sequences.
+
+    A list of all sequences in this database is available via tab
+    completion. Type "``sequences.``" and then hit tab to see which
+    are there.
+
+
+# Easy access to the sequence generators from the command line:
+sequences = Sequences()
