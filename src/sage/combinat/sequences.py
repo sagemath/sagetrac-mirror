@@ -26,3 +26,41 @@ Functions and methods
 import itertools
 import sage
 
+
+def subsequence_by_indices(sequence, indices):
+    r"""
+    Returns the subsequence of the given sequence determined by the
+    specified indices.
+
+    INPUT:
+
+    - ``sequence`` -- an iterable.
+
+    - ``indices`` -- an iterable of increasing non-negative integers.
+
+    OUTPUT:
+
+    An iterator.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.sequences import subsequence_by_indices
+        sage: it = xsrange(10, 20)
+        sage: tuple(subsequence_by_indices(it, xsrange(0, 10, 2)))
+        (10, 12, 14, 16, 18)
+
+    TESTS::
+
+        sage: it = xsrange(10, 12)
+        sage: tuple(subsequence_by_indices(it, xsrange(0, 10, 2)))
+        (10,)
+    """
+    it = enumerate(sequence)
+    for i in indices:
+        for n, s in it:
+            if n == i:
+                yield s
+                break
+        else:
+            break
+
