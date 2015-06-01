@@ -8,10 +8,11 @@ AUTHORS:
 - Jorge Caravantes and Alicia Tocino (2015): initial version
 
 
-EXAMPLES:
+EXAMPLES::
 
 Generate a homogeneous space::
 
+    sage: from sage.geometry.bott_bundles import *
     sage: G = Grassmannian(1,4)
     You have defined the grassmannian of 1-dimensional subspaces of the 4-dimensional projective space
     Consider the uiversal short exact sequence:
@@ -101,7 +102,7 @@ from sage.combinat.partition import Partitions
 # the main classes and methods
 #####################################################################
 
-def _bott(alpha):
+def bott(alpha):
     r"""
     Bott's algorithm for the general linear group as described in [W]. 
     
@@ -121,13 +122,14 @@ def _bott(alpha):
     
     EXAMPLES::
     
-        sage: _bott([3,1,0,0,0,5,0])
+        sage: from sage.geometry.bott_bundles import *
+        sage: bott([3,1,0,0,0,5,0])
         [-1, [3, 1, 2, 1, 1, 1, 0]]
-        sage: _bott([3,1,0,0,0,7,0])
+        sage: bott([3,1,0,0,0,7,0])
         [4, [3, 3, 2, 1, 1, 1, 0]]
-        sage: _bott([2,1,0,0,0,7,0])
+        sage: bott([2,1,0,0,0,7,0])
         [-1, [2, 3, 2, 1, 1, 1, 0]]
-        sage: _bott([2,1,0,0,0,8,0])
+        sage: bott([2,1,0,0,0,8,0])
         [5, [3, 3, 2, 1, 1, 1, 0]]
 
     
@@ -144,7 +146,7 @@ def _bott(alpha):
     
     """
     n = len(alpha) - 1
-    nu = alpha
+    nu = deepcopy(alpha)
     i = 0
     goon = True
     while goon:
@@ -162,7 +164,7 @@ def _bott(alpha):
         i += 1
 
 
-def _schur_dimension(l):
+def schur_dimension(l):
     r"""
     Given a partition l, returns the dimension of the Schur/Weyl
     functor of a vector space of dimension len(l)
@@ -177,17 +179,18 @@ def _schur_dimension(l):
     
     EXAMPLES::
     
-        sage: _schur_dimension([4,0,0])
+        sage: from sage.geometry.bott_bundles import *
+        sage: schur_dimension([4,0,0])
         15
         sage: binomial(6,2)
         15
-        sage: _schur_dimension([1,1,1,1])
+        sage: schur_dimension([1,1,1,1])
         1
-        sage: _schur_dimension([3,3,3,3])
+        sage: schur_dimension([3,3,3,3])
         1
-        sage: _schur_dimension([4,3,2,1])
+        sage: schur_dimension([4,3,2,1])
         64
-        sage: _schur_dimension([4,3,2,1,0])
+        sage: schur_dimension([4,3,2,1,0])
         1024
 
     
@@ -208,7 +211,7 @@ def _schur_dimension(l):
 
 
 
-def _simplify_decomposition(dec):
+def simplify_decomposition(dec):
     r"""
     Simplifies a redundant decomposition of a Bott bundle
 
@@ -224,7 +227,8 @@ def _simplify_decomposition(dec):
 
     EXAMPLES::
     
-        sage: _simplify_decomposition([[1,[2,1,0,1,0]],[3,[2,1,0,1,0]]])
+        sage: from sage.geometry.bott_bundles import *
+        sage: simplify_decomposition([[1,[2,1,0,1,0]],[3,[2,1,0,1,0]]])
         [[4, [2, 1, 0, 1, 0]]]
 
 
@@ -249,7 +253,7 @@ def _simplify_decomposition(dec):
                 
 
 
-def _multiply_decomposition(n, dec):
+def multiply_decomposition(n, dec):
     r"""
     Multiplies a decomposition (of a Bott bundle) times an integer
     
@@ -265,7 +269,8 @@ def _multiply_decomposition(n, dec):
     
     EXAMPLES::
     
-        sage: _multiply_decomposition(3,[[4,[2,1,0,1,0]],[2,[1,0,0,1,0]]])
+        sage: from sage.geometry.bott_bundles import *
+        sage: multiply_decomposition(3,[[4,[2,1,0,1,0]],[2,[1,0,0,1,0]]])
         [[12, [2, 1, 0, 1, 0]], [6, [1, 0, 0, 1, 0]]]
 
 
@@ -278,7 +283,7 @@ def _multiply_decomposition(n, dec):
 
 
 
-def _twist_of_decompositions(dec1, dec2, a, n):
+def twist_of_decompositions(dec1, dec2, a, n):
     r"""
     Exactly what is in __mul__ for bundles (i.e. tensor product), but taking and returning just
     the decompositions. 
@@ -298,18 +303,19 @@ def _twist_of_decompositions(dec1, dec2, a, n):
     
     EXAMPLES::
     
+        sage: from sage.geometry.bott_bundles import *
         sage: d1=[[1,[2,0,0,0]],[2,[0,0,1,0]]]
         sage: d2=[[1,[1,1,1,0]],[1,[1,0,1,1]]]
-        sage: _twist_of_decompositions(d1,d2,[1],3)
+        sage: twist_of_decompositions(d1,d2,[1],3)
         [[1, [3, 1, 1, 0]],
          [1, [3, 0, 1, 1]],
          [1, [2, 1, 1, 1]],
-         [2, [1, 1, 1, 1]],
          [2, [1, 1, 2, 0]],
+         [2, [1, 1, 1, 1]],
          [2, [1, 0, 2, 1]]]
 
 
-    TODO:
+    TODO::
 
     Eventually, when it is checked, this function will be called in the method __mul__
     instead of being written twice.
@@ -369,14 +375,14 @@ def _twist_of_decompositions(dec1, dec2, a, n):
                 for index in range(len(s[1]), n+1):
                     s[1].append(0)
             result.extend(SimpleMult)
-            result = _simplify_decomposition(result)
+            result = simplify_decomposition(result)
     return result
 
 
 
 
 
-def _plethism_of_irred(lmbd, alpha, a, n, s):
+def pletysm_of_irred(lmbd, alpha, a, n, s):
     r"""
     Applies Schur functor to an irreducible Bott bundle. Mainly based on [M, Formula (8.9)].
 
@@ -398,16 +404,17 @@ def _plethism_of_irred(lmbd, alpha, a, n, s):
     
     EXAMPLES::
     
+        sage: from sage.geometry.bott_bundles import *
         sage: s=SymmetricFunctions(QQ).schur()
-        sage: _plethism_of_irred([2,1], [1,0,0,0], [1], 3, s)
+        sage: pletysm_of_irred([2,1], [1,0,0,0], [1], 3, s)
         [[1, [2, 1, 0, 0]]]
-        sage: _plethism_of_irred([2,1], [0,0,1,0], [1], 3, s)
+        sage: pletysm_of_irred([2,1], [0,0,1,0], [1], 3, s)
         [[1, [0, 0, 2, 1]]]
-        sage: _plethism_of_irred([2,1], [1,0,1,0],[1],3,s)
+        sage: pletysm_of_irred([2,1], [1,0,1,0],[1],3,s)
         [[1, [2, 1, 3, 0]], [1, [2, 1, 2, 1]], [1, [3, 0, 2, 1]]]
-        sage: _plethism_of_irred([4,0], [1,0,1,0], [1], 3, s)
+        sage: pletysm_of_irred([4,0], [1,0,1,0], [1], 3, s)
         [[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]]
-        sage: _plethism_of_irred([4,0], [2,0,1,1], [1], 3, s)
+        sage: pletysm_of_irred([4,0], [2,0,1,1], [1], 3, s)
         [[1, [4, 4, 4, 4]], [1, [6, 2, 4, 4]], [1, [8, 0, 4, 4]]]
     
     
@@ -469,15 +476,15 @@ def _plethism_of_irred(lmbd, alpha, a, n, s):
         #Ya tenemos el primer factor del sumando (que tambi'en es una suma). 
         #Ahora toca el segundo, que es donde se usa la recursi'on.
 #        print(mu,alpha[a[0]+1:],[a[i]-a[0] for i in range(1,len(a))],n-a[0]-1,PletInic)
-        PletSegund = _plethism_of_irred(mu, alpha[a[0]+1:], [a[i]-a[0] for i in range(1, len(a))], n-a[0]-1, s)
+        PletSegund = pletysm_of_irred(mu, alpha[a[0]+1:], [a[i]-a[0] for i in range(1, len(a))], n-a[0]-1, s)
         for l in range(len(PletInic[1])):
             for m in range(len(PletSegund)):
                 result.append([PletInic[0][l]*PletSegund[m][0], PletInic[1][l][:]+PletSegund[m][1][:]])
-    return _simplify_decomposition(result)
+    return simplify_decomposition(result)
             
 
 
-def _plethysmization(lmbd, dec, a, n, s):
+def pletysmization(lmbd, dec, a, n, s):
     r"""
     Tool to compute the decomposition of the Schur functor of a Bundle. Based on [M, Formula (8.8)] 
     and function plethism_of_irred.
@@ -499,8 +506,9 @@ def _plethysmization(lmbd, dec, a, n, s):
     
     EXAMPLES::
     
+        sage: from sage.geometry.bott_bundles import *
         sage: s=SymmetricFunctions(QQ).schur()
-        sage: _plethysmization([2,1],[[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]],[1],3,s)
+        sage: pletysmization([2,1],[[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]],[1],3,s)
         [[9, [7, 5, 6, 6]],
          [26, [7, 5, 8, 4]],
          [21, [7, 5, 9, 3]],
@@ -572,7 +580,7 @@ def _plethysmization(lmbd, dec, a, n, s):
     """
     #print(dec)
     if len(dec) < 2:
-        return _multiply_decomposition(dec[0][0], _plethism_of_irred(lmbd, dec[0][1], a, n, s))
+        return multiply_decomposition(dec[0][0], pletysm_of_irred(lmbd, dec[0][1], a, n, s))
     #s=SymmetricFunctions(QQ).schur()
     P = []
     #Primero cogemos todas las posibles particiones que son "menores" que
@@ -600,9 +608,9 @@ def _plethysmization(lmbd, dec, a, n, s):
 #        print 'p=', p
         #Primero hacemos el pletismo del primer sumando:  
         for i in range(len(p[1])):
-            PlI = _plethism_of_irred(p[1][i], dec[0][1], a, n, s)
-            auxdec.extend(_multiply_decomposition(p[2][i], PlI))
-        auxdec = _simplify_decomposition(auxdec)
+            PlI = pletysm_of_irred(p[1][i], dec[0][1], a, n, s)
+            auxdec.extend(multiply_decomposition(p[2][i], PlI))
+        auxdec = simplify_decomposition(auxdec)
         #Ya tenemo el pletismo sobre el primer sumando. Como este sumando
         #puede estar repetido, quitarlo no es inmediato. Hay que
         #quitarlo una sola vez, porque esto habr'a que twistarlo con todo,
@@ -613,8 +621,8 @@ def _plethysmization(lmbd, dec, a, n, s):
             remdec = [[dec[0,0]-1, dec[0,1]]] + dec[1:]
         #Now the recursive command, remdec is the remaining part of dec
         #after removing the first summand:
-        P.extend(_twist_of_decompositions(auxdec, _plethysmization(p[0], remdec, a, n, s), a, n))
-    P=_simplify_decomposition(P)
+        P.extend(twist_of_decompositions(auxdec, pletysmization(p[0], remdec, a, n, s), a, n))
+    P=simplify_decomposition(P)
     return P
 
 
@@ -671,6 +679,7 @@ class BottBundle():
 
     EXAMPLES::
     
+        sage: from sage.geometry.bott_bundles import *
         sage: F=FlagManifold([1,3,5],7)
         sage: BottBundle(F)
         Homogeneous rank-0 vector bundle on the space of flags of subspaces of dimensions [1, 3, 5] in the 
@@ -682,7 +691,7 @@ class BottBundle():
     
     The methods ``schur``, ``sym`` and ``wedge`` depend on a bugged package. 
     
-    TODO:
+    TODO::
     
     - Method __repr__ should be different when self.space is a grassmannian (it should speak about universal bundles) or a projective space (about tangent bundle and hyperplane section).
 
@@ -712,6 +721,7 @@ class BottBundle():
         
         EXAMPLES::
         
+            sage: from sage.geometry.bott_bundles import *
             sage: F=FlagManifold([1,3,5],7)
             sage: BottBundle(F)
             Homogeneous rank-0 vector bundle on the space of flags of subspaces of dimensions [1, 3, 5] in the 
@@ -730,6 +740,15 @@ class BottBundle():
     def __repr__(self):
         r"""
         Represent ``self``
+
+        TEST::
+
+            sage: from sage.geometry.bott_bundles import *
+            sage: F=FlagManifold([1,3,5],7)
+            sage: BottBundle(F)
+            Homogeneous rank-0 vector bundle on the space of flags of subspaces of dimensions [1, 3, 5] in the 
+            7-dimensional projective space.
+            It is the sum of the following irreducible homogeneous vector bundles:
 
         TODO::
         
@@ -762,6 +781,7 @@ class BottBundle():
 
         EXAMPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -788,11 +808,11 @@ class BottBundle():
             <BLANKLINE>
         """
         if self.space <> other.space:
-            print 'Error: Cannot sum bundles on different varieties'
+            raise ValueError("Cannot sum bundles on different varieties")
             return
         result = BottBundle(self.space)
         result.aspect = self.aspect + '(+)' + other.aspect
-        result.decomposition = _simplify_decomposition(deepcopy(self.decomposition) + deepcopy(other.decomposition))
+        result.decomposition = simplify_decomposition(deepcopy(self.decomposition) + deepcopy(other.decomposition))
 #        for a in other.decomposition:
 #            notyet=true
 #            for b in result.decomposition:
@@ -821,6 +841,7 @@ class BottBundle():
   
         EXAMPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -843,7 +864,7 @@ class BottBundle():
             <BLANKLINE>
         """
         if self.space <> other.space:
-            print 'Error: Cannot twist bundles on different varieties'
+            raise ValueError("Cannot twist bundles on different varieties")
             return
         import sage.libs.lrcalc.lrcalc as lrcalc
         n = self.space.n
@@ -896,7 +917,7 @@ class BottBundle():
                     for index in range(len(s[1]), n+1):
                         s[1].append(0)
                 result.decomposition.extend(SimpleMult)
-                result.decomposition = _simplify_decomposition(result.decomposition)
+                result.decomposition = simplify_decomposition(result.decomposition)
         return result    
         
 
@@ -916,6 +937,7 @@ class BottBundle():
 
         EXAMPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -935,13 +957,13 @@ class BottBundle():
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
                 Schur functor of partition [4, 2] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
-            1 time(s) the tensor product of: 
-                Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
-            <BLANKLINE>
             2 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
                 Schur functor of partition [5, 1] of the dual of the last quotient of tautological subbundles,
+            <BLANKLINE>
+            1 time(s) the tensor product of: 
+                Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
+                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
 
         .. WARNING::
@@ -964,7 +986,7 @@ class BottBundle():
         s = SymmetricFunctions(QQ).schur()
         # Dado que los algoritmos son recursivos, es mejor pasar s como
         # par'ametro para no crear tantas varables iguales...
-        result.decomposition=_plethysmization(lmbd, self.decomposition, self.space.a, self.space.n, s)
+        result.decomposition=pletysmization(lmbd, self.decomposition, self.space.a, self.space.n, s)
         return result
             
 
@@ -984,6 +1006,7 @@ class BottBundle():
 
         EXAMPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1001,11 +1024,11 @@ class BottBundle():
             <BLANKLINE>
             1 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [4, 2] of the dual of the last quotient of tautological subbundles,
+                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
             1 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
+                Schur functor of partition [4, 2] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
 
 
@@ -1041,6 +1064,7 @@ class BottBundle():
 
         EXAMPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1058,19 +1082,19 @@ class BottBundle():
             <BLANKLINE>
             2 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
-            <BLANKLINE>
-            2 time(s) the tensor product of: 
-                Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
                 Schur functor of partition [4, 2] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
             1 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [5, 1] of the dual of the last quotient of tautological subbundles,
+                Schur functor of partition [6, 0] of the dual of the last quotient of tautological subbundles,
+            <BLANKLINE>
+            2 time(s) the tensor product of: 
+                Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
+                Schur functor of partition [3, 3] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
             1 time(s) the tensor product of: 
                 Schur functor of partition [6, 6] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
-                Schur functor of partition [6, 0] of the dual of the last quotient of tautological subbundles,
+                Schur functor of partition [5, 1] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
 
         .. WARNING::
@@ -1095,8 +1119,9 @@ class BottBundle():
         r"""
         Computes the rank of the vector bundle.
 
-        EXAMPLES:
+        EXAMPLES::
     
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1120,9 +1145,9 @@ class BottBundle():
             PartialRank = 1
             previousa = -1
             for a in self.space.a:
-                PartialRank *= _schur_dimension(d[1][previousa+1:a+1])
+                PartialRank *= schur_dimension(d[1][previousa+1:a+1])
                 previousa = a
-            PartialRank *= _schur_dimension(d[1][previousa+1:self.space.n+1])
+            PartialRank *= schur_dimension(d[1][previousa+1:self.space.n+1])
             TotalRank += d[0] * PartialRank
         return TotalRank
                 
@@ -1141,6 +1166,7 @@ class BottBundle():
         
         EXAMPLES::
     
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1167,7 +1193,7 @@ class BottBundle():
             All remaining cohomology is zero
             [4, 0, 0, 0, 60]
 
-        TODO:
+        TODO::
 
         - a possible second argument (or a separate function to return a concrete cohomology space).
 
@@ -1176,7 +1202,7 @@ class BottBundle():
         B = []
         for el in self.decomposition:
             lista = deepcopy(el[1])
-            aux = _bott(lista)
+            aux = bott(lista)
             aux.append(el[0])            
             B.append(aux)
         B.sort()
@@ -1186,7 +1212,8 @@ class BottBundle():
             Cohom.append(0)
         for el in B:
             if el[0] <> -1:
-                Cohom[el[0]] += el[2] * _schur_dimension(el[1])
+#                print el[1], Cohom, schur_dimension(deepcopy(el[1]))
+                Cohom[el[0]] += el[2] * schur_dimension(el[1])
         for i in range(0, m+1):
             if Cohom[i] <> 0:
                 print "h^", i, " = ", Cohom[i]
@@ -1199,7 +1226,7 @@ class BottBundle():
 
 
 
-class _UniversalSubbundleDual(BottBundle):
+class UniversalSubbundleDual(BottBundle):
     r"""
     A child class of ``BottBundle`` to easily initialize the dual to the universal subbundle of an instance of
     ``FlagManifold``
@@ -1214,6 +1241,7 @@ class _UniversalSubbundleDual(BottBundle):
 
     EXAPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
         You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1224,7 +1252,7 @@ class _UniversalSubbundleDual(BottBundle):
         Method O(k) gives the k power of the hyperplane section.
         Method Om() gives the cotangent bundle.
         Method T() gives the tangent bundle.
-        sage: _UniversalSubbundleDual(G)
+        sage: UniversalSubbundleDual(G)
         Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1253,6 +1281,7 @@ class _UniversalSubbundleDual(BottBundle):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1263,7 +1292,7 @@ class _UniversalSubbundleDual(BottBundle):
             Method O(k) gives the k power of the hyperplane section.
             Method Om() gives the cotangent bundle.
             Method T() gives the tangent bundle.
-            sage: _UniversalSubbundleDual(G)
+            sage: UniversalSubbundleDual(G)
             Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1278,12 +1307,12 @@ class _UniversalSubbundleDual(BottBundle):
 
         BETTER CONSIDERED AN INTERNAL FUNCTION ONLY. DIRECT USAGE IS INADVISABLE
         """
-        self.decomposition = [[1,[1]+[0]*(fm.n)]]
+        self.decomposition = [[Integer(1),[Integer(1)]+[Integer(0)]*(fm.n)]]
         self.space = fm
         self.aspect = 'S_1^*'
 
 
-class _UniversalSubbundle(BottBundle):
+class UniversalSubbundle(BottBundle):
     r"""
     A child class of ``BottBundle`` to easily initialize the universal subbundle of an instance of ``Grassmannian``
 
@@ -1297,6 +1326,7 @@ class _UniversalSubbundle(BottBundle):
 
     EXAPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
         You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1307,7 +1337,7 @@ class _UniversalSubbundle(BottBundle):
         Method O(k) gives the k power of the hyperplane section.
         Method Om() gives the cotangent bundle.
         Method T() gives the tangent bundle.
-        sage: _UniversalSubbundle(G)                                      
+        sage: UniversalSubbundle(G)                                      
         Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1336,6 +1366,7 @@ class _UniversalSubbundle(BottBundle):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1346,7 +1377,7 @@ class _UniversalSubbundle(BottBundle):
             Method O(k) gives the k power of the hyperplane section.
             Method Om() gives the cotangent bundle.
             Method T() gives the tangent bundle.
-            sage: _UniversalSubbundle(G)                                      
+            sage: UniversalSubbundle(G)                                      
             Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1361,11 +1392,11 @@ class _UniversalSubbundle(BottBundle):
 
         BETTER CONSIDERED AN INTERNAL FUNCTION ONLY. DIRECT USAGE IS INADVISABLE
         """
-        self.decomposition = [[1, [1]*(fm.a[0])+[0]+[1]*(fm.n-fm.a[0])]]
+        self.decomposition = [[Integer(1), [Integer(1)]*(fm.a[0])+[Integer(0)]+[Integer(1)]*(fm.n-fm.a[0])]]
         self.space = fm
         self.aspect = 'S_1'
 
-class _UniversalQuotientDual(BottBundle):
+class UniversalQuotientDual(BottBundle):
     r"""
     A child class of ``BottBundle`` to easily initialize the dual to the universal quotient bundle of an instance of ``Grassmannian``
 
@@ -1379,6 +1410,7 @@ class _UniversalQuotientDual(BottBundle):
 
     EXAPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
         You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1389,7 +1421,7 @@ class _UniversalQuotientDual(BottBundle):
         Method O(k) gives the k power of the hyperplane section.
         Method Om() gives the cotangent bundle.
         Method T() gives the tangent bundle.
-        sage: _UniversalQuotientDual(G)
+        sage: UniversalQuotientDual(G)
         Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1418,6 +1450,7 @@ class _UniversalQuotientDual(BottBundle):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1428,7 +1461,7 @@ class _UniversalQuotientDual(BottBundle):
             Method O(k) gives the k power of the hyperplane section.
             Method Om() gives the cotangent bundle.
             Method T() gives the tangent bundle.
-            sage: _UniversalQuotientDual(G)
+            sage: UniversalQuotientDual(G)
             Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1443,11 +1476,11 @@ class _UniversalQuotientDual(BottBundle):
 
         BETTER CONSIDERED AN INTERNAL FUNCTION ONLY. DIRECT USAGE IS INADVISABLE
         """
-        self.decomposition = [[1,[0]*(fm.a[0]+1)+[1]+[0]*(fm.n-fm.a[0]-1)]]
+        self.decomposition = [[Integer(1),[Integer(0)]*(fm.a[0]+1)+[Integer(1)]+[Integer(0)]*(fm.n-fm.a[0]-1)]]
         self.space = fm
         self.aspect = 'Q_1^*'
 
-class _UniversalQuotient(BottBundle):
+class UniversalQuotient(BottBundle):
     r"""
     A child class of ``BottBundle`` to easily initialize the universal quotient bundle of an instance of
     ``FlagManifold``
@@ -1462,6 +1495,7 @@ class _UniversalQuotient(BottBundle):
 
     EXAPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
         You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1472,7 +1506,7 @@ class _UniversalQuotient(BottBundle):
         Method O(k) gives the k power of the hyperplane section.
         Method Om() gives the cotangent bundle.
         Method T() gives the tangent bundle.
-        sage: _UniversalQuotient(G)    
+        sage: UniversalQuotient(G)    
         Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1502,6 +1536,7 @@ class _UniversalQuotient(BottBundle):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1512,7 +1547,7 @@ class _UniversalQuotient(BottBundle):
             Method O(k) gives the k power of the hyperplane section.
             Method Om() gives the cotangent bundle.
             Method T() gives the tangent bundle.
-            sage: _UniversalQuotient(G)    
+            sage: UniversalQuotient(G)    
             Homogeneous rank-2 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1525,13 +1560,13 @@ class _UniversalQuotient(BottBundle):
     
         BETTER CONSIDERED AN INTERNAL FUNCTION ONLY. DIRECT USAGE IS INADVISABLE
         """
-        self.decomposition = [[1, [1]*(fm.n)+[0]]]
+        self.decomposition = [[Integer(1), [Integer(1)]*(fm.n)+[Integer(0)]]]
         self.space = fm
         self.aspect = 'Q_1'
 
-class _LineBundleGrass(BottBundle):
+class LineBundleGrass(BottBundle):
     r"""
-    A child class of ``BottBundle`` to easily initialize line bundles on grassmannians
+    A child class of ``BottBundle`` to easily initialize line bundles on grassmannians.
 
     INPUT:
 
@@ -1545,6 +1580,7 @@ class _LineBundleGrass(BottBundle):
 
     EXAPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
         You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1555,7 +1591,7 @@ class _LineBundleGrass(BottBundle):
         Method O(k) gives the k power of the hyperplane section.
         Method Om() gives the cotangent bundle.
         Method T() gives the tangent bundle.
-        sage: _LineBundleGrass(G,3)
+        sage: LineBundleGrass(G,3)
         Homogeneous rank-1 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1563,7 +1599,7 @@ class _LineBundleGrass(BottBundle):
             Schur functor of partition [3, 3] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
             Schur functor of partition [0, 0] of the dual of the last quotient of tautological subbundles,
         <BLANKLINE>
-        sage: _LineBundleGrass(G,-2)
+        sage: LineBundleGrass(G,-2)
         Homogeneous rank-1 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
         It is the sum of the following irreducible homogeneous vector bundles:
         <BLANKLINE>
@@ -1592,6 +1628,7 @@ class _LineBundleGrass(BottBundle):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1602,7 +1639,7 @@ class _LineBundleGrass(BottBundle):
             Method O(k) gives the k power of the hyperplane section.
             Method Om() gives the cotangent bundle.
             Method T() gives the tangent bundle.
-            sage: _LineBundleGrass(G,3)
+            sage: sage.geometry.bott_bundles.LineBundleGrass(G,3)
             Homogeneous rank-1 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1610,7 +1647,7 @@ class _LineBundleGrass(BottBundle):
                 Schur functor of partition [3, 3] of the dual of the 1st/nd/rd/th  quotient of tautological subbundles,
                 Schur functor of partition [0, 0] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
-            sage: _LineBundleGrass(G,-2)
+            sage: LineBundleGrass(G,-2)
             Homogeneous rank-1 vector bundle on the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
             <BLANKLINE>
@@ -1624,11 +1661,11 @@ class _LineBundleGrass(BottBundle):
         BETTER CONSIDERED AN INTERNAL FUNCTION ONLY. DIRECT USAGE IS INADVISABLE
         """
         if k > 0:
-            self.decomposition = [[1, [k]*(grass.a[0]+1)+[0]*(grass.n-grass.a[0])]]
+            self.decomposition = [[Integer(1), [Integer(k)]*(grass.a[0]+1)+[Integer(0)]*(grass.n-grass.a[0])]]
         elif k < 0:
-            self.decomposition = [[1, [0]*(grass.a[0]+1)+[-k]*(grass.n-grass.a[0])]]
+            self.decomposition = [[Integer(1), [Integer(0)]*(grass.a[0]+1)+[Integer(-k)]*(grass.n-grass.a[0])]]
         else:
-            self.decomposition = [[1, [0]*(grass.n+1)]]
+            self.decomposition = [[Integer(1), [Integer(0)]*(grass.n+1)]]
         self.space = grass
         self.aspect = 'O(' + str(k) + ')'
 
@@ -1666,6 +1703,7 @@ class FlagManifold():
     
     EXAMPLES::
     
+        sage: from sage.geometry.bott_bundles import *
         sage: FlagManifold([1,3,5],7)
         the space of flags of subspaces of dimensions [1, 3, 5] in the 7-dimensional projective space    
     
@@ -1674,7 +1712,7 @@ class FlagManifold():
     It only contains properties related with the class ``BottBundle``, so no more geometry is 
     allowed with this class.
     
-    TODO:
+    TODO::
     
     - Methods to generate special instances of the class ``BottBundle``, mainly irreducible ones and their duals
         
@@ -1696,6 +1734,7 @@ class FlagManifold():
     
         EXAMPLES::
         
+            sage: from sage.geometry.bott_bundles import *
             sage: FlagManifold([1,3,5],7)
             the space of flags of subspaces of dimensions [1, 3, 5] in the 7-dimensional projective space
     
@@ -1728,6 +1767,7 @@ class FlagManifold():
     
         EXAMPLES::
         
+            sage: from sage.geometry.bott_bundles import *
             sage: FlagManifold([1,3,5],7)
             the space of flags of subspaces of dimensions [1, 3, 5] in the 7-dimensional projective space
     
@@ -1740,6 +1780,7 @@ class FlagManifold():
     
         EXAMPLES::
         
+            sage: from sage.geometry.bott_bundles import *
             sage: FlagManifold([1,3,5],7).is_grassmannian()                          
             False
             sage: FlagManifold([5],7).is_grassmannian()    
@@ -1759,6 +1800,7 @@ class FlagManifold():
     
         EXAMPLES::
         
+            sage: from sage.geometry.bott_bundles import *
             sage: FlagManifold([1,3,5],7).is_projective_space()
             False
             sage: FlagManifold([5],7).is_projective_space()    
@@ -1812,6 +1854,7 @@ class Grassmannian(FlagManifold):
 
     EXAMPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: G1=Grassmannian(4,9)                                               
         You have defined the grassmannian of 4-dimensional subspaces of the 9-dimensional projective space
         Consider the uiversal short exact sequence:
@@ -1859,6 +1902,7 @@ class Grassmannian(FlagManifold):
     
         EXAMPLES::
     
+            sage: from sage.geometry.bott_bundles import *
             sage: G1=Grassmannian(4,9)                                               
             You have defined the grassmannian of 4-dimensional subspaces of the 9-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1909,6 +1953,7 @@ class Grassmannian(FlagManifold):
     
         EXAMPLES::
     
+            sage: from sage.geometry.bott_bundles import *
             sage: G1=Grassmannian(4,9)                                               
             You have defined the grassmannian of 4-dimensional subspaces of the 9-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1936,7 +1981,7 @@ class Grassmannian(FlagManifold):
         """
         return 'the grassmannian of ' + str(self.a[0]) + '-dimensional subspaces of the ' + str(self.n) + '-dimensional projective space'
 
-    def O(self, k=0):
+    def O(self, k=Integer(0)):
         r"""
         k-th power of the hyperplane section of the grassmannian
 
@@ -1950,6 +1995,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -1986,7 +2032,7 @@ class Grassmannian(FlagManifold):
         """
         if type(k)<>Integer:
             raise ValueError("Argument must be an integer")
-        return _LineBundleGrass(self, k)
+        return LineBundleGrass(self, k)
 
     def Q(self):
         r"""
@@ -1998,6 +2044,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2017,7 +2064,7 @@ class Grassmannian(FlagManifold):
                 Schur functor of partition [1, 0] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
         """
-        return _UniversalQuotient(self)
+        return UniversalQuotient(self)
 
     def S(self):
         r"""
@@ -2029,6 +2076,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2049,7 +2097,7 @@ class Grassmannian(FlagManifold):
             <BLANKLINE>
 
         """
-        return _UniversalSubbundle(self)
+        return UniversalSubbundle(self)
 
     def Q_dual(self):
         r"""
@@ -2061,6 +2109,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2080,7 +2129,7 @@ class Grassmannian(FlagManifold):
                 Schur functor of partition [1, 0] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
         """
-        return _UniversalQuotientDual(self)
+        return UniversalQuotientDual(self)
 
     def S_dual(self):
         r"""
@@ -2092,6 +2141,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2111,7 +2161,7 @@ class Grassmannian(FlagManifold):
                 Schur functor of partition [0, 0] of the dual of the last quotient of tautological subbundles,
             <BLANKLINE>
         """
-        return _UniversalSubbundleDual(self)
+        return UniversalSubbundleDual(self)
 
     def Om(self):
         r"""
@@ -2123,6 +2173,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2154,6 +2205,7 @@ class Grassmannian(FlagManifold):
 
         EXAPLES::
 
+            sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
             You have defined the grassmannian of 1-dimensional subspaces of the 3-dimensional projective space
             Consider the uiversal short exact sequence:
@@ -2193,6 +2245,7 @@ class Proj(Grassmannian):
 
     EXAMPLES::
 
+        sage: from sage.geometry.bott_bundles import *
         sage: Proj(3)
         You have defined the projective space of dimension 3.
         Method O(k) gives the k power of the hyperplane section.
@@ -2213,6 +2266,19 @@ class Proj(Grassmannian):
 
     """
     def __init__(self, n):
+        r"""
+        Initializes ``self``
+
+        EXAMPLES::
+    
+            sage: sage.geometry.bott_bundles.Proj(3)
+            You have defined the projective space of dimension 3.
+            Method O(k) gives the k power of the hyperplane section.
+            Method Om() gives the cotangent bundle.
+            Method T() gives the tangent bundle.
+            the projective space of dimension 3
+            
+        """
         if type(n)<>Integer or n < 0:
             raise ValueError("Argument must be a nonnegative integer")
         self.a = [0]
@@ -2223,6 +2289,19 @@ class Proj(Grassmannian):
         print 'Method T() gives the tangent bundle.'
 
     def __repr__(self):
+        r"""
+        Represents ``self``
+        
+        TEST::
+        
+            sage: P=sage.geometry.bott_bundles.Proj(3)
+            You have defined the projective space of dimension 3.
+            Method O(k) gives the k power of the hyperplane section.
+            Method Om() gives the cotangent bundle.
+            Method T() gives the tangent bundle.
+            sage: P
+            the projective space of dimension 3
+        """
         return 'the projective space of dimension ' + str(self.n)
 
 
