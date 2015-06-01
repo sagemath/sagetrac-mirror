@@ -187,17 +187,27 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
              raise ValueError("Please use the weight space, rather than weight lattice for your weights")
         self._cartan_type = cartan_type
         self._name = "The crystal of LS paths of type %s and weight %s"%(cartan_type,starting_weight)
+
+        # FIXME: Fix the categories for these crystals!!!
         if cartan_type.is_affine():
-            if all(i>=0 for i in starting_weight.coefficients()):
-                Parent.__init__( self, category = (RegularCrystals(),
-                                                   HighestWeightCrystals(),
-                                                   InfiniteEnumeratedSets()) )
-            elif starting_weight.parent().is_extended():
-                Parent.__init__(self, category = (RegularCrystals(), InfiniteEnumeratedSets()))
+            from sage.combinat.root_system.weight_space import ExtendedAffineWeightSpace
+            if starting_weight.is_dominant_weight():
+                cat = (RegularCrystals(),
+                       HighestWeightCrystals(),
+                       InfiniteEnumeratedSets())
+            elif isinstance(starting_weight.parent(), ExtendedAffineWeightSpace):
+                cat = (RegularCrystals(), InfiniteEnumeratedSets())
             else:
-                Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
-        else:
-            Parent.__init__(self, category = ClassicalCrystals())
+                cat = (RegularCrystals(), FiniteCrystals())
+        elif cartan_type.is_finite():
+            if starting_weight.is_dominant_weight():
+                cat = ClassicalCrystals()
+            else:
+                cat = (RegularCrystals(),
+                       HighestWeightCrystals(),
+                       InfiniteEnumeratedSets())
+
+        Parent.__init__(self, category=cat)
 
         if starting_weight == starting_weight.parent().zero():
             initial_element = self(tuple([]))
@@ -209,10 +219,16 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: crystals.LSPaths(['B',3],[1,1,0]) # indirect doctest
+            sage: crystals.LSPaths(['B',3],[1,1,0])
             The crystal of LS paths of type ['B', 3] and weight Lambda[1] + Lambda[2]
         """
         return self._name
+
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization of ``self``.
+        """
+        return self.weight.parent()
 
     class Element(ElementWrapper):
         """
@@ -576,6 +592,26 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 [\Lambda_{1} + \Lambda_{2}]
             """
             return [latex(p) for p in self.value]
+
+        def weight(self):
+            """
+            Return the weight of ``self``.
+
+            EXAMPLES::
+
+                sage: La = RootSystem(['A',1,1]).weight_space().fundamental_weights()
+                sage: B = crystals.LSPaths(La[0])
+                sage: mg = B.module_generators[0]; mg
+                (Lambda[0],)
+                sage: mg.weight()
+                Lambda[0]
+                sage: x = mg.f_string([0,1]); x
+                (3/2*Lambda[0] - Lambda[1] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta)
+                sage: x.weight()
+                Lambda[0] - delta
+            """
+            P = self.parent().weight_lattice_realization()
+            return sum([p for p in self.value], P.zero())
 
 
 class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
