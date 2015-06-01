@@ -189,6 +189,32 @@ class Sequences(object):
     completion. Type "``sequences.``" and then hit tab to see which
     are there.
 
+    The sequences currently in this class include:
+
+    - :meth:`~catalan`
+    """
+
+    @subsequence_options()
+    def catalan(self):
+        r"""
+        The sequence of Catalan numbers.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: tuple(sequences.catalan(stop=5))
+            (1, 1, 2, 5, 14)
+        """
+        return iter(sage.combinat.combinat.catalan_number(n)
+                    for n in itertools.count())
+
 
 # Easy access to the sequence generators from the command line:
 sequences = Sequences()
