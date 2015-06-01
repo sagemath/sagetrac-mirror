@@ -36,6 +36,8 @@ List of (semi)lattice methods
     :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
     :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
     :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteLatticePoset.random_maximal_sublattice` | Return a random maximal sublattice of the lattice.
+    :meth:`~FiniteLatticePoset.sublattice` | Return the smallest sublattice containing elements on the given list.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -922,6 +924,52 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             current_set.add(g)
 
         return LatticePoset(self.subposet(current_set))
+
+    def random_maximal_sublattice(self, element_constructor='lattice'):
+        r"""
+        Return a random maximal proper sublattice of the lattice.
+
+        INPUT:
+
+        - ``element_constructor`` -- how to return the result. If
+          ``'lattice'`` (the default) or ``'poset'``, return a
+          sublattice or a subposet. If ``'list'``, return plain list.
+
+        EXAMPLES::
+
+        Boolean lattices have only one kind of maximal sublattices::
+
+            sage: B3=Posets.BooleanLattice(3)
+            sage: sl1=B3.random_maximal_sublattice()
+            sage: sl2=B3.random_maximal_sublattice()
+            sage: sl1.is_isomoprhic(sl2)
+            True
+
+        Getting just a list of elements::
+
+            sage: L=LatticePoset(DiGraph('QQG?LA??__?OG@C??p???O??A?E??@??@g??Q??S??@??E??@??@???'))
+            sage: set_random_seed(0)
+            sage: L.random_maximal_sublattice(element_constructor='list')
+            [2, 8, 0, 4, 7, 17, 16, 11, 5, 13, 9, 10, 1, 12, 6]
+
+        """
+        from sage.combinat.permutation import Permutations
+        n=self.cardinality()
+        if n < 2:
+            raise ValueError("Lattice of size 0 or 1 has no proper sublattice.")
+        p=Permutations(n).random_element()
+        L=[]
+        for e in p:
+            L.append(self[e-1])
+            if len(self.sublattice(L))==n:
+                L.pop()
+        if element_constructor=='lattice':
+            return LatticePoset(self.subposet(L))
+        if element_constructor=='list':
+            return L
+        if element_constructor=='poset':
+            return self.subposet(L)
+        raise ValueError("element_constructor must be 'lattice', 'poset' or 'list'")
 
 ############################################################################
 
