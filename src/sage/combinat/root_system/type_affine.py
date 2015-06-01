@@ -159,10 +159,7 @@ class AmbientSpace(CombinatorialFreeModule):
         coroot_lattice = self.root_system.coroot_lattice()
         coroot_lattice.module_morphism(self.simple_coroot, codomain=self).register_as_coercion()
 
-        from weight_space import WeightSpace
-        # If self is the root lattice or the root space, we don't want
-        # to register its trivial embedding into itself. This builds
-        # the domains from which we want to register an embedding.
+        # This builds the domains from which we want to register an embedding
         domains = [self.root_system.weight_space(base_ring)]
         if base_ring is not ZZ:
             domains.append(self.root_system.weight_lattice())

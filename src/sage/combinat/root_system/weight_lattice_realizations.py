@@ -222,9 +222,15 @@ class WeightLatticeRealizations(Category_over_base_ring):
             # For an affine root system, this will check the embedding of
             # the extended ones, and also of the non extended ones if this
             # realization is not extended
-            domains = [self.root_system.weight_space(base_ring, extended = extended)
-                       for base_ring in set([ZZ, self.base_ring()])
-                       for extended  in set([self.cartan_type().is_affine(), self.is_extended()])]
+            R = set([ZZ, self.base_ring()])
+            domains = [self.root_system.weight_space(base_ring) for base_ring in R]
+            if self.cartan_type().is_affine():
+                from sage.combinat.root_system.weight_space import ExtendedAffineWeightSpace
+                is_extended = isinstance(self, ExtendedAffineWeightSpace)
+                if not is_extended:
+                    domains.extend([self.root_system.weight_space(base_ring, extended=False)
+                                    for base_ring in R])
+
             for domain in domains:
                 tester.assert_(self._internal_coerce_map_from(domain) is not None)
                 for i in self.index_set():
@@ -232,7 +238,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                     tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
                 if self.cartan_type().is_affine():
                     tester.assertEqual(self(domain.null_root()), self.null_root())
-                    if self.is_extended():
+                    if is_extended:
                         a = self.cartan_type().col_annihilator()
                         # This could be an over specification; we
                         # could imagine realizations of the extended
@@ -470,11 +476,13 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         def dynkin_diagram_automorphism_of_alcove_morphism(self, f):
             """
-            Returns the Dynkin diagram automorphism induced by an alcove morphism
+            Return the Dynkin diagram automorphism induced by an
+            alcove morphism.
 
             INPUT:
 
-            - ``f`` - a linear map from ``self`` to ``self`` which preserves alcoves
+            - ``f`` -- a linear map from ``self`` to ``self`` which
+              preserves alcoves
 
             This method returns the Dynkin diagram automorphism for
             the decomposition `f = d w` (see
@@ -483,7 +491,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: R = RootSystem(["A",2,1]).weight_lattice()
+                sage: R = RootSystem(["A",2,1]).weight_lattice(extended=False)
                 sage: alpha = R.simple_roots()
                 sage: Lambda = R.fundamental_weights()
 
@@ -508,12 +516,12 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: R.dynkin_diagram_automorphism_of_alcove_morphism(omega2.translation)
                 {0: 2, 1: 0, 2: 1}
 
-                sage: R = RootSystem(['C',2,1]).weight_lattice()
+                sage: R = RootSystem(['C',2,1]).weight_lattice(extended=False)
                 sage: alpha = R.simple_roots()
                 sage: R.dynkin_diagram_automorphism_of_alcove_morphism(alpha[1].translation)
                 {0: 2, 1: 1, 2: 0}
 
-                sage: R = RootSystem(['D',5,1]).weight_lattice()
+                sage: R = RootSystem(['D',5,1]).weight_lattice(extended=False)
                 sage: Lambda = R.fundamental_weights()
                 sage: omega1 = Lambda[1] - Lambda[0]
                 sage: omega2 = Lambda[2] - 2*Lambda[0]

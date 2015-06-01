@@ -12,6 +12,7 @@ from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from weight_lattice_realizations import WeightLatticeRealizations
+from sage.rings.all import ZZ
 
 class WeightSpace_abstract(CombinatorialFreeModule):
     """
@@ -20,6 +21,10 @@ class WeightSpace_abstract(CombinatorialFreeModule):
     def __init__(self, root_system, base_ring, basis_keys):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['A',2]).weight_lattice()
         """
         self.root_system = root_system
         CombinatorialFreeModule.__init__(self, base_ring,
@@ -67,6 +72,10 @@ class WeightSpace(WeightSpace_abstract):
                        1:  -Lambda[0] + 2*Lambda[1] -   Lambda[2],
                        2:                -Lambda[1] + 2*Lambda[2] -   Lambda[3],
                        3:  -Lambda[0]               -   Lambda[2] + 2*Lambda[3]}
+
+    .. TODO::
+
+        This the documentation. This is not true for arbitrary infinite types.
 
     For infinite types, the Cartan matrix is singular, and therefore
     the embedding of the root lattice is not faithful::
@@ -150,7 +159,7 @@ class WeightSpace(WeightSpace_abstract):
         sage: for ct in CartanType.samples(crystallographic=True)+[CartanType(["A",2],["C",5,1])]:
         ....:     TestSuite(ct.root_system().weight_lattice()).run()
         ....:     TestSuite(ct.root_system().weight_space()).run()
-        sage: for ct in CartanType.samples(affine=True):
+        sage: for ct in CartanType.samples(affine=True):   # long time
         ....:     if ct.is_implemented():
         ....:         P = ct.root_system().weight_space(extended=True)
         ....:         TestSuite(P).run()
@@ -168,13 +177,17 @@ class WeightSpace(WeightSpace_abstract):
 
             sage: R = RootSystem(['A',4])
             sage: from sage.combinat.root_system.weight_space import WeightSpace
-            sage: WeightSpace(R, QQ) is WeightSpace(R, QQ, False)
+            sage: WeightSpace(R, QQ) is WeightSpace(R, QQ, None)
             True
 
             sage: WeightSpace(R, QQ, extended = True)
             Traceback (most recent call last):
             ...
             ValueError: extended weight lattices are only implemented for affine root systems
+
+            sage: R = RootSystem(['A',4,1])
+            sage: WeightSpace(R, QQ) is WeightSpace(R, QQ, True)
+            True
         """
         if root_system.cartan_type().is_affine():
             if extended or extended is None:
@@ -183,7 +196,7 @@ class WeightSpace(WeightSpace_abstract):
 
         if extended is not None:
             raise ValueError("extended weight lattices are only"
-                             " implemented for affine root systems {}".format(root_system.cartan_type()))
+                             " implemented for affine root systems")
 
         return super(WeightSpace, cls).__classcall__(cls, root_system, base_ring)
 
@@ -199,6 +212,13 @@ class WeightSpace(WeightSpace_abstract):
         """
         basis_keys = root_system.index_set()
         WeightSpace_abstract.__init__(self, root_system, base_ring, basis_keys)
+
+        # Build a coercion from the weight lattice
+        if base_ring is not ZZ:
+            domain = self.root_system.weight_lattice()
+            domain.module_morphism(self.fundamental_weight,
+                                   codomain = self
+                                   ).register_as_coercion()
 
     def _repr_(self):
         """
@@ -223,8 +243,8 @@ class WeightSpace(WeightSpace_abstract):
             "Weight lattice of the Root system of type ['A', 4]"
         """
         return self._name_string_helper("weight",
-                                        capitalize=capitalize, base_ring=base_ring, type=type,
-                                        prefix="extended " if self.is_extended() else "")
+                                        capitalize=capitalize, base_ring=base_ring,
+                                        type=type, prefix="")
 
     @cached_method
     def fundamental_weight(self, i):
@@ -417,20 +437,66 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
             sage: w.is_dominant()
             True
         """
-        return all(self.coefficient(i) >= 0 for i in self.parent().index_set())
+        return all(self._coefficient_fast(i) >= 0
+                   for i in self.parent().index_set())
+
+    def is_dominant_weight(self):
+        """
+        Check whether ``self`` is a dominant weight in the weight lattice.
+
+        EXAMPLES::
+
+            sage: W = RootSystem(['A',3]).weight_space()
+            sage: Lambda = W.basis()
+            sage: w = Lambda[1] + Lambda[3]
+            sage: w.is_dominant_weight()
+            True
+            sage: w = Lambda[1] - Lambda[2]
+            sage: w.is_dominant_weight()
+            False
+            sage: w = Lambda[1] + 1/2 * Lambda[3]
+            sage: w.is_dominant_weight()
+            False
+
+        In the extended affine weight lattice, 'delta' is orthogonal to
+        the positive coroots, so adding or subtracting it should not
+        effect dominance::
+
+            sage: P = RootSystem(['A',2,1]).weight_lattice()
+            sage: Lambda = P.fundamental_weights()
+            sage: delta = P.null_root()
+            sage: w = Lambda[1] - delta
+            sage: w.is_dominant()
+            True
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        return all(self._coefficient_fast(i) in NN
+                   for i in self.parent().index_set())
 
 WeightSpace.Element = WeightSpaceElement
 
 class ExtendedAffineWeightSpace(WeightSpace):
-    """
-    The extended affine weight space.
+    r"""
+    The extended affine weight space (or lattice if over `\ZZ`).
     """
     def __init__(self, root_system, base_ring):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['A',2,1]).weight_lattice()
+            sage: TestSuite(P).run()
         """
         basis_keys = root_system.index_set() + ("delta",)
         WeightSpace_abstract.__init__(self, root_system, base_ring, basis_keys)
+
+        # Build a coercion from the weight lattice
+        if base_ring is not ZZ:
+            domain = self.root_system.weight_lattice()
+            domain.module_morphism(self.fundamental_weight,
+                                   codomain = self
+                                   ).register_as_coercion()
 
     def _repr_term(self, m):
         r"""
@@ -468,6 +534,17 @@ class ExtendedAffineWeightSpace(WeightSpace):
             return "\\delta^\\vee" if self.root_system.dual_side else "\\delta"
         return super(ExtendedAffineWeightSpace, self)._latex_term(m)
 
+    def _name_string(self, capitalize=True, base_ring=True, type=True):
+        """
+        EXAMPLES::
+
+            sage: RootSystem(['A',4]).weight_lattice()._name_string()
+            "Weight lattice of the Root system of type ['A', 4]"
+        """
+        return self._name_string_helper("weight",
+                                        capitalize=capitalize, base_ring=base_ring,
+                                        type=type, prefix="extended ")
+
     @cached_method
     def fundamental_weight(self, i):
         """
@@ -487,10 +564,10 @@ class ExtendedAffineWeightSpace(WeightSpace):
 
         EXAMPLES::
 
-            sage: Q = RootSystem(["A",3,1]).weight_lattice()
-            sage: Q.fundamental_weight(1)
+            sage: P = RootSystem(["A",3,1]).weight_lattice()
+            sage: P.fundamental_weight(1)
             Lambda[1]
-            sage: Q.fundamental_weight("delta")
+            sage: P.fundamental_weight("delta")
             delta
         """
         if i == "delta":
@@ -540,15 +617,25 @@ class AffineWeightSpace(WeightSpace):
     def __init__(self, root_system, base_ring):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = RootSystem(['A',2,1]).weight_lattice(extended=False)
+            sage: TestSuite(P).run()
         """
         WeightSpace.__init__(self, root_system, base_ring)
 
         # For an affine type, register the quotient map from the
         # extended weight lattice/space to the weight lattice/space
-        domain = root_system.weight_space(base_ring, extended=True)
-        domain.module_morphism(self.fundamental_weight,
-                               codomain=self
-                               ).register_as_coercion()
+        domains = [root_system.weight_space(base_ring, extended=True)]
+        # Build a coercion from the weight lattice
+        if base_ring is not ZZ:
+            domains.append(self.root_system.weight_lattice(extended=False))
+
+        for domain in domains:
+            domain.module_morphism(self.fundamental_weight,
+                                   codomain=self
+                                   ).register_as_coercion()
 
     @cached_method
     def fundamental_weight(self, i):
@@ -563,23 +650,19 @@ class AffineWeightSpace(WeightSpace):
         also accepts ``"delta"`` as input, and returns the image of
         `\delta` of the extended weight lattice in ``self``, which is `0`.
 
-        .. TODO::
-
-            Do we still want this behavior?
-
         .. SEEALSO::
 
             :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.fundamental_weight`
 
         EXAMPLES::
 
-            sage: Q = RootSystem(["A",3,1]).weight_lattice(extended=False)
-            sage: Q.fundamental_weight(1)
+            sage: P = RootSystem(["A",3,1]).weight_lattice(extended=False)
+            sage: P.fundamental_weight(1)
             Lambda[1]
-            sage: Q.fundamental_weight("delta")
-            delta
+            sage: P.fundamental_weight("delta")
+            0
         """
         if i == "delta":
             return self.zero()
-        return super(ExtendedAffineWeightSpace, self).fundamental_weight(i)
+        return super(AffineWeightSpace, self).fundamental_weight(i)
 

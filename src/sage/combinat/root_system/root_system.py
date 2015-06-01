@@ -546,7 +546,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['A',3]).weight_lattice()
             Weight lattice of the Root system of type ['A', 3]
 
-            sage: RootSystem(['A',3,1]).weight_space(extended=False)
+            sage: RootSystem(['A',3,1]).weight_space()
             Extended weight space over the Rational Field of the Root system of type ['A', 3, 1]
 
             sage: RootSystem(['A',3,1]).weight_space(extended=False)
