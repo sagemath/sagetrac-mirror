@@ -1474,7 +1474,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             sage: R.quotient_by_principal_ideal(x^2-1, names=('foo',))
             Univariate Quotient Polynomial Ring in foo over Rational Field with modulus x^2 - 1
 
-        TESTS::
+        TESTS:
 
         Quotienting by the zero ideal returns ``self`` (:trac:`5978`)::
 
