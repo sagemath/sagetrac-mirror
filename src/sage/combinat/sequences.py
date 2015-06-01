@@ -192,6 +192,7 @@ class Sequences(object):
     The sequences currently in this class include:
 
     - :meth:`~catalan`
+    - :meth:`~fibonacci`
     """
 
     @subsequence_options()
@@ -214,6 +215,39 @@ class Sequences(object):
         """
         return iter(sage.combinat.combinat.catalan_number(n)
                     for n in itertools.count())
+
+
+    @subsequence_options()
+    def fibonacci(self, algorithm=None):
+        r"""
+        The sequence of Fibonacci numbers.
+
+        INPUT:
+
+        -  ``algorithm`` -- (default: ``None``) passed on to the
+           :func:`Fibonacci function <sage.combinat.combinat.fibonacci>`.
+           If ``None``, the default algorithm is used.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: tuple(sequences.fibonacci(start=10, stop=20))
+            (55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181)
+
+        ::
+
+            sage: sum(sequences.fibonacci(start=100, stop=110))
+            69919376923075308730013
+        """
+        if algorithm is None:
+            return iter(sage.combinat.combinat.fibonacci(n)
+                        for n in itertools.count())
+        else:
+            return iter(sage.combinat.combinat.fibonacci(n, algorithm=algorithm)
+                        for n in itertools.count())
 
 
 # Easy access to the sequence generators from the command line:
