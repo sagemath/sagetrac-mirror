@@ -105,7 +105,7 @@ class ClusterTriangulation(ClusterSeed):
         A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges
         sage: ClusterSeed(T).mutation_type()
         ['A', [2, 2], 1]
-        sage: T.triangulation_dictionary()
+        sage: T.map_label_to_variable()
         {'bd1': b4,
         'bd2': b5,
         'bd3': b6,
@@ -123,7 +123,7 @@ class ClusterTriangulation(ClusterSeed):
         A seed for a cluster algebra associated with an ideal triangulation of rank 10 with 4 boundary edges
         sage: ClusterSeed(T).mutation_type()
         'undetermined finite mutation type from a surface'
-        sage: T.triangulation_dictionary()
+        sage: T.map_label_to_variable()
         {1: x0*x1,
         2: x1,
         3: x2,
@@ -207,7 +207,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
             sage: TestSuite(CT).run()
         """
-        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
+        from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, _get_map_label_to_variable, _get_map_variable_to_label, _get_user_label_triangulation, _get_weighted_triangulation
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         from sage.rings.all import QQ
         from sage.rings.all import FractionField, PolynomialRing
@@ -243,10 +243,10 @@ class ClusterTriangulation(ClusterSeed):
             self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
             self._cluster = list(self._R.gens()[0:self._n])
             self._boundary_edges_vars = list(self._R.gens()[self._n:]) if boundary_edges else []
-            self._triangulation_dictionary = _get_triangulation_dictionary (self._triangles, self._cluster, self._boundary_edges, self._boundary_edges_vars)
-            self._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (self._triangulation_dictionary)
+            self._map_label_to_variable = _get_map_label_to_variable (self._triangles, self._cluster, self._boundary_edges, self._boundary_edges_vars)
+            self._map_variable_to_label = _get_map_variable_to_label (self._map_label_to_variable)
             self._triangulation = _get_user_label_triangulation(self._triangles)
-            self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._triangulation_dictionary)
+            self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._map_label_to_variable)
             self._mutation_type = self._quiver.mutation_type()
             if self._mutation_type == 'undetermined finite mutation type':
                 self._mutation_type += ' from a surface'
@@ -267,8 +267,8 @@ class ClusterTriangulation(ClusterSeed):
             self._R = copy(data._R)
             self._cluster = copy(data._cluster)
             self._boundary_edges_vars = copy(data._boundary_edges_vars)
-            self._triangulation_dictionary = copy(data._triangulation_dictionary)
-            self._triangulation_dictionary_variable_to_label = copy(data.triangulation_dictionary_variable_to_label)
+            self._map_label_to_variable = copy(data._map_label_to_variable)
+            self._map_variable_to_label = copy(data.map_variable_to_label)
             self._triangulation = copy(data._triangulation)
             self._weighted_triangulation = copy(data._weighted_triangulation)
             self._mutation_type = data._mutation_type
@@ -550,7 +550,7 @@ class ClusterTriangulation(ClusterSeed):
             ValueError: ('The ideal triangulation cannot be mutated at ', 'i0', '.There is only one triangle ', ('i2', 'i0', 'i1'), ', not a self-folded triangle, with side ', 'i0')
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
-        _get_triangulation_dictionary, _get_triangulation_dictionary_reversed, _get_user_label_triangulation, _get_weighted_triangulation
+        _get_map_label_to_variable, _get_map_variable_to_label, _get_user_label_triangulation, _get_weighted_triangulation
 
         if inplace:
             ct = self
@@ -618,10 +618,10 @@ class ClusterTriangulation(ClusterSeed):
             S = S.mutate(pos, inplace=False)
 
         ct._cluster = S._cluster
-        ct._triangulation_dictionary = _get_triangulation_dictionary (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
-        ct._triangulation_dictionary_variable_to_label = _get_triangulation_dictionary_reversed (ct._triangulation_dictionary)
+        ct._map_label_to_variable = _get_map_label_to_variable (ct._triangles, ct._cluster, ct._boundary_edges, ct._boundary_edges_vars)
+        ct._map_variable_to_label = _get_map_variable_to_label (ct._map_label_to_variable)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
-        ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._triangulation_dictionary)
+        ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._map_label_to_variable)
 
         #ct._M = S._M
         ct._quiver = None
@@ -685,7 +685,8 @@ class ClusterTriangulation(ClusterSeed):
         """
         return self._boundary_edges_vars
 
-    def triangulation_dictionary(self):
+    #def triangulation_dictionary(self):
+    def map_label_to_variable(self):
         """
         Return a dictionary with keys user-given labels (numbers or strings)
         and items variables x_i/b_i of ``self``.
@@ -697,12 +698,18 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-            sage: T.triangulation_dictionary()
+            sage: T.map_label_to_variable()
             {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
+            sage: T.mutate(3)
+            sage: T.cluster()
+            [x0, (x2*x3 + 1)/x1, x2, x3]
+            sage: T.map_label_to_variable()
+            {1: b4, 2: x0, 3: (x2*x3 + 1)/x1, 4: x2*x3, 5: x3}
         """
-        return self._triangulation_dictionary
+        return self._map_label_to_variable
 
-    def triangulation_dictionary_variable_to_label(self):
+    #def triangulation_dictionary_variable_to_label(self):
+    def map_variable_to_label(self):
         """
         Return a dictionary with keys variables x_i/b_i
         and items user-given labels (numbers or strings) of ``self``.
@@ -714,10 +721,10 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-            sage: T.triangulation_dictionary_variable_to_label()
+            sage: T.map_variable_to_label()
             {b4: 1, x3: 5, x1: 3, x2*x3: 4, x0*x1: 2}
         """
-        return self._triangulation_dictionary_variable_to_label
+        return self._map_variable_to_label
 
     def triangulation(self):
         """
@@ -766,7 +773,7 @@ class ClusterTriangulation(ClusterSeed):
         """
         return self._weighted_triangulation
 
-    def get_edge_var(self,a):
+    def _get_map_label_to_variable(self,a):
         """
         Return the variable corresponding to the label (given by user)
         of an arc of boundary edge.
@@ -778,13 +785,22 @@ class ClusterTriangulation(ClusterSeed):
         EXAMPLES::
 
             sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
-            sage: T.get_edge_var(0)
+            sage: T._get_map_label_to_variable(0)
             x0
-            sage: T.get_edge_var(6)
+            sage: T._get_map_label_to_variable(6)
             b6
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: T._get_map_label_to_variable('r')
+            x3
+            sage: T._get_map_label_to_variable('ll')
+            x2*x3
+            sage: T.mutate('a')
+            sage: T._get_map_label_to_variable('a')
+            (x2*x3 + x1)/x0
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
-        return _get_weighted_edge(a, self._triangulation_dictionary)
+        return _get_weighted_edge(a, self._map_label_to_variable)
 
     def get_edge_position(self, a):
         """
@@ -793,7 +809,7 @@ class ClusterTriangulation(ClusterSeed):
 
         .. SEEALSO::
 
-            :meth:`get_edge_var`
+            :meth:`_get_map_label_to_variable`
 
         EXAMPLES::
 
@@ -820,7 +836,7 @@ class ClusterTriangulation(ClusterSeed):
             return boundary_edges.index(a)
         raise ValueError(a, " is not a user-given label of an arc/boundary edge.")
 
-    def get_edge_user_label(self,var):
+    def _get_map_variable_to_label(self,var):
         """
         Return the label (given by user) of an arc of boundary edge
         corresponding to a variable x_i or b_i (or a product x_i*x_j).
@@ -828,25 +844,35 @@ class ClusterTriangulation(ClusterSeed):
         INPUT:
 
         - ``var`` -- a variable or a product of two variables from
-          self.triangulation_dictionary()
+          self.map_label_to_variable()
 
         EXAMPLES::
 
             sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]], boundary_edges=[4,5,6,7])
-            sage: T.get_edge_user_label(T._cluster[0])
+            sage: T._get_map_variable_to_label(T._cluster[0])
             0
-            sage: T.get_edge_user_label(T._boundary_edges_vars[2])
+            sage: T._get_map_variable_to_label(T._boundary_edges_vars[2])
             6
+            sage: T.mutate(0)
+            sage: T.cluster()[0]*T.x(3)
+            (x2*x3 + x3)/x0
+            sage: T._get_map_variable_to_label(T.cluster()[0]*T.x(3))
+            0
+            sage: T._get_map_label_to_variable(0)
+            (x2*x3 + x3)/x0
+            sage: T.cluster()
+            [(x2 + 1)/x0, x1, x2, x3]
+
             sage: TT = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
-            sage: TT.get_edge_user_label(TT._cluster[1]*TT._cluster[2])
+            sage: TT._get_map_variable_to_label(TT._cluster[1]*TT._cluster[2])
             'j2'
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_edge_user_label
-        edge_user_label = _get_edge_user_label(var,self._triangulation_dictionary_variable_to_label)
+        edge_user_label = _get_edge_user_label(var,self._map_variable_to_label)
         if edge_user_label is not None:
             return edge_user_label
         else:
-            raise ValueError(var, ' is not a cluster variable (or a product of cluster variables) from self.triangulation_dictionary():', self._triangulation_dictionary)
+            raise ValueError(var, ' is not a cluster variable (or a product of cluster variables) from self.map_variable_to_label():', self._map_variable_to_label)
 
     def list_snake_graph(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, first_tile_orientation=1,
@@ -1097,12 +1123,12 @@ class ClusterTriangulation(ClusterSeed):
             sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
             sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
             sage: S = ClusterSeed(T)
-            sage: r = T.get_edge_var('r')
-            sage: ell = T.get_edge_var('ell')
-            sage: three = T.get_edge_var(3)
-            sage: four = T.get_edge_var(4)
-            sage: five = T.get_edge_var(5)
-            sage: six = T.get_edge_var(6)
+            sage: r = T._get_map_label_to_variable('r')
+            sage: ell = T._get_map_label_to_variable('ell')
+            sage: three = T._get_map_label_to_variable(3)
+            sage: four = T._get_map_label_to_variable(4)
+            sage: five = T._get_map_label_to_variable(5)
+            sage: six = T._get_map_label_to_variable(6)
             sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
             sage: T.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
             sage: T.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
@@ -1366,7 +1392,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: c = [item for item in T.cluster()]
             sage: T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
             (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
-            sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T.get_edge_var(7),T.get_edge_var(4)], final_triangle=( c[0],c[3], T.get_edge_var(6) ), user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T._get_map_label_to_variable(7),T._get_map_label_to_variable(4)], final_triangle=( c[0],c[3], T._get_map_label_to_variable(6) ), user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
             True
             sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)],user_labels=False)
             True
@@ -1440,11 +1466,11 @@ class ClusterTriangulation(ClusterSeed):
 
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs,
-                                               CT._triangulation_dictionary)
+                                               CT._map_label_to_variable)
             first_triangle = _get_weighted_edges(first_triangle,
-                                                 CT._triangulation_dictionary)
+                                                 CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
-                                                 CT._triangulation_dictionary)
+                                                 CT._map_label_to_variable)
         return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
     def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
@@ -1516,10 +1542,10 @@ class ClusterTriangulation(ClusterSeed):
             True
 
             sage: crossed_arcs = [c[0], c[1], c[0]] # loop z_1 with no self-intersection
-            sage: T.loop_laurent_expansion( crossed_arcs, first_triangle=(c[0],c[1], T.get_edge_var(2)), user_labels=False)
+            sage: T.loop_laurent_expansion( crossed_arcs, first_triangle=(c[0],c[1], T._get_map_label_to_variable(2)), user_labels=False)
             (x0^2 + x1^2 + 1)/(x0*x1)
             sage: crossed_arcs = [c[0], c[1], c[0], c[1], c[0]] # loop z_2 with 1 self-intersection
-            sage: T.loop_laurent_expansion(crossed_arcs, first_triangle = (c[0],c[1], T.get_edge_var(2)), user_labels=False)
+            sage: T.loop_laurent_expansion(crossed_arcs, first_triangle = (c[0],c[1], T._get_map_label_to_variable(2)), user_labels=False)
             (x0^4 + x1^4 + 2*x0^2 + 2*x1^2 + 1)/(x0^2*x1^2)
 
         Once-punctured square with 2 radii and boundary edges labeled
@@ -1534,9 +1560,9 @@ class ClusterTriangulation(ClusterSeed):
 
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs,
-                                               CT._triangulation_dictionary)
+                                               CT._map_label_to_variable)
             first_triangle = _get_weighted_edges(first_triangle,
-                                                 CT._triangulation_dictionary)
+                                                 CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
-                                                 CT._triangulation_dictionary)
+                                                 CT._map_label_to_variable)
         return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)

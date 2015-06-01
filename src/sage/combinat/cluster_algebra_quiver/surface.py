@@ -417,7 +417,7 @@ def _get_user_arc_labels(T):
     T_user_labels.sort()
     return T_user_labels
 
-def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_vars):
+def _get_map_label_to_variable(T, cluster, boundary_edges, boundary_edges_vars):
     """
     Return a dictionary of tuples ``{a:b, ...}`` where ``a`` is a user-given label from input ``T``
     and ``b`` is the variable x_i or b_i corresponding to ``a1``.
@@ -433,20 +433,20 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_map_label_to_variable
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
-        sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
-        sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x1*x2, 3: x3, 4: x3*x4, 6: x5, 7: x6}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
-        sage: _get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {'a': x0, 'b': x1, 'd': x2, 'e': b5, 'g': x3, 'n': b6, 'r': x4}
     """
     #dic = []
@@ -491,12 +491,12 @@ def _get_triangulation_dictionary(T, cluster, boundary_edges, boundary_edges_var
 
     return dic
 
-def _get_triangulation_dictionary_reversed(td):
+def _get_map_variable_to_label(td):
     """
     Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and
     ``a`` is the user-given label corresponding to ``b``.
 
-    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_triangulation_dictionary`
+    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_map_label_to_variable`
 
     INPUT:
 
@@ -504,20 +504,20 @@ def _get_triangulation_dictionary_reversed(td):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_triangulation_dictionary, _get_triangulation_dictionary_reversed
+        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_map_label_to_variable, _get_map_variable_to_label
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
-        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {x7: 7, x6: 6, x5: 5, x4: 4, x3: 3, x2: 2, x1: 1, x0: 0}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
-        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {x6: 7, x5: 6, x3: 3, x1: 1, x0: 0, x3*x4: 4, x1*x2: 2}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
-        sage: _get_triangulation_dictionary_reversed(_get_triangulation_dictionary(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {b6: 'n', b5: 'e', x4: 'r', x3: 'g', x2: 'd', x1: 'b', x0: 'a'}
     """
     return {v: k for k, v in td.items()}
@@ -531,7 +531,7 @@ def _get_edge_user_label(edge_var, triangulation_dictionary_variable_to_label):
 
     - ``edge_var`` -- a variable x_i or b_i returned by :
         meth:`ClusterTriangulation.cluster` or :meth:`ClusterTriangulation.boundary_edges_vars`
-    - ``triangulation_dictionary_variable_to_label`` -- see :meth:`ClusterTriangulation.triangulation_dictionary_variable_to_label`
+    - ``triangulation_dictionary_variable_to_label`` -- see :meth:`ClusterTriangulation.map_variable_to_label`
 
     EXAMPLES::
 
@@ -542,13 +542,13 @@ def _get_edge_user_label(edge_var, triangulation_dictionary_variable_to_label):
 
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-        sage: T.triangulation_dictionary_variable_to_label()
+        sage: T.map_variable_to_label()
         {b4: 1, x3: 5, x1: 3, x2*x3: 4, x0*x1: 2}
-        sage: _get_edge_user_label(T._cluster[2]*T._cluster[3], T._triangulation_dictionary_variable_to_label)
+        sage: _get_edge_user_label(T._cluster[2]*T._cluster[3], T._map_variable_to_label)
         4
 
         sage: TT = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
-        sage: _get_edge_user_label(TT._cluster[1]*TT._cluster[2], TT._triangulation_dictionary_variable_to_label)
+        sage: _get_edge_user_label(TT._cluster[1]*TT._cluster[2], TT._map_variable_to_label)
         'j2'
     """
     if triangulation_dictionary_variable_to_label.has_key(edge_var):
@@ -566,20 +566,20 @@ def _get_weighted_edge(arc, triangulation_dictionary):
     INPUT:
 
     - ``arc`` -- user-given label for an arc or boundary edge, possibly a tuple (label,'counterclockwise') or (label,'clockwise')
-    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.map_label_to_variable`
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-        sage: T.triangulation_dictionary()
+        sage: T.map_label_to_variable()
         {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
-        sage: _get_weighted_edge((5, 'clockwise'), T._triangulation_dictionary)
+        sage: _get_weighted_edge((5, 'clockwise'), T._map_label_to_variable)
         (x3, 'clockwise')
-        sage: _get_weighted_edge(2, T._triangulation_dictionary)
+        sage: _get_weighted_edge(2, T._map_label_to_variable)
         x0*x1
-        sage: _get_weighted_edge(1, T._triangulation_dictionary)
+        sage: _get_weighted_edge(1, T._map_label_to_variable)
         b4
     """
     if arc is None:
@@ -608,18 +608,18 @@ def _get_weighted_edges(edges, triangulation_dictionary):
     INPUT:
 
     - ``edges`` -- list of user-given labels for arcs/boundary edges
-    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.map_label_to_variable`
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges
         sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
         sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
-        sage: T.triangulation_dictionary()
+        sage: T.map_label_to_variable()
         {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
-        sage: _get_weighted_edges([4, (5, 'clockwise'), 4, 2], T._triangulation_dictionary)
+        sage: _get_weighted_edges([4, (5, 'clockwise'), 4, 2], T._map_label_to_variable)
         [x2*x3, (x3, 'clockwise'), x2*x3, x0*x1]
-        sage: _get_weighted_edges([2,1], T._triangulation_dictionary)
+        sage: _get_weighted_edges([2,1], T._map_label_to_variable)
         [x0*x1, b4]
     """
     if edges is None:
@@ -634,20 +634,20 @@ def _get_weighted_edges(edges, triangulation_dictionary):
 def _get_weighted_triangulation(T, triangulation_dictionary):
     """
     Return the triangulation ``T`` given by user such that user-given labels are replaced by variables x_i and b_i.
-    See :class:`ClusterTriangulation` and :meth:`ClusterTriangulation.triangulation_dictionary`
+    See :class:`ClusterTriangulation` and :meth:`ClusterTriangulation.map_label_to_variable`
 
     INPUT:
 
     - ``T`` -- list of triangles with labels given by user
-    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.triangulation_dictionary`
+    - ``triangulation_dictionary`` -- see :meth:`ClusterTriangulation.map_label_to_variable`
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_triangulation
         sage: T = ClusterTriangulation([(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]])
-        sage: T._triangulation_dictionary
+        sage: T._map_label_to_variable
         {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
-        sage: _get_weighted_triangulation(T._triangles, T._triangulation_dictionary)
+        sage: _get_weighted_triangulation(T._triangles, T._map_label_to_variable)
         [(x1, x4, x7), (x1, x2, x5), (x6, x3, x0), (x2, x0, x3)]
     """
     weighted_T = []
@@ -1233,7 +1233,7 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
         sage: T = ClusterTriangulation([('b7',4,3),(4,1,'b5'),(3,'b6',2),(2,1,'b8')], boundary_edges=['b5','b6','b7','b8'])
         sage: S = ClusterSeed(T)
         sage: crossed = [S.x(0),S.x(1),S.x(2),S.x(3),S.x(0)]
-        sage: boundary_variables = [_get_weighted_edge(b,T._triangulation_dictionary) for b in ['b5','b6','b7','b8']]
+        sage: boundary_variables = [_get_weighted_edge(b,T._map_label_to_variable) for b in ['b5','b6','b7','b8']]
         sage: G = T.list_snake_graph(crossed,user_labels=False)
         sage: all_matchings = GetAllMatchings(G)
         sage: gamma_numerator = SumOfMonomialTerms(G, all_matchings, boundary_edges=boundary_variables)
@@ -1326,7 +1326,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetMonomialTerm, FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
         sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
         sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-        sage: crossed = [T.get_edge_var(e) for e in [5,6,7,8,9,6,5]]
+        sage: crossed = [T._get_map_label_to_variable(e) for e in [5,6,7,8,9,6,5]]
         sage: G = T.list_snake_graph(crossed, first_tile_orientation=1, user_labels=False)
         sage: pm_a, pm_b = FlipAllFlippableTilesInList([GetMinimalMatching(G)])
         sage: pm_a
@@ -1887,7 +1887,7 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import try_to_find_end_triangles_for_one_crossed_arc
         sage: Tri = ClusterTriangulation([(2, 3, 11),(2, 1, 1),(4, 3, 12),(0, 4, 5),(5, 6, 10),(6, 7, 9),(9, 8, 10),(8, 7, 13)], boundary_edges=[11,12,13,0])
-        sage: Tri.triangulation_dictionary()
+        sage: Tri.map_label_to_variable()
         {0: b10,
         1: x0,
         2: x0*x1,
