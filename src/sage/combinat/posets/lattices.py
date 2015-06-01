@@ -935,7 +935,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
           ``'lattice'`` (the default) or ``'poset'``, return a
           sublattice or a subposet. If ``'list'``, return plain list.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Boolean lattices have only one kind of maximal sublattices::
 
@@ -951,7 +951,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: set_random_seed(0)
             sage: L.random_maximal_sublattice(element_constructor='list')
             [2, 8, 0, 4, 7, 17, 16, 11, 5, 13, 9, 10, 1, 12, 6]
-
         """
         from sage.combinat.permutation import Permutations
         n=self.cardinality()
