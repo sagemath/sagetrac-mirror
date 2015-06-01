@@ -460,6 +460,10 @@ def catalan_number(n):
     -  http://en.wikipedia.org/wiki/Catalan_number
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
+
+    .. SEEALSO::
+
+        :meth:`sequences.catalan <sage.combinat.sequences.sequences.catalan>`
     """
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
@@ -538,6 +542,10 @@ def fibonacci(n, algorithm="pari"):
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
+
+    .. SEEALSO::
+
+        :meth:`sequences.fibonacci <sage.combinat.sequences.sequences.fibonacci>`
     """
     n = ZZ(n)
     if algorithm == 'pari':
