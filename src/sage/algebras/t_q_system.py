@@ -21,14 +21,17 @@ from sage.categories.hopf_algebras import HopfAlgebras
 from sage.rings.all import ZZ, QQ
 from sage.rings.infinity import infinity
 from sage.rings.arith import LCM
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.monoids.indexed_monoid import IndexedFreeAbelianMonoid
-from sage.groups.indexed_group import IndexedFreeAbelianGroup
+from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
+from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.functions.other import floor
 
 class IntegrableSystemElement(CombinatorialFreeModule.Element):
     def _mul_(self, x):
@@ -202,6 +205,7 @@ class TSystem(IntegrableSystem):
         indices = CartesianProduct(cartan_type.index_set(), PositiveIntegers(), spectral_ring)
         IntegrableSystem.__init__(self, base_ring, cartan_type, level, indices, 'T', category)
 
+        # FIXME: Move to the Q system
         # Setup the coercions
         Q = QSystem(self.base_ring(), self._cartan_type, self._level)
         self.module_morphism(self.restriction_on_basis, codomain=Q).register_as_coercion()
@@ -528,7 +532,7 @@ class QSystem(IntegrableSystem):
 
             sage: Q = QSystem(QQ, ['A',4])
             sage: Q._repr_term(((1,1), (4,1)))
-            'Q^(1)[1]*Q(4)[1]'
+            'Q^(1)[1]*Q^(4)[1]'
         """
         if len(t) == 0:
             return '1'
@@ -581,12 +585,12 @@ class QSystem(IntegrableSystem):
             return self.monomial(self._indices.gen((a,1)))
         if a not in self.index_set():
             return self.zero()
-        if self._cartan_type.type() == 'A' and self._level is None:
-            return self._jacobi_trudy(a, m)
+        #if self._cartan_type.type() == 'A' and self._level is None:
+        #    return self._jacobi_trudy(a, m)
         Q = self._red_system
-        I = self._indices
-        return self.sum_of_terms((I.prod(I.gen(*k)**p for k,p in m) ,v)
-                                 for m,v in Q._reduce_dynkin(a, m))
+        I = self._cartan_type.index_set()
+        p = Q._Q_poly(a, m)
+        return p.subs({ g: self.gen(I[i], 1) for i,g in enumerate(Q._poly.gens()) })
 
     def algebra_generators(self):
         """
@@ -673,14 +677,14 @@ class QSystem_square_free(IntegrableSystem):
 
             sage: Q = QSystem(QQ, ['A',4])
             sage: Q._repr_term(((1,1), (4,1)))
-            'Q^(1)[1]*Q(4)[1]'
+            'Q^(1)[1]*Q^(4)[1]'
         """
         if len(t) == 0:
             return '1'
         def repr_gen(x):
             ret = 'Q^({})[{}]'.format(*(x[0]))
             if x[1] > 1:
-                ret += '^{}'.format(x[1])
+                ret = '({})^{}'.format(ret, x[1])
             return ret
         return '*'.join(repr_gen(x) for x in t._sorted_items())
 
@@ -795,8 +799,25 @@ class QSystem_square_free(IntegrableSystem):
             return cur
 
 class QSystem_reducible(IntegrableSystem):
-    """
-    The `Q`-system that is used to perform the reduction steps.
+    r"""
+    The Q-system that is used to perform the reduction steps.
+
+    We use the presentation of a Q-system given in [HKOTY99]_.
+
+    The relation is:
+
+    .. MATH::
+
+        (Q_m^{(a)})^2 = Q_{m+1}^{(a)} Q_{m-1}^{(a)} +
+        \prod_{b \sim a} \prod_{k=0}^{-C_{ab} - 1}
+        Q^{(b)}_{\lfloor \frac{m C_{ba} - k}{C_{ab}} \rfloor}
+
+    with `Q^{(a)}_0 = 1`.
+
+    REFERENCES:
+
+    .. [HKOTY99] G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada.
+       *Remarks on the fermionic formula*. Contemp. Math., **248** (1999).
     """
     def __init__(self, base_ring, cartan_type, level):
         r"""
@@ -813,62 +834,47 @@ class QSystem_reducible(IntegrableSystem):
         self._cartan_type = cartan_type
         self._name = 'Q'
         self._level = level
+        self._poly = PolynomialRing(ZZ, ['q'+str(i) for i in cartan_type.index_set()])
         CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          prefix='Q', category=category)
 
     @cached_method
-    def _reduce_dynkin(self, a, m):
-        """
-        Return the reduction of the generator `Q^{(a)}_m` into
-        the variables `Q^{(b)}_1`.
+    def _Q_poly(self, a, m):
+        r"""
+        Return the element `Q^{(a)}_m` as a polynomial.
 
-        The fundamental relationship for simply-laced types is
+        We start with the relation
 
         .. MATH::
 
-            Q^{(a)}_{m-1}^2 = Q^{(a)}_m Q^{(a)}_{m-2} + \prod_{b \sim a}
-            Q^{(b)}_{m-1}.
-        """
-        I = self._indices
+            Q^{(a)}_{m-1}^2 = Q^{(a)}_m Q^{(a)}_{m-2} + \mathcal{Q}_{a,m-1},
 
+        which implies
+
+        .. MATH::
+
+            Q^{(a)}_m = \frac{Q^{(a)}_{m-1}^2 - \mathcal{Q}_{a,m-1}}{
+            Q^{(a)}_{m-2}}.
+        """
         if m == 0 or m == self._level:
-            return self.one()
+            return self._poly.one()
         if m == 1:
-            return self.monomial(I.gen((a,m)))
+            return self._poly.gen(self._cartan_type.index_set().index(a))
 
-        cur = self.monomial(I.gen((a,m)))
+        cm = CartanMatrix(self._cartan_type)
+        I = self._cartan_type.index_set()
+        m -= 1 # So we don't have to do it everywhere
 
-        def expand(k,p):
-            if k[1] == 1 or p < 0:
-                return self.monomial(I.gen(k)**p)
-            return self._reduce_dynkin_one_step(*k)**p
-
-        while any(k[1] != 1 for m,v in cur for k,p in m._sorted_items() if p > 0):
-            cur = self.sum(v * self.prod(expand(k,p) for k,p in t._sorted_items())
-                           for t,v in cur)
-        return cur
-
-    @cached_method
-    def _reduce_dynkin_one_step(self, a, m):
-        """
-        Reduce the generator `Q^{(a)}_m` one step before dividing.
-        """
-        assert m >= 2, "Invalid m (= {})".format(m)
-
-        d = self._diagonal
-        da = d[a]
-        I = self._indices
-
-        cur = self._from_dict({I.gen((a,m-1)) * I.gen((a,m-1)):1})
-        if da > 1:
-            cur -= self.monomial( I.prod(I.gen((b, da * (m-1) // d[b]))
-                    for b in self._cartan_type.dynkin_diagram().neighbors(a)) )
-        else:
-            cur -= self.monomial( I.prod(I.gen((b, 1 + (m-1-k) // d[b]))
-                    for b in self._cartan_type.dynkin_diagram().neighbors(a)
-                    for k in range(1, d[b]+1)) )
-        if m > 2:
-            cur *= self.monomial( ~I.gen((a,m-2)) )
+        cur = self._Q_poly(a, m)**2
+        i = I.index(a)
+        ret = self._poly.one()
+        for b in self._cartan_type.dynkin_diagram().neighbors(a):
+            j = I.index(b)
+            for k in range(-cm[i,j]):
+                ret *= self._Q_poly(b, floor((m * cm[j,i] - k) / cm[i,j]))
+        cur -= ret
+        if m > 1:
+            cur //= self._Q_poly(a, m-1)
         return cur
 
 class YSystem(IntegrableSystem):
