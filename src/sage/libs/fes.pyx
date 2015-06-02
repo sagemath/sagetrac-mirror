@@ -1,5 +1,5 @@
 """
-Binding for the libFES library.
+Binding for the libfes library.
 
 Finding solutions of systems of boolean equations by exhaustive
 search, via the fes library. This is usually (much) faster than
@@ -8,12 +8,12 @@ is particularly easy.
 
 More information is available at [http://www.lifl.fr/~bouillag/fes].
 
-The libFES library is presently only able to deal with polynomials in 64
+The libfes library is presently only able to deal with polynomials in 64
 variables. Performing a full exhaustive search over 64 variables will
 take a **long** time. The number of variables can be artificially
 reduced to 64 by specializing some of them.
 
-Note that the libFES library **requires** at least of the equations to be
+Note that the libfes library **requires** at least of the equations to be
 non-linear.
 
 AUTHORS:
@@ -24,29 +24,29 @@ EXAMPLES:
 
 Random Degree-2 System::
 
-    sage: from sage.libs.fes import exhaustive_search                            # optional - libFES
-    sage: n = 16                                                                 # optional - libFES
-    sage: R = BooleanPolynomialRing(n, 'x')                                      # optional - libFES
-    sage: solution = dict(zip(R.gens(), VectorSpace(GF(2), n).random_element())) # optional - libFES
+    sage: from sage.libs.fes import exhaustive_search                            # optional - libfes
+    sage: n = 16                                                                 # optional - libfes
+    sage: R = BooleanPolynomialRing(n, 'x')                                      # optional - libfes
+    sage: solution = dict(zip(R.gens(), VectorSpace(GF(2), n).random_element())) # optional - libfes
 
-    sage: F = [ R.random_element() for i in range(n+10)  ]                       # optional - libFES
-    sage: G = [ f + f.subs(solution) for f in F]                                 # optional - libFES
-    sage: sols = exhaustive_search(G)                                            # optional - libFES
-    sage: solution in sols                                                       # optional - libFES
+    sage: F = [ R.random_element() for i in range(n+10)  ]                       # optional - libfes
+    sage: G = [ f + f.subs(solution) for f in F]                                 # optional - libfes
+    sage: sols = exhaustive_search(G)                                            # optional - libfes
+    sage: solution in sols                                                       # optional - libfes
     True
-    sage: len(sols)                                                              # optional - libFES
+    sage: len(sols)                                                              # optional - libfes
     1
 
 Cylic benchmark::
 
-    sage: from sage.rings.ideal import Cyclic                 # optional - libFES
-    sage: from sage.libs.fes import exhaustive_search         # optional - libFES
-    sage: n = 10                                              # optional - libFES
-    sage: R = BooleanPolynomialRing(n, 'x')                   # optional - libFES
-    sage: sols = exhaustive_search( Cyclic(R) )               # optional - libFES
-    sage: len(sols)                                           # optional - libFES
+    sage: from sage.rings.ideal import Cyclic                 # optional - libfes
+    sage: from sage.libs.fes import exhaustive_search         # optional - libfes
+    sage: n = 10                                              # optional - libfes
+    sage: R = BooleanPolynomialRing(n, 'x')                   # optional - libfes
+    sage: sols = exhaustive_search( Cyclic(R) )               # optional - libfes
+    sage: len(sols)                                           # optional - libfes
     1
-    sage: set(sols[0]) == set(R.gens())                       # optional - libFES
+    sage: set(sols[0]) == set(R.gens())                       # optional - libfes
     True
 
 REFERENCES:
@@ -132,35 +132,35 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
     NOTE:
 
-        Using this function requires the optional package libFES to be installed.
+        Using this function requires the optional package libfes to be installed.
 
     EXAMPLE:
 
     A very simple example::
 
-        sage: from sage.libs.fes import exhaustive_search               # optional - libFES
-        sage: R.<x,y,z> = BooleanPolynomialRing()                       # optional - libFES
-        sage: exhaustive_search( [x*y + z + y + 1, x+y+z, x*y + y*z] )  # optional - libFES
+        sage: from sage.libs.fes import exhaustive_search               # optional - libfes
+        sage: R.<x,y,z> = BooleanPolynomialRing()                       # optional - libfes
+        sage: exhaustive_search( [x*y + z + y + 1, x+y+z, x*y + y*z] )  # optional - libfes
         [{y: 0, z: 1, x: 1}]
 
     Another very simple example::
 
-        sage: R.<x,y,z,t,w> = BooleanPolynomialRing()                   # optional - libFES
-        sage: f = x*y*z + z + y + 1                                     # optional - libFES
-        sage: sorted( exhaustive_search( [f, x+y+z, x*y + y*z] ) )      # optional - libFES
+        sage: R.<x,y,z,t,w> = BooleanPolynomialRing()                   # optional - libfes
+        sage: f = x*y*z + z + y + 1                                     # optional - libfes
+        sage: sorted( exhaustive_search( [f, x+y+z, x*y + y*z] ) )      # optional - libfes
         [{w: 0, t: 0, y: 0, z: 1, x: 1}, {w: 0, t: 1, y: 0, z: 1, x: 1}, {w: 1, t: 0, y: 0, z: 1, x: 1}, {w: 1, t: 1, y: 0, z: 1, x: 1}]
 
     An example with several solutions::
 
-        sage: R.<x,y,z, t> = BooleanPolynomialRing()                    # optional - libFES
-        sage: eqs = [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1]  # optional - libFES
-        sage: sorted( exhaustive_search( eqs ) )                        # optional - libFES
+        sage: R.<x,y,z, t> = BooleanPolynomialRing()                    # optional - libfes
+        sage: eqs = [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1]  # optional - libfes
+        sage: sorted( exhaustive_search( eqs ) )                        # optional - libfes
         [{t: 0, y: 1, z: 1, x: 1}, {t: 1, y: 1, z: 0, x: 0}]
 
     We voluntarily limit the number of solutions returned by the library::
 
-        sage: eqs =  [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1] # optional - libFES
-        sage: exhaustive_search(eqs, max_sols=1 )                       # optional - libFES
+        sage: eqs =  [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1] # optional - libfes
+        sage: exhaustive_search(eqs, max_sols=1 )                       # optional - libfes
         [{t: 0, y: 1, z: 1, x: 1}]
 
     .. SEEALSO::
@@ -182,11 +182,11 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
     eqs = Sequence(eqs)
     R = eqs.ring()
     if R.base_ring() != GF(2):
-        raise ValueError, "libFES only deals with equations over GF(2)"
+        raise ValueError, "libfes only deals with equations over GF(2)"
 
     degree = max( [f.degree() for f in eqs] )
     if degree <= 1:
-        raise ValueError("the libFES library requires equations to be non-linear")
+        raise ValueError("the libfes library requires equations to be non-linear")
     n = R.ngens()
 
 
@@ -255,15 +255,15 @@ def find_coordinate_change(As, max_tries=64):
 
     Testing that the function works::
 
-        sage: from sage.libs.fes import find_coordinate_change    # optional - libFES
-        sage: n = 40                                              # optional - libFES
-        sage: K = GF(2)                                           # optional - libFES
-        sage: R = BooleanPolynomialRing(n, 'x')                   # optional - libFES
-        sage: foo = [ MatrixSpace(GF(2), n, n).random_element() ] # optional - libFES
-        sage: f = [ M + M.T for M in foo ]                        # optional - libFES
-        sage: S = find_coordinate_change( f )                     # optional - libFES
-        sage: g = [ S.T*M*S for M in f ]                          # optional - libFES
-        sage: vector ([ M[0,1] for M in g[:32]]).is_zero()        # optional - libFES
+        sage: from sage.libs.fes import find_coordinate_change    # optional - libfes
+        sage: n = 40                                              # optional - libfes
+        sage: K = GF(2)                                           # optional - libfes
+        sage: R = BooleanPolynomialRing(n, 'x')                   # optional - libfes
+        sage: foo = [ MatrixSpace(GF(2), n, n).random_element() ] # optional - libfes
+        sage: f = [ M + M.T for M in foo ]                        # optional - libfes
+        sage: S = find_coordinate_change( f )                     # optional - libfes
+        sage: g = [ S.T*M*S for M in f ]                          # optional - libfes
+        sage: vector ([ M[0,1] for M in g[:32]]).is_zero()        # optional - libfes
         True
     """
     n = As[0].nrows()
@@ -294,7 +294,7 @@ def find_coordinate_change(As, max_tries=64):
 
 def prepare_polynomials(f):
     """
-    Finds a linear combination of the equations that is faster to solve by libFES
+    Finds a linear combination of the equations that is faster to solve by libfes
 
     INPUT:
 
@@ -304,15 +304,15 @@ def prepare_polynomials(f):
 
     We check that the function does what it is supposed to do::
 
-        sage: from sage.libs.fes import prepare_polynomials                    # optional - libFES
-        sage: n = 35                                                           # optional - libFES
-        sage: K = GF(2)                                                        # optional - libFES
-        sage: R = BooleanPolynomialRing(n, 'x')                                # optional - libFES
+        sage: from sage.libs.fes import prepare_polynomials                    # optional - libfes
+        sage: n = 35                                                           # optional - libfes
+        sage: K = GF(2)                                                        # optional - libfes
+        sage: R = BooleanPolynomialRing(n, 'x')                                # optional - libfes
         sage: f = [ sum( [K.random_element() * R.gen(i) * R.gen(j) for i in range(n) for j in range(i)] ) \
                + sum( [K.random_element() * R.gen(i)  for i in range(n) ] ) \
-               + K.random_element() for l in range(n) ]                        # optional - libFES
-        sage: g = prepare_polynomials(f)                                       # optional - libFES
-        sage: map(lambda x:x.lm(), g)                                          # optional - libFES, random
+               + K.random_element() for l in range(n) ]                        # optional - libfes
+        sage: g = prepare_polynomials(f)                                       # optional - libfes
+        sage: map(lambda x:x.lm(), g)                                          # optional - libfes, random
         0
     """
     if f == []:
