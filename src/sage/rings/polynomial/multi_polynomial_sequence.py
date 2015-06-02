@@ -1361,9 +1361,9 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             [[0, 0, 0], [0, 0, 0]]
 
         We can force the use of exhaustive search if the optional
-        package ``FES`` is present::
+        package ``libFES`` is present::
 
-            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - FES
+            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - libFES
             [{x: 1, y: 1, z: 1}]
             sage: S.subs( sol[0] )
             [0, 0, 0]
@@ -1414,8 +1414,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    raise ValueError('algorithm=exhaustive_search requires the optional library FES. Run "install_package(\'fes\')" to install it.')
+                if not is_package_installed('libFES'):
+                    raise ValueError('algorithm=exhaustive_search requires the optional library libFES. Run "sage -i libFES" to install it.')
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 
