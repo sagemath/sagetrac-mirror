@@ -61,9 +61,9 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
             graph of ``self``.
 
             This is a function that maps an element of ``self`` to all
-            the products of ``x`` by a generator of this semigroup,
-            where the product is taken on the left, right, or both
-            sides.
+            the products of ``x`` by a generator of this finitely
+            generated magma, where the product is taken on the left,
+            right, or both sides.
 
             INPUT:
 
@@ -85,7 +85,7 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
             """
             left  = (side == "left"  or side == "twosided")
             right = (side == "right" or side == "twosided")
-            generators = self.semigroup_generators()
+            generators = self.magma_generators()
             return lambda x: (tuple(g * x for g in generators) if left  else ()) + (tuple(x * g for g in generators) if right else ())
 
         def ideal(self, gens, side="twosided"):
@@ -94,9 +94,9 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
 
             This brute force implementation recursively multiplies the
             elements of ``gens`` by the distinguished generators of
-            this semigroup.
+            this finitely generated magma.
 
-            .. SEEALSO:: :meth:`semigroup_generators`
+            .. SEEALSO:: :meth:`magma_generators`
 
             INPUT:
 
@@ -136,9 +136,9 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
             Return an iterator over the elements of ``self``.
 
             This brute force implementation recursively multiplies
-            together the distinguished semigroup generators.
+            together the magma generators.
 
-            .. SEEALSO:: :meth:`semigroup_generators`
+            .. SEEALSO:: :meth:`magma_generators`
 
             EXAMPLES::
 
@@ -147,4 +147,4 @@ class FinitelyGeneratedMagmas(CategoryWithAxiom):
                 sage: list(it)
                 ['y', 'x', 'xy', 'yx']
             """
-            return self.ideal(self, self.semigroup_generators(), side="right")
+            return self.ideal(self.magma_generators(), side="right")
