@@ -687,7 +687,7 @@ class Rings(CategoryWithAxiom):
             """
             return self.quotient(I,names=names)
 
-        def __div__(self, I):
+        def __truediv__(self, I):
             """
             Since assigning generator names would not work properly,
             the construction of a quotient ring using division syntax
@@ -703,6 +703,8 @@ class Rings(CategoryWithAxiom):
                 TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
             """
             raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
+        # for Python 2 without from __future__ import division
+        __div__ = __truediv__
 
         def __getitem__(self, arg):
             """

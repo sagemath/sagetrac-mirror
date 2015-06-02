@@ -905,3 +905,5 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
     __div__ = quotient
+    # for Python 3 and for Python 2 with from __future__ import division
+    __truediv__ = quotient

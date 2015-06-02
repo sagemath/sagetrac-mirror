@@ -440,7 +440,7 @@ class FGP_Module_class(Module):
         I = str(self.invariants()).replace(',)',')')
         return "Finitely generated module V/W over %s with invariants %s"%(self.base_ring(), I)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Return the quotient self/other, where other must be a
         submodule of self.
@@ -463,6 +463,8 @@ class FGP_Module_class(Module):
         if not other.is_submodule(self):
             raise ValueError("other must be a submodule of self")
         return self._module_constructor(self._V, other._V+self._W)
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def __eq__(self, other):
         """

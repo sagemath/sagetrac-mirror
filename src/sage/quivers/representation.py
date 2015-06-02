@@ -1501,21 +1501,6 @@ class QuiverRep_generic(WithEqualityById, Module):
         """
         return "Representation with dimension vector {}".format(self.dimension_vector())
 
-    def __div__(self, sub):
-        """
-        This and :meth:`__truediv__` below together overload the ``/``
-        operator.
-
-        TESTS::
-
-            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
-            sage: P = Q.P(GF(3), 1)
-            sage: R = P.radical()
-            sage: (P/R).is_simple()
-            True
-        """
-        return self.quotient(sub)
-
     def __truediv__(self, sub):
         """
         This and :meth:`__div__` above together overload the ``/`` operator.
@@ -1529,6 +1514,8 @@ class QuiverRep_generic(WithEqualityById, Module):
             True
         """
         return self.quotient(sub)
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def _submodule(self, spaces={}):
         """

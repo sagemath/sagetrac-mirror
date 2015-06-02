@@ -1075,7 +1075,7 @@ class Partition(CombinatorialElement):
         """
         print self.ferrers_diagram()
 
-    def __div__(self, p):
+    def __truediv__(self, p):
         """
         Returns the skew partition ``self / p``.
 
@@ -1097,6 +1097,8 @@ class Partition(CombinatorialElement):
             raise ValueError("To form a skew partition p/q, q must be contained in p.")
 
         return SkewPartition([self[:], p])
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def power(self, k):
         r"""

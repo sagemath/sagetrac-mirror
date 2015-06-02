@@ -1802,7 +1802,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         return [x[0] for x in self.factor()]
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Return the quotient self / other.
 
@@ -1818,6 +1818,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             True
         """
         return self * other.__invert__()
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def __invert__(self):
         """

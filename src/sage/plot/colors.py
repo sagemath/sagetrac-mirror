@@ -775,7 +775,7 @@ class Color(object):
         """
         return self * left
 
-    def __div__(self, right):
+    def __truediv__(self, right):
         """
         Return a color whose RGB coordinates are this color's
         coordinates divided by a scalar.  This method is called for
@@ -812,33 +812,8 @@ class Color(object):
             TypeError: float() argument must be a string or a number
         """
         return self * (float(1.0) / float(right))
-
-    def __truediv__(self, right):
-        """
-        Return a color whose RGB coordinates are this color's
-        coordinates divided by a scalar.  This method is called for
-        "true division."
-
-        INPUT:
-
-        - ``right`` - a float-convertible, non-zero number
-
-        OUTPUT:
-
-        - a **new** instance of :class:`Color`
-
-        EXAMPLES::
-
-            sage: from __future__ import division
-            sage: from sage.plot.colors import yellow, gold
-            sage: yellow / 4
-            RGB color (0.25, 0.25, 0.0)
-            sage: yellow.__truediv__(4)
-            RGB color (0.25, 0.25, 0.0)
-            sage: gold / pi + yellow * e
-            RGB color (0.51829585732141..., 0.49333037605210..., 0.0)
-        """
-        return self.__div__(right)
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def __int__(self):
         """

@@ -436,7 +436,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
-    def __div__(self, x, self_on_left=False):
+    def __truediv__(self, x, self_on_left=False):
         """
         Division by coefficients.
 
@@ -463,6 +463,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             return self.__class__(F, D)
 
         return self.__class__(F, {t: _divide_if_possible(D[t], x) for t in D})
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
 class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     r"""

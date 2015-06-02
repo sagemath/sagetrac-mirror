@@ -1492,7 +1492,7 @@ class Components(SageObject):
         return result
 
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1518,6 +1518,8 @@ class Components(SageObject):
         for ind, val in self._comp.iteritems():
             result._comp[ind] = val / other
         return result
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def trace(self, pos1, pos2):
         r"""

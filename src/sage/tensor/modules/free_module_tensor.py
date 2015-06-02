@@ -1817,7 +1817,7 @@ class FreeModuleTensor(ModuleElement):
         return result
 
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1843,6 +1843,8 @@ class FreeModuleTensor(ModuleElement):
         for basis in self._components:
             result._components[basis] = self._components[basis] / other
         return result
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
 
     def __call__(self, *args):

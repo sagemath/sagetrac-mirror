@@ -977,7 +977,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         return self.__div__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Compute the quotient of self and other, where other is either an
         abelian subvariety of self or a finite subgroup of self.
@@ -1036,6 +1036,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return self._quotient_by_abelian_subvariety(other)
         else:
             raise TypeError("other must be a subgroup or abelian subvariety")
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     def degeneracy_map(self, M_ls, t_ls):
         """

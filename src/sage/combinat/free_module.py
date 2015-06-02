@@ -918,7 +918,7 @@ class CombinatorialFreeModuleElement(Element):
     _lmul_ = _acted_upon_
     _rmul_ = _acted_upon_
 
-    def __div__(self, x, self_on_left=False ):
+    def __truediv__(self, x, self_on_left=False ):
         """
         Division by coefficients
 
@@ -950,6 +950,8 @@ class CombinatorialFreeModuleElement(Element):
             return F._from_dict( D, remove_zeros=False )
         else:
             return self.map_coefficients(lambda c: _divide_if_possible(c, x))
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
 def _divide_if_possible(x, y):
     """

@@ -2546,7 +2546,7 @@ class Polyhedron_base(Element):
         """
         return self.dilation(-1)
 
-    def __div__(self, scalar):
+    def __truediv__(self, scalar):
         """
         Divide by a scalar factor.
 
@@ -2559,6 +2559,8 @@ class Polyhedron_base(Element):
             (A vertex at (2/5, 4/5, 8/5), A vertex at (3/5, 9/5, 27/5))
         """
         return self.dilation(1/scalar)
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
     @coerce_binop
     def convex_hull(self, other):

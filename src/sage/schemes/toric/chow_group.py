@@ -786,7 +786,7 @@ class ChowGroup_class(FGP_Module_class):
         return V.span(relations)
 
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of the Chow group by a subgroup.
 
@@ -804,6 +804,8 @@ class ChowGroup_class(FGP_Module_class):
             NotImplementedError: Quotients of the Chow group are not implemented.
         """
         raise NotImplementedError('Quotients of the Chow group are not implemented.')
+    # for Python 2 without from __future__ import division
+    __div__ = __truediv__
 
 
     def _repr_(self):
