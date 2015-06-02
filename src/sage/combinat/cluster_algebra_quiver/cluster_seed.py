@@ -12,7 +12,7 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 
-.. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
+.. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
 
 #*****************************************************************************
@@ -34,7 +34,7 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMut
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 
 class ClusterSeed(SageObject):
-    r"""
+    """
     The *cluster seed* associated to an *exchange matrix*.
 
     INPUT:
@@ -46,6 +46,7 @@ class ClusterSeed(SageObject):
         * ClusterQuiver
         * Matrix - a skew-symmetrizable matrix
         * DiGraph - must be the input data for a quiver
+        * List of triangles - must be the list of triangles from a triangulation (see Examples)
         * List of edges - must be the edge list of a digraph for a quiver
 
     EXAMPLES::
@@ -82,8 +83,22 @@ class ClusterSeed(SageObject):
 
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
+
+        sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+        sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+        sage: S = ClusterSeed(T); S
+        A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
+        sage: S.cluster()
+        [x0, x1, x2, x3]
+
+        sage: T.mutate(['a','b','r'])
+        sage: S = ClusterSeed(T); S
+        A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
+        sage: S.cluster()
+        [(x2*x3 + x1)/x0, (x2*x3 + x0 + x1)/(x0*x1), x2, (x2*x3 + x0 + x1)/(x0*x3)]
+
     """
-    def __init__(self, data, frozen=None, is_principal=None):
+    def __init__(self, data, frozen=None, is_principal=None, from_surface=False):
         r"""
         TESTS::
 
@@ -91,9 +106,16 @@ class ClusterSeed(SageObject):
             sage: TestSuite(S).run()
         """
         from quiver import ClusterQuiver
+        from cluster_triangulation import ClusterTriangulation
+
+        if type(data) in [ClusterSeed, ClusterQuiver, ClusterTriangulation]:
+            self._from_surface = from_surface if from_surface else data._from_surface
+        else:
+            self._from_surface = from_surface
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):
+            #print " In cluster_seed, I get ClusterSeed, data: ", data
             if frozen:
                 print "The input \'frozen\' is ignored"
             self._M = copy( data._M )
@@ -108,22 +130,30 @@ class ClusterSeed(SageObject):
 
         # constructs a cluster seed from a quiver
         elif isinstance(data, ClusterQuiver):
+            #print " In cluster_seed, I get ClusterQuiver, data: ", data
             if frozen:
                 print "The input \'frozen\' is ignored"
 
-            quiver = ClusterQuiver( data )
+            quiver = ClusterQuiver( data)#, boundary_edges=data._boundary_edges )
             self._M = copy(quiver._M)
             self._n = quiver._n
             self._m = quiver._m
             self._quiver = quiver
             self._mutation_type = quiver._mutation_type
-            self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
+            if not from_surface:
+                self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
             self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['y%s'%i for i in range(0,self._m)]))
             self._cluster = list(self._R.gens())
             self._is_principal = None
 
+            #self._cluster_triangulation = quiver._cluster_triangulation
+            #if self._cluster_triangulation:# is not None:
+            #if from_surface:
+            #    self._description += ' from a triangulation with %d boundary edges' %self._m #%len(self._cluster_triangulation._boundary_edges)
+
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
+            #print " In cluster_seed, I get else, data: ", data
             quiver = ClusterQuiver( data, frozen=frozen )
             self.__init__( quiver )
 
@@ -462,6 +492,11 @@ class ClusterSeed(SageObject):
             sage: S.mutate([2,1])
             sage: S.cluster()
             [x0, x1, x2]
+
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: T.cluster()
+            [x0, x1, x2, x3]
         """
         return [ self.cluster_variable(k) for k in range(self._n) ]
 
@@ -709,8 +744,14 @@ class ClusterSeed(SageObject):
             Quiver on 3 vertices of type ['A', 3]
         """
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+        from sage.combinat.cluster_algebra_quiver.cluster_triangulation import ClusterTriangulation
+
         if self._quiver is None:
-            self._quiver = ClusterQuiver( self._M )
+            #self._quiver = ClusterQuiver( self._M )
+            if isinstance(self,ClusterTriangulation):
+                self._quiver = ClusterQuiver(self._M, from_surface=True)
+            else:
+                self._quiver = ClusterQuiver( self._M, from_surface=self._from_surface )
         return self._quiver
 
     def is_acyclic(self):
@@ -801,6 +842,8 @@ class ClusterSeed(SageObject):
         else:
             seed = ClusterSeed( self )
 
+        #print "I am in cluster_seed.mutate with seed: ", seed # TODO ERASE
+
         n, m = seed._n, seed._m
         V = range(n)
 
@@ -820,11 +863,14 @@ class ClusterSeed(SageObject):
 
         for k in seq:
             M = seed._M
+            #print 'self._n:', self._n
+            #print 'self._m:', self._m
             cluster = seed._cluster
             mon_p = seed._R(1)
             mon_n = seed._R(1)
 
             for j in range(n+m):
+                #print 'j,k: ', j,',', k
                 if M[j,k] > 0:
                     mon_p = mon_p*cluster[j]**M[j,k]
                 elif M[j,k] < 0:
