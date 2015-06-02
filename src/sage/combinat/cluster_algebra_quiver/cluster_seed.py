@@ -494,6 +494,11 @@ class ClusterSeed(SageObject):
             sage: S.mutate([2,1])
             sage: S.cluster()
             [x0, x1, x2]
+
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: T.cluster()
+            [x0, x1, x2, x3]
         """
         return [ self.cluster_variable(k) for k in range(self._n) ]
 
@@ -860,11 +865,14 @@ class ClusterSeed(SageObject):
 
         for k in seq:
             M = seed._M
+            #print 'self._n:', self._n
+            #print 'self._m:', self._m
             cluster = seed._cluster
             mon_p = seed._R(1)
             mon_n = seed._R(1)
 
             for j in range(n+m):
+                #print 'j,k: ', j,',', k
                 if M[j,k] > 0:
                     mon_p = mon_p*cluster[j]**M[j,k]
                 elif M[j,k] < 0:

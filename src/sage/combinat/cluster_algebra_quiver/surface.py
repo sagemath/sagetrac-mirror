@@ -417,7 +417,7 @@ def _get_user_arc_labels(T):
     T_user_labels.sort()
     return T_user_labels
 
-def _get_map_label_to_variable(T, cluster, boundary_edges, boundary_edges_vars):
+def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges_vars):
     """
     Return a dictionary of tuples ``{a:b, ...}`` where ``a`` is a user-given label from input ``T``
     and ``b`` is the variable x_i or b_i corresponding to ``a1``.
@@ -433,23 +433,23 @@ def _get_map_label_to_variable(T, cluster, boundary_edges, boundary_edges_vars):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_map_label_to_variable
+        sage: from sage.combinat.cluster_algebra_quiver.surface import produce_dict_label_to_variable
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
-        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
-        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x1*x2, 3: x3, 4: x3*x4, 6: x5, 7: x6}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
-        sage: _get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
         {'a': x0, 'b': x1, 'd': x2, 'e': b5, 'g': x3, 'n': b6, 'r': x4}
     """
-    #dic = []
+    dic = []
     list_radius = []
     list_ell = []
 
@@ -457,20 +457,27 @@ def _get_map_label_to_variable(T, cluster, boundary_edges, boundary_edges_vars):
     arcs = []
     boundary_edges.sort()
 
+    #print 'T_user_labels: ',T_user_labels
+
     for l in T_user_labels:
         if l not in boundary_edges:
             arcs.append(l)
 
-    if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
-        dic_x = dict((arcs[pos],cluster[pos]) for pos in range(0,len(cluster)))
-        dic_b = dict((boundary_edges[pos],boundary_edges_vars[pos]) for pos in range(0,len(boundary_edges_vars)))
-        dic = dict(list(dic_x.items()) + list(dic_b.items()))
+    #print 'arcs: ', arcs
+    #print 'boundary_edges: ', boundary_edges
+    #print 'cluster_xs: ', cluster_xs
+    #print 'boundary_edges_vars: ', boundary_edges_vars
+    #if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
+    dic_x = dict((arcs[pos],cluster_xs[pos]) for pos in range(0,len(cluster_xs)))
+    dic_b = dict((boundary_edges[pos],boundary_edges_vars[pos]) for pos in range(0,len(boundary_edges_vars)))
+    dic = dict(list(dic_x.items()) + list(dic_b.items()))
 
         #for pos in range(0,len(cluster)):
         #    dic.append((arcs[pos], cluster[pos]))
         #for pos in range(0,len(boundary_edges_vars)):
         #    dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
 
+    #print 'dic: ', dic
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded(triangle)
@@ -489,14 +496,15 @@ def _get_map_label_to_variable(T, cluster, boundary_edges, boundary_edges_vars):
             ind = list_ell.index(cluster_var)
             dic[user_label] =  list_ell[ind] * list_radius[ind]
 
+    #print 'I am in _get_map_label_to_variable, dic: ', dic
     return dic
 
-def _get_map_variable_to_label(td):
+def produce_dict_variable_to_label(td):
     """
     Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and
     ``a`` is the user-given label corresponding to ``b``.
 
-    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type._get_map_label_to_variable`
+    See :class:`ClusterTriangulation` and :func:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.produce_dict_label_to_label`
 
     INPUT:
 
@@ -504,20 +512,20 @@ def _get_map_variable_to_label(td):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.surface import _get_map_label_to_variable, _get_map_variable_to_label
+        sage: from sage.combinat.cluster_algebra_quiver.surface import produce_dict_label_to_variable, produce_dict_variable_to_label
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
-        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: produce_dict_variable_to_label(produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {x7: 7, x6: 6, x5: 5, x4: 4, x3: 3, x2: 2, x1: 1, x0: 0}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
-        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: produce_dict_variable_to_label(produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {x6: 7, x5: 6, x3: 3, x1: 1, x0: 0, x3*x4: 4, x1*x2: 2}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
         sage: T = ClusterTriangulation(twice_punctured_bigon, boundary_edges=['e','n'])
-        sage: _get_map_variable_to_label(_get_map_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
+        sage: produce_dict_variable_to_label(produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars))
         {b6: 'n', b5: 'e', x4: 'r', x3: 'g', x2: 'd', x1: 'b', x0: 'a'}
     """
     return {v: k for k, v in td.items()}
