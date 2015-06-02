@@ -871,6 +871,14 @@ class Magmas(Category_singleton):
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
         def magma_closure_iter(self, I, predicate=lambda x:True, return_word=False):
+            r"""
+            Return an breadth first iterator through all elements
+            by brute force.
+
+            EXAMPLES::
+
+                tba
+            """
             index_list = range(len(I))
             if hasattr(self,'one'):
                 elements = [ (self.one(),[]) ]
