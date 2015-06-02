@@ -1,10 +1,10 @@
-= libFES =
+= libfes =
 
 == Description ==
 
 Fast Exhaustive Search for Polynomial Systems over $\mathbb{F}_2$
 
-libFES is a software library devoted to solving systems of polynomial equations over $\mathbb{F}_2$. As the name suggest, this is done by exhaustive search, and it is fast.
+libfes is a software library devoted to solving systems of polynomial equations over $\mathbb{F}_2$. As the name suggest, this is done by exhaustive search, and it is fast.
 
 Website: http://www.lifl.fr/~bouillag/fes/
 

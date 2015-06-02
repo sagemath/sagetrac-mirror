@@ -11,7 +11,7 @@ cd src
 
 autoreconf -i -v
 if [ $? -ne 0 ]; then
-    echo "Error running autoreconf for libFES"
+    echo "Error running autoreconf for libfes"
     exit 1
 fi
 
@@ -21,19 +21,19 @@ fi
     --enable-shared \
     --disable-static
 if [ $? -ne 0 ]; then
-    echo "Error configuring libFES"
+    echo "Error configuring libfes"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building libFES"
+    echo "Error building libfes"
     exit 1
 fi
 
 $MAKE -j1 install
 if [ $? -ne 0 ]; then
-    echo "Error installing libFES"
+    echo "Error installing libfes"
     exit 1
 fi
 
