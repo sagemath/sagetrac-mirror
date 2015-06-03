@@ -943,7 +943,8 @@ def _triangles_mutate(T,diagonal):
 def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
                                 final_triangle=None, is_arc=None,
                                 is_loop=None, verbose=False,
-                                boundary_edges=None, fig_size=1):
+                                boundary_edges=None, fig_size=1,
+                                is_principal=False):
     """
     Return the Laurent expansion of the cluster algebra element
     (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
@@ -973,6 +974,9 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
       perfect matchings of the snake graph if ``True``
 
     - ``fig_size`` -- (default:1) image size
+
+    - ``is_principal`` -- (default:``False``) ``True`` if the seed corresponding to ``T``
+      has principal coefficients (otherwise the seed is coefficient-free)
 
     ALGORITHM:
 
@@ -1004,8 +1008,21 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
         sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
         sage: S = ClusterSeed(T)
         sage: S1=S.mutate(0,inplace=False)
-        sage: S1.cluster_variable(0) == LaurentExpansionFromSurface(T.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None)
+        sage: S1._cluster
+        [(x1*x3 + x2*x4)/x0, x1, x2, x3, x4, x5, x6]
+        sage: S1.cluster_variable(0) ==\
+        ....: LaurentExpansionFromSurface(T.weighted_triangulation(),[S.x(0)],None,None,\
+        ....: is_arc=True,is_loop=None,verbose=None,boundary_edges=None,is_principal=False)
         True
+
+        sage: SP = S.principal_extension()
+        sage: SP.mutate(0)
+        sage: SP._cluster
+        [(x1*x3*y0 + x2*x4)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
+
+        sage: TP = T.principal_extension()
+        sage: LaurentExpansionFromSurface(TP.weighted_triangulation(),[S.x(0)],None,None,True,None,None,None,None,TP._is_principal)
+        (x1*x3*y0 + x2*x4)/x0
 
     Figure 6 of Musiker and Williams' "Matrix Formulae and Skein
     Relations for Cluster Algebras from Surfaces" [MW_MatrixFormulae]_
@@ -1020,14 +1037,33 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
         sage: c = [item for item in S.cluster()]
         sage: LaurentExpansionFromSurface(T.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
         (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
+
+        sage: TP = T.principal_extension()
+        sage: LaurentExpansionFromSurface(TP.weighted_triangulation(),[c[1],c[2],c[3],c[0],c[1]],\
+        ....: None,None,is_arc=None,is_loop=True,verbose=True,boundary_edges=T._boundary_edges_vars,is_principal=True)
+
+
     """
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
         raise ValueError('crossed_arcs should be a non-empty list object '
                          'of cluster variable/s')
-
     G = _snake_graph(T,crossed_arcs,first_triangle, final_triangle,
                      is_arc, is_loop, 1, boundary_edges)
     all_matchings = GetAllMatchings(G)
+
+    all_matchings_symmetricdifference_minpm = None
+    if is_principal: # To compute principal coefficients
+        all_matchings_symmetricdifference_minpm = []
+        min_pm = GetMinimalMatching(G)
+        for pm in all_matchings:
+            minpm_symmetric_difference_pm = matching_symmetric_difference(min_pm, pm)
+
+            #print ' '
+            #print 'pm: ', pm
+            #print 'minpm_symmetric_difference_pm: ', minpm_symmetric_difference_pm
+            #print ' '
+
+            all_matchings_symmetricdifference_minpm.append(minpm_symmetric_difference_pm)
 
     if verbose:
         print "**************** Perfect Matchings and Their Weights: *****************"
@@ -1038,9 +1074,15 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
 
         for pos in range(0,len(all_matchings)):
             PM = all_matchings[pos]
+            if is_principal:
+                SD = all_matchings_symmetricdifference_minpm[pos]
+            else:
+                SD = None
             matching_weight = GetMonomialTerm(G, PM)
             draw_G = _draw_snake_graph(G, print_user_labels=False,xy=xy)
-            matching_drawing, xy = _draw_matching(PM, matching_weight,pos,xy, white_space=1, print_user_labels=False)
+            matching_drawing, xy = _draw_matching(perfect_matching=PM, \
+            matching_weight=matching_weight,pos=pos,xy=xy, white_space=1, \
+            print_user_labels=False, symmetric_difference=SD)
             drawing += matching_drawing + draw_G
 
         drawing.set_aspect_ratio(1)
@@ -1050,6 +1092,118 @@ def LaurentExpansionFromSurface(T, crossed_arcs, first_triangle=None,
 
     return SumOfMonomialTerms(G, all_matchings, boundary_edges)/ GetDenominator(G)
 
+
+def matching_symmetric_difference(min_pm, pm):
+    """
+    Return the symmetric difference of the (snake graph) perfect matchings
+    ``min_pm`` and ``pm``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import matching_symmetric_difference, GetMinimalMatching, _snake_graph
+        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+        sage: G = _snake_graph(T._weighted_triangulation,[T.cluster_variable(0)],
+        ....: first_triangle=None, final_triangle=None, is_arc=True, is_loop=False,
+        ....: first_tile_orientation=1, boundary_edges=None)
+        sage: Pmin = GetMinimalMatching(G)
+        sage: Pmin
+        [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+        sage: matching_symmetric_difference(Pmin,Pmin)
+        [['minimal PM'], [[(0, 0, 0, 0), 'ABOVE']]]
+        sage: matching_symmetric_difference(Pmin,[[0], [[(0, 1, 0, 1), 'ABOVE']]])
+        [[0], [[(1, 1, 1, 1), 'ABOVE']]]
+    """
+    minpm_union_pm = matching_union(min_pm, pm)
+    minpm_intersect_pm = matching_intersection(min_pm, pm)
+    minpm_symmetric_difference_pm = matching_subtract(minpm_union_pm, minpm_intersect_pm)
+    return minpm_symmetric_difference_pm
+
+def matching_union(pmA, pmB):
+    """
+    Return the union of the (snake graph) perfect matchings
+    ``min_pm`` and ``pm``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import matching_union, GetMinimalMatching, _snake_graph
+        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+        sage: G = _snake_graph(T._weighted_triangulation,[T.cluster_variable(0)],
+        ....: first_triangle=None, final_triangle=None, is_arc=True, is_loop=False,
+        ....: first_tile_orientation=1, boundary_edges=None)
+        sage: Pmin = GetMinimalMatching(G)
+        sage: Pmin
+        [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+        sage: matching_union(Pmin,Pmin) == Pmin
+        True
+        sage: matching_union(Pmin,[[0], [[(0, 1, 0, 1), 'ABOVE']]])
+        [[0], [[(1, 1, 1, 1), 'ABOVE']]]
+    """
+    tile_count = len(pmA[1]) # Always put pmA as the minimal matching
+    pmC = []
+    tileC_matching = [-1,-1,-1,-1]
+    for tile_pos in range(0,tile_count):
+        tileA = pmA[1][tile_pos]
+        tileB = pmB[1][tile_pos]
+        #print 'tileA:', tileA
+        for pos in range(0,4):
+            #print 'tileA[0][pos]: ', tileA[0][pos]
+            tileC_matching[pos] = tileA[0][pos] or tileB[0][pos]
+        tileC = [(tileC_matching[0],tileC_matching[1],tileC_matching[2],tileC_matching[3]), tileA[1]]
+        pmC.append(tileC)
+
+    #print [pmB[0], pmC]
+    return [pmB[0], pmC]
+
+def matching_intersection(pmA, pmB):
+    """
+    Return the intersection of the (snake graph) perfect matchings
+    ``min_pm`` and ``pm``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import matching_intersection, GetMinimalMatching, _snake_graph
+        sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+        sage: G = _snake_graph(T._weighted_triangulation,[T.cluster_variable(0)],
+        ....: first_triangle=None, final_triangle=None, is_arc=True, is_loop=False,
+        ....: first_tile_orientation=1, boundary_edges=None)
+        sage: Pmin = GetMinimalMatching(G)
+        sage: Pmin
+        [['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]]
+        sage: matching_intersection(Pmin,Pmin) == Pmin
+        True
+        sage: matching_intersection(Pmin,[[0], [[(0, 1, 0, 1), 'ABOVE']]])
+        [[0], [[(0, 0, 0, 0), 'ABOVE']]]
+    """
+    tile_count = len(pmA[1]) # Always put pmA as the minimal matching
+    pmC = []
+    tileC_matching = [-1,-1,-1,-1]
+    for tile_pos in range(0,tile_count):
+        tileA = pmA[1][tile_pos]
+        tileB = pmB[1][tile_pos]
+        #print 'tileA:', tileA
+        for pos in range(0,4):
+            #print 'tileA[0][pos]: ', tileA[0][pos]
+            tileC_matching[pos] = tileA[0][pos] and tileB[0][pos]
+        tileC = [(tileC_matching[0],tileC_matching[1],tileC_matching[2],tileC_matching[3]), tileA[1]]
+        pmC.append(tileC)
+    return [pmB[0], pmC]
+
+def matching_subtract(bigger_pm, smaller_pm):
+    pmA = bigger_pm
+    pmB = smaller_pm
+    tile_count = len(pmA[1]) # Always put pmA as the minimal matching
+    pmC = []
+    tileC_matching = [-1,-1,-1,-1]
+    for tile_pos in range(0,tile_count):
+        tileA = pmA[1][tile_pos]
+        tileB = pmB[1][tile_pos]
+        #print 'tileA:', tileA
+        for pos in range(0,4):
+            #print 'tileA[0][pos]: ', tileA[0][pos]
+            tileC_matching[pos] = tileA[0][pos] - tileB[0][pos]
+        tileC = [(tileC_matching[0],tileC_matching[1],tileC_matching[2],tileC_matching[3]), tileA[1]]
+        pmC.append(tileC)
+    return [pmB[0], pmC]
 
 def GetAllMatchings(G):
     """
@@ -2031,8 +2185,20 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
 ### BEGIN: DRAWING SNAKE GRAPH ###
 ##################################
 
-def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1, print_user_labels=False):
+def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1, print_user_labels=False, symmetric_difference=None):
     """
+    Returns drawing of a single snake graph with perfect matchings and symmetric difference.
+
+    INPUT:
+
+    - ``perfect_matching`` -- perfect_matching
+    - ``matching_weight`` -- matching_weight
+    - ``pos`` -- pos
+    - ``xy`` -- current position's Cartesian coordinate (x,y)
+    - ``white_space`` -- white_space
+    - ``print_user_labels`` -- whether to print user labels or to print variables x_i for labeling the edges of the perfect matching
+    - ``symmetric_difference`` -- symmetric difference of the minimal matching and perfect_matching
+
     EXAMPLES:
     perfect_matching looks like
   [['minimal PM'],
@@ -2060,8 +2226,20 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
         sage: c = T.cluster()
         sage: G = T.list_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
         sage: min_pm = GetMinimalMatching(G)
+        sage: min_pm
+        [['minimal PM'],
+        [[(1, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 1), 'RIGHT'],
+        [(1, 0, 1, 0), 'RIGHT'],
+        [(0, 1, 0, 0), 'ABOVE']]]
         sage: PM = FlipAllFlippableTiles(min_pm)[0]
         sage: monomial_term = GetMonomialTerm(G, PM, boundary_edges=T._boundary_edges_vars)
+        sage: PM
+        [[2],
+        [[(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'RIGHT'],
+        [(0, 1, 0, 1), 'RIGHT'],
+        [(0, 1, 0, 1), 'ABOVE']]]
         sage: _draw_matching(PM, monomial_term, print_user_labels=False)
         (Graphics object consisting of 8 graphics primitives, (4, 0))
     """
@@ -2071,7 +2249,9 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
 
     drawing = Graphics()
     PM_color = 'black'
-    PM_thickness=6
+    PM_thickness = 6
+    SD_color = 'red'
+    SD_thickness = 4
 
     (x,y)=xy
 
@@ -2093,12 +2273,29 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
             drawing = drawing + line([(x+0,y+1),(x+1,y+1)], rgbcolor=PM_color, thickness=PM_thickness)
         elif PM[0][3] == 1: # left
             drawing = drawing + line([(x+0,y+0),(x+0,y+1)], rgbcolor=PM_color, thickness=PM_thickness)
-
         DIR = PM[1]
         if DIR == ABOVE:
             y=y+1
         else:
             x=x+1
+
+    if symmetric_difference:
+        (x,y)=xy
+        for SD in symmetric_difference[1]:
+            if SD[0][0] == 1: # floor
+                drawing = drawing + line([(x+0,y+0),(x+1,y+0)], rgbcolor=SD_color, thickness=SD_thickness)
+            if SD[0][1] == 1: # right
+                drawing = drawing + line([(x+1,y+0),(x+1,y+1)], rgbcolor=SD_color, thickness=SD_thickness)
+            if SD[0][2] == 1: # ceiling
+                drawing = drawing + line([(x+0,y+1),(x+1,y+1)], rgbcolor=SD_color, thickness=SD_thickness)
+            if SD[0][3] == 1: # left
+                drawing = drawing + line([(x+0,y+0),(x+0,y+1)], rgbcolor=SD_color, thickness=SD_thickness)
+
+            DIR = SD[1]
+            if DIR == ABOVE:
+                y=y+1
+            else:
+                x=x+1
 
     return drawing, (x+ 2*white_space,0)
 
