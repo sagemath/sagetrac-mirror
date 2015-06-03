@@ -406,13 +406,18 @@ ext_modules = [
               sources = ['sage/graphs/comparability.pyx']),
 
     Extension('sage.graphs.generic_graph_pyx',
-              sources = ['sage/graphs/generic_graph_pyx.pyx']),
+              sources = ['sage/graphs/generic_graph_pyx.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.graph_generators_pyx',
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx']),
+
+    Extension('sage.graphs.base.boost_graph',
+              sources = ['sage/graphs/base/boost_graph.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.base.graph_backends',
               sources = ['sage/graphs/base/graph_backends.pyx']),
@@ -2003,3 +2008,4 @@ ext_modules = [
 # Add auto-generated modules
 import sage_setup.autogen.interpreters
 ext_modules += sage_setup.autogen.interpreters.modules
+
