@@ -1493,7 +1493,7 @@ class ClusterTriangulation(ClusterSeed):
                                                  CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
-        return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+        return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
     def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
                                final_triangle=None, verbose=False,
@@ -1587,7 +1587,7 @@ class ClusterTriangulation(ClusterSeed):
                                                  CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
-        return LaurentExpansionFromSurface(CT._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+        return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
     def principal_extension(self,ignore_coefficients=False):
         r"""
