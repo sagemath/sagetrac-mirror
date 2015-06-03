@@ -304,7 +304,7 @@ from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
-
+from cpython.number cimport PyNumber_TrueDivide
 
 def fast_callable(x, domain=None, vars=None,
                   _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,
@@ -891,7 +891,7 @@ cdef class Expression:
         """
         return _expression_binop_helper(s, o, op_mul)
 
-    def __div__(s, o):
+    def __truediv__(s, o):
         r"""
         Compute a quotient of two Expressions.
 
@@ -912,6 +912,10 @@ cdef class Expression:
             div(1, v_0)
         """
         return _expression_binop_helper(s, o, op_div)
+
+    # for Python 2 without from __future__ import division
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __floordiv__(s, o):
         r"""

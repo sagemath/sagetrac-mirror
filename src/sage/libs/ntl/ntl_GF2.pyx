@@ -20,6 +20,7 @@ include 'decl.pxi'
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
+from cpython.number cimport PyNumber_TrueDivide
 
 ##############################################################################
 # GF2: Bits
@@ -128,7 +129,7 @@ cdef class ntl_GF2:
         GF2_mul(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
@@ -149,6 +150,10 @@ cdef class ntl_GF2:
         r = ntl_GF2.__new__(ntl_GF2)
         GF2_div(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
+
+    # for Python 2 without from __future__ import division
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __sub__(self, other):
         """
