@@ -233,8 +233,9 @@ class CurveEnumerator_abstract(object):
             raise ValueError("Height upper bound must be greater "
                              "than or equal to lower bound.")
 
-        coeffs = [ceil(lowerbound**(1/n))-1 for n in self._pows]
-        height = max([coeffs[i]**(self._pows[i]) for i in range(self._num_coeffs)])
+        coeffs = [ceil(lowerbound ** (1 / n)) - 1 for n in self._pows]
+        height = max([coeffs[i] ** (self._pows[i])
+                      for i in range(self._num_coeffs)])
 
         L = []
         while height <= upperbound:
@@ -273,7 +274,7 @@ class CurveEnumerator_abstract(object):
             sage: EllipticCurve([0,0,0,-3, 2])
             Traceback (most recent call last):
             ...
-            ArithmeticError: Invariants [0, 0, 0, -3, 2] define a singular curve.
+            ArithmeticError: invariants (0, 0, 0, -3, 2) define a singular curve
         """
         a1 = C[0]
         a2 = C[1]
