@@ -187,29 +187,29 @@ def _triangulation_to_arrows(list_triangles):
 
         sage: annulus1_1 = [[2, 1, 0], [3, 2, 1]]
         sage: _surface_edge_list_to_matrix(_triangulation_to_arrows(annulus1_1),_get_user_arc_labels(annulus1_1),[],4)
-        [ 0 -1  1  0]
-        [ 1  0 -2  1]
-        [-1  2  0 -1]
-        [ 0 -1  1  0]
+        [ 0  1 -1  0]
+        [-1  0  2 -1]
+        [ 1 -2  0  1]
+        [ 0  1 -1  0]
 
         sage: T = [[1,4,2],[3,4,3],[2,0,1]] # twice-punctured monogon with 3 (non-ordinary) ideal triangles (affine D)
         sage: B = _surface_edge_list_to_matrix(_triangulation_to_arrows(T),_get_user_arc_labels(T),[],5)
         sage: Q = ClusterQuiver(B)
         sage: Q.b_matrix()
-        [ 0  1 -1  0  0]
-        [-1  0  0  1  1]
+        [ 0 -1  1  0  0]
         [ 1  0  0 -1 -1]
-        [ 0 -1  1  0  0]
-        [ 0 -1  1  0  0]
+        [-1  0  0  1  1]
+        [ 0  1 -1  0  0]
+        [ 0  1 -1  0  0]
 
         sage: Tmu2 = [(1,1,2),(3,4,3),(2,4,0)] # 2 self-folded triangles and 1 triangle with one vertex (affine D)
         sage: Bmu2 = _surface_edge_list_to_matrix(_triangulation_to_arrows(Tmu2),_get_user_arc_labels(Tmu2),[],5)
         sage: Bmu2
-        [ 0  1  1 -1 -1]
-        [-1  0  0  1  1]
-        [-1  0  0  1  1]
-        [ 1 -1 -1  0  0]
-        [ 1 -1 -1  0  0]
+        [ 0 -1 -1  1  1]
+        [ 1  0  0 -1 -1]
+        [ 1  0  0 -1 -1]
+        [-1  1  1  0  0]
+        [-1  1  1  0  0]
 
         sage: Bmu2.mutate(2)
         sage: Bmu2 == B
@@ -327,11 +327,12 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
         [ 0  1 -1]
         [-1  0  1]
         [ 1 -1  0]
+
         sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix
         sage: _surface_edge_list_to_matrix([(0,1,None),(1,2,None),(2,0,None),(2,0,None)],[0,1,2],[],3)
-        [ 0  1 -2]
-        [-1  0  1]
-        [ 2 -1  0]
+        [ 0 -1  2]
+        [ 1  0 -1]
+        [-2  1  0]
 
     INPUT:
 
@@ -349,16 +350,16 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
         sage: from sage.combinat.cluster_algebra_quiver.surface import _surface_edge_list_to_matrix, _triangulation_to_arrows
         sage: annulus2_2 = [('bd1','tau1','tau2'),('tau2','tau3','bd4'),('tau1','tau4','bd2'),('tau3','bd3','tau4')]
         sage: _surface_edge_list_to_matrix(_triangulation_to_arrows(annulus2_2),['bd1', 'bd2', 'bd3', 'bd4', 'tau1', 'tau2', 'tau3', 'tau4'],['bd1', 'bd2', 'bd3', 'bd4'],4)
-        [ 0  1  0  1]
-        [-1  0  1  0]
         [ 0 -1  0 -1]
-        [-1  0  1  0]
+        [ 1  0 -1  0]
+        [ 0  1  0  1]
+        [ 1  0 -1  0]
 
         sage: _surface_edge_list_to_matrix([[0,1,None],[1,2,None],[2,0,None],[2,3,None],[0,3,None],[3,0,None]],[0,1,2,3],[],4)
-        [ 0  1 -1  0]
-        [-1  0  1  0]
-        [ 1 -1  0  1]
-        [ 0  0 -1  0]
+        [ 0 -1  1  0]
+        [ 1  0 -1  0]
+        [-1  1  0 -1]
+        [ 0  0  1  0]
     """
     from sage.rings.all import ZZ
     from sage.matrix.all import matrix
@@ -396,7 +397,7 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
             M[v2,v1] += b
         if v2 < arcs_count:
             M[v1,v2] += a
-    return M
+    return -1*M
 
 def _get_user_arc_labels(T):
     """
@@ -1017,11 +1018,11 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         sage: SP = S.principal_extension()
         sage: SP.mutate(0)
         sage: SP._cluster
-        [(x1*x3*y0 + x2*x4)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
+        [(x2*x4*y0 + x1*x3)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
 
         sage: CTP = CT.principal_extension()
         sage: LaurentExpansionFromSurface(CTP,[CTP.cluster_variable(0)],None,None,True,None,None,None,None)
-        (x1*x3*y0 + x2*x4)/x0
+        (x2*x4*y0 + x1*x3)/x0
 
     Figure 6 of Musiker and Williams' "Matrix Formulae and Skein
     Relations for Cluster Algebras from Surfaces" [MW_MatrixFormulae]_

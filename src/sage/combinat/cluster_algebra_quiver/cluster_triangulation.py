@@ -380,24 +380,24 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation(twice_punctured_monogon)
             sage: B = T.b_matrix()
             sage: B
-            [ 0  1 -1  0  0]
-            [-1  0  0  1  1]
+            [ 0 -1  1  0  0]
             [ 1  0  0 -1 -1]
-            [ 0 -1  1  0  0]
-            [ 0 -1  1  0  0]
-            sage: twice_punctured_monogon_mu2 = [(4,5,5),(2,3,3),(1,4,2)]
+            [-1  0  0  1  1]
+            [ 0  1 -1  0  0]
+            [ 0  1 -1  0  0]
 
         2 self-folded triangles and 1 triangle with one vertex
         (affine D) Figure 9 (right) of [FominShapiroThurston]_ ::
 
+            sage: twice_punctured_monogon_mu2 = [(4,5,5),(2,3,3),(1,4,2)]
             sage: Tmu2 = ClusterTriangulation(twice_punctured_monogon_mu2)
             sage: Bmu2 = Tmu2.b_matrix()
             sage: Bmu2
-            [ 0 -1 -1  1  1]
-            [ 1  0  0 -1 -1]
-            [ 1  0  0 -1 -1]
-            [-1  1  1  0  0]
-            [-1  1  1  0  0]
+            [ 0  1  1 -1 -1]
+            [-1  0  0  1  1]
+            [-1  0  0  1  1]
+            [ 1 -1 -1  0  0]
+            [ 1 -1 -1  0  0]
             sage: B.mutate(1)
             sage: Bmu2 == B
             True
@@ -412,10 +412,10 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=['boundary'])
             sage: B = T.b_matrix()
             sage: B
-            [ 0  0  1  1]
-            [ 0  0  1  1]
-            [-1 -1  0  0]
-            [-1 -1  0  0]
+            [ 0  0 -1 -1]
+            [ 0  0 -1 -1]
+            [ 1  1  0  0]
+            [ 1  1  0  0]
 
         Figure 10 (top) of [FominShapiroThurston]_ ::
 
@@ -423,10 +423,10 @@ class ClusterTriangulation(ClusterSeed):
             sage: Tmu3 = ClusterTriangulation(twice_punctured_monogon_mu3, boundary_edges=['boundary'])
             sage: Bmu3 = Tmu3.b_matrix()
             sage: Bmu3
-            [ 0  0 -1  1]
-            [ 0  0 -1  1]
-            [ 1  1  0  0]
+            [ 0  0  1 -1]
+            [ 0  0  1 -1]
             [-1 -1  0  0]
+            [ 1  1  0  0]
             sage: B.mutate(2)
             sage: Bmu3 == B
             True
@@ -1423,7 +1423,7 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: TP = T.principal_extension()
             sage: TP.arc_laurent_expansion([1,2,3],user_labels=True)
-            (x0*x2^2*y1*y2*y3 + x0*x2*y1*y2 + x0*x2*y2*y3 + x1*x3 + x0*y2)/(x1*x2*x3)
+            (x1*x3*y1*y2*y3 + x0*x2^2 + x0*x2*y1 + x0*x2*y3 + x0*y1*y3)/(x1*x2*x3)
             sage: SP = S.principal_extension()
             sage: SP.mutate([3,2,1],inplace=False).cluster_variable(1) == TP.arc_laurent_expansion([1,2,3],user_labels=True)
             True
@@ -1482,9 +1482,10 @@ class ClusterTriangulation(ClusterSeed):
             sage: S1 = S.mutate(0, inplace=False)
             sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.x(0)], user_labels=False)
             True
-            sage: Tp = T.principal_extenson()
+            sage: Tp = T.principal_extension()
             sage: Sp = S.principal_extension()
-            sage: Sp.mutate(0, inplace=False).cluster_variable(0) == Tp.arc_laurent_expansion (0, user_labels=True)
+            sage: Sp.mutate(0, inplace=False).cluster_variable(0) == Tp.arc_laurent_expansion ([0], user_labels=True)
+            True
 
             sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
             sage: S = ClusterSeed(once_punctured_torus)
@@ -1494,7 +1495,7 @@ class ClusterTriangulation(ClusterSeed):
             True
             sage: once_punctured_torus.principal_extension().arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
             ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
-
+            True
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
         CT = self#._cluster_triangulation
@@ -1619,10 +1620,10 @@ class ClusterTriangulation(ClusterSeed):
             A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges with principal coefficients
 
             sage: TP.b_matrix()
-            [ 0 -1  0  1]
-            [ 1  0  1  0]
-            [ 0 -1  0  1]
+            [ 0  1  0 -1]
             [-1  0 -1  0]
+            [ 0  1  0 -1]
+            [ 1  0  1  0]
             [ 1  0  0  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
@@ -1630,13 +1631,13 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: TP.mutate(0)
             sage: TP.cluster()
-            [(x1*y0 + x3)/x0, x1, x2, x3]
+            [(x3*y0 + x1)/x0, x1, x2, x3]
             sage: TP._cluster
-            [(x1*y0 + x3)/x0, x1, x2, x3, y0, y1, y2, y3]
+            [(x3*y0 + x1)/x0, x1, x2, x3, y0, y1, y2, y3]
             sage: SP = ClusterSeed(TP); SP
             A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges with principal coefficients of type ['A', [2, 2], 1] with principal coefficients
 
-            sage: TP.cluster() == SP.cluster()
+            sage: TP._cluster == SP._cluster
             True
 
             sage: TP.principal_extension()
@@ -1646,11 +1647,11 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: T2 = TP.principal_extension(ignore_coefficients=True)
             sage: TP.b_matrix()
-            [ 0  1  0 -1]
-            [-1  0  1  1]
             [ 0 -1  0  1]
-            [ 1 -1 -1  0]
-            [-1  0  0  1]
+            [ 1  0 -1 -1]
+            [ 0  1  0 -1]
+            [-1  1  1  0]
+            [-1  1  0  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
             [ 0  0  0  1]
