@@ -1421,6 +1421,13 @@ class ClusterTriangulation(ClusterSeed):
             sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
             True
 
+            sage: TP = T.principal_extension()
+            sage: TP.arc_laurent_expansion([1,2,3],user_labels=True)
+            (x0*x2^2*y1*y2*y3 + x0*x2*y1*y2 + x0*x2*y2*y3 + x1*x3 + x0*y2)/(x1*x2*x3)
+            sage: SP = S.principal_extension()
+            sage: SP.mutate([3,2,1],inplace=False).cluster_variable(1) == TP.arc_laurent_expansion([1,2,3],user_labels=True)
+            True
+
         A once-punctured square's triangulation with self-folded
         triangle, border edges are labeled 4,5,6,7, 2nd triangulation
         in oral paper ell-loop is labeled 3, radius is labeled 0::
@@ -1475,12 +1482,18 @@ class ClusterTriangulation(ClusterSeed):
             sage: S1 = S.mutate(0, inplace=False)
             sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.x(0)], user_labels=False)
             True
+            sage: Tp = T.principal_extenson()
+            sage: Sp = S.principal_extension()
+            sage: Sp.mutate(0, inplace=False).cluster_variable(0) == Tp.arc_laurent_expansion (0, user_labels=True)
 
             sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
             sage: S = ClusterSeed(once_punctured_torus)
             sage: c = S.cluster()
-            sage: once_punctured_torus.arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == S.mutate([0,1,2], inplace=False).cluster_variable(2)
+            sage: once_punctured_torus.arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
+            ....: S.mutate([0,1,2], inplace=False).cluster_variable(2)
             True
+            sage: once_punctured_torus.principal_extension().arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
+            ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
 
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface

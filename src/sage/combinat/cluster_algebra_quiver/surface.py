@@ -943,8 +943,7 @@ def _triangles_mutate(T,diagonal):
 def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
                                 final_triangle=None, is_arc=None,
                                 is_loop=None, verbose=False,
-                                boundary_edges=None, fig_size=1,
-                                is_principal=False):
+                                boundary_edges=None, fig_size=1):
     """
     Return the Laurent expansion of the cluster algebra element
     (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
@@ -1012,7 +1011,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         [(x1*x3 + x2*x4)/x0, x1, x2, x3, x4, x5, x6]
         sage: S1.cluster_variable(0) ==\
         ....: LaurentExpansionFromSurface(CT,[CT.cluster_variable(0)],None,None,\
-        ....: is_arc=True,is_loop=None,verbose=None,boundary_edges=None,is_principal=False)
+        ....: is_arc=True,is_loop=None,verbose=None,boundary_edges=None)
         True
 
         sage: SP = S.principal_extension()
@@ -1021,7 +1020,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         [(x1*x3*y0 + x2*x4)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
 
         sage: CTP = CT.principal_extension()
-        sage: LaurentExpansionFromSurface(CTP,[CTP.cluster_variable(0)],None,None,True,None,None,None,None,CTP._is_principal)
+        sage: LaurentExpansionFromSurface(CTP,[CTP.cluster_variable(0)],None,None,True,None,None,None,None)
         (x1*x3*y0 + x2*x4)/x0
 
     Figure 6 of Musiker and Williams' "Matrix Formulae and Skein
@@ -1040,25 +1039,25 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
 
         sage: TP = T.principal_extension()
         sage: LaurentExpansionFromSurface(TP,[c[1],c[2],c[3],c[0],c[1]],\
-        ....: None,None,is_arc=None,is_loop=True,verbose=True,boundary_edges=T._boundary_edges_vars,is_principal=True)
-
+        ....: None,None,is_arc=None,is_loop=True,verbose=True,boundary_edges=T._boundary_edges_vars)
+        **************** Perfect Matchings and Their Weights: *****************
+        (x0*x2*x3^2*y0*y1*y2*y3 + x3^2*y0*y2*y3 + x0*x1^2*x2 + x1*x3*y0*y3 + x1*x3*y2*y3 + x1^2*y3)/(x0*x1*x2*x3)
     """
     #from copy import deepcopy
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
         raise ValueError('crossed_arcs should be a non-empty list object '
                          'of cluster variable/s')
+    is_principal = CT._is_principal
     T = list(CT.weighted_triangulation())
     G_x = _snake_graph(T,crossed_arcs,first_triangle, final_triangle,
                      is_arc, is_loop, 1, boundary_edges)
-    #print 'original G: ', G_x
 
     if is_principal:
+        # Replace all x_i with the correct height monomial (see [MSW_Positivity] Thm 4.10)
         G_y = replace_x_with_y(CT, G_x)
     else:
         G_y = None
 
-    #print 'G_y: ', G_y
-    #print 'G_x after G_y is created: ', G_x
     all_matchings = GetAllMatchings(G_x)
 
     all_matchings_symmetricdifference_minpm = None
@@ -1102,34 +1101,103 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         fig_size = 0.8*fig_size
         drawing.show(axes=False,figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
 
-    return SumOfMonomialTerms(G_x, all_matchings, boundary_edges)/ GetDenominator(G_x)
+    return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm)/ GetDenominator(G_x)
 
 def replace_x_with_y(CT, G_x):
     """
-    Replace the diagonal x_i in snake graph ``G_x`` with y_i
+    Replace the diagonal x_i in snake graph ``G_x`` with y_i replace_x_with_y
+
+    EXAMPLES:
+
+    Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" [MSW_Positivity]_ ::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import replace_x_with_y
+
+        sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
+        sage: T = T.principal_extension()
+        sage: c = [item for item in T.cluster()]
+        sage: r = c[1-1]
+        sage: ell = c[2-1]* r
+        sage: snakegraph_x = T.list_snake_graph([ell,(r,'counterclockwise'), ell, c[3-1],c[4-1],c[5-1],c[6-1]], first_tile_orientation=-1, user_labels=False)
+        sage: snakegraph_x
+        [[(-1, (x2, x0*x1, b11)),
+        (-2, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise')), 'RIGHT')],
+        [(1, (x0*x1, (x0, 'counterclockwise'), (x0, 'clockwise'))),
+        (2, ((x0, 'counterclockwise'), (x0, 'clockwise'), x0*x1), 'ABOVE')],
+        [(-1, ((x0, 'counterclockwise'), x0*x1, (x0, 'clockwise'))),
+        (-2, (x2, x0*x1, b11), 'RIGHT')],
+        [(1, (x0*x1, x2, b11)), (2, (x3, x2, b12), 'RIGHT')],
+        [(-1, (x2, x3, b12)), (-2, (x4, x3, b10), 'RIGHT')],
+        [(1, (x3, x4, b10)), (2, (x9, x4, x5), 'ABOVE')],
+        [(-1, (x9, x5, x4)), (-2, (x6, x5, x8), 'ABOVE')]]
+
+        sage: replace_x_with_y(T, snakegraph_x)
+        [[(-1, (x2, y1, b11)),
+        (-2, ((x0, 'counterclockwise'), y1, (x0, 'clockwise')), 'RIGHT')],
+        [(1, (x0*x1, (y0/y1, 'counterclockwise'), (x0, 'clockwise'))),
+        (2, ((x0, 'counterclockwise'), (y0/y1, 'clockwise'), x0*x1), 'ABOVE')],
+        [(-1, ((x0, 'counterclockwise'), y1, (x0, 'clockwise'))),
+        (-2, (x2, y1, b11), 'RIGHT')],
+        [(1, (x0*x1, y2, b11)), (2, (x3, y2, b12), 'RIGHT')],
+        [(-1, (x2, y3, b12)), (-2, (x4, y3, b10), 'RIGHT')],
+        [(1, (x3, y4, b10)), (2, (x9, y4, x5), 'ABOVE')],
+        [(-1, (x9, y5, x4)), (-2, (x6, y5, x8), 'ABOVE')]]
+
     """
     G_y = []
-    #G_y = deepcopy(G_x) # list() or copy() is not enough to keep G_x unchanged after G_y is changed
-    for tile_pos in range(0,len(G_x)):
-        triangle = G_x[tile_pos][0][1]
-        diagonal_x = triangle[1]
-        label_of_diagonal_x = CT._get_map_variable_to_label(diagonal_x)
-        #print 'label_of_diagonal_x: ', label_of_diagonal_x
-        position_of_diagonal_x = CT.get_edge_position(label_of_diagonal_x)
-        #print 'position_of_diagonal_x: ', position_of_diagonal_x
-        #print 'CT._n: ', CT._n
-        diagonal_y = CT._cluster[CT._n+position_of_diagonal_x]
+    selffoldedtriangles = []
+    ell_loops = []
+    for tri in CT.weighted_triangulation():
+        if isinstance(tri[0],tuple):
+            #selffoldedtriangles.append(tri)
+            ell_loops.append(tri[2])
 
-        G_y_tile_bottom = (G_x[tile_pos][0][0],(triangle[0], diagonal_y, triangle[1]))
+    for tile_pos in range(0,len(G_x)):
+        triangle_bottom = G_x[tile_pos][0][1]
+        triangle_top = G_x[tile_pos][1][1]
         tile_dir = G_x[tile_pos][1][2]
-        G_y_tile_top = (G_x[tile_pos][0][0],(triangle[0], diagonal_y, triangle[1]), tile_dir)
-        #[(1, (x1, x0, x2)), (2, (x3, x0, x4), 'ABOVE')]
-        #G_y[tile_pos][0] = (G_y[tile_pos][0][0],(triangle[0], diagonal_y, triangle[1]))
-        #tile_dir = G_y[tile_pos][1][2]
-        #G_y[tile_pos][1] = (G_y[tile_pos][0][0],(triangle[0], diagonal_y, triangle[1]), tile_dir)
-        #[(1, (x1, x0, x2)), (2, (x3, x0, x4), 'ABOVE')]
-        G_y.append([G_y_tile_bottom, G_y_tile_top])
-        print 'G_y: ', G_y
+        diagonal_x = triangle_bottom[1]
+        if isinstance(diagonal_x, tuple):
+            #print 'diagonal_x tuple: ', diagonal_x
+            label_of_radius_x = CT._get_map_variable_to_label(diagonal_x[0])
+            position_of_radius_x = CT.get_edge_position(label_of_radius_x)
+            radius_y = CT._cluster[CT._n+position_of_radius_x]
+
+            triangle_rrl = _get_triangle(CT.triangles(), label_of_radius_x, None)[0]
+            r,r,label_of_ell_x = is_selffolded(triangle_rrl)
+            position_of_ell_x = CT.get_edge_position(label_of_ell_x)
+
+            r_notched_y = CT._cluster[CT._n+position_of_ell_x]
+            diagonal_y = radius_y/r_notched_y
+            diagonal_y_bottom = (diagonal_y, diagonal_x[1])
+            if diagonal_x[1] == 'clockwise':
+                clockwise_or_counterclockwise = 'counterclockwise'
+            else:
+                clockwise_or_counterclockwise = 'clockwise'
+            diagonal_y_top = (diagonal_y, clockwise_or_counterclockwise)
+            #print 'diagonal_y = (diagonal_y, diagonal_x[1]): ', diagonal_y
+        elif diagonal_x in ell_loops:
+            #pos_of_ell_in_list = ell_loops.index(diagonal_x)
+            #triangle_rrl = selffoldedtriangles[pos_of_ell_in_list]
+            x_ell = diagonal_x
+            #x_r = triangle_rrl[0][0]
+            label_of_x_ell = CT._get_map_variable_to_label(x_ell)
+            #label_of_x_r = CT._get_map_variable_to_label(x_r)
+            position_of_x_rnotched = CT.get_edge_position(label_of_x_ell)
+            #position_of_x_r = CT.get_edge_position(label_of_x_r)
+            y_rnotched = CT._cluster[CT._n+position_of_x_rnotched]
+            #y_r = CT._cluster[CT._n+position_of_x_r]
+            diagonal_y_bottom = diagonal_y_top = y_rnotched
+        else:
+            label_of_diagonal_x = CT._get_map_variable_to_label(diagonal_x)
+            position_of_diagonal_x = CT.get_edge_position(label_of_diagonal_x)
+            diagonal_y_bottom = diagonal_y_top = CT._cluster[CT._n+position_of_diagonal_x]
+
+        G_y_triangle_bottom = (G_x[tile_pos][0][0],(triangle_bottom[0], diagonal_y_bottom, triangle_bottom[2]))
+        G_y_triangle_top = (G_x[tile_pos][1][0],(triangle_top[0], diagonal_y_top, triangle_top[2]), tile_dir)
+
+        G_y.append([G_y_triangle_bottom, G_y_triangle_top])
+        #print 'G_y: ', G_y
     if len(G_y) == 0:
         raise ValueError('Bug in replace_x_with_y. Snake graph G_y is empty')
     return G_y
@@ -1409,7 +1477,7 @@ def GetDenominator(G):
         denom *= diagonal
     return denom
 
-def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
+def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_principal=False, snakegraph_y=None, all_symmetric_differences=None):
     """
     Return sum of all monomial terms (corresponding to all perfect
     matchings of ``snakegraph``) which is the numerator of the Laurent
@@ -1446,10 +1514,16 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None):
         True
     """
     sumTerms = 0
+    pos = 0
     for matching in all_matchings:
-        sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges)
+        if is_principal:
+            symmetric_difference = all_symmetric_differences[pos]
+            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges) * \
+            GetCoefficientTerm(snakegraph_y, symmetric_difference)
+        else:
+            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges)
+        pos += 1
     return sumTerms
-
 
 def ExtractWeight(tile, abcd, is_final_tile):
     """
@@ -1665,16 +1739,6 @@ def GetCoefficientTerm(snakegraph, SD):
         sage: G = TP.list_snake_graph(crossed, first_tile_orientation=1, user_labels=False)
         sage: pm_min = GetMinimalMatching(G)
         sage: pm_a, pm_b = FlipAllFlippableTilesInList([pm_min])
-        sage: pm_a
-        [[2],
-        [[(1, 0, 0, 0), 'ABOVE'],
-        [(0, 1, 0, 1), 'RIGHT'],
-        [(0, 1, 0, 1), 'RIGHT'],
-        [(0, 1, 0, 1), 'ABOVE'],
-        [(0, 0, 0, 0), 'ABOVE'],
-        [(0, 1, 0, 1), 'ABOVE'],
-        [(0, 0, 1, 0), 'ABOVE']]]
-
         sage: G_y = replace_x_with_y(TP, G)
         sage: sd_a = matching_symmetric_difference(pm_min,pm_a)
         sage: sd_a
@@ -1687,18 +1751,19 @@ def GetCoefficientTerm(snakegraph, SD):
         [(0, 0, 0, 0), 'ABOVE'],
         [(0, 0, 0, 0), 'ABOVE']]]
         sage: GetCoefficientTerm(G_y,sd_a)
-        y2*y3
-        sage: pm_b
+        y6
+        sage: sd_b = matching_symmetric_difference(pm_min,pm_b)
+        sage: sd_b
         [[5],
-        [[(1, 0, 0, 0), 'ABOVE'],
-        [(0, 0, 0, 1), 'RIGHT'],
-        [(1, 0, 1, 0), 'RIGHT'],
-        [(0, 1, 0, 0), 'ABOVE'],
+        [[(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'ABOVE'],
         [(0, 0, 1, 0), 'ABOVE'],
-        [(1, 0, 1, 0), 'ABOVE'],
-        [(1, 0, 1, 0), 'ABOVE']]]
-        sage: GetCoefficientTerm(G_y,pm_b)
-        y0*y2*y3
+        [(1, 1, 1, 1), 'ABOVE'],
+        [(1, 0, 0, 0), 'ABOVE']]]
+        sage: GetCoefficientTerm(G_y,sd_b)
+        y5
    """
     diagonal_weights = []
     #if boundary_edges is None:
@@ -1714,7 +1779,7 @@ def GetCoefficientTerm(snakegraph, SD):
                 is_final_tile = True
             abcd = SD[1][pos][0] # abcd = (bottom,right,top,left)
             bottom, right, top, left = abcd[0:4]
-            print 'abcd:', abcd
+            #print 'abcd:', abcd
             #tile_weight = ExtractWeight(snakegraph[pos], abcd, is_final_tile)
             if (bottom and right) or (bottom and right) or (top and right) or (top and left):
                 diagonal_weight = snakegraph[pos][1][1][1]
@@ -1730,7 +1795,7 @@ def GetCoefficientTerm(snakegraph, SD):
 
     #diagonal_weight = Multiply elements in diagonal_weights
     diagonal_weight = 1
-    print 'diagonal_weights: ', diagonal_weights
+    #print 'diagonal_weights: ', diagonal_weights
     for var in diagonal_weights:
         diagonal_weight = diagonal_weight * var
 
