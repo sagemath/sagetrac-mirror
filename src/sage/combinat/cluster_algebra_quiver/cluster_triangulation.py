@@ -630,7 +630,7 @@ class ClusterTriangulation(ClusterSeed):
                 #S = S.mutate(pos, inplace=False)
             else:
                 pos = diagonal
-                diagonal_label = ct._edges[pos]
+                diagonal_label = ct._arcs[pos]
                 ct._triangles = _triangles_mutate(ct._triangles, diagonal_label)
                 #ct._M.mutate(pos)
                 #ct._quiver.mutate(pos)
@@ -1448,18 +1448,29 @@ class ClusterTriangulation(ClusterSeed):
             True
             sage: gamma == T.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
             True
+            sage: TP = T.principal_extension()
+            sage: SP = S.principal_extension()
+            sage: TP.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True) == \
+            ....: SP.mutate([0,3,2,1],inplace=False).cluster_variable(1)
+            True
 
         An 8-gon triangulation from Figure 2 of [SchifflerThomas]_
         where tau_i = i and tau_13 is labeled 0::
 
-            sage: T = ClusterTriangulation([(1,7,8), (2,9,10), (3,1,2), (5,4,3), (11,12,5), (4,0,6)], boundary_edges=[6,7,8,9,10,11,12,0])
+            sage: T = ClusterTriangulation([('1','7','8'), ('2','9','10'), ('3','1','2'), ('5','4','3'), ('11','12','5'), ('4','0','6')],\
+            ....: boundary_edges=['6','7','8','9','10','11','12','0'])
             sage: S = ClusterSeed(T)
             sage: c = [item for item in S.cluster()]
             sage: gamma = T.arc_laurent_expansion([c[1-1],c[3-1],c[5-1]], user_labels=False)
-            sage: gamma == T.arc_laurent_expansion([5,3,1])
+            sage: gamma == T.arc_laurent_expansion(['5','3','1'])
             True
             sage: S.mutate([1-1,3-1,5-1], inplace=True)
             sage: S.cluster_variable(5-1) == gamma
+            True
+            sage: TP = T.principal_extension()
+            sage: TP.mutate(['1','3','5'],user_labels=True,inplace=False).cluster_variable(4) == TP.arc_laurent_expansion(['5','3','1'],user_labels=True)
+            True
+            sage: TP.arc_laurent_expansion(['1','3','5']) == TP.arc_laurent_expansion(['5','3','1'])
             True
 
         Affine A(2,2) triangulation from Figure 3 of
@@ -1476,6 +1487,9 @@ class ClusterTriangulation(ClusterSeed):
             True
             sage: S.mutation_type()
             ['A', [2, 2], 1]
+            sage: TP = T.principal_extension()
+            sage: TP.mutate([1-1,3-1,4-1,2-1,3-1], user_labels=False, inplace=False).cluster_variable(2) == TP.arc_laurent_expansion([1,4,3,2,1])
+            True
 
             sage: T= ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)

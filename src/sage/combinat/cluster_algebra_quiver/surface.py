@@ -1790,6 +1790,8 @@ def GetCoefficientTerm(snakegraph, SD):
                 diagonal_weight = snakegraph[pos][1][1][1]
             else:
                 diagonal_weight = 1
+            if isinstance(diagonal_weight,tuple):
+                diagonal_weight = diagonal_weight[0]
             diagonal_weights.append(diagonal_weight)
     else:
         print 'warning: see GetCoefficientTerm'
