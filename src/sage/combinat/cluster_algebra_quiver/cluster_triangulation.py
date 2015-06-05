@@ -876,9 +876,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: T._get_map_variable_to_label(T._boundary_edges_vars[2])
             6
             sage: T.mutate(0)
-            sage: T.cluster()[0]*T.x(3)
+            sage: T.cluster()[0]*T.cluster_variable(3)
             (x2*x3 + x3)/x0
-            sage: T._get_map_variable_to_label(T.cluster()[0]*T.x(3))
+            sage: T._get_map_variable_to_label(T.cluster()[0]*T.cluster_variable(3))
             0
             sage: T._get_map_label_to_variable(0)
             (x2*x3 + x3)/x0
@@ -1414,7 +1414,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: c = [item for item in T.cluster()]
             sage: T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
             (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
-            sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T._get_map_label_to_variable(7),T._get_map_label_to_variable(4)], final_triangle=( c[0],c[3], T._get_map_label_to_variable(6) ), user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T._get_map_label_to_variable(7),T._get_map_label_to_variable(4)], \
+            ....: final_triangle=( c[0],c[3], T._get_map_label_to_variable(6) ), \
+            ....: user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
             True
             sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)],user_labels=False)
             True
@@ -1494,7 +1496,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)
             sage: S1 = S.mutate(0, inplace=False)
-            sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.x(0)], user_labels=False)
+            sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.cluster_variable(0)], user_labels=False)
             True
             sage: Tp = T.principal_extension()
             sage: Sp = S.principal_extension()
@@ -1509,6 +1511,13 @@ class ClusterTriangulation(ClusterSeed):
             True
             sage: once_punctured_torus.principal_extension().arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
             ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
+            True
+
+        An example that Salomón Dominguez wrote::
+
+            sage: affineD = ClusterTriangulation([('5','6','4'),('6','7','10'),('7','1','11'),('1','5','2'),('2','3','8'),('3','4','9')], boundary_edges=['8','9','10','11'])
+            sage: gamma = affineD.arc_laurent_expansion(['6','7','1','2','3'],verbose=False)
+            sage: gamma == affineD.mutate(['3','2','1','7','6'],user_labels=True, inplace=False).cluster()[5]
             True
 
         Test bug for when a generalized arc's first cross and last cross are the same::

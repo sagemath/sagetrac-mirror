@@ -1299,6 +1299,78 @@ def matching_intersection(pmA, pmB):
     return [pmB[0], pmC]
 
 def matching_subtract(bigger_pm, smaller_pm):
+    """
+    Return subtraction of (snake graph) perfect matchings, ``bigger_pm`` minus ``smaller_pm``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.surface import matching_subtract, GetMinimalMatching, matching_intersection, matching_union, GetAllMatchings
+        sage: affineD = ClusterTriangulation([('5','6','4'),('6','7','10'),('7','1','11'),('1','5','2'),('2','3','8'),('3','4','9')], boundary_edges=['8','9','10','11'])
+        sage: bandgraph = affineD.list_band_graph(['1','2','3','4','6','7','1'])
+
+        sage: Pmin = GetMinimalMatching(bandgraph)
+        sage: P24 = [[2, 4],\
+        ....: [[(1, 0, 1, 0), 'RIGHT'],\
+        ....: [(0, 1, 0, 0), 'RIGHT'],\
+        ....: [(0, 1, 0, 1), 'ABOVE'],\
+        ....: [(0, 0, 0, 0), 'ABOVE'],\
+        ....: [(0, 1, 0, 1), 'ABOVE'],\
+        ....: [(0, 0, 1, 0), 'RIGHT']]]
+        sage: Pmin_intersect_P24 = matching_intersection(Pmin,P24)
+        sage: Pmin_intersect_P24
+        [[2, 4],
+        [[(1, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'RIGHT']]]
+        sage: Pmin_union_P24 = matching_union(Pmin,P24)
+        sage: Pmin_union_P24
+        [[2, 4],
+        [[(1, 0, 1, 0), 'RIGHT'],
+        [(0, 1, 0, 0), 'RIGHT'],
+        [(1, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 1, 1), 'RIGHT']]]
+        sage: matching_subtract(Pmin_union_P24,Pmin_intersect_P24)
+        [[2, 4],
+        [[(0, 0, 0, 0), 'RIGHT'],
+        [(0, 1, 0, 0), 'RIGHT'],
+        [(1, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 1, 1), 'RIGHT']]]
+
+        sage: P025 = [[0,2,5], \
+        ....: [[(0,1,0,1), 'RIGHT'],\
+        ....: [(0,1,0,1), 'RIGHT'],\
+        ....: [(0,1,0,1), 'ABOVE'],\
+        ....: [(0,0,1,0), 'ABOVE'],\
+        ....: [(1,0,1,0), 'ABOVE'],\
+        ....: [(1,0,1,0), 'RIGHT']]]
+        sage: Pmin_intersect_P025 = matching_intersection(Pmin,P025)
+        sage: Pmin_intersect_P025
+        [[0, 2, 5],
+        [[(0, 0, 0, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'ABOVE'],
+        [(0, 0, 0, 0), 'RIGHT']]]
+        sage: Pmin_union_P025 = matching_union(Pmin,P025)
+        sage: Pmin_union_P025
+        [[0, 2, 5],
+        [[(1, 1, 1, 1), 'RIGHT'],
+        [(0, 1, 0, 1), 'RIGHT'],
+        [(1, 1, 0, 1), 'ABOVE'],
+        [(0, 1, 1, 1), 'ABOVE'],
+        [(1, 0, 1, 0), 'ABOVE'],
+        [(1, 1, 1, 1), 'RIGHT']]]
+        sage: matching_subtract(Pmin_union_P025,Pmin_intersect_P025) == Pmin_union_P025
+        True
+    """
     pmA = bigger_pm
     pmB = smaller_pm
     tile_count = len(pmA[1]) # Always put pmA as the minimal matching
