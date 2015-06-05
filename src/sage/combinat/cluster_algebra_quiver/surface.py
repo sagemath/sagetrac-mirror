@@ -1026,7 +1026,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
 
     Figure 6 of Musiker and Williams' "Matrix Formulae and Skein
     Relations for Cluster Algebras from Surfaces" [MW_MatrixFormulae]_
-    where tau_4, tau_1, tau_2, tau_3 = ``0``, ``1``, ``2``, ``3`` and
+    which is a loop where tau_4, tau_1, tau_2, tau_3 = ``0``, ``1``, ``2``, ``3`` and
     b1, b2, b3, b4 = ``b4``, ``b5``, ``b6``, ``b7``.
 
     We pick tau_1 to be 1, and go clockwise, so that crossed_arcs =
@@ -1084,7 +1084,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
 
         for pos in range(0,len(all_matchings)):
             PM = all_matchings[pos]
-            matching_weight = GetMonomialTerm(G_x, PM)
+            matching_weight = GetMonomialTerm(G_x, PM, None, is_loop)
             if is_principal:
                 SD = all_matchings_symmetricdifference_minpm[pos]
                 symmetric_difference_weight = GetCoefficientTerm(G_y, SD)
@@ -1102,7 +1102,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         fig_size = 0.8*fig_size
         drawing.show(axes=False,figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
 
-    return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm)/ GetDenominator(G_x)
+    return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm, is_loop)/ GetDenominator(G_x)
 
 def replace_x_with_y(CT, G_x):
     """
@@ -1478,7 +1478,7 @@ def GetDenominator(G):
         denom *= diagonal
     return denom
 
-def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_principal=False, snakegraph_y=None, all_symmetric_differences=None):
+def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_principal=False, snakegraph_y=None, all_symmetric_differences=None, is_loop=False):
     """
     Return sum of all monomial terms (corresponding to all perfect
     matchings of ``snakegraph``) which is the numerator of the Laurent
@@ -1519,10 +1519,10 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_princi
     for matching in all_matchings:
         if is_principal:
             symmetric_difference = all_symmetric_differences[pos]
-            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges) * \
+            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges, is_loop) * \
             GetCoefficientTerm(snakegraph_y, symmetric_difference)
         else:
-            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges)
+            sumTerms += GetMonomialTerm(snakegraph, matching, boundary_edges, is_loop)
         pos += 1
     return sumTerms
 
@@ -1583,7 +1583,7 @@ def ExtractWeight(tile, abcd, is_final_tile):
 
     return weights
 
-def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
+def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
     """
     Return the monomial term corresponding to the input perfect matching ``PM``.
 
@@ -1616,7 +1616,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
         [(0, 0, 0, 0), 'ABOVE'],
         [(0, 1, 0, 1), 'ABOVE'],
         [(0, 0, 1, 0), 'ABOVE']]]
-        sage: GetMonomialTerm(G,pm_a,boundary_edges=T._boundary_edges_vars)
+        sage: GetMonomialTerm(G,pm_a,boundary_edges=T._boundary_edges_vars,is_loop=False)
         x3^2*x4^2*x8^3
         sage: pm_b
         [[5],
@@ -1627,7 +1627,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
         [(0, 0, 1, 0), 'ABOVE'],
         [(1, 0, 1, 0), 'ABOVE'],
         [(1, 0, 1, 0), 'ABOVE']]]
-        sage: GetMonomialTerm(G,pm_b,boundary_edges=T._boundary_edges_vars)
+        sage: GetMonomialTerm(G,pm_b,boundary_edges=T._boundary_edges_vars, is_loop=None)
         x3^2*x4*x5*x6*x7*x8*x9
     """
     tile_weights = []
@@ -1671,46 +1671,47 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges=None):
     final_tile_matching = PM[1][-1][0]
     myarray = 1
 
-     #4 cases:
-    if a1==xn and b1 == zn and c1 == yn: # second case, bottom of first tile == top of final tile, and diagonal of first tile == right of final tile
-        if (first_tile_matching[0] == 0 # bottom of first tile is not marked
-        and final_tile_matching[2] == 0): # top of final tile is not marked
-            myarray = 0
-        else:
-            if a1 in boundary_edges:
-                myarray = 1
+    if is_loop:
+        #4 cases:
+        if a1==xn and b1 == zn and c1 == yn: # second case, bottom of first tile == top of final tile, and diagonal of first tile == right of final tile
+            if (first_tile_matching[0] == 0 # bottom of first tile is not marked
+            and final_tile_matching[2] == 0): # top of final tile is not marked
+                myarray = 0
             else:
-                myarray = 1/a1
+                if a1 in boundary_edges:
+                    myarray = 1
+                else:
+                    myarray = 1/a1
 
-    if a1 == zn and b1 == xn and c1 == yn: # first case
-        if (first_tile_matching[0] == 0 # bottom of the first tile is not marked
-        and final_tile_matching[1] == 0): # right of final tile is not marked
-            myarray = 0
-        else:
-            if a1 in boundary_edges:
-                myarray = 1
+        if a1 == zn and b1 == xn and c1 == yn: # first case
+            if (first_tile_matching[0] == 0 # bottom of the first tile is not marked
+            and final_tile_matching[1] == 0): # right of final tile is not marked
+                myarray = 0
             else:
-                myarray = 1/a1
+                if a1 in boundary_edges:
+                    myarray = 1
+                else:
+                    myarray = 1/a1
 
-    if a1 == yn and b1 == zn and c1 == xn: # third case
-        if (first_tile_matching[3] == 0 # left of first tile is not marked
-        and final_tile_matching[2] == 0): # top of final tile is not marked
-            myarray = 0
-        else:
-            if c1 in boundary_edges:
-                myarray = 1
+        if a1 == yn and b1 == zn and c1 == xn: # third case
+            if (first_tile_matching[3] == 0 # left of first tile is not marked
+            and final_tile_matching[2] == 0): # top of final tile is not marked
+                myarray = 0
             else:
-                myarray = 1/c1
+                if c1 in boundary_edges:
+                    myarray = 1
+                else:
+                    myarray = 1/c1
 
-    if a1 == yn and b1 == xn and c1 == zn: # fourth case
-        if (first_tile_matching[3] == 0 # left of first tile is not marked
-        and final_tile_matching[1] == 0): # right of final tile is not marked
-            myarray = 0
-        else:
-            if c1 in boundary_edges:
-                myarray = 1
+        if a1 == yn and b1 == xn and c1 == zn: # fourth case
+            if (first_tile_matching[3] == 0 # left of first tile is not marked
+            and final_tile_matching[1] == 0): # right of final tile is not marked
+                myarray = 0
             else:
-                myarray = 1/c1
+                if c1 in boundary_edges:
+                    myarray = 1
+                else:
+                    myarray = 1/c1
 
     return matching_weight  * myarray
 
@@ -2458,7 +2459,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
         [(1, 0, 1, 0), 'RIGHT'],
         [(0, 1, 0, 0), 'ABOVE']]]
         sage: PM = FlipAllFlippableTiles(min_pm)[0]
-        sage: monomial_term = GetMonomialTerm(G, PM, boundary_edges=T._boundary_edges_vars)
+        sage: monomial_term = GetMonomialTerm(G, PM, boundary_edges=T._boundary_edges_vars, is_loop=False)
         sage: PM
         [[2],
         [[(1, 0, 0, 0), 'ABOVE'],
@@ -2484,7 +2485,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
         if print_user_labels:
             drawing = drawing + text('$'+str(matching_weight)+'$', (x+0.5*white_space,y-0.6), rgbcolor = 'gray')
         else:
-            drawing = drawing + text('$'+str(matching_weight).replace('x','x_{').replace('y','y_{').replace('b','b_{').replace('*','}')+'}$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
+            drawing = drawing + text('$'+str(matching_weight).replace('x','x_{').replace('y','y_{').replace('b','b_{').replace('*','}').replace('/','}/')+'}$', (x+0.5*white_space,y-0.6), rgbcolor = 'black')
     if not(pos is None):
         pos_str = '$(' + str(pos) + ')$. '
         drawing = drawing + text(pos_str, (x ,y-0.2), rgbcolor=(0,1,0.2))

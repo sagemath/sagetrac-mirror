@@ -1491,7 +1491,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: TP.mutate([1-1,3-1,4-1,2-1,3-1], user_labels=False, inplace=False).cluster_variable(2) == TP.arc_laurent_expansion([1,4,3,2,1])
             True
 
-            sage: T= ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
+            sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)
             sage: S1 = S.mutate(0, inplace=False)
             sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.x(0)], user_labels=False)
@@ -1510,6 +1510,15 @@ class ClusterTriangulation(ClusterSeed):
             sage: once_punctured_torus.principal_extension().arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
             ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
             True
+
+        Test bug for when a generalized arc's first cross and last cross are the same::
+
+            sage: Annulus21 = ClusterTriangulation([(1,6,7),(1,3,2),(3,5,4),(5,0,2),(0,8,9)], boundary_edges=[6,7,8,9])
+            sage: GeneralizedArc = Annulus21.arc_laurent_expansion([3,5,2])
+            sage: Z = Annulus21.loop_laurent_expansion([2,3,5,2])
+            sage: GeneralizedArc == Z * Annulus21.cluster_variable(1) + Annulus21.cluster_variable(0)
+            True
+
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
         CT = self#._cluster_triangulation
