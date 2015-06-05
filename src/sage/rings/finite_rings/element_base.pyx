@@ -780,27 +780,3 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         return self.pth_power(-k)
 
-    def rational_reconstruction(self):
-        """
-        If the parent field is a prime field, uses rational reconstruction
-        to try to find a lift of this element to the rational numbers.
-
-        EXAMPLES::
-
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = GF(97)
-            sage: a = k(RationalField()('2/3'))
-            sage: a
-            33
-            sage: a.rational_reconstruction()
-            2/3
-        """
-        import sage.rings.arith as arith
-        import sage.rings.rational as rational
-        if self.parent().degree() != 1:
-            raise ArithmeticError("finite field must be prime")
-        t = arith.rational_reconstruction(int(self), self.parent().characteristic())
-        if t is None or t[1] == 0:
-            raise ZeroDivisionError("unable to compute rational reconstruction")
-        return rational.Rational((t[0],t[1]))
-
