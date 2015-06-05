@@ -21,6 +21,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
+from sage.libs.gmp.all cimport *
 from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -332,7 +333,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         fq_set(x.val, self.val, x._cparent)
         return x
 
-    cdef int _cmp_c_impl(FiniteFieldElement_flint_fq self, Element other) except -2:
+    cpdef int _cmp_(FiniteFieldElement_flint_fq self, Element other) except -2:
         """
         Comparison of finite field elements.
 
