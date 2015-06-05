@@ -522,7 +522,6 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: from sage.misc.misc import SAGE_LOCAL
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
     'SINGULAR .../local/bin\n'
 
@@ -540,14 +539,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.misc
+from sage.env import SAGE_LOCAL
 import pexpect
 import re
 import sys
 
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
-from sage.misc.preparser import implicit_mul
+from sage.repl.preparse import implicit_mul
 
 from expect import Expect, ExpectFunction, AsciiArtString
 
@@ -560,7 +559,6 @@ def _qepcad_cmd(memcells=None):
     EXAMPLES::
 
         sage: from sage.interfaces.qepcad import _qepcad_cmd
-        sage: from sage.misc.misc import SAGE_LOCAL
         sage: s = _qepcad_cmd()
         sage: s == 'env qe=%s qepcad '%SAGE_LOCAL
         True
@@ -572,7 +570,7 @@ def _qepcad_cmd(memcells=None):
         memcells_arg = '+N%s' % memcells
     else:
         memcells_arg = ''
-    return "env qe=%s qepcad %s"%(sage.misc.misc.SAGE_LOCAL, memcells_arg)
+    return "env qe=%s qepcad %s"%(SAGE_LOCAL, memcells_arg)
 
 _command_info_cache = None
 
@@ -597,7 +595,7 @@ def _update_command_info():
 
     cache = {}
 
-    with open('%s/bin/qepcad.help'%sage.misc.misc.SAGE_LOCAL) as help:
+    with open('%s/bin/qepcad.help'%SAGE_LOCAL) as help:
         assert(help.readline().strip() == '@')
 
         while True:
@@ -1179,7 +1177,7 @@ class Qepcad:
                    = x - 1
         """
         name = name.replace('_', '-')
-        args = map(str, args)
+        args = [str(_) for _ in args]
         pre_phase = self.phase()
         result = self._eval_line('%s %s'%(name, ' '.join(args)))
         post_phase = self.phase()
@@ -1671,7 +1669,7 @@ class qepcad_formula_factory:
         """
         formulas = map(self.atomic, formulas)
         formulas = map(self.atomic, formulas)
-        formula_strs = map(repr, formulas)
+        formula_strs = [repr(_) for _ in formulas]
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars
