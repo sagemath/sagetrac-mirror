@@ -1238,7 +1238,8 @@ class SubwordComplexFacet(Simplex, Element):
             (1, 2)
             sage: F.flip(1)
             (2, 3)
-
+            sage: F.flip(1, return_position=True)
+            ((2, 3), 3)
         """
         F = set([j for j in self])
         R = [j for j in self._extended_root_configuration_indices()]
@@ -1252,19 +1253,22 @@ class SubwordComplexFacet(Simplex, Element):
 
     # plot and show
 
-    def plot(self, compact=False, list_colors=[], thickness=3, roots=True, labels=[], fontsize=14, shift=(0,0), **args):
+    def plot(self, list_colors=[], labels=[], thickness=3, fontsize=14, shift=(0,0), compact=False, roots=True, **args):
         r"""
         In type `A` or `B`, plot a pseudoline arrangement representing the facet ``self``.
 
         Pseudoline arrangements are graphical representations of facets of types A
         or B subword complexes.
-        
+
         INPUT:
-        
-        -
-        -
-        -
-        -
+
+        - ``list_colors`` -- list (default: ``[]``) to personnalize the colors of the pseudolines.
+        - ``labels`` -- list (default: ``[]``) to personnalize the labels of the pseudolines.
+        - ``thickness`` -- integer (default: ``3``) for the tnickness of the pseudolines.
+        - ``fontsize`` -- integer (default: ``14``) for the size of the font used for labels.
+        - ``shift`` -- couple of coordinates (default: ``(0,0)``) to change the origin.
+        - ``compact`` -- boolean (default: ``False``) to require a more compact representation.
+        - ``roots`` -- boolean (default: ``True``) to print the extended root configuration.
 
         EXAMPLES::
 
@@ -1272,7 +1276,14 @@ class SubwordComplexFacet(Simplex, Element):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
             sage: F = SC([1,2]); F.plot()
-            Launched png viewer for Graphics object consisting of 27 graphics primitives
+            Graphics object consisting of 26 graphics primitives
+
+            sage: W = CoxeterGroup(['B',3], implementation='chevie')
+            sage: c = W.a_coxeter_element()
+            sage: Q = c.reduced_word()*2 + W.w0.coxeter_sorting_word(c)
+            sage: SC = SubwordComplex(Q, W.w0)
+            sage: F = SC[15]; F.plot()
+            Graphics object consisting of 53 graphics primitives
 
         REFERENCES:
 
@@ -1285,7 +1296,7 @@ class SubwordComplexFacet(Simplex, Element):
             type = 'B'
         else:
             raise ValueError, "Plotting is currently only implemented in types A or B"
-        
+
         # import plot facilities
         from sage.plot.line import line
         from sage.plot.text import text
@@ -1318,22 +1329,30 @@ class SubwordComplexFacet(Simplex, Element):
         for position in range(len(Q)):
             y = W._index_set[Q[position]]
             if type == 'B' and y == 0:
-                    pseudoline = permutation(1)-1
-                    x = pseudolines[pseudoline].pop()
-                    pseudolines_type_B[pseudoline] = pseudolines[pseudoline] + [(shift[0]+x+.5, shift[1]+0)]
-                    pseudolines[pseudoline] = [(shift[0]+x+.5, shift[1]+0), .5]
+                pseudoline = permutation(1)-1
+                x = pseudolines[pseudoline].pop()
+                if compact:
+                    x_max = max(x+1, x_max)
+                else:
+                    x = x_max
                     x_max += 1
+                if position in self:
+                    pseudolines[pseudoline] += [(shift[0]+x+1, shift[1]), x+1]
+                    contact_points += [[(shift[0]+x+.5,shift[1]-.2), (shift[0]+x+.5, shift[1])]]
+                else:
+                    pseudolines_type_B[pseudoline] = pseudolines[pseudoline] + [(shift[0]+x+.5, shift[1]), (shift[0]+x+.5, shift[1]-.2)]
+                    pseudolines[pseudoline] = [(shift[0]+x+.6, shift[1]-.2), (shift[0]+x+.6, shift[1]), .5]
+                if roots:
+                    root_labels.append((extended_root_conf[position],(shift[0]+x+.25,shift[1]-.2)))
             else:
                 if type == 'B':
                     y -= 1
                 pseudoline1 = permutation(y+1)-1
                 pseudoline2 = permutation(y+2)-1
+                x = max(pseudolines[pseudoline1].pop(), pseudolines[pseudoline2].pop())
                 if compact:
-                    x = max(pseudolines[pseudoline1].pop(), pseudolines[pseudoline2].pop())
                     x_max = max(x+1, x_max)
                 else:
-                    pseudolines[pseudoline1].pop()
-                    pseudolines[pseudoline2].pop()
                     x = x_max
                     x_max += 1
                 if position in self:
@@ -1360,7 +1379,7 @@ class SubwordComplexFacet(Simplex, Element):
             pseudolines[pseudoline].append((shift[0]+x_max, shift[1]+permutation.inverse()(pseudoline+1)-1))
             L += line(pseudolines[pseudoline], color=list_colors[pseudoline], thickness=thickness)
             if type == 'B':
-               L += line(pseudolines_type_B[pseudoline], color=list_colors[pseudoline], thickness=thickness, linestyle=":")
+                L += line(pseudolines_type_B[pseudoline], color=list_colors[pseudoline], thickness=thickness, linestyle="--")
         for root_label in root_labels:
             L += text(root_label[0], root_label[1], rgbcolor=[0,0,0], fontsize=fontsize, vertical_alignment="center", horizontal_alignment="right")
         if len(labels) < last+1:
@@ -1385,8 +1404,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2], implementation='chevie')
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
-            sage: F = SC([1,2]); F.plot()
-            Launched png viewer for Graphics object consisting of 27 graphics primitives
+            sage: F = SC([1,2]); F.show()
         """
         return self.plot().show(axes=False,*kwds,**args)
 
@@ -1403,8 +1421,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: W = CoxeterGroup(['A',2], index_set=[1,2], implementation='chevie')
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1],w)
-            sage: F = SC([1,2]); F.plot()
-            Launched png viewer for Graphics object consisting of 27 graphics primitives
+            sage: F = SC([1,2]); F.show()
         """
         self.plot(**kwds).show(axes=False)
 
