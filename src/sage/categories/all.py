@@ -6,7 +6,7 @@ from category_types import(
                         ChainComplexes,
 )
 
-from tensor     import tensor
+from tensor     import tensor, TensorProductsCategory
 from cartesian_product import cartesian_product
 
 from functor  import (ForgetfulFunctor,
