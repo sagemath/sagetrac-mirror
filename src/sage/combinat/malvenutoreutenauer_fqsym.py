@@ -230,13 +230,14 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                     unitriangular=True, category=categ)
             Fd.register_coercion(phi)
             self.register_coercion(~phi)
-        
+
         def _realization_name(self):
             return "Monomial dual"
 
         def _to_Fundamental_dual_on_basis(self, p):
             Fd = self.realization_of().FundamentalDual()
             return Fd.sum(Fd(q) for q in p.permutohedron_smaller(side='left'))
+
         def _from_complete_on_basis(self, comp):
             return self(composition_to_global_descent_permutation(comp))
 
