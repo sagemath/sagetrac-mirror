@@ -33,8 +33,8 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
        functions VI: Free quasi-symmetric functions and related algebras*.
        :arxiv:`math/0105065`
 
-    .. [MR95] C. Malvenuto, C. Reutenauer (1995), *Duality between 
-       quasi-symmetric functions and the Solomon descent algebra*, Journal of 
+    .. [MR95] C. Malvenuto, C. Reutenauer (1995), *Duality between
+       quasi-symmetric functions and the Solomon descent algebra*, Journal of
        Algebra **177** (3): 967--982, :doi:`10.1006/jabr.1995.1336`
     """
     def __init__(self, R):
