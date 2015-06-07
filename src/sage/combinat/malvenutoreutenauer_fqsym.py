@@ -1,3 +1,9 @@
+"""
+Malvenuto-Reutenauer Hopf algebra of permutations (FQSym)
+
+This is also sometimes referred to in the literature as the free
+quasi-symmetric function Hopf algebra.
+"""
 from sage.categories.rings import Rings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
@@ -8,6 +14,25 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.misc.bindable_class import BindableClass
 
 class MalvenutoReutenauer(UniqueRepresentation, Parent):
+    r"""
+    Malvenuto-Reutenauer Hopf algebra of permutations (FQSym)
+
+    This is also sometimes referred to in the literature as the free
+    quasi-symmetric function Hopf algebra.
+
+    REFERENCES:
+
+    .. [AS02] M. Aguiar, F. Sottile, *Structure of the Malvenuto-Reutenauer
+       Hopf Algebra of Permutations*. :arxiv:`math/0203282v2`
+
+    .. [DT01] G. Duchamp, F. Hivert, J.-Y. Thibon, *Noncommutative symmetric
+       functions VI: Free quasi-symmetric functions and related algebras*.
+       :arxiv:`math/0105065`
+
+    .. [MR95] C. Malvenuto, C. Reutenauer (1995), *Duality between 
+       quasi-symmetric functions and the Solomon descent algebra*, Journal of 
+       Algebra **177** (3): 967–982, :doi:`10.1006/jabr.1995.1336`
+    """
     def __init__(self, R):
         assert(R in Rings())
         self._base = R
@@ -207,4 +232,4 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
     Fd = FundamentalDual
     Md = MonomialDual
 
-FQSym = MalvenutoReutenauer
+FreeQuasiSymmetricFunctions = MalvenutoReutenauer
