@@ -40,16 +40,20 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
         class ParentMethods:
             def _repr_(self):
                 return "%s in the %s basis" % (self.realization_of(), self._realization_name())
+
             def __getitem__(self, p, *rest):
                 # This method implements the abuses of notations e.g. F[1,2,3]
                 if not isinstance(p, Permutation):
                     p = self._indices(p)
                 assert len(rest)==0
                 return self.monomial(p)
+
             def one_basis(self):
                 return Permutations()([])
+
             def degree_on_basis(self, p):
                 return p.size()
+
             def counit_on_basis(self, p):
                 if p != []:
                     return self.base_ring().zero()
@@ -71,6 +75,7 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
         class ElementMethods:
             def to_quasisymmetric_function(self):
                 return self.parent().to_quasisymmetric_function(self)
+
             def duality_pairing(self, right):
                 return self.parent().duality_pairing_by_coercion(self, right)
 
@@ -81,14 +86,18 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                              CombinatorialSet,
                                              prefix='Fu', bracket=False,
                                              category=my_CHA.Bases())
+
         def _realization_name(self):
             return "Fundamental"
+
         def product_on_basis(self, p, q):
             return sum(self(r) for r in p.shifted_shuffle(q))
+
         def coproduct_on_basis(self, p):
             T=self.tensor_square()
             st = lambda pp: Word(pp).standard_permutation()
             return T.sum_of_monomials((st(p[:i]),st(p[i:])) for i in range(len(p)+1))
+
         def antipode_on_basis(self, p):
             if p==self.one_basis():
                 return self.one()
@@ -99,6 +108,7 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
         def to_quasisymmetric_function(self, elt):
             FQS = QuasiSymmetricFunctions(self.base_ring()).F()
             return FQS.sum(c*FQS(p.descents_composition()) for (p,c) in elt)
+
         def duality_pairing(self, left, right):
             if left.parent()!=self:
                 left = self(left)
@@ -125,8 +135,10 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                     unitriangular=True, category=categ)
             self.register_coercion(phi)
             F.register_coercion(~phi)
+
         def _realization_name(self):
             return "Monomial"
+
         def _from_Fundamental_on_basis(self, p):
             return self.sum(self.monomial(q) for q in
               p.permutohedron_greater(side='left'))
@@ -149,10 +161,13 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                 codomain=self, category=categ).register_as_coercion()
             self.module_morphism(self._to_Fundamental_on_basis,
                                 codomain=F, category=categ).register_as_coercion()
+
         def _realization_name(self):
             return "Fundamental dual"
+
         def _from_Fundamental_on_basis(self, p):
             return self.monomial(p.inverse())
+
         def _to_Fundamental_on_basis(self, p):
             F = self.realization_of().a_realization()
             return F.monomial(p.inverse())
@@ -176,9 +191,10 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                     unitriangular=True, category=categ)
             Fd.register_coercion(phi)
             self.register_coercion(~phi)
-            
+
         def _realization_name(self):
             return "Monomial dual"
+
         def _to_Fundamental_dual_on_basis(self, p):
             Fd = self.realization_of().FundamentalDual()
             return Fd.sum(Fd(q) for q in p.permutohedron_smaller(side='left'))
