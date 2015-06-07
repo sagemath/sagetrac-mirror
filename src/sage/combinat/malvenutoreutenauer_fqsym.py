@@ -46,15 +46,9 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
         #register coercions for Monomial dual basis because this is
         #where the embedding from NCSF into MR is defined.
         Md = self.MonomialDual()
-        Fd = self.FundamentalDual()
         from sage.categories.graded_hopf_algebras_with_basis \
           import GradedHopfAlgebrasWithBasis
         categ = GradedHopfAlgebrasWithBasis(R)
-        phi = Md.module_morphism(Md._to_Fundamental_dual_on_basis,
-                        codomain=Fd, triangular="upper",
-                        unitriangular=True, category=categ)
-        Fd.register_coercion(phi)
-        Md.register_coercion(~phi)
         S = NonCommutativeSymmetricFunctions(R).complete()
         S.module_morphism(Md._from_complete_on_basis,
                        codomain=Md, category=categ).register_as_coercion()
@@ -227,7 +221,16 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                              CombinatorialSet,
                                              prefix='Md', bracket=False,
                                              category=my_CHA.Bases())
-
+            Fd = self.realization_of().FundamentalDual()
+            from sage.categories.graded_hopf_algebras_with_basis \
+              import GradedHopfAlgebrasWithBasis
+            categ = GradedHopfAlgebrasWithBasis(self.base_ring())
+            phi = self.module_morphism(self._to_Fundamental_dual_on_basis,
+                                    codomain=Fd, triangular="upper",
+                                    unitriangular=True, category=categ)
+            Fd.register_coercion(phi)
+            self.register_coercion(~phi)
+        
         def _realization_name(self):
             return "Monomial dual"
 
