@@ -11,9 +11,9 @@ See :meth:`ClusterSeed.arc_laurent_expansion`, :meth:`ClusterSeed.loop_laurent_e
 See [MSW_Positivity]_, [MSW_Bases]_, [MW_MatrixFormulae]_
 """
 
-######################################################################################################
-############# begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ###########
-######################################################################################################
+#########################################################################################
+############ begins: CREATING CLUSTER ALGEBRA FROM INITIAL TRIANGULATION INPUT ##########
+#########################################################################################
 
 
 RIGHT = 'RIGHT'
@@ -142,7 +142,7 @@ def remove_duplicate_triangles(data,boundary_edges=None):
 
 def _triangulation_to_arrows(list_triangles):
     """
-    Return the list of directed edge [a,b] corresponding to the list
+    Return the list of directed edges [a,b] corresponding to the list
     ``list_triangles`` of ideal triangles.
 
     .. NOTE::
@@ -1054,7 +1054,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
                      is_arc, is_loop, 1, boundary_edges)
 
     if is_principal:
-        # Replace all x_i with the correct height monomial (see [MSW_Positivity] Thm 4.10)
+        # Replace all x_i with the correct height monomial (see [MSW_Positivity]_ Thm 4.10)
         G_y = replace_x_with_y(CT, G_x)
     else:
         G_y = None
@@ -2497,18 +2497,8 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
     - ``print_user_labels`` -- whether to print user labels or to print variables x_i for labeling the edges of the perfect matching
     - ``symmetric_difference`` -- symmetric difference of the minimal matching and perfect_matching
 
-    EXAMPLES:
-    perfect_matching looks like
-  [['minimal PM'],
-  [[(1, 0, 1, 0), 'RIGHT'],
-  [(0, 1, 0, 0), 'ABOVE'],
-  [(0, 0, 1, 0), 'RIGHT'],
-  [(0, 0, 0, 0), 'RIGHT'],
-  [(1, 0, 1, 0), 'RIGHT'],
-  [(0, 1, 0, 0), 'ABOVE'],
-  [(0, 0, 1, 0), 'ABOVE']]]
-
-    Matching of tile (a,b,c,d) = (floor, right, ceiling, left)
+    Matching of tile (a,b,c,d) = (floor, right, ceiling, left) where an entry
+    is equal to 1 if it is part of the matching and 0 otherwise
 
     .. TODO::
 
@@ -2683,7 +2673,6 @@ def _draw_snake_graph(G, print_user_labels, xy=(0, 0)):
             labels = labels + \
             text(floor,(x+0.5,y+0),vertical_alignment='bottom', rgbcolor=text_color)\
             + text(left_side,(x+0,y+0.5),horizontal_alignment='left', rgbcolor=text_color)
-
 
         DIR = tile[1][-1]
         if DIR == ABOVE:
@@ -3199,9 +3188,6 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
         [(1, 0, 0, 0), 'ABOVE'],
         [(0, 1, 0, 1), 'ABOVE']]]]
     """
-    #print 'list_matchings:', list_matchings
-    #print ""
-    #print 'list_other_matchings:', list_other_matchings
     out_new_matchings_corrected_indices = []
     for outer_ct in range(0,len(list_matchings)):
         current_matching = list_matchings[outer_ct]
@@ -3211,9 +3197,6 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
             current_matching = temp_current_matching
         out_new_matchings_corrected_indices.append(current_matching)
 
-    #print ""
-    #print 'out_new_matchings_corrected_indices', out_new_matchings_corrected_indices
-    #print ""
     return out_new_matchings_corrected_indices
 
 def GetMoreLastFlippedTiles(current_matching, to_compare_matching):

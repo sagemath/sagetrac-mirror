@@ -42,7 +42,6 @@ REFERENCES:
     :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
 
 """
-#from sage.structure.sage_object import SageObject
 from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
 
 class ClusterTriangulation(ClusterSeed):
@@ -1513,7 +1512,7 @@ class ClusterTriangulation(ClusterSeed):
             ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
             True
 
-        An example that Salomón Dominguez wrote::
+        An example that Salomon Dominguez wrote::
 
             sage: affineD = ClusterTriangulation([('5','6','4'),('6','7','10'),('7','1','11'),('1','5','2'),('2','3','8'),('3','4','9')], boundary_edges=['8','9','10','11'])
             sage: gamma = affineD.arc_laurent_expansion(['6','7','1','2','3'],verbose=False)
@@ -1522,10 +1521,10 @@ class ClusterTriangulation(ClusterSeed):
 
         Test bug for when a generalized arc's first cross and last cross are the same::
 
-            sage: Annulus21 = ClusterTriangulation([(1,6,7),(1,3,2),(3,5,4),(5,0,2),(0,8,9)], boundary_edges=[6,7,8,9])
-            sage: GeneralizedArc = Annulus21.arc_laurent_expansion([3,5,2])
-            sage: Z = Annulus21.loop_laurent_expansion([2,3,5,2])
-            sage: GeneralizedArc == Z * Annulus21.cluster_variable(1) + Annulus21.cluster_variable(0)
+            sage: Annulus41 = ClusterTriangulation([(1,6,7),(1,3,2),(3,5,4),(5,0,2),(0,8,9)], boundary_edges=[6,7,8,9])
+            sage: GeneralizedArc = Annulus41.arc_laurent_expansion([3,5,2])
+            sage: Z = Annulus41.loop_laurent_expansion([2,3,5,2])
+            sage: GeneralizedArc == Z * Annulus41.cluster_variable(1) + Annulus41.cluster_variable(0)
             True
 
         """
@@ -1546,13 +1545,16 @@ class ClusterTriangulation(ClusterSeed):
                                fig_size=1, user_labels=True):
         """Return the Laurent expansion of a loop (living in the
         surface's interior) in the variables of
-        ``self.cluster_triangulation().cluster()``.
+        ``self.cluster_triangulation()._cluster``.
 
         See algorithm in [MSW_Bases]_ sections 3.1-3.2::
 
-            #. Pick an orientation of the closed loop gamma and an ideal triangle Delta0 (not a self-folded triangle) crossed by gamma.
-            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma (In Figure 9 of [MSW_Bases]_, this edge is labeled ``c``).
-            #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order, where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
+            #. Pick an orientation of the closed loop gamma and an ideal triangle Delta0
+            crossed by gamma. Delta0 should be chosen so that it has 3 distinct edges.
+            #. Let ``tau1`` be the second edge of Delta0 that is crossed by gamma
+            (in Figure 9 of [MSW_Bases]_, this edge is labeled ``c``).
+            #. Let input ``crossed_arcs`` be the list of arcs that are crossed by gamma in order,
+            where ``tau1`` is counted twice, so that crossed_arcs[0]=crossed_arcs[-1]=``tau1``
 
         .. SEEALSO::
 
