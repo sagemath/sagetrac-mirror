@@ -1,5 +1,5 @@
 r"""
-`T`-Systems, `Y`-Systems, and `Q`-Systems
+T-Systems and Q-Systems
 
 AUTHORS:
 
@@ -16,8 +16,12 @@ AUTHORS:
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
+from sage.misc.bindable_class import BindableClass
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.categories.hopf_algebras import HopfAlgebras
+from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.rings.all import ZZ, QQ
 from sage.rings.infinity import infinity
 from sage.rings.arith import LCM
@@ -27,19 +31,10 @@ from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
-from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
+from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid, IndexedMonoid
+from sage.matrix.constructor import matrix
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.functions.other import floor
-
-class IntegrableSystemElement(CombinatorialFreeModule.Element):
-    def _mul_(self, x):
-        """
-        Return the product of ``self`` and ``x``.
-        """
-        return self.parent().sum_of_terms((tl*tr, cl*cr)
-                                          for tl,cl in self for tr,cr in x)
 
 class IntegrableSystem(CombinatorialFreeModule):
     """
@@ -76,7 +71,7 @@ class IntegrableSystem(CombinatorialFreeModule):
             res = "restricted level {} ".format(self._level)
         else:
             res = ''
-        return "The {}{}-system of type {} over {}".format(res, self._name, self._cartan_type, self.base_ring())
+        return "{}{}-system of type {} over {}".format(res, self._name, self._cartan_type, self.base_ring())
 
     def level(self):
         """
@@ -97,22 +92,6 @@ class IntegrableSystem(CombinatorialFreeModule):
         """
         return self._cartan_type.index_set()
 
-    @lazy_attribute
-    def _diagonal(self):
-        """
-        Return the diagonal of the symmetrized Cartan matrix of ``self``.
-        """
-        d = self._cartan_type.cartan_matrix().is_symmetrizable(True)
-        lcd = LCM([QQ(x).denominator() for x in d])
-        return Family({a:ZZ(d[i]*lcd) for i,a in enumerate(self.index_set())})
-
-    @lazy_attribute
-    def _lcm_diagonal(self):
-        """
-        Return the least common multiple of the diagonal.
-        """
-        return LCM(list(self._diagonal))
-
     @cached_method
     def one(self):
         """
@@ -125,18 +104,6 @@ class IntegrableSystem(CombinatorialFreeModule):
             ()
         """
         return self.element_class(self, {self._indices.one(): self.base_ring().one()})
-
-    def is_commutative(self):
-        """
-        Check if ``self`` is a commutative algebra.
-
-        EXAMPLES::
-
-            sage: Y = Yangian(QQ, 4)
-            sage: Y.is_commutative()
-            True
-        """
-        return True
 
     def ngens(self):
         """
@@ -162,11 +129,30 @@ class IntegrableSystem(CombinatorialFreeModule):
         """
         return infinity
 
-    Element = IntegrableSystemElement
+    @lazy_attribute
+    def _diagonal(self):
+        """
+        Return the diagonal of the symmetrized Cartan matrix of ``self``.
+        """
+        d = self._cartan_type.cartan_matrix().is_symmetrizable(True)
+        lcd = LCM([QQ(x).denominator() for x in d])
+        return Family({a: ZZ(d[i]*lcd) for i,a in enumerate(self.index_set())})
+
+    @lazy_attribute
+    def _lcm_diagonal(self):
+        """
+        Return the least common multiple of the diagonal.
+        """
+        return LCM(list(self._diagonal))
+
+###################
+## T-system
 
 class TSystem(IntegrableSystem):
     r"""
-    A `T`-system.
+    A T-system.
+
+    We follow Equation (4.31-4.33) in [T-system, Y-Systems...].
 
     INPUT:
 
@@ -204,11 +190,6 @@ class TSystem(IntegrableSystem):
         #   positive integers in order to use it in the reduction steps.
         indices = CartesianProduct(cartan_type.index_set(), PositiveIntegers(), spectral_ring)
         IntegrableSystem.__init__(self, base_ring, cartan_type, level, indices, 'T', category)
-
-        # FIXME: Move to the Q system
-        # Setup the coercions
-        Q = QSystem(self.base_ring(), self._cartan_type, self._level)
-        self.module_morphism(self.restriction_on_basis, codomain=Q).register_as_coercion()
 
     def _repr_term(self, t):
         """
@@ -271,7 +252,7 @@ class TSystem(IntegrableSystem):
             T^(12)[2](1)
 
         We check some variables that are formally defined, but are not
-        honest `T`-system generators::
+        honest T-system generators::
 
             sage: T.gen(0, 1, u)
             0
@@ -295,7 +276,7 @@ class TSystem(IntegrableSystem):
     @cached_method
     def _jacobi_trudy(self, a, m, u):
         """
-        If we are in type `A_r` and an unrestricted `T`-system, use the
+        If we are in type `A_r` and an unrestricted T-system, use the
         Jacobi-Trudy type identity to reduce the generator `T^{(a)}_m(u)`
         into terms of `T^{(b)}_1(v)`.
 
@@ -403,22 +384,29 @@ class TSystem(IntegrableSystem):
         Return the restriction of the basis element indexed by ``m``.
 
         The restriction is defined by forgetting about the special
-        parameter `u`, thus the result is in the corresponding `Q`-system.
+        parameter `u`, thus the result is in the corresponding Q-system.
         """
-        Q = QSystem(self.base_ring(), self._cartan_type, self._level)
-        I = Q._indices
-        return Q.monomial(I.prod(I.gen((g[0], g[1]))**p for g,p in m._sorted_items()))
+        F = QSystem(self.base_ring(), self._cartan_type, self._level).Fundamental()
+        I = F._indices
+        return Q.prod(Q.gen(*g)**p for g,p in m._sorted_items()))
 
-    class Element(IntegrableSystemElement):
+    class Element(CombinatorialFreeModule.Element):
         def restriction(self):
             """
-            Return the restriction of ``self`` to the corresponding `Q`-system.
+            Return the restriction of ``self`` to the corresponding Q-system.
 
             The restriction is defined by forgetting about the special
             parameter `u`.
             """
             Q = QSystem(self.base_ring(), self._cartan_type, self._level)
             return Q(self)
+
+        def _mul_(self, x):
+            """
+            Return the product of ``self`` and ``x``.
+            """
+            return self.parent().sum_of_terms((tl*tr, cl*cr)
+                                              for tl,cl in self for tr,cr in x)
 
 # TODO: Use multiple realizations and give this a better name
 # The first one could be called the fundamental presentation since it is given
@@ -427,7 +415,7 @@ class TSystem(IntegrableSystem):
 #   to single row KR crystals
 class TSystemAlternate(TSystem):
     r"""
-    A `T`-system solved in variables `T^{(1)}_k(v)` instead of `T^{(b)}_m(v)`.
+    A T-system solved in variables `T^{(1)}_k(v)` instead of `T^{(b)}_m(v)`.
 
     INPUT:
 
@@ -459,7 +447,7 @@ class TSystemAlternate(TSystem):
     @cached_method
     def _jacobi_trudy(self, a, m, u):
         """
-        If we are in type `A_r` and an unrestricted `T`-system, use the
+        If we are in type `A_r` and an unrestricted T-system, use the
         Jacobi-Trudy type identity to reduce the generator `T^{(a)}_m(u)`
         into terms of `T^{(1)}_k(v)`.
 
@@ -495,312 +483,12 @@ class TSystemAlternate(TSystem):
         """
         return TSystem(self.base_ring(), self._cartan_type, self._level)
 
-# This is currently the Dykin Q-System, i.e. given in terms of the Dynkin
-#   diagram nodes
-class QSystem(IntegrableSystem):
-    """
-    A `Q`-system.
-    """
-    @staticmethod
-    def __classcall__(cls, base_ring, cartan_type, level=None):
-        """
-        Normalize arguments to ensure a unique representation.
-        """
-        cartan_type = CartanType(cartan_type)
-        return super(QSystem, cls).__classcall__(cls, base_ring, cartan_type, level)
+###################
+## Q-systems
 
-    def __init__(self, base_ring, cartan_type, level):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: TestSuite(Q).run()
-        """
-        category = HopfAlgebras(base_ring).WithBasis().Commutative()
-        indices = CartesianProduct(cartan_type.index_set(), [1])
-        self._red_system = QSystem_reducible(base_ring, cartan_type, level)
-        IntegrableSystem.__init__(self, base_ring, cartan_type, level, indices, 'Q', category)
-
-    def _repr_term(self, t):
-        """
-        Return a string representation of the basis element indexed by ``a``
-        with all `m = 1`.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q._repr_term(((1,1), (4,1)))
-            'Q^(1)[1]*Q^(4)[1]'
-        """
-        if len(t) == 0:
-            return '1'
-        def repr_gen(x):
-            ret = 'Q^({})[{}]'.format(*(x[0]))
-            if x[1] > 1:
-                ret += '^{}'.format(x[1])
-            return ret
-        return '*'.join(repr_gen(x) for x in t._sorted_items())
-
-    def _latex_term(self, t):
-        r"""
-        Return a `\LaTeX` representation of the basis element indexed
-        by ``m``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q._latex_term(((3,1,2), (4,1,1)))
-            'Q^{(3)}_{1} Q^{(4)}_{1}'
-        """
-        if len(t) == 0:
-            return '1'
-        def repr_gen(x):
-            ret = 'Q^{{({})}}_{{{}}}'.format(*(x[0]))
-            if x[1] > 1:
-                ret = '\\bigl(' + ret + '\\bigr)^{{{}}}'.format(x[1])
-            return ret
-        return ' '.join(repr_gen(x) for x in t._sorted_items())
-
-    def gen(self, a, m):
-        """
-        Return the generator `Q^{(a)}_i` of ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q.gen(2, 1)
-            Q^(2)[1]
-            sage: Q.gen(12, 2)
-            Q^(12)[2]
-            sage: Q.gen(0, 1)
-            1
-            sage: Q.gen(1, 0)
-            1
-        """
-        if m == 0 or m == self._level or a == 0 or a == len(self.index_set()) + 1:
-            return self.one()
-        if m == 1:
-            return self.monomial(self._indices.gen((a,1)))
-        if a not in self.index_set():
-            return self.zero()
-        #if self._cartan_type.type() == 'A' and self._level is None:
-        #    return self._jacobi_trudy(a, m)
-        Q = self._red_system
-        I = self._cartan_type.index_set()
-        p = Q._Q_poly(a, m)
-        return p.subs({ g: self.gen(I[i], 1) for i,g in enumerate(Q._poly.gens()) })
-
-    def algebra_generators(self):
-        """
-        Return the algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q.algebra_generators()
-            Finite family {1: Q^(1)[1], 2: Q^(2)[1], 3: Q^(3)[1], 4: Q^(4)[1]}
-        """
-        return Family({a: self.gen(a, 1) for a in self.index_set()})
-
-    @cached_method
-    def _jacobi_trudy(self, a, m):
-        """
-        If we are in type `A_r` and an unrestricted `Q`-system, use the
-        Jacobi-Trudy type identity to reduce the generator `Q^{(a)}_m`
-        into terms of `Q^{(b)}_1`.
-
-        EXAMPLES::
-
-            sage: R.<u> = QQ[]
-            sage: T = TSystem(R, ['A',2])
-            sage: T._jacobi_trudy(1, 3, u)
-            1 + T^(1)[1](u - 2)*T^(1)[1](u)*T^(1)[1](u + 2)
-             - T^(1)[1](u + 2)*T^(2)[1](u - 1) - T^(1)[1](u - 2)*T^(2)[1](u + 1)
-            sage: all(T._jacobi_trudy(a,m,u) == T._reduced_generator(a,m,u)
-            ....:     for a in T.index_set() for m in range(6))
-            True
-        """
-        mat = []
-        r = self._cartan_type.rank()
-        for i in range(1, m+1):
-            mat.append([])
-            for j in range(1, m+1):
-                b = a - i + j
-                if b < 0 or b > r + 1:
-                    mat[-1].append(self.zero())
-                elif b == 0 or b == r + 1:
-                    mat[-1].append(self.one())
-                else:
-                    mat[-1].append(self.gen(b, 1))
-        from sage.matrix.constructor import matrix
-        return matrix(self, mat).determinant('pari')
-
-class QSystem_square_free(IntegrableSystem):
-    """
-    The `Q`-system represented using square free monomials.
-    """
-
-    @staticmethod
-    def __classcall__(cls, base_ring, cartan_type, level=None):
-        """
-        Normalize arguments to ensure a unique representation.
-        """
-        cartan_type = CartanType(cartan_type)
-        return super(QSystem_square_free, cls).__classcall__(cls, base_ring, cartan_type, level)
-
-    def __init__(self, base_ring, cartan_type, level):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.t_q_system import QSystem_square_free
-            sage: Qsf = QSystem_square_free(QQ['A',2])
-            sage: TestSuite(Qsf).run()
-        """
-        category = HopfAlgebras(base_ring).WithBasis().Commutative()
-        # TODO: This in fact gives us a larger indexing set for the basis than
-        #   we want, but for a temp working version, it will do (since it
-        #   takes all free monoid elements, whereas we want the square free)
-        #   In other words, we want subsets of the Cartesian product.
-        indices = CartesianProduct(cartan_type.index_set(), PositiveIntegers())
-        IntegrableSystem.__init__(self, base_ring, cartan_type, level, indices, 'Q', category)
-
-    def _repr_term(self, t):
-        """
-        Return a string representation of the basis element indexed by ``a``
-        with all `m = 1`.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q._repr_term(((1,1), (4,1)))
-            'Q^(1)[1]*Q^(4)[1]'
-        """
-        if len(t) == 0:
-            return '1'
-        def repr_gen(x):
-            ret = 'Q^({})[{}]'.format(*(x[0]))
-            if x[1] > 1:
-                ret = '({})^{}'.format(ret, x[1])
-            return ret
-        return '*'.join(repr_gen(x) for x in t._sorted_items())
-
-    def _latex_term(self, t):
-        r"""
-        Return a `\LaTeX` representation of the basis element indexed
-        by ``m``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q._latex_term(((3,1,2), (4,1,1)))
-            'Q^{(3)}_{1} Q^{(4)}_{1}'
-        """
-        if len(t) == 0:
-            return '1'
-        def repr_gen(x):
-            ret = 'Q^{{({})}}_{{{}}}'.format(*(x[0]))
-            if x[1] > 1:
-                ret = '\\bigl(' + ret + '\\bigr)^{{{}}}'.format(x[1])
-            return ret
-        return ' '.join(repr_gen(x) for x in t._sorted_items())
-
-    def gen(self, a, m):
-        """
-        Return the generator `Q^{(a)}_i` of ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q.gen(2, 1)
-            Q^(2)[1]
-            sage: Q.gen(12, 2)
-            Q^(12)[2]
-            sage: Q.gen(0, 1)
-            1
-            sage: Q.gen(1, 0)
-            1
-        """
-        if m == 0 or m == self._level or a == 0 or a == len(self.index_set()) + 1:
-            return self.one()
-        if a not in self.index_set():
-            return self.zero()
-        return self.monomial(self._indices.gen((a,m)))
-
-    def algebra_generators(self):
-        """
-        Return the algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QSystem(QQ, ['A',4])
-            sage: Q.algebra_generators()
-            Finite family {1: Q^(1)[1], 2: Q^(2)[1], 3: Q^(3)[1], 4: Q^(4)[1]}
-        """
-        return Family({a: self.gen(a, 1) for a in self.index_set()})
-
-    @cached_method
-    def _reduce_square_free(self, a, m):
-        r"""
-        Return the square reduced by the formula
-
-        .. MATH::
-
-            \left( Q^{(a)}_m \right)^2 = Q^{(a)}_{m-1} Q^{(a)}_{m+1}
-            + \prod_{a \sim b} Q(b)
-
-        where if `d_a > 1` then `Q(b) = Q_{\beta}^{(b)}` where
-        `\beta = d_a \left\lfloor \frac{m-1}{d_b} \right\rfloor`, otherwise
-
-        .. MATH::
-
-            Q(b) = \prod_{k=1}^{d_b} Q^{(b)}_{\beta_k}
-
-        where `\beta_k = 1 + \left\lfloor \frac{m-1-k}{d_b} \right\rfloor`.
-        """
-        d = self._diagonal
-        da = d[a]
-        I = self._indices
-
-        cur = self._from_dict({I.gen((a,m-1)) * I.gen((a,m+1)):1})
-        if da > 1:
-            cur += self.monomial( I.prod(I.gen((b, da * (m-1) // d[b]))
-                    for b in self._cartan_type.dynkin_diagram().neighbors(a)) )
-        else:
-            cur += self.monomial( I.prod(I.gen((b, 1 + (m-1-k) // d[b]))
-                    for b in self._cartan_type.dynkin_diagram().neighbors(a)
-                    for k in range(1, d[b]+1)) )
-        return cur
-
-    class Element(IntegrableSystemElement):
-        def _mul_(self, x):
-            """
-            Return the product of ``self`` and ``x``.
-            """
-            P = self.parent()
-            cur = P.sum_of_terms((tl*tr, cl*cr) for tl,cl in self for tr,cr in x)
-            is_square_free = False
-            while not is_square_free:
-                is_square_free = True
-                for m,c in list(cur):
-                    ret = []
-                    for a,exp in m._sorted_items():
-                        if exp > 1:
-                            assert exp == 2, "larger than square"
-                            ret.append(P._reduce_square_free(*a))
-                            is_square_free = False
-                        else:
-                            ret.append(P.gen(*a))
-                    if not is_square_free:
-                        cur -= P._from_dict({m:c}) + prod(ret, P.one()*c)
-            return cur
-
-class QSystem_reducible(IntegrableSystem):
+class QSystem(Parent, UniqueRepresentation):
     r"""
-    The Q-system that is used to perform the reduction steps.
+    A Q-system.
 
     We use the presentation of a Q-system given in [HKOTY99]_.
 
@@ -814,10 +502,549 @@ class QSystem_reducible(IntegrableSystem):
 
     with `Q^{(a)}_0 = 1`.
 
+    Q-systems have two natural bases:
+
+    - ``Fundamental`` -- given by polynomials of the
+      fundamental representations
+    - ``SqaureFree`` -- given by square-free terms
+
     REFERENCES:
 
     .. [HKOTY99] G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada.
        *Remarks on the fermionic formula*. Contemp. Math., **248** (1999).
+    """
+    @staticmethod
+    def __classcall__(cls, base_ring, cartan_type, level=None):
+        """
+        Normalize arguments to ensure a unique representation.
+        """
+        cartan_type = CartanType(cartan_type)
+        # TODO: Check for tamely laced!!!
+        return super(QSystem, cls).__classcall__(cls, base_ring, cartan_type, level)
+
+    def __init__(self, base_ring, cartan_type, level):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: TestSuite(Q).run()
+        """
+        category = HopfAlgebras(base_ring).Commutative()
+        self._cartan_type = cartan_type
+        self._level = level
+        Parent.__init__(self, base_ring, category=category.WithRealizations())
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: QSystem(QQ, ['A',4])
+            Q-system of type ['A', 4] over Rational Field
+        """
+        if self._level is not None:
+            res = "Restricted level {} ".format(self._level)
+        else:
+            res = ''
+        return "{}Q-system of type {} over {}".format(res, self._cartan_type, self.base_ring())
+
+    def cartan_type(self):
+        """
+        Return the Cartan type of ``self``.
+        """
+        return self._cartan_type
+
+    def level(self):
+        """
+        Return the restriction level of ``self`` or ``None`` if
+        the system is unrestricted.
+        """
+        return self._level
+
+    def a_realization(self):
+        r"""
+        Return a particular realization of ``self`` (the fundamental basis).
+
+        EXAMPLES::
+        """
+        return self.Fundamental()
+
+    class _BasesCategory(Category_realization_of_parent):
+        r"""
+        The category of bases of a Iwahori-Hecke algebra.
+        """
+        def super_categories(self):
+            r"""
+            The super categories of ``self``.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: bases = Q._BasesCategory()
+                sage: bases.super_categories()
+                [Category of realizations of Q-system of type ['A', 4] over Rational Field,
+                 Category of commutative hopf algebras with basis over quotient fields]
+            """
+            cat = HopfAlgebras(self.base().base_ring().category()).Commutative().WithBasis()
+            return [Realizations(self.base()), cat]
+
+        def _repr_(self):
+            r"""
+            Return the representation of ``self``.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: Q._BasesCategory()
+                Category of bases of Q-system of type ['A', 4] over Rational Field
+            """
+            return "Category of bases of {}".format(self.base())
+
+        class ParentMethods:
+            r"""
+            This class collects code common to all the various bases.
+            """
+            def _repr_(self):
+                """
+                Text representation of this basis of Iwahori-Hecke algebra.
+
+                EXAMPLES::
+
+                    sage: Q = QSystem(QQ, ['A',4])
+                    sage: Q.Fundamental()
+                    Q-system of type ['A', 4] over Rational Field
+                     in the Fundamental basis
+                    sage: Q.SquareFree()
+                    Q-system of type ['A', 4] over Rational Field
+                     in the Square-Free basis
+                """
+                return "{} in the {} basis".format(self.realization_of(), self._basis_name)
+
+            def level(self):
+                """
+                Return the restriction level of ``self`` or ``None`` if
+                the system is unrestricted.
+                """
+                return self._level
+
+            def cartan_type(self):
+                """
+                Return the Cartan type of ``self``.
+                """
+                return self._cartan_type
+
+            def index_set(self):
+                """
+                Return the index set of ``self``.
+                """
+                return self._cartan_type.index_set()
+
+            @cached_method
+            def one_basis(self):
+                """
+                Return the basis element indexing `1`.
+
+                EXAMPLES::
+
+                    sage: F = QSystem(QQ, ['A',4]).Fundamental()
+                    sage: F.one_basis()
+                    1
+                    sage: F.one_basis().parent() is F._indices
+                    True
+                """
+                return self._indices.one()
+
+            @cached_method
+            def algebra_generators(self):
+                """
+                Return the algebra generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: Q = QSystem(QQ, ['A',4])
+                    sage: Q.algebra_generators()
+                    Finite family {1: Q^(1)[1], 2: Q^(2)[1], 3: Q^(3)[1], 4: Q^(4)[1]}
+                """
+                return Family({a: self.gen(a, 1) for a in self.index_set()})
+
+            def dimension(self):
+                """
+                Return the dimension of ``self``, which is `\infty`.
+
+                EXAMPLES::
+
+                    sage: Y = Yangian(QQ, 4)
+                    sage: Y.dimension()
+                    +Infinity
+                """
+                return infinity
+
+    class _BasisAbstract(CombinatorialFreeModule, BindableClass):
+        """
+        Abstract base class for a basis of a Q-system.
+        """
+        def __init__(self, Q_system, indices):
+            r"""
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: T = TSystem(QQ, ['A',4])
+                sage: TestSuite(T).run()
+            """
+            self._cartan_type = Q_system._cartan_type
+            self._level = Q_system._level
+            category = Q_system._BasesCategory()
+            CombinatorialFreeModule.__init__(self, Q_system.base_ring(), indices,
+                                             prefix='Q', category=category)
+
+        def _repr_term(self, t):
+            """
+            Return a string representation of the basis element indexed by ``a``
+            with all `m = 1`.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: Q._repr_term(((1,1), (4,1)))
+                'Q^(1)[1]*Q^(4)[1]'
+            """
+            if len(t) == 0:
+                return '1'
+            def repr_gen(x):
+                ret = 'Q^({})[{}]'.format(*(x[0]))
+                if x[1] > 1:
+                    ret += '^{}'.format(x[1])
+                return ret
+            return '*'.join(repr_gen(x) for x in t._sorted_items())
+
+        def _latex_term(self, t):
+            r"""
+            Return a `\LaTeX` representation of the basis element indexed
+            by ``m``.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: Q._latex_term(((3,1,2), (4,1,1)))
+                'Q^{(3)}_{1} Q^{(4)}_{1}'
+            """
+            if len(t) == 0:
+                return '1'
+            def repr_gen(x):
+                ret = 'Q^{{({})}}_{{{}}}'.format(*(x[0]))
+                if x[1] > 1:
+                    ret = '\\bigl(' + ret + '\\bigr)^{{{}}}'.format(x[1])
+                return ret
+            return ' '.join(repr_gen(x) for x in t._sorted_items())
+
+        def _coerce_map_from_(self, M):
+            """
+            Return a morphism if there is a coercion map from ``M``
+            into ``self``.
+            """
+            if isinstance(M, TSystem):
+                if (M.cartan_type() == self.cartan_type()
+                    and self.base_ring().has_coerce_map_from(M.base_ring())):
+                    return M.module_morphism(M.restriction_on_basis, codomain=self)
+            return super(QSystem._BasisAbstract, self)._coerce_map_from_(M)
+
+    class Fundamental(_BasisAbstract):
+        """
+        The basis of a Q-system given by polynomials of the
+        fundamental representations.
+        """
+        _basis_name = "Fundamental"
+
+        def __init__(self, Q_system):
+            r"""
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: TestSuite(Q).run()
+            """
+            cartan_type = Q_system._cartan_type
+            indices = CartesianProduct(cartan_type.index_set(), [1])
+            basis = IndexedFreeAbelianMonoid(indices, prefix='Q', bracket=False)
+            # This is used to do the reductions
+            self._poly = PolynomialRing(ZZ, ['q'+str(i) for i in cartan_type.index_set()])
+            QSystem._BasisAbstract.__init__(self, Q_system, basis)
+
+        def gen(self, a, m):
+            """
+            Return the generator `Q^{(a)}_i` of ``self``.
+
+            EXAMPLES::
+
+                sage: Q = QSystem(QQ, ['A',4])
+                sage: Q.gen(2, 1)
+                Q^(2)[1]
+                sage: Q.gen(12, 2)
+                Q^(12)[2]
+                sage: Q.gen(0, 1)
+                1
+                sage: Q.gen(1, 0)
+                1
+            """
+            if m == 0 or m == self._level:
+                return self.one()
+            if m == 1:
+                return self.monomial( self._indices.gen((a,1)) )
+            assert a in self.index_set()
+            #if self._cartan_type.type() == 'A' and self._level is None:
+            #    return self._jacobi_trudy(a, m)
+            I = self._cartan_type.index_set()
+            p = self._Q_poly(a, m)
+            return p.subs({ g: self.gen(I[i], 1) for i,g in enumerate(self._poly.gens()) })
+
+        @cached_method
+        def _jacobi_trudy(self, a, m):
+            """
+            If we are in type `A_r` and an unrestricted Q-system, use the
+            Jacobi-Trudy type identity to reduce the generator `Q^{(a)}_m`
+            into terms of `Q^{(b)}_1`.
+
+            EXAMPLES::
+
+                sage: R.<u> = QQ[]
+                sage: T = TSystem(R, ['A',2])
+                sage: T._jacobi_trudy(1, 3, u)
+                1 + T^(1)[1](u - 2)*T^(1)[1](u)*T^(1)[1](u + 2)
+                 - T^(1)[1](u + 2)*T^(2)[1](u - 1) - T^(1)[1](u - 2)*T^(2)[1](u + 1)
+                sage: all(T._jacobi_trudy(a,m,u) == T._reduced_generator(a,m,u)
+                ....:     for a in T.index_set() for m in range(6))
+                True
+            """
+            mat = []
+            r = self._cartan_type.rank()
+            for i in range(1, m+1):
+                mat.append([])
+                for j in range(1, m+1):
+                    b = a - i + j
+                    if b < 0 or b > r + 1:
+                        mat[-1].append(self.zero())
+                    elif b == 0 or b == r + 1:
+                        mat[-1].append(self.one())
+                    else:
+                        mat[-1].append(self.gen(b, 1))
+            return matrix(self, mat).determinant('pari')
+
+        @cached_method
+        def _Q_poly(self, a, m):
+            r"""
+            Return the element `Q^{(a)}_m` as a polynomial.
+
+            We start with the relation
+
+            .. MATH::
+
+                Q^{(a)}_{m-1}^2 = Q^{(a)}_m Q^{(a)}_{m-2} + \mathcal{Q}_{a,m-1},
+
+            which implies
+
+            .. MATH::
+
+                Q^{(a)}_m = \frac{Q^{(a)}_{m-1}^2 - \mathcal{Q}_{a,m-1}}{
+                Q^{(a)}_{m-2}}.
+            """
+            if m == 0 or m == self._level:
+                return self._poly.one()
+            if m == 1:
+                return self._poly.gen(self._cartan_type.index_set().index(a))
+
+            cm = CartanMatrix(self._cartan_type)
+            I = self._cartan_type.index_set()
+            m -= 1 # So we don't have to do it everywhere
+
+            cur = self._Q_poly(a, m)**2
+            i = I.index(a)
+            ret = self._poly.one()
+            for b in self._cartan_type.dynkin_diagram().neighbors(a):
+                j = I.index(b)
+                for k in range(-cm[i,j]):
+                    ret *= self._Q_poly(b, (m * cm[j,i] - k) // cm[i,j])
+            cur -= ret
+            if m > 1:
+                cur //= self._Q_poly(a, m-1)
+            return cur
+
+        class Element(CombinatorialFreeModule.Element):
+            def _mul_(self, x):
+                """
+                Return the product of ``self`` and ``x``.
+                """
+                return self.parent().sum_of_terms((tl*tr, cl*cr)
+                                                  for tl,cl in self for tr,cr in x)
+
+    class SquareFree(_BasisAbstract):
+        """
+        The Q-system basis given in square free monomials.
+        """
+        _basis_name = "Square-Free"
+
+        def __init__(self, Q_system):
+            r"""
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: SF = QSystem(QQ, ['A',2]).SquareFree()
+                sage: TestSuite(SF).run()
+            """
+            basis = SquareFreeMonomials(Q_system._cartan_type)
+            QSystem._BasisAbstract.__init__(self, Q_system, basis)
+
+        def gen(self, a, m):
+            """
+            Return the generator `Q^{(a)}_i` of ``self``.
+
+            EXAMPLES::
+
+                sage: SF = QSystem(QQ, ['A',4]).SquareFree()
+                sage: SF.gen(2, 1)
+                Q^(2)[1]
+                sage: SF.gen(12, 2)
+                Q^(12)[2]
+                sage: SF.gen(0, 1)
+                1
+                sage: Q.gen(1, 0)
+                1
+            """
+            if m == 0 or m == self._level:
+                return self.one()
+            assert a in self.index_set()
+            return self.monomial(self._indices.gen((a,m)))
+
+        @lazy_attribute
+        def _diagonal(self):
+            """
+            Return the diagonal of the symmetrized Cartan matrix of ``self``.
+            """
+            d = self._cartan_type.cartan_matrix().is_symmetrizable(True)
+            lcd = LCM([QQ(x).denominator() for x in d])
+            return Family({a: ZZ(d[i]*lcd) for i,a in enumerate(self.index_set())})
+
+        @lazy_attribute
+        def _lcm_diagonal(self):
+            """
+            Return the least common multiple of the diagonal.
+            """
+            return LCM(list(self._diagonal))
+
+        def _reduce_square_free(self, a, m):
+            r"""
+            Return the square reduced by the formula
+
+            .. MATH::
+
+                \left( Q^{(a)}_m \right)^2 = Q^{(a)}_{m-1} Q^{(a)}_{m+1}
+                + \prod_{a \sim b} Q(b)
+
+            where if `d_a > 1` then `Q(b) = Q_{\beta}^{(b)}` where
+            `\beta = d_a \left\lfloor \frac{m-1}{d_b} \right\rfloor`, otherwise
+
+            .. MATH::
+
+                Q(b) = \prod_{k=1}^{d_b} Q^{(b)}_{\beta_k}
+
+            where `\beta_k = 1 + \left\lfloor \frac{m-1-k}{d_b} \right\rfloor`.
+            """
+            d = self._diagonal
+            da = d[a]
+            I = self._indices
+
+            cur = self.gen(a,m-1) * self.gen(a,m+1)
+            N = self._cartan_type.dynkin_diagram().neighbors(a)
+            if da > 1:
+                cur += self.prod(self.gen(b, (da * m) // d[b])
+                                 for b in N)
+            else:
+                cur += self.prod(self.gen(b, 1 + (m-k) // d[b])
+                                 for b in N for k in range(1, d[b]+1))
+            return cur
+
+        class Element(CombinatorialFreeModule.Element):
+            def _mul_(self, x):
+                """
+                Return the product of ``self`` and ``x``.
+                """
+                P = self.parent()
+                cur = P.sum_of_terms((tl*tr, cl*cr) for tl,cl in self for tr,cr in x)
+                is_square_free = False
+                while not is_square_free:
+                    is_square_free = True
+                    for m,c in cur:
+                        ret = []
+                        for a,exp in m._sorted_items():
+                            if exp > 1:
+                                assert exp == 2, "larger than square"
+                                ret.append(P._reduce_square_free(*a))
+                                is_square_free = False
+                            else:
+                                ret.append(P.gen(*a))
+                        if not is_square_free:
+                            cur += c * P.prod(ret) - P._from_dict({m:c}, remove_zeros=False)
+                            break
+                return cur
+
+
+###########################################################
+## Helper classes
+
+class SquareFreeMonomials(IndexedFreeAbelianMonoid):
+    """
+    Parent representing the set of square-free monomials.
+    """
+    @staticmethod
+    def __classcall__(cls, ct):
+        """
+        Normalize input.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.t_q_system import SquareFreeMonomials
+            sage: S1 = SquareFreeMonomials(['A',3])
+            sage: S2 = SquareFreeMonomials('A3')
+            sage: S1 is S2
+            True
+        """
+        return super(IndexedMonoid, cls).__classcall__(cls, CartanType(ct))
+
+    def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.t_q_system import QSystem_square_free
+            sage: Qsf = QSystem_square_free(QQ, ['A',2])
+            sage: TestSuite(Qsf._indices).run()
+        """
+        self._cartan_type = cartan_type
+        indices = CartesianProduct(cartan_type.index_set(), PositiveIntegers())
+        IndexedFreeAbelianMonoid.__init__(self, indices, prefix='Q')
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.t_q_system import QSystem_square_free
+            sage: Qsf = QSystem_square_free(QQ, ['A',2])
+            sage: Qsf._indices
+            Square-free monomials of the Q-system of type ['A', 2]
+        """
+        return "Square-free monomials of the Q-system of type {}".format(self._cartan_type)
+
+class TSystem_reducible(object):
+    r"""
+    The T-system that is used to perform the reduction steps.
     """
     def __init__(self, base_ring, cartan_type, level):
         r"""
@@ -828,20 +1055,31 @@ class QSystem_reducible(IntegrableSystem):
             sage: Q = QSystem(QQ, ['A',4])
             sage: TestSuite(Q).run()
         """
-        category = HopfAlgebras(base_ring).Commutative()
-        indices = IndexedFreeAbelianGroup(CartesianProduct(cartan_type.index_set(),
-                                                           PositiveIntegers()))
         self._cartan_type = cartan_type
-        self._name = 'Q'
         self._level = level
         self._poly = PolynomialRing(ZZ, ['q'+str(i) for i in cartan_type.index_set()])
-        CombinatorialFreeModule.__init__(self, base_ring, indices,
-                                         prefix='Q', category=category)
+        self._spec = PoylnomialRing(QQ, 'u')
+
+    @lazy_attribute
+    def _diagonal(self):
+        """
+        Return the diagonal of the symmetrized Cartan matrix of ``self``.
+        """
+        d = self._cartan_type.cartan_matrix().is_symmetrizable(True)
+        lcd = LCM([QQ(x).denominator() for x in d])
+        return Family({a: ZZ(d[i]*lcd) for i,a in enumerate(self.index_set())})
+
+    @lazy_attribute
+    def _lcm_diagonal(self):
+        """
+        Return the least common multiple of the diagonal.
+        """
+        return LCM(list(self._diagonal))
 
     @cached_method
-    def _Q_poly(self, a, m):
+    def _T_poly(self, a, m):
         r"""
-        Return the element `Q^{(a)}_m` as a polynomial.
+        Return the element `T^{(a)}_m(u)` as a polynomial.
 
         We start with the relation
 
@@ -876,9 +1114,4 @@ class QSystem_reducible(IntegrableSystem):
         if m > 1:
             cur //= self._Q_poly(a, m-1)
         return cur
-
-class YSystem(IntegrableSystem):
-    """
-    A `Y`-system.
-    """
 
