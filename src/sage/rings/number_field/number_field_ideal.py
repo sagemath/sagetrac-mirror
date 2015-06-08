@@ -1749,7 +1749,25 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             True
             sage: I.divides(29)
             False
+
+        TESTS:
+
+        See :trac:`18639`::
+
+            sage: K.<a> = QuadraticField(10)
+            sage: I = K.ideal(a)
+            sage: I.divides(0)
+            True
+            sage: I.divides(K(0))
+            True
+            sage: I.divides(K.ideal(0))
+            True
         """
+        try:
+            if other.is_zero():
+                return True
+        except AttributeError:
+            pass
         if not isinstance(other, NumberFieldIdeal):
             other = self.number_field().ideal(other)
         return (other / self).is_integral()
