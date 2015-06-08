@@ -1,5 +1,64 @@
+# coding=utf-8
 r"""
 Hasse diagrams of posets
+
+This module defines a helper class for finite posets and lattices.
+This is **not meant to be used directly**. All type checking happens
+at posets.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~HasseDiagram.antichains` | Return antichains of the poset.
+    :meth:`~HasseDiagram.antichains_iterator` | Return an iterator over the antichains of the poset.
+    :meth:`~HasseDiagram.are_comparable` | Return whether elements are comparable in the poset.
+    :meth:`~HasseDiagram.are_incomparable` | Return whether elements are incomparable in the poset.
+    :meth:`~HasseDiagram.bottom` | Return the bottom element of the poset.
+    :meth:`~HasseDiagram.cardinality` | Return the number of elements in the poset.
+    :meth:`~HasseDiagram.chains` | Return chains of the poset.
+    :meth:`~HasseDiagram.complements` | Deprecated. Broken.
+    :meth:`~HasseDiagram.cover_relations` | Return the list of cover relations in the poset.
+    :meth:`~HasseDiagram.cover_relations_iterator` | Return an iterator over cover relations in the poset.
+    :meth:`~HasseDiagram.covers` | Return ``True`` if ``y`` covers ``x``.
+    :meth:`~HasseDiagram.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules on the poset, in the basis of simple modules.
+    :meth:`~HasseDiagram.dual` | Return the dual poset of the poset.
+    :meth:`~HasseDiagram.has_bottom` | Return ``True`` if the poset has a unique minimal element.
+    :meth:`~HasseDiagram.has_top` | Return ``True`` if the poset has a unique maximal element.
+    :meth:`~HasseDiagram.interval` | Return the list of elements in the closed interval between given elements.
+    :meth:`~HasseDiagram.is_bounded` | Return ``True`` if the poset has both a unique minimal and a unique maximal element.
+    :meth:`~HasseDiagram.is_chain` | Return ``True`` if the poset is totally ordered.
+    :meth:`~HasseDiagram.is_complemented_lattice` | Return ``True`` if the poset is a complemented lattice.
+    :meth:`~HasseDiagram.is_distributive_lattice` | Return ``True`` if the poset is a distributive lattice.
+    :meth:`~HasseDiagram.is_gequal` | Return ``True`` if ``x`` is greater than or equal to ``y`` in the poset.
+    :meth:`~HasseDiagram.is_graded` | Deprecated. Conflicting definition.
+    :meth:`~HasseDiagram.is_greater_than` | Return ``True`` if ``x`` is greater than ``y`` in the poset.
+    :meth:`~HasseDiagram.is_join_semilattice` | Return ``True`` if the poset is a join-semilattice.
+    :meth:`~HasseDiagram.is_lequal` | Return ``True`` if ``x`` is less than or equal to ``y`` in the poset.
+    :meth:`~HasseDiagram.is_less_than` | Return ``True`` if ``x`` is less than ``y`` in the poset.
+    :meth:`~HasseDiagram.is_linear_extension` | Return ``True`` if given list is a liner extension of the poset.
+    :meth:`~HasseDiagram.is_meet_semilattice` | Return ``True`` if the poset is a meet-semilattice.
+    :meth:`~HasseDiagram.is_ranked` | Return ``True`` if the poset has a rank function.
+    :meth:`~HasseDiagram.join_matrix` | Return the join matrix of the lattice.
+    :meth:`~HasseDiagram.lequal_matrix` | Return the matrix whose (i,j) entry is 1 if i is less than j in the poset, and 0 otherwise.
+    :meth:`~HasseDiagram.linear_extension` | Return a linear extension of the poset.
+    :meth:`~HasseDiagram.linear_extensions` | Return a set of linear extensions of the poset.
+    :meth:`~HasseDiagram.lower_covers_iterator` | Return an iterator over elements that are covered by given element.
+    :meth:`~HasseDiagram.maximal_elements` | Return a list of maximal elements of the poset.
+    :meth:`~HasseDiagram.meet_matrix` | Return the meet matrix of the lattice.
+    :meth:`~HasseDiagram.minimal_elements` | Return a list of minimal elements of the poset.
+    :meth:`~HasseDiagram.mobius_function` | Return the value of the möbius function of elements on the poset.
+    :meth:`~HasseDiagram.mobius_function_matrix` | Return the matrix whose (i,j) entry is möbius function of ``i`` and ``j`` on the poset.
+    :meth:`~HasseDiagram.open_interval` | Return the list of elements in the open interval between given elements.
+    :meth:`~HasseDiagram.order_filter` | Return the order filter ("upper set") of elements in the poset.
+    :meth:`~HasseDiagram.order_ideal` | Return the order ideal ("lower set") of elements in the poset.
+    :meth:`~HasseDiagram.principal_order_filter` | Return the order filter ("upper set") of one element in the poset.
+    :meth:`~HasseDiagram.principal_order_ideal` | Return the order filter ("lower set") of one element in the poset.
+    :meth:`~HasseDiagram.rank` | Return a rank of given element, or the rank of the poset.
+    :meth:`~HasseDiagram.rank_function` | Return the rank function of the poset.
+    :meth:`~HasseDiagram.top` | Return the top element of the poset.
+    :meth:`~HasseDiagram.upper_covers_iterator` | Return an iterator over elements that covers given element.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
