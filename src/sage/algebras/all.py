@@ -54,5 +54,4 @@ from weyl_algebra import DifferentialWeylAlgebra
 
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')
 
-lazy_import('sage.algebras.t_q_system', ['TSystem', 'QSystem'])
-
+lazy_import('sage.algebras.q_system', 'QSystem')
