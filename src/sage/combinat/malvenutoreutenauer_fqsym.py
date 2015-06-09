@@ -13,6 +13,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.realizations import Category_realization_of_parent
 from sage.misc.bindable_class import BindableClass
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
 
 def composition_to_global_descent_permutation( comp ):
     return Permutation(sum((range(sum(comp[i+1:])+1,sum(comp[i:])+1) for i in range(len(comp))), []))
@@ -45,13 +46,13 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
 
         #register coercions for Monomial dual basis because this is
         #where the embedding from NCSF into MR is defined.
-        Md = self.MonomialDual()
+        Hu = self.MonomialDual()
         from sage.categories.graded_hopf_algebras_with_basis \
           import GradedHopfAlgebrasWithBasis
         categ = GradedHopfAlgebrasWithBasis(R)
         S = NonCommutativeSymmetricFunctions(R).complete()
-        S.module_morphism(Md._from_complete_on_basis,
-                       codomain=Md, category=categ).register_as_coercion()
+        S.module_morphism(Hu._from_complete_on_basis,
+                       codomain=Hu, category=categ).register_as_coercion()
 
     def _repr_(self): # could be taken care of by the category
         return "The Malvenuto-Reutenaur Hopf Algebra of Permutations "+\
@@ -100,16 +101,16 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                     return self.base_ring().one()
 
             def to_quasisymmetric_function_on_basis(self, p):
-                F = self.realization_of().a_realization()
-                return F.to_quasisymmetric_function(F(self(p)))
+                Fu = self.realization_of().a_realization()
+                return Fu.to_quasisymmetric_function(Fu(self(p)))
 
             def to_quasisymmetric_function(self, elt):
-                F = self.realization_of().a_realization()
-                return F.to_quasisymmetric_function(F(elt))
+                Fu = self.realization_of().a_realization()
+                return Fu.to_quasisymmetric_function(Fu(elt))
 
             def duality_pairing_by_coercion(self, right, left):
-                F = self.realization_of().a_realization()
-                return F.duality_pairing(right, left)
+                Fu = self.realization_of().a_realization()
+                return Fu.duality_pairing(right, left)
 
         class ElementMethods:
             def to_quasisymmetric_function(self):
@@ -165,15 +166,15 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
                                              CombinatorialSet,
                                              prefix='Mu', bracket=False,
                                              category=my_CHA.Bases())
-            F = self.realization_of().a_realization()
+            Fu = self.realization_of().a_realization()
             from sage.categories.graded_hopf_algebras_with_basis \
               import GradedHopfAlgebrasWithBasis
             categ = GradedHopfAlgebrasWithBasis(self.base_ring())
-            phi = F.module_morphism(self._from_Fundamental_on_basis,
+            phi = Fu.module_morphism(self._from_Fundamental_on_basis,
                                     codomain=self, triangular="lower",
                                     unitriangular=True, category=categ)
             self.register_coercion(phi)
-            F.register_coercion(~phi)
+            Fu.register_coercion(~phi)
 
         def _realization_name(self):
             return "Monomial"
@@ -190,16 +191,16 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
             CombinatorialSet = Permutations()
             CombinatorialFreeModule.__init__(self, my_CHA.base_ring(),
                                              CombinatorialSet,
-                                             prefix='Fd', bracket=False,
+                                             prefix='Gu', bracket=False,
                                              category=my_CHA.Bases())
-            F = self.realization_of().a_realization()
+            Fu = self.realization_of().a_realization()
             from sage.categories.graded_hopf_algebras_with_basis \
               import GradedHopfAlgebrasWithBasis
             categ = GradedHopfAlgebrasWithBasis(self.base_ring())
-            F.module_morphism(self._from_Fundamental_on_basis,
+            Fu.module_morphism(self._from_Fundamental_on_basis,
                                 codomain=self, category=categ).register_as_coercion()
             self.module_morphism(self._to_Fundamental_on_basis,
-                                codomain=F, category=categ).register_as_coercion()
+                                codomain=Fu, category=categ).register_as_coercion()
 
         def _realization_name(self):
             return "Fundamental dual"
@@ -208,8 +209,8 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
             return self.monomial(p.inverse())
 
         def _to_Fundamental_on_basis(self, p):
-            F = self.realization_of().a_realization()
-            return F.monomial(p.inverse())
+            Fu = self.realization_of().a_realization()
+            return Fu.monomial(p.inverse())
 
         class Element(CombinatorialFreeModule.Element):
             pass
@@ -219,24 +220,24 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
             CombinatorialSet = Permutations()
             CombinatorialFreeModule.__init__(self, my_CHA.base_ring(),
                                              CombinatorialSet,
-                                             prefix='Md', bracket=False,
+                                             prefix='Hu', bracket=False,
                                              category=my_CHA.Bases())
-            Fd = self.realization_of().FundamentalDual()
+            Gu = self.realization_of().FundamentalDual()
             from sage.categories.graded_hopf_algebras_with_basis \
               import GradedHopfAlgebrasWithBasis
             categ = GradedHopfAlgebrasWithBasis(self.base_ring())
             phi = self.module_morphism(self._to_Fundamental_dual_on_basis,
-                                    codomain=Fd, triangular="upper",
+                                    codomain=Gu, triangular="upper",
                                     unitriangular=True, category=categ)
-            Fd.register_coercion(phi)
+            Gu.register_coercion(phi)
             self.register_coercion(~phi)
 
         def _realization_name(self):
             return "Monomial dual"
 
         def _to_Fundamental_dual_on_basis(self, p):
-            Fd = self.realization_of().FundamentalDual()
-            return Fd.sum(Fd(q) for q in p.permutohedron_smaller(side='left'))
+            Gu = self.realization_of().FundamentalDual()
+            return Gu.sum(Gu(q) for q in p.permutohedron_smaller(side='left'))
 
         def _from_complete_on_basis(self, comp):
             return self(composition_to_global_descent_permutation(comp))
@@ -246,7 +247,7 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
 
     Fu = Fundamental
     Mu = Monomial
-    Fd = FundamentalDual
-    Md = MonomialDual
+    Gu = FundamentalDual
+    Hu = MonomialDual
 
 FreeQuasiSymmetricFunctions = MalvenutoReutenauer
