@@ -15,7 +15,6 @@ from sage.structure.parent import Parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.module import Module
 from sage.misc.misc import repr_lincomb
-from sage.misc.ascii_art import AsciiArt, empty_ascii_art
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.rings.all import Integer
