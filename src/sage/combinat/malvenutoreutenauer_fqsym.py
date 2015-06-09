@@ -233,7 +233,7 @@ class MalvenutoReutenauer(UniqueRepresentation, Parent):
             self.register_coercion(~phi)
 
         def _realization_name(self):
-            return "Monomial dual"
+            return "Monomial dual (complete)"
 
         def _to_Fundamental_dual_on_basis(self, p):
             Gu = self.realization_of().FundamentalDual()
