@@ -126,6 +126,7 @@ from cartesian_product import CartesianProduct
 
 from set_partition import SetPartition, SetPartitions
 from set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
+from packed_word import PackedWord, PackedWords
 from subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from necklace import Necklaces
@@ -137,6 +138,7 @@ from root_system.all import *
 from sf.all import *
 from ncsf_qsym.all import *
 from ncsym.all import *
+from hopf_algebras.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
