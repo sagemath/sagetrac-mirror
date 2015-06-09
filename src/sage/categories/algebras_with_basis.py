@@ -594,8 +594,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: W = WeylGroup("A2",prefix="s")
                     sage: A = W.algebra(ZZ)
                     sage: A2 = tensor([A,A])
+                    sage: A.an_element()
+                    2*B[s1*s2*s1] + 4*B[s1*s2] + B[1]
                     sage: A2.from_direct_product((A.one(), A.one()+A.an_element()))
-                    B[1] # B[s1*s2*s1] + 3*B[1] # B[s1*s2] + 3*B[1] # B[s2*s1] + B[1] # B[1]
+                    2*B[1] # B[s1*s2*s1] + 4*B[1] # B[s1*s2] + 2*B[1] # B[1]
 
                 """
                 return self(tensor(tup, category=self.category()))

@@ -1588,7 +1588,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field, Category of vector spaces over Rational Field]
+                [Category of vector spaces with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
                 [Category of tensor products of modules with basis over Rational Field, Category of vector spaces with basis over Rational Field, Category of tensor products of vector spaces over Rational Field]
             """
