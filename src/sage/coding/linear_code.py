@@ -2877,13 +2877,12 @@ class AbstractLinearCode(module.Module):
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = code2leon(self)
             from sage.misc.temporary_file import tmp_filename
-            output = tmp_filename()
-            import os
-            status = os.system(os.path.join(guava_bin_dir, 'wtdist')
-                               + ' ' + input + "::code > " + output)
-            if status != 0:
-                raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
-            f = open(output); lines = f.readlines(); f.close()
+            f = open(tmp_filename(), "w+")
+            import os, subprocess
+            subprocess.check_call([os.path.join(guava_bin_dir, 'wtdist'), input + "::code"], 
+                                  stdout = f)
+            f.seek(0)
+            lines = f.readlines(); f.close()
             wts = [0]*(n+1)
             s = 0
             for L in lines:
