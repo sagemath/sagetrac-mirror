@@ -1527,6 +1527,12 @@ class ClusterTriangulation(ClusterSeed):
             sage: GeneralizedArc == Z * Annulus41.cluster_variable(1) + Annulus41.cluster_variable(0)
             True
 
+        A markov quiver example which was a bug in a previous version::
+
+            sage: once_punc_torus = ClusterTriangulation([(0,1,2),(0,1,2)])
+            sage: x2_times_x2WithOneNotching = once_punc_torus.arc_laurent_expansion([0,1,2,0,1])
+            sage: x2_times_x2WithOneNotching
+            (2*x0^2*x2 + 2*x1^2*x2 + 2*x2^3)/(x0*x1)
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
         CT = self#._cluster_triangulation
