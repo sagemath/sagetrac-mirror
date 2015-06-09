@@ -208,7 +208,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         EXAMPLES::
 
-            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ, implementation="letterplace")
             sage: X = a*b*a*c*c*b
             sage: X[0]
             a
