@@ -149,7 +149,7 @@ class PlotField(GraphicPrimitive):
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, angles='xy', **quiver_options)
 
 @options(plot_points=20,frame=True)
-def plot_vector_field(f_g, xrange, yrange, **options):
+def plot_vector_field(functions, xrange, yrange, normalize=False, **options):
     r"""
     ``plot_vector_field`` takes two functions of two variables xvar and yvar
     (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
@@ -157,6 +157,20 @@ def plot_vector_field(f_g, xrange, yrange, **options):
     xrange being of xvar between xmin and xmax, and yrange similarly (see below).
 
     ``plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))``
+
+    INPUT:
+
+    - ``functions`` - a tuple of two functions depending on two variables ``xvar``
+      and ``yvar``.
+
+    - ``xrange`` - a tuple ``(xvar, xmin, xmax)`` defining the range of the
+      first variable.
+
+    - ``yrange`` - a tuple ``(yvar, ymin, ymax)`` defining the range of the
+      second variable.
+
+    - ``normalize`` - bool (default: False) whether the vectors of the field
+      should be normalized to have euclidean norm 1.
 
     EXAMPLES:
 
@@ -185,6 +199,15 @@ def plot_vector_field(f_g, xrange, yrange, **options):
         sage: b=plot_vector_field((y,-x),(x,-3,3),(y,-3,3),color='red')
         sage: show(a+b)
 
+    To see sinks, sources, and saddles of a vector field, it is convenient to
+    normalize the vectors so that the behavior around singular points remains
+    visible, (see :trac:`18641`)::
+
+        sage: f(x,y) = (x^2-1)*(y^2-1)*x*y
+        sage: g(x,y) = (x^2+(y-3/8)^2-1/64)*(x^2+(y+3/8)^2-1/64)
+        sage: plot_vector_field((f(x,y),g(x,y)), (x, -1,1), (y, -1,1), normalize=True)
+        Graphics object consisting of 1 graphics primitive
+
     We ignore function values that are infinite or NaN::
 
         sage: x,y = var('x,y')
@@ -203,9 +226,10 @@ def plot_vector_field(f_g, xrange, yrange, **options):
         Graphics object consisting of 1 graphics primitive
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
     """
-    (f, g) = f_g
+    (f, g) = functions
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
+    from sage.functions.other import sqrt
     z, ranges = setup_for_eval_on_grid([f,g], [xrange, yrange], options['plot_points'])
     f,g = z
 
@@ -214,8 +238,17 @@ def plot_vector_field(f_g, xrange, yrange, **options):
         for y in xsrange(*ranges[1], include_endpoint=True):
             xpos_array.append(x)
             ypos_array.append(y)
-            xvec_array.append(f(x,y))
-            yvec_array.append(g(x,y))
+            if normalize:
+                norm = sqrt(f(x,y)**2 + g(x,y)**2)
+                if norm == 0:
+                    xvec_array.append(0.0)
+                    yvec_array.append(0.0)
+                else:
+                    xvec_array.append(f(x,y)/norm)
+                    yvec_array.append(g(x,y)/norm)
+            else:
+                xvec_array.append(f(x,y))
+                yvec_array.append(g(x,y))
 
     import numpy
     xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
