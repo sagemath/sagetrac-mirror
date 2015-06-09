@@ -1032,6 +1032,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.ideal(17).is_prime()  # ramified
             False
         """
+        if self.is_zero():
+            return True
         try:
             return self._pari_prime is not None
         except AttributeError:
@@ -1068,6 +1070,9 @@ class NumberFieldIdeal(Ideal_generic):
         """
         if not self.is_prime():
            raise ValueError("%s is not a prime ideal"%self)
+        # Handle zero separately for a better error messageL
+        if self.is_zero():
+           raise ValueError("%s is not a nonzero prime ideal"%self)
         return self._pari_prime
 
     def _cache_bnfisprincipal(self, proof=None, gens_needed=False):
@@ -1256,6 +1261,39 @@ class NumberFieldIdeal(Ideal_generic):
             Ideal (0) of Number Field in a with defining polynomial x^2 + 2
         """
         return self == self.number_field().ideal(0)
+
+    def __div__(self, other):
+        """
+        Return the quotient self / other.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: I = K.ideal(2/(5+a))
+            sage: J = K.ideal(17+a)
+            sage: I/J
+            Fractional ideal (-17/1420*a + 1/284)
+            sage: (I/J) * J == I
+            True
+
+        Handling of the zero ideal (see :trac:`18639`)::
+
+            sage: K.<a> = NumberField(x^2-10)
+            sage: I = K.ideal(a)
+            sage: I0 = K.ideal(0)
+            sage: I0/I
+            Ideal (0) of Number Field in a with defining polynomial x^2 - 10
+            sage: I/I0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero ideal invalid
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("division by zero ideal invalid")
+        if self.is_zero():
+            return self
+        return self * other.__invert__()
 
     def norm(self):
         """
@@ -1763,11 +1801,6 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I.divides(K.ideal(0))
             True
         """
-        try:
-            if other.is_zero():
-                return True
-        except AttributeError:
-            pass
         if not isinstance(other, NumberFieldIdeal):
             other = self.number_field().ideal(other)
         return (other / self).is_integral()
@@ -1819,23 +1852,6 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             [Fractional ideal (2, 1/2*w - 1/2), Fractional ideal (2, 1/2*w + 1/2), Fractional ideal (3, 1/2*w + 1/2)]
         """
         return [x[0] for x in self.factor()]
-
-    def __div__(self, other):
-        """
-        Return the quotient self / other.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<a> = NumberField(x^2 - 5)
-            sage: I = K.ideal(2/(5+a))
-            sage: J = K.ideal(17+a)
-            sage: I/J
-            Fractional ideal (-17/1420*a + 1/284)
-            sage: (I/J) * J == I
-            True
-        """
-        return self * other.__invert__()
 
     def __invert__(self):
         """
