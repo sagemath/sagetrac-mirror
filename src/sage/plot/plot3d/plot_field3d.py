@@ -21,7 +21,7 @@ from sage.plot.misc import setup_for_eval_on_grid
 from sage.modules.free_module_element import vector
 from sage.plot.plot import plot
 
-def plot_vector_field3d(functions, xrange, yrange, zrange,
+def plot_vector_field3d(functions, xrange, yrange, zrange, normalize=False,
                         plot_points=5, colors='jet', center_arrows=False,**kwds):
     r"""
     Plot a 3d vector field
@@ -34,13 +34,17 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
     - ``xrange``, ``yrange``, and ``zrange`` - three tuples of the
       form (var, start, stop), giving the variables and ranges for each axis
 
+    - ``normalize`` - bool (default: False) whether the arrows representing the
+      vectors of the field should be normalized to have euclidean norm 1.
+
     - ``plot_points`` (default 5) - either a number or list of three
       numbers, specifying how many points to plot for each axis
 
     - ``colors`` (default 'jet') - a color, list of colors (which are
       interpolated between), or matplotlib colormap name, giving the coloring
-      of the arrows.  If a list of colors or a colormap is given,
-      coloring is done as a function of length of the vector
+      of the arrows. If a list of colors or a colormap is given, coloring is
+      done as a function of length of the vector. The coloring is not affected
+      by the normalize option.
 
     - ``center_arrows`` (default False) - If True, draw the arrows
       centered on the points; otherwise, draw the arrows with the tail
@@ -75,7 +79,6 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
     xpoints, ypoints, zpoints = [srange(*r, include_endpoint=True) for r in ranges]
     points = [vector((i,j,k)) for i in xpoints for j in ypoints for k in zpoints]
     vectors = [vector((ff(*point), gg(*point), hh(*point))) for point in points]
-
     try:
         from matplotlib.cm import get_cmap
         cm = get_cmap(colors)
@@ -91,8 +94,19 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
     max_len = max(v.norm() for v in vectors)
     scaled_vectors = [v/max_len for v in vectors]
 
-    if center_arrows:
-        return sum([plot(v,color=cm(v.norm()),**kwds).translate(p-v/2) for v,p in zip(scaled_vectors, points)])
+    if normalize:
+        normalized_vectors = []
+        for v in vectors:
+            norm = v.norm()
+            if norm == 0:
+                normalized_vectors.append(vector((0.0,0.0,0.0)))
+            else:
+                normalized_vectors.append(v/v.norm())
     else:
-        return sum([plot(v,color=cm(v.norm()),**kwds).translate(p) for v,p in zip(scaled_vectors, points)])
+        normalized_vectors = scaled_vectors
+
+    if center_arrows:
+        return sum([plot(v,color=cm(vs.norm()),**kwds).translate(p-v/2) for v,vs,p in zip(normalized_vectors, scaled_vectors, points)])
+    else:
+        return sum([plot(v,color=cm(vs.norm()),**kwds).translate(p) for v,vs,p in zip(normalized_vectors, scaled_vectors, points)])
 
