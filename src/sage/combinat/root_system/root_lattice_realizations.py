@@ -4173,6 +4173,17 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: elt = alpha[0] + alpha[1] + 2*alpha[2]
                 sage: elt.is_real_root()
                 False
+                
+            TESTS:
+
+            Check that trac:`18644` is fixed::
+
+                sage: a = RootSystem(['A', 1, 1]).root_lattice().simple_roots()
+                sage: (2*a[0]).is_real_root()
+                False
             """
-            return self.norm_squared() > 0
+            alpha = self.parent().simple_roots()
+            norm_squared = self.norm_squared()
+            return norm_squared > 0 and all(
+                [j*alpha[i].norm_squared()/norm_squared in ZZ for i,j in self])
 
