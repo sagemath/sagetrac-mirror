@@ -299,6 +299,13 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: B([(0,1,'a'),(1,2,'c')])  # indirect doctest
             a*c
 
+        Demonstrate that the unit element for a quiver algebra with cycles can
+        be constructed::
+
+            sage: A = DiGraph({1:{2:['E12']}, 2:{3:['E23']}, 3:{1:['E31']}}).path_semigroup().algebra(QQ)
+            sage: A(1)
+            e_1 + e_2 + e_3
+
         """
         from sage.quivers.paths import QuiverPath
         # If it's an element of another path algebra, do a linear combination
