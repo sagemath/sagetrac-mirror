@@ -3278,7 +3278,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: Q = RootSystem(['B',2,1]).root_lattice()
                 sage: alpha = Q.simple_roots()
                 sage: (alpha[0] + alpha[1] + 2*alpha[2]).multiplicity()
-                8
+                2
 
             An example in hyperbolic type::
 
@@ -3298,7 +3298,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage, but we can define a hyperbolic Cartan matrix and obtain 
                 a root space as in the preceding example.
             """
-            if not self.parent().cartan_type().cartan_matrix().is_symmetrizable():
+            cm = self.parent().cartan_type().cartan_matrix()
+            if not cm.is_symmetrizable():
                 raise NotImplementedError("only implemented for symmetrizable "
                     " Cartan matrices")
 
@@ -3314,9 +3315,26 @@ class RootLatticeRealizations(Category_over_base_ring):
             # simple roots have multiplicity 1
             if sum(mu.coefficients()) == 1:
                 return 1
+                
+            # the support of a root is connected
+            dd = cm.dynkin_diagram()
+            if not dd.subgraph(vertices=mu.support()).is_connected():
+                return 0
+            
+            # finite, affine, and hyperbolic types have a test for real roots
+            if cm.is_finite() or cm.is_affine() or cm.is_hyperbolic():
+                if mu.is_real_root():
+                    return 1
+            
+            # imaginary root multiplicities are known in all affine cases
+            if cm.is_affine():
+                if mu.is_imaginary_root():
+                    return mu._multiplicity_affine_imaginary()
+                else:
+                    return 0
 
-            alpha = self.parent().simple_roots()
-            lh = self.norm_squared() - sum([j*alpha[i].norm_squared() for i,j in list(mu)])
+            a = self.parent().simple_roots()
+            lh = mu.norm_squared() - sum([j*a[i].norm_squared() for i,j in mu])
             if lh == 0:
                 return 0
 
@@ -3355,12 +3373,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             if sum(self.coefficients()) == 1:
                 return 1
 
-            alpha = self.parent().simple_roots()
-            start = 0
-            if self.parent().cartan_type().is_finite():
-                start = 1
+            a = self.parent().simple_roots()
+            start = min(self.parent().index_set())
 
-            lh = self.norm_squared() - sum([j*alpha[i].norm_squared() for i,j in list(self)])
+            lh = self.norm_squared() - sum([j*a[i].norm_squared() for i,j in self])
             if lh == 0:
                 return self._multiplicity_helper_d()
 
@@ -3370,25 +3386,54 @@ class RootLatticeRealizations(Category_over_base_ring):
             summation = 0
 
             from sage.combinat.cartesian_product import CartesianProduct
-            for beta in CartesianProduct(*sum_range).list():
-                if sum(beta) == 0 or sum(beta) > sum_half or beta == self_list:
+            for b in CartesianProduct(*sum_range):
+                if sum(b) == 0 or sum(b) > sum_half or b == self_list:
                     continue
 
-                self_minus_beta = [i-j for i,j in zip(self_list,beta)]
+                self_minus_b = [i-j for i,j in zip(self_list,b)]
 
-                elt_beta = sum([j*alpha[i] for i,j in enumerate(beta, start)])
-                elt_self_minus_beta = sum([j*alpha[i] for i,j in enumerate(self_minus_beta,start)])
+                elt_b = sum([j*a[i] for i,j in enumerate(b, start)])
+                elt_self_minus_b = sum(
+                    [j*a[i] for i,j in enumerate(self_minus_b,start)])
 
-                c_beta = elt_beta._multiplicity_peterson()
-                c_self_minus_beta = elt_self_minus_beta._multiplicity_peterson()
-                sym_prod = elt_beta.symmetric_form(elt_self_minus_beta)
+                c_b = elt_b._multiplicity_peterson()
+                c_self_minus_b = elt_self_minus_b._multiplicity_peterson()
+                sym_prod = elt_b.symmetric_form(elt_self_minus_b)
 
                 factor = 2
-                if sum(beta) == sum_half:
+                if sum(b) == sum_half:
                     factor = 1
-                summation += factor * sym_prod * c_beta * c_self_minus_beta
+                summation += factor * sym_prod * c_b * c_self_minus_b
 
             return (1/lh)*summation
+            
+        @cached_in_parent_method
+        def _multiplicity_affine_imaginary(self):
+            """
+            Helper method for ``self.multiplicity`` that computes root
+            multiplicities for imaginary roots in affine type.
+            """
+            ct = self.parent().cartan_type()
+            cl_rank = ct.classical().rank()
+            
+            from sage.combinat.root_system.cartan_type import CartanType
+            if ct.is_untwisted_affine() or isinstance(ct, type(CartanType(['A',2,2]))):
+                return cl_rank
+            if isinstance(ct, type(CartanType(['A',3,2]))):
+                if self[0]%2 == 0:
+                    return cl_rank
+                if ct._type.type() == 'B':
+                    return cl_rank-1
+                if ct._type.type() == 'C':
+                    return 1
+                if ct._type.type() == 'F':
+                    return 2
+            if ct == CartanType(['D',4,3]):
+                if self[0]%3 == 0:
+                    return 2
+                else:
+                    return 1
+            return NotImplementedError("unknown affine imaginary multiplicity")
 
         @cached_in_parent_method
         def _multiplicity_helper_d(self):
