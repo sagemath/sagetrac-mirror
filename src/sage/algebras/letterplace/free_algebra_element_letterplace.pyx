@@ -19,6 +19,8 @@ AUTHOR:
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+from sage.rings.all import ZZ
+from sage.misc.all import prod
 
 # Define some singular functions
 lib("freegb.lib")
@@ -141,6 +143,115 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return self._poly.dict().iteritems()
+
+    def is_monomial(self):
+        r"""
+        Return whether ``self`` is a single monomial.
+
+        EXAMPLES::
+
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: X = a*b*a*c*c*b
+            sage: X.is_monomial()
+            True
+            sage: P = 2*a*b*a*c*c*b + a*b*a*d*d*b + a*c*a*d*d*c + b*c*b*d*d*c
+            sage: P.is_monomial()
+            False
+
+        """
+        return len(list(self)) == 1
+
+    def monomials(self):
+        r"""
+        Return the list of monomials of ``self``.
+
+        OUTPUT:
+
+        A list of elements of the free algebra.
+
+        EXAMPLES::
+
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: P = 2*a*b*a*c*c*b + a*b*a*d*d*b + a*c*a*d*d*c + b*c*b*d*d*c
+            sage: P.monomials()
+            [a*b*a*c*c*b, a*b*a*d*d*b, a*c*a*d*d*c, b*c*b*d*d*c]
+        """
+        return [self.parent()(m) for m in self._poly.monomials()]
+
+    def coefficients(self):
+        r"""
+        Return the list of coefficients of ``self``.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: P = 2*a*b*a*c*c*b + a*b*a*d*d*b + a*c*a*d*d*c + b*c*b*d*d*c
+            sage: P.coefficients()
+            [2, 1, 1, 1]
+        """
+        return self._poly.coefficients()
+
+    def __getitem__(self, key):
+        r"""
+        Return a slice or a single element of the monomial.
+
+        If the polynomial has many monomials, the slicing is done on the
+        first monomial.
+
+        OUTPUT:
+
+        An element of the free algebra.
+
+        EXAMPLES::
+
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: X = a*b*a*c*c*b
+            sage: X[0]
+            a
+            sage: X[4]
+            c
+            sage: X[5]
+            b
+            sage: X[:]
+            a*b*a*c*c*b
+            sage: X[:] == X
+            True
+            sage: X[1:3]
+            b*a
+            sage: X[:-1]
+            a*b*a*c*c
+            sage: X[-1]
+            b
+            sage: P = 2*a*b*a*c*c*b + a*b*a*d*d*b + a*c*a*d*d*c + b*c*b*d*d*c
+            sage: P[0]
+            a
+            sage: P[:3]
+            a*c*a
+            sage: X[a]
+            Traceback (most recent call last):
+            ...
+            TypeError: invalid argument type
+        """
+        if isinstance(key,slice):
+            m = self.degree()
+            return prod([self[ii] for ii in xrange(*key.indices(m))])
+        elif key in ZZ:
+            if key<0:
+                key = self.degree()+key
+            t = list(self)[0][0] # getting the tuple representing the object
+            gens = list(self.letterplace_polynomial().parent().gens())
+            # each letter of self is represented by self.parent().ngens() values of the tuple t
+            size_letter = self.parent().ngens()
+            startkey = key * size_letter
+            letter = prod([gens[i]**t[startkey + i] for i in xrange(size_letter)])
+            return self.parent()(letter)
+        else:
+            raise TypeError("invalid argument type")
+
     def _repr_(self):
         """
         TEST::
