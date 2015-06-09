@@ -299,12 +299,12 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: B([(0,1,'a'),(1,2,'c')])  # indirect doctest
             a*c
 
-        Demonstrate that the unit element for a quiver algebra with cycles can
-        be constructed::
+        Demonstrate that the unit element for a quiver algebra with cycles over the complex
+        field can be constructed::
 
-            sage: A = DiGraph({1:{2:['E12']}, 2:{3:['E23']}, 3:{1:['E31']}}).path_semigroup().algebra(QQ)
+            sage: A = DiGraph({1:{2:['E12']}, 2:{3:['E23']}, 3:{1:['E31']}}).path_semigroup().algebra(CC)
             sage: A(1)
-            e_1 + e_2 + e_3
+            1.00000000000000*e_1 + 1.00000000000000*e_2 + 1.00000000000000*e_3
 
         """
         from sage.quivers.paths import QuiverPath
