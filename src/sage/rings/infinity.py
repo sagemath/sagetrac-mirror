@@ -30,7 +30,8 @@ The infinity "ring" is the set of five elements
 The infinity ring coerces to the unsigned infinity ring, sending
 the infinite elements to infinity and the non-infinite elements to
 "a number less than infinity." Any ordered ring coerces to the
-infinity ring in the obvious way.
+infinity ring in the obvious way. The exception is the Symbolic
+Ring (SR) which is not a ring in the usual sense.
 
 .. NOTE::
 
