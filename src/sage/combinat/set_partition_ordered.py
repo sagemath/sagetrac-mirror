@@ -63,9 +63,9 @@ class OrderedSetPartition(ClonableArray):
     known as the `n`-th ordered Bell number; see
     :wikipedia:`Ordered Bell number`). Its exponential generating
     function is
-    
+
     .. MATH::
-    
+
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)
