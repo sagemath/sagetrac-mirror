@@ -26,6 +26,7 @@ from sage.misc.all import prod
 lib("freegb.lib")
 poly_reduce = singular_function("NF")
 singular_system=singular_function("system")
+singular_size = singular_function("size")
 
 #####################
 # Free algebra elements
@@ -45,6 +46,22 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         y*y*y
         sage: (y^3).normal_form(I)
         y*y*z - y*z*y + y*z*z
+
+    Some basic operations on polynomials::
+
+        sage: P = 2*x*x*y + z*x*x + 3*y*y*x
+        sage: len(P)
+        3
+        sage: P.monomials()
+        [x*x*y, y*y*x, z*x*x]
+        sage: P.coefficients()
+        [2, 3, 1]
+        sage: m = P.monomials()[0]; m
+        x*x*y
+        sage: m[0]
+        x
+        sage: m[1:]
+        x*y
 
     Here is an example with nontrivial degree weights::
 
@@ -159,7 +176,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             False
 
         """
-        return len(list(self)) == 1
+        return len(self) == 1
 
     def monomials(self):
         r"""
@@ -194,6 +211,22 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             [2, 1, 1, 1]
         """
         return self._poly.coefficients()
+
+    def __len__(self):
+        r"""
+        Return the length of ``self``, i.e. the number of monomials
+
+        EXAMPLES::
+
+            sage: FreeA.<a,b,c,d,e,f> = FreeAlgebra(QQ,implementation="letterplace")
+            sage: X = a*b*a*c*c*b
+            sage: len(X)
+            1
+            sage: P = 2*a*b*a*c*c*b + a*b*a*d*d*b + a*c*a*d*d*c + b*c*b*d*d*c
+            sage: len(P)
+            4
+        """
+        return singular_size(self._poly)
 
     def __getitem__(self, key):
         r"""
@@ -235,6 +268,31 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: invalid argument type
+
+        Weighted case::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
+            sage: m = x*y*z
+            sage: m[0] == x
+            True
+            sage: m[1] == y
+            True
+            sage: m[2] == z
+            True
+            sage: m[:] == m
+            True
+            sage: m = y *x^2; m
+            y*x*x
+            sage: m[0]
+            y
+            sage: m[0] == y
+            True
+            sage: m[1] == x
+            True
+            sage: m[2] == x
+            True
+
+
         """
         if isinstance(key,slice):
             m = self.degree()
@@ -244,10 +302,25 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 key = self.degree()+key
             t = list(self)[0][0] # getting the tuple representing the object
             gens = list(self.letterplace_polynomial().parent().gens())
-            # each letter of self is represented by self.parent().ngens() values of the tuple t
+            # each letter of self is represented by a list of values of the tuple t
             size_letter = self.parent().ngens()
+            weighted = False
+            if size_letter != sum(self.parent().degrees()):
+                # in the weighted case, the size of each letter depends on its inner weight
+                weighted = True
+                size_letter +=1
+                wkey = 0
+                for j in xrange(key):
+                    letter = self[j]
+                    wkey += letter.degree()
+                key = wkey
             startkey = key * size_letter
             letter = prod([gens[i]**t[startkey + i] for i in xrange(size_letter)])
+            i = 2* size_letter-1
+            # this loop adds the hidden variables for higher degree generators
+            while weighted and startkey+i < len(t) and t[startkey + i]==1:
+                letter *= gens[i]
+                i += size_letter
             return self.parent()(letter)
         else:
             raise TypeError("invalid argument type")

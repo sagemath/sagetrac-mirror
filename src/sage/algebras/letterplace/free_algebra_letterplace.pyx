@@ -350,6 +350,26 @@ cdef class FreeAlgebra_letterplace(Algebra):
             j += self.__ngens
             p *= self._current_ring.gen(j)
         return FreeAlgebraElement_letterplace(self, p)
+
+    def degrees(self):
+        r"""
+        Return the list of degrees associated with the variables of ``self``.
+
+        OUTPUT:
+
+        A tuple of integers.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
+            sage: F.degrees()
+            (1, 1, 1)
+            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
+            sage: F.degrees()
+            (2, 1, 3)
+        """
+        return self._degrees
+
     def current_ring(self):
         """
         Return the commutative ring that is used to emulate
@@ -598,7 +618,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             sage: from sage.algebras.letterplace.free_algebra_element_letterplace import FreeAlgebraElement_letterplace
             sage: P = F.commutative_ring()
             sage: FreeAlgebraElement_letterplace(F, P.0*P.1^2+P.1^3) # indirect doctest
-            <repr(<sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace at 0x...>) failed: NotImplementedError: 
+            <repr(<sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace at 0x...>) failed: NotImplementedError:
               Apparently you tried to view the letterplace algebra with
               shift-multiplication as the free algebra over a finitely
               generated free abelian monoid.
