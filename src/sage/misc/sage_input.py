@@ -536,10 +536,10 @@ class SageInputBuilder:
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
-            return SIE_tuple(self, map(self, x), False)
+            return SIE_tuple(self, [self(_) for _ in x], False)
 
         if isinstance(x, list):
-            return SIE_tuple(self, map(self, x), True)
+            return SIE_tuple(self, [self(_) for _ in x], True)
 
         if isinstance(x, dict):
             return self.dict(x)
@@ -1431,7 +1431,7 @@ class SageInputExpression(object):
             sage: sie(4)
             {call: {atomic:3}({atomic:4})}
         """
-        args = map(self._sie_builder, args)
+        args = [self._sie_builder(_) for _ in args]
         for k in kwargs:
             kwargs[k] = self._sie_builder(kwargs[k])
         return SIE_call(self._sie_builder, self, args, kwargs)
@@ -1474,19 +1474,20 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
-    def _graphics_(self, **kwds):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Disable graphical output.
+        Disable rich output.
 
         This is necessary because otherwise our :meth:`__getattr__`
         would be called.
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output import get_display_manager
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
-            sage: sie._graphics_() is None
+            sage: sie._rich_repr_(get_display_manager()) is None
             True
         """
         return None

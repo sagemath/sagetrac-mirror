@@ -14,7 +14,6 @@
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/random.pxi"
 include 'misc.pxi'
@@ -28,6 +27,7 @@ from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
@@ -106,7 +106,7 @@ cdef class ntl_ZZ_p:
             elif PyInt_Check(v):
                 self.x = int_to_ZZ_p(v)
             elif PyLong_Check(v):
-                ZZ_set_pylong(temp, v)
+                PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
@@ -450,5 +450,3 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         rep = ZZ_p_rep(self.x)
         return IntegerModRing(self.modulus()._integer_())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
-
-    # todo: add wrapper for int_to_ZZ_p in wrap.cc?

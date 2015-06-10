@@ -14,8 +14,6 @@
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -27,6 +25,7 @@ from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
@@ -37,22 +36,6 @@ from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
 
 
 ZZ_sage = IntegerRing()
-
-#def set_ZZ_pE_modulus(ntl_ZZ_pX f):
-#    f.c.restore_c()
-#    c = ntl_ZZ_pEContext_class(f)
-#    c.restore_c()
-#    return c
-
-#def ntl_ZZ_pE_random():
-#    """
-#    Return a random number modulo p.
-#    """
-#    cdef ntl_ZZ_pE y = ntl_ZZ_pE()
-#    sig_on()
-#    y.x = *(<ntl_ZZ_pE_c>ZZ_pE_random())
-#    sig_off()
-#    return y
 
 
 ##############################################################################
@@ -131,7 +114,7 @@ cdef class ntl_ZZ_pE:
             elif isinstance(v, ntl_ZZ_p):
                 self.x = ZZ_p_to_ZZ_pE((<ntl_ZZ_p>v).x)
             elif PyLong_Check(v):
-                ZZ_set_pylong(temp, v)
+                PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_pE(temp)
             elif isinstance(v, ntl_ZZ):
                 self.x = ZZ_to_ZZ_pE((<ntl_ZZ>v).x)

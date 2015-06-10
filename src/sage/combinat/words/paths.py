@@ -426,11 +426,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
         #Construction of the steps
         from sage.structure.element import Vector
-        if all(map(lambda x: isinstance(x, Vector), steps)):
+        if all((isinstance(x, Vector) for x in steps)):
             vsteps = steps
         else:
             try:
-                vsteps = map(vector, steps)
+                vsteps = [vector(_) for _ in steps]
             except (TypeError):
                 raise ValueError("Can't make vectors from steps")
         try:
@@ -1587,7 +1587,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [map(RR, x) for x in pts]
+        pts = [[RR(_) for _ in x] for x in pts]
 
         #Inside
         if fill and self.is_closed():
@@ -1625,16 +1625,16 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('aaababbb')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 9 frames
-            sage: show(a)       # optional -- ImageMagick
-            sage: a.gif(delay=35, iterations=3)       # optional
+            sage: show(a)               # optional -- ImageMagick
+            sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
 
         ::
 
             sage: P = WordPaths('abcdef',steps='triangle')
             sage: p =  P('abcdef')
-            sage: p.animate()
+            sage: p.animate()           # optional -- ImageMagick
             Animation with 8 frames
 
         If the path is closed, the plain polygon is added at the end of the
@@ -1642,7 +1642,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('ababAbABABaB')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 14 frames
 
         Another example illustrating a Fibonacci tile::
@@ -1682,7 +1682,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [map(RR, x) for x in pts]
+        pts = [[RR(_) for _ in x] for x in pts]
 
         images = [line(pts[:i]) for i in range(1,len(pts)+1)]
 

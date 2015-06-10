@@ -20,10 +20,9 @@ include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-from sage.rings.integer_ring cimport IntegerRing_class
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
 
 ZZ_sage = IntegerRing()
 
@@ -84,7 +83,7 @@ cdef class ntl_ZZ:
         elif PyInt_Check(v):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
         elif PyLong_Check(v):
-            ZZ_set_pylong(self.x, v)
+            PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:
@@ -328,18 +327,20 @@ cdef class ntl_ZZ:
 
     def valuation(self, ntl_ZZ prime):
         """
-        Uses code in ntl_wrap.cpp to compute the number of times prime divides self.
+        Uses code in ``ntlwrap.cpp`` to compute the number of times
+        prime divides self.
 
-        EXAMPLES:
-        sage: a = ntl.ZZ(5^7*3^4)
-        sage: p = ntl.ZZ(5)
-        sage: a.valuation(p)
-        7
-        sage: a.valuation(-p)
-        7
-        sage: b = ntl.ZZ(0)
-        sage: b.valuation(p)
-        +Infinity
+        EXAMPLES::
+
+            sage: a = ntl.ZZ(5^7*3^4)
+            sage: p = ntl.ZZ(5)
+            sage: a.valuation(p)
+            7
+            sage: a.valuation(-p)
+            7
+            sage: b = ntl.ZZ(0)
+            sage: b.valuation(p)
+            +Infinity
         """
         cdef ntl_ZZ ans = ntl_ZZ.__new__(ntl_ZZ)
         cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
@@ -355,17 +356,19 @@ cdef class ntl_ZZ:
 
     def val_unit(self, ntl_ZZ prime):
         """
-        Uses code in ntl_wrap.cpp to compute p-adic valuation and unit of self.
+        Uses code in ``ntlwrap.cpp`` to compute p-adic valuation and
+        unit of self.
 
-        EXAMPLES:
-        sage: a = ntl.ZZ(5^7*3^4)
-        sage: p = ntl.ZZ(-5)
-        sage: a.val_unit(p)
-        (7, -81)
-        sage: a.val_unit(ntl.ZZ(-3))
-        (4, 78125)
-        sage: a.val_unit(ntl.ZZ(2))
-        (0, 6328125)
+        EXAMPLES::
+
+            sage: a = ntl.ZZ(5^7*3^4)
+            sage: p = ntl.ZZ(-5)
+            sage: a.val_unit(p)
+            (7, -81)
+            sage: a.val_unit(ntl.ZZ(-3))
+            (4, 78125)
+            sage: a.val_unit(ntl.ZZ(2))
+            (0, 6328125)
         """
         cdef ntl_ZZ val = ntl_ZZ.__new__(ntl_ZZ)
         cdef ntl_ZZ unit = ntl_ZZ.__new__(ntl_ZZ)
@@ -376,7 +379,6 @@ cdef class ntl_ZZ:
         ZZ_conv_from_long(val.x, valuation)
         return val, unit
 
-    # todo: add wrapper for int_to_ZZ in wrap.cc?
 
 def unpickle_class_value(cls, x):
     """
