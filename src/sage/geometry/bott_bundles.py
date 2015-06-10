@@ -315,7 +315,7 @@ def twist_of_decompositions(dec1, dec2, a, n):
          [2, [1, 0, 2, 1]]]
 
 
-    TODO::
+    .. TODO::
 
     Eventually, when it is checked, this function will be called in the method __mul__
     instead of being written twice.
@@ -382,7 +382,7 @@ def twist_of_decompositions(dec1, dec2, a, n):
 
 
 
-def pletysm_of_irred(lmbd, alpha, a, n, s):
+def plethysm_of_irred(lmbd, alpha, a, n, s):
     r"""
     Applies Schur functor to an irreducible Bott bundle. Mainly based on [M, Formula (8.9)].
 
@@ -406,15 +406,15 @@ def pletysm_of_irred(lmbd, alpha, a, n, s):
     
         sage: from sage.geometry.bott_bundles import *
         sage: s=SymmetricFunctions(QQ).schur()
-        sage: pletysm_of_irred([2,1], [1,0,0,0], [1], 3, s)
+        sage: plethysm_of_irred([2,1], [1,0,0,0], [1], 3, s)
         [[1, [2, 1, 0, 0]]]
-        sage: pletysm_of_irred([2,1], [0,0,1,0], [1], 3, s)
+        sage: plethysm_of_irred([2,1], [0,0,1,0], [1], 3, s)
         [[1, [0, 0, 2, 1]]]
-        sage: pletysm_of_irred([2,1], [1,0,1,0],[1],3,s)
+        sage: plethysm_of_irred([2,1], [1,0,1,0],[1],3,s)
         [[1, [2, 1, 3, 0]], [1, [2, 1, 2, 1]], [1, [3, 0, 2, 1]]]
-        sage: pletysm_of_irred([4,0], [1,0,1,0], [1], 3, s)
+        sage: plethysm_of_irred([4,0], [1,0,1,0], [1], 3, s)
         [[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]]
-        sage: pletysm_of_irred([4,0], [2,0,1,1], [1], 3, s)
+        sage: plethysm_of_irred([4,0], [2,0,1,1], [1], 3, s)
         [[1, [4, 4, 4, 4]], [1, [6, 2, 4, 4]], [1, [8, 0, 4, 4]]]
     
     
@@ -476,7 +476,7 @@ def pletysm_of_irred(lmbd, alpha, a, n, s):
         #Ya tenemos el primer factor del sumando (que tambi'en es una suma). 
         #Ahora toca el segundo, que es donde se usa la recursi'on.
 #        print(mu,alpha[a[0]+1:],[a[i]-a[0] for i in range(1,len(a))],n-a[0]-1,PletInic)
-        PletSegund = pletysm_of_irred(mu, alpha[a[0]+1:], [a[i]-a[0] for i in range(1, len(a))], n-a[0]-1, s)
+        PletSegund = plethysm_of_irred(mu, alpha[a[0]+1:], [a[i]-a[0] for i in range(1, len(a))], n-a[0]-1, s)
         for l in range(len(PletInic[1])):
             for m in range(len(PletSegund)):
                 result.append([PletInic[0][l]*PletSegund[m][0], PletInic[1][l][:]+PletSegund[m][1][:]])
@@ -484,7 +484,7 @@ def pletysm_of_irred(lmbd, alpha, a, n, s):
             
 
 
-def pletysmization(lmbd, dec, a, n, s):
+def plethysmization(lmbd, dec, a, n, s):
     r"""
     Tool to compute the decomposition of the Schur functor of a Bundle. Based on [M, Formula (8.8)] 
     and function plethism_of_irred.
@@ -508,7 +508,7 @@ def pletysmization(lmbd, dec, a, n, s):
     
         sage: from sage.geometry.bott_bundles import *
         sage: s=SymmetricFunctions(QQ).schur()
-        sage: pletysmization([2,1],[[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]],[1],3,s)
+        sage: plethysmization([2,1],[[1, [4, 0, 4, 0]], [1, [3, 1, 3, 1]], [1, [2, 2, 2, 2]]],[1],3,s)
         [[9, [7, 5, 6, 6]],
          [26, [7, 5, 8, 4]],
          [21, [7, 5, 9, 3]],
@@ -580,7 +580,7 @@ def pletysmization(lmbd, dec, a, n, s):
     """
     #print(dec)
     if len(dec) < 2:
-        return multiply_decomposition(dec[0][0], pletysm_of_irred(lmbd, dec[0][1], a, n, s))
+        return multiply_decomposition(dec[0][0], plethysm_of_irred(lmbd, dec[0][1], a, n, s))
     #s=SymmetricFunctions(QQ).schur()
     P = []
     #Primero cogemos todas las posibles particiones que son "menores" que
@@ -608,7 +608,7 @@ def pletysmization(lmbd, dec, a, n, s):
 #        print 'p=', p
         #Primero hacemos el pletismo del primer sumando:  
         for i in range(len(p[1])):
-            PlI = pletysm_of_irred(p[1][i], dec[0][1], a, n, s)
+            PlI = plethysm_of_irred(p[1][i], dec[0][1], a, n, s)
             auxdec.extend(multiply_decomposition(p[2][i], PlI))
         auxdec = simplify_decomposition(auxdec)
         #Ya tenemo el pletismo sobre el primer sumando. Como este sumando
@@ -621,7 +621,7 @@ def pletysmization(lmbd, dec, a, n, s):
             remdec = [[dec[0,0]-1, dec[0,1]]] + dec[1:]
         #Now the recursive command, remdec is the remaining part of dec
         #after removing the first summand:
-        P.extend(twist_of_decompositions(auxdec, pletysmization(p[0], remdec, a, n, s), a, n))
+        P.extend(twist_of_decompositions(auxdec, plethysmization(p[0], remdec, a, n, s), a, n))
     P=simplify_decomposition(P)
     return P
 
@@ -691,7 +691,7 @@ class BottBundle():
     
     The methods ``schur``, ``sym`` and ``wedge`` depend on a bugged package. 
     
-    TODO::
+    .. TODO::
     
     - Method __repr__ should be different when self.space is a grassmannian (it should speak about universal bundles) or a projective space (about tangent bundle and hyperplane section).
 
@@ -750,7 +750,7 @@ class BottBundle():
             7-dimensional projective space.
             It is the sum of the following irreducible homogeneous vector bundles:
 
-        TODO::
+        .. TODO::
         
             Special names when ``self.space`` is a grassmannian or a projective space.
         """
@@ -986,7 +986,7 @@ class BottBundle():
         s = SymmetricFunctions(QQ).schur()
         # Dado que los algoritmos son recursivos, es mejor pasar s como
         # par'ametro para no crear tantas varables iguales...
-        result.decomposition=pletysmization(lmbd, self.decomposition, self.space.a, self.space.n, s)
+        result.decomposition=plethysmization(lmbd, self.decomposition, self.space.a, self.space.n, s)
         return result
             
 
@@ -1193,7 +1193,7 @@ class BottBundle():
             All remaining cohomology is zero
             [4, 0, 0, 0, 60]
 
-        TODO::
+        .. TODO::
 
         - a possible second argument (or a separate function to return a concrete cohomology space).
 
@@ -1239,7 +1239,7 @@ class UniversalSubbundleDual(BottBundle):
 
     - The dual to the universal subbundle of ``fm``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
@@ -1279,7 +1279,7 @@ class UniversalSubbundleDual(BottBundle):
 
         - The dual to the universal subbundle of ``fm``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -1324,7 +1324,7 @@ class UniversalSubbundle(BottBundle):
 
     - The universal subbundle of ``fm``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
@@ -1364,7 +1364,7 @@ class UniversalSubbundle(BottBundle):
 
         - The dual to the universal subbundle of ``fm``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -1408,7 +1408,7 @@ class UniversalQuotientDual(BottBundle):
 
     - The dual to the universal quotient bundle of ``fm``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
@@ -1448,7 +1448,7 @@ class UniversalQuotientDual(BottBundle):
 
         - The dual to the universal subbundle of ``fm``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -1493,7 +1493,7 @@ class UniversalQuotient(BottBundle):
 
     - The universal quotient bundle of ``fm``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
@@ -1534,7 +1534,7 @@ class UniversalQuotient(BottBundle):
 
         - The universal quotient bundle of ``fm``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -1578,7 +1578,7 @@ class LineBundleGrass(BottBundle):
 
     - the ``k``-th multiple of the hyperplane section of ``grass``
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: from sage.geometry.bott_bundles import *
         sage: G=Grassmannian(1,3)
@@ -1626,7 +1626,7 @@ class LineBundleGrass(BottBundle):
 
         - The dual to the universal subbundle of ``fm``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -1712,7 +1712,7 @@ class FlagManifold():
     It only contains properties related with the class ``BottBundle``, so no more geometry is 
     allowed with this class.
     
-    TODO::
+    .. TODO::
     
     - Methods to generate special instances of the class ``BottBundle``, mainly irreducible ones and their duals
         
@@ -1993,7 +1993,7 @@ class Grassmannian(FlagManifold):
 
         - the ``k``-th multiple of the hyperplane section of ``self``
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2042,7 +2042,7 @@ class Grassmannian(FlagManifold):
 
         - The universal quotient bundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2074,7 +2074,7 @@ class Grassmannian(FlagManifold):
 
         - The universal subbundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2107,7 +2107,7 @@ class Grassmannian(FlagManifold):
 
         - The dual to the universal quotient bundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2139,7 +2139,7 @@ class Grassmannian(FlagManifold):
 
         - The dual to the universal subbundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2171,7 +2171,7 @@ class Grassmannian(FlagManifold):
 
         - The cotangent bundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
@@ -2203,7 +2203,7 @@ class Grassmannian(FlagManifold):
 
         - The tangent bundle of ``self``.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.bott_bundles import *
             sage: G=Grassmannian(1,3)
