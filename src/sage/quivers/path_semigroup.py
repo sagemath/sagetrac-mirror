@@ -22,6 +22,7 @@ Path Semigroups
 import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import Infinity
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.semigroups import Semigroups
@@ -546,6 +547,73 @@ class PathSemigroup(UniqueRepresentation, Parent):
             return ZZ(len(self))
         from sage.rings.infinity import Infinity
         return Infinity
+
+    @cached_method
+    def dimension_at_vertex(self, v):
+        """
+        Return the number of paths starting at vertex `v`.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c'], 4:['m']}, 4:{5:['n']}, 5:{6:['x'],7:['y']}, 6:{7:['z']}}).path_semigroup()
+            sage: S.dimension_at_vertex(3)
+            +Infinity
+            sage: S.dimension_at_vertex(4)
+            5
+
+        Let us test that the result is consistent. First of all, vertex
+        3 is contained in a directed cycle, so, there are infinitely many
+        paths starting there. Here are all paths starting at vertex 4::
+
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, e_4, e_5, e_6, e_7, a, b, c, m, n, x, y, z
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: F = RightClosedPathFamily(e_4)
+            sage: list(F)
+            [e_4, n, n*x, n*y, n*x*z]
+
+        There are indeed 5 paths starting at vertex 4, including the path
+        of length zero.
+        """
+        D = self._quiver
+        if (len(D.strongly_connected_component_containing_vertex(v))>1) or (v in  D.neighbors_out(v)):
+            return Infinity
+        return sum([self.dimension_at_vertex(w) for w in D.neighbors_out(v)], 1)
+
+    @cached_method
+    def dimension_into_vertex(self, v):
+        """
+        Return the number of paths ending in vertex `v`.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}, 4:{3:['m']}, 5:{4:['n']}, 6:{5:['x'],7:['y']}, 7:{5:['z']}}).path_semigroup()
+            sage: S.dimension_into_vertex(3)
+            +Infinity
+            sage: S.dimension_into_vertex(4)
+            5
+            sage: S.dimension_into_vertex(5)
+            4
+
+        Let us test that the result is consistent. First of all, vertex
+        3 is contained in a directed cycle, so, there are infinitely many
+        paths starting there. Here are all paths ending at vertex 4
+        respectively 5, and we can see that the above results are correct,
+        of course also counting the path of length zero::
+
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, e_4, e_5, e_6, e_7, a, b, c, m, n, x, y, z
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: list(LeftClosedPathFamily(e_4))
+            [e_4, n, x*n, z*n, y*z*n]
+            sage: list(LeftClosedPathFamily(e_5))
+            [e_5, x, z, y*z]
+
+        """
+        D = self._quiver
+        if (len(D.strongly_connected_component_containing_vertex(v))>1) or (v in  D.neighbors_in(v)):
+            return Infinity
+        return sum([self.dimension_into_vertex(w) for w in D.neighbors_in(v)], 1)
 
     def __iter__(self):
         """

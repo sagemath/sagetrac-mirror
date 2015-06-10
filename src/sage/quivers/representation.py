@@ -635,13 +635,11 @@ class RightClosedPathFamily(object):
             pass
         return False
     def __iter__(self):
-
         """
         Iterate over all paths that start with one of the defining initial
         segments of this family.
 
         The iteration is by increasing length of the paths.
-
 
         EXAMPLES::
 
@@ -695,6 +693,35 @@ class RightClosedPathFamily(object):
             if not have_further_paths:
                 return
             d += 1
+    @cached_method
+    def cardinality(self):
+        """
+        The cardinality is equal to the number of paths that start with
+        one of the defining initial segments of this family.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c'], 4:['m']}, 4:{5:['n']}, 5:{6:['x'],7:['y']}, 6:{7:['z']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, e_4, e_5, e_6, e_7, a, b, c, m, n, x, y, z
+            sage: RightClosedPathFamily(e_5).cardinality()
+            4
+            sage: list(RightClosedPathFamily(e_5))
+            [e_5, x, y, x*z]
+            sage: RightClosedPathFamily(e_4).cardinality()
+            5
+            sage: list(RightClosedPathFamily(e_4))
+            [e_4, n, n*x, n*y, n*x*z]
+
+        Vertex 2 is contained in a directed cycle. Thus, we get
+        ::
+
+            sage: RightClosedPathFamily(e_2).cardinality()
+            +Infinity
+
+        """
+        return sum([self.semigroup.dimension_at_vertex(p.terminal_vertex()) for p in self.paths])
 
 class LeftClosedPathFamily(object):
     """
@@ -945,6 +972,35 @@ class LeftClosedPathFamily(object):
             if not have_further_paths:
                 return
             d += 1
+    @cached_method
+    def cardinality(self):
+        """
+        The cardinality is equal to the number of paths that end in one
+        of the defining initial segments of this family.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}, 4:{3:['m']}, 5:{4:['n']}, 6:{5:['x'],7:['y']}, 7:{5:['z']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, e_4, e_5, e_6, e_7, a, b, c, m, n, x, y, z
+            sage: LeftClosedPathFamily(e_5).cardinality()
+            4
+            sage: list(LeftClosedPathFamily(e_5))
+            [e_5, x, z, y*z]
+            sage: LeftClosedPathFamily(e_4).cardinality()
+            5
+            sage: list(LeftClosedPathFamily(e_4))
+            [e_4, n, x*n, z*n, y*z*n]
+
+        Vertex 1 is contained in a directed cycle. Thus, we get
+        ::
+
+            sage: LeftClosedPathFamily(e_1).cardinality()
+            +Infinity
+
+        """
+        return sum([self.semigroup.dimension_into_vertex(p.initial_vertex()) for p in self.paths])
 
 class QuiverRepFactory(UniqueFactory):
     r"""
@@ -1125,42 +1181,15 @@ class QuiverRepFactory(UniqueFactory):
                 basis = kwds['basis']
 
             # Add as QuiverPaths to a set
-            paths = set()
-            for p in basis:
-                paths.add(P(p))
+            paths = [P(p) for p in basis]
 
             if kwds['option'] == 'paths':
                 # Close the set under right mult by edges
-                edges = list(P.arrows())
-                just_added = paths
-                while just_added:
-                    to_be_added = []
-                    for e in edges:
-                        for p in just_added:
-                            pe = p*e
-                            if pe is not None and pe not in paths:
-                                to_be_added.append(pe)
+                key.append(RightClosedPathFamily(paths))
 
-                    paths.update(to_be_added)
-                    just_added = to_be_added
-
-            if kwds['option'] == 'dual paths':
+            else: #if kwds['option'] == 'dual paths':
                 # Close the set under left mult by edges
-                edges = list(P.arrows())
-                just_added = paths
-                while just_added:
-                    to_be_added = []
-                    for e in edges:
-                        for p in just_added:
-                            ep = e*p
-                            if ep is not None and ep not in paths:
-                                to_be_added.append(ep)
-
-                    paths.update(to_be_added)
-                    just_added = to_be_added
-
-            # Add to the key
-            key.append(tuple(sorted(paths)))
+                key.append(LeftClosedPathFamily(paths))
 
         else:
             # Assume the input type the 'values' option
