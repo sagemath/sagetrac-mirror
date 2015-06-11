@@ -274,9 +274,9 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: x = F.an_element(); x
-            pi[2]
+            pi[3]
             sage: y = x*x; y
-            pi[0]
+            pi[2]
             sage: y.__cmp__(x)
             -1
             sage: y.__cmp__(y)
@@ -413,7 +413,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]).an_element() # indirect doctest
-            pi[2]
+            pi[3]
 
         """
         if isinstance(x, self.element_class) and x.parent() is self:
