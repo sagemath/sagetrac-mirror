@@ -346,7 +346,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         """
 
->>>>>>> extendedJune9
         def get_the_index(beta):
             r"""
             Given a dictionary with one key, return this key
