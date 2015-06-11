@@ -778,6 +778,21 @@ class CoxeterGroups(Category_singleton):
                     tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
         def calculate_braid_chain(self,first_word,second_word):
+            """
+            Return list of reduced words whose first entry is ``start_word``
+            and whose last entry is ``end_word`` such that consecutive entries
+            differ by a braid move.
+            EXAMPLES::
+                sage: W = CoxeterGroup("A3")
+                sage: W.calculate_braid_chain((1,2,1,3,2,1),(3,2,1,2,3,2))
+                [(1, 2, 1, 3, 2, 1),
+                 (1, 2, 3, 1, 2, 1),
+                 (1, 2, 3, 2, 1, 2),
+                 (1, 3, 2, 3, 1, 2),
+                 (3, 1, 2, 3, 1, 2),
+                 (3, 1, 2, 1, 3, 2),
+                 (3, 2, 1, 2, 3, 2)]
+            """
             first_word = tuple(first_word)
             second_word = tuple(second_word)
             return self.chain_of_reduced_words(first_word,second_word)
@@ -786,12 +801,13 @@ class CoxeterGroups(Category_singleton):
             """
             Return a list of reduced words beginning with 
             ``input_word`` and ending with a reduced word whose first letter 
-            is ``k``.
+            is ``k``. Currently works in finite-type when the entries of the Coxeter
+            matrix are less than or equal to 4.
             """
-            if i==0:
-                raise NotImplementedError
-            #print "k, input_word:", k, input_word
             i = input_word[0]
+            if i==0 or k==0:
+                raise NotImplementedError
+
             if i == k:
                 return [input_word] 
             elif i != k and self.coxeter_matrix()[i-1,k-1]==2:
