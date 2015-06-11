@@ -777,6 +777,72 @@ class CoxeterGroups(Category_singleton):
                     tester.assertEquals((s[i]*s[j]).has_descent(j, side = 'left' ), u == v)
                     tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
+        def calculate_braid_chain(self,first_word,second_word):
+            first_word = tuple(first_word)
+            second_word = tuple(second_word)
+            return self.chain_of_reduced_words(first_word,second_word)
+        
+        def put_in_front(self,k,input_word):
+            """
+            Return a list of reduced words beginning with 
+            ``input_word`` and ending with a reduced word whose first letter 
+            is ``k``.
+            """
+            if i==0:
+                raise NotImplementedError
+            #print "k, input_word:", k, input_word
+            i = input_word[0]
+            if i == k:
+                return [input_word] 
+            elif i != k and self.coxeter_matrix()[i-1,k-1]==2:
+                first_word_list = self.put_in_front(k,input_word[1:])
+                first_last_word = first_word_list[-1]
+                return ([input_word] + 
+                        [ (i,) + word for word in first_word_list[1:]] + 
+                        [ (k,i) + first_last_word[1:]])
+            elif i != k and self.coxeter_matrix()[i-1,k-1]==3:
+                first_word_list = self.put_in_front(k,input_word[1:])
+                first_last_word = first_word_list[-1]
+                second_word_list = self.put_in_front(i,first_last_word[1:])
+                second_last_word = second_word_list[-1]
+                return ([input_word] + 
+                        [ (i,) + word for word in first_word_list[1:]] +
+                        [ (i,k) + word for word in second_word_list[1:]] +
+                        [ (k,i,k) + second_last_word[1:]])
+            elif i != k and self.coxeter_matrix()[i-1,k-1]==4:
+                first_word_list = self.put_in_front(k,input_word[1:])
+                first_last_word = first_word_list[-1]
+                second_word_list = self.put_in_front(i,first_last_word[1:])
+                second_last_word = second_word_list[-1]
+                third_word_list = self.put_in_front(k,second_last_word[1:])
+                third_last_word = third_word_list[-1]
+                return ([input_word] + 
+                        [ (i,) + word for word in first_word_list[1:]] +
+                        [ (i,k) + word for word in second_word_list[1:]] +
+                        [ (i,k,i) + word for word in third_word_list[1:]] +
+                        [ (k,i,k,i) + third_last_word[1:]])
+            else:
+                raise NotImplementedError
+
+
+        def chain_of_reduced_words(self,start_word,end_word):
+            """
+            Return list of reduced words whose first entry is ``start_word``
+            and whose last entry is ``end_word`` such that consecutive entries
+            differ by a braid move.
+            """
+            if start_word == end_word:
+                return [start_word]
+            k = end_word[0]
+            first_word_list = self.put_in_front(k,start_word)
+            first_last_word = first_word_list[-1]
+            return (first_word_list[:-1] + 
+                    [ (k,) + word for word in
+                      self.chain_of_reduced_words(first_last_word[1:],
+                                                       end_word[1:])])
+
+
+
     class ElementMethods:
         def has_descent(self, i, side = 'right', positive=False):
             """
