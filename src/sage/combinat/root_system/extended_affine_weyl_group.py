@@ -30,9 +30,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.categories.groups import Groups
 from sage.categories.sets_cat import Sets
-from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
@@ -48,6 +46,8 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import Infinity
+
 
 def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options):
     r"""
@@ -61,7 +61,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
       untwisted type A, returns the universal central extension
     - ``print_options`` -- Special instructions for printing elements (see below)
 
-    .. TOPIC:: Notation
+    .. TOPIC: Notation
 
         - "P" -- subgroup of translations
         - "Pv" -- subgroup of translations in a dual form
@@ -97,7 +97,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
 
     .. [Bour] Bourbaki, *Lie Groups and Lie Algebras* IV.2
 
-    .. [Kac] Kac, *Infinite-dimensional Lie algebras*.
+    .. [Kac]_
 
     .. RUBRIC: Notation
 
@@ -374,7 +374,8 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
 
     .. RUBRIC:: The general linear case
 
-    .. MATH::
+    The general linear group is not semisimple. Sage can build its extended
+    affine Weyl group::
 
     If the input parameter `general_linear` is set to True and the root system is of
     untwisted affine type A::
@@ -382,10 +383,13 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
         sage: E = ExtendedAffineWeylGroup(['A',2,1], general_linear=True); E
         Extended affine Weyl group of GL(3)
 
-    we make the following nonstandard definition.
-    The extended affine Weyl group `W_e(GL_n)` is defined by::
+    If the Cartan type is ``['A', n-1, 1]`` and the parameter ``general_linear`` is not
+    True, the extended affine Weyl group that is built will be for `SL_n`, not
+    `GL_n`. But if ``general_linear`` is True, let `W_a` and `W_e` be the affine and
+    extended affine Weyl groups. We make the following nonstandard definition: the
+    extended affine Weyl group `W_e(GL_n)` is defined by
 
-        W_e(GL_n) = P(GL_n) \rtimes W
+    `W_e(GL_n) = P(GL_n) \rtimes W`
 
     where `W` is the finite Weyl group (the symmetric group `S_n`) and `P(GL_n)` is the weight lattice
     of `GL_n`, which is identified with the lattice `Z^n` of `n`-tuples of integers::
@@ -397,11 +401,11 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
 
     There is an isomorphism::
 
-        W_e(GL_n) = Z \ltimes W_a
+    `W_e(GL_n) = Z \ltimes W_a`
 
     where the group of integers `Z` (with generator `\pi`) acts on `W_a` by::
 
-        \pi s_i \pi^{-1} = s_{i+1}
+    `\pi\, s_i\, \pi^{-1} = s_{i+1}`
 
     and the indices of the simple reflections are taken modulo `n`::
 
@@ -426,11 +430,11 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
     """
     cartan_type = CartanType(cartan_type)
     if cartan_type.is_reducible():
-        raise ValueError, "Extended affine Weyl groups are only implemented for irreducible affine Cartan types"
+        raise ValueError("Extended affine Weyl groups are only implemented for irreducible affine Cartan types")
     if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
         cartan_type = cartan_type.affine()
     elif not cartan_type.is_affine():
-        raise ValueError, "Cartan type must be finite or affine"
+        raise ValueError("Cartan type must be finite or affine")
     return ExtendedAffineWeylGroup_Class(cartan_type, general_linear, **print_options)
 
 class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
@@ -449,7 +453,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         """
 
         if not cartan_type.is_affine():
-            raise ValueError, "%s is not affine"%cartan_type
+            raise ValueError("%s is not affine" % cartan_type)
 
         self._cartan_type = cartan_type
 
@@ -482,7 +486,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             elif option == 'classical':
                 self._prefixcl = print_options['classical']
             else:
-                raise ValueError, "Print option %s is unrecognized"%option
+                raise ValueError("Print option %s is unrecognized" % option)
 
         if self._prefixaf:
             if not self._prefixcl:
@@ -1055,20 +1059,19 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         """
         i = x.first_descent(side='left')
-        if i is not None:
-            return self.PW0_to_WF_func(x.apply_simple_reflection(i, side='left')).apply_simple_reflection(i, side='left')
-        t = x.to_translation_left()
-        # t must be zero or a special fundamental basis element
-        if self._general_linear:
-            from sage.rings.integer_ring import ZZ
-            ispecial = ZZ.sum([t[i] for i in t.support()])
-        elif t == self.lattice().zero():
-            ispecial = 0
-        else:
-            supp = t.support()
-            assert len(supp) == 1
-            ispecial = supp[0]
-        return self.WF().fundamental_group_morphism(self.fundamental_group()(ispecial))
+        if i is None:
+            t = x.to_translation_left()
+            # t must be zero or a special fundamental basis element
+            if self._general_linear:
+                ispecial = ZZ.sum([t[j] for j in t.support()])
+            elif t == self.lattice().zero():
+                ispecial = 0
+            else:
+                supp = t.support()
+                assert len(supp) == 1
+                ispecial = supp[0]
+            return self.WF().fundamental_group_morphism(self.fundamental_group()(ispecial))
+        return self.PW0_to_WF_func(x.apply_simple_reflection(i, side='left')).apply_simple_reflection(i, side='left')
 
     @cached_method
     def WF_to_PW0_func(self, x):
@@ -1137,7 +1140,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 Return the unit element.
 
                 This default implementation takes the unit in the
-                PW0 realization and coerces it into `self`.
+                PW0 realization and coerces it into ``self``.
 
                 EXAMPLES::
 
@@ -1180,7 +1183,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             def translation_group_morphism(self, la):
                 r"""
-                Return the image of `la` under the homomorphism of the translation lattice into
+                Return the image of ``la`` under the homomorphism of the translation lattice into
                 ``self``.
 
                 EXAMPLES::
@@ -1210,7 +1213,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             def dual_translation_group_morphism(self, la):
                 r"""
-                Return the image of `la` under the homomorphism of the dual version of the
+                Return the image of ``la`` under the homomorphism of the dual version of the
                 translation lattice into ``self``.
 
                 EXAMPLES::
@@ -1252,6 +1255,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 r"""
                 Returns the `i`-th simple reflection in the realization of the extended affine
                 Weyl group.
+
+                EXAMPLES::
 
                     sage: ExtendedAffineWeylGroup(['A',3,1]).PW0().simple_reflection(0)
                     t[Lambdacheck[1] + Lambdacheck[3]] * s1*s2*s3*s2*s1
@@ -1377,9 +1382,9 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                    - `i` -- An affine Dynkin node
-                    - `side` -- 'right' or 'left' (default: 'right')
-                    - `positive` -- True or False (default: False)
+                    - ``i`` -- An affine Dynkin node
+                    - ``side`` -- 'right' or 'left' (default: 'right')
+                    - ``positive`` -- True or False (default: False)
 
                 If ``side``='left' then the reflection acts
                 on the left. If ``positive`` = True then the inequality is reversed.
@@ -1916,7 +1921,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
-            Whether `self` has `i` as a descent.
+            Returns whether ``self`` has `i` as a descent.
 
             INPUT:
 
@@ -2336,7 +2341,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 [(0, True), (1, False), (2, False)]
 
             """
-            E = self.parent().realization_of()
             if side == 'right':
                 self = ~self
             if positive:
@@ -2516,7 +2520,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 [(0, False), (1, False), (2, True)]
 
             """
-            E = self.parent().realization_of()
             if side == 'left':
                 self = ~self
             if positive:
@@ -2664,7 +2667,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
-            Whether `self` has `i` as a descent.
+            Returns whether ``self`` has `i` as a descent.
 
             INPUT:
 
