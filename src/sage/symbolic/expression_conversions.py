@@ -1,10 +1,30 @@
 """
-Conversion of symbolic expressions to other types
+Conversion of symbolic expressions
 
-This module provides routines for converting new symbolic expressions
-to other types.  Primarily, it provides a class :class:`Converter`
-which will walk the expression tree and make calls to methods
-overridden by subclasses.
+This module provides classes for converting symbolic expressions
+to other expressions or other types.  The underlying class
+:class:`Converter` will walk the expression tree and, depending
+on the encountered expression, make calls to methods of ``Converter``.
+These methods can be overridden by subclasses:
+
+ - :class:`InterfaceInit` converts by using an ``Interface``. Mainly used to convert to Maxima.
+
+ - :class:`SympyConverter` converts to a ``SymPy`` expression.
+
+ - :class:`AlgebraicConverter` converts all constants in the expression to elements of the given algebraic field.
+
+ - :class:`RingConverter` converts all constants in the expression to elements of the given ring, with substitution of symbols.
+
+ - :class:`PolynomialConverter` converts to a polynomial of the given ring.
+
+ - :class:`FastFloatConverter` converts to an object which provides fast floating point evaluation of the expression.
+
+ - :class:`FastCallableConverter`: given an ``ExpressionTreeBuilder``, return a fast-callable expression representing the expression.
+
+ - :class:`ExpressionTreeWalker` constructs an identical expression. This can be subclassed to produce new conversions conveniently. Example:
+
+ - :class:`SubstituteFunction` constructs the same expression with a specific function replaced by another.
+
 """
 ###############################################################################
 #   Sage: Open Source Mathematical Software
