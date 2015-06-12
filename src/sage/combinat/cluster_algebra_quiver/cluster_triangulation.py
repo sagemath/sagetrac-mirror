@@ -1152,12 +1152,15 @@ class ClusterTriangulation(ClusterSeed):
             sage: six = T._get_map_label_to_variable(6)
             sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
             sage: T.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
+            Graphics object consisting of 43 graphics primitives
             sage: T.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+            Graphics object consisting of 43 graphics primitives
             sage: T.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            Graphics object consisting of 43 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_snake_graph
         drawing = _draw_snake_graph (self.list_snake_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), print_user_labels=user_labels)
-        drawing.show ( axes=False, figsize=fig_size )
+        return drawing.plot( axes=False, figsize=fig_size )
 
     def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
         """
@@ -1206,11 +1209,13 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
             sage: c = [item for item in T.cluster()]
             sage: T.draw_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+            Graphics object consisting of 25 graphics primitives
             sage: T.draw_band_graph([1,2,3,0,1], user_labels=True)
+            Graphics object consisting of 25 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph, _draw_snake_graph
         drawing = _draw_snake_graph(self.list_band_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), print_user_labels=user_labels)
-        drawing.show ( axes=False, figsize=fig_size )
+        return drawing.plot( axes=False, figsize=fig_size )
 
     def draw_lifted_arc(self, crossed_arcs, first_triangle=None,
                         final_triangle=None, fig_size=None, verbose=False,
@@ -1263,7 +1268,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: r = c[1-1]
             sage: ell = c[2-1]*c[1-1]
             sage: T.draw_lifted_arc ([ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1]], user_labels=False)
+            Graphics object consisting of 64 graphics primitives
             sage: T.draw_lifted_arc ([2,(1,'counterclockwise'),2,3,4,5,6], user_labels=True)
+            Graphics object consisting of 64 graphics primitives
 
         Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster
         Algebras from Surfaces" [MSW_Bases]_ where: the loop gamma
@@ -1275,7 +1282,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
             sage: c = [item for item in T.cluster()]
             sage: T.draw_lifted_arc([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+            Graphics object consisting of 48 graphics primitives
             sage: T.draw_lifted_arc([1,2,3,4,1], user_labels=True)
+            Graphics object consisting of 48 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon, _draw_lifted_curve
 
@@ -1284,9 +1293,9 @@ class ClusterTriangulation(ClusterSeed):
         else:
             lifted_polygon = _lifted_polygon(self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, is_loop=False)
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=True, is_loop=False)
-        drawing.show(axes=False, figsize=fig_size)
-        if verbose:
-            return lifted_polygon
+        return drawing.plot(axes=False, figsize=fig_size)
+        #if verbose:
+        #    return lifted_polygon
 
     def draw_lifted_loop(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, fig_size=None, verbose=False,
@@ -1335,8 +1344,10 @@ class ClusterTriangulation(ClusterSeed):
             sage: ell = c[2-1]*c[1-1]
             sage: crossed_vars = [c[3-1],ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1],c[7-1],c[8-1],c[9-1],c[6-1],c[5-1],c[4-1],c[3-1]]
             sage: T.draw_lifted_loop(crossed_vars, user_labels=False)
+            Graphics object consisting of 120 graphics primitives
             sage: crossed_userlabels = [3,2,(1,'counterclockwise'),2, 3,4,5,6,7,8,9,6,5,4,3]
             sage: T.draw_lifted_loop(crossed_userlabels)
+            Graphics object consisting of 120 graphics primitives
 
         Figure 8 of Musiker - Schiffler - Williams "Bases for Cluster Algebras from Surfaces" [MSW_Bases]_
         with triangulation having arcs 1, ..., 6, and gamma crosses 1,2,3,4,1 (1 is listed twice); and
@@ -1346,7 +1357,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation([(8,7,5),(5,4,1),(1,0,2),(2,11,3),(3,4,6),(6,10,9)], boundary_edges=[7,8,9,10,11,0])
             sage: c = [item for item in T.cluster()]
             sage: T.draw_lifted_loop([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
+            Graphics object consisting of 40 graphics primitives
             sage: T.draw_lifted_loop([1,2,3,4,1], user_labels=True)
+            Graphics object consisting of 40 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _lifted_polygon, _draw_lifted_curve
         if user_labels:
@@ -1354,9 +1367,9 @@ class ClusterTriangulation(ClusterSeed):
         else:
             lifted_polygon = _lifted_polygon(self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True)
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=False, is_loop=True)
-        drawing.show ( axes=False, figsize=fig_size)
-        if verbose:
-            return lifted_polygon
+        return drawing.plot( axes=False, figsize=fig_size)
+        #if verbose:
+        #    return lifted_polygon
 
     def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
                               final_triangle=None, verbose=False,
