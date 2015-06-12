@@ -27,6 +27,9 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.category_types import Category_over_base
+from sage.categories.category_types import Category_over_base_ring
+from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
@@ -753,6 +756,45 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             return SubmoduleWithBasis(gens, ambient=self, category=category)
 
+        def find_base_ring(self, cat):
+            r"""
+            The base ring of the category ``cat``.
+
+            If ``cat`` is a subcategory of a :class:`Category_over_base_ring` (call it ``sub_cat``)
+            then the `base_ring` attribute of ``sub_cat`` is returned. If ``cat`` has no such
+            supercategory then the value `None` is returned.
+
+            Since attributes are not inherited by subcategories and `base_ring` is ultimately
+            stored as an attribute of a suitable supercategory called ``sub_cat`` above,
+            it is necessary to search the category hierarchy tree of ``cat`` to find ``sub_cat``.
+
+            EXAMPLES::
+
+                sage: M = QQ^2
+                sage: M.find_base_ring(M.category())
+                Rational Field
+                sage: N = CombinatorialFreeModule(QQ,[1,2])
+                sage: N.find_base_ring(N.category())
+                Rational Field
+                sage: s = SymmetricFunctions(QQ['q,t'].fraction_field()).s()
+                sage: s.find_base_ring(s.category())
+                Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+
+            """
+            if isinstance(cat, Category_over_base_ring):
+                return cat.base_ring()
+            if isinstance(cat, Category_over_base):
+                return self.find_base_ring(cat.base().category())
+            if isinstance(cat, (TensorProductsCategory, HomsetsCategory, DualObjectsCategory, WithRealizationsCategory)):
+                return self.find_base_ring(cat.base_category())
+            if isinstance(cat, JoinCategory):
+                for scat in cat.super_categories():
+                    ring = self.find_base_ring(scat)
+                if ring is not None:
+                    return ring
+            return None
+
+
         def tensor(*parents, **keywords):
             """
             Return the tensor product of the parents.
@@ -802,7 +844,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 base_category = category.base_category()
             if base_category is None:
                 raise TypeError, "Category should be a subcategory of a module tensor category"
-            R = base_category.base_ring()
+            R = parents[0].find_base_ring(base_category)
+            if R is None:
+                raise ValueError("Base category for tensor product is not a category over base ring")
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
             if category.is_subcategory(AlgebrasWithBasis(R).TensorProducts()):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)
@@ -1493,52 +1537,51 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self(self.domain().monomial(i))
 
-            def tensor(*maps, **keywords):
-                """
-                Return the tensor product of maps.
+        def tensor(*maps, **keywords):
+            """
+            Return the tensor product of maps.
 
-                The optional keyword parameters can be used to pass the category for the tensor products.
+            The optional keyword parameters can be used to pass the category for the tensor products.
 
-                EXAMPLES::
+            EXAMPLES::
 
-                    sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
-                    sage: r = W.from_reduced_word
-                    sage: A = W.algebra(ZZ); A.rename("A") # A is a Hopf algebra
-                    sage: A2_algebra = tensor([A,A]) # tensor Hopf algebra
-                    sage: A2_algebra.category()
-                    Category of tensor products of hopf algebras with basis over Integer Ring
-                    sage: A2_module = tensor([A,A], category=ModulesWithBasis(ZZ)) # tensor module
-                    sage: a2 = A2_algebra.monomial((r([1]),r([2]))); a2
-                    B[s1] # B[s2]
-                    sage: mA = A._product_morphism()
-                    sage: mA.domain() == A2_module
-                    True
-                    sage: mm = tensor([mA,mA])
-                    sage: A4_module = tensor([A2_module,A2_module])
-                    sage: A4_module == mm.domain()
-                    True
-                    sage: a4 = tensor([a2,a2]); a4 # element of Hopf algebra
-                    B[s1] # B[s2] # B[s1] # B[s2]
-                    sage: a4.parent() in HopfAlgebrasWithBasis(ZZ).TensorProducts()
-                    True
-                    sage: m4 = A4_module(a4); m4
-                    B[s1] # B[s2] # B[s1] # B[s2]
-                    sage: mm(m4)
-                    B[s1*s2] # B[s1*s2]
-                    sage: IA = A._identity_map(category=ModulesWithBasis(ZZ))
-                    sage: ImI = tensor([IA, mA, IA])
-                    sage: ImI.category_for().is_subcategory(ModulesWithBasis(ZZ))
-                    True
-                    sage: ImI(m4)
-                    B[s1] # B[s2*s1] # B[s2]
-
-                """
-                try:
-                    domains = [map.domain() for map in maps]
-                except AttributeError:
-                    raise TypeError, "Items to be tensored are not all maps"
-                domain = tensor(domains, **keywords)
-                return domain._tensor_of_maps(maps, **keywords)
+                sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                sage: r = W.from_reduced_word
+                sage: A = W.algebra(ZZ); A.rename("A") # A is a Hopf algebra
+                sage: A2_algebra = tensor([A,A]) # tensor Hopf algebra
+                sage: A2_algebra.category()
+                Category of tensor products of hopf algebras with basis over Integer Ring
+                sage: A2_module = tensor([A,A], category=ModulesWithBasis(ZZ)) # tensor module
+                sage: a2 = A2_algebra.monomial((r([1]),r([2]))); a2
+                B[s1] # B[s2]
+                sage: mA = A._product_morphism()
+                sage: mA.domain() == A2_module
+                True
+                sage: mm = tensor([mA,mA])
+                sage: A4_module = tensor([A2_module,A2_module])
+                sage: A4_module == mm.domain()
+                True
+                sage: a4 = tensor([a2,a2]); a4 # element of Hopf algebra
+                B[s1] # B[s2] # B[s1] # B[s2]
+                sage: a4.parent() in HopfAlgebrasWithBasis(ZZ).TensorProducts()
+                True
+                sage: m4 = A4_module(a4); m4
+                B[s1] # B[s2] # B[s1] # B[s2]
+                sage: mm(m4)
+                B[s1*s2] # B[s1*s2]
+                sage: IA = A._identity_map(category=ModulesWithBasis(ZZ))
+                sage: ImI = tensor([IA, mA, IA])
+                sage: ImI.category_for().is_subcategory(ModulesWithBasis(ZZ))
+                True
+                sage: ImI(m4)
+                B[s1] # B[s2*s1] # B[s2]
+            """
+            try:
+                domains = [map.domain() for map in maps]
+            except AttributeError:
+                raise TypeError("Items to be tensored are not all maps")
+            domain = tensor(domains, **keywords)
+            return domain._tensor_of_maps(maps, **keywords)
 
     class CartesianProducts(CartesianProductsCategory):
         """
