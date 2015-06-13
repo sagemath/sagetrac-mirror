@@ -1827,7 +1827,7 @@ def GetCoefficientTerm(snakegraph, SD):
         [(0, 0, 0, 0), 'ABOVE'],
         [(0, 0, 0, 0), 'ABOVE']]]
         sage: GetCoefficientTerm(G_y,sd_a)
-        y6
+        y5
         sage: sd_b = matching_symmetric_difference(pm_min,pm_b)
         sage: sd_b
         [[5],
@@ -1839,7 +1839,7 @@ def GetCoefficientTerm(snakegraph, SD):
         [(1, 1, 1, 1), 'ABOVE'],
         [(1, 0, 0, 0), 'ABOVE']]]
         sage: GetCoefficientTerm(G_y,sd_b)
-        y5
+        y4
    """
     diagonal_weights = []
     #if boundary_edges is None:
