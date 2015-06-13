@@ -1808,7 +1808,7 @@ def GetCoefficientTerm(snakegraph, SD):
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetCoefficientTerm, \
         FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching, \
         matching_symmetric_difference, replace_x_with_y
-        sage: thrice_punctured_square = [('r','r','ell'),(11,'ell','3'),('3','12','4'),\
+        sage: thrice_punctured_square = [('r','r','ell'),('11','ell','3'),('3','12','4'),\
         ('4','5','14'),('5','6','10'),('6','7','9'),('8','10','9'),('7','13','8')]
         sage: TP = ClusterTriangulation(thrice_punctured_square, boundary_edges=['11','12','13','14']).principal_extension()
         sage: crossed = [TP._get_map_label_to_variable(e) for e in ['5','6','7','8','9','6','5']]
