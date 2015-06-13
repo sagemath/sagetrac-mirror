@@ -1674,9 +1674,10 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
     Figure 10 of [MSW_Positivity]_::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetMonomialTerm, FlipAllFlippableTilesInList, FlipAllFlippableTiles, GetMinimalMatching
-        sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-        sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-        sage: crossed = [T._get_map_label_to_variable(e) for e in [5,6,7,8,9,6,5]]
+        sage: thrice_punctured_square = [('r','r','ell'),('11','ell','3'),('3','12','4'),\
+        ....: ('4','5','14'),('5','6','10'),('6','7','9'),('8','10','9'),('7','13','8')]
+        sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=['11','12','13','14'])
+        sage: crossed = [T._get_map_label_to_variable(e) for e in ['5','6','7','8','9','6','5']]
         sage: G = T.list_snake_graph(crossed, first_tile_orientation=1, user_labels=False)
         sage: pm_a, pm_b = FlipAllFlippableTilesInList([GetMinimalMatching(G)])
         sage: pm_a
@@ -1689,7 +1690,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
         [(0, 1, 0, 1), 'ABOVE'],
         [(0, 0, 1, 0), 'ABOVE']]]
         sage: GetMonomialTerm(G,pm_a,boundary_edges=T._boundary_edges_vars,is_loop=False)
-        x3^2*x4^2*x8^3
+        x2^2*x3^2*x7^3
         sage: pm_b
         [[5],
         [[(1, 0, 0, 0), 'ABOVE'],
@@ -1700,7 +1701,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
         [(1, 0, 1, 0), 'ABOVE'],
         [(1, 0, 1, 0), 'ABOVE']]]
         sage: GetMonomialTerm(G,pm_b,boundary_edges=T._boundary_edges_vars, is_loop=None)
-        x3^2*x4*x5*x6*x7*x8*x9
+        x0*x2^2*x3*x4*x5*x6*x7
     """
     tile_weights = []
     if boundary_edges is None:
