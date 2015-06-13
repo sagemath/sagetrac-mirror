@@ -2732,6 +2732,17 @@ def GetMinimalMatching(G):
         [(0, 0, 0, 0), 'ABOVE'],
         [(0, 1, 0, 1), 'ABOVE'],
         [(0, 0, 1, 0), 'ABOVE']]]
+
+        sage: G_opp = T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=-1, user_labels=True)
+        sage: GetMinimalMatching(G_opp)
+        [['minimal PM'],
+        [[(0, 0, 0, 1), 'RIGHT'],
+        [(1, 0, 0, 0), 'ABOVE'],
+        [(0, 1, 0, 1), 'ABOVE'],
+        [(0, 0, 1, 0), 'RIGHT'],
+        [(0, 0, 0, 0), 'RIGHT'],
+        [(1, 0, 1, 0), 'RIGHT'],
+        [(0, 1, 0, 0), 'ABOVE']]]
     """
     # The list of (for each tile in the band/snake graph, the
     # direction of the next tile)
@@ -2742,7 +2753,8 @@ def GetMinimalMatching(G):
         return [['minimal PM'], [[(1, 0, 1, 0), graph_directions[0]]]]
 
     #print 'graph_directions: ', graph_directions
-    initial_matching = [[_minimal_matching_first_tile(graph_directions[0]), graph_directions[0]]]
+    orientation_of_first_tile = G[0][0][0]
+    initial_matching = [[_minimal_matching_first_tile(graph_directions[0],orientation_of_first_tile), graph_directions[0]]]
 
     # Continue assigning minimal matching for the rest of the tiles, except the final tile
     for pos in range(1,len(graph_directions)-1):
@@ -2783,7 +2795,7 @@ def snake_graph_tile_directions(G):
         directions.append(direction)
     return directions
 
-def _minimal_matching_first_tile(DIR):
+def _minimal_matching_first_tile(DIR, orientation_of_first_tile):
     """
     Return the minimal matching of the first tile of the band/snake graph
 
@@ -2796,20 +2808,30 @@ def _minimal_matching_first_tile(DIR):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _minimal_matching_first_tile
-        sage: _minimal_matching_first_tile('ABOVE')
+        sage: _minimal_matching_first_tile('ABOVE',1)
         (1, 0, 0, 0)
-        sage: _minimal_matching_first_tile('RIGHT')
+        sage: _minimal_matching_first_tile('RIGHT',1)
         (1, 0, 1, 0)
+        sage: _minimal_matching_first_tile('ABOVE',-1)
+        (0, 1, 0, 1)
+        sage: _minimal_matching_first_tile('RIGHT',-1)
+        (0, 0, 0, 1)
     """
-    if DIR == ABOVE:
-        mark = (1,0,0,0)
-        return mark
-    elif DIR == RIGHT:
-        mark = (1,0,1,0)
-        return mark
-    else:
-        raise ValueError("Big. DIR should be ABOVE or RIGHT.")
-    #return mark
+    if orientation_of_first_tile == 1:
+        if DIR == ABOVE:
+            mark = (1,0,0,0)
+            return mark
+        elif DIR == RIGHT:
+            mark = (1,0,1,0)
+            return mark
+    elif orientation_of_first_tile == -1:
+        if DIR == ABOVE:
+            mark = (0,1,0,1)
+            return mark
+        elif DIR == RIGHT:
+            mark = (0,0,0,1)
+            return mark
+    raise ValueError("Bug. DIR should be ABOVE or RIGHT. orientation_of_first_tile should be 1 or -1")
 
 def _minimal_matching_current_tile(previous_DIR, current_DIR, last_marking_in_list):
     """

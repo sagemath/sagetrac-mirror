@@ -1293,9 +1293,9 @@ class ClusterTriangulation(ClusterSeed):
         else:
             lifted_polygon = _lifted_polygon(self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=True, is_loop=False)
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=True, is_loop=False)
-        return drawing.plot(axes=False, figsize=fig_size)
         #if verbose:
-        #    return lifted_polygon
+        #    print lifted_polygon
+        return drawing.plot(axes=False, figsize=fig_size)
 
     def draw_lifted_loop(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, fig_size=None, verbose=False,
@@ -1367,9 +1367,9 @@ class ClusterTriangulation(ClusterSeed):
         else:
             lifted_polygon = _lifted_polygon(self._weighted_triangulation, crossed_arcs, first_triangle, final_triangle, is_arc=False, is_loop=True)
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=False, is_loop=True)
+        # if verbose:
+        #    print lifted_polygon
         return drawing.plot( axes=False, figsize=fig_size)
-        #if verbose:
-        #    return lifted_polygon
 
     def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
                               final_triangle=None, verbose=False,
