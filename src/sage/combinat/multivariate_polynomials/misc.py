@@ -13,6 +13,51 @@ from sage.combinat.free_module import CombinatorialFreeModule
 
 from sage.rings.rational_field import QQ
 
+class MonomialKeyWrapper(Parent, UniqueRepresentation):
+
+    def __init__(self, root_system = None, length = None):
+        self._length = length
+        self._root_system = root_system
+
+        if length is None and root_system is None:
+            raise ValueError("Either length or root_system must be initialize")
+
+        if not root_system is None:
+            self._is_typed = True
+            self.Element = self.RootSystemWrapper
+        else:
+            self._is_typed = False
+            self.Element = self.SimpleWrapper
+
+    def is_typed(self):
+        return self._is_typed
+
+    def length(self):
+        return self._length
+
+    def root_sytem(self):
+        return
+
+
+    class SimpleWrapper(Element):
+
+        def __init__(self, parent, wrapped):
+            Element.__init__(parent = parent)
+            self._wrapped = wrapped
+
+        def __iter__(self):
+
+            for i in self._wrapped:
+                yield i
+
+        def __getitem__(self, key):
+            return self._wrapped[key]
+
+
+
+    class RootSystemWrapper(Element):
+        pass
+
 # NT, VP : Any suggestion for the place where this code should go ?
 class RelativeIntegerVectors(CombinatorialFreeModule):
     r"""
@@ -36,7 +81,7 @@ class RelativeIntegerVectors(CombinatorialFreeModule):
             return self(sum( [ x[i]*self.monomial(i)  for i in range( len( list(x)) ) ] ))
         else:
             return x * self.monomial(0)
-            
+
     def __call__(self,x):
         if( type(x) is list or type(x) is tuple):
             return self.__getitem__(x)
@@ -50,7 +95,7 @@ class RelativeIntegerVectors(CombinatorialFreeModule):
 
             sage: # Fix a nice example
         """
-        return self._length       
+        return self._length
 
     class Element(CombinatorialFreeModule.Element):
         def coeffs_to_list(self):
@@ -68,5 +113,5 @@ class RelativeIntegerVectors(CombinatorialFreeModule):
                 sage: # Fix a nice test
             """
             return str(self.coeffs_to_list())
-            
-        
+
+
