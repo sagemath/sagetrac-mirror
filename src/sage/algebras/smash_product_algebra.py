@@ -39,7 +39,7 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
 
         EXAMPLES::
         
-            sage: F = FreeMonoid(n=1, names=['a'])
+            sage: F = FreeMonoid(index_set=[0], names=['a'])
             sage: A = F.algebra(ZZ); A.rename("A")
             sage: A._print_options['prefix'] = 'A'
             sage: W = WeylGroup("A1",prefix="s")
