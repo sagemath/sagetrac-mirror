@@ -936,10 +936,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: B3=Posets.BooleanLattice(3)
             sage: sl1=B3.random_maximal_sublattice()
             sage: sl2=B3.random_maximal_sublattice()
-            sage: sl1.is_isomoprhic(sl2)
+            sage: sl1.is_isomorphic(sl2)
             True
 
-        More interesting lattice:
+        More interesting lattice::
 
             sage: L=LatticePoset(DiGraph('QQG?LA??__?OG@C??p???O??A?E??@??@g??Q??S??@??E??@??@???'))
             sage: set_random_seed(0)
