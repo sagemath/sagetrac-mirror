@@ -925,15 +925,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return LatticePoset(self.subposet(current_set))
 
-    def random_maximal_sublattice(self, element_constructor='lattice'):
+    def random_maximal_sublattice(self):
         r"""
         Return a random maximal proper sublattice of the lattice.
-
-        INPUT:
-
-        - ``element_constructor`` -- how to return the result. If
-          ``'lattice'`` (the default) or ``'poset'``, return a
-          sublattice or a subposet. If ``'list'``, return plain list.
 
         EXAMPLES:
 
@@ -945,30 +939,29 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: sl1.is_isomoprhic(sl2)
             True
 
-        Getting just a list of elements::
+        More interesting lattice:
 
             sage: L=LatticePoset(DiGraph('QQG?LA??__?OG@C??p???O??A?E??@??@g??Q??S??@??E??@??@???'))
             sage: set_random_seed(0)
-            sage: L.random_maximal_sublattice(element_constructor='list')
-            [2, 8, 0, 4, 7, 17, 16, 11, 5, 13, 9, 10, 1, 12, 6]
+            sage: sorted(list(L.random_maximal_sublattice()))
+            [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17]
         """
         from sage.combinat.permutation import Permutations
-        n=self.cardinality()
+        n = self.cardinality()
         if n < 2:
-            raise ValueError("Lattice of size 0 or 1 has no proper sublattice.")
-        p=Permutations(n).random_element()
-        L=[]
+            raise ValueError("lattice of size 0 or 1 has no proper sublattice.")
+        p = Permutations(n).random_element()
+        L = []
+        elms = []
+        result = None
         for e in p:
             L.append(self[e-1])
-            if len(self.sublattice(L))==n:
+            tmp = self.sublattice(L)
+            if tmp.cardinality() == n:
                 L.pop()
-        if element_constructor=='lattice':
-            return LatticePoset(self.subposet(L))
-        if element_constructor=='list':
-            return L
-        if element_constructor=='poset':
-            return self.subposet(L)
-        raise ValueError("element_constructor must be 'lattice', 'poset' or 'list'")
+            else:
+                result = tmp
+        return result
 
 ############################################################################
 
