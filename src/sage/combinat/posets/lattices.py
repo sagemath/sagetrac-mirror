@@ -952,7 +952,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             raise ValueError("lattice of size 0 or 1 has no proper sublattice.")
         p = Permutations(n).random_element()
         L = []
-        elms = []
         result = None
         for e in p:
             L.append(self[e-1])
