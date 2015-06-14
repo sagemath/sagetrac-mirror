@@ -795,12 +795,25 @@ class CoxeterGroups(Category_singleton):
             """
             first_word = tuple(first_word)
             second_word = tuple(second_word)
-            print first_word
-            print second_word
+            #print first_word
+            #print second_word
             return self._chain_of_reduced_words(first_word,second_word)
         
             
         def put_in_front(self,k,input_word):
+            """
+            This is a function to handle input normalization. The normalized 
+            input will be passed to the method `_put_in_front`.
+            EXAMPLES::
+                sage: W = CoxeterGroup("B3")
+                sage: W.put_in_front(1,[3, 2, 3, 1, 2, 3, 1, 2, 1])
+                [(3, 2, 3, 1, 2, 3, 1, 2, 1),
+                 (3, 2, 1, 3, 2, 3, 1, 2, 1),
+                 (3, 2, 1, 3, 2, 3, 2, 1, 2),
+                 (3, 2, 1, 2, 3, 2, 3, 1, 2),
+                 (3, 1, 2, 1, 3, 2, 3, 1, 2),
+                 (1, 3, 2, 1, 3, 2, 3, 1, 2)]
+            """
             input_word = tuple(input_word)
             return self._put_in_front(k,input_word)
             
