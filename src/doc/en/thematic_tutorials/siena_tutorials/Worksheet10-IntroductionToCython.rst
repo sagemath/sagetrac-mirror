@@ -14,18 +14,18 @@ A Python function
 Consider the following Python function that outputs a list of the first  ``m``  prime numbers::
 
     sage: def first_primes_python(m):
-    ...       primes_list = []
-    ...       n = 2
-    ...       while len(primes_list) < m:
-    ...           n_is_prime = True
-    ...           for p in primes_list:
-    ...               if n % p == 0:
-    ...                   n_is_prime = False
-    ...                   break
-    ...           if n_is_prime == True:
-    ...               primes_list.append(n)
-    ...           n = n + 1
-    ...       return primes_list
+    ....:     primes_list = []
+    ....:     n = 2
+    ....:     while len(primes_list) < m:
+    ....:         n_is_prime = True
+    ....:         for p in primes_list:
+    ....:             if n % p == 0:
+    ....:                 n_is_prime = False
+    ....:                 break
+    ....:         if n_is_prime == True:
+    ....:             primes_list.append(n)
+    ....:         n = n + 1
+    ....:     return primes_list
 
 
 
@@ -50,20 +50,18 @@ The Sage notebook will take the contents of this cell, convert it to Cython, com
 
     sage: %cython
     sage: def first_primes_cython_v1(m):
-    ...       primes_list = []
-    ...       n = 2
-    ...       while len(primes_list) < m:
-    ...           n_is_prime = True
-    ...           for p in primes_list:
-    ...               if n % p == 0:
-    ...                   n_is_prime = False
-    ...                   break
-    ...           if n_is_prime == True:
-    ...               primes_list.append(n)
-    ...           n = n + 1
-    ...       return primes_list
-
-
+    ....:     primes_list = []
+    ....:     n = 2
+    ....:     while len(primes_list) < m:
+    ....:         n_is_prime = True
+    ....:         for p in primes_list:
+    ....:             if n % p == 0:
+    ....:                 n_is_prime = False
+    ....:                 break
+    ....:         if n_is_prime == True:
+    ....:             primes_list.append(n)
+    ....:         n = n + 1
+    ....:     return primes_list
 
 Note the speed up we obtained by just adding  ``%cython``::
 
@@ -79,48 +77,55 @@ Note the speed up we obtained by just adding  ``%cython``::
 More Cython
 -----------
 
-Note that two links were returned above. The first one is a link to the C source code file created by Cython from our function. Go take a look. The conversion is a nontrivial process.
+Note that two links were returned above. The first one is a link to
+the C source code file created by Cython from our function. Go take a
+look. The conversion is a nontrivial process.
 
 
-The second link above is an html page that identifies Python\-to\-C and C\-to\-Python conversions that are taking place. By minimizing such conversions and declaring data types, we can further improve the speed of our function.
+The second link above is an html page that identifies Python\-to\-C
+and C\-to\-Python conversions that are taking place. By minimizing
+such conversions and declaring data types, we can further improve the
+speed of our function.
 
 
-Below, some object type declarations are made, we simplify some of the loops and we use a C array instead of the Python list  ``primes_list`` . But since we want to return the data as a Python list, we convert to a Python list at the end.
+Below, some object type declarations are made, we simplify some of the
+loops and we use a C array instead of the Python list ``primes_list``
+. But since we want to return the data as a Python list, we convert to
+a Python list at the end.
 
 ::
 
     sage: %cython
     sage: def first_primes_v3(int m):
-    ...       cdef int k = 0
-    ...       cdef int n = 2
-    ...       cdef int i, n_is_prime
-    ...       cdef int c_array[100000]
-    ...       while k < m:
-    ...           n_is_prime = 0
-    ...           i = 0 
-    ...           while i < k:
-    ...               if n % c_array[i] == 0:
-    ...                   n_is_prime = 1
-    ...                   break
-    ...               i = i + 1
-    ...           if n_is_prime == 0:
-    ...               c_array[k] = n
-    ...               k = k+1
-    ...           n = n + 1
-    ...       primes_list = []
-    ...       i = 0
-    ...       while i < k:
-    ...           primes_list.append(c_array[i])
-    ...           i = i+1
-    ...       return primes_list
-
+    ....:     cdef int k = 0
+    ....:     cdef int n = 2
+    ....:     cdef int i, n_is_prime
+    ....:     cdef int c_array[100000]
+    ....:     while k < m:
+    ....:         n_is_prime = 0
+    ....:         i = 0 
+    ....:         while i < k:
+    ....:             if n % c_array[i] == 0:
+    ....:                 n_is_prime = 1
+    ....:                 break
+    ....:             i = i + 1
+    ....:         if n_is_prime == 0:
+    ....:             c_array[k] = n
+    ....:             k = k+1
+    ....:         n = n + 1
+    ....:     primes_list = []
+    ....:     i = 0
+    ....:     while i < k:
+    ....:         primes_list.append(c_array[i])
+    ....:         i = i+1
+    ....:     return primes_list
 
 ::
 
     sage: time p = first_primes_v3(10000)
 	Time: CPU 0.22 s, Wall: 0.23 s
 
-We didn't screw up anything, this function actually does produce primes::
+We did not screw up anything, this function actually does produce primes::
 
     sage: first_primes_v3(17)
 	[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59]
