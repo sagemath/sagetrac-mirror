@@ -134,39 +134,39 @@ by Marshall Hampton.
     sage: npi = RDF(pi)
     sage: from math import cos,sin
     sage: def rot(t):
-    ...       return matrix([[cos(t),sin(t)],[-sin(t),cos(t)]])
+    ....:     return matrix([[cos(t),sin(t)],[-sin(t),cos(t)]])
     sage: def pursuit(n,x0,y0,lamb,steps = 100, threshold = .01):
-    ...       paths = [[[x0,y0]]]
-    ...       for i in range(1,n):
-    ...           rx,ry = list(rot(2*npi*i/n)*vector([x0,y0]))
-    ...           paths.append([[rx,ry]])
-    ...       oldpath = [x[-1] for x in paths]
-    ...       for q in range(steps):
-    ...           diffs = [[oldpath[(j+1)%n][0]-oldpath[j][0],oldpath[(j+1)%n][1]-oldpath[j][1]] for j in range(n)]
-    ...           npath = [[oldpath[j][0]+lamb*diffs[j][0],oldpath[j][1]+lamb*diffs[j][1]] for j in range(n)]
-    ...           for j in range(n):
-    ...               paths[j].append(npath[j])
-    ...           oldpath = npath
-    ...       return paths
+    ....:     paths = [[[x0,y0]]]
+    ....:     for i in range(1,n):
+    ....:         rx,ry = list(rot(2*npi*i/n)*vector([x0,y0]))
+    ....:         paths.append([[rx,ry]])
+    ....:     oldpath = [x[-1] for x in paths]
+    ....:     for q in range(steps):
+    ....:         diffs = [[oldpath[(j+1)%n][0]-oldpath[j][0],oldpath[(j+1)%n][1]-oldpath[j][1]] for j in range(n)]
+    ....:         npath = [[oldpath[j][0]+lamb*diffs[j][0],oldpath[j][1]+lamb*diffs[j][1]] for j in range(n)]
+    ....:         for j in range(n):
+    ....:             paths[j].append(npath[j])
+    ....:         oldpath = npath
+    ....:     return paths
     sage: html('<h3>Curves of Pursuit</h3>')
     sage: @interact
     sage: def curves_of_pursuit(n = slider([2..20],default = 5, label="# of points"),steps = slider([floor(1.4^i) for i in range(2,18)],default = 10, label="# of steps"), stepsize = slider(srange(.01,1,.01),default = .2, label="stepsize"), colorize = selector(['BW','Line color', 'Filled'],default = 'BW')):
-    ...       outpaths = pursuit(n,0,1,stepsize, steps = steps)
-    ...       mcolor = (0,0,0)
-    ...       outer = line([q[0] for q in outpaths]+[outpaths[0][0]], rgbcolor = mcolor)
-    ...       polys = Graphics()
-    ...       if colorize=='Line color':
-    ...           colors = [hue(j/steps,1,1) for j in range(len(outpaths[0]))]
-    ...       elif colorize == 'BW':
-    ...           colors = [(0,0,0) for j in range(len(outpaths[0]))]
-    ...       else:
-    ...           colors = [hue(j/steps,1,1) for j in range(len(outpaths[0]))]
-    ...           polys = sum([polygon([outpaths[(i+1)%n][j+1],outpaths[(i+1)%n][j], outpaths[i][j+1]], rgbcolor = colors[j]) for i in range(n) for j in range(len(outpaths[0])-1)])
-    ...           #polys = polys[0]
-    ...           colors = [(0,0,0) for j in range(len(outpaths[0]))]
-    ...       nested = sum([line([q[j] for q in outpaths]+[outpaths[0][j]], rgbcolor = colors[j]) for j in range(len(outpaths[0]))])
-    ...       lpaths = [line(x, rgbcolor = mcolor) for x in outpaths]
-    ...       show(sum(lpaths)+nested+polys, axes = False, figsize = [5,5], xmin = -1, xmax = 1, ymin = -1, ymax =1)
+    ....:     outpaths = pursuit(n,0,1,stepsize, steps = steps)
+    ....:     mcolor = (0,0,0)
+    ....:     outer = line([q[0] for q in outpaths]+[outpaths[0][0]], rgbcolor = mcolor)
+    ....:     polys = Graphics()
+    ....:     if colorize=='Line color':
+    ....:         colors = [hue(j/steps,1,1) for j in range(len(outpaths[0]))]
+    ....:     elif colorize == 'BW':
+    ....:         colors = [(0,0,0) for j in range(len(outpaths[0]))]
+    ....:     else:
+    ....:         colors = [hue(j/steps,1,1) for j in range(len(outpaths[0]))]
+    ....:         polys = sum([polygon([outpaths[(i+1)%n][j+1],outpaths[(i+1)%n][j], outpaths[i][j+1]], rgbcolor = colors[j]) for i in range(n) for j in range(len(outpaths[0])-1)])
+    ....:         #polys = polys[0]
+    ....:         colors = [(0,0,0) for j in range(len(outpaths[0]))]
+    ....:     nested = sum([line([q[j] for q in outpaths]+[outpaths[0][j]], rgbcolor = colors[j]) for j in range(len(outpaths[0]))])
+    ....:     lpaths = [line(x, rgbcolor = mcolor) for x in outpaths]
+    ....:     show(sum(lpaths)+nested+polys, axes = False, figsize = [5,5], xmin = -1, xmax = 1, ymin = -1, ymax =1)
 
 .. end of output
 
@@ -181,46 +181,46 @@ by William Stein
     sage: %hide
     sage: import random
     sage: def ftree(rows, v, i, F):
-    ...       if len(v) > 0: # add a row to g at the ith level.
-    ...           rows.append(v)
-    ...       w = []
-    ...       for i in range(len(v)):
-    ...           k, _, _ = v[i]
-    ...           if k is None or is_prime(k):
-    ...               w.append((None,None,None))
-    ...           else:
-    ...               d = random.choice(divisors(k)[1:-1])
-    ...               w.append((d,k,i))
-    ...               e = k//d
-    ...               if e == 1:
-    ...                   w.append((None,None))
-    ...               else:
-    ...                   w.append((e,k,i))
-    ...       if len(w) > len(v):
-    ...           ftree(rows, w, i+1, F)
+    ....:     if len(v) > 0: # add a row to g at the ith level.
+    ....:         rows.append(v)
+    ....:     w = []
+    ....:     for i in range(len(v)):
+    ....:         k, _, _ = v[i]
+    ....:         if k is None or is_prime(k):
+    ....:             w.append((None,None,None))
+    ....:         else:
+    ....:             d = random.choice(divisors(k)[1:-1])
+    ....:             w.append((d,k,i))
+    ....:             e = k//d
+    ....:             if e == 1:
+    ....:                 w.append((None,None))
+    ....:             else:
+    ....:                 w.append((e,k,i))
+    ....:     if len(w) > len(v):
+    ....:         ftree(rows, w, i+1, F)
     sage: def draw_ftree(rows,font):
-    ...       g = Graphics()
-    ...       for i in range(len(rows)):
-    ...           cur = rows[i]
-    ...           for j in range(len(cur)):
-    ...               e, f, k = cur[j]
-    ...               if not e is None:
-    ...                   if is_prime(e):
-    ...                        c = (1,0,0)
-    ...                   else:
-    ...                        c = (0,0,.4)
-    ...                   g += text(str(e), (j*2-len(cur),-i), fontsize=font, rgbcolor=c)
-    ...                   if not k is None and not f is None:
-    ...                       g += line([(j*2-len(cur),-i), ((k*2)-len(rows[i-1]),-i+1)], 
-    ...                       alpha=0.5)
-    ...       return g
+    ....:     g = Graphics()
+    ....:     for i in range(len(rows)):
+    ....:         cur = rows[i]
+    ....:         for j in range(len(cur)):
+    ....:             e, f, k = cur[j]
+    ....:             if not e is None:
+    ....:                 if is_prime(e):
+    ....:                      c = (1,0,0)
+    ....:                 else:
+    ....:                      c = (0,0,.4)
+    ....:                 g += text(str(e), (j*2-len(cur),-i), fontsize=font, rgbcolor=c)
+    ....:                 if not k is None and not f is None:
+    ....:                     g += line([(j*2-len(cur),-i), ((k*2)-len(rows[i-1]),-i+1)], 
+    ....:                     alpha=0.5)
+    ....:     return g
     sage: @interact
     sage: def factor_tree(n=100, font=(10, (8..20)), redraw=['Redraw']):
-    ...       n = Integer(n)
-    ...       rows = []
-    ...       v = [(n,None,0)]
-    ...       ftree(rows, v, 0, factor(n))
-    ...       show(draw_ftree(rows, font), axes=False)
+    ....:     n = Integer(n)
+    ....:     rows = []
+    ....:     v = [(n,None,0)]
+    ....:     ftree(rows, v, 0, factor(n))
+    ....:     show(draw_ftree(rows, font), axes=False)
 
 .. end of output
 
@@ -235,8 +235,8 @@ by William Stein
 
     sage: @interact
     sage: def _(N=(100,(2..2000))):
-    ...       html("<font color='red'>$\pi(x)$</font> and <font color='blue'>$x/(\log(x)-1)$</font> for $x < %s$"%N)
-    ...       show(plot(prime_pi, 0, N, rgbcolor='red') + plot(x/(log(x)-1), 5, N, rgbcolor='blue'))
+    ....:     html("<font color='red'>$\pi(x)$</font> and <font color='blue'>$x/(\log(x)-1)$</font> for $x < %s$"%N)
+    ....:     show(plot(prime_pi, 0, N, rgbcolor='red') + plot(x/(log(x)-1), 5, N, rgbcolor='blue'))
 
 .. end of output
 
@@ -251,108 +251,108 @@ by William Stein
     sage: %hide
     sage: import urllib
     sage: class Day:
-    ...       def __init__(self, date, open, high, low, close, volume):
-    ...           self.date = date
-    ...           self.open=float(open); self.high=float(high); self.low=float(low); self.close=float(close)
-    ...           self.volume=int(volume)
-    ...       def __repr__(self):
-    ...           return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.date, self.open, self.high, 
-    ...                      self.low, self.close, self.volume)
+    ....:     def __init__(self, date, open, high, low, close, volume):
+    ....:         self.date = date
+    ....:         self.open=float(open); self.high=float(high); self.low=float(low); self.close=float(close)
+    ....:         self.volume=int(volume)
+    ....:     def __repr__(self):
+    ....:         return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.date, self.open, self.high, 
+    ....:                    self.low, self.close, self.volume)
     sage: class Stock:
-    ...       def __init__(self, symbol):
-    ...           self.symbol = symbol.upper()
-    ...       def __repr__(self):
-    ...           return "%s (%s)"%(self.symbol, self.yahoo()['price'])
-    ...       
-    ...       def yahoo(self):
-    ...           url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
-    ...           values = urllib.urlopen(url).read().strip().strip('"').split(',')
-    ...           data = {}
-    ...           data['price'] = values[0]
-    ...           data['change'] = values[1]
-    ...           data['volume'] = values[2]
-    ...           data['avg_daily_volume'] = values[3]
-    ...           data['stock_exchange'] = values[4]
-    ...           data['market_cap'] = values[5]
-    ...           data['book_value'] = values[6]
-    ...           data['ebitda'] = values[7]
-    ...           data['dividend_per_share'] = values[8]
-    ...           data['dividend_yield'] = values[9]
-    ...           data['earnings_per_share'] = values[10]
-    ...           data['52_week_high'] = values[11]
-    ...           data['52_week_low'] = values[12]
-    ...           data['50day_moving_avg'] = values[13]
-    ...           data['200day_moving_avg'] = values[14]
-    ...           data['price_earnings_ratio'] = values[15]
-    ...           data['price_earnings_growth_ratio'] = values[16]
-    ...           data['price_sales_ratio'] = values[17]
-    ...           data['price_book_ratio'] = values[18]
-    ...           data['short_ratio'] = values[19]
-    ...           return data
-    ...       def historical(self):
-    ...           try:
-    ...               return self.__historical
-    ...           except AttributeError:
-    ...               pass
-    ...           symbol = self.symbol
-    ...           def get_data(exchange):
-    ...                name = get_remote_file('http://finance.google.com/finance/historical?q=%s:%s&output=csv'%(exchange, symbol.upper()), 
-    ...                          verbose=False)
-    ...                return open(name).read()
-    ...           R = get_data('NASDAQ')
-    ...           if "Bad Request" in R:
-    ...                R = get_data("NYSE")
-    ...           R = R.splitlines()
-    ...           headings = R[0].split(',')
-    ...           self.__historical = []
-    ...           try:
-    ...               for x in reversed(R[1:]):
-    ...                   date, opn, high, low, close, volume = x.split(',')
-    ...                   self.__historical.append(Day(date, opn,high,low,close,volume))
-    ...           except ValueError:
-    ...                pass
-    ...           self.__historical = Sequence(self.__historical,cr=True,universe=lambda x:x)
-    ...           return self.__historical
-    ...       def plot_average(self, spline_samples=10):
-    ...           d = self.historical()
-    ...           if len(d) == 0:
-    ...               return text('no historical data at Google Finance about %s'%self.symbol, (0,3))
-    ...           avg = list(enumerate([(z.high+z.low)/2 for z in d]))
-    ...           P = line(avg) + points(avg, rgbcolor='black', pointsize=4) + \
-    ...                    text(self.symbol, (len(d)*1.05, d[-1].low), horizontal_alignment='right', rgbcolor='black')
-    ...           if spline_samples > 0:
-    ...               k = 250//spline_samples
-    ...               spl = spline([avg[i*k] for i in range(len(d)//k)] + [avg[-1]])
-    ...               P += plot(spl, (0,len(d)+30), color=(0.7,0.7,0.7))
-    ...           P.xmax(260)
-    ...           return P
-    ...       def plot_diff(self):
-    ...           d = self.historical()
-    ...           if len(d) == 0:
-    ...               return text('no historical data at Google Finance about %s'%self.symbol, (0,3))
-    ...           diff = [] 
-    ...           for i in range(1, len(d)):
-    ...                z1 = d[i]; z0 = d[i-1]
-    ...                diff.append((i, (z1.high+z1.low)/2 - (z0.high + z0.low)/2))
-    ...           P = line(diff,thickness=0.5) + points(diff, rgbcolor='black', pointsize=4) + \
-    ...                    text(self.symbol, (len(d)*1.05, 0), horizontal_alignment='right', rgbcolor='black')
-    ...           P.xmax(260)
-    ...           return P
+    ....:     def __init__(self, symbol):
+    ....:         self.symbol = symbol.upper()
+    ....:     def __repr__(self):
+    ....:         return "%s (%s)"%(self.symbol, self.yahoo()['price'])
+    ....:     
+    ....:     def yahoo(self):
+    ....:         url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
+    ....:         values = urllib.urlopen(url).read().strip().strip('"').split(',')
+    ....:         data = {}
+    ....:         data['price'] = values[0]
+    ....:         data['change'] = values[1]
+    ....:         data['volume'] = values[2]
+    ....:         data['avg_daily_volume'] = values[3]
+    ....:         data['stock_exchange'] = values[4]
+    ....:         data['market_cap'] = values[5]
+    ....:         data['book_value'] = values[6]
+    ....:         data['ebitda'] = values[7]
+    ....:         data['dividend_per_share'] = values[8]
+    ....:         data['dividend_yield'] = values[9]
+    ....:         data['earnings_per_share'] = values[10]
+    ....:         data['52_week_high'] = values[11]
+    ....:         data['52_week_low'] = values[12]
+    ....:         data['50day_moving_avg'] = values[13]
+    ....:         data['200day_moving_avg'] = values[14]
+    ....:         data['price_earnings_ratio'] = values[15]
+    ....:         data['price_earnings_growth_ratio'] = values[16]
+    ....:         data['price_sales_ratio'] = values[17]
+    ....:         data['price_book_ratio'] = values[18]
+    ....:         data['short_ratio'] = values[19]
+    ....:         return data
+    ....:     def historical(self):
+    ....:         try:
+    ....:             return self.__historical
+    ....:         except AttributeError:
+    ....:             pass
+    ....:         symbol = self.symbol
+    ....:         def get_data(exchange):
+    ....:              name = get_remote_file('http://finance.google.com/finance/historical?q=%s:%s&output=csv'%(exchange, symbol.upper()), 
+    ....:                        verbose=False)
+    ....:              return open(name).read()
+    ....:         R = get_data('NASDAQ')
+    ....:         if "Bad Request" in R:
+    ....:              R = get_data("NYSE")
+    ....:         R = R.splitlines()
+    ....:         headings = R[0].split(',')
+    ....:         self.__historical = []
+    ....:         try:
+    ....:             for x in reversed(R[1:]):
+    ....:                 date, opn, high, low, close, volume = x.split(',')
+    ....:                 self.__historical.append(Day(date, opn,high,low,close,volume))
+    ....:         except ValueError:
+    ....:              pass
+    ....:         self.__historical = Sequence(self.__historical,cr=True,universe=lambda x:x)
+    ....:         return self.__historical
+    ....:     def plot_average(self, spline_samples=10):
+    ....:         d = self.historical()
+    ....:         if len(d) == 0:
+    ....:             return text('no historical data at Google Finance about %s'%self.symbol, (0,3))
+    ....:         avg = list(enumerate([(z.high+z.low)/2 for z in d]))
+    ....:         P = line(avg) + points(avg, rgbcolor='black', pointsize=4) + \
+    ....:                  text(self.symbol, (len(d)*1.05, d[-1].low), horizontal_alignment='right', rgbcolor='black')
+    ....:         if spline_samples > 0:
+    ....:             k = 250//spline_samples
+    ....:             spl = spline([avg[i*k] for i in range(len(d)//k)] + [avg[-1]])
+    ....:             P += plot(spl, (0,len(d)+30), color=(0.7,0.7,0.7))
+    ....:         P.xmax(260)
+    ....:         return P
+    ....:     def plot_diff(self):
+    ....:         d = self.historical()
+    ....:         if len(d) == 0:
+    ....:             return text('no historical data at Google Finance about %s'%self.symbol, (0,3))
+    ....:         diff = [] 
+    ....:         for i in range(1, len(d)):
+    ....:              z1 = d[i]; z0 = d[i-1]
+    ....:              diff.append((i, (z1.high+z1.low)/2 - (z0.high + z0.low)/2))
+    ....:         P = line(diff,thickness=0.5) + points(diff, rgbcolor='black', pointsize=4) + \
+    ....:                  text(self.symbol, (len(d)*1.05, 0), horizontal_alignment='right', rgbcolor='black')
+    ....:         P.xmax(260)
+    ....:         return P
     sage: symbols = ['bsc', 'vmw', 'sbux', 'aapl', 'amzn', 'goog', 'wfmi', 'msft', 'yhoo', 'ebay', 'java', 'rht', ]; symbols.sort()
     sage: stocks = dict([(s,Stock(s)) for s in symbols])
     sage: @interact
     sage: def data(symbol = symbols, other_symbol='', spline_samples=(8,[0..15])):
-    ...        if other_symbol != '':
-    ...            symbol = other_symbol
-    ...        S = Stock(symbol)
-    ...        html('<h1 align=center><font color="darkred">%s</font></h1>'%S)
-    ...        S.plot_average(spline_samples).save('avg.png', figsize=[10,2])
-    ...        S.plot_diff().save('diff.png', figsize=[10,2])
-    ...        Y = S.yahoo()
-    ...        k = Y.keys(); k.sort()
-    ...        html('Price during last 52 weeks:<br>Grey line is a spline through %s points (do not take seriously!):<br> <img src="cell://avg.png">'%spline_samples)
-    ...        html('Difference from previous day:<br> <img src="cell://diff.png">')
-    ...        html('<table align=center>' + '\n'.join('<tr><td>%s</td><td>%s</td></tr>'%(k[i], Y[k[i]]) for i in range(len(k))) + '</table>')
+    ....:      if other_symbol != '':
+    ....:          symbol = other_symbol
+    ....:      S = Stock(symbol)
+    ....:      html('<h1 align=center><font color="darkred">%s</font></h1>'%S)
+    ....:      S.plot_average(spline_samples).save('avg.png', figsize=[10,2])
+    ....:      S.plot_diff().save('diff.png', figsize=[10,2])
+    ....:      Y = S.yahoo()
+    ....:      k = Y.keys(); k.sort()
+    ....:      html('Price during last 52 weeks:<br>Grey line is a spline through %s points (do not take seriously!):<br> <img src="cell://avg.png">'%spline_samples)
+    ....:      html('Difference from previous day:<br> <img src="cell://diff.png">')
+    ....:      html('<table align=center>' + '\n'.join('<tr><td>%s</td><td>%s</td></tr>'%(k[i], Y[k[i]]) for i in range(len(k))) + '</table>')
 
 .. end of output
 
@@ -369,17 +369,17 @@ by Timothy Clemans and William Stein
 
     sage: @interact
     sage: def diffie_hellman(bits=slider(8, 513, 4, 8, 'Number of bits', False),
-    ...       button=selector(["Show new example"],label='',buttons=True)):
-    ...       maxp = 2 ^ bits
-    ...       p = random_prime(maxp)
-    ...       k = GF(p)
-    ...       if bits > 100:
-    ...           g = k(2)
-    ...       else:
-    ...           g = k.multiplicative_generator()
-    ...       a = ZZ.random_element(10, maxp)
-    ...       b = ZZ.random_element(10, maxp)
-    ...       print """
+    ....:     button=selector(["Show new example"],label='',buttons=True)):
+    ....:     maxp = 2 ^ bits
+    ....:     p = random_prime(maxp)
+    ....:     k = GF(p)
+    ....:     if bits > 100:
+    ....:         g = k(2)
+    ....:     else:
+    ....:         g = k.multiplicative_generator()
+    ....:     a = ZZ.random_element(10, maxp)
+    ....:     b = ZZ.random_element(10, maxp)
+    ....:     print """
     sage: <html>
     sage: <style>
     sage: .gamodp, .gbmodp {
@@ -405,8 +405,8 @@ by Timothy Clemans and William Stein
     sage: <li>Alice computes (<span class="gbmodp">g<sup>b</sup> mod p</span>)<sup>a</sup> mod p:<br/>%s<sup>%s</sup> mod %s = <span class="dhsame">%s</span>.</li>
     sage: <li>Bob computes (<span class="gamodp">g<sup>a</sup> mod p</span>)<sup>b</sup> mod p:<br/>%s<sup>%s</sup> mod %s = <span class="dhsame">%s</span>.</li>
     sage: </ol></html>
-    ...       """ % (bits, p, g, a, g, a, p, (g^a), b, g, b, p, (g^b), (g^b), a, p, 
-    ...          (g^ b)^a, g^a, b, p, (g^a)^b)
+    ....:     """ % (bits, p, g, a, g, a, p, (g^a), b, g, b, p, (g^b), (g^b), a, p, 
+    ....:        (g^ b)^a, g^a, b, p, (g^a)^b)
 
 .. end of output
 
@@ -419,7 +419,7 @@ Dessiner  une fonction :math:`\mathbb{R}^2\mapsto \mathbb{R}` : la commande plot
 ::
 
     sage: def f(x, y):
-    ...       return x^2 + y^2
+    ....:     return x^2 + y^2
     sage: plot3d(f, (-10,10), (-10,10), viewer='tachyon')
 
 
@@ -468,9 +468,9 @@ La commande complex_plot pour les fonctions complexe
 ::
 
     sage: def newton(f, z, precision=0.001) :
-    ...       while abs(f(x=z)) >= precision:
-    ...           z = z - f(x=z) / diff(f)(x=z)
-    ...       return z
+    ....:     while abs(f(x=z)) >= precision:
+    ....:         z = z - f(x=z) / diff(f)(x=z)
+    ....:     return z
 
 
 .. end of output
@@ -748,14 +748,14 @@ Here is some simple Python code to  *numerically*  integrate the function :math:
 
     sage: from math import sin
     sage: def f(x):
-    ...       return sin(x**2)
-    ...       
+    ....:     return sin(x**2)
+    ....:     
     sage: def integrate_f_py(a, b, N):
-    ...       s = 0
-    ...       dx = (b-a)/N
-    ...       for i in range(N):
-    ...           s += f(a+i*dx)
-    ...       return s * dx
+    ....:     s = 0
+    ....:     dx = (b-a)/N
+    ....:     for i in range(N):
+    ....:         s += f(a+i*dx)
+    ....:     return s * dx
 
 
 .. end of output
@@ -781,14 +781,14 @@ Simply compiling this in Cython gives a speedup.
     sage: %cython
     sage: from math import sin
     sage: def f(x):
-    ...       return sin(x**2)
-    ...       
+    ....:     return sin(x**2)
+    ....:     
     sage: def integrate_f_cy0(a, b, N):
-    ...       s = 0
-    ...       dx = (b-a)/N
-    ...       for i in range(N):
-    ...           s += f(a+i*dx)
-    ...       return s * dx
+    ....:     s = 0
+    ....:     dx = (b-a)/N
+    ....:     for i in range(N):
+    ....:         s += f(a+i*dx)
+    ....:     return s * dx
 
 
 .. end of output
@@ -814,16 +814,16 @@ Adding some static type declarations makes a much greater difference.
     sage: %cython
     sage: from math import sin
     sage: def f(double x):
-    ...       return sin(x**2)
-    ...       
+    ....:     return sin(x**2)
+    ....:     
     sage: def integrate_f_cy(double a, double b, int N):
-    ...       cdef int i
-    ...       cdef double s, dx
-    ...       s = 0
-    ...       dx = (b-a)/N
-    ...       for i in range(N):
-    ...           s += f(a+i*dx)
-    ...       return s * dx
+    ....:     cdef int i
+    ....:     cdef double s, dx
+    ....:     s = 0
+    ....:     dx = (b-a)/N
+    ....:     for i in range(N):
+    ....:         s += f(a+i*dx)
+    ....:     return s * dx
 
 
 .. end of output
@@ -853,10 +853,10 @@ Here is a Python function that computes the sum of the first :math:`n` positive 
 ::
 
     sage: def mysum_py(n):
-    ...       s = 0
-    ...       for k in range(n):
-    ...           s += k
-    ...       return s
+    ....:     s = 0
+    ....:     for k in range(n):
+    ....:         s += k
+    ....:     return s
 
 
 .. end of output
@@ -882,10 +882,10 @@ Simply compiling this function with Cython provides a speedup.
 
     sage: %cython
     sage: def mysum_cy0(n):
-    ...       s = 0
-    ...       for k in range(n):
-    ...           s += k
-    ...       return s
+    ....:     s = 0
+    ....:     for k in range(n):
+    ....:         s += k
+    ....:     return s
 
 
 .. end of output
@@ -917,13 +917,13 @@ Adding some static type declarations makes a much greater difference.
 
     sage: %cython
     sage: def mysum_cy1(n):
-    ...       cdef int k
-    ...       cdef long long s
-    ...       
-    ...       s = 0
-    ...       for k in range(n):
-    ...           s += k
-    ...       return s
+    ....:     cdef int k
+    ....:     cdef long long s
+    ....:     
+    ....:     s = 0
+    ....:     for k in range(n):
+    ....:         s += k
+    ....:     return s
 
 
 .. end of output
