@@ -39,7 +39,7 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
 
         EXAMPLES::
         
-            sage: F = FreeMonoid(index_set=[0], names=['a'])
+            sage: F = FreeMonoid(names=['a'])
             sage: A = F.algebra(ZZ); A.rename("A")
             sage: A._print_options['prefix'] = 'A'
             sage: W = WeylGroup("A1",prefix="s")
@@ -230,14 +230,14 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         algebra_category = AlgebrasWithBasis(R)
         tensor_category = module_category.TensorProducts()
         if R != B.base_ring():
-            raise TypeError, "%s and %s must have the same base ring"%(A,B)
+            raise TypeError("%s and %s must have the same base ring"%(A,B))
         if A not in algebra_category or B not in algebra_category:
-            raise TypeError, "Tensor factors should be AlgebrasWithBasis over %s"%(R)
+            raise TypeError("Tensor factors should be AlgebrasWithBasis over %s"%(R))
 
         if suppress_ones is None:
             self._suppress_ones = True
         elif suppress_ones not in (True,False):
-            raise ValueError, "%s should be True or False"%suppress_ones
+            raise ValueError("%s should be True or False"%suppress_ones)
         else:
             self._suppress_ones = suppress_ones
 
@@ -245,7 +245,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         if not category:
             category = default_category
         elif not category.is_subcategory(default_category):
-            raise TypeError, "Category %s is not a subcategory of %s"%(category, default_category)
+            raise TypeError("Category %s is not a subcategory of %s"%(category, default_category))
         self._category = category
 
         AB = tensor([A,B], category=tensor_category)
@@ -263,14 +263,14 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             self._twist = BA.module_morphism(on_basis=twist_on_basis_func, codomain=AB, category=module_category)
         elif twist_morphism is not None:
             if twist_morphism.domain() != BA:
-                raise TypeError, "Codomain of twist (%s) should be %s"%(twist.codomain(), BA)
+                raise TypeError("Codomain of twist (%s) should be %s"%(twist.codomain(), BA))
             if twist_morphism.codomain() != AB:
-                raise TypeError, "Codomain of twist (%s) should be %s"%(twist.codomain(), AB)             
-            if not twist_morphism.category().is_subcategory(module_category.hom_category()):
-                raise TypeError, "twist should be a module morphism"
+                raise TypeError("Codomain of twist (%s) should be %s"%(twist.codomain(), AB))
+            if not twist_morphism.category().is_subcategory(module_category.Homsets()):
+                raise TypeError("twist should be a module morphism")
             self._twist = twist_morphism
         else:
-            raise TypeError, "Twist is improperly specified"
+            raise TypeError("Twist is improperly specified")
 
         self._has_opposite = False # default: no "opposite" smash product has been registered
         # Define the product morphism using twist
