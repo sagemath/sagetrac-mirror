@@ -22,6 +22,8 @@ from density_plot import density_plot
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.complex_plot",["complex_plot"])
 
+import demo
+
 from arc import arc
 
 from animate import animate

@@ -7,6 +7,7 @@ Words
    - Check that those are the important entry points
    - Add links from the module documentation to the important classes/functions
 
+- :mod:`sage.combinat.words.demo`
 - :func:`sage.combinat.words.alphabet.build_alphabet`
 - :func:`sage.combinat.words.word.Word`
 - :func:`sage.combinat.words.words.Words`
@@ -18,3 +19,4 @@ Words
 """
 # Is this really needed?
 import all
+import demo

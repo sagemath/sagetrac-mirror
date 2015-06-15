@@ -43,9 +43,10 @@ Related topics
 - :ref:`sage.graphs`
 
 """
-#import demo
-#import demo_short
-#import demo_algebraic_combinatorics
-#import tutorial_enumerated_sets
+
+import demo
+import demo_short
+import demo_algebraic_combinatorics
+import tutorial_enumerated_sets
 import quickref
 import tutorial
