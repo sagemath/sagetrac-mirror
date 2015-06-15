@@ -15,7 +15,7 @@ cdef extern from "boost/graph/adjacency_list.hpp" namespace "boost":
         pass
     cdef cppclass BoostVecDiGraph "boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> ":
         pass
-    
+
 cdef extern from "boost/graph/graph_traits.hpp" namespace "boost":
     cdef cppclass graph_traits[T]:
         cppclass vertex_descriptor:
@@ -24,6 +24,8 @@ cdef extern from "boost/graph/graph_traits.hpp" namespace "boost":
             pass
         cppclass degree_size_type:
             pass
+
+
 
 ctypedef graph_traits[BoostVecGraph].vertex_descriptor vertex_descriptor_und
 ctypedef graph_traits[BoostVecDiGraph].vertex_descriptor vertex_descriptor_dir
@@ -43,23 +45,23 @@ cdef extern from "boost/graph/adjacency_list.hpp" namespace "boost":
 
     vertex_descriptor_und add_vertex(BoostVecGraph)
     vertex_descriptor_dir add_vertex(BoostVecDiGraph)
-    
-    edge_descriptor_und add_edge(vertex_descriptor_und, 
-                                 vertex_descriptor_und, 
+
+    edge_descriptor_und add_edge(vertex_descriptor_und,
+                                 vertex_descriptor_und,
                                  BoostVecGraph)
-    edge_descriptor_dir add_edge(vertex_descriptor_dir, 
-                                 vertex_descriptor_dir, 
+    edge_descriptor_dir add_edge(vertex_descriptor_dir,
+                                 vertex_descriptor_dir,
                                  BoostVecDiGraph)
-    
+
     cdef vertex_descriptor_und source(edge_descriptor_und, BoostVecGraph)
     cdef vertex_descriptor_und target(edge_descriptor_und, BoostVecGraph)
 
     cdef vertex_descriptor_dir source(edge_descriptor_dir, BoostVecDiGraph)
     cdef vertex_descriptor_dir target(edge_descriptor_dir, BoostVecDiGraph)
-    
+
 cdef extern from "<vector>" namespace "std":
     cdef cppclass vector[T]:
-        T& at(int)        
+        T& at(int)
         void push_back(T&) except +
         T& operator[](int)
 
@@ -75,6 +77,7 @@ cdef extern from "<iterator>" namespace "std":
 cdef extern from "boost/graph/edge_connectivity.hpp" namespace "boost":
     graph_traits[T].degree_size_type edge_connectivity[T,TT](T G, TT GG)
 
+
 cdef class BoostGraph(object):
     cdef BoostVecGraph *graph
     cdef vector[vertex_descriptor_und] vertices
@@ -84,8 +87,8 @@ cdef class BoostGraph(object):
     cpdef num_verts(self)
     cpdef num_edges(self)
     cpdef edge_connectivity(self)
-    
-    
+
+
 cdef class BoostDiGraph(object):
     cdef BoostVecDiGraph *graph
     cdef vector[vertex_descriptor_dir] vertices

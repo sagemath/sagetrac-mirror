@@ -8132,18 +8132,18 @@ class GenericGraph(GenericGraph_pyx):
             p.solve(log=verbose)
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
-    
-    
-    def edge_connectivity(self, 
-                          value_only = True, 
+
+
+    def edge_connectivity(self,
+                          value_only = True,
                           boost = None,
-                          use_edge_labels = False, 
-                          vertices = False, 
-                          solver = None, 
-                          verbose = 0):    
+                          use_edge_labels = False,
+                          vertices = False,
+                          solver = None,
+                          verbose = 0):
         r"""
-        Returns the edge connectivity of the graph. 
-        
+        Returns the edge connectivity of the graph.
+
         For more information, see the
         `Wikipedia article on connectivity
         <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
@@ -8169,16 +8169,16 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``boost`` -- boolean (default: ``None``)
 
-          - When set to ``True``, we use the algorithm from the Boost graph 
+          - When set to ``True``, we use the algorithm from the Boost graph
             library (which is much more efficient). If set to ``None``, we use
             the Boost algorithm only for undirected graphs (the directed
             version is not reliable). Not compatible with edge labels.
-            
+
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a weighted minimum cut
             where each edge has a weight defined by its label. (If
-            an edge has no label, `1` is assumed.). Implies 
+            an edge has no label, `1` is assumed.). Implies
             ``boost`` = ``False``.
 
           - When set to ``False``, each edge has weight `1`.
@@ -8190,8 +8190,8 @@ class GenericGraph(GenericGraph_pyx):
             ``value_only=False``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used (Ignored if ``boost`` is ``True``). If set to 
-          ``None``, the default one is used. For more information on LP solvers 
+          solver to be used (Ignored if ``boost`` is ``True``). If set to
+          ``None``, the default one is used. For more information on LP solvers
           and which default solver is used, see the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
@@ -8244,8 +8244,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: l == minimum
             True
 
-        When ``value_only = True`` and ``boost = False``, this function is 
-        optimized for small connectivity values and does not need to build a 
+        When ``value_only = True`` and ``boost = False``, this function is
+        optimized for small connectivity values and does not need to build a
         linear program.
 
         It is the case for graphs which are not connected ::
@@ -8253,47 +8253,54 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = 2 * graphs.PetersenGraph()
             sage: g.edge_connectivity(boost = False)
             0.0
- 
+
         For directed graphs, the strong connectivity is tested
         through the dedicated function ::
 
             sage: g = digraphs.ButterflyGraph(3)
             sage: g.edge_connectivity(boost = False)
             0.0
-        
+
         We check that the result with Boost is the same as the result without
         Boost ::
-            
+
             sage: g = graphs.RandomGNP(15,.3)
             sage: g.edge_connectivity() == g.edge_connectivity(boost = False)
             True
-            
+
+        Boost interface also works with directed graphs ::
+
+            sage: digraphs.Circuit(10).edge_connectivity(boost = True, vertices = True)
+            The directed edge connectivity algorithm implemented in the Boost
+            graph library is not reliable. The result could be wrong.
+            [1, [[0, 1]], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
+
         However, Boost algorithm still contains bugs if the input is directed::
-            
+
             sage: g = digraphs.Path(3)
             sage: g.edge_connectivity()
             0.0
             sage: g.edge_connectivity(boost = True)
-            The directed edge connectivity algorithm implemented in the Boost 
+            The directed edge connectivity algorithm implemented in the Boost
             graph library is not reliable. The result could be wrong.
             1
             sage: g.add_edge(1,0)
             sage: g.edge_connectivity()
             0.0
             sage: g.edge_connectivity(boost = True)
-            The directed edge connectivity algorithm implemented in the Boost 
+            The directed edge connectivity algorithm implemented in the Boost
             graph library is not reliable. The result could be wrong.
             0
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
-        
+
         if vertices:
             value_only=False
-            
+
         if boost is None:
             boost = not g.is_directed()
-         
+
         # Otherwise, an error is created
         if g.num_edges() == 0 or g.num_verts() == 0:
             if value_only:
@@ -8302,10 +8309,10 @@ class GenericGraph(GenericGraph_pyx):
                 return [0,[],[],[]]
             else:
                 return [0,[]]
-  
+
         if use_edge_labels:
             boost=False
-  
+
         if boost:
             if g.is_directed():
                 from sage.graphs.base.boost_graph import BoostDiGraph
@@ -8313,40 +8320,27 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 from sage.graphs.base.boost_graph import BoostGraph
                 [obj, edges] = BoostGraph(g).edge_connectivity()
-                
-          
+
+
             if value_only:
                 return obj
- 
+
             val = [obj, edges]
-             
+
             if vertices and not obj == 0:
                 H = copy(self)
-                H.delete_edges(edges)          
-                      
-                
+                H.delete_edges(edges)
+
+
                 if H.is_directed():
-                    targets = []
-                    seen = Set()
-                    a = []
-                    b = []
-                    
-                    for [u,v] in edges:
-                        targets.append(v)
-                    for w in H.breadth_first_search(targets):
-                        seen.add(w)
-                    for v in H.vertices():
-                        if v in seen:
-                            a.add(v)
-                        else:
-                            b.add(v)
-                            
+                    a = set(H.breadth_first_search([x for x,y in edges]))
+                    b = set(H).difference(a)
                     val.append([a,b])
                 else:
                     val.append(H.connected_components())
-                               
+
             return val
-        
+
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
@@ -8439,7 +8433,7 @@ class GenericGraph(GenericGraph_pyx):
                 val.append([a,b])
 
             return val
-      
+
 
     def vertex_connectivity(self, value_only=True, sets=False, solver=None, verbose=0):
         r"""
