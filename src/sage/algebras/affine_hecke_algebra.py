@@ -90,7 +90,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: T = H.T(); T
         T basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: a = T.an_element(); a
-        2*piX[2] TX[0] + 3*piX[2] TX[0,1] + piX[2] + piX[2] TX[0,1,2]
+        2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 8*piX[2] TX[0] + 12*piX[2] TX[0,1] + 4*piX[2] + 4*piX[2] TX[0,1,2]
         sage: Ty_Y = H.tvLv(); Ty_Y
         tvLv basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: Ty_Y.an_element()
@@ -111,9 +111,9 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: T(Ty_Y(b)) == b
         True
         sage: Y_Ty(a)
-        ((2*v^2+v-2)/v)*Y[(1, 1, 0)] Ty[2,1] + ((-2*v^4-v^3+4*v^2+v-2)/v^2)*Y[(1, 1, 0)] Ty[1] + ((-2*v^4+2*v^3+4*v^2-2*v-2)/v^2)*Y[(1, 1, 0)] Ty[2] + ((2*v^6-2*v^5-5*v^4+4*v^3+5*v^2-2*v-2)/v^3)*Y[(1, 1, 0)] + 2*Y[(1, 0, 1)] Ty[1] + Y[(1, 0, 1)] Ty[2] + ((-2*v^2+3*v+2)/v)*Y[(1, 0, 1)]
+        1 + ((6*v^2-6)/v)*Y[(1, 0, 0)] Ty[1,2,1] + ((4*v^2+2*v-4)/v)*Y[(1, 0, 0)] Ty[1,2] + ((-6*v^4+2*v^3+12*v^2-2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2,1] + ((-4*v^4-2*v^3+8*v^2+2*v-4)/v^2)*Y[(1, 0, 0)] Ty[1] + ((-6*v^4-2*v^3+12*v^2+2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2] + ((4*v^6-4*v^5-12*v^4+8*v^3+12*v^2-4*v-4)/v^3)*Y[(1, 0, 0)] + ((8*v^2+4*v-8)/v)*Y[(1, 1, 0)] Ty[2,1] + ((-8*v^4-4*v^3+16*v^2+4*v-8)/v^2)*Y[(1, 1, 0)] Ty[1] + ((-8*v^4+8*v^3+16*v^2-8*v-8)/v^2)*Y[(1, 1, 0)] Ty[2] + ((8*v^6-8*v^5-20*v^4+16*v^3+20*v^2-8*v-8)/v^3)*Y[(1, 1, 0)] + 2*Y[(1, 0, -1)] Ty[1,2,1] + ((-2*v^2+3*v+2)/v)*Y[(1, 0, -1)] Ty[1,2] + ((-2*v^2+2)/v)*Y[(1, 0, -1)] Ty[2,1] + ((2*v^4-3*v^3-3*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[1] + ((2*v^4-3*v^3-4*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[2] + ((-2*v^6+3*v^5+3*v^4-6*v^3-3*v^2+3*v+2)/v^3)*Y[(1, 0, -1)] + 8*Y[(1, 0, 1)] Ty[1] + 4*Y[(1, 0, 1)] Ty[2] + ((-8*v^2+12*v+8)/v)*Y[(1, 0, 1)] + 2*Y[(0, 1, 0)] Ty[1,2,1] + ((-2*v^2+2)/v)*Y[(0, 1, 0)] Ty[1,2] + 6*Y[(0, 1, 0)] Ty[2,1] + ((-6*v^2+6)/v)*Y[(0, 1, 0)] Ty[1] + 4*Y[(0, 1, 0)] Ty[2] + ((-4*v^2+4)/v)*Y[(0, 1, 0)]
         sage: Ty_Y(a)
-        ((2*v^2+v-2)/v)*Ty[2,1] Y[(-1, 0, 0)] + 2*Ty[1] Y[(-1, 0, 0)] + ((3*v^2-3)/v)*Ty[2] Y[(0, -1, 0)] + Ty[2] Y[(0, 0, -1)] + 3*Y[(0, -1, 0)]
+        ((6*v^2-6)/v)*Ty[1,2,1] Y[(-1, -1, 0)] + 2*Ty[1,2,1] Y[(-1, 0, -1)] + 2*Ty[1,2,1] Y[(-1, 0, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(-1, -1, 0)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((8*v^2+4*v-8)/v)*Ty[2,1] Y[(-1, 0, 0)] + 6*Ty[2,1] Y[(-1, -1, 0)] + ((3*v^2-3)/v)*Ty[1] + 8*Ty[1] Y[(-1, 0, 0)] + Ty[1] Y[(0, 1, -1)] + 4*Ty[2] Y[(-1, -1, 0)] + ((12*v^2-12)/v)*Ty[2] Y[(0, -1, 0)] + 4*Ty[2] Y[(0, 0, -1)] + ((2*v^2+v-2)/v) + 12*Y[(0, -1, 0)]
         sage: T(Ty_Y(a))==a
         True
         sage: K = QQ['v,vl'].fraction_field()
@@ -207,7 +207,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: TY = Ht.T(); TY
         T basis of The affine Hecke algebra of type ['A', 2, 1] dual side
         sage: a = TY.an_element(); a
-        2*piY[2] TY[0] + 3*piY[2] TY[0,1] + piY[2] + piY[2] TY[0,1,2]
+        2*TY[0] + 3*TY[0,1] + 1 + TY[0,1,2] + 4*piY[1] TY[0] + 6*piY[1] TY[0,1] + 2*piY[1] + 2*piY[1] TY[0,1,2] + 8*piY[2] TY[0] + 12*piY[2] TY[0,1] + 4*piY[2] + 4*piY[2] TY[0,1,2]
         sage: Tx_X = Ht.tvLv()
         sage: TYa = Ht.affine_hecke_algebra()
         sage: Tx_X(TY(TYa[0,1,2]))
