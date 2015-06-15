@@ -193,7 +193,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
             return FundamentalGroupGL(cartan_type, prefix)
         else:
             raise ValueError("General Linear Fundamental group is untwisted type A")
-    return FundamentalGroupOfExtendedAffineWeylGroup_Class(cartan_type,prefix,False)
+    return FundamentalGroupOfExtendedAffineWeylGroup_Class(cartan_type,prefix,finite=True)
 
 class FundamentalGroupElement(MultiplicativeGroupElement):
     def __init__(self, parent, x):
@@ -335,7 +335,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
     """
     Element = FundamentalGroupElement
 
-    def __init__(self, cartan_type, prefix, finite=True):
+    def __init__(self, cartan_type, prefix, finite = True):
         r"""
 
         EXAMPLES::
@@ -400,7 +400,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             self._finite_action = Family({0:tuple([])})
 
         if finite:
-            cat = Groups().Finite().Commutative()
+            cat = Groups().Commutative().Finite()
         else:
             cat = Groups().Commutative()
         Parent.__init__(self, category = cat)
@@ -684,7 +684,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         """
 
-        FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix, True)
+        FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix, finite=False)
         from sage.rings.integer_ring import ZZ
         self._special_nodes = ZZ
         self._n = cartan_type.n + 1
