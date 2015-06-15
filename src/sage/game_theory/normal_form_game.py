@@ -198,6 +198,8 @@ time spent in prison)::
     sage: B = matrix([[2, 0], [5, 4]])
     sage: prisoners_dilemma = NormalFormGame([A, B])
     sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
+    doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+    See http://trac.sagemath.org/18679 for details.
     [[(0, 1), (0, 1)]]
 
 When obtaining Nash equilibrium there are 3 algorithms currently available:
@@ -864,7 +866,7 @@ class NormalFormGame(SageObject, MutableMapping):
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
 
-    def _as_gambit_game(self, as_integer=False, maximization=True):
+    def _as_gambit_game(self, as_integer=False, maximization=None):
         r"""
         Creates a Gambit game from a ``NormalFormGame`` object
 
@@ -958,6 +960,10 @@ class NormalFormGame(SageObject, MutableMapping):
             <BLANKLINE>
            
         """
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
+
         from decimal import Decimal
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
@@ -965,6 +971,8 @@ class NormalFormGame(SageObject, MutableMapping):
         sgn = 1
         if not maximization:
             sgn = -1
+        if maximization is None:
+            sgn = 1
 
         for strategy_profile in self.utilities:
             if as_integer:
@@ -1183,7 +1191,7 @@ class NormalFormGame(SageObject, MutableMapping):
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
-    def obtain_nash(self, algorithm=False, maximization=True):
+    def obtain_nash(self, algorithm=False, maximization=None):
         r"""
         A function to return the Nash equilibrium for the game.
         Optional arguments can be used to specify the algorithm used.
@@ -1275,6 +1283,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_nash(algorithm='lrs') # optional - lrs
             [[(0, 0, 0, 1), (0, 0, 1)]]
             sage: g.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(2/3, 1/12, 1/4, 0), (6333/8045, 247/8045, 293/1609)], [(3/4, 0, 1/4, 0), (0, 11/307, 296/307)], [(5/6, 1/6, 0, 0), (98/99, 1/99, 0)]]
 
         This particular game has 3 Nash equilibria::
@@ -1411,12 +1421,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: gg.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)]]
             sage: gg.obtain_nash(algorithm='enumeration', maximization=False)
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
             sage: gg.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
             sage: gg.obtain_nash(algorithm='lp-glpk', maximization=False)
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(1.0, 0.0), (1.0, 0.0)]]
             sage: gg.obtain_nash(algorithm='LCP', maximization=False) # optional - gambit
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(1.0, 0.0), (1.0, 0.0)]]
 
         Note that outputs for all algorithms are as lists of lists of
@@ -1477,6 +1495,10 @@ class NormalFormGame(SageObject, MutableMapping):
             else:
                 algorithm = "enumeration"
 
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
+
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
@@ -1496,7 +1518,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         raise ValueError("'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'")
 
-    def _solve_lrs(self, maximization=True):
+    def _solve_lrs(self, maximization=None):
         r"""
         EXAMPLES:
 
@@ -1536,6 +1558,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: biggame._solve_lrs() # optional - lrs
             [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
         """
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
+
         from subprocess import PIPE, Popen
         m1, m2 = self.payoff_matrices()
         if maximization is False:
@@ -1567,14 +1593,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: b = matrix([[2, 3], [2, 4]])
             sage: c = NormalFormGame([a, b])
             sage: c._solve_LCP(maximization=True) # optional - gambit
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(0.0, 1.0), (0.0, 1.0)]]
         """
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
+
         g = self._as_gambit_game(maximization)
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_gambit_LP(self, maximization=True):
+    def _solve_gambit_LP(self, maximization=None):
         r"""
         Solves a constant sum NormalFormGame using Gambit's LP implementation
 
@@ -1596,12 +1628,17 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if Game is None:
             raise NotImplementedError("gambit is not installed")
+
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
+
         g = self._as_gambit_game(maximization = maximization)
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_LP(self, solver='glpk', maximization=True):
+    def _solve_LP(self, solver='glpk', maximization=None):
         r"""
         Solves a constant sum NormalFormGame using the specified LP solver.
 
@@ -1652,11 +1689,14 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
         if solver == 'gambit':
             return self._solve_gambit_LP(maximization)
 
         sgn = 1
-        if not maximization:
+        if maximization is False:
             sgn = -1
 
         strategy_sizes = [p.num_strategies for p in self.players]
@@ -1680,7 +1720,7 @@ class NormalFormGame(SageObject, MutableMapping):
         x = tuple(p.get_values(x).values())
         return [[x, y]]
 
-    def _solve_enumeration(self, maximization=True):
+    def _solve_enumeration(self, maximization=None):
         r"""
         Obtains the Nash equilibria using support enumeration.
         Algorithm implemented here is Algorithm 3.4 of [NN2007]_
@@ -1717,6 +1757,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
             sage: g._solve_enumeration(maximization=False)
+            doctest:...: DeprecationWarning: The use of the maximization parameter is deprecated and will soon disappear
+            See http://trac.sagemath.org/18679 for details.
             [[(1, 0, 0), (0, 1)]]
 
         A simple example::
@@ -1789,6 +1831,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: N._solve_enumeration()
             [[(0, 1), (0, 0, 1)]]
         """
+        from sage.misc.superseded import deprecation
+        if maximization is not None:
+            deprecation(18679, "The use of the maximization parameter is deprecated and will soon disappear")
 
         M1, M2 = self.payoff_matrices()
         if maximization is False:
