@@ -9,22 +9,22 @@ static PyObject *DAError;
 
 static PyMethodDef dautomataMethods[] =
 {
-    {"system",  system, METH_VARARGS,
-     "Execute a shell command."},
-    {NULL, NULL, 0, NULL}        // Sentinel
+	{"system",  system, METH_VARARGS,
+	 "Execute a shell command."},
+	{NULL, NULL, 0, NULL}		// Sentinel
 };
 
 PyMODINIT_FUNC initdautomata(void)
 {
-    PyObject *m;
+	PyObject *m;
 
-    m = Py_InitModule("dautomata", dautomataMethods);
-    if (m == NULL)
-        return;
+	m = Py_InitModule("dautomata", dautomataMethods);
+	if (m == NULL)
+		return;
 
-    DAError = PyErr_NewException("dautomata.error", NULL, NULL);
-    Py_INCREF(DAError);
-    PyModule_AddObject(m, "error", DAError);
+	DAError = PyErr_NewException("dautomata.error", NULL, NULL);
+	Py_INCREF(DAError);
+	PyModule_AddObject(m, "error", DAError);
 }
 */
 
@@ -135,6 +135,93 @@ void FreeAutomaton (Automaton *a)
 	a->n = 0;
 }
 
+NAutomaton NewNAutomaton (int n, int na)
+{
+	NAutomaton a;
+	a.n = n;
+	a.na = na;
+	if (n == 0)
+	{
+		return a;
+	}
+	a.e = (NEtat *)malloc(sizeof(NEtat)*n);
+	if (!a.e)
+	{
+		printf("Out of memory !");
+		exit(6);
+	}
+	int i;
+	for (i=0;i<n;i++)
+	{
+		a.e[i].a = NULL;
+		a.e[i].n = 0;
+	}
+	return a;
+}
+
+void ReallocNAutomaton (NAutomaton *a, int n)
+{
+	a->e = (NEtat*)realloc(a->e, sizeof(NEtat)*n);
+	if (a->n < n)
+	{
+		int i;
+		for (i=a->n;i<n;i++)
+		{
+			a->e[i].a = NULL;
+			a->e[i].n = 0;
+		}
+	}
+	a->n = n;
+}
+
+void FreeNAutomaton (NAutomaton *a)
+{
+	if (a->n == 0)
+		return;
+	int i;
+	for (i=0;i<a->n;i++)
+	{
+		if (a->e[i].n > 0)
+		{
+			free(a->e[i].a);
+		}
+	}
+	free(a->e);
+	a->n = 0;
+}
+
+void ReallocAutomaton (Automaton *a, int n, bool init)
+{
+	if (a->n > n)
+	{
+		//libère les états à supprimmer
+		int i;
+		for (i=n;i<a->n;i++)
+		{
+			free(a->e[i].f);
+		}
+	}
+	a->e = (Etat*)realloc(a->e, sizeof(Etat)*n);
+	if (a->n < n)
+	{
+		int i;
+		for (i=a->n;i<n;i++)
+		{
+			a->e[i].f = (int *)malloc(sizeof(int)*a->na);
+			if (init)
+			{
+				int j;
+				for (j=0;j<a->na;j++)
+				{
+					a->e[i].f[j] = -1;
+				}
+			}
+		}
+	}
+	a->n = n;
+}
+
+/*
 void ReallocAutomaton (Automaton *a, int n)
 {	//////////////////fonction BUGUéE !!!!!!!!!!!!!!!!!!!
 	int i;
@@ -205,8 +292,9 @@ void ReallocAutomaton (Automaton *a, int n)
 		}
 	}
 	a->n = n;
-	*/
+	*//*
 }
+*/
 
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
 {
@@ -283,33 +371,95 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 //	"orientation = Landscape\n");
 	if (verb)
 		printf("write...\n");
-    
-    fprintf(f, "	\n");
-    int i,j;
-    for (i=0;i<a.n;i++)
-    {
-    	fprintf(f, "	%d [shape=", i);
-    	if (a.e[i].final)
-    		fprintf(f, "doublecircle");
-    	else
-    		fprintf(f, "circle");
-    	fprintf(f, ", style=");
-    	if (i == a.i)
-    		fprintf(f, "bold");
-    	else
-    		fprintf(f, "solid");
-    	fprintf(f, ", fontsize=20, margin=0]\n");
-    }
-    fprintf(f, "	\n");
-    for (i=0;i<a.n;i++)
-    {
-    	for (j=0;j<a.na;j++)
-    	{
-    		if (a.e[i].f[j] != -1)
-	    		fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].f[j], labels[j]);
-    	}
-    }
-    fprintf(f, "}\n");
+	
+	fprintf(f, "	\n");
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		fprintf(f, "	%d [shape=", i);
+		if (a.e[i].final)
+			fprintf(f, "doublecircle");
+		else
+			fprintf(f, "circle");
+		fprintf(f, ", style=");
+		if (i == a.i)
+			fprintf(f, "bold");
+		else
+			fprintf(f, "solid");
+		fprintf(f, ", fontsize=20, margin=0]\n");
+	}
+	fprintf(f, "	\n");
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+				fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].f[j], labels[j]);
+		}
+	}
+	fprintf(f, "}\n");
+	
+	fclose(f);
+	if (verb)
+		printf("draw...\n");
+	sprintf(tamp, "dot %s -Gname -Tsvg > output%d%d.svg", name, time(NULL), clock());
+	system(tamp);
+}
+
+void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
+{
+	bool verb = false;
+	const char *name = "/Users/mercat/Desktop/a.dot";
+	char tamp[1024];
+	FILE *f = fopen(name, "w");
+	if (!f)
+	{
+		printf("Impossible d'ouvrir le fichier a.dot !\n");
+		return;
+	}
+	
+	if (verb)
+		printf("start...\n");
+	fprintf(f, "digraph %s\n{\n"\
+	"	node[fontsize=20]"\
+	"	edge[fontsize=20, arrowhead = open]"\
+	"	rankdir = LR;\n"\
+	"	size = \"%lf, %lf\";\n"\
+	"	center = 1;\n"\
+	"	nodesep = \"0.2\"\n", graph_name, sx, sy);
+//	"	ranksep = \"0.4 equally\";\n", graph_name);
+//	"	rotate = -90\n"\
+//	"	orientation=landscape\n"\
+//	"orientation = Landscape\n");
+	if (verb)
+		printf("write...\n");
+	
+	fprintf(f, "	\n");
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		fprintf(f, "	%d [shape=", i);
+		if (a.e[i].final)
+			fprintf(f, "doublecircle");
+		else
+			fprintf(f, "circle");
+		fprintf(f, ", style=");
+		if (a.e[i].initial)
+			fprintf(f, "bold");
+		else
+			fprintf(f, "solid");
+		fprintf(f, ", fontsize=20, margin=0]\n");
+	}
+	fprintf(f, "	\n");
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.e[i].n;j++)
+		{
+			if (a.e[i].a[j].e != -1)
+				fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].a[j].e, labels[a.e[i].a[j].l]);
+		}
+	}
+	fprintf(f, "}\n");
 	
 	fclose(f);
 	if (verb)
@@ -724,6 +874,199 @@ void AddEl2 (ListEtats *l, Etats e)
 	l->e[l->n-1] = copy(e);
 }
 
+///////////////////////////////////////////////////////////////////
+Etats2 NewEtats2 (int n)
+{
+	Etats2 e;
+	e.n = n;
+	e.e = (uint64 *)malloc(sizeof(uint64)*((n+63)/64));
+	if (!e.e)
+	{
+		printf("Out of memory !");
+		exit(7);
+	}
+return e;
+}
+
+void FreeEtats2 (Etats2 e)
+{
+	free(e.e);
+}
+
+void initEtats2 (Etats2 e)
+{
+	int i;
+	int n = (e.n+63)/64;
+	for (i=0;i<n;i++)
+	{
+		e.e[i] = 0;
+	}
+}
+
+void printEtats2 (Etats2 e)
+{
+	int i, j;
+	int n = (e.n+63)/64;
+	printf("[ ");
+	for (i=0;i<n;i++)
+	{
+		for (j=0;j<64;j++)
+		{
+			if (e.e[i] & (uint64)1<<j)
+			{
+				printf("%d ", 64*i+j);
+				fflush(stdout);
+			}
+		}
+	}
+	/*
+	printf("]");
+	printf("[ ");
+	for (i=0;i<e.n;i++)
+	{
+		if (hasEtats2(e, i))
+		{
+			printf("%d ", i);
+			fflush(stdout);
+		}
+	}
+	*/
+	printf("]\n");
+}
+
+bool isNullEtats2 (Etats2 e)
+{
+	int i;
+	int n = (e.n+63)/64;
+	for (i=0;i<n;i++)
+	{
+		if (e.e[i] != 0)
+			return false;
+	}
+	return true;
+}
+
+bool equalsEtats2 (Etats2 e1, Etats2 e2)
+{
+	if (e1.n != e2.n)
+		return false;
+	int i;
+	int n = (e1.n+63)/64;
+	for (i=0;i<n;i++)
+	{
+		if (e1.e[i] != e2.e[i])
+			return false;
+	}
+	return true;
+}
+
+inline bool hasEtats2 (Etats2 e, uint64 i)
+{
+	return (e.e[i/64] & ((uint64)1<<(i%64))) != 0;
+}
+
+Etats2 copyEtats2 (Etats2 e)
+{
+	Etats2 r = NewEtats2(e.n);
+	int i;
+	int n = (e.n+63)/64;
+	for (i=0;i<n;i++)
+	{
+		r.e[i] = e.e[i];
+	}
+	return r;
+}
+
+void addEtat (Etats2 *e, uint64 i)
+{
+	e->e[i/64] |= ((uint64)1<<(i%64));
+}
+
+ListEtats2 NewListEtats2(int n, int na)
+{
+	ListEtats2 r;
+	r.n = n;
+	r.na = na;
+	r.e = (Etats2*)malloc(sizeof(Etats2)*na);
+	return r;	
+}
+
+void ReallocListEtats2(ListEtats2 *l, int n, bool marge)
+{
+	l->n = n;
+	if (!marge)
+	{
+		l->na = n;
+		l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n);
+	}else
+	{
+		if (n > l->na)
+		{
+			l->na = l->n*2;
+			l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*l->na);
+		}
+	}
+}
+
+void FreeListEtats2 (ListEtats2* l)
+{
+	int i;
+	for (i=0;i<l->n;i++)
+	{
+		FreeEtats2(l->e[i]);
+	}
+	free(l->e);
+	l->n = 0;
+	l->na = 0;
+}
+
+void printListEtats2 (ListEtats2 l)
+{
+	int i;
+	for (i=0;i<l.n;i++)
+	{
+		printf("%d : ", i);
+		printEtats2(l.e[i]);
+	}
+	printf("(%d Etats2 alloués)\n", l.na);
+}
+
+/*
+//ajoute un élément même s'il est déjà dans la liste
+void addEtats2 (ListEtats2 *l, Etats2 e)
+{
+	//ajoute l'élément
+	l->n++;
+	l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*l->n);
+	if (!l->e)
+	{
+		printf("Out of memory !");
+		exit(5);
+	}
+	l->e[l->n-1] = copyEtats2(e);
+}
+
+//ajoute un élément s'il n'est pas déjà dans la liste
+bool AddEtats2 (ListEtats2 *l, Etats2 e, int* res)
+{
+	int i;
+	for (i=0;i<l->n;i++)
+	{
+		if (equals2(l->e[i], e))
+		{
+			if (res)
+				*res = i;
+			return false;
+		}
+	}
+	//ajoute l'élément
+	addEtats2(l, e);
+	return true;
+}
+*/
+
+///////////////////////////////////////////////////////////////////
+
 Dict* lhash;
 int nhash = 10000019;
 
@@ -759,6 +1102,50 @@ int hash (Etats e)
 		h %= nhash;
 	}
 	return h;
+}
+
+int hash2 (Etats2 e)
+{
+	int i;
+	uint64 h = 1;
+	int n = (e.n+63)/64;
+	for (i=0;i<n;i++)
+	{
+		h *= 2;
+		h += e.e[i];
+		h %= nhash;
+	}
+	return h;
+}
+
+//ajoute l'élément s'il n'est pas déjà dans la table de hashage
+bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
+{
+	int h = hash2(e);
+	int i, v;
+	for (i=0;i<lhash[h].n;i++)
+	{
+		////////verif
+		if (lhash[h].e[i] >= l->n)
+		{
+			printf("***************\nErreur : élément de la table de hachage trop grand !!!\n****************\n");
+		}
+		/////////////
+		v = lhash[h].e[i];
+		if (k)
+			*k = v;
+		if (equalsEtats2(l->e[v], e))
+		{
+			//printf("equals !\n");
+			return false;
+		}
+	}
+	//ajoute l'élément
+	if (k)
+		*k = l->n;
+	//printf("Add dict...\n");
+	dictAdd(&lhash[h], l->n);
+	return true;
 }
 
 //ajoute l'élément s'il n'est pas déjà dans la table de hashage
@@ -963,26 +1350,26 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	int i;
 	
 	//increase the stack size
-	const rlim_t kStackSize = 32 * 1024 * 1024;   // min stack size = 1024 MB
-    struct rlimit rl;
-    int result;
-    result = getrlimit(RLIMIT_STACK, &rl);
-    if (result == 0)
-    {
-        if (rl.rlim_cur < kStackSize)
-        {
-        	if (verb)
-	        	printf("limite : %d -> %d\n", rl.rlim_cur, kStackSize);
-            rl.rlim_cur = kStackSize;
-            result = setrlimit(RLIMIT_STACK, &rl);
-            if (result != 0)
-            {
-                fprintf(stderr, "setrlimit returned result = %d\n", result);
-            }
-        }
-    }
-    //
-    
+	const rlim_t kStackSize = 32 * 1024 * 1024;
+	struct rlimit rl;
+	int result;
+	result = getrlimit(RLIMIT_STACK, &rl);
+	if (result == 0)
+	{
+		if (rl.rlim_cur < kStackSize)
+		{
+			if (verb)
+				printf("limite : %d -> %d\n", rl.rlim_cur, kStackSize);
+			rl.rlim_cur = kStackSize;
+			result = setrlimit(RLIMIT_STACK, &rl);
+			if (result != 0)
+			{
+				fprintf(stderr, "setrlimit returned result = %d\n", result);
+			}
+		}
+	}
+	//
+	
 	if (verb)
 	{
 		if (onlyfinals)
@@ -1104,6 +1491,125 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	
 	//printAutomaton(r);
 	
+	return r;
+}
+
+Automaton DeterminiseN (NAutomaton a, bool puits)
+{
+	int verb = 0;
+	if (verb)
+		printf("allocation...\n");
+	
+	Automaton r = NewAutomaton(a.n, a.na);
+	//printf("Not implemented yet !!!\n");
+	
+	if (a.n == 0)
+		return r;
+	
+	if (verb >= 20)
+		printf("alloue la table de hashage...\n");
+	
+	AllocHash();
+	
+	if (verb >= 20)
+		printf("alloue les états...\n");
+	
+	int i,j,k,u;
+	ListEtats2 l = NewListEtats2(1, 1024);
+	Etats2* e = (Etats2*)malloc(sizeof(Etats2)*a.na);
+	for (i=0;i<a.na;i++)
+	{
+		e[i] = NewEtats2(a.n);
+	}
+	
+	if (verb >= 20)
+		printf("alloue le premier état...\n");
+	
+	//initialise le premier état
+	r.i = 0;
+	l.e[0] = NewEtats2(a.n);
+	initEtats2(l.e[0]);
+	for (i=0;i<a.n;i++)
+	{
+		if (a.e[i].initial)
+			addEtat(&l.e[0], i);
+	}
+	l.n = 0;
+	addEtats2(&l, l.e[0], NULL); //ajout à la table de hashage
+	l.n++;
+	
+	if (verb)
+		printf("parcours...\n");
+	
+	for (i=0;i<l.n;i++)
+	{ //parcours les états du nouvel automate
+		
+		if (verb >= 20)
+		{
+			printf("état %d : ", i);
+			printEtats2(l.e[i]);
+		}
+		
+		r.e[i].final = false;
+		for (j=0;j<a.na;j++)
+		{
+			initEtats2(e[j]);
+		}
+		for (j=0;j<a.n;j++)
+		{ //parcours les états de a qui sont dans l'état courant
+			if (hasEtats2(l.e[i], j))
+			{
+				r.e[i].final = r.e[i].final || a.e[j].final;
+				//printf("(%d)", j);
+				for (u=0;u<a.e[j].n;u++)
+				{ //parcours les aretes sortantes de l'état j de a
+					addEtat(&e[a.e[j].a[u].l], a.e[j].a[u].e);
+				}
+			}
+		}
+		if (verb > 20)
+			printf(" -> états atteints :\n");
+		for (j=0;j<a.na;j++)
+		{ //parcours les états atteints
+			if (verb > 20)
+			{
+				printf("	");
+				printEtats2(e[j]);
+			}
+			if (puits || !isNullEtats2(e[j]))
+			{
+				//détermine si l'état est nouveau ou pas
+				if (addEtats2(&l, e[j], &k))
+				{
+					ReallocListEtats2(&l, l.n+1, true);
+					l.e[k] = copyEtats2(e[j]);
+					//ajoute un état à l'automate
+					if (l.n > r.n)
+					{ //alloue de la mémoire si nécessaire
+						ReallocAutomaton(&r, 2*l.n, false);
+					}
+				}
+				//ajoute une arête vers k étiquetée par j dans le nouvel automate
+				r.e[i].f[j] = k;
+			}else
+			{
+				r.e[i].f[j] = -1;
+			}
+		}
+	}
+	
+	if (verb)
+		printf("free...\n");
+	
+	//libère la mémoire
+	ReallocNAutomaton(&r, l.n);
+	FreeListEtats2(&l);
+	for (i=0;i<a.na;i++)
+	{
+		FreeEtats2(e[i]);
+	}
+	free(e);
+	FreeHash();
 	return r;
 }
 
@@ -1295,7 +1801,7 @@ Automaton emonde_inf (Automaton a, bool verb)
 }
 
 //Compute the transposition, assuming it is deterministic
-Automaton Transpose (Automaton a)
+Automaton TransposeDet (Automaton a)
 {
 	Automaton r = NewAutomaton(a.n, a.na);
 	int i,j;
@@ -1325,6 +1831,49 @@ Automaton Transpose (Automaton a)
 			}
 		}
 	}
+	return r;
+}
+
+//Compute the transposition
+NAutomaton Transpose (Automaton a)
+{
+	NAutomaton r = NewNAutomaton(a.n, a.na);
+	
+	//printf("init...\n");
+	
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		if (i == a.i)
+			r.e[i].final = true;
+		else
+			r.e[i].final = false;
+		r.e[i].initial = a.e[i].final;
+		r.e[i].a = NULL;
+		r.e[i].n = 0;
+	}
+	
+	//printf("remplit...\n");
+	
+	int f;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+			{
+				//ajoute une arête de f vers i étiquetée par j
+				r.e[f].n++;
+				r.e[f].a = (Arete *)realloc(r.e[f].a, sizeof(Arete)*r.e[f].n);
+				r.e[f].a[r.e[f].n-1].l = j;
+				r.e[f].a[r.e[f].n-1].e = i;
+			}
+		}
+	} 
+	
+	//printf("done !\n");
+	
 	return r;
 }
 

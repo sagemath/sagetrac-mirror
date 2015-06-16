@@ -1,5 +1,10 @@
+#include <stdint.h>
+
+typedef uint64_t uint64;
+typedef unsigned int uint;
 
 typedef Automate Automaton;
+typedef NAutomate NAutomaton;
 
 struct Dict
 {
@@ -13,7 +18,9 @@ void FreeDict (Dict d);
 void printDict (Dict d);
 void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il était déjà présent)
 Automaton NewAutomaton (int n, int na);
+void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
+void FreeNAutomaton (NAutomaton *a);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 void init (Automaton *a);
 void printAutomaton (Automaton a);
@@ -50,6 +57,40 @@ void printListEtats (ListEtats l);
 bool AddEl (ListEtats *l, Etats e, int* res); //ajoute un élément s'il n'est pas déjà dans la liste
 void AddEl2 (ListEtats *l, Etats e); //ajoute un élément même s'il est déjà dans la liste
 
+////////////////
+struct Etats2
+{
+	uint n;
+	uint64 *e;
+};
+typedef struct Etats2 Etats2;
+
+Etats2 NewEtats2 (int n);
+void FreeEtats2 (Etats2 e);
+void initEtats2 (Etats2 e);
+void printEtats2 (Etats2 e);
+bool isNullEtats2 (Etats2 e);
+bool equalsEtats2 (Etats2 e1, Etats2 e2);
+inline bool hasEtats2 (Etats2 e, uint64 i);
+Etats2 copyEtats2 (Etats2 e);
+void addEtat (Etats2 *e, uint64 i);
+
+struct ListEtats2
+{
+	Etats2 *e;
+	int n; //nombre d'états
+	int na; //mémoire allouée
+};
+typedef struct ListEtats2 ListEtats2;
+
+ListEtats2 NewListEtats2(int n, int na);
+void ReallocListEtats2(ListEtats2* l, int n, bool marge);
+void FreeListEtats2 (ListEtats2* l);
+void printListEtats2 (ListEtats2 l);
+//bool AddEtats2 (ListEtats2 *l, Etats2 e, int* res); //ajoute un élément s'il n'est pas déjà dans la liste
+//void addEtats2 (ListEtats2 *l, Etats2 e); //ajoute un élément même s'il est déjà dans la liste
+////////////////
+
 //inverse d'un dictionnaire
 struct InvertDict
 {
@@ -66,6 +107,8 @@ void putEtat (Etats *f, int ef); ////////////////////////////////// à améliore
 void Determinise_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
 Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
 
+Automaton DeterminiseN (NAutomaton a, bool puits);
+
 //change l'alphabet en dupliquant des arêtes si nécessaire
 //the result is assumed deterministic !!!!
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
@@ -74,7 +117,10 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
 Automaton emonde_inf (Automaton a, bool verb);
 
 //Compute the transposition, assuming it is deterministic
-Automaton Transpose (Automaton a);
+Automaton TransposeDet (Automaton a);
+
+//Compute the transposition
+NAutomaton Transpose (Automaton a);
 
 //Tarjan algorithm
 int StronglyConnectedComponents (Automaton a, int *res);

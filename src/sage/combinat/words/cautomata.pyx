@@ -31,6 +31,7 @@ include "sage/ext/interrupt.pxi"
 
 cdef extern from "automataC.h":
     ctypedef Automate Automaton
+    ctypedef NAutomate NAutomaton
     cdef cppclass Dict:
         int* e
         int n
@@ -40,12 +41,15 @@ cdef extern from "automataC.h":
     
     Automaton NewAutomaton (int n, int na)
     void FreeAutomaton (Automaton *a)
+    void FreeNAutomaton (NAutomaton *a)
     Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
     void init (Automaton *a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
+    void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
     Automaton Product(Automaton a1, Automaton a2, Dict d)
     Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
+    Automaton DeterminiseN (NAutomaton a, bool puits)
     Automaton emonde_inf (Automaton a, bool verb)
     Automaton emonde (Automaton a, bool verb)
     Automaton emondeI (Automaton a, bool verb)
@@ -57,7 +61,8 @@ cdef extern from "automataC.h":
     void FreeInvertDict (InvertDict id)
     void printInvertDict (InvertDict id)
     Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
-    Automaton Transpose (Automaton a)
+    Automaton TransposeDet (Automaton a)
+    NAutomaton Transpose (Automaton a)
     int StronglyConnectedComponents (Automaton a, int *res)
     Automaton SubAutomaton (Automaton a, Dict d, bool verb)
     Automaton Permut (Automaton a, int *l, int na, bool verb)
@@ -317,6 +322,58 @@ cdef Bool (int x):
     if x:
         return True
     return False
+
+cdef class NFastAutomaton:
+
+#   cdef NAutomaton* a
+#    cdef list A
+    
+    def __cinit__ (self):
+        #print "cinit"
+        self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
+        #initialise
+        self.a[0].e = NULL
+        self.a[0].n = 0
+        self.a[0].na = 0
+        self.A = []
+    
+    def __init__(self, a, i=None, F=None, A=None):
+        #print "init"
+        if a is None:
+            return
+        else:
+            raise ValueError("Cannot construct directly a NFastAutomaton for the moment.")
+    
+    def __dealloc__ (self):
+        #print "free"
+        FreeNAutomaton(self.a)
+        free(self.a)
+    
+    def __repr__ (self):
+        return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+    
+    def determinise (self, puits=False):
+        cdef Automaton a
+        sig_on()
+        r = FastAutomaton(None)
+        a = DeterminiseN(self.a[0], puits)
+        r.a[0] = a
+        r.A = self.A
+        sig_off()
+        return r
+    
+    def plot (self, int sx=10, int sy=8):
+        sig_on()
+        cdef char** ll
+        ll = <char **>malloc(sizeof(char*)*self.a.na)
+        cdef int i
+        strA = []
+        for i in range(self.a.na):
+            strA.append(str(self.A[i]))
+            ll[i] = strA[i]
+        NplotTikZ(self.a[0], ll, "Automaton", sx, sy)
+        free(ll);
+        sig_off()
 
 cdef class FastAutomaton:
     
@@ -764,9 +821,17 @@ cdef class FastAutomaton:
         self.A = A
         sig_off()
     
-    def transpose (self):
+    def transpose_det (self):
         sig_on()
         r = FastAutomaton(None)
+        r.a[0] = TransposeDet(self.a[0])
+        r.A = self.A
+        sig_off()
+        return r
+    
+    def transpose (self):
+        sig_on()
+        r = NFastAutomaton(None)
         r.a[0] = Transpose(self.a[0])
         r.A = self.A
         sig_off()

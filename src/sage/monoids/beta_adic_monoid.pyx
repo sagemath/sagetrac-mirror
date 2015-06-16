@@ -1817,7 +1817,7 @@ class BetaAdicMonoid(Monoid_class):
         return ssd
     
     
-    def reduced_words_automaton2 (self, step=100, verb=False):
+    def reduced_words_automaton2 (self, step=100, verb=False, transpose=False):
         r"""
         Compute the reduced words automaton of the beta-adic monoid (without considering the automaton of authorized words).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
@@ -1839,6 +1839,8 @@ class BetaAdicMonoid(Monoid_class):
         Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.C[j]-self.C[i] for i in range(len(self.C)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
         arel = self.relations_automaton3(Cd=Cd, ext=False)
         arel = arel.emonde()
+        if transpose:
+         arel = arel.transpose()
         if verb:
             print "arel = %s"%arel
         if step == 1:

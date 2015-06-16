@@ -20,3 +20,31 @@ struct Automate
 //	int nalloc; //usage interne, mémoire allouée
 };
 typedef struct Automate Automate;
+
+///////////////////////////////////////////////////////
+//Automates non déterministe
+///////////////////////////////////////////////////////
+
+struct Arete
+{
+	int l; //label
+	int e; //état d'arrivée
+};
+typedef struct Arete Arete;
+
+struct NEtat
+{
+	Arete *a;
+	int n;
+	bool final;
+	bool initial;
+};
+typedef struct NEtat NEtat;
+
+struct NAutomate
+{
+	NEtat *e; //états
+	int n; //nombre d'états
+	int na; //nombre de lettres
+};
+typedef struct NAutomate NAutomate;
