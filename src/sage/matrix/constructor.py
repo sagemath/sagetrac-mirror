@@ -508,8 +508,18 @@ def _matrix_constructor(*args, **kwds):
         ValueError: List of rows is not valid (rows are wrong types or lengths)
         sage: matrix(vector(RR,[1,2,3])).parent()
         Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
-        sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero() # see #10158
+        sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero() # see :trac:`10158`
         True
+
+        sage: @cached_function       # :trac:`18713`
+        ....: def L(n,k):
+        ....:         if n==k: return 1
+        ....:         if k<0 or k>n: return 0
+        ....:         return L(n-1,k-1)+(n+k-1)*L(n-1,k)
+        ....:
+        sage: m = matrix(ZZ, 8, L)
+        sage: m[7][4]
+        4200
 
     AUTHORS:
 
@@ -595,7 +605,10 @@ def _matrix_constructor(*args, **kwds):
         entries = 0
         entry_ring = rings.ZZ
     elif len(args) == 1:
-        if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
+        if isinstance(args[0], (types.FunctionType,
+                                types.LambdaType,
+                                types.MethodType,
+                                sage.misc.cachefunc.CachedFunction)):
             if ncols is None and nrows is None:
                 raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
             if ncols is None:
