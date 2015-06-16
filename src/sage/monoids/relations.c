@@ -2,6 +2,7 @@
 #include "complex.h"
 #include "Automaton.h"
 #include "relations.h"
+//#include "../combinat/words/automataC.h"
 
 Automate NewAutomaton (int n, int na)
 {
@@ -155,7 +156,7 @@ bool keep (Element e)
 	int i;
 	for (i=0;i<iba.na;i++)
 	{
-		if (cnorm(eval(e, i)) + .0000001 > iba.cM[i])
+		if (cnorm(eval(e, i)) - .0000001 > iba.cM[i])
 			return false;
 	}
 }

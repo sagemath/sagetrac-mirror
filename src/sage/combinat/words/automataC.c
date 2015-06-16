@@ -812,7 +812,7 @@ bool equals (Etats e1, Etats e2)
 	return true;
 }
 
-Etats copy (Etats e)
+Etats copyEtats (Etats e)
 {
 	Etats r = NewEtats(e.n);
 	int i;
@@ -854,7 +854,7 @@ bool AddEl (ListEtats *l, Etats e, int* res)
 		printf("Out of memory !");
 		exit(4);
 	}
-	l->e[l->n-1] = copy(e);
+	l->e[l->n-1] = copyEtats(e);
 	if (res)
 		*res = l->n-1;
 	return true;
@@ -871,7 +871,7 @@ void AddEl2 (ListEtats *l, Etats e)
 		printf("Out of memory !");
 		exit(5);
 	}
-	l->e[l->n-1] = copy(e);
+	l->e[l->n-1] = copyEtats(e);
 }
 
 ///////////////////////////////////////////////////////////////////

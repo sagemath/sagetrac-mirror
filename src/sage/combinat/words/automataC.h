@@ -44,7 +44,7 @@ void FreeEtats (Etats e);
 void initEtats (Etats e);
 void printEtats (Etats e);
 bool equals (Etats e1, Etats e2);
-Etats copy (Etats e);
+Etats copyEtats (Etats e);
 
 struct ListEtats
 {

@@ -40,6 +40,7 @@ from monoid import Monoid_class
 from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
 from sage.combinat.words.automata import Automaton
+#from sage.combinat.words.cautomata import FastAutomaton
 
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
@@ -1494,7 +1495,12 @@ class BetaAdicMonoid(Monoid_class):
         sig_off()
         if isvide:
             return a.na != 0
-        return r
+        if ext:
+            r2 = r.emonde_inf()
+            r2.set_final_states(r2.states())
+        else:
+            r2 = r.emonde()
+        return r2
     
     def critical_exponent_aprox (self, niter=10, verb=False):
         b = self.b
