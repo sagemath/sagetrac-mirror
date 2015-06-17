@@ -110,9 +110,11 @@ additional functionality (e.g. linear extensions).
     - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
 - Representation
-    - :meth:`local_binary_matroid() <sage.matroids.matroid.Matroid.local_binary_matroid>`
+    - :meth:`binary_matroid() <sage.matroids.matroid.Matroid.binary_matroid>`
     - :meth:`is_binary() <sage.matroids.matroid.Matroid.is_binary>`
-
+    - :meth:`ternary_matroid() <sage.matroids.matroid.Matroid.ternary_matroid>`
+    - :meth:`is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+    
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
@@ -4815,7 +4817,7 @@ cdef class Matroid(SageObject):
         .. SEEALSO::
 
             :meth:`M.local_binary_matroid()
-            <sage.matroids.matroid.Matroid.local_binary_matroid>`
+            <sage.matroids.matroid.Matroid._local_binary_matroid>`
 
         EXAMPLES::
 
@@ -4877,6 +4879,148 @@ cdef class Matroid(SageObject):
             sage: N = matroids.named_matroids.NonFano()
             sage: N.is_binary()
             False
+
+        """
+        return self.binary_matroid(randomized_tests=randomized_tests, verify=True) is not None
+        
+    cpdef _local_ternary_matroid(self, basis=None):
+        r"""
+        Return a ternary matroid `M` so that relative to a fixed basis `B`,
+         - `X` is a basis of ``self`` if and only if `X` is a basis of `M`
+           for all subsets `X` of the ground set such that 
+           `|X \setminus B| \leq 1`.
+         - if ...
+         
+        INPUT:
+
+        - ``basis`` -- (optional) a set; the basis `B` as above
+
+        OUTPUT:
+
+        A :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`.
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: M = N._local_ternary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            False
+            sage: N = matroids.named_matroids.NonFano()
+            sage: M = N._local_ternary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            True
+        """
+        if basis is None:
+            basis = self.basis()
+        basis = list(basis)
+        E = list(self.groundset())
+        idx = { E[i]:i for i in range(len(E)) }
+        A = TernaryMatrix(len(basis), len(E))
+        i = 0
+        for e in basis:
+            C = self._fundamental_cocircuit(basis, e)
+            for e in C:
+                A.set(i,idx[e], 1)
+            i = i+1
+        
+        # TODO
+           
+        from sage.matroids.linear_matroid import TernaryMatroid
+        return TernaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
+
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``, if such a 
+        representation exists.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being binary is tested,
+          using randomization
+        - ``verify`` -- (default: ``True``), a Boolean; if ``True``,
+          any output will be a ternary matroid representing ``self``; if
+          ``False``, any output will represent ``self`` if and only if the
+          matroid is ternary
+
+        OUTPUT:
+
+        Either a :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`, or ``None``
+
+        ALGORITHM:
+
+        First, compare the binary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``None``. This
+        test is performed ``randomized_tests`` times. Next, if ``verify``
+        is ``True``, test if a binary matroid local to some basis is
+        isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M._local_ternary_matroid()
+            <sage.matroids.matroid.Matroid._local_ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.ternary_matroid() is None
+            True
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.ternary_matroid()
+            ...
+
+        """
+        M = self._local_ternary_matroid()
+        m = {e:e for e in self.groundset()}
+        if randomized_tests > 0:
+            E = list(self.groundset())
+            for r in range(randomized_tests):
+                shuffle(E)
+                B = self.max_weight_independent(E)
+                N = self._local_ternary_matroid(B)
+                if not M.is_field_isomorphism(N, m):
+                    return None
+                M = N
+        if self.is_isomorphism(M, m):
+            return M
+        else:
+            return None    
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being binary is tested,
+          using randomization
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        First, compare the binary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``False``. This
+        test is performed ``randomized_tests`` times. Next, test if a
+        binary matroid local to some basis is isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_ternary()
+            False
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_ternary()
+            True
 
         """
         return self.binary_matroid(randomized_tests=randomized_tests, verify=True) is not None
