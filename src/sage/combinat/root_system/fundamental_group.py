@@ -339,6 +339,8 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: F in Groups().Commutative().Finite()
+            True
             sage: TestSuite(F).run()
 
         """
@@ -399,7 +401,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         if finite:
             cat = Category.join((Groups().Commutative().Finite(),EnumeratedSets()))
         else:
-            cat = Groups().Commutative()
+            cat = Groups().Commutative().Infinite()
         Parent.__init__(self, category = cat)
 
     @cached_method
@@ -486,6 +488,11 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         r"""
         Return a tuple of generators of the fundamental group.
 
+        .. WARNING::
+
+        This returns the entire group, a necessary behavior because it
+        is used in :meth:`__iter__`.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
@@ -505,23 +512,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: [x for x in F] # indirect doctest
             [f[0], f[1], f[6]]
         """
-        for x in self.list():
-            yield(x)
-
-    def list(self):
-        r"""
-        Return a tuple containing all the elements of the fundamental group.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").list()
-            Finite family {0: f[0], 1: f[1], 6: f[6]}
-        """
-        if self in Groups().Finite():
-            return self.group_generators()
-        else:
-            raise TypeError("Infinite groups cannot be listed")
+        return iter(self.group_generators())
 
     @cached_method
     def index_set(self):
@@ -651,6 +642,8 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
+            sage: F in Groups().Commutative().Infinite()
+            True
             sage: TestSuite(F).run()
 
         """
