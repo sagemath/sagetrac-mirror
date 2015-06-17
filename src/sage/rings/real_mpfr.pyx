@@ -124,14 +124,14 @@ import re
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/decl.pxi'
 include 'sage/libs/pari/pari_err.pxi'
 
+from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring
-import  sage.rings.ring
 
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
-import  sage.structure.element
 cdef bin_op
 from sage.structure.element import bin_op
 
@@ -145,9 +145,7 @@ from sage.libs.pari.pari_instance cimport PariInstance
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
-from integer import Integer
 from integer cimport Integer
-from rational import Rational
 from rational cimport Rational
 
 from sage.categories.map cimport Map
@@ -3810,7 +3808,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return (<RingElement>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
         if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``
@@ -5546,7 +5544,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     return RealLiteral(R, s, base)
 
 
-# here because this imports the other two real fields
+# here because this imports the other real fields
 def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     """
     Create a real field with given precision, type, rounding mode and
@@ -5596,6 +5594,9 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     elif type == "Interval":
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)
+    elif type == "Ball":
+        from real_arb import RealBallField
+        return RealBallField(prec)
     elif type == "RLF":
         from real_lazy import RLF
         return RLF
