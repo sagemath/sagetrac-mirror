@@ -255,9 +255,9 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: H = ExtendedAffineHeckeAlgebra(['A',2,1], general_linear = True)
         sage: T = H.T()
         sage: x = T.an_element(); x
-        2*piX[5] TX[0] + 3*piX[5] TX[0,1] + piX[5] + piX[5] TX[0,1,2]
+        6*piX[-1] TX[0] + 9*piX[-1] TX[0,1] + 3*piX[-1] + 3*piX[-1] TX[0,1,2] + 2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 2*piX[5] TX[0] + 3*piX[5] TX[0,1] + piX[5] + piX[5] TX[0,1,2]
         sage: z = H.tvLv()(x); z
-        ((2*v^2+v-2)/v)*Ty[2,1] Y[(1, 2, 2)] + 2*Ty[1] Y[(1, 2, 2)] + ((3*v^2-3)/v)*Ty[2] Y[(2, 1, 2)] + Ty[2] Y[(2, 2, 1)] + 3*Y[(2, 1, 2)]
+        2*Ty[1,2,1] Y[(-1, 0, 1)] + 2*Ty[1,2,1] Y[(0, 1, 0)] + ((6*v^2-6)/v)*Ty[1,2,1] Y[(0, 0, 1)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(0, 0, 1)] + ((6*v^2+3*v-6)/v)*Ty[2,1] Y[(-1, 0, 0)] + ((2*v^2+v-2)/v)*Ty[2,1] Y[(1, 2, 2)] + 6*Ty[2,1] Y[(0, 0, 1)] + ((3*v^2-3)/v)*Ty[1] + 6*Ty[1] Y[(-1, 0, 0)] + 2*Ty[1] Y[(1, 2, 2)] + Ty[1] Y[(0, 1, -1)] + ((3*v^2-3)/v)*Ty[2] Y[(2, 1, 2)] + Ty[2] Y[(2, 2, 1)] + ((9*v^2-9)/v)*Ty[2] Y[(0, -1, 0)] + 3*Ty[2] Y[(0, 0, -1)] + 4*Ty[2] Y[(0, 0, 1)] + ((2*v^2+v-2)/v) + 3*Y[(2, 1, 2)] + 9*Y[(0, -1, 0)]
         sage: H.Lvtv()(x) == H.Lvtv()(z)
         True
     """
