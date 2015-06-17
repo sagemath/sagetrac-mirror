@@ -803,15 +803,6 @@ class PiecewisePolynomial:
 
         ::
 
-            sage: f1(x) = e^(-abs(x))
-            sage: f = Piecewise([[(-infinity, infinity), f1]])
-            sage: f.integral(definite=True)
-            2
-            sage: f.integral()
-            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity), x |--> -1/2*((sgn(x) - 1)*e^(2*x) - 2*e^x*sgn(x) + sgn(x) + 1)*e^(-x) - 1]]
-
-        ::
-
             sage: f = Piecewise([((0, 5), cos(x))])
             sage: f.integral()
             Piecewise defined function with 1 parts, [[(0, 5), x |--> sin(x)]]
