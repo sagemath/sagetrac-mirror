@@ -48,7 +48,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
 
 
-def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options):
+def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     r"""
     The extended affine Weyl group.
 
@@ -201,11 +201,6 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
         sage: PW0 = E.PW0(); PW0
         Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Multiplicative form of Coweight lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice)
 
-    Style "PW0" is the default realization::
-
-        sage: PW0=E.PW0(); PW0
-        Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Multiplicative form of Coweight lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice)
-
         sage: W0P = E.W0P(); W0P
         Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice) acting on Multiplicative form of Coweight lattice of the Root system of type ['A', 2]
 
@@ -348,7 +343,8 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
         sage: y = PW0(E.lattice_basis()[1])
         sage: y
         x[Lambdacheck[1]]
-        sage: E.FW()(y)
+        sage: FW = E.FW()
+        sage: FW(y)
         pix[1] * sx2*sx1
         sage: PW0.an_element()
         x[2*Lambdacheck[1] + 2*Lambdacheck[2]] * Sx1*Sx2
@@ -366,15 +362,10 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
     convert the additive group of translations `L` into a multiplicative group by
     applying the :class:`sage.groups.group_exp.GroupExp` functor.
 
-    Let `W_a` and `W_e` be the affine and extended affine Weyl groups. 
-
     .. RUBRIC:: The general linear case
 
     The general linear group is not semisimple. Sage can build its extended
     affine Weyl group::
-
-    If the input parameter `general_linear` is set to True and the root system is of
-    untwisted affine type A::
 
         sage: E = ExtendedAffineWeylGroup(['A',2,1], general_linear=True); E
         Extended affine Weyl group of GL(3)
@@ -395,7 +386,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
         sage: PW0.an_element()
         t[(2, 2, 3)] * s1*s2
 
-    There is an isomorphism::
+    There is an isomorphism
 
     `W_e(GL_n) = \ZZ \ltimes W_a`
 
@@ -431,6 +422,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
         cartan_type = cartan_type.affine()
     elif not cartan_type.is_affine():
         raise ValueError("Cartan type must be finite or affine")
+
     return ExtendedAffineWeylGroup_Class(cartan_type, general_linear, **print_options)
 
 class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
@@ -454,12 +446,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             raise ValueError("%s is not affine" % cartan_type)
 
         self._cartan_type = cartan_type
-
-        if general_linear is True:
-            self._general_linear = True
-            self._n = self._cartan_type.n + 1
-        else:
-            self._general_linear = False
 
         self._prefixt = "t"
         self._prefixf = "pi"
@@ -501,8 +487,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._prefixaf = "S"
             self._prefixcl = "s"
 
-        self._fundamental_group = FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix=self._prefixf, general_linear=self._general_linear)
-
         self._ct0 = cartan_type.classical()
         self._R0  = self._ct0.root_system()
         self._I0 = self._ct0.index_set()
@@ -512,6 +496,9 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         # `BC` (`A_{2n}^{(2)\dagger}`) is considered untwisted and its dual is considered twisted
         self._untwisted = (self._cartan_type.is_untwisted_affine() or self._cartan_type.dual().type() == 'BC')
+
+        # fundamental group
+        self._fundamental_group = FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix=self._prefixf, general_linear=self._general_linear)
 
         # lattice data
         if self._untwisted:
@@ -604,7 +591,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         PW0_to_WF = SetMorphism(Hom(PW0, WF, Groups()), self.PW0_to_WF_func)
         PW0_to_WF.register_as_coercion()
-
         WF_to_PW0 = SetMorphism(Hom(WF, PW0, Groups()), self.WF_to_PW0_func)
         WF_to_PW0.register_as_coercion()
 
@@ -1091,7 +1077,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         ispecial = f.value()
         W=self.classical_weyl()
         if self._general_linear:
-            from sage.rings.integer_ring import ZZ
             r = ZZ(Mod(ispecial, self._n))
             weight = self.lattice().from_vector(vector([ZZ((ispecial-r)/self._n)]*self._n))
             if r != ZZ(0):
