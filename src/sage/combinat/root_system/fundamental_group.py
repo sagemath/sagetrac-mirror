@@ -579,7 +579,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
 
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
-            sage: [(i, F.finite_action(i)) for i in F.special_nodes()]
+            sage: [(i, F.reduced_word(i)) for i in F.special_nodes()]
             [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
 
         """
@@ -702,8 +702,8 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         """
         from sage.sets.family import LazyFamily
-        from sage.rings.integer_ring import IntegerRing
-        return LazyFamily(IntegerRing, lambda i: i)
+        from sage.rings.integer_ring import ZZ
+        return LazyFamily(ZZ, lambda i: i)
 
     def gens(self):
         from sage.rings.integer_ring import ZZ
