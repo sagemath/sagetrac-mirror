@@ -318,7 +318,7 @@ cdef class Function(SageObject):
             return cmp(self._serial, (<Function>other)._serial)
         return False
 
-    def __call__(self, *args, bint coerce=True, bint hold=False):
+    def __call__(self, *args, bint coerce=True, bint hold=False, algorithm=None):
         """
         Evaluates this function at the given arguments.
 
@@ -494,6 +494,10 @@ cdef class Function(SageObject):
             for a in args:
                 if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
+
+        # we have a GinacFunction, check algorithm
+        if algorithm is not None and algorithm != "ginac":
+            raise ValueError("unknown algorithm %r for %s"%(algorithm,self))
 
         cdef GEx res
         cdef GExVector vec
@@ -847,18 +851,14 @@ cdef class GinacFunction(BuiltinFunction):
 
         TESTS::
 
-            sage: sin(x, algorithm='foo')
+            sage: sin(0, algorithm='foo')
             Traceback (most recent call last):
             ...
             ValueError: unknown algorithm 'foo' for sin
-            sage: sin(x, algorithm='ginac')
-            sin(x)
+            sage: sin(1, algorithm='ginac')
+            sin(1)
         """
         res = super(GinacFunction, self).__call__(*args, **kwds)
-
-        algorithm = kwds.get('algorithm')
-        if algorithm is not None and algorithm != "ginac":
-            raise ValueError("unknown algorithm %r for %s"%(algorithm,self))
 
         # Convert to Integer if the output was of type "int" and any of
         # the inputs was a Sage Element
@@ -959,8 +959,8 @@ cdef class BuiltinFunction(Function):
         Function.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first, alt_name = alt_name)
 
-    def __call__(self, *args, bint coerce=True, bint hold=False,
-            bint dont_call_method_on_arg=False, algorithm=None):
+    def __call__(self, *args, algorithm=None, bint coerce=True, bint hold=False,
+            bint dont_call_method_on_arg=False):
         r"""
         Evaluate this function on the given arguments and return the result.
 
@@ -983,9 +983,9 @@ cdef class BuiltinFunction(Function):
             sage: bar = BuiltinFunction(name='bar', alt_name='foo')
             sage: bar(A())
             'foo'
-            
+
         Algorithm arguments are passed to `_evalf_`::
-        
+
             sage: from sage.symbolic.function import BuiltinFunction
             sage: class MyFunction(BuiltinFunction):
             ....:    def __init__(self):
@@ -1026,7 +1026,7 @@ cdef class BuiltinFunction(Function):
             res = self._evalf_try_(*args, algorithm=algorithm)
             if res is None:
                 res = super(BuiltinFunction, self).__call__(
-                        *args, coerce=coerce, hold=hold)
+                        *args, coerce=coerce, hold=hold, algorithm=algorithm)
 
         # If none of the input arguments was a Sage Element but the
         # output is, then convert the output back to the corresponding
