@@ -223,7 +223,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         if not all(hasattr(arg, self._functor_name) for arg in args):
-            raise TypeError, "Some item cannot apply the functor %s"%self._functor_name
+            raise TypeError("The functor %s does not apply to all arguments: %s"%(self._functor_name, args))
         if not len(args) > 0:
             raise ValueError, "There should be at least one item"
         return getattr(args[0], self._functor_name)(*args[1:], **keywords)
