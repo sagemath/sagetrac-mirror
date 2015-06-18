@@ -1,6 +1,8 @@
 r"""
+Arithmetic subgroups of `{\rm SL}_2(\mathcal{O})` and `{\rm GL}_2(\mathcal{O})`
+
 Arithmetic (finite index) subgroups of `{\rm SL}_2(\mathcal{O})` and
-`{\rm GL}_2(\mathcal{O})`) where `\mathcal{O}` is an (maximal) order
+`{\rm GL}_2(\mathcal{O})` where `\mathcal{O}` is an (maximal) order
 in a number field `K`.
 
 AUTHORS:
@@ -85,7 +87,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def __reduce__(self):
         r"""
-        Used for pickling self.
+        Used for pickling ``self``.
 
         NOTE: This function should be overridden by all subclasses.
 
@@ -104,7 +106,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def __hash__(self):
         r"""
-        Return a hash of self.
+        Return a hash of ``self``.
 
         EXAMPLES::
 
@@ -118,9 +120,9 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def group(self):
         r"""
-        Return the group type of self. Either 'SL', 'GL' or 'GL+'
+        Return the group type of ``self``. Either 'SL', 'GL' or 'GL+'
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
@@ -134,7 +136,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_special(self):
         r"""
-        Check if self is special, i.e. of type 'SL' or not.
+        Check if ``self`` is special, i.e. of type 'SL' or not.
 
         EXAMPLES::
 
@@ -151,7 +153,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def number_field(self):
         r"""
-        Return the number field over which self is defined.
+        Return the number field over which ``self`` is defined.
 
         EXAMPLES::
 
@@ -164,9 +166,10 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     def coset_reps(self, G=None):
         r"""
         Return right coset representatives for self \\ G, where G is another
-        arithmetic subgroup that contains self.  If G = None, default to G =
-        SL_2(O) where O is the ring of integers of the number field
-        over which self is defined.
+        arithmetic subgroup that contains ``self``.
+
+        If G = None, default to G = SL_2(O) where O is the ring of
+        integers of the number field over which ``self`` is defined.
 
         EXAMPLES::
 
@@ -187,7 +190,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def fundamental_domain(self):
         r"""
-        Return a fundamental domain of self.
+        Return a fundamental domain of ``self``.
 
         EXAMPLES::
 
@@ -224,7 +227,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def nu2(self):
         r"""
-        Return the number of orbits of elliptic points of order 3 for this
+        Return the number of orbits of elliptic points of order 2 for this
         arithmetic subgroup.
 
         EXAMPLES::
@@ -260,7 +263,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def orders_of_elliptic_elements(self):
         r"""
-        Returns the possible orders of elliptic elements.
+        Return the possible orders of elliptic elements.
 
         EXAMPLES::
 
@@ -277,9 +280,11 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def __cmp__(self, other):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
-        ..NOTE: This function must be overridden by all subclasses.
+        .. NOTE::
+
+            This function must be overridden by all subclasses.
 
         EXAMPLES::
 
@@ -296,7 +301,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def __contains__(self, elt):
         r"""
-        Check if self contains elt
+        Check if ``self`` contains ``elt``.
 
         EXAMPLES::
 
@@ -315,10 +320,10 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_abelian(self):
         r"""
-        Return True if this arithmetic subgroup is abelian.
+        Return ``True`` if this arithmetic subgroup is abelian.
 
         Since arithmetic subgroups are always nonabelian, this always
-        returns False.
+        returns ``False``.
 
         EXAMPLES::
 
@@ -333,10 +338,10 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_finite(self):
         r"""
-        Return True if this arithmetic subgroup is finite.
+        Return ``True`` if this arithmetic subgroup is finite.
 
         Since arithmetic subgroups are always infinite, this always
-        returns False.
+        returns ``False``.
 
         EXAMPLES::
 
@@ -351,10 +356,12 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_subgroup(self, right):
         r"""
-        Return True if self is a subgroup of right, and False otherwise. For
-        generic arithmetic subgroups this is done by the absurdly slow
-        algorithm of checking all of the generators of self to see if they are
-        in right.
+        Return ``True`` if ``self`` is a subgroup of ``right``, and
+        ``False`` otherwise.
+
+        For generic arithmetic subgroups this is done by the absurdly
+        slow algorithm of checking all of the generators of ``self`` to
+        see if they are in ``right``.
 
         EXAMPLES::
 
@@ -376,7 +383,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_normal(self, G=None):
         r"""
-        Return True precisely if this subgroup is a normal subgroup of G
+        Return ``True`` precisely if this subgroup is a normal subgroup of G
 
         EXAMPLES::
 
@@ -399,7 +406,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_odd(self):
         r"""
-        Return True precisely if this subgroup does not contain the
+        Return ``True`` precisely if this subgroup does not contain the
         matrix -1.
 
         EXAMPLES::
@@ -414,7 +421,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_even(self):
         r"""
-        Return True precisely if this subgroup contains the matrix -1.
+        Return ``True`` precisely if this subgroup contains the matrix -1.
 
         EXAMPLES::
 
@@ -429,7 +436,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def to_even_subgroup(self):
         r"""
-        Return the smallest even subgroup of `SL(2, \ZZ)` containing self.
+        Return the smallest even subgroup of `SL(2, \ZZ)` containing ``self``.
 
         EXAMPLES::
 
@@ -464,11 +471,13 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     def reduce_cusp(self, c):
         r"""
         Given a cusp `c \in \mathbb{P}^1(\QQ)`, return the unique reduced cusp
-        equivalent to c under the action of self, where a reduced cusp is an
+        equivalent to c under the action of ``self``, where a reduced cusp is an
         element `\tfrac{r}{s}` with r,s coprime non-negative integers, s as
         small as possible, and r as small as possible for that s.
 
-        ..NOTE: This function should be overridden by all subclasses.
+        .. NOTE::
+
+            This function should be overridden by all subclasses.
 
         EXAMPLES::
 
@@ -485,8 +494,8 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def cusps(self):
         r"""
-        Return a sorted list of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
+        Return a sorted list of inequivalent cusps for ``self``, i.e. a set of
+        representatives for the orbits of ``self`` on `\mathbb{P}^1(\QQ)`.
 
         These should be returned in a reduced form where this makes sense.
 
@@ -518,20 +527,22 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             ...
             NotImplementedError
 
-        ..NOTE: This should be implemented in subclasses.
-              (or if a generic algorithm)
+        .. NOTE::
+
+            This should be implemented in subclasses.
+            (or if a generic algorithm)
         """
         raise NotImplementedError
 
     def are_equivalent(self, x, y, trans=False):
         r"""
-        Test whether or not cusps x and y are equivalent modulo self.
+        Test whether or not cusps x and y are equivalent modulo ``self``.
 
-        If self has a reduce_cusp() method, use that; otherwise do a
+        If ``self`` has a reduce_cusp() method, use that; otherwise do a
         slow explicit test.
 
-        If trans = False, returns True or False. If trans = True, then
-        return either False or an element of self mapping x onto y.
+        If trans = False, returns ``True`` or ``False``. If trans = True, then
+        return either ``False`` or an element of ``self`` mapping x onto y.
 
         EXAMPLE::
 
@@ -553,7 +564,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def cusp_data(self, c):
         r"""
-        Return a triple (g, w, t) where g is an element of self
+        Return a triple (g, w, t) where g is an element of ``self``
         generating the stabiliser of the given cusp, w is the width of
         the cusp, and t is 1 if the cusp is regular and -1 if not.
 
@@ -572,7 +583,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def index(self, G=None):
         r"""
-        Return the index of self in G (default SL(2,O))
+        Return the index of ``self`` in G (default SL(2,O))
 
         EXAMPLES::
 
@@ -675,7 +686,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def is_congruence(self):
         r"""
-        Return True if self is a congruence subgroup.
+        Return ``True`` if ``self`` is a congruence subgroup.
 
         EXAMPLE::
 
@@ -690,7 +701,9 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     @cached_method
     def generators(self):
         r"""
-        Return a list of generators for this arithmetic subgroup. The result is cached.
+        Return a list of generators for this arithmetic subgroup.
+
+        The result is cached.
 
         EXAMPLE::
 
@@ -725,7 +738,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def gen(self, i):
         r"""
-        Return the i-th generator of self, i.e. the i-th element of
+        Return the i-th generator of ``self``, i.e. the i-th element of
         the tuple self.gens().
 
         EXAMPLES::
@@ -742,7 +755,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def ngens(self):
         r"""
-        Return the size of the minimal generating set of self returned by
+        Return the size of the minimal generating set of ``self`` returned by
         :meth:`generators`.
 
         EXAMPLES::
@@ -780,7 +793,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def dimension_modular_forms(self, k=2):
         r"""
-        Return the dimension of the space of weight k modular forms for this
+        Return the dimension of the space of weight `k` modular forms for this
         group.
 
         EXAMPLE::
@@ -797,7 +810,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def dimension_cusp_forms(self, k=2):
         r"""
-        Return the dimension of the space of weight k cusp forms for this
+        Return the dimension of the space of weight `k` cusp forms for this
         group.
 
         EXAMPLE::
@@ -815,12 +828,14 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     def dimension_eis(self, weight=(2,)):
         r"""
         Return the dimension of the space of Eisenstein series of the
-        given weight for this group, which is a subspace of the space
+        given weight for this group.
+
+        This is a subspace of the space
         of modular forms complementary to the space of cusp forms.
 
         INPUT:
 
-        - ``k`` - an integer (default 2).
+        - `k` - an integer (default 2).
 
         EXAMPLES::
 
@@ -836,7 +851,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def sturm_bound(self, weight=(2,)):
         r"""
-        Returns the Sturm bound for modular forms of the given weight and level
+        Return the Sturm bound for modular forms of the given weight and level
         this subgroup.
 
         INPUT:

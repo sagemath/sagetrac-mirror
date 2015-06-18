@@ -1,4 +1,6 @@
 r"""
+Congruence subgroups of `{\rm SL}_2(\mathcal{O})` and `{\rm GL}_2(\mathcal{O})`
+
 Congruence subgroups of `{\rm SL}_2(\mathcal{O})` and `{\rm GL}_2(\mathcal{O})`,
 where `\mathcal{O}` is a (maximal) order in a number field `K`.
 
@@ -322,9 +324,6 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
             False
             sage: Gamma6.is_subgroup(Gamma06)
             True
-            
-            
-            
         """
         if isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma_class):
             if other.level().divides(self.level()):
@@ -386,8 +385,6 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
             True
             sage: Matrix([[1,3],[3,1]]) in H  # indirect doctest
             False
-
-
         """
         try:
             a, b, c, d = A
@@ -401,7 +398,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
 
     def __eq__(self, other):
         r"""
-        Check if other is equal to self.
+        Check if ``other`` is equal to ``self``.
 
         EXAMPLES::
 
@@ -454,7 +451,6 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
             False
             sage: Gamma6.is_subgroup(Gamma06)
             True
-
         """
         if isinstance(other, HilbertModularGroup_CongruenceSubgroup_Gamma0_class):
             if other.level().divides(self.level()):
@@ -482,7 +478,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         """
         if self._fundamental_domain is not None:
             return self._fundamental_domain
-        #if self.index()<>1:
+        #if self.index() != 1:
         raise NotImplementedError
         #self._fundamental_domain =  HilbertFundamentalDomain(self,*kwds)
         #return self._fundamental_domain
@@ -635,7 +631,7 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
 
 def HilbertModularGroup(O, group='SL', a=None, **kwds):
     r"""
-    Returns the Hilbert modular group `SL_{2}(O\oplus \frak{a})`
+    Return the Hilbert modular group `SL_{2}(O\oplus \frak{a})`.
 
     Here `O` is a maximal order in a number field and `\frak{a}` an
     ideal in `O`, consisting of matrices of the form `[a b // c d ]`
