@@ -542,11 +542,11 @@ class BetaAdicMonoid(Monoid_class):
                 #raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print "Compute the transposition of tss=%s..."%tss
-            ss = tss.transpose().determinize()
+            ss = tss.transpose().determinise() #ze()
             if verb:
                 print ss
                 print "simplify..."
-            ss = ss.emonde0_simplify()
+            ss = ss.emonde_inf() #emonde0_simplify()
             if verb:
                 print ss
         if tss is None:
@@ -555,26 +555,26 @@ class BetaAdicMonoid(Monoid_class):
                 #raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print "Compute the transposition of ss=%s..."%ss
-            tss = ss.transpose().determinize()
+            tss = ss.transpose().determinise() #ze()
             if verb:
                 print tss
                 print "simplify..."
-            tss = tss.emonde0_simplify()
+            tss = tss.emonde_inf() #0_simplify()
             if verb:
                 print tss
         #compute la
         a = {}
-        for v in ss.vertices():
-            a[v] = Automaton(ss)
+        for v in ss.states(): #ss.vertices():
+            a[v] = Automaton(ss) ##################################################################################
             a[v].I = [list(ss.I)[0]]
             a[v].F = [v]
             if verb:
                 print "Compute the transposition..."
-            a[v] = a[v].transpose().determinize()
+            a[v] = a[v].transpose().determinise() #ze()
             if verb:
                 print a[v]
                 print "simplify..."
-            a[v] = a[v].emonde0_simplify()
+            a[v] = a[v].emonde_inf()
             if verb:
                 print a[v]
         return [tss]+a.values()
@@ -1846,7 +1846,7 @@ class BetaAdicMonoid(Monoid_class):
         arel = self.relations_automaton3(Cd=Cd, ext=False)
         arel = arel.emonde()
         if transpose:
-         arel = arel.transpose()
+         arel = arel.transpose_det()
         if verb:
             print "arel = %s"%arel
         if step == 1:

@@ -468,8 +468,11 @@ cdef class FastAutomaton:
                 raise ValueError("%d is not a state !"%f)
             self.a.e[f].final = 1
     
-    def is_final (self, e):
-        return Bool(self.a.e[e].final)
+    def is_final (self, int e):
+        if e >= 0 and e < self.a.n:
+            return Bool(self.a.e[e].final)
+        else:
+            return False
     
     def set_final_state (self, int e, final=True):
         self.a.e[e].final = final
