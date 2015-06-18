@@ -224,7 +224,7 @@ class VectorSpaces(Category_module):
                 sage: C in C.CartesianProducts().super_categories()
                 True
                 sage: C.CartesianProducts().extra_super_categories()
-
+                [Category of vector spaces over Rational Field]
             """
             return [self.base_category()]
 
@@ -239,6 +239,6 @@ class VectorSpaces(Category_module):
                 sage: C in C.TensorProducts().super_categories()
                 True
                 sage: C.TensorProducts().extra_super_categories()
-
+                [Category of vector spaces over Rational Field]
             """
             return [self.base_category()]
