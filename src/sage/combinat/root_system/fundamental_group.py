@@ -589,11 +589,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: [(i, F.reduced_word(i)) for i in F.special_nodes()]
             [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
-
-            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
-            sage: [(i, F.reduced_word(i)) for i in F.special_nodes()]
-            [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
-
         """
         return self._reduced_words[i]
 
@@ -693,7 +688,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1],general_linear=True) # indirect doctest
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True) # indirect doctest
             Fundamental group of GL(3)
 
         """
