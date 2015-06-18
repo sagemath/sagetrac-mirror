@@ -9,7 +9,6 @@ AUTHORS:
 - Mark Shimozono (2012): initial version
 - Nicolas Thiery (2012): initial version
 - Mark Shimozono (2013): twisted affine root systems, multiple realizations, GL_n
-
 """
 
 #*****************************************************************************
@@ -206,11 +205,6 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear = None, **print_options)
 
         sage: PW0=E.PW0(); PW0
         Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Multiplicative form of Coweight lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice)
-
-        sage: E.a_realization() == PW0
-        True
-
-    ::
 
         sage: W0P = E.W0P(); W0P
         Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice) acting on Multiplicative form of Coweight lattice of the Root system of type ['A', 2]
@@ -1043,11 +1037,11 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: E = ExtendedAffineWeylGroup(['A',3,1], general_linear=True); PW0=E.PW0()
-            sage: x = PW0.an_element(); x
-            t[(2, 2, 3, 0)] * s1*s2*s3
-            sage: E.WF()(x) # indirect doctest
-            S0*S1*S2*S1*S0*S3*S1*S2*S0*S1 * pi[7]
+            sage: E = ExtendedAffineWeylGroup(["A", 2, 1])
+            sage: x = E.PW0().an_element(); x
+            t[2*Lambdacheck[1] + 2*Lambdacheck[2]] * s1*s2
+            sage: E.PW0_to_WF_func(x)
+            S0*S1*S2*S0*S1*S0
 
         .. WARNING::
 
@@ -1076,11 +1070,11 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: E = ExtendedAffineWeylGroup(["A", 2, 1]); WF= E.WF()
-            sage: x = WF.an_element(); x
-            S0*S1*S2 * pi[2]
+            sage: E = ExtendedAffineWeylGroup(["A", 2, 1])
+            sage: x = E.WF().an_element(); x
+            S0*S1*S2
             sage: E.WF_to_PW0_func(x)
-            t[Lambdacheck[1] + 2*Lambdacheck[2]] * s1*s2*s1
+            t[Lambdacheck[1] + Lambdacheck[2]] * s1
 
         ..warning:: Since this is used to define some coercion maps it cannot itself use coercion.
 
