@@ -584,7 +584,7 @@ class BipartiteGraph(Graph):
         else:
             # simplify to always work with left
             if right:
-                left = map(lambda tf: not tf, right)
+                left = [not tf for tf in right]
             new_left = set()
             new_right = set()
             for tf, vv in zip(left, vertices):
@@ -927,7 +927,7 @@ class BipartiteGraph(Graph):
         Compute the matching polynomial of a line with `60` vertices::
 
             sage: from sage.functions.orthogonal_polys import chebyshev_U
-            sage: g = graphs.trees(60).next()
+            sage: g = next(graphs.trees(60))
             sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
             True
 
@@ -1012,10 +1012,10 @@ class BipartiteGraph(Graph):
             return None
 
         # read header information
-        num_cols, num_rows = map(int, fi.readline().split())
-        max_col_degree, max_row_degree = map(int, fi.readline().split())
-        col_degrees = map(int, fi.readline().split())
-        row_degrees = map(int, fi.readline().split())
+        num_cols, num_rows = [int(_) for _ in fi.readline().split()]
+        max_col_degree, max_row_degree = [int(_) for _ in fi.readline().split()]
+        col_degrees = [int(_) for _ in fi.readline().split()]
+        row_degrees = [int(_) for _ in fi.readline().split()]
 
         # sanity checks on header info
         if len(col_degrees) != num_cols:

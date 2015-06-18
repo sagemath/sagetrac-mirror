@@ -163,9 +163,9 @@ def kirkman_triple_system(v,existence=False):
         sage: classes = kts.is_resolvable(1)[1]
         sage: names = '0123456789abcde'
         sage: to_name = lambda (r,s,t): ' '+names[r]+names[s]+names[t]+' '
-        sage: rows = [join(('Day {}'.format(i) for i in range(1,8)), '   ')]
-        sage: rows.extend(join(map(to_name,row), '   ') for row in zip(*classes))
-        sage: print join(rows,'\n')
+        sage: rows = ['   '.join(('Day {}'.format(i) for i in range(1,8)))]
+        sage: rows.extend('   '.join(map(to_name,row)) for row in zip(*classes))
+        sage: print '\n'.join(rows)
         Day 1   Day 2   Day 3   Day 4   Day 5   Day 6   Day 7
          07e     18e     29e     3ae     4be     5ce     6de
          139     24a     35b     46c     05d     167     028
@@ -553,7 +553,7 @@ def PBD_4_7(v,check=True, existence=False):
         # On these groups a (15+7,{4,7})-PBD is pasted, in such a way that the 7
         # new points are a set of the final PBD
         PBD22 = PBD_4_7(15+7)
-        S = (SS for SS in PBD22 if len(SS) == 7).next() # a set of size 7
+        S = next(SS for SS in PBD22 if len(SS) == 7) # a set of size 7
         PBD22.relabel({v:i for i,v in enumerate([i for i in range(15+7) if i not in S] + S)})
 
         for B in PBD22:

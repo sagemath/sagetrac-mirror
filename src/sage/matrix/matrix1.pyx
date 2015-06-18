@@ -18,7 +18,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 
 import sage.modules.free_module
@@ -225,7 +224,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
             sage: A._mathematica_init_()
             '{{1/1, 2/1, 3/1}, {4/3, 5/3, 3/2}, {7/1, 8/1, 9/1}}'
@@ -233,7 +232,7 @@ cdef class Matrix(matrix0.Matrix):
         ::
 
             sage: A = matrix([[1,2],[3,4]])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2}, {3, 4}}
 
         ::
@@ -325,21 +324,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: maple(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: maple(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: maple(M)  # optional - maple
             Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: maple(M)                             #optional
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -372,7 +371,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: R.<x,y> = QQ[]
             sage: m = matrix([[x,y],[1+x,1+y]])
-            sage: macaulay2(m)                  #optional
+            sage: macaulay2(m)                  #optional - macaulay2
             | x   y   |
             | x+1 y+1 |
         """
@@ -1625,7 +1624,7 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not (PY_TYPE_CHECK(columns, list) or PY_TYPE_CHECK(columns, tuple)):
+        if not (isinstance(columns, list) or isinstance(columns, tuple)):
             raise TypeError, "columns (=%s) must be a list of integers"%columns
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1694,7 +1693,7 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(dcols, list) or PY_TYPE_CHECK(dcols, tuple)):
+        if not (isinstance(dcols, list) or isinstance(dcols, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1721,7 +1720,7 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (PY_TYPE_CHECK(rows, list) or PY_TYPE_CHECK(rows, tuple)):
+        if not (isinstance(rows, list) or isinstance(rows, tuple)):
             raise TypeError, "rows must be a list of integers"
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1790,7 +1789,7 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(drows, list) or PY_TYPE_CHECK(drows, tuple)):
+        if not (isinstance(drows, list) or isinstance(drows, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
@@ -1841,9 +1840,9 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not PY_TYPE_CHECK(rows, list):
+        if not isinstance(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not PY_TYPE_CHECK(columns, list):
+        if not isinstance(columns, list):
             raise TypeError, "columns must be a list of integers"
 
         cdef Matrix A

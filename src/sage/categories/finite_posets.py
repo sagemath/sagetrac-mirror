@@ -1285,7 +1285,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in AC: break
                     orbit.append( A )
                     AC.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def rowmotion_orbits(self, element_constructor = set):
@@ -1379,7 +1379,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in OI: break
                     orbit.append( A )
                     OI.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
@@ -1444,13 +1444,13 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {2}
-                sage: Piter.next()
+                sage: next(Piter)
                 {3}
             """
             # TODO: implement a generic function taking a set and
@@ -1533,15 +1533,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3, 4}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
@@ -1646,15 +1646,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
-                sage: Piter.next()
+                sage: next(Piter)
                 set()
-                sage: Piter.next()
+                sage: next(Piter)
                 {1, 2, 3}
-                sage: Piter.next()
+                sage: next(Piter)
                 {1}
             """
             # TODO: implement a generic function taking a set and
