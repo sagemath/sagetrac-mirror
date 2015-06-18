@@ -49,8 +49,9 @@ lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra')
 
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
+from smash_product_algebra import SmashProductAlgebra
+
 from clifford_algebra import CliffordAlgebra, ExteriorAlgebra
 from weyl_algebra import DifferentialWeylAlgebra
 
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')
-from smash_product_algebra import SmashProductAlgebra
