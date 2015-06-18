@@ -703,7 +703,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: fam = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).family() # indirect doctest
             sage: fam
-            Lazy family (<lambda>(i))_{i in <built-in function IntegerRing>}
+            Lazy family (<lambda>(i))_{i in Integer Ring}
             sage: fam[-3]
             -3
 
@@ -711,10 +711,6 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         from sage.sets.family import LazyFamily
         from sage.rings.integer_ring import ZZ
         return LazyFamily(ZZ, lambda i: i)
-
-    def gens(self):
-        from sage.rings.integer_ring import ZZ
-        return [self(ZZ(1))]
 
     def an_element(self):
         r"""
@@ -741,6 +737,19 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         """
         from sage.rings.integer_ring import ZZ
         return [self(ZZ(i)) for i in [-2, 2, 5]]
+
+    def group_generators(self):
+        r"""
+        Return group generators for `self`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).group_generators()
+            (pi[1],)
+        """
+        from sage.rings.integer_ring import ZZ
+        return tuple([self(ZZ(1))])
 
     def action(self, i):
         r"""
