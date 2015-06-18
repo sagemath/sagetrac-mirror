@@ -712,6 +712,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         from sage.rings.integer_ring import ZZ
         return LazyFamily(ZZ, lambda i: i)
 
+    @cached_method
     def an_element(self):
         r"""
         An element of ``self``.
