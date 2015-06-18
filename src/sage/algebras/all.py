@@ -51,13 +51,11 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
 from smash_product_algebra import SmashProductAlgebra
 
-from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
-
-from double_affine_hecke_algebra import DoubleAffineHeckeAlgebraSansDuality, DoubleAffineType
-from affine_hecke_algebra import ExtendedAffineHeckeAlgebra
-
 from clifford_algebra import CliffordAlgebra, ExteriorAlgebra
 from weyl_algebra import DifferentialWeylAlgebra
 
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')
 
+from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
+from double_affine_hecke_algebra import DoubleAffineHeckeAlgebraSansDuality, DoubleAffineType
+from affine_hecke_algebra import ExtendedAffineHeckeAlgebra
