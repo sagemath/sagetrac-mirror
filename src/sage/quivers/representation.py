@@ -453,6 +453,499 @@ from sage.modules.module_element import ModuleElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
 
+from sage.quivers.paths import QuiverPath
+
+class RightClosedPathFamily(object):
+    """
+    A family of quiver paths that is closed under right multiplication.
+
+    EXAMPLES::
+
+        sage: from sage.quivers.representation import RightClosedPathFamily
+        sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+        sage: S.inject_variables()
+        Defining e_1, e_2, e_3, a, b, c
+        sage: R = RightClosedPathFamily([e_2, a])
+        sage: R
+        RightClosedPathFamily([a, e_2])
+        sage: b in R
+        True
+        sage: b*c in R
+        True
+        sage: a*b*c in R
+        True
+        sage: c in R
+        False
+
+    When a right-closed path family is created, then the given set of initial
+    path segments is reduced. Two right-closed path families are equal if and only
+    if the reduced sets of initial path segments are equal.  ::
+
+        sage: R2 = RightClosedPathFamily([e_2,a,a*b])
+        sage: R2
+        RightClosedPathFamily([a, e_2])
+        sage: R == R2
+        True
+
+    """
+    def __init__(self, paths):
+        """
+        INPUT:
+
+        - ``paths``, either a single path or a finite iterable of paths
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R
+            RightClosedPathFamily([a, e_2])
+            sage: b in R
+            True
+            sage: b*c in R
+            True
+            sage: a*b*c in R
+            True
+            sage: c in R
+            False
+        """
+        if isinstance(paths, QuiverPath):
+            paths = [paths]
+        paths = set(paths)
+        reduced_paths = []
+        for p in paths:
+            is_reducible = False
+            for q in paths:
+                if q == p:
+                    continue
+                if p.has_prefix(q):
+                    is_reducible = True
+                    break
+            if not is_reducible:
+                reduced_paths.append(p)
+        if not reduced_paths:
+            raise ValueError("There must at least one path be given")
+        self.semigroup = reduced_paths[0].parent()
+        for p in reduced_paths[1:]:
+            if p.parent() is not self.semigroup:
+                raise ValueError("All paths must belong to the same quiver")
+        self.paths = frozenset(reduced_paths)
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R       # indirect doctest
+            RightClosedPathFamily([a, e_2])
+        """
+        return "RightClosedPathFamily({})".format(sorted(self.paths))
+    def __eq__(self, other):
+        """
+        Two right-closed path families are equal if and only if the defining set
+        of initial path segments are equal.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R
+            RightClosedPathFamily([a, e_2])
+            sage: R2 = RightClosedPathFamily([e_2,a,a*b])
+            sage: R == R2   # indirect doctest
+            True
+        """
+        if not isinstance(other,RightClosedPathFamily):
+            return False
+        return self.paths == other.paths
+    def __hash__(self):
+        """
+        The hash is given by the hash of the defining initial path segments.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R
+            RightClosedPathFamily([a, e_2])
+            sage: R2 = RightClosedPathFamily([e_2,a,a*b])
+            sage: R == R2
+            True
+            sage: D = {R:1}
+            sage: D[R2]     # indirect doctest
+            1
+
+        """
+        return hash(self.paths)
+    def __contains__(self, path):
+        """
+        A path belongs to this right-closed path family, if and only if
+        it starts with one of the defining initial path segments.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R
+            RightClosedPathFamily([a, e_2])
+
+        A path belongs to `R` if and only if it starts at the vertex 2, or it
+        starts with arrow `a`::
+
+            sage: b in R
+            True
+            sage: b*c in R
+            True
+            sage: a*b*c in R
+            True
+
+        Arrow `c` does thus not belong to `R`::
+
+            sage: c in R
+            False
+
+        TESTS::
+
+            sage: 1 in R
+            False
+
+        """
+        if path not in self.semigroup:
+            return False
+        try:
+            for q in self.paths:
+                if path.has_prefix(q):
+                    return True
+        except AttributeError:
+            pass
+        return False
+    def __iter__(self):
+
+        """
+        Iterate over all paths that start with one of the defining initial
+        segments of this family.
+
+        The iteration is by increasing length of the paths.
+
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import RightClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: R = RightClosedPathFamily([e_2, a])
+            sage: R
+            RightClosedPathFamily([a, e_2])
+
+        The family contains all paths that start at vertex 2 or start with
+        arrow `a`. Here are the first 15 of those paths, sorted by length::
+
+            sage: counter = 0
+            sage: for x in R:
+            ....:     print x
+            ....:     counter += 1
+            ....:     if counter == 15:
+            ....:         break
+            ....:
+            e_2
+            a
+            b
+            a*b
+            b*c
+            a*b*c
+            b*c*a
+            a*b*c*a
+            b*c*a*b
+            a*b*c*a*b
+            b*c*a*b*c
+            a*b*c*a*b*c
+            b*c*a*b*c*a
+            a*b*c*a*b*c*a
+            b*c*a*b*c*a*b
+
+        """
+        d = min(len(x) for x in self.paths)
+        while 1:
+            have_further_paths = False
+            I = {}
+            for p in self.paths:
+                if d>=len(p):
+                    I[p] = self.semigroup.iter_paths_by_length_and_startpoint(d-len(p),
+                                                                              p.terminal_vertex())
+            for p,i in I.iteritems():
+                for q in i:
+                    have_further_paths = True
+                    yield p*q
+            if not have_further_paths:
+                return
+            d += 1
+
+class LeftClosedPathFamily(object):
+    """
+    A family of quiver paths that is closed under left multiplication.
+
+    EXAMPLES::
+
+        sage: from sage.quivers.representation import LeftClosedPathFamily
+        sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+        sage: S.inject_variables()
+        Defining e_1, e_2, e_3, a, b, c
+        sage: L = LeftClosedPathFamily([e_3, a])
+        sage: L
+        LeftClosedPathFamily([a, e_3])
+        sage: b in L
+        True
+        sage: a*b in L
+        True
+        sage: c*a in L
+        True
+        sage: c in L
+        False
+
+    When a left-closed path family is created, then the given set of terminal
+    path segments is reduced. Two left-closed path families are equal if and only
+    if the reduced sets of terminal path segments are equal.  ::
+
+        sage: L2 = LeftClosedPathFamily([e_3,a,c*a])
+        sage: L2
+        LeftClosedPathFamily([a, e_3])
+        sage: L == L2
+        True
+
+    """
+    def __init__(self, paths):
+        """
+        INPUT:
+
+        - ``paths``, either a single path or a finite iterable of paths
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_3, a])
+            sage: L
+            LeftClosedPathFamily([a, e_3])
+            sage: b in L
+            True
+            sage: a*b in L
+            True
+            sage: c*a in L
+            True
+            sage: c in L
+            False
+        """
+        if isinstance(paths, QuiverPath):
+            paths = [paths]
+        paths = set(paths)
+        reduced_paths = []
+        for p in paths:
+            is_reducible = False
+            for q in paths:
+                if q == p:
+                    continue
+                if len(q):
+                    l,g,m = p.gcd(q)
+                    if g is not None and len(g)==len(q):
+                        is_reducible = True
+                        break
+                elif p.terminal_vertex() == q.terminal_vertex():
+                    is_reducible = True
+                    break
+            if not is_reducible:
+                reduced_paths.append(p)
+        if not reduced_paths:
+            raise ValueError("There must at least one path be given")
+        self.semigroup = reduced_paths[0].parent()
+        for p in reduced_paths[1:]:
+            if p.parent() is not self.semigroup:
+                raise ValueError("All paths must belong to the same quiver")
+        self.paths = frozenset(reduced_paths)
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_1, a])
+            sage: L   # indirect doctest
+            LeftClosedPathFamily([a, e_1])
+        """
+        return "LeftClosedPathFamily({})".format(sorted(self.paths))
+    def __eq__(self, other):
+        """
+        Two left-closed path families are equal if and only if the defining set
+        of terminal path segments are equal.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_3, a])
+            sage: L
+            LeftClosedPathFamily([a, e_3])
+            sage: L2 = LeftClosedPathFamily([e_3,a,c*a])
+            sage: L == L2   # indirect doctest
+            True
+        """
+        if not isinstance(other,LeftClosedPathFamily):
+            return False
+        return self.paths == other.paths
+    def __hash__(self):
+        """
+        The hash is given by the hash of the defining terminal path segments.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_1, a])
+            sage: L
+            LeftClosedPathFamily([a, e_1])
+            sage: L2 = LeftClosedPathFamily([e_1,a,c*a])
+            sage: L == L2
+            True
+            sage: D = {L:1}
+            sage: D[L2]     # indirect doctest
+            1
+
+        """
+        return hash(self.paths)
+    def __contains__(self, path):
+        """
+        A path belongs to this left-closed path family, if and only if
+        it starts with one of the defining terminal path segments.
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_3, a])
+            sage: L
+            LeftClosedPathFamily([a, e_3])
+
+        A path belongs to `L` if and only if it starts at the vertex 3, or it
+        ends with arrow `a`::
+
+            sage: b in L
+            True
+            sage: a*b in L
+            True
+            sage: c*a in L
+            True
+
+        Arrow `c` does thus not belong to `L`::
+
+            sage: c in L
+            False
+
+        TESTS::
+
+            sage: 1 in L
+            False
+
+        """
+        if path not in self.semigroup:
+            return False
+        try:
+            for q in self.paths:
+                if len(q):
+                    l,g,r = path.gcd(q)
+                    if g is not None and len(g)==len(q):
+                        return True
+                elif path.terminal_vertex() == q.terminal_vertex():
+                    return True
+        except AttributeError:
+            pass
+        return False
+    def __iter__(self):
+
+        """
+        Iterate over all paths that start with one of the defining terminal
+        segments of this family.
+
+        The iteration is by increasing length of the paths.
+
+
+        EXAMPLES::
+
+            sage: from sage.quivers.representation import LeftClosedPathFamily
+            sage: S = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{1:['c']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, e_2, e_3, a, b, c
+            sage: L = LeftClosedPathFamily([e_3, a])
+            sage: L
+            LeftClosedPathFamily([a, e_3])
+
+        The family contains all paths that end at vertex 3 or end with
+        arrow `a`. Here are the first 15 of those paths, sorted by length::
+
+            sage: counter = 0
+            sage: for x in L:
+            ....:     print x
+            ....:     counter += 1
+            ....:     if counter == 15:
+            ....:         break
+            ....:
+            e_3
+            a
+            b
+            c*a
+            a*b
+            b*c*a
+            c*a*b
+            a*b*c*a
+            b*c*a*b
+            c*a*b*c*a
+            a*b*c*a*b
+            b*c*a*b*c*a
+            c*a*b*c*a*b
+            a*b*c*a*b*c*a
+            b*c*a*b*c*a*b
+
+        """
+        d = min(len(x) for x in self.paths)
+        while 1:
+            have_further_paths = False
+            I = {}
+            for p in self.paths:
+                if d>=len(p):
+                    I[p] = self.semigroup.iter_paths_by_length_and_endpoint(d-len(p),
+                                                                              p.initial_vertex())
+            for p,i in I.iteritems():
+                for q in i:
+                    have_further_paths = True
+                    yield q*p
+            if not have_further_paths:
+                return
+            d += 1
+
 class QuiverRepFactory(UniqueFactory):
     r"""
     A quiver representation is a diagram in the category of vector spaces whose
