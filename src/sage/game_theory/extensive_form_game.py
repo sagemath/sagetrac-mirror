@@ -115,18 +115,14 @@ class ExtensiveFormGame():
         sage: g1 = ExtensiveFormGame(root)
         ERROR
 
-    If we create
-
-
     """
 
-
-class Node(something):
+class Node():
     def __init__(self, input):
         """
 
         """
-        self.player= False
+        self.player = False
         
     def attributes():
         """
@@ -136,16 +132,34 @@ class Node(something):
             The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False. 
         """
 
+class Leaf():
+    def __init__(self, payoffs):
+        """
+        We can check payoffs of any leaf.
+            sage: leaf_1 = Leaf([0,1])
+            sage: leaf_1.payoffs
+            [0,1]
+        """
+
+    def changepayoffs(something):
+        """
+        We can change the payoff of a leaf after setting it
+            sage: leaf_1.changepayoffs([2,4])
+            sage: leaf_1.payoffs
+            [2,4]
+        """
+
 class Root(Node):
     """
     A root is just another type of node, so we can get attributes, however Parent will always be false. Attempting to add a parent will return an error::
-        sage: jess_1 = Node([Green, Yellow]); jess_2 = Node([Green, Yellow]); jess_3 = Node([Green, Yellow])
         sage: bethan_1 = Root({'Red': jess_1, 'Blue': jess_2}))
-        sage: bonnie_1 = Root({'Black': jess_1, 'White': jess_3})
-        ERROR
+        sage: bethan_1 = 
+        
 
     We cannot have more than one Root in a game, so if we try to connect a second Root to a connected set of nodes that already have a root, an error will be displayed::
-        sage: 
+        sage: jess_1 = Node([Green, Yellow]); jess_2 = Node([Green, Yellow]); jess_3 = Node([Green, Yellow])
+        sage: bonnie_1 = Root({'Black': jess_1, 'White': jess_3})
+        ERROR 
     """
 
 class Player():
