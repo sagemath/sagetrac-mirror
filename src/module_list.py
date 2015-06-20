@@ -6,8 +6,6 @@ from sage.env import SAGE_LOCAL
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
-print "SAGE_INC :" + SAGE_INC
-
 #########################################################
 ### BLAS setup
 #########################################################
