@@ -270,7 +270,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 elif n == 1:
                     cartan_type = CartanType(['A', 1])
                 elif kwds.get("cartan_type_check", True):
-                    cartan_type = find_cartan_type_from_matrix(M)
+                    N = CartanMatrix(M, cartan_type_check=False)
+                    if N.is_finite():
+                        N._index_set = tuple(range(1,N.ncols()+1))
+                    cartan_type = N.dynkin_diagram().cartan_type()
                 data = M.dict()
                 subdivisions = M._subdivisions
 

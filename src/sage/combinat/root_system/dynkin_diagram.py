@@ -31,7 +31,7 @@ from sage.misc.cachefunc import cached_method
 from sage.matrix.matrix import is_Matrix
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.combinat.root_system.cartan_matrix import CartanMatrix, find_cartan_type_from_matrix
 from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args, **kwds):
@@ -437,6 +437,22 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: DynkinDiagram("A2","B2","F4").cartan_type()
             A2xB2xF4
         """
+        if self._cartan_type is not None:
+            return self._cartan_type
+        
+        # attempt to compute cartan type connected sugbraphs
+        comps = self.connected_components_subgraphs()
+        subts = tuple(find_cartan_type_from_dynkin_diagram(c) for c in comps) 
+        
+        if not all(subt is not None for subt in subts):
+            return None
+        
+        DD = DynkinDiagram(subts)
+        test, rel = DD.is_isomorphic(self, certify=True, edge_labels=True)
+        if not test:
+            return None
+        
+        self._cartan_type = CartanType(subts).relabel(rel)
         return self._cartan_type
 
     def rank(self):
@@ -755,3 +771,55 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     if n is not None:
         if t[1] != n:
             raise ValueError("t[1] must be = %s"%n)
+
+
+def find_cartan_type_from_dynkin_diagram(D):
+    """
+    Find a Cartan type by direct comparison of known Dynkin diagrams with the
+    Dynkin diagram ``D`` and return ``None`` if not found.
+
+    INPUT:
+
+    - ``D`` -- A (connected) Dynkin diagram
+    """
+    n = D.num_verts()
+    # Build the list to test based upon number of vertices
+    if n == 1:
+        return CartanType(['A', 1])
+
+    test = [['A', n]]
+    if n >= 2:
+        if n == 2:
+            test += [['G',2], ['A',2,2]]
+        test += [['B',n], ['A',n-1,1]]
+    if n >= 3:
+        if n == 3:
+            test += [['G',2,1], ['D',4,3]]
+        test += [['C',n], ['BC',n-1,2], ['C',n-1,1]]
+    if n >= 4:
+        if n == 4:
+            test += [['F',4], ['G',2,1], ['D',4,3]]
+        test += [['D',n], ['B',n-1,1]]
+    if n == 5:
+        test += [['F',4,1], ['D',n-1,1]]
+    elif n == 6:
+        test.append(['E',6])
+    elif n == 7:
+        test += [['E',7], ['E',6,1]]
+    elif n == 8:
+        test += [['E',8], ['E',7,1]]
+    elif n == 9:
+        test.append(['E',8,1])
+
+    # Test every possible Cartan type and its dual
+    for x in test:
+        ct = CartanType(x)
+        CTD = ct.dynkin_diagram()
+        if D.is_isomorphic(CTD,edge_labels=True):
+            return ct
+        if ct == ct.dual():
+            continue
+        ct = ct.dual()
+        if D.is_isomorphic(CTD,edge_labels=True):
+            return ct
+    return None

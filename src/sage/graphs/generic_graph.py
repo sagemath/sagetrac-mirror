@@ -18769,7 +18769,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     G_order = G.order()
     V = range(G_order)
     if G.vertices() != V:
-        relabel_dict = G.relabel(return_map=True)
+        relabel_dict = GenericGraph.relabel(G,return_map=True)
     else:
         relabel_dict = dict( (i,i) for i in xrange(G_order) )
     if partition is None:
