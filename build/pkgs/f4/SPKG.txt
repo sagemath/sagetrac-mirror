@@ -1,0 +1,33 @@
+= f4 =
+
+== Description ==
+
+f4 is a c++ library for groebner basis computation in finite field using the F4 algorithm.
+
+== License ==
+
+ * GNU GPLv3
+
+== SPKG Maintainers ==
+
+* Titouan Coladon
+
+== Upstream Contact ==
+
+* titouan.coladon@gmail.com
+
+== Dependencies ==
+
+Put a bulleted list of dependencies here:
+
+* openmp
+* givaro (optionnal)
+
+== Special Update/Build Instructions ==
+
+A C++ 11 compiler is required.
+In order to have a multithread version, compile with g++ (clang does not support openmp).
+ 
+
+
+

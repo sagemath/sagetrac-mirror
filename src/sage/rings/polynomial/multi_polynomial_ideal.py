@@ -3409,6 +3409,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         'ginv:TQ', 'ginv:TQBlockHigh', 'ginv:TQBlockLow' and 'ginv:TQDegree'
             One of GINV's implementations (if available)
+        
+        'f4' 
+            F4 algorithm, 
+            works only with grevlex order,
+            and for prime finite fields of characteristic < 2^32
+            or binary field extensions of degree < 64. 
+            
 
         If only a system is given - e.g. 'magma' - the default algorithm is
         chosen for that system.
@@ -3464,6 +3471,30 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('libsingular:slimgb')
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+        
+        ::
+        
+            sage: R.<a,b,c> = Zmod(65521)[]
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('f4')
+            [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
+
+        ::
+        
+            sage: R.<a,b,c> = Zmod(65521)[]
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('f4',0,0,0,1,2) # Sets verbosity to 1 and uses 2 threads.
+            [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
+        
+        ::
+        
+            sage: F.<t>=GF(2)[]
+            sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
+            sage: R.<x0,x1,x2> = K[]
+            sage: I = ideal((t^31+t^3)*x0*x1+(t^31+t^3)*x0*x2, (t^29+t)*x0*x1+(t^28+t^3)*x1*x2, (t^27+t^23)*x0*x1*x2)
+            sage: I.groebner_basis('f4',0,0,0,1,2)
+            [x1^2*x2, x1*x2^2, x0*x1 + (t^30 + t^5)*x1*x2, x0*x2 + (t^30 + t^5)*x1*x2]
+
 
         Note that ``toy:buchberger`` does not return the reduced Groebner
         basis, ::
@@ -3620,6 +3651,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3673,6 +3705,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
+        elif algorithm == 'f4':
+            gb = groebner_basis_f4(self, *args, **kwds)
         elif algorithm.startswith('ginv'):
             if algorithm == 'ginv':
                 gb = self._groebner_basis_ginv(*args, **kwds)

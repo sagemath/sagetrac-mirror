@@ -6,6 +6,8 @@ from sage.env import SAGE_LOCAL
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
+print "SAGE_INC :" + SAGE_INC
+
 #########################################################
 ### BLAS setup
 #########################################################
@@ -1690,6 +1692,13 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
+
+    Extension('sage.rings.polynomial.groebner_basis_f4',
+              sources = ['sage/rings/polynomial/groebner_basis_f4.pyx'],
+              language="c++",
+              #libraries = ["f4", 'givaro', 'gmpxx', 'gmp'],
+              libraries = ["f4"],
+              depends = [SAGE_INC + "/libf4.h"]),
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
