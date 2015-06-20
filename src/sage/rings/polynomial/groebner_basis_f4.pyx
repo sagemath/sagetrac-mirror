@@ -12,13 +12,12 @@ AUTHORS:
 
 EXAMPLES:
 
-We compute a Groebner basis for some given ideal. The type returned by
-the ``groebner_basis`` method is ``PolynomialSequence``, i.e. it is not a
-:class:`MPolynomialIdeal`::
+We compute a Groebner basis for some given ideal under the degrevlex ordering using F4::
 
+    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
     sage: R.<x1,x2,x3,x4,x5,x6,x7,x8> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,8)
-    sage: time B=groebner_basis_f4(I)
+    sage: B = groebner_basis_f4(I)
     sage: type(B)
     <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
 
@@ -27,19 +26,15 @@ TESTS::
     sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
     sage: R.<a,b,c,d,e,f> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,6)
-    sage: time B=groebner_basis_f4(I)
+    sage: B = groebner_basis_f4(I)
 
     sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
     sage: F.<t>=GF(2)[]
     sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
     sage: R.<x0,x1,x2,x3,x4,x5> = K[]
     sage: I = ideal((t+t^3)*x0+(t+t^3)*x1+(t+t^3)*x2+(t+t^3)*x3+(t+t^3)*x4+(t+t^3)*x5, (t+t^3)*x0*x1+(t+t^3)*x1*x2+(t+t^3)*x2*x3+(t+t^3)*x3*x4+(t+t^3)*x0*x5+(t+t^3)*x4*x5, (t+t^3)*x0*x1*x2+(t+t^3)*x1*x2*x3+(t+t^3)*x2*x3*x4+(t+t^3)*x0*x1*x5+(t+t^3)*x0*x4*x5+(t+t^3)*x3*x4*x5, (t+t^3)*x0*x1*x2*x3+(t+t^3)*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x5+(t+t^3)*x0*x1*x4*x5+(t+t^3)*x0*x3*x4*x5+(t+t^3)*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x3*x5+(t+t^3)*x0*x1*x2*x4*x5+(t+t^3)*x0*x1*x3*x4*x5+(t+t^3)*x0*x2*x3*x4*x5+(t+t^3)*x1*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4*x5-1)
-    sage: time B=groebner_basis_f4(I)
+    sage: B = groebner_basis_f4(I)
 
-
-.. NOTE::
-
-    Compute a grevlex groebner basis of the ideal.
 
 """
 
@@ -88,9 +83,10 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
             sage: R.<x1,x2,x3,x4,x5,x6> = Zmod(65521)[]
             sage: I = sage.rings.ideal.Cyclic(R,6)
-            sage: time B=I.groebner_basis_f4()
+            sage: B = groebner_basis_f4(I) # optional - f4
             sage: len(B)
             45
         """
