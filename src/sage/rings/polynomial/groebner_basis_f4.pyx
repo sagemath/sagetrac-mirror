@@ -88,11 +88,14 @@ cdef extern from "libf4.h":
                                                     int nbThread,
                                                     int verbose)
 
-def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
+def groebner_basis_f4(self, prot=0, threads=1):
         """
         Computes a Groebner Basis for this ideal using F4
 
         INPUT:
+
+        - prot - if ``True`` print protocol (default: ``False``)
+        - threads - number of threads to use (default: 1)
 
         EXAMPLES::
 
@@ -127,19 +130,19 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
         if self.base_ring().is_prime_field():
             if R.characteristic() == 2:
                 sig_on()
-                basis = groebnerBasisGF2F4(nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
+                basis = groebnerBasisGF2F4(nb_variable, variable_name, polynomial_list_cpp, threads, prot);
                 sig_off()
             elif R.characteristic() < 2**32:
                 modulus_int = R.characteristic()
                 sig_on()
-                basis = groebnerBasisF4(modulus_int, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
+                basis = groebnerBasisF4(modulus_int, nb_variable, variable_name, polynomial_list_cpp, threads, prot);
                 sig_off()
             else:
                 # not handled gmp and givaro version in Sage are too old
                 raise NotImplementedError("Prime field with characteristic > 2^32 are not handled in Sage for the moment")
 #                modulus_str = str(R.characteristic())
 #                sig_on()
-#                basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
+#                basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, threads, prot);
 #                sig_off()
 
         if not self.base_ring().is_prime_field():
@@ -150,7 +153,7 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
             else:
                 modulus_str =str(self.base_ring().modulus()).replace("x", str(self.base_ring().gen()))
                 sig_on()
-                basis = groebnerBasisGF2ExtensionF4(modulus_str, nb_variable, variable_name, poly_var_name, polynomial_list_cpp, nb_thread, verbose);
+                basis = groebnerBasisGF2ExtensionF4(modulus_str, nb_variable, variable_name, poly_var_name, polynomial_list_cpp, threads, prot);
                 sig_off()
 
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence

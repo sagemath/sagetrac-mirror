@@ -3479,11 +3479,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('f4')
             [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
 
-        ::
+        F4 is available through the optional f4 package::
 
             sage: R.<a,b,c> = Zmod(65521)[]
             sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
-            sage: I.groebner_basis('f4',0,0,0,1,2) # Sets verbosity to 1 and uses 2 threads.
+            sage: I.groebner_basis('f4', prot=True, threads=2) # optional - f4
             [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
 
         ::
@@ -3492,7 +3492,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
             sage: R.<x0,x1,x2> = K[]
             sage: I = ideal((t^31+t^3)*x0*x1+(t^31+t^3)*x0*x2, (t^29+t)*x0*x1+(t^28+t^3)*x1*x2, (t^27+t^23)*x0*x1*x2)
-            sage: I.groebner_basis('f4',0,0,0,1,2)
+            sage: I.groebner_basis('f4', prot=True, threads=2) # optional - f4
             [x1^2*x2, x1*x2^2, x0*x1 + (t^30 + t^5)*x1*x2, x0*x2 + (t^30 + t^5)*x1*x2]
 
 
@@ -3706,7 +3706,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
         elif algorithm == 'f4':
-            gb = groebner_basis_f4(self, *args, **kwds)
+            prot = 0
+            if get_verbose() >= 1:
+                prot = 1
+            if 'prot' in kwds:
+                prot = kwds['prot']
+            threads = 1
+            if 'threads' in kwds:
+                threads = kwds['threads']
+            gb = groebner_basis_f4(self, prot=prot, threads=threads)
         elif algorithm.startswith('ginv'):
             if algorithm == 'ginv':
                 gb = self._groebner_basis_ginv(*args, **kwds)
