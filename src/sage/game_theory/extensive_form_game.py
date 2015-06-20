@@ -8,7 +8,7 @@ class ExtensiveFormGame():
     def __init__(self, input, name = False):
 
 
-    def setiset(nodes):
+    def set_info_set(nodes):
         """
         We can assign information set to  a set of nodes::
             
@@ -18,7 +18,9 @@ class ExtensiveFormGame():
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: egame_1 = ExtensiveFormGame()
-            sage: egame_1.setiset([node_1, node_2])
+            sage: egame_1.set_info_set([node_1, node_2])
+            sage: egame_1.set_info_set
+            Information set with nodes, [node_1, node_2]
 
 
         If two nodes don't have the same actions, an error is returned::
@@ -29,7 +31,7 @@ class ExtensiveFormGame():
             sage: node_2 = Node({'AlternativeA': leaf_3, 'AlternativeB': leaf_4})
             sage: root_1 = Root({'C': node_1, 'D': node_2})
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1.setiset([node_1, node_2])
+            sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
             AttributeError: One or two of the nodes do not share the same actions.
@@ -46,7 +48,7 @@ class ExtensiveFormGame():
             sage: node_2.player = 'Player 2'
             sage: root_1 = Root({'C': node_1, 'D': node_2})
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1.setiset([node_1, node_2])
+            sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
             AttributeError: One or two of the nodes do not share the same players.
@@ -70,6 +72,8 @@ class Node():
         If we then create a second node, who has :code:`mothernode` as one of it's children, then the parent of :code:`mothernode` will be set to that node::
         
             sage: sisternode = Node()
+            sage: mothernode.parent
+            False
             sage: grandmothernode = Node({'ActionA':mothernode, 'ActionB':sisternode})
             sage: mothernode.parent
             grandmothernode
@@ -108,7 +112,15 @@ class Node():
         If a node has no parents, and a root node hasn't been set, a node can become a root node::
         
             sage: andy_1 = Node()
+            sage: type(andy_1) is Node
+            True
+            sage: type(andy_1) is Root
+            False
             sage: andy_1.to_root()
+            sage: type(andy_1) is Root
+            True
+            sage: type(andy_1) is Node
+            False
 
 
         If the node has parents, an error message will be returned::
@@ -139,7 +151,13 @@ class Node():
             sage: player1 = Player(Player 1)
             sage: player2 = Player(Player 2)
             sage: jones_1 = Node()
+            sage: type(jones_1) is Leaf
+            False
             sage: jones_1.to_leaf({Player 1: 0, Player 2: 1})
+            sage: type(jones_1) is Leaf
+            True
+            sage: type(jones_1) is Node
+            False
 
 
         If a node has any attribues other than parent, an error is returned::
@@ -159,7 +177,7 @@ class Leaf():
         We can check payoffs of any leaf.
             sage: leaf_1 = Leaf({player 1: 0, player 2: 1})
             sage: leaf_1.payoffs
-            [0,1]
+            ({player 1: 0, player 2: 1})
         """
 
 class Root(Node):
@@ -168,7 +186,7 @@ class Root(Node):
         
         sage: bethan_1 = Root({'Red': jess_1, 'Blue': jess_2}))
         sage: bethan_1.attribues
-        some output of attributes
+        some output of attributes specific to bethan_1
     
     We cannot have more than one Root in a game, so if we try to connect a second Root to a connected set of nodes that already have a root, an error will be displayed::
         
