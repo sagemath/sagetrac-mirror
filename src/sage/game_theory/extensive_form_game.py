@@ -150,8 +150,8 @@ class Player():
 
 
         If a node is not specificed a player, then this should return false::
-        sage: sam_1 = Node()
-        sage: sam_1.player
-        False
+            sage: sam_1 = Node()
+            sage: sam_1.player
+            False
         """
 
