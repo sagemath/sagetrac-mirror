@@ -158,7 +158,7 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
         gens_dict = R.gens_dict()
         cache = {}
         r = PolynomialSequence([convert_from_f4_string(e, gens_dict, base_ring, cache) for e in basis], R, immutable=True)
-        return basis
+        return r
 
 
 def convert_from_f4_string(f_string, gens_dict, base_ring, cache=None):
