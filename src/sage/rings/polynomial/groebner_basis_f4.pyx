@@ -102,6 +102,16 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
             sage: B = groebner_basis_f4(I) # optional - f4
             sage: len(B)
             45
+
+        TESTS::
+
+            sage: P = PolynomialRing(GF(next_prime(2^32)), 8, 'x')
+            sage: I = sage.rings.ideal.Cyclic(P)
+            sage: gb0 = I.groebner_basis('f4') # optional - f4
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Prime field with characteristic > 2^32 are not handled in Sage for the moment
+
         """
         R = self.ring()
         polynomial_list = self.gens()
