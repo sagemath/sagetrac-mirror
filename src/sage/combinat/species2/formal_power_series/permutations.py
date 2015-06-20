@@ -16,6 +16,7 @@ Reference
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
+from sage.categories.formal_power_series import OrdinaryPowerSeries, ExponentialPowerSeries
 from sage.combinat.partition import cached_number_of_partitions
 from sage.combinat.species2.formal_power_series import FPS
 from sage.rings.arith import factorial
@@ -31,6 +32,9 @@ class PermutationsEPS(FPS):
         sage: TestSuite(PermutationsCIS()).run()
 
     """
+
+    def __init__(self):
+        FPS.__init__(self, category=ExponentialPowerSeries())
     
     def coefficient(self, n):
         """
@@ -65,8 +69,11 @@ class PermutationsEPS(FPS):
 
 class PermutationsOPS(FPS):
     """
-    Formal power series of the isomorphism type of species of permutations
+    Formal power series of the isomorphism type of species of permutations/partitions
     """
+
+    def __init__(self):
+        FPS.__init__(self, category=OrdinaryPowerSeries())
 
     def coefficient(self, n):
         """
@@ -75,3 +82,9 @@ class PermutationsOPS(FPS):
 
         """
         return cached_number_of_partitions(n)
+
+    def _valuation_(self):
+        """
+        The valuation of the partitions generating series is `0`.
+        """
+        return 0

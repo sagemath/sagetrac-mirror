@@ -18,6 +18,7 @@ Reference
 # ******************************************************************************
 from sage.combinat.species2.cycle_index_series import CIS
 from sage.combinat.species2.cycle_index_series.operations.partitional_composite import ZeroCIS
+from sage.combinat.species2.formal_power_series.cycles import CyclesEPS, CyclesOPS
 from sage.rings.arith import euler_phi
 
 
@@ -67,6 +68,12 @@ class CyclesCIS(CIS):
 
         """
         return "ZC"
+
+    def generating_series(self):
+        return CyclesEPS()
+
+    def type_generating_series(self):
+        return CyclesOPS()
 
 class EulerCIS(CIS):
 

@@ -10,7 +10,7 @@ Generic formal series associated to cycle index series
 #
 #                  http://www.gnu.org/licenses/
 # *******************************************************************************
-from sage.categories.formal_power_series import OrdinaryPowerSeries, ExponentialPowerSeries
+from sage.categories.formal_power_series import OrdinaryPowerSeries, ExponentialPowerSeries, FormalPowerSeries
 from sage.combinat.partition import Partition
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.species2.formal_power_series import FPS
@@ -50,6 +50,7 @@ class genericOGS(FPS):
 
     @cached_method
     def _valuation_(self):
+
         n = 0
         zero = SymmetricFunctions(QQ).zero()
         # potentially infinite...
@@ -97,3 +98,12 @@ class genericEGS(FPS):
         while self._cis_.Frobenius_characteristic(n) == zero:
             n += 1
         return n
+
+class GeneratingSeries(FPS):
+
+    def __init__(self, coeff_map, category=FormalPowerSeries()):
+        FPS.__init__(self, category=category)
+        self._coeff_map_ = coeff_map
+
+    def coefficient(self, n):
+        return self._coeff_map_(n)

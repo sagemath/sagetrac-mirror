@@ -47,7 +47,7 @@ class Add(FPS):
                 continue
             # Associativity
             elif isinstance(f, Add):
-                for (g, ng) in f._dic_series_.iteritems():
+                for (g, ng) in f._dic_fs_.iteritems():
                     dic_fs[g] += ng * nf
             else:
                 dic_fs[f] += nf

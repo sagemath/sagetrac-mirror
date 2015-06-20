@@ -18,10 +18,12 @@ Reference
 # ******************************************************************************
 from operator import add
 from sage.categories.cycle_index_series import CycleIndexSeries
+from sage.categories.formal_power_series import OrdinaryPowerSeries
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.species2.cycle_index_series import CIS
 from sage.combinat.species2.cycle_index_series.operations.add import Add
 from sage.combinat.species2.cycle_index_series.operations.product import Prod
+from sage.combinat.species2.formal_power_series import FPS
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.misc_c import prod
@@ -174,6 +176,8 @@ class Composite(CIS):
 
     # TODO: Implement `\tilde{F\circ G}(t) = Z_{F}(\tilde{G}(t), \tilde{G}(t^2), \cdots)`
     # more efficient or not? I suppose
+    def type_generating_series(self):
+        return CompositeOGS(self._ZF_, self._ZG_.type_generating_series())
 
     def _repr_(self):
         return repr(self._ZF_) + "(" + repr(self._ZG_) + ")"
@@ -228,3 +232,67 @@ class ZeroCIS(CIS):
 
     def _repr_(self):
         return "Z0[%s]"%repr(self._coeff_)
+
+class CompositeOGS(FPS):
+    """
+    # TODO: Implement `\tilde{F\circ G}(t) = Z_{F}(\tilde{G}(t), \tilde{G}(t^2), \cdots)`
+    """
+
+    def __init__(self, ZF, g):
+        FPS.__init__(self, category=OrdinaryPowerSeries())
+        self._ZF_ = ZF
+        self._g_ = g
+
+        self._gen = self._gen_()
+        self._gen.send(None)
+
+    def _gen_(self):
+        from sage.combinat.species2.formal_power_series.operations.add import Add
+        ZF = self._ZF_
+        g = self._g_
+
+        p = SymmetricFunctions(ZF.Frobenius_characteristic(0).base_ring()).p()
+
+        self._index_ = [OrdinaryPowerSeries().zero()]
+        self._last_index_ = 0
+
+        while True:
+            n = (yield)
+
+            while self._last_index_ < n:
+                self._last_index_ += 1
+                self._index_.append(OrdinaryPowerSeries().zero())
+
+                for pi, coef in p(ZF.Frobenius_characteristic(self._last_index_)):
+                    if coef == p.zero():
+                        continue
+                    acc = prod(StretchOGS(g, part) for part in pi)
+                    a = Add((acc, coef), category=OrdinaryPowerSeries())
+                    self._index_[-1] += a
+
+    def coefficient(self, n):
+        self._gen.send(n)
+        return sum(self._index_[k].coefficient(n) for k in range(n+1))
+
+    @cached_method
+    def _valuation_(self):
+        return self._ZF_._valuation_()
+
+class StretchOGS(FPS):
+
+    @staticmethod
+    def __classcall_private__(cls, g, k):
+        if k == Integer(1):
+            return g
+        return super(StretchOGS, cls).__classcall__(cls, g, k)
+
+    def __init__(self, g, k):
+        FPS.__init__(self, OrdinaryPowerSeries())
+        self._g_ = g
+        self._k_ = k
+
+    def coefficient(self, n):
+        k = self._k_
+        if n % k == Integer(0):
+            return self._g_.coefficient(n/k) # ??
+        else: return Integer(0)

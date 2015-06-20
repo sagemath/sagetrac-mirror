@@ -60,6 +60,9 @@ class Substitution(FPS):
         self._gen = self._gen_()
         self._gen.send(None)
 
+    def _repr_(self):
+        return repr(self._f_) + "(" + repr(self._g_) + ")"
+
     def _gen_(self):
         f = self._f_
         g = self._g_
