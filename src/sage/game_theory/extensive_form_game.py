@@ -39,15 +39,47 @@ class Node():
             The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False. 
         """
     def changetype(type):
-        """ 
-        Will possibly be a function to change the type of a node to a root or a leaf, though specifics need to be worked out
-        How will this alter the game?
+        """
+        If a node has no parents, and a root node hasn't been set, a node can become a root node::
+        
+            sage: andy_1 = Node()
+            sage: andy_1.changetype(Root)
+
+
+        If the node has parents, an error message will be returned::
+        
+            sage: andy_1 = Node()
+            sage: andy_2 = Node()
+            sage: dave_1 = Node({'A': andy_1, 'B': andy_2})
+            sage: andy_1.changetype(Root)
+            ERROR
+
+
+        If the node is connected to a set of nodes that have a root associated with them, an error is returned::
+           
+            sage: jill_1 = node({'A'; helen_1 'B'; helen_2})
+            sage: helen_1 = Root()
+            sage: jill_1 = Root()
+            ERROR
+
+
+        A node can also be changed into a leaf if it has no parents, children, or actions. (i.e it is a blank node)::
+
+            sage: jones_1 = Node()
+            sage: jones_1.changetype(Leaf)
+
+
+        If a node has any attribues, an error is returned::
+
+            sage: williams_1 = Node({'A', 'B'})
+            sage: williams_1.changetype(Leaf)
+            ERROR
         """
 class Leaf():
     def __init__(self, payoffs):
         """
         We can check payoffs of any leaf.
-            sage: leaf_1 = Leaf([0,1])
+            sage: leaf_ 1 = Leaf([0,1])
             sage: leaf_1.payoffs
             [0,1]
         """
