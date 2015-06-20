@@ -40,6 +40,8 @@ class Node():
             Traceback (most recent call last):
             ...
             TypeError: Node can only have its input in dictionary form.
+
+
         """
         #self.player = False
         
@@ -53,13 +55,13 @@ class Node():
             The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False. 
         """
 
-
-    def assigninfoset(type):
+    
+    def to_root():
         """
         If a node has no parents, and a root node hasn't been set, a node can become a root node::
         
             sage: andy_1 = Node()
-            sage: andy_1.change_type(Root)
+            sage: andy_1.to_root()
 
 
         If the node has parents, an error message will be returned::
@@ -67,7 +69,7 @@ class Node():
             sage: andy_1 = Node()
             sage: andy_2 = Node()
             sage: dave_1 = Node({'A': andy_1, 'B': andy_2})
-            sage: andy_1.change_type(Root)
+            sage: andy_1.to_root()
             Traceback (most recent call last):
             ...
             AttributeError: Node with parents cannot be a root.
@@ -77,25 +79,29 @@ class Node():
            
             sage: jill_1 = node({'A'; helen_1 'B'; helen_2})
             sage: helen_1 = Root()
-            sage: jill_1 = change_type(Root)
+            sage: jill_1 = to_root()
             Traceback (most recent call last):
             ...
             AttributeError: Extensive Form Game cannot have two roots
+        """
 
 
+    def to_leaf(payoffs):
+        """
         A node can also be changed into a leaf if it has no parents, children, or actions. (i.e it is a blank node)::
 
             sage: jones_1 = Node()
-            sage: jones_1.change_type(Leaf)
+            sage: jones_1.to_leaf([0, 1])
 
 
         If a node has any attribues, an error is returned::
 
             sage: williams_1 = Node({'A', 'B'})
-            sage: williams_1.change_type(Leaf)
+            sage: williams_1.to_leaf([1, 0])
             Traceback (most recent call last):
             ...
             AttributeError: Node has attributes, cannot be leaf.
+
         """
 
 
@@ -119,12 +125,13 @@ class Leaf():
 class Root(Node):
     """
     A root is just another type of node, so we can get attributes, however Parent will always be false. Attempting to add a parent will return an error::
+        
         sage: bethan_1 = Root({'Red': jess_1, 'Blue': jess_2}))
         sage: bethan_1.attribues
         some output of attributes
-        
-
+    
     We cannot have more than one Root in a game, so if we try to connect a second Root to a connected set of nodes that already have a root, an error will be displayed::
+        
         sage: jess_1 = Node([Green, Yellow]); jess_2 = Node([Green, Yellow]); jess_3 = Node([Green, Yellow])
         sage: bonnie_1 = Root({'Black': jess_1, 'White': jess_3})
         Traceback (most recent call last):
@@ -143,8 +150,8 @@ class Player():
 
 
         If a node is not specificed a player, then this should return false::
-            sage: sam_1 = Node()
-            sage: sam_1.player
-            False
+        sage: sam_1 = Node()
+        sage: sam_1.player
+        False
         """
 
