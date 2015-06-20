@@ -5,11 +5,16 @@ This file will contain a class for extensive form games.
 class ExtensiveFormGame():
     """
     """
+    def __init__(self, input, name = False):
+
+
     def setiset(nodes):
         """
         We can assign information set to  a set of nodes::
-        
-            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
+            
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
+            sage: leaf_1 = Leaf({Player 1: 0, Player 2: 1}); leaf_2 = Leaf({Player 1: 1, Player 2: 0}), leaf_3 = Leaf({Player 1: 2, Player 2: 4}), leaf_4 = ({Player 1: 2, Player 2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: egame_1 = ExtensiveFormGame()
@@ -18,8 +23,9 @@ class ExtensiveFormGame():
 
         If two nodes don't have the same actions, an error is returned::
             
-            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
+            sage: leaf_1 = Leaf({Player 1: 0, Player 2: 1}); leaf_2 = Leaf({Player 1: 1, Player 2: 0}), leaf_3 = Leaf({Player 1: 2, Player 2: 4}), leaf_4 = ({Player 1: 2, Player 2: 1})
             sage: node_2 = Node({'AlternativeA': leaf_3, 'AlternativeB': leaf_4})
             sage: root_1 = Root({'C': node_1, 'D': node_2})
             sage: egame_1 = ExtensiveFormGame(root_1)
@@ -31,7 +37,9 @@ class ExtensiveFormGame():
 
         If two nodes have different players, an error is returned::
             
-            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
+            sage: leaf_1 = Leaf({Player 1: 0, Player 2: 1}); leaf_2 = Leaf({Player 1: 1, Player 2: 0}), leaf_3 = Leaf({Player 1: 2, Player 2: 4}), leaf_4 = ({Player 1: 2, Player 2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: node_1.player = 'Player 1'
@@ -48,10 +56,11 @@ class ExtensiveFormGame():
 class Node():
     def __init__(self, input, name = 'False'):
         """
-        Node input can be read to determine actions of node and children of node::
+        Node input can be read to determine actions of node and children of node.
         
-            sage: child_1 = Leaf((0, 1))
-            sage: child_2 = Leaf((1, 0))
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
+            sage: child_1 = Leaf({Player 1: 0, Player 2: 1}); child_2 = Leaf({Player 1: 1, Player 2: 0})
             sage: mothernode = Node({'Action1': child_1, 'Action2'L child_2})
             sage: mothernode.actions
             ['Action1', 'Action2']
@@ -127,18 +136,19 @@ class Node():
     def to_leaf(payoffs):
         """
         A node can also be changed into a leaf if it has no parents, children, or actions. (i.e it is a blank node)::
-
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
             sage: jones_1 = Node()
-            sage: jones_1.to_leaf([0, 1])
+            sage: jones_1.to_leaf({Player 1: 0, Player 2: 1})
 
 
-        If a node has any attribues, an error is returned::
+        If a node has any attribues other than parent, an error is returned::
 
             sage: williams_1 = Node({'A', 'B'})
-            sage: williams_1.to_leaf([1, 0])
+            sage: williams_1.to_leaf({Player 1: 0, Player 2: 1})
             Traceback (most recent call last):
             ...
-            AttributeError: Node has attributes, cannot be leaf.
+            AttributeError: Node has attributes other than parent, cannot be leaf.
 
         """
 
@@ -146,8 +156,8 @@ class Node():
 class Leaf():
     def __init__(self, payoffs):
         """
-        We can check payoffs of any leaf::
-            sage: leaf_1 = Leaf([0,1])
+        We can check payoffs of any leaf.
+            sage: leaf_1 = Leaf({player 1: 0, player 2: 1})
             sage: leaf_1.payoffs
             [0,1]
         """
