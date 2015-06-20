@@ -109,8 +109,8 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
         cdef vector[string] polynomial_list_cpp = [str(poly).replace(" ", "") for poly in polynomial_list]
         cdef vector[string] basis;
         cdef int nb_variable = R.ngens()
-        cdef int64_t modulo_int
-        cdef string modulo_str
+        cdef int64_t modulus_int
+        cdef string modulus_str
         cdef string poly_var_name = str(self.base_ring().gen())
 
         # Prime field
@@ -120,29 +120,27 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
                 basis = groebnerBasisGF2F4(nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
                 sig_off()
             elif R.characteristic() < 2**32:
-                modulo_int = R.characteristic()
+                modulus_int = R.characteristic()
                 sig_on()
-                basis = groebnerBasisF4(modulo_int, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
+                basis = groebnerBasisF4(modulus_int, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
                 sig_off()
             else:
-                # not handled gmp and givaro version in sage are too old
-                print "Prime field with characteristic > 2^32 are not handled in sage for the moment"
-#                modulo_str = str(R.characteristic())
+                # not handled gmp and givaro version in Sage are too old
+                raise NotImplementedError("Prime field with characteristic > 2^32 are not handled in Sage for the moment")
+#                modulus_str = str(R.characteristic())
 #                sig_on()
-#                basis = groebnerBasisGivaroIntegerF4(modulo_str, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
+#                basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, nb_thread, verbose);
 #                sig_off()
 
         if not self.base_ring().is_prime_field():
             if R.characteristic() != 2:
-                # not handled
-                print "Non prime field with characteristic != 2 are not handled by F4"
+                raise NotImplementedError("Non prime field with characteristic != 2 are not handled by F4")
             elif self.base_ring().modulus().degree() > 63:
-                # not handled
-                print "GF(2^n) field with n > 63 are not handled by F4"
+                raise NotImplementedError("GF(2^n) field with n > 63 are not handled by F4")
             else:
-                modulo_str =str(self.base_ring().modulus()).replace("x", str(self.base_ring().gen()))
+                modulus_str =str(self.base_ring().modulus()).replace("x", str(self.base_ring().gen()))
                 sig_on()
-                basis = groebnerBasisGF2ExtensionF4(modulo_str, nb_variable, variable_name, poly_var_name, polynomial_list_cpp, nb_thread, verbose);
+                basis = groebnerBasisGF2ExtensionF4(modulus_str, nb_variable, variable_name, poly_var_name, polynomial_list_cpp, nb_thread, verbose);
                 sig_off()
 
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
