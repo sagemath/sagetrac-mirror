@@ -28,7 +28,7 @@ TESTS::
     sage: R.<a,b,c,d,e,f> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,6)
     sage: time B=groebner_basis_f4(I)
-    
+
     sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4
     sage: F.<t>=GF(2)[]
     sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
@@ -48,8 +48,8 @@ TESTS::
 #
 #                               Sage
 #
-#       Copyright (C) 2015 Antoine Joux and Vanessa Vitse 
-#       Copyright (C) 2015 Titouan COLADON 
+#       Copyright (C) 2015 Antoine Joux and Vanessa Vitse
+#       Copyright (C) 2015 Titouan COLADON
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -75,8 +75,8 @@ include "sage/ext/interrupt.pxi"
 
 
 cdef extern from "libf4.h":
-    cdef vector[string] groebnerBasisF4(int64_t modulo, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose) 
-    cdef vector[string] groebnerBasisGF2F4(int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose) 
+    cdef vector[string] groebnerBasisF4(int64_t modulo, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
+    cdef vector[string] groebnerBasisGF2F4(int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
 #    cdef vector[string] groebnerBasisGivaroIntegerF4(string modulo, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
     cdef vector[string] groebnerBasisGF2ExtensionF4(string modulo, int nbVariable, vector[string] variableName, string polyVarName, vector[string] polynomialList, int nbThread, int verbose)
 
@@ -103,8 +103,8 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
         cdef int64_t modulo_int
         cdef string modulo_str
         cdef string poly_var_name = str(self.base_ring().gen())
-        
-        # Prime field 
+
+        # Prime field
         if self.base_ring().is_prime_field():
             if R.characteristic() == 2:
                 sig_on()
@@ -125,20 +125,16 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
 
         if not self.base_ring().is_prime_field():
             if R.characteristic() != 2:
-                # not handled 
+                # not handled
                 print "Non prime field with characteristic != 2 are not handled by F4"
             elif self.base_ring().modulus().degree() > 63:
-                # not handled 
+                # not handled
                 print "GF(2^n) field with n > 63 are not handled by F4"
             else:
                 modulo_str =str(self.base_ring().modulus()).replace("x", str(self.base_ring().gen()))
                 sig_on()
                 basis = groebnerBasisGF2ExtensionF4(modulo_str, nb_variable, variable_name, poly_var_name, polynomial_list_cpp, nb_thread, verbose);
                 sig_off()
-        
+
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         return PolynomialSequence([R(e) for e in basis], R, immutable=True)
-
-
-
-
