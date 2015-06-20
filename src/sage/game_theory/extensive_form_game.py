@@ -5,12 +5,50 @@ This file will contain a class for extensive form games.
 class ExtensiveFormGame():
     """
     """
+    def setiset(nodes):
+        """
+        We can assign information set to  a set of nodes::
+        
+            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
+            sage: egame_1 = ExtensiveFormGame()
+            sage: egame_1.setiset([node_1, node_2])
+
+
+        If two nodes don't have the same actions, an error is returned::
+            
+            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: node_2 = Node({'AlternativeA': leaf_3, 'AlternativeB': leaf_4})
+            sage: root_1 = Root({'C': node_1, 'D': node_2})
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.setiset([node_1, node_2])
+            Traceback (most recent call last):
+            ...
+            AttributeError: One or two of the nodes do not share the same actions.
+
+
+        If two nodes have different players, an error is returned::
+            
+            sage: leaf_1 = Leaf(); leaf_2 = Leaf(), leaf_3 = Leaf(), leaf_4 = Leaf()
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
+            sage: node_1.player = 'Player 1'
+            sage: node_2.player = 'Player 2'
+            sage: root_1 = Root({'C': node_1, 'D': node_2})
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.setiset([node_1, node_2])
+            Traceback (most recent call last):
+            ...
+            AttributeError: One or two of the nodes do not share the same players.
+        """
 
 
 class Node():
     def __init__(self, input, name = 'False'):
         """
-        Node input can be read to determine actions of node and children of node.
+        Node input can be read to determine actions of node and children of node::
         
             sage: child_1 = Leaf((0, 1))
             sage: child_2 = Leaf((1, 0))
@@ -108,18 +146,10 @@ class Node():
 class Leaf():
     def __init__(self, payoffs):
         """
-        We can check payoffs of any leaf.
+        We can check payoffs of any leaf::
             sage: leaf_1 = Leaf([0,1])
             sage: leaf_1.payoffs
             [0,1]
-        """
-
-    def changepayoffs(something):
-        """
-        We can change the payoff of a leaf after setting it
-            sage: leaf_1.changepayoffs([2,4])
-            sage: leaf_1.payoffs
-            [2,4]
         """
 
 class Root(Node):
@@ -138,6 +168,7 @@ class Root(Node):
         ...
         AttributeError: Extensive Form Game cannot have two roots
     """
+
 
 class Player():
     def __init__(self, name):
