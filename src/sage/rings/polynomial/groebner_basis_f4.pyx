@@ -70,10 +70,23 @@ include "sage/ext/interrupt.pxi"
 
 
 cdef extern from "libf4.h":
-    cdef vector[string] groebnerBasisF4(int64_t modulo, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
-    cdef vector[string] groebnerBasisGF2F4(int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
-#    cdef vector[string] groebnerBasisGivaroIntegerF4(string modulo, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
-    cdef vector[string] groebnerBasisGF2ExtensionF4(string modulo, int nbVariable, vector[string] variableName, string polyVarName, vector[string] polynomialList, int nbThread, int verbose)
+    cdef vector[string] groebnerBasisF4(int64_t modulus,
+                                        int nbVariable,
+                                        vector[string] variableName,
+                                        vector[string] polynomialList,
+                                        int nbThread, int verbose)
+    cdef vector[string] groebnerBasisGF2F4(int nbVariable,
+                                           vector[string] variableName,
+                                           vector[string] polynomialList,
+                                           int nbThread, int verbose)
+#    cdef vector[string] groebnerBasisGivaroIntegerF4(string modulus, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
+    cdef vector[string] groebnerBasisGF2ExtensionF4(string modulus,
+                                                    int nbVariable,
+                                                    vector[string] variableName,
+                                                    string polyVarName,
+                                                    vector[string] polynomialList,
+                                                    int nbThread,
+                                                    int verbose)
 
 def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
         """
