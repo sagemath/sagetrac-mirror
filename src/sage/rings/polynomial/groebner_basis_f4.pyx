@@ -154,4 +154,55 @@ def groebner_basis_f4(self, verbose = 0, nb_thread = 1):
                 sig_off()
 
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-        return PolynomialSequence([R(e) for e in basis], R, immutable=True)
+        base_ring = R.base_ring()
+        gens_dict = R.gens_dict()
+        cache = {}
+        r = PolynomialSequence([convert_from_f4_string(e, gens_dict, base_ring, cache) for e in basis], R, immutable=True)
+        return basis
+
+
+def convert_from_f4_string(f_string, gens_dict, base_ring, cache=None):
+    """
+    Convert F4 string representation to Sage polynomial.
+
+    INPUT:
+
+    - fs_string - string representation
+    - gens_dict - gens dict of a multivariate polynomial ring
+    - base_ring - base ring of a multivariate polynomial ring
+    - cache - optional variable power cache
+
+    EXAMPLE::
+
+        sage: P.<x,y,z> = PolynomialRing(GF(previous_prime(2^30)))
+        sage: fs = '(1*x^1*y^2) + (-32*z^2)'
+        sage: from sage.rings.polynomial.groebner_basis_f4 import convert_from_f4_string
+        sage: convert_from_f4_string(fs, P.gens_dict(), P.base_ring())
+        x*y^2 - 32*z^2
+
+        sage: cache = {}
+        sage: convert_from_f4_string(fs, P.gens_dict(), P.base_ring(), cache)
+        x*y^2 - 32*z^2
+
+        sage: cache
+        {'x^1': x, 'y^2': y^2, 'z^2': z^2}
+    """
+
+    M = f_string.split(" + ")
+    f = base_ring(0)
+
+    if cache is None:
+        cache = {}
+
+    for m in M:
+        m = m[1:-1]
+        m = m.split("*")
+        c, p = m[0], m[1:]
+        c = base_ring(c)
+        m = c
+        for p_ in p:
+            if p_ not in cache:
+                cache[p_] = eval(p_.replace("^", "**"), gens_dict)
+            m *= cache[p_]
+        f += m
+    return f
