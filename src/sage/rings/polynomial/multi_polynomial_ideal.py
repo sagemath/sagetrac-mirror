@@ -3706,11 +3706,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
         elif algorithm == 'f4':
-            prot = 0
-            if get_verbose() >= 1:
+            if get_verbose() >= 2:
                 prot = 1
-            if 'prot' in kwds:
-                prot = kwds['prot']
             threads = 1
             if 'threads' in kwds:
                 threads = kwds['threads']
