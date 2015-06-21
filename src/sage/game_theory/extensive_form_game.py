@@ -41,7 +41,7 @@ class ExtensiveFormGame():
 
         If we input either a Graph that is not a tree, an error is returned::
 
-            sage: tree_2 = Graph('I'll have to find an example and put it here')
+            sage: tree_2 = Graph({I'll have to find an example and put it here})
             sage: egame_2 = ExtensiveFormGame(tree_1)
             Traceback (most recent call last):
             ...
@@ -109,7 +109,7 @@ class ExtensiveFormGame():
 
 
 class Node():
-    def __init__(self, input, name = 'False'):
+    def __init__(self, input, name = 'False', player_name = 'False'):
         """
         Node input will be in a dictionary format, consisting of the actions and the children of that node::
         
@@ -148,9 +148,20 @@ class Node():
 
 
         """
-        self.player = False
+        self.player_name = False
+        self.actions = False
+        self.children = False
+        if type(input) == dict:
+            self.actions = input.keys()
+            self.children = input.values()
+        if type(input) == set:
+            self.actions = list(input)
         
-    
+    def player(self, Player):
+        """        
+        
+        """
+        self.player_name = Player.player  
     def attributes():
         """
         We can use this function to check the attributes of each singular node, the following is what would happen if no attibutes are assigned::
@@ -227,15 +238,18 @@ class Node():
 
 
 class Leaf():
-    def __init__(self, payoffs):
+    def __init__(self, dict):
         """
         We can check payoffs of any leaf.
             sage: player_1 = Player('player 1')
             sage: player_2 = Player('player 2')
             sage: leaf_1 = Leaf({'player 1': 0, 'player 2': 1})
             sage: leaf_1.payoffs
-            ({player 1: 0, player 2: 1})
+            {'player 1': 0, 'player 2': 1}
         """
+        self.payoffs = dict
+        
+
 
 class Root(Node):
     """
@@ -258,18 +272,24 @@ class Root(Node):
 
 
 class Player():
-    def __init__(self, name):
+    def __init__(self, player):
         """
         We can use Player() to assign players to nodes::
-            sage: jack_1 = Node({'inputhere'})
-            sage: jack_1.player = Player('Jack')
-            sage: jack_1.player
-            Jack
+            sage: jack_1 = Node({0, 1})
+            sage: jack_1.player(Player('Jack'))
+            sage: jack_1.player_name
+            'Jack'
 
 
         If a node is not specificed a player, then this should return false::
-            sage: sam_1 = Node({'inputhere'})
-            sage: sam_1.player
+            sage: sam_1 = Node({0, 1})
+            sage: sam_1.player_name
             False
-        """
 
+
+        We can create players and assign them names::
+            sage: ben_player = Player('Benjamin')
+            sage: ben_player.player
+            'Benjamin'
+        """
+        self.player = player
