@@ -5,8 +5,58 @@ This file will contain a class for extensive form games.
 class ExtensiveFormGame():
     """
     """
-    def __init__(self, input, name = False):
+    def __init__(self, gamestructure, name = False):
+        """
+        ExtensiveFormGame can take input in the form of a root::
+            sage: player1 = Player(Player 1)
+            sage: player2 = Player(Player 2)
+            sage: leaf_1 = Leaf({Player 1: 0, Player 2: 1}); leaf_2 = Leaf({Player 1: 1, Player 2: 0}), leaf_3 = Leaf({Player 1: 2, Player 2: 4}), leaf_4 = ({Player 1: 2, Player 2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
+            sage: root_1 = Root({'C': node_1, 'D': node_2})
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.nodes
+            Nodes within game are ...
+            sage: egame_1.players
+            Players within game are ...
+            sage: egame_1.gamestructure
+            Some long spiel about how the nodes are connected and such? Not sure
 
+        Or it can take a Graph object, so long as it is a tree::
+
+            sage: tree_1 = Graph({root_1:[node_1, node_2], node_1:[leaf_1, leaf_2], node_2:[leaf_3, leaf_4]})
+            sage: egame_2 = ExtensiveFormGame(tree_1)
+            sage: egame_2.nodes
+            Nodes within game are ...
+            sage: egame_2.players
+            Players within game are ...
+            sage: egame_2.gamestructure
+            Some long spiel about how the nodes are connected and such? Not sure
+
+        In the above examples, the two games created should be equal
+
+            sage: egame_1 == egame_2
+            True
+
+
+        If we input either a Graph that is not a tree, an error is returned::
+
+            sage: tree_2 = Graph({I'll have to find an example and put it here})
+            sage: egame_2 = ExtensiveFormGame(tree_1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Graph inputted is not a tree.
+
+
+        If we try to put an empty tree in as a game, we'll also return an error::
+
+            sage: tree_3 = Graph()
+            sage: egame_2 = ExtensiveFormGame(tree_3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Graph inputted is empty.
+
+        """
 
     def set_info_set(nodes):
         """
@@ -17,10 +67,11 @@ class ExtensiveFormGame():
             sage: leaf_1 = Leaf({Player 1: 0, Player 2: 1}); leaf_2 = Leaf({Player 1: 1, Player 2: 0}), leaf_3 = Leaf({Player 1: 2, Player 2: 4}), leaf_4 = ({Player 1: 2, Player 2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
-            sage: egame_1 = ExtensiveFormGame()
+            sage: root_1 = Root({'C': node_1, 'D': node_2})
+            sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.set_info_set
-            Information set with nodes, [node_1, node_2]
+            [node_1, node_2]
 
 
         If two nodes don't have the same actions, an error is returned::
@@ -34,7 +85,7 @@ class ExtensiveFormGame():
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
-            AttributeError: One or two of the nodes do not share the same actions.
+            AttributeError: All nodes in the same information set must have the same actions
 
 
         If two nodes have different players, an error is returned::
@@ -51,19 +102,20 @@ class ExtensiveFormGame():
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
-            AttributeError: One or two of the nodes do not share the same players.
+            AttributeError: All nodes in the same information set must have the same players.
+
         """
 
 
 class Node():
     def __init__(self, input, name = 'False'):
         """
-        Node input can be read to determine actions of node and children of node.
+        Node input will be in a dictionary format, consisting of the actions and the children of that node::
         
             sage: player1 = Player(Player 1)
             sage: player2 = Player(Player 2)
             sage: child_1 = Leaf({Player 1: 0, Player 2: 1}); child_2 = Leaf({Player 1: 1, Player 2: 0})
-            sage: mothernode = Node({'Action1': child_1, 'Action2'L child_2})
+            sage: mothernode = Node({'Action1': child_1, 'Action2': child_2})
             sage: mothernode.actions
             ['Action1', 'Action2']
             sage: mothernode.children
@@ -182,7 +234,7 @@ class Leaf():
 
 class Root(Node):
     """
-    A root is just another type of node, so we can get attributes, however Parent will always be false. Attempting to add a parent will return an error::
+    A root is just another type of node, so we can get attributes, however :code:`parent` will always be :code:`False`.. Attempting to add a parent will return an error::
         
         sage: bethan_1 = Root({'Red': jess_1, 'Blue': jess_2}))
         sage: bethan_1.attribues
