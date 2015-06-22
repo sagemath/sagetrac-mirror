@@ -15,7 +15,7 @@ class ExtensiveFormGame():
             sage: leaf_1 = Leaf({'Player 1': 0, 'Player 2': 1})
             sage: leaf_2 = Leaf({'Player 1': 1, 'Player 2': 0})
             sage: leaf_3 = Leaf({'Player 1': 2, 'Player 2': 4})
-            sage: leaf_4 = ({'Player 1': 2, 'Player 2': 1})
+            sage: leaf_4 = Leaf({'Player 1': 2, 'Player 2': 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: root_1 = Root({'C': node_1, 'D': node_2})
@@ -72,7 +72,7 @@ class ExtensiveFormGame():
             sage: leaf_1 = Leaf({'Player 1': 0, 'Player 2': 1})
             sage: leaf_2 = Leaf({'Player 1': 1, 'Player 2': 0})
             sage: leaf_3 = Leaf({'Player 1': 2, 'Player 2': 4})
-            sage: leaf_4 = ({'Player 1': 2, 'Player 2': 1})
+            sage: leaf_4 = Leaf({'Player 1': 2, 'Player 2': 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: root_1 = Root({'C': node_1, 'D': node_2})
@@ -130,7 +130,7 @@ class Node():
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
-            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0})
+            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Child 2')
             sage: mother_node.actions
             ['Action1', 'Action2']
@@ -138,7 +138,8 @@ class Node():
             ['Child 1', 'Child 2']
 
 
-        If we then create a second node, who has :code:`mother_node` as one of it's children, then the parent of :code:`mother_node` will be set to that node::
+        If we then create a second node, who has :code:`mother_node` as one of it's children,
+        then the parent of :code:`mother_node` will be set to that node::
 
             sage: sisternode = Node(['inputhere'])
             sage: mother_node.parent
@@ -160,10 +161,27 @@ class Node():
 
         If we try to pass an argument that isn't a dictionary or a list, an error is returned::
 
-            sage: grandmother_node = Node({'ActionA', ActionB'})
+            sage: grandmother_node = Node({'ActionA', 'ActionB'})
             Traceback (most recent call last):
             ...
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
+
+
+        If we try to create a game where a node is its own child/parent, an error is returned::
+            sage: false_node = Node([])
+            sage: false_node = Node({'Action1': child_1, 'Action2': false_node})
+            Traceback (most recent call last):
+            ...
+            AttributeError: Node cannot have itself as a child or parent.
+
+        If at any point a node is created such that their parent is also their child, an error is returned::
+
+            sage: false_node = Node({'Action1': child_1, 'Action2': child_2})
+            sage: child_1 = Node({'A': false_node, 'B': mother_node})
+            Traceback (most recent call last):
+            ...
+            AttributeError: Node parent cannot also be a child of that Node.
+
         """
 
         self.player = player
@@ -173,7 +191,6 @@ class Node():
 
         self.children = False
         self.parent = False
-
         if type(argument) is dict:
             self.actions = argument.keys()
             self.children = argument.values()
@@ -181,8 +198,12 @@ class Node():
                 child.parent = self
 
             for i in range(len(self.children)):
-                (self.children)[i] = (self.children)[i].name
-            
+                if (self.children)[i] is self:
+                    raise AttributeError("Node cannot have itself as a child or parent.")
+                if (self.children)[i] is self.parent:
+                    raise AttributeError("Node parent cannot also be a child of that Node.")
+                (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which wcould take up a lot of space
+
 
         elif type(argument) is list:
             self.actions = argument
@@ -191,7 +212,6 @@ class Node():
         else:
             raise TypeError("Node must be passed an argument in the form of a dictionary or a list.")
             
-
 
     def __repr__(self):
 
@@ -208,14 +228,28 @@ class Node():
             sage: laura_1.attributes
             The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False.
         """
+        print "The Node has the following attribues. Actions: %s. Children: %s. Parent: %s. Player: %s" %(self.actions, self.children, self.parent. self.player)
 
     def _is_complete(self):
         """
+            If we create a node where their children aren't specified and no parent is set, the node is considered incomplete::
             sage: b = Node(['Action1', 'Action2'])
-            sage: b.is_complete()
+            sage: b._is_complete == True
             False
-        """
 
+
+            However, when we do specify all those attributes, the node is then considered complete::
+            sage: player1 = Player('Player 1')
+            sage: player2 = Player('Player 2')
+            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
+            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0}, 'Child 2')
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
+            sage: sisternode = Node(['inputhere'])
+            sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
+            sage: mother_node._is_complete()
+            True
+        """
+        return all([self.parent , self.actions, self.children])
 
     def to_root():
         """
@@ -245,7 +279,7 @@ class Node():
 
         If the node is connected to a set of nodes that have a Root associated with them, an error is returned::
 
-            sage: helen_1 = Root((['inputhere'])
+            sage: helen_1 = Root(['inputhere'])
             sage: helen_2 = Root(['inputhere'])
             sage: jill_1 = Node({'A': helen_1, 'B': helen_2})
             sage: jill_1.to_root
@@ -284,7 +318,7 @@ class Node():
 
 
 class Leaf():
-    def __init__(self, dict, name = False):
+    def __init__(self, argument, name = False):
         """
         We can check payoffs of any leaf.
             sage: player_1 = Player('player 1')
@@ -297,7 +331,7 @@ class Leaf():
             sage: leaf_1.payoffs[player_2]
             1
         """
-        self.payoffs = dict
+        self.payoffs = argument
         self.name = name
 
 
