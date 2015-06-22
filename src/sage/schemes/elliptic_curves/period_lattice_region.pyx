@@ -370,7 +370,7 @@ cdef class PeriodicRegion:
         m, n = self.data.shape
         return self.data[int(m * i), int(n * j)]
 
-    def __div__(self, unsigned int n):
+    def __truediv__(self, unsigned int n):
         """
         Returns a new region of the same resolution that is the image
         of this region under the map z -> z/n.
@@ -445,6 +445,9 @@ cdef class PeriodicRegion:
                         for b in range(n):
                             new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
         return PeriodicRegion(self.w1, self.w2, new_data)
+
+    def __div__(self, other):
+        return PeriodicRegion.__truediv__(self, other)
 
     def __invert__(self):
         """

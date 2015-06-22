@@ -237,7 +237,7 @@ cdef class ntl_zz_p:
         zz_p_mul(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
-    def __div__(ntl_zz_p self, other):
+    def __truediv__(ntl_zz_p self, other):
         """
         EXAMPLES:
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
@@ -254,6 +254,9 @@ cdef class ntl_zz_p:
         zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
         sig_off()
         return q
+
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __pow__(ntl_zz_p self, long n, ignored):
         """

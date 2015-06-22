@@ -321,7 +321,7 @@ cdef class ntl_zz_pX:
         sig_off()
         return y
 
-    def __div__(ntl_zz_pX self, other):
+    def __truediv__(ntl_zz_pX self, other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -358,6 +358,9 @@ cdef class ntl_zz_pX:
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return q
+
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __mod__(ntl_zz_pX self, other):
         """

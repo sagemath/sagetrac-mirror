@@ -257,7 +257,7 @@ cdef class ntl_GF2E:
         GF2E_add(r.x, self.x, (<ntl_GF2E>other).x)
         return r
 
-    def __div__(ntl_GF2E self, other):
+    def __truediv__(ntl_GF2E self, other):
         """
         EXAMPLES:
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
@@ -273,6 +273,9 @@ cdef class ntl_GF2E:
         r = self._new()
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
+
+    def __div__(self, other):
+        return PyNumber_TrueDivide(self, other)
 
     def __neg__(ntl_GF2E self):
         """
