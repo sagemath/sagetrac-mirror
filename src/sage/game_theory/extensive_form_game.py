@@ -117,27 +117,24 @@ class Node():
 
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}); child_2 = Leaf({'Player 1': 1, 'Player 2': 0})
-            sage: mothernode = Node({'Action1': child_1, 'Action2': child_2})
+            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
+            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0})
+            sage: mothernode = Node({'Action1': child_1, 'Action2': child_2}, 'Child 2')
             sage: mothernode.actions
             ['Action1', 'Action2']
             sage: mothernode.children
-            [child_1, child_2]
+            ['Child 1', 'Child 2']
+
 
         If we then create a second node, who has :code:`mothernode` as one of it's children, then the parent of :code:`mothernode` will be set to that node::
 
             sage: sisternode = Node({'inputhere'})
             sage: mothernode.parent
             False
-            sage: grandmothernode = Node({'ActionA':mothernode, 'ActionB':sisternode})
-            sage: mothernode.parent
-            grandmothernode
-
-        We can also set names for the Node, which will then be returned instead::
-
             sage: grandmothernode = Node({'ActionA':mothernode, 'ActionB':sisternode}, 'Node A')
             sage: mothernode.parent
             An extensive form game node - Node A
+
 
         Nodes can also be created without specifying children or parents by just passing the list of actions.
         This so that that nodes can be passed via a Tree Sage graph object to the extensive form game class::
@@ -162,16 +159,22 @@ class Node():
         if type(argument) is dict:
             self.actions = argument.keys()
             self.children = argument.values()
+            for i in range(len(self.children())):
+                (self.children)[i] = (self.children)[i].name
             for child in self.children:
                 child.parent = self
 
         elif type(argument) is list:
             self.actions = argument
 
+
         else:
             # ERROR
+            pass
+
 
     def __repr__(self):
+
         s = 'An extensive form game node'
         if self.name:
             s += ' - ' + str(self.name)
@@ -303,7 +306,7 @@ class Player():
         """
         We can use Player() to assign players to nodes::
             sage: jack_1 = Node({0, 1})
-            sage: jack_1.name(Player('Jack'))
+            sage: jack_1.player = (Player('Jack'))
             sage: jack_1.player
             'Jack'
 
