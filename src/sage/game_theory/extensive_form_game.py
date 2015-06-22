@@ -5,7 +5,7 @@ This file will contain a class for extensive form games.
 class ExtensiveFormGame():
     """
     """
-    def __init__(self, gamestructure, name = False):
+    def __init__(self, argument , name = False):
         """
         ExtensiveFormGame can take input in the form of a Root::
 
@@ -62,7 +62,14 @@ class ExtensiveFormGame():
             ValueError: Graph inputted is empty.
 
         """
+    """
+    This is only here because I was getting my thoughts out, it probably won't be used much
+    if type(argument) is Node:
+        argument.is_root == True
+        argument.parent == False
+        for i in range len(argument.children):  # I need some sort of loop? 
 
+    """
     def set_info_set(nodes):
         """
         We can assign information set to  a set of nodes::
@@ -123,7 +130,7 @@ class ExtensiveFormGame():
 
 
 class Node():
-    def __init__(self, argument, name = False, player = False):
+    def __init__(self, argument, name = False, player = False, is_root = False):
         """
         Node input will be in a dictionary format, consisting of the actions and the children of that node::
 
@@ -190,25 +197,32 @@ class Node():
         self.actions = False
 
         self.children = False
+
         self.parent = False
+
+        self.is_root = False
+
         if type(argument) is dict:
             self.actions = argument.keys()
             self.children = argument.values()
             for child in self.children:
                 child.parent = self
 
-            for i in range(len(self.children)):
-                if (self.children)[i] is self:
+            for i in range(len(self.children)): 
+                (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which could take up a lot of space
+                """
+                This is the code I was thinking of using, it doesn't work here, nor does it work at all, but it has the vague idea.
+                It corresponds to the last two tests on the Node function. I think it might not work because I need to work more with __repr__ on leaf and root?
+                if ((self.children)[i]) is self.name:
                     raise AttributeError("Node cannot have itself as a child or parent.")
-                if (self.children)[i] is self.parent:
-                    raise AttributeError("Node parent cannot also be a child of that Node.")
-                (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which wcould take up a lot of space
-
+                if ((self.children)[i]) is self.parent:
+                    raise AttributeError("Node parent cannot also be a child of that Node.")  
+                # Note: probably could be worded better
+                """
 
         elif type(argument) is list:
             self.actions = argument
 
-        
         else:
             raise TypeError("Node must be passed an argument in the form of a dictionary or a list.")
             
@@ -228,7 +242,7 @@ class Node():
             sage: laura_1.attributes
             The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False.
         """
-        print "The Node has the following attribues. Actions: %s. Children: %s. Parent: %s. Player: %s" %(self.actions, self.children, self.parent. self.player)
+        return "The Node has the following attribues. Actions: %s. Children: %s. Parent: %s. Player: %s" %(self.actions, self.children, self.parent. self.player)
 
     def _is_complete(self):
         """
@@ -288,9 +302,7 @@ class Node():
             AttributeError: Extensive Form Game cannot have two Roots
         """
 
-        Root()
-
-
+        
     def to_leaf(payoffs):
         """
         A node can also be changed into a leaf if it has no parents, children, or actions. (i.e it is a blank node)::
