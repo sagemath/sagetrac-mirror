@@ -683,10 +683,10 @@ cdef class Expression(CommutativeRingElement):
             /
         """
         from sympy import pretty, sympify
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         # FIXME:: when *sage* will use at least sympy >= 0.7.2
         # we could use a nice splitting with respect of the AsciiArt module.
-        # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
+        # from sage.typeset.ascii_art import AsciiArt, MAX_LENGTH ## for import
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
             s = pretty(sympify(self, evaluate=False), use_unicode=False)
@@ -2032,6 +2032,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: el = -1/2*(2*x^2 - sqrt(2*x - 1)*sqrt(2*x + 1) - 1)
             sage: el.is_polynomial(x)
+            False
+
+        Check that negative exponents are handled (:trac:`15304`)::
+
+            sage: y = var('y')
+            sage: (y/x).is_polynomial(x)
             False
         """
         cdef Expression symbol0 = self.coerce_in(var)
@@ -3824,7 +3830,7 @@ cdef class Expression(CommutativeRingElement):
             (n + 1)/q^n
             sage: var('s')
             s
-            sage: zeta(s).residue(s == 1) # not tested - #15846
+            sage: zeta(s).residue(s == 1)
             1
 
         TESTS::
@@ -10084,7 +10090,7 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x) # not tested - output depends on system
+            sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x)  # random
             [[0 < y, y < x, 0 < x]]
             [[y < x, 0 < y]]
 
@@ -10952,7 +10958,7 @@ cdef class Expression(CommutativeRingElement):
         Use Giac to perform this summation::
 
             sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional - giac
-            (e^(2*pi) + 1)*pi/((e^pi - 1)*(e^pi + 1))
+            pi*(e^(2*pi) + 1)/((e^pi + 1)*(e^pi - 1))
 
         Use Maple as a backend for summation::
 
