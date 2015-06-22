@@ -8,6 +8,8 @@ class ExtensiveFormGame():
     def __init__(self, gamestructure, name = False):
         """
         ExtensiveFormGame can take input in the form of a Root::
+
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: leaf_1 = Leaf({'Player 1': 0, 'Player 2': 1}); leaf_2 = Leaf({'Player 1': 1, 'Player 2': 0}); leaf_3 = Leaf({'Player 1': 2, 'Player 2': 4}); leaf_4 = ({'Player 1': 2, 'Player 2': 1})
@@ -61,7 +63,7 @@ class ExtensiveFormGame():
     def set_info_set(nodes):
         """
         We can assign information set to  a set of nodes::
-            
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: leaf_1 = Leaf({'Player 1': 0, 'Player 2': 1}); leaf_2 = Leaf({'Player 1': 1, 'Player 2': 0}); leaf_3 = Leaf({'Player 1': 2, 'Player 2': 4}); leaf_4 = ({'Player 1': 2, 'Player 2': 1})
@@ -75,7 +77,7 @@ class ExtensiveFormGame():
 
 
         If two nodes don't have the same actions, an error is returned::
-            
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
@@ -90,7 +92,7 @@ class ExtensiveFormGame():
 
 
         If two nodes have different players, an error is returned::
-            
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: leaf_1 = Leaf({'Player 1': 0, 'Player 2': 1}); leaf_2 = Leaf({'Player 1': 1, 'Player 2': 0}); leaf_3 = Leaf({'Player 1': 2, 'Player 2': 4}); leaf_4 = ({'Player 1': 2, 'Player 2': 1})
@@ -109,10 +111,10 @@ class ExtensiveFormGame():
 
 
 class Node():
-    def __init__(self, input, name = 'False', player_name = 'False'):
+    def __init__(self, argument, name = False, player = False):
         """
         Node input will be in a dictionary format, consisting of the actions and the children of that node::
-        
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}); child_2 = Leaf({'Player 1': 1, 'Player 2': 0})
@@ -122,9 +124,8 @@ class Node():
             sage: mothernode.children
             [child_1, child_2]
 
-
         If we then create a second node, who has :code:`mothernode` as one of it's children, then the parent of :code:`mothernode` will be set to that node::
-        
+
             sage: sisternode = Node({'inputhere'})
             sage: mothernode.parent
             False
@@ -132,50 +133,71 @@ class Node():
             sage: mothernode.parent
             grandmothernode
 
-
         We can also set names for the Node, which will then be returned instead::
-        
+
             sage: grandmothernode = Node({'ActionA':mothernode, 'ActionB':sisternode}, 'Node A')
             sage: mothernode.parent
-            Node A
+            An extensive form game node - Node A
 
-        Node input can only be in dictionary form.
+        Nodes can also be created without specifying children or parents by just passing the list of actions.
+        This so that that nodes can be passed via a Tree Sage graph object to the extensive form game class::
 
-            sage: falsenode = Node(['Fight', 'Flight'])
-            Traceback (most recent call last):
-            ...
-            TypeError: Node can only have its input in dictionary form.
+            sage: grandmother_node = Node(['ActionA', 'ActionB'])
+            sage: grandmother_node.children
+            False
+            sage: grandmother_node.parent
+            False
 
 
+        Need to test error of input!
         """
-        self.player_name = False
+        self.player = player
+        self.name = name
+
         self.actions = False
+
         self.children = False
-        if type(input) == dict:
-            self.actions = input.keys()
-            self.children = input.values()
-        if type(input) == set:
-            self.actions = list(input)
-        
-    def player(self, Player):
-        """        
-        
-        """
-        self.player_name = Player.player  
+        self.parent = False
+
+        if type(argument) is dict:
+            self.actions = argument.keys()
+            self.children = argument.values()
+            for child in self.children:
+                child.parent = self
+
+        elif type(argument) is list:
+            self.actions = argument
+
+        else:
+            # ERROR
+
+    def __repr__(self):
+        s = 'An extensive form game node'
+        if self.name:
+            s += ' - ' + str(self.name)
+        return s
+
     def attributes():
         """
         We can use this function to check the attributes of each singular node, the following is what would happen if no attibutes are assigned::
-           
+
             sage: laura_1 = Node({'inputhere'})
-            sage: laura_1.attributes 
-            The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False. 
+            sage: laura_1.attributes
+            The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False.
         """
 
-    
+    def _is_complete(self):
+        """
+            sage: b = Node(['Action1', 'Action2'])
+            sage: b.is_complete()
+            False
+        """
+
+
     def to_root():
         """
         If a node has no parents, and a Root node hasn't been set, a node can become a Root node::
-        
+
             sage: andy_1 = Node({'inputhere'})
             sage: type(andy_1) is Node
             True
@@ -187,9 +209,8 @@ class Node():
             sage: type(andy_1) is Node
             False
 
-
         If the node has parents, an error message will be returned::
-        
+
             sage: andy_1 = Node({'inputhere'})
             sage: andy_2 = Node({'inputhere'})
             sage: dave_1 = Node({'A': andy_1, 'B': andy_2})
@@ -200,7 +221,7 @@ class Node():
 
 
         If the node is connected to a set of nodes that have a Root associated with them, an error is returned::
-           
+
             sage: helen_1 = Root({'input'})
             sage: helen_2 = Root({'input'})
             sage: jill_1 = Node({'A': helen_1, 'B': helen_2})
@@ -209,6 +230,8 @@ class Node():
             ...
             AttributeError: Extensive Form Game cannot have two Roots
         """
+
+        Root()
 
 
     def to_leaf(payoffs):
@@ -246,23 +269,27 @@ class Leaf():
             sage: leaf_1 = Leaf({'player 1': 0, 'player 2': 1})
             sage: leaf_1.payoffs
             {'player 1': 0, 'player 2': 1}
+            sage: leaf_1.payoffs[player_1]
+            0
+            sage: leaf_1.payoffs[player_2]
+            1
         """
         self.payoffs = dict
-        
+
 
 
 class Root(Node):
     """
     A Root is just another type of node, so we can get attributes, however :code:`parent` will always be :code:`False`.. Attempting to add a parent will return an error::
-        
+
         sage: jess_1 = Node({'Green', 'Yellow'}); jess_2 = Node({'Green', 'Yellow'}); jess_3 = Node({'Green', 'Yellow'})
         sage: bethan_1 = Root({'Red': jess_1, 'Blue': jess_2})
         sage: bethan_1.attribues
         some output of attributes specific to bethan_1
-    
+
 
     We cannot have more than one Root in a game, so if we try to connect a second Root to a connected set of nodes that already have a Root, an error will be displayed::
-        
+
         sage: jess_1 = Node({'Green', 'Yellow'}); jess_2 = Node({'Green', 'Yellow'}); jess_3 = Node({'Green', 'Yellow'})
         sage: bonnie_1 = Root({'Black': jess_1, 'White': jess_3})
         Traceback (most recent call last):
@@ -272,24 +299,24 @@ class Root(Node):
 
 
 class Player():
-    def __init__(self, player):
+    def __init__(self, name):
         """
         We can use Player() to assign players to nodes::
             sage: jack_1 = Node({0, 1})
-            sage: jack_1.player(Player('Jack'))
-            sage: jack_1.player_name
+            sage: jack_1.name(Player('Jack'))
+            sage: jack_1.player
             'Jack'
 
 
         If a node is not specificed a player, then this should return false::
             sage: sam_1 = Node({0, 1})
-            sage: sam_1.player_name
+            sage: sam_1.player
             False
 
 
         We can create players and assign them names::
             sage: ben_player = Player('Benjamin')
-            sage: ben_player.player
+            sage: ben_player.name
             'Benjamin'
         """
-        self.player = player
+        self.name = name
