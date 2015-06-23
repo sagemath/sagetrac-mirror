@@ -199,15 +199,15 @@ class Node():
             s += ' - ' + str(self.name)
         return s
 
-    def attributes():
+    def attributes(self):
         """
         We can use this function to check the attributes of each singular node, the following is what would happen if no attibutes are assigned::
 
             sage: laura_1 = Node(['inputhere'])
-            sage: laura_1.attributes
-            The node has the following attributes. Actions: False. Children: False. Parent: False. Player: False.
+            sage: laura_1.attributes()
+            "The Node has the following attributes. Actions: ['inputhere']. Children: False. Parent: False. Player: False."
         """
-        return "The Node has the following attribues. Actions: %s. Children: %s. Parent: %s. Player: %s" %(self.actions, self.children, self.parent. self.player)
+        return "The Node has the following attributes. Actions: %s. Children: %s. Parent: %s. Player: %s." %(self.actions, self.children, self.parent, self.player)
 
     def _is_complete(self):
         """
