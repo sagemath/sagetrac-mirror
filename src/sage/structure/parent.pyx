@@ -2713,11 +2713,12 @@ cdef class Parent(category_object.CategoryObject):
 
         .. NOTE::
 
-            If a parent implements :meth:`_get_action_` then it has precedence
-            over an implementation obtained from the category framework.
-            However, if :meth:`_get_action_` returns None, then
-            ``self.category().parent_class._get_action_`` has a chance to give
-            a better answer.
+            If there are several super-classes of the class of self that
+            implement :meth:`_get_action_`, then all of them are called,
+            until one of them does not return None. If all return None,
+            then all parent classes of super-categories of self's category
+            are asked for the output of `_get_action_ . Again, if one of
+            them does not return None, then it will establish the action.
 
         TESTS::
 
@@ -2743,7 +2744,9 @@ cdef class Parent(category_object.CategoryObject):
             ....:     def _add_(self, other):
             ....:         return self.parent()(self.l+other.l)
             ....:     def concat(self, L):
-            ....:         return self.parent()(self.l+L)
+            ....:         lL = list(self.l)
+            ....:         lL.extend(L)
+            ....:         return self.parent()(lL)
             sage: class MyParent(Parent):
             ....:     Element = MyList
 
@@ -2770,7 +2773,7 @@ cdef class Parent(category_object.CategoryObject):
             ....:     def _call_(self, g, a):
             ....:         return g.concat(a)
 
-        Finally, we define a category that declares the above action to
+        Now, we define a category that declares the above action to
         be used for our wrapper, provided that the parent of the wrapper
         belongs to the new category::
 
@@ -2787,10 +2790,45 @@ cdef class Parent(category_object.CategoryObject):
             sage: l2*[4,5]
             <[1, 2, 4, 5]>
 
+        We have no left multiplication on, say, tuples::
+
+            sage: l2*(4,5)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'MyParent_with_category.element_class' object cannot be interpreted as an index
+
+        Therefore, we define a parent sub-class and a sub-category, implementing
+        actions for other types of iterables::
+
+            sage: class MyNewParent(MyParent):
+            ....:     def _get_action_(self, S, op, self_on_left):
+            ....:         if S is tuple and op==operator.mul and self_on_left:
+            ....:             return ConcatAction(self, S)
+            sage: class MyNewLists(Category):
+            ....:     def super_categories(self):
+            ....:         return [MyLists()]
+            ....:     class ParentMethods:
+            ....:         def _get_action_(self, S, op, self_on_left):
+            ....:             if S is set and op==operator.mul and self_on_left:
+            ....:                 return ConcatAction(self, S)
+            sage: P3 = MyNewParent(category=MyNewLists())
+            sage: l3 = P3([1,2])
+
+        Since the presence of an action is tested along the MRO and along
+        the hierarchy of categories, we now have actions both for lists,
+        tuples and sets:
+
+            sage: l3*[3,4]
+            <[1, 2, 3, 4]>
+            sage: l3*(3,4)
+            <[1, 2, 3, 4]>
+            sage: l3*set([3,4])
+            <[1, 2, 3, 4]>
+
         Since we have defined our action from the left, the action from the
         right is of course still not available::
 
-            sage: [4,5]*l2
+            sage: [4,5]*l3
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '*': '<type 'list'>' and '<class '__main__.MyParent_with_category'>'
@@ -2802,19 +2840,19 @@ cdef class Parent(category_object.CategoryObject):
         except KeyError:
             pass
 
-        action = self._get_action_(S, op, self_on_left)
+        for cls in self.__class__.mro():
+            if '_get_action_' in cls.__dict__:
+                action = cls._get_action_(self, S, op, self_on_left)
+                if action is not None:
+                    break
         if action is None:
             PC = self.category().parent_class
-            if isinstance(self, PC):
-                try:
-                    action = super(Parent, self)._get_action_(S, op, self_on_left)
-                except AttributeError:
-                    pass
-            else:
-                try:
-                    action = getattr_from_other_class(self, PC, "_get_action_")(S, op, self_on_left)
-                except AttributeError:
-                    pass
+            if not isinstance(self, PC):
+                for cls in PC.mro():
+                    if '_get_action_' in cls.__dict__:
+                        action = getattr_from_other_class(self, cls, "_get_action_")(S, op, self_on_left)
+                        if action is not None:
+                            break
         if action is None:
             action = self.discover_action(S, op, self_on_left, self_el, S_el)
 
