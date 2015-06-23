@@ -170,24 +170,6 @@ class Node():
             Traceback (most recent call last):
             ...
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
-
-
-        If we try to create a game where a node is its own child/parent, an error is returned::
-
-            sage: false_node = Node([])
-            sage: false_node = Node({'Action1': child_1, 'Action2': false_node})
-            Traceback (most recent call last):
-            ...
-            AttributeError: Node cannot have itself as a child or parent.
-
-        If at any point a node is created such that their parent is also their child, an error is returned::
-
-            sage: false_node = Node({'Action1': child_1, 'Action2': child_2})
-            sage: child_1 = Node({'A': false_node, 'B': mother_node})
-            Traceback (most recent call last):
-            ...
-            AttributeError: Node parent cannot also be a child of that Node.
-
         """
 
         self.player = player
@@ -203,18 +185,6 @@ class Node():
             self.children = argument.values()
             for child in self.children:
                 child.parent = self
-
-            #for i in range(len(self.children)):
-            #    (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which could take up a lot of space
-            #    """
-            #    This is the code I was thinking of using, it doesn't work here, nor does it work at all, but it has the vague idea.
-            #    It corresponds to the last two tests on the Node function. I think it might not work because I need to work more with __repr__ on leaf and root?
-            #    if ((self.children)[i]) is self.name:
-            #        raise AttributeError("Node cannot have itself as a child or parent.")
-            #    if ((self.children)[i]) is self.parent:
-            #        raise AttributeError("Node parent cannot also be a child of that Node.")
-            #    # Note: probably could be worded better
-                #"""
 
         elif type(argument) is list:
             self.actions = argument
