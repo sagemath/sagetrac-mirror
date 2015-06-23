@@ -40,6 +40,8 @@ from sage.modular.modsym.element import ModularSymbolsElement
 
 import hecke_operator
 
+from sage.modular.periods.periods import PeriodMapping as PeriodMapping_other
+
 from sage.misc.cachefunc import cached_method
 
 def is_ModularSymbolsSpace(x):
@@ -182,7 +184,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         TESTS:
 
-        Verify that Trac #12772 is fixed::
+        Verify that :trac:`12772` is fixed::
 
             sage: M = ModularSymbols(1,12,sign=1).cuspidal_subspace().new_subspace()
             sage: A = M.decomposition()[0]
@@ -1891,6 +1893,33 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             NotImplementedError
         """
         raise NotImplementedError
+
+    def period_mapping(self, prec):
+        """
+        Return the period mapping associated to this modular symbols space.
+
+        The modular symbols space must correspond to a newform.
+
+        The period mapping is given as complex numbers with double precision.
+
+        The period mapping is computed using ``prec`` terms of the q-expansion.
+
+        INPUT:
+
+        - ``prec`` -- positive integer
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,sign=0)[1]
+            sage: phi = M.period_mapping(100); phi
+            Period mapping associated to Modular Symbols subspace
+            of dimension 2 of Modular Symbols space of dimension 3
+            for Gamma_0(11) of weight 2 with sign 0
+            over Rational Field computed to precision 100
+            sage: phi(M.gen(0))
+            (-0.6346... + 1.4588...*I)
+        """
+        return PeriodMapping_other(self, prec)
 
     def abelian_variety(self):
         """
