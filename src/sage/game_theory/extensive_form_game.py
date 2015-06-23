@@ -170,6 +170,22 @@ class Node():
             Traceback (most recent call last):
             ...
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
+
+            sage: grandmother_node = Node('This is a string')
+            Traceback (most recent call last):
+            ...
+            TypeError: Node must be passed an argument in the form of a dictionary or a list.
+
+            sage: grandmother_node = Node(matrix([[1, 1], [1, 1]]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Node must be passed an argument in the form of a dictionary or a list.
+
+            sage: sisternode = Node(['inputhere'])
+            sage: grandmother_node = Node(sisternode)
+            Traceback (most recent call last):
+            ...
+            TypeError: Node must be passed an argument in the form of a dictionary or a list.
         """
 
         self.player = player
