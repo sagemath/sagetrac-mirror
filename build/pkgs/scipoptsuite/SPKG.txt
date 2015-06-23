@@ -20,7 +20,8 @@ http://scip.zib.de/academic.txt
 
 == SPKG Maintainers ==
 
-* Martin Albrecht
+* Martin Albrecht (original spkg)
+* Matthias Koeppe (updates for new spkg style)
 
 == Upstream Contact ==
 
@@ -30,6 +31,8 @@ http://scip.zib.de/doc/html/AUTHORS.shtml
 
 == Special Update/Build Instructions ==
 
-We do not have permission to redistribute SCIP or SoPlex. Hence, you must
-download it yourself from http://scip.zib.de and place the SCIP and SoPlex
-gzipped tarballs (.tgz) in $SAGE_ROOT/upstream
+We do not have permission to redistribute SCIP or SoPlex. Hence, you
+must download it yourself from http://scip.zib.de and take the tarball
+scipoptsuite-VERSION.tar (the SCIP server actually seems to gives you
+the unzipped version!), gzip it and make sure it's called
+scipoptsuite-VERSION.tar.gz in $SAGE_ROOT/upstream

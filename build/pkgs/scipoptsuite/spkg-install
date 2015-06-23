@@ -21,10 +21,10 @@ fi
 
 OS=`uname -s | tr '[:upper:]' '[:lower:]'`
 
-SOPLEX_TARBALL=`find $SAGE_ROOT/upstream -name "soplex-*.tgz"`
+SOPLEX_TARBALL=`find . -name "soplex-*.tgz"`
 
 if [ -z $SOPLEX_TARBALL ]; then
-    echo "Could not find SoPlex tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/upstream"
+    echo "Could not find SoPlex tarball in the scipoptsuite tarball.  Something is wrong."
     exit 1;
 fi
 
@@ -40,10 +40,10 @@ SOPLEX_DIR=`find . -name "soplex-*" -type d`
 SOPLEX_DIR=`basename $SOPLEX_DIR`
 SOPLEX_VERSION=`echo "$SOPLEX_DIR" | sed -e "s/.*-//"`
 
-SCIP_TARBALL=`find $SAGE_ROOT/upstream -name "scip-*.tgz"`
+SCIP_TARBALL=`find . -name "scip-*.tgz"`
 
 if [ -z $SCIP_TARBALL ]; then
-    echo "Could not find SCIP tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/upstream"
+    echo "Could not find SCIP tarball in the scipoptsuite tarball.  Something is wrong."
     exit 1;
 fi
 
