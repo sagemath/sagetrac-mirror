@@ -2711,13 +2711,13 @@ cdef class Parent(category_object.CategoryObject):
 
         To provide additional actions, override :meth:`_get_action_`.
 
-        NOTE:
+        .. NOTE::
 
-        If a parent implements :meth:`_get_action_` then it has precedence
-        over an implementation obtained from the category framework.
-        However, if :meth:`_get_action_` returns None, then
-        ``self.category().parent_class._get_action_`` has a chance to give
-        a better answer.
+            If a parent implements :meth:`_get_action_` then it has precedence
+            over an implementation obtained from the category framework.
+            However, if :meth:`_get_action_` returns None, then
+            ``self.category().parent_class._get_action_`` has a chance to give
+            a better answer.
 
         TESTS::
 
