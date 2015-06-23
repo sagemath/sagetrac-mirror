@@ -44,6 +44,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: T.<t> = ZZ[]
             sage: R(t + 2)
             (1 + O(13^7))*t + (2 + O(13^7))
+
+        Check that :trac:`13620` has been fixed::
+
+            sage: f = R.zero()
+            sage: R(f.dict())
+            0
+
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         parentbr = parent.base_ring()
@@ -97,8 +104,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 x = [parentbr(a) for a in x.list()]
                 check = False
         elif isinstance(x, dict):
-            zero = parentbr.zero_element()
-            n = max(x.keys())
+            zero = parentbr.zero()
+            n = max(x.keys()) if x else 0
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
                 v[i] = z
@@ -113,7 +120,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         # In contrast to other polynomials, the zero element is not distinguished
         # by having its list empty. Instead, it has list [0]
         if not x:
-            x = [parentbr.zero_element()]
+            x = [parentbr.zero()]
         if check:
             x = [parentbr(z) for z in x]
 
@@ -346,7 +353,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             2 + O(2^11)
         """
         if self.base_ring().is_field():
-            raise TypeError, "ground ring is a field.  Answer is only defined up to units."
+            raise TypeError("ground ring is a field.  Answer is only defined up to units.")
         if self._normalized:
             return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:
@@ -677,9 +684,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         n = int(n)
         value = self.base_ring()(value)
         if self.is_gen():
-            raise ValueError, "cannot modify generator"
+            raise ValueError("cannot modify generator")
         if n < 0:
-            raise IndexError, "n must be >= 0"
+            raise IndexError("n must be >= 0")
         if self._valbase is infinity:
             if value._is_exact_zero():
                 return
@@ -904,16 +911,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: K = Zp(13, 5)
             sage: R.<t> = K[]
             sage: f = t^3 + K(13, 3) * t
-            sage: f.rescale(2)    # todo: not tested -- in fact, is broken!
+            sage: f.rescale(2)  # not implemented
         """
         negval = False
         try:
             a = self.base_ring()(a)
-        except ValueError, msg:
+        except ValueError as msg:
             if msg == "element has negative valuation.":
                 negval = True
             else:
-                raise ValueError, msg
+                raise ValueError(msg)
         if negval:
             return self.parent().base_extend(self.base_ring().fraction_field())(self).rescale(a)
         if self.base_ring().is_field() and a.valuation() < 0:
@@ -943,7 +950,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         f = self.base_extend(K)
         g = right.base_extend(K)
         if g == 0:
-            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+            raise ZeroDivisionError("cannot divide by a polynomial indistinguishable from 0")
         x = f.parent().gen()
         quo = f.parent()(0)
         while f.degree() >= g.degree():
@@ -989,13 +996,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: R.<x> = Qp(3,3)[]
             sage: f = 3*x + 7
             sage: g = 5*x + 9
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^2))*x^2 + (O(3))*x + (1 + O(3^3)), (3^-2 + 2*3^-1 + O(3))*x, (3^-2 + 3^-1 + O(3)))
+            sage: f.xgcd(f*g)  # known bug
             ((3 + O(3^4))*x + (1 + 2*3 + O(3^3)), (1 + O(3^3)), 0)
 
             sage: R.<x> = Qp(3)[]
             sage: f = 490473657*x + 257392844/729
             sage: g = 225227399/59049*x - 8669753175
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^18))*x^2 + (O(3^9))*x + (1 + O(3^20)), (3^-5 + 2*3^-1 + 3 + 2*3^2 + 3^4 + 2*3^6 + 3^7 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + O(3^15))*x, (3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 3^13 + 2*3^14 + 3^17 + 3^18 + 3^20 + 3^21 + 3^23 + 2*3^24 + O(3^25)))
+            sage: f.xgcd(f*g)  # known bug
             ((3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 2*3^10 + 2*3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^18 + O(3^23))*x + (2*3^-6 + 2*3^-5 + 3^-3 + 2*3^-2 + 3^-1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + O(3^14)), (1 + O(3^20)), 0)
 
         """
@@ -1050,7 +1057,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             ...
             PrecisionError: The coefficient of t^4 has not enough precision
 
-        TESTS:
+        TESTS::
 
             sage: (5*f).newton_polygon()
             Finite Newton polygon with 4 vertices: (0, 2), (1, 1), (4, 1), (10, 3)
@@ -1128,11 +1135,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         """
         self._normalize()
         if self._valbase < 0:
-            raise ValueError, "Polynomial does not have integral coefficients"
+            raise ValueError("Polynomial does not have integral coefficients")
         elif self._valbase > 0:
-            raise ValueError, "Factorization of the zero polynomial not defined"
+            raise ValueError("Factorization of the zero polynomial not defined")
         elif min(self._relprecs) <= 0:
-            raise PrecisionError, "Polynomial is not known to high enough precision"
+            raise PrecisionError("Polynomial is not known to high enough precision")
         return self._poly.factor_mod(self.base_ring().prime())
 
 def _extend_by_infinity(L, n):
@@ -1142,4 +1149,4 @@ def make_padic_poly(parent, x, version):
     if version == 0:
         return parent(x, construct = True)
     else:
-        raise ValueError, "unknown pickling version"
+        raise ValueError("unknown pickling version")

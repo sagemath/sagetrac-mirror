@@ -17,7 +17,8 @@ Interface to mwrank
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, weakref
+import os
+import weakref
 from expect import Expect
 
 instances={}
@@ -123,12 +124,12 @@ def validate_mwrank_input(s):
     if isinstance(s,(list,tuple)):
         from sage.rings.all import ZZ
         if len(s)!=5:
-            raise ValueError, "%s is not valid input to mwrank (should have 5 entries)" % s
+            raise ValueError("%s is not valid input to mwrank (should have 5 entries)" % s)
         try:
             ai = [ZZ(a) for a in s]
             return str(ai)
         except (TypeError,ValueError):
-            raise ValueError, "%s is not valid input to mwrank (entries should be integers)" % s
+            raise ValueError("%s is not valid input to mwrank (entries should be integers)" % s)
 
     if isinstance(s,str):
         if AINVS_PLAIN_RE.match(s):
@@ -137,7 +138,7 @@ def validate_mwrank_input(s):
         ss = s.replace(' ','').replace('\n','').replace('\t','')
         if AINVS_LIST_RE.match(ss):
             return ss
-    raise ValueError, "%s is not valid input to mwrank" % s
+    raise ValueError("%s is not valid input to mwrank" % s)
 
 class Mwrank_class(Expect):
     """
@@ -178,7 +179,7 @@ class Mwrank_class(Expect):
             sage: from sage.interfaces.mwrank import Mwrank_class
             sage: M = Mwrank_class('-v 0 -l')
             sage: M('0 -1 1 0 0')
-            'Curve [0,-1,1,0,0] :\tRank = 0\n\n\nRegulator = 1\n'
+            'Curve [0,-1,1,0,0] :...Rank = 0...Regulator = 1...'
 
             sage: from sage.interfaces.mwrank import Mwrank_class
             sage: TestSuite(Mwrank_class).run()
@@ -231,7 +232,7 @@ class Mwrank_class(Expect):
         The input can be five integers separated by whitespace::
 
             sage: mwrank('0 -1 1 0 0')
-            'Curve [0,-1,1,0,0] :\tBasic pair: I=16, J=-304\n...'
+            'Curve [0,-1,1,0,0] :...Basic pair: I=16, J=-304...'
 
         Or a list or tuple of exactly five integers::
 
@@ -263,13 +264,13 @@ class Mwrank_class(Expect):
         try:
             s = validate_mwrank_input(cmd)
         except ValueError as err:
-            raise ValueError, "Invalid input: %s" % err
+            raise ValueError("Invalid input: %s" % err)
         try:
             return self.eval(s)
         except ValueError as err:
-            raise ValueError, err
+            raise ValueError(err)
         except RuntimeError:
-            raise ValueError, cmd
+            raise ValueError(cmd)
 
     def eval(self, s, **kwds):
         """
@@ -316,9 +317,9 @@ class Mwrank_class(Expect):
             ss = validate_mwrank_input(s)
             return Expect.eval(self, ss, **kwds)
         except ValueError as err:
-            raise ValueError, 'Invalid input: %s' % err
+            raise ValueError('Invalid input: %s' % err)
         except RuntimeError:
-            raise ValueError, 'Invalid input (%s) to mwrank (singular curve)' % s
+            raise ValueError('Invalid input (%s) to mwrank (singular curve)' % s)
 
     def console(self):
         """
@@ -331,27 +332,6 @@ class Mwrank_class(Expect):
 
         """
         mwrank_console()
-
-    def quit(self, verbose=False):
-        """
-        Quit the mwrank process using kill -9 (so exit doesn't dump core, etc.).
-
-        INPUT:
-
-        - ``verbose`` -- ignored
-
-        EXAMPLES::
-
-            sage: m = Mwrank()
-            sage: e = m('1 2 3 4 5')
-            sage: m.quit()
-        """
-        if self._expect is None: return
-        try:
-            os.kill(self._expect.pid, 9)
-        except OSError:
-            pass
-        self._expect = None
 
 
 # An instance
@@ -369,7 +349,7 @@ def _reduce_load_mwrank():
     """
     return mwrank
 
-import os
+
 def mwrank_console():
     """
     Start the mwrank console.

@@ -18,6 +18,7 @@ AUTHORS:
 
 from sage.numerical.mip import MIPSolverException
 
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cdef class GLPKBackend(GenericBackend):
@@ -386,6 +387,8 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x,y = p[0], p[1]
+            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
+            See http://trac.sagemath.org/15521 for details.
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
             sage: p.set_objective(x + y + 7)
@@ -805,6 +808,8 @@ cdef class GLPKBackend(GenericBackend):
         The user can ask sage to solve via ``simplex`` or ``intopt``.
         The default solver is ``intopt``, so we get integer solutions.
 
+        EXAMPLE::
+
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
@@ -819,6 +824,8 @@ cdef class GLPKBackend(GenericBackend):
             [1.0, 1.0]
 
         If we switch to ``simplex``, we get continuous solutions.
+
+        EXAMPLE::
 
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
             sage: lp.solve()
@@ -880,7 +887,7 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5
@@ -910,7 +917,7 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5
@@ -1908,6 +1915,94 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
+    cpdef int get_row_stat(self, int i):
+        """
+        Retrieve the status of a constraint.
+
+        INPUT:
+
+        - ``i`` -- The index of the constraint
+        
+        OUTPUT:
+        
+        - Returns current status assigned to the auxiliary variable associated with i-th row:
+        
+            * GLP_BS = 1     basic variable
+            * GLP_NL = 2     non-basic variable on lower bound
+            * GLP_NU = 3     non-basic variable on upper bound
+            * GLP_NF = 4     non-basic free (unbounded) variable
+            * GLP_NS = 5     non-basic fixed variable
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_row_stat(0)
+            1
+            sage: lp.get_row_stat(1)
+            3
+            sage: lp.get_row_stat(-1)
+            Exception ValueError: ...
+            0
+        """
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+        return glp_get_row_stat(self.lp, i+1)
+
+    cpdef int get_col_stat(self, int j):
+        """
+        Retrieve the status of a variable.
+        
+        INPUT:
+
+        - ``j`` -- The index of the variable
+        
+        OUTPUT:
+
+        - Returns current status assigned to the structural variable associated with j-th column:
+        
+            * GLP_BS = 1     basic variable
+            * GLP_NL = 2     non-basic variable on lower bound
+            * GLP_NU = 3     non-basic variable on upper bound
+            * GLP_NF = 4     non-basic free (unbounded) variable
+            * GLP_NS = 5     non-basic fixed variable
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_col_stat(0)
+            1
+            sage: lp.get_col_stat(1)
+            2
+            sage: lp.get_col_stat(-1)
+            Exception ValueError: ...
+            0
+        """
+        if j < 0 or j >= glp_get_num_cols(self.lp):
+            raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
+
+        return glp_get_col_stat(self.lp, j+1)
 
     def __dealloc__(self):
         """
