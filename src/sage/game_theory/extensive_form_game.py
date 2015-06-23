@@ -228,12 +228,13 @@ class Node():
     def _is_complete(self):
         """
             If we create a node where their children aren't specified and no parent is set, the node is considered incomplete::
+
             sage: b = Node(['Action1', 'Action2'])
             sage: b._is_complete == True
             False
 
-
             However, when we do specify all those attributes, the node is then considered complete::
+
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
             sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
@@ -243,6 +244,26 @@ class Node():
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
             sage: mother_node._is_complete()
             True
+
+            sage: player1 = Player('Player 1')
+            sage: player2 = Player('Player 2')
+            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
+            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0}, 'Child 2')
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
+            sage: sisternode = Node(['inputhere'])
+            sage: mother_node._is_complete()
+            False
+
+            sage: player1 = Player('Player 1')
+            sage: player2 = Player('Player 2')
+            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
+            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0}, 'Child 2')
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
+            sage: mother_node.children = False
+            sage: sisternode = Node(['inputhere'])
+            sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
+            sage: mother_node._is_complete()
+            False
         """
         return all([self.parent , self.actions, self.children])
 
@@ -393,5 +414,4 @@ class Player():
 
 
     def __repr__(self):
-
         return self.name
