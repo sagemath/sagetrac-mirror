@@ -2711,12 +2711,89 @@ cdef class Parent(category_object.CategoryObject):
 
         To provide additional actions, override :meth:`_get_action_`.
 
+        NOTE:
+
+        If a parent implements :meth:`_get_action_` then it has precedence
+        over an implementation obtained from the category framework.
+        However, if :meth:`_get_action_` returns None, then
+        ``self.category().parent_class._get_action_` has a chance to give
+        a better answer.
+
         TESTS::
 
             sage: M = QQ['y']^3
             sage: M.get_action(ZZ['x']['y'])
             Right scalar multiplication by Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring on Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field
             sage: M.get_action(ZZ['x']) # should be None
+
+        Demonstrate that the category can provide an action (see
+        :trac:`18756`). First, we define a list wrapper as a
+        :class:`~sage.structure.elements.ModuleElement`, since that
+        provides a generic :meth:`object.__mul__` method using SageMath's
+        coercion model. We implement addition by concatenation, and
+        we define a concatenation of our wrapper with a list::
+
+            sage: from sage.structure.element import ModuleElement
+            sage: class MyList(ModuleElement):
+            ....:     def __init__(self, P, l):
+            ....:         ModuleElement.__init__(self, P)
+            ....:         self.l = l
+            ....:     def _repr_(self):
+            ....:         return "<{}>".format(self.l)
+            ....:     def _add_(self, other):
+            ....:         return self.parent()(self.l+other.l)
+            ....:     def concat(self, L):
+            ....:         return self.parent()(self.l+L)
+            sage: class MyParent(Parent):
+            ....:     Element = MyList
+
+        Addition works, multiplication with a list does of course not work::
+
+            sage: P1 = MyParent(category=Sets())
+            sage: l1 = P1([1,2]); l1
+            <[1, 2]>
+            sage: l1+l1
+            <[1, 2, 1, 2]>
+            sage: l1*[3,4]
+            Traceback (most recent call last):
+            ...
+            TypeError: 'MyParent_with_category.element_class' object cannot be interpreted as an index
+
+        Now we define an action that will be used for multiplying our
+        wrappers with proper lists.
+
+            sage: from sage.categories.action import Action
+            sage: class ConcatAction(Action):
+            ....:     def __init__(self, G, S):
+            ....:         # Implement g*a for g in G and a in S
+            ....:         Action.__init__(self, G, S, True, operator.mul)
+            ....:     def _call_(self, g, a):
+            ....:         return g.concat(a)
+
+        Finally, we define a category that declares the above action to
+        be used for our wrapper, provided that the parent of the wrapper
+        belongs to the new category::
+
+            sage: class MyLists(Category):
+            ....:     def super_categories(self):
+            ....:         return [Sets()]
+            ....:     class ParentMethods:
+            ....:         def _get_action_(self, S, op, self_on_left):
+            ....:             if S is list and op==operator.mul and self_on_left:
+            ....:                 return ConcatAction(self, S)
+            sage: P2 = MyParent(category=MyLists())
+            sage: l2 = P2([1,2]); l2
+            <[1, 2]>
+            sage: l2*[4,5]
+            <[1, 2, 4, 5]>
+
+        Since we have defined our action from the left, the action from the
+        right is of course still not available::
+
+            sage: [4,5]*l2
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': '<type 'list'>' and '<class '__main__.MyParent_with_category'>'
         """
         try:
             if self._action_hash is None: # this is because parent.__init__() does not always get called
@@ -2726,6 +2803,18 @@ cdef class Parent(category_object.CategoryObject):
             pass
 
         action = self._get_action_(S, op, self_on_left)
+        if action is None:
+            PC = self.category().parent_class
+            if isinstance(self, PC):
+                try:
+                    action = super(Parent, self)._get_action_(S, op, self_on_left)
+                except AttributeError:
+                    pass
+            else:
+                try:
+                    action = getattr_from_other_class(self, PC, "_get_action_")(S, op, self_on_left)
+                except AttributeError:
+                    pass
         if action is None:
             action = self.discover_action(S, op, self_on_left, self_el, S_el)
 
