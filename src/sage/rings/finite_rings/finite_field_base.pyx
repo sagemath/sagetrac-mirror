@@ -1554,6 +1554,162 @@ cdef class FiniteField(Field):
             db.append(sum([col[i] * basis[i] for i in range(self.degree())]))
         return db
 
+    def base_matrix_to_polynomial(self, matrix, var='x'):
+        r"""
+        Returns a polynomial in ``var`` over `\GF{p^n}` which under evaluation
+        behaves identically to the linear function of `(\GF{p})^n` defined by
+        ``matrix``.
+
+        INPUT:
+
+        - ``matrix`` -- An `n \times n` matrix with entries from `\GF{p}`.
+
+        - ``var`` -- (default: 'x') The variable for the returned polynomial.
+          Can either be a string or an indeterminate of a PolynomialRing
+          over `\GF{p^n}`.
+
+        OUTPUT:
+
+        - A polynomial `\varphi` over `\GF{p^n}` in the indeterminate ``var``
+          such that `\varphi(\alpha) =` ``matrix`` `\cdot \, \alpha` for all
+          `\alpha \in \GF{p^n}`. Note that for simplicity, the correlation
+          between elements of `\GF{p^n}` and `(\GF{p})^n` is implicit here and
+          that we can convert between them in Sage by using ``F(el)`` and
+          ``V(el)``, where ``V = F.vector_space()``.
+
+        ALGORITHM:
+
+        Theorem A.4.3 of [DR02]_ demonstrates the relationship between
+        linear functions of `\GF{p^n}` and `(\GF{p})^n` and describes how to
+        convert between the two.
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(5^4)
+            sage: A = matrix(GF(5), [[1,0,3,2],[2,3,0,0],[3,3,4,1],[1,3,2,1]])
+            sage: P.<x> = PolynomialRing(F)
+            sage: poly = F.base_matrix_to_polynomial(A, x)
+            sage: poly
+            (4*a^3 + 2*a^2 + 2*a + 2)*x^125 +
+            (a^3 + 3*a^2 + 3*a + 4)*x^25 +
+            4*a*x^5 +
+            (a^3 + 3*a^2 + 3*a)*x
+
+        We can test that the returned polynomial behaves like the linear
+        function defined by ``matrix``. ::
+
+            sage: el = 3*a^3 + 4*a^2 + 3*a + 3
+            sage: V = F.vector_space()
+            sage: F(A * V(el)) == poly.subs(x = el)
+            True
+
+        We can also pass a string in as ``var`` and the returned polynomial
+        will use the variable named in the string. ::
+
+            sage: F.base_matrix_to_polynomial(A, 'myVar')
+            (4*a^3 + 2*a^2 + 2*a + 2)*myVar^125 +
+            (a^3 + 3*a^2 + 3*a + 4)*myVar^25 +
+            4*a*myVar^5 +
+            (a^3 + 3*a^2 + 3*a)*myVar
+
+        Here we build a polynomial representing the affine transformation step
+        of SubBytes in the AES cipher. We first build the polynomial, then
+        print the coefficients in the same hex style as in [DR02]_. Note that
+        because [DR02]_ orders the coefficients of elements of `\GF{2^8}` in
+        the reverse of Sage, we use the transpose of the matrix `A` below to
+        get the same polynomial found in [DR02]_. ::
+
+            sage: z = polygen(Integers(2))
+            sage: F.<a> = GF(2^8, modulus=z^8 + z^4 + z^3 + z + 1)
+            sage: row = [F.one()]*5 + [F.zero()]*3
+            sage: A = matrix(GF(2), [row[-i:] + row[:-i] for i in range(8)]); A
+            [1 1 1 1 1 0 0 0]
+            [0 1 1 1 1 1 0 0]
+            [0 0 1 1 1 1 1 0]
+            [0 0 0 1 1 1 1 1]
+            [1 0 0 0 1 1 1 1]
+            [1 1 0 0 0 1 1 1]
+            [1 1 1 0 0 0 1 1]
+            [1 1 1 1 0 0 0 1]
+            sage: constant = F([1,1,0,0,0,1,1,0])
+            sage: subbytes = F.base_matrix_to_polynomial(A.transpose(), 'x')
+            sage: subbytes += constant
+            sage: subbytes
+            (a^7 + a^3 + a^2 + a + 1)*x^128 +
+            (a^7 + a^5 + a^4 + a^2 + 1)*x^64 +
+            x^32 +
+            (a^7 + a^6 + a^5 + a^4 + a^2)*x^16 +
+            (a^5 + a^2 + 1)*x^8 +
+            (a^7 + a^6 + a^5 + a^4 + a^3 + 1)*x^4 +
+            (a^3 + 1)*x^2 +
+            (a^2 + 1)*x +
+            a^6 + a^5 + a + 1
+            sage: V = F.vector_space()
+            sage: [hex(int(''.join(map(str, V(c)[::-1])),2))[2:].zfill(2)
+            ....: for c in subbytes.coefficients()]
+            ['63', '05', '09', 'f9', '25', 'f4', '01', 'b5', '8f']
+
+        TESTS::
+
+            sage: F.<a> = GF(2^4)
+            sage: F.base_matrix_to_polynomial('x', 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: keyword 'matrix' must be a (4, 4) matrix over a Finite Field of size 2
+            sage: F.base_matrix_to_polynomial(matrix.random(GF(2), 3, 3), 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: keyword 'matrix' must be a (4, 4) matrix over a Finite Field of size 2
+            sage: F.base_matrix_to_polynomial(matrix.random(GF(3), 4, 4), 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: keyword 'matrix' must be a (4, 4) matrix over a Finite Field of size 2
+            sage: P.<x> = GF(7)[]
+            sage: F.base_matrix_to_polynomial(matrix.random(GF(2), 4, 4), x)
+            Traceback (most recent call last):
+            ...
+            TypeError: keyword 'var' must be a string or an indeterminate over Finite Field in a of size 2^4
+
+        REFERENCES:
+
+        .. [DR02] Joan Daemen, Vincent Rijmen. The Design of Rijndael.
+           Springer-Verlag Berlin Heidelberg, 2002. 187.
+
+        AUTHOR:
+
+        - Thomas Gagne (2015-07-18)
+        """
+        p, n = self.characteristic(), self.degree()
+        from sage.structure.element import Matrix
+        if not isinstance(matrix, Matrix) or \
+           not matrix.dimensions() == (n, n) or \
+           not all([matrix[i,j] in self.base_ring()
+                    for i in range(n) for j in range(n)]):
+            msg = "keyword 'matrix' must be a {0} matrix over a {1}"
+            raise TypeError(msg.format((n,n), self.base_ring()))
+        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if not isinstance(var, basestring) and \
+           not (is_PolynomialRing(var.parent()) and \
+                var.parent().base().is_field() and \
+                var.parent().base().is_finite() and \
+                var.parent().base().order() == self.order()):
+            msg = "keyword 'var' must be a string or an indeterminate over {0}"
+            raise TypeError(msg.format(self))
+        indeterminate = PolynomialRing(self, var).gen()
+
+        basis = [self.gen()**i for i in range(n)]
+        dual = self.dual_basis()
+        coeffs = []
+        for t in range(n):
+            components = []
+            for j in range(n):
+                for i in range(n):
+                    comp = matrix[i,j] * (dual[j] ** (p ** t)) * basis[i]
+                    components.append(comp)
+            coeffs.append(sum(components))
+        return sum([coeffs[t] * indeterminate**(p ** t) for t in range(n)])
+
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     r"""
     Used to unpickle extensions of finite fields. Now superseded (hence no
