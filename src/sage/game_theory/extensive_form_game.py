@@ -67,7 +67,7 @@ class ExtensiveFormGame():
     if type(argument) is Node:
         argument.is_root == True
         argument.parent == False
-        for i in range len(argument.children):  # I need some sort of loop? 
+        for i in range len(argument.children):  # I need some sort of loop?
 
     """
     def set_info_set(nodes):
@@ -136,16 +136,16 @@ class Node():
 
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({'Player 1': 0, 'Player 2': 1}, 'Child 1')
-            sage: child_2 = Leaf({'Player 1': 1, 'Player 2': 0}, 'Child 2')
-            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Child 2')
+            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Mother')
             sage: mother_node.actions
             ['Action1', 'Action2']
             sage: mother_node.children
-            ['Child 1', 'Child 2']
+            [An extensive form game leaf - Child 1,
+             An extensive form game leaf - Child 2]
 
-
-        If we then create a second node, who has :code:`mother_node` as one of it's children,
+        If we then create a second node, who has :code:`mother_node` as one of its children,
         then the parent of :code:`mother_node` will be set to that node::
 
             sage: sisternode = Node(['inputhere'])
@@ -155,9 +155,8 @@ class Node():
             sage: mother_node.parent
             An extensive form game node - Node A
 
-
         Nodes can also be created without specifying children or parents by just passing the list of actions.
-        This so that that nodes can be passed via a Tree Sage graph object to the extensive form game class::
+        This so that nodes can be passed via a tree Sage Graph object to the extensive form game class::
 
             sage: grandmother_node = Node(['ActionA', 'ActionB'])
             sage: grandmother_node.children
@@ -165,16 +164,16 @@ class Node():
             sage: grandmother_node.parent
             False
 
-
         If we try to pass an argument that isn't a dictionary or a list, an error is returned::
 
-            sage: grandmother_node = Node({'ActionA', 'ActionB'})
+            sage: grandmother_node = Node(5)
             Traceback (most recent call last):
             ...
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
 
 
         If we try to create a game where a node is its own child/parent, an error is returned::
+
             sage: false_node = Node([])
             sage: false_node = Node({'Action1': child_1, 'Action2': false_node})
             Traceback (most recent call last):
@@ -195,11 +194,8 @@ class Node():
         self.name = name
 
         self.actions = False
-
         self.children = False
-
         self.parent = False
-
         self.is_root = False
 
         if type(argument) is dict:
@@ -208,24 +204,23 @@ class Node():
             for child in self.children:
                 child.parent = self
 
-            for i in range(len(self.children)): 
-                (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which could take up a lot of space
-                """
-                This is the code I was thinking of using, it doesn't work here, nor does it work at all, but it has the vague idea.
-                It corresponds to the last two tests on the Node function. I think it might not work because I need to work more with __repr__ on leaf and root?
-                if ((self.children)[i]) is self.name:
-                    raise AttributeError("Node cannot have itself as a child or parent.")
-                if ((self.children)[i]) is self.parent:
-                    raise AttributeError("Node parent cannot also be a child of that Node.")  
-                # Note: probably could be worded better
-                """
+            #for i in range(len(self.children)):
+            #    (self.children)[i] = (self.children)[i].name  # Stops the list becoming [Extensive Form Node - Namehere, ...] which could take up a lot of space
+            #    """
+            #    This is the code I was thinking of using, it doesn't work here, nor does it work at all, but it has the vague idea.
+            #    It corresponds to the last two tests on the Node function. I think it might not work because I need to work more with __repr__ on leaf and root?
+            #    if ((self.children)[i]) is self.name:
+            #        raise AttributeError("Node cannot have itself as a child or parent.")
+            #    if ((self.children)[i]) is self.parent:
+            #        raise AttributeError("Node parent cannot also be a child of that Node.")
+            #    # Note: probably could be worded better
+                #"""
 
         elif type(argument) is list:
             self.actions = argument
 
         else:
             raise TypeError("Node must be passed an argument in the form of a dictionary or a list.")
-            
 
     def __repr__(self):
 
@@ -302,7 +297,7 @@ class Node():
             AttributeError: Extensive Form Game cannot have two Roots
         """
 
-        
+
     def to_leaf(payoffs):
         """
         A node can also be changed into a leaf if it has no parents, children, or actions. (i.e it is a blank node)::
@@ -345,6 +340,22 @@ class Leaf():
         """
         self.payoffs = argument
         self.name = name
+
+    def __repr__(self):
+        """
+        Representation method for the leaf::
+
+            sage: player_1 = Player('player 1')
+            sage: player_2 = Player('player 2')
+            sage: leaf_1 = Leaf({'player 1': 0, 'player 2': 1}, 'end_leaf')
+            sage: leaf_1
+            An extensive form game leaf - end_leaf
+        """
+
+        s = 'An extensive form game leaf'
+        if self.name:
+            s += ' - ' + str(self.name)
+        return s
 
 
 class Root(Node):
