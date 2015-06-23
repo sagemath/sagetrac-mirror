@@ -2717,8 +2717,9 @@ cdef class Parent(category_object.CategoryObject):
             implement :meth:`_get_action_`, then all of them are called,
             until one of them does not return None. If all return None,
             then all parent classes of super-categories of self's category
-            are asked for the output of `_get_action_ . Again, if one of
-            them does not return None, then it will establish the action.
+            are asked for the output of :meth:`_get_action_`. Again, if
+            one of them does not return None, then it will establish the
+            action.
 
         TESTS::
 
