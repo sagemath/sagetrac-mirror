@@ -44,7 +44,7 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
 
         sage: M = ModularSymbols(11,sign=0)[1]
         sage: coefs = [complex(u) for u in M.q_expansion_basis()[0].list()]
-        sage: period_integral(1,3,4,-3,15,-11, coefs)
+        sage: period_integral(1,3,4,-3,15,-11, coefs)  # abs tol 1e-12
         (0.7647546611823091-0.034437644328508155j)
     """
     X, Y = ZZ['X,Y'].gens()
@@ -107,7 +107,7 @@ class PeriodMapping(object):
         sage: A = ModularSymbols(Gamma1(3),weight=13,sign=0)
         sage: M = A.cuspidal_submodule().decomposition()[0]
         sage: f = M.period_mapping(100)
-        sage: A = M.ambient(); [f(A([i,0,oo]))[0] for i in range(12)]
+        sage: A = M.ambient(); [f(A([i,0,oo]))[0] for i in range(12)]  # abs tol 1e-10
         [27.9280923271, 5.33567468252*I, -1.12953617856, -0.271724173647*I,
         0.0784400124002, 0.0301915748497*I, -0.0174311138667,
         -0.0150957874248*I, 0.0174311138667, 0.0241532598797*I,
@@ -244,7 +244,7 @@ class PeriodMapping(object):
             sage: M = A.cuspidal_submodule().decomposition()[0]
             sage: PM = M.period_mapping(99)  # indirect doctest
             sage: x = M.an_element()
-            sage: PM(x)
+            sage: PM(x)  # abs tol 1e-10
             (0.19238885665085426 + 0.056774608645438374*I)
         """
         return self._A(x).element() * self._period_matrix
