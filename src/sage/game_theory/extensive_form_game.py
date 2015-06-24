@@ -1,7 +1,11 @@
 """
 This file will contain a class for extensive form games.
 """
-
+from sage.graphs.all     import *
+from sage.structure.sage_object import SageObject
+from sage.plot.graphics      import show_default, Graphics
+import networkx
+from sage.graphs.generic_graph import GenericGraph
 class ExtensiveFormGame():
     def __init__(self, argument , name = False):
         """
@@ -18,23 +22,31 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.tree
+            sage: type(egame_1.tree)
+            Some tree here
             sage: egame_1.nodes
-            Nodes within game are ...
+            [An extensive form game node - Root 1, An extensive form game node - Node 2, An extensive form game node - Node 1]
             sage: egame_1.players
-            Players within game are ...
-            sage: egame_1.gamestructure
-            Some long spiel about how the nodes are connected and such? Not sure
+            [False, False, False]
 
         Or it can take a Graph object, so long as it is a tree::
 
+            sage: player1 = Player('Player 1')
+            sage: player2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
             sage: tree_1 = Graph({root_1:[node_1, node_2], node_1:[leaf_1, leaf_2], node_2:[leaf_3, leaf_4]})
             sage: egame_2 = ExtensiveFormGame(tree_1)
             sage: egame_2.nodes
-            Nodes within game are ...
+            [An extensive form game node - Root 1, An extensive form game node - Node 2, An extensive form game node - Node 1]
             sage: egame_2.players
-            Players within game are ...
-            sage: egame_2.gamestructure
-            Some long spiel about how the nodes are connected and such? Not sure
+            [False, False, False]
+
 
         In the above examples, the two games created should be equal::
 
@@ -43,8 +55,17 @@ class ExtensiveFormGame():
 
         If we input either a Graph that is not a tree, an error is returned::
 
-            sage: tree_2 = Graph({I'll have to find an example and put it here})
-            sage: egame_2 = ExtensiveFormGame(tree_1)
+            sage: player1 = Player('Player 1')
+            sage: player2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
+            sage: tree_2 = Graph({root_1: [node_1, node_2], node_1:[leaf_1, node_2], node_2:[leaf_3, leaf_4]})
+            sage: egame_2 = ExtensiveFormGame(tree_2)
             Traceback (most recent call last):
             ...
             TypeError: Graph inputted is not a tree.
@@ -59,13 +80,32 @@ class ExtensiveFormGame():
         """
         self.nodes = []
         self.info_sets = []
-        if isinstance(argument, Node):  # Fix use James's suggestion
+        if isinstance(argument, Node):
             self.tree_root = argument
             self.tree = self.grow_tree()
             self.nodes = (self.grow_tree_dictionary()).keys()
             self.players = []
             for i in self.nodes:
                 self.players.append(i.player)
+        self.keycheck = {}
+        if isinstance(argument, Graph):
+            if argument.is_tree is False:
+                raise TypeError("Graph inputted is not a tree.")
+            dictionary = argument.to_dictionary()
+            if dictionary == {}:
+                raise ValueError("Graph inputted is empty.")
+            nodelist = dictionary.keys()
+            for i in nodelist:
+                if isinstance(i, Node):
+                    for child in i.children:
+                        if isinstance(child, Node) or isinstance(child, Leaf):
+                            i.children = dictionary[i]
+                        else:
+                            raise TypeError("Nodes in tree must be connected to either leaves or other nodes.")
+                else:
+                    pass
+                    #raise TypeError("Tree keys must be Nodes.")
+            self.keycheck = dictionary
 
     def set_info_set(self, nodelist):
         """
@@ -146,12 +186,20 @@ class ExtensiveFormGame():
 
     def grow_tree(self):
         d = self.grow_tree_dictionary()
-        #t = Graph(d)
-        return d
-        #if t.is_tree():
-        #    pass
-        #else:
-        #    raise TypeError("Graph isn't tree")
+        t = Graph(d)
+        if t.is_tree():
+            return t
+        else:
+           raise TypeError("Graph isn't tree")
+
+    def plot_tree(self):
+        keylist = []
+        t = self.grow_tree()
+        for i in self.nodes:
+            keylist = i.argument.keys()
+            for j in keylist:
+                t.set_edge_label(i, i.argument[j], j)
+        t.show(layout='tree',tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
 
     def grow_tree_dictionary(self):
         to_check = [self.tree_root]  # Put the one node we have in a list of things we need to check
@@ -168,8 +216,8 @@ class ExtensiveFormGame():
         # The above does not include the root
         d[self.tree_root] = self.tree_root.children  # The above does not actually include the original root so we need to include it
         return d
-        
-        
+
+
 class Node():
     def __init__(self, argument, name = False, player = False, is_root = False):
         """
