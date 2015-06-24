@@ -9,14 +9,15 @@ class ExtensiveFormGame():
 
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1 : 0, player2: 1})
-            sage: leaf_2 = Leaf({player1 : 1, player2: 0})
-            sage: leaf_3 = Leaf({player1 : 2, player2: 4})
-            sage: leaf_4 = Leaf({player1 : 2, player2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
-            sage: root_1 = Node({'C': node_1, 'D': node_2})
+            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
             sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.tree
             sage: egame_1.nodes
             Nodes within game are ...
             sage: egame_1.players
@@ -56,12 +57,17 @@ class ExtensiveFormGame():
             ...
             ValueError: Graph inputted is empty.
         """
-
-        if type(argument) is Node:  # Fix use James's suggestion
+        self.nodes = []
+        self.info_sets = []
+        if isinstance(argument, Node):  # Fix use James's suggestion
             self.tree_root = argument
-            self.tree = self.grow_tree(self.tree_root)
+            self.tree = self.grow_tree()
+            self.nodes = (self.grow_tree_dictionary()).keys()
+            self.players = []
+            for i in self.nodes:
+                self.players.append(i.player)
 
-    def set_info_set(nodes):
+    def set_info_set(self, nodelist):
         """
         We can assign information set to  a set of nodes::
 
@@ -71,30 +77,32 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player1: 1, player2: 0})
             sage: leaf_3 = Leaf({player1: 2, player2: 4})
             sage: leaf_4 = Leaf({player1: 2, player2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
             sage: root_1 = Node({'C': node_1, 'D': node_2})
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
-            sage: egame_1.set_info_set
-            [node_1, node_2]
+            sage: egame_1.info_sets
+            [[An extensive form game node - Node 1, An extensive form game node - Node 2]]
 
         If two nodes don't have the same actions, an error is returned::
 
             sage: player1 = Player('Player 1')
             sage: player2 = Player('Player 2')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
-            sage: node_2 = Node({'DifferentA': leaf_3, 'B': leaf_4})
             sage: leaf_1 = Leaf({player1: 0, player2: 1})
             sage: leaf_2 = Leaf({player1: 1, player2: 0})
             sage: leaf_3 = Leaf({player1: 2, player2: 4})
-            sage: leaf_4 = ({player1: 2, player2: 1})
+            sage: leaf_4 = Leaf({player1: 2, player2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
+            sage: node_2 = Node({'DifferentA': leaf_3, 'B': leaf_4})
+            sage: node_1.player = player1
+            sage: node_2.player = player1
             sage: root_1 = Node({'C': node_1, 'D': node_2})
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
-            AttributeError: All nodes in the same information set must have the same actions
+            AttributeError: All nodes in the same information set must have the same actions.
 
         If two nodes have different players, an error is returned::
 
@@ -103,7 +111,7 @@ class ExtensiveFormGame():
             sage: leaf_1 = Leaf({player1: 0, player2: 1})
             sage: leaf_2 = Leaf({player1: 1, player2: 0})
             sage: leaf_3 = Leaf({player1: 2, player2: 4})
-            sage: leaf_4 = ({player1: 2, player2: 1})
+            sage: leaf_4 = Leaf({player1: 2, player2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
             sage: node_1.player = player1
@@ -115,21 +123,53 @@ class ExtensiveFormGame():
             ...
             AttributeError: All nodes in the same information set must have the same players.
         """
+        j = 1
+        previousplayer = True
+        for i in nodelist:
+            if i.player == previousplayer:
+                j += 1
+            previousplayer = i.player
+        if j is not len(nodelist):
+            raise AttributeError("All nodes in the same information set must have the same players.")
 
-    def grow_tree(self, tree_root):
-        d = self.grow_tree_dictionary(tree_root)
-        t = Graph(d)
-        if t.is_tree():
-            return t
-        return 'Oh no!'
-        return 'Oh no!'
+        j = 1
 
-    def grow_tree_dictionary(self, tree_root):
-        This is hard
-        This is hard
-        return tree_dictionary
+        previousactions = []
+        for i in nodelist:
+            if i.actions == previousactions:
+                j += 1
+            previousactions = i.actions
+        if j is not len(nodelist):
+            raise AttributeError("All nodes in the same information set must have the same actions.")
 
+        self.info_sets.append(nodelist)
 
+    def grow_tree(self):
+        d = self.grow_tree_dictionary()
+        #t = Graph(d)
+        return d
+        #if t.is_tree():
+        #    pass
+        #else:
+        #    raise TypeError("Graph isn't tree")
+
+    def grow_tree_dictionary(self):
+        to_check = [self.tree_root]  # Put the one node we have in a list of things we need to check
+        checked = []  # A list of nodes that we have checked
+        while to_check:  # A while loop to keep going until there is nothing left in the `to_check` list
+            checking = to_check.pop()  # The pop command returns the node AND removes it from the list
+            for child in checking.children:  # Loop through that node's children
+                if not isinstance(child, Leaf):  # If it's not a Leaf ...
+                    to_check.append(child)  # ... append it the the list of nodes we need to check
+                checked.append(child)  # Put the child in the list of checked nodes
+
+        # Create the dictionary
+        d = {node:node.children for node in checked if not isinstance(node, Leaf)}  # Build the dictionary mapping the leafs to their children
+        # The above does not include the root
+        d[self.tree_root] = self.tree_root.children  # The above does not actually include the original root so we need to include it
+        return d
+        
+        
 class Node():
     def __init__(self, argument, name = False, player = False, is_root = False):
         """
@@ -196,7 +236,7 @@ class Node():
             ...
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
         """
-
+        self.argument = argument
         self.player = player
         self.name = name
         self.actions = False
@@ -321,9 +361,11 @@ class Leaf():
         if type(argument) is not dict:
             raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as arguments.")
 
+        self.argument = argument
         self.payoffs = argument
         self.name = name
         self.players = argument.keys()
+        self.parent = False
 
         for player in self.players:
             if not isinstance(player, Player):
