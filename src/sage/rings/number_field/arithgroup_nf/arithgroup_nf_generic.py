@@ -541,7 +541,8 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
         If ``self`` has a reduce_cusp() method, use that; otherwise do a
         slow explicit test.
 
-        If trans = False, returns ``True`` or ``False``. If trans = True, then
+        If ``trans=False``, returns ``True`` or ``False``.
+        If ``trans=True``, then
         return either ``False`` or an element of ``self`` mapping x onto y.
 
         EXAMPLE::
@@ -583,7 +584,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def index(self, G=None):
         r"""
-        Return the index of ``self`` in G (default SL(2,O))
+        Return the index of ``self`` in `G` (default SL(2,O))
 
         EXAMPLES::
 
@@ -738,7 +739,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
     def gen(self, i):
         r"""
-        Return the i-th generator of ``self``, i.e. the i-th element of
+        Return the `i`-th generator of ``self``, i.e. the `i`-th element of
         the tuple self.gens().
 
         EXAMPLES::
@@ -835,7 +836,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
         INPUT:
 
-        - `k` - an integer (default 2).
+        - `k` -- an integer (default 2).
 
         EXAMPLES::
 
@@ -852,11 +853,11 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     def sturm_bound(self, weight=(2,)):
         r"""
         Return the Sturm bound for modular forms of the given weight and level
-        this subgroup.
+        for this subgroup.
 
         INPUT:
 
-        -  ``weight`` - an tuple of integers `\geq 2` (default: 2)
+        -  ``weight`` -- a tuple of integers `\geq 2` (default: (2,))
 
         EXAMPLES::
 
