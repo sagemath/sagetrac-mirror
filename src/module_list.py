@@ -1696,9 +1696,7 @@ ext_modules = [
     Extension('sage.rings.polynomial.groebner_basis_f4',
               sources = ['sage/rings/polynomial/groebner_basis_f4.pyx'],
               language="c++",
-              #libraries = ["f4", 'givaro', 'gmpxx', 'gmp'],
-              libraries = ["f4"],
-              depends = [SAGE_INC + "/libf4.h"]),
+              libraries = ["openf4"]),
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
