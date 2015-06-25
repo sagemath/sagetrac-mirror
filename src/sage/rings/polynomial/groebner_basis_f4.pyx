@@ -23,18 +23,17 @@ We compute a Groebner basis for some given ideal under the degrevlex ordering us
 
 TESTS::
 
-    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - f4
+    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - openf4
     sage: R.<a,b,c,d,e,f> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,6)
-    sage: B = groebner_basis_f4(I)  # optional - f4
+    sage: B = groebner_basis_f4(I)  # optional - openf4
 
-    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - f4
+    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - openf4
     sage: F.<t>=GF(2)[]
     sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
     sage: R.<x0,x1,x2,x3,x4,x5> = K[]
     sage: I = ideal((t+t^3)*x0+(t+t^3)*x1+(t+t^3)*x2+(t+t^3)*x3+(t+t^3)*x4+(t+t^3)*x5, (t+t^3)*x0*x1+(t+t^3)*x1*x2+(t+t^3)*x2*x3+(t+t^3)*x3*x4+(t+t^3)*x0*x5+(t+t^3)*x4*x5, (t+t^3)*x0*x1*x2+(t+t^3)*x1*x2*x3+(t+t^3)*x2*x3*x4+(t+t^3)*x0*x1*x5+(t+t^3)*x0*x4*x5+(t+t^3)*x3*x4*x5, (t+t^3)*x0*x1*x2*x3+(t+t^3)*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x5+(t+t^3)*x0*x1*x4*x5+(t+t^3)*x0*x3*x4*x5+(t+t^3)*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x3*x5+(t+t^3)*x0*x1*x2*x4*x5+(t+t^3)*x0*x1*x3*x4*x5+(t+t^3)*x0*x2*x3*x4*x5+(t+t^3)*x1*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4*x5-1)
-    sage: B = groebner_basis_f4(I)  # optional - f4
-
+    sage: B = groebner_basis_f4(I)  # optional - openf4
 
 """
 
@@ -58,9 +57,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-#include <Python.h>
-
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -69,7 +65,7 @@ from libc.stdint cimport int64_t
 include "sage/ext/interrupt.pxi"
 
 
-cdef extern from "libf4.h":
+cdef extern from "libopenf4.h":
     cdef vector[string] groebnerBasisF4(int64_t modulus,
                                         int nbVariable,
                                         vector[string] variableName,
@@ -97,12 +93,16 @@ def groebner_basis_f4(self, prot=0, threads=1):
         - prot - if ``True`` print protocol (default: ``False``)
         - threads - number of threads to use (default: 1)
 
+        OUTPUT:
+
+        - Polynomial Sequence corresponding to the reduced groebner basis.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - f4
             sage: R.<x1,x2,x3,x4,x5,x6> = Zmod(65521)[]
             sage: I = sage.rings.ideal.Cyclic(R,6)
-            sage: B = groebner_basis_f4(I) # optional - f4
+            sage: B = groebner_basis_f4(I) # optional - openf4
             sage: len(B)
             45
 
@@ -110,7 +110,7 @@ def groebner_basis_f4(self, prot=0, threads=1):
 
             sage: P = PolynomialRing(GF(next_prime(2^32)), 8, 'x')
             sage: I = sage.rings.ideal.Cyclic(P)
-            sage: gb0 = I.groebner_basis('f4') # optional - f4
+            sage: gb0 = I.groebner_basis('openf4') # optional - openf4
             Traceback (most recent call last):
             ...
             NotImplementedError: Prime field with characteristic > 2^32 are not handled in Sage for the moment

@@ -3415,9 +3415,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'ginv:TQ', 'ginv:TQBlockHigh', 'ginv:TQBlockLow' and 'ginv:TQDegree'
             One of GINV's implementations (if available)
 
-        'f4'
-            F4 algorithm,
-            works only with grevlex order,
+        'openf4'
+
+            F4 algorithm, works only with grevlex order,
             and for prime finite fields of characteristic < 2^32
             or binary field extensions of degree < 64.
 
@@ -3477,18 +3477,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('libsingular:slimgb')
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-    ::
+        ::
+
+        F4 is available through the optional openf4 package::
 
             sage: R.<a,b,c> = Zmod(65521)[]
             sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
-            sage: I.groebner_basis('f4')
-            [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
-
-        F4 is available through the optional f4 package::
-
-            sage: R.<a,b,c> = Zmod(65521)[]
-            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
-            sage: I.groebner_basis('f4', prot=True, threads=2) # optional - f4
+            sage: I.groebner_basis('openf4', prot=True, threads=2) # optional - openf4
             [c^3 + 24648*c^2 - 2184*b - 936*c, b^2 - 26209*c^2 + 13104*b - 13104*c, b*c - 13103*c^2 + 6552*b + 26208*c, a + 2*b + 2*c - 1]
 
         ::
@@ -3497,7 +3492,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
             sage: R.<x0,x1,x2> = K[]
             sage: I = ideal((t^31+t^3)*x0*x1+(t^31+t^3)*x0*x2, (t^29+t)*x0*x1+(t^28+t^3)*x1*x2, (t^27+t^23)*x0*x1*x2)
-            sage: I.groebner_basis('f4', prot=True, threads=2) # optional - f4
+            sage: I.groebner_basis('openf4', prot=True, threads=2) # optional - openf4
             [x1^2*x2, x1*x2^2, x0*x1 + (t^30 + t^5)*x1*x2, x0*x2 + (t^30 + t^5)*x1*x2]
 
 
@@ -3710,7 +3705,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
-        elif algorithm == 'f4':
+        elif algorithm == 'openf4':
             if get_verbose() >= 2:
                 prot = 1
             threads = 1
