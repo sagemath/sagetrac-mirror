@@ -34,6 +34,34 @@ class ExtensiveFormGame():
             sage: egame_1.plot()
             Graphics object consisting of 20 graphics primitives            
 
+        Temporary test for Node naming::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_a = Leaf({player_1 : 0, player_2: 1})
+            sage: leaf_b = Leaf({player_1 : 1, player_2: 0})
+            sage: leaf_c = Leaf({player_1 : 2, player_2: 4})
+            sage: leaf_d = Leaf({player_1 : 2, player_2: 1})
+            sage: node_a = Node({'A': leaf_a, 'B': leaf_b})
+            sage: node_b = Node({'A': leaf_c, 'B': leaf_d})
+            sage: node_a.player = player_2
+            sage: node_b.player = player_2
+            sage: root_a = Node({'C': node_a, 'D': node_b})
+            sage: root_a.player = player_1
+            sage: node_b.name
+            sage: egame_a = ExtensiveFormGame(root_a)
+            sage: egame_a.plot()
+            Graphics object consisting of 20 graphics primitives
+            sage: node_b.name
+            sage: node_a.name
+            sage: root_a.name
+            sage: leaf_a.name
+            sage: leaf_b.name
+            sage: leaf_c.name
+            sage: leaf_d.name
+            sage: egame_a.nodes
+            sage: egame_a.check     
+
         If the argument is a root, it needs children, actions and players::
 
             sage: false_root = Node({'C': node_1, 'D': node_2}, 'False Root')
@@ -98,7 +126,7 @@ class ExtensiveFormGame():
         """
         self.nodes = []
         self.info_sets = []
-        self.keycheck = {}
+        self.check = []
         
         if isinstance(argument, Node):
             if argument.actions is False:
@@ -229,6 +257,21 @@ class ExtensiveFormGame():
                         raise AttributeError("One or more of the Nodes in tree are not complete.")
                 checked.append(child)  # Put the child in the list of checked nodes
 
+        nodevalue = 1
+        for i in self.nodes:
+            self.check.append(i.name)
+            if i is self.tree_root and i.name is False:
+                i.name = "Tree Root"
+            if i.name is False:
+                i.name = "Node %i" %nodevalue
+                nodevalue += 1
+
+        leafvalue = 1
+        for i in checked:
+            if isinstance(i, Leaf) and i.name is False:
+                i.name = "Leaf %i" %leafvalue
+                leafvalue += 1
+
         # Create the dictionary
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}  # Build the dictionary mapping the leafs to their children
         # The above does not include the root
@@ -328,10 +371,7 @@ class Node():
         
     def __repr__(self):
 
-        s = 'An extensive form game node'
-        if self.name:
-            s += ' - ' + str(self.name)
-        return s
+        return self.name
 
     def attributes(self):
         """
