@@ -125,7 +125,6 @@ class ExtensiveFormGame():
 
         """
         self.nodes = []
-        self.info_sets = []
         self.check = []
         
         if isinstance(argument, Node):
@@ -140,6 +139,7 @@ class ExtensiveFormGame():
                 self.tree = self.grow_tree()
                 self.nodes = (self.grow_tree_dictionary()).keys()
                 self.players = []
+                self.info_sets = self.nodes
                 for i in self.nodes:
                     self.players.append(i.player)      
         else:
@@ -159,11 +159,13 @@ class ExtensiveFormGame():
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
             sage: node_1.player = player_2
             sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2})
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
             sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.info_sets
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
+            sage: egame_1.check
             [[An extensive form game node - Node 1, An extensive form game node - Node 2]]
 
         If two nodes don't have the same actions, an error is returned::
@@ -223,7 +225,13 @@ class ExtensiveFormGame():
             previousactions = i.actions
         if j is not len(nodelist):
             raise AttributeError("All nodes in the same information set must have the same actions.")
-
+        self.check = []
+        for i in self.info_sets:
+            self.check.append(i)
+            for j in nodelist:
+                self.check.append(j)
+                if i is j:
+                    self.info_sets.remove(j)
         self.info_sets.append(nodelist)
 
     def grow_tree(self):
@@ -370,8 +378,10 @@ class Node():
             raise TypeError("Node must be passed an argument in the form of a dictionary or a list.")
         
     def __repr__(self):
-
-        return self.name
+        if self.name is False:
+            return "False"
+        else:
+            return self.name
 
     def attributes(self):
         """
@@ -613,7 +623,10 @@ class Player():
         self.name = name
 
     def __repr__(self):
-        return self.name
+        if self.name is False:
+            return "False"
+        else:
+            return self.name
 
     def __hash__(self):
         """
