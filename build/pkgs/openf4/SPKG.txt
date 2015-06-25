@@ -1,0 +1,30 @@
+= openf4 =
+
+== Description ==
+
+openf4 is a c++ library for groebner basis computations over finite fields using the F4 algorithm.
+
+== License ==
+
+ * GPL version 3 or any later version
+
+== SPKG Maintainers ==
+
+* Titouan Coladon
+
+== Upstream Contact ==
+
+* titouan.coladon@gmail.com
+* https://github.com/nauotit/openf4
+
+== Dependencies ==
+
+* C++11  support
+* openmp
+* givaro (optionnal)
+
+== Special Update/Build Instructions ==
+
+A C++ 11 compiler is required.
+In order to have a multithread version, compile with g++ (clang does not support openmp).
+
