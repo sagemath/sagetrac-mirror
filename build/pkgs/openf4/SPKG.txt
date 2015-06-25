@@ -6,7 +6,7 @@ openf4 is a c++ library for groebner basis computations over finite fields using
 
 == License ==
 
- * GNU GPLv3
+ * GPL version 3 or any later version
 
 == SPKG Maintainers ==
 
