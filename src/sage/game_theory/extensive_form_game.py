@@ -4,122 +4,135 @@ This file will contain a class for extensive form games.
 from sage.graphs.all     import *
 from sage.structure.sage_object import SageObject
 from sage.plot.graphics      import show_default, Graphics
+from sage.rings.all     import *
 import networkx
 from sage.graphs.generic_graph import GenericGraph
+
+
 class ExtensiveFormGame():
-    def __init__(self, argument , name = False):
+    def __init__(self, argument , name = False, extensive_root = False):
         """
         ExtensiveFormGame can take input in the form of a Node::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
-            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
-            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
-            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1 : 0, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: node_1.player = player_2
+            sage: node_2.player = player_2
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
+            sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1.tree
-            sage: type(egame_1.tree)
-            Some tree here
-            sage: egame_1.nodes
-            [An extensive form game node - Root 1, An extensive form game node - Node 2, An extensive form game node - Node 1]
             sage: egame_1.players
-            [False, False, False]
+            [Player 2, Player 2, Player 1]
+            sage: egame_1.tree
+            Graph on 7 vertices
+            sage: egame_1.plot()
+            Graphics object consisting of 20 graphics primitives            
 
-        Or it can take a Graph object, so long as it is a tree::
+        If the argument is a root, it needs children, actions and players::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
-            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
-            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
-            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: tree_1 = Graph({root_1:[node_1, node_2], node_1:[leaf_1, leaf_2], node_2:[leaf_3, leaf_4]})
-            sage: egame_2 = ExtensiveFormGame(tree_1)
-            sage: egame_2.nodes
-            [An extensive form game node - Root 1, An extensive form game node - Node 2, An extensive form game node - Node 1]
-            sage: egame_2.players
-            [False, False, False]
-
-
-        In the above examples, the two games created should be equal::
-
-            sage: egame_1 == egame_2
-            True
-
-        If we input either a Graph that is not a tree, an error is returned::
-
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1 : 0, player2: 1}, 'Leaf 1')
-            sage: leaf_2 = Leaf({player1 : 1, player2: 0}, 'Leaf 2')
-            sage: leaf_3 = Leaf({player1 : 2, player2: 4}, 'Leaf 3')
-            sage: leaf_4 = Leaf({player1 : 2, player2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: tree_2 = Graph({root_1: [node_1, node_2], node_1:[leaf_1, node_2], node_2:[leaf_3, leaf_4]})
-            sage: egame_2 = ExtensiveFormGame(tree_2)
+            sage: false_root = Node({'C': node_1, 'D': node_2}, 'False Root')
+            sage: egame_2 = ExtensiveFormGame(false_root)
             Traceback (most recent call last):
             ...
-            TypeError: Graph inputted is not a tree.
+            AttributeError: Root node has no player.
 
-        If we try to put an empty tree in as a game, we'll also return an error::
-
-            sage: tree_3 = Graph()
-            sage: egame_2 = ExtensiveFormGame(tree_3)
+            sage: false_root = Node(['Action1', 'Action2'])
+            sage: false_root.player = player_1
+            sage: egame_2 = ExtensiveFormGame(false_root)
             Traceback (most recent call last):
             ...
-            ValueError: Graph inputted is empty.
+            AttributeError: Root node has no children.
+
+            sage: false_root = Node([])
+            sage: egame_2 = ExtensiveFormGame(false_root)
+            Traceback (most recent call last):
+            ...
+            AttributeError: Root node has no actions.
+            
+
+        If we try to put an object that isn't a graph or a node in the game, we'll also return an error::
+
+            sage: egame_2 = ExtensiveFormGame(player_1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Extensive form game must be passed an argument in the form of a Node or a Graph object.
+
+            sage: egame_2 = ExtensiveFormGame([node_1, node_2])
+            Traceback (most recent call last):
+            ...
+            TypeError: Extensive form game must be passed an argument in the form of a Node or a Graph object.
+
+            sage: egame_2 = ExtensiveFormGame(leaf_1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Extensive form game must be passed an argument in the form of a Node or a Graph object.
+
+       
+            
+        Similarly, we cannot create a tree with a Node with a player attribute which isn't 
+        an instance of the ```Player``` class::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1 : 0, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: node_1.player = player_2
+            sage: node_2.player = leaf_2
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
+            sage: root_1.player = player_1
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot assign a non Player as a player to a Node.
+
         """
         self.nodes = []
         self.info_sets = []
-        if isinstance(argument, Node):
-            self.tree_root = argument
-            self.tree = self.grow_tree()
-            self.nodes = (self.grow_tree_dictionary()).keys()
-            self.players = []
-            for i in self.nodes:
-                self.players.append(i.player)
         self.keycheck = {}
-        if isinstance(argument, Graph):
-            if argument.is_tree is False:
-                raise TypeError("Graph inputted is not a tree.")
-            dictionary = argument.to_dictionary()
-            if dictionary == {}:
-                raise ValueError("Graph inputted is empty.")
-            nodelist = dictionary.keys()
-            for i in nodelist:
-                if isinstance(i, Node):
-                    for child in i.children:
-                        if isinstance(child, Node) or isinstance(child, Leaf):
-                            i.children = dictionary[i]
-                        else:
-                            raise TypeError("Nodes in tree must be connected to either leaves or other nodes.")
-                else:
-                    pass
-                    #raise TypeError("Tree keys must be Nodes.")
-            self.keycheck = dictionary
+        
+        if isinstance(argument, Node):
+            if argument.actions is False:
+                raise AttributeError("Root node has no actions.")
+            elif argument.children is False:
+                raise AttributeError("Root node has no children.")
+            elif argument.player is False:
+                raise AttributeError("Root node has no player.")
+            else: 
+                self.tree_root = argument
+                self.tree = self.grow_tree()
+                self.nodes = (self.grow_tree_dictionary()).keys()
+                self.players = []
+                for i in self.nodes:
+                    self.players.append(i.player)      
+        else:
+            raise TypeError("Extensive form game must be passed an argument in the form of a Node or a Graph object.") 
 
     def set_info_set(self, nodelist):
         """
         We can assign information set to  a set of nodes::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1: 0, player2: 1})
-            sage: leaf_2 = Leaf({player1: 1, player2: 0})
-            sage: leaf_3 = Leaf({player1: 2, player2: 4})
-            sage: leaf_4 = Leaf({player1: 2, player2: 1})
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: node_1.player = player_2
+            sage: node_2.player = player_2
             sage: root_1 = Node({'C': node_1, 'D': node_2})
+            sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
@@ -127,17 +140,18 @@ class ExtensiveFormGame():
 
         If two nodes don't have the same actions, an error is returned::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1: 0, player2: 1})
-            sage: leaf_2 = Leaf({player1: 1, player2: 0})
-            sage: leaf_3 = Leaf({player1: 2, player2: 4})
-            sage: leaf_4 = Leaf({player1: 2, player2: 1})
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'DifferentA': leaf_3, 'B': leaf_4})
-            sage: node_1.player = player1
-            sage: node_2.player = player1
+            sage: node_1.player = player_2
+            sage: node_2.player = player_2
             sage: root_1 = Node({'C': node_1, 'D': node_2})
+            sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
@@ -146,17 +160,18 @@ class ExtensiveFormGame():
 
         If two nodes have different players, an error is returned::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player1: 0, player2: 1})
-            sage: leaf_2 = Leaf({player1: 1, player2: 0})
-            sage: leaf_3 = Leaf({player1: 2, player2: 4})
-            sage: leaf_4 = Leaf({player1: 2, player2: 1})
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
-            sage: node_1.player = player1
-            sage: node_2.player = player2
+            sage: node_1.player = player_1
+            sage: node_2.player = player_2
             sage: root_1 = Node({'C': node_1, 'D': node_2})
+            sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
@@ -173,7 +188,6 @@ class ExtensiveFormGame():
             raise AttributeError("All nodes in the same information set must have the same players.")
 
         j = 1
-
         previousactions = []
         for i in nodelist:
             if i.actions == previousactions:
@@ -192,14 +206,14 @@ class ExtensiveFormGame():
         else:
            raise TypeError("Graph isn't tree")
 
-    def plot_tree(self):
+    def plot(self):
         keylist = []
         t = self.grow_tree()
         for i in self.nodes:
-            keylist = i.argument.keys()
+            keylist = i.argument.keys() 
             for j in keylist:
                 t.set_edge_label(i, i.argument[j], j)
-        t.show(layout='tree',tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
+        return t.plot(layout='tree',tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
 
     def grow_tree_dictionary(self):
         to_check = [self.tree_root]  # Put the one node we have in a list of things we need to check
@@ -208,7 +222,11 @@ class ExtensiveFormGame():
             checking = to_check.pop()  # The pop command returns the node AND removes it from the list
             for child in checking.children:  # Loop through that node's children
                 if not isinstance(child, Leaf):  # If it's not a Leaf ...
-                    to_check.append(child)  # ... append it the the list of nodes we need to check
+                    if child._is_complete():
+                        child._player_check()
+                        to_check.append(child)  # ... append it the the list of nodes we need to check
+                    else:
+                        raise AttributeError("One or more of the Nodes in tree are not complete.")
                 checked.append(child)  # Put the child in the list of checked nodes
 
         # Create the dictionary
@@ -216,17 +234,17 @@ class ExtensiveFormGame():
         # The above does not include the root
         d[self.tree_root] = self.tree_root.children  # The above does not actually include the original root so we need to include it
         return d
-
-
+        
+        
 class Node():
-    def __init__(self, argument, name = False, player = False, is_root = False):
+    def __init__(self, argument, name = False, is_root = False):
         """
         Node input will be in a dictionary format, consisting of the actions and the children of that node::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
-            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Mother')
             sage: mother_node.actions
             ['Action1', 'Action2']
@@ -253,11 +271,12 @@ class Node():
             sage: grandmother_node.parent
             False
 
+        
         Nodes automatically have player set to false, we can then assign a player to that node::
 
             sage: grandmother_node.player
             False
-            sage: grandmother_node.player = player1
+            sage: grandmother_node.player = player_1
             sage: grandmother_node.player
             Player 1
 
@@ -285,12 +304,12 @@ class Node():
             TypeError: Node must be passed an argument in the form of a dictionary or a list.
         """
         self.argument = argument
-        self.player = player
+        self.player = False
         self.name = name
         self.actions = False
         self.children = False
         self.parent = False
-        self.is_root = False
+        self.is_root = False             
 
         if type(argument) is dict:
             self.actions = argument.keys()
@@ -299,11 +318,14 @@ class Node():
                 child.parent = self
 
         elif type(argument) is list:
-            self.actions = argument
+            if argument == []:
+                self.actions = False
+            else:
+                self.actions = argument
 
         else:
             raise TypeError("Node must be passed an argument in the form of a dictionary or a list.")
-
+        
     def __repr__(self):
 
         s = 'An extensive form game node'
@@ -331,43 +353,43 @@ class Node():
 
         However, when we do specify all those attributes, the node is then considered complete::
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
-            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player1
+            sage: mother_node.player = player_1
             sage: sisternode = Node(['inputhere'])
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
             sage: mother_node._is_complete()
             True
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
-            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
             sage: sisternode = Node(['inputhere'])
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
             sage: mother_node._is_complete()
             False
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
-            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player1
+            sage: mother_node.player = player_1
             sage: sisternode = Node(['inputhere'])
             sage: mother_node._is_complete()
             False
 
-            sage: player1 = Player('Player 1')
-            sage: player2 = Player('Player 2')
-            sage: child_1 = Leaf({player1: 0, player2: 1}, 'Child 1')
-            sage: child_2 = Leaf({player1: 1, player2: 0}, 'Child 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
+            sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
             sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player1
+            sage: mother_node.player = player_1
             sage: mother_node.children = False
             sage: sisternode = Node(['inputhere'])
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
@@ -376,21 +398,39 @@ class Node():
         """
         return all([self.parent , self.actions, self.children, self.player])
 
+    def _player_check(self):
+        """
+            sage: grandmother_node = Node([])
+            sage: mother_node = Node([])
+            sage: grandmother_node.player
+            False
+            sage: grandmother_node.player = mother_node
+            sage: grandmother_node._player_check()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot assign a non Player as a player to a Node.
+        """
+        if self.player is not False:
+                    if not isinstance(self.player, Player):
+                        raise TypeError("Cannot assign a non Player as a player to a Node.")
+        
 
 class Leaf():
     def __init__(self, argument, name = False):
         """
         We can check payoffs of any leaf::
 
-            sage: player_1 = Player('player 1')
-            sage: player_2 = Player('player 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
             sage: leaf_1.payoffs[player_1]
+            0
+            sage: leaf_1[player_1]
             0
             sage: leaf_1.payoffs[player_2]
             1
             sage: leaf_1.players
-            [player 2, player 1]
+            [Player 2, Player 1]
 
         The payoffs must be in dictionary form such that the keys are players, and the values are either float or intergers::
 
@@ -405,7 +445,6 @@ class Leaf():
             ...
             TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as arguments.
         """
-
         if type(argument) is not dict:
             raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as arguments.")
 
@@ -414,27 +453,100 @@ class Leaf():
         self.name = name
         self.players = argument.keys()
         self.parent = False
-
+                
         for player in self.players:
-            if not isinstance(player, Player):
+            
+            if not isinstance(player, Player):                
                 raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as arguments.")
-
+           
     def __repr__(self):
         """
         Representation method for the leaf::
 
-            sage: player_1 = Player('player 1')
-            sage: player_2 = Player('player 2')
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1}, 'end_leaf')
             sage: leaf_1
             An extensive form game leaf - end_leaf
         """
-
         s = 'An extensive form game leaf'
         if self.name:
             s += ' - ' + str(self.name)
         return s
 
+    def __delitem__(self, key):
+        """
+        This method is one of a collection that aims to make a leaf
+        instance behave like a dictionary.
+
+        Here we set up deleting an element of the payoffs dictionary::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_dict = Leaf({player_1: 0, player_2: 1})
+            sage: del(leaf_dict[player_2])
+            sage: leaf_dict.payoffs
+            {Player 1: 0}
+        """
+        self.payoffs.pop(key, None)
+
+    def __getitem__(self, key):
+        """
+        This method is one of a collection that aims to make a leaf
+        instance behave like a dictionary.
+
+        Here we allow for querying a key::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_dict = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_dict[player_1]
+            0
+            sage: del(leaf_dict[player_1])
+            sage: leaf_dict[player_1]
+            Traceback (most recent call last):
+            ...
+            KeyError: Player 1
+
+        """
+        return self.payoffs[key]
+
+    def __iter__(self):
+        """
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary.
+
+        Here we allow for iteration over the leaf to correspond to
+        iteration over keys of the utility dictionary::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_dict = Leaf({player_1: 0, player_2: 1})
+            sage: for key in leaf_dict:
+            ....:     print "The player: {}, has payoff {}".format(key, leaf_dict[key])
+            The player: Player 2, has payoff 1
+            The player: Player 1, has payoff 0
+        """
+        return iter(self.payoffs)
+
+    def __setitem__(self, key, value):
+        """
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary.
+
+        Here we set up setting the value of a key::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_dict = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_dict[player_1]
+            0
+            sage: leaf_dict[player_1] = 2
+            sage: leaf_dict[player_1]
+            2
+
+        """
+        self.payoffs[key] = value
 
 class Player():
     def __init__(self, name):
@@ -458,7 +570,6 @@ class Player():
             sage: ben_player.name
             'Benjamin'
         """
-
         self.name = name
 
     def __repr__(self):
