@@ -865,6 +865,40 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_backend().get_col_stat(0)
             1
 
+        The GLPK manual recommends to run the inexact simplex first,
+        in the hope that the exact code only needs to run a few
+        iterations, starting off the last (perhaps optimal) basis that
+        the inexact simplex produces.  However, since the inexact
+        simplex might have a variety of failure modes for
+        ill-conditioned problems, ``solve`` does not try to implement
+        a 'simplex_then_exact_simplex' mode.
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+            sage: x, y = lp[0], lp[1]
+            sage: lp.add_constraint(-2*x + y <= 1)
+            sage: lp.add_constraint(x - y <= 1)
+            sage: lp.add_constraint(x + y >= 2)
+            sage: lp.set_objective(x + y)
+            sage: lp.solver_parameter("simplex_or_intopt", "simplex_only")
+            sage: lp.solve()
+            2.0
+            sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+            sage: lp.solve()
+            glp_exact: 3 rows, 2 columns, 6 non-zeros
+            GNU MP bignum library is being used
+            *     2:   objval =                      2   (0)
+            *     2:   objval =                      2   (0)
+            OPTIMAL SOLUTION FOUND
+            2.0
+            sage: lp.get_values([x, y])
+            [1.5, 0.5]
+            sage: lp.get_backend().get_row_stat(0)
+            1
+            sage: lp.get_backend().get_col_stat(0)
+            1
+
         Below we test that integers that can be exactly represented by
         IEEE 754 double-precision floating point numbers survive the
         rational reconstruction done by ``glp_exact`` and the subsequent
