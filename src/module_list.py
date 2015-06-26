@@ -13,6 +13,11 @@ f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'r')
 blas_libs = f.readline().split()
 f.close()
 
+f = open(os.path.join(SAGE_LOCAL, 'share/lapack_config'), 'r')
+lapack_libs = f.readline().split()
+f.close()
+
+
 #########################################################
 ### Commonly used definitions and aliases
 #########################################################
@@ -79,9 +84,8 @@ library_order_list = [
     "m4rie", "m4ri",
     "zn_poly", "gap",
     "gd", "png12",
-    "m", "readline", "Lfunction"] +
-    blas_libs +
-    ["cryptominisat", "fplll", "z"]
+    "m", "readline", "Lfunction"] + blas_libs + [
+    "cryptominisat", "fplll", "z"]
 
 # Make a dict with library:order pairs, where the order are negative
 # integers sorted according to library_order_list. When sorting,
@@ -1273,7 +1277,7 @@ ext_modules = [
     OptionalExtension("sage.numerical.backends.coin_backend",
               ["sage/numerical/backends/coin_backend.pyx"],
               language = 'c++',
-              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "lapack"],
+              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi"] + lapack_libs,
               package = 'cbc'),
 
     ################################
