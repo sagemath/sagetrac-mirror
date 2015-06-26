@@ -79,7 +79,7 @@ library_order_list = [
     "m4rie", "m4ri",
     "zn_poly", "gap",
     "gd", "png12",
-    "m", "readline", "Lfunction"]
+    "m", "readline", "Lfunction"] +
     blas_libs +
     ["cryptominisat", "fplll", "z"]
 
