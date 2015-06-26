@@ -8,6 +8,7 @@ Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import operator
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
@@ -19,6 +20,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
 from sage.structure.element import have_same_parent
+from sage.structure.coerce_actions import MagmaStructure
 
 class Magmas(Category_singleton):
     """
@@ -636,6 +638,10 @@ class Magmas(Category_singleton):
                 return [Magmas().Unital()]
 
     class ParentMethods:
+
+        def _get_action_(self, S, op, self_on_left):
+            if S is self and op==operator.mul and self_on_left:
+                return MagmaStructure(self)
 
         def product(self, x, y):
             """

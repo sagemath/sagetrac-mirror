@@ -537,6 +537,28 @@ cdef class Element(SageObject):
                 pass
         return res
 
+    ##################################################
+    # Addition and Multiplication
+    ##################################################
+    def __add__(left, right):
+        """
+        Top-level addition operator for Elements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return coercion_model.bin_op(left, right, add)
+
+    def __mul__(left, right):
+        """
+        Top-level multiplication operator for Elements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return coercion_model.bin_op(left, right, mul)
+
+    def __imul__(left, right):
+        return coercion_model.bin_op(left, right, imul)
+
     def __hash__(self):
         return hash(str(self))
 
@@ -1467,13 +1489,9 @@ cdef class ModuleElement(Element):
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
         if PyInt_CheckExact(left):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
-        if have_same_parent_c(left, right):
-            raise TypeError(arith_error_message(left, right, mul))
         return coercion_model.bin_op(left, right, mul)
 
     def __imul__(left, right):
-        if have_same_parent_c(left, right):
-             raise TypeError
         return coercion_model.bin_op(left, right, imul)
 
     # rmul -- left * self

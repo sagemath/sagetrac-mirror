@@ -246,6 +246,17 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         except CoercionException:
             _record_exception()
 
+cdef class MagmaStructure(Action):
+    def __init__(self, M):
+        Action.__init__(self, M, M, True, operator.mul)
+    cpdef _call_(self, a, b):
+        return a._mul_(b)
+
+cdef class AdditiveMagmaStructure(Action):
+    def __init__(self, M):
+        Action.__init__(self, M, M, True, operator.add)
+    cpdef _call_(self, a, b):
+        return a._add_(b)
 
 cdef class ModuleAction(Action):
     """

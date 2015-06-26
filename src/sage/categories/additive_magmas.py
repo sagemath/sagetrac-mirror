@@ -8,6 +8,7 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import operator
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -19,6 +20,7 @@ from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
 from sage.structure.element import have_same_parent
+from sage.structure.coerce_actions import AdditiveMagmaStructure
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -162,6 +164,10 @@ class AdditiveMagmas(Category_singleton):
     AdditiveAssociative = LazyImport('sage.categories.additive_semigroups', 'AdditiveSemigroups', at_startup=True)
 
     class ParentMethods:
+
+        def _get_action_(self, S, op, self_on_left):
+            if S is self and op==operator.add and self_on_left:
+                return AdditiveMagmaStructure(self)
 
         def summation(self, x, y):
             r"""

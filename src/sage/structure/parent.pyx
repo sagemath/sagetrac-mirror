@@ -1953,10 +1953,14 @@ cdef class Parent(category_object.CategoryObject):
         from sage.categories.action import Action
         if isinstance(action, Action):
             if action.actor() is self:
-                self._action_list.append(action)
+                # We use _action_list for some kind of backtracking.
+                # Hence, we must not store an action of self on itself.
+                if action.domain() is not self:
+                    self._action_list.append(action)
                 self._action_hash.set(action.domain(), action.operation(), action.is_left(), action)
             elif action.domain() is self:
-                self._action_list.append(action)
+                if action.actor() is not self:
+                    self._action_list.append(action)
                 self._action_hash.set(action.actor(), action.operation(), not action.is_left(), action)
             else:
                 raise ValueError("Action must involve self")
@@ -2851,6 +2855,12 @@ cdef class Parent(category_object.CategoryObject):
             if not isinstance(self, PC):
                 for cls in PC.mro():
                     if '_get_action_' in cls.__dict__:
+                        if isinstance(self, cls):
+                            print "self.category()",self.category()
+                            print "cls",cls
+                            print "type(self)",type(self).mro()
+                            print self
+                            print type(self).__module__
                         action = getattr_from_other_class(self, cls, "_get_action_")(S, op, self_on_left)
                         if action is not None:
                             break
@@ -2878,6 +2888,8 @@ cdef class Parent(category_object.CategoryObject):
         from sage.categories.homset import Hom
         from coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
+        if S is self:
+            return
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:

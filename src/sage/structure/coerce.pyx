@@ -984,12 +984,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             # Actions take preference over common-parent coercions.
             xp = parent_c(x)
             yp = parent_c(y)
-            if xp is yp:
-                return op(x,y)
             action = self.get_action(xp, yp, op, x, y)
             if action is not None:
                 return (<Action>action)._call_(x, y)
-
+            elif xp is yp:
+                return op(x,y)
         xy = None
         try:
             xy = self.canonical_coercion(x,y)
