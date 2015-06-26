@@ -111,7 +111,7 @@ class FreeAbelianMonoidElement(MonoidElement):
         if len(s) == 0: s = "1"
         return s
 
-    def __mul__(self, y):
+    def _mul_(self, y):
         if not isinstance(y, FreeAbelianMonoidElement):
             raise TypeError("Argument y (= %s) is of wrong type."%y)
         M = self.parent()

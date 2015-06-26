@@ -1583,6 +1583,14 @@ cdef class MonoidElement(Element):
                 return left
             raise
 
+    def __imul__(left, right):
+        """
+        Top-level inplace multiplication operator for monoid elements.
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent_c(left, right):
+            return (<MonoidElement>left)._mul_(<MonoidElement>right)
+        return coercion_model.bin_op(left, right, imul)
 
     cpdef MonoidElement _mul_(left, MonoidElement right):
         """

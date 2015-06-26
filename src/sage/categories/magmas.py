@@ -640,7 +640,7 @@ class Magmas(Category_singleton):
     class ParentMethods:
 
         def _get_action_(self, S, op, self_on_left):
-            if S is self and op==operator.mul and self_on_left:
+            if S is self and (op==operator.mul or op==operator.imul) and self_on_left:
                 return MagmaStructure(self)
 
         def product(self, x, y):
