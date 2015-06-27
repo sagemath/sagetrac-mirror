@@ -38,15 +38,15 @@ In Extensive Form Games we can create information sets, when creating a game all
 This is called perfect information, and we can check this using sage::
 
     sage: battle_of_the_sexes.info_sets
-    [a, b, c]
+    [[a], [b], [c]]
     sage: battle_of_the_sexes.perfect_info()
     True
 
 If we wanted to make it so Celine does not know the actions Bob has taken, we can put Celine's nodes in one information set::
 
-    sage: battle_of_the_sexes.set_info_set[node_2, node_3]
+    sage: battle_of_the_sexes.set_info_set([node_2, node_3])
     sage: battle_of_the_sexes.info_sets
-    [a, [b, c]]
+    [[a], [b, c]]
 
 Now the game does not have perfect information::
 
@@ -95,15 +95,17 @@ class ExtensiveFormGame():
             sage: node_a6.player = player_a2
             sage: root_a = Node({'A': node_a5, 'B': node_a6})
             sage: root_a.player = player_a1
-            sage: egame_a1 = ExtensiveFormGame(root_a)
-            sage: egame_a1.players
+            sage: egame_a1 = ExtensiveFormGame(root_a)           
             sage: egame_a1.tree
             Graph on 15 vertices
             sage: egame_a1.plot()
             Graphics object consisting of 44 graphics primitives
             sage: egame_a1.info_sets
             [[Node 1], [Node 2], [Node 3], [Node 4], [Node 5], [Node 6], [Tree Root]]
-            sage: egame_a1.set_info_set([node_a3, node_a5])
+            sage: egame_a1.set_info_set([node_a5, node_a6])
+            sage: egame_a1.set_info_set([node_a1, node_a2, node_a3, node_a4])
+            sage: egame_a1.info_sets
+            [[Node 1, Node 2, Node 3, Node 4], [Node 5, Node 6], [Tree Root]]
 
         ExtensiveFormGame can take input in the form of a Node::
 
@@ -121,7 +123,7 @@ class ExtensiveFormGame():
             sage: root_1.player = player_1
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.players
-            [Player 2, Player 2, Player 1]
+            [Player 1, Player 2, Player 2]
             sage: egame_1.tree
             Graph on 7 vertices
             sage: egame_1.plot()
@@ -228,26 +230,31 @@ class ExtensiveFormGame():
             else:
                 self.tree_root = game_input
                 self.tree = self.grow_tree()
-                self.nodes = sorted((self.grow_tree_dictionary()).keys(), key=lambda x:x.name)
+                self.nodes = self.grow_tree_dictionary().keys()
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
                 for i in self.nodes:
                     self.players.append(i.player)
                 self.players.sort(key=lambda x:x.name)
-                
+
                 nodevalue = 1
+                self.nodes.sort(key=lambda x:x.actions[0])
                 for i in self.nodes:
-                    if i is self.tree_root and i.name is False:
+                    if i is game_input and i.name is False:
                         i.name = "Tree Root"
                     if i.name is False:
                         i.name = "Node %i" %nodevalue
                         nodevalue += 1
 
-                # leafvalue = 1
-                # for i in checked:
-                #     if isinstance(i, Leaf) and i.name is False:
-                #         i.name = "Leaf %i" %leafvalue
-                #         leafvalue += 1
+                leafvalue = 1
+                for i in self.grow_tree_dictionary().values():
+                    if isinstance(i, Leaf) and i.name is False:
+                        i.name = "Leaf %i" %leafvalue
+                        leafvalue += 1
+
+                self.info_sets.sort(key=lambda x:x[0].name)
+                self.nodes.sort(key=lambda x:x.name)
+
 
         else:
             raise TypeError("Extensive form game must be passed an game_input in the form of a Node or a Graph object.")
@@ -331,13 +338,13 @@ class ExtensiveFormGame():
         if numberofsameactions is not len(node_list):
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
-        for info_set in self.info_sets:
-            for node_to_be_set in node_list:
+        for node_to_be_set in node_list:
+            for info_set in self.info_sets:
                 for node_in_a_set in info_set:
                         if node_in_a_set is node_to_be_set and len(info_set) is not 1:
                             raise ValueError("Cannot assign information sets to nodes already in information sets")
-                self.info_sets.remove([node_to_be_set])
-        self.info_sets.append(node_list)
+            self.info_sets.remove([node_to_be_set])
+        self.info_sets.append(sorted(node_list, key=lambda x:x.name))
         self.info_sets.sort(key=lambda x:x[0].name)
 
     def perfect_info(self):
@@ -664,7 +671,7 @@ class Leaf():
             0
             sage: leaf_1[player_1]
             0
-            sage: leaf[player_2]
+            sage: leaf_1[player_2]
             1
             sage: leaf_1.players
             [Player 1, Player 2]
