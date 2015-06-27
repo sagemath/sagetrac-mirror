@@ -6,7 +6,21 @@ Consider two players, Celine and Bob. The two are deciding on a movie, they can 
 Bob would prefer to see a Comedy, Celine would prefer to watch a Sports movie.
 Depending on who choses what, there are different payoffs, this can be demonstrated in tree Form.
 
-[some form of diagram here]
+.. PLOT::
+    :width: 500 px
+
+    player_1 = Player('Bob')
+    player_2 = Player('Celine')
+    leaf_1 = Leaf({player_1: 2, player_2: 3})
+    leaf_2 = Leaf({player_1: 0, player_2: 0})
+    leaf_3 = Leaf({player_1: 1, player_2: 1})
+    leaf_4 = Leaf({player_1: 3, player_2: 2})
+    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_1)
+    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_1)
+    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
+    battle_of_the_sexes = ExtensiveFormGame(node_1)
+    p = battle_of_the_sexes.plot()
+    sphinx_plot(p)
 
 We can see there are three nodes, one for Bob, two for Celine. Connecting those nodes are actions.
 These actions represent choices made by one player, and the actions then lead on to a node of another player.
