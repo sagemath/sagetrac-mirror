@@ -127,7 +127,7 @@ class ExtensiveFormGame():
             sage: egame_1.plot()
             Graphics object consisting of 20 graphics primitives
 
-        Temporary test for Node naming::
+        If we do not name our nodes, unique name are automatically set upon creating a game::
 
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
@@ -140,12 +140,18 @@ class ExtensiveFormGame():
             sage: node_a.player = player_2
             sage: node_b.player = player_2
             sage: root_a = Node({'C': node_a, 'D': node_b})
+            sage: node_a.name is node_b.name is root_a.name
+            True
             sage: root_a.player = player_1
-            sage: node_b.name
             sage: egame_a = ExtensiveFormGame(root_a)
-            sage: egame_a.plot()
-            Graphics object consisting of 20 graphics primitives
-
+            sage: node_a.name is node_b.name is root_a.name
+            False
+            sage: node_a.name is False
+            False
+            sage: node_b.name is False
+            False
+            sage: root_a.name is False
+            False
 
         If the game_input is a root, it needs children, actions and players::
 
@@ -222,15 +228,31 @@ class ExtensiveFormGame():
             else:
                 self.tree_root = game_input
                 self.tree = self.grow_tree()
-                self.nodes = sorted((self.grow_tree_dictionary()).keys())
+                self.nodes = sorted((self.grow_tree_dictionary()).keys(), key=lambda x:x.name)
                 self.players = []
-                self.info_sets = sorted((self.grow_tree_dictionary()).keys())
+                self.info_sets = [[node] for node in self.nodes]
                 for i in self.nodes:
                     self.players.append(i.player)
+                self.players.sort(key=lambda x:x.name)
+                
+                nodevalue = 1
+                for i in self.nodes:
+                    if i is self.tree_root and i.name is False:
+                        i.name = "Tree Root"
+                    if i.name is False:
+                        i.name = "Node %i" %nodevalue
+                        nodevalue += 1
+
+                # leafvalue = 1
+                # for i in checked:
+                #     if isinstance(i, Leaf) and i.name is False:
+                #         i.name = "Leaf %i" %leafvalue
+                #         leafvalue += 1
+
         else:
             raise TypeError("Extensive form game must be passed an game_input in the form of a Node or a Graph object.")
 
-    def set_info_set(self, nodelist):
+    def set_info_set(self, node_list):
         """
         We can assign information set to  a set of nodes::
 
@@ -251,6 +273,7 @@ class ExtensiveFormGame():
             [[Node 1], [Node 2], [Root 1]]
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
+            [[Node 1, Node 2], [Root 1]]
 
         If two nodes don't have the same actions, an error is returned::
 
@@ -292,34 +315,30 @@ class ExtensiveFormGame():
             ...
             AttributeError: All nodes in the same information set must have the same players.
         """
-        j = 1
-        previousplayer = True
-        for i in nodelist:
-            if i.player == previousplayer:
-                j += 1
-            previousplayer = i.player
-        if j is not len(nodelist):
-            raise AttributeError("All nodes in the same information set must have the same players.")
-
-        j = 1
+        numberofsameplayers = 1
+        numberofsameactions = 1
         previousactions = []
-        for i in nodelist:
-            if i.actions == previousactions:
-                j += 1
-            previousactions = i.actions
-
-        if j is not len(nodelist):
+        previousplayer = True
+        for node in node_list:
+            if node.player == previousplayer:
+                numberofsameplayers  += 1
+            if node.actions == previousactions:
+                numberofsameactions += 1
+            previousplayer = node.player
+            previousactions = node.actions
+        if numberofsameplayers is not len(node_list):
+            raise AttributeError("All nodes in the same information set must have the same players.")  
+        if numberofsameactions is not len(node_list):
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
-
-        for i in self.info_sets:
-            for j in nodelist:
-                if type(i) is list:
-                    for k in i:
-                        if k is j:
+        for info_set in self.info_sets:
+            for node_to_be_set in node_list:
+                for node_in_a_set in info_set:
+                        if node_in_a_set is node_to_be_set and len(info_set) is not 1:
                             raise ValueError("Cannot assign information sets to nodes already in information sets")
-                self.info_sets.remove(j)
-        self.info_sets.append(nodelist)
+                self.info_sets.remove([node_to_be_set])
+        self.info_sets.append(node_list)
+        self.info_sets.sort(key=lambda x:x[0].name)
 
     def perfect_info(self):
         """
@@ -343,12 +362,12 @@ class ExtensiveFormGame():
             sage: egame_1.perfect_info()
             False
         """
-        if self.info_sets == self.nodes:
+        if self.info_sets == [[node] for node in self.nodes]:
             return True
         else:
             return False
 
-    def remove_info_set(self, nodelist):
+    def remove_info_set(self, node_list):
         """
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
@@ -365,16 +384,20 @@ class ExtensiveFormGame():
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
+            [[Node 1, Node 2], [Root 1]]
             sage: egame_1.perfect_info()
             False
             sage: egame_1.remove_info_set([node_1, node_2])
             sage: egame_1.info_sets
+            [[Node 1], [Node 2], [Root 1]]
             sage: egame_1.perfect_info()
             True
         """
-        self.info_sets.remove(nodelist)
-        for j in nodelist:
-            self.info_sets.append(j)
+        self.info_sets.remove(node_list)
+        for node_to_be_readded in node_list:
+            #list_with_node = [node_to_be_readded]
+            self.info_sets.append([node_to_be_readded])
+        self.info_sets.sort(key=lambda x:x[0].name)
 
 
 
@@ -406,10 +429,10 @@ class ExtensiveFormGame():
     def plot(self):
         keylist = []
         t = self.grow_tree()
-        for i in self.nodes:
-            keylist = i.node_input.keys()
-            for j in keylist:
-                t.set_edge_label(i, i.node_input[j], j)
+        for node in self.nodes:
+            keylist = node.node_input.keys()
+            for key in keylist:
+                t.set_edge_label(node, node.node_input[key], key)
         return t.plot(layout='tree',tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
 
     def grow_tree_dictionary(self):
@@ -444,20 +467,6 @@ class ExtensiveFormGame():
                         raise AttributeError("One or more of the Nodes in tree are not complete.")
                 checked.append(child)  # Put the child in the list of checked nodes
 
-        nodevalue = 1
-        for i in self.nodes:
-            self.check.append(i.name)
-            if i is self.tree_root and i.name is False:
-                i.name = "Tree Root"
-            if i.name is False:
-                i.name = "Node %i" %nodevalue
-                nodevalue += 1
-
-        leafvalue = 1
-        for i in checked:
-            if isinstance(i, Leaf) and i.name is False:
-                i.name = "Leaf %i" %leafvalue
-                leafvalue += 1
 
         # Create the dictionary
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}  # Build the dictionary mapping the leafs to their children
@@ -479,7 +488,7 @@ class Node():
             sage: mother_node.actions
             ['Action1', 'Action2']
             sage: mother_node.children
-            [Player 1: 0 Player 2: 1 , Player 1: 1 Player 2: 0 ]
+            [(0, 1), (1, 0)]
 
         If we then create a second node, who has :code:`mother_node` as one of its children,
         then the parent of :code:`mother_node` will be set to that node::
@@ -655,10 +664,10 @@ class Leaf():
             0
             sage: leaf_1[player_1]
             0
-            sage: leaf_1.payoffs[player_2]
+            sage: leaf[player_2]
             1
             sage: leaf_1.players
-            [Player 2, Player 1]
+            [Player 1, Player 2]
 
         The payoffs must be in dictionary form such that the keys are players, and the values are either float or intergers::
 
@@ -678,7 +687,7 @@ class Leaf():
 
         self.payoffs =  payoffs
         self.name = name
-        self.players = sorted(payoffs.keys())
+        self.players = sorted(payoffs.keys(), key=lambda x:x.name)
         self.parent = False
 
         for player in self.players:
