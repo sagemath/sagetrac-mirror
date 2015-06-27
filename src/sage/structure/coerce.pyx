@@ -80,6 +80,7 @@ cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
 import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
+cdef set arithmetic_ops = set([add, sub, mul, div, truediv, iadd, isub, imul, idiv])
 
 from sage_object cimport SageObject
 from sage.categories.map cimport Map
@@ -980,58 +981,88 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         """
         self._exceptions_cleared = False
-        if (op is not sub) and (op is not isub):
-            # Actions take preference over common-parent coercions.
-            xp = parent_c(x)
-            yp = parent_c(y)
-            action = self.get_action(xp, yp, op, x, y)
-            if action is not None:
-                return (<Action>action)._call_(x, y)
-            elif xp is yp:
-                return op(x,y)
+        xp = parent_c(x)
+        yp = parent_c(y)
+        # Actions take preference over coercions.
+        action = self.get_action(xp, yp, op, x, y)
+        if action is not None:
+            return (<Action>action)._call_(x, y)
+        # There is no action known. Hence, we try to coerce both elements
+        # into a common parent
+        cdef bint coercion_failed = False
         xy = None
-        try:
-            xy = self.canonical_coercion(x,y)
-            return PyObject_CallObject(op, xy)
-        except TypeError as err:
-            if xy is not None:
-                # The error was in calling, not coercing
-                raise
-            self._record_exception()
-
+        err = None
+        if xp is not yp:
+            try:
+                xy = self.canonical_coercion(x,y)
+                if xy is not None:
+                    # The elements haven't been in the same parent,
+                    # but they are now. Thus, there is no infinite
+                    # loop to be afraid of when we now call the Python
+                    # double underscore operation:
+                    return PyObject_CallObject(op, xy)
+                coercion_failed = True # i.e., canonical coercion returned None
+            except TypeError as err:
+                coercion_failed = True # i.e., canonical coercion raised an error
+                self._record_exception()
+        # When we are here then we have been in the same parent
+        # right away, or coercion has failed.
+        if not coercion_failed:
+            # I.e., we have been in the same parent right away
+            #
+            # Only the arithmetic operations are supposed to be implemented
+            # by an action or by a single underscore method. Some non-arithmetic
+            # such as operator.eq may be implemented by a double underscore
+            # method that gives a direct answer if the two parents are
+            # the same and otherwise calls the coercion model. Thus, we do:
+            if op not in arithmetic_ops:
+                return op(x,y)
+            # Now, let us see if the operation is implemented by single
+            # underscore methods!
+            res = None
+            op_name = op.__name__
+            op_method = getattr(x, '_{}_'.format(op_name), None)
+            if op_method is None or op_method is NotImplemented:
+                # a missing single underscore inplace operation may be
+                # replaced by the non-inplace version.
+                if op_name[0] == 'i':
+                    op_method = getattr(x, '_{}_'.format(op_name[1:]), None)
+            if op_method is not None and op_method is not NotImplemented:
+                res = op_method(y)
+                if res is not None and res is not NotImplemented:
+                    return res
+        # At this point, either x and y are in different parents and the
+        # coercion has failed, or they are in the same parent but there
+        # is no single underscore method.
+        # In the case of multiplication, there is a last-but-one resort:
+        # act_on resp. acted_upon
         if op is mul or op is imul:
-
-            # elements may also act on non-elements
-            # (e.g. sequences or parents)
-            if not isinstance(y, Element) or not isinstance(x, Element):
+            # Does x have act[ed]_[up]on?
+            op_method = getattr(x, '_act_on_', None)
+            if op_method is None:
+                op_method = getattr(x, '_acted_upon_', None)
+            if op_method is not None:
                 try:
-                    if hasattr(x, '_act_on_'):
-                        res = x._act_on_(y, True)
-                        if res is not None: return res
+                    res = op_method(y, True)  # x is on left side
+                    if res is not None and res is not NotImplemented:
+                        return res
+                except CoercionException:
+                    self._record_exception()
+            # Does y have act[ed]_[up]on?
+            op_method = getattr(y, '_act_on_', None)
+            if op_method is None:
+                op_method = getattr(y, '_acted_upon_', None)
+            if op_method is not None:
+                try:
+                    res = op_method(x, False) # y is not on left side
+                    if res is not None and res is not NotImplemented:
+                        return res
                 except CoercionException:
                     self._record_exception()
 
-                try:
-                    if hasattr(x, '_acted_upon_'):
-                        res = x._acted_upon_(y, True)
-                        if res is not None: return res
-                except CoercionException:
-                    self._record_exception()
-
-                try:
-                    if hasattr(y, '_act_on_'):
-                        res = y._act_on_(x, False)
-                        if res is not None: return res
-                except CoercionException:
-                    self._record_exception()
-
-                try:
-                    if hasattr(y, '_acted_upon_'):
-                        res = y._acted_upon_(x, False)
-                        if res is not None: return res
-                except CoercionException:
-                    self._record_exception()
-
+        # And here is really the last resort:
+        # non-Elements may have a reverse operation defined.
+        # Hence, if y is not an Element, we'll try this:
         if not isinstance(y, Element):
             op_name = op.__name__
             if op_name[0] == 'i':
@@ -1044,6 +1075,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # We should really include the underlying error.
         # This causes so much headache.
+        if err is not None:
+            raise err
         raise TypeError, arith_error_message(x,y,op)
 
     cpdef canonical_coercion(self, x, y):
@@ -1621,12 +1654,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if action is not None:
                 #print "found2", action
                 return action
+            if R is S:
+                # An action of a parent on itself must
+                # be defined by ._get_action()
+                return None
 
         if isinstance(S, Parent):
             action = (<Parent>S).get_action(R, op, False, s, r)
             if action is not None:
                 #print "found1", action
                 return action
+            if S is R:
+                # An action of a parent on itself must
+                # be defined by ._get_action()
+                return None
 
         if type(R) is type:
             sageR = py_scalar_parent(R)

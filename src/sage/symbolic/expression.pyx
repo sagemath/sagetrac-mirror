@@ -2928,7 +2928,8 @@ cdef class Expression(CommutativeRingElement):
             Infinity
 
         Check if we are returning informative error messages in case of
-        nonsensical arithmetic :trac:`13739`::
+        nonsensical arithmetic :trac:`13739` (the message has changed
+        by :trac:`18758`, but is not less informative)::
 
             sage: t = GF(5)(3)
             sage: u = GF(7)(4)
@@ -2938,8 +2939,8 @@ cdef class Expression(CommutativeRingElement):
             sage: t*e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field
-            of size 7' and 'Finite Field of size 5'
+            TypeError: no common canonical parent for objects with
+            parents: 'Finite Field of size 7' and 'Finite Field of size 5'
 
         The same issue (with a different test case) was reported in
         :trac:`10960`::
@@ -2948,9 +2949,9 @@ cdef class Expression(CommutativeRingElement):
             sage: i*b
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Number Field
-            in I with defining polynomial x^2 + 1' and 'Finite Field in b of
-            size 3^2'
+            TypeError: no common canonical parent for objects with
+            parents: 'Number Field in I with defining polynomial x^2 + 1'
+            and 'Finite Field in b of size 3^2'
 
         Check if multiplication works when content is in `F_{2^k}`,
         examples from :trac:`13107`::
@@ -10798,8 +10799,9 @@ cdef class Expression(CommutativeRingElement):
             sage: plot(2*sin, -4, 4)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
-
+            TypeError: no common canonical parent for objects with
+            parents: 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
+            
         You should evaluate the function first::
 
             sage: plot(2*sin(x), -4, 4)

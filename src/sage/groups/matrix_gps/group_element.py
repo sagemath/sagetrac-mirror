@@ -23,10 +23,7 @@ there::
     sage: g + h
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand type(s) for +:
-    'FinitelyGeneratedMatrixGroup_gap_with_category.element_class' and
-    'FinitelyGeneratedMatrixGroup_gap_with_category.element_class'
-
+    ArithmeticError: addition not defined in a multiplicative group
     sage: g.matrix() + h.matrix()
     [2 0]
     [0 2]

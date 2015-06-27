@@ -611,7 +611,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         sage: TestSuite(fs).run()
     """
 
-    def __mul__(FiniteSetEndoMap_N self, FiniteSetEndoMap_N other):
+    def _mul_(FiniteSetEndoMap_N self, FiniteSetEndoMap_N other):
         """
         TESTS::
 
@@ -622,7 +622,6 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             sage: F([1, 0, 2]) * F([2, 1, 0])
             [1, 2, 0]
         """
-        assert(self._parent is other._parent), "Parent mismatch"
         if self._parent._action == "right":
             return self._compose_internal_(other, self._parent)
         else:
@@ -666,7 +665,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         sage: TestSuite(f).run()
     """
 
-    def __mul__(FiniteSetEndoMap_Set self, FiniteSetEndoMap_Set other):
+    def _mul_(FiniteSetEndoMap_Set self, FiniteSetEndoMap_Set other):
         """
         TESTS::
 
@@ -680,7 +679,6 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             sage: g * f
             map: a -> c, b -> c, c -> c
         """
-        assert(self._parent is other._parent), "Parent mismatch"
         if self._parent._action == "right":
             return self._compose_internal_(other, self._parent)
         else:

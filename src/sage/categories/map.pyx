@@ -959,6 +959,9 @@ cdef class Map(Element):
         H = homset.Hom(right.domain(), self._codomain, category)
         return self._composition_(right, H)
 
+    _mul_ = _composition  # _mul_ is only called for operands in the same parent
+    _imul_ = _composition
+
     def _composition_(self, right, homset):
         """
         INPUT:
