@@ -19,29 +19,13 @@ from __future__ import print_function
 
 import os, sys, platform, __builtin__
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME, get_libs_config
 from misc import SPYX_TMP
 from temporary_file import tmp_filename
 
 
-def cblas_libs():
-    """
-    Return the name of the cblas library on this system.
-    Currently written in SAGE_LOCAL/share/cblas_config when ATLAS
-    install script is run.
-
-    EXAMPLES::
-
-        sage: sage.misc.cython.cblas_libs() # random -- depends on OS, etc.
-        'cblas'
-    """
-    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'r')
-    libs = f.readline().split()
-    f.close()
-    return libs
-
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'ec', 'gsl'] + cblas_libs() + ['ntl']
+                 'ec', 'gsl'] + get_libs_config('cblas') + ['ntl']
 
 offset = 0
 

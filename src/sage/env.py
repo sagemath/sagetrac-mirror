@@ -140,6 +140,21 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
 
+def get_libs_config(libname):
+    """
+    Return a list of library read from SAGE_LOCAL/share/libname_config.
+
+    INPUT:
+
+    - ``libname`` -- a string
+
+    OUTPUT:
+
+    a list of libraries that distutils can use to compile sage or spyx files.
+    """
+    with open(os.path.join(SAGE_SHARE, '%s_config'%libname)) as f:
+    return f.readline().split()
+
 def sage_include_directories(use_sources=False):
     """
     Return the list of include directories for compiling Sage extension modules.

@@ -1,7 +1,7 @@
 import os
 from glob import glob
 from distutils.extension import Extension
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_LOCAL, get_libs_config
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
@@ -9,14 +9,8 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 ### BLAS setup
 #########################################################
 
-f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'r')
-blas_libs = f.readline().split()
-f.close()
-
-f = open(os.path.join(SAGE_LOCAL, 'share/lapack_config'), 'r')
-lapack_libs = f.readline().split()
-f.close()
-
+cblas_libs  = get_libs_config('cblas')
+lapack_libs = get_libs_config('lapack')
 
 #########################################################
 ### Commonly used definitions and aliases
@@ -29,8 +23,8 @@ givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
-        BLAS_LIBRARIES = blas_libs,
-        GSL_LIBRARIES = ['gsl'] + blas_libs,
+        BLAS_LIBRARIES = cblas_libs,
+        GSL_LIBRARIES = ['gsl'] + cblas_libs,
         INTERRUPT_DEPENDS = glob("sage/ext/interrupt/*.h"),
         )
 
@@ -84,7 +78,7 @@ library_order_list = [
     "m4rie", "m4ri",
     "zn_poly", "gap",
     "gd", "png12",
-    "m", "readline", "Lfunction"] + blas_libs + [
+    "m", "readline", "Lfunction"] + cblas_libs + [
     "cryptominisat", "fplll", "z"]
 
 # Make a dict with library:order pairs, where the order are negative
@@ -656,7 +650,7 @@ ext_modules = [
               # For this to work on cygwin, linboxsage *must* be
               # before ntl.
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
-                           'givaro', 'mpfr', 'gmp', 'gmpxx'] + blas_libs,
+                           'givaro', 'mpfr', 'gmp', 'gmpxx'] + cblas_libs,
               language = 'c++',
               extra_compile_args = givaro_extra_compile_args,
               depends = givaro_depends),
@@ -1007,7 +1001,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
-              libraries = ['iml', 'ntl', 'gmp', 'm', 'flint'] + blas_libs,
+              libraries = ['iml', 'ntl', 'gmp', 'm', 'flint'] + cblas_libs,
               depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_integer_sparse',
@@ -1029,13 +1023,13 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + blas_libs,
+              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + blas_libs,
+              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
               extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
                     + m4ri_extra_compile_args + givaro_extra_compile_args),
 
@@ -1052,7 +1046,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
-              libraries = ['iml', 'ntl', 'm', 'flint'] + blas_libs,
+              libraries = ['iml', 'ntl', 'm', 'flint'] + cblas_libs,
               depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_rational_sparse',
