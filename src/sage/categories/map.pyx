@@ -7,6 +7,13 @@ AUTHORS:
 
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :trac:`16291`.
+
+.. TODO::
+
+    This class should be rewritten to use Sage's coercion model, rather
+    than overriding the generic :meth:`~sage.structure.element.Element.__mul__`
+    method by custom methods.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
@@ -897,6 +904,19 @@ cdef class Map(Element):
         if right.codomain() != self.domain():
             raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
         return self._composition(right)
+
+    def __imul__(self, right):
+        """
+        Inplace multiplication.
+
+        EXAMPLES::
+
+            sage: H = Hom(QQ, QQ, category = Rings())
+            sage: phi = H.an_element()
+            sage: phi *= phi     # indirect doctest
+
+        """
+        return self*right
 
     def _composition(self, right):
         """
