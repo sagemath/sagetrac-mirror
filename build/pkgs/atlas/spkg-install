@@ -67,12 +67,12 @@ def assert_success(rc, good=None, bad=None):
 
 
 ######################################################################
-### Skip building ATLAS on specific systems
+### function to save ATLAS' configuration
 ######################################################################
 
-def write_cblas_config(libs):
+def write_libs_config(libs,target):
     import string
-    f = open(os.path.join(SAGE_LOCAL, 'share/cblas_config'), 'w')
+    f = open(os.path.join(SAGE_LOCAL, 'share/%s_config'%target), 'w')
     f.write(string.join(libs," "))
     f.close()
 
@@ -91,7 +91,9 @@ if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
         for lib in [ 'libBLAS.dylib', 'libLAPACK.dylib']:
             ln(os.path.join(veclib_dir, lib),
                os.path.join(conf['SAGE_LOCAL'], 'lib', lib))
-    write_cblas_config(['blas'])
+    write_lib_config(['blas'], 'cblas')
+    write_lib_config(['blas'], 'blas')
+    write_lib_config(['lapack'], 'lapack')
     sys.exit(0)
 
 
@@ -196,11 +198,25 @@ if 'SAGE_ATLAS_LIB' in os.environ:
     for lib in libraries + libraries_optional:
         symlinkOSlibrary(prefix+lib)
 
-    write_cblas_config(libs[1:])
+    if 'atlas' in libs:
+        write_libs_config(['cblas', 'atlas'], 'cblas')
+        write_libs_config(['f77blas', 'atlas'], 'blas')
+        # The inclusion of cblas is not a mistake. ATLAS' lapack include
+        # a custom version of clapack which depends on cblas.
+        write_libs_config(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
+    else:
+        write_libs_config(['blas'], 'cblas')
+        write_libs_config(['blas'], 'blas')
+        write_libs_config(['lapack', 'blas'], 'lapack')
+
 
     sys.exit(0)
 
-write_cblas_config(['f77blas', 'cblas', 'atlas'])
+write_libs_config(['cblas', 'atlas'], 'cblas')
+write_libs_config(['f77blas', 'atlas'], 'blas')
+# The inclusion of cblas is not a mistake. ATLAS' lapack include
+# a custom version of clapack which depends on cblas.
+write_libs_config(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
 
 ######################################################################
 ### Patch source
