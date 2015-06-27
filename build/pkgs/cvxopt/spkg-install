@@ -39,16 +39,17 @@ fi
 
 # optional modules configuration
 export CVXOPT_BUILD_GLPK=1
-export CVXOPT_GLPK_LIB_DIR="$SAGE_LOCAL/lib"
-export CVXOPT_GLPK_INC_DIR="$SAGE_LOCAL/include"
+export CVXOPT_GLPK_LIB_DIR="$SAGE_LOCAL"/lib
+export CVXOPT_GLPK_INC_DIR="$SAGE_LOCAL"/include
 
 export CVXOPT_BUILD_GSL=1
-export CVXOPT_GSL_LIB_DIR="$SAGE_LOCAL/lib"
-export CVXOPT_GSL_INC_DIR="$SAGE_LOCAL/include"
+export CVXOPT_GSL_LIB_DIR="$SAGE_LOCAL"/lib
+export CVXOPT_GSL_INC_DIR="$SAGE_LOCAL"/include
 
 # BLAS/LAPACK configuration
-export CVXOPT_BLAS_LIB=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/ /,/g'`
-export CVXOPT_BLAS_LIB_DIR="$SAGE_LOCAL/lib"
+export CVXOPT_BLAS_LIB=`sed 's/ /,/g' "$SAGE_SHARE"/blas_config`
+export CVXOPT_LAPACK_LIB=`sed 's/ /,/g' "$SAGE_SHARE"/lapack_config`
+export CVXOPT_BLAS_LIB_DIR="$SAGE_LOCAL"/lib
 
 python setup.py install
 if [ $? -ne 0 ]; then
@@ -67,10 +68,10 @@ if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
 #      exit 1
 #   fi
 # checking to see if there is previously installed documentation.
-   if [ -d $SAGE_LOCAL/share/doc/cvxopt/html ] ; then
-      rm -rf $SAGE_LOCAL/share/doc/cvxopt/html
+   if [ -d "$SAGE_SHARE"/doc/cvxopt/html ] ; then
+      rm -rf "$SAGE_SHARE"/doc/cvxopt/html
    fi
-   mkdir -p $SAGE_LOCAL/share/doc/cvxopt/html
-   cp -r html/* $SAGE_LOCAL/share/doc/cvxopt/html/
+   mkdir -p "$SAGE_SHARE"/doc/cvxopt/html
+   cp -r html/* "$SAGE_SHARE"/doc/cvxopt/html/
 fi
 
