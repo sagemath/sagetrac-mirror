@@ -708,6 +708,10 @@ class Leaf():
             sage: leaf_1 = Leaf({player_1: 5, player_2: 1, player_3:10}, 'end_leaf')
             sage: leaf_1
             (1, 10, 5)
+
+            sage: d = {'Missty':2, 'Auray':5, 'Toby':4}
+            sage: d == {'Auray':5, 'Missty':2, 'Toby':4}
+            True
         """
         return str(tuple([self[plry] for plry in sorted(self.players, key=lambda x:x.name)]))
 
