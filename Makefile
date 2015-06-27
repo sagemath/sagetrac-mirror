@@ -7,7 +7,7 @@
 # See below for targets to build the documentation in other formats,
 # to run various types of test suites, and to remove parts of the build etc.
 
-PIPE = build/pipestatus
+PIPE = $(shell pwd)/build/make/pipestatus
 
 
 all: start doc  # indirectly depends on build
@@ -16,10 +16,10 @@ logs:
 	mkdir -p $@
 
 build: logs configure
-	+cd build && \
-	"../$(PIPE)" \
+	+cd build/make && \
+	$(PIPE) \
 		"./install all 2>&1" \
-		"tee -a ../logs/install.log"
+		"tee -a ../../logs/install.log"
 	+./sage -b
 
 # Preemptively download all standard upstream source tarballs.
@@ -89,7 +89,7 @@ bdist-clean: clean
 	rm -rf tmp
 	rm -f aclocal.m4 config.log config.status confcache
 	rm -rf autom4te.cache
-	rm -f build/Makefile build/Makefile-auto
+	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
 
 distclean: clean doc-clean lib-clean bdist-clean
@@ -99,7 +99,7 @@ distclean: clean doc-clean lib-clean bdist-clean
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
 bootstrap-clean:
-	rm -rf config configure build/Makefile-auto.in
+	rm -rf config configure build/make/Makefile-auto.in
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
