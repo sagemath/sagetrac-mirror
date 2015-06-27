@@ -694,13 +694,22 @@ class Leaf():
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1}, 'end_leaf')
             sage: leaf_1
-            Player 1: 0 Player 2: 1
+            (0, 1)
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 5, player_2: 1}, 'end_leaf')
+            sage: leaf_1
+            (5, 1)
+
+            sage: player_1 = Player('Vince')
+            sage: player_2 = Player('Hannah')
+            sage: player_3 = Player('James')
+            sage: leaf_1 = Leaf({player_1: 5, player_2: 1, player_3:10}, 'end_leaf')
+            sage: leaf_1
+            (1, 10, 5)
         """
-        m = ""
-        for i in self.players:
-            j = "%s: %s " %(i, self[i])
-            m += j
-        return m
+        return str(tuple([self[plry] for plry in sorted(self.players, key=lambda x:x.name)]))
 
 
     def __delitem__(self, key):
