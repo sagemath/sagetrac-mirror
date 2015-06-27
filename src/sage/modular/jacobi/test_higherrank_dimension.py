@@ -7,25 +7,25 @@ AUTHOR:
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
 
-from sage.all import (prod, zero_vector, matrix,
+from sage.all import (prod, matrix,
                       ZZ, ComplexField,
                       gcd, lcm,
                       QuadraticForm)
@@ -91,24 +91,27 @@ def _test__discriminant_form(L):
 
             # the value of the quadratic form is compatible with the
             # element's order
-            assert quad(*v) * (eds[ix] / gcd(a, eds[ix]))**2 in ZZ
+            assert quad(*v) * (eds[ix] / gcd(a, eds[ix])) ** 2 in ZZ
 
             # discrimiant forms are non-degenerate
-            if not all(e==0 for e in v):
+            if not all(e == 0 for e in v):
                 w = l*[0]
                 for b in range(eds[ix]):
                     w[ix] = b
-                    if bil(*(v+w)) not in ZZ: break
+                    if bil(*(v + w)) not in ZZ:
+                        break
                 else:
                     raise AssertionError()
 
             # the descomposition into jordan components is orthogonal
             for ix2 in range(l):
-                if ix == ix2: continue
-                w = l*[0]
+                if ix == ix2:
+                    continue
+                w = l * [0]
                 for b in range(eds[ix2]):
                     w[ix2] = b
-                    assert bil(*(v+w)) in ZZ
+                    assert bil(*(v + w)) in ZZ
+
 
 def test__discriminant_form_pmone():
     r"""
@@ -143,7 +146,7 @@ def _test__discriminant_form_pmone(L):
     (singls, pairs) = _discriminant_form_pmone(L, eds)
 
     is_trivial = lambda x: all(x % e == 0 for (x, e) in zip(x, eds))
-     
+
     for x in singls:
         assert is_trivial(map(operator.add, x, x))
     for x in pairs:
@@ -197,16 +200,13 @@ def _test__weil_representation(L):
             assert S.nrows() == S.ncols() == len(pairs)
             assert T.nrows() == T.ncols() == len(pairs)
 
-        
-        zero_test = lambda m: all(abs(e) < 10**-10 for e in m.list())
+        zero_test = lambda m: all(abs(e) < 10 ** -10 for e in m.list())
 
-        assert zero_test(T**(2*lcm(eds)) - 1)
+        assert zero_test(T ** (2 * lcm(eds)) - 1)
 
-        S4 = S**4
-        ST3 = (S*T)**3
         if L.dim() % 2 == 0:
-            assert zero_test(S**4 - 1)
-            assert zero_test((S*T)**6 - 1)
+            assert zero_test(S ** 4 - 1)
+            assert zero_test((S * T) ** 6 - 1)
         else:
-            assert zero_test(S**8 - 1)
-            assert zero_test((S*T)**12 - 1)
+            assert zero_test(S ** 8 - 1)
+            assert zero_test((S * T) ** 12 - 1)

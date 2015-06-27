@@ -1,4 +1,4 @@
-r""" 
+r"""
 A dimension formula for vector-valued modular forms, and functions
 that apply it to the case of Jacobi forms.
 
@@ -16,31 +16,30 @@ AUTHOR:
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2012-2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
 
-from sage.functions.all import exp, sqrt, sign
+from sage.functions.all import exp, sqrt
 from sage.matrix.all import diagonal_matrix, identity_matrix, matrix
 from sage.misc.all import sum, mrange, prod, cython_lambda
-from sage.modules.all import vector 
+from sage.modules.all import vector
 from sage.rings.all import ComplexIntervalField, ZZ, QQ, lcm
-from sage.rings.all import moebius, gcd, QuadraticField, fundamental_discriminant, kronecker_symbol
-from sage.quadratic_forms.all import QuadraticForm, BinaryQF_reduced_representatives 
+from sage.quadratic_forms.all import QuadraticForm
 from sage.symbolic.all import I, pi
 from copy import copy
 import operator
@@ -49,13 +48,13 @@ import operator
 def jacobi_dimension(k, m):
     r"""
     INPUT:
-    
+
     - `k` -- An integer.
-    
+
     - `m` -- A quadratic form or an even symmetric matrix (over `\ZZ`).
-    
+
     TESTS::
-    
+
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
         sage: from sage.modular.jacobi.higherrank_dimension import jacobi_dimension
         sage: all(len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, matrix([[2 * m]])) for k in range(8, 16) for m in range(1, 10) ) # long time
@@ -106,14 +105,14 @@ def vector_valued_dimension(k, L):
     Compute the dimension of the space of weight `k` vector valued
     modular forms for the Weil representation attached to the lattice
     `L`.
-    
+
     See [Borcherds, Borcherds - Reflection groups of Lorentzian
     lattices] for a proof of the formula that we use here.
-    
+
     INPUT:
-    
+
     - `k` -- A half-integer.
-    
+
     - ``L`` -- An quadratic form.
 
     OUTPUT:
@@ -130,26 +129,26 @@ def vector_valued_dimension(k, L):
         sage: vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 0, 0, 4])))
         1
     """
-    if 2 * k not in ZZ :
-        raise ValueError( "Weight must be half-integral" ) 
-    if k <= 0 :
+    if 2 * k not in ZZ:
+        raise ValueError( "Weight must be half-integral" )
+    if k <= 0:
         return 0
-    if k < 2 :
+    if k < 2:
         raise NotImplementedError( "Weight <2 is not implemented." )
 
-    if L.matrix().rank() != L.matrix().nrows() :
+    if L.matrix().rank() != L.matrix().nrows():
         raise ValueError( "The lattice (={0}) must be non-degenerate.".format(L) )
 
-    if L.dim() % 2 != ZZ(2 * k) % 2 :
+    if L.dim() % 2 != ZZ(2 * k) % 2:
         return 0
 
     (discriminant_form_exponents, disc_quadratic, disc_bilinear) = _discriminant_form(L)
     (singls, pairs) = _discriminant_form_pmone(L, discriminant_form_exponents)
     plus_basis = ZZ(L.dim() + 2*k) % 4 == 0
 
-    if plus_basis :
+    if plus_basis:
         subspace_dimension = len(singls + pairs)
-    else :
+    else:
         subspace_dimension = len(pairs)
 
     CC_prec = 50 + subspace_dimension * 2
@@ -162,7 +161,7 @@ def vector_valued_dimension(k, L):
 
 
         ## This function overestimates the number of eigenvalues, if it is not correct
-        def eigenvalue_multiplicity(mat, ev) :
+        def eigenvalue_multiplicity(mat, ev):
             mat = matrix(CC, mat - ev * identity_matrix(subspace_dimension))
             return len(filter( lambda row: all( e.contains_zero() for e in row), _qr(mat).rows() ))
 
@@ -219,32 +218,31 @@ def _discriminant_form(L):
 
     See test_higherrank_dimension:test__discrimant_form.
     """
-    if L.matrix().rank() != L.matrix().nrows() :
-        raise ValueError( "The lattice (={0}) must be non-degenerate.".format(L) )
-
+    if L.matrix().rank() != L.matrix().nrows():
+        raise ValueError("The lattice (={0}) must be non-degenerate.".format(L))
 
     ## The bilinear and the quadratic form attached to L
-    quadratic = lambda x: L(x) // 2
-    bilinear = lambda x,y: L(x + y) - L(x) - L(y)
+    # quadratic = lambda x: L(x) // 2
+    # bilinear = lambda x,y: L(x + y) - L(x) - L(y)
 
 
     ## A dual basis for L
     (elementary_divisors, dual_basis_pre, _) = L.matrix().smith_form()
     elementary_divisors = elementary_divisors.diagonal()
     dual_basis = map(operator.div, list(dual_basis_pre), elementary_divisors)
-    
+
     L_level = ZZ(lcm([ b.denominator() for b in dual_basis ]))
-    
+
     (elementary_divisors, _, discriminant_basis_pre) = (L_level * matrix(dual_basis)).change_ring(ZZ).smith_form()
     elementary_divisors = filter( lambda d: d not in ZZ, (elementary_divisors / L_level).diagonal() )
-    elementary_divisors_inv = map(ZZ, [ed**-1 for ed in elementary_divisors])
+    elementary_divisors_inv = map(ZZ, [ed ** -1 for ed in elementary_divisors])
     discriminant_basis = matrix(map( operator.mul,
                                      discriminant_basis_pre.inverse().rows()[:len(elementary_divisors)],
                                      elementary_divisors )).transpose()
 
     ## This is a form over QQ, so that we cannot use an instance of QuadraticForm
     discriminant_form = discriminant_basis.transpose() * L.matrix() * discriminant_basis
-    if prod(elementary_divisors_inv) > 100 :
+    if prod(elementary_divisors_inv) > 100:
         disc_den = discriminant_form.denominator()
         disc_bilinear_pre = \
             cython_lambda( ', '.join(   ['int a{0}'.format(i) for i in range(discriminant_form.nrows())]
@@ -253,7 +251,7 @@ def _discriminant_form(L):
                                       for i in range(discriminant_form.nrows())
                                       for j in range(discriminant_form.nrows())) )
         disc_bilinear = lambda *a: disc_bilinear_pre(*a) / disc_den
-    else :
+    else:
         disc_bilinear = lambda *xy: vector(ZZ, xy[:discriminant_form.nrows()]) * discriminant_form * vector(ZZ, xy[discriminant_form.nrows():])
 
     disc_quadratic = lambda *a: disc_bilinear(*(2 * a)) / 2
@@ -293,26 +291,26 @@ def _discriminant_form_pmone(L, discriminant_form_exponents):
     See test_higherrank_dimension:test__discrimant_form_pmone.
     """
     ## red gives a normal form for elements in the discriminant group
-    red = lambda x : map(operator.mod, x, discriminant_form_exponents)
+    red = lambda x: map(operator.mod, x, discriminant_form_exponents)
 
     ## singls and pairs are elements of the discriminant group that are, respectively,
     ## fixed and not fixed by negation.
     singls = list()
     pairs = list()
-    for x in mrange(discriminant_form_exponents) :
+    for x in mrange(discriminant_form_exponents):
         y = red(map(operator.neg, x))
-        for (e, f) in zip(x, y) :
-            if e < f :
+        for (e, f) in zip(x, y):
+            if e < f:
                 si = -1
                 break
-            elif e > f :
+            elif e > f:
                 si = 1
                 break
         else:
             singls.append(x)
             continue
 
-        if si == 1 :
+        if si == 1:
             pairs.append(x)
 
     return (singls, pairs)
@@ -323,7 +321,7 @@ def _weil_representation(CC, L, singls, pairs, plus_basis,
                          disc_bilinear):
     r"""
     Construct the Weil representation with values in a complex field
-    (or intervall field).
+    (or interval field).
 
     INPUT:
 
@@ -373,35 +371,36 @@ def _weil_representation(CC, L, singls, pairs, plus_basis,
 
     See test_higherrank_dimension:test__weil_representation.
     """
-    zeta_order = ZZ(lcm([8, 12] + map(lambda ex: 2*ex, discriminant_form_exponents)))
+    zeta_order = ZZ(lcm([8, 12] + map(lambda ex: 2 * ex,
+                                      discriminant_form_exponents)))
 
     zeta = CC(exp(2 * pi * I / zeta_order))
-    sqrt2  = CC(sqrt(2))
-    drt  = CC(sqrt(abs(L.det())))
+    sqrt2 = CC(sqrt(2))
+    drt = CC(sqrt(abs(L.det())))
 
-    Tmat  = diagonal_matrix(CC, [zeta**(zeta_order*disc_quadratic(*a))
-                                 for a in (singls + pairs if plus_basis else pairs)])
+    Tmat = diagonal_matrix(CC, [zeta ** (zeta_order * disc_quadratic(*a))
+                                for a in (singls + pairs if plus_basis
+                                          else pairs)])
 
     neg = lambda v: map(operator.neg, v)
 
-    if plus_basis :        
-        Smat = zeta**(zeta_order / 8 * L.dim()) / drt  \
-               * matrix( CC, [  [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in singls]
+    if plus_basis:
+        Smat = zeta ** (zeta_order / 8 * L.dim()) / drt * matrix(CC, [[zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in singls]
                               + [sqrt2 * zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in pairs]
-                              for gamma in singls] \
+                              for gamma in singls]
                            + [  [sqrt2 * zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in singls]
                               + [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) + zeta**(-zeta_order * disc_bilinear(*(gamma + neg(delta)))) for delta in pairs]
                               for gamma in pairs] )
-    else :
-        Smat = zeta**(zeta_order / 8 * L.dim()) / drt  \
-               * matrix( CC, [  [  zeta**(-zeta_order * disc_bilinear(*(gamma + delta)))
-                                 - zeta**(-zeta_order * disc_bilinear(*(gamma + neg(delta))))
+    else:
+        Smat = zeta ** (zeta_order / 8 * L.dim()) / drt * matrix( CC, [  [  zeta**(-zeta_order * disc_bilinear(*(gamma + delta)))
+                                 - zeta ** (-zeta_order * disc_bilinear(*(gamma + neg(delta))))
                                  for delta in pairs]
-                                for gamma in pairs ] )
+                                for gamma in pairs ])
 
     return (Smat, Tmat)
 
-def _qr(mat) :
+
+def _qr(mat):
     r"""
     Compute the R matrix in QR decomposition using Housholder reflections.
 
@@ -460,31 +459,32 @@ def _qr(mat) :
     n = mat.ncols()
 
     cur_row = 0
-    for j in range(0, n) :
-        if all( mat[i,j].contains_zero() for i in xrange(cur_row + 1, m) ) :
-            if not mat[cur_row,j].contains_zero() :
+    for j in range(0, n):
+        if all(mat[i, j].contains_zero() for i in xrange(cur_row + 1, m)):
+            if not mat[cur_row, j].contains_zero():
                 cur_row += 1
             continue
 
-        s = sum( (abs(mat[i,j]))**2 for i in xrange(cur_row, m) )
-        if s.contains_zero() :
-            raise ArithmeticError( "Cannot handle sums of elements that are too imprecise" )
-        
+        s = sum((abs(mat[i, j])) ** 2 for i in xrange(cur_row, m))
+        if s.contains_zero():
+            raise ArithmeticError("Cannot handle sums of elements that are too imprecise")
+
         p = sqrt(s)
-        if (s - p * mat[cur_row,j]).contains_zero() :
-            raise ArithmeticError( "Cannot handle sums of elements that are too imprecise" )
-        kappa = 1 / (s - p * mat[cur_row,j])
+        if (s - p * mat[cur_row, j]).contains_zero():
+            raise ArithmeticError("Cannot handle sums of elements that are too imprecise")
+        kappa = 1 / (s - p * mat[cur_row, j])
 
-        mat[cur_row,j] -= p
-        for k in range(j + 1, n) :
-            y = sum(mat[i,j].conjugate() * mat[i,k] for i in xrange(cur_row, m)) * kappa
+        mat[cur_row, j] -= p
+        for k in range(j + 1, n):
+            y = sum(mat[i, j].conjugate() * mat[i, k]
+                    for i in xrange(cur_row, m)) * kappa
             for i in range(cur_row, m):
-                mat[i,k] -= mat[i,j] * y
+                mat[i, k] -= mat[i, j] * y
 
-        mat[cur_row,j] = p
-        for i in range(cur_row + 1, m) :
-            mat[i,j] = CC(0)
-        
+        mat[cur_row, j] = p
+        for i in range(cur_row + 1, m):
+            mat[i, j] = CC(0)
+
         cur_row += 1
-    
+
     return mat

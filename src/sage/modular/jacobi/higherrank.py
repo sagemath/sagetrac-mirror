@@ -100,7 +100,7 @@ from sage.misc.flatten import flatten
 from sage.modular.jacobi.classical import (classical_jacobi_forms,
                     classical_jacobi_fe_indices, classical_jacobi_reduce_fe_index)
 from sage.modular.jacobi.higherrank_dimension import jacobi_dimension
-from sage.modules.all import FreeModule, vector, span, zero_vector
+from sage.modules.all import FreeModule, vector, zero_vector
 from sage.rings.all import ZZ, QQ
 from sage.quadratic_forms.all import QuadraticForm
 from sage.sets.all import Set
@@ -196,7 +196,7 @@ def _higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span):
             return (rred, 1)
         if vector(r) + vector(rred) in m_span:
             return (rred, -1)
-    else :
+    else:
         raise RuntimeError( "Could not find reduced r" )
 
 def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
@@ -244,11 +244,11 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
                 r = r_class[0]
                 if m_adj(r) <= 2*m.det()*n:
                     yield (n, r)
-    else :
+    else:
         short_vectors = m_adj.short_vector_list_up_to_length(2*m.det()*(prec - 1) + 1)
         for n in range(0, prec):
-            for length in range(0, 2*m.det()*n + 1):
-                for r in short_vectors[length] :
+            for length in range(2 * m.det() * n + 1):
+                for r in short_vectors[length]:
                     yield (n, tuple(r))
 
     raise StopIteration
@@ -282,8 +282,7 @@ def higherrank_jacobi_r_classes(m):
     m_span = m_mat.row_module()
     m_adj = QuadraticForm(2 * m_mat.adjoint())
 
-
-    canonical_reps =  [r.lift() for r in m_span.ambient_module() / m_span]
+    canonical_reps = [r.lift() for r in m_span.ambient_module() / m_span]
     max_norm = max(m_adj(r) for r in canonical_reps)
 
     current_max_length = 5
@@ -298,7 +297,8 @@ def higherrank_jacobi_r_classes(m):
                 or vector(r_class[0]) + vector(r_can) in m_span):
                 r_class_found = True
                 break
-        if r_class_found: continue
+        if r_class_found:
+            continue
 
         r_classes.append([])
         r_class = r_classes[-1]
@@ -320,11 +320,13 @@ def higherrank_jacobi_r_classes(m):
                     r_class.append(tuple(r))
                     r_class_reduction_signs.append(-1)
 
-            if len(r_class) != 0: break
+            if len(r_class) != 0:
+                break
 
     for cl_ix in range(len(r_classes_reduction_signs)):
         if r_classes_reduction_signs[cl_ix][0] == -1:
-            r_classes_reduction_signs[cl_ix] = map(operator.neg, r_classes_reduction_signs[cl_ix])
+            r_classes_reduction_signs[cl_ix] = map(operator.neg,
+                                                   r_classes_reduction_signs[cl_ix])
 
 
     return (r_classes, r_classes_reduction_signs)
@@ -401,19 +403,16 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
     rand = Random()
 
-
     dim = jacobi_dimension(k, m)
-    if dim == 0: return []
-
+    if dim == 0:
+        return []
 
     (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
     m_span = m.matrix().row_module()
 
-
     rst_vectors_with_image = _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span)
     rst_vectors = [vector(s)
                    for s in Set(tuple(s) for (s, _) in rst_vectors_with_image)]
-
 
     max_rst_index = max([m(s) for s in rst_vectors])
     minimal_prec = 2 + (k + max_rst_index) // 12 + 5
@@ -448,17 +447,18 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
             relation_prec += minimal_prec
             max_relation_rst_index += 2
 
-
-            if len(relation_rst_vectors): relation_rst_vectors = rst_vectors
+            if len(relation_rst_vectors):
+                relation_rst_vectors = rst_vectors
 
             short_vectors = (
                 flatten( m.short_vector_list_up_to_length(max_relation_rst_index+1, True)[max_relation_rst_index-2:],
-                         max_level = 1 )
+                         max_level=1)
             )
             try:
                 relation_rst_vectors += rand.sample(short_vectors, m.det())
             except ValueError:
                 relation_rst_vectors += short_vectors
+
 
 def _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span):
     r"""
@@ -514,7 +514,7 @@ def _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs
     rst_kernel_odd = rst_kernel_odd_matrix.row_module()
 
 
-    while (nmb_rst_vectors_even < len(r_classes)) :
+    while (nmb_rst_vectors_even < len(r_classes)):
         while len(short_vectors[cur_length]) == 0:
             cur_length += 1
             if max_length < cur_length:
@@ -639,7 +639,8 @@ def _restriction_relation_matrices(k, m, prec, relation_prec,
     return ( restriction_matrix__big, row_groups, row_labels, column_labels,
              relation_matrix, column_labels_relations )
 
-def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_span) :
+
+def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_span):
     r"""
     A matrix that maps the Fourier expansion of a Jacobi form of given precision
     to their restrictions with respect to the elements of S.
@@ -726,21 +727,19 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     if len(rst_vectors) == 0:
         return (zero_matrix(ZZ, 0, len(column_labels)), [], {}, column_labels)
 
+    rst_jacobi_indices = [m(s) for s in rst_vectors]
+    rst_indices = dict((m_rst,
+                        list(classical_jacobi_fe_indices(
+                            m_rst, prec, reduced=not find_relations)))
+                       for m_rst in Set(rst_jacobi_indices))
 
-    rst_jacobi_indices = [ m(s) for s in rst_vectors ]
-    rst_indices = dict( (m_rst,
-                         list(classical_jacobi_fe_indices(
-                            m_rst, prec, reduced = not find_relations)) )
-                          for m_rst in Set(rst_jacobi_indices) )
+    row_groups = [len(rst_indices[mm_rst]) for mm_rst in rst_jacobi_indices]
+    row_groups = [(s, mm_rst, sum(row_groups[:i]), row_groups[i])
+                   for ((i, s), mm_rst) in zip(enumerate(rst_vectors), rst_jacobi_indices) ]
+    row_labels = dict((m_rst, dict( (nr, i) for (i, nr) in enumerate(rst_indices[m_rst])))
+                       for m_rst in Set(rst_jacobi_indices))
 
-    row_groups = [ len(rst_indices[m_rst]) for m_rst in rst_jacobi_indices ]
-    row_groups = [ (s, m_rst, sum(row_groups[:i]), row_groups[i])
-                   for ((i, s), m_rst) in zip(enumerate(rst_vectors), rst_jacobi_indices) ]
-    row_labels = dict( (m_rst, dict( (nr, i) for (i, nr) in enumerate(rst_indices[m_rst]) ))
-                       for m_rst in Set(rst_jacobi_indices) )
-
-
-    reductions = dict( (nr,[]) for nr in column_labels )
+    reductions = dict((nr, []) for nr in column_labels)
     for nr in higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
         (nrred, sgn) = higherrank_jacobi_reduce_fe_index(nr, m, r_classes, m_adj, m_span)
         reductions[nrred].append((nr, sgn))
@@ -754,18 +753,19 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     else:
         cython_dot_products = False
 
-
     restriction_matrix = zero_matrix(ZZ, row_groups[-1][2] + row_groups[-1][3],
                                      len(column_labels))
     for (col, nrred) in enumerate(column_labels):
-        for ((n,r), sgn) in reductions[nrred]:
+        for ((n, r), sgn) in reductions[nrred]:
             for (ix, (s, m_rst, start, length)) in enumerate(row_groups):
                 row_labels_dict = row_labels[m_rst]
 
-                if cython_dot_products: rst_r = dot_products[ix](*r)
-                else: rst_r = s.dot_product(vector(r))
+                if cython_dot_products:
+                    rst_r = dot_products[ix](*r)
+                else:
+                    rst_r = s.dot_product(vector(r))
 
-                try :
+                try:
                     restriction_matrix[start + row_labels_dict[(n, rst_r)], col] \
                         += 1 if k == 0 else sgn
                 except KeyError:
@@ -773,7 +773,8 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
 
     return (restriction_matrix, row_groups, row_labels, column_labels)
 
-def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
+
+def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span):
     r"""
     Deduce relations of the coefficients of a Jacobi form from their
     specialization to Jacobi form of scalar index.
@@ -827,8 +828,7 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
     Tested implicitely by ``meth:higherrank_jacobi_forms``.  See also ``test_higherrank.py``.
     """
     k = k % 2
-    m_adj = QuadraticForm(2 * m.matrix().adjoint())
-
+    # m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
     ## relations computed from restrictions
     (mat, row_groups, row_labels, column_labels) = \
@@ -839,23 +839,24 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
         row_labels_dict = row_labels[m_rst]
         for (nr, ix) in row_labels_dict.items():
             (nrred, sgn) = classical_jacobi_reduce_fe_index(nr, m_rst)
-            if nrred == nr: continue
+            if nrred == nr:
+                continue
 
             rel = (mat.row(start + row_labels_dict[nrred])
                    - (1 if k == 0 else sgn) * mat.row(start + ix))
-            if rel != 0: relations.append(rel)
-
+            if rel != 0:
+                relations.append(rel)
 
     ## Forces zeros in case of odd k
-    if  k == 1:
-        for (ix, (n,r)) in enumerate(column_labels):
-            if 2*vector(r) in m_span:
+    if k == 1:
+        for (ix, (n, r)) in enumerate(column_labels):
+            if 2 * vector(r) in m_span:
                 rel = zero_vector(len(column_labels))
                 rel[ix] = 1
                 relations.append(rel)
 
-
     return (matrix(len(relations), len(column_labels), relations), column_labels)
+
 
 def _higherrank_jacobi_forms__restriction(
         k, prec, relation_prec, dim,
@@ -868,7 +869,6 @@ def _higherrank_jacobi_forms__restriction(
     INPUT:
 
     - `k` -- An integer.  Only `k` modulo `2` is used.
-
 
     - ``prec`` -- A nonnegative integer.
 
@@ -919,11 +919,11 @@ def _higherrank_jacobi_forms__restriction(
 
     row_labels__small = dict()
     for (m_rst, row_labels_dict) in row_labels.items():
-        row_labels_dict__small = dict()
+        row_labels_dict__small = {}
 
         label_nmb = 0
         for (nr, i) in row_labels_dict.items():
-            if nr[0] < relation_prec :
+            if nr[0] < relation_prec:
                 row_labels_dict__small[nr] = (label_nmb, i)
                 label_nmb += 1
 
@@ -933,7 +933,7 @@ def _higherrank_jacobi_forms__restriction(
     for ((s, m_rst, start, _), (start_small, length_small)) in zip(row_groups, row_groups__small):
         row_labels_dict = row_labels__small[m_rst]
         row_indices__sub = length_small * [None]
-        for (_,(i, i_pre)) in row_labels_dict.items():
+        for (_, (i, i_pre)) in row_labels_dict.items():
             row_indices__sub[i] = start + i_pre
         row_indices__small += row_indices__sub
 
@@ -943,9 +943,9 @@ def _higherrank_jacobi_forms__restriction(
             [column_labels.index(nr) for nr in column_labels_relations] )
 
 
-    rst_jacobi_indices = [ m_rst for (_, m_rst, _, _) in row_groups ]
-    rst_indices = dict( (m_rst, list(classical_jacobi_fe_indices(m_rst, prec, reduced=True)))
-                        for m_rst in Set(rst_jacobi_indices) )
+    rst_jacobi_indices = [m_rst for (_, m_rst, _, _) in row_groups]
+    # rst_indices = dict( (m_rst, list(classical_jacobi_fe_indices(m_rst, prec, reduced=True)))
+    #                    for m_rst in Set(rst_jacobi_indices) )
     rst_jacobi_forms = dict( (m_rst, classical_jacobi_forms(k, m_rst, prec))
                              for m_rst in Set(rst_jacobi_indices) )
 
@@ -957,11 +957,10 @@ def _higherrank_jacobi_forms__restriction(
             v = vector(ZZ, len(row_labels_dict))
             for (nr, i) in row_labels_dict.items():
                 (nrred, sgn) = classical_jacobi_reduce_fe_index(nr, m_rst)
-                v[i] = ((1 if k%2 == 0 else sgn) * phi[nr]) if nr in phi else 0
+                v[i] = ((1 if k % 2 == 0 else sgn) * phi[nr]) if nr in phi else 0
 
             rst_jacobi_vectors.append(vector(
-                start*[0] + v.list() + (nmb_rst_coords - start - length)*[0] ))
-
+                start * [0] + v.list() + (nmb_rst_coords - start - length) * [0] ))
 
     rst_jacobi_matrix__big = \
         matrix(len(rst_jacobi_vectors), nmb_rst_coords, rst_jacobi_vectors).transpose()
@@ -978,7 +977,7 @@ def _higherrank_jacobi_forms__restriction(
 
     if jacobi_expansions_space.dimension() < dim:
         raise RuntimeError( "There is a bug in the implementation of the restriction method. Dimensions: {} < {}!".format(jacobi_expansions_space.dimension(), dim) )
-    if jacobi_expansions_space.dimension() > dim :
+    if jacobi_expansions_space.dimension() > dim:
         raise ValueError( "Could not construct enough restrictions to determine Fourier expansions uniquely", "INSUFFICIENT RELATIONS" )
 
 
@@ -987,6 +986,5 @@ def _higherrank_jacobi_forms__restriction(
         restriction_matrix * jacobi_expansions_space.basis_matrix().transpose() )
     jacobi_expansions__big = restriction_matrix__big.solve_right( rst_jacobi_matrix__big * restriction_coordinates ).transpose()
 
-
-    return [dict((nr,c) for (nr,c) in zip(column_labels, phi))
+    return [dict((nr, c) for (nr, c) in zip(column_labels, phi))
             for phi in jacobi_expansions__big.rows()]

@@ -30,7 +30,7 @@ REFERENCE:
 #
 #===============================================================================
 
-from sage.functions.all import ceil, floor
+from sage.functions.all import ceil
 from sage.matrix.all import matrix, zero_matrix, identity_matrix
 from sage.modular.all import CuspForms
 from sage.modular.jacobi.higherrank import (
@@ -90,10 +90,10 @@ def vector_valued_modular_forms(k, L, prec):
     if not L.is_positive_definite():
         raise ValueError("Quadratic form must be positive definite. Use L.stabily_equivalent_positive_definite_quadratic_form() inorder to obtain one that is stabily equivalent.")
 
-    if (2*k + L.dim()) % 2 != 0:
+    if (2 * k + L.dim()) % 2 != 0:
         return []
     else:
-        k_jac = ZZ(k + L.dim()/ZZ(2))
+        k_jac = ZZ(k + L.dim() / ZZ(2))
 
     L_adj = QuadraticForm(2 * L.matrix().adjoint())
 
@@ -102,6 +102,7 @@ def vector_valued_modular_forms(k, L, prec):
 
     return [theta_decomposition(phi, L, r_classes)
             for phi in higherrank_jacobi_forms(k_jac, L, prec + ceil(max_n_shift))]
+
 
 def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
     r"""
@@ -229,42 +230,44 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, pri
     L_span = L.matrix().row_module()
     L_adj = QuadraticForm(2 * L.matrix().adjoint())
     mu_module = L_span.ambient_module() / L_span
-    mu_indices = dict([(mu,ix) for (ix,mu) in enumerate(mu_module)])
+    mu_indices = dict([(mu, ix) for (ix, mu) in enumerate(mu_module)])
 
 
-    pp_matrix = zero_matrix(QQ, len(mu_indices)*order, len(vvforms))
-    for (col,vvf) in enumerate(vvforms):
-        for (mu,fe) in vvf.items():
+    pp_matrix = zero_matrix(QQ, len(mu_indices) * order, len(vvforms))
+    for (col, vvf) in enumerate(vvforms):
+        for (mu, fe) in vvf.items():
             mu_ix = mu_indices[mu_module(vector(mu))]
 
-            n_shift = L_adj(mu)/(2*L.det())
+            n_shift = L_adj(mu) / (2 * L.det())
             n_shift = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
-            if n_shift == 0: n_shift = 1
+            if n_shift == 0:
+                n_shift = 1
 
-            for (n,coeff) in fe.items():
+            for (n, coeff) in fe.items():
                 if n < 0:
-                    pp_matrix[mu_ix*order - (n+n_shift), col] = coeff
+                    pp_matrix[mu_ix * order - (n + n_shift), col] = coeff
 
     pp_vector = vector(QQ, len(mu_indices)*order)
-    for (mu,fe) in principal_part.items():
+    for (mu, fe) in principal_part.items():
         mu_ix = mu_indices[mu_module(vector(mu))]
 
-        n_shift = L_adj(mu)/(2*L.det())
+        n_shift = L_adj(mu) / (2 * L.det())
         n_shift = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
-        if n_shift == 0: n_shift = 1
+        if n_shift == 0:
+            n_shift = 1
 
-        for (n,coeff) in fe.items():
+        for (n, coeff) in fe.items():
             if n < 0:
-                assert n+n_shift in ZZ
-                pp_vector[mu_ix*order - (n+n_shift)] = coeff
+                assert n + n_shift in ZZ
+                pp_vector[mu_ix * order - (n + n_shift)] = coeff
 
-    try :
+    try:
         coords = pp_matrix.solve_right(pp_vector)
-    except :
-        raise ValueError( "Given principal part ({}) can not be constructed for weight {} and index {}".format(principal_part, k, m) )
+    except:
+        raise ValueError("Given principal part ({}) can not be constructed for weight {} and index {}".format(principal_part, k, m))
 
-    res = dict()
     return _sum_mul_vvforms(coords, vvforms, L_span)
+
 
 def theta_decomposition(phi, m, r_classes):
     r"""
@@ -324,7 +327,8 @@ def theta_decomposition(phi, m, r_classes):
 
     return f
 
-def _mul_scalar_vvform(c, f) :
+
+def _mul_scalar_vvform(c, f):
     r"""
     Multiplication of a Fourier expansion by a constant.
 
@@ -351,7 +355,8 @@ def _mul_scalar_vvform(c, f) :
         res[mu] = dict((n,c*coeff) for (n,coeff) in fe.items())
     return res
 
-def _add_vvforms(f, g, L_span) :
+
+def _add_vvforms(f, g, L_span):
     r"""
     Addition of two Fourier expansions.
 
@@ -379,7 +384,7 @@ def _add_vvforms(f, g, L_span) :
         {(0, 1): {-1: 6, 0: 2, 2: 3}, (1, 1): {2: 2}}
     """
     res = copy(g)
-    for (mu,fe) in f.items():
+    for (mu, fe) in f.items():
         for gmu in g.keys():
             if vector(mu) - vector(gmu) in L_span:
                 break
@@ -393,6 +398,7 @@ def _add_vvforms(f, g, L_span) :
             else:
                 res[gmu][n] = coeff
     return res
+
 
 def _sum_mul_vvforms(coefficients, vvforms, L_span):
     r"""
@@ -430,12 +436,13 @@ def _sum_mul_vvforms(coefficients, vvforms, L_span):
 ## Quadratic forms
 ################################################################################
 
-def stably_equivalent_positive_definite_quadratic_form(L, split_off_E8 = False):
+
+def stably_equivalent_positive_definite_quadratic_form(L, split_off_E8=False):
     r"""
     Find the Gram matrix of a positive definite quadratic form
     which is stabily equivalent to `L`.
 
-    INTPUT:
+    INPUT:
 
     - `L` -- A quadratic form.
 
@@ -467,7 +474,7 @@ def stably_equivalent_positive_definite_quadratic_form(L, split_off_E8 = False):
     while not is_positive_definite(L.matrix()):
         L = _split_off_hyperbolic(L)
 
-    if split_off_E8 :
+    if split_off_E8:
         while True:
             try:
                 L = _split_off_E8(L)
@@ -478,6 +485,7 @@ def stably_equivalent_positive_definite_quadratic_form(L, split_off_E8 = False):
                     raise
 
     return L.lll()
+
 
 def _split_off_hyperbolic(L):
     r"""
@@ -514,14 +522,14 @@ def _split_off_hyperbolic(L):
 
     ## TODO: This should be implemented in sage.quadratic_forms
     E8mat = matrix(ZZ, 8,
-            [2, -1, 0, 0,  0, 0, 0, 0,
-            -1, 2, -1, 0,  0, 0, 0, 0,
-            0, -1, 2, -1,  0, 0, 0, -1,
-            0, 0, -1, 2,  -1, 0, 0, 0,
-            0, 0, 0, -1,  2, -1, 0, 0,
-            0, 0, 0, 0,  -1, 2, -1, 0,
-            0, 0, 0, 0,  0, -1, 2, 0,
-            0, 0, -1, 0,  0, 0, 0, 2])
+                   [2, -1, 0, 0, 0, 0, 0, 0,
+                    -1, 2, -1, 0, 0, 0, 0, 0,
+                    0, -1, 2, -1, 0, 0, 0, -1,
+                    0, 0, -1, 2, -1, 0, 0, 0,
+                    0, 0, 0, -1, 2, -1, 0, 0,
+                    0, 0, 0, 0, -1, 2, -1, 0,
+                    0, 0, 0, 0, 0, -1, 2, 0,
+                    0, 0, -1, 0, 0, 0, 0, 2])
     E8 = QuadraticForm(E8mat)
 
     ## This is a workaround since GP crashes
@@ -536,29 +544,29 @@ def _split_off_hyperbolic(L):
         Lcormat = Lmat + cur_cor * identity_matrix(L.dim())
     Lcor = QuadraticForm(Lcormat)
 
-    Lcor_length_inc = 2 * gcd(Lcormat.list() + [e//2 for e in Lcormat.diagonal()])
+    Lcor_length_inc = 2 * gcd(Lcormat.list() + [e // 2 for e in Lcormat.diagonal()])
     cur_Lcor_length = 0
 
     ## find a vector that is negative, whose absolute norm is as small
     ## as possible
     n = 0
-    for i in range(Lcor.dim()) :
-        if Lcormat[i,i] - cur_cor < 0 :
-            if n == 0 or n > cur_cor - Lcormat[i,i] :
-                n = (cur_cor - Lcormat[i,i])//2
+    for i in range(Lcor.dim()):
+        if Lcormat[i, i] - cur_cor < 0:
+            if n == 0 or n > cur_cor - Lcormat[i, i]:
+                n = (cur_cor - Lcormat[i, i]) // 2
                 a_ind = i
-    if n != 0 :
+    if n != 0:
         a = zero_vector(Lcor.dim())
         a[a_ind] = 1
-    else :
+    else:
         n = 0
-        while n == 0 :
+        while n == 0:
             cur_Lcor_length += Lcor_length_inc
             short_vectors = Lcor.short_vector_list_up_to_length(cur_Lcor_length+1, True)
 
             for length in range(cur_Lcor_length - Lcor_length_inc, cur_Lcor_length+1):
-                for a in short_vectors[length] :
-                    if L(a) < 0 :
+                for a in short_vectors[length]:
+                    if L(a) < 0:
                         n = -L(a)
                         break
                 if n != 0:
@@ -567,8 +575,8 @@ def _split_off_hyperbolic(L):
     ## by enumeration of short vectors, find a pair of vectors v, w in E8 of
     ## length n such that their scalar product equals n-1
     short_vectors = E8.short_vector_list_up_to_length(n+1, False)[n]
-    for v in short_vectors :
-        for w in short_vectors :
+    for v in short_vectors:
+        for w in short_vectors:
             if v * E8mat * w == 2*n-1:
                 LE8_mat = Lmat.block_sum(E8mat)
                 v_form = vector( list(a) + list(v) ) * LE8_mat
@@ -619,52 +627,52 @@ def _split_off_E8(L):
     ## Collect pairs of roots with scalar product 0 or -1.
     root_pairs_0 = dict()
     root_pairs_1 = dict()
-    for (a_ix, a) in enumerate(root_vectors) :
+    for (a_ix, a) in enumerate(root_vectors):
         a_dual = a * Lmat
-        for (b_ix, b) in enumerate(root_vectors) :
+        for (b_ix, b) in enumerate(root_vectors):
             product = a_dual * b
 
-            if product == 0 :
-                try :
+            if product == 0:
+                try:
                     root_pairs_0[a_ix].add(b_ix)
-                except KeyError :
+                except KeyError:
                     root_pairs_0[a_ix] = set([b_ix])
-            elif product == -1 :
-                try :
+            elif product == -1:
+                try:
                     root_pairs_1[a_ix].add(b_ix)
-                except KeyError :
+                except KeyError:
                     root_pairs_1[a_ix] = set([b_ix])
 
     ## Build up a chain of roots that form a basis of E8
     root_chain = []
     possible_extensions = dict()
     possible_extensions[-1] = set(range(len(root_vectors)))
-    while True :
+    while True:
         i = len(root_chain) - 1
 
-        try :
+        try:
             root_chain.append(possible_extensions[i].pop())
             extensions = root_pairs_1[root_chain[-1]]
-        except KeyError :
-            if len(root_chain) == 0 :
+        except KeyError:
+            if len(root_chain) == 0:
                 raise ValueError( "Lattice does not contain E8" )
             root_chain = root_chain[:-1]
             continue
 
-        for j in range(i + 1) :
+        for j in range(i + 1):
             extensions = extensions.intersection(root_pairs_0[root_chain[j]])
         possible_extensions[i + 1] = extensions
 
-        if len(root_chain) == 7 :
+        if len(root_chain) == 7:
             possible_finals = possible_extensions[2]
-            for j in range(3, 7) :
+            for j in range(3, 7):
                 possible_finals = possible_finals.intersection(root_pairs_0[root_chain[j]])
 
             ## test whether we can extend the chain
-            if len(possible_finals) != 0 :
+            if len(possible_finals) != 0:
                 final_vector = possible_finals.pop()
 
-                E8_copy = [root_vectors[root_chain[i]] for i in range(7)]
+                E8_copy = [root_vectors[root_chain[j]] for j in range(7)]
                 E8_copy.append(root_vectors[final_vector])
 
                 E8_copy_dual = matrix(ZZ, E8_copy) * Lmat

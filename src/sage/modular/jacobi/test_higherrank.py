@@ -7,19 +7,19 @@ AUTHOR:
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2012-2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
@@ -27,17 +27,14 @@ AUTHOR:
 
 from sage.all import (Set, ZZ, QQ, PolynomialRing, LaurentPolynomialRing,
                       FreeModule, vector, zero_vector,
-                      matrix, zero_matrix,
+                      matrix,
                       QuadraticForm,
                       ModularForms,
                       randint, flatten, prod
 )
-import operator
 
-from sage.modular.jacobi.classical import (
-    classical_weak_jacobi_fe_indices,
-    classical_jacobi_forms
-)
+from sage.modular.jacobi.classical import (classical_weak_jacobi_fe_indices,
+                                           classical_jacobi_forms)
 from sage.modular.jacobi.higherrank import (
     higherrank_jacobi_reduce_fe_index,
     higherrank_jacobi_fe_indices,
@@ -115,9 +112,9 @@ def _test_higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
         sage: from sage.modular.jacobi.test_higherrank import _test_higherrank_jacobi_reduce_fe_index
     sage: _test_higherrank_jacobi_reduce_fe_index((1,(0,)), QuadraticForm(ZZ,1,[1]), [[(0,)], [(1,), (-1,)]], QuadraticForm(ZZ,1,[1]), span([vector([2])]))
     """
-    from sage.modular.jacobi.higherrank import higherrank_jacobi_reduce_fe_index
-
-    ((nred, rred), s) = higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
+    ((nred, rred), s) = higherrank_jacobi_reduce_fe_index((n, r), m,
+                                                          r_classes, m_adj,
+                                                          m_span)
 
     if s == 1:
         assert vector(r) - vector(rred) in m_span
@@ -126,7 +123,8 @@ def _test_higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
     assert any(vector(r_class[0]) - vector(rred) in m_span
                for r_class in r_classes)
 
-    assert 2*m.det()*n - m_adj(r) == 2*m.det()*nred - m_adj(rred)
+    assert 2 * m.det() * n - m_adj(r) == 2 * m.det() * nred - m_adj(rred)
+
 
 def test__higherrank_jacobi_reduce_fe_index__r():
     r"""
@@ -303,12 +301,12 @@ def _test__complete_set_of_restriction_vectors(m):
     ## compute local restrictions and check rank
     rst_dicts_even = []
     rst_dicts_odd = []
-    
+
     for s_tpl in Set(tuple(s) for (s,_) in rst_vectors):
         s = vector(s_tpl)
         rst_dict_even = {}
         rst_dict_odd = {}
-            
+
         for (cl_ix, (r_class, r_signs)) in enumerate(zip(r_classes, r_classes_reduction_signs)):
             for (r, r_sign) in zip(r_class, r_signs):
                 r_rst = s.dot_product(vector(r))
@@ -392,9 +390,9 @@ def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
 
 
     jforms_rst_dict = dict((m_rst,classical_jacobi_forms(k, m_rst, prec))
-                           for m_rst in [1,2,3,4])
+                           for m_rst in [1, 2, 3, 4])
     relation_rst_vectors = (
-        flatten(m.short_vector_list_up_to_length(5, True)[1:], max_level = 1)
+        flatten(m.short_vector_list_up_to_length(5, True)[1:], max_level=1)
     )
 
     nmb_nonzero_rsts = len(jforms)*[0]
@@ -410,10 +408,11 @@ def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
                                   for nr in indices_rst])
             if not phi_rst_vec.is_zero():
                 assert phi_rst_vec in rst_span
-                nmb_nonzero_rsts[phi_ix] +=1
+                nmb_nonzero_rsts[phi_ix] += 1
 
     ## there is a non trivial restriction for each phi
     assert all(nmb != 0 for nmb in nmb_nonzero_rsts)
+
 
 def _restrict_jacobi_form(k, phi, s, indices_red, indices_rst):
     """

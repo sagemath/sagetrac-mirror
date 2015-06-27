@@ -46,19 +46,19 @@ classical weak Jacobi forms.
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2010-2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
@@ -72,7 +72,8 @@ from sage.rings.all import Integer, ZZ
 
 # We do not implement this separately, because this is the same
 # reduction as in the case of weak Jacobi forms.
-from sage.modular.jacobi.classical_weak import classical_jacobi_reduce_fe_index
+# from sage.modular.jacobi.classical_weak import classical_jacobi_reduce_fe_index
+
 
 def classical_jacobi_fe_indices(m, prec, reduced=False):
     r"""
@@ -102,7 +103,7 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
     """
     fm = Integer(4 * m)
 
-    if reduced :
+    if reduced:
         # positive definite forms
         for n in range(1, prec):
             for r in range(min(m + 1, isqrt(fm * n - 1) + 1)):
@@ -110,9 +111,9 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
 
         # indefinite forms
         for r in xrange(0, min(m+1, isqrt((prec-1) * fm) + 1) ):
-            if fm.divides(r**2) :
-                yield (r**2 // fm, r)
-    else :
+            if fm.divides(r ** 2):
+                yield (r ** 2 // fm, r)
+    else:
         # positive definite forms
         for n in range(1, prec):
             yield(n, 0)
@@ -122,25 +123,26 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
 
         # indefinite forms
         if prec > 0:
-            yield (0,0)
+            yield (0, 0)
         for n in xrange(1, prec):
             if (fm * n).is_square():
                 rt_fmm = isqrt(fm * n)
                 yield(n, rt_fmm)
                 yield(n, -rt_fmm)
-        
+
     raise StopIteration
+
 
 @cached_function
 def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     r"""
     The coordinates of Jacobi forms with respect to a basis of
     classical weak Jacobi forms computed using the given algorithm.
-    
+
     INPUT:
-    
+
     - `k` -- An integer.
-    
+
     - `m` -- A non-negative integer.
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
@@ -148,9 +150,9 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     OUTPUT:
 
     A list of vectors.
-    
+
     EXAMPLES::
-    
+
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
         sage: _classical_jacobi_forms_as_weak_jacobi_forms(10, 1)
         [
@@ -169,7 +171,7 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     weak_index_matrix = \
         matrix(ZZ, [ [ (f[(n,r)] if (n,r) in f else 0) for (n,r) in indices
                        if 4*m*n - r**2 < 0 ] for f in weak_forms] )
-        
+
     return weak_index_matrix.left_kernel().echelonized_basis()
 
 def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
@@ -178,9 +180,9 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
     and index `m`.
 
     INPUT:
-    
+
     - `k` -- An integer.
-    
+
     - `m` -- A non-negative integer.
 
     - ``prec`` -- A non-negative integer that corresponds to a

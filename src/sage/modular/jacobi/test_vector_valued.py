@@ -7,28 +7,28 @@ AUTHOR:
 """
 
 #===============================================================================
-# 
+#
 # Copyright (C) 2014 Martin Raum
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 3
 # of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, 
+#
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
 
 from sage.all import (
-    matrix, diagonal_matrix, zero_matrix,
+    matrix, diagonal_matrix,
     vector, zero_vector,
-    ZZ, QQ, PolynomialRing,
+    ZZ, QQ,
     QuadraticForm,
     ModularForms, CuspForms
 )
@@ -126,15 +126,16 @@ def _test_vector_valued_modular_forms__multiplication(k, L, k_mod, prec, vforms)
 
     for f in ModularForms(1, k_mod).basis():
         _multipliy_and_check(prec, f.qexp(prec).dict(), vforms, 0, img_forms, L_span)
-    
+
 def test_vector_valued_modular_forms_weakly_holomorphic():
     r"""
-    Test weakly holomorphic vector valued modular forms.  See
-    individual tests for more details.
+    Test weakly holomorphic vector valued modular forms.
 
-    .. NOTE:
+    See individual tests for more details.
 
-    This is a test generator to be used by nosetest.
+    .. NOTE::
+
+        This is a test generator to be used by nosetest.
 
     TESTS::
 
@@ -143,11 +144,10 @@ def test_vector_valued_modular_forms_weakly_holomorphic():
         <generator object ...>
     """
     prec = 5
-    k_mod = 4
 
     for L in _test_set__quadratic_forms():
-        for k in [k_jac - L.dim()/ZZ(2) for k_jac in [6,15,21,22]]:
-            for order in [1,2,3]:
+        for k in [k_jac - L.dim()/ZZ(2) for k_jac in [6, 15, 21, 22]]:
+            for order in [1, 2, 3]:
                 vforms = vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec)
                 if len(vforms) == 0:
                     print k, L, order
@@ -158,14 +158,15 @@ def test_vector_valued_modular_forms_weakly_holomorphic():
                 yield (_test_vector_valued_modular_forms_weakly_holomorphic__multiplication,
                        k, L, order, prec, vforms)
 
+
 def test_vector_valued_modular_forms_weakly_holomorphic_with_principal_part():
     r"""
     Test weakly holomorphic vector valued modular forms with given
     principal part.  See individual tests for more details.
 
-    .. NOTE:
+    .. NOTE::
 
-    This is a test generator to be used by nosetest.
+        This is a test generator to be used by nosetest.
 
     TESTS::
 
@@ -209,7 +210,8 @@ def _test_vector_valued_modular_forms_weakly_holomorphic__principal_part(wvvform
     for (mu,fe) in wvvform.items():
         pp_computed[mu] = {}
         for (n,coeff) in fe.items():
-            if n < 0: pp_computed[mu][n] = coeff
+            if n < 0:
+                pp_computed[mu][n] = coeff
 
     L_span = L.matrix().row_module()
     mu_module = L_span.ambient_module() / L_span
@@ -217,16 +219,19 @@ def _test_vector_valued_modular_forms_weakly_holomorphic__principal_part(wvvform
     for mu in list(mu_module):
         pp_contribution = {}
         for pp_mu in pp.keys():
-            if mu_module(vector(pp_mu)) != mu: continue
+            if mu_module(vector(pp_mu)) != mu:
+                continue
             pp_contribution = dict_addition([pp_contribution, pp[pp_mu]])
 
         pp_computed_contribution = {}
         for pp_mu in pp_computed.keys():
-            if mu_module(vector(pp_mu)) != mu: continue
+            if mu_module(vector(pp_mu)) != mu:
+                continue
             pp_computed_contribution = dict_addition([pp_computed_contribution,
                                                       pp_computed[pp_mu]])
 
         assert pp_contribution == pp_computed_contribution
+
 
 def _test_vector_valued_modular_forms_weakly_holomorphic__order(order, vforms):
     r"""
@@ -275,7 +280,7 @@ sage: from sage.modular.jacobi.vector_valued import vector_valued_modular_forms
     img_forms = vector_valued_modular_forms(k + 12*order, L, prec + order)
     f = (CuspForms(1,12).gen(0).qexp(prec + 2*order)**order).dict()
     _multipliy_and_check(prec, f, vforms, -order, img_forms, L_span)
-    
+
 def _multipliy_and_check(prec, f_factor, vforms, valuation, img_forms, L_span):
     r"""
     Multiply vector valued modular forms with a modular form and check
@@ -387,9 +392,10 @@ def _vvform_to_vector(mu_list, valuation, prec, f):
     mu_module = mu_list[0].parent()
     cmp_len = prec - valuation
 
-    res = zero_vector(QQ, cmp_len*len(mu_list))
-    for (mu,fe) in f.items():
-        if len(fe) == 0: continue
+    res = zero_vector(QQ, cmp_len * len(mu_list))
+    for (mu, fe) in f.items():
+        if len(fe) == 0:
+            continue
 
         mu_ix = mu_list.index(mu_module(vector(mu)))
 
@@ -404,14 +410,15 @@ def _vvform_to_vector(mu_list, valuation, prec, f):
 
     return res
 
+
 def test_stably_equivalent_positive_definite_quadratic_form():
     r"""
     Test implementation to find positive definite quadratic forms.
     See individual tests for more details.
 
-    .. NOTE:
+    .. NOTE::
 
-    This is a test generator to be used by nosetest.
+        This is a test generator to be used by nosetest.
 
     TESTS::
 
@@ -505,19 +512,19 @@ def test__split_off_E8():
         <generator object ...>
     """
     E8mat = matrix(ZZ, 8,
-            [2, -1, 0, 0,  0, 0, 0, 0,
-            -1, 2, -1, 0,  0, 0, 0, 0,
-            0, -1, 2, -1,  0, 0, 0, -1,
-            0, 0, -1, 2,  -1, 0, 0, 0,
-            0, 0, 0, -1,  2, -1, 0, 0,
-            0, 0, 0, 0,  -1, 2, -1, 0,
-            0, 0, 0, 0,  0, -1, 2, 0,
-            0, 0, -1, 0,  0, 0, 0, 2])
+                   [2, -1, 0, 0, 0, 0, 0, 0,
+                    -1, 2, -1, 0, 0, 0, 0, 0,
+                    0, -1, 2, -1, 0, 0, 0, -1,
+                    0, 0, -1, 2, -1, 0, 0, 0,
+                    0, 0, 0, -1, 2, -1, 0, 0,
+                    0, 0, 0, 0, -1, 2, -1, 0,
+                    0, 0, 0, 0, 0, -1, 2, 0,
+                    0, 0, -1, 0, 0, 0, 0, 2])
 
     for M in _test_set__quadratic_forms():
         L = QuadraticForm(M.matrix().block_sum(E8mat))
-        yield (_test__split_off_E8,
-               L, M)
+        yield (_test__split_off_E8, L, M)
+
 
 def _test__split_off_E8(L, M):
     r"""
