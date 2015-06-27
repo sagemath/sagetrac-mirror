@@ -81,20 +81,13 @@ class ExtensiveFormGame():
             sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0})
             sage: leaf_a7 = Leaf({player_a1 : 2, player_a2: 4})
             sage: leaf_a8 = Leaf({player_a1 : 2, player_a2: 1})
-            sage: node_a1 = Node({'A': leaf_a1, 'B': leaf_a2})
-            sage: node_a2 = Node({'A': leaf_a3, 'B': leaf_a4})
-            sage: node_a3 = Node({'A': leaf_a5, 'B': leaf_a6})
-            sage: node_a4 = Node({'A': leaf_a7, 'B': leaf_a8})
-            sage: node_a5 = Node({'C': node_a1, 'D': node_a2})
-            sage: node_a6 = Node({'C': node_a3, 'D': node_a4})
-            sage: node_a1.player = player_a1
-            sage: node_a2.player = player_a1
-            sage: node_a3.player = player_a1
-            sage: node_a4.player = player_a1
-            sage: node_a5.player = player_a2
-            sage: node_a6.player = player_a2
-            sage: root_a = Node({'A': node_a5, 'B': node_a6})
-            sage: root_a.player = player_a1
+            sage: node_a1 = Node({'A': leaf_a1, 'B': leaf_a2}, player = player_a1)
+            sage: node_a2 = Node({'A': leaf_a3, 'B': leaf_a4}, player = player_a1)
+            sage: node_a3 = Node({'A': leaf_a5, 'B': leaf_a6}, player = player_a1)
+            sage: node_a4 = Node({'A': leaf_a7, 'B': leaf_a8}, player = player_a1)
+            sage: node_a5 = Node({'C': node_a1, 'D': node_a2}, player = player_a2)
+            sage: node_a6 = Node({'C': node_a3, 'D': node_a4}, player = player_a2)
+            sage: root_a = Node({'A': node_a5, 'B': node_a6}, player = player_a1)
             sage: egame_a1 = ExtensiveFormGame(root_a)           
             sage: egame_a1.tree
             Graph on 15 vertices
@@ -115,12 +108,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
             sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
             sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.players
             [Player 1, Player 2, Player 2]
@@ -137,14 +127,11 @@ class ExtensiveFormGame():
             sage: leaf_b = Leaf({player_1 : 1, player_2: 0})
             sage: leaf_c = Leaf({player_1 : 2, player_2: 4})
             sage: leaf_d = Leaf({player_1 : 2, player_2: 1})
-            sage: node_a = Node({'A': leaf_a, 'B': leaf_b})
-            sage: node_b = Node({'A': leaf_c, 'B': leaf_d})
-            sage: node_a.player = player_2
-            sage: node_b.player = player_2
-            sage: root_a = Node({'C': node_a, 'D': node_b})
+            sage: node_a = Node({'A': leaf_a, 'B': leaf_b}, player = player_2)
+            sage: node_b = Node({'A': leaf_c, 'B': leaf_d}, player = player_2)
+            sage: root_a = Node({'C': node_a, 'D': node_b}, player = player_1)
             sage: node_a.name is node_b.name is root_a.name
             True
-            sage: root_a.player = player_1
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: node_a.name is node_b.name is root_a.name
             False
@@ -205,12 +192,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
             sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
             sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = leaf_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', leaf_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             Traceback (most recent call last):
             ...
@@ -218,8 +202,7 @@ class ExtensiveFormGame():
 
         """
         self.nodes = []
-        self.check = []
-
+        
         if isinstance(game_input, Node):
             if game_input.actions is False:
                 raise AttributeError("Root node has no actions.")
@@ -231,26 +214,29 @@ class ExtensiveFormGame():
                 self.tree_root = game_input
                 self.tree = self.grow_tree()
                 self.nodes = self.grow_tree_dictionary().keys()
+                self.nodes.sort(key=lambda x:x.actions[0])
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
-                for i in self.nodes:
-                    self.players.append(i.player)
-                self.players.sort(key=lambda x:x.name)
+                self.leafs = []
 
-                nodevalue = 1
-                self.nodes.sort(key=lambda x:x.actions[0])
-                for i in self.nodes:
-                    if i is game_input and i.name is False:
-                        i.name = "Tree Root"
-                    if i.name is False:
-                        i.name = "Node %i" %nodevalue
-                        nodevalue += 1
+                node_index = 1
+                for node in self.nodes:
+                    self.players.append(node.player)
+                    if node is game_input and node.name is False:
+                        node.name = "Tree Root"
+                    if node.name is False:
+                        node.name = "Node %i" %node_index
+                        node_index += 1
 
-                leafvalue = 1
-                for i in self.grow_tree_dictionary().values():
-                    if isinstance(i, Leaf) and i.name is False:
-                        i.name = "Leaf %i" %leafvalue
+                self.players.sort(key=lambda x:x.name)                              
+
+                leaf_index = 1
+                for value in self.grow_tree_dictionary().values():
+                    if isinstance(value, Leaf) and value.name is False:
+                        value.name = "Leaf %i" %leafvalue
                         leafvalue += 1
+                    if isinstance(value, Leaf):
+                        self.leafs.append(value)
 
                 self.info_sets.sort(key=lambda x:x[0].name)
                 self.nodes.sort(key=lambda x:x.name)
@@ -269,12 +255,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
             sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
             sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.info_sets
             [[Node 1], [Node 2], [Root 1]]
@@ -290,12 +273,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
             sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
             sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
-            sage: node_2 = Node({'DifferentA': leaf_3, 'B': leaf_4})
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2})
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, player = player_2)
+            sage: node_2 = Node({'DifferentA': leaf_3, 'B': leaf_4}, player =  player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, player = player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
@@ -310,32 +290,29 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
             sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
             sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2})
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4})
-            sage: node_1.player = player_1
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2})
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, player = player_1)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, player = player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, player = player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
             AttributeError: All nodes in the same information set must have the same players.
         """
-        numberofsameplayers = 1
-        numberofsameactions = 1
-        previousactions = []
-        previousplayer = True
+        num_of_same_players = 1
+        num_of_same_actions = 1
+        previous_actions = []
+        previous_player = True
         for node in node_list:
-            if node.player == previousplayer:
-                numberofsameplayers  += 1
-            if node.actions == previousactions:
-                numberofsameactions += 1
-            previousplayer = node.player
-            previousactions = node.actions
-        if numberofsameplayers is not len(node_list):
+            if node.player == previous_player:
+                num_of_same_players  += 1
+            if node.actions == previous_actions:
+                num_of_same_actions += 1
+            previous_player = node.player
+            previous_actions = node.actions
+        if num_of_same_players is not len(node_list):
             raise AttributeError("All nodes in the same information set must have the same players.")  
-        if numberofsameactions is not len(node_list):
+        if num_of_same_actions is not len(node_list):
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
         for node_to_be_set in node_list:
@@ -356,12 +333,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
             sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
             sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.perfect_info()
             True
@@ -382,12 +356,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
             sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
             sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
@@ -416,12 +387,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
             sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
             sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.grow_tree()
             Graph on 7 vertices
@@ -450,12 +418,9 @@ class ExtensiveFormGame():
             sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
             sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
             sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1')
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
-            sage: node_1.player = player_2
-            sage: node_2.player = player_2
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1')
-            sage: root_1.player = player_1
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: t = Graph(egame_1.grow_tree_dictionary())
             sage: t
@@ -601,8 +566,7 @@ class Node():
             sage: player_2 = Player('Player 2')
             sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
             sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
-            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player_1
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B', player_1)
             sage: sisternode = Node(['inputhere'])
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
             sage: mother_node._is_complete()
@@ -622,8 +586,7 @@ class Node():
             sage: player_2 = Player('Player 2')
             sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
             sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
-            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player_1
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B', player_1)
             sage: sisternode = Node(['inputhere'])
             sage: mother_node._is_complete()
             False
@@ -632,8 +595,7 @@ class Node():
             sage: player_2 = Player('Player 2')
             sage: child_1 = Leaf({player_1: 0, player_2: 1}, 'Child 1')
             sage: child_2 = Leaf({player_1: 1, player_2: 0}, 'Child 2')
-            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B')
-            sage: mother_node.player = player_1
+            sage: mother_node = Node({'Action1': child_1, 'Action2': child_2}, 'Node B', player_1)
             sage: mother_node.children = False
             sage: sisternode = Node(['inputhere'])
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
