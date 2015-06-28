@@ -8,7 +8,7 @@ Depending on who choses what, there are different payoffs, this can be demonstra
 
 .. PLOT::
     :width: 500 px
-
+    :align: center
     player_1 = Player('Bob')
     player_2 = Player('Celine')
     leaf_1 = Leaf({player_1: 2, player_2: 3})
@@ -73,10 +73,11 @@ Information sets are demonstrated visually on the graph we plot (hopefully)::
     Graphics object consisting of 20 graphics primitives
 """
 from sage.graphs.all import Graph
+from sage.plot.line import Line
 
 
 class ExtensiveFormGame():
-    def __init__(self, game_input, name=False, extensive_root=False):
+    def __init__(self, game_input, name=False, extensive_root=False, padding = 0):
         """
         Just a really big test to see if anything breaks::
 
@@ -102,6 +103,12 @@ class ExtensiveFormGame():
             Graph on 15 vertices
             sage: egame_a1.plot()
             Graphics object consisting of 44 graphics primitives
+            sage: egame_a1.players
+            [Player 1, Player 2]
+            sage: egame_a1.nodes
+            [Node 1, Node 2, Node 3, Node 4, Node 5, Node 6, Tree Root]
+            sage: egame_a1.leafs
+            []
             sage: egame_a1.info_sets
             [[Node 1], [Node 2], [Node 3], [Node 4], [Node 5], [Node 6], [Tree Root]]
             sage: egame_a1.set_info_set([node_a5, node_a6])
@@ -122,7 +129,11 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.players
-            [Player 1, Player 2, Player 2]
+            [Player 1, Player 2]
+            sage: egame_1.nodes
+            [Node 1, Node 2, Root 1]
+            sage: egame_1.leafs
+            [(0, 1), (1, 0), (2, 4), (2, 1)]
             sage: egame_1.tree
             Graph on 7 vertices
             sage: egame_1.plot()
@@ -209,6 +220,7 @@ class ExtensiveFormGame():
 
         """
         self.nodes = []
+        self.padding = padding
 
         if isinstance(game_input, Node):
             if game_input.actions is False:
@@ -227,6 +239,7 @@ class ExtensiveFormGame():
                 self.leafs = []
 
                 node_index = 1
+                leaf_index = 1
                 for node in self.nodes:
                     self.players.append(node.player)
                     if node is game_input and node.name is False:
@@ -234,19 +247,19 @@ class ExtensiveFormGame():
                     if node.name is False:
                         node.name = "Node %i" % node_index
                         node_index += 1
+                    for child in node.children:
+                        if isinstance(child, Leaf) and child.name is False:
+                            child.name = "Leaf %i" %leaf_index
+                            leaf_index += 1
+                        elif isinstance(child, Leaf):
+                            self.leafs.append(child)
 
-                self.players.sort(key=lambda x: x.name)
 
-                leaf_index = 1
-                for value in self.grow_tree_dictionary().values():
-                    if isinstance(value, Leaf) and value.name is False:
-                        value.name = "Leaf %i" %leafvalue
-                        leafvalue += 1
-                    if isinstance(value, Leaf):
-                        self.leafs.append(value)
-
+                self.players = list(set(self.players))
+                self.players.sort(key=lambda x:x.name)   
                 self.info_sets.sort(key=lambda x:x[0].name)
                 self.nodes.sort(key=lambda x:x.name)
+                self.leafs.sort(key=lambda x:x.name)
 
 
         else:
@@ -412,7 +425,8 @@ class ExtensiveFormGame():
             keylist = node.node_input.keys()
             for key in keylist:
                 t.set_edge_label(node, node.node_input[key], key)
-        return t.plot(layout='tree', tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
+        tree_plot = t.plot(layout='tree', tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
+        return tree_plot
 
     def grow_tree_dictionary(self):
         """
@@ -443,11 +457,20 @@ class ExtensiveFormGame():
                         raise AttributeError("One or more of the Nodes in tree are not complete.")
                 checked.append(child)  # Put the child in the list of checked nodes
 
-
         # Create the dictionary
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}  # Build the dictionary mapping the leafs to their children
         # The above does not include the root
         d[self.tree_root] = self.tree_root.children  # The above does not actually include the original root so we need to include it
+        # for node in d.keys():
+        #     new_children=[]
+        #     for child in node.children:
+        #         if isinstance(child, Leaf):
+        #             new_string  = self.padding * ' ' + str(tuple([child[plry] for plry in sorted(child.players, key=lambda x:x.name)]))
+        #             new_children.append(new_string)
+        #         else:
+        #             new_children.append(child)
+        #     d[node] = new_children   
+
         return d
 
 
