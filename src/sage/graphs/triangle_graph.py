@@ -1,12 +1,12 @@
 r"""
-Graphs associated to the triangle group (2,3,Infinity)
+Graphs associated to the triangle group `(2,3,\infty)`
 
 A subgroup of a free product of cyclic group is also a free product of cyclic
 group. This module implements various method relative to those groups:
 
-    - enumerate subgroups of finite index
-    - structure of subgroups from their cosets (~free generators of subgroup)
-    - find spanning trees with optimal property (~fundamental domain)
+- enumerate subgroups of finite index
+- structure of subgroups from their cosets (~free generators of subgroup)
+- find spanning trees with optimal property (~fundamental domain)
 
 This method can be applied to Fuchsian groups for which the underlying surface
 is a free group as PSL(2,Z) = C_2 * C_3 and more generally the triangle groups
@@ -38,7 +38,7 @@ class TriangleGraph_2_3_infinity(SageObject):
     - the induced graph with edges of type 3 is made of loops and cycles of
       length 3
 
-    It can alterantively be defined by a pair of permutations (s2,s3) on [0,n-1]
+    It can alternatively be defined by a pair of permutations (s2,s3) on [0,n-1]
     such that
 
     - s2 is of order 2
@@ -54,7 +54,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
         sage: from sage.graphs.triangle_graph import TriangleGraph_2_3_infinity
         sage: t = TriangleGraph_2_3_infinity()
-        Triangle graph (2,3,infinty) with 1 vertices
+        Triangle graph (2,3,infinity) with 1 vertices
         sage: t.create_cycle(0,type=3)
         sage: t
         Triangle graph (2,3,infinity) with 3 vertices
@@ -72,15 +72,15 @@ class TriangleGraph_2_3_infinity(SageObject):
 
         elif isinstance(data, (list, tuple)):
             if len(data) != 2:
-                raise ValueError("must have 2 list")
+                raise ValueError("must have 2 lists")
             if len(data[0]) != len(data[1]):
-                raise ValueError("the two list have different length")
+                raise ValueError("the two lists have different length")
             self._n = len(data[0])
             self._incoming_edges = [[0] * self._n, [0] * self._n]
             self._outgoing_edges = [[0] * self._n, [0] * self._n]
 
             for i, j in enumerate(data[0]):
-                self._outgoing_edges[0][i] = j
+s                self._outgoing_edges[0][i] = j
                 self._incoming_edges[0][j] = i
             for i, j in enumerate(data[1]):
                 self._outgoing_edges[1][i] = j
@@ -94,7 +94,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
     def _check(self):
         r"""
-        Perform a check to verify that I am a triangle(2,3,infinty) graph.
+        Perform a check to verify that I am a triangle(2,3,infinity) graph.
         """
         n = self._n
         # check the lengths of the lists
@@ -129,26 +129,33 @@ class TriangleGraph_2_3_infinity(SageObject):
     def _repr_(self):
         r"""
         Return a string representation of this graph.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.triangle_graph import TriangleGraph_2_3_infinity
+            sage: t = TriangleGraph_2_3_infinity(4)  # indirect doctest
+            Triangle graph (2,3,infinity) with 4 vertices
         """
-        return "Triangle graph (2,3,infinty) with %d vertices" % self._n
+        return "Triangle graph (2,3,infinity) with %d vertices" % self._n
 
     # numerical property
 
     def num_edges(self):
         r"""
-        Number of edges
-
-        (very unuseful)
+        Return the number of edges.
         """
         return self._n * 4
 
     def num_verts(self):
         r"""
-        Number of vertices
+        Return the number of vertices.
         """
         return self._n
 
     def num_loops(self, type=None):
+        """
+        Return the number of loops.
+        """
         if type is None:
             i2 = 0
             i3 = 0
@@ -192,7 +199,7 @@ class TriangleGraph_2_3_infinity(SageObject):
     @options(graph_border=True, color_by_label=True)
     def plot(self, **options):
         r"""
-        plot this graph
+        Plot this graph.
         """
         g = self.graph()
         return g.plot(**options)
@@ -216,6 +223,9 @@ class TriangleGraph_2_3_infinity(SageObject):
                 return self._outgoing_edges[1][i[0]]
 
     def outgoing_edges(self, i, type=None):
+        """
+        Return the outgoing edges at the given vertex.
+        """
         if type is None:
             return [(i, self._outgoing_edges[0][i], 2),
                     (i, self._outgoing_edges[1][i], 3)]
@@ -227,6 +237,9 @@ class TriangleGraph_2_3_infinity(SageObject):
             return []
 
     def incoming_edges(self, i):
+        """
+        Return the incoming edges at the given vertex.
+        """
         if type is None:
             return [(i, self._incoming_edges[0][i], 2),
                     (i, self._incoming_edges[1][i], 3)]
@@ -239,7 +252,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
     def get_permutations(self, type=None):
         r"""
-        Return the permutations associated to the edges
+        Return the permutations associated to the edges.
 
         An alternative representation of a triangle graph is by a pair of
         permutations of order 2 and 3. This function returns the corresponding
@@ -247,7 +260,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
         INPUT:
 
-        - ``type`` - 2 or 3 - the type of the edge
+        - ``type`` -- 2 or 3, the type of the edge
         """
         if type is None:
             return self._outgoing_edges[0][:], self._outgoing_edges[1][:]
@@ -264,7 +277,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
     def create_cycle(self, vertex, type):
         r"""
-        Create a cycle with self loop on it from the vertex i
+        Create a cycle with self loop on it from the vertex i.
 
         This method inserts a non trivial cycle (i,n) (or (i,n,n+1)) and trivial
         for the other type (n) (or (n)(n+1)).
@@ -275,9 +288,9 @@ class TriangleGraph_2_3_infinity(SageObject):
 
         INPUT::
 
-        - ``vertex`` - a vertex
+        - ``vertex`` -- a vertex
 
-        - ``type`` - a type of edge
+        - ``type`` -- a type of edge
         """
         if type == 2:
             if self._outgoing_edges[0][vertex] != vertex:
@@ -320,7 +333,7 @@ class TriangleGraph_2_3_infinity(SageObject):
 
         INPUT:
 
-        - ``vertices`` - list of vertices
+        - ``vertices`` -- list of vertices
         """
         if not isinstance(vertices, (tuple, list)):
             raise TypeError("need a list or a tuple")
@@ -405,7 +418,7 @@ class TriangleGraph_2_3_infinity(SageObject):
         .. TODO::
 
             - add some random stuff to be able to get all possible spanning trees
-            - do not calcul the distance at the begining
+            - do not compute the distance at the beginning
         """
         if id is None:
             id = matrix([[1, 0], [0, 1]])

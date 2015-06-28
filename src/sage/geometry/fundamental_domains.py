@@ -1,10 +1,10 @@
 r"""
-Fundamental domains for subgroups of PSL(2,ZZ)
+Fundamental domains for subgroups of `PSL(2, \ZZ)`
 
 - fundamental domains on the hyperbolic half plane
 
 - congruence test (i.e. does there exists n such that a conjugate of the group
-  contains Gamma(n))
+  contains `\Gamma(n)`)
 
 - normalisator and other standard group operation
 
@@ -26,6 +26,7 @@ from sage.matrix.constructor import matrix
 
 from sage.graphs.triangle_graph import TriangleGraph_2_3_infinity
 from sage.geometry.hyperbolic_space.all import HyperbolicPlane
+from sage.plot.hyperbolic_polygon import hyperbolic_polygon
 from sage.all import CC
 from sage.functions.log import exp
 from sage.symbolic.constants import pi
@@ -36,8 +37,23 @@ from sage.rings.infinity import Infinity
 class FundamentalDomain(SageObject):
     r"""
     Fundamental domain for Fuchsian groups (actually subgroups of PSL(2,ZZ))
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fundamental_domains import FundamentalDomain
+        sage: from sage.geometry.fundamental_domains import gamma_triangle_graph
+        sage: FundamentalDomain(gamma_triangle_graph(3))
+        Fundamental domain of a subgroup of index 12
     """
     def __init__(self, graph, name=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.geometry.fundamental_domains import FundamentalDomain
+            sage: from sage.geometry.fundamental_domains import gamma0_triangle_graph
+            sage: FundamentalDomain(gamma0_triangle_graph(3))
+            Fundamental domain of a subgroup of index 4
+        """
         self._graph = graph
         if name is None:
             self._name = 'a subgroup of index %d' % graph.num_verts()
@@ -49,13 +65,33 @@ class FundamentalDomain(SageObject):
     def _repr_(self):
         """
         Return the string representation of self.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.fundamental_domains import FundamentalDomain
+            sage: from sage.geometry.fundamental_domains import gamma_triangle_graph
+            sage: FundamentalDomain(gamma_triangle_graph(5)) # indirect doctest
+            Fundamental domain of a subgroup of index 60
         """
         return "Fundamental domain of %s" % self._name
 
     @options(color='blue')
     def plot(self, **options):
-        HH = HyperbolicPlane().UHP()
-        pol = HH.polygon([Infinity, CC(0, 1), CC(0, 0), CC(exp(I * pi / 3))])
+        """
+        Return the plot of the fundamental domain.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.fundamental_domains import FundamentalDomain
+            sage: from sage.geometry.fundamental_domains import gamma_triangle_graph
+            sage: F = FundamentalDomain(gamma_triangle_graph(2))
+            sage: F.plot()
+            broken
+        """
+        # all this is broken, for lack of good hyperbolic polygons
+        #HH = HyperbolicPlane().UHP()
+        #pol = HH.polygon([Infinity, CC(0, 1), CC(0, 0), CC(exp(I * pi / 3))])
+        pol = hyperbolic_polygon([Infinity, CC(0, 1), CC(0, 0), CC(exp(I * pi / 3))])
         G = pol.plot(face_color=options['color'], alpha='0.5')
         for g in self._lifts[1:]:
             G += (g * pol).plot(face_color=options['color'], alpha=0.2)
@@ -78,6 +114,18 @@ def PSL_rep(m, n):
     - ``m`` -- a matrix
 
     - ``n`` -- positive integer
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fundamental_domains import PSL_rep
+        sage: m = matrix(ZZ,2,2,[1,2,3,5])
+        sage: PSL_rep(m,11)
+        [1 2]
+        [3 5]
+        sage: m = matrix(ZZ,2,2,[121,32,43,65])
+        sage: PSL_rep(m,11)
+        [0 1]
+        [1 1]
     """
     Zn = Zmod(n)
     #print "SPL computation... from\n", m
@@ -126,7 +174,17 @@ def PSL_rep(m, n):
 
 def gamma_triangle_graph(n, return_mapping=False):
     r"""
-    Coset graph for the principal congruence subgroup.
+    Coset graph for the principal congruence subgroup `\Gamma(n)`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fundamental_domains import gamma_triangle_graph
+        sage: gamma_triangle_graph(1)
+        Triangle graph (2,3,infinty) with 1 vertices
+        sage: gamma_triangle_graph(2)
+        Triangle graph (2,3,infinty) with 6 vertices
+        sage: gamma_triangle_graph(11)
+        Triangle graph (2,3,infinty) with 660 vertices
     """
     g2 = matrix([[0, -1], [1, 0]])
     g2.set_immutable()
@@ -188,7 +246,17 @@ def gamma_triangle_graph(n, return_mapping=False):
 
 def gamma0_triangle_graph(n, return_mapping=False):
     r"""
-    Return the coset graph for gamma0.
+    Return the coset graph for the congruence subgroup `\Gamma_0(n)`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.fundamental_domains import gamma0_triangle_graph
+        sage: gamma0_triangle_graph(1)
+        Triangle graph (2,3,infinty) with 1 vertices
+        sage: gamma0_triangle_graph(2)
+        Triangle graph (2,3,infinty) with 3 vertices
+        sage: gamma0_triangle_graph(11)
+        Triangle graph (2,3,infinty) with 60 vertices
     """
     T = matrix([[1, 1], [0, 1]])
     g2 = matrix([[0, -1], [1, 0]])
