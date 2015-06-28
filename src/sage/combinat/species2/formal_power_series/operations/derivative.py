@@ -17,7 +17,7 @@ Reference
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
 from sage.categories.formal_power_series import ExponentialPowerSeries
-from sage.combinat.species2.formal_power_series import FPS
+from sage.combinat.species2.formal_power_series import FPS, ValuationFPS
 from sage.combinat.species2.formal_power_series.operations.add import Add
 from sage.combinat.species2.formal_power_series.operations.product import ExponentialProd, OrdinaryProd
 from sage.combinat.species2.formal_power_series.operations.substitution import Substitution
@@ -26,7 +26,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer import Integer
 
 
-class Derivative(FPS):
+class Derivative(ValuationFPS, FPS):
     """
     Derivative of formal power series
 
@@ -81,8 +81,12 @@ class Derivative(FPS):
         FPS.__init__(self, category=f.category())
         self._f_ = f
 
-    def _valuation_(self):
-        return max(Integer(0), self._f_._valuation_() - 1)
+        ValuationFPS.__init__(self)
+        self._valuation_registration_(f)
+        self._valuation_update_()
+
+    def _valuation_compute_(self):
+        return max(Integer(0), self._f_.valuation() - 1)
 
     @lazy_attribute
     def coefficient(self):

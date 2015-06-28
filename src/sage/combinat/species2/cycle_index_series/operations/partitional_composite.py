@@ -107,7 +107,7 @@ class Composite(CIS):
         return super(Composite, cls).__classcall__(cls, ZF, ZG)
 
     def __init__(self, ZF, ZG):
-        assert(ZG._valuation_() > 0), "The cycle index series should satisfy: `[0]ZG = 0`."
+        assert(ZG.valuation() > 0), "The cycle index series should satisfy: `[0]ZG = 0`."
         CIS.__init__(self)
         self._ZF_ = ZF
         self._ZG_ = ZG
@@ -274,9 +274,8 @@ class CompositeOGS(FPS):
         self._gen.send(n)
         return sum(self._index_[k].coefficient(n) for k in range(n+1))
 
-    @cached_method
-    def _valuation_(self):
-        return self._ZF_._valuation_()
+    def valuation(self):
+        return self._ZF_.valuation()
 
 class StretchOGS(FPS):
 

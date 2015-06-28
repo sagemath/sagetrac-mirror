@@ -57,5 +57,5 @@ class Restriction(FPS):
             return self._f_.coefficient(n)
         return Integer(0)
 
-    def _valuation_(self):
-        return max(self._f_._valuation_(), self._min_)  # FIXME It seems to be reasonable for human use...
+    def valuation(self):
+        return max(self._f_.valuation(), self._min_)  # FIXME It seems to be reasonable for human use...

@@ -61,7 +61,7 @@ class PermutationsEPS(FPS):
         """
         return "P"
 
-    def _valuation_(self):
+    def valuation(self):
         """
         The valuation of the permutations generating series is `0`.
         """
@@ -83,7 +83,7 @@ class PermutationsOPS(FPS):
         """
         return cached_number_of_partitions(n)
 
-    def _valuation_(self):
+    def valuation(self):
         """
         The valuation of the partitions generating series is `0`.
         """

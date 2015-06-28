@@ -49,7 +49,7 @@ class genericOGS(FPS):
         return res.coefficients()[0]
 
     @cached_method
-    def _valuation_(self):
+    def valuation(self):
 
         n = 0
         zero = SymmetricFunctions(QQ).zero()
@@ -91,7 +91,7 @@ class genericEGS(FPS):
         return res.coefficients()[0]
 
     @cached_method
-    def _valuation_(self):
+    def valuation(self):
         n = 0
         zero = SymmetricFunctions(QQ).zero()
         # potentially infinite...

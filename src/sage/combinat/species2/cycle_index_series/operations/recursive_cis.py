@@ -134,7 +134,7 @@ class RecursiveCIS(CategoryObject):
             625*m[1, 1, 1, 1, 1] + 326*m[2, 1, 1, 1] + 171*m[2, 2, 1] + 119*m[3, 1, 1] + 63*m[3, 2] + 35*m[4, 1] + 9*m[5]
 
         """
-        if self._valuation_() > n:
+        if self.valuation() > n:
              return SymmetricFunctions(QQ).zero()
 
         if self._active_:

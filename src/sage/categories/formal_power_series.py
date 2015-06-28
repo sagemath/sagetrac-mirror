@@ -19,6 +19,7 @@ Reference
 from itertools import imap
 from sage.categories.category import Category
 from sage.categories.objects import Objects
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
@@ -149,6 +150,15 @@ class FormalPowerSeries(Category):
             """
             return self.category().singletons() * self.derivative()
 
+        @abstract_method(optional=False)
+        def valuation(self):
+            """
+            The valuation of `f`.
+
+            The valuation is the first grade `i` such that `[t^i]f(t) \neq 0`.
+
+            :return: an integer
+            """
 
 class ExponentialPowerSeries(FormalPowerSeries):
 

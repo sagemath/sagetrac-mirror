@@ -19,7 +19,7 @@ Reference
 from collections import defaultdict
 from itertools import imap, product, tee
 from sage.categories.formal_power_series import ExponentialPowerSeries, OrdinaryPowerSeries
-from sage.combinat.species2.formal_power_series import FPS
+from sage.combinat.species2.formal_power_series import FPS, ValuationFPS
 from sage.combinat.species2.formal_power_series.operations.add import Add
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -73,7 +73,15 @@ def clcall_private(ClassProd, cls, *args):
             return super(ClassProd, cls).__classcall__(cls, tuple(dic_fs.items()))
 
 
-class GenericProd(FPS):
+class GenericProd(ValuationFPS, FPS):
+
+    def __init__(self, dic_fs, category=None):
+        FPS.__init__(self, category=category)
+        self._dic_fs_ = dict(dic_fs)
+
+        ValuationFPS.__init__(self)
+        self._valuation_registration_(self._dic_fs_.keys())
+        self._valuation_update_()
 
     def is_pointing_of(self, g):
         """
@@ -94,7 +102,7 @@ class GenericProd(FPS):
             return dg in self._dic_fs_.keys() and self._dic_fs_[dg] == 1
         return False
 
-    def _valuation_(self):
+    def _valuation_compute_(self):
         """
         Valuation of product of formal power series:
 
@@ -103,7 +111,7 @@ class GenericProd(FPS):
             val(f \times g) = val(f) + val(g)
 
         """
-        return sum(map(lambda (f, nf): nf * f._valuation_(), self._dic_fs_.iteritems()))
+        return sum(map(lambda (f, nf): nf * f.valuation(), self._dic_fs_.iteritems()))
 
     def _repr_(self):
         return "⋅".join(imap(lambda (ZF, nf): repr(ZF) + ("^%d" % nf if nf != 1 else ""), self._dic_fs_.iteritems()))
@@ -126,8 +134,7 @@ class ExponentialProd(GenericProd):
         return clcall_private(ExponentialProd, cls, *args)
 
     def __init__(self, dic_fs):
-        FPS.__init__(self, category=ExponentialPowerSeries())
-        self._dic_fs_ = dict(dic_fs)
+        GenericProd.__init__(self, dic_fs, category=ExponentialPowerSeries())
 
     @cached_method
     def _fast_prod_pow_(self, f, k, n):
@@ -201,8 +208,7 @@ class OrdinaryProd(GenericProd):
         return clcall_private(OrdinaryProd, cls, *args)
 
     def __init__(self, dic_fs):
-        FPS.__init__(self, category=OrdinaryPowerSeries())
-        self._dic_fs_ = dict(dic_fs)
+        GenericProd.__init__(self, dic_fs, category=OrdinaryPowerSeries())
 
     @cached_method
     def coefficient(self, n):

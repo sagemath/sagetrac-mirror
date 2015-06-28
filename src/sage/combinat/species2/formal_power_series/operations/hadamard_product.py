@@ -18,13 +18,13 @@ Reference
 # ******************************************************************************
 from collections import defaultdict
 from sage.categories.formal_power_series import FormalPowerSeries
-from sage.combinat.species2.formal_power_series import FPS
+from sage.combinat.species2.formal_power_series import FPS, ValuationFPS
 from sage.combinat.species2.formal_power_series.operations.add import Add
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.integer import Integer
 
 
-class HadamardProduct(FPS):
+class HadamardProduct(ValuationFPS, FPS):
     """
     Hadamard product of formal power series
 
@@ -80,10 +80,14 @@ class HadamardProduct(FPS):
         FPS.__init__(self, category=category)
         self._dic_fs_ = dict(dic_fs)
 
-    def _valuation_(self):
-        return max(map(lambda (f, nf): f._valuation_(), self._dic_fs_.iteritems()))
+        ValuationFPS.__init__(self)
+        self._valuation_registration_(self._dic_fs_.keys())
+        self._valuation_update_()
+
+    def _valuation_compute_(self):
+        return max(map(lambda (f, nf): f.valuation(), self._dic_fs_.iteritems()))
 
     def coefficient(self, n):
-        if n < self._valuation_():
+        if n < self.valuation():
             return 0
         return reduce(lambda acc, (f, nf): acc * f.coefficient(n) ** nf, self._dic_fs_.iteritems(), Integer(1))

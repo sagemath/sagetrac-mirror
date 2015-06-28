@@ -17,14 +17,15 @@ Reference
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
 from sage.categories.formal_power_series import FormalPowerSeries
+from sage.combinat.species2.formal_power_series import ValuationFPS
 from sage.misc.cachefunc import cached_method
-from sage.rings.infinity import Infinity
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer import Integer
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.category_object import CategoryObject
 
 
-class RecursiveFormalPowerSeries(CategoryObject):
+class RecursiveFormalPowerSeries(ValuationFPS, CategoryObject):
     """
     Formal Power series defined recursively
 
@@ -68,7 +69,8 @@ class RecursiveFormalPowerSeries(CategoryObject):
         self._def_ = None
         self._active_ = False
         self._name_ = name
-        self._valuation = Infinity
+
+        ValuationFPS.__init__(self)
 
     def define(self, definition):
         """
@@ -77,13 +79,16 @@ class RecursiveFormalPowerSeries(CategoryObject):
         if self._def_:
             raise ValueError("This formal power series is already defined: %s" % repr(self))
         self._def_ = definition
-        self._compute_valuation()
 
-    def _compute_valuation(self):
-        _old_valuation = None
-        while self._valuation != _old_valuation:
-            _old_valuation = self._valuation
-            self._valuation = self._def_._valuation_()
+        if isinstance(definition, ValuationFPS):
+            definition._valuation_add_listener_(self)
+        self._valuation_update_()
+
+    @lazy_attribute
+    def _valuation_compute_(self):
+        if isinstance(self._def_, ValuationFPS):
+            return self._def_._valuation_compute_
+        else: return self.valuation
 
     @cached_method
     def coefficient(self, n):
@@ -117,6 +122,3 @@ class RecursiveFormalPowerSeries(CategoryObject):
         self._active_ = False
 
         print s
-
-    def _valuation_(self):
-        return self._valuation

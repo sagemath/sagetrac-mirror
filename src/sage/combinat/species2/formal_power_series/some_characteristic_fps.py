@@ -23,7 +23,7 @@ class ZeroFPS(FPS):
     def _repr_(self):
         return "0"
 
-    def _valuation_(self):
+    def valuation(self):
         return Infinity
 
 
@@ -35,7 +35,7 @@ class OneFPS(FPS):
     def _repr_(self):
         return "1"
 
-    def _valuation_(self):
+    def valuation(self):
         return 0
 
 
@@ -47,7 +47,7 @@ class SingletonsFPS(FPS):
     def _repr_(self):
         return "x"
 
-    def _valuation_(self):
+    def valuation(self):
         return 1
 
 
@@ -59,5 +59,5 @@ class SetsFPS(FPS):
     def _repr_(self):
         return "1/(1-x)"
 
-    def _valuation_(self):
+    def valuation(self):
         return 0

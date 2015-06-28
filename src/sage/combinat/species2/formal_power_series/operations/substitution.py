@@ -17,16 +17,17 @@ Reference
 #                  http://www.gnu.org/licenses/
 # ******************************************************************************
 from sage.categories.formal_power_series import ExponentialPowerSeries
-from sage.combinat.species2.formal_power_series import FPS
+from sage.combinat.species2.formal_power_series import FPS, ValuationFPS
 from sage.combinat.species2.formal_power_series.operations.add import Add
 from sage.combinat.species2.formal_power_series.operations.product import ExponentialProd
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.arith import factorial
+from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 
 
-class Substitution(FPS):
+class Substitution(ValuationFPS, FPS):
 
     __metaclass__ = ClasscallMetaclass
 
@@ -52,10 +53,14 @@ class Substitution(FPS):
         return super(Substitution, cls).__classcall__(cls, f, g)
 
     def __init__(self, f, g):
-        assert(g._valuation_() > 0), "The formal power series should satisfy: `[t^0]g(t) = 0`."
+        assert(g.valuation() > 0), "The formal power series should satisfy: `[t^0]g(t) = 0`."
         FPS.__init__(self, category=ExponentialPowerSeries())
         self._f_ = f
         self._g_ = g
+
+        ValuationFPS.__init__(self)
+        self._valuation_registration_([f, g])
+        self._valuation_update_()
 
         self._gen = self._gen_()
         self._gen.send(None)
@@ -106,6 +111,8 @@ class Substitution(FPS):
         self._gen.send(n)
         return sum(self._index_[k][0] * self._index_[k][1].coefficient(n) for k in range(n+1))
 
-    def _valuation_(self):
-        # FIXME: naive implementation... I don't know how to do such that work with rescursive fps (T = E(XT)??)
-        return self._f_._valuation_() #* self._g_._valuation_()
+    def _valuation_compute_(self):
+        f, g = self._f_, self._g_
+        if f.valuation() == Integer(0) and g.valuation() == Infinity:
+            return f.valuation()
+        return f.valuation() * g.valuation()

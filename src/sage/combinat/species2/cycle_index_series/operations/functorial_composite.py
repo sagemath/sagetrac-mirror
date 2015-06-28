@@ -115,7 +115,7 @@ class FunctorialComposite(CIS):
         return super(FunctorialComposite, cls).__classcall__(cls, ZF, ZG)
 
     def __init__(self, ZF, ZG):
-        assert(ZG._valuation_() > 0)
+        assert(ZG.valuation() > 0)
         CIS.__init__(self)
         self._ZF_, self._ZG_ = ZF, ZG
         self._p_ = SymmetricFunctions(ZF.Frobenius_characteristic(0).base_ring()).p()

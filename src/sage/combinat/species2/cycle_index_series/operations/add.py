@@ -116,7 +116,7 @@ class Add(CIS):
         :param n: an non-negative integer
 
         """
-        if self._valuation_() > n:
+        if self.valuation() > n:
             return self._sym_.zero()
         return sum(nf * ZF.Frobenius_characteristic(n)
                    for (ZF, nf) in self._dic_cis_.iteritems())

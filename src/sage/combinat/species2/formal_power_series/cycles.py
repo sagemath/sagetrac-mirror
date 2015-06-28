@@ -57,7 +57,7 @@ class CyclesEPS(FPS):
         """
         return "C"
 
-    def _valuation_(self):
+    def valuation(self):
         """
         The valuation of the cycles generating series is `1`.
         """
@@ -80,7 +80,7 @@ class CyclesOPS(FPS):
         if n == 0: return Integer(0)
         else:      return Integer(1)
 
-    def _valuation_(self):
+    def valuation(self):
         """
         The valuation of the cycles generating series is `1`.
         """

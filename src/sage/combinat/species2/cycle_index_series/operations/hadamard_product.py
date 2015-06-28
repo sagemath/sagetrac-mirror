@@ -143,7 +143,7 @@ class HadamardProduct(CIS):
             [0, p[1], 0, 0, 0, 0, 0, 0, 0, 0]
 
         """
-        if self._valuation_() > n:
+        if self.valuation() > n:
             return self._sym_.zero()
         p = self._p_
         list_ch = [(p(ZF.Frobenius_characteristic(n)), nf) for (ZF, nf) in self._dic_cis_.iteritems()]

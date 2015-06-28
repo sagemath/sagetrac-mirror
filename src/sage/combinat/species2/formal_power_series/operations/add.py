@@ -19,12 +19,12 @@ Reference
 from collections import defaultdict
 from itertools import imap
 from sage.categories.formal_power_series import FormalPowerSeries
-from sage.combinat.species2.formal_power_series import FPS
+from sage.combinat.species2.formal_power_series import FPS, ValuationFPS
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.integer import Integer
 
 
-class Add(FPS):
+class Add(ValuationFPS, FPS):
     """
     Sum of power series
 
@@ -69,6 +69,10 @@ class Add(FPS):
         FPS.__init__(self, category=category)
         self._dic_fs_ = dict(dic_fs)
 
+        ValuationFPS.__init__(self)
+        self._valuation_registration_(self._dic_fs_.keys())
+        self._valuation_update_()
+
     def coefficient(self, n):
         """
         MATH::
@@ -78,7 +82,7 @@ class Add(FPS):
         :param n: an integer
         :return: `[t^n](f + g)(t)`.
         """
-        if n < self._valuation_():
+        if n < self.valuation():
             return Integer(0)
         return sum(imap(lambda (f, nf): nf * f.coefficient(n),
                         self._dic_fs_.iteritems()))
@@ -87,5 +91,5 @@ class Add(FPS):
         return " + ".join(imap(lambda (f, nf): (repr(nf) + "⋅" if nf != 1 else "") + repr(f),
                                self._dic_fs_.iteritems()))
 
-    def _valuation_(self):  # TODO: cached or not cached?
-        return min(map(lambda f: f._valuation_(), self._dic_fs_.keys()))
+    def _valuation_compute_(self):
+        return min(map(lambda f: f.valuation(), self._dic_fs_.keys()))

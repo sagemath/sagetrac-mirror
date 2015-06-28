@@ -145,7 +145,7 @@ class RecursiveSpecies(Parent):
                  [[·, 2, ·], 1, ·]]
 
             """
-            if self.ambient()._valuation_() > self.finite_set().cardinality():
+            if self.ambient().valuation() > self.finite_set().cardinality():
                 return
 
             for s in self.ambient()._def_.structures(self.finite_set()):

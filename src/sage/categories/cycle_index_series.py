@@ -269,5 +269,5 @@ class CycleIndexSeries(Category):
             # TODO
             NotImplemented
 
-        def _valuation_(self):
-            return self.generating_series()._valuation_()
+        def valuation(self):
+            return self.generating_series().valuation()

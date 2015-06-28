@@ -623,8 +623,8 @@ class Species(Category):
             from sage.combinat.species2.operations.functorial_composite import FunctorialComposite
             return FunctorialComposite(F, G)
 
-        def _valuation_(self):
+        def valuation(self):
             """
             The valuation is the first degree `n` such that `F[n] \neq \emptyset`.
             """
-            return self.generating_series()._valuation_()
+            return self.generating_series().valuation()

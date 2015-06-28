@@ -109,7 +109,7 @@ class FunctorialComposite(SpeciesDesign):
     class Structures(SpeciesDesign.Structures):
 
         def __iter__(self):
-            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
+            if self.ambient().valuation() > self.finite_set().cardinality(): return
             F, G = self.ambient()._F_, self.ambient()._G_
             for s in F.structures(Set(G.structures(self.finite_set()))):
                 s._set_parent(self.ambient())

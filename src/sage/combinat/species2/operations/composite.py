@@ -108,7 +108,7 @@ class Composite(SpeciesDesign):
         return super(Composite, cls).__classcall__(cls, *args, **opts)
 
     def __init__(self, F, G):
-        assert(G._valuation_() > 0), r"%s[∅] must be empty" % repr(G)
+        assert(G.valuation() > 0), r"%s[∅] must be empty" % repr(G)
         SpeciesDesign.__init__(self)
         self._F_ = F
         self._G_ = G
@@ -162,7 +162,7 @@ class Composite(SpeciesDesign):
 
         def __iter__(self):
 
-            if self.ambient()._valuation_() > self.finite_set().cardinality(): return
+            if self.ambient().valuation() > self.finite_set().cardinality(): return
 
             def rec_prod(pi):
                 if len(pi) == 0:

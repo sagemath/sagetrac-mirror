@@ -268,7 +268,7 @@ class Prod(SpeciesDesign):
                         yield()
                     return
                 F = species[0]
-                for k in range(F._valuation_(), U.cardinality() + 1 - sum(map(lambda F: F._valuation_(), species[1:]))):
+                for k in range(F.valuation(), U.cardinality() + 1 - sum(map(lambda F: F.valuation(), species[1:]))):
                     # FIXME: it is more efficient to test if F[U] ≠ ∅ or to compute #F[U]??
                     for S in Subsets(U, k=k):
                         T = U.difference(S)
@@ -276,7 +276,7 @@ class Prod(SpeciesDesign):
                             for tup in rec_iter(T, species[1:]):
                                 yield (fstruct,) + tup
 
-            val = self.ambient()._valuation_()
+            val = self.ambient().valuation()
             if val > self.finite_set().cardinality(): return iter([])
             return imap(self._element_constructor_,
                         rec_iter(self.finite_set(), self.ambient()._species_)
