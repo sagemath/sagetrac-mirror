@@ -391,7 +391,9 @@ example:
     sage: x+y
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
+    TypeError: no common canonical parent for objects with parents:
+    'Univariate Polynomial Ring in x over Rational Field' and 'Univariate
+    Polynomial Ring in y over Rational Field'
 
 The reason is that Sage would not choose one of the potential
 candidates ``QQ['x']['y']``, ``QQ['y']['x']``, ``QQ['x','y']`` or

@@ -545,26 +545,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: 1/2 + GF(3)(2)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 3'
+            TypeError: no common canonical parent for objects with parents:
+            'Rational Field' and 'Finite Field of size 3'
 
-        Now see what the actual problem was::
-
-            sage: import traceback
-            sage: cm.exception_stack()
-            ['Traceback (most recent call last):...', 'Traceback (most recent call last):...']
-            sage: print cm.exception_stack()[-1]
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'
-
-        This is typically accessed via the :func:`coercion_traceback` function.
+        By :trac:`18758`, the error message shows the actual problem, rather
+        than just saying that the operation '+' is not defined. This can also
+        be accessed via the :func:`coercion_traceback` function.
 
         ::
 
             sage: coercion_traceback()
             Traceback (most recent call last):
             ...
-            TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'
+            TypeError: no common canonical parent for objects with parents:
+            'Rational Field' and 'Finite Field of size 3'
         """
         if not self._exceptions_cleared:
             self._exception_stack = []
@@ -955,7 +949,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print H*3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
+            TypeError: no common canonical parent for objects with parents:
+            '<type 'instance'>' and 'Integer Ring'
 
             sage: class Nonsense:
             ...       def __init__(self, s):

@@ -1912,7 +1912,7 @@ class MPowerSeries(PowerSeries):
             sage: exp(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Symbolic Ring' and
+            TypeError: no common canonical parent for objects with parents: 'Symbolic Ring' and
             'Power Series Ring in Tbg over Multivariate Polynomial Ring in a, b
             over Rational Field'
 
@@ -2001,7 +2001,7 @@ class MPowerSeries(PowerSeries):
             sage: log(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '-': 'Symbolic Ring' and 'Power
+            TypeError: no common canonical parent for objects with parents: 'Symbolic Ring' and 'Power
             Series Ring in Tbg over Multivariate Polynomial Ring in a, b over Rational Field'
 
         Another workaround for this limitation is to change base ring

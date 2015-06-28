@@ -908,7 +908,11 @@ class kSchur(CombinatorialFreeModule):
         sage: ks2([2,1]) * ks3([3,1])
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '*': '2-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 2-Schur basis' and '3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis'
+        TypeError: no common canonical parent for objects with parents:
+        '2-bounded Symmetric Functions over Univariate Polynomial Ring in
+        t over Rational Field in the 2-Schur basis' and '3-bounded Symmetric
+        Functions over Univariate Polynomial Ring in t over Rational Field
+        in the 3-Schur basis'
 
     The workaround::
 

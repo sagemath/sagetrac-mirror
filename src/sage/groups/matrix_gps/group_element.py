@@ -34,7 +34,8 @@ do it with the underlying matrices::
     sage: 2*g
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
+    TypeError: no common canonical parent for objects with parents:
+    'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
     [1 0]  [1 1]
     [0 1], [0 1]
     )'

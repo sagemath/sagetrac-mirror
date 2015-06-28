@@ -334,7 +334,9 @@ class ComplexField_class(ring.Field):
             sage: CC.gen() + QQ[I].gen()
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
+            TypeError: no common canonical parent for objects with parents:
+            'Complex Field with 53 bits of precision' and 'Number Field
+            in I with defining polynomial x^2 + 1'
 
         In the absence of arguments we return zero::
 

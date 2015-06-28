@@ -2836,7 +2836,8 @@ cdef class Parent(category_object.CategoryObject):
             sage: [4,5]*l3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': '<type 'list'>' and '<class '__main__.MyNewParent_with_category'>'
+            TypeError: no common canonical parent for objects with parents:
+            '<type 'list'>' and '<class '__main__.MyNewParent_with_category'>'
         """
         try:
             if self._action_hash is None: # this is because parent.__init__() does not always get called

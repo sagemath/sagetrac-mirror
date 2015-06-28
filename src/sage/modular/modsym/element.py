@@ -218,7 +218,9 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             sage: z*Mod(1, 17)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Modular Symbols space of dimension 8 for Gamma_0(3) of weight 12 with sign 0 over Rational Field' and 'Ring of integers modulo 17'
+            TypeError: no common canonical parent for objects with parents:
+            'Modular Symbols space of dimension 8 for Gamma_0(3) of weight
+            12 with sign 0 over Rational Field' and 'Ring of integers modulo 17'
         """
         return ModularSymbolsElement(self.parent(), self.element()*other, check=False)
 
@@ -236,7 +238,9 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             sage: Mod(1, 17)*z
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Ring of integers modulo 17' and 'Modular Symbols space of dimension 8 for Gamma_0(3) of weight 12 with sign 0 over Rational Field'
+            TypeError: no common canonical parent for objects with parents:
+            'Ring of integers modulo 17' and 'Modular Symbols space of
+            dimension 8 for Gamma_0(3) of weight 12 with sign 0 over Rational Field'
         """
         return ModularSymbolsElement(self.parent(), left*self.element(), check=False)
 

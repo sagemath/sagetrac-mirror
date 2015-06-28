@@ -773,7 +773,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: d[0]*d[1] == c
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2' and 'Group of Dirichlet characters of modulus 5 over Cyclotomic Field of order 4 and degree 2'
+            TypeError: no common canonical parent for objects with parents:
+            'Group of Dirichlet characters of modulus 4 over Cyclotomic
+            Field of order 4 and degree 2' and 'Group of Dirichlet characters
+            of modulus 5 over Cyclotomic Field of order 4 and degree 2'
 
         We can multiply if we're explicit about where we want the
         multiplication to take place.

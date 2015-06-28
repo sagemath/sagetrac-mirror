@@ -35,7 +35,8 @@ nonsense. Here are some examples::
     sage: GF(5)(1) + CC(I)
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Finite Field of size 5' and 'Complex Field with 53 bits of precision'
+    TypeError: no common canonical parent for objects with parents:
+    'Finite Field of size 5' and 'Complex Field with 53 bits of precision'
 
 Parents and Elements
 ~~~~~~~~~~~~~~~~~~~~

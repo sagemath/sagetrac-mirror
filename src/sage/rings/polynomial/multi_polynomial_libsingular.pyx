@@ -2359,7 +2359,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x/3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '/':
+            TypeError: no common canonical parent for objects with parents:
             'Multivariate Polynomial Ring in x, y over Ring of integers
             modulo 1024' and 'Integer Ring'
 

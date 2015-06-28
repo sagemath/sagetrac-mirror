@@ -82,7 +82,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     sage: n + m
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+':
+    TypeError: no common canonical parent for objects with parents:
     '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
