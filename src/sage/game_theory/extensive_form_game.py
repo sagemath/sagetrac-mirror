@@ -73,8 +73,9 @@ Information sets are demonstrated visually on the graph we plot (hopefully)::
     Graphics object consisting of 20 graphics primitives
 """
 from sage.graphs.all import Graph
-from sage.plot.line import Line
-
+from sage.plot.line import line2d
+from sage.graphs.generic_graph import GenericGraph
+from operator import attrgetter
 
 class ExtensiveFormGame():
     def __init__(self, game_input, name=False, extensive_root=False, padding = 0):
@@ -107,12 +108,12 @@ class ExtensiveFormGame():
             [Player 1, Player 2]
             sage: egame_a1.nodes
             [Node 1, Node 2, Node 3, Node 4, Node 5, Node 6, Tree Root]
-            sage: egame_a1.leafs
-            []
             sage: egame_a1.info_sets
             [[Node 1], [Node 2], [Node 3], [Node 4], [Node 5], [Node 6], [Tree Root]]
             sage: egame_a1.set_info_set([node_a5, node_a6])
             sage: egame_a1.set_info_set([node_a1, node_a2, node_a3, node_a4])
+            sage: egame_a1.plot(view_info_sets = True)
+            Graphics object consisting of 51 graphics primitives
             sage: egame_a1.info_sets
             [[Node 1, Node 2, Node 3, Node 4], [Node 5, Node 6], [Tree Root]]
 
@@ -251,6 +252,7 @@ class ExtensiveFormGame():
                         if isinstance(child, Leaf) and child.name is False:
                             child.name = "Leaf %i" %leaf_index
                             leaf_index += 1
+                            self.leafs.append(child)
                         elif isinstance(child, Leaf):
                             self.leafs.append(child)
 
@@ -259,7 +261,7 @@ class ExtensiveFormGame():
                 self.players.sort(key=lambda x:x.name)   
                 self.info_sets.sort(key=lambda x:x[0].name)
                 self.nodes.sort(key=lambda x:x.name)
-                self.leafs.sort(key=lambda x:x.name)
+                self.leafs.sort(key=attrgetter('name', 'payoffs'))
 
 
         else:
@@ -284,6 +286,13 @@ class ExtensiveFormGame():
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
             [[Node 1, Node 2], [Root 1]]
+
+        Once we've set an info_set, we can see it visually on the graph::
+
+            sage: egame_1.plot()
+            Graphics object consisting of 20 graphics primitives
+            sage: egame_1.plot(view_info_sets = True)
+            Graphics object consisting of 23 graphics primitives
 
         If two nodes don't have the same actions, an error is returned::
 
@@ -341,7 +350,7 @@ class ExtensiveFormGame():
                         if node_in_a_set is node_to_be_set and len(info_set) is not 1:
                             raise ValueError("Cannot assign information sets to nodes already in information sets")
             self.info_sets.remove([node_to_be_set])
-        self.info_sets.append(sorted(node_list, key=lambda x: x.name))
+        self.info_sets.append(sorted(node_list, key=lambda x:x.name))
         self.info_sets.sort(key=lambda x: x[0].name)
 
     def perfect_info(self):
@@ -418,14 +427,24 @@ class ExtensiveFormGame():
         else:
             raise TypeError("Graph isn't tree")
 
-    def plot(self):
+    def plot(self, view_info_sets = False):
         keylist = []
         t = self.grow_tree()
         for node in self.nodes:
             keylist = node.node_input.keys()
             for key in keylist:
                 t.set_edge_label(node, node.node_input[key], key)
-        tree_plot = t.plot(layout='tree', tree_orientation='right', edge_labels=True, tree_root = self.tree_root)
+        tree_plot = t.plot(layout='tree', tree_orientation='right', edge_labels=True, tree_root = self.tree_root, save_pos=True, axes=False)
+        positions = t.get_pos()
+        past_info_node = self.info_sets[0][0]
+        if view_info_sets is True:
+            for info_set in self.info_sets:
+                past_info_node = info_set[0]
+                for node in info_set:
+                    for key in positions.keys():
+                        if node is key:
+                            tree_plot += (line2d([positions[past_info_node], positions[node]], linestyle = "dashed", color='green'))
+                            past_info_node = node
         return tree_plot
 
     def grow_tree_dictionary(self):
@@ -461,16 +480,6 @@ class ExtensiveFormGame():
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}  # Build the dictionary mapping the leafs to their children
         # The above does not include the root
         d[self.tree_root] = self.tree_root.children  # The above does not actually include the original root so we need to include it
-        # for node in d.keys():
-        #     new_children=[]
-        #     for child in node.children:
-        #         if isinstance(child, Leaf):
-        #             new_string  = self.padding * ' ' + str(tuple([child[plry] for plry in sorted(child.players, key=lambda x:x.name)]))
-        #             new_children.append(new_string)
-        #         else:
-        #             new_children.append(child)
-        #     d[node] = new_children   
-
         return d
 
 
@@ -810,7 +819,20 @@ class Player():
             sage: sam_1 = Node([0, 1])
             sage: sam_1.player
             False
+            sage: sam_player = Player('Sam')
+            sage: sam_1.player = sam_player
+            sage: sam_1.player
+            Sam
+            sage: sam_2 = Node([0, 1], player = sam_player)
+            sage: sam_2.player 
+            Sam
 
+        A player can be reassigned for Nodes::
+            sage: andy_player = Player('Andy')
+            sage: sam_2.player = andy_player
+            sage: sam_2.player
+            Andy  
+    
         We can create players and assign them names::
 
             sage: ben_player = Player('Benjamin')
