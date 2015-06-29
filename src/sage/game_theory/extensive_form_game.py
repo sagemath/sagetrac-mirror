@@ -30,7 +30,9 @@ The location where a payoff is located is called a Leaf, and  they show the outc
 So if Bob choses Sports, and Celine choses Sports, we see the payoff is (2, 3), which represents Bob getting a payoff of 2,
 and Celine getting a payoff of 3.
 
-We can create the game in sage two ways, one by passing it a root, and the other by passing it a tree::
+To create the above graph, we can do it by one of two ways, either by passing it a root, and the other by passing it a tree
+
+The game is created as follows::
 
     sage: player_1 = Player('Bob')
     sage: player_2 = Player('Celine')
@@ -43,7 +45,7 @@ We can create the game in sage two ways, one by passing it a root, and the other
     sage: node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
     sage: battle_of_the_sexes = ExtensiveFormGame(node_1)
 
-This can then be shown visually in graph form, as is shown here::
+Then to plot the graph, we use::
 
     sage: battle_of_the_sexes.plot()
     Graphics object consisting of 20 graphics primitives
@@ -67,10 +69,29 @@ Now the game does not have perfect information::
     sage: battle_of_the_sexes.perfect_info()
     False
 
-Information sets are demonstrated visually on the graph we plot (hopefully)::
+Information sets are demonstrated visually on the graph we plot by setting ```view_info_sets``` to be ```True``` while plotting::
 
-    sage: battle_of_the_sexes.plot()
-    Graphics object consisting of 20 graphics primitives
+    sage: battle_of_the_sexes.plot(view_info_sets = True)
+    Graphics object consisting of 23 graphics primitives
+
+Which will be plotted as follows::
+
+.. PLOT::
+    :width: 500 px
+    :align: center
+    player_1 = Player('Bob')
+    player_2 = Player('Celine')
+    leaf_1 = Leaf({player_1: 2, player_2: 3})
+    leaf_2 = Leaf({player_1: 0, player_2: 0})
+    leaf_3 = Leaf({player_1: 1, player_2: 1})
+    leaf_4 = Leaf({player_1: 3, player_2: 2})
+    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_1)
+    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_1)
+    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
+    battle_of_the_sexes = ExtensiveFormGame(node_1)
+    battle_of_the_sexes.set_info_set([node_2, node_3])
+    p = battle_of_the_sexes.plot(view_info_sets = True)
+    sphinx_plot(p)
 """
 from sage.graphs.all import Graph
 from sage.plot.line import line2d
@@ -78,9 +99,9 @@ from sage.graphs.generic_graph import GenericGraph
 from operator import attrgetter
 
 class ExtensiveFormGame():
-    def __init__(self, game_input, name=False, extensive_root=False, padding = 0):
+    def __init__(self, game_input, name=False, extensive_root=False):
         """
-        Just a really big test to see if anything breaks::
+        The following is an example of a creation of a tree with 8 leaves and 2 players, showing various outputs::
 
             sage: player_a1 = Player('Player 1')
             sage: player_a2 = Player('Player 2')
@@ -221,8 +242,7 @@ class ExtensiveFormGame():
 
         """
         self.nodes = []
-        self.padding = padding
-
+        
         if isinstance(game_input, Node):
             if game_input.actions is False:
                 raise AttributeError("Root node has no actions.")
@@ -255,7 +275,6 @@ class ExtensiveFormGame():
                             self.leafs.append(child)
                         elif isinstance(child, Leaf):
                             self.leafs.append(child)
-
 
                 self.players = list(set(self.players))
                 self.players.sort(key=lambda x:x.name)   
@@ -352,31 +371,7 @@ class ExtensiveFormGame():
             self.info_sets.remove([node_to_be_set])
         self.info_sets.append(sorted(node_list, key=lambda x:x.name))
         self.info_sets.sort(key=lambda x: x[0].name)
-
-    def perfect_info(self):
-        """
-        All games start of with perfect information, adding information sets changes this::
-            sage: player_1 = Player('Player 1')
-            sage: player_2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player_1 : 0, player_2: 1}, 'Leaf 1')
-            sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
-            sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
-            sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
-            sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1.perfect_info()
-            True
-            sage: egame_1.set_info_set([node_1, node_2])
-            sage: egame_1.perfect_info()
-            False
-        """
-        if self.info_sets == [[node] for node in self.nodes]:
-            return True
-        else:
-            return False
-
+ 
     def remove_info_set(self, node_list):
         """
             sage: player_1 = Player('Player 1')
@@ -405,6 +400,34 @@ class ExtensiveFormGame():
             self.info_sets.append([node_to_be_readded])
         self.info_sets.sort(key=lambda x: x[0].name)
 
+    def perfect_info(self):
+        """
+        All games start of with perfect information, adding information sets changes this::
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1 : 0, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1 : 1, player_2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1 : 2, player_2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1 : 2, player_2: 1}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.perfect_info()
+            True
+            sage: egame_1.set_info_set([node_1, node_2])
+            sage: egame_1.perfect_info()
+            False
+            sage: egame_1.remove_info_set([node_1, node_2])
+            sage: egame_1.perfect_info()
+            True
+        """
+        perfect_info_set = [[node] for node in self.nodes]
+        if self.info_sets == perfect_info_set:
+            return True
+        else:
+            return False
+
     def grow_tree(self):
         """
             sage: player_1 = Player('Player 1')
@@ -428,14 +451,37 @@ class ExtensiveFormGame():
             raise TypeError("Graph isn't tree")
 
     def plot(self, view_info_sets = False):
+        """
+        Returns a visual representation of the game::
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: egame_1.plot()
+            Graphics object consisting of 20 graphics primitives
+
+        The plot has the option for whether or not info-sets are visible::
+
+            sage: egame_1.plot(view_info_sets = True)
+            Graphics object consisting of 23 graphics primitives           
+        """
+
         keylist = []
         t = self.grow_tree()
         for node in self.nodes:
             keylist = node.node_input.keys()
             for key in keylist:
-                t.set_edge_label(node, node.node_input[key], key)
+                t.set_edge_label(node, node.node_input[key], key) 
+
         tree_plot = t.plot(layout='tree', tree_orientation='right', edge_labels=True, tree_root = self.tree_root, save_pos=True, axes=False)
         positions = t.get_pos()
+
         past_info_node = self.info_sets[0][0]
         if view_info_sets is True:
             for info_set in self.info_sets:
@@ -573,20 +619,23 @@ class Node():
             raise TypeError("Node must be passed an node_input in the form of a dictionary or a list.")
 
     def __repr__(self):
+        """
+        Representation method for the Node::
+
+            sage: repr_node = Node(['inputhere'])
+            sage: repr_node 
+            False
+            sage: repr_node.name = "A named Node"
+            sage: repr_node
+            A named Node
+            sage: repr_node = Node(['inputhere'], "A different name")
+            sage: repr_node
+            A different name
+        """
         if self.name is False:
             return "False"
         else:
             return self.name
-
-    def attributes(self):
-        """
-        We can use this function to check the attributes of each singular node, the following is what would happen if no attibutes are assigned::
-
-            sage: laura_1 = Node(['inputhere'])
-            sage: laura_1.attributes()
-            "The Node has the following attributes. Actions: ['inputhere']. Children: False. Parent: False. Player: False."
-        """
-        return "The Node has the following attributes. Actions: %s. Children: %s. Parent: %s. Player: %s." %(self.actions, self.children, self.parent, self.player)
 
     def _is_complete(self):
         """
@@ -642,6 +691,7 @@ class Node():
 
     def _player_check(self):
         """
+        A check primarily used later for creating of Extensive Form Games::
             sage: grandmother_node = Node([])
             sage: mother_node = Node([])
             sage: grandmother_node.player
@@ -696,7 +746,6 @@ class Leaf():
         self.parent = False
 
         for player in self.players:
-
             if not isinstance(player, Player):
                 raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffss.")
 
@@ -843,6 +892,8 @@ class Player():
 
     def __repr__(self):
         """
+        Representation method for the player::
+
             sage: apple_1 = Player('Apple')
             sage: apple_1
             Apple
@@ -854,7 +905,7 @@ class Player():
 
     def __hash__(self):
         """
-        TESTS::
+        Makes the player class hashable::
 
             sage: apple_1 = Player('Apple')
             sage: banana_1 = Leaf({apple_1 : 0})
