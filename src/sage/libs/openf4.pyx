@@ -94,7 +94,7 @@ def groebner_basis_openf4(self, prot=0, threads=1):
         sage: R.<x1,x2,x3,x4,x5,x6> = Zmod(65521)[]
         sage: I = sage.rings.ideal.Cyclic(R,6)
         sage: B = groebner_basis_openf4(I) # optional - openf4
-        sage: len(B)
+        sage: len(B) # optional - openf4
         45
 
     TESTS::
