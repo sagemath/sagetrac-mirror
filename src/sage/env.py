@@ -151,6 +151,16 @@ def get_libs_config(libname):
     OUTPUT:
 
     a list of libraries that distutils can use to compile sage or spyx files.
+
+    EXAMPLES:
+
+    Reading a 'cblas' configuration file
+
+    ::
+
+        sage: import sage.env
+        sage: sage.env.get_libs_config('cblas') # random -- depends on OS
+        ['cblas', 'atlas']
     """
     with open(os.path.join(SAGE_SHARE, '%s_config'%libname)) as f:
     return f.readline().split()

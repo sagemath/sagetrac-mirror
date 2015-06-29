@@ -127,7 +127,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
                 print('Cannot find '+prefix+lib+'.* in '+path)
                 break
         else:
-            return True 
+            return True
         return False
 
     paths = [ ATLAS_LIB, os.path.join(ATLAS_LIB, 'lib64'), os.path.join(ATLAS_LIB, 'lib') ]
@@ -145,8 +145,8 @@ if 'SAGE_ATLAS_LIB' in os.environ:
     if ATLAS_LIB is None:
         print('Unable to find required libraries in the directory', ATLAS_LIB)
         print('Set SAGE_ATLAS_LIB to the directory containing:')
-	print('- liblapack, libcblas, libf77blas and libatlas;')
-	print('- or liblapack and libblas;')
+        print('- liblapack, libcblas, libf77blas and libatlas;')
+        print('- or liblapack and libblas;')
         print('you wish to use existing ATLAS libraries.')
         print('For more details, see:')
         print('http://sagemath.org/doc/installation/source.html#environment-variables')
@@ -664,4 +664,4 @@ assert_success(rc, bad='Failed to install ATLAS headers',
 ######################################################################
 
 cp(os.path.join(PATCH_DIR, 'atlas-config'),
-   os.path.join(conf['SAGE_LOCAL'], 'bin'))
+    os.path.join(conf['SAGE_LOCAL'], 'bin'))
