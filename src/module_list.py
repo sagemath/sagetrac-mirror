@@ -1696,7 +1696,7 @@ ext_modules = [
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
-    Extension('sage.rings.polynomial.groebner_basis_f4',
+    OptionalExtension('sage.rings.polynomial.groebner_basis_f4',
               sources = ['sage/rings/polynomial/groebner_basis_f4.pyx'],
               language="c++",
               libraries = ["openf4"]),
