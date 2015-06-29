@@ -3655,7 +3655,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-        from sage.libs.openf4 import groebner_basis_openf4
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3710,6 +3709,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
         elif algorithm == 'openf4':
+            from sage.libs.openf4 import groebner_basis_openf4
             if get_verbose() >= 2:
                 prot = 1
             threads = 1
