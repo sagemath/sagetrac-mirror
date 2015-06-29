@@ -171,15 +171,15 @@ def convert_from_openf4_string(f_string, gens_dict, base_ring, cache=None):
 
         sage: P.<x,y,z> = PolynomialRing(GF(previous_prime(2^30)))
         sage: fs = '(1*x^1*y^2) + (-32*z^2)'
-        sage: from sage.libs.openf4 import convert_from_openf4_string
-        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring())
+        sage: from sage.libs.openf4 import convert_from_openf4_string # optional - openf4
+        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring())  # optional - openf4
         x*y^2 - 32*z^2
 
         sage: cache = {}
-        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring(), cache)
+        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring(), cache)  # optional - openf4
         x*y^2 - 32*z^2
 
-        sage: cache
+        sage: cache  # optional - openf4
         {'x^1': x, 'y^2': y^2, 'z^2': z^2}
     """
 
