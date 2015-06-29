@@ -132,10 +132,10 @@ def groebner_basis_openf4(self, prot=0, threads=1):
         else:
             # not handled gmp and givaro version in Sage are too old
             raise NotImplementedError("Prime field with characteristic > 2^32 are not handled in Sage for the moment")
-            modulus_str = str(R.characteristic())
-            sig_on()
-            basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, threads, prot)
-            sig_off()
+            # modulus_str = str(R.characteristic())
+            # sig_on()
+            # basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, threads, prot)
+            # sig_off()
 
     if not self.base_ring().is_prime_field():
         if R.characteristic() != 2:
