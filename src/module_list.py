@@ -747,6 +747,12 @@ ext_modules = [
               libraries = ["ec", "pari",
                            "ntl", "gmp", "gmpxx", "stdc++", "m"]),
 
+    OptionalExtension('sage.libs.openf4',
+              sources = ['sage/libs/openf4.pyx'],
+              language="c++",
+              libraries = ["openf4"],
+              package = 'openf4'),
+
     Extension('sage.libs.pari.closure',
               sources = ["sage/libs/pari/closure.pyx"],
               libraries = ['pari', 'gmp']),
@@ -1695,11 +1701,6 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
-
-    OptionalExtension('sage.rings.polynomial.groebner_basis_f4',
-              sources = ['sage/rings/polynomial/groebner_basis_f4.pyx'],
-              language="c++",
-              libraries = ["openf4"]),
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),

@@ -14,26 +14,26 @@ EXAMPLES:
 
 We compute a Groebner basis for some given ideal under the degrevlex ordering using F4::
 
-    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4 # optional - f4
+    sage: from sage.libs.openf4 import groebner_basis_openf4 # optional - openf4
     sage: R.<x1,x2,x3,x4,x5,x6,x7,x8> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,8)
-    sage: B = groebner_basis_f4(I)  # optional - f4
-    sage: type(B)  # optional - f4
+    sage: B = groebner_basis_openf4(I)  # optional - openf4
+    sage: type(B)  # optional - openf4
     <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
 
 TESTS::
 
-    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - openf4
+    sage: from sage.libs.openf4 import groebner_basis_openf4  # optional - openf4
     sage: R.<a,b,c,d,e,f> = Zmod(65521)[]
     sage: I = sage.rings.ideal.Cyclic(R,6)
-    sage: B = groebner_basis_f4(I)  # optional - openf4
+    sage: B = groebner_basis_openf4(I)  # optional - openf4
 
-    sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - openf4
+    sage: from sage.libs.openf4 import groebner_basis_openf4  # optional - openf4
     sage: F.<t>=GF(2)[]
     sage: K.<t>=GF(2^31, name='t', modulus=t^31+t^3+1)
     sage: R.<x0,x1,x2,x3,x4,x5> = K[]
     sage: I = ideal((t+t^3)*x0+(t+t^3)*x1+(t+t^3)*x2+(t+t^3)*x3+(t+t^3)*x4+(t+t^3)*x5, (t+t^3)*x0*x1+(t+t^3)*x1*x2+(t+t^3)*x2*x3+(t+t^3)*x3*x4+(t+t^3)*x0*x5+(t+t^3)*x4*x5, (t+t^3)*x0*x1*x2+(t+t^3)*x1*x2*x3+(t+t^3)*x2*x3*x4+(t+t^3)*x0*x1*x5+(t+t^3)*x0*x4*x5+(t+t^3)*x3*x4*x5, (t+t^3)*x0*x1*x2*x3+(t+t^3)*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x5+(t+t^3)*x0*x1*x4*x5+(t+t^3)*x0*x3*x4*x5+(t+t^3)*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4+(t+t^3)*x0*x1*x2*x3*x5+(t+t^3)*x0*x1*x2*x4*x5+(t+t^3)*x0*x1*x3*x4*x5+(t+t^3)*x0*x2*x3*x4*x5+(t+t^3)*x1*x2*x3*x4*x5, (t+t^3)*x0*x1*x2*x3*x4*x5-1)
-    sage: B = groebner_basis_f4(I)  # optional - openf4
+    sage: B = groebner_basis_openf4(I)  # optional - openf4
 
 """
 
@@ -84,7 +84,7 @@ cdef extern from "libopenf4.h":
                                                     int nbThread,
                                                     int verbose)
 
-def groebner_basis_f4(self, prot=0, threads=1):
+def groebner_basis_openf4(self, prot=0, threads=1):
         """
         Computes a Groebner Basis for this ideal using F4
 
@@ -99,10 +99,10 @@ def groebner_basis_f4(self, prot=0, threads=1):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.groebner_basis_f4 import groebner_basis_f4  # optional - f4
+            sage: from sage.libs.openf4 import groebner_basis_openf4  # optional - openf4
             sage: R.<x1,x2,x3,x4,x5,x6> = Zmod(65521)[]
             sage: I = sage.rings.ideal.Cyclic(R,6)
-            sage: B = groebner_basis_f4(I) # optional - openf4
+            sage: B = groebner_basis_openf4(I) # optional - openf4
             sage: len(B)
             45
 
@@ -160,13 +160,13 @@ def groebner_basis_f4(self, prot=0, threads=1):
         base_ring = R.base_ring()
         gens_dict = R.gens_dict()
         cache = {}
-        r = PolynomialSequence([convert_from_f4_string(e, gens_dict, base_ring, cache) for e in basis], R, immutable=True)
+        r = PolynomialSequence([convert_from_openf4_string(e, gens_dict, base_ring, cache) for e in basis], R, immutable=True)
         return r
 
 
-def convert_from_f4_string(f_string, gens_dict, base_ring, cache=None):
+def convert_from_openf4_string(f_string, gens_dict, base_ring, cache=None):
     """
-    Convert F4 string representation to Sage polynomial.
+    Convert 'openf4' string representation to Sage polynomial.
 
     INPUT:
 
@@ -179,12 +179,12 @@ def convert_from_f4_string(f_string, gens_dict, base_ring, cache=None):
 
         sage: P.<x,y,z> = PolynomialRing(GF(previous_prime(2^30)))
         sage: fs = '(1*x^1*y^2) + (-32*z^2)'
-        sage: from sage.rings.polynomial.groebner_basis_f4 import convert_from_f4_string
-        sage: convert_from_f4_string(fs, P.gens_dict(), P.base_ring())
+        sage: from sage.libs.openf4 import convert_from_openf4_string
+        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring())
         x*y^2 - 32*z^2
 
         sage: cache = {}
-        sage: convert_from_f4_string(fs, P.gens_dict(), P.base_ring(), cache)
+        sage: convert_from_openf4_string(fs, P.gens_dict(), P.base_ring(), cache)
         x*y^2 - 32*z^2
 
         sage: cache
