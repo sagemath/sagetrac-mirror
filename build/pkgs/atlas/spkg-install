@@ -91,9 +91,9 @@ if conf['Darwin?'] and 'SAGE_ATLAS_ARCH' not in os.environ:
         for lib in [ 'libBLAS.dylib', 'libLAPACK.dylib']:
             ln(os.path.join(veclib_dir, lib),
                os.path.join(conf['SAGE_LOCAL'], 'lib', lib))
-    write_lib_config(['blas'], 'cblas')
-    write_lib_config(['blas'], 'blas')
-    write_lib_config(['lapack'], 'lapack')
+    write_libs_config(['blas'], 'cblas')
+    write_libs_config(['blas'], 'blas')
+    write_libs_config(['lapack'], 'lapack')
     sys.exit(0)
 
 
