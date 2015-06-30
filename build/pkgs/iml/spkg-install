@@ -32,7 +32,7 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 # Reading CBLAS configuration
-cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/\([^ ]\+\)/-l\1/g'`
+cblas_libs=`cat "$SAGE_LOCAL/share/cblas_config"|sed 's/\([^ ]*\)/-l\1/g'`
 
 echo $IML_CONFIGURE
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL"/lib \

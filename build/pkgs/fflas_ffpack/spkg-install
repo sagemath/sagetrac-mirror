@@ -37,7 +37,7 @@ export CFLAGS CXXFLAGS LDFLAGS
 # - rely on automatic detection system,
 # - pass every linking flags for BLAS and LAPACK in --with-blas,
 # - pass paths for BLAS in --with-cblas and/or for LAPACK in --with-lapack.
-lapack_libs=`sed 's/\([^ ]\+\)/-l\1/g' "$SAGE_SHARE"/lapack_config`
+lapack_libs=`sed 's/\([^ ]*\)/-l\1/g' "$SAGE_SHARE"/lapack_config`
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
@@ -58,4 +58,3 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing fflas_ffpack."
     exit 1
 fi
-
