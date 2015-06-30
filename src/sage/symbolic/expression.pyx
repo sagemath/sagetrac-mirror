@@ -2750,6 +2750,36 @@ cdef class Expression(CommutativeRingElement):
             RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(unsigned_infinity) + nsr(unsigned_infinity)
             Infinity
+
+        Basic arithmetics with elements from ZZ/nZZ (:trac:`18787`)::
+
+            sage: _ = var('A,B')
+            sage: (A + 3*B)*Zmod(9)(6)
+            6*A
+            sage: (3*A + 3*B)*Zmod(9)(6)
+            0
+            sage: (3*A + 3*B)*Zmod(9)(6)*A
+            0
+            sage: F=sum((i+1)*x^i for i in [0..20])
+            sage: G=sum(Zmod(7)(i+1)*x^i for i in [0..20])
+            sage: F*Zmod(7)(1) - G
+            0
+            sage: G*Zmod(7)(1) - G
+            0
+            sage: V=[SR.var("x%s"%i) for i in [0..20]]
+            sage: F=sum((i+1)*V[i] for i in [0..20])
+            sage: G=sum(Zmod(7)(i+1)*V[i] for i in [0..20])
+            sage: F*Zmod(7)(1)-G
+            0
+            sage: F-G
+            14*x13 + 21*x20 + 7*x6
+
+            sage: Mod(4,9)*x+Mod(5,9)*x
+            0
+            sage: ((Zmod(9)(1)*A + Zmod(9)(3)*B)^2).expand()
+            A^2 + 6*A*B
+            sage: (x+1)*Mod(0,9)
+            0
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
