@@ -379,9 +379,15 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
 			}
 			if (cnorm(b.b) < 1)
-				n = -2.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+				n = .5 + -3.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			else
-				n = 2.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+				n = .5 + 3.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			
+			if (n < 0)
+				n = 0;
+			if (n > 1000000)
+				n = 100;
+				
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -389,8 +395,8 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		Draw_rec (b, s, n, zero(), un(), b.a.i);
 		mx = mx2 - (Mx2 - mx2)/100;
 		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/100;;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/100;
+		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
+		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
 		//preserve le ratio
 		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
 		if (delta > 0)
@@ -426,6 +432,12 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 			}
 		}
+		
+		if (n < 0)
+			n = 0;
+		if (n > 1000000)
+			n = 100;
+		
 		if (verb)
 			printf("n = %d\n", n);
 	}
@@ -490,6 +502,10 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 				n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			else
 				n = 2.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (n < 0)
+				n = 0;
+			if (n > 1000000)
+				n = 100;
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -497,8 +513,8 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		Draw_rec2 (b, s, n, b.a.i);
 		mx = mx2 - (Mx2 - mx2)/100;
 		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/100;;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/100;
+		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
+		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
 		//preserve le ratio
 		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
 		if (delta > 0)
@@ -522,6 +538,10 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 			n = .75 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
 		else
 			n = .75 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
+		if (n < 0)
+			n = 0;
+		if (n > 1000000)
+			n = 100;
 		if (verb)
 			printf("n = %d\n", n);
 	}
@@ -584,9 +604,13 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 			//printf("max = %d\n", max(s.sx, s.sy));
 			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
 			if (cnorm(b.b) < 1)
-				n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+				n = .5 + -3.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			else
-				n = 2.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+				n = .5 + 3.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (n < 0)
+				n = 0;
+			if (n > 1000000)
+				n = 100;
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -597,10 +621,10 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 			etat[i] = b.a[i].i;
 		}
 		DrawList_rec (b, s, n, zero(), un(), etat);
-		mx = mx2 - (Mx2 - mx2)/100;
-		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/100;;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/100;
+		mx = mx2 - (Mx2 - mx2)/20;
+		my = my2 - (My2 - my2)/20;
+		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
+		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
 		//preserve le ratio
 		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
 		if (delta > 0)
@@ -624,6 +648,10 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 			n = .5 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
 		else
 			n = .5 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
+		if (n < 0)
+			n = 0;
+		if (n > 1000000)
+			n = 100;
 		if (verb)
 			printf("n = %d\n", n);
 	}

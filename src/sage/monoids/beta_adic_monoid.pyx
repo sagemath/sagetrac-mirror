@@ -525,7 +525,7 @@ class BetaAdicMonoid(Monoid_class):
         ss.F = [0]
         ss.A = C
         return ss
-    
+        
     #liste des automates donnant le coloriage de l'ensemble limite
     def get_la (self, ss=None, tss=None, verb=False):
         if hasattr(self, 'la'):
@@ -1823,7 +1823,7 @@ class BetaAdicMonoid(Monoid_class):
         return ssd
     
     
-    def reduced_words_automaton2 (self, step=100, verb=False, transpose=False):
+    def reduced_words_automaton2 (self, step=100, verb=False, transpose=False): #, FastAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid (without considering the automaton of authorized words).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
@@ -1834,6 +1834,9 @@ class BetaAdicMonoid(Monoid_class):
         
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
+        
+#        - ``aut`` - FastAutomaton (default: ``None``, full language)
+#          Automaton describing the language in which we live.
         
         OUTPUT:
 
@@ -1846,7 +1849,7 @@ class BetaAdicMonoid(Monoid_class):
         arel = self.relations_automaton3(Cd=Cd, ext=False)
         arel = arel.emonde()
         if transpose:
-         arel = arel.transpose_det()
+            arel = arel.transpose_det()
         if verb:
             print "arel = %s"%arel
         if step == 1:
@@ -2336,7 +2339,60 @@ class BetaAdicMonoid(Monoid_class):
             self.ss = None
             print "Zero is an inner point iff the %s has non-empty interior."%self
             self.ss = ss
-        
+    
+    #complete the langage of a
+    def complete (self, FastAutomaton a, C=None, ext=False, verb=False):
+        r"""
+        Return an automaton that recognize the language of all words over C that represent elements recognized by a.
+        If ext is True, this also include words equal at infinity.
+    
+        INPUT:
+    
+        - ``a`` - A FastAutomaton.
+    
+        - ``C`` - list of digits (default : ``None``).
+        """
+        if C is None:
+            C = self.C
+        ap = FastAutomaton(None).full(list(C)).product(a)
+        if ext:
+            ap = ap.prefix_closure()
+        if verb:
+            if ap.n_states() < 100:
+                ap.plot()
+            print "ap=%s"%ap
+        d = dict()
+        Cd = [c - c2 for c in C for c2 in a.A]
+        for c in Cd:
+            d[c] = []
+        for c in C:
+            for c2 in a.A:
+                d[c - c2].append((c,c2))
+        arel = self.relations_automaton3(Cd=Cd, ext=ext).duplicate(d)
+        if verb:
+            if arel.n_states() < 100:
+                arel.plot()
+            print "arel=%s"%arel
+        ai = ap.intersection(arel)
+        if ext:
+            ai = ai.emonde_inf()
+        ai = ai.emonde()
+        ai = ai.minimise()
+        if verb:
+            if ai.n_states() < 100:
+                ai.plot()
+            print "ai=%s"%ai
+        d = dict()
+        for c in C:
+            for c2 in a.A:
+                d[(c,c2)] = c
+        ac = ai.determinise_proj(d)
+        if ext:
+            ac = ac.emonde_inf()
+        ac = ac.emonde()
+        ac = ac.minimise()
+        return ac
+    
     #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
     def adherence (self, tss=None, C=None, C2=None, ext=False, verb=False, step=None):
         if tss is None:
@@ -2360,8 +2416,7 @@ class BetaAdicMonoid(Monoid_class):
             return a
         if ext:
             a = a.emonde_inf()
-        else:
-            a = a.emonde()
+        a = a.emonde()
         if verb:
             print " Après émondation : %s"%a
         if step == 2:
@@ -2381,6 +2436,8 @@ class BetaAdicMonoid(Monoid_class):
         if step == 3:
             return a2
         ap = tss.product(FastAutomaton(self.default_ss(C=C)), verb=verb)
+        if ext:
+            ap = ap.prefix_closure()
         if step == 4:
             return ap
         a2 = ap.intersection(a2)
@@ -2388,8 +2445,7 @@ class BetaAdicMonoid(Monoid_class):
             return a2
         if ext:
             a2 = a2.emonde_inf()
-        else:
-            a2 = a2.emonde()
+        a2 = a2.emonde()
         if step == 6:
             return a2
         a2 = a2.minimise()
@@ -2407,8 +2463,7 @@ class BetaAdicMonoid(Monoid_class):
             print " -> %s"%a2
         if ext:
             a2 = a2.emonde_inf()
-        else:
-            a2 = a2.emonde()
+        a2 = a2.emonde()
         if step == 9:
             return a2
         if verb:

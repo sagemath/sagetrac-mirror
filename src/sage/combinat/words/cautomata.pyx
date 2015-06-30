@@ -396,7 +396,7 @@ cdef class FastAutomaton:
             return
         from sage.graphs.digraph import DiGraph
         if isinstance(a, list):
-            a = DiGraph(a)
+            a = DiGraph(a, multiedges=True, loops=True)
         if isinstance(a, DiGraph):
             if A is None:
                 if hasattr(a, 'A'):
@@ -422,6 +422,22 @@ cdef class FastAutomaton:
     
     def Automaton (self):
         return AutomatonGet(self.a[0], self.A)
+    
+    #give a FastAutomaton recognizing the full language over A.
+    def full (self, list A):
+        cdef Automaton a
+        sig_on()
+        r = FastAutomaton(None)
+        a = NewAutomaton(1, len(A))
+        for i in range(len(A)):
+            a.e[0].f[i] = 0
+        a.e[0].final = True
+        a.i = 0
+        r.a[0] = a
+        r.A = A
+        sig_off()
+        return r
+
     
     def plot (self, int sx=10, int sy=8):
         sig_on()
@@ -481,6 +497,14 @@ cdef class FastAutomaton:
         if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
             return -1
         return self.a.e[i].f[j]
+    
+    #suit le chemin étiqueté par l
+    def path (self, list l, i=None):
+        if i is None:
+            i = self.a.i
+        for j in l:
+            i = self.succ(i, j)
+        return i
     
     def set_succ (self, int i, int j, int k):
         if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
@@ -569,6 +593,21 @@ cdef class FastAutomaton:
         res = CompleteAutomaton(self.a)
         sig_off()
         return Bool(res)
+    
+    #give the smallest language stable by prefix containing the language of self
+    #i.e. every states begin finals
+    def prefix_closure (self):
+        cdef int i
+        cdef Automaton a
+        r = FastAutomaton(None)
+        sig_on()
+        a = emonde(self.a[0], False)
+        sig_off()
+        r.a[0] = a
+        r.A = self.A
+        for i in range(a.n):
+            a.e[i].final = True
+        return r
     
     def union (self, FastAutomaton a, verb=False):
         #complete the automata

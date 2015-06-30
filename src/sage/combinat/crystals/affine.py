@@ -212,7 +212,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Coerces ``value`` into ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -236,7 +236,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Checks whether ``x`` is an element of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -353,7 +353,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             return self.e0()
         else:
             x = self.lift().e(i)
-            if (x == None):
+            if (x is None):
                 return None
             else:
                 return self.parent().retract(x)
@@ -378,7 +378,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             return self.f0()
         else:
             x = self.lift().f(i)
-            if (x == None):
+            if (x is None):
                 return None
             else:
                 return self.parent().retract(x)
@@ -642,7 +642,7 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
             [[3]]
         """
         x = self.parent().automorphism(self).e(self.parent().dynkin_node)
-        if (x == None):
+        if (x is None):
             return None
         else:
             return self.parent().inverse_automorphism(x)
@@ -664,7 +664,7 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
             [[1]]
         """
         x = self.parent().automorphism(self).f(self.parent().dynkin_node)
-        if (x == None):
+        if (x is None):
             return None
         else:
             return self.parent().inverse_automorphism(x)
