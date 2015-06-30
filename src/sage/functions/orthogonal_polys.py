@@ -1,15 +1,6 @@
 r"""
 Orthogonal Polynomials
 
-This module wraps some of the orthogonal/special functions in the
-Maxima package "orthopoly". This package was written by Barton
-Willis of the University of Nebraska at Kearney. It is released
-under the terms of the General Public License (GPL). Send
-Maxima-related bug reports and comments on this module to
-willisb@unk.edu. In your report, please include Maxima and specfun
-version information.
-
-
 -  The Chebyshev polynomial of the first kind arises as a solution
    to the differential equation
 
@@ -255,17 +246,9 @@ On the other hand, the "falling factorial" or "lower factorial" is
 in the notation of Ronald L. Graham, Donald E. Knuth and Oren
 Patashnik in their book Concrete Mathematics.
 
-.. note::
-
-   The first call of any of these will usually cost a bit extra
-   (it loads "specfun", but I'm not sure if that is the real reason).
-   The next call is usually faster but not always.
-
 .. TODO::
 
-    Implement associated Legendre polynomials and Zernike
-    polynomials. (Neither is in Maxima.)
-    :wikipedia:`Associated_Legendre_polynomials`
+    Implement and Zernike polynomials.
     :wikipedia:`Zernike_polynomials`
 
 REFERENCES:
@@ -296,6 +279,12 @@ AUTHORS:
 
 - David Joyner (2006-06)
 - Stefan Reiterer (2010-)
+- Ralf Stephan (2015-)
+
+The original module wrapped some of the orthogonal/special functions
+in the Maxima package "orthopoly" and was was written by Barton
+Willis of the University of Nebraska at Kearney.
+
 """
 
 #*****************************************************************************
@@ -1234,13 +1223,13 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: legendre_P(1/2, I+1).n(59)
             1.0533824002585801 + 0.35989032210966539*I
             sage: legendre_P(42, RR(12345678))
-            +infinity
+            2.66314881466753e309
             sage: legendre_P(42, Reals(20)(12345678))
             2.6632e309
             sage: legendre_P(201/2, 0).n()
             0.0561386178630179
             sage: legendre_P(201/2, 0).n(100)
-            0.0561386178630179
+            0.056138617863017877699963095883
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
