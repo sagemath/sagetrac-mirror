@@ -51,6 +51,8 @@ to be aware of the modules described in this chapter.
    sage/libs/pari/gen_py
    sage/libs/pari/gen
    sage/libs/pari/pari_instance
+   sage/libs/pari/closure
+   sage/rings/pari_ring
    sage/libs/fplll/fplll
    sage/libs/readline
    sage/libs/gap/context_managers
@@ -66,6 +68,9 @@ to be aware of the modules described in this chapter.
    sage/libs/mwrank/mwrank
 
    sage/gsl/gsl_array
+
+   sage/ext/interrupt
+   sage/ext/pselect
 
 .. Cannot be imported independently of mpmath: sage/libs/mpmath/ext_main sage/libs/mpmath/ext_impl sage/libs/mpmath/ext_libmp
 
