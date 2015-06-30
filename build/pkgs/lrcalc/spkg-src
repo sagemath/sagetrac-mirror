@@ -13,6 +13,7 @@ rm -rf src
 # Download and extract new sources
 wget -N http://www.math.rutgers.edu/~asbuch/lrcalc/lrcalc-sage-1.1.6.tar.gz
 tar xzf lrcalc-sage-1.1.6.tar.gz
+rm lrcalc-sage-1.1.6.tar.gz
 mv lrcalc-sage-1.1.6 src
 cd src
 
@@ -29,3 +30,7 @@ patch -p1 <../patches/build.diff
 libtoolize --copy
 autoreconf --verbose --install
 rm -r autom4te.cache
+
+cd ..
+tar cf lrcalc-1.1.6.tar "src"
+gzip lrcalc-1.1.6.tar

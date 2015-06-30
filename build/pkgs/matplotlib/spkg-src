@@ -23,9 +23,3 @@ rm -rf matplotlib-${LATEST_VERSION}/lib/matplotlib/tests/baseline_images/*
 # repack and cleanup temporary directory
 tar cjf "$SAGE_ROOT/upstream/matplotlib-${LATEST_VERSION}.tar.bz2" matplotlib-${LATEST_VERSION}
 rm -rf matplotlib-${LATEST_VERSION}
-
-
-# update package info
-echo "${LATEST_VERSION}" > "${SAGE_ROOT}/build/pkgs/matplotlib/package-version.txt"
-"$SAGE_ROOT"/sage -sh 'sage-fix-pkg-checksums'
-

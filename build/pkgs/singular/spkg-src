@@ -58,3 +58,5 @@ rm -r Singular/LIB/surfex
 # Make everything writable
 cd "$SPKG_ROOT"
 chmod -R u+w src
+tar "singular-$VERSION.$PATCHLEVEL.tar" "src"
+bzip2 "singular-$VERSION.$PATCHLEVEL.tar"

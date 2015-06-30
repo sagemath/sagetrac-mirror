@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+VERSION="$(cat package-version.txt)"
 BZIP2=bzip2-1.0.6
 
 set -e
@@ -25,3 +27,8 @@ mkdir m4
 touch NEWS README AUTHORS ChangeLog
 autoreconf -fiv
 rm -rf autom4te.cache
+cd ../..
+echo "e"
+rm -rf "bzip2-$VERSION.tar" "bzip2-$VERSION.tar.gz"
+tar cf "bzip2-$VERSION.tar" src
+gzip "bzip2-$VERSION.tar"
