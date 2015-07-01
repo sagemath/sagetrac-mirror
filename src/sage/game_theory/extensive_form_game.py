@@ -410,6 +410,13 @@ class ExtensiveFormGame():
             sage: egame_1.plot(view_info_sets = True)
             Graphics object consisting of 23 graphics primitives
 
+        If by setting an information set we leave a node without an information
+        set it is automatically put in a set by itself::
+
+            sage: egame_1.set_info_set([node_1])
+            sage: egame_1.info_sets
+            [[Node 1], [Node 2], [Root 1]]
+
         If two nodes don't have the same actions, an error is returned::
 
             sage: player_1 = Player('Player 1')
@@ -450,11 +457,10 @@ class ExtensiveFormGame():
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
         for node_to_be_set in node_list:
-            for info_set in self.info_sets:
-                for node_in_a_set in info_set:
-                        if node_in_a_set is node_to_be_set and len(info_set) is not 1:
-                            raise ValueError("Cannot assign information sets to nodes already in information sets")
             self.info_sets.remove([node_to_be_set])
+        for node in self.nodes:
+            if not any(node in info_set for info_set in self.info_sets):
+                self.info_sets.append([node])
         self.info_sets.append(sorted(node_list, key=lambda x: x.name))
         self.info_sets.sort(key=lambda x: x[0].name)
 
