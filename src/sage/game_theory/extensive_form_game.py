@@ -373,10 +373,10 @@ class ExtensiveFormGame():
 
                 self._check_node_names_and_find_players(generator)
 
-                self.players.sort(key=lambda x: x.name)
+                self.players.sort(key=attrgetter('name'))
+                self.nodes.sort(key=attrgetter('name'))
+                self.leafs.sort(key=attrgetter('name', 'payoffs'))
                 self.info_sets.sort(key=lambda x: x[0].name)
-                self.nodes.sort(key=lambda x: x.name)
-                #self.leafs.sort(key=attrgetter('name', 'payoffs'))
 
         else:
             raise TypeError("Extensive form game must be passed an input in the form of a Node or a Graph object.")
