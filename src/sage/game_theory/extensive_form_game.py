@@ -382,8 +382,10 @@ class ExtensiveFormGame():
             raise TypeError("Extensive form game must be passed an input in the form of a Node or a Graph object.")
 
     def set_info_set(self, node_list):
-        """
-        We can assign information set to  a set of nodes::
+        r"""
+        Combines a list of nodes in to an information set.
+
+        EXAMPLES::
 
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
@@ -401,7 +403,7 @@ class ExtensiveFormGame():
             sage: egame_1.info_sets
             [[Node 1, Node 2], [Root 1]]
 
-        Once we've set an info_set, we can see it visually on the graph::
+        Once we've set an information set, we can see it visually on the graph::
 
             sage: egame_1.plot()
             Graphics object consisting of 20 graphics primitives
@@ -442,20 +444,9 @@ class ExtensiveFormGame():
             ...
             AttributeError: All nodes in the same information set must have the same players.
         """
-        num_of_same_players = 1
-        num_of_same_actions = 1
-        previous_actions = []
-        previous_player = True
-        for node in node_list:
-            if node.player == previous_player:
-                num_of_same_players += 1
-            if node.actions == previous_actions:
-                num_of_same_actions += 1
-            previous_player = node.player
-            previous_actions = node.actions
-        if num_of_same_players is not len(node_list):
+        if len(set([node.player for node in node_list])) != 1:
             raise AttributeError("All nodes in the same information set must have the same players.")
-        if num_of_same_actions is not len(node_list):
+        if len(set([tuple(sorted(node.actions)) for node in node_list])) != 1:
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
         for node_to_be_set in node_list:
