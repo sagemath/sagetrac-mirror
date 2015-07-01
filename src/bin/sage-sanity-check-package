@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Assumptions on spkg-src
+#
+# - Gets run in a 'sage -sh' shell
+#
+# - Can be run from any directory.
+#
+# - Creates an archive that gets moved into $SAGE_DISTFILES
+#
+# - When uncompressed, the archive creates a "src/" or a
+#   "<package_name>-<version>/" directory
+
 if [ -z "$SAGE_ROOT" ]; then
    echo >&2 "SAGE_ROOT undefined ... exiting";
    echo >&2 "Maybe run 'sage -sh'?"
@@ -61,14 +72,18 @@ fi
 
 tmpdir2=$(mktemp -d) || exit 1
 
-cd "$SAGE_ROOT/build/pkgs/$pname"
-./spkg-src || exit 1
-if [ ! -f "$pfilename" ]; then
-   echo >&2 "'spkg-src' did not create '$SAGE_ROOT/build/pkgs/$pfilename' as expected"
+cd "/" # makes sure that spkg-src can be run from 'any' directory
+
+SAGE_REAL_DISTFILES="$SAGE_DISTFILES"
+export SAGE_DISTFILES="$tmpdir2"
+sage -sh "$SAGE_ROOT/build/pkgs/$pname/spkg-src" || exit 1
+export SAGE_DISTFILES="$SAGE_REAL_DISTFILES"
+
+if [ ! -f "$tmpdir2/$pfilename" ]; then
+   echo >&2 "'spkg-src' did not create '\$DISTFILE/$pfilename' as expected"
    exit 1
 fi
 
-mv "./$pfilename" "$tmpdir2"
 cd "$tmpdir2"
 
 $unzip_cmd "$tmpdir2/$pfilename" || exit 1
