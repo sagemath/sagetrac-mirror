@@ -36,14 +36,16 @@ fi
 
 pversion=$(cat "$SAGE_ROOT/build/pkgs/$pname/package-version.txt")
 pfilename=$(grep "tarball" "$SAGE_ROOT/build/pkgs/$pname/checksums.ini" | cut -d "=" -f 2 | sed "s/VERSION/$pversion/")
+file_extension=$(echo "$pfilename" | sed "s/$pname-$pversion//")
+pfilename=$(echo $pfilename | sed "s/\.p0\././")
 
 if [ ! -f "$SAGE_ROOT/upstream/$pfilename" ]; then
-   echo >&2 "'File not found: '$SAGE_ROOT/upstream/$pfilename"
+   echo >&2 "File not found: $SAGE_ROOT/upstream/$pfilename"
    exit 1
 fi
 
 # File extension and unzip command
-file_extension=$(echo "$pfilename" | sed "s/$pname-$pversion//")
+
 if [ "$file_extension" == ".tgz" -o "$file_extension" == ".tar.gz" ]; then
     unzip_cmd="tar xzf"
 elif [ "$file_extension" == ".tar.bz2" ]; then
