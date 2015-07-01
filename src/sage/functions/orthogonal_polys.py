@@ -1177,7 +1177,7 @@ class Func_legendre_P(BuiltinFunction):
         
         EXAMPLES::
             
-            sage: legendre_P(4, 2.0, algorithm='pari')
+            sage: legendre_P(4, 2.0)
             55.3750000000000
             sage: legendre_P(1, x)
             x
@@ -1185,6 +1185,8 @@ class Func_legendre_P(BuiltinFunction):
             35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
             sage: legendre_P(1/2, I+1.)
             1.05338240025858 + 0.359890322109665*I
+            sage: legendre_P(0, SR(1)).parent()
+            Symbolic Ring
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
@@ -1205,7 +1207,7 @@ class Func_legendre_P(BuiltinFunction):
             sage: legendre_P(1, x)
             x
         """
-        if n == 0 or n == -1:
+        if n == 0 or n == -1 or x == 1:
             return ZZ(1)
         if n == 1 or n == -2:
             return x
@@ -1262,7 +1264,7 @@ class Func_legendre_P(BuiltinFunction):
             sage: legendre_P(4, I*e)
             35/8*e^4 + 15/4*e^2 + 3/8
         """
-        if n<0:
+        if n < 0:
             n = - n - 1
         P = parent(arg)
         if P in (ZZ, QQ, RR, CC, SR):
@@ -1323,8 +1325,8 @@ class Func_legendre_Q(BuiltinFunction):
         
         EXAMPLES::
             
-            sage: legendre_Q(2,x,algorithm='recursive')
-            3/4*x^2*(log(x + 1) - log(-x + 1)) - 3/2*x - 1/4*log(x + 1) + 1/4*log(-x + 1)
+            sage: legendre_Q(2,x)
+            1/4*(3*x^2 - 1)*(log(x + 1) - log(-x + 1)) - 3/2*x
             sage: legendre_Q(5,0)
             -8/15
             sage: legendre_Q(2,2*x)
@@ -1340,7 +1342,7 @@ class Func_legendre_Q(BuiltinFunction):
         ret = self._eval_special_values_(n, x)
         if ret is not None:
             return ret
-        if n in ZZ and not SR(x).is_numeric():
+        if n in ZZ:
             return self.eval_formula(n, x)
 
     def _maxima_init_evaled_(self, n, x):
@@ -1369,8 +1371,10 @@ class Func_legendre_Q(BuiltinFunction):
             
             sage: var('n')
             n
-            sage: legendre_Q(n,0)
+            sage: legendre_Q(n, 0)
             -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            sage: legendre_Q(-1., 0.)
+            +infinity
         """
         if x == 1:
             from sage.symbolic.constants import NaN
@@ -1384,8 +1388,10 @@ class Func_legendre_Q(BuiltinFunction):
             from sage.functions.other import gamma, sqrt
             from sage.functions.trig import sin
             try:
-                return -(sqrt(SR.pi()))/2*sin(SR.pi()/2*n)*\
-                       gamma((n+1)/2)/gamma(n/2 + 1)
+                gam = gamma((n+1)/2)/gamma(n/2 + 1)
+                if gam.is_infinity():
+                    return gam
+                return -(sqrt(SR.pi()))/2 * sin(SR.pi()/2*n) * gam
             except TypeError:
                 pass
 
@@ -1416,7 +1422,7 @@ class Func_legendre_Q(BuiltinFunction):
         
         EXAMPLES::
         
-            sage: legendre_Q(2,x,algorithm='recursive')
+            sage: legendre_Q.eval_recursive(2,x)
             3/4*x^2*(log(x + 1) - log(-x + 1)) - 3/2*x - 1/4*log(x + 1) + 1/4*log(-x + 1)
             sage: legendre_Q.eval_recursive(20,x).expand().coefficient(x,10)
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
@@ -1453,12 +1459,16 @@ class Func_legendre_Q(BuiltinFunction):
 
         EXAMPLES::
         
-            sage: legendre_Q.eval_formula(1,x)
+            sage: legendre_Q.eval_formula(1, x)
             1/2*x*(log(x + 1) - log(-x + 1)) - 1
             sage: legendre_Q.eval_formula(2,x).expand().collect(log(1+x)).collect(log(1-x))
             1/4*(3*x^2 - 1)*log(x + 1) - 1/4*(3*x^2 - 1)*log(-x + 1) - 3/2*x
             sage: legendre_Q.eval_formula(20,x).coefficient(x,10)
             -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
+            sage: legendre_Q(0, 2)
+            -1/2*I*pi + 1/2*log(3)
+            sage: legendre_Q(0, 2.)
+            0.549306144334055 - 1.57079632679490*I
         """
         from sage.functions.log import ln
         if n == 0: 
@@ -1539,7 +1549,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         
         EXAMPLES::
         
-            sage: gen_legendre_P(3,2,2,algorithm='maxima')
+            sage: gen_legendre_P(3,2,2)
             -90
             sage: gen_legendre_P(13/2,2,0)
             2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
@@ -1696,8 +1706,8 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         
         EXAMPLES::
         
-            sage: gen_legendre_Q(2,1,3,algorithm='maxima')
-            -3*sqrt(-2)*(3*I*pi + 3*log(2)) + 25/4*sqrt(-2)
+            sage: gen_legendre_Q(2,1,3)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
         """
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
