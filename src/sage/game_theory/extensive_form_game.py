@@ -1,71 +1,169 @@
 """
-This module implements a class for Extensive Form Games.
+Extensive Form Games with N players.
 
-A well known example that can be implemented as an Extensive Form Game is the
-battle of  the sexes.  Consider two players, Celine and Bob. The two are
-deciding on a movie, they can either see a Sports or a Comedy.  Bob would prefer
-to see a Comedy, Celine would prefer to watch a Sports movie.  Depending on who
-choses what, there are different payoffs, this can be demonstrated in tree Form.
+This module implements a class for extensive form games
+[NN2007]_. Graphical representations of the games are implemented and solution
+algorithms are being developed (with an interface to gambit).
+
+A well known example that can be implemented as an extensive form game is the
+battle of the sexes. Consider two players, Celine and Bob. The two are deciding
+on how to spend their evening, they can either watch Sports or go and see a
+Comedy. Bob would prefer to see a Comedy, Celine would prefer to watch a Sports
+movie. Depending on who choses what, there are different payoffs, this can be
+demonstrated in tree Form.
 
 .. PLOT::
     :width: 500 px
-    :align: center
+
     player_1 = Player('Bob')
     player_2 = Player('Celine')
     leaf_1 = Leaf({player_1: 2, player_2: 3})
     leaf_2 = Leaf({player_1: 0, player_2: 0})
     leaf_3 = Leaf({player_1: 1, player_2: 1})
     leaf_4 = Leaf({player_1: 3, player_2: 2})
-    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_1)
-    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_1)
-    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
+    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_2)
+    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_2)
+    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_1)
     battle_of_the_sexes = ExtensiveFormGame(node_1)
-    p = battle_of_the_sexes.plot()
+    battle_of_the_sexes.set_info_set([node_2, node_3])
+    p = battle_of_the_sexes.plot(view_info_sets=True)
     sphinx_plot(p)
 
 We can see there are three nodes, one for Bob, two for Celine. Connecting those
-nodes are actions.  These actions represent choices made by one player, and the
-actions then lead on to a node of another player.  So Bob either choses Sports
-or Comedy, and then Celine choses Sports or Comedy.  However we can see that the
-payoffs differ depending on what Bob chose first.  The location where a payoff
-is located is called a Leaf, and  they show the outcome for each player.  So if
-Bob choses Sports, and Celine choses Sports, we see the payoff is (2, 3), which
-represents Bob getting a payoff of 2, and Celine getting a payoff of 3.
+nodes are actions. These actions represent choices made by one player, and the
+actions then lead on to a node of another player.  So Bob either chooses Sports
+or Comedy, and Celine chooses Sports or Comedy. The location of the payoffs
+correspond to the leaf of the underlying tree and they show the outcome for each
+player.  So if Bob chooses Sports, and Celine chooses Sports, we see the payoff
+is (2, 3), which represents Bob getting a payoff of 2, and Celine getting a
+payoff of 3. Note that the green line between Celine's two nodes indicate that
+they are in the same 'information set', in other words, Celine does not know
+what Bob has picked. Thus the following game corresponds to a different
+situation which is easier for both players to coordinate:
 
-To create the above graph, we can do it by one of two ways, either by passing it
-a root, and the other by passing it a tree
+.. PLOT::
+    :width: 500 px
 
-The game is created as follows::
+    player_1 = Player('Bob')
+    player_2 = Player('Celine')
+    leaf_1 = Leaf({player_1: 2, player_2: 3})
+    leaf_2 = Leaf({player_1: 0, player_2: 0})
+    leaf_3 = Leaf({player_1: 1, player_2: 1})
+    leaf_4 = Leaf({player_1: 3, player_2: 2})
+    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_2)
+    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_2)
+    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_1)
+    battle_of_the_sexes = ExtensiveFormGame(node_1)
+    p = battle_of_the_sexes.plot(view_info_sets=True)
+    sphinx_plot(p)
 
-    sage: player_1 = Player('Bob')
-    sage: player_2 = Player('Celine')
+The first game (with the information set) corresponds to the following normal
+form game (which are also implemented in Sage)::
+
+    sage: A = matrix([[3, 1], [0, 2]])
+    sage: B = matrix([[2, 1], [0, 3]])
+    sage: battle_of_the_sexes = NormalFormGame([A, B])
+    sage: battle_of_the_sexes
+    Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
+
+To generate an extensive form game we need to generate the nodes and assign them
+to players as well as describing the actions they have and to which node each
+action goes. As such it makes sense to start with the terminal nodes of the
+tree, but the initial step is to create players as each node will map players to
+utilities::
+
+    sage: player_1, player_2 = Player('Bob'), Player('Celine')
+    sage: player_1, player_2
+    (Bob, Celine)
+
+Once we have done this, we are ready to create our leafs::
+
     sage: leaf_1 = Leaf({player_1: 2, player_2: 3})
+    sage: leaf_1
+    (2, 3)
     sage: leaf_2 = Leaf({player_1: 0, player_2: 0})
+    sage: leaf_2
+    (0, 0)
     sage: leaf_3 = Leaf({player_1: 1, player_2: 1})
+    sage: leaf_3
+    (1, 1)
     sage: leaf_4 = Leaf({player_1: 3, player_2: 2})
-    sage: node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_1)
-    sage: node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_1)
-    sage: node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
-    sage: battle_of_the_sexes = ExtensiveFormGame(node_1)
+    sage: leaf_4
+    (3, 2)
 
-Then to plot the graph, we use::
+We can then create the parents of these leafs, the general :code:`Node` class
+takes 3 arguments: a dictionary mapping actions to other nodes, a name for the
+node and finally the player who makes the decision at this node::
 
-    sage: battle_of_the_sexes.plot()
-    Graphics object consisting of 20 graphics primitives
+    sage: node_1 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_2)
+    sage: node_1
+    b
+    sage: node_1.player
+    Celine
+    sage: node_1.name
+    'b'
+    sage: node_2 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_2)
+    sage: node_2
+    c
+    sage: node_2.player
+    Celine
+    sage: node_2.name
+    'c'
 
-In Extensive Form Games we can create information sets, when creating a game all
-the nodes are in their own individual information sets.  This is called perfect
-information, and we can check this using sage::
+Finally, we create the root of the tree::
+
+    sage: root = Node({'Sports': node_2, 'Comedy': node_1}, 'a', player_1)
+    sage: root
+    a
+    sage: root.player
+    Bob
+    sage: root.name
+    'a'
+
+The extensive form game can then be created by passing this root (which
+recursively has all required information)::
+
+    sage: battle_of_the_sexes = ExtensiveFormGame(root)
+    sage: battle_of_the_sexes
+    <sage.game_theory.extensive_form_game.ExtensiveFormGame instance ...
+
+By default all nodes are in their own information set. If we plot the tree we
+see this::
+
+    sage: battle_of_the_sexes.plot(view_info_sets=True)
+    Graphics object consisting of 23 graphics primitives
+
+Here is the output (this is the same tree as above):
+
+.. PLOT::
+    :width: 500 px
+
+    player_1 = Player('Bob')
+    player_2 = Player('Celine')
+    leaf_1 = Leaf({player_1: 2, player_2: 3})
+    leaf_2 = Leaf({player_1: 0, player_2: 0})
+    leaf_3 = Leaf({player_1: 1, player_2: 1})
+    leaf_4 = Leaf({player_1: 3, player_2: 2})
+    node_3 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_2)
+    node_2 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_2)
+    node_1 = Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_1)
+    battle_of_the_sexes = ExtensiveFormGame(node_1)
+    p = battle_of_the_sexes.plot(view_info_sets=True)
+    sphinx_plot(p)
+
+An extensive form game where all nodes are in their own information set is said
+to have 'perfect information'. The game we have so far still has perfect
+information::
 
     sage: battle_of_the_sexes.info_sets
     [[a], [b], [c]]
     sage: battle_of_the_sexes.perfect_info()
     True
 
-If we wanted to make it so Celine does not know the actions Bob has taken, we
-can put Celine's nodes in one information set::
+To set the information sets as described above we use the :code:`set_info_set`
+method::
 
-    sage: battle_of_the_sexes.set_info_set([node_2, node_3])
+    sage: battle_of_the_sexes.set_info_set([node_1, node_2])
     sage: battle_of_the_sexes.info_sets
     [[a], [b, c]]
 
@@ -80,10 +178,11 @@ Information sets are demonstrated visually on the graph we plot by setting
     sage: battle_of_the_sexes.plot(view_info_sets = True)
     Graphics object consisting of 23 graphics primitives
 
-Which will be plotted as follows::
+Which will be plotted as follows:
 
 .. PLOT::
     :width: 500 px
+
     player_1 = Player('Bob')
     player_2 = Player('Celine')
     leaf_1 = Leaf({player_1: 2, player_2: 3})
