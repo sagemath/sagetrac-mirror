@@ -360,7 +360,7 @@ def _init():
     _done = True
 
 
-class OrthogonalPolynomial(BuiltinFunction):
+class OrthogonalFunction(BuiltinFunction):
     """
     Base class for orthogonal polynomials.
 
@@ -374,13 +374,13 @@ class OrthogonalPolynomial(BuiltinFunction):
     """
     def __init__(self, name, nargs=2, latex_name=None, conversions={}):
         """
-        :class:`OrthogonalPolynomial` class needs the same input parameter as
+        :class:`OrthogonalFunction` class needs the same input parameter as
         it's parent class.
 
         EXAMPLES::
 
-            sage: from sage.functions.orthogonal_polys import OrthogonalPolynomial
-            sage: new = OrthogonalPolynomial('testo_P')
+            sage: from sage.functions.orthogonal_polys import OrthogonalFunction
+            sage: new = OrthogonalFunction('testo_P')
             sage: new
             testo_P
         """
@@ -389,7 +389,7 @@ class OrthogonalPolynomial(BuiltinFunction):
         except KeyError:
             self._maxima_name = None
 
-        super(OrthogonalPolynomial,self).__init__(name=name, nargs=nargs,
+        super(OrthogonalFunction,self).__init__(name=name, nargs=nargs,
                                  latex_name=latex_name, conversions=conversions)
 
     def _maxima_init_evaled_(self, *args):
@@ -399,8 +399,8 @@ class OrthogonalPolynomial(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.orthogonal_polys import OrthogonalPolynomial
-            sage: P = OrthogonalPolynomial('testo_P')
+            sage: from sage.functions.orthogonal_polys import OrthogonalFunction
+            sage: P = OrthogonalFunction('testo_P')
             sage: P._maxima_init_evaled_(2, 5) is None
             True
         """
@@ -412,8 +412,8 @@ class OrthogonalPolynomial(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.orthogonal_polys import OrthogonalPolynomial
-            sage: P = OrthogonalPolynomial('testo_P')
+            sage: from sage.functions.orthogonal_polys import OrthogonalFunction
+            sage: P = OrthogonalFunction('testo_P')
             sage: P.eval_formula(1,2.0)
             Traceback (most recent call last):
             ...
@@ -470,9 +470,9 @@ class OrthogonalPolynomial(BuiltinFunction):
         elif algorithm == 'maxima':
             return self._maxima_init_evaled_(*args, **kwds)
 
-        return super(OrthogonalPolynomial,self).__call__(*args, **kwds)
+        return super(OrthogonalFunction,self).__call__(*args, **kwds)
 
-class ChebyshevPolynomial(OrthogonalPolynomial):
+class ChebyshevFunction(OrthogonalFunction):
     """
     Abstract base class for Chebyshev polynomials of the first and second kind.
 
@@ -514,7 +514,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             except Exception:
                 pass
 
-        return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
+        return super(ChebyshevFunction,self).__call__(n, *args, **kwds)
 
     def _eval_(self, n, x):
         """
@@ -583,7 +583,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             return None
 
     
-class Func_chebyshev_T(ChebyshevPolynomial):
+class Func_chebyshev_T(ChebyshevFunction):
     """
     Chebyshev polynomials of the first kind.
 
@@ -612,7 +612,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: chebyshev_T2(1,x)
             x
         """
-        ChebyshevPolynomial.__init__(self, "chebyshev_T", nargs=2,
+        ChebyshevFunction.__init__(self, "chebyshev_T", nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
                                                       mathematica='ChebyshevT'))
 
@@ -883,7 +883,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
 
 chebyshev_T = Func_chebyshev_T()
 
-class Func_chebyshev_U(ChebyshevPolynomial):
+class Func_chebyshev_U(ChebyshevFunction):
     """
     Class for the Chebyshev polynomial of the second kind.
 
@@ -910,7 +910,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U2(1,x)
             2*x
         """
-        ChebyshevPolynomial.__init__(self, "chebyshev_U", nargs=2,
+        ChebyshevFunction.__init__(self, "chebyshev_U", nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
                                                       mathematica='ChebyshevU'))
 
@@ -1157,7 +1157,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
 chebyshev_U = Func_chebyshev_U()
 
 
-class Func_legendre_P(OrthogonalPolynomial):
+class Func_legendre_P(BuiltinFunction):
     def __init__(self):
         r"""
         Init method for the Legendre polynomials of the first kind.
@@ -1167,7 +1167,7 @@ class Func_legendre_P(OrthogonalPolynomial):
             sage: loads(dumps(legendre_P))
             legendre_P
         """
-        OrthogonalPolynomial.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
+        BuiltinFunction.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
                 conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
 
@@ -1305,7 +1305,7 @@ class Func_legendre_P(OrthogonalPolynomial):
          
 legendre_P = Func_legendre_P()
 
-class Func_legendre_Q(OrthogonalPolynomial):
+class Func_legendre_Q(BuiltinFunction):
     def __init__(self):
         r"""
         EXAMPLES::
@@ -1313,7 +1313,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
             sage: loads(dumps(legendre_Q))
             legendre_Q
         """
-        OrthogonalPolynomial.__init__(self, "legendre_Q", nargs=2, latex_name=r"Q",
+        BuiltinFunction.__init__(self, "legendre_Q", nargs=2, latex_name=r"Q",
                 conversions={'maxima':'legendre_q', 'mathematica':'LegendreQ',
                     'maple':'LegendreQ'})
 
@@ -1521,7 +1521,7 @@ class Func_legendre_Q(OrthogonalPolynomial):
 
 legendre_Q = Func_legendre_Q()
 
-class Func_assoc_legendre_P(OrthogonalPolynomial):
+class Func_assoc_legendre_P(BuiltinFunction):
     def __init__(self):
         r"""
         EXAMPLES::
@@ -1529,7 +1529,7 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
             sage: loads(dumps(gen_legendre_P))
             gen_legendre_P
         """
-        OrthogonalPolynomial.__init__(self, "gen_legendre_P", nargs=3, latex_name=r"P",
+        BuiltinFunction.__init__(self, "gen_legendre_P", nargs=3, latex_name=r"P",
                 conversions={'maxima':'assoc_legendre_p', 'mathematica':'LegendreP',
                     'maple':'LegendreP'})
 
@@ -1678,7 +1678,7 @@ class Func_assoc_legendre_P(OrthogonalPolynomial):
 
 gen_legendre_P = Func_assoc_legendre_P()
 
-class Func_assoc_legendre_Q(OrthogonalPolynomial):
+class Func_assoc_legendre_Q(BuiltinFunction):
     def __init__(self):
         r"""
         EXAMPLES::
@@ -1686,7 +1686,7 @@ class Func_assoc_legendre_Q(OrthogonalPolynomial):
             sage: loads(dumps(gen_legendre_Q))
             gen_legendre_Q
         """
-        OrthogonalPolynomial.__init__(self, "gen_legendre_Q", nargs=3, latex_name=r"Q",
+        BuiltinFunction.__init__(self, "gen_legendre_Q", nargs=3, latex_name=r"Q",
                 conversions={'maxima':'assoc_legendre_q', 'mathematica':'LegendreQ',
                     'maple':'LegendreQ'})
 
