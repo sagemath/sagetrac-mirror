@@ -107,7 +107,6 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import RealNumber as RealNumber
 from sage.rings.complex_number import ComplexNumber as ComplexNumber
-from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
@@ -209,7 +208,7 @@ class PeriodLattice_ell(PeriodLattice):
                 embs = K.embeddings(QQbar)
             embedding = embs[0]
         else:
-            embedding = refine_embedding(embedding,Infinity)
+            embedding = K.refine_embedding(embedding,Infinity)
             real = embedding(K.gen()).imag().is_zero()
 
         self.embedding = embedding

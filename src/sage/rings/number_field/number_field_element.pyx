@@ -2315,7 +2315,7 @@ cdef class NumberFieldElement(FieldElement):
             return self.polynomial()(gen_image)
         else:
             # Convert the embedding to an embedding into AA or QQbar
-            embedding = number_field.refine_embedding(embedding, infinity)
+            embedding = K.refine_embedding(embedding, infinity)
             a = embedding(self).radical_expression()
             if a.parent() == SR:
                 return a

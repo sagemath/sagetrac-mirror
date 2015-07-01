@@ -2768,14 +2768,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     h /= K.degree()
             return h
 
-        from sage.rings.number_field.number_field import refine_embedding
         prec_v = v.codomain().prec()
         if prec is None:
             prec = prec_v
         if K is rings.QQ:
             vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
         else:
-            vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
+            vv = K.refine_embedding(v, 2*prec) #vv.prec() = max(2*prec, prec_v)
         b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
         H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
         # The following comes from Silverman Theorem 4.2.  Silverman
@@ -3144,7 +3143,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.70448375537782208460499649302 - 0.79246725643650979858266018068*I
 
         """
-        from sage.rings.number_field.number_field import refine_embedding
         from sage.rings.all import RealField, ComplexField, QQ
 
         # Check the trivial case:
@@ -3171,7 +3169,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             prec = emb.codomain().precision()
             # if the precision parameter is greater, refine the embedding:
             if precision > prec:
-                emb = refine_embedding(emb, precision)
+                emb = K.refine_embedding(emb, precision)
 
         L = E.period_lattice(emb)
 
@@ -3203,7 +3201,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             # the curve, and the point
             working_prec = 2*working_prec
             if not rational:
-                emb = refine_embedding(emb, working_prec)
+                emb = K.refine_embedding(emb, working_prec)
                 ai = [emb(a) for a in E.a_invariants()]
                 E_work = EllipticCurve(ai)  # defined over RR
                 pt_pari = pari([emb(x), emb(y)])

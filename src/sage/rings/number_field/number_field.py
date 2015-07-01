@@ -8369,6 +8369,144 @@ class NumberField_absolute(NumberField_generic):
         else:
             return bdd_height(self, bound, precision, LLL)
 
+    def refine_embedding(self, e, prec=None):
+        r"""
+        Increase precision of a real or complex embedding.
+
+        INPUT:
+
+
+        - ``e`` - an embedding of a number field into either
+          RR or CC (with some precision)
+
+        - ``prec`` - (default None) the desired precision; if None,
+          current precision is doubled; if Infinity, the equivalent
+          embedding into either ``QQbar`` or ``AA`` is returned.
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(3)
+            sage: e10 = K.complex_embedding(10)
+            sage: e10.codomain().precision()
+            10
+            sage: e25 = K.refine_embedding(e10, prec=25)
+            sage: e25.codomain().precision()
+            25
+
+        An example where we extend a real embedding into ``AA``::
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: K.signature()
+            (1, 1)
+            sage: e = K.embeddings(RR)[0]; e
+            Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Real Field with 53 bits of precision
+            Defn: a |--> 1.25992104989487
+            sage: e = K.refine_embedding(e,Infinity); e
+            Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Algebraic Real Field
+            Defn: a |--> 1.259921049894873?
+
+        Now we can obtain arbitrary precision values with no trouble::
+
+            sage: RealField(150)(e(a))
+            1.2599210498948731647672106072782283505702515
+            sage: _^3
+            2.0000000000000000000000000000000000000000000
+            sage: RealField(200)(e(a^2-3*a+7))
+            4.8076379022835799804500738174376232086807389337953290695624
+
+        Complex embeddings can be extended into ``QQbar``::
+
+            sage: e = K.embeddings(CC)[0]; e
+            Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Complex Field with 53 bits of precision
+            Defn: a |--> -0.62996052494743... - 1.09112363597172*I
+            sage: e = K.refine_embedding(e,Infinity); e
+            Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Algebraic Field
+            Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
+            sage: ComplexField(200)(e(a))
+            -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
+            sage: e(a)^3
+            2
+
+        Embeddings into lazy fields work::
+
+            sage: L = CyclotomicField(7)
+            sage: x = L.specified_complex_embedding(); x
+            Generic morphism:
+              From: Cyclotomic Field of order 7 and degree 6
+              To:   Complex Lazy Field
+              Defn: zeta7 -> 0.623489801858734? + 0.781831482468030?*I
+            sage: L.refine_embedding(x, 300)
+            Ring morphism:
+              From: Cyclotomic Field of order 7 and degree 6
+              To:   Complex Field with 300 bits of precision
+              Defn: zeta7 |--> 0.623489801858733530525004884004239810632274730896402105365549439096853652456487284575942507 + 0.781831482468029808708444526674057750232334518708687528980634958045091731633936441700868007*I
+            sage: L.refine_embedding(x, infinity)
+            Ring morphism:
+              From: Cyclotomic Field of order 7 and degree 6
+              To:   Algebraic Field
+              Defn: zeta7 |--> 0.6234898018587335? + 0.7818314824680299?*I
+
+        When the old embedding is into the real lazy field,
+        then only real embeddings should be considered.
+        See :trac:`17495`::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
+            sage: K.refine_embedding(K.specified_complex_embedding(), 100)
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + x - 1
+              To:   Real Field with 100 bits of precision
+              Defn: a |--> 0.68232780382801932736948373971
+            sage: K.refine_embedding(K.specified_complex_embedding(), Infinity)
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + x - 1
+              To:   Algebraic Real Field
+              Defn: a |--> 0.6823278038280193?
+        """
+        if not self is e.domain():
+            raise ValueError("wrong domain in refine_embedding")
+        RC = e.codomain()
+        if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
+            return e
+        if RC in (RLF, CLF):
+            prec_old = e.gen_image().approx().prec()
+            old_root = e(self.gen()).approx()
+        else:
+            prec_old = RC.precision()
+            old_root = e(self.gen())
+
+        if prec is None:
+            prec = 2*prec_old
+        elif prec_old >= prec:
+            return e
+
+        # We first compute all the embeddings at the new precision:
+        if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
+            if prec == Infinity:
+                elist = self.embeddings(sage.rings.qqbar.AA)
+            else:
+                elist = self.real_embeddings(prec)
+        else:
+            if prec == Infinity:
+                elist = self.embeddings(sage.rings.qqbar.QQbar)
+            else:
+                elist = self.complex_embeddings(prec)
+
+        # Now we determine which is an extension of the old one; this
+        # relies on the fact that coercing a high-precision root into a
+        # field with lower precision will equal the lower-precision root!
+        diffs = [(RC(ee(self.gen()))-old_root).abs() for ee in elist]
+        return elist[min(izip(diffs,count()))[1]]
+
+
 class NumberField_cyclotomic(NumberField_absolute):
     """
     Create a cyclotomic extension of the rational field.
@@ -10041,144 +10179,3 @@ def put_natural_embedding_first(v):
             v[i] = v[0]
             v[0] = phi
             return
-
-
-
-def refine_embedding(e, prec=None):
-    r"""
-    Given an embedding from a number field to either `\RR` or
-    `\CC`, returns an equivalent embedding with higher precision.
-
-    INPUT:
-
-
-    -  ``e`` - an embedding of a number field into either
-       RR or CC (with some precision)
-
-    - ``prec`` - (default None) the desired precision; if None,
-       current precision is doubled; if Infinity, the equivalent
-       embedding into either ``QQbar`` or ``AA`` is returned.
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.number_field import refine_embedding
-        sage: K = CyclotomicField(3)
-        sage: e10 = K.complex_embedding(10)
-        sage: e10.codomain().precision()
-        10
-        sage: e25 = refine_embedding(e10, prec=25)
-        sage: e25.codomain().precision()
-        25
-
-    An example where we extend a real embedding into ``AA``::
-
-        sage: K.<a> = NumberField(x^3-2)
-        sage: K.signature()
-        (1, 1)
-        sage: e = K.embeddings(RR)[0]; e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Real Field with 53 bits of precision
-        Defn: a |--> 1.25992104989487
-        sage: e = refine_embedding(e,Infinity); e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Algebraic Real Field
-        Defn: a |--> 1.259921049894873?
-
-    Now we can obtain arbitrary precision values with no trouble::
-
-        sage: RealField(150)(e(a))
-        1.2599210498948731647672106072782283505702515
-        sage: _^3
-        2.0000000000000000000000000000000000000000000
-        sage: RealField(200)(e(a^2-3*a+7))
-        4.8076379022835799804500738174376232086807389337953290695624
-
-    Complex embeddings can be extended into ``QQbar``::
-
-        sage: e = K.embeddings(CC)[0]; e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Complex Field with 53 bits of precision
-        Defn: a |--> -0.62996052494743... - 1.09112363597172*I
-        sage: e = refine_embedding(e,Infinity); e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Algebraic Field
-        Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
-        sage: ComplexField(200)(e(a))
-        -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
-        sage: e(a)^3
-        2
-
-    Embeddings into lazy fields work::
-
-        sage: L = CyclotomicField(7)
-        sage: x = L.specified_complex_embedding(); x
-        Generic morphism:
-          From: Cyclotomic Field of order 7 and degree 6
-          To:   Complex Lazy Field
-          Defn: zeta7 -> 0.623489801858734? + 0.781831482468030?*I
-        sage: refine_embedding(x, 300)
-        Ring morphism:
-          From: Cyclotomic Field of order 7 and degree 6
-          To:   Complex Field with 300 bits of precision
-          Defn: zeta7 |--> 0.623489801858733530525004884004239810632274730896402105365549439096853652456487284575942507 + 0.781831482468029808708444526674057750232334518708687528980634958045091731633936441700868007*I
-        sage: refine_embedding(x, infinity)
-        Ring morphism:
-          From: Cyclotomic Field of order 7 and degree 6
-          To:   Algebraic Field
-          Defn: zeta7 |--> 0.6234898018587335? + 0.7818314824680299?*I
-
-    When the old embedding is into the real lazy field,
-    then only real embeddings should be considered.
-    See :trac:`17495`::
-
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
-        sage: from sage.rings.number_field.number_field import refine_embedding
-        sage: refine_embedding(K.specified_complex_embedding(), 100)
-        Ring morphism:
-          From: Number Field in a with defining polynomial x^3 + x - 1
-          To:   Real Field with 100 bits of precision
-          Defn: a |--> 0.68232780382801932736948373971
-        sage: refine_embedding(K.specified_complex_embedding(), Infinity)
-        Ring morphism:
-          From: Number Field in a with defining polynomial x^3 + x - 1
-          To:   Algebraic Real Field
-          Defn: a |--> 0.6823278038280193?
-    """
-    K = e.domain()
-    RC = e.codomain()
-    if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
-        return e
-    if RC in (RLF, CLF):
-        prec_old = e.gen_image().approx().prec()
-        old_root = e(K.gen()).approx()
-    else:
-        prec_old = RC.precision()
-        old_root = e(K.gen())
-
-    if prec is None:
-        prec = 2*prec_old
-    elif prec_old >= prec:
-        return e
-
-    # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
-        if prec == Infinity:
-            elist = K.embeddings(sage.rings.qqbar.AA)
-        else:
-            elist = K.real_embeddings(prec)
-    else:
-        if prec == Infinity:
-            elist = K.embeddings(sage.rings.qqbar.QQbar)
-        else:
-            elist = K.complex_embeddings(prec)
-
-    # Now we determine which is an extension of the old one; this
-    # relies on the fact that coercing a high-precision root into a
-    # field with lower precision will equal the lower-precision root!
-    diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(izip(diffs,count()))[1]]
