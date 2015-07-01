@@ -27,7 +27,6 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.cachefunc import cached_method
 from sage.libs.pari.all import pari
 from sage.rings.infinity import infinity
-from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
 
 class GaloisGroup_v1(SageObject):
@@ -427,7 +426,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
                 raise ValueError("No default complex embedding specified")
             P = Q
 
-        P = refine_embedding(P, infinity)
+        P = self.number_field().refine_embedding(P, infinity)
 
         if not self.number_field().is_galois():
             raise TypeError("Extension is not Galois")
