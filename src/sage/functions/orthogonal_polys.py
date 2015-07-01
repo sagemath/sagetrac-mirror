@@ -1333,6 +1333,8 @@ class Func_legendre_Q(BuiltinFunction):
             1/4*(12*x^2 - 1)*(log(2*x + 1) - log(-2*x + 1)) - 3*x
             sage: legendre_Q(1/2, I+1.)
             -0.511424110789061 + 1.34356195297194*I
+            sage: legendre_Q(-1,x)
+            Infinity
 
         NOTE::
         
@@ -1343,6 +1345,9 @@ class Func_legendre_Q(BuiltinFunction):
         if ret is not None:
             return ret
         if n in ZZ:
+            if n < 0:
+                from sage.rings.infinity import unsigned_infinity
+                return SR(unsigned_infinity);
             return self.eval_formula(n, x)
 
     def _maxima_init_evaled_(self, n, x):
@@ -1375,14 +1380,20 @@ class Func_legendre_Q(BuiltinFunction):
             -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
             sage: legendre_Q(-1., 0.)
             +infinity
+            sage: legendre_Q(-1/2, 2)
+            elliptic_kc(3/2)
         """
+        if n == QQ(-1)/2:
+            from sage.functions.special import elliptic_kc
+            return elliptic_kc((x+1)/2)
+
         if x == 1:
-            from sage.symbolic.constants import NaN
-            return NaN
+            from sage.rings.infinity import unsigned_infinity
+            return SR(unsigned_infinity)
         
         if x == -1:
-            from sage.symbolic.constants import NaN
-            return NaN
+            from sage.rings.infinity import unsigned_infinity
+            return SR(unsigned_infinity)
         
         if x == 0:
             from sage.functions.other import gamma, sqrt
