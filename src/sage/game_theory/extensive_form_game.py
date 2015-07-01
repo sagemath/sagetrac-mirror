@@ -371,29 +371,12 @@ class ExtensiveFormGame():
                 self.info_sets = [[node] for node in self.nodes]
                 self.leafs = []
 
-                node_index = 1
-                leaf_index = 1
-                for node in self.nodes:
-                    self.players.append(node.player)
-                    if node is generator and node.name is False:
-                        node.name = "Tree Root"
-                    if node.name is False:
-                        node.name = "Node %i" % node_index
-                        node_index += 1
-                    for child in node.children:
-                        if isinstance(child, Leaf) and child.name is False:
-                            child.name = "Leaf %i" %leaf_index
-                            leaf_index += 1
-                            self.leafs.append(child)
-                        elif isinstance(child, Leaf):
-                            self.leafs.append(child)
+                self._check_node_names_and_find_players(generator)
 
-                self.players = list(set(self.players))
                 self.players.sort(key=lambda x: x.name)
                 self.info_sets.sort(key=lambda x: x[0].name)
                 self.nodes.sort(key=lambda x: x.name)
-                self.leafs.sort(key=attrgetter('name', 'payoffs'))
-
+                #self.leafs.sort(key=attrgetter('name', 'payoffs'))
 
         else:
             raise TypeError("Extensive form game must be passed an input in the form of a Node or a Graph object.")
@@ -640,6 +623,77 @@ class ExtensiveFormGame():
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}
         d[self.tree_root] = self.tree_root.children
         return d
+
+    def _check_node_names_and_find_players(self, generator):
+        """
+        A method to check the names of the nodes and gives names for the ones
+        that do not have names. This also finds all the players.
+
+        This method is embedded in the init method but has been written here to
+        improve the readability of the code. The tests for this are functional
+        tests.
+
+        TESTS::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_a = Leaf({player_1 : 0, player_2: 1})
+            sage: leaf_b = Leaf({player_1 : 1, player_2: 0})
+            sage: leaf_c = Leaf({player_1 : 2, player_2: 4})
+            sage: leaf_d = Leaf({player_1 : 2, player_2: 1})
+            sage: node_a = Node({'A': leaf_a, 'B': leaf_b}, player = player_2)
+            sage: node_b = Node({'A': leaf_c, 'B': leaf_d}, player = player_2)
+            sage: root_a = Node({'C': node_a, 'D': node_b}, player = player_1)
+            sage: node_a.name is node_b.name is root_a.name
+            True
+            sage: egame_a = ExtensiveFormGame(root_a)
+            sage: node_a.name is node_b.name is root_a.name
+            False
+            sage: sorted([node_a.name, node_b.name])
+            ['Node 1', 'Node 2']
+            sage: root_a.name
+            'Tree Root'
+            sage: sorted(egame_a.players, key=lambda x: x.name)
+            [Player 1, Player 2]
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_a = Leaf({player_1 : 0, player_2: 1})
+            sage: leaf_b = Leaf({player_1 : 1, player_2: 0})
+            sage: leaf_c = Leaf({player_1 : 2, player_2: 4})
+            sage: leaf_d = Leaf({player_1 : 2, player_2: 1})
+            sage: node_a = Node({'A': leaf_a, 'B': leaf_b}, player = player_2)
+            sage: node_b = Node({'A': leaf_c, 'B': leaf_d}, 'Node B', player = player_2)
+            sage: root_a = Node({'C': node_a, 'D': node_b}, player = player_1)
+            sage: node_a.name is root_a.name
+            True
+            sage: node_b.name
+            'Node B'
+            sage: egame_a = ExtensiveFormGame(root_a)
+            sage: node_a.name is node_b.name is root_a.name
+            False
+            sage: sorted([node_a.name, node_b.name])
+            ['Node 1', 'Node B']
+            sage: root_a.name
+            'Tree Root'
+        """
+        node_index = 1
+        leaf_index = 1
+        for node in self.nodes:
+            if node.player not in self.players:
+                self.players.append(node.player)
+            if node is generator and node.name is False:
+                node.name = "Tree Root"
+            if node.name is False:
+                node.name = "Node %i" % node_index
+                node_index += 1
+            for child in node.children:
+                if isinstance(child, Leaf) and child.name is False:
+                    child.name = "Leaf %i" % leaf_index
+                    leaf_index += 1
+                    self.leafs.append(child)
+                elif isinstance(child, Leaf):
+                    self.leafs.append(child)
 
 
 class Node():
