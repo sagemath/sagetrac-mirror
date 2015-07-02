@@ -196,6 +196,13 @@ Which will be plotted as follows:
     battle_of_the_sexes.set_info_set([node_2, node_3])
     p = battle_of_the_sexes.plot(view_info_sets = True)
     sphinx_plot(p)
+
+We can remove information sets which automatically sets all the nodes in that
+information set to be in their own information set::
+
+    sage: battle_of_the_sexes.remove_info_set([node_1, node_2])
+    sage: battle_of_the_sexes.info_sets
+    [[a], [b], [c]]
 """
 from sage.graphs.all import Graph
 from sage.plot.line import line2d
@@ -581,7 +588,8 @@ class ExtensiveFormGame():
 
     def _grow_tree(self):
         r"""
-        A private method to grow a tree from a given root.
+        A private method to grow a tree from a given root, returns the tree
+        object and a sorted list of all nodes.
 
         TESTS::
 
