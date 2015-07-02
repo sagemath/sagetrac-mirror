@@ -73,7 +73,7 @@ def assert_success(rc, good=None, bad=None):
 
 def write_pc_file(libs,target):
     pkgconfigdir=os.path.join(SAGE_LOCAL, 'lib', 'pkgconfig')
-    if ! os.path.isdir(pkgconfigdir):
+    if !(os.path.isdir(pkgconfigdir)):
         os.makedirs(pkgconfigdir)
     libflags='-l%s'%(' -l'.join(libs))
     pcfile ="""
