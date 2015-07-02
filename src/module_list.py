@@ -1971,7 +1971,6 @@ ext_modules = [
               libraries = ['javad_fmpz_mod', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp'],
               language = 'c++'),
     ]
-]
 
 # Add auto-generated modules
 import sage_setup.autogen.interpreters
