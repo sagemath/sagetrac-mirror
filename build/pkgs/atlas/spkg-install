@@ -84,7 +84,7 @@ includedir=${prefix}/include
 Name: %s
 Description: %s for sage, set up by the ATLAS spkg.
 Libs: -L${libdir} %s
-"""%(SAGE_ROOT, target, target, libfags)
+"""%(SAGE_ROOT, target, target, libflags)
     open(os.path.join(SAGE_LOCAL, 'lib/pkgconfig/%s.pc'%target), 'w').write(pcfile)
 
 
