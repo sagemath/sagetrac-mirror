@@ -9,7 +9,7 @@ from sage.libs.flint.fq cimport *
 
 def isom_javad_fmpz_mod(k1, k2):
     cdef FFIsomorphism *isom
-    cdef FiniteFieldElement_flint_fq res
+    cdef FiniteFieldElement_flint_fq res, x
 
     if not isinstance(k1, FiniteField_flint_fq) \
        or not isinstance(k1, FiniteField_flint_fq):
@@ -19,8 +19,11 @@ def isom_javad_fmpz_mod(k1, k2):
     isom = new FFIsomorphism((<fq_ctx_struct*>(<FiniteField_flint_fq>k1)._ctx).modulus, (<fq_ctx_struct*>(<FiniteField_flint_fq>k2)._ctx).modulus)
     sig_off()
 
+    x = k1.gen()
     res = k2(0)
-    res.set_from_fq(<fq_struct *>(isom.x_image))
+    sig_on()
+    isom.compute_image(<fmpz_mod_poly_t> (res.val), <fmpz_mod_poly_t> (x.val))
+    sig_off()
     del isom
     return res
 

@@ -247,7 +247,7 @@ cdef class FiniteField_flint_fq(FiniteField):
             sage: k == copy(k)
             True
         """
-        return left._richcmp_helper(right, op)
+        return left._richcmp(right, op)
 
     def gen(self, n=0):
         """

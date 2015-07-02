@@ -101,8 +101,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-#include "sage/ext/interrupt.pxi"
-include "sage/libs/pari/pari_err.pxi"
+include "sage/ext/interrupt.pxi"
+#include "sage/libs/pari/pari_err.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -235,14 +235,14 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             raise ValueError("No embedding of %s into %s" % (domain, codomain))
         if im_gens is None:
             if algorithm == "allombert":
-                pari_catch_sig_on()
+                sig_on()
                 p = PI(domain.characteristic())
                 # PARI wants polynomials with integer coefficients
                 P = PI(domain.modulus().change_ring(ZZ))
                 Q = PI(codomain.modulus().change_ring(ZZ))
-                pari_catch_sig_on()
+                sig_on()
                 R = PI.new_gen(FpX_ffisom(P.g, Q.g, p.g))
-                pari_catch_sig_off()
+                sig_off()
                 im_gens = codomain(R.list())
             else:
                 im_gens = domain.modulus().any_root(codomain)

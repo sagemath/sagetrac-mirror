@@ -5,7 +5,7 @@ cdef extern from "javad_nmod/ff_isom.h":
         FFIsomorphism(nmod_poly_t, nmod_poly_t) except +
         void compute_generators(nmod_poly_t g1, nmod_poly_t g2)
         void build_isomorphism(nmod_poly_t g1, nmod_poly_t g2)
-        nmod_poly_t x_image
+        void compute_image_using_modcomp(nmod_poly_t image, const nmod_poly_t f)
 
 cdef extern from "javad_nmod/ff_isom_base_change.h":
     cdef cppclass FFIsomBaseChange:

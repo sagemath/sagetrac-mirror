@@ -1954,12 +1954,12 @@ ext_modules = [
     Extension('sage.ffisom.xz_coordinates_flint_fq',
               sources = ['sage/ffisom/xz_coordinates_flint_fq.pyx'],
               include_dirs = [SAGE_INC + '/flint'],
-              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+              libraries = ['ellmul', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
 
     Extension('sage.ffisom.xz_coordinates_flint_fq_nmod',
               sources = ['sage/ffisom/xz_coordinates_flint_fq_nmod.pyx'],
               include_dirs = [SAGE_INC + '/flint'],
-              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+              libraries = ['ellmul', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
 
     Extension('sage.ffisom.javad_nmod',
               sources = ['sage/ffisom/javad_nmod.pyx'],
