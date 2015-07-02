@@ -457,11 +457,15 @@ class ExtensiveFormGame():
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
         for node_to_be_set in node_list:
-            self.info_sets.remove([node_to_be_set])
+            for info_set in [info_set for info_set in self.info_sets
+                             if node_to_be_set in info_set]:
+                self.info_sets.remove(info_set)
+        self.info_sets.append(sorted(node_list, key=lambda x: x.name))
+
         for node in self.nodes:
             if not any(node in info_set for info_set in self.info_sets):
                 self.info_sets.append([node])
-        self.info_sets.append(sorted(node_list, key=lambda x: x.name))
+
         self.info_sets.sort(key=lambda x: x[0].name)
 
     def remove_info_set(self, node_list):
