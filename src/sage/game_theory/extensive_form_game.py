@@ -364,8 +364,7 @@ class ExtensiveFormGame():
                 raise AttributeError("Root node has no player.")
             else:
                 self.tree_root = generator
-                self.tree = self._grow_tree()
-                self.nodes = self._grow_tree_dictionary().keys()
+                self.tree, self.nodes = self._grow_tree()
                 self.nodes.sort(key=lambda x: x.actions[0])
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
@@ -556,7 +555,7 @@ class ExtensiveFormGame():
         """
 
         keylist = []
-        t = self._grow_tree()
+        t = self.tree
         for node in self.nodes:
             keylist = node.node_input.keys()
             for key in keylist:
@@ -597,7 +596,7 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1._grow_tree()
-            Graph on 7 vertices
+            (Graph on 7 vertices, [Node 1, Node 2, Root 1])
 
         If the relationship between the nodes does not correspond to a tree, an
         error is returned. As this method is called in the initialisation
@@ -618,16 +617,17 @@ class ExtensiveFormGame():
             ...
             TypeError: Relationship between nodes does not correspond to a tree.
         """
-        d = self._grow_tree_dictionary()
+        d, nodes = self._grow_tree_dictionary()
         t = Graph(d)
         if t.is_tree():
-            return t
+            return t, nodes
         else:
             raise TypeError("Relationship between nodes does not correspond to a tree.")
 
     def _grow_tree_dictionary(self):
         r"""
-        Returns a dictionary defining the underlying tree.
+        Returns a dictionary defining the underlying tree as well as a sorted
+        list of nodes.
 
         TESTS::
 
@@ -641,7 +641,10 @@ class ExtensiveFormGame():
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: t = Graph(egame_1._grow_tree_dictionary())
+            sage: d, nodes = egame_1._grow_tree_dictionary()
+            sage: nodes
+            [Node 1, Node 2, Root 1]
+            sage: t = Graph(d)
             sage: t
             Graph on 7 vertices
 
@@ -677,7 +680,7 @@ class ExtensiveFormGame():
 
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}
         d[self.tree_root] = self.tree_root.children
-        return d
+        return d, sorted(d.keys(), key=attrgetter('name'))
 
     def _check_node_names_and_find_players(self, generator):
         """
