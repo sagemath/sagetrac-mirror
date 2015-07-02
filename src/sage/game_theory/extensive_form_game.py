@@ -364,8 +364,8 @@ class ExtensiveFormGame():
                 raise AttributeError("Root node has no player.")
             else:
                 self.tree_root = generator
-                self.tree = self.grow_tree()
-                self.nodes = self.grow_tree_dictionary().keys()
+                self.tree = self._grow_tree()
+                self.nodes = self._grow_tree_dictionary().keys()
                 self.nodes.sort(key=lambda x: x.actions[0])
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
@@ -533,28 +533,6 @@ class ExtensiveFormGame():
                                   key=lambda x: x[0].name)
         return self.info_sets == perfect_info_set
 
-    def grow_tree(self):
-        r"""
-            sage: player_1 = Player('Player 1')
-            sage: player_2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
-            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
-            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
-            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
-            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
-            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
-            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
-            sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1.grow_tree()
-            Graph on 7 vertices
-        """
-        d = self.grow_tree_dictionary()
-        t = Graph(d)
-        if t.is_tree():
-            return t
-        else:
-            raise TypeError("Graph isn't tree")
-
     def plot(self, view_info_sets=False):
         """
         Returns a visual representation of the game::
@@ -578,7 +556,7 @@ class ExtensiveFormGame():
         """
 
         keylist = []
-        t = self.grow_tree()
+        t = self._grow_tree()
         for node in self.nodes:
             keylist = node.node_input.keys()
             for key in keylist:
@@ -602,8 +580,12 @@ class ExtensiveFormGame():
                             past_info_node = node
         return tree_plot
 
-    def grow_tree_dictionary(self):
-        """
+    def _grow_tree(self):
+        r"""
+        A private method to grow a tree from a given root.
+
+        TESTS::
+
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
@@ -614,9 +596,71 @@ class ExtensiveFormGame():
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: t = Graph(egame_1.grow_tree_dictionary())
+            sage: egame_1._grow_tree()
+            Graph on 7 vertices
+
+        If the relationship between the nodes does not correspond to a tree, an
+        error is returned. As this method is called in the initialisation
+        method, the following test is a functional test and not a true unit
+        test::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': node_1}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Relationship between nodes does not correspond to a tree.
+        """
+        d = self._grow_tree_dictionary()
+        t = Graph(d)
+        if t.is_tree():
+            return t
+        else:
+            raise TypeError("Relationship between nodes does not correspond to a tree.")
+
+    def _grow_tree_dictionary(self):
+        r"""
+        Returns a dictionary defining the underlying tree.
+
+        TESTS::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: t = Graph(egame_1._grow_tree_dictionary())
             sage: t
             Graph on 7 vertices
+
+        If a node if not complete then an error is returned::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2')
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            Traceback (most recent call last):
+            ...
+            AttributeError: One or more of the Nodes in the tree are not
+            complete.
         """
         to_check = [self.tree_root]
         checked = []
@@ -628,7 +672,7 @@ class ExtensiveFormGame():
                         child._player_check()
                         to_check.append(child)
                     else:
-                        raise AttributeError("One or more of the Nodes in tree are not complete.")
+                        raise AttributeError("One or more of the Nodes in the tree are not complete.")
                 checked.append(child)
 
         d = {node:node.children for node in checked if not isinstance(node, Leaf)}
