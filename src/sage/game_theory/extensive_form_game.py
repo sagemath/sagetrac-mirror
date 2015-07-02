@@ -469,7 +469,12 @@ class ExtensiveFormGame():
         self.info_sets.sort(key=lambda x: x[0].name)
 
     def remove_info_set(self, node_list):
-        """
+        r"""
+        Removes an information set and sets all nodes in that information set to
+        be in their own information set.
+
+        EXAMPLES::
+
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1 : 0, player_2: 1}, 'Leaf 1')
@@ -497,7 +502,11 @@ class ExtensiveFormGame():
         self.info_sets.sort(key=lambda x: x[0].name)
 
     def perfect_info(self):
-        """
+        r"""
+        Returns True or False, depending on whether or not a game has perfect
+        information. A game has perfect information if all nodes are contained
+        in information sets with no other nodes.
+
         All games start of with perfect information, adding information sets
         changes this::
 
@@ -520,11 +529,12 @@ class ExtensiveFormGame():
             sage: egame_1.perfect_info()
             True
         """
-        perfect_info_set = [[node] for node in self.nodes]
-        return len(self.info_sets) == len(self.nodes)
+        perfect_info_set = sorted([[node] for node in self.nodes],
+                                  key=lambda x: x[0].name)
+        return self.info_sets == perfect_info_set
 
     def grow_tree(self):
-        """
+        r"""
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
