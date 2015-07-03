@@ -125,7 +125,7 @@ recursively has all required information)::
 
     sage: battle_of_the_sexes = ExtensiveFormGame(root)
     sage: battle_of_the_sexes
-    <sage.game_theory.extensive_form_game.ExtensiveFormGame instance ...
+    Extensive Form Game with the following underlying tree: {...
 
 By default all nodes are in their own information set. If we plot the tree we
 see this::
@@ -371,7 +371,7 @@ class ExtensiveFormGame():
                 raise AttributeError("Root node has no player.")
             else:
                 self.tree_root = generator
-                self.tree, self.nodes = self._grow_tree()
+                self.tree, self.tree_dictionary, self.nodes = self._grow_tree()
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
                 self.leafs = []
@@ -606,8 +606,14 @@ class ExtensiveFormGame():
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
-            sage: egame_1._grow_tree()
-            (Graph on 7 vertices, [Node 1, Node 2, Root 1])
+            sage: g, d, nodes = egame_1._grow_tree()
+            sage: g
+            Graph on 7 vertices
+            sage: d == {node_2: [leaf_3, leaf_4], node_1: [leaf_1, leaf_2],
+            ....:       root_1: [node_1, node_2]}
+            True
+            sage: nodes
+            [Node 1, Node 2, Root 1]
 
         If the relationship between the nodes does not correspond to a tree, an
         error is returned. As this method is called in the initialisation
@@ -631,7 +637,7 @@ class ExtensiveFormGame():
         d, nodes = self._grow_tree_dictionary()
         t = Graph(d)
         if t.is_tree():
-            return t, nodes
+            return t, d, nodes
         else:
             raise TypeError("Relationship between nodes does not correspond to a tree.")
 
@@ -763,6 +769,9 @@ class ExtensiveFormGame():
                     self.leafs.append(child)
                 elif isinstance(child, Leaf):
                     self.leafs.append(child)
+
+    def __repr__(self):
+        return "Extensive Form Game with the following underlying tree: " + str(self.tree_dictionary)
 
 
 class Node():
