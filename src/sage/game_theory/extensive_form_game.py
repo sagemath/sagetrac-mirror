@@ -372,7 +372,6 @@ class ExtensiveFormGame():
             else:
                 self.tree_root = generator
                 self.tree, self.nodes = self._grow_tree()
-                self.nodes.sort(key=lambda x: x.actions[0])
                 self.players = []
                 self.info_sets = [[node] for node in self.nodes]
                 self.leafs = []
