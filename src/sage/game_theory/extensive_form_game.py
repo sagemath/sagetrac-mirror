@@ -673,9 +673,14 @@ class ExtensiveFormGame():
         node_labels = {node: node.name for node in self.nodes}
         t.relabel(node_labels)
 
+        coloring = [[node.name for node in self.nodes if node.player == player]
+                    for player in self.players]
+        coloring += [[leaf for leaf in leaf_labels.values()]]
+
+
         tree_plot = t.plot(layout='tree', tree_orientation='right',
                         edge_labels=True, tree_root=self.tree_root.name,
-                        save_pos=True, axes=False)
+                        save_pos=True, axes=False, partition=coloring)
 
         positions = t.get_pos()
         past_info_node = self.info_sets[0][0]
