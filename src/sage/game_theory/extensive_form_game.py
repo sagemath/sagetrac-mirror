@@ -679,21 +679,15 @@ class ExtensiveFormGame():
 
 
         tree_plot = t.plot(layout='tree', tree_orientation='right',
-                        edge_labels=True, tree_root=self.tree_root.name,
-                        save_pos=True, axes=False, partition=coloring)
+                           edge_labels=True, tree_root=self.tree_root.name,
+                           save_pos=True, axes=False, partition=coloring)
 
         positions = t.get_pos()
-        past_info_node = self.info_sets[0][0]
         if view_info_sets is True:
             for info_set in self.info_sets:
-                past_info_node = info_set[0]
-                for node in info_set:
-                    for key in positions.keys():
-                        if node.name is key:
-                            tree_plot += (line2d([positions[past_info_node.name],
-                                          positions[node.name]], linestyle="dashed",
-                                          color='green'))
-                            past_info_node = node
+                points = sorted([positions[node.name] for node in info_set])
+                tree_plot += (line2d(points, linestyle="dashed",
+                              color='green'))
         return tree_plot
 
     def _grow_tree(self):
