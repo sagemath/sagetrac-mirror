@@ -411,9 +411,13 @@ class ExtensiveFormGame():
         Once we've set an information set, we can see it visually on the graph::
 
             sage: egame_1.plot()
-            Graphics object consisting of 20 graphics primitives
-            sage: egame_1.plot(view_info_sets = True)
             Graphics object consisting of 23 graphics primitives
+
+        On some occasions we might want to plot the tree without showing the
+        information sets::
+
+            sage: egame_1.plot(view_info_sets = False)
+            Graphics object consisting of 20 graphics primitives
 
         If by setting an information set we leave a node without an information
         set it is automatically put in a set by itself::
@@ -538,7 +542,7 @@ class ExtensiveFormGame():
                                   key=lambda x: x[0].name)
         return self.info_sets == perfect_info_set
 
-    def plot(self, view_info_sets=False):
+    def plot(self, view_info_sets=True):
         """
         Returns a visual representation of the game::
             sage: player_1 = Player('Player 1')
@@ -552,12 +556,12 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.plot()
-            Graphics object consisting of 20 graphics primitives
+            Graphics object consisting of 23 graphics primitives
 
         The plot has the option for whether or not info-sets are visible::
 
-            sage: egame_1.plot(view_info_sets = True)
-            Graphics object consisting of 23 graphics primitives
+            sage: egame_1.plot(view_info_sets = False)
+            Graphics object consisting of 20 graphics primitives
         """
 
         keylist = []
