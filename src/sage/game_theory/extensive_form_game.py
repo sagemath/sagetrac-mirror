@@ -97,14 +97,14 @@ node and finally the player who makes the decision at this node::
 
     sage: node_1 = Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_2)
     sage: node_1
-    b
+    Extensive form game node with name: b
     sage: node_1.player
     Celine
     sage: node_1.name
     'b'
     sage: node_2 = Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_2)
     sage: node_2
-    c
+    Extensive form game node with name: c
     sage: node_2.player
     Celine
     sage: node_2.name
@@ -114,7 +114,7 @@ Finally, we create the root of the tree::
 
     sage: root = Node({'Sports': node_2, 'Comedy': node_1}, 'a', player_1)
     sage: root
-    a
+    Extensive form game node with name: a
     sage: root.player
     Bob
     sage: root.name
@@ -156,7 +156,9 @@ to have 'perfect information'. The game we have so far still has perfect
 information::
 
     sage: battle_of_the_sexes.info_sets
-    [[a], [b], [c]]
+    [[Extensive form game node with name: a],
+     [Extensive form game node with name: b],
+     [Extensive form game node with name: c]]
     sage: battle_of_the_sexes.perfect_info()
     True
 
@@ -165,7 +167,9 @@ method::
 
     sage: battle_of_the_sexes.set_info_set([node_1, node_2])
     sage: battle_of_the_sexes.info_sets
-    [[a], [b, c]]
+    [[Extensive form game node with name: a],
+     [Extensive form game node with name: b,
+      Extensive form game node with name: c]]
 
 Now the game does not have perfect information::
 
@@ -202,7 +206,9 @@ information set to be in their own information set::
 
     sage: battle_of_the_sexes.remove_info_set([node_1, node_2])
     sage: battle_of_the_sexes.info_sets
-    [[a], [b], [c]]
+    [[Extensive form game node with name: a],
+     [Extensive form game node with name: b],
+     [Extensive form game node with name: c]]
 
 Here is an example of a larger game: a 3 player rock paper scissors variant
 where all players play at the same time.
@@ -309,9 +315,21 @@ class ExtensiveFormGame():
             sage: egame_a1.players
             [Player 1, Player 2]
             sage: egame_a1.nodes
-            [Node 1, Node 2, Node 3, Node 4, Node 5, Node 6, Tree Root]
+            [Extensive form game node with name: Node 1,
+             Extensive form game node with name: Node 2,
+             Extensive form game node with name: Node 3,
+             Extensive form game node with name: Node 4,
+             Extensive form game node with name: Node 5,
+             Extensive form game node with name: Node 6,
+             Extensive form game node with name: Tree Root]
             sage: egame_a1.info_sets
-            [[Node 1], [Node 2], [Node 3], [Node 4], [Node 5], [Node 6], [Tree Root]]
+            [[Extensive form game node with name: Node 1],
+             [Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Node 3],
+             [Extensive form game node with name: Node 4],
+             [Extensive form game node with name: Node 5],
+             [Extensive form game node with name: Node 6],
+             [Extensive form game node with name: Tree Root]]
 
         It is possible to have games with more than two players::
 
@@ -329,7 +347,9 @@ class ExtensiveFormGame():
             sage: egame_1.players
             [Player 1, Player 2, Player 3]
             sage: egame_1.nodes
-            [Node 1, Node 2, Root 1]
+            [Extensive form game node with name: Node 1,
+             Extensive form game node with name: Node 2,
+             Extensive form game node with name: Root 1]
             sage: egame_1.leafs
             [Extensive form game leaf with utilities given by: (0, 1, -5),
              Extensive form game leaf with utilities given by: (1, 0, -4),
@@ -462,10 +482,14 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.info_sets
-            [[Node 1], [Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1],
+             [Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
-            [[Node 1, Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1,
+              Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
 
         Once we've set an information set, we can see it visually on the graph::
 
@@ -483,7 +507,9 @@ class ExtensiveFormGame():
 
             sage: egame_1.set_info_set([node_1])
             sage: egame_1.info_sets
-            [[Node 1], [Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1],
+             [Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
 
         If two nodes don't have the same actions, an error is returned::
 
@@ -555,12 +581,16 @@ class ExtensiveFormGame():
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
-            [[Node 1, Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1,
+              Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
             sage: egame_1.perfect_info()
             False
             sage: egame_1.remove_info_set([node_1, node_2])
             sage: egame_1.info_sets
-            [[Node 1], [Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1],
+             [Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
             sage: egame_1.perfect_info()
             True
         """
@@ -677,7 +707,9 @@ class ExtensiveFormGame():
             ....:       root_1: [node_1, node_2]}
             True
             sage: nodes
-            [Node 1, Node 2, Root 1]
+            [Extensive form game node with name: Node 1,
+             Extensive form game node with name: Node 2,
+             Extensive form game node with name: Root 1]
 
         If the relationship between the nodes does not correspond to a tree, an
         error is returned. As this method is called in the initialisation
@@ -724,7 +756,9 @@ class ExtensiveFormGame():
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: d, nodes = egame_1._grow_tree_dictionary()
             sage: nodes
-            [Node 1, Node 2, Root 1]
+            [Extensive form game node with name: Node 1,
+             Extensive form game node with name: Node 2,
+             Extensive form game node with name: Root 1]
             sage: t = Graph(d)
             sage: t
             Graph on 7 vertices
@@ -864,7 +898,7 @@ class Node():
             False
             sage: grandmother_node = Node({'ActionA':mother_node, 'ActionB':sisternode}, 'Node A')
             sage: mother_node.parent
-            Node A
+            Extensive form game node with name: Node A
 
         Nodes can also be created without specifying children or parents by just
         passing the list of actions.  This so that nodes can be passed via a
@@ -939,18 +973,18 @@ class Node():
 
             sage: repr_node = Node(['inputhere'])
             sage: repr_node
-            False
+            Extensive form game node without a name
             sage: repr_node.name = "A named Node"
             sage: repr_node
-            A named Node
+            Extensive form game node with name: A named Node
             sage: repr_node = Node(['inputhere'], "A different name")
             sage: repr_node
-            A different name
+            Extensive form game node with name: A different name
         """
         if self.name is False:
-            return "False"
+            return 'Extensive form game node without a name'
         else:
-            return self.name
+            return 'Extensive form game node with name: ' + self.name
 
     def _is_complete(self):
         """
