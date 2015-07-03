@@ -571,9 +571,10 @@ class ExtensiveFormGame():
         keylist = []
         t = copy(self.tree)
         for node in self.nodes:
-            keylist = node.node_input.keys()
-            for key in keylist:
-                t.set_edge_label(node, node.node_input[key], key)
+            actions = node.node_input.keys()
+            for action in actions:
+                t.set_edge_label(node, node.node_input[action], str(node.player) + ': ' + action)
+
         labels = {leaf: leaf.name + ' - ' + str(leaf.utilities) for leaf in self.leafs}
         # Adding padding so that leaf labels are to the right of the nodes
         labels = {leaf: (2 * len(labels[leaf])) * ' ' + labels[leaf] for leaf in self.leafs}
