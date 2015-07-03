@@ -203,6 +203,61 @@ information set to be in their own information set::
     sage: battle_of_the_sexes.remove_info_set([node_1, node_2])
     sage: battle_of_the_sexes.info_sets
     [[a], [b], [c]]
+
+Here is an example of a larger game: a 3 player rock paper scissors variant
+where all players play at the same time.
+
+Here is a function to compute the utilities of a particular strategy profile::
+
+    sage: def strategy_to_utility(P1, P2, P3):
+    ....:     what_beats = {'R': 'P', 'P': 'S', 'S': 'R'}
+    ....:     what_loses = {'R': 'S', 'P': 'R', 'S': 'P'}
+    ....:     p1_score = [P2, P3].count(what_loses[P1])- [P2, P3].count(what_beats[P1])
+    ....:     p2_score = [P1, P3].count(what_loses[P2])- [P1, P3].count(what_beats[P2])
+    ....:     p3_score = [P2, P1].count(what_loses[P3])- [P2, P1].count(what_beats[P3])
+    ....:     return p1_score, p2_score, p3_score
+
+Here we get all possible strategy profiles at each level of the tree::
+
+    sage: import itertools
+    sage: all_possible_profiles = list(itertools.product(['R','P','S'], repeat=3))
+    sage: all_second_level_profiles = list(itertools.product(['R','P','S'], repeat=2))
+    sage: all_first_level_profiles = [('R',), ('P',), ('S',)]
+
+Creating our players::
+
+    sage: p1 = Player('P1')
+    sage: p2 = Player('P2')
+    sage: p3 = Player('P3')
+
+Putting nodes in a dictionary by level so as to recursively build up the tree::
+
+    sage: third_level_dictionary = {profile:Leaf({p1:strategy_to_utility(*profile)[0], p2:strategy_to_utility(*profile)[1], p3:strategy_to_utility(*profile)[2]}) for profile in all_possible_profiles}
+    sage: second_level_dictionary = {profile:Node({'R':third_level_dictionary[profile+('R',)], 'P':third_level_dictionary[profile+('P',)], 'S':third_level_dictionary[profile+('S',)]},player=p3) for profile in all_second_level_profiles}
+    sage: first_level_dictionary = {profile:Node({'R':second_level_dictionary[profile+('R',)], 'P':second_level_dictionary[profile+('P',)], 'S':second_level_dictionary[profile+('S',)]},player=p2) for profile in all_first_level_profiles}
+
+Building the node of the tree::
+
+    sage: root = Node({'P':first_level_dictionary[('P',)], 'R':first_level_dictionary[('R',)], 'S':first_level_dictionary[('S',)]}, player=p1)
+
+Building the tree::
+
+    sage: g = ExtensiveFormGame(root)
+
+Setting the information sets:
+
+    sage: info_set_for_p3 = second_level_dictionary.values()
+    sage: info_set_for_p2 = first_level_dictionary.values()
+    sage: g.set_info_set(info_set_for_p2)
+    sage: g.set_info_set(info_set_for_p3)
+
+    sage: p = g.plot()
+    sage: p
+    Graphics object consisting of 132 graphics primitives
+
+If you would like to see this tree run the follow but beware it's a large plot!::
+
+    sage: p.show(figsize=[20,50])  # We modify the size of the figure
 """
 from sage.graphs.all import Graph
 from sage.plot.line import line2d
