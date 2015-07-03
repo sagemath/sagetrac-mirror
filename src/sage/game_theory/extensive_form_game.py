@@ -250,7 +250,7 @@ Building the tree::
 
     sage: g = ExtensiveFormGame(root)
 
-Setting the information sets:
+Setting the information sets::
 
     sage: info_set_for_p3 = second_level_dictionary.values()
     sage: info_set_for_p2 = first_level_dictionary.values()
