@@ -868,7 +868,7 @@ class LazyFamily(AbstractFamily):
             sage: f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
 
-        Check for bug #18849. The error occured for an index set that was of class :class:`CombinatorClass`, but not
+        Check for bug #18849. The error occured for an index set that was of class :class:`CombinatorialClass`, but not
         finite. Note that we must not conversely assume that the index set is infinite if :meth:`is_finite`
         returns `False`::
 
