@@ -881,7 +881,6 @@ class LazyFamily(AbstractFamily):
             Category of enumerated sets
             sage: U.basis().category()
             Category of enumerated sets
-
         """
         from sage.combinat.combinat import CombinatorialClass # workaround #12482
 
