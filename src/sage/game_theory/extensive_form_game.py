@@ -659,32 +659,34 @@ class ExtensiveFormGame():
             Graphics object consisting of 20 graphics primitives
         """
 
-        keylist = []
         t = copy(self.tree)
         for node in self.nodes:
             actions = node.node_input.keys()
             for action in actions:
                 t.set_edge_label(node, node.node_input[action], str(node.player) + ': ' + action)
 
-        labels = {leaf: leaf.name + ' - ' + str(leaf.utilities) for leaf in self.leafs}
+        leaf_labels = {leaf: leaf.name + ' - ' + str(leaf.utilities) for leaf in self.leafs}
         # Adding padding so that leaf labels are to the right of the nodes
-        labels = {leaf: (2 * len(labels[leaf])) * ' ' + labels[leaf] for leaf in self.leafs}
-        t.relabel(labels)
+        leaf_labels = {leaf: (2 * len(leaf_labels[leaf])) * ' ' + leaf_labels[leaf] for leaf in self.leafs}
+        t.relabel(leaf_labels)
+
+        node_labels = {node: node.name for node in self.nodes}
+        t.relabel(node_labels)
 
         tree_plot = t.plot(layout='tree', tree_orientation='right',
-                        edge_labels=True, tree_root=self.tree_root,
+                        edge_labels=True, tree_root=self.tree_root.name,
                         save_pos=True, axes=False)
-        positions = t.get_pos()
 
+        positions = t.get_pos()
         past_info_node = self.info_sets[0][0]
         if view_info_sets is True:
             for info_set in self.info_sets:
                 past_info_node = info_set[0]
                 for node in info_set:
                     for key in positions.keys():
-                        if node is key:
-                            tree_plot += (line2d([positions[past_info_node],
-                                          positions[node]], linestyle="dashed",
+                        if node.name is key:
+                            tree_plot += (line2d([positions[past_info_node.name],
+                                          positions[node.name]], linestyle="dashed",
                                           color='green'))
                             past_info_node = node
         return tree_plot
