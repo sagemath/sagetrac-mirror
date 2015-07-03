@@ -19,7 +19,6 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/pari/decl.pxi"
-include "sage/libs/pari/pari_err.pxi"
 
 from sage.libs.gmp.all cimport *
 from sage.libs.flint.types cimport *
@@ -182,13 +181,13 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         elif isinstance(x, pari_gen):
             x_GEN = (<pari_gen>x).g
 
-            pari_catch_sig_on()
+            sig_on()
             if gequal0(x_GEN):
                 fq_nmod_zero(self.val, self._cparent)
-                pari_catch_sig_off()
+                sig_off()
             elif gequal1(x_GEN):
                 fq_nmod_one(self.val, self._cparent)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 t = typ(x_GEN)
                 p = self._parent.characteristic()
@@ -197,10 +196,10 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
                 if t == t_FFELT:
                     # The following calls pari_catch_sig_off()
                     x = (<PariInstance>pari).new_gen(FF_p(x_GEN))
-                    pari_catch_sig_on()
+                    sig_on()
                     y = FF_f(x_GEN)
                     R = modulus.parent()
-                    pari_catch_sig_on()
+                    sig_on()
                     z = R((<PariInstance>pari).new_gen(FF_mod(x_GEN)))
                     if x == p and y == f and z == modulus:
                         # The following calls pari_catch_sig_off()
@@ -208,7 +207,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
                         self.construct_from(R(x))
                         return
                 elif t == t_INT:
-                    pari_catch_sig_off()
+                    sig_off()
                     self.construct_from(Integer(x))
                     return
                 elif t == t_INTMOD:
@@ -224,7 +223,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
                         self.construct_from(Rational(x))
                         return
                 else:
-                    pari_catch_sig_off()
+                    sig_off()
                 raise TypeError("no coercion defined")
 
         elif (isinstance(x, FreeModuleElement)
@@ -582,7 +581,7 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
         cdef fmpz_t exp_fmpz
         inv = 0
         if exp == 0:
-            return self._parent.one_element()
+            return self._parent.one()
         if exp < 0:
             if fq_nmod_is_zero(self.val, self._cparent):
                 raise ZeroDivisionError
@@ -866,9 +865,9 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
 
             sage: k.<a> = GF(3^17, impl='flint_fq_nmod')
             sage: a._pari_init_()
-            'subst(a+3*a,a,ffgen(Mod(1, 3)*x^17 + Mod(2, 3)*x + Mod(1, 3),a))'
+            'subst(a+3*a,a,ffgen(Mod(1, 3)*a^17 + Mod(2, 3)*a + Mod(1, 3),a))'
             sage: k(1)._pari_init_()
-            'subst(1+3*a,a,ffgen(Mod(1, 3)*x^17 + Mod(2, 3)*x + Mod(1, 3),a))'
+            'subst(1+3*a,a,ffgen(Mod(1, 3)*a^17 + Mod(2, 3)*a + Mod(1, 3),a))'
 
         This is used for conversion to GP. The element is displayed
         as "a" but has correct arithmetic::
