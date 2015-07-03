@@ -261,9 +261,10 @@ Setting the information sets:
     sage: p
     Graphics object consisting of 132 graphics primitives
 
-If you would like to see this tree run the follow but beware it's a large plot!::
+If you would like to see this tree run the follow but beware it's a large
+plot!::
 
-    sage: p.show(figsize=[20,50])  # We modify the size of the figure
+    sage: p.show(figsize=[20, 50])  # modifies the size of the plot
 """
 from sage.graphs.all import Graph
 from sage.plot.line import line2d
