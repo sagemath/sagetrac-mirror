@@ -233,22 +233,6 @@ cdef class FiniteField_flint_fq(FiniteField):
         return cmp((self.cardinality(), self.variable_name(), self._modulus),
                    (other.cardinality(), other.variable_name(), other._modulus))
 
-    def __richcmp__(left, right, op):
-        """
-        Compare ``left`` with ``right``.
-
-        EXAMPLE::
-
-            sage: k = FiniteField(2^17, 'a', impl='flint_fq')
-            sage: j = FiniteField(2^18, 'b', impl='flint_fq')
-            sage: k == j
-            False
-
-            sage: k == copy(k)
-            True
-        """
-        return left._richcmp_helper(right, op)
-
     def gen(self, n=0):
         """
         Return a generator of the finite field.
