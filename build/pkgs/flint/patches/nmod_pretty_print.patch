@@ -1,0 +1,356 @@
+From 6257076d5beb482b9a105f68516a5cb21e217d92 Mon Sep 17 00:00:00 2001
+From: Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>
+Date: Mon, 21 Jul 2014 08:04:53 -0700
+Subject: [PATCH] Implement pretty print for nmod_poly (and fq_nmod).
+
+---
+ fq_nmod.h                  |   6 +--
+ fq_nmod/get_str_pretty.c   |   3 +-
+ nmod_poly.h                |  32 ++++++++----
+ nmod_poly/fprintf_pretty.c | 115 ++++++++++++++++++++++++++++++++++++++++++
+ nmod_poly/get_str_pretty.c | 123 +++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 262 insertions(+), 17 deletions(-)
+ create mode 100644 nmod_poly/fprintf_pretty.c
+ create mode 100644 nmod_poly/get_str_pretty.c
+
+diff --git a/fq_nmod.h b/fq_nmod.h
+index c80a5a6..6424f10 100644
+--- a/fq_nmod.h
++++ b/fq_nmod.h
+@@ -363,18 +363,16 @@ void fq_nmod_print(const fq_nmod_t op, const fq_nmod_ctx_t ctx)
+     nmod_poly_print(op);
+ }
+ 
+-/* TODO: Make nmod_poly_fprint_pretty */
+ static __inline__ 
+ int fq_nmod_fprint_pretty(FILE * file, const fq_nmod_t op, const fq_nmod_ctx_t ctx)
+ {
+-    return nmod_poly_fprint(file, op);
++    return nmod_poly_fprint_pretty(file, op, ctx->var);
+ }
+ 
+-/* TODO: Make nmod_poly_print_pretty */
+ static __inline__ 
+ void fq_nmod_print_pretty(const fq_nmod_t op, const fq_nmod_ctx_t ctx)
+ {
+-    nmod_poly_print(op);
++    nmod_poly_print_pretty(op, ctx->var);
+ }
+ 
+ char *
+diff --git a/fq_nmod/get_str_pretty.c b/fq_nmod/get_str_pretty.c
+index b13f927..aea92b8 100644
+--- a/fq_nmod/get_str_pretty.c
++++ b/fq_nmod/get_str_pretty.c
+@@ -28,6 +28,5 @@
+ char *
+ fq_nmod_get_str_pretty(const fq_nmod_t op, const fq_nmod_ctx_t ctx)
+ {
+-    /* TODO: Implement nmod_poly_get_str_pretty */
+-    return nmod_poly_get_str(op);
++    return nmod_poly_get_str_pretty(op, ctx->var);
+ }
+diff --git a/nmod_poly.h b/nmod_poly.h
+index 5c45b9c..4de0daa 100644
+--- a/nmod_poly.h
++++ b/nmod_poly.h
+@@ -344,8 +344,27 @@ void nmod_poly_set_coeff_ui(nmod_poly_t poly, slong j, ulong c);
+ 
+ char * nmod_poly_get_str(const nmod_poly_t poly);
+ 
++char * nmod_poly_get_str_pretty(const nmod_poly_t poly, const char * x);
++
+ int nmod_poly_set_str(nmod_poly_t poly, const char * s);
+ 
++int nmod_poly_fread(FILE * f, nmod_poly_t poly);
++
++static __inline__
++int nmod_poly_fprint(FILE * f, const nmod_poly_t poly)
++{
++    char *s;
++    int r;
++
++    s = nmod_poly_get_str(poly);
++    r = fputs(s, f);
++    flint_free(s);
++
++    return (r < 0) ? r : 1;
++}
++
++int nmod_poly_fprint_pretty(FILE * f, const nmod_poly_t a, const char * x);
++
+ static __inline__
+ int nmod_poly_print(const nmod_poly_t a)
+ {
+@@ -366,19 +385,10 @@ int nmod_poly_print(const nmod_poly_t a)
+     return (int) r;
+ }
+ 
+-int nmod_poly_fread(FILE * f, nmod_poly_t poly);
+-
+ static __inline__
+-int nmod_poly_fprint(FILE * f, const nmod_poly_t poly)
++int nmod_poly_print_pretty(const nmod_poly_t a, const char * x)
+ {
+-    char *s;
+-    int r;
+-
+-    s = nmod_poly_get_str(poly);
+-    r = fputs(s, f);
+-    flint_free(s);
+-
+-    return (r < 0) ? r : 1;
++    return nmod_poly_fprint_pretty(stdout, a, x);
+ }
+ 
+ static __inline__
+diff --git a/nmod_poly/fprintf_pretty.c b/nmod_poly/fprintf_pretty.c
+new file mode 100644
+index 0000000..53971be
+--- /dev/null
++++ b/nmod_poly/fprintf_pretty.c
+@@ -0,0 +1,115 @@
++/*=============================================================================
++
++    This file is part of FLINT.
++
++    FLINT is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    FLINT is distributed in the hope that it wdll be useful,
++    but WITHOUT ANY WARRANTY; wdthout even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along wdth FLINT; if not, write to the Free Software
++    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
++
++=============================================================================*/
++/******************************************************************************
++
++    Copyright (C) 2014 Jean-Pierre Flori
++
++******************************************************************************/
++
++#include <stdlib.h>
++#include <string.h>
++#include <math.h>
++#include <gmp.h>
++#include "flint.h"
++#include "nmod_poly.h"
++
++
++int nmod_poly_fprint_pretty(FILE * f, const nmod_poly_t a, const char * x)
++{
++    size_t r;
++    slong i;
++
++    if (a->length == 0)
++    {
++        r = fputc('0', f);
++        r = ((int) r != EOF) ? 1 : EOF;
++        return r;
++    }
++    else if (a->length == 1)
++    {
++        r = flint_fprintf(f, "%wu", a->coeffs[0]);
++        return r;
++    }
++
++    i = a->length - 1;
++    r = 1;
++    if (i == 1)
++    {
++        switch (a->coeffs[1])
++        {
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                r = flint_fprintf(f, "%s", x);
++                break;
++            default:
++                r = flint_fprintf(f, "%wu*%s", a->coeffs[1], x);
++        }
++        --i;
++    }
++    else
++    {
++        switch (a->coeffs[i])
++        {
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                r = flint_fprintf(f, "%s^%wd", x, i);
++                break;
++            default:
++                r = flint_fprintf(f, "%wu*%s^%wd", a->coeffs[i], x, i);
++        }
++        --i;
++    }
++    for (; (r > 0) && (i > 1); --i)
++    {
++        switch (a->coeffs[i])
++        {
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                r = flint_fprintf(f, "+%s^%wd", x, i);
++                break;
++            default:
++                r = flint_fprintf(f, "+%wu*%s^%wd", a->coeffs[i], x, i);
++        }
++    }
++    if (r > 0 && i == 1)
++    {   
++        switch (a->coeffs[1])
++        {   
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                r = flint_fprintf(f, "+%s", x);
++                break;
++            default:
++                r = flint_fprintf(f, "+%wu*%s", a->coeffs[1], x);
++        }
++    }
++    if (r > 0)
++    {
++        if (a->coeffs[0] != UWORD(0))
++            r = flint_fprintf(f, "+%wu", a->coeffs[0]);
++    }
++
++    return (int) r;
++}
++
+diff --git a/nmod_poly/get_str_pretty.c b/nmod_poly/get_str_pretty.c
+new file mode 100644
+index 0000000..96283c7
+--- /dev/null
++++ b/nmod_poly/get_str_pretty.c
+@@ -0,0 +1,123 @@
++/*=============================================================================
++
++    This file is part of FLINT.
++
++    FLINT is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    FLINT is distributed in the hope that it wdll be useful,
++    but WITHOUT ANY WARRANTY; wdthout even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along wdth FLINT; if not, write to the Free Software
++    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
++
++=============================================================================*/
++/******************************************************************************
++
++    Copyright (C) 2007, David Howden.
++    Copyright (C) 2010 William Hart
++
++******************************************************************************/
++
++#include <stdlib.h>
++#include <string.h>
++#include <math.h>
++#include "flint.h"
++#include "nmod_poly.h"
++
++char * nmod_poly_get_str_pretty(const nmod_poly_t poly, const char * x)
++{
++    slong i;
++    char * buf, * ptr;
++
++    slong size = 0;
++
++    if (poly->length == 0)
++    {
++        buf = (char *) flint_malloc(2);
++        buf[0] = '0';
++        buf[1] = '\0';
++        return buf;
++    }
++    else if (poly->length == 1)
++    {
++        size = (ulong) ceil(0.30103*FLINT_BIT_COUNT(poly->coeffs[0]));
++        buf = (char *) flint_malloc(size);
++        flint_sprintf(buf, "%wu", poly->coeffs[0]);
++        return buf;
++    }
++
++    for (i = 0; i < poly->length; i++)
++    {
++        if (poly->coeffs[i]) /* log(2)/log(10) < 0.30103, +3 for +*^ or null*/
++            size += (ulong) ceil(0.30103*FLINT_BIT_COUNT(poly->coeffs[i])) + 
++                    (ulong) ceil(0.30103*FLINT_BIT_COUNT(i)) + strlen(x) + 3; 
++    }
++
++    buf = (char *) flint_malloc(size);  
++    ptr = buf;
++    --i;
++    if (i == 1)
++    {
++        switch (poly->coeffs[1])
++        {
++            case UWORD(1):
++                ptr += flint_sprintf(ptr, "%s", x);
++                break;
++            default:
++                ptr += flint_sprintf(ptr, "%wu*%s", poly->coeffs[1], x);
++        }
++        --i;
++    }
++    else
++    {
++        switch (poly->coeffs[i])
++        {
++            case UWORD(1):
++                ptr += flint_sprintf(ptr, "%s^%wd", x, i);
++                break;
++            default:
++                ptr += flint_sprintf(ptr, "%wu*%s^%wd", poly->coeffs[i], x, i);
++        }
++        --i;
++    }
++    for (; i > 1; --i)
++    {
++        switch (poly->coeffs[i])
++        {
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                ptr += flint_sprintf(ptr, "+%s^%wd", x, i);
++                break;
++            default:
++                ptr += flint_sprintf(ptr, "+%wu*%s^%wd", poly->coeffs[i], x, i);
++        }
++        
++    }
++    if (i == 1)
++    {   
++        switch (poly->coeffs[1])
++        {   
++            case UWORD(0):
++                break;
++            case UWORD(1):
++                ptr += flint_sprintf(ptr, "+%s", x);
++                break;
++            default:
++                ptr += flint_sprintf(ptr, "+%wu*%s", poly->coeffs[1], x);
++        }
++    }
++    {
++        if (poly->coeffs[0] != UWORD(0))
++            ptr += flint_sprintf(ptr, "+%wu", poly->coeffs[0]);
++    }
++
++    return buf;
++}
++
