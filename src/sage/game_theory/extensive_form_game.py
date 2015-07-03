@@ -80,16 +80,16 @@ Once we have done this, we are ready to create our leafs::
 
     sage: leaf_1 = Leaf({player_1: 2, player_2: 3})
     sage: leaf_1
-    (2, 3)
+    Extensive form game leaf with utilities given by: (2, 3)
     sage: leaf_2 = Leaf({player_1: 0, player_2: 0})
     sage: leaf_2
-    (0, 0)
+    Extensive form game leaf with utilities given by: (0, 0)
     sage: leaf_3 = Leaf({player_1: 1, player_2: 1})
     sage: leaf_3
-    (1, 1)
+    Extensive form game leaf with utilities given by: (1, 1)
     sage: leaf_4 = Leaf({player_1: 3, player_2: 2})
     sage: leaf_4
-    (3, 2)
+    Extensive form game leaf with utilities given by: (3, 2)
 
 We can then create the parents of these leafs, the general :code:`Node` class
 takes 3 arguments: a dictionary mapping actions to other nodes, a name for the
@@ -175,7 +175,7 @@ Now the game does not have perfect information::
 Information sets are demonstrated visually on the graph we plot by setting
 ```view_info_sets``` to be ```True``` while plotting::
 
-    sage: battle_of_the_sexes.plot(view_info_sets = True)
+    sage: battle_of_the_sexes.plot(view_info_sets=True)
     Graphics object consisting of 23 graphics primitives
 
 Which will be plotted as follows:
@@ -208,6 +208,7 @@ from sage.graphs.all import Graph
 from sage.plot.line import line2d
 from sage.graphs.generic_graph import GenericGraph
 from operator import attrgetter
+from copy import copy
 
 class ExtensiveFormGame():
     r"""
@@ -275,7 +276,10 @@ class ExtensiveFormGame():
             sage: egame_1.nodes
             [Node 1, Node 2, Root 1]
             sage: egame_1.leafs
-            [(0, 1, -5), (1, 0, -4), (2, 4, -3), (2, 1, -2)]
+            [Extensive form game leaf with utilities given by: (0, 1, -5),
+             Extensive form game leaf with utilities given by: (1, 0, -4),
+             Extensive form game leaf with utilities given by: (2, 4, -3),
+             Extensive form game leaf with utilities given by: (2, 1, -2)]
             sage: egame_1.tree
             Graph on 7 vertices
 
@@ -565,11 +569,15 @@ class ExtensiveFormGame():
         """
 
         keylist = []
-        t = self.tree
+        t = copy(self.tree)
         for node in self.nodes:
             keylist = node.node_input.keys()
             for key in keylist:
                 t.set_edge_label(node, node.node_input[key], key)
+        labels = {leaf: leaf.name + ' - ' + str(leaf.utilities) for leaf in self.leafs}
+        # Adding padding so that leaf labels are to the right of the nodes
+        labels = {leaf: (2 * len(labels[leaf])) * ' ' + labels[leaf] for leaf in self.leafs}
+        t.relabel(labels)
 
         tree_plot = t.plot(layout='tree', tree_orientation='right',
                         edge_labels=True, tree_root=self.tree_root,
@@ -788,7 +796,8 @@ class Node():
             sage: mother_node.actions
             ['Action1', 'Action2']
             sage: mother_node.children
-            [(0, 1), (1, 0)]
+            [Extensive form game leaf with utilities given by: (0, 1),
+             Extensive form game leaf with utilities given by: (1, 0)]
 
         If we then create a second node, who has :code:`mother_node` as one of
         its children, then the parent of :code:`mother_node` will be set to that
@@ -965,7 +974,7 @@ class Node():
 
 
 class Leaf():
-    def __init__(self, payoffs, name = False):
+    def __init__(self, payoffs, name=False):
         """
         We can check payoffs of any leaf::
 
@@ -980,6 +989,8 @@ class Leaf():
             1
             sage: leaf_1.players
             [Player 1, Player 2]
+            sage: leaf_1.utilities
+            (0, 1)
 
         The payoffs must be in dictionary form such that the keys are players,
         and the values are either float or integers::
@@ -988,24 +999,25 @@ class Leaf():
             sage: leaf_1 = Leaf({node_1: 0, node_2: 1})
             Traceback (most recent call last):
             ...
-            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffss.
+            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.
 
             sage: leaf_1 = Leaf([0, 1])
             Traceback (most recent call last):
             ...
-            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffss.
+            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.
         """
         if type(payoffs) is not dict:
-            raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffss.")
+            raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.")
 
         self.payoffs =  payoffs
         self.name = name
         self.players = sorted(payoffs.keys(), key=lambda x:x.name)
         self.parent = False
+        self.utilities = tuple([self[player] for player in sorted(self.players, key=lambda x:x.name)])
 
         for player in self.players:
             if not isinstance(player, Player):
-                raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffss.")
+                raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.")
 
     def __repr__(self):
         """
@@ -1015,23 +1027,22 @@ class Leaf():
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1}, 'end_leaf')
             sage: leaf_1
-            (0, 1)
+            Extensive form game leaf with utilities given by: (0, 1)
 
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 5, player_2: 1}, 'end_leaf')
             sage: leaf_1
-            (5, 1)
+            Extensive form game leaf with utilities given by: (5, 1)
 
             sage: player_1 = Player('Vince')
             sage: player_2 = Player('Hannah')
             sage: player_3 = Player('James')
             sage: leaf_1 = Leaf({player_1: 5, player_2: 1, player_3:10}, 'end_leaf')
             sage: leaf_1
-            (1, 10, 5)
+            Extensive form game leaf with utilities given by: (1, 10, 5)
         """
-        return str(tuple([self[player] for player in
-                        sorted(self.players, key=lambda x:x.name)]))
+        return 'Extensive form game leaf with utilities given by: ' + str(self.utilities)
 
 
     def __delitem__(self, key):
