@@ -286,7 +286,7 @@ class ExtensiveFormGame():
     - ``generator`` - Can be an instance of the Node class which serves as the
       root of the tree.
     """
-    def __init__(self, generator, name=False, extensive_root=False):
+    def __init__(self, generator, name=False):
         r"""
         Initializes an Extensive Form game and checks the inputs.
 
@@ -879,8 +879,8 @@ class ExtensiveFormGame():
     def gambit_convert(self):
         """
         This will take a Sage Extensive Form Game and conver it into a Gambit Extensive Form Game::
-            
-            sage: from gambit import Game 
+
+            sage: from gambit import Game
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
             sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
@@ -892,10 +892,14 @@ class ExtensiveFormGame():
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
             sage: egame_1 = ExtensiveFormGame(root_1)
             sage: egame_1.info_sets
-            [[Node 1], [Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1],
+             [Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
             sage: egame_1.set_info_set([node_1, node_2])
             sage: egame_1.info_sets
-            [[Node 1, Node 2], [Root 1]]
+            [[Extensive form game node with name: Node 1,
+              Extensive form game node with name: Node 2],
+             [Extensive form game node with name: Root 1]]
             sage: gambit_egame_1 = egame_1.gambit_convert()
             sage: gambit_egame_1.players
             [<Player [0] 'Player 1' in game ''>, <Player [1] 'Player 2' in game ''>]
@@ -907,7 +911,7 @@ class ExtensiveFormGame():
             sage: gambit_egame_1
             EFG 2 R "" { "Player 1" "Player 2" }
             ""
-            
+
             p "Root 1" 1 1 "[Root 1]" { "C" "D" } 0
             p "Node 1" 2 1 "[[Node 1, Node 2]]" { "A" "B" } 0
             t "" 1 "Leaf 1" { 0, 1 }
@@ -915,7 +919,7 @@ class ExtensiveFormGame():
             p "Node 2" 2 1 "[[Node 1, Node 2]]" { "A" "B" } 0
             t "" 3 "Leaf 3" { 2, 4 }
             t "" 4 "Leaf 4" { 2, 1 }
-            
+
 
         Large test::
             sage: player_a1 = Player('Player 1')
@@ -949,7 +953,7 @@ class ExtensiveFormGame():
             sage: gambit_egame_a1
             EFG 2 R "" { "Player 1" "Player 2" }
             ""
-            
+
             p "Tree Root" 1 1 "[Tree Root]" { "A" "B" } 0
             p "Node 6" 2 1 "[[Node 5, Node 6]]" { "C" "D" } 0
             p "Node 3" 1 2 "[[Node 1, Node 2, Node 3, Node 4]]" { "A" "B" } 0
@@ -965,7 +969,7 @@ class ExtensiveFormGame():
             p "Node 4" 1 2 "[[Node 1, Node 2, Node 3, Node 4]]" { "A" "B" } 0
             t "" 5 "Leaf 7" { 2, 4 }
             t "" 6 "Leaf 8" { 2, 1 }
-            
+
 
         A test with a tree that isn't symmetrical::
 
@@ -996,7 +1000,7 @@ class ExtensiveFormGame():
             sage: gambit_egame_a1
             EFG 2 R "" { "Player 1" "Player 2" }
             ""
-            
+
             p "Tree Root" 1 1 "[Tree Root]" { "A" "B" } 0
             p "Node 4" 2 1 "[[Node 4]]" { "C" "D" } 0
             p "Node 1" 1 2 "[[Node 1, Node 2]]" { "A" "B" } 0
@@ -1008,7 +1012,7 @@ class ExtensiveFormGame():
             p "Node 3" 2 2 "[[Node 3]]" { "C" "D" } 0
             t "" 1 "Leaf 5" { 0, 1 }
             t "" 2 "Leaf 6" { 1, 0 }
-            
+
         """
         g = Game.new_tree()
         for player in self.players:
@@ -1019,7 +1023,7 @@ class ExtensiveFormGame():
         gambit_root = g.root
         gambit_root.label = self.tree_root.name
         gambit_root_infoset = gambit_root.append_move(g.players[self.tree_root.player.name], len(self.tree_root.children))
-        gambit_root_infoset.label = "[%s]" %self.tree_root.name               
+        gambit_root_infoset.label = "[%s]" %self.tree_root.name
         for index in range(len(self.tree_root.actions)):
             gambit_root_infoset.actions[index].label = self.tree_root.actions[index]
         gambit_branches_store[self.tree_root] = gambit_root
@@ -1029,13 +1033,13 @@ class ExtensiveFormGame():
             if isinstance(child, Leaf):
                 Outcomes = g.outcomes.add(child.name)
                 for index in range(len(self.players)):
-                    player = self.players[index] 
+                    player = self.players[index]
                     Outcomes[index] = int(child[player])
                 for action in self.tree_root.actions:
                     if self.tree_root.node_input[action] is child:
                         for branch_index in range(len(gen_node.actions)):
                             if self.tree_root.actions[branch_index] is action:
-                                gambit_root.children[branch_index].outcome = Outcomes 
+                                gambit_root.children[branch_index].outcome = Outcomes
             gambit_iset_store[self.tree_root] = gambit_root_infoset
         while len(gen_nodes) is not 0:
             gen_nodes_2 = []
@@ -1063,7 +1067,7 @@ class ExtensiveFormGame():
                                 if isinstance(child, Leaf):
                                     Outcomes = g.outcomes.add(child.name)
                                     for index in range(len(self.players)):
-                                        player = self.players[index] 
+                                        player = self.players[index]
                                         Outcomes[index] = int(child[player])
                                     for action in gen_node.actions:
                                         if gen_node.node_input[action] is child:
@@ -1071,7 +1075,7 @@ class ExtensiveFormGame():
                                                 if gen_node.actions[branch_index] is action:
                                                     gambit_node.children[branch_index].outcome = Outcomes
                             gambit_iset_store[gen_node] = gambit_node_infoset
-                        elif gen_node is info_node: 
+                        elif gen_node is info_node:
                             for action in gen_node.parent.actions:
                                 if gen_node.parent.node_input[action] is gen_node:
                                     for index in range(len(gen_node.parent.actions)):
@@ -1088,7 +1092,7 @@ class ExtensiveFormGame():
                                 if isinstance(child, Leaf):
                                     Outcomes = g.outcomes.add(child.name)
                                     for index in range(len(self.players)):
-                                        player = self.players[index] 
+                                        player = self.players[index]
                                         Outcomes[index] = int(child[player])
                                     for action in gen_node.actions:
                                         if gen_node.node_input[action] is child:
@@ -1136,7 +1140,6 @@ class Node():
             False
             sage: grandmother_node.parent
             False
-
 
         Nodes automatically have player set to false, we can then assign a
         player to that node::
@@ -1187,16 +1190,15 @@ class Node():
 
         elif type(node_input) is list:
             if node_input == []:
-                self.actions = []
+                self.actions = False
             else:
                 self.actions = node_input
 
         else:
             raise TypeError("Node must be passed an node_input in the form of a dictionary or a list.")
 
-        self.actions.sort()
 
-        
+
     def __repr__(self):
         """
         Representation method for the Node::
