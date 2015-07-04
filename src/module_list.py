@@ -1785,7 +1785,6 @@ ext_modules = [
               sources = ['sage/ffisom/javad_fmpz_mod.pyx'],
               libraries = ['javad_fmpz_mod', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp'],
               language = 'c++'),
-    ]
 ]
 
 # Add auto-generated modules
