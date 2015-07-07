@@ -772,7 +772,7 @@ Go to the `Sage website <http://sagemath.org/download-packages.html>`_ and
 
 .. code-block:: python
 
-    sage -i 4ti2.p0
+    make 4ti2
 
 Usage
 -----

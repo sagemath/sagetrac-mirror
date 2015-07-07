@@ -51,7 +51,7 @@ definition can be found in the documentation of
     d3js.org website by the browser. If you want to avoid that (e.g.  to
     protect your privacy or by lack of internet connection), you can install
     the d3js package for offline use with the Sage command
-    ``install_package('d3js')`` or by running ``sage -i d3js`` from the command
+    ``install_package('d3js')`` or by running ``make d3js`` from the command
     line.
 
 .. TODO::
@@ -153,7 +153,7 @@ def gen_html_code(G,
         from d3js.org website by the browser. If you want to avoid that (e.g.
         to protect your privacy or by lack of internet connection), you can
         install the d3js package for offline use with the Sage command
-        ``install_package('d3js')`` or by running ``sage -i d3js`` from the
+        ``install_package('d3js')`` or by running ``make d3js`` from the
         command line.
 
     EXAMPLES::

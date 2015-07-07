@@ -196,10 +196,7 @@ Distribution of avalanche sizes::
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
 
 To calculate linear systems associated with divisors, 4ti2 must be installed.
-One way to do this is to run sage -i to install glpk, then 4ti2.  See
-http://sagemath.org/download-packages.html to get the exact names of these
-packages.  An alternative is to install 4ti2 separately, then point the
-following variable to the correct path.
+The easiest way to do this is to run ``make 4ti2``.
 """
 
 #*****************************************************************************

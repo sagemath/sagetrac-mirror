@@ -7,14 +7,14 @@ curves. You can install the database (a 2.6GB package) with the command
 
 ::
 
-    sage -i database_stein_watkins
+    make database_stein_watkins
 
 You can also automatically download a small version, which takes much less
 time, using the command
 
 ::
 
-    sage -i database_stein_watkins_mini
+    make database_stein_watkins_mini
 
 This database covers a wide range of conductors, but unlike the
 :mod:`Cremona database <sage.databases.cremona>`, this database need not list
