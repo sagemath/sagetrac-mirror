@@ -265,6 +265,7 @@ If you would like to see this tree run the follow but beware it's a large
 plot!::
 
     sage: p.show(figsize=[20, 50])  # modifies the size of the plot
+
 """
 from sage.graphs.all import Graph
 from sage.plot.line import line2d
@@ -810,7 +811,7 @@ class ExtensiveFormGame():
         return d, sorted(d.keys(), key=attrgetter('name'))
 
     def _check_node_names_and_find_players(self, generator):
-        """
+        r"""
         A method to check the names of the nodes and gives names for the ones
         that do not have names. This also finds all the players.
 
@@ -885,8 +886,9 @@ class ExtensiveFormGame():
         return "Extensive Form Game with the following underlying tree: " + str(self.tree_dictionary)
 
     def gambit_convert(self):
-        """
-        This will take a Sage Extensive Form Game and conver it into a Gambit Extensive Form Game::
+        r"""
+        In order to convert a sage ```ExtensiveFormGame``` into a Gambit ```Game```, we have to set up the sage game as normal, 
+        setting up information sets we want, before using ```gambit_convert```::
 
             sage: from gambit import Game
             sage: player_1 = Player('Player 1')
@@ -909,6 +911,9 @@ class ExtensiveFormGame():
               Extensive form game node with name: Node 2],
              [Extensive form game node with name: Root 1]]
             sage: gambit_egame_1 = egame_1.gambit_convert()
+
+        Information can be called from the gambit game using the gambit functions::
+
             sage: gambit_egame_1.players
             [<Player [0] 'Player 1' in game ''>, <Player [1] 'Player 2' in game ''>]
             sage: gambit_egame_1.infosets
@@ -920,6 +925,9 @@ class ExtensiveFormGame():
             sage: gambit_egame_1.outcomes
             [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>, 
             <Outcome [2] 'Leaf 3' in game ''>, <Outcome [3] 'Leaf 4' in game ''>]
+
+        We can also call the .efg format of the game by simply calling the game::
+
             sage: gambit_egame_1
             EFG 2 R "" { "Player 1" "Player 2" }
             ""
@@ -934,7 +942,8 @@ class ExtensiveFormGame():
             <BLANKLINE>
 
 
-        Large test::
+        The following is a test to show that this works for larger trees too::
+
             sage: player_a1 = Player('Player 1')
             sage: player_a2 = Player('Player 2')
             sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 1')
@@ -995,7 +1004,7 @@ class ExtensiveFormGame():
             t "" 8 "Leaf 8" { 2, 1 }
             <BLANKLINE>
             
-        A test with a tree that isn't symmetrical::
+        This is a test with a tree that isn't symmetrical::
 
             sage: player_a1 = Player('Player 1')
             sage: player_a2 = Player('Player 2')
@@ -1036,6 +1045,42 @@ class ExtensiveFormGame():
             t "" 1 "Leaf 5" { 0, 1 }
             t "" 2 "Leaf 6" { 1, 0 }
             <BLANKLINE>
+
+        This is a test for a game with more than 2 players::
+
+            sage: player_1 = Player('Player 1')
+            sage: player_2 = Player('Player 2')
+            sage: player_3 = Player('Player 3')
+            sage: leaf_1 = Leaf({player_1 : 0, player_2: 1, player_3: -5}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1 : 1, player_2: 0, player_3: -4}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1 : 2, player_2: 4, player_3: -3}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1 : 2, player_2: 1, player_3: -2}, 'Leaf 4')
+            sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_3)
+            sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: egame_1 = ExtensiveFormGame(root_1)
+            sage: gambit_egame_1 = egame_1.gambit_convert()
+            sage: gambit_egame_1.players
+            [<Player [0] 'Player 1' in game ''>, <Player [1] 'Player 2' in game ''>, <Player [2] 'Player 3' in game ''>]
+            sage: gambit_egame_1.root
+            <Node [1] 'Root 1' in game ''>
+            sage: gambit_egame_1.infosets
+            [<Infoset [0] '[Extensive form game node with name: Root 1]' for player 'Player 1' in game ''>, 
+            <Infoset [0] '[[Extensive form game node with name: Node 2]]' for player 'Player 2' in game ''>, 
+            <Infoset [0] '[[Extensive form game node with name: Node 1]]' for player 'Player 3' in game ''>]
+            sage: gambit_egame_1
+            EFG 2 R "" { "Player 1" "Player 2" "Player 3" }
+            ""
+            <BLANKLINE>
+            p "Root 1" 1 1 "[Extensive form game node with name: Root 1]" { "C" "D" } 0
+            p "Node 1" 3 1 "[[Extensive form game node with name: Node 1]]" { "A" "B" } 0
+            t "" 1 "Leaf 1" { 0, 1, -5 }
+            t "" 2 "Leaf 2" { 1, 0, -4 }
+            p "Node 2" 2 1 "[[Extensive form game node with name: Node 2]]" { "A" "B" } 0
+            t "" 3 "Leaf 3" { 2, 4, -3 }
+            t "" 4 "Leaf 4" { 2, 1, -2 }
+            <BLANKLINE>
+
         """
         g = Game.new_tree()
         for player in self.players:
@@ -1078,9 +1123,9 @@ class ExtensiveFormGame():
         return g
 
     def _create_gambit_branches(self, game, sage_efg_node, info_set, gambit_node):
-        """
+        r"""
         A sub-function of ```gambit_convert``` which converts a sage node into a gambit node and passes 
-        required information along.
+        required information along. It can be used to create individual branches for a gambit game using a sage efg node.
 
             sage: from gambit import Game
             sage: player_1 = Player('Player 1')
@@ -1123,7 +1168,7 @@ class ExtensiveFormGame():
         self.gambit_iset_store[sage_efg_node] = gambit_node_infoset
 
     def _sort_children(self, game, sage_efg_node, gambit_node):
-        """
+        r"""
         A sub-function of ```gambit_convert``` which looks at the children of a sage node and if 
         the child is a leaf, it adds the outcomes to the game, otherwise if any of the nodes are children,
         it adds them to a list to be converted into a gambit node later.
