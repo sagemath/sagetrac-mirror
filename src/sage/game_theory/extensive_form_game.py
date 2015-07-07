@@ -467,14 +467,15 @@ class ExtensiveFormGame():
                 self.nodes.sort(key=attrgetter('name', 'parent'))
                 self.leafs.sort(key=attrgetter('name', 'payoffs'))
                 self.info_sets.sort(key=lambda x: x[0].name)
+                self.gambit_branches_store = {}
+                self.gambit_iset_store = {}
+                self.generation_nodes = []
+                self.generation_nodes_2 = []
 
         else:
             raise TypeError("Extensive form game must be passed an input in the form of a Node or a Graph object.")
 
-        self.gambit_branches_store = {}
-        self.gambit_iset_store = {}
-        self.generation_nodes = []
-        self.generation_nodes_2 = []
+        
     def set_info_set(self, node_list):
         r"""
         Combines a list of nodes in to an information set.
@@ -916,6 +917,9 @@ class ExtensiveFormGame():
             Extensive form game node with name: Node 2]]' for player 'Player 2' in game ''>] 
             sage: gambit_egame_1.root
             <Node [1] 'Root 1' in game ''>
+            sage: gambit_egame_1.outcomes
+            [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>, 
+            <Outcome [2] 'Leaf 3' in game ''>, <Outcome [3] 'Leaf 4' in game ''>]
             sage: gambit_egame_1
             EFG 2 R "" { "Player 1" "Player 2" }
             ""
@@ -933,14 +937,14 @@ class ExtensiveFormGame():
         Large test::
             sage: player_a1 = Player('Player 1')
             sage: player_a2 = Player('Player 2')
-            sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = Leaf({player_a1 : 2, player_a2: 1})
-            sage: leaf_a5 = Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a7 = Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a8 = Leaf({player_a1 : 2, player_a2: 1})
+            sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 1')
+            sage: leaf_a2 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 2')
+            sage: leaf_a3 = Leaf({player_a1 : 2, player_a2: 4}, 'Leaf 3')
+            sage: leaf_a4 = Leaf({player_a1 : 2, player_a2: 1}, 'Leaf 4')
+            sage: leaf_a5 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 5')
+            sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 6')
+            sage: leaf_a7 = Leaf({player_a1 : 2, player_a2: 4}, 'Leaf 7')
+            sage: leaf_a8 = Leaf({player_a1 : 2, player_a2: 1}, 'Leaf 8')
             sage: node_a1 = Node({'A': leaf_a1, 'B': leaf_a2}, "Node 1", player = player_a1)
             sage: node_a2 = Node({'A': leaf_a3, 'B': leaf_a4}, "Node 2", player = player_a1)
             sage: node_a3 = Node({'A': leaf_a5, 'B': leaf_a6}, "Node 3", player = player_a1)
@@ -962,17 +966,45 @@ class ExtensiveFormGame():
             for player 'Player 2' in game ''>]
             sage: gambit_egame_a1.root
             <Node [1] 'Tree Root' in game ''>
+            sage: gambit_egame_a1.outcomes
+            [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>, <Outcome [2] 'Leaf 3' in game ''>, 
+            <Outcome [3] 'Leaf 4' in game ''>, <Outcome [4] 'Leaf 5' in game ''>, <Outcome [5] 'Leaf 6' in game ''>, 
+            <Outcome [6] 'Leaf 7' in game ''>, <Outcome [7] 'Leaf 8' in game ''>]
+            sage: gambit_egame_a1
+            EFG 2 R "" { "Player 1" "Player 2" }
+            ""
+            <BLANKLINE>
+            p "Tree Root" 1 1 "[Extensive form game node with name: Tree Root]" { "A" "B" } 0
+            p "Node 5" 2 1 "[[Extensive form game node with name: Node 5, Extensive form game node with name: Node 6]]" { "C" "D" } 0
+            p "Node 1" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2, 
+            Extensive form game node with name: Node 3, Extensive form game node with name: Node 4]]" { "A" "B" } 0
+            t "" 1 "Leaf 1" { 0, 1 }
+            t "" 2 "Leaf 2" { 1, 0 }
+            p "Node 2" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2, 
+            Extensive form game node with name: Node 3, Extensive form game node with name: Node 4]]" { "A" "B" } 0
+            t "" 3 "Leaf 3" { 2, 4 }
+            t "" 4 "Leaf 4" { 2, 1 }
+            p "Node 6" 2 1 "[[Extensive form game node with name: Node 5, Extensive form game node with name: Node 6]]" { "C" "D" } 0
+            p "Node 3" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2, 
+            Extensive form game node with name: Node 3, Extensive form game node with name: Node 4]]" { "A" "B" } 0
+            t "" 5 "Leaf 5" { 0, 1 }
+            t "" 6 "Leaf 6" { 1, 0 }
+            p "Node 4" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2, 
+            Extensive form game node with name: Node 3, Extensive form game node with name: Node 4]]" { "A" "B" } 0
+            t "" 7 "Leaf 7" { 2, 4 }
+            t "" 8 "Leaf 8" { 2, 1 }
+            <BLANKLINE>
             
         A test with a tree that isn't symmetrical::
 
             sage: player_a1 = Player('Player 1')
             sage: player_a2 = Player('Player 2')
-            sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = Leaf({player_a1 : 2, player_a2: 1})
-            sage: leaf_a5 = Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0})
+            sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 1')
+            sage: leaf_a2 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 2')
+            sage: leaf_a3 = Leaf({player_a1 : 2, player_a2: 4}, 'Leaf 3')
+            sage: leaf_a4 = Leaf({player_a1 : 2, player_a2: 1}, 'Leaf 4')
+            sage: leaf_a5 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 5')
+            sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 6')
             sage: node_a1 = Node({'A': leaf_a1, 'B': leaf_a2}, "Node 1",  player = player_a1)
             sage: node_a2 = Node({'A': leaf_a3, 'B': leaf_a4}, "Node 2", player = player_a1)
             sage: node_a5 = Node({'C': node_a1, 'D': node_a2}, "Node 3", player = player_a2)
@@ -984,11 +1016,26 @@ class ExtensiveFormGame():
             sage: gambit_egame_a1.players
             [<Player [0] 'Player 1' in game ''>, <Player [1] 'Player 2' in game ''>]
             sage: gambit_egame_a1.outcomes
-            [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>, <Outcome [2] 'Leaf 5' in game ''>, <Outcome [3]
-            'Leaf 6' in game ''>, <Outcome [4] 'Leaf 3' in game ''>, <Outcome [5] 'Leaf 4' in game ''>]
+            [<Outcome [0] 'Leaf 5' in game ''>, <Outcome [1] 'Leaf 6' in game ''>, <Outcome [2] 'Leaf 1' in game ''>, <Outcome [3]
+            'Leaf 2' in game ''>, <Outcome [4] 'Leaf 3' in game ''>, <Outcome [5] 'Leaf 4' in game ''>]
             sage: gambit_egame_a1.root
             <Node [1] 'Root' in game ''>
-            
+            sage: gambit_egame_a1
+            EFG 2 R "" { "Player 1" "Player 2" }
+            ""
+            <BLANKLINE>
+            p "Root" 1 1 "[Extensive form game node with name: Root]" { "A" "B" } 0
+            p "Node 3" 2 1 "[[Extensive form game node with name: Node 3]]" { "C" "D" } 0
+            p "Node 1" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2]]" { "A" "B" } 0
+            t "" 3 "Leaf 1" { 0, 1 }
+            t "" 4 "Leaf 2" { 1, 0 }
+            p "Node 2" 1 2 "[[Extensive form game node with name: Node 1, Extensive form game node with name: Node 2]]" { "A" "B" } 0
+            t "" 5 "Leaf 3" { 2, 4 }
+            t "" 6 "Leaf 4" { 2, 1 }
+            p "Node 4" 2 2 "[[Extensive form game node with name: Node 4]]" { "C" "D" } 0
+            t "" 1 "Leaf 5" { 0, 1 }
+            t "" 2 "Leaf 6" { 1, 0 }
+            <BLANKLINE>
         """
         g = Game.new_tree()
         for player in self.players:
@@ -998,11 +1045,12 @@ class ExtensiveFormGame():
         self._sort_children(g, self.tree_root, gambit_root)
 
         while len(self.generation_nodes) is not 0:
-            self.generation_nodes_2 = []
-            for generation_node in sorted(self.generation_nodes):
-                for info_set in self.info_sets:
-                    initial_node = sorted(info_set)[0]
-                    for info_node in sorted(info_set):
+            self.generation_nodes_2 = []    
+            self.generation_nodes.sort(key=attrgetter('name'))       
+            for generation_node in self.generation_nodes:
+                for info_set in sorted(self.info_sets, key=lambda x:x[0].name):
+                    initial_node = sorted(info_set, key=attrgetter('name'))[0]
+                    for info_node in sorted(info_set, key=attrgetter('name')):
                         if info_node is initial_node and info_node is generation_node:
                             for action in generation_node.parent.actions:
                                 if generation_node.parent.node_input[action] is generation_node:
@@ -1037,10 +1085,10 @@ class ExtensiveFormGame():
             sage: from gambit import Game
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
-            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
-            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
-            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1}, 'Leaf 4')
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
@@ -1083,10 +1131,10 @@ class ExtensiveFormGame():
             sage: from gambit import Game
             sage: player_1 = Player('Player 1')
             sage: player_2 = Player('Player 2')
-            sage: leaf_1 = Leaf({player_1: 0, player_2: 1})
-            sage: leaf_2 = Leaf({player_1: 1, player_2: 0})
-            sage: leaf_3 = Leaf({player_1: 2, player_2: 4})
-            sage: leaf_4 = Leaf({player_1: 2, player_2: 1})
+            sage: leaf_1 = Leaf({player_1: 0, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1: 1, player_2: 0}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1: 2, player_2: 4}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1: 2, player_2: 1}, 'Leaf 4')
             sage: node_1 = Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_2)
             sage: node_2 = Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
             sage: root_1 = Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
@@ -1108,7 +1156,7 @@ class ExtensiveFormGame():
             [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>]
             """
            
-        for child in sorted(sage_efg_node.children):
+        for child in sorted(sage_efg_node.children, key=attrgetter('name')):
             if isinstance(child, Node):
                 if sage_efg_node is self.tree_root:
                     self.generation_nodes.append(child)
