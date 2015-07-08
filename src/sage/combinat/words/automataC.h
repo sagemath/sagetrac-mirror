@@ -22,6 +22,7 @@ void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
 void FreeNAutomaton (NAutomaton *a);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
+Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
 void init (Automaton *a);
 void printAutomaton (Automaton a);
 void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy);

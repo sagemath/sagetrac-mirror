@@ -43,6 +43,7 @@ cdef extern from "automataC.h":
     void FreeAutomaton (Automaton *a)
     void FreeNAutomaton (NAutomaton *a)
     Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
+    Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
     void init (Automaton *a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
@@ -1049,10 +1050,31 @@ cdef class FastAutomaton:
             return p;
         
         return p.has_empty_langage()
+    
+    #donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
+    def piece (self, w, e=None):
+        cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
+        cdef int i
+        for i in range(len(w)):
+            l[i] = w[i]
+        if e is None:
+            e = self.a.i
+        r = FastAutomaton(None)
+        sig_on()
+        r.a[0] = PieceAutomaton(self.a[0], l, len(w), e)
+        sig_off()
+        r.A = self.A
+        return r
 
-
-
-
-
-
+    #tell if the language of the automaton is empty
+    #(this function is not very efficient)
+    def is_empty (self, ext=True):
+        if ext:
+            return self.emonde().emonde_inf().n_states() == 0
+        else:
+            return self.emonde().n_states() == 0
+	
+	#determine if the languages intersect
+    def intersect (self, FastAutomaton b, ext=True):
+        return not self.intersection(b).is_empty(ext)
 

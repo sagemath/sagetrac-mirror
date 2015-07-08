@@ -313,6 +313,51 @@ Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
 	return r;
 }
 
+//donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
+Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
+{
+	//printf("n = %d, e=%d\n", n, e);
+	int i, j, f;
+	Automaton r = NewAutomaton(a.n+n, a.na);
+	//met les sommets pour le mot w
+	for (i=0;i<n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			r.e[i].f[j] = -1;
+		}
+		r.e[i].f[w[i]] = i+1;
+		r.e[i].final = false;
+		f = a.e[e].f[w[i]];
+		e = f;
+	}
+	if (n > 0)
+		r.e[n-1].f[w[n-1]] = e+n;
+	//teste si vide
+	if (f == -1)
+	{
+		FreeAutomaton(&r);
+		return NewAutomaton(0, a.na);
+	}
+	//met les sommets de l'automate a
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] == -1)
+				r.e[i+n].f[j] = -1;
+			else
+				r.e[i+n].f[j] = a.e[i].f[j]+n;
+		}
+		r.e[i+n].final = a.e[i].final;
+	}
+	if (n > 0)
+		r.i = 0;
+	else
+		r.i = a.i;
+	return r;
+}
+
 void init (Automaton *a)
 {
 	int i,j;

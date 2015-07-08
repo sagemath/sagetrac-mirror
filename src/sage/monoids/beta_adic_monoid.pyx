@@ -2296,7 +2296,7 @@ class BetaAdicMonoid(Monoid_class):
     
     #test if 0 is an inner point of the limit set
     def ZeroInner (self, verb=False):
-        
+    
         if not hasattr(self, 'ss'):
             self.ss = self.default_ss()
         
@@ -2339,7 +2339,7 @@ class BetaAdicMonoid(Monoid_class):
             self.ss = None
             print "Zero is an inner point iff the %s has non-empty interior."%self
             self.ss = ss
-    
+        
     #complete the langage of a
     def complete (self, FastAutomaton a, C=None, ext=False, verb=False):
         r"""
@@ -2506,6 +2506,27 @@ class BetaAdicMonoid(Monoid_class):
 
         #compute the adherence of the new automaton
         return self.adherence(tss=a, C=C, C2=nA)
-
+    
+    #calcule l'intersection des ensembles limites
+    def intersection2 (self, FastAutomaton a, FastAutomaton b, ext=True):
+        a2 = self.complete(a, ext=ext)
+        b2 = self.complete(b, ext=ext)
+        return a2.intersection(b2).emonde()
+    
+    #determine if the limit sets intersect
+    def intersect (self, FastAutomaton a, FastAutomaton b, ext=True):
+        a2 = self.complete(a, ext=ext)
+        b2 = self.complete(b, ext=ext)
+        return not a2.intersection(b2).is_empty(ext)
+    
+    #Dit si l'ensemble limite est connexe ou pas
+    def connexe (self, FastAutomaton a=None):
+        if a is None:
+            if hasattr(self, 'tss'):
+                a = FastAutomaton(self.tss)
+            else:
+                a = FastAutomaton(None).full(self.C)
+        
+        raise ValueError("Not implemented !")
 
 
