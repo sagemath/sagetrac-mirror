@@ -20,10 +20,14 @@ REFERENCE:
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.misc.all import prod
+cimport cython
+from cython.view cimport array
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def chromatic_polynomial(G, return_tree_basis = False):
     """
     Computes the chromatic polynomial of the graph G.
@@ -92,7 +96,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
     cdef int *queue
     cdef int *chords1
     cdef int *chords2
-    cdef int *bfs_reorder
     cdef int *parent
     cdef mpz_t m, coeff
     cdef mpz_t *tot
@@ -106,13 +109,12 @@ def chromatic_polynomial(G, return_tree_basis = False):
     chords1 = <int *> sage_malloc((nedges - nverts + 1) * sizeof(int))
     chords2 = <int *> sage_malloc((nedges - nverts + 1) * sizeof(int))
     parent = <int *> sage_malloc(nverts * sizeof(int))
-    bfs_reorder = <int *> sage_malloc(nverts * sizeof(int))
+    cdef int[::1] bfs_reorder = array((nverts,), sizeof(int), format="i", allocate_buffer=True)
     tot = <mpz_t *> sage_malloc((nverts+1) * sizeof(mpz_t))
     if queue is NULL or \
        chords1 is NULL or \
        chords2 is NULL or \
        parent is NULL or \
-       bfs_reorder is NULL or \
        tot is NULL:
         if queue is not NULL:
             sage_free(queue)
@@ -122,8 +124,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
             sage_free(chords2)
         if parent is not NULL:
             sage_free(parent)
-        if bfs_reorder is not NULL:
-            sage_free(bfs_reorder)
         if tot is not NULL:
             sage_free(tot)
         raise RuntimeError("Error allocating memory for chrompoly.")
@@ -180,7 +180,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage_free(chords1)
         sage_free(chords2)
         sage_free(parent)
-        sage_free(bfs_reorder)
         for i from 0 <= i <= nverts:
             mpz_clear(tot[i])
         sage_free(tot)
@@ -191,7 +190,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage_free(chords1)
         sage_free(chords2)
         sage_free(parent)
-        sage_free(bfs_reorder)
         for i from 0 <= i <= nverts:
             mpz_clear(tot[i])
         sage_free(tot)
@@ -229,7 +227,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
     sage_free(chords1)
     sage_free(chords2)
     sage_free(parent)
-    sage_free(bfs_reorder)
 
     for i from 0 <= i <= nverts:
         mpz_clear(tot[i])
