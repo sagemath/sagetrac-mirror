@@ -152,6 +152,16 @@ class FunctionDiracDelta(BuiltinFunction):
             pass
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = dirac_delta(x)
+            sage: h(pi)._numerical_approx()
+            0.000000000000000
+        """
+        return self._eval_(x)
+
 dirac_delta = FunctionDiracDelta()
 
 class FunctionHeaviside(BuiltinFunction):
@@ -265,6 +275,16 @@ class FunctionHeaviside(BuiltinFunction):
             pass
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = heaviside(x)
+            sage: h(pi)._numerical_approx()
+            1.00000000000000
+        """
+        return self._eval_(x)
+
     def _derivative_(self, x, diff_param=None):
         """
         Derivative of Heaviside step function
@@ -373,6 +393,16 @@ class FunctionUnitStep(BuiltinFunction):
         except Exception:                     # x is symbolic
             pass
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = unit_step(x)
+            sage: h(pi)._numerical_approx()
+            1.00000000000000
+        """
+        return self._eval_(x)
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -509,6 +539,22 @@ class FunctionSignum(BuiltinFunction):
             pass
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS:
+
+        Check that :trac:`16587` is fixed::
+
+            sage: M = sgn(3/2, hold=True); M
+            sgn(3/2)
+            sage: M.n()
+            1
+            sage: h(x) = sgn(x)
+            sage: h(pi)._numerical_approx()
+            1.00000000000000
+        """
+        return self._eval_(x)
+
     def _derivative_(self, x, diff_param=None):
         """
         Derivative of sgn function
@@ -617,6 +663,16 @@ class FunctionKroneckerDelta(BuiltinFunction):
         except Exception:                     # x is symbolic
             pass
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = kronecker_delta(3,x)
+            sage: h(pi)._numerical_approx()
+            0.000000000000000
+        """
+        return self._eval_(x)
 
     def _derivative_(self, *args, **kwds):
         """
