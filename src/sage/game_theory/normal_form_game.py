@@ -558,6 +558,10 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
 from sage.misc.package import is_package_installed
 from sage.misc.temporary_file import tmp_filename
+from sage.graphs.bipartite_graph import BipartiteGraph
+from copy import copy
+import sys
+
 
 try:
     from gambit import Game
@@ -1792,6 +1796,361 @@ class NormalFormGame(SageObject, MutableMapping):
         t += 'end\n'
         return s, t
 
+    def _lh_is_column_basic(self, dim1, dim2, tab, ntab, column):
+        if ntab == 0:
+            nlines = dim1
+        else:
+            nlines = dim2
+
+        if column < 2 :
+            return False
+
+        for i in range(nlines):
+            val = int(tab[ntab][i,0])
+            if column == self._get_column(dim1, dim2, val) and ntab == self._get_tableau(dim1, dim2, val):
+                return True
+
+        return False
+
+    def _lh_lexicographic_min_ratio(self, dim1, dim2, tab, ntab, column):
+        import sys
+        if ntab == 0:
+            nlines = dim1
+        else:
+            nlines = dim2
+        print tab[0]
+        print "----"
+        print tab[1]
+        print "===="
+
+        numcand = 0
+        ncols = 2 + dim1 + dim2
+
+        leavecand = []
+
+        for i in range(nlines):
+            if tab[ntab][i,column] < -sys.float_info.epsilon :
+                leavecand.append(i)
+                numcand += 1
+
+        print numcand, leavecand
+
+        if numcand == 0:
+            return -1
+
+        if numcand == 1:
+            return leavecand[0]
+
+        j = 1
+        while numcand > 1 :
+            t_col = j
+
+            if t_col == column:
+                continue
+
+            if self._lh_is_column_basic(dim1, dim2, tab, ntab, t_col) :
+                i = 0
+                while i < numcand :
+                    b = int(tab[ntab][leavecand[i],0])
+                    if self._get_column(dim1, dim2, b) == t_col :
+                        numcand -= 1
+                        leavecand[i] = leavecand[numcand]
+                        break
+                    i += 1
+            else:
+                newnum = 0
+                updated = False
+                i = 0
+                while i < numcand :
+                    if t_col == 1:
+                        val = -tab[ntab][leavecand[i],t_col]
+                    else :
+                        val = tab[ntab][leavecand[i],t_col]
+                    val /= tab[ntab][leavecand[i],column]
+
+                    if not updated or val < min - sys.float_info.epsilon :
+                        min = val
+                        updated = True
+                        newnum = 0
+                        leavecand[newnum] = leavecand[i]
+                    elif val >= min - sys.float_info.epsilon and val <= min + sys.float_info.epsilon:
+                        newnum += 1
+                        leavecand[newnum] = leavecand[i]
+                    i += 1
+                numcand = newnum + 1
+
+            j += 1
+
+        if not updated :
+            return -1
+        #print "Leave", leavecand[0]
+
+        return leavecand[0]
+
+    def _init_lh_tableau(self, A, B):
+        A = self._positivize_matrix(A)
+        B = self._positivize_matrix(B.T)
+        tab = self._init_tableau(A, B)
+        return tab
+
+    def _positivize_matrix(self, A):
+        from copy import copy
+        m = min(min(A))
+        #R = matrix(A, copy=True)
+        R = copy(A)
+        for i in range(A.nrows()):
+            for j in range(A.ncols()):
+                R[i,j] -= (m - 1.0)
+        return R
+        
+    def _init_tableau(self, A, B):
+        from sage.rings.all import RR
+        m = A.nrows()
+        n = A.ncols()
+        tab1 = matrix(RR, m, 2+m+n)
+        tab2 = matrix(RR, n, 2+m+n)
+        
+        for i in range(m):
+            tab1[i,0] = - i - 1
+            tab1[i,1] = 1
+        
+        for i in range(n):
+            tab2[i,0] = - i - m - 1
+            tab2[i,1] = 1
+        
+        for i in range(m):
+            for j in range(2 + m, 2 + m + n):
+                tab1[i,j] = -A[i,j - 2 - m]
+        
+        for i in range(n):
+            for j in range(2 + m, 2 + m + n):
+                tab2[i,j] = -B[i,j - 2 - n]
+        
+        tab = (tab1, tab2)
+        return (m, n, tab)
+        
+    def _get_tableau(self, dim1, dim2, strategy):
+        if strategy > dim1 or (strategy < 0 and strategy >= -dim1) :
+            return 0
+        if strategy < -dim1 or (strategy > 0 and strategy <= dim1) :
+            return 1
+        return -1
+        
+    def _get_column(self, dim1, dim2, strategy):
+        if strategy > 0 and strategy <= dim1 :
+            return (1 + dim2 + strategy )
+        if strategy > 0 and strategy > dim1 :
+            return (1 + dim1 + strategy - dim1)
+        if strategy < 0 and strategy >= -dim1 :
+            return (1 - strategy )
+
+        return ( 1 - strategy - dim1 )
+
+    def _get_pivot_gen(self, dim1, dim2, tab, strategy):
+        for i in range(dim1):
+            if tab[0][i,0] == strategy :
+                return -strategy
+        
+        for i in range(dim2):
+            if tab[1][i,0] == strategy :
+                return -strategy
+        
+        return strategy
+
+    def _lh_solve_tableau(self, tableaus, startpivot):
+        #tab = [matrix(tableaus[0], copy=True), matrix(tableaus[1], copy=True)]
+        tab = [copy(tableaus[0]), copy(tableaus[1])]
+        dim1 = tab[0].nrows()
+        dim2 = tab[1].nrows()
+        index = 0
+        pivot = self._get_pivot_gen(dim1, dim2, tab, startpivot)
+        
+        while True:
+            min_ratio = 0.0
+            updated = False
+            
+            ntab = self._get_tableau(dim1, dim2, pivot)
+            nlines = dim1 if (ntab == 0) else dim2
+            column = self._get_column(dim1, dim2, pivot)
+            
+            # Standard min-ratio
+            #for i in range(nlines):
+            #    if tab[ntab][i,column] > -sys.float_info.epsilon : #check for eps
+            #        continue
+            #    val = -tab[ntab][i,1] / tab[ntab][i,column]
+            #    
+            #    if not updated or val < min_ratio - sys.float_info.epsilon :
+            #        min_ratio = val
+            #        updated = True
+            #        index = i
+            index = self._lh_lexicographic_min_ratio(dim1, dim2, tab, ntab, column)
+            
+            #if not updated :
+            if index < 0 :
+                raise Exception("floating point error most likely occured")
+            
+            newpivot = int(tab[ntab][index,0])
+            #print ntab, index, newpivot
+            
+            tab[ntab][index,self._get_column(dim1, dim2, newpivot)] = -1
+            tab[ntab][index,0] = pivot
+            coeff = -tab[ntab][index,column]
+            
+            for i in range(1, 2 + dim1 + dim2):
+                tab[ntab][index,i] /= coeff
+            tab[ntab][index,column] = 0
+            
+            for i in range(nlines):
+                if tab[ntab][i][column] < -sys.float_info.epsilon or tab[ntab][i][column] > sys.float_info.epsilon :
+                #if tab[ntab][i,column] != 0 :
+                    for j in range(1, 2 + dim1 + dim2) :
+                        agg = tab[ntab][i,column] * tab[ntab][index,j]
+                        tab[ntab][i,j] += agg
+                    
+                    tab[ntab][i,column] = 0
+                    
+            pivot = -newpivot
+            if newpivot == startpivot or newpivot == -startpivot :
+                break
+        
+        tot1 = 0
+        tot2 = 0
+        
+        for i in range(dim1):
+            if tab[0][i,0] > sys.float_info.epsilon:
+                tot1 += tab[0][i,1]
+                
+        for i in range(dim2):
+            if tab[1][i,0] > sys.float_info.epsilon:
+                tot2 += tab[1][i,1]
+               
+        x = []
+        for i in range(dim1):
+            if tab[0][i,0] > sys.float_info.epsilon:
+                x.append(tab[0][i,1]/tot1)
+            else :
+                x.append(0.0)
+               
+        y = []
+        for i in range(dim2):
+            if tab[1][i,0] > sys.float_info.epsilon:
+                y.append(tab[1][i,1]/tot2)
+            else :
+                y.append(0.0)
+
+        return (tab, [x, y])
+
+    def _solve_lh(self, missing = 1):
+        A, B = self.payoff_matrices()
+        tab = self._init_lh_tableau(A, B)
+        return [self._lh_solve_tableau(tab[2], missing)[1]]
+
+    def _lh_find_all_from(self, i, isneg, neg, pos):
+        if isneg:
+            cur = neg[i]
+            eq_list = pos
+        else:
+            cur = pos[i]
+            eq_list = neg
+
+        #print cur.tab
+        #print "Starting ", i, " isneg ", isneg
+
+        for k in range(len(cur.labels)):
+            if cur.labels[k] != -1:
+                continue
+            #print k
+            tab, eq = self._lh_solve_tableau(cur.tab, k + 1)
+            #print eq
+
+            e = LHEquilibrium(tab, eq)
+            if e not in eq_list:
+                eq_list.append(e)
+            idx = eq_list.index(e)
+            cur.labels[k] = idx
+            eq_list[idx].labels[k] = i
+
+    def _lh_find_all(self):
+        neg = []
+        pos = []
+
+        A, B = self.payoff_matrices()
+        tab = self._init_lh_tableau(A, B)
+        neg.append(LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
+        #print "Load", neg[0].tab[0]
+        #print "Load", neg[0].tab[1]
+
+        tab, eq = self._lh_solve_tableau(neg[0].tab, 1)
+        pos.append(LHEquilibrium(tab, eq))
+
+        #print "Load", neg[0].tab[0]
+        #print "Load", neg[0].tab[1]
+
+        neg[0].labels[0] = 0
+        pos[0].labels[0] = 0
+
+        negi = 1
+        posi = 0
+
+        self._lh_find_all_from(0, True, neg, pos)
+
+        isneg = False
+        while True:
+            if isneg:
+                while negi < len(neg):
+                    self._lh_find_all_from(negi, isneg, neg, pos)
+                    negi += 1
+            else:
+                while posi < len(pos):
+                    self._lh_find_all_from(posi, isneg, neg, pos)
+                    posi += 1
+
+            isneg = not isneg
+            if negi == len(neg) and posi == len(pos):
+                break
+
+        return (neg, pos)
+
+    def _lh_bipartite_graph(self):
+        neg, _ = self._lh_find_all()
+        #G = {}
+        #for i in range(len(neg)):
+        #    G[str(-i)] = neg[i].labels
+        #return G
+        B = BipartiteGraph()
+        for i in range(len(neg)):
+            for j in set(neg[i].labels):
+                indices = ",".join([str(k + 1) for k, x in enumerate(neg[i].labels) if x == j])
+                B.add_edge("-"+str(i), j, indices)
+                #print i, "->",  indices
+        return B
+
+class LHEquilibrium():
+    def __init__(self, tab, eq):
+        self.tab = tab
+        self.eq = eq
+        self.labels = [-1] * (tab[0].nrows() + tab[1].nrows())
+
+    def __eq__(self, other):
+        for i in range(len(self.eq[0])):
+            diff = abs(self.eq[0][i] - other.eq[0][i])
+            if diff > sys.float_info.epsilon :
+                return False
+
+        for i in range(len(self.eq[1])):
+            diff = abs(self.eq[1][i] - other.eq[1][i])
+            if diff > sys.float_info.epsilon :
+                return False
+
+        return True
+
+    def __str__(self):
+        s = "Equ " + str(self.eq)
+        s += " Labels" + str(self.labels)
+        return s
+
+    def __repr__(self):
+        return str(self)
 
 class _Player():
     def __init__(self, num_strategies):
