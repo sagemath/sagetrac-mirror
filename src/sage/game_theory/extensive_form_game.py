@@ -272,6 +272,8 @@ from sage.plot.line import line2d
 from sage.graphs.generic_graph import GenericGraph
 from operator import attrgetter
 from copy import copy
+from parser import Parser
+
 
 try:
     from gambit import Game
@@ -1217,6 +1219,34 @@ class ExtensiveFormGame():
                         for branch_index in range(len(sage_efg_node.actions)):
                             if sage_efg_node.actions[branch_index] is action:
                                 gambit_node.children[branch_index].outcome = Outcomes
+    def obtain_nash(self):
+        """
+        from gambit import Game
+        sage: player_1 = Player('1')
+        sage: player_2 = Player('2')
+        sage: leaf_1 = Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+        sage: leaf_2 = Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+        sage: leaf_3 = Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+        sage: leaf_4 = Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+        sage: leaf_5 = Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+        sage: node_d = Node({'Z': leaf_2, 'Y': leaf_3}, 'd', player_1)
+        sage: node_b = Node({'D': leaf_1, 'C': node_d}, 'b', player_2)
+        sage: node_c = Node({'B': leaf_4, 'A': leaf_5}, 'c', player_2)
+        sage: node_a = Node({'X': node_b, 'W': node_c}, 'a', player_1)
+        sage: example = ExtensiveFormGame(node_a)
+        sage: example.obtain_nash()
+        [[[(0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (0.0, 1.0)]],
+         [[(0.0, 1.0), (0.5, 0.5)], [(0.5, 0.5), (0.0, 1.0)]],
+         [[(1.0, 0.0), (1.0, 0.0)], [(1.0, 0.0), (0.0, 1.0)]]]
+        """
+        from gambit.nash import ExternalLCPSolver
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        gambit_efg = self.gambit_convert()
+        solver = ExternalLCPSolver()
+        lcp_output = solver.solve(gambit_efg)
+        nasheq = Parser(lcp_output).format_gambit_efg_tree(gambit_efg)
+        return nasheq
 
 
 class Node():
