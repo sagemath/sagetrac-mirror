@@ -373,15 +373,33 @@ class Parser():
         Here is the output of the LCP algorithm::
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
-            sage: LCP_output  # optional - gambit
+            sage: LCP_output  # optional - gambit  # optional - gambit
             [<NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]
 
         The Parser class outputs the equilibrium::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit
+            sage: nasheq  # optional - gambit  # optional - gambit
             [[[(1.0, 0.0), (0.0, 1.0)],
             [(1.0, 0.0), (0.0, 1.0)]]]
+
+        If we change one of the outputs for the above tree, more nash equilibria are obtained::
+
+            sage: alternate_output = g.outcomes.add()  # optional - gambit
+            sage: alternate_output[int(0)] = int(5)  # optional - gambit
+            sage: alternate_output[int(1)] = int(5)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = alternate_output  # optional - gambit
+            sage: solver = gambit.nash.ExternalLCPSolver()  # optional - gambit
+            sage: LCP_output = solver.solve(g)  # optional - gambit
+            sage: LCP_output  # optional - gambit  
+            [<NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.0, 1.0, 1.0, 0.0]>,
+             <NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.0]>,
+             <NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]   
+            sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
+            sage: nasheq  # optional - gambit 
+            [[[(0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (1.0, 0.0)]],
+            [[(0.0, 1.0), (0.5, 0.5)], [(0.5, 0.5), (1.0, 0.0)]],
+            [[(1.0, 0.0), (0.0, 1.0)], [(1.0, 0.0), (0.0, 1.0)]]]
 
         Another test::
 
@@ -418,9 +436,14 @@ class Parser():
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
             sage: g.root.children[int(2)].children[int(1)].outcome = outcome  # optional - gambit
+
+        The output of the LCP algorithm::
+
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 0.0, 0.5, 0.5, 0.75, 0.25, 0.0, 1.0]>]
+
+        The output of the Parser::
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[[(0.0, 1.0, 0.0), (0.5, 0.5)], [(0.75, 0.25), (0.0, 1.0)]]]
@@ -455,9 +478,15 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        The output of the LCP algorithm::
+
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 0.75, 0.25, 0.0, 0.0, 1.0]>]
+
+        The output of the Parser:: 
+
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[[(0.0, 1.0)], [(0.75, 0.25, 0.0), (0.0, 1.0)]]]
@@ -489,9 +518,15 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        The output of the LCP algorithm::
+
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
             [<NashProfile for '': [0.7, 0.3, 0.6, 0.4]>]
+
+        The output of the Parser::
+        
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[[(0.7, 0.3)], [(0.6, 0.4)]]]

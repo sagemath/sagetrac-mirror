@@ -1221,23 +1221,71 @@ class ExtensiveFormGame():
                                 gambit_node.children[branch_index].outcome = Outcomes
     def obtain_nash(self):
         """
-        from gambit import Game
-        sage: player_1 = Player('1')
-        sage: player_2 = Player('2')
-        sage: leaf_1 = Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
-        sage: leaf_2 = Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
-        sage: leaf_3 = Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
-        sage: leaf_4 = Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
-        sage: leaf_5 = Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
-        sage: node_d = Node({'Z': leaf_2, 'Y': leaf_3}, 'd', player_1)
-        sage: node_b = Node({'D': leaf_1, 'C': node_d}, 'b', player_2)
-        sage: node_c = Node({'B': leaf_4, 'A': leaf_5}, 'c', player_2)
-        sage: node_a = Node({'X': node_b, 'W': node_c}, 'a', player_1)
-        sage: example = ExtensiveFormGame(node_a)
-        sage: example.obtain_nash()
-        [[[(0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (0.0, 1.0)]],
-         [[(0.0, 1.0), (0.5, 0.5)], [(0.5, 0.5), (0.0, 1.0)]],
-         [[(1.0, 0.0), (1.0, 0.0)], [(1.0, 0.0), (0.0, 1.0)]]]
+        To obtain the Nash Equilibria of an ```ExtensiveFormGame```, we firstly set up the game as normal::
+
+            sage: from gambit import Game
+            sage: player_1 = Player('1')
+            sage: player_2 = Player('2')
+            sage: leaf_1 = Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: leaf_5 = Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+            sage: node_d = Node({'Z': leaf_2, 'Y': leaf_3}, 'd', player_1)
+            sage: node_b = Node({'D': leaf_1, 'C': node_d}, 'b', player_2)
+            sage: node_c = Node({'B': leaf_4, 'A': leaf_5}, 'c', player_2)
+            sage: node_a = Node({'X': node_b, 'W': node_c}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+
+        Then we simply use the obtain_nash function::
+
+            sage: example.obtain_nash()
+            [[[(0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (0.0, 1.0)]],
+             [[(0.0, 1.0), (0.5, 0.5)], [(0.5, 0.5), (0.0, 1.0)]],
+             [[(1.0, 0.0), (1.0, 0.0)], [(1.0, 0.0), (0.0, 1.0)]]]
+
+        Here is an example with a different tree::
+
+            sage: leaf_1 = Leaf({player_1: 1, player_2: 5})
+            sage: leaf_2 = Leaf({player_1: 5, player_2: 2})
+            sage: leaf_3 = Leaf({player_1: 9, player_2: 1})
+            sage: leaf_4 = Leaf({player_1: 3, player_2: 0})
+            sage: leaf_5 = Leaf({player_1: 2, player_2: 7})
+            sage: leaf_6 = Leaf({player_1: 1, player_2: 5})
+            sage: node_3 = Node({'f': leaf_2, 'g': leaf_3}, player = player_1)
+            sage: node_2 = Node({'d': leaf_1, 'e': node_3}, player = player_2)
+            sage: node_4 = Node({'h': leaf_5, 'i': leaf_6}, player = player_2)
+            sage: node_1 = Node({'a': node_2, 'b': leaf_4, 'c': node_4}, player = player_1)
+            sage: example_2 = ExtensiveFormGame(node_1)
+            sage: example_2.obtain_nash()
+            [[[(0.0, 0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (0.0, 1.0)]]]
+
+        The following is a test to show that this works for larger trees too::
+
+            sage: player_a1 = Player('Player 1')
+            sage: player_a2 = Player('Player 2')
+            sage: leaf_a1 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 1')
+            sage: leaf_a2 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 2')
+            sage: leaf_a3 = Leaf({player_a1 : 2, player_a2: 4}, 'Leaf 3')
+            sage: leaf_a4 = Leaf({player_a1 : 2, player_a2: 1}, 'Leaf 4')
+            sage: leaf_a5 = Leaf({player_a1 : 0, player_a2: 1}, 'Leaf 5')
+            sage: leaf_a6 = Leaf({player_a1 : 1, player_a2: 0}, 'Leaf 6')
+            sage: leaf_a7 = Leaf({player_a1 : 2, player_a2: 4}, 'Leaf 7')
+            sage: leaf_a8 = Leaf({player_a1 : 2, player_a2: 1}, 'Leaf 8')
+            sage: node_a1 = Node({'A': leaf_a1, 'B': leaf_a2}, "Node 1", player = player_a1)
+            sage: node_a2 = Node({'A': leaf_a3, 'B': leaf_a4}, "Node 2", player = player_a1)
+            sage: node_a3 = Node({'A': leaf_a5, 'B': leaf_a6}, "Node 3", player = player_a1)
+            sage: node_a4 = Node({'A': leaf_a7, 'B': leaf_a8}, "Node 4", player = player_a1)
+            sage: node_a5 = Node({'C': node_a1, 'D': node_a2}, "Node 5", player = player_a2)
+            sage: node_a6 = Node({'C': node_a3, 'D': node_a4}, "Node 6", player = player_a2)
+            sage: root_a = Node({'A': node_a5, 'B': node_a6}, player = player_a1)
+            sage: egame_a1 = ExtensiveFormGame(root_a)
+            sage: egame_a1.set_info_set([node_a5, node_a6])
+            sage: egame_a1.set_info_set([node_a1, node_a2])
+            sage: egame_a1.set_info_set([node_a3, node_a4])
+            sage: egame_a1.obtain_nash()
+            [[[(0.0, 1.0), (0.5, 0.5), (0.0, 1.0)], [(0.0, 1.0)]]]
+            
         """
         from gambit.nash import ExternalLCPSolver
         if Game is None:
