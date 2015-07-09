@@ -580,7 +580,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(sin)
         Traceback (most recent call last):
         ...
-        TypeError
+        TypeError: Could not coerce into SR: "sin" of type <class 'sage.functions.trig.Function_sin'>
 
         sage: integrate(sin(x), x)
         -cos(x)

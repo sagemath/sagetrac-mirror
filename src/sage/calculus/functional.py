@@ -125,7 +125,21 @@ def derivative(f, *args, **kwds):
         80*u^3*v^3
         sage: derivative(f, [u, v, v])
         80*u^3*v^3
+
+    Using function objects is possible::
+
+        sage: diff(sin,x)
+        cos(x)
+        sage: f = function('f')
+        sage: diff(f,x)
+        D[0](f)(x)
+        sage: _ = var("a,b,c")
+        sage: diff(f,a,b,c)
+        D[0, 1, 2](f)(a, b, c)
     """
+    from sage.symbolic.function import Function
+    if isinstance(f, Function):
+        f = f(*args)
     try:
         return f.derivative(*args, **kwds)
     except AttributeError:

@@ -285,7 +285,7 @@ cdef class SymbolicRing(CommutativeRing):
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
         else:
-            raise TypeError
+            raise TypeError('Could not coerce into SR: "{0}" of type {1}'.format(repr(x), type(x)))
 
         return new_Expression_from_GEx(self, exp)
 
