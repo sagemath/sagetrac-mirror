@@ -85,7 +85,7 @@ import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
-
+from sage.misc.cachefunc import cached_method
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
 from sage.functions.other import gamma_inc
