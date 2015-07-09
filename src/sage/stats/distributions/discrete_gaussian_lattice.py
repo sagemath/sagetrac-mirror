@@ -56,12 +56,13 @@ EXAMPLES::
 
 from sage.functions.log import exp
 from sage.functions.other import ceil
-from sage.rings.all import RealField, RR, ZZ, QQ
+from sage.rings.all import RealField, RR, ZZ, QQ, RDF
 from discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
+
 
 def _iter_vectors(n, lower, upper, step=None):
     r"""
@@ -101,6 +102,7 @@ def _iter_vectors(n, lower, upper, step=None):
             for v in _iter_vectors(n, lower, upper, step-1):
                 v[step-1] = x
                 yield v
+
 
 class DiscreteGaussianDistributionLatticeSampler(SageObject):
     r"""
@@ -262,6 +264,23 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             [1 1 2]
             sage: D()
             (0, 1, -1)
+
+        TESTS:
+
+        We check that :trac:`17764` is fixed::
+
+            sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
+            sage: n = 5
+            sage: sigma = 30.0
+            sage: M = Matrix(RDF, n, n)
+            sage: for i in range(n):
+            ...     M[i, i] = i+1
+
+            sage: D = DiscreteGaussianDistributionLatticeSampler(M, sigma)
+            sage: want = RR(sqrt(n)*D.sigma)
+            sage: have = mean([D().norm().n() for _ in xrange(1000)])
+            sage: want, have, want/have
+            (67.0..., 64.0..., 1.04...)
         """
         precision = DiscreteGaussianDistributionLatticeSampler.compute_precision(precision, sigma)
 
@@ -279,7 +298,16 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             pass
 
         self.B = B
-        self._G = B.gram_schmidt()[0]
+
+        G, T = B.gram_schmidt()
+
+        # if we're over RDF, then G is orthonormal. We undo this here to
+        # resolve :trac:`17764`
+        if B.base_ring() is RDF:
+            b = B.diagonal()
+            G = matrix(RDF, [b[i]*G.row(i) for i in xrange(len(b))])
+
+        self._G = G
 
         try:
             c = vector(ZZ, B.ncols(), c)
