@@ -135,6 +135,24 @@ void FreeAutomaton (Automaton *a)
 	a->n = 0;
 }
 
+int hashAutomaton (Automaton a)
+{
+	int h = 3;
+	h += a.n + 1009*a.na + 1000003*a.i;
+	int i, j;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			h += a.e[i].f[j];
+			h = (h*1009) % 1000000007;
+		}
+		h += (a.e[i].final == 0);
+		h = (h*1009) % 1000000007;
+	}
+	return h;
+}
+
 NAutomaton NewNAutomaton (int n, int na)
 {
 	NAutomaton a;
@@ -566,7 +584,7 @@ bool CompleteAutomaton (Automaton *a)
 //détermine si les automates sont les mêmes (différents si états permutés)
 bool equalsAutomaton (Automaton a1, Automaton a2)
 {
-	if (a1.n != a2.n || a1.na != a2.na)
+	if (a1.n != a2.n || a1.na != a2.na || a1.i != a2.i)
 		return false;
 	int i, j;
 	for (i=0;i<a1.n;i++)
@@ -576,6 +594,8 @@ bool equalsAutomaton (Automaton a1, Automaton a2)
 			if (a1.e[i].f[j] != a2.e[i].f[j])
 				return false;
 		}
+		if (a1.e[i].final != a2.e[i].final)
+			return false;
 	}
 	return true;
 }
