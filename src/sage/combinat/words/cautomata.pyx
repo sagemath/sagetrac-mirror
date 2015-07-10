@@ -1055,6 +1055,8 @@ cdef class FastAutomaton:
     def piece (self, w, e=None):
         cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
         cdef int i
+        if type(w) != list:
+            w = [int(w)]
         for i in range(len(w)):
             l[i] = w[i]
         if e is None:
@@ -1063,6 +1065,7 @@ cdef class FastAutomaton:
         sig_on()
         r.a[0] = PieceAutomaton(self.a[0], l, len(w), e)
         sig_off()
+        free(l)
         r.A = self.A
         return r
 
