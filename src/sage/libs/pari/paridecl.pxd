@@ -4180,3 +4180,6 @@ cdef extern from "sage/libs/pari/parisage.h":
 
 # Inline functions in separate file
 include 'declinl.pxi'
+
+# Functions from GP scripts compiled with gp2c
+include 'scripts.pxi'

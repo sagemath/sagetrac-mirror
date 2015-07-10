@@ -396,7 +396,7 @@ include 'auto_instance.pxi'
 
 @cython.final
 cdef class PariInstance(PariInstance_auto):
-    def __init__(self, long size=1000000, unsigned long maxprime=500000):
+    def __cinit__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
 

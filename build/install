@@ -369,6 +369,12 @@ fi
 echo >&5
 echo >&5
 
+# If gp2c is installed, export SAGE_HAVE_GP2C
+if [ -x "$SAGE_LOCAL/bin/gp2c" ]; then
+    export SAGE_HAVE_GP2C=gp2c
+fi
+
+
 echo >&5 '# All standard packages'
 echo >&5 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do

@@ -58,7 +58,12 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
         (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
 
-    TESTS::
+    TESTS:
+
+    Compare with the output of the gp2c-generated script::
+
+        sage: E._pari_().ellrank()  # optional - gp2c
+        [2, 2, [[1/16, -9/64], [5/4, 5/8]]]
 
         sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
         sage: E.simon_two_descent()

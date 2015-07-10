@@ -46,6 +46,23 @@ def pari_share():
     SAGE_LOCAL = os.environ["SAGE_LOCAL"]
     return os.path.join(SAGE_LOCAL, "share", "pari")
 
+def gp2c_filenames():
+    r"""
+    Return the list of gp2c-generated files to be processed.
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.pari.parser import gp2c_filenames
+        sage: gp2c_filenames()
+        [...]
+        sage: gp2c_filenames()  # optional - gp2c
+        ['.../gp2c/simon.c']
+    """
+    SAGE_SRC = os.environ['SAGE_SRC']
+    from glob import glob
+    return glob(os.path.join(SAGE_SRC, 'build', 'gp2c', '*.c'))
+
+
 paren_re = re.compile(r"[(](.*)[)]")
 argname_re = re.compile(r"[ {]*([A-Za-z0-9_]+)")
 
@@ -96,13 +113,81 @@ def read_pari_desc():
 
     return functions
 
+install_re = re.compile("^GP;install[(](.*)[)];")
+
+def read_gp2c_install(code):
+    """
+    Read a gp2c-generated file and parse the ``GP;install()`` lines.
+
+    The output is a dictionary where the keys are GP function names
+    and the corresponding values are dictionaries compatible with
+    :func:`read_pari_desc`.
+
+    INPUT:
+
+    - ``code`` -- (string) gp2c-generated code
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.pari.parser import read_gp2c_install
+        sage: read_gp2c_install('''GP;install("my_lib_function", "GG", "my_gp_function");\n''')
+        {'my_gp_function': {'class': 'basic',
+          'cname': 'my_lib_function',
+          'function': 'my_gp_function',
+          'prototype': 'GG',
+          'section': 'init'}}
+    """
+    lines = code.splitlines()
+
+    functions = {}
+    for line in lines:
+        t, matched = install_re.subn(r'\1', line)
+        if matched:
+            t = eval(t)
+
+            fun = {"class": "basic",
+                   "cname": t[0],
+                   "prototype": t[1],
+                   "function": t[2]}
+            # Tag the "init" function in a special way
+            if not functions:
+                fun["section"] = "init"
+            else:
+                fun["section"] = "gp2c"
+            name = fun["function"]
+            functions[name] = fun
+
+    return functions
+
+def read_all_desc():
+    """
+    Read all function descriptions (from ``pari.desc`` and all
+    generated files in ``build/gp2c``)
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.pari.parser import read_all_desc
+        sage: D = read_all_desc()
+        sage: "cos" in D
+        True
+        sage: "bnfellrank" in D  # optional - gp2c
+        True
+    """
+    functions = read_pari_desc()
+
+    import sys
+    for fn in gp2c_filenames():
+        functions.update(read_gp2c_install(open(fn).read()))
+
+    return functions
+
 
 decl_re = re.compile(" ([A-Za-z][A-Za-z0-9_]*)[(]")
 
 def read_decl():
     """
-    Read the files ``paridecl.pxd`` and ``declinl.pxi`` and return a set
-    of all declared PARI library functions.
+    Read the files ``paridecl.pxd``, ``declinl.pxi`` and ``scripts.pxi``
+    and return a set of all declared PARI library functions.
 
     We do a simple regexp search, so there might be false positives.
     The main use is to skip undeclared functions.
@@ -117,6 +202,8 @@ def read_decl():
     with open(os.path.join(sage_src_pari(), "paridecl.pxd")) as f:
         s.update(decl_re.findall(f.read()))
     with open(os.path.join(sage_src_pari(), "declinl.pxi")) as f:
+        s.update(decl_re.findall(f.read()))
+    with open(os.path.join(sage_src_pari(), "scripts.pxi")) as f:
         s.update(decl_re.findall(f.read()))
     return s
 
