@@ -1797,6 +1797,35 @@ class NormalFormGame(SageObject, MutableMapping):
         return s, t
 
     def _lh_is_column_basic(self, dim1, dim2, tab, ntab, column):
+        r"""
+        Given a tableau, this function checks to see if a given column is basic.
+
+        INPUT:
+
+        - ``dim1`` -- Number of rows of the first tableau
+        - ``dim2`` -- Number of rows of the second tableau
+        - ``tab`` -- A list containing two tableaus
+        - ``ntab`` -- An integer (either 0 or 1) representing which of the tableaus being conisdered
+        - ``column`` -- An integer representing which of the columns in the tableau being considered
+
+        OUTPUT:
+
+        A boolean value stating whether or not the column is basic.
+
+        TESTS::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: t = g._init_lh_tableau(A, A)
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 0)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 1)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 2)
+            True
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 5)
+            False
+        """
         if ntab == 0:
             nlines = dim1
         else:
@@ -1813,15 +1842,31 @@ class NormalFormGame(SageObject, MutableMapping):
         return False
 
     def _lh_lexicographic_min_ratio(self, dim1, dim2, tab, ntab, column):
-        import sys
+        r"""
+        Given a tableau and the column of the variable entering the basis, this method returns the
+        row of the leaving variable by calculating the lexicographic minimum ratio.
+
+        INPUT:
+
+        - ``dim1`` -- Number of rows of the first tableau
+        - ``dim2`` -- Number of rows of the second tableau
+        - ``tab`` -- A list containing two tableaus
+        - ``ntab`` -- An integer (either 0 or 1) representing which of the tableaus being conisdered
+        - ``column`` -- An integer representing the column of the entering variable
+
+        OUTPUT:
+
+        A non-negative integer showing the index of the leaving variable in the tableau, or -1 if an
+        error occurred.
+        """
         if ntab == 0:
             nlines = dim1
         else:
             nlines = dim2
-        print tab[0]
-        print "----"
-        print tab[1]
-        print "===="
+        #print tab[0]
+        #print "----"
+        #print tab[1]
+        #print "===="
 
         numcand = 0
         ncols = 2 + dim1 + dim2
@@ -1833,7 +1878,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 leavecand.append(i)
                 numcand += 1
 
-        print numcand, leavecand
+        #print numcand, leavecand
 
         if numcand == 0:
             return -1
@@ -1888,13 +1933,51 @@ class NormalFormGame(SageObject, MutableMapping):
         return leavecand[0]
 
     def _init_lh_tableau(self, A, B):
+        r"""
+        Creates the set of tableaus representing the best response polytopes for the two players
+        given their payoff matrices.
+
+        INPUT:
+
+        - ``A`` -- The payoff matrix for the row player
+        - ``B`` -- The payoff matrix for the column player
+
+        OUTPUT:
+
+        Returns a 3-tuple
+
+        1. Number of rows in the first tableau
+        2. Number of rows in the second tableau
+        3. A list containing the two tableaus
+        """
         A = self._positivize_matrix(A)
         B = self._positivize_matrix(B.T)
         tab = self._init_tableau(A, B)
         return tab
 
     def _positivize_matrix(self, A):
-        from copy import copy
+        r"""
+        This method returns a copy of the original matrix where all its are strictly positive by
+        adding a constant to all the entries of the matrix.
+
+        EXAMPLES::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: B = g._positivize_matrix(A)
+            sage: B
+            [2 1 1]
+            [1 2 1]
+            [1 1 2]
+            sage: g._positivize_matrix(B)
+            [2 1 1]
+            [1 2 1]
+            [1 1 2]
+            sage: g._positivize_matrix(A * -1)
+            [1 2 2]
+            [2 1 2]
+            [2 2 1]
+        """
         m = min(min(A))
         #R = matrix(A, copy=True)
         R = copy(A)
@@ -1904,6 +1987,32 @@ class NormalFormGame(SageObject, MutableMapping):
         return R
         
     def _init_tableau(self, A, B):
+        r"""
+        Creates the set of tableaus representing the best response polytopes for the two players
+        given their payoff matrices.
+
+        .. NOTE::
+        
+            This function shouldn't be used directly with payoff matrices where all elements are
+            not greater than zero.
+
+        .. SEEALSO::
+            
+            :func:`_init_lh_tableau`
+
+        INPUT:
+
+        - ``A`` -- The payoff matrix for the row player
+        - ``B`` -- The payoff matrix for the column player
+
+        OUTPUT:
+
+        Returns a 3-tuple
+
+        1. Number of rows in the first tableau
+        2. Number of rows in the second tableau
+        3. A list containing the two tableaus
+        """
         from sage.rings.all import RR
         m = A.nrows()
         n = A.ncols()
@@ -1930,6 +2039,10 @@ class NormalFormGame(SageObject, MutableMapping):
         return (m, n, tab)
         
     def _get_tableau(self, dim1, dim2, strategy):
+        r"""
+        Given a strategy index, returns which tableau it belongs to and returns -1 if it belongs to
+        neither.
+        """
         if strategy > dim1 or (strategy < 0 and strategy >= -dim1) :
             return 0
         if strategy < -dim1 or (strategy > 0 and strategy <= dim1) :
@@ -1937,6 +2050,9 @@ class NormalFormGame(SageObject, MutableMapping):
         return -1
         
     def _get_column(self, dim1, dim2, strategy):
+        r"""
+        Given a strategy, returns the column which corresponds to the given strategy
+        """
         if strategy > 0 and strategy <= dim1 :
             return (1 + dim2 + strategy )
         if strategy > 0 and strategy > dim1 :
@@ -1947,6 +2063,10 @@ class NormalFormGame(SageObject, MutableMapping):
         return ( 1 - strategy - dim1 )
 
     def _get_pivot_gen(self, dim1, dim2, tab, strategy):
+        r"""
+        Checks if a strategy is in the base of the current tableaus. If it is then it returns the
+        corresponding slack variable otherwise returns the strategy.
+        """
         for i in range(dim1):
             if tab[0][i,0] == strategy :
                 return -strategy
@@ -1958,6 +2078,16 @@ class NormalFormGame(SageObject, MutableMapping):
         return strategy
 
     def _lh_solve_tableau(self, tableaus, startpivot):
+        r"""
+        Runs the Lemke-Howson algorithm with the given tableaus starting with the given missing
+        label (or entering variable).
+
+        INPUT:
+        
+        - ``tableaus`` -- The tableaus representing the best response polytopes for the players in
+          the game.
+        - ``startpivot`` -- The initial missing label (entering variable)
+        """
         #tab = [matrix(tableaus[0], copy=True), matrix(tableaus[1], copy=True)]
         tab = [copy(tableaus[0]), copy(tableaus[1])]
         dim1 = tab[0].nrows()
@@ -2041,11 +2171,40 @@ class NormalFormGame(SageObject, MutableMapping):
         return (tab, [x, y])
 
     def _solve_lh(self, missing = 1):
+        r"""
+        Solve the current game by running the Lemke-Howson algorithm from the artificial algorithm
+        with a given missing label.
+
+        EXAMPLES::
+            
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: g._solve_lh()
+            [[[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]]]
+            sage: g._solve_lh(2)
+            [[[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]]]
+            sage: g._solve_lh(4)
+            [[[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]]]
+        """
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B)
         return [self._lh_solve_tableau(tab[2], missing)[1]]
 
     def _lh_find_all_from(self, i, isneg, neg, pos):
+        r"""
+        Computes all equilibria which can be found by starting from the current equilibrium using
+        all pure strategies as the starting missing label. Upon computation of an equiibrium, it
+        adds it to the corresponding list depending on whether it was a positive or a negatively
+        indexed equilibrium.
+
+        INPUT:
+
+        - ``i`` -- An integer indicating the location of the equilibrium being looked at
+        - ``isneg`` -- Indicates whether the starting equilibrium is ``neg[i]`` if ``isneg`` is True
+          and ``pos[i]`` otherwise.
+        - ``neg`` -- A list of equilibria which have negative index.
+        - ``pos`` -- A list of equilibria which have positive index.
+        """
         if isneg:
             cur = neg[i]
             eq_list = pos
@@ -2071,6 +2230,32 @@ class NormalFormGame(SageObject, MutableMapping):
             eq_list[idx].labels[k] = i
 
     def _lh_find_all(self):
+        r"""
+        This method computes and returns all equilibria which are reachable by the Lemke-Howson
+        algorithm by starting from the artificial equilibrium.
+
+        OUTPUT:
+
+        A 2-tuple of lists
+
+        1. A list of all negatively indexed Nash equilibria (this includes the artificial
+        equilibrium)
+        2. A list of all positively indexed Nash equilibria
+
+        EXAMPLES::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: g._lh_find_all()
+            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[0.500000000000000, 0.500000000000000, 0.0], [0.500000000000000, 0.500000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[0.500000000000000, 0.0, 0.500000000000000], [0.500000000000000, 0.0, 0.500000000000000]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[0.0, 0.500000000000000, 0.500000000000000], [0.0, 0.500000000000000, 0.500000000000000]] Labels[3, 2, 1, 3, 2, 1]],
+             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
+        """
         neg = []
         pos = []
 
@@ -2112,7 +2297,37 @@ class NormalFormGame(SageObject, MutableMapping):
         return (neg, pos)
 
     def _lh_bipartite_graph(self):
-        neg, _ = self._lh_find_all()
+        r"""
+        This method computes and returns all equilibria which are reachable by the Lemke-Howson
+        algorithm by starting from the artificial equilibrium, as well as a bipartite graph showing
+        how these equilibria are connected.
+
+        OUTPUT:
+
+        A 3-tuple
+
+        1. A bipartite graph
+        2. A list of all negatively indexed Nash equilibria (this includes the artificial
+        equilibrium)
+        3. A list of all positively indexed Nash equilibria
+
+        EXAMPLES::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: g._lh_bipartite_graph()
+            (Bipartite graph on 8 vertices,
+             [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[0.500000000000000, 0.500000000000000, 0.0], [0.500000000000000, 0.500000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[0.500000000000000, 0.0, 0.500000000000000], [0.500000000000000, 0.0, 0.500000000000000]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[0.0, 0.500000000000000, 0.500000000000000], [0.0, 0.500000000000000, 0.500000000000000]] Labels[3, 2, 1, 3, 2, 1]],
+             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
+
+        """
+        neg, pos = self._lh_find_all()
         #G = {}
         #for i in range(len(neg)):
         #    G[str(-i)] = neg[i].labels
@@ -2123,7 +2338,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 indices = ",".join([str(k + 1) for k, x in enumerate(neg[i].labels) if x == j])
                 B.add_edge("-"+str(i), j, indices)
                 #print i, "->",  indices
-        return B
+        return (B, neg, pos)
 
 class _LHEquilibrium():
     def __init__(self, tab, eq):
