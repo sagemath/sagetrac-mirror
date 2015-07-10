@@ -7,11 +7,15 @@ AUTHORS:
 
 - Jayant Apte (2015-07-08): initial version
 
-- person (date in ISO year-month-day format): short desc
-
 EXAMPLES::
 
 <Lots and lots of examples>
+
+REFERENCES
+==========
+
+..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
+
 """
 
 #*****************************************************************************
@@ -27,11 +31,20 @@ EXAMPLES::
 
 
 from sage.matroids.advanced import BinaryMatroid, TernaryMatroid, QuaternaryMatroid
-
+from sage.all import Subsets,GF
 def idsc2nsg(mat):
-	"""
-	Return the network symmetry group of an IDSC instance	 
-	"""
+    """
+	Returns the network symmetry group of an IDSC instance	 
+    
+	INPUT:
+
+    - ``mat`` - a matrix specifying IDSC instance.
+
+    OUTPUT:
+    
+    - The network symmetry group of the IDSC instance
+    EXAMPLES::
+    """
     G,part=idsc2circgraph(mat)
     Gl=G.line_graph()
     encs=sorted(G.outgoing_edges('S'))
@@ -54,10 +67,18 @@ def idsc2nsg(mat):
     return G2.automorphism_group(partition=[[dict[e] for e  in part],[dict[e] for e in G.edges() if e not in part]])
 
 def idsc2cons(mat):
-	"""
-	Return a dictionary containing network constraints
-	"""
-    #print mat
+    """
+    Return a dictionary containing network constraints.
+    INPUT:
+    - ``mat`` - A matrix specifyin an IDSC instane.
+    
+    OUTPUT:
+    
+    - The network constraints associated with IDSC instance specified by
+    ``mat``
+    
+    EXAMPLES::
+    """
     nsrc = ceil(float(log(len(mat))/log(2)))
     x=0
     y=0
@@ -72,27 +93,28 @@ def idsc2cons(mat):
     sind = range(1,nsrc+1)
     eind = range(nsrc+1,nsrc+nenc+1)
     dind = range(nsrc+nenc+1,nsrc+nenc+ndec+1)
-    dict={x:[] for x in eind}
+    dict1={x:[] for x in eind}
     for y in dind:
-        dict[y]=[]
+        dict1[y]=[]
     for s in sind:
-        dict[s]=['S']
-    dict['S']=eind
+        dict1[s]=['S']
+    dict1['S']=eind
     dindex=0
     for k in range(len(mat)): 
         row=mat[k]
-        rowdem=[i+1 for i in range(len((k+1).binary())) if (k+1).binary()[::-1][i]=='1'] #rowwise demands
+        #rowwise demands
+        rowdem=[i+1 for i in range(len((k+1).binary())) if (k+1).binary()[::-1][i]=='1'] 
         #print rowdem
         for c in row:
             if Integer(c)!=0:
-                dict[dind[dindex]]=rowdem
+                dict1[dind[dindex]]=rowdem
                 ac=Integer(c).binary()[::-1]
                 for i in range(len(ac)):
                     if ac[i]=='1':
-                        dict[eind[i]].append(dind[dindex])
+                        dict1[eind[i]].append(dind[dindex])
                 dindex=dindex+1
-    consdict={}#j:[] for j in dind}
-    cgraph= DiGraph(dict)
+    consdict={}
+    cgraph= DiGraph(dict1)
     j=0
     for e in eind:
         consdict[j]=[set(sind),set(sind)|set([e])]
@@ -105,12 +127,21 @@ def idsc2cons(mat):
         consdict[j]=[inset,outset|inset]
         #print consdict[j]
         j=j+1
-    return consdict   
-    
+    return consdict
+
 def idsc2circgraph(mat):
-	"""
-	Return the circulation graph of a ISDC instance
-	"""
+    """
+	Return the circulation graph of an ISDC instance
+    
+    INPUT:
+
+    - ``mat`` - A matrix specifyin an IDSC instane.
+    
+    OUTPUT:
+    
+    A graph encoding the symmetries of the IDSC instance specified by 
+    ``mat``
+    """
     nsrc = ceil(float(log(len(mat))/log(2)))
     alph='abcdefghijklmnopqrstuvwxyz'
     x=0
@@ -146,8 +177,14 @@ def idsc2circgraph(mat):
     return DiGraph(dict)
 
 def appcons(cons):
-	"""
-	Return a dictionary of network constraints applicable to each 
+    """
+	Return a dictionary of network constraints applicable to each
+    
+    INPUT:
+    
+    - A list of lists specifying network constraints specified as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)   
 	"""
     allvars=set([])
     for k in cons.keys():
@@ -165,8 +202,12 @@ def appcons(cons):
     return apcns
 
 def set2ind(s):
-	"""
+    """
 	Return the ranking of a set under the lexicographic order 
+    
+    INPUT:
+    
+    - A subset of natural numbers   
 	"""
     str=''
     for i in range(1, max(s)+1):
@@ -176,17 +217,23 @@ def set2ind(s):
             str=str+'0'
     return int(str[::-1],2)
 
-def inv_pcode(pcode,varset):
-	"""
-	Returns the inverted dictionary 
-	"""
-    inv=[]
-    for v in varset:
-        inv.extend(g for g in pcode.keys())
-
 def testcons(M1,pcode,nsrc, appcns,newvar,netcons):
-	"""
+    """
 	Tests whether a matroid satisfies network constrains under given map
+    
+    INPUT:
+    
+    ``M1`` - A representable matroid
+    ``pcode`` - A dictionary giving a mapping from ground set of ``M1``
+    to the random variable indices 
+    ``nsrc`` - Number of sources in a network
+    ``appcns`` - A dictionary mapping subsets of random variables (as 
+    sorted tuples) to subset of constraint labels in ``netcons.keys()``
+    ``newvar`` - newest member of ``pcode.values()`` for which the cons-
+    -raints are to be tested
+    -``netcons`` - A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
 	"""
     newcons= set(appcns[tuple(sorted(list(set(pcode.values()))))])-set(appcns[tuple(sorted(list(  set(pcode.values())-set([newvar]) )))])
     #print appcns
@@ -215,8 +262,12 @@ def testcons(M1,pcode,nsrc, appcns,newvar,netcons):
     return 1
 
 def extend_matroids(list_of_matroids):
-	"""
+    """
 	Returns a list of single element linear extensions of matroids
+    
+    INPUT:
+    
+    -``list_of_matroids`` - A list of representable matroids
 	"""
     matroidset=set([])
     extmats=[]
@@ -234,9 +285,13 @@ def extend_matroids(list_of_matroids):
     return extmats
 
 def extend_matroids_simple(list_of_matroids):
-	"""
+    """
 	Returns a list of simple single element linear extensions of matroids
-	"""
+	
+    INPUT:
+    
+    -``list_of_matroids`` - A list of simple representable matroids
+    """
     matroidset=set([])
     extmats=[]
     for p in range(len(list_of_matroids)):
@@ -253,8 +308,20 @@ def extend_matroids_simple(list_of_matroids):
     return extmats
 
 def idmatrix_allcodes(r,q,netcons,appcns,nsrc,nvars):
-	"""
+    """
 	Return all partial codes for an identity matrix
+    
+    INPUT:
+    
+    ``r`` - rank of identity matrix
+    ``q`` - size of finite field
+    ``netcons`` - A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
+    ``appcns`` - A dictionary mapping subsets of random variables (as 
+    sorted tuples) to subset of constraint labels in ``netcons.keys()``
+    ``nsrc`` - number of sources in the network
+    ``nvars`` - number of network random variables
 	"""
     if q==2:
         mat=identity_matrix(GF2,r)
@@ -280,10 +347,22 @@ def idmatrix_allcodes(r,q,netcons,appcns,nsrc,nvars):
     return M1,codelist
 
 def idmatrix_codecert(r,q,netcons,appcns,nsrc,nvars):
-	"""
+    """
 	Return the lexicographically smallest partial code for a network
+    
+    INPUT:
+    
+    ``r`` - rank of identity matrix
+    ``q`` - size of finite field
+    ``netcons`` - A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
+    ``appcns`` - A dictionary mapping subsets of random variables (as 
+    sorted tuples) to subset of constraint labels in ``netcons.keys()``
+    ``nsrc`` - number of sources in the network
+    ``nvars`` - number of network random variables
 	"""
-    Fq.<a> = GF(q)
+    Fq = GF(q,'a')
     mat=identity_matrix(Fq,r)
     M1=Matroid(mat)
     codelist=[{}]
@@ -304,7 +383,7 @@ def idmatrix_codecert(r,q,netcons,appcns,nsrc,nvars):
     return M,None
 
 def extendpcode(M1,pcode,newgnd,netcons,appcns,nsrc,nvars):
-	"""
+    """
 	extend the partial code
 	"""
     codelist=[]
@@ -317,8 +396,22 @@ def extendpcode(M1,pcode,newgnd,netcons,appcns,nsrc,nvars):
     return codelist
 
 def certsearch_dfs(M1,pcode,netcons,appcns,d,nsrc,nvars):
-	"""
-	Return a ``1`` matroid-network map 
+    """
+	Return the lexicographically smallest matroid-network map that forms
+    a partial code
+    
+    INPUT:
+    
+    ``r`` - rank of identity matrix
+    ``q`` - size of finite field
+    ``netcons`` - A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
+    ``appcns`` - A dictionary mapping subsets of random variables (as 
+    sorted tuples) to subset of constraint labels in ``netcons.keys()``
+    ``d`` - depth in the DFS tree, used for recursion
+    ``nsrc`` - number of sources in the network
+    ``nvars`` - number of network random variables
 	"""
     ret=0
     #print 'level d=%d'%d
@@ -363,9 +456,25 @@ def certsearch_dfs(M1,pcode,netcons,appcns,d,nsrc,nvars):
 
 
 def leftover_certs(M1,pcode,netcons,appcns,d,nsrc,nvars):
-	"""
+    """
 	returns all matroid network mappings of a given matroid
+    
+    INPUT
+    ``M1`` -- A representabke matroid
+    ``pcode`` -- (Default: ``None``) A network-matroid mapping, if 
+    specified, only those mappings lexicographically greater than it 
+    will be returned
+    ``netcons`` -- A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
+    ``appcns`` -- A dictionary mapping subsets of random variables (as 
+    sorted tuples) to subset of constraint labels in ``netcons.keys()``
+    ``d`` -- depth in the DFS tree, used for recursion
+    ``nsrc`` -- number of sources in the network
+    ``nvars`` -- number of network random variables
 	"""
+    if pcode == None:
+        pcode = {}
     allpcodelist_ret=[]
     ret=0
     #print 'level d=%d'%d
@@ -409,6 +518,16 @@ def leftover_certs(M1,pcode,netcons,appcns,d,nsrc,nvars):
         return 0,pcode
 
 def codegen(r,q,netcons,nsrc,nvars):
+    """
+    Returns all valid scalar linear codes obeying ``netcons``
+    
+    INPUT:
+    
+    ``r`` -- Rank of matroids to consider
+    ``q`` -- Field size
+    ``nsrc`` -- Number of sources in the network
+    ``nvars`` -- Number of network random variables
+    """
     appcns=appcons(netcons)
     M1,codelist=idmatrix_allcodes(r,q,netcons,appcns,nsrc,nvars)
     print 'appcns',appcns
@@ -428,7 +547,7 @@ def codegen(r,q,netcons,nsrc,nvars):
 
 
 def codecertgen(r,q,netcons,nsrc,nvars):
-	"""
+    """
 	Returns a collection of matroids and respective matroid-network 
 	mappings
 	"""
@@ -451,7 +570,7 @@ def codecertgen(r,q,netcons,nsrc,nvars):
     return allpcodes
 
 def parallel_extensions(Mlist):
-	"""
+    """
 	Returns all parallel linear extensions of a list of matroids
 	"""
     Mset=[]
@@ -473,7 +592,7 @@ def parallel_extensions(Mlist):
 
 
 def codecertgen_simple(r,q,netcons,nsrc,nvars,nsimple):
-	"""
+    """
 	Return a collection of matroids with underlying simple matroid of
 	size ``nsimple`` and respective matroid-network mappings
 	"""
@@ -521,7 +640,7 @@ def codecertgen_simple(r,q,netcons,nsrc,nvars,nsimple):
     return allpcodes
    
 def pcodes2rr(allcodes):
-	"""
+    """
 	Returns a polyhedron corresponding to rate the region
 	"""
     ratepts=set([])
@@ -535,7 +654,7 @@ def pcodes2rr(allcodes):
     return ratepts
     
 def pcodecerts2rr(allcodes):
-	"""
+    """
 	Returns a polyhedron corresponding to rate the region
 	"""
     ratepts=set([])

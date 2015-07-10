@@ -1195,8 +1195,6 @@ ext_modules = [
             ['sage/matroids/unpickling.pyx'],
               libraries = ['gmp']),
 
-    Extension('sage.matroids.network_coding',
-          sources = ['sage/matroids/network_coding.pyx']),
     ################################
     ##
     ## sage.media
