@@ -623,7 +623,7 @@ class Automaton (DiGraph):
         """
         self.allow_multiple_edges(True)
         #from sage.sets.set import set
-        L = self.Alphabet()
+        L = set(self.Alphabet())
         V = self.vertices()
         ns = True
         for v in V:

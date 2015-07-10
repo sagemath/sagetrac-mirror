@@ -2353,7 +2353,7 @@ class BetaAdicMonoid(Monoid_class):
 			self.ss = ss
 		
 	#complete the langage of a
-	def complete (self, FastAutomaton a, C=None, ext=False, verb=False):
+	def complete (self, FastAutomaton a, C=None, ext=False, arel=None, verb=False):
 		r"""
 		Return an automaton that recognize the language of all words over C that represent elements recognized by a.
 		If ext is True, this also include words equal at infinity.
@@ -2380,7 +2380,10 @@ class BetaAdicMonoid(Monoid_class):
 		for c in C:
 			for c2 in a.A:
 				d[c - c2].append((c,c2))
-		arel = self.relations_automaton3(Cd=Cd, ext=ext).duplicate(d)
+		if arel is None:
+			arel = self.relations_automaton3(Cd=Cd, ext=ext).duplicate(d)
+		else:
+			arel = arel.duplicate(d)
 		if verb:
 			if arel.n_states() < 100:
 				arel.plot()
@@ -2547,6 +2550,9 @@ class BetaAdicMonoid(Monoid_class):
 		from sage.graphs.graph import Graph
 		n = a.n_states()
 		na = len(a.Alphabet())
+		d = dict([]) #dictionnaire des automates complétés
+		if verb: print "Automate des relations..."
+		arel = self.relations_automaton3(ext=ext)
 		for i in range(n):
 			if verb: print "morceau %s"%i
 			g = Graph({j:{} for j in range(na) if a.succ(i, j) != -1})
@@ -2555,9 +2561,24 @@ class BetaAdicMonoid(Monoid_class):
 				for k in g.vertices():
 					if k >= j:
 						continue
-					if verb: print "intersection %s et %s..."%(j,k)
-					if self.intersect(a.piece(j, e=i), a.piece(k, e=i), ext=ext, verb=verb):
-						if verb: print "oui !"
+					if verb: print " intersection %s et %s..."%(j,k)
+					la = []
+					la.append(a.piece(j, e=i).minimise())
+					la.append(a.piece(k, e=i).minimise())
+					for l in range(2):
+						a2 = d.get(la[l]) #récupère le complété dans le dictionnaire s'il y est
+						if a2 is None:
+							if verb: print "  complete %s..."%la[l]
+							a2 = self.complete(la[l], ext=ext)
+							d[la[l]] = a2
+							la[l] = a2
+						else:
+							la[l] = a2
+							if verb: print "  déjà calculé !"
+					if verb: print "  intersect..."
+					#if self.intersect(a.piece(j, e=i), a.piece(k, e=i), ext=ext, verb=verb):
+					if la[0].intersect(la[1], ext=ext):
+						if verb: print "  oui !"
 						g.add_edge(j,k)
 			if not g.is_connected():
 				return False
