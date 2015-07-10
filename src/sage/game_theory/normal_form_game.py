@@ -2063,7 +2063,7 @@ class NormalFormGame(SageObject, MutableMapping):
             tab, eq = self._lh_solve_tableau(cur.tab, k + 1)
             #print eq
 
-            e = LHEquilibrium(tab, eq)
+            e = _LHEquilibrium(tab, eq)
             if e not in eq_list:
                 eq_list.append(e)
             idx = eq_list.index(e)
@@ -2076,12 +2076,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B)
-        neg.append(LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
+        neg.append(_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
         #print "Load", neg[0].tab[0]
         #print "Load", neg[0].tab[1]
 
         tab, eq = self._lh_solve_tableau(neg[0].tab, 1)
-        pos.append(LHEquilibrium(tab, eq))
+        pos.append(_LHEquilibrium(tab, eq))
 
         #print "Load", neg[0].tab[0]
         #print "Load", neg[0].tab[1]
@@ -2125,13 +2125,37 @@ class NormalFormGame(SageObject, MutableMapping):
                 #print i, "->",  indices
         return B
 
-class LHEquilibrium():
+class _LHEquilibrium():
     def __init__(self, tab, eq):
+        r"""
+        TESTS::
+            
+            sage: from sage.game_theory.normal_form_game import _LHEquilibrium
+            sage: A = matrix.identity(3)
+            sage: e = _LHEquilibrium([A, A], [[0]*3, [0]*3])
+            sage: e.eq
+            [[0, 0, 0], [0, 0, 0]]
+            sage: e.labels
+            [-1, -1, -1, -1, -1, -1]
+        """
         self.tab = tab
         self.eq = eq
         self.labels = [-1] * (tab[0].nrows() + tab[1].nrows())
 
     def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.game_theory.normal_form_game import _LHEquilibrium
+            sage: A = matrix.identity(3)
+            sage: e1 = _LHEquilibrium([A, A], [[0]*3, [0]*3])
+            sage: e2 = _LHEquilibrium([A, A], [[0]*3, [0]*3])
+            sage: e3 = _LHEquilibrium([A, A], [[1, 0, 0], [1, 0, 0]])
+            sage: e1 == e2
+            True
+            sage: e2 == e3
+            False
+        """
         for i in range(len(self.eq[0])):
             diff = abs(self.eq[0][i] - other.eq[0][i])
             if diff > sys.float_info.epsilon :
