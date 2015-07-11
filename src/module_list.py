@@ -203,7 +203,6 @@ ext_modules = [
                       language="c",
                       libraries=['arb', 'mpfi', 'mpfr'],
                       include_dirs=[SAGE_INC + '/flint'],
-                      depends=flint_depends,
                       package='arb'),
 
     ################################
