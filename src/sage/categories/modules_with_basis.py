@@ -772,13 +772,20 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: M = QQ^2
                 sage: M.find_base_ring(M.category())
-                Rational Field
+                Category of quotient fields
                 sage: N = CombinatorialFreeModule(QQ,[1,2])
                 sage: N.find_base_ring(N.category())
                 Rational Field
                 sage: s = SymmetricFunctions(QQ['q,t'].fraction_field()).s()
                 sage: s.find_base_ring(s.category())
                 Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+
+            .. WARNING::
+
+                Note the behavior for `\mathbb{Q}^2`.
+                This is a situation where the category does not have the base ring
+                information, which is stored in the ``base_ring`` attribute of the
+                module.
 
             """
             if isinstance(cat, Category_over_base_ring):
@@ -844,7 +851,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 base_category = category.base_category()
             if base_category is None:
                 raise TypeError, "Category should be a subcategory of a module tensor category"
-            R = parents[0].find_base_ring(base_category)
+            if hasattr(parents[0], 'base_ring'):
+                R = parents[0].base_ring()
+            else:
+                R = parents[0].find_base_ring(base_category)
             if R is None:
                 raise ValueError("Base category for tensor product is not a category over base ring")
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
