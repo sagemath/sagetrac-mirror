@@ -12,7 +12,7 @@ Then the expected sum of the output labels of the transducer is
 `\Phi` and some constant `e_T`.
 
 This module computes the Fourier Coefficients of `\Phi`, following
-[HKP2014]_.
+[HKP2015]_.
 
 Contents
 ========
