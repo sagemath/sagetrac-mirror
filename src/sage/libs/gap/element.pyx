@@ -576,7 +576,7 @@ cdef class GapElement(RingElement):
         """
         return hash(str(self))
 
-    cdef _richcmp_c_impl(self, Element other, int op):
+    cpdef _richcmp_(self, Element other, int op):
         """
         Compare ``self`` with ``other``.
 
@@ -645,7 +645,7 @@ cdef class GapElement(RingElement):
         """
         Compare ``self`` with ``other``.
 
-        Helper for :meth:`_richcmp_c_impl`
+        Helper for :meth:`_richcmp_`
 
         EXAMPLES::
 
@@ -671,7 +671,7 @@ cdef class GapElement(RingElement):
         """
         Compare ``self`` with ``other``.
 
-        Helper for :meth:`_richcmp_c_impl`
+        Helper for :meth:`_richcmp_`
 
         EXAMPLES::
 
@@ -2621,7 +2621,7 @@ cdef class GapElement_RecordIterator(object):
             sage: iter = rec.__iter__()
             sage: iter.__next__()
             ('a', 123)
-            sage: iter.next()
+            sage: next(iter)
             ('b', 456)
         """
         cdef libGAP_UInt i = self.i
