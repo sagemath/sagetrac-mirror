@@ -509,7 +509,7 @@ class DoubleAffineType(SageObject):
         # Specify the subgroup of allowable special affine Dynkin automorphisms `\Pi^X`.
         if self._dual_reduced:
             # Set `\Pi^X = F^X`
-            self._special_nodes = self._E.special_nodes()
+            self._special_nodes = self._E.cartan_type().special_nodes()
         else:
             # Set `\Pi^X = \{0\}`
             self._special_nodes = tuple([0])

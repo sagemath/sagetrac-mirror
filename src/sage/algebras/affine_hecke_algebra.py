@@ -255,9 +255,9 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: H = ExtendedAffineHeckeAlgebra(['A',2,1], general_linear = True)
         sage: T = H.T()
         sage: x = T.an_element(); x
-        6*piX[-1] TX[0] + 9*piX[-1] TX[0,1] + 3*piX[-1] + 3*piX[-1] TX[0,1,2] + 2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 2*piX[5] TX[0] + 3*piX[5] TX[0,1] + piX[5] + piX[5] TX[0,1,2]
+        2*piX[1] TX[0] + 3*piX[1] TX[0,1] + piX[1] + piX[1] TX[0,1,2] + 2*piX[5] TX[0] + 3*piX[5] TX[0,1] + piX[5] + piX[5] TX[0,1,2]
         sage: z = H.tvLv()(x); z
-        2*Ty[1,2,1] Y[(-1, 0, 1)] + 2*Ty[1,2,1] Y[(0, 1, 0)] + ((6*v^2-6)/v)*Ty[1,2,1] Y[(0, 0, 1)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(0, 0, 1)] + ((6*v^2+3*v-6)/v)*Ty[2,1] Y[(-1, 0, 0)] + ((2*v^2+v-2)/v)*Ty[2,1] Y[(1, 2, 2)] + 6*Ty[2,1] Y[(0, 0, 1)] + ((3*v^2-3)/v)*Ty[1] + 6*Ty[1] Y[(-1, 0, 0)] + 2*Ty[1] Y[(1, 2, 2)] + Ty[1] Y[(0, 1, -1)] + ((3*v^2-3)/v)*Ty[2] Y[(2, 1, 2)] + Ty[2] Y[(2, 2, 1)] + ((9*v^2-9)/v)*Ty[2] Y[(0, -1, 0)] + 3*Ty[2] Y[(0, 0, -1)] + 4*Ty[2] Y[(0, 0, 1)] + ((2*v^2+v-2)/v) + 3*Y[(2, 1, 2)] + 9*Y[(0, -1, 0)]
+        Ty[1,2,1] Y[(0, 1, 0)] + ((3*v^2-3)/v)*Ty[1,2,1] Y[(0, 0, 1)] + ((2*v^2+v-2)/v)*Ty[1,2] Y[(0, 0, 1)] + ((2*v^2+v-2)/v)*Ty[2,1] Y[(1, 2, 2)] + 3*Ty[2,1] Y[(0, 0, 1)] + 2*Ty[1] Y[(1, 2, 2)] + ((3*v^2-3)/v)*Ty[2] Y[(2, 1, 2)] + Ty[2] Y[(2, 2, 1)] + 2*Ty[2] Y[(0, 0, 1)] + 3*Y[(2, 1, 2)]
         sage: H.Lvtv()(x) == H.Lvtv()(z)
         True
     """
@@ -1221,7 +1221,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
             # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
             E = H.extended_affine_weyl()
-            x = E.PvW0().fundamental_group_morphism(pi)
+            x = E.PvW0().from_fundamental(pi)
             rw = x.to_dual_classical_weyl().reduced_word()
             mu = x.to_dual_translation_right().to_ambient()
             HY = H.dual_classical_hecke()
@@ -1376,7 +1376,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             if not H._dual_reduced:
                 raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
             # express pi as t_mu w with w in W(Y) and mu in Y.
-            x = H.extended_affine_weyl().PvW0().fundamental_group_morphism(pi)
+            x = H.extended_affine_weyl().PvW0().from_fundamental(pi)
             rw = x.to_dual_classical_weyl().reduced_word()
             mu = x.to_dual_translation_left().to_ambient()
             tv = self.factor(1)
