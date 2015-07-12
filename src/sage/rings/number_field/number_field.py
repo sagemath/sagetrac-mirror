@@ -123,7 +123,6 @@ from sage.structure.proof.proof import get_flag
 import maps
 import structure
 import number_field_morphisms
-from itertools import count, izip
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -8377,7 +8376,7 @@ class NumberField_absolute(NumberField_generic):
 
 
         - ``e`` - an embedding of a number field into either
-          RR or CC (with some precision)
+          ``RR`` or ``CC`` (with some precision)
 
         - ``prec`` - (default None) the desired precision; if None,
           current precision is doubled; if Infinity, the equivalent
@@ -8430,6 +8429,8 @@ class NumberField_absolute(NumberField_generic):
             From: Number Field in a with defining polynomial x^3 - 2
             To:   Algebraic Field
             Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
+            sage: e(a)^3 == 2
+            True
             sage: ComplexField(200)(e(a))
             -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
             sage: e(a)^3
@@ -8471,10 +8472,12 @@ class NumberField_absolute(NumberField_generic):
               To:   Algebraic Real Field
               Defn: a |--> 0.6823278038280193?
         """
-        if not self is e.domain():
+        if self is not e.domain():
             raise ValueError("wrong domain in refine_embedding")
+        from sage.rings.all import (AA, QQbar, RealField, ComplexField)
+
         RC = e.codomain()
-        if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
+        if RC in (AA, QQbar):
             return e
         if RC in (RLF, CLF):
             prec_old = e.gen_image().approx().prec()
@@ -8488,24 +8491,32 @@ class NumberField_absolute(NumberField_generic):
         elif prec_old >= prec:
             return e
 
-        # We first compute all the embeddings at the new precision:
+        # Determine the new codomain:
+
         if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
             if prec == Infinity:
-                elist = self.embeddings(sage.rings.qqbar.AA)
+                K = AA
             else:
-                elist = self.real_embeddings(prec)
+                K = RealField(prec)
         else:
             if prec == Infinity:
-                elist = self.embeddings(sage.rings.qqbar.QQbar)
+                K = QQbar
             else:
-                elist = self.complex_embeddings(prec)
+                K = ComplexField(prec)
 
-        # Now we determine which is an extension of the old one; this
-        # relies on the fact that coercing a high-precision root into a
-        # field with lower precision will equal the lower-precision root!
-        diffs = [(RC(ee(self.gen()))-old_root).abs() for ee in elist]
-        return elist[min(izip(diffs,count()))[1]]
+        # Compute all the roots of the defining polynomial in the new
+        # codomain: as there is no function to find one root close to
+        # a given real or complex number, we find all of them and pick
+        # the closest.
 
+        rr = self.defining_polynomial().roots(K, multiplicities=False)
+
+        # Now we determine which of these is closest to the old root
+        # and use that one to define the new embedding:
+
+        diffs = [(RC(r)-old_root).abs() for r in rr]
+        new_root = rr[diffs.index(min(diffs))]
+        return self.hom([new_root], check=False)
 
 class NumberField_cyclotomic(NumberField_absolute):
     """
