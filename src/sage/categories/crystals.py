@@ -63,6 +63,7 @@ class Crystals(Category_singleton):
         sage: B = Crystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -160,10 +161,9 @@ class Crystals(Category_singleton):
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
             F = self.cartan_type().root_system()
-            if F.is_finite() and F.ambient_space() is not None:
+            if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
-            else:
-                return F.weight_lattice()
+            return F.weight_lattice()
 
         def cartan_type(self):
             """
