@@ -246,19 +246,11 @@ class DocTestController(SageObject):
                 # Special case to run all optional tests
                 options.optional = True
             else:
-                # We replace the 'optional' tag by all optional
-                # packages for which the installed version matches the
-                # latest available version (this implies in particular
-                # that the package is actually installed).
                 if 'optional' in options.optional:
                     options.optional.discard('optional')
-                    from sage.misc.package import package_versions
-                    optional_pkgs = package_versions("optional", local=True)
-                    for pkg, versions in optional_pkgs.items():
-                        if versions[0] == versions[1]:
-                            options.optional.add(pkg)
+                    options.optional.update(self._default_optional_tags())
 
-                # Check that all tags are valid
+                # check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
@@ -308,6 +300,51 @@ class DocTestController(SageObject):
         except RuntimeError as err:
             if not sage.doctest.DOCTEST_MODE:
                 print(err)   # No usable timing information
+
+    def _default_optional_tags(self):
+        r"""
+        Lists all '#optional' tags that are to be tested by default.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC._default_optional_tags()
+            [...]
+        """
+        ans = []
+        from sage.misc.package import package_versions
+
+        # All new-style installed optional packages
+        optional_pkgs = package_versions("optional", local=True)
+        for pkg, versions in optional_pkgs.items():
+            if versions[0] == versions[1]:
+                ans.append(pkg)
+
+        # non-packages optional doctests
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        for lp_solver in ['cplex','gurobi']:
+            try:
+                MixedIntegerLinearProgram(solver=lp_solver)
+                ans.append(lp_solver)
+            except Exception:
+                pass
+
+        from sage.interfaces.matlab    import matlab
+        from sage.interfaces.maple     import maple
+        from sage.interfaces.macaulay2 import macaulay2
+        from sage.interfaces.octave    import octave
+        from sage.interfaces.scilab    import scilab
+        for f,name in [(matlab,"matlab"), (maple,"maple"),
+                       (macaulay2,"macaulay2"),
+                       (octave,"octave"), (scilab,"scilab")]:
+            try:
+                f(1)
+                options.optional.add(name)
+            except Exception:
+                pass
+
+        return ans
 
     def second_on_modern_computer(self):
         """
