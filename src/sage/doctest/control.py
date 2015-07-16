@@ -312,14 +312,9 @@ class DocTestController(SageObject):
             sage: DC._default_optional_tags()
             [...]
         """
-        ans = []
-        from sage.misc.package import package_versions
-
         # All new-style installed optional packages
-        optional_pkgs = package_versions("optional", local=True)
-        for pkg, versions in optional_pkgs.items():
-            if versions[0] == versions[1]:
-                ans.append(pkg)
+        from sage.misc.package import _package_lists_from_sage_output
+        ans = _package_lists_from_sage_output('optional', local=True)[0]
 
         # non-packages optional doctests
         from sage.numerical.mip import MixedIntegerLinearProgram
