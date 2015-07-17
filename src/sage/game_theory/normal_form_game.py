@@ -2114,6 +2114,12 @@ class NormalFormGame(SageObject, MutableMapping):
             #        updated = True
             #        index = i
             index = self._lh_lexicographic_min_ratio(dim1, dim2, tab, ntab, column)
+
+            #print "=========="
+            #print tab[0]
+            #print "----------"
+            #print tab[1]
+            #print "=========="
             
             #if not updated :
             if index < 0 :
@@ -2143,6 +2149,13 @@ class NormalFormGame(SageObject, MutableMapping):
             if newpivot == startpivot or newpivot == -startpivot :
                 break
         
+        #print "=========="
+        #print "After LH"
+        #print tab[0]
+        #print "----------"
+        #print tab[1]
+        #print "=========="
+            
         tot1 = 0
         tot2 = 0
         
@@ -2154,19 +2167,15 @@ class NormalFormGame(SageObject, MutableMapping):
             if tab[1][i,0] > sys.float_info.epsilon:
                 tot2 += tab[1][i,1]
                
-        x = []
+        y = [0.0] * int(dim2)
         for i in range(dim1):
             if tab[0][i,0] > sys.float_info.epsilon:
-                x.append(tab[0][i,1]/tot1)
-            else :
-                x.append(0.0)
+                y[int(tab[0][i,0] - dim1 - 1)] = (tab[0][i,1]/tot1)
                
-        y = []
+        x = [0.0] * int(dim1)
         for i in range(dim2):
             if tab[1][i,0] > sys.float_info.epsilon:
-                y.append(tab[1][i,1]/tot2)
-            else :
-                y.append(0.0)
+                x[int(tab[1][i,0] - 1)] = (tab[1][i,1]/tot2)
 
         return (tab, [x, y])
 
@@ -2176,7 +2185,9 @@ class NormalFormGame(SageObject, MutableMapping):
         with a given missing label.
 
         EXAMPLES::
-            
+
+        A simple game::
+
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
             sage: g._solve_lh()
@@ -2185,6 +2196,22 @@ class NormalFormGame(SageObject, MutableMapping):
             [[[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]]]
             sage: g._solve_lh(4)
             [[[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]]]
+
+        2 random matrices::
+            sage: p1 = matrix([[-1, 4, 0, 2, 0],
+            ....:              [-17, 246, -5, 1, -2],
+            ....:              [0, 1, 1, -4, -4],
+            ....:              [1, -3, 9, 6, -1],
+            ....:              [2, 53, 0, -5, 0]])
+            sage: p2 = matrix([[0, 1, 1, 3, 1],
+            ....:              [3, 9, 44, -1, -1],
+            ....:              [1, -4, -1, -3, 1],
+            ....:              [1, 0, 0, 0, 0,],
+            ....:              [1, -3, 1, 21, -2]])
+            sage: biggame = NormalFormGame([p1, p2])
+            sage: ne = biggame._solve_lrs() # optional - lrslib
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
         """
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B)
