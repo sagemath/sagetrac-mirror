@@ -2051,8 +2051,39 @@ class NormalFormGame(SageObject, MutableMapping):
         
     def _get_column(self, dim1, dim2, strategy):
         r"""
-        Given a strategy, returns the column which corresponds to the given strategy
+        Given a strategy, returns the column which corresponds to the given strategy. A negative
+        index is returned if the strategy does not exist. 
+
+        .. NOTE::
+            For the implementation of Lemke-Howson, the individual strategies are indexed from 1 to
+            ``dim1`` for the row player and ``dim1 + 1`` to ``dim2`` for the column player.
+
+        .. NOTE::
+            ``strategy`` takes an input within the range from ``- dim1 - dim2`` to ``dim1 + dim2``
+            excluding 0, where the positive values indicate the strategies of the players, and the
+            negative values indicate the slack variables in the tableau.
+
+        TESTS:
+            sage: g = NormalFormGame([matrix(4)])
+            sage: g._get_column(4, 4, 0) < 0
+            True
+            sage: g._get_column(4, 4, 10) < 0
+            True
+            sage: g._get_column(4, 4, -10) < 0
+            True
+            sage: g._get_column(4, 4, -1)
+            2
+            sage: g._get_column(4, 4, -5)
+            2
+            sage: g._get_column(4, 4, -4)
+            5
+            sage: g._get_column(4, 4, 1)
+            6
+            sage: g._get_column(4, 4, 5)
+            6
         """
+        if abs(strategy) > dim1 + dim2 :
+            return -1
         if strategy > 0 and strategy <= dim1 :
             return (1 + dim2 + strategy )
         if strategy > 0 and strategy > dim1 :
@@ -2066,6 +2097,22 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Checks if a strategy is in the base of the current tableaus. If it is then it returns the
         corresponding slack variable otherwise returns the strategy.
+
+        TESTS::
+
+            sage: A = matrix([[-1, 1, 0, 0, 0, 1],
+            ....:             [ 3, 1, 0, 1, 0, 2]])
+            sage: B = matrix([[ 2, 2, 3, 0, 0, 1],
+            ....:             [-4, 1, 1, 0, 0, 2]])
+            sage: g = NormalFormGame([matrix(2)])
+            sage: g._get_pivot_gen(2, 2, [A, B], 1)
+            1
+            sage: g._get_pivot_gen(2, 2, [A, B], 2)
+            -2
+            sage: g._get_pivot_gen(2, 2, [A, B], 3)
+            -3
+            sage: g._get_pivot_gen(2, 2, [A, B], 4)
+            4
         """
         for i in range(dim1):
             if tab[0][i,0] == strategy :
@@ -2209,8 +2256,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:              [1, 0, 0, 0, 0,],
             ....:              [1, -3, 1, 21, -2]])
             sage: biggame = NormalFormGame([p1, p2])
-            sage: ne = biggame._solve_lrs() # optional - lrslib
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            sage: ne = biggame._solve_lh()
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
         """
         A, B = self.payoff_matrices()
@@ -2271,6 +2318,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES::
 
+        A game with a single Nash equilibrium::
+            
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A])
+            sage: g._lh_find_all()
+            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[0, 0, 0, 0, 0, 0]])
+
+        A game with multiple Nash equilibria::
+
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
             sage: g._lh_find_all()
@@ -2282,6 +2339,25 @@ class NormalFormGame(SageObject, MutableMapping):
               Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
               Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
               Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
+
+        This algorithm might not be able to find all the Nash equilibria within a game most
+        especially when the game is degenerate::
+
+            sage: A = matrix(3)
+            sage: g = NormalFormGame([A, A])
+            sage: g.obtain_nash('enumeration')
+            [[(0, 0, 1), (0, 0, 1)],
+             [(0, 0, 1), (0, 1, 0)],
+             [(0, 0, 1), (1, 0, 0)],
+             [(0, 1, 0), (0, 0, 1)],
+             [(0, 1, 0), (0, 1, 0)],
+             [(0, 1, 0), (1, 0, 0)],
+             [(1, 0, 0), (0, 0, 1)],
+             [(1, 0, 0), (0, 1, 0)],
+             [(1, 0, 0), (1, 0, 0)]]
+            sage: g._lh_find_all()
+            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[0, 0, 0, 0, 0, 0]])
         """
         neg = []
         pos = []
@@ -2340,9 +2416,22 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES::
 
+        A game with a single equilibrium::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A])
+            sage: sol = g._lh_bipartite_graph()
+            sage: sol
+            (Bipartite graph on 2 vertices,
+             [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[0, 0, 0, 0, 0, 0]])
+
+        A game with multiple equilibria::
+
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
-            sage: g._lh_bipartite_graph()
+            sage: sol = g._lh_bipartite_graph()
+            sage: sol
             (Bipartite graph on 8 vertices,
              [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
               Equ [[0.500000000000000, 0.500000000000000, 0.0], [0.500000000000000, 0.500000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
@@ -2352,7 +2441,6 @@ class NormalFormGame(SageObject, MutableMapping):
               Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
               Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
               Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
-
         """
         neg, pos = self._lh_find_all()
         #G = {}
