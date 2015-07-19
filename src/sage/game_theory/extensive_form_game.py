@@ -538,11 +538,11 @@ class ExtensiveFormGame():
              Extensive form game node with name: Node 2,
              Extensive form game node with name: Tree Root]
             sage: gambit_converted_game.leafs  # optional - gambit
-            [Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
+            [Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
              Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1))]
+             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1))]
             sage: gambit_converted_game.tree_root  # optional - gambit
             Extensive form game node with name: Tree Root
             sage: gambit_converted_game.tree  # optional - gambit
@@ -613,11 +613,11 @@ class ExtensiveFormGame():
              Extensive form game node with name: Node 3,
              Extensive form game node with name: Root] 
             sage: gambit_converted_game.leafs  # optional - gambit
-            [Extensive form game leaf with utilities given by: (Fraction(4, 1), Fraction(2, 1)),
+            [Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(0, 1)),
              Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(1, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(0, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(5, 1)),
              Extensive form game leaf with utilities given by: (Fraction(4, 1), Fraction(1, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(5, 1))]
+             Extensive form game leaf with utilities given by: (Fraction(4, 1), Fraction(2, 1))]
             sage: gambit_converted_game.tree_root  # optional - gambit
             Extensive form game node with name: Root
             sage: gambit_converted_game.tree  # optional - gambit
@@ -688,12 +688,12 @@ class ExtensiveFormGame():
              Extensive form game node with name: Node 3,
              Extensive form game node with name: Tree Root]
             sage: gambit_converted_game.leafs  # optional - gambit
-            [Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1)),
+            [Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
              Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1))]
+             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1))]        
             sage: gambit_converted_game.tree_root  # optional - gambit
             Extensive form game node with name: Tree Root
             sage: gambit_converted_game.tree  # optional - gambit
@@ -759,10 +759,10 @@ class ExtensiveFormGame():
              Extensive form game node with name: Root]
             sage: gambit_converted_game.leafs  # optional - gambit
             [Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1)),
              Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1))]
+             Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(9, 1), Fraction(1, 1))]
             sage: gambit_converted_game.tree_root  # optional - gambit
             Extensive form game node with name: Root
             sage: gambit_converted_game.tree  # optional - gambit
@@ -818,9 +818,9 @@ class ExtensiveFormGame():
              Extensive form game node with name: Tree Root]
             sage: gambit_converted_game.leafs  # optional - gambit
             [Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(5, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1)),
+             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1)),
              Extensive form game leaf with utilities given by: (Fraction(3, 1), Fraction(0, 1)),
-             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1))]
+             Extensive form game leaf with utilities given by: (Fraction(5, 1), Fraction(2, 1))]
             sage: gambit_converted_game.tree_root  # optional - gambit
             Extensive form game node with name: Tree Root
             sage: gambit_converted_game.tree  # optional - gambit
@@ -902,10 +902,10 @@ class ExtensiveFormGame():
 
             self.players.sort(key=attrgetter('name'))
             self.nodes.sort(key=attrgetter('name', 'parent'))
-            self.leafs.sort(key=attrgetter('name', 'payoffs'))
+            self.leafs.sort(key=attrgetter('payoffs'))
             self.info_sets.sort(key=lambda x: x[0].name) 
         return converted_gambit_game
-      
+
     def set_info_set(self, node_list):
         r"""self
         Combines a list of nodes in to an information set.
