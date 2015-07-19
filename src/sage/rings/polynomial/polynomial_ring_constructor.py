@@ -33,6 +33,7 @@ rings but rather quotients of them (see module
 
 
 from sage.structure.parent_gens import normalize_names
+from sage.structure.parent import Parent
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
@@ -50,8 +51,7 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import sage.misc.weak_dict
-_cache = sage.misc.weak_dict.WeakValueDictionary()
+from sage.misc.weak_dict import WeakValueDictionary
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
@@ -400,6 +400,17 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: RIF(-2,1)*x
         0.?e1*x
 
+    We test against a memory leak that was fixed at :trac:`18905`::
+
+        sage: import gc
+        sage: K = GF(31)
+        sage: A = K.algebraic_closure()
+        sage: n = id(K)
+        sage: del A,K
+        sage: _ = gc.collect()
+        sage: [c for c in gc.get_objects() if id(c) == n]
+        []
+
     """
     import sage.rings.polynomial.polynomial_ring as m
 
@@ -485,6 +496,15 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     return R
 
 def _get_from_cache(key):
+    base_ring = key[0]
+    key = key[1:]
+    basering_cache = base_ring.__cached_methods
+    if basering_cache is None:
+        basering_cache = base_ring.__cached_methods = {}
+    if 'PolynomialRingCache' in basering_cache:
+        _cache = basering_cache['PolynomialRingCache']
+    else:
+        _cache = basering_cache['PolynomialRingCache'] = WeakValueDictionary()
     try:
         return _cache[key] #()
     except TypeError as msg:
@@ -493,8 +513,17 @@ def _get_from_cache(key):
         return None
 
 def _save_in_cache(key, R):
+    base_ring = key[0]
+    key = key[1:]
+    basering_cache = base_ring.__cached_methods
+    if basering_cache is None:
+        basering_cache = base_ring.__cached_methods = {}
+    if 'PolynomialRingCache' in basering_cache:
+        _cache = basering_cache['PolynomialRingCache']
+    else:
+        _cache = basering_cache['PolynomialRingCache'] = WeakValueDictionary()
     try:
-         _cache[key] = R
+        _cache[key] = R
     except TypeError as msg:
         raise TypeError('key = %s\n%s'%(key,msg))
 
@@ -713,7 +742,8 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     order = TermOrder(order, n)
 
-    key = ("pbori", names, n, order)
+    from sage.rings.finite_rings.constructor import GF
+    key = (GF(2), "pbori", names, n, order)
     R = _get_from_cache(key)
     if not R is None:
         return R
