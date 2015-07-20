@@ -273,7 +273,11 @@ from sage.graphs.generic_graph import GenericGraph
 from operator import attrgetter
 from copy import copy
 from parser import Parser
-
+from decimal import Decimal
+from fractions import Fraction
+from sage.rings.rational import Rational 
+from sage.rings.real_mpfr import RealLiteral 
+from sage.rings.integer import Integer
 
 try:
     from gambit import Game
@@ -2224,12 +2228,12 @@ class ExtensiveFormGame():
             sage: egame_1._set_gambit_move(node_1, [node_1, node_2], g.root.children[int(0)], g)  # optional - gambit
             <Infoset [0] '(Extensive form game node with name: Node 1, Extensive form game node with name: Node 2)' for player 'Player 2' in game ''>
 
-        We can then then use the function to add outcomes to the gambit node equivilant to the sage node, node_1.
+        We can then then use the function to add outcomes to the gambit node equivilant to the sage node: node_1.
 
-            sage: g.outcomes
+            sage: g.outcomes  # optional - gambit
             []
             sage: egame_1._add_gambit_outcomes(node_1, g.root.children[int(0)], g)
-            sage: g.outcomes
+            sage: g.outcomes  # optional - gambit
             [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>]
 
         """
@@ -2238,7 +2242,7 @@ class ExtensiveFormGame():
                 outcome = gambit_game.outcomes.add(child.name)
                 for player_index in range(len(self.players)):
                     player = self.players[player_index]
-                    outcome[player_index] = int(child[player])
+                    outcome[player_index] = Fraction(str(child[player]))
                 leaf_action_index = self._get_gambit_child_index(child)                                                           
                 gambit_node.children[leaf_action_index].outcome = outcome
 
@@ -2291,7 +2295,7 @@ class ExtensiveFormGame():
         r"""
         To obtain the Nash Equilibria of an ``ExtensiveFormGame``, we firstly set up the game as normal::
 
-            sage: from gambit import Game
+            sage: from gambit import Game  # optional - gambit
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
             sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
@@ -2313,7 +2317,7 @@ class ExtensiveFormGame():
             ....: [{'b': {'C': 0.5, 'D': 0.5}, 'c': {'A': 0.0, 'B': 1.0}}],
             ....: [{'a': {'W': 0.0, 'X': 1.0}, 'd': {'Y': 1.0, 'Z': 0.0}}],
             ....: [{'b': {'C': 1.0, 'D': 0.0}, 'c': {'A': 0.0, 'B': 1.0}}]]
-            sage: expected_outcome == example.obtain_nash()
+            sage: expected_outcome == example.obtain_nash()   # optional - gambit
             True
 
         Here is an example with a different tree::
@@ -2332,7 +2336,7 @@ class ExtensiveFormGame():
             sage: expected_outcome = [[{'Node A': {'f': 0.5, 'g': 0.5},
             ....: 'Tree Root': {'a': 0.0, 'b': 1.0, 'c': 0.0}}],
             ....: [{'Node B': {'d': 1.0, 'e': 0.0}, 'Node C': {'h': 1.0, 'i': 0.0}}]]
-            sage: example_2.obtain_nash() == expected_outcome
+            sage: example_2.obtain_nash() == expected_outcome  # optional - gambit
             True
             
         The following is a test to show that this works for larger trees too::
@@ -2564,8 +2568,8 @@ class EFG_Node():
             TypeError: Cannot assign a non Player as a player to a Node.
         """
         if self.player is not False:
-                    if not isinstance(self.player, EFG_Player):
-                        raise TypeError("Cannot assign a non Player as a player to a Node.")
+            if not isinstance(self.player, EFG_Player):
+                raise TypeError("Cannot assign a non Player as a player to a Node.")
 
 
 class EFG_Leaf():
@@ -2594,15 +2598,21 @@ class EFG_Leaf():
             sage: leaf_1 = EFG_Leaf({node_1: 0, node_2: 1})
             Traceback (most recent call last):
             ...
-            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.
+            TypeError: EFG_Leaf input must be in dictionary form with each key as a EFG_Player.
+
+            sage: leaf_1 = EFG_Leaf({player_1: 'Win', player_2: 'Lose'})
+            Traceback (most recent call last):
+            ...
+            TypeError: EFG_Leaf utilities must be of the following types: sage Rational, sage RealLiteral, sage Interger, 
+            float, int, Fraction or Decimal.
 
             sage: leaf_1 = EFG_Leaf([0, 1])
             Traceback (most recent call last):
             ...
-            TypeError: The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.
+            TypeError: EFG_Leaf input must be in dictionary form.
         """
         if type(payoffs) is not dict:
-            raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.")
+            raise TypeError("EFG_Leaf input must be in dictionary form.")
 
         self.payoffs =  payoffs
         self.name = name
@@ -2610,9 +2620,15 @@ class EFG_Leaf():
         self.parent = False
         self.utilities = tuple([self[player] for player in sorted(self.players, key=lambda x:x.name)])
 
+        for utility in self.utilities:
+            if (type(utility) is float) or (type(utility) is int) or (isinstance(utility, Rational)) or (isinstance(utility, RealLiteral)) or (isinstance(utility, Integer)) or isinstance(utility, Fraction) or isinstance(utility, Decimal):
+                utility = float(utility)
+            else:           
+                raise TypeError("EFG_Leaf utilities must be of the following types: sage Rational, sage RealLiteral, sage Interger, float, int, Fraction or Decimal.")
+
         for player in self.players:
             if not isinstance(player, EFG_Player):
-                raise TypeError("The payoffs within Leaf must be in dictionary form with players as keys, and numbers as payoffs.")
+                raise TypeError("EFG_Leaf input must be in dictionary form with each key as a EFG_Player.")
 
     def __repr__(self):
         """
