@@ -291,8 +291,8 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
                   zz = delta[2] * delta[2]
                   square_dist = xx+yy+zz
 
-              if square_dist < 0.01:
-                  square_dist = 0.01
+              if square_dist < 0.0001:
+                  square_dist = 0.0001
 
               # they repel according to the (capped) inverse square law
               force = (k*k)/square_dist
@@ -320,7 +320,7 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
           for x in range(1,dim):
               square_dist += disp_i[x] * disp_i[x]
 
-          if square_dist < 0.01:
+          if square_dist < 0.0001:
               scale = 1
           else:
               scale = t/sqrt(square_dist)
