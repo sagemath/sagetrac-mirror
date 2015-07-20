@@ -121,7 +121,8 @@ from sage.misc.cachefunc import cached_method
 
 import sage.libs.pari.pari_instance
 from sage.libs.pari.pari_instance cimport PariInstance
-from sage.libs.pari.gen cimport gen, FpX_ffisom
+from sage.libs.pari.gen cimport gen
+from sage.libs.pari.paridecl cimport FpX_ffisom
 
 cdef class SectionFiniteFieldHomomorphism_generic(Section):
     """
