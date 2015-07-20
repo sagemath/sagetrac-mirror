@@ -151,7 +151,6 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
             for x in range(dim):
                 pos[i*dim + x] = loc[x]
 
-
     # Lexicographically ordered list of edges
     cdef int cur_edge = 0
 
@@ -321,16 +320,19 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
           for x in range(1,dim):
               square_dist += disp_i[x] * disp_i[x]
 
-          scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
+          if square_dist < 0.01:
+              scale = 1
+          else:
+              scale = t/sqrt(square_dist)
 
           for x in range(update_dim):
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt
     sig_off()
-
     sage_free(disp)
 
+@cython.cdivision(True)
 cdef inline double sqrt_approx(double x,double y,double xx,double yy):
     r"""
     Approximation of sqrt(x^2+y^2).
@@ -351,7 +353,7 @@ cdef inline double sqrt_approx(double x,double y,double xx,double yy):
         x,y = y,x
         xx,yy = yy,xx
 
-    x = abs(x)
+    x = fabs(x)
 
     return x + yy/(2*x)
 
