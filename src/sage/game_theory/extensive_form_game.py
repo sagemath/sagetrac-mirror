@@ -861,12 +861,7 @@ class ExtensiveFormGame():
         converted_root = self._sage_convert_node_dict[gambit_game.root]
         converted_gambit_game = ExtensiveFormGame(converted_root)
 
-        for info_set in gambit_game.infosets:
-            infoset_list = []
-            for gambit_node in info_set.members:
-                infoset_list.append(self._sage_convert_node_dict[gambit_node])
-            converted_gambit_game.set_info_set(infoset_list)
-
+        self._sage_convert_setup_infosets(gambit_game, converted_gambit_game)
         self._sage_convert_setup_attributes(converted_root, converted_gambit_game)
         
 
@@ -891,7 +886,6 @@ class ExtensiveFormGame():
             sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
             sage: iset.actions[int(0)].label = "C"  # optional - gambit
             sage: iset.actions[int(1)].label = "D"  # optional - gambit
-            sage: iset.actions[int(2)].label = "E"  # optional - gambit
             sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
             sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
             sage: iset.actions[int(0)].label = "F"  # optional - gambit
@@ -935,6 +929,106 @@ class ExtensiveFormGame():
             node_dictionary = {gambit_node.infoset.actions[gambit_index].label:self._sage_convert_node_dict[gambit_node.children[gambit_index]] for gambit_index in range(len(list(gambit_node.children)))}
             node = Node(node_input = node_dictionary, player = self._sage_convert_player_dict[gambit_node.infoset.player], name = gambit_node.label)
             self._sage_convert_node_dict[gambit_node] = node
+
+    def _sage_convert_setup_infosets(self, gambit_game, converted_gambit_game):
+        """
+        A sub-function of ``_sage_convert`` which sets up the information sets of the ``ExtensiveFormGame`` created with a Gambit Game.
+        If we wish to test the function, we need a gambit game set up::
+
+            sage: import gambit  # optional - gambit
+            sage: g = gambit.Game.new_tree()  # optional - gambit
+            sage: g.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: g.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
+            sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node A'  # optional - gambit
+            sage: iset.actions[int(0)].label = "C"  # optional - gambit
+            sage: iset.actions[int(1)].label = "D"  # optional - gambit
+            sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node B'  # optional - gambit
+            sage: iset.actions[int(0)].label = "F"  # optional - gambit
+            sage: iset.actions[int(1)].label = "G"  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(1)  # optional - gambit
+            sage: outcome[int(1)] = int(6)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(4)  # optional - gambit
+            sage: outcome[int(1)] = int(0)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        If we pass the game to an ``ExtensiveFormGame``, the function will be used automatically::
+
+            sage: egame = ExtensiveFormGame(g)  # optional - gambit 
+
+        We can then see the information sets::
+
+            sage: egame.info_sets
+            [[Extensive form game node with name: Node A],
+            [Extensive form game node with name: Node B],
+            [Extensive form game node with name: Root]]
+            
+        If we then recreate the game by only changing it so that Node A and Node B are  in the same information set, this will show::
+
+            sage: import gambit  # optional - gambit
+            sage: g = gambit.Game.new_tree()  # optional - gambit
+            sage: g.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: g.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
+            sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node A'  # optional - gambit
+            sage: iset.actions[int(0)].label = "C"  # optional - gambit
+            sage: iset.actions[int(1)].label = "D"  # optional - gambit
+            sage: g.root.children[int(1)].append_move(iset)  # optional - gambit
+            <Infoset [0] '' for player '2' in game ''>
+            sage: g.root.children[int(1)].label = 'Node B'  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(1)  # optional - gambit
+            sage: outcome[int(1)] = int(6)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(4)  # optional - gambit
+            sage: outcome[int(1)] = int(0)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: egame = ExtensiveFormGame(g)  # optional - gambit 
+            sage: egame.info_sets
+            [[Extensive form game node with name: Node A,
+             Extensive form game node with name: Node B],
+            [Extensive form game node with name: Root]]
+
+
+        """
+        for info_set in gambit_game.infosets:
+            infoset_list = []
+            for gambit_node in info_set.members:
+                infoset_list.append(self._sage_convert_node_dict[gambit_node])
+            converted_gambit_game.set_info_set(infoset_list)
 
     def _sage_convert_setup_attributes(self, converted_root, converted_gambit_game):
         """
@@ -1018,7 +1112,7 @@ class ExtensiveFormGame():
 
         self.players.sort(key=attrgetter('name'))
         self.nodes.sort(key=attrgetter('name', 'parent'))
-        self.leafs.sort(key=attrgetter('payoffs'))
+        self.leafs.sort(key=attrgetter('payoffs', 'name'))
         self.info_sets.sort(key=lambda x: x[0].name)
 
     def _sage_convert_check_node_names_for_renaming(self):
