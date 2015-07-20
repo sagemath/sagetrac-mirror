@@ -889,8 +889,8 @@ class ExtensiveFormGame():
             sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
             sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
             sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
-            sage: iset.actions[int(0)].label = 'A'
-            sage: iset.actions[int(1)].label = 'B'
+            sage: iset.actions[int(0)].label = 'A' # optional - gambit
+            sage: iset.actions[int(1)].label = 'B' # optional - gambit
             sage: outcome = g.outcomes.add()  # optional - gambit
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
@@ -1000,7 +1000,7 @@ class ExtensiveFormGame():
             sage: bad_game.players.add("2")  # optional - gambit
             <Player [1] '2' in game ''>
             sage: iset = bad_game.root.append_move(bad_game.players["1"], int(2))  # optional - gambit
-            sage: ExtensiveFormGame(bad_game)
+            sage: ExtensiveFormGame(bad_game)  # optional - gambit 
             Traceback (most recent call last):
             ...
             AttributeError: One or more terminal nodes in the Gambit Game have no outcome.
@@ -1063,7 +1063,7 @@ class ExtensiveFormGame():
 
         We can then see the information sets::
 
-            sage: egame.info_sets
+            sage: egame.info_sets  # optional - gambit 
             [[Extensive form game node with name: Node A],
             [Extensive form game node with name: Node B],
             [Extensive form game node with name: Root]]
@@ -1104,7 +1104,7 @@ class ExtensiveFormGame():
             sage: outcome[int(1)] = int(2)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
             sage: egame = ExtensiveFormGame(g)  # optional - gambit 
-            sage: egame.info_sets
+            sage: egame.info_sets  # optional - gambit
             [[Extensive form game node with name: Node A,
              Extensive form game node with name: Node B],
             [Extensive form game node with name: Root]]
@@ -1167,21 +1167,21 @@ class ExtensiveFormGame():
 
         We can then see the attributes::
 
-            sage: egame.tree_root
+            sage: egame.tree_root  # optional - gambit
             Extensive form game node with name: Root            
-            sage: egame.tree
+            sage: egame.tree  # optional - gambit
             Graph on 8 vertices
-            sage: egame.nodes
+            sage: egame.nodes  # optional - gambit
             [Extensive form game node with name: Node A,
              Extensive form game node with name: Node B,
              Extensive form game node with name: Root]
-            sage: egame.players
+            sage: egame.players  # optional - gambit
             [1, 2]
-            sage: egame.info_sets
+            sage: egame.info_sets  # optional - gambit
             [[Extensive form game node with name: Node A],
             [Extensive form game node with name: Node B],
             [Extensive form game node with name: Root]]
-            sage: egame.leafs
+            sage: egame.leafs  # optional - gambit
             [Extensive form game leaf with utilities given by: (Fraction(1, 1), Fraction(6, 1)),
              Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(1, 1)),
              Extensive form game leaf with utilities given by: (Fraction(4, 1), Fraction(0, 1)),
@@ -1245,8 +1245,8 @@ class ExtensiveFormGame():
 
         Then we can setup the game with unnamed nodes and the game should name the nodes with the default method::
 
-            sage: egame_without_names = ExtensiveFormGame(g)
-            sage: egame_without_names.nodes
+            sage: egame_without_names = ExtensiveFormGame(g)  # optional - gambit
+            sage: egame_without_names.nodes  # optional - gambit
             [Extensive form game node with name: Node 1,
              Extensive form game node with name: Node 2,
              Extensive form game node with name: Tree Root]
@@ -1256,8 +1256,8 @@ class ExtensiveFormGame():
             sage: g.root.label = 'Root'  # optional - gambit
             sage: g.root.children[int(0)].label = 'Node A'  # optional - gambit
             sage: g.root.children[int(1)].label = 'Node B'  # optional - gambit
-            sage: egame_with_names = ExtensiveFormGame(g)
-            sage: egame_with_names.nodes
+            sage: egame_with_names = ExtensiveFormGame(g)  # optional - gambit
+            sage: egame_with_names.nodes  # optional - gambit
             [Extensive form game node with name: Node A,
              Extensive form game node with name: Node B,
              Extensive form game node with name: Root]
@@ -2232,7 +2232,7 @@ class ExtensiveFormGame():
 
             sage: g.outcomes  # optional - gambit
             []
-            sage: egame_1._add_gambit_outcomes(node_1, g.root.children[int(0)], g)
+            sage: egame_1._add_gambit_outcomes(node_1, g.root.children[int(0)], g)  # optional - gambit
             sage: g.outcomes  # optional - gambit
             [<Outcome [0] 'Leaf 1' in game ''>, <Outcome [1] 'Leaf 2' in game ''>]
 
