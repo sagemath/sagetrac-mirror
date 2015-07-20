@@ -22,6 +22,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.hall_polynomial import hall_polynomial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
+from functools import reduce
 
 def transpose_cmp(x, y):
     r"""
@@ -249,7 +250,8 @@ class HallAlgebra(CombinatorialFreeModule):
         I = self.monomial_basis()
         M = I.module_morphism(I._to_natural_on_basis, codomain=self,
                               triangular='upper', unitriangular=True,
-                              inverse_on_support=lambda x: x.conjugate())
+                              inverse_on_support=lambda x: x.conjugate(),
+                              invertible=True)
         M.register_as_coercion()
         (~M).register_as_coercion()
 

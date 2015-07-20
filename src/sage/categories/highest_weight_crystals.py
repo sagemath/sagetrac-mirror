@@ -11,6 +11,7 @@ Highest Weight Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
+from sage.categories.tensor import TensorProductsCategory
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -36,6 +37,7 @@ class HighestWeightCrystals(Category_singleton):
         sage: B = HighestWeightCrystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -82,6 +84,24 @@ class HighestWeightCrystals(Category_singleton):
         from sage.categories.crystals import Crystals
         return Crystals().example()
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of highest weight crystals defines no
+        additional structure: it only guarantees the existence of a
+        unique highest weight element in each component.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: HighestWeightCrystals().additional_structure()
+        """
+        return None
+
     class ParentMethods:
 
         @cached_method
@@ -99,16 +119,16 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vectors()
-                [1]
+                (1,)
 
             ::
 
                 sage: C = crystals.Letters(['A',2])
                 sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.highest_weight_vectors()
-                [[2, 1, 1], [1, 2, 1]]
+                ([2, 1, 1], [1, 2, 1])
             """
-            return [g for g in self.module_generators if g.is_highest_weight()]
+            return tuple(g for g in self.module_generators if g.is_highest_weight())
 
         def highest_weight_vector(self):
             r"""
@@ -181,9 +201,11 @@ class HighestWeightCrystals(Category_singleton):
             """
             if index_set is None:
                 index_set = self.index_set()
-            from sage.combinat.backtrack import TransitiveIdealGraded
-            return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                         self.module_generators, max_depth).__iter__()
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(self.module_generators,
+                           lambda x: [x.f(i) for i in index_set],
+                           structure='graded',
+                           max_depth=max_depth).breadth_first_search_iterator()
 
         @cached_method
         def q_dimension(self, q=None, prec=None, use_product=False):
@@ -338,7 +360,7 @@ class HighestWeightCrystals(Category_singleton):
 
                 if use_product:
                     # Since we are in the classical case, all roots occur with multiplicity 1
-                    pos_coroots = map(lambda x: x.associated_coroot(), WLR.positive_roots())
+                    pos_coroots = [x.associated_coroot() for x in WLR.positive_roots()]
                     rho = WLR.rho()
                     P = q.parent()
                     ret = P.zero()
@@ -375,4 +397,88 @@ class HighestWeightCrystals(Category_singleton):
     class ElementMethods:
 
         pass
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of highest weight crystals constructed by tensor
+        product of highest weight crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: HighestWeightCrystals().TensorProducts().extra_super_categories()
+                [Category of highest weight crystals]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            """
+            Implements operations on tensor products of crystals.
+            """
+            @cached_method
+            def highest_weight_vectors(self):
+                r"""
+                Return the highest weight vectors of ``self``.
+
+                This works by using a backtracing algorithm since if
+                `b_2 \otimes b_1` is highest weight then `b_1` is
+                highest weight.
+
+                EXAMPLES::
+
+                    sage: C = crystals.Tableaux(['D',4], shape=[2,2])
+                    sage: D = crystals.Tableaux(['D',4], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.highest_weight_vectors()
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                    sage: L = filter(lambda x: x.is_highest_weight(), T)
+                    sage: tuple(L) == T.highest_weight_vectors()
+                    True
+
+                TESTS:
+
+                We check this works with Kashiwara's convention for
+                tensor products::
+
+                    sage: C = crystals.Tableaux(['B',3], shape=[2,2])
+                    sage: D = crystals.Tableaux(['B',3], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.global_options(convention='Kashiwara')
+                    sage: T.highest_weight_vectors()
+                    ([[[1, 1], [2, 2]], [[1]]],
+                     [[[1, 1], [2, 2]], [[3]]],
+                     [[[1, 1], [2, 2]], [[-2]]])
+                    sage: T.global_options.reset()
+                    sage: T.highest_weight_vectors()
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                """
+                n = len(self.crystals)
+                it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
+                path = []
+                ret = []
+                while it:
+                    try:
+                        x = next(it[-1])
+                    except StopIteration:
+                        it.pop()
+                        if path:
+                            path.pop(0)
+                        continue
+
+                    b = self.element_class(self, [x] + path)
+                    if not b.is_highest_weight():
+                        continue
+                    path.insert(0, x)
+                    if len(path) == n:
+                        ret.append(b)
+                        path.pop(0)
+                    else:
+                        it.append( iter(self.crystals[-len(path)-1]) )
+                return tuple(ret)
 

@@ -20,10 +20,12 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 
-# import from Sage library
+
+from copy import copy
+from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from math import sin, cos, pi
+
 
 def JohnsonGraph(n, k):
     r"""
@@ -113,15 +115,16 @@ def KneserGraph(n,k):
     if not (k>0 and k<=n):
         raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
-    g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Kneser graph with parameters {},{}".format(n,k))
+
     from sage.combinat.subset import Subsets
-
-    if k>n/2:
-        g.add_vertices(Subsets(n,k).list())
-
     S = Subsets(n,k)
+    if k>n/2:
+        g.add_vertices(S)
+
+    s0 = S.underlying_set()    # {1,2,...,n}
     for s in S:
-        for t in Subsets(S.s.difference(s),k):
+        for t in Subsets(s0.difference(s), k):
             g.add_edge(s,t)
 
     return g
@@ -361,11 +364,17 @@ def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.
 
-    The vertices of the bubble sort graph are the set of permutations on
-    `n` symbols. Two vertices are adjacent if one can be obtained from the
-    other by swapping the labels in the `i`-th and `(i+1)`-th positions for
-    `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
-    of `B(n)` increases according to `f(n) = n!`.
+    The vertices of the bubble sort graph are the set of permutations
+    on `n` symbols. Two vertices are adjacent if one can be obtained
+    from the other by swapping the labels in the `i`-th and `(i+1)`-th
+    positions for `1 \leq i \leq n-1`. In total, `B(n)` has order
+    `n!`. Swapping two labels as described previously corresponds to
+    multiplying on the right the permutation corresponding to the node
+    by an elementary transposition in the
+    :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
+
+    The bubble sort graph is the underlying graph of the
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`. 
 
     INPUT:
 
@@ -381,6 +390,7 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(4); g
         Bubble sort: Graph on 24 vertices
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
 
@@ -393,6 +403,10 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(n)
         sage: g.order() == factorial(n)
         True
+
+    .. SEEALSO::
+
+        * :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
 
     TESTS:
 
@@ -438,6 +452,37 @@ def BubbleSortGraph(n):
         #add adjacency dict
         d[''.join(v)] = tmp_dict
     return Graph(d, name="Bubble sort")
+
+def chang_graphs():
+    r"""
+    Return the three Chang graphs.
+
+    Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
+    called the Chang graphs. The fourth is the line graph of `K_8`. For more
+    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+
+    EXAMPLES::
+
+        sage: chang_graphs = graphs.chang_graphs()
+        sage: four_srg = chang_graphs + [graphs.CompleteGraph(8).line_graph()]
+        sage: for g in four_srg:
+        ....:     print g.is_strongly_regular(parameters=True)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        sage: from itertools import combinations
+        sage: for g1,g2 in combinations(four_srg,2):
+        ....:     assert not g1.is_isomorphic(g2)
+    """
+    g1 = Graph("[}~~EebhkrRb_~SoLOIiAZ?LBBxDb?bQcggjHKEwoZFAaiZ?Yf[?dxb@@tdWGkwn",
+               loops=False, multiedges=False)
+    g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
+               loops=False, multiedges=False)
+    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+               loops=False, multiedges=False)
+    return [g1,g2,g3]
 
 def CirculantGraph(n, adjacency):
     r"""
@@ -854,7 +899,7 @@ def FuzzyBallGraph(partition, q):
         sage: m=4; q=2; k=2
         sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
         sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
-        set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
+        {x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x}
     """
     from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
@@ -1033,16 +1078,16 @@ def HararyGraph( k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = CirculantGraph( n, range(1,k/2+1) )
+        G = CirculantGraph( n, range(1,k//2+1) )
     else:
         if n%2 == 0:
-            G = CirculantGraph( n, range(1,(k-1)/2+1) )
+            G = CirculantGraph( n, range(1,(k-1)//2+1) )
             for i in range(n):
-                G.add_edge( i, (i+n/2)%n )
+                G.add_edge( i, (i + n//2)%n )
         else:
             G = HararyGraph( k-1, n )
-            for i in range((n-1)/2+1):
-                G.add_edge( i, (i+(n-1)/2)%n )
+            for i in range((n-1)//2 + 1):
+                G.add_edge( i, (i + (n-1)//2)%n )
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
@@ -1065,6 +1110,7 @@ def HyperStarGraph(n,k):
 
         sage: g = graphs.HyperStarGraph(6,3)
         sage: g.plot() # long time
+        Graphics object consisting of 51 graphics primitives
 
     REFERENCES:
 
@@ -1275,7 +1321,7 @@ def MycielskiStep(g):
     """
 
     # Make a copy of the input graph g
-    gg = g.copy()
+    gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
     renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
@@ -1319,6 +1365,7 @@ def NKStarGraph(n,k):
 
         sage: g = graphs.NKStarGraph(4,2)
         sage: g.plot() # long time
+        Graphics object consisting of 31 graphics primitives
 
     REFERENCES:
 
@@ -1376,6 +1423,7 @@ def NStarGraph(n):
 
         sage: g = graphs.NStarGraph(4)
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     REFERENCES:
 
@@ -1916,6 +1964,91 @@ def petersen_family(generate=False):
     return [Graph(x) for x in l]
 
 
+def SierpinskiGasketGraph(n):
+    """
+    Return the Sierpinski Gasket graph of generation `n`.
+
+    All vertices but 3 have valence 4.
+
+    INPUT:
+
+    - `n` -- an integer
+
+    OUTPUT:
+
+    a graph `S_n` with `3 (3^{n-1}+1)/2` vertices and
+    `3^n` edges, closely related to the famous Sierpinski triangle
+    fractal.
+
+    All these graphs have a triangular shape, and three special
+    vertices at top, bottom left and bottom right. These are the only
+    vertices of valence 2, all the other ones having valence 4.
+
+    The graph `S_1` (generation `1`) is a triangle.
+
+    The graph `S_{n+1}` is obtained from the disjoint union of
+    three copies A,B,C of `S_n` by identifying pairs of vertices:
+    the top vertex of A with the bottom left vertex of B,
+    the bottom right vertex of B with the top vertex of C,
+    and the bottom left vertex of C with the bottom right vertex of A.
+
+    .. PLOT::
+
+        sphinx_plot(graphs.SierpinskiGasketGraph(4).plot(vertex_labels=False))
+
+
+    .. SEEALSO::
+
+        There is another familly of graphs called Sierpinski graphs,
+        where all vertices but 3 have valence 3. They are available using
+        ``graphs.HanoiTowerGraph(3, n)``.
+
+    EXAMPLES::
+
+        sage: s4 = graphs.SierpinskiGasketGraph(4); s4
+        Graph on 42 vertices
+        sage: s4.size()
+        81
+        sage: s4.degree_histogram()
+        [0, 0, 3, 0, 39]
+        sage: s4.is_hamiltonian()
+        True
+
+    REFERENCES:
+
+    .. [LLWC] Chien-Hung Lin, Jia-Jie Liu, Yue-Li Wang, William Chung-Kung Yen,
+       *The Hub Number of Sierpinski-Like Graphs*, Theory Comput Syst (2011),
+       vol 49, :doi:`10.1007/s00224-010-9286-3`
+    """
+    from sage.modules.free_module_element import vector
+    from sage.rings.rational_field import QQ
+
+    if n <= 0:
+        raise ValueError('n should be at least 1')
+
+    def next_step(triangle_list):
+        # compute the next subdivision
+        resu = []
+        for a, b, c in triangle_list:
+            ab = (a + b) / 2
+            bc = (b + c) / 2
+            ac = (a + c) / 2
+            resu += [(a, ab, ac), (ab, b, bc), (ac, bc, c)]
+        return resu
+
+    tri_list = [list(vector(QQ, u) for u in [(0, 0), (0, 1), (1, 0)])]
+    for k in range(n - 1):
+        tri_list = next_step(tri_list)
+    dg = Graph()
+    dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
+    dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
+    dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
+    dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
+                for (x, y) in dg.vertices()})
+    dg.relabel()
+    return dg
+
+
 def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
@@ -2168,8 +2301,178 @@ def SymplecticGraph(d,q):
 
     V = VectorSpace(F,d)
     PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([map(tuple,PV), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+    G = Graph([[tuple(_) for _ in PV], lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
     G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
     G.relabel()
     return G
 
+def AffineOrthogonalPolarGraph(d,q,sign="+"):
+    r"""
+    Returns the affine polar graph `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`.
+
+    Affine Polar graphs are built from a `d`-dimensional vector space over
+    `F_q`, and a quadratic form which is hyperbolic, elliptic or parabolic
+    according to the value of ``sign``.
+
+    Note that `VO^+(d,q),VO^-(d,q)` are strongly regular graphs, while `VO(d,q)`
+    is not.
+
+    For more information on Affine Polar graphs, see `Affine Polar
+    Graphs page of Andries Brouwer's website
+    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+
+    INPUT:
+
+    - ``d`` (integer) -- ``d`` must be even if ``sign != None``, and odd
+      otherwise.
+
+    - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
+
+    - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
+      (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
+      ``sign="+"``.
+
+    .. NOTE::
+
+        The graph `VO^\epsilon(d,q)` is the graph induced by the
+        non-neighbors of a vertex in an :meth:`Orthogonal Polar Graph
+        <OrthogonalPolarGraph>` `O^\epsilon(d+2,q)`.
+
+    EXAMPLES:
+
+    The :meth:`Brouwer-Haemers graph <BrouwerHaemersGraph>` is isomorphic to
+    `VO^-(4,3)`::
+
+        sage: g = graphs.AffineOrthogonalPolarGraph(4,3,"-")
+        sage: g.is_isomorphic(graphs.BrouwerHaemersGraph())
+        True
+
+    Some examples from `Brouwer's table or strongly regular graphs
+    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
+
+        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
+        Affine Polar Graph VO^-(6,2): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 27, 10, 12)
+        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"+"); g
+        Affine Polar Graph VO^+(6,2): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 35, 18, 20)
+
+    When ``sign is None``::
+
+        sage: g = graphs.AffineOrthogonalPolarGraph(5,2,None); g
+        Affine Polar Graph VO^-(5,2): Graph on 32 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        False
+        sage: g.is_regular()
+        True
+        sage: g.is_vertex_transitive()
+        True
+    """
+    if sign in ["+","-"]:
+        s = 1 if sign == "+" else -1
+        if d%2 == 1:
+            raise ValueError("d must be even when sign!=None")
+    else:
+        if d%2 == 0:
+            raise ValueError("d must be odd when sign==None")
+        s = 0
+
+    from sage.interfaces.gap import gap
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module import VectorSpace
+    from sage.matrix.constructor import Matrix
+    from sage.libs.gap.libgap import libgap
+    from itertools import combinations
+
+    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(s,d,q))['matrix'])
+    F = libgap.GF(q).sage()
+    V = list(VectorSpace(F,d))
+
+    G = Graph()
+    G.add_vertices([tuple(_) for _ in V])
+    for x,y in combinations(V,2):
+        if not (x-y)*M*(x-y):
+            G.add_edge(tuple(x),tuple(y))
+
+    G.name("Affine Polar Graph VO^"+str('+' if s == 1 else '-')+"("+str(d)+","+str(q)+")")
+    G.relabel()
+    return G
+
+def OrthogonalPolarGraph(m, q, sign="+"):
+    r"""
+    Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
+
+    For more information on Orthogonal Polar graphs, see see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
+      otherwise.
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
+        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (130, 48, 20, 16)
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
+        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (112, 30, 2, 10)
+        sage: G = graphs.OrthogonalPolarGraph(5,3); G
+        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (40, 12, 2, 4)
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '-' or '+' when m is even
+        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '' or '+' when m is odd
+    """
+    from sage.schemes.projective.projective_space import ProjectiveSpace
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.matrix.constructor import Matrix
+    from sage.libs.gap.libgap import libgap
+    from itertools import combinations
+
+    if m % 2 == 0:
+        if sign != "+" and sign != "-":
+            raise ValueError("sign must be equal to either '-' or '+' when "
+                             "m is even")
+    else:
+        if sign != "" and sign != "+":
+            raise ValueError("sign must be equal to either '' or '+' when "
+                             "m is odd")
+        sign = ""
+
+    e = {'+': 1,
+         '-': -1,
+         '' : 0}[sign]
+
+    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
+    Fq = libgap.GF(q).sage()
+    PG = ProjectiveSpace(m - 1, Fq)
+    m_over_two = m // 2
+
+    def F(x):
+        return x*M*x
+
+    V = [x for x in PG if F(vector(x)) == 0]
+
+    G = Graph([V,lambda x,y:F(vector(x)-vector(y))==0],loops=False)
+
+    G.relabel()
+    G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
+    return G

@@ -122,7 +122,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             from constructor import Conic
             con = Conic([S(c) for c in self.coefficients()], \
                         self.variable_names())
-            if self._rational_point != None:
+            if self._rational_point is not None:
                 pt = [S(c) for c in Sequence(self._rational_point)]
                 if not pt == [0,0,0]:
                     # The following line stores the point in the cache
@@ -333,7 +333,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             ...
             ValueError: The conic self (= Projective Conic Curve over Finite Field of size 2 defined by x^2 + x*y + y^2 + x*z + y*z) has no symmetric matrix because the base field has characteristic 2
         """
-        if names == None:
+        if names is None:
             names = self.defining_polynomial().parent().variable_names()
         from constructor import Conic
         D, T = self.diagonal_matrix()
@@ -647,7 +647,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             y = x.inverse()
             A = y.transpose()*self.matrix()*y
             im = Conic(A)
-            if Y == None:
+            if Y is None:
                 Y = im
             else:
                 q = Y.defining_polynomial()/im.defining_polynomial()
@@ -808,7 +808,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             sage: R.<x,y,z> = QQ[]
             sage: C = Curve(7*x^2 + 2*y*z + z^2)
             sage: (p, i) = C.parametrization(morphism = False); (p, i)
-            ([-2*x*y, 7*x^2 + y^2, -2*y^2], [-1/2*x, -1/2*z])
+            ([-2*x*y, x^2 + 7*y^2, -2*x^2], [-1/2*x, 1/7*y + 1/14*z])
             sage: C.defining_polynomial()(p)
             0
             sage: i[0](p) / i[1](p)
@@ -835,7 +835,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
         else:
             if not self.is_smooth():
                 raise ValueError("The conic self (=%s) is not smooth, hence does not have a parametrization." % self)
-            if point == None:
+            if point is None:
                 point = self.rational_point()
             point = Sequence(point)
             B = self.base_ring()
@@ -1159,5 +1159,4 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
 
         """
         return self.defining_polynomial().parent().variable_names()
-
 
