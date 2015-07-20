@@ -288,7 +288,7 @@ class ExtensiveFormGame():
     INPUT:
 
     - ``generator`` - Can be an instance of the Node class which serves as the
-      root of the tree.
+      root of the tree. Or it can be a gambit Game which is then converted.
     """
     def __init__(self, generator, name=False):
         r"""
@@ -868,7 +868,8 @@ class ExtensiveFormGame():
     def _sage_convert_create_node_or_leaf(self, gambit_node, gambit_game):
         """
         A sub-function of ``_sage_convert`` which takes a gambit_node and either creates an ExtensiveFormGame Leaf or Node,
-        it then stores the Sage Leaf or Node in a dictionary where the key is the original Gambit Node::
+        it then stores the Sage Leaf or Node in a dictionary where the key is the original Gambit Node.
+        It does not allow users to use gambit nodes where they are terminal but have no assigned outcome.
 
         If we wish to test the function, we need a gambit game set up::
 
@@ -920,8 +921,23 @@ class ExtensiveFormGame():
             Extensive form game leaf with utilities given by: (Fraction(2, 1), Fraction(7, 1))
             sage: egame._sage_convert_node_dict[g.root.children[int(1)]]  # optional - gambit
             Extensive form game node with name: Node 2
+
+        The code will also stop users from inputting gambit games with terminal nodes without outcomes::
+
+            sage: bad_game = gambit.Game.new_tree()  # optional - gambit
+            sage: bad_game.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: bad_game.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: iset = bad_game.root.append_move(bad_game.players["1"], int(2))  # optional - gambit
+            sage: ExtensiveFormGame(bad_game)
+            Traceback (most recent call last):
+            ...
+            AttributeError: One or more terminal nodes in the Gambit Game have no outcome.
         """
         if gambit_node.is_terminal:
+            if not gambit_node.outcome :
+                raise AttributeError("One or more terminal nodes in the Gambit Game have no outcome.")
             leaf_dictionary = {self._sage_convert_player_dict[gambit_game.players[outcome_index]]:gambit_node.outcome[outcome_index] for outcome_index in  range(len(list(gambit_node.outcome)))}
             leaf = Leaf(leaf_dictionary, gambit_node.label)
             self._sage_convert_node_dict[gambit_node] = leaf
@@ -1022,7 +1038,6 @@ class ExtensiveFormGame():
              Extensive form game node with name: Node B],
             [Extensive form game node with name: Root]]
 
-
         """
         for info_set in gambit_game.infosets:
             infoset_list = []
@@ -1101,7 +1116,6 @@ class ExtensiveFormGame():
              Extensive form game leaf with utilities given by: (Fraction(4, 1), Fraction(0, 1)),
              Extensive form game leaf with utilities given by: (Fraction(6, 1), Fraction(2, 1)),
              Extensive form game leaf with utilities given by: (Fraction(6, 1), Fraction(2, 1))]
-
         """
 
         self.tree_root = converted_root
@@ -1437,13 +1451,13 @@ class ExtensiveFormGame():
 
             actions = node.node_input.keys()
             
-            for connected_set in infoset_dictionary[info_set]:
+            for info_set_2 in infoset_dictionary[info_set]:
                 action_list = []
-                for node_2 in connected_set:
+                for node_2 in info_set_2:
                     for action in actions:
                         if node.node_input[action] is node_2:
                             action_list.append(action)
-                g.set_edge_label(info_set, connected_set, str(node.player) + ': ' + str(action_list))
+                g.set_edge_label(info_set, info_set_2, str(node.player) + ': ' + str(action_list))
                               
 
         coloring = [[tuple(info_set) for info_set in self.info_sets if info_set[0].player == player]
@@ -1794,7 +1808,7 @@ class ExtensiveFormGame():
              [Extensive form game node with name: Root 1]]
             sage: gambit_egame_1 = egame_1.gambit_convert()  # optional - gambit
 
-        Information can be called from the gambit game using the gambit functions::
+        Attributes can be called from the gambit game using the gambit functions::
 
             sage: gambit_egame_1.players  # optional - gambit
             [<Player [0] 'Player 1' in game ''>, <Player [1] 'Player 2' in game ''>]
@@ -1983,7 +1997,7 @@ class ExtensiveFormGame():
         parent_dict[self.tree_root] = gambit_game.root
 
         while len(current_info_sets)!= 0:
-            current_info_sets.sort(key= lambda x:x[0].name)
+            current_info_sets.sort(key = lambda x:x[0].name)
             self._gambit_convert_infoset_list = []
             for info_set in current_info_sets:
                 for node in info_set:
@@ -1996,9 +2010,7 @@ class ExtensiveFormGame():
                         gambit_node.append_move(move)
                     self._add_gambit_outcomes(node, gambit_node, gambit_game)
                     parent_dict[node] = gambit_node
-                self._setup_next_infosets(info_set, infoset_dictionary)
-
-            
+                self._setup_next_infosets(info_set, infoset_dictionary)            
             current_info_sets = list(set(self._gambit_convert_infoset_list))
 
         return gambit_game
@@ -2208,7 +2220,6 @@ class ExtensiveFormGame():
             if info_set == key:
                 for listed_info_set in infoset_dictionary[key]:
                     self._gambit_convert_infoset_list.append(listed_info_set)
-
 
 
     def obtain_nash(self):
