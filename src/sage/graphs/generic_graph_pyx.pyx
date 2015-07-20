@@ -52,7 +52,9 @@ def spring_layout_fast_split(G, **options):
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
         sage: spring_layout_fast_split(G)
-        {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
+        {0: [0.77..., 0.06...],
+         ...
+         902: [3.13..., 0.22...]}
 
     AUTHOR:
 
@@ -95,7 +97,10 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
-        {0: [-0.0733..., 0.157...], ..., 502: [-0.551..., 0.682...]}
+        {0: [0.00..., 0.04...],
+         ...
+         902: [-0.47..., -0.10...]}
+
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -111,7 +116,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G, by_component = True)
-        {0: [2.12..., -0.321...], ..., 502: [26.0..., -0.812...]}
+        {0: [2.21..., -0.00...],
+         ...
+         902: [3.07..., 0.86...]}
     """
 
     if by_component:
@@ -346,7 +353,7 @@ cdef inline double sqrt_approx(double x,double y,double xx,double yy):
         ....:    return max(x,y) + min(x,y)**2/(2*max(x,y))
 
         sage: polar_plot([1,lambda x:dist(cos(x),sin(x))], (0, 2*pi))
-        Launched png viewer for Graphics object consisting of 2 graphics primitives
+        Graphics object consisting of 2 graphics primitives
 
     """
     if xx<yy:
