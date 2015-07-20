@@ -851,9 +851,11 @@ class ExtensiveFormGame():
         for i in reversed(range(len(node_indexed_dict.keys()))):
             if type(node_indexed_dict[i]) is not list:
                 gambit_node = node_indexed_dict[i] 
+                self._sage_convert_rename_blank_actions(gambit_node)
                 self._sage_convert_create_node_or_leaf(gambit_node, gambit_game)
             else:
                 for gambit_node in node_indexed_dict[i]:
+                    self._sage_convert_rename_blank_actions(gambit_node)
                     self._sage_convert_create_node_or_leaf(gambit_node, gambit_game)
 
 
@@ -864,6 +866,70 @@ class ExtensiveFormGame():
         self._sage_convert_setup_infosets(gambit_game, converted_gambit_game)
         self._sage_convert_setup_attributes(converted_root, converted_gambit_game)
         
+    def _sage_convert_rename_blank_actions(self, gambit_node):
+        """
+        A sub-function of ``_sage_convert`` which goes through the actions of a Gambit Node, and if they are 
+        blank, they will be renamed via a default naming system
+
+        If we wish to test the function, we need a gambit game set up::
+
+            sage: import gambit  # optional - gambit
+            sage: g = gambit.Game.new_tree()  # optional - gambit
+            sage: g.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: g.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(3))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
+            sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
+            sage: iset.actions[int(0)].label = 'A'
+            sage: iset.actions[int(1)].label = 'B'
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(1)  # optional - gambit
+            sage: outcome[int(1)] = int(5)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(5)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(9)  # optional - gambit
+            sage: outcome[int(1)] = int(1)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(2)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(3)  # optional - gambit
+            sage: outcome[int(1)] = int(0)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(2)  # optional - gambit
+            sage: outcome[int(1)] = int(7)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        If we pass the game to an ``ExtensiveFormGame``, the function will be used automatically::
+
+            sage: unnamed_action_game = ExtensiveFormGame(g)  # optional - gambit
+
+        We can then use check the actions of each node::
+
+            sage: unnamed_action_game._sage_convert_node_dict[g.root].actions  # optional - gambit
+            ['Action 2', 'Action 1']
+            sage: unnamed_action_game._sage_convert_node_dict[g.root.children[int(0)]].actions  # optional - gambit
+            ['Action 2', 'Action 3', 'Action 1']
+            sage: unnamed_action_game._sage_convert_node_dict[g.root.children[int(1)]].actions  # optional - gambit
+            ['A', 'B']
+
+        """
+        action_string_index = 1
+        gambit_action_index = 0
+        if gambit_node.infoset:
+            for action in gambit_node.infoset.actions:
+                if action.label is '':
+                    gambit_node.infoset.actions[gambit_action_index].label = "Action %s" %action_string_index
+                    action_string_index += 1
+                gambit_action_index += 1
 
     def _sage_convert_create_node_or_leaf(self, gambit_node, gambit_game):
         """
@@ -935,6 +1001,7 @@ class ExtensiveFormGame():
             ...
             AttributeError: One or more terminal nodes in the Gambit Game have no outcome.
         """
+        
         if gambit_node.is_terminal:
             if not gambit_node.outcome :
                 raise AttributeError("One or more terminal nodes in the Gambit Game have no outcome.")
@@ -2405,7 +2472,6 @@ class Node():
 
         else:
             raise TypeError("Node must be passed an node_input in the form of a dictionary or a list.")
-
 
 
     def __repr__(self):
