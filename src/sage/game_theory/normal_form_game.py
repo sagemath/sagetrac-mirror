@@ -1949,6 +1949,45 @@ class NormalFormGame(SageObject, MutableMapping):
         1. Number of rows in the first tableau
         2. Number of rows in the second tableau
         3. A list containing the two tableaus
+
+        TESTS:
+            
+            sage: g = NormalFormGame([matrix(3)])
+            sage: tab = g._init_lh_tableau(matrix.identity(3), matrix.identity(3))
+            sage: tab[0]
+            3
+            sage: tab[1]
+            3
+            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
+            [-2.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
+            [-3.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
+            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
+            [-5.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
+            [-6.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
+            sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: tab = g._init_lh_tableau(A, B)
+            sage: tab[0]
+            4
+            sage: tab[1]
+            3
+            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00  1.00 0.000 0.000 0.000 0.000 -112. -157.  4.00]
+            [-2.00  1.00 0.000 0.000 0.000 0.000 -127. -132.  3.00]
+            [-3.00  1.00 0.000 0.000 0.000 0.000 -153. -156. -2.00]
+            [-4.00  1.00 0.000 0.000 0.000 0.000 -72.0 -159. -1.00]
+            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-5.00  1.00 0.000 0.000 0.000 0.000 -2.00 -4.00 -5.00]
+            [-6.00  1.00 0.000 0.000 0.000 0.000 -1.00 -5.00 -2.00]
+            [-7.00  1.00 0.000 0.000 0.000 0.000 -1.00 -2.00 -3.00]
         """
         A = self._positivize_matrix(A)
         B = self._positivize_matrix(B.T)
@@ -2012,6 +2051,45 @@ class NormalFormGame(SageObject, MutableMapping):
         1. Number of rows in the first tableau
         2. Number of rows in the second tableau
         3. A list containing the two tableaus
+
+        TESTS:
+            
+            sage: g = NormalFormGame([matrix(3)])
+            sage: tab = g._init_lh_tableau(matrix.identity(3), matrix.identity(3))
+            sage: tab[0]
+            3
+            sage: tab[1]
+            3
+            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
+            [-2.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
+            [-3.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
+            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
+            [-5.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
+            [-6.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
+            sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: tab = g._init_lh_tableau(A, B)
+            sage: tab[0]
+            4
+            sage: tab[1]
+            3
+            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00  1.00 0.000 0.000 0.000 0.000 -112. -157.  4.00]
+            [-2.00  1.00 0.000 0.000 0.000 0.000 -127. -132.  3.00]
+            [-3.00  1.00 0.000 0.000 0.000 0.000 -153. -156. -2.00]
+            [-4.00  1.00 0.000 0.000 0.000 0.000 -72.0 -159. -1.00]
+            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-5.00  1.00 0.000 0.000 0.000 0.000 -2.00 -4.00 -5.00]
+            [-6.00  1.00 0.000 0.000 0.000 0.000 -1.00 -5.00 -2.00]
+            [-7.00  1.00 0.000 0.000 0.000 0.000 -1.00 -2.00 -3.00]
         """
         from sage.rings.all import RR
         m = A.nrows()
@@ -2042,6 +2120,28 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Given a strategy index, returns which tableau it belongs to and returns -1 if it belongs to
         neither.
+        
+        TESTS:
+
+            sage: g = NormalFormGame([matrix(3)])
+            sage: g._get_tableau(3, 3, 1)
+            1
+            sage: g._get_tableau(3, 3, 3)
+            1
+            sage: g._get_tableau(3, 3, -4)
+            1
+            sage: g._get_tableau(3, 3, -6)
+            1
+            sage: g._get_tableau(3, 3, 4)
+            0
+            sage: g._get_tableau(3, 3, 6)
+            0
+            sage: g._get_tableau(3, 3, -1)
+            0
+            sage: g._get_tableau(3, 3, -3)
+            0
+            sage: g._get_tableau(3, 3, 0)
+            -1
         """
         if strategy > dim1 or (strategy < 0 and strategy >= -dim1) :
             return 0
@@ -2098,7 +2198,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Checks if a strategy is in the base of the current tableaus. If it is then it returns the
         corresponding slack variable otherwise returns the strategy.
 
-        TESTS::
+        TESTS:
 
             sage: A = matrix([[-1, 1, 0, 0, 0, 1],
             ....:             [ 3, 1, 0, 1, 0, 2]])
@@ -2134,6 +2234,79 @@ class NormalFormGame(SageObject, MutableMapping):
         - ``tableaus`` -- The tableaus representing the best response polytopes for the players in
           the game.
         - ``startpivot`` -- The initial missing label (entering variable)
+
+        TESTS:
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A, A])
+            sage: tab = g._init_lh_tableau(A, A)
+            sage: res = g._lh_solve_tableau(tab[2], 1)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [  4.00  0.500 -0.500  0.000  0.000  0.000 -0.500 -0.500]
+            [ -2.00  0.500  0.500  0.000  0.000  0.000  -1.50 -0.500]
+            [ -3.00  0.500  0.500  0.000  0.000  0.000 -0.500  -1.50]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [  1.00  0.500 -0.500  0.000  0.000  0.000 -0.500 -0.500]
+            [ -5.00  0.500  0.500  0.000  0.000  0.000  -1.50 -0.500]
+            [ -6.00  0.500  0.500  0.000  0.000  0.000 -0.500  -1.50]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
+            sage: res = g._lh_solve_tableau(tab[2], 5)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [ -1.00  0.500  0.000  0.500  0.000  -1.50  0.000 -0.500]
+            [  5.00  0.500  0.000 -0.500  0.000 -0.500  0.000 -0.500]
+            [ -3.00  0.500  0.000  0.500  0.000 -0.500  0.000  -1.50]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [ -4.00  0.500  0.000  0.500  0.000  -1.50  0.000 -0.500]
+            [  2.00  0.500  0.000 -0.500  0.000 -0.500  0.000 -0.500]
+            [ -6.00  0.500  0.000  0.500  0.000 -0.500  0.000  -1.50]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]]
+            sage: tab = g._init_lh_tableau(matrix(3), matrix(3))
+            sage: res = g._lh_solve_tableau(tab[2], 1)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            sage: res = g._lh_solve_tableau(tab[2], 2)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            sage: res = g._lh_solve_tableau(tab[2], 4)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            sage: res = g._lh_solve_tableau(tab[2], 5)
+            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
+            [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
+            [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
         """
         #tab = [matrix(tableaus[0], copy=True), matrix(tableaus[1], copy=True)]
         tab = [copy(tableaus[0]), copy(tableaus[1])]
@@ -2278,6 +2451,25 @@ class NormalFormGame(SageObject, MutableMapping):
           and ``pos[i]`` otherwise.
         - ``neg`` -- A list of equilibria which have negative index.
         - ``pos`` -- A list of equilibria which have positive index.
+
+        TESTS:
+
+            sage: from sage.game_theory.normal_form_game import _LHEquilibrium
+            sage: A = B = matrix.identity(3)
+            sage: g = NormalFormGame([A, B])
+            sage: tab = g._init_lh_tableau(A, B)
+            sage: neg = [_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]])]
+            sage: pos = []
+            sage: g._lh_find_all_from(0, True, neg, pos)
+            sage: pos
+            [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
+             Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[-1, -1, 0, -1, -1, 0]]
+            sage: g._lh_find_all_from(0, True, neg, pos)
+            sage: pos
+            [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
+             Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[-1, -1, 0, -1, -1, 0]]
         """
         if isneg:
             cur = neg[i]
