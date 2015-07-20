@@ -334,7 +334,7 @@ class Parser():
             <Player [1] '2' in game ''>
             sage: g.title = "Parser example"  # optional - gambit
             sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
-            sage: g.root.label = 'Root'
+            sage: g.root.label = 'Root'  # optional - gambit
             sage: iset.label = "a"  # optional - gambit
             sage: iset.actions[int(0)].label = "X"  # optional - gambit
             sage: iset.actions[int(1)].label = "W"  # optional - gambit
