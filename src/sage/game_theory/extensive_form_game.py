@@ -848,8 +848,6 @@ class ExtensiveFormGame():
                 index += 1
             node_list = new_node_list
 
-        node_dict = {}
-
         for i in reversed(range(len(node_indexed_dict.keys()))):
             if type(node_indexed_dict[i]) is not list:
                 gambit_node = node_indexed_dict[i] 
@@ -858,10 +856,8 @@ class ExtensiveFormGame():
                 for gambit_node in node_indexed_dict[i]:
                     self._sage_convert_create_node_or_leaf(gambit_node, gambit_game)
 
-        for gambit_node in self._sage_convert_node_dict.keys():
-            if gambit_node.label is '':
-                self._sage_convert_node_dict[gambit_node].name = False
 
+        self._sage_convert_check_node_names_for_renaming()      
         converted_root = self._sage_convert_node_dict[gambit_game.root]
         converted_gambit_game = ExtensiveFormGame(converted_root)
 
@@ -1024,6 +1020,74 @@ class ExtensiveFormGame():
         self.nodes.sort(key=attrgetter('name', 'parent'))
         self.leafs.sort(key=attrgetter('payoffs'))
         self.info_sets.sort(key=lambda x: x[0].name)
+
+    def _sage_convert_check_node_names_for_renaming(self):
+        """
+        A small sub-function of ``_sage_covert`` which takes any unnamed nodes and set them to False so they get renamed while initalising
+        the ``ExtensiveFormGame``
+
+        Tests::
+            sage: import gambit  # optional - gambit
+            sage: g = gambit.Game.new_tree()  # optional - gambit
+            sage: g.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: g.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
+            sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(3))  # optional - gambit
+            sage: iset.actions[int(0)].label = "C"  # optional - gambit
+            sage: iset.actions[int(1)].label = "D"  # optional - gambit
+            sage: iset.actions[int(2)].label = "E"  # optional - gambit
+            sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit            
+            sage: iset.actions[int(0)].label = "F"  # optional - gambit
+            sage: iset.actions[int(1)].label = "G"  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(1)  # optional - gambit
+            sage: outcome[int(1)] = int(6)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(2)  # optional - gambit
+            sage: outcome[int(1)] = int(1)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(2)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(4)  # optional - gambit
+            sage: outcome[int(1)] = int(0)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(6)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        Then we can setup the game with unnamed nodes and the game should name the nodes with the default method::
+
+            sage: egame_without_names = ExtensiveFormGame(g)
+            sage: egame_without_names.nodes
+            [Extensive form game node with name: Node 1,
+             Extensive form game node with name: Node 2,
+             Extensive form game node with name: Tree Root]
+
+        Then if we label the nodes and set up the game again, we can see that the nodes in the game take the new names::
+
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node A'  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node B'  # optional - gambit
+            sage: egame_with_names = ExtensiveFormGame(g)
+            sage: egame_with_names.nodes
+            [Extensive form game node with name: Node A,
+             Extensive form game node with name: Node B,
+             Extensive form game node with name: Root]
+
+        """
+        for gambit_node in self._sage_convert_node_dict.keys():
+            if gambit_node.label is '':
+                self._sage_convert_node_dict[gambit_node].name = False
+
         
     def set_info_set(self, node_list):
         r"""
