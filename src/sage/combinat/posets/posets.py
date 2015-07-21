@@ -2812,10 +2812,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_ranked(self):
         r"""
-        Returns whether this poset is ranked.
+        Return ``True`` if this poset is ranked and ``False`` otherwise.
 
-        A poset is *ranked* if it admits a rank function. For more information
-        about the rank function, see :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`.
+        A poset is *ranked* if it admits a rank function; see
+        :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`.
+        Informally ranked poset can be "levelized" so that every cover
+        relation is from rank level `n` to level `n+1`.
 
         .. SEEALSO:: :meth:`is_graded`.
 
@@ -2830,6 +2832,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
             sage: P.is_ranked()
             True
+
+        .. PLOT::
+
+            P = Poset(( [], [[2, 4], [2, 3], [0, 1], [0, 3], [1, 4]] ))
+            g = P.plot(figsize=3, edge_colors={'red': [(2,4)]}, title="Not ranked poset. Elements can not\nbe put \"on levels\" without some\ncover relation jumping over a level.\n")
+            sphinx_plot(g)
         """
         return bool(self.rank_function())
 
@@ -2876,6 +2884,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({})
             sage: P.is_graded()
             True
+
+        .. PLOT::
+
+
+            P = Poset(( [], [[0,1], [1,2], [1,3], [2,4]] ))
+            g = P.plot(figsize=4, title="Ranked but not graded poset.\nMaximal chain 0,1,2,4 is longer\nthan maximal chain 0,1,3.\n")
+            sphinx_plot(g)
 
         TESTS:
 
