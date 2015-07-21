@@ -15,6 +15,8 @@ shopt -s extglob
 
 # Download sources
 URL="http://www.cs.uwaterloo.ca/~astorjoh/"
+
+cd $(mktemp -d)
 if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
     tar xjf <( curl -L "$URL/iml-$VERSION.tar.bz2" )
 else
@@ -22,4 +24,4 @@ else
 fi
 
 mv "iml-$VERSION" "iml-$VERSION$PATCHLEVEL"
-tar cjf "iml-$VERSION$PATCHLEVEL.tar.bz2" "iml-$VERSION$PATCHLEVEL"
+tar cjf "$SAGE_DISTFILES/iml-$VERSION$PATCHLEVEL.tar.bz2" "iml-$VERSION$PATCHLEVEL"

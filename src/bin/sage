@@ -791,6 +791,11 @@ install() {
     exit 0
 }
 
+if [ "$1" = '-sanity-check-package' -o "$1" = "--sanity-check-package" ]; then
+    shift
+    exec sanity-check-package $@
+fi
+
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
     shift
     exec sage-list-packages optional $@

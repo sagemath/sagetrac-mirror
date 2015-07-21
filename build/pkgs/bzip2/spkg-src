@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
 
+if [ -z "$SAGE_ROOT" -o -z "$SAGE_DISTFILES" ]; then
+   echo >&2 "\$SAGE_ROOT or \$SAGE_DISTFILES undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+PKG_DIR="$SAGE_ROOT/build/pkgs/bzip2/"
+
+VERSION=$(cat "$PKG_DIR/package-version.txt")
 BZIP2=bzip2-1.0.6
 
 set -e
 shopt -s extglob
 
-# Remove old sources and download new
-rm -rf src
+# work in a temporary directory
+cd $(mktemp -d)
+
 mkdir src
 cd src
 
@@ -19,9 +29,14 @@ fi
 mv "$BZIP2" src
 
 # Autotoolify
-cp -a ../patches/autotools ./
+cp -a "$PKG_DIR/patches/autotools" ./
 cd autotools
 mkdir m4
 touch NEWS README AUTHORS ChangeLog
 autoreconf -fiv
 rm -rf autom4te.cache
+cd ../..
+rm -rf "bzip2-$VERSION.tar" "bzip2-$VERSION.tar.gz"
+tar cf "bzip2-$VERSION.tar" src
+gzip "bzip2-$VERSION.tar"
+mv "bzip2-$VERSION.tar.gz" $SAGE_DISTFILES

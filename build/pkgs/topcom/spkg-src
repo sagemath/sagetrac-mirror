@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
-SPKG_ROOT=`pwd`
-PATCHES="$SPKG_ROOT/patches"
+PATCHES="$SAGE_ROOT/build/pkgs/topcom/patches"
 
 set -e
 shopt -s extglob
 
 # Remove old sources and download new
-rm -rf src
+cd $(mktemp -d)
 tar xzf <( curl http://www.rambau.wm.uni-bayreuth.de/Software/TOPCOM-0.17.4.tar.gz )
 mv TOPCOM-0.17.4 src
 
@@ -42,5 +41,5 @@ autoreconf -fiv
 rm -rf autom4te.cache
 
 # pack it up
-cd "$SPKG_ROOT"
-tar cjf topcom-0.17.4.tar.bz2 src
+cd ..
+tar cjf "$SAGE_DISTFILES/topcom-0.17.4.tar.bz2" src

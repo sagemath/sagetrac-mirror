@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# Assumptions on spkg-src
+#
+# - Gets run in a 'sage -sh' shell
+#
+# - Can be run from any directory.
+#
+# - Creates an archive that gets moved into $SAGE_DISTFILES
+#
+# - When uncompressed, the archive creates a "src/" or a
+#   "<package_name>-<version>/" directory
+
+if [ -z "$SAGE_ROOT" ]; then
+   echo >&2 "SAGE_ROOT undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ -z "$1" ]; then
+   echo >&2 "Syntax: $0 <package_name>"
+   exit 1
+fi
+
+pname="$1"
+
+# Checks spkg-src and uptream/<package> exists
+if [ ! -d "$SAGE_ROOT/build/pkgs/$pname" ]; then
+   echo >&2 "'$pname' is apparently not a new-style package."
+   exit 1
+fi
+if [ ! -f "$SAGE_ROOT/build/pkgs/$pname/spkg-src" ]; then
+   echo >&2 "'$pname' is apparently missing a 'spkg-src' script"
+   exit 1
+fi
+
+pversion=$(cat "$SAGE_ROOT/build/pkgs/$pname/package-version.txt")
+pfilename=$(grep "tarball" "$SAGE_ROOT/build/pkgs/$pname/checksums.ini" | cut -d "=" -f 2 | sed "s/VERSION/$pversion/")
+file_extension=$(echo "$pfilename" | sed "s/$pname-$pversion//")
+pfilename=$(echo $pfilename | sed "s/\.p0\././")
+
+if [ ! -f "$SAGE_ROOT/upstream/$pfilename" ]; then
+   echo >&2 "File not found: $SAGE_ROOT/upstream/$pfilename"
+   exit 1
+fi
+
+# File extension and unzip command
+
+if [ "$file_extension" == ".tgz" -o "$file_extension" == ".tar.gz" ]; then
+    unzip_cmd="tar xzf"
+elif [ "$file_extension" == ".tar.bz2" ]; then
+    unzip_cmd="tar xjf"
+else
+    echo >&2 "I do not know how to extract '$file_extension' files"
+    exit 1
+fi
+
+##################################################
+# Checking output of spkg-src in a tmp directory #
+##################################################
+
+tmpdir1=$(mktemp -d) || exit 1
+cd "$tmpdir1"
+cp "$SAGE_ROOT/upstream/$pfilename" .
+
+$unzip_cmd "$pfilename" || exit 1
+if [ -d "src" ]; then
+    mv "src" "$pname-$pversion"
+fi
+
+##################################################
+# Checking output of spkg-src in a tmp directory #
+##################################################
+
+tmpdir2=$(mktemp -d) || exit 1
+
+cd "/" # makes sure that spkg-src can be run from 'any' directory
+
+SAGE_REAL_DISTFILES="$SAGE_DISTFILES"
+export SAGE_DISTFILES="$tmpdir2"
+sage -sh "$SAGE_ROOT/build/pkgs/$pname/spkg-src" || exit 1
+export SAGE_DISTFILES="$SAGE_REAL_DISTFILES"
+
+if [ ! -f "$tmpdir2/$pfilename" ]; then
+   echo >&2 "'spkg-src' did not create '\$DISTFILE/$pfilename' as expected"
+   exit 1
+fi
+
+cd "$tmpdir2"
+
+$unzip_cmd "$tmpdir2/$pfilename" || exit 1
+if [ -d "src" ]; then
+    mv "src" "$pname-$pversion"
+fi
+if [ ! -d "$tmpdir2/$pname-$pversion" ]; then
+   echo >&2 "Extracting '$tmpdir2/$pfilename' did not produce the expected '$pname-$pversion' directory"
+   exit 1
+fi
+
+###############
+# Final check #
+###############
+
+diff -r "$tmpdir1/$pname-$pversion" "$tmpdir2/$pname-$pversion"
+if [ $? -ne 0 ]; then
+    echo "The two packages apparently do not match"
+    exit 1
+fi
+echo "Everything went well"

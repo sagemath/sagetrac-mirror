@@ -15,7 +15,7 @@ set -e
 cd "$SPKG_ROOT"
 
 # Remove old sources and download new
-rm -rf src
+cd $(mktemp -d)
 mkdir src
 cd src
 
@@ -26,7 +26,6 @@ if [ ! -d "$NTL" ]; then
     exit 1
 fi
 mv "$NTL" ntl
-
 
 ### libtool
 #
@@ -44,7 +43,7 @@ rm -rf autom4te.cache
 ### Finished creating the src/ directory
 
 # Make everything writable
-cd "$SPKG_ROOT"
+cd ../../
 chmod -R u+w src
 tar c src | bzip2 --best >"$SAGE_DISTFILES/$NTL.tar.bz2"
 rm -rf src
