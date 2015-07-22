@@ -47,6 +47,7 @@ done
 
 echo
 echo "Now configuring Maxima..."
+./bootstrap
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-ecl git_found=false
 check_error "Failed to configure Maxima."
 
