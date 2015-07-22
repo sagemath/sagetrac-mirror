@@ -176,10 +176,9 @@ Now the game does not have perfect information::
     sage: battle_of_the_sexes.perfect_info()
     False
 
-Information sets are demonstrated visually on the graph we plot by setting
-``view_info_sets`` to be ``True`` while plotting::
+Information sets are demonstrated visually on the graph we plot by default::
 
-    sage: battle_of_the_sexes.plot(view_info_sets=True)
+    sage: battle_of_the_sexes.plot()
     Graphics object consisting of 22 graphics primitives
 
 Which will be plotted as follows:
@@ -198,7 +197,32 @@ Which will be plotted as follows:
     node_1 = EFG_Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
     battle_of_the_sexes = ExtensiveFormGame(node_1)
     battle_of_the_sexes.set_info_set([node_2, node_3])
-    p = battle_of_the_sexes.plot(view_info_sets = True)
+    p = battle_of_the_sexes.plot()
+    sphinx_plot(p)
+
+If we wish to remove the information sets from the plot, we simply set 
+``view_info_sets`` to be ``False``::
+
+    sage: battle_of_the_sexes.plot(view_info_sets = False)
+    Graphics object consisting of 20 graphics primitives
+
+Which will be plotted as follows:
+
+.. PLOT::
+    :width: 500 px
+
+    player_1 = EFG_Player('Bob')
+    player_2 = EFG_Player('Celine')
+    leaf_1 = EFG_Leaf({player_1: 2, player_2: 3})
+    leaf_2 = EFG_Leaf({player_1: 0, player_2: 0})
+    leaf_3 = EFG_Leaf({player_1: 1, player_2: 1})
+    leaf_4 = EFG_Leaf({player_1: 3, player_2: 2})
+    node_3 = EFG_Node({'Sports': leaf_1, 'Comedy': leaf_2}, 'c', player_1)
+    node_2 = EFG_Node({'Sports': leaf_3, 'Comedy': leaf_4}, 'b', player_1)
+    node_1 = EFG_Node({'Sports': node_3, 'Comedy': node_2}, 'a', player_2)
+    battle_of_the_sexes = ExtensiveFormGame(node_1)
+    battle_of_the_sexes.set_info_set([node_2, node_3])
+    p = battle_of_the_sexes.plot(view_info_sets = False)
     sphinx_plot(p)
 
 We can remove information sets which automatically sets all the nodes in that
@@ -209,6 +233,116 @@ information set to be in their own information set::
     [[Extensive form game node with name: a],
      [Extensive form game node with name: b],
      [Extensive form game node with name: c]]
+
+With the game set up with the information sets we want, we can then obtain nash equilbria 
+for this game. We do this with the ``obtain_nash`` method. This currently uses Gambit and 
+the LCP algorithm, and hence needs gambit installed::
+    
+    sage: import gambit  # optional - gambit
+
+We can then obtain the nash equilbria for the game, the following shows three nash equilbria profiles obtained,
+showing the probabilities of each outcome for each player::
+
+    sage: battle_of_the_sexes.obtain_nash()  # optional - gambit
+    [[{'a': {'Comedy': 0.0, 'Sports': 1.0}}],
+     [{'b': {'Comedy': 0.0, 'Sports': 1.0}, 'c': {'Comedy': 0.0, 'Sports': 1.0}}],
+     [{'a': {'Comedy': 0.0, 'Sports': 1.0}}],
+     [{'b': {'Comedy': 0.5, 'Sports': 0.5}, 'c': {'Comedy': 0.0, 'Sports': 1.0}}],
+     [{'a': {'Comedy': 1.0, 'Sports': 0.0}}],
+     [{'b': {'Comedy': 1.0, 'Sports': 0.0}, 'c': {'Comedy': 0.0, 'Sports': 1.0}}]]
+
+
+Here is a different example with more players. This is a three player game where the player Jack has the options to either 
+choose A or B, Jane has the options to chose C or D, and then Josh has the option to chose E or F.
+Initally everyone knows what the others have chosen::
+
+    sage: jack = EFG_Player('Jack')
+    sage: jane = EFG_Player('Jane')
+    sage: josh = EFG_Player('Josh')
+    sage: leaf_8 = EFG_Leaf({jack : 0, jane: 1, josh: 3})
+    sage: leaf_7 = EFG_Leaf({jack : 1, jane: 0, josh: 1})
+    sage: leaf_6 = EFG_Leaf({jack : 2, jane: 4, josh: 2})
+    sage: leaf_5 = EFG_Leaf({jack : 2, jane: 1, josh: 3})
+    sage: leaf_4 = EFG_Leaf({jack : 0, jane: 1, josh: 0})
+    sage: leaf_3 = EFG_Leaf({jack : 1, jane: 0, josh: 2})
+    sage: leaf_2 = EFG_Leaf({jack : 2, jane: 4, josh: 1})
+    sage: leaf_1 = EFG_Leaf({jack : 2, jane: 1, josh: 2})
+    sage: node_6 = EFG_Node({'E': leaf_7, 'F': leaf_8}, player = jack)
+    sage: node_5 = EFG_Node({'E': leaf_5, 'F': leaf_6}, player = jack)
+    sage: node_4 = EFG_Node({'E': leaf_3, 'F': leaf_4}, player = jack)
+    sage: node_3 = EFG_Node({'E': leaf_1, 'F': leaf_2}, player = jack)
+    sage: node_2 = EFG_Node({'C': node_4, 'D': node_5}, player = jane)
+    sage: node_1 = EFG_Node({'C': node_3, 'D': node_6}, player = jane)
+    sage: root = EFG_Node({'A': node_1, 'B': node_2}, player = jack)
+    sage: jjj_game = ExtensiveFormGame(root)
+
+We can see how the information sets are connected by plotting the information set graph, which will show
+a DiGraph where the vertices are the information sets. We can do this by using ``plot_infosets``:: 
+
+    sage: jjj_game.plot_infosets()
+    Graphics object consisting of 20 graphics primitives
+
+Which will be plotted as follows:
+
+.. PLOT::
+    :width: 500 px
+
+    jack = EFG_Player('Jack')
+    jane = EFG_Player('Jane')
+    josh = EFG_Player('Josh')
+    leaf_8 = EFG_Leaf({jack : 0, jane: 1, josh: 3})
+    leaf_7 = EFG_Leaf({jack : 1, jane: 0, josh: 1})
+    leaf_6 = EFG_Leaf({jack : 2, jane: 4, josh: 2})
+    leaf_5 = EFG_Leaf({jack : 2, jane: 1, josh: 3})
+    leaf_4 = EFG_Leaf({jack : 0, jane: 1, josh: 0})
+    leaf_3 = EFG_Leaf({jack : 1, jane: 0, josh: 2})
+    leaf_2 = EFG_Leaf({jack : 2, jane: 4, josh: 1})
+    leaf_1 = EFG_Leaf({jack : 2, jane: 1, josh: 2})
+    node_6 = EFG_Node({'E': leaf_7, 'F': leaf_8}, player = jack)
+    node_5 = EFG_Node({'E': leaf_5, 'F': leaf_6}, player = jack)
+    node_4 = EFG_Node({'E': leaf_3, 'F': leaf_4}, player = jack)
+    node_3 = EFG_Node({'E': leaf_1, 'F': leaf_2}, player = jack)
+    node_2 = EFG_Node({'C': node_4, 'D': node_5}, player = jane)
+    node_1 = EFG_Node({'C': node_3, 'D': node_6}, player = jane)
+    root = EFG_Node({'A': node_1, 'B': node_2}, player = jack)
+    jjj_game = ExtensiveFormGame(root)
+    p = jjj_game.plot_infosets()
+    sphinx_plot(p)
+
+If we change the game so now josh doesn't know what jane has chosen, the information set graph changes to show 
+the changes in relationships between the information sets::
+    
+    sage: jjj_game.set_info_set([node_1, node_2])
+    sage: jjj_game.plot_infosets()
+    Graphics object consisting of 17 graphics primitives
+
+Which will be plotted as follows:
+
+.. PLOT::
+    :width: 500 px
+
+    jack = EFG_Player('Jack')
+    jane = EFG_Player('Jane')
+    josh = EFG_Player('Josh')
+    leaf_8 = EFG_Leaf({jack : 0, jane: 1, josh: 3})
+    leaf_7 = EFG_Leaf({jack : 1, jane: 0, josh: 1})
+    leaf_6 = EFG_Leaf({jack : 2, jane: 4, josh: 2})
+    leaf_5 = EFG_Leaf({jack : 2, jane: 1, josh: 3})
+    leaf_4 = EFG_Leaf({jack : 0, jane: 1, josh: 0})
+    leaf_3 = EFG_Leaf({jack : 1, jane: 0, josh: 2})
+    leaf_2 = EFG_Leaf({jack : 2, jane: 4, josh: 1})
+    leaf_1 = EFG_Leaf({jack : 2, jane: 1, josh: 2})
+    node_6 = EFG_Node({'E': leaf_7, 'F': leaf_8}, player = jack)
+    node_5 = EFG_Node({'E': leaf_5, 'F': leaf_6}, player = jack)
+    node_4 = EFG_Node({'E': leaf_3, 'F': leaf_4}, player = jack)
+    node_3 = EFG_Node({'E': leaf_1, 'F': leaf_2}, player = jack)
+    node_2 = EFG_Node({'C': node_4, 'D': node_5}, player = jane)
+    node_1 = EFG_Node({'C': node_3, 'D': node_6}, player = jane)
+    root = EFG_Node({'A': node_1, 'B': node_2}, player = jack)
+    jjj_game.set_info_set([node_1, node_2])
+    jjj_game = ExtensiveFormGame(root)
+    p = jjj_game.plot_infosets()
+    sphinx_plot(p)    
 
 Here is an example of a larger game: a 3 player rock paper scissors variant
 where all players play at the same time.
@@ -266,6 +400,103 @@ plot!::
 
     sage: p.show(figsize=[20, 50])  # modifies the size of the plot
 
+We can create a sage ExtensiveFormGame from a gambit game. Here we write a gambit game with
+two players, Paul and Mary, where both Paul and Mary have two actions "Go" and "Stop".
+
+To setup this game we must first import gambit and setup a new ``Game`` in the form of a tree::
+
+    sage: import gambit  # optional - gambit
+    sage: gambit_game = gambit.Game.new_tree()  # optional - gambit
+
+We can then assign players to the game::
+
+    sage: gambit_game.players.add("Paul")  # optional - gambit
+    <Player [0] 'Paul' in game ''>
+    sage: gambit_game.players.add("Mary")  # optional - gambit
+    <Player [1] 'Mary' in game ''>
+
+We can then set up the gambit moves, assigning players to nodes and labeling any actions::
+
+    sage: paul_move = gambit_game.root.append_move(gambit_game.players["Paul"], int(2))  # optional - gambit
+    sage: paul_move.actions[int(0)].label = "Go"  # optional - gambit
+    sage: paul_move.actions[int(1)].label = "Stop"  # optional - gambit
+    sage: mary_move_1 = gambit_game.root.children[int(0)].append_move(gambit_game.players["Mary"], int(2))  # optional - gambit
+    sage: mary_move_1.actions[int(0)].label = "Go"  # optional - gambit
+    sage: mary_move_1.actions[int(1)].label = "Stop"  # optional - gambit
+    sage: mary_move_2 = gambit_game.root.children[int(1)].append_move(gambit_game.players["Mary"], int(2))  # optional - gambit            
+    sage: mary_move_2.actions[int(0)].label = "Go"  # optional - gambit
+    sage: mary_move_2.actions[int(1)].label = "Stop"  # optional - gambit
+
+Then we can set up outcomes and assign them to terminal nodes::
+
+    sage: outcome = gambit_game.outcomes.add()  # optional - gambit
+    sage: outcome[int(0)] = int(1)  # optional - gambit
+    sage: outcome[int(1)] = int(6)  # optional - gambit
+    sage: gambit_game.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+    sage: outcome = gambit_game.outcomes.add()  # optional - gambit
+    sage: outcome[int(0)] = int(6)  # optional - gambit
+    sage: outcome[int(1)] = int(2)  # optional - gambit
+    sage: gambit_game.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+    sage: outcome = gambit_game.outcomes.add()  # optional - gambit
+    sage: outcome[int(0)] = int(4)  # optional - gambit
+    sage: outcome[int(1)] = int(0)  # optional - gambit
+    sage: gambit_game.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+    sage: outcome = gambit_game.outcomes.add()  # optional - gambit
+    sage: outcome[int(0)] = int(6)  # optional - gambit
+    sage: outcome[int(1)] = int(2)  # optional - gambit
+    sage: gambit_game.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+We can then use this game to generate the ``ExtensiveFormGame`` by simply using ``gambit_game`` as the ``Generator``::
+    
+    sage: sage_game = ExtensiveFormGame(gambit_game)
+
+Then we can see the game by using the ``plot`` method for ``ExtensiveFormGame``::
+
+    sage: sage_game.plot()
+    Graphics object consisting of 23 graphics primitives
+
+Here is the output (this is the same tree as above):
+
+.. PLOT::
+    :width: 500 px
+
+    import gambit  # optional - gambit
+    gambit_game = gambit.Game.new_tree()  # optional - gambit
+    gambit_game.players.add("Paul")  # optional - gambit    
+    gambit_game.players.add("Mary")  # optional - gambit
+    paul_move = gambit_game.root.append_move(gambit_game.players["Paul"], int(2))  # optional - gambit
+    paul_move.actions[int(0)].label = "Go"  # optional - gambit
+    paul_move.actions[int(1)].label = "Stop"  # optional - gambit
+    mary_move_1 = gambit_game.root.children[int(0)].append_move(gambit_game.players["Mary"], int(2))  # optional - gambit
+    mary_move_1.actions[int(0)].label = "Go"  # optional - gambit
+    mary_move_1.actions[int(1)].label = "Stop"  # optional - gambit
+    mary_move_2 = gambit_game.root.children[int(1)].append_move(gambit_game.players["Mary"], int(2))  # optional - gambit            
+    mary_move_2.actions[int(0)].label = "Go"  # optional - gambit
+    mary_move_2.actions[int(1)].label = "Stop"  # optional - gambit
+    outcome = gambit_game.outcomes.add()  # optional - gambit
+    outcome[int(0)] = int(1)  # optional - gambit
+    outcome[int(1)] = int(6)  # optional - gambit
+    gambit_game.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+    outcome = gambit_game.outcomes.add()  # optional - gambit
+    outcome[int(0)] = int(6)  # optional - gambit
+    outcome[int(1)] = int(2)  # optional - gambit
+    gambit_game.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+    outcome = gambit_game.outcomes.add()  # optional - gambit
+    outcome[int(0)] = int(4)  # optional - gambit
+    outcome[int(1)] = int(0)  # optional - gambit
+    gambit_game.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+    outcome = gambit_game.outcomes.add()  # optional - gambit
+    outcome[int(0)] = int(6)  # optional - gambit
+    outcome[int(1)] = int(2)  # optional - gambit
+    gambit_game.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+    sage_game = ExtensiveFormGame(gambit_game)  # optional - gambit
+    p = sage_game.plot()  # optional - gambit
+    sphinx_plot(p)  # optional - gambit
+
+We can convert any sage ``ExtensiveFormGame`` to a Gambit ``Game``, by using the ``gambit_convert`` method::
+
+    sage: gambit_converted_game = sage_game.gambit_convert()  # optional - gambit
+    
 """
 from sage.graphs.all import Graph
 from sage.graphs.digraph import DiGraph
@@ -304,21 +535,21 @@ class ExtensiveFormGame():
         A game with 2 players and 8 nodes::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, player_a2: 1})
-            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, player_a2: 1})
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, jane: 1})
+            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, jane: 1})
             sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, player = player_a1)
             sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, player = player_a1)
             sage: node_a3 = EFG_Node({'A': leaf_a5, 'B': leaf_a6}, player = player_a1)
             sage: node_a4 = EFG_Node({'A': leaf_a7, 'B': leaf_a8}, player = player_a1)
-            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, player = player_a2)
-            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, player = player_a2)
+            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, player = jane)
+            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, player = jane)
             sage: root_a = EFG_Node({'A': node_a5, 'B': node_a6}, player = player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: egame_a.tree
@@ -1280,13 +1511,13 @@ class ExtensiveFormGame():
         EXAMPLES::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1: 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1: 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1: 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1: 2, player_a2: 1})
-            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player_a2)
-            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player_a2)
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1: 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1: 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1: 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1: 2, jane: 1})
+            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', jane)
+            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', jane)
             sage: root_a = EFG_Node({'C': node_a1, 'D': node_a2}, 'Root 1', player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: egame_a.info_sets
@@ -1546,13 +1777,13 @@ class ExtensiveFormGame():
         TESTS::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1: 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1: 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1: 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1: 2, player_a2: 1})
-            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player_a2)
-            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player_a2)
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1: 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1: 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1: 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1: 2, jane: 1})
+            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', jane)
+            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', jane)
             sage: root_a = EFG_Node({'C': node_a1, 'D': node_a2}, 'Root', player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: g, d, nodes = egame_a._grow_tree()
@@ -1600,13 +1831,13 @@ class ExtensiveFormGame():
         TESTS::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1: 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1: 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1: 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1: 2, player_a2: 1})
-            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player_a2)
-            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player_a2)
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1: 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1: 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1: 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1: 2, jane: 1})
+            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', jane)
+            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', jane)
             sage: root_a = EFG_Node({'C': node_a1, 'D': node_a2}, 'Root', player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: d, nodes = egame_a._grow_tree_dictionary()
@@ -1660,21 +1891,21 @@ class ExtensiveFormGame():
         TESTS::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, player_a2: 1})
-            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, player_a2: 1})
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, jane: 1})
+            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, jane: 1})
             sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player = player_a1)
             sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player = player_a1)
             sage: node_a3 = EFG_Node({'A': leaf_a5, 'B': leaf_a6}, 'Node 3', player = player_a1)
             sage: node_a4 = EFG_Node({'A': leaf_a7, 'B': leaf_a8}, 'Node 4', player = player_a1)
-            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, 'Node 5', player = player_a2)
-            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, 'Node 6', player = player_a2)
+            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, 'Node 5', player = jane)
+            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, 'Node 6', player = jane)
             sage: root_a = EFG_Node({'A': node_a5, 'B': node_a6}, 'Tree Root', player = player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: d = egame_a._grow_infoset_graph_dictionary()
@@ -1735,21 +1966,21 @@ class ExtensiveFormGame():
         TESTS::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, player_a2: 1})
-            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, player_a2: 1})
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, jane: 1})
+            sage: leaf_a5 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a6 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a7 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a8 = EFG_Leaf({player_a1 : 2, jane: 1})
             sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player = player_a1)
             sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player = player_a1)
             sage: node_a3 = EFG_Node({'A': leaf_a5, 'B': leaf_a6}, 'Node 3', player = player_a1)
             sage: node_a4 = EFG_Node({'A': leaf_a7, 'B': leaf_a8}, 'Node 4', player = player_a1)
-            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, 'Node 5', player = player_a2)
-            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, 'Node 6', player = player_a2)
+            sage: node_a5 = EFG_Node({'C': node_a1, 'D': node_a2}, 'Node 5', player = jane)
+            sage: node_a6 = EFG_Node({'C': node_a3, 'D': node_a4}, 'Node 6', player = jane)
             sage: root_a = EFG_Node({'A': node_a5, 'B': node_a6}, 'Tree Root', player = player_a1)
             sage: egame_a = ExtensiveFormGame(root_a)
             sage: egame_a._grow_infoset_graph()
@@ -1792,13 +2023,13 @@ class ExtensiveFormGame():
         TESTS::
 
             sage: player_a1 = EFG_Player('Player 1')
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, player_a2: 1})
-            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, player = player_a2)
-            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, player = player_a2)
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1 : 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1 : 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1 : 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1 : 2, jane: 1})
+            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, player = jane)
+            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, player = jane)
             sage: root_a = EFG_Node({'C': node_a1, 'D': node_a2}, player = player_a1)
             sage: node_a1.name is node_a2.name is root_a.name
             True
@@ -1865,13 +2096,13 @@ class ExtensiveFormGame():
 
             sage: from gambit import Game  # optional - gambit
             sage: player_a1 = EFG_Player('Player 1') 
-            sage: player_a2 = EFG_Player('Player 2')
-            sage: leaf_a1 = EFG_Leaf({player_a1: 0, player_a2: 1})
-            sage: leaf_a2 = EFG_Leaf({player_a1: 1, player_a2: 0})
-            sage: leaf_a3 = EFG_Leaf({player_a1: 2, player_a2: 4})
-            sage: leaf_a4 = EFG_Leaf({player_a1: 2, player_a2: 1})
-            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', player_a2)
-            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', player_a2) 
+            sage: jane = EFG_Player('Player 2')
+            sage: leaf_a1 = EFG_Leaf({player_a1: 0, jane: 1})
+            sage: leaf_a2 = EFG_Leaf({player_a1: 1, jane: 0})
+            sage: leaf_a3 = EFG_Leaf({player_a1: 2, jane: 4})
+            sage: leaf_a4 = EFG_Leaf({player_a1: 2, jane: 1})
+            sage: node_a1 = EFG_Node({'A': leaf_a1, 'B': leaf_a2}, 'Node 1', jane)
+            sage: node_a2 = EFG_Node({'A': leaf_a3, 'B': leaf_a4}, 'Node 2', jane) 
             sage: root_a = EFG_Node({'C': node_a1, 'D': node_a2}, 'Root', player_a1)  
             sage: egame_a = ExtensiveFormGame(root_a) 
             sage: egame_a.info_sets
