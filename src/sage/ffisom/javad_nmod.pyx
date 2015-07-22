@@ -8,7 +8,7 @@ from sage.libs.flint.fq_nmod cimport *
 def isom_javad_nmod(k1, k2):
     cdef FFIsomorphism *isom
     cdef FiniteFieldElement_flint_fq_nmod res
-    cdef nmod_poly_t g1, g2, x, xim
+    cdef nmod_poly_t g1, g2, xim
 
     if not isinstance(k1, FiniteField_flint_fq_nmod) \
        or not isinstance(k2, FiniteField_flint_fq_nmod):
@@ -16,15 +16,13 @@ def isom_javad_nmod(k1, k2):
 
     nmod_poly_init(g1, ((<FiniteField_flint_fq_nmod>k1)._ctx).modulus.mod.n)
     nmod_poly_init(g2, ((<FiniteField_flint_fq_nmod>k2)._ctx).modulus.mod.n)
-    nmod_poly_init(x, ((<FiniteField_flint_fq_nmod>k1)._ctx).modulus.mod.n)
     nmod_poly_init(xim, ((<FiniteField_flint_fq_nmod>k1)._ctx).modulus.mod.n)
 
     sig_on()
     isom = new FFIsomorphism((<FiniteField_flint_fq_nmod>k1)._ctx.modulus, (<FiniteField_flint_fq_nmod>k2)._ctx.modulus)
     isom.compute_generators(g1, g2)
     isom.build_isomorphism(g1, g2)
-    nmod_poly_set_coeff_ui(x, 1, 1)
-    isom.compute_image_using_modcomp(xim, x)
+    isom.get_x_image(xim)
     sig_off()
 
 
@@ -34,7 +32,6 @@ def isom_javad_nmod(k1, k2):
     del isom
     nmod_poly_clear(g1)
     nmod_poly_clear(g2)
-    nmod_poly_clear(x)
     nmod_poly_clear(xim)
 
     return res

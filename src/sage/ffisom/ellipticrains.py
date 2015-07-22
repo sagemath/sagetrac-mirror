@@ -460,7 +460,7 @@ def find_m(n, k, bound = None):
     power. When one is found, we return it with its trace class candidates.
     '''
     if bound is None:
-        bound_a = 100 # Arbitrary value.  
+        bound_a = 1000 # Arbitrary value.  
     else:
         # if m = a*n + 1 < b, then a < (b- 1)/n.
         bound_a = (bound - 1) / n 
