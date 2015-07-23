@@ -5968,6 +5968,152 @@ cdef class Matroid(SageObject):
                 path.add(u)
             return True, frozenset(path)
 
+    cpdef _intersection_unweighted(self, other):
+        r"""
+        Return a maximum common independent.
+
+        INPUT:
+
+        - ``other`` -- a second matroid with the same groundset as this
+          matroid.
+
+        OUTPUT:
+
+        A subset of the groundset.
+
+        .. NOTE::
+
+            This does not test if the input is well-formed.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: len(M._intersection_unweighted(N))
+            6
+        """
+        U = (True, set())
+        while U[0]:
+            U = self._intersection_augmentation_unweighted(other, U[1])
+        return U[1]
+
+    cpdef _intersection_augmentation_unweighted(self, other, Y):
+        r"""
+        Return a an augmenting set for the matroid intersection problem.
+
+        INPUT:
+
+        - ``other`` -- a matroid with the same ground set as ``self``.
+        - ``Y`` -- an common independent set of ``self`` and ``other`` of size `k`.
+
+        OUTPUT:
+
+        A pair ``True, U`` such that the ``U`` is a common independent set with
+        at least `k + 1` elements; or a pair ``False, X``, if there is no common
+        independent set of size `k + 1`.
+
+        .. NOTE::
+
+            This is an unchecked method. In particular, if the given ``Y`` is
+            not extremal, the algorithm will not terminate. The usage is to
+            run the algorithm on its own output.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: Y = M.intersection(N)
+            sage: M._intersection_augmentation_unweighted(N, Y)[0]
+            False
+            sage: Y = M._intersection_augmentation_unweighted(N,set())
+            sage: Y[0]
+            True
+            sage: len(Y[1])>0
+            True
+        """
+        E = self.groundset()
+        X = E - Y
+        X1 = E - self._closure(Y)
+        X2 = E - other._closure(Y)
+
+        # build the level graph
+        visited = set()
+        next_layer = set(X1)
+        layers = {}
+        d = {}
+        X3 = set()
+        dist = 0
+        while next_layer:
+            todo = next_layer
+            # data structure for distance
+            layers[dist] = set(todo)
+            for u in todo:
+                d[u] = dist
+            next_layer = set()
+
+            while todo:
+                # all previous level are visited
+                visited |= todo
+                u = todo.pop()
+                neighbors = set()
+                if u not in X2:
+                    neighbors = other._circuit(Y.union([u])) - set([u])
+                else:
+                    neighbors = X - self._closure(Y - set([u]))
+                neighbors -=visited
+                for y in neighbors:
+                    next_layer.add(y)
+            X3 = X2.intersection(visited) # see if any element in X2 has been reached
+            dist += 1
+            if X3:
+                break
+        if not X3:                 # if no path from X1 to X2, then no augmenting set exists
+            return False, frozenset(visited)
+        else:
+            visited = set()
+            # find all augmenting paths
+            while (layers[0] & X1)-visited:
+                stack = [set(((layers[0]&X1)-visited)).pop()]
+                predecessor = {}
+                # use DFS
+                while stack:
+                    u = stack.pop()
+                    visited.add(u)
+                    # reached the final layer
+                    if d[u]==len(layers)-1:
+                        # check if this is in X2, if so augment the path
+                        if (u in X2):
+                            path = set([u])             # reconstruct path
+                            while u in predecessor:
+                                u = predecessor[u]
+                                path.add(u)
+                            # augment the path and update all sets
+                            Y = Y.symmetric_difference(path)
+                            X = E - Y
+                            X1 = E - self._closure(Y)
+                            X2 = E - other._closure(Y)
+                            break
+                        else:
+                            continue
+                    # there are more layers
+                    for v in layers[d[u]+1] - visited:
+                        # check if edge (u,v) exists in the auxiliary digraph
+                        exist = False
+                        if ((u in Y) and
+                            (v in E-Y) and
+                            (not self.is_independent(Y|set([v]))) and
+                            (self.is_independent((Y|set([v])) - set([u])))):
+                            exist = True
+                        if ((u in E-Y) and
+                            (v in Y) and
+                            (not other.is_independent(Y|set([u]))) and
+                            (other.is_independent((Y|set([u])) - set([v])))):
+                            exist = True
+                        if exist:
+                            stack.append(v)
+                            predecessor[v] = u
+            return True, Y
+
     # invariants
 
     cpdef _internal(self, B):
