@@ -2672,21 +2672,47 @@ class _LHEquilibrium():
             sage: A = matrix.identity(3)
             sage: e1 = _LHEquilibrium([A, A], [[0]*3, [0]*3])
             sage: e2 = _LHEquilibrium([A, A], [[0]*3, [0]*3])
-            sage: e3 = _LHEquilibrium([A, A], [[1, 0, 0], [1, 0, 0]])
+            sage: e3 = _LHEquilibrium([A, -A], [[1, 0, 0], [1, 0, 0]])
             sage: e1 == e2
             True
             sage: e2 == e3
             False
         """
-        for i in range(len(self.eq[0])):
-            diff = abs(self.eq[0][i] - other.eq[0][i])
-            if diff > sys.float_info.epsilon :
-                return False
+        if self.tab[0].nrows() != other.tab[0].nrows():
+            return False
+        if self.tab[0].ncols() != other.tab[0].ncols():
+            return False
+        if self.tab[1].nrows() != other.tab[1].nrows():
+            return False
+        if self.tab[1].ncols() != other.tab[1].ncols():
+            return False
 
-        for i in range(len(self.eq[1])):
-            diff = abs(self.eq[1][i] - other.eq[1][i])
-            if diff > sys.float_info.epsilon :
-                return False
+        basis_1 = set()
+        basis_2 = set()
+        for i in range(self.tab[0].nrows()):
+            basis_1.add(self.tab[0][i,0])
+            basis_2.add(other.tab[0][i,0])
+
+        if basis_1 != basis_2:
+            return False
+
+        basis_1 = set()
+        basis_2 = set()
+        for i in range(self.tab[1].nrows()):
+            basis_1.add(self.tab[1][i,0])
+            basis_2.add(other.tab[1][i,0])
+
+        if basis_1 != basis_2:
+            return False
+
+        #for i in range(len(self.eq[0])):
+        #    diff = abs(self.eq[0][i] - other.eq[0][i])
+        #    if diff > sys.float_info.epsilon :
+        #        return False
+        #for i in range(len(self.eq[1])):
+        #    diff = abs(self.eq[1][i] - other.eq[1][i])
+        #    if diff > sys.float_info.epsilon :
+        #        return False
 
         return True
 
