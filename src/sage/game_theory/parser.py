@@ -334,18 +334,22 @@ class Parser():
             <Player [1] '2' in game ''>
             sage: g.title = "Parser example"  # optional - gambit
             sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
             sage: iset.label = "a"  # optional - gambit
             sage: iset.actions[int(0)].label = "X"  # optional - gambit
             sage: iset.actions[int(1)].label = "W"  # optional - gambit
             sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
             sage: iset.label = "b"  # optional - gambit
             sage: iset.actions[int(0)].label = "D"  # optional - gambit
             sage: iset.actions[int(1)].label = "C"  # optional - gambit
             sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
             sage: iset.label = "c"  # optional - gambit
             sage: iset.actions[int(0)].label = "B"  # optional - gambit
             sage: iset.actions[int(1)].label = "A"  # optional - gambit
             sage: iset = g.root.children[int(0)].children[int(1)].append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].label = 'Node 3'  # optional - gambit
             sage: iset.label = "d"  # optional - gambit
             sage: iset.actions[int(0)].label = "Z"  # optional - gambit
             sage: iset.actions[int(1)].label = "Y"  # optional - gambit
@@ -379,10 +383,11 @@ class Parser():
         The Parser class outputs the equilibrium::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit  # optional - gambit
-            [[[(1.0, 0.0), (0.0, 1.0)],
-            [(1.0, 0.0), (0.0, 1.0)]]]
-
+            sage: expected_outcome = [[[{'Node 3': {'Y': 1.0, 'Z': 0.0}, 'Root': {'W': 0.0, 'X': 1.0}}],
+            ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
+            sage: nasheq == expected_outcome # optional - gambit
+            True            
+            
         If we change one of the outputs for the above tree, more nash equilibria are obtained::
 
             sage: alternate_output = g.outcomes.add()  # optional - gambit
@@ -396,10 +401,15 @@ class Parser():
              <NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.0]>,
              <NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]   
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit 
-            [[[(0.0, 1.0), (0.5, 0.5)], [(0.0, 1.0), (1.0, 0.0)]],
-            [[(0.0, 1.0), (0.5, 0.5)], [(0.5, 0.5), (1.0, 0.0)]],
-            [[(1.0, 0.0), (0.0, 1.0)], [(1.0, 0.0), (0.0, 1.0)]]]
+            sage: expected_outcome = [[[{'Node 3': {'Y': 0.5, 'Z': 0.5}, 'Root': {'W': 1.0, 'X': 0.0}}],
+            ....: [{'Node 1': {'C': 1.0, 'D': 0.0}, 'Node 2': {'A': 0.0, 'B': 1.0}}]],
+            ....: [[{'Node 3': {'Y': 0.5, 'Z': 0.5}, 'Root': {'W': 1.0, 'X': 0.0}}],
+            ....: [{'Node 1': {'C': 0.5, 'D': 0.5}, 'Node 2': {'A': 0.0, 'B': 1.0}}]],
+            ....: [[{'Node 3': {'Y': 1.0, 'Z': 0.0}, 'Root': {'W': 0.0, 'X': 1.0}}],
+            ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
+            sage: nasheq  == expected_outcome  # optional - gambit
+            True
+            
 
         Another test::
 
@@ -409,9 +419,22 @@ class Parser():
             sage: g.players.add("2")  # optional - gambit
             <Player [1] '2' in game ''>
             sage: iset = g.root.append_move(g.players["1"], int(3))  # optional - gambit
+            sage: g.root.label = 'Root' # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
+            sage: iset.actions[int(2)].label = "C"  # optional - gambit
             sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
+            sage: iset.actions[int(0)].label = "D"  # optional - gambit
+            sage: iset.actions[int(1)].label = "E"  # optional - gambit
             sage: iset = g.root.children[int(0)].children[int(1)].append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].label = 'Node 3' # optional - gambit
+            sage: iset.actions[int(0)].label = "F"  # optional - gambit
+            sage: iset.actions[int(1)].label = "G"  # optional - gambit
             sage: iset = g.root.children[int(2)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(2)].label = 'Node 2'  # optional - gambit
+            sage: iset.actions[int(0)].label = "H"  # optional - gambit
+            sage: iset.actions[int(1)].label = "I"  # optional - gambit
             sage: outcome = g.outcomes.add()  # optional - gambit
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
@@ -436,7 +459,7 @@ class Parser():
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
             sage: g.root.children[int(2)].children[int(1)].outcome = outcome  # optional - gambit
-
+            
         The output of the LCP algorithm::
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
@@ -445,10 +468,12 @@ class Parser():
 
         The output of the Parser::
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit
-            [[[(0.0, 1.0, 0.0), (0.5, 0.5)], [(0.75, 0.25), (0.0, 1.0)]]]
-
-        Another test::
+            sage: expected_outcome = [[[{'Node 3': {'F': 0.5, 'G': 0.5}, 'Root': {'A': 0.0, 'B': 1.0, 'C': 0.0}}],
+            ....: [{'Node 1': {'D': 0.75, 'E': 0.25}, 'Node 2': {'H': 0.0, 'I': 1.0}}]]]
+            sage: nasheq == expected_outcome  # optional - gambit
+            True
+                        
+        Another test with a different tree::
 
             sage: g = gambit.Game.new_tree()  # optional - gambit
             sage: g.players.add("1")  # optional - gambit
@@ -456,8 +481,18 @@ class Parser():
             sage: g.players.add("2")  # optional - gambit
             <Player [1] '2' in game ''>
             sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
             sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(3))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
+            sage: iset.actions[int(0)].label = "C"  # optional - gambit
+            sage: iset.actions[int(1)].label = "D"  # optional - gambit
+            sage: iset.actions[int(2)].label = "E"  # optional - gambit
             sage: iset = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
+            sage: iset.actions[int(0)].label = "F"  # optional - gambit
+            sage: iset.actions[int(1)].label = "G"  # optional - gambit
             sage: outcome = g.outcomes.add()  # optional - gambit
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
@@ -478,7 +513,7 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
-
+            
         The output of the LCP algorithm::
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
@@ -488,8 +523,11 @@ class Parser():
         The output of the Parser:: 
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit
-            [[[(0.0, 1.0)], [(0.75, 0.25, 0.0), (0.0, 1.0)]]]
+            sage: expected_outcome = [[[{'Root': {'A': 0.0, 'B': 1.0}}],
+            ....: [{'Node 1': {'C': 0.75, 'D': 0.25, 'E': 0.0},
+            ....: 'Node 2': {'F': 0.0, 'G': 1.0}}]]]
+            sage: nasheq == expected_outcome  # optional - gambit
+            True
 
         Another test::
 
@@ -499,9 +537,16 @@ class Parser():
             sage: g.players.add("2")  # optional - gambit
             <Player [1] '2' in game ''>
             sage: iset = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: iset.actions[int(0)].label = "A"  # optional - gambit
+            sage: iset.actions[int(1)].label = "B"  # optional - gambit
             sage: iset = g.root.children[int(0)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
+            sage: iset.actions[int(0)].label = "C"  # optional - gambit
+            sage: iset.actions[int(1)].label = "D"  # optional - gambit
             sage: g.root.children[int(1)].append_move(iset)  # optional - gambit
             <Infoset [0] '' for player '2' in game ''>
+            sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
             sage: outcome = g.outcomes.add()  # optional - gambit
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
@@ -518,6 +563,7 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+                        
 
         The output of the LCP algorithm::
 
@@ -526,29 +572,29 @@ class Parser():
             [<NashProfile for '': [0.7, 0.3, 0.6, 0.4]>]
 
         The output of the Parser::
-        
+
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: nasheq  # optional - gambit
-            [[[(0.7, 0.3)], [(0.6, 0.4)]]]
+            sage: expected_outcome = [[[{'Root': {'A': 0.7, 'B': 0.3}}],
+            ....: [{'Node 1': {'C': 0.6, 'D': 0.4}, 'Node 2': {'C': 0.6, 'D': 0.4}}]]]
+            sage: nasheq  == expected_outcome # optional - gambit
+            True
+
         """
 
         nice_stuff = []
-        for gambitstrategy in self.raw_string:  #looks at each individual profile
-            single_gambit_nash = []
-            gambitstrategy = list(gambitstrategy)  # Turns it into a list
-            action_len = 0
-            profile = [tuple(gambitstrategy[:len(gambit_game.players[int(0)].infosets[int(0)].actions)])]  # Inserts the first infosets actions into profile in a tuple
-            previousplayersactionslength = len(gambit_game.players[int(0)].infosets[int(0)].actions)
-            for infoset in list(gambit_game.players[int(0)].infosets)[1:]:  # Goes through the rest of the infosets
-                profile.append(tuple(gambitstrategy[previousplayersactionslength: previousplayersactionslength + len(infoset.actions)]))  # Inserts current infosets actions into the profile as a tuple
-                previousplayersactionslength += len(infoset.actions)  # moves the counter along
-            single_gambit_nash.append(profile)  # Appends information gathered to a new list    
-            for player in list(gambit_game.players)[1:]:  # repeats above process for each player
-                profile = [tuple(gambitstrategy[previousplayersactionslength: previousplayersactionslength + len(player.infosets[int(0)].actions)])]
-                previousplayersactionslength += len(player.infosets[int(0)].actions)
-                for infoset in list(player.infosets)[1:]:
-                    profile.append(tuple(gambitstrategy[previousplayersactionslength: previousplayersactionslength + len(infoset.actions)]))
-                    previousplayersactionslength += len(infoset.actions)
-                single_gambit_nash.append(profile)
-            nice_stuff.append(single_gambit_nash)           
+        for gambitstrategy in self.raw_string:
+            gambitstrategy = list(gambitstrategy)
+            infoset_action_count = int(0)
+            gambitstrategy_list = []
+            for player in list(gambit_game.players):
+                player_dict = {}
+                for infoset in list(player.infosets):
+                    infoset_strategy = gambitstrategy[infoset_action_count: infoset_action_count + int(len(list(infoset.actions)))]
+                    infoset_action_count += int(len(infoset.actions))
+                    action_dict = {action.label:infoset_strategy[i] for i,action in enumerate(infoset.actions)}
+                    for node in infoset.members:
+                        player_dict[node.label] = action_dict
+                player_list = [player_dict]
+                gambitstrategy_list.append(player_list)
+            nice_stuff.append(gambitstrategy_list)
         return nice_stuff
