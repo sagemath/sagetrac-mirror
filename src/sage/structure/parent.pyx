@@ -294,6 +294,40 @@ cdef class Parent(category_object.CategoryObject):
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
+        We check that an `__init_extra__` inherited from a category is
+        called even if the parent class is a cython class (see :trac:`15718`)::
+
+            sage: from sage.structure.element import RingElement
+            sage: class E(RingElement):
+            ....:     def __init__(self, P, n):
+            ....:         self.n = n
+            ....:         RingElement.__init__(self, P)
+            ....:     def _repr_(self):
+            ....:         return "<{}>".format(self.n)
+            ....:     def _mul_(self, other):
+            ....:         return self.parent()(self.n*other.n)
+            ....:     def _add_(self, other):
+            ....:         return self.parent()(self.n+other.n)
+            ....:     def _lmul_(self, other):
+            ....:         return self.parent().element_class(self.parent(),self.n*other)
+            sage: cython('''
+            ....: from __main__ import E
+            ....: from sage.structure.parent cimport Parent
+            ....: cdef class P(Parent):
+            ....:     Element = E
+            ....: ''')
+
+        When initialising an instance of 'P` as a unital algebra, a coercion
+        from the base ring by :meth:`sage.categories.unital_algebras.UnitalAlgebras.ParentMethods.__init_extra__`,
+        even though the instance of `P` is not an instance of the parent class
+        of the category::
+
+            sage: p = P(base=ZZ, category=Algebras(ZZ))
+            sage: p.has_coerce_map_from(ZZ)   # indirect doctest
+            True
+            sage: isinstance(p, Algebras(ZZ).parent_class)
+            False
+
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
         .. automethod:: __mul__
@@ -351,6 +385,13 @@ cdef class Parent(category_object.CategoryObject):
             # this calls __init_extra__ if it is *defined* in cls (not in a super class)
             if "__init_extra__" in cls.__dict__:
                 cls.__init_extra__(self)
+        if not ((category is None) or isinstance(self, category.parent_class)):
+            # This is the case if and only if self is an instance of an
+            # extension class. Now, we should go up the class hierarchy
+            # of the category's parent class and seek for "__init_extra__".
+            for cls in category.parent_class.mro():
+                if "__init_extra__" in cls.__dict__:
+                    getattr_from_other_class(self, cls, '__init_extra__')()
 
     def _init_category_(self, category):
         """

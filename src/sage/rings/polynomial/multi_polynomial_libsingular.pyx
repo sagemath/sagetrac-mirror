@@ -370,6 +370,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         #permanently store a reference to this ring until deallocation works reliably
         permstore.append(self)
 
+    _no_generic_basering_coercion = True
+
     def __dealloc__(self):
         r"""
         Deallocate the ring without changing ``currRing``
