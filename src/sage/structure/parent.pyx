@@ -310,6 +310,12 @@ cdef class Parent(category_object.CategoryObject):
             ....:         return self.parent()(self.n+other.n)
             ....:     def _lmul_(self, other):
             ....:         return self.parent().element_class(self.parent(),self.n*other)
+
+        The following is a trick that is needed in doctests but not in
+        interactive sessions::
+
+            sage: import __main__
+            sage: __main__.E = E
             sage: cython('''
             ....: from __main__ import E
             ....: from sage.structure.parent cimport Parent
