@@ -386,9 +386,10 @@ class Parser():
             sage: expected_outcome = [[[{'Node 3': {'Y': 1.0, 'Z': 0.0}, 'Root': {'W': 0.0, 'X': 1.0}}],
             ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
             sage: nasheq == expected_outcome # optional - gambit
-            True            
-            
-        If we change one of the outputs for the above tree, more nash equilibria are obtained::
+            True
+
+        If we change one of the outputs for the above tree, more nash equilibria
+        are obtained::
 
             sage: alternate_output = g.outcomes.add()  # optional - gambit
             sage: alternate_output[int(0)] = int(5)  # optional - gambit
@@ -396,10 +397,10 @@ class Parser():
             sage: g.root.children[int(1)].children[int(0)].outcome = alternate_output  # optional - gambit
             sage: solver = gambit.nash.ExternalLCPSolver()  # optional - gambit
             sage: LCP_output = solver.solve(g)  # optional - gambit
-            sage: LCP_output  # optional - gambit  
+            sage: LCP_output  # optional - gambit
             [<NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.0, 1.0, 1.0, 0.0]>,
              <NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.0]>,
-             <NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]   
+             <NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
             sage: expected_outcome = [[[{'Node 3': {'Y': 0.5, 'Z': 0.5}, 'Root': {'W': 1.0, 'X': 0.0}}],
             ....: [{'Node 1': {'C': 1.0, 'D': 0.0}, 'Node 2': {'A': 0.0, 'B': 1.0}}]],
@@ -409,7 +410,7 @@ class Parser():
             ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
             sage: nasheq  == expected_outcome  # optional - gambit
             True
-            
+
 
         Another test::
 
@@ -459,7 +460,7 @@ class Parser():
             sage: outcome[int(0)] = int(1)  # optional - gambit
             sage: outcome[int(1)] = int(5)  # optional - gambit
             sage: g.root.children[int(2)].children[int(1)].outcome = outcome  # optional - gambit
-            
+
         The output of the LCP algorithm::
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
@@ -472,7 +473,7 @@ class Parser():
             ....: [{'Node 1': {'D': 0.75, 'E': 0.25}, 'Node 2': {'H': 0.0, 'I': 1.0}}]]]
             sage: nasheq == expected_outcome  # optional - gambit
             True
-                        
+
         Another test with a different tree::
 
             sage: g = gambit.Game.new_tree()  # optional - gambit
@@ -513,14 +514,14 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
-            
+
         The output of the LCP algorithm::
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 0.75, 0.25, 0.0, 0.0, 1.0]>]
 
-        The output of the Parser:: 
+        The output of the Parser::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
             sage: expected_outcome = [[[{'Root': {'A': 0.0, 'B': 1.0}}],
@@ -563,7 +564,7 @@ class Parser():
             sage: outcome[int(0)] = int(2)  # optional - gambit
             sage: outcome[int(1)] = int(7)  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
-                        
+
 
         The output of the LCP algorithm::
 
@@ -589,9 +590,12 @@ class Parser():
             for player in list(gambit_game.players):
                 player_dict = {}
                 for infoset in list(player.infosets):
-                    infoset_strategy = gambitstrategy[infoset_action_count: infoset_action_count + int(len(list(infoset.actions)))]
+                    infoset_strategy = gambitstrategy[infoset_action_count:
+                                                      infoset_action_count +
+                                                      int(len(list(infoset.actions)))]
                     infoset_action_count += int(len(infoset.actions))
-                    action_dict = {action.label:infoset_strategy[i] for i,action in enumerate(infoset.actions)}
+                    action_dict = {action.label: infoset_strategy[i] for i,
+                                   action in enumerate(infoset.actions)}
                     for node in infoset.members:
                         player_dict[node.label] = action_dict
                 player_list = [player_dict]
