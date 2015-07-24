@@ -247,10 +247,12 @@ def Hom(X, Y, category=None, check=True):
 
     Since :trac:`11900`, the meet of the categories of the given arguments is
     used to determine the default category of the homset. This can also be a
-    join category, as in the following example::
+    join category, as in the following example. Note that it is needed to
+    explicitly provide the base ring when instanciating :class:`~sage.structure.parent.Parent`.
+    The fact that the given category also has a base ring is not enough::
 
-        sage: PA = Parent(category=Algebras(QQ))
-        sage: PJ = Parent(category=Rings() & Modules(QQ))
+        sage: PA = Parent(base=QQ, category=Algebras(QQ))
+        sage: PJ = Parent(base=QQ, category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()
