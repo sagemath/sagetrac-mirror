@@ -551,7 +551,7 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 
 try:
     from gambit import Game
-    from gambit.nash import ExternalLPSolver, ExternalLCPSolver
+    from gambit.nash import *
 except ImportError:
     Game = None
     ExternalLPSolver = None
@@ -1764,6 +1764,45 @@ class NormalFormGame(SageObject, MutableMapping):
         p.solve()
         x = tuple(p.get_values(x).values())
         return [[x, y]]
+
+    def _solve_gambit(self, solver):
+        if not isinstance(solver, ExternalSolver):
+            raise ValueError("The `solver` is not a valid gambit solver")
+        g = self._gambit_()
+        output = solver.solve(g)
+        nasheq = Parser(output).format_gambit(g)
+        return sorted(nasheq)
+
+    def _solve_gambit_simpdiv(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalSimpdivSolver())
+
+    def _solve_gambit_gnm(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalGlobalNewtonSolver())
+
+    def _solve_gambit_enum_poly(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalEnumPolySolver())
+
+    def _solve_gambit_liap(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalLyapunovSolver())
+
+    def _solve_gambit_ipa(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalIteratedPolymatrixSolver())
+
+    def _solve_gambit_logit(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalLogitSolver())
+
 
     def _solve_enumeration(self, maximization=True):
         r"""
