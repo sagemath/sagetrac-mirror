@@ -1298,9 +1298,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         return self.points()[n]
 
-    def isogenies_graph(self, l):
+    def isogeny_graph(self, l):
         """
-        Return the `l`-isogenies graph of `E`.
+        Return the `l`-isogeny graph of `E`.
 
         INPUT:
 
@@ -1309,10 +1309,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLE::
 
             sage: E = EllipticCurve(GF(31),[1,2,3,4,5])
-            sage: E.isogenies_graph(5).edges()
+            sage: E.isogeny_graph(5).edges()
             [(3, 9, None), (9, 3, None)]
             sage: E = EllipticCurve(GF(5081),[3290,3887])
-            sage: E.isogenies_graph(5).edges()
+            sage: E.isogeny_graph(5).edges()
             [(478, 794, None),
              (531, 3959, None),
              (711, 2483, None),
