@@ -391,12 +391,12 @@ cdef class Parent(category_object.CategoryObject):
             # this calls __init_extra__ if it is *defined* in cls (not in a super class)
             if "__init_extra__" in cls.__dict__:
                 cls.__init_extra__(self)
-        if not ((category is None) or isinstance(self, category.parent_class)):
+        if category is not None:
             # This is the case if and only if self is an instance of an
             # extension class. Now, we should go up the class hierarchy
             # of the category's parent class and seek for "__init_extra__".
             for cls in category.parent_class.mro():
-                if "__init_extra__" in cls.__dict__:
+                if not isinstance(self, cls) and "__init_extra__" in cls.__dict__:
                     getattr_from_other_class(self, cls, '__init_extra__')()
 
     def _init_category_(self, category):

@@ -277,8 +277,6 @@ cdef class FreeAlgebra_letterplace(Algebra):
             varnames = R.variable_names()[:-1]
             self._nb_slackvars = 1
         base_ring = R.base_ring()
-        Algebra.__init__(self, base_ring, varnames,
-                         normalize=False, category=Algebras(base_ring))
         self._commutative_ring = R
         self._current_ring = make_letterplace_ring(R,1)
         self._degbound = 1
@@ -289,7 +287,8 @@ cdef class FreeAlgebra_letterplace(Algebra):
                 raise TypeError, "The generator degrees must be given by a list or tuple of %d positive integers"%(self.__ngens-1)
             self._degrees = tuple([int(i) for i in degrees])
             self.set_degbound(max(self._degrees))
-        self._populate_coercion_lists_(coerce_list=[base_ring])
+        Algebra.__init__(self, base_ring, varnames,
+                         normalize=False, category=Algebras(base_ring))
     def __reduce__(self):
         """
         TEST::

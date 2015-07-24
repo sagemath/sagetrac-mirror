@@ -3189,10 +3189,14 @@ def pushout(R, S):
         [1 2 0]
         [0 0 1]
 
-    Some more tests with ``coercion_reversed = True``::
+    Here are some more tests with ``coercion_reversed = True``. Note that
+    in the following test, we are not inheriting from ``type(QQ['x'])``,
+    since this already inherits from a category's parent class: If this
+    is the case for a class, the the category framework will not be correctly
+    initialised for instances of this class. ::
 
         sage: from sage.categories.pushout import ConstructionFunctor
-        sage: class EvenPolynomialRing(type(QQ['x'])):
+        sage: class EvenPolynomialRing(type(QQ['x']).__base__):
         ....:     def __init__(self, base, var):
         ....:         super(EvenPolynomialRing, self).__init__(base, var)
         ....:         self.register_embedding(base[var])
