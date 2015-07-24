@@ -1300,20 +1300,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def isogenies_graph(self, l):
         """
-        Return the l-isogenies graph of E.
+        Return the `l`-isogenies graph of `E`.
 
-        .. NOTE::
+        INPUT:
 
-            This needs the database "db_modular_polynomials" in order
-            to work properly.
+        - `l` -- a prime number
 
         EXAMPLE::
 
             sage: E = EllipticCurve(GF(31),[1,2,3,4,5])
-            sage: E.isogenies_graph(5).edges()  # optional - db_modular_polynomials
+            sage: E.isogenies_graph(5).edges()
             [(3, 9, None), (9, 3, None)]
             sage: E = EllipticCurve(GF(5081),[3290,3887])
-            sage: E.isogenies_graph(5).edges() # optional - db_modular_polynomials
+            sage: E.isogenies_graph(5).edges()
             [(478, 794, None),
              (531, 3959, None),
              (711, 2483, None),
@@ -1334,10 +1333,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if not l.is_prime():
             raise ValueError("l has to be prime")
 
-        R = PolynomialRing(self.base_field(), 'j0,j1')
-        db = sage.databases.db_modular_polynomials.ClassicalModularPolynomialDatabase()
-        mod_pol = R(db[l])
-        x = PolynomialRing(self.base_field(), 'x').gen()
+        X, j = PolynomialRing(self.base_field(), 'X,j').gens()
+        mod_pol = sage.modular.ssmod.ssmod.Phi_polys(l, X, j)
+        x = polygen(self.base_field(), 'x')
         G = DiGraph(sparse=True, multiedges=True, loops=True)
         already_visited = []
 
@@ -1346,7 +1344,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 return
             already_visited.append(j)
 
-            for (r, m) in mod_pol(x, j).roots():
+            for (r, m) in mod_pol(X=x, j=j).roots():
                 G.add_edges([(r, j)] * m)
                 recurse_loop(r)
 
