@@ -1304,7 +1304,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         INPUT:
 
-        - `l` -- a prime number
+        - `l` -- a prime number (not the characteristic of the base field)
 
         EXAMPLE::
 
@@ -1329,9 +1329,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
              (820, 3413, None),
              ...
              (4996, 3959, None)]
+
+        TESTS::
+
+            sage: E.isogeny_graph(5081).edges()
+            Traceback (most recent call last):
+            ...
+            ValueError: l must not be equal to the characteristic
         """
         if not l.is_prime():
             raise ValueError("l has to be prime")
+
+        if l == self.base_field().characteristic():
+            raise ValueError('l must not be equal to the characteristic')
 
         X, j = PolynomialRing(self.base_field(), 'X,j').gens()
         mod_pol = sage.modular.ssmod.ssmod.Phi_polys(l, X, j)
