@@ -5992,14 +5992,18 @@ cdef class Matroid(SageObject):
             sage: len(M._intersection_unweighted(N))
             6
         """
-        U = (True, set())
+        Y = set()
+        U = self._intersection_augmentation_unweighted(other, Y)
         while U[0]:
-            U = self._intersection_augmentation_unweighted(other, U[1])
-        return U[1]
+            Y = U[1]
+            if (not self.is_independent(Y)) or (not other.is_independent(Y)):
+                raise ValueError("OMG not a independent set")
+            U = self._intersection_augmentation_unweighted(other, Y)
+        return Y
 
     cpdef _intersection_augmentation_unweighted(self, other, Y):
         r"""
-        Return a an augmenting set for the matroid intersection problem.
+        Return a common independent set larger than `Y` or report failure. 
 
         INPUT:
 
@@ -6015,8 +6019,7 @@ cdef class Matroid(SageObject):
         .. NOTE::
 
             This is an unchecked method. In particular, if the given ``Y`` is
-            not extremal, the algorithm will not terminate. The usage is to
-            run the algorithm on its own output.
+            not a common independent set, the behavior is unpredictable. 
 
         EXAMPLES::
 
@@ -6035,8 +6038,7 @@ cdef class Matroid(SageObject):
         X = E - Y
         X1 = E - self._closure(Y)
         X2 = E - other._closure(Y)
-
-        # build the level graph
+        # partition the vertices into layers according to distance
         visited = set()
         next_layer = set(X1)
         layers = {}
@@ -6056,14 +6058,14 @@ cdef class Matroid(SageObject):
                 visited |= todo
                 u = todo.pop()
                 neighbors = set()
-                if u not in X2:
-                    neighbors = other._circuit(Y.union([u])) - set([u])
+                if d[u]%2==0 and u not in X2:
+                    neighbors = other._circuit(Y|set([u])) - set([u])
                 else:
                     neighbors = X - self._closure(Y - set([u]))
                 neighbors -=visited
                 for y in neighbors:
                     next_layer.add(y)
-            X3 = X2.intersection(visited) # see if any element in X2 has been reached
+            X3 = X2 & visited # see if any element in X2 has been reached
             dist += 1
             if X3:
                 break
@@ -6071,7 +6073,7 @@ cdef class Matroid(SageObject):
             return False, frozenset(visited)
         else:
             visited = set()
-            # find all augmenting paths
+            # find augmenting paths successively without explicitly construct the graph
             while (layers[0] & X1)-visited:
                 stack = [set(((layers[0]&X1)-visited)).pop()]
                 predecessor = {}
