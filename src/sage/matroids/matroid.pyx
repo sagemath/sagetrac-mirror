@@ -5996,8 +5996,6 @@ cdef class Matroid(SageObject):
         U = self._intersection_augmentation_unweighted(other, Y)
         while U[0]:
             Y = U[1]
-            if (not self.is_independent(Y)) or (not other.is_independent(Y)):
-                raise ValueError("OMG not a independent set")
             U = self._intersection_augmentation_unweighted(other, Y)
         return Y
 
