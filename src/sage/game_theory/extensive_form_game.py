@@ -2402,7 +2402,7 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.generate_strategies()
             [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')],
-             [('D', 'A'), ('D', 'B'), ('C', 'A'), ('C', 'B')]]
+             [('C', 'A'), ('C', 'B'), ('D', 'A'), ('D', 'B')]]
 
             catdog:
             sage: player_1 = EFG_Player('1')
@@ -2416,7 +2416,7 @@ class ExtensiveFormGame():
             sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'a', player_1)
             sage: example = ExtensiveFormGame(node_a)
             sage: example.generate_strategies()
-            [[('woof', 'bark)], [('meow', 'meow'), ('meow', 'scratch'), ('scratch', 'scratch'), ('scratch', 'meow')]]
+            [[('woof'), ('bark)], [('meow', 'meow'), ('meow', 'scratch'), ('scratch', 'scratch'), ('scratch', 'meow')]]
 
             catdogsharedinfoset:
             sage: player_1 = EFG_Player('1')
@@ -2431,7 +2431,7 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_b, node_c])
             sage: example.generate_strategies()
-            [[('woof', 'bark')], [('meow', 'scratch')]]
+            [[('woof',), ('bark',)], [('meow',), ('scratch',)]]
 
             rockpaperscissors:
             sage: player_1 = EFG_Player('1')
@@ -2452,7 +2452,7 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_b, node_c, node_d])
             sage: example.generate_strategies()
-            [[('R', 'P', 'S')], [('R', 'P', 'S')]]
+            [[('P',), ('S',), ('R',)], [('P',), ('S',), ('R',)]]
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -2471,7 +2471,26 @@ class ExtensiveFormGame():
             sage: example.set_info_set([node_e, node_d])
             sage: example.generate_strategies()
             [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')],
-             [('D', 'A'), ('D', 'B'), ('C', 'A'), ('C', 'B')]]
+             [('C', 'A'), ('C', 'B'), ('D', 'A'), ('D', 'B')]]
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 1, player_2: 1}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 1, player_2: 2}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 1, player_2: 3}, 'Leaf 4')
+            sage: leaf_5 = EFG_Leaf({player_1: 0, player_2: 5}, 'Leaf 5')
+            sage: leaf_6 = EFG_Leaf({player_1: 5, player_2: 0}, 'Leaf 5')
+            sage: node_e = EFG_Node({'Y': leaf_5, 'Z': leaf_6}, 'e', player_1)
+            sage: node_d = EFG_Node({'Y': leaf_2, 'Z': leaf_3}, 'd', player_1)
+            sage: node_c = EFG_Node({'C': leaf_4, 'D': node_e}, 'c', player_2)
+            sage: node_b = EFG_Node({'C': node_d, 'D': leaf_1}, 'b', player_2)
+            sage: node_a = EFG_Node({'W': node_b, 'X': node_c}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example.set_info_set([node_b, node_c])
+            sage: example.set_info_set([node_b, node_c])
+            sage: example.generate_strategies()
+            [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')], [('C',), ('D',)]]
 
         """
         strategies = []
@@ -2481,16 +2500,12 @@ class ExtensiveFormGame():
             for information_set in self.info_sets:
                 for node in information_set:
                     if node.player == p:
-                        if tuple(node.actions) not in p_strategies:
+                        if tuple(node.actions) not in p_strategies: #breaks some games with perfect info
                             p_strategies.append(tuple(node.actions))
-                            L = list(CartesianProduct(*p_strategies)) #at this line there is a problem in that the actions at each node are put into individual lists in some tests
-            print L
+                            L = list(CartesianProduct(*p_strategies))
             strategies.append([tuple(l) for l in L])
         return strategies
 
-#for some reason I'm getting weird commas in the catdog output
-#catdog and rps the actions are in indivual tuples rather than strategies being tuples
-#order of strategies different but this might not matter?
 
 
 class EFG_Node():
