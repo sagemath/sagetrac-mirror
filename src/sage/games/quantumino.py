@@ -553,9 +553,15 @@ class QuantuminoSolver(SageObject):
         for pentos in T.solve(partial=partial):
             yield QuantuminoState(pentos, aside)
 
-    def number_of_solutions(self):
+    def number_of_solutions(self, ncpus=0):
         r"""
         Return the number of solutions.
+
+        INPUT:
+
+        - ``ncpus`` -- integer (default: 0), number of cpus used for the
+          computation. If this is 0, determine the number of cpus
+          automatically based on the hardware being used.
 
         OUTPUT:
 
@@ -569,8 +575,8 @@ class QuantuminoSolver(SageObject):
 
         This computation takes several days::
 
-            sage: QuantuminoSolver(0).number_of_solutions()                # not tested
+            sage: QuantuminoSolver(0).number_of_solutions()    # not tested
             ??? hundreds of millions ???
         """
-        return self.tiling_solver().number_of_solutions()
+        return self.tiling_solver().number_of_solutions(ncpus=ncpus)
 
