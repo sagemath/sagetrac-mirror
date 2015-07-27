@@ -1980,14 +1980,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: tab[1]
             3
             sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [-1.00  1.00 0.000 0.000 0.000 0.000 -112. -157.  4.00]
-            [-2.00  1.00 0.000 0.000 0.000 0.000 -127. -132.  3.00]
-            [-3.00  1.00 0.000 0.000 0.000 0.000 -153. -156. -2.00]
-            [-4.00  1.00 0.000 0.000 0.000 0.000 -72.0 -159. -1.00]
+            [-1.00  1.00 0.000 0.000 0.000 0.000 -117. -162. -1.00]
+            [-2.00  1.00 0.000 0.000 0.000 0.000 -132. -137. -2.00]
+            [-3.00  1.00 0.000 0.000 0.000 0.000 -158. -161. -7.00]
+            [-4.00  1.00 0.000 0.000 0.000 0.000 -77.0 -164. -6.00]
             sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [-5.00  1.00 0.000 0.000 0.000 0.000 -2.00 -4.00 -5.00]
-            [-6.00  1.00 0.000 0.000 0.000 0.000 -1.00 -5.00 -2.00]
-            [-7.00  1.00 0.000 0.000 0.000 0.000 -1.00 -2.00 -3.00]
+            [-5.00  1.00 0.000 0.000 0.000 -3.00 -2.00 -4.00 -5.00]
+            [-6.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -5.00 -2.00]
+            [-7.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -2.00 -3.00]
         """
         A = self._positivize_matrix(A)
         B = self._positivize_matrix(B.T)
@@ -2016,8 +2016,17 @@ class NormalFormGame(SageObject, MutableMapping):
             [1 2 2]
             [2 1 2]
             [2 2 1]
+            sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: g._positivize_matrix(A)
+            [117 162   1]
+            [132 137   2]
+            [158 161   7]
+            [ 77 164   6]
         """
-        m = min(min(A))
+        m = min(A.list())
         #R = matrix(A, copy=True)
         R = copy(A)
         for i in range(A.nrows()):
@@ -2042,7 +2051,7 @@ class NormalFormGame(SageObject, MutableMapping):
         INPUT:
 
         - ``A`` -- The payoff matrix for the row player
-        - ``B`` -- The payoff matrix for the column player
+        - ``B`` -- The transpose of the payoff matrix for the column player
 
         OUTPUT:
 
@@ -2055,7 +2064,8 @@ class NormalFormGame(SageObject, MutableMapping):
         TESTS:
             
             sage: g = NormalFormGame([matrix(3)])
-            sage: tab = g._init_lh_tableau(matrix.identity(3), matrix.identity(3))
+            sage: A = matrix([[2, 1, 1], [1, 2, 1], [1, 1, 2]])
+            sage: tab = g._init_tableau(A, A)
             sage: tab[0]
             3
             sage: tab[1]
@@ -2076,20 +2086,20 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [1, 0, 0],
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
-            sage: tab = g._init_lh_tableau(A, B)
+            sage: tab = g._init_tableau(A, B.T)
             sage: tab[0]
             4
             sage: tab[1]
             3
             sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [-1.00  1.00 0.000 0.000 0.000 0.000 -112. -157.  4.00]
-            [-2.00  1.00 0.000 0.000 0.000 0.000 -127. -132.  3.00]
-            [-3.00  1.00 0.000 0.000 0.000 0.000 -153. -156. -2.00]
-            [-4.00  1.00 0.000 0.000 0.000 0.000 -72.0 -159. -1.00]
+            [-1.00  1.00 0.000 0.000 0.000 0.000 -160. -205. -44.0]
+            [-2.00  1.00 0.000 0.000 0.000 0.000 -175. -180. -45.0]
+            [-3.00  1.00 0.000 0.000 0.000 0.000 -201. -204. -50.0]
+            [-4.00  1.00 0.000 0.000 0.000 0.000 -120. -207. -49.0]
             sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [-5.00  1.00 0.000 0.000 0.000 0.000 -2.00 -4.00 -5.00]
-            [-6.00  1.00 0.000 0.000 0.000 0.000 -1.00 -5.00 -2.00]
-            [-7.00  1.00 0.000 0.000 0.000 0.000 -1.00 -2.00 -3.00]
+            [-5.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -3.00 -4.00]
+            [-6.00  1.00 0.000 0.000 0.000 -2.00 0.000 -4.00 -1.00]
+            [-7.00  1.00 0.000 0.000 0.000 -2.00 0.000 -1.00 -2.00]
         """
         from sage.rings.all import RR
         m = A.nrows()
@@ -2110,7 +2120,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 tab1[i,j] = -A[i,j - 2 - m]
         
         for i in range(n):
-            for j in range(2 + m, 2 + m + n):
+            for j in range(2 + n, 2 + m + n):
                 tab2[i,j] = -B[i,j - 2 - n]
         
         tab = (tab1, tab2)
