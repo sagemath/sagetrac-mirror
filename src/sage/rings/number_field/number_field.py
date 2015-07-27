@@ -1592,7 +1592,7 @@ class NumberField_generic(number_field_base.NumberField):
         if T is None:
             T = []
         if (len(S) > 0 or len(T) > 0) and len(self.narrow_class_group()) > 1:
-            raise NotImplementedError, 'Only implemented for fields of narrow class number 1'
+            raise NotImplementedError('Only implemented for fields of narrow class number 1')
         from itertools import chain
         from sage.libs.pari.all import pari
         nf = self.pari_nf()
@@ -3170,7 +3170,7 @@ class NumberField_generic(number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
+        if B < 2:
             raise StopIteration
 
         from sage.rings.arith import primes

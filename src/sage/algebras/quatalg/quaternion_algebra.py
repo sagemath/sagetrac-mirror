@@ -626,10 +626,10 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
         S = []
     I = F.ideal(I)
     P = I.factor()
-    if (len(P) + len(S)) % 2 != 0:
-        raise ValueError, 'Number of ramified places must be even'
-    if any([ri > 1 for _,ri in P]):
-        raise ValueError, 'All exponents in the discriminant factorization must be odd'
+    if (len(P) + len(S)) % 2:
+        raise ValueError('Number of ramified places must be even')
+    if any([ri > 1 for _, ri in P]):
+        raise ValueError('All exponents in the discriminant factorization must be odd')
     Foo = F.real_places(prec = infinity)
     T = F.real_places(prec = infinity)
     Sold,S = S,[]
@@ -640,14 +640,14 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
                 T.remove(w)
                 break
     if  len(S) != len(Sold):
-        raise ValueError,'Please specify more precision for the places.'
+        raise ValueError('Please specify more precision for the places.')
     a = F.weak_approximation(I,J = None,S = S,T = [v for v in Foo if v not in S])
     if len(P) == 0 and all([F.hilbert_symbol(-F.one(),a,pp) == 1 for pp,_ in F.ideal(2*a).factor()]):
         return -F.one(), a
     Ps = []
     for p,_ in P:
         if F.ideal(2).valuation(p) == 0:
-            Ps.append((p,1,False))
+            Ps.append((p, 1, False))
         else:
             Ps.append((p,2*p.ramification_index() + 1, False))
     if len(Ps) == 0:
@@ -2049,7 +2049,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         if side == 'left': action = 'right'
         elif side == 'right': action = 'left'
-        else: ValueError, "side must be 'left' or 'right'"
+        else: ValueError("side must be 'left' or 'right'")
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
             raise NotImplementedError("computation of left and right orders only implemented over QQ")
@@ -2649,6 +2649,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         Returns whether x is in self.
 
         EXAMPLES::
+
             sage: R.<i,j,k> = QuaternionAlgebra(-3, -13)
             sage: I = R.ideal([2+i, 3*i, 5*j, j+k])
             sage: 2+i in I
