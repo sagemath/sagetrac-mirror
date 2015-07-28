@@ -8,11 +8,11 @@ Let `T` be a complete deterministic transducer reading the `q`-ary
 digit expansion of a random integer `n` with `0\le n<N`.
 
 Then the expected sum of the output labels of the transducer is
-`e_T \log_q N + \Phi(\log_q N) + o(N)` for some periodic fluctuation
+`e_T \log_q N + \Phi(\log_q N) + o(1)` for some periodic fluctuation
 `\Phi` and some constant `e_T`.
 
 This module computes the Fourier Coefficients of `\Phi`, following
-[HKP2014]_.
+[HKP2015]_.
 
 Contents
 ========
@@ -1953,7 +1953,7 @@ class FSMFourier(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
-            sage: F._H_m_rhs_(CIF(1), 20, remove_poles=False) # optional - arb
+            sage: F._H_m_rhs_(CIF(2), 20, remove_poles=True) # optional - arb
             Traceback (most recent call last):
             ...
             ValueError: remove_poles must be set if and only if s == 1.
