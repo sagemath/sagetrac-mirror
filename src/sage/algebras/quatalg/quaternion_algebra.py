@@ -219,7 +219,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
             # If arg0 or arg1 are Python data types, coerce them
             # to the relevant Sage types. This is a bit inelegant.
             L = []
-            for a in [arg0,arg1]:
+            for a in [arg0, arg1]:
                 if is_RingElement(a):
                     L.append(a)
                 elif isinstance(a, int) or isinstance(a, long):
@@ -240,7 +240,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
             K = arg0
             if K not in _Fields:
                 raise TypeError("base ring of quaternion algebra must be a field")
-            if hasattr(arg2,'__len__'):
+            if hasattr(arg2, '__len__'):
                 D = K.ideal(arg1)
                 S = list(arg2)
                 a, b = quaternion_algebra_invariants_from_ramification(K, D, S)
@@ -256,7 +256,6 @@ class QuaternionAlgebraFactory(UniqueFactory):
 
         names = normalize_names(3, names)
         return (K, a, b, names)
-
 
     def create_object(self, version, key, **extra_args):
         """
@@ -290,6 +289,7 @@ def is_QuaternionAlgebra(A):
         False
     """
     return isinstance(A, QuaternionAlgebra_abstract)
+
 
 class QuaternionAlgebra_abstract(Algebra):
     def _repr_(self):
@@ -566,23 +566,28 @@ class QuaternionAlgebra_abstract(Algebra):
             self.__vector_space = V
             return V
 
-def quaternion_algebra_invariants_from_ramification(F, I, S = None):
+
+def quaternion_algebra_invariants_from_ramification(F, I, S=None):
     r"""
-    Creates a quaternion algebra over a number field which ramifies exactly at
-    the specified places. The algorithm is inspired by the current MAGMA implementation
+    Creates a quaternion algebra over a number field which ramifies
+    exactly at the specified places.
+
+    The algorithm is inspired by the current MAGMA implementation
     by John Voight.
 
     .. WARNING::
 
-       At the moment the algorithm requires F to be of narrow class number one. This
-       is only needed when calling the routine weak_approximation, whose current
-       implementation is done under this assumption.
+        At the moment the algorithm requires F to be of narrow class
+        number one. This is only needed when calling the routine
+        weak_approximation, whose current implementation is done under
+        this assumption.
 
     INPUT:
 
-    - ``F`` - a number field
-    - ``I`` - an ideal in F
-    - ``S`` - (default: None) a list of real embeddings or real places of F
+    - ``F`` -- a number field
+    - ``I`` -- an ideal in ``F``
+    - ``S`` -- (default: ``None``) a list of real embeddings or real places
+      of ``F``
 
     OUTPUT:
 
@@ -613,7 +618,7 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
         sage: all([v(a) > 0 or v(b) > 0 for v in F.real_places()])
         True
 
-    The number of ramified places must be even:
+    The number of ramified places must be even::
 
         sage: F.<r> = NumberField(x^2 - x - 24)
         sage: QuaternionAlgebra(F,r+4,[])
@@ -630,9 +635,9 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
         raise ValueError('Number of ramified places must be even')
     if any([ri > 1 for _, ri in P]):
         raise ValueError('All exponents in the discriminant factorization must be odd')
-    Foo = F.real_places(prec = infinity)
-    T = F.real_places(prec = infinity)
-    Sold,S = S,[]
+    Foo = F.real_places(prec=infinity)
+    T = F.real_places(prec=infinity)
+    Sold, S = S, []
     for v in Sold:
         for w in T:
             if w(F.gen()) == v(F.gen()):
@@ -641,38 +646,39 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
                 break
     if  len(S) != len(Sold):
         raise ValueError('Please specify more precision for the places.')
-    a = F.weak_approximation(I,J = None,S = S,T = [v for v in Foo if v not in S])
+    a = F.weak_approximation(I, J=None, S=S, T=[v for v in Foo if v not in S])
     if len(P) == 0 and all([F.hilbert_symbol(-F.one(),a,pp) == 1 for pp,_ in F.ideal(2*a).factor()]):
         return -F.one(), a
     Ps = []
-    for p,_ in P:
+    for p, _ in P:
         if F.ideal(2).valuation(p) == 0:
             Ps.append((p, 1, False))
         else:
-            Ps.append((p,2*p.ramification_index() + 1, False))
+            Ps.append((p, 2 * p.ramification_index() + 1, False))
     if len(Ps) == 0:
         ps2 = F.ideal(a).factor()
     else:
-        ps2 = prod([p**e for p,e,_ in Ps],F.ideal(1))
-        ps2 = (F.ideal(a)/(F.ideal(a) + ps2)).factor()
+        ps2 = prod([p ** e for p,e,_ in Ps], F.ideal(1))
+        ps2 = (F.ideal(a) / (F.ideal(a) + ps2)).factor()
     for p,_ in ps2:
         if F.ideal(2).valuation(p) == 0:
-            Ps.append((p,1,True))
+            Ps.append((p, 1, True))
         else:
-            Ps.append((p,2*p.ramification_index() + 1,True))
-    Ps.extend([(p,2*p.ramification_index() + 1, True) for p,e in F.ideal(2).factor() if F.ideal(a).valuation(p) == 0])
-    m = prod([p**e for p,e,_ in Ps],F.ideal(1))
+            Ps.append((p, 2 * p.ramification_index() + 1,True))
+    Ps.extend([(p, 2 * p.ramification_index() + 1, True) for p,e in F.ideal(2).factor() if F.ideal(a).valuation(p) == 0])
+    m = prod([p ** e for p, e, _ in Ps], F.ideal(1))
     mnorm = m.norm().abs()
     passed = False
     while not passed:
         cnt = 0
         n = F.degree()
-        bbnd = min(max(20,RR(m.norm().abs()).sqrt()),10**4) # Thanks, Steve!
+        bbnd = min(max(20, RR(m.norm().abs()).sqrt()), 10 ** 4)
+        # Thanks, Steve!
         for _ in range(10):
             cnt += 1
             b = F.zero()
             while b == F.zero() or ZZ((F.ideal(b) + m).pari_hnf()[0,0]) != 1:
-                b = m.reduce(F.maximal_order().random_element(mnorm+1))
+                b = m.reduce(F.maximal_order().random_element(mnorm + 1))
             Sminus = []
             Splus = []
             for v in S:
@@ -680,24 +686,24 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
                     Sminus.append(v)
                 else:
                     Splus.append(v)
-            ub = F.weak_approximation(S = Sminus, T = Splus)
+            ub = F.weak_approximation(S=Sminus, T=Splus)
             b *= ub
             passed = True
-            for p,e,condition in Ps:
-                if e > 1 and (F.hilbert_symbol(a,b,p) == 1) != condition:
+            for p, e, condition in Ps:
+                if e > 1 and (F.hilbert_symbol(a, b, p) == 1) != condition:
                     passed = False
                     break
-                if e ==1 and (p.residue_symbol(b,ZZ(2),check=False) == 1) != condition:
+                if e == 1 and (p.residue_symbol(b, ZZ(2), check=False) == 1) != condition:
                     passed = False
                     break
             Fb = F.ideal(b)
-            if passed and ZZ(Fb.pari_hnf()[0,0]) != 1 and not Fb.is_prime():
-                m1 = ZZ(m.pari_hnf()[0,0])
-                T = [v for v in Foo if v(b*m1) < 0]
+            if passed and ZZ(Fb.pari_hnf()[0, 0]) != 1 and not Fb.is_prime():
+                m1 = ZZ(m.pari_hnf()[0, 0])
+                T = [v for v in Foo if v(b * m1) < 0]
                 Tcomp = [v for v in Foo if v not in T]
-                ubm1 = F.weak_approximation(S = T, T = Tcomp)
+                ubm1 = F.weak_approximation(S=T, T=Tcomp)
                 Fb = F.ideal(b)
-                while cnt <= bbnd and ZZ(Fb.pari_hnf()[0,0]) != 1 and not Fb.is_prime():
+                while cnt <= bbnd and ZZ(Fb.pari_hnf()[0, 0]) != 1 and not Fb.is_prime():
                     b += ubm1 * m1
                     Fb = F.ideal(b)
                     cnt += 1
@@ -707,7 +713,8 @@ def quaternion_algebra_invariants_from_ramification(F, I, S = None):
                 mnorm = m.norm().abs()
                 passed = False
             if passed:
-                return a,b
+                return a, b
+
 
 class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
     """
@@ -2047,15 +2054,18 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
            R = \{\alpha \in Q : \alpha b_n \in I, n=1,2,3,4\}.
         """
-        if side == 'left': action = 'right'
-        elif side == 'right': action = 'left'
-        else: ValueError("side must be 'left' or 'right'")
+        if side == 'left':
+            action = 'right'
+        elif side == 'right':
+            action = 'left'
+        else:
+            ValueError("side must be 'left' or 'right'")
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
             raise NotImplementedError("computation of left and right orders only implemented over QQ")
         M = [(~b).matrix(action=action) for b in self.basis()]
         B = self.basis_matrix()
-        invs = [B*m for m in M]
+        invs = [B * m for m in M]
         # Now intersect the row spans of each matrix in invs
         ISB = [Q(v) for v in intersection_of_row_modules_over_ZZ(invs).row_module(ZZ).basis()]
         return Q.quaternion_order(ISB)
@@ -2135,7 +2145,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     def quaternion_order(self):
         """
         Return the order for which this ideal is a left or right
-        fractional ideal.  If this ideal has both a left and right
+        fractional ideal.
+
+        If this ideal has both a left and right
         ideal structure, then the left order is returned.  If it has
         neither structure, then an error is raised.
 
@@ -2172,7 +2184,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def basis(self):
         """
-        Return basis for this fractional ideal.  The basis is in Hermite form.
+        Return basis for this fractional ideal.
+
+        The basis is in Hermite form.
 
         OUTPUT: tuple
 
@@ -2197,8 +2211,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def __cmp__(self, right):
         """
-        Compare this fractional quaternion ideal to ``right``. If
-        ``right`` is not a fractional quaternion ideal a TypeError is
+        Compare this fractional quaternion ideal to ``right``.
+
+        If ``right`` is not a fractional quaternion ideal a TypeError is
         raised.  If the fractional ideals are in different ambient
         quaternion algebras, then the quaternion algebras themselves
         are compared.
