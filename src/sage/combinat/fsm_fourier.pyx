@@ -64,7 +64,7 @@ This is a mostly internal class speeding up some of the computation.
 
     :meth:`~FSMFourierCache.b` | Compute `\mathbf{b}(r)`.
     :meth:`~FSMFourierCache.fluctuation_empirical` | Compute the fluctuation empirically.
-    :meth:`~FSMFourierCache.fluctuation_fourier` | Compute the fluctuation via an the Fourier series.
+    :meth:`~FSMFourierCache.fluctuation_fourier` | Compute the fluctuation via the Fourier series.
 
 Example
 =======
@@ -2316,7 +2316,7 @@ real[] x=a[0];
 real[] y=a[1];
 draw(graph(x,y), red+0.25bp);
 
-xaxis(Bottom, RightTicks("$%%f$", Step=1, step=0.25));
+xaxis(Bottom, RightTicks("$%%f$", Step=1, step=0.25), xmax=%g);
 yaxis(Left,RightTicks(trailingzero));
 '''
 
@@ -2345,4 +2345,4 @@ yaxis(Left,RightTicks(trailingzero));
                 f.write("%g %g\n" % (x, y))
         with open("%s.asy" % prefix, "w") as f:
                 f.write(template % ((<double> width)/(end-start),
-                                    prefix, prefix))
+                                    prefix, prefix, end+0.001))
