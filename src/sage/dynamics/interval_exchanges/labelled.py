@@ -1355,7 +1355,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         """
         return (
             type(self) is type(other) and
-            self._intervals == other._intervals and
+            self._labels == other._labels and
             self._flips == other._flips)
 
     def __ne__(self,other):
@@ -1380,7 +1380,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         """
         return (
             type(self) is not type(other) or
-            self._intervals != other._intervals or
+            self._labels != other._labels or
             self._flips != other._flips)
 
     def _inversed(self):
@@ -1421,7 +1421,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         if self._hash is not None:
             self._hash = None
 
-        self._intervals.reverse()
+        self._labels.reverse()
         self._flips.reverse()
 
     def _reversed(self):
@@ -1462,8 +1462,8 @@ class FlippedLabelledPermutation(LabelledPermutation):
         if self._hash is not None:
             self._hash is None
 
-        self._intervals[0].reverse()
-        self._intervals[1].reverse()
+        self._labels[0].reverse()
+        self._labels[1].reverse()
         self._flips[0].reverse()
         self._flips[1].reverse()
 
