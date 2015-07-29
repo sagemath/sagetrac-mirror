@@ -286,7 +286,8 @@ matrices(without specifying the utilities), an error is returned::
     ...
     ValueError: utilities have not been populated
 
-Here we populate the missing utilities::
+Here we populate the missing utilities using lists where the ith element of the list represents the
+payoff of the ith player::
 
     sage: f[2, 1] = [5, 3]
     sage: f[2, 0] = [2, 1]
@@ -309,27 +310,13 @@ more than 2 players::
     sage: threegame[0, 0, 0][0] = 3
     sage: threegame[0, 0, 0][1] = 1
     sage: threegame[0, 0, 0][2] = 4
-    sage: threegame[0, 0, 1][0] = 1
-    sage: threegame[0, 0, 1][1] = 5
-    sage: threegame[0, 0, 1][2] = 9
-    sage: threegame[0, 1, 0][0] = 2
-    sage: threegame[0, 1, 0][1] = 6
-    sage: threegame[0, 1, 0][2] = 5
-    sage: threegame[0, 1, 1][0] = 3
-    sage: threegame[0, 1, 1][1] = 5
-    sage: threegame[0, 1, 1][2] = 8
-    sage: threegame[1, 0, 0][0] = 9
-    sage: threegame[1, 0, 0][1] = 7
-    sage: threegame[1, 0, 0][2] = 9
-    sage: threegame[1, 0, 1][0] = 3
-    sage: threegame[1, 0, 1][1] = 2
-    sage: threegame[1, 0, 1][2] = 3
-    sage: threegame[1, 1, 0][0] = 8
-    sage: threegame[1, 1, 0][1] = 4
-    sage: threegame[1, 1, 0][2] = 6
-    sage: threegame[1, 1, 1][0] = 2
-    sage: threegame[1, 1, 1][1] = 6
-    sage: threegame[1, 1, 1][2] = 4
+    sage: threegame[0, 0, 1] = [1, 5, 9]
+    sage: threegame[0, 1, 0] = [2, 6, 5]
+    sage: threegame[0, 1, 1] = [3, 5, 8]
+    sage: threegame[1, 0, 0] = [9, 7, 9]
+    sage: threegame[1, 0, 1] = [3, 2, 3]
+    sage: threegame[1, 1, 0] = [8, 4, 6]
+    sage: threegame[1, 1, 1] = [2, 6, 4]
     sage: threegame
     Normal Form Game with the following utilities: {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
 
@@ -551,7 +538,7 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 
 try:
     from gambit import Game
-    from gambit.nash import *
+    from gambit.nash import ExternalLPSolver, ExternalLCPSolver
 except ImportError:
     Game = None
     ExternalLPSolver = None
@@ -581,30 +568,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame.add_player(2)  # Adding first player with 2 strategies
             sage: threegame.add_player(2)  # Adding second player with 2 strategies
             sage: threegame.add_player(2)  # Adding third player with 2 strategies
-            sage: threegame[0, 0, 0][0] = 3
-            sage: threegame[0, 0, 0][1] = 1
-            sage: threegame[0, 0, 0][2] = 4
-            sage: threegame[0, 0, 1][0] = 1
-            sage: threegame[0, 0, 1][1] = 5
-            sage: threegame[0, 0, 1][2] = 9
-            sage: threegame[0, 1, 0][0] = 2
-            sage: threegame[0, 1, 0][1] = 6
-            sage: threegame[0, 1, 0][2] = 5
-            sage: threegame[0, 1, 1][0] = 3
-            sage: threegame[0, 1, 1][1] = 5
-            sage: threegame[0, 1, 1][2] = 8
-            sage: threegame[1, 0, 0][0] = 9
-            sage: threegame[1, 0, 0][1] = 7
-            sage: threegame[1, 0, 0][2] = 9
-            sage: threegame[1, 0, 1][0] = 3
-            sage: threegame[1, 0, 1][1] = 2
-            sage: threegame[1, 0, 1][2] = 3
-            sage: threegame[1, 1, 0][0] = 8
-            sage: threegame[1, 1, 0][1] = 4
-            sage: threegame[1, 1, 0][2] = 6
-            sage: threegame[1, 1, 1][0] = 2
-            sage: threegame[1, 1, 1][1] = 6
-            sage: threegame[1, 1, 1][2] = 4
+            sage: threegame[0, 0, 0] = [3, 1, 4]
+            sage: threegame[0, 0, 1] = [1, 5, 9]
+            sage: threegame[0, 1, 0] = [2, 6, 5]
+            sage: threegame[0, 1, 1] = [3, 5, 8]
+            sage: threegame[1, 0, 0] = [9, 7, 9]
+            sage: threegame[1, 0, 1] = [3, 2, 3]
+            sage: threegame[1, 1, 0] = [8, 4, 6]
+            sage: threegame[1, 1, 1] = [2, 6, 4]
             sage: threegame.obtain_nash()
             Traceback (most recent call last):
             ...
@@ -983,34 +954,18 @@ class NormalFormGame(SageObject, MutableMapping):
             <BLANKLINE>
            
 
-            sage: threegame = NormalFormGame() # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame.add_player(2) # option - gambit
-            sage: threegame[0, 0, 0][0] = 3 # option - gambit
-            sage: threegame[0, 0, 0][1] = 1 # option - gambit
-            sage: threegame[0, 0, 0][2] = 4 # option - gambit
-            sage: threegame[0, 0, 1][0] = 1 # option - gambit
-            sage: threegame[0, 0, 1][1] = 5 # option - gambit
-            sage: threegame[0, 0, 1][2] = 9 # option - gambit
-            sage: threegame[0, 1, 0][0] = 2 # option - gambit
-            sage: threegame[0, 1, 0][1] = 6 # option - gambit
-            sage: threegame[0, 1, 0][2] = 5 # option - gambit
-            sage: threegame[0, 1, 1][0] = 3 # option - gambit
-            sage: threegame[0, 1, 1][1] = 5 # option - gambit
-            sage: threegame[0, 1, 1][2] = 8 # option - gambit
-            sage: threegame[1, 0, 0][0] = 9 # option - gambit
-            sage: threegame[1, 0, 0][1] = 7 # option - gambit
-            sage: threegame[1, 0, 0][2] = 9 # option - gambit
-            sage: threegame[1, 0, 1][0] = 3 # option - gambit
-            sage: threegame[1, 0, 1][1] = 2 # option - gambit
-            sage: threegame[1, 0, 1][2] = 3 # option - gambit
-            sage: threegame[1, 1, 0][0] = 8 # option - gambit
-            sage: threegame[1, 1, 0][1] = 4 # option - gambit
-            sage: threegame[1, 1, 0][2] = 6 # option - gambit
-            sage: threegame[1, 1, 1][0] = 2 # option - gambit
-            sage: threegame[1, 1, 1][1] = 6 # option - gambit
-            sage: threegame[1, 1, 1][2] = 4 # option - gambit
+            sage: threegame = NormalFormGame() # optional - gambit
+            sage: threegame.add_player(2)  # optional - gambit
+            sage: threegame.add_player(2)  # optional - gambit
+            sage: threegame.add_player(2)  # optional - gambit
+            sage: threegame[0, 0, 0] = [3, 1, 4] # optional - gambit
+            sage: threegame[0, 0, 1] = [1, 5, 9] # optional - gambit
+            sage: threegame[0, 1, 0] = [2, 6, 5] # optional - gambit
+            sage: threegame[0, 1, 1] = [3, 5, 8] # optional - gambit
+            sage: threegame[1, 0, 0] = [9, 7, 9] # optional - gambit
+            sage: threegame[1, 0, 1] = [3, 2, 3] # optional - gambit
+            sage: threegame[1, 1, 0] = [8, 4, 6] # optional - gambit
+            sage: threegame[1, 1, 1] = [2, 6, 4] # optional - gambit
             sage: threegame._gambit_(as_integer = True) # optional - gambit
             NFG 1 R "" { "1" "2" "3" }
             <BLANKLINE>
@@ -1764,84 +1719,6 @@ class NormalFormGame(SageObject, MutableMapping):
         p.solve()
         x = tuple(p.get_values(x).values())
         return [[x, y]]
-
-    def _solve_gambit(self, solver):
-        r"""
-        A generic wraper for gambit solvers. The function takes as input an instance of a gambit
-        solver, solves the current game instance using the ``solver`` and returns a lists of
-        equilibria.
-        """
-        if not isinstance(solver, ExternalSolver):
-            raise ValueError("The `solver` is not a valid gambit solver")
-        g = self._gambit_()
-        output = solver.solve(g)
-        nasheq = Parser(output).format_gambit(g)
-        return sorted(nasheq)
-
-    def _solve_gambit_simpdiv(self):
-        r"""
-        Gambit's implementation of the simplical subdivision algorithm.
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalSimpdivSolver())
-
-    def _solve_gambit_gnm(self):
-        r"""
-        Gambit's implementation of the Global Newton method.
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalGlobalNewtonSolver())
-
-    def _solve_gambit_enum_poly(self):
-        r"""
-        Gambit's implementation of the support enumeration algorithm
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalEnumPolySolver())
-
-    def _solve_gambit_liap(self):
-        r"""
-        Gambit's implementation of the Lyapunov algorithm
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalLyapunovSolver())
-
-    def _solve_gambit_ipa(self):
-        r"""
-        Gambit's implementation of the iterated polymatrix game method
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalIteratedPolymatrixSolver())
-
-    def _solve_gambit_logit(self):
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalLogitSolver())
-
-    def _solve_gambit_enum_mixed(self):
-        r"""
-        Gambit's implementation of support enumeration for two players
-        """
-        if len(self.players) != 2:
-            raise ValueError("Only available for 2 player games")
-
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalEnumMixedSolver())
-
-    def _solve_gambit_enum_pure(self):
-        r"""
-        Gambit's implementation of enumeration of pure strategies for n-player games.
-        """
-        if Game is None:
-            raise NotImplementedError("gambit is not installed")
-        return self._solve_gambit(ExternalEnumPureSolver())
-
 
     def _solve_enumeration(self, maximization=True):
         r"""
