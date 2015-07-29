@@ -8,7 +8,7 @@ AUTHORS:
 This is a binding to the optional `Arb library <http://fredrikj.net/arb/>`_; it
 may be useful to refer to its documentation for more details.
 
-You may have to run ``sage -i arb`` to use the arb library.
+You may have to run ``make arb`` to use the arb library.
 
 Parts of the documentation for this module are copied or adapted from
 Arb's own documentation, licenced under the GNU General Public License

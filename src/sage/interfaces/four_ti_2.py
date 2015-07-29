@@ -6,7 +6,7 @@ http://www.4ti2.de
 You must have the 4ti2 Sage package installed on your computer
 for this interface to work.
 
-Use ``sage -i 4ti2`` to install the package.
+Use ``make 4ti2`` to install the package.
 
 AUTHORS:
 

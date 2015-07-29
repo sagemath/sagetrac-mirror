@@ -260,6 +260,7 @@ Distribution of avalanche sizes::
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
 
+<<<<<<< HEAD
     Working with sandpile divisors::
 
     sage: S = sandpiles.Complete(4)
@@ -310,6 +311,8 @@ Distribution of avalanche sizes::
     sage: D.weierstrass_rank_seq(0)
     (2, 1, 0, 0, 0, -1)
 
+To calculate linear systems associated with divisors, 4ti2 must be installed.
+The easiest way to do this is to run ``make 4ti2``.
 """
 
 #*****************************************************************************

@@ -749,6 +749,27 @@ Betti numbers for undirected graphs
 
 To do.
 
+.. _installation:
+
+4ti2 installation
+-----------------
+.. warning::
+
+    The methods for computing linear systems of divisors and their corresponding
+    simplicial complexes require the installation of 4ti2.
+
+To install 4ti2:
+
+Go to the `Sage website <http://sagemath.org/download-packages.html>`_ and
+   look for the *precise name* of the 4ti2 package and install it according to
+   the instructions given there.  For instance, suppose the package is named
+   4ti2.p0.spkg.  Install the package with the following command from a UNIX shell
+   prompt:
+
+.. code-block:: python
+
+    make 4ti2
+
 Usage
 -----
 

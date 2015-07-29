@@ -34,7 +34,7 @@ def zeta_zeros():
     In order to use ``zeta_zeros()``, you will need to
     install the optional Odlyzko database package::
 
-        sage -i database_odlyzko_zeta
+        make database_odlyzko_zeta
 
     You can see a list of all available optional packages with
     ``sage --optional``.

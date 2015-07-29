@@ -1803,7 +1803,7 @@ def TransitiveGroups(d=None):
     transitive groups up to isomorphisms.
 
     Warning: TransitiveGroups requires the optional GAP database
-    package. Please install it with ``sage -i database_gap``.
+    package. Please install it with ``make database_gap``.
 
     EXAMPLES::
 
@@ -2033,7 +2033,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
                 return Integer(gap.NrTransitiveGroups(gap(self._degree)))
             except RuntimeError:
                 from sage.misc.misc import verbose
-                verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
+                verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``make database_gap``.", level=0)
             except TypeError:
                 raise NotImplementedError("Only the transitive groups of order less than 30 are available in GAP's database")
 
@@ -2449,7 +2449,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
                 return Integer(gap.NrPrimitiveGroups(gap(self._degree)))
             except RuntimeError:
                 from sage.misc.misc import verbose
-                verbose("Warning: PrimitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
+                verbose("Warning: PrimitiveGroups requires the GAP database package. Please install it with ``make database_gap``.", level=0)
 
 
 class PermutationGroup_plg(PermutationGroup_unique):

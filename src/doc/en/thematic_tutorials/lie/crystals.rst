@@ -334,7 +334,7 @@ crystals.
 ``dot2tex`` is an optional package of sage and the latest version
 can be installed via::
 
-    sage -i dot2tex
+    make dot2tex
 
 
 Crystals of tableaux in Sage
