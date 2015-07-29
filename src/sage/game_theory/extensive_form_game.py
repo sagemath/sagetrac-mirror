@@ -26,7 +26,7 @@ demonstrated in tree Form.
     node_1 = EFG_Node(player_1, {'Sports': node_3, 'Comedy': node_2}, 'a')
     battle_of_the_sexes = ExtensiveFormGame(node_1)
     battle_of_the_sexes.set_info_set([node_2, node_3])
-    p = battle_of_the_sexes.plot(view_info_sets=True)
+    p = battle_of_the_sexes.plot()
     sphinx_plot(p)
 
 We can see there are three nodes, one for Bob, two for Celine. Connecting those
@@ -54,7 +54,7 @@ situation which is easier for both players to coordinate:
     node_2 = EFG_Node(player_2, {'Sports': leaf_3, 'Comedy': leaf_4}, 'b')
     node_1 = EFG_Node(player_1, {'Sports': node_3, 'Comedy': node_2}, 'a')
     battle_of_the_sexes = ExtensiveFormGame(node_1)
-    p = battle_of_the_sexes.plot(view_info_sets=True)
+    p = battle_of_the_sexes.plot()
     sphinx_plot(p)
 
 The first game (with the information set) corresponds to the following normal
@@ -130,8 +130,8 @@ recursively has all required information)::
 By default all nodes are in their own information set. If we plot the tree we
 see this::
 
-    sage: battle_of_the_sexes.plot(view_info_sets=True)
-    Graphics object consisting of 23 graphics primitives
+    sage: battle_of_the_sexes.plot()
+    Graphics object consisting of 20 graphics primitives
 
 Here is the output (this is the same tree as above):
 
@@ -148,7 +148,7 @@ Here is the output (this is the same tree as above):
     node_2 = EFG_Node(player_2, {'Sports': leaf_3, 'Comedy': leaf_4}, 'b')
     node_1 = EFG_Node(player_1, {'Sports': node_3, 'Comedy': node_2}, 'a')
     battle_of_the_sexes = ExtensiveFormGame(node_1)
-    p = battle_of_the_sexes.plot(view_info_sets=True)
+    p = battle_of_the_sexes.plot()
     sphinx_plot(p)
 
 An extensive form game where all nodes are in their own information set is said
@@ -179,7 +179,7 @@ Now the game does not have perfect information::
 Information sets are demonstrated visually on the graph we plot by default::
 
     sage: battle_of_the_sexes.plot()
-    Graphics object consisting of 22 graphics primitives
+    Graphics object consisting of 23 graphics primitives
 
 Which will be plotted as follows:
 
@@ -397,7 +397,7 @@ Setting the information sets::
 
     sage: p = g.plot()
     sage: p
-    Graphics object consisting of 122 graphics primitives
+    Graphics object consisting of 133 graphics primitives
 
 If you would like to see this tree run the follow but beware it's a large
 plot!::
@@ -457,7 +457,7 @@ We can then use this game to generate the ``ExtensiveFormGame`` by simply using 
 Then we can see the game by using the ``plot`` method for ``ExtensiveFormGame``::
 
     sage: sage_game.plot()
-    Graphics object consisting of 23 graphics primitives
+    Graphics object consisting of 20 graphics primitives
 
 Here is the output (this is the same tree as above):
 
@@ -520,7 +520,9 @@ from sage.rings.integer import Integer
 from sage.graphs.all import Graph
 from sage.graphs.digraph import DiGraph
 from sage.plot.line import line2d
+from sage.plot.circle import circle
 from sage.graphs.generic_graph import GenericGraph
+from sage.plot.colors import rainbow
 
 try:
     from gambit import Game
@@ -1542,7 +1544,7 @@ class ExtensiveFormGame():
         Once we've set an information set, we can see it visually on the graph::
 
             sage: egame_a.plot()
-            Graphics object consisting of 22 graphics primitives
+            Graphics object consisting of 23 graphics primitives
 
         On some occasions we might want to plot the tree without showing the
         information sets::
@@ -1699,9 +1701,22 @@ class ExtensiveFormGame():
                                   key=lambda x: x[0].name)
         return self.info_sets == perfect_info_set
 
-    def plot(self, view_info_sets=True):
-        """
-        Returns a visual representation of the game::
+    def plot(self, view_info_sets=True, circles=True, circle_size='default'):
+        """  
+        Returns a visual representation of the game.
+
+        INPUT:
+
+        - ``view_info_sets`` - If ``True``, shows information sets as lines on the graph.
+        Each information set is represented by a different color.
+
+        - ``circles`` - If ``True``, shows circles around nodes in information sets 
+        (unless the information set only contains one node). 
+        Each information set is represented by a different color.
+
+        -``circle_size`` - Allows user to change size of circles around nodes.
+
+        Here we create a game and plot it::
 
             sage: player_1 = EFG_Player('Player 1')
             sage: player_2 = EFG_Player('Player 2')
@@ -1713,6 +1728,7 @@ class ExtensiveFormGame():
             sage: node_2 = EFG_Node(player_2, {'A': leaf_3, 'B': leaf_4}, 'Node 2')
             sage: root = EFG_Node(player_1, {'C': node_1, 'D': node_2}, 'Root 1')
             sage: egame = ExtensiveFormGame(root)
+            sage: egame.set_info_set([node_1, node_2])
             sage: egame.plot()
             Graphics object consisting of 23 graphics primitives
 
@@ -1720,13 +1736,21 @@ class ExtensiveFormGame():
 
             sage: egame.plot(view_info_sets = False)
             Graphics object consisting of 20 graphics primitives
+
+        It also allows us to view colored circles around nodes within information sets of size greater than 1, 
+        where the colors depend on the what information set the nodes belong to::
+
+            sage: egame.plot(view_info_sets = False, circles = False)
+            Graphics object consisting of 20 graphics primitives
+
+
         """
 
         t = copy(self.tree)
         for node in self.nodes:
             actions = node.node_input.keys()
             for action in actions:
-                t.set_edge_label(node, node.node_input[action], str(node.player) + ': ' + action)
+                t.set_edge_label(node, node.node_input[action], str(node.player.name) + ': ' + action)
 
         leaf_labels = {leaf: leaf.name + ' - ' + str(leaf.utilities) for leaf in self.leafs}
         # Adding padding so that leaf labels are to the right of the nodes
@@ -1746,11 +1770,24 @@ class ExtensiveFormGame():
                            save_pos=True, axes=False, partition=coloring)
 
         positions = t.get_pos()
+
         if view_info_sets is True:
-            for info_set in self.info_sets:
+            visible_info_sets = [info_set for info_set in self.info_sets if len(info_set) > 1]
+            color_list = rainbow(len(visible_info_sets))
+            color_index = 0
+            for info_set in visible_info_sets:
                 points = sorted([positions[node.name] for node in info_set])
                 tree_plot += (line2d(points, linestyle="dashed",
-                              color='green'))
+                              color=color_list[color_index]))
+                if circles is True:
+                    if circle_size is 'default':
+                        circle_size = 0.1 * self.tree.diameter()
+                    for point in points:
+                        x, y = point
+                        info_set_circle = circle((x, y), circle_size, linestyle="dashed",
+                                  color=color_list[color_index])
+                        tree_plot += info_set_circle
+                color_index += 1
         return tree_plot
 
     def plot_info_sets(self):
