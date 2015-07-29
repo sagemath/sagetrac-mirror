@@ -1592,6 +1592,15 @@ class ExtensiveFormGame():
             Traceback (most recent call last):
             ...
             AttributeError: All nodes in the same information set must have the same players.
+
+        If we try to create an information set with a node that isn't in the game, 
+        an error is returned::
+
+            sage: bad_node = EFG_Node(player_c1, {'A': leaf_c1, 'B': leaf_c2})
+            sage: egame_c.set_info_set([node_c1, bad_node])
+            Traceback (most recent call last):
+            ...
+            ValueError: Some of the nodes to be set are not in the game.
         """
         if len(set([node.player for node in node_list])) != 1:
             raise AttributeError("All nodes in the same information set must have the same players.")
@@ -1599,6 +1608,8 @@ class ExtensiveFormGame():
             raise AttributeError("All nodes in the same information set must have the same actions.")
 
         for node_to_be_set in node_list:
+            if node_to_be_set not in self.nodes:
+                raise ValueError("Some of the nodes to be set are not in the game.")
             for info_set in [info_set for info_set in self.info_sets
                              if node_to_be_set in info_set]:
                 self.info_sets.remove(info_set)
@@ -1641,11 +1652,20 @@ class ExtensiveFormGame():
              [EFG Node "Root 1"]]
             sage: egame.perfect_info()
             True
+
+        If we try to remove an information set that doesn't exist within the game, a specific error is returned::        
+            sage: egame.remove_info_set([node_1, node_2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Information set to be set does not exist.
         """
-        self.info_sets.remove(node_list)
-        for node_to_be_readded in node_list:
-            self.info_sets.append([node_to_be_readded])
-        self.info_sets.sort(key=lambda x: x[0].name)
+        try:
+            self.info_sets.remove(node_list)
+            for node_to_be_readded in node_list:
+                self.info_sets.append([node_to_be_readded])
+            self.info_sets.sort(key=lambda x: x[0].name)
+        except ValueError:
+            raise ValueError("Information set to be set does not exist.")
 
     def perfect_info(self):
         r"""
