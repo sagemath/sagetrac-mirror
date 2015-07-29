@@ -552,7 +552,7 @@ from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
-from sage.rings.all import QQ
+from sage.rings.all import QQ, RR
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
@@ -1868,13 +1868,17 @@ class NormalFormGame(SageObject, MutableMapping):
         #print tab[1]
         #print "===="
 
+        epsilon = sys.float_info.epsilon
+        if tab[0][0,0] in QQ:
+            epsilon = QQ(0)
+
         numcand = 0
         ncols = 2 + dim1 + dim2
 
         leavecand = []
 
         for i in range(nlines):
-            if tab[ntab][i,column] < -sys.float_info.epsilon :
+            if tab[ntab][i,column] < -epsilon :
                 leavecand.append(i)
                 numcand += 1
 
@@ -1913,12 +1917,12 @@ class NormalFormGame(SageObject, MutableMapping):
                         val = tab[ntab][leavecand[i],t_col]
                     val /= tab[ntab][leavecand[i],column]
 
-                    if not updated or val < min - sys.float_info.epsilon :
+                    if not updated or val < min - epsilon :
                         min = val
                         updated = True
                         newnum = 0
                         leavecand[newnum] = leavecand[i]
-                    elif val >= min - sys.float_info.epsilon and val <= min + sys.float_info.epsilon:
+                    elif val >= min - epsilon and val <= min + epsilon:
                         newnum += 1
                         leavecand[newnum] = leavecand[i]
                     i += 1
@@ -1932,7 +1936,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return leavecand[0]
 
-    def _init_lh_tableau(self, A, B):
+    def _init_lh_tableau(self, A, B, ring = RR):
         r"""
         Creates the set of tableaus representing the best response polytopes for the two players
         given their payoff matrices.
@@ -1941,6 +1945,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         - ``A`` -- The payoff matrix for the row player
         - ``B`` -- The payoff matrix for the column player
+        - ``ring`` -- This is used to dictate whether the computation is done using rationals ``QQ``
+          or floating point ``RR``. All computations done by the algorithm are carried out using
+          this ring type.
 
         OUTPUT:
 
@@ -1991,7 +1998,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         A = self._positivize_matrix(A)
         B = self._positivize_matrix(B.T)
-        tab = self._init_tableau(A, B)
+        tab = self._init_tableau(A, B, ring)
         return tab
 
     def _positivize_matrix(self, A):
@@ -2034,7 +2041,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 R[i,j] -= (m - 1.0)
         return R
         
-    def _init_tableau(self, A, B):
+    def _init_tableau(self, A, B, ring = RR):
         r"""
         Creates the set of tableaus representing the best response polytopes for the two players
         given their payoff matrices.
@@ -2100,12 +2107,36 @@ class NormalFormGame(SageObject, MutableMapping):
             [-5.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -3.00 -4.00]
             [-6.00  1.00 0.000 0.000 0.000 -2.00 0.000 -4.00 -1.00]
             [-7.00  1.00 0.000 0.000 0.000 -2.00 0.000 -1.00 -2.00]
+            sage: tab = g._init_tableau(A, B.T, QQ)
+            sage: tab[0]
+            4
+            sage: tab[1]
+            3
+            sage: print tab[2][0]#.str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [  -1    1    0    0    0    0 -160 -205  -44]
+            [  -2    1    0    0    0    0 -175 -180  -45]
+            [  -3    1    0    0    0    0 -201 -204  -50]
+            [  -4    1    0    0    0    0 -120 -207  -49]
+            sage: print tab[2][1]#.str(rep_mapping=lambda x: str(x.n(digits=3)))
+            [-5  1  0  0  0 -2 -1 -3 -4]
+            [-6  1  0  0  0 -2  0 -4 -1]
+            [-7  1  0  0  0 -2  0 -1 -2]
+            sage: type(tab[2][0][0,0])
+            <type 'sage.rings.rational.Rational'>
+            sage: type(tab[2][1][0,0])
+            <type 'sage.rings.rational.Rational'>
+            sage: tab = g._init_tableau(A, B.T, ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: `ring` specified should either be `RR` or `QQ`
         """
-        from sage.rings.all import RR
+        if ring is not RR and ring is not QQ:
+            raise ValueError("`ring` specified should either be `RR` or `QQ`")
+
         m = A.nrows()
         n = A.ncols()
-        tab1 = matrix(RR, m, 2+m+n)
-        tab2 = matrix(RR, n, 2+m+n)
+        tab1 = matrix(ring, m, 2+m+n)
+        tab2 = matrix(ring, n, 2+m+n)
         
         for i in range(m):
             tab1[i,0] = - i - 1
@@ -2324,6 +2355,11 @@ class NormalFormGame(SageObject, MutableMapping):
         dim2 = tab[1].nrows()
         index = 0
         pivot = self._get_pivot_gen(dim1, dim2, tab, startpivot)
+
+        epsilon = sys.float_info.epsilon
+        
+        if tab[0][0,0] in QQ:
+            epsilon = QQ(0)
         
         while True:
             min_ratio = 0.0
@@ -2367,7 +2403,7 @@ class NormalFormGame(SageObject, MutableMapping):
             tab[ntab][index,column] = 0
             
             for i in range(nlines):
-                if tab[ntab][i][column] < -sys.float_info.epsilon or tab[ntab][i][column] > sys.float_info.epsilon :
+                if tab[ntab][i][column] < -epsilon or tab[ntab][i][column] > epsilon :
                 #if tab[ntab][i,column] != 0 :
                     for j in range(1, 2 + dim1 + dim2) :
                         agg = tab[ntab][i,column] * tab[ntab][index,j]
@@ -2390,29 +2426,33 @@ class NormalFormGame(SageObject, MutableMapping):
         tot2 = 0
         
         for i in range(dim1):
-            if tab[0][i,0] > sys.float_info.epsilon:
+            if tab[0][i,0] > epsilon:
                 tot1 += tab[0][i,1]
                 
         for i in range(dim2):
-            if tab[1][i,0] > sys.float_info.epsilon:
+            if tab[1][i,0] > epsilon:
                 tot2 += tab[1][i,1]
                
         y = [0.0] * int(dim2)
         for i in range(dim1):
-            if tab[0][i,0] > sys.float_info.epsilon:
+            if tab[0][i,0] > epsilon:
                 y[int(tab[0][i,0] - dim1 - 1)] = (tab[0][i,1]/tot1)
                
         x = [0.0] * int(dim1)
         for i in range(dim2):
-            if tab[1][i,0] > sys.float_info.epsilon:
+            if tab[1][i,0] > epsilon:
                 x[int(tab[1][i,0] - 1)] = (tab[1][i,1]/tot2)
 
         return (tab, [x, y])
 
-    def _solve_lh(self, missing = 1):
+    def _solve_lh(self, missing = 1, ring = RR):
         r"""
         Solve the current game by running the Lemke-Howson algorithm from the artificial algorithm
         with a given missing label.
+
+        .. NOTE ::
+            Note that the implementation could get unstable and equilibria might not be found on
+            certain instances due to floating point errors.
 
         EXAMPLES::
 
@@ -2444,7 +2484,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
         """
         A, B = self.payoff_matrices()
-        tab = self._init_lh_tableau(A, B)
+        tab = self._init_lh_tableau(A, B, ring)
         return [self._lh_solve_tableau(tab[2], missing)[1]]
 
     def _lh_find_all_from(self, i, isneg, neg, pos):
@@ -2505,10 +2545,15 @@ class NormalFormGame(SageObject, MutableMapping):
             cur.labels[k] = idx
             eq_list[idx].labels[k] = i
 
-    def _lh_find_all(self):
+    def _lh_find_all(self, ring = RR):
         r"""
         This method computes and returns all equilibria which are reachable by the Lemke-Howson
         algorithm by starting from the artificial equilibrium.
+
+        INPUT:
+
+        - ``ring`` -- Takes as input the ring which would be used to perform the computation. Due to
+          the implementation, only rationals ``QQ`` and real numbers ``RR`` are supported.
 
         OUTPUT:
 
@@ -2542,6 +2587,25 @@ class NormalFormGame(SageObject, MutableMapping):
               Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
               Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
 
+        Making use of the ring parameter, it is possible to use rationals to perform the
+        computations in exact arithmetic::
+
+            sage: g._lh_find_all(QQ)
+            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[1/2, 1/2, 0.0], [1/2, 1/2, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[1/2, 0.0, 1/2], [1/2, 0.0, 1/2]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[0.0, 1/2, 1/2], [0.0, 1/2, 1/2]] Labels[3, 2, 1, 3, 2, 1]],
+             [Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
+              Equ [[0.0, 1, 0.0], [0.0, 1, 0.0]] Labels[1, 0, 3, 1, 0, 3],
+              Equ [[0.0, 0.0, 1], [0.0, 0.0, 1]] Labels[2, 3, 0, 2, 3, 0],
+              Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[3, 2, 1, 3, 2, 1]])
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A])
+            sage: g._lh_find_all(QQ)
+            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[0, 0, 0, 0, 0, 0]])
+
         This algorithm might not be able to find all the Nash equilibria within a game most
         especially when the game is degenerate::
 
@@ -2565,7 +2629,7 @@ class NormalFormGame(SageObject, MutableMapping):
         pos = []
 
         A, B = self.payoff_matrices()
-        tab = self._init_lh_tableau(A, B)
+        tab = self._init_lh_tableau(A, B, ring)
         neg.append(_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
         #print "Load", neg[0].tab[0]
         #print "Load", neg[0].tab[1]
