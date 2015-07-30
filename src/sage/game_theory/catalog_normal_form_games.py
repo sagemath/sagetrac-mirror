@@ -933,3 +933,29 @@ def TravellersDilemma(max_value=10):
     g = NormalFormGame([A, A.transpose()])
     g.rename('Travellers dilemma - ' + repr(g))
     return g
+
+def RandomGame(players, n, ring, min_bound = 0, max_bound = 1):
+    r"""
+    Creates a random normal form game with the number of players as specified by the parameter
+    `players`, where each player has `n` actions. The payoffs of these instances are then chosen
+    uniformly at random from the range `[min_bound, max_bound]` using the specified `ring`.
+    """
+    g = NormalFormGame()
+    for i in range(players):
+        g.add_player(n)
+
+    for i in g.utilities:
+        g[i] = [ring.random_element(min_bound, max_bound) for player in range(players)]
+
+    return g
+
+def RandomZeroSum(n, ring, min_bound = -1, max_bound = 1):
+    r"""
+    Creates a random 2 player zero sum game of size `n` actions for both players, where the payoffs
+    of the row players are chosen uniformly at random from the range `[min_bound, max_bound]`.
+    """
+    A = matrix(ring, n, n)
+    for i in range(n):
+        for j in range(n):
+            A[i, j] = ring.random_element(min_bound, max_bound)
+    return NormalFormGame([A])
