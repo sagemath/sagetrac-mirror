@@ -55,11 +55,6 @@ Sage example in fsm-in-sage.tex, line 422::
     sage: NAF = NAF1
 
 
-Sage example in fsm-in-sage.tex, line 434::
-
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-
-
 Sage example in fsm-in-sage.tex, line 455::
 
     sage: str(12.digits(base=2))
@@ -184,8 +179,6 @@ Sage example in fsm-in-sage.tex, line 608::
 
 Sage example in fsm-in-sage.tex, line 620::
 
-    sage: sage.combinat.finite_state_machine.\
-    ....:     FSMOldCodeTransducerCartesianProduct = False
     sage: Combined_3n_n = Triple.cartesian_product(Id).relabeled()
 
 
