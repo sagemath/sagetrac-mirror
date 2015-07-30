@@ -948,6 +948,10 @@ def RandomGame(players, n, ring, min_bound = 0, max_bound = 1):
     Creates a random normal form game with the number of players as specified by the parameter
     `players`, where each player has `n` actions. The payoffs of these instances are then chosen
     uniformly at random from the range `[min_bound, max_bound]` using the specified `ring`.
+
+    .. NOTE ::
+        The meaning of `min_bound` and `max_bound` changes depending on the ring being used as this
+        function relies on the `random_element` function which is implemented by each ring
     """
     g = NormalFormGame()
     for i in range(players):
@@ -962,6 +966,10 @@ def RandomZeroSum(n, ring, min_bound = -1, max_bound = 1):
     r"""
     Creates a random 2 player zero sum game of size `n` actions for both players, where the payoffs
     of the row players are chosen uniformly at random from the range `[min_bound, max_bound]`.
+
+    .. NOTE ::
+        The meaning of `min_bound` and `max_bound` changes depending on the ring being used as this
+        function relies on the `random_element` function which is implemented by each ring
     """
     A = matrix(ring, n, n)
     for i in range(n):
@@ -993,6 +1001,10 @@ def RandomUnitVectorGame(n, ring, min_bound = -1, max_bound = 1):
     Returns a random unit vector game, where the payoffs of the column player are chosen
     uniformly at random, and each row of the row players payoff matrix is a unit column vector
     [Savani]_.
+
+    .. NOTE ::
+        The meaning of `min_bound` and `max_bound` changes depending on the ring being used as this
+        function relies on the `random_element` function which is implemented by each ring
     """
     from random import randint
     B = matrix(ring, n, n)
@@ -1012,6 +1024,10 @@ def RandomImitationGame(n, ring, min_bound = -1, max_bound = 1):
     Returns a random imitation game, where the payoffs of the column player are chosen
     uniformly at random and the payoff matrix of the row player is the identity matrix [Savani,
     McLennan]_.
+
+    .. NOTE ::
+        The meaning of `min_bound` and `max_bound` changes depending on the ring being used as this
+        function relies on the `random_element` function which is implemented by each ring
     """
     B = matrix(ring, n, n)
     for i in range(n):
