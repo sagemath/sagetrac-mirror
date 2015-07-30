@@ -54,6 +54,10 @@ REFERENCES:
    *Unit Vector Games*.
    International Journal of Economic Theory (2015).
 
+.. [McLennan] A. McLennan, R. Tourky.
+   *Imitation games and computation*
+   Games and Economic Behavior (2010)
+
 AUTHOR:
 
 - James Campbell and Vince Knight (06-2014)
@@ -1006,7 +1010,8 @@ def RandomUnitVectorGame(n, ring, min_bound = -1, max_bound = 1):
 def RandomImitationGame(n, ring, min_bound = -1, max_bound = 1):
     r"""
     Returns a random imitation game, where the payoffs of the column player are chosen
-    uniformly at random and the payoff matrix of the row player is the identity matrix [Savani]_.
+    uniformly at random and the payoff matrix of the row player is the identity matrix [Savani,
+    McLennan]_.
     """
     B = matrix(ring, n, n)
     for i in range(n):
