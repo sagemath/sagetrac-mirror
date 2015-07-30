@@ -50,11 +50,16 @@ REFERENCES:
    *Game theory: decisions, interaction and Evolution*.
    Springer Science & Business Media.
 
+.. [Savani] R. Savani, B. von Stengel.
+   *Unit Vector Games*.
+   International Journal of Economic Theory (2015).
+
 AUTHOR:
 
 - James Campbell and Vince Knight (06-2014)
 """
 from sage.game_theory.normal_form_game import NormalFormGame
+from sage.matrix.constructor import matrix
 
 
 def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
@@ -959,3 +964,54 @@ def RandomZeroSum(n, ring, min_bound = -1, max_bound = 1):
         for j in range(n):
             A[i, j] = ring.random_element(min_bound, max_bound)
     return NormalFormGame([A])
+
+def RandomCovariantGame(n, r):
+    r"""
+    Creates a random 2 player covariant game with `n` strategies per player where the payoff
+    matrices are chosen from a multivariate normal distribution such that the covariance between the
+    payoffs of each player is `r`.
+
+    .. NOTE ::
+        As the covariance value gets close to `1` it is similar to the game `(A, A)`, as it gets
+        closer to zero, the game is similar to the payoffs being chosen independently from the
+        normal distribution. Finally, when the covariance gets closer to `-1`, it gets closer to
+        being a zero-sum game `(A, -A)`.
+    """
+    from scipy.stats import multivariate_normal
+    cov = [[1.0, r], [r, 1.0]]
+    d = multivariate_normal.rvs(cov = cov, size = n*n).T
+    A = matrix(RR, list(d[0]))
+    B = matrix(RR, list(d[1]))
+    return NormalFormGame([A, B])
+
+def RandomUnitVectorGame(n, ring, min_bound = -1, max_bound = 1):
+    r"""
+    Returns a random unit vector game, where the payoffs of the column player are chosen
+    uniformly at random, and each row of the row players payoff matrix is a unit column vector
+    [Savani]_.
+    """
+    from random import randint
+    B = matrix(ring, n, n)
+    for i in range(n):
+        for j in range(n):
+            B[i, j] = ring.random_element(min_bound, max_bound)
+
+    A = matrix(ring, n, n)
+    for i in range(n):
+        j = randint(0, n - 1)
+        A[j, i] = 1
+
+    return NormalFormGame([A, B])
+
+def RandomImitationGame(n, ring, min_bound = -1, max_bound = 1):
+    r"""
+    Returns a random imitation game, where the payoffs of the column player are chosen
+    uniformly at random and the payoff matrix of the row player is the identity matrix [Savani]_.
+    """
+    B = matrix(ring, n, n)
+    for i in range(n):
+        for j in range(n):
+            B[i, j] = ring.random_element(min_bound, max_bound)
+    A = matrix.identity(ring, n)
+
+    return NormalFormGame([A, B])
