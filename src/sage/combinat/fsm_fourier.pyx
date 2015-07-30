@@ -1196,7 +1196,6 @@ cdef class FSMFourierCache(SageObject):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     2, f, n)
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: F = FSMFourier(T) # optional - arb
             sage: F.cache.fluctuation_empirical(10, 12) # optional - arb; tolerance 1e-12
             [(3.3219280948873626, -0.1609640474436813),
