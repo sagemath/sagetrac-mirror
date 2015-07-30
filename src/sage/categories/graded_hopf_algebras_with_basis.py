@@ -68,7 +68,9 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                 def antipode_on_basis(self, indice):
                     """
-                    MATH::
+                    Return the antipode of the basis element.
+
+                    .. MATH::
 
                         S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R
 
@@ -95,6 +97,8 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                 def antipode(self, elem):
                     r"""
+                    Return the antipode of an element.
+
                     TESTS::
 
                         sage: F = FQSym(QQ).F()
@@ -112,6 +116,8 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                 def antipode(self):
                     r"""
+                    Return the antipode of an element.
+
                     TESTS::
 
                         sage: F = FQSym(QQ).F()
