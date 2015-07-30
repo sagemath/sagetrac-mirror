@@ -330,6 +330,8 @@ class Function_log(GinacFunction):
             raise TypeError("Symbolic function log must be called as "
                     "log(x), log(x, base=b) or log(x, b)")
 
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
         arg = args[0]
         try:
             arg = QQ.coerce(arg)
@@ -337,9 +339,12 @@ class Function_log(GinacFunction):
         except (AttributeError, TypeError):
             pass
         else:
-            v = valuation(arg, base)
-            if arg == base**v:
-                return v
+            try:
+                v = arg.valuation(base)
+                if arg == base**v:
+                    return v
+            except (AttributeError, TypeError, ValueError):
+                pass
         try:
             return arg.log(base)
         except (AttributeError, TypeError):
