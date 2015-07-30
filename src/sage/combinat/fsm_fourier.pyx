@@ -77,7 +77,6 @@ Example
     ....:     f(2*n) == f(n),
     ....:     f(0) == 0],
     ....:     2, f, n)
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
     sage: F = FSMFourier(T) # optional - arb
     sage: F.FourierCoefficient(0) # optional - arb
     -0.1455994557084? + 0.?e-16*I
@@ -391,7 +390,6 @@ class FSMFourierComponent(SageObject):
 
     EXAMPLES::
 
-        sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
         sage: function('f')
         f
         sage: var('n')
@@ -422,7 +420,6 @@ class FSMFourierComponent(SageObject):
 
         EXAMPLE::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: function('f')
             f
             sage: var('n')
@@ -898,7 +895,6 @@ cdef class FSMFourierCache(SageObject):
 
     EXAMPLES::
 
-        sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
         sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
         sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
         ....:                initial_states=[0],
@@ -930,7 +926,6 @@ cdef class FSMFourierCache(SageObject):
 
         EXAMPLES::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
             ....:                initial_states=[0],
@@ -1063,7 +1058,6 @@ cdef class FSMFourierCache(SageObject):
 
         EXAMPLES::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: function('f')
             f
@@ -1151,7 +1145,6 @@ class FSMFourier(SageObject):
 
     -   Binary sum of digits::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: function('f')
             f
             sage: var('n')
@@ -1448,7 +1441,6 @@ class FSMFourier(SageObject):
 
         Binary sum of digits::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: function('f')
             f
             sage: var('n')
@@ -1578,7 +1570,6 @@ class FSMFourier(SageObject):
 
         EXAMPLES::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
             sage: function('f')
             f
@@ -1637,7 +1628,6 @@ class FSMFourier(SageObject):
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 1],
                 ....:     2, f, n))
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: F._H_m_rhs_(CIF(2), 100) # optional - arb
                 (0.0050250833316668? + 0.?e-18*I)
 
