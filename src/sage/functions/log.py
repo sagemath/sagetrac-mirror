@@ -306,6 +306,17 @@ class Function_log(GinacFunction):
             ...
             TypeError: Symbolic function log must be called as log(x),
             log(x, base=b) or log(x, b)
+
+        Check if :trac:`18970` is fixed::
+
+            sage: log(int(8), 2)
+            3
+            sage: log(8, int(2))
+            3
+            sage: log(1/8, 2)
+            -3
+            sage: log(1/8, int(2))
+            -3
         """
         base = kwds.pop('base', None)
         if base is None:
@@ -319,8 +330,18 @@ class Function_log(GinacFunction):
             raise TypeError("Symbolic function log must be called as "
                     "log(x), log(x, base=b) or log(x, b)")
 
+        arg = args[0]
         try:
-            return args[0].log(base)
+            arg = QQ.coerce(arg)
+            base = ZZ.coerce(base)
+        except (AttributeError, TypeError):
+            pass
+        else:
+            v = valuation(arg, base)
+            if arg == base**v:
+                return v
+        try:
+            return arg.log(base)
         except (AttributeError, TypeError):
             return GinacFunction.__call__(self, *args, **kwds) / \
                 GinacFunction.__call__(self, base, **kwds)
