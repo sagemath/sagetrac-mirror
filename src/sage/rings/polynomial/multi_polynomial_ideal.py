@@ -3500,6 +3500,34 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: F.groebner_basis('openf4')[0] # optional - openf4
             k003^2 + (a)*k003 + (a^2)
 
+        ::
+
+            sage: P.<x> = PolynomialRing(GF(273389687), 1, 'x')
+            sage: I=ideal([-32567592*x^2 - 134376780*x - 99453050, -102821173*x^2 - 133875255*x + 114754735])
+            sage: I.groebner_basis('openf4') # optional - openf4
+            [1]
+
+        ::
+
+            sage: P.<x1,x2,x3,x4,x5> = PolynomialRing(GF(143107493))
+            sage: I=ideal([-7253051*x1^2 + 52764828*x1*x2 - 1593629*x2^2 - 30491382*x1*x4 - 15421743, 2778386*x1^2 + 46128944*x2^2 - 28328699*x2*x3 + 35619408*x1*x4 - 47336793*x4^2, 50713151*x1^2 + 33804903*x1*x3 + 4639379*x3*x4 - 29371044*x1 - 55622885*x4, -17812925*x1*x2 - 60567702*x3^2 - 17218643*x2*x4 + 15189711*x1 + 683651*x4, 42755489*x1*x3 - 60418193*x2*x4 + 56537689*x4^2 - 6152933*x3 + 53988116])
+            sage: I.groebner_basis('openf4') # optional - openf4
+            [1]
+
+        ::
+
+            sage: P.<x0,x1,x2> = PolynomialRing(GF(1217734367))
+            sage: I=ideal([-381588408*x0^2 + 476686997*x2^2 - 462809584*x0 + 257786256*x2 - 114361905, -165319008*x0^2 + 74443335*x0*x2 - 139862633*x2^2 - 274498434*x0 + 48302322, -462665673*x0^2 + 458273559*x2^2 - 602419172*x0 + 103972832*x2 - 383910315])
+            sage: I.groebner_basis('openf4') # optional - openf4
+            [1]
+
+        ::
+
+            sage: P = PolynomialRing(GF(2), 1, 'x')
+            sage: I = ideal([P(0)])
+            sage: I.groebner_basis('openf4') # optional - openf4
+            [0]
+
         Note that ``toy:buchberger`` does not return the reduced Groebner
         basis, ::
 
