@@ -460,12 +460,12 @@ Then we can set up outcomes and assign them to terminal nodes::
 We can then use this game to generate the ``ExtensiveFormGame`` by simply using
 ``gambit_game`` as the ``Generator``::
 
-    sage: sage_game = ExtensiveFormGame(gambit_game)
+    sage: sage_game = ExtensiveFormGame(gambit_game) # optional - gambit
 
 Then we can see the game by using the ``plot`` method for
 ``ExtensiveFormGame``::
 
-    sage: sage_game.plot()
+    sage: sage_game.plot() # optional - gambit
     Graphics object consisting of 23 graphics primitives
 
 Here is the output (this is the same tree as above):
@@ -510,7 +510,7 @@ We can convert any sage ``ExtensiveFormGame`` to a Gambit ``Game``, by using the
 ``_sage_to_gambit`` method::
 
     sage: gambit_game = sage_game._sage_to_gambit()  # optional - gambit
-    sage: type(gambit_game)
+    sage: type(gambit_game) # optional - gambit
     <class 'gambit.Game'>
 
 AUTHOR:
@@ -2762,7 +2762,7 @@ class ExtensiveFormGame():
             sage: node_d2 = EFG_Node({'A': leaf_d3, 'B': leaf_d4}, 'Node 2', player_d2)
             sage: root_d = EFG_Node({'C': node_d1, 'D': node_d2}, 'Root 1', player_d1)
             sage: egame_d = ExtensiveFormGame(root_d)
-            sage: egame_d.obtain_nash()
+            sage: egame_d.obtain_nash() # optional - gambit
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet.
