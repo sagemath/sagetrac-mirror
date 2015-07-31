@@ -20,7 +20,7 @@ openf4 is a c++ library for groebner basis computations over finite fields using
 == Dependencies ==
 
 * C++11  support
-* openmp
+* openmp (optional)
 * givaro (optionnal)
 
 == Special Update/Build Instructions ==
