@@ -131,6 +131,7 @@ from sage.plot.plot3d.all     import *
 
 from sage.coding.all     import *
 from sage.combinat.all   import *
+from sage.dynamics.all   import *
 
 from sage.lfunctions.all import *
 
