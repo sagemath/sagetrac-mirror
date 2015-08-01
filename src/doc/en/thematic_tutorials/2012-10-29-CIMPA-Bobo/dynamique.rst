@@ -392,7 +392,7 @@ C'est un moyen de décrire le langage d'un système dynamique.
 
     - Sommets: tous les mots de longueur `n`
 
-    - Arêtes: `u\arrow v` si `u` se prolonge en un mot de suffixe
+    - Arêtes: `u\rightarrow v` si `u` se prolonge en un mot de suffixe
       `v`. Autrement dit, il existe `x` et `y` tels que `ux = yv`.
 
 .. TOPIC:: Remarques
