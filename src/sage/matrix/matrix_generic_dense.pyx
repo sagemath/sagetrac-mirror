@@ -114,8 +114,10 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
             zero = parent.base_ring()(0)
             self._entries = [zero]*(self._nrows*self._ncols)
-
-            if x != zero:
+            from sage.symbolic.expression import Expression
+            if (isinstance(x, Expression)
+                and not (x.is_numeric() and x.is_zero())
+                or (not isinstance(x, Expression) and x != zero)):
                 if self._nrows != self._ncols:
                     raise TypeError, "nonzero scalar matrix must be square"
                 for i from 0 <= i < self._nrows:

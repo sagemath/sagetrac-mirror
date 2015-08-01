@@ -1608,7 +1608,10 @@ def list_to_dict(entries, nrows, ncols, rows=True):
     if ncols == 0 or nrows == 0:
         return d
     for i, x in enumerate(entries):
-        if x != 0:
+        if (isinstance(x, sage.symbolic.expression.Expression)
+            and not (x.is_numeric() and x.is_zero())
+            or (not isinstance(x, sage.symbolic.expression.Expression)
+            and x != 0)):
             col = i % ncols
             row = i // ncols
             if rows:
