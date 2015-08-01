@@ -375,9 +375,9 @@ intervales sont ceux pour lesquels l'induction reste dans la classe.
     `(\frac{\sqrt{2}}{10},\frac{\sqrt{2}}{5}, 1-\frac{3\sqrt{2}}{10})`.
 
     #.  Implanter l'application de premier retour sur l'intervalle
-        `[0,1-\frac{3\srt{2}}{10}`.
+        `[0,1-\frac{3\sqrt{2}}{10}`.
 
-    #.  Recommencer avec l'intervalle `[0,\frac{3\srt{2}}{10}`.
+    #.  Recommencer avec l'intervalle `[0,\frac{3\sqrt{2}}{10}`.
 
     #.  Quelle est la meilleure des deux inductions?
 
