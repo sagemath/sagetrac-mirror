@@ -118,7 +118,7 @@ Let us throw in more mathematical information::
 
     sage: W = CoxeterGroup(["A",3])
     sage: S = semigroupe.AutomaticSemigroup(W.simple_projections(), W.one(), by_action = True,
-    ...                                     category = JTrivialMonoids().Finite())
+    ....:                                   category = JTrivialMonoids().Finite())
 
     sage: S.cardinality()
 

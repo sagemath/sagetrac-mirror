@@ -18,12 +18,12 @@ Demonstration: A real life example, parallel testing of a conjecture on J-Trivia
 ::
 
     sage: class NDPFMonoid(AutomaticMonoid):
-    ...    def __init__(self, n):
-    ...        ambient_monoid = DiscreteFunctions(range(1,n+1), action="right")
-    ...        pi = Family(range(1, n), lambda j: ambient_monoid(pij(j)))
-    ...        AutomaticMonoid.__init__(self, pi, one = ambient_monoid.one(),
-    ...                                 category = (SubFiniteMonoidsOfFunctions(),
-    ...                                             JTrivialMonoids().Finite()))
+    ....:    def __init__(self, n):
+    ....:      ambient_monoid = DiscreteFunctions(range(1,n+1), action="right")
+    ....:      pi = Family(range(1, n), lambda j: ambient_monoid(pij(j)))
+    ....:      AutomaticMonoid.__init__(self, pi, one = ambient_monoid.one(),
+    ....:                               category = (SubFiniteMonoidsOfFunctions(),
+    ....:                                           JTrivialMonoids().Finite()))
     sage: Mon = NDPFMonoid(3)
     sage: Mon.cardinality()
     5
@@ -101,15 +101,15 @@ Demonstration: A real life example, parallel testing of a conjecture on J-Trivia
     [  0   0   0   0   0   0   0   1]
 
     sage: def is_isomorphic_matrices(m1, m2):
-    ...    coeffs1 = set([ c for row in m1 for c in row ])
-    ...    coeffs2 = set([ c for row in m2 for c in row ])
-    ...    if coeffs1 != coeffs2:
-    ...        return False
-    ...    f = sage.combinat.ranker.rank_from_list(sorted(coeffs1))
-    ...    def graph(m):
-    ...        m = matrix([[f(m[i,j]) for j in range(m.ncols()) ] for i in range(m.nrows())])
-    ...        return DiGraph(m, multiple_edges = True)
-    ...    return graph(m1).is_isomorphic(graph(m2))
+    ....:  coeffs1 = set([ c for row in m1 for c in row ])
+    ....:  coeffs2 = set([ c for row in m2 for c in row ])
+    ....:  if coeffs1 != coeffs2:
+    ....:      return False
+    ....:  f = sage.combinat.ranker.rank_from_list(sorted(coeffs1))
+    ....:  def graph(m):
+    ....:      m = matrix([[f(m[i,j]) for j in range(m.ncols()) ] for i in range(m.nrows())])
+    ....:      return DiGraph(m, multiple_edges = True)
+    ....:  return graph(m1).is_isomorphic(graph(m2))
 
     sage: is_isomorphic_matrices(cart, cartconj)
     True
@@ -131,10 +131,10 @@ Demonstration: A real life example, parallel testing of a conjecture on J-Trivia
     True
 
     sage: @parallel()
-    ...def check_conj_parallel(Pos):
-    ...    MP = NDPFMonoidPoset(Pos)
-    ...    return is_isomorphic_matrices(MP.cartan_matrix(q),
-    ...                                  MP.cartan_matrix_mupad(q))
+    ....: def check_conj_parallel(Pos):
+    ....:     MP = NDPFMonoidPoset(Pos)
+    ....:     return is_isomorphic_matrices(MP.cartan_matrix(q),
+    ....:                                   MP.cartan_matrix_mupad(q))
 
     sage: for (((poset,), _), res) in check_conj_parallel(Posets(3).list()): print poset.cover_relations(), res
 

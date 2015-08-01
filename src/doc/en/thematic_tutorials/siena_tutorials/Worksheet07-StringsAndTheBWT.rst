@@ -34,9 +34,9 @@ You can also input a string using three quotes (""" or '''). This is useful if y
 
     sage: s = """
     sage: This is a multi-line
-    ...           string
+    ....:         string
     sage: that includes 'single quotes'
-    ...             and "double quotes".
+    ....:           and "double quotes".
     sage: """
     sage: print s
     This is a multi-line

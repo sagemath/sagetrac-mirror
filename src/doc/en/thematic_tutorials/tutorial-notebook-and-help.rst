@@ -47,10 +47,10 @@ xmax,ymax)::
 
 
     sage: @interact
-    ...def f(n=(1..15), m=(1..15)):
-    ...    print "n * m =", n*m, " =", factor(n*m)
-    ...    P = polygon([(0,0),(0,n),(m,n),(m,0)])
-    ...    P.show(aspect_ratio=1, gridlines='minor',figsize=[3,3],xmax=14,ymax=14)
+    ....: def f(n=(1..15), m=(1..15)):
+    ....:     print "n * m =", n*m, " =", factor(n*m)
+    ....:     P = polygon([(0,0),(0,n),(m,n),(m,0)])
+    ....:     P.show(aspect_ratio=1, gridlines='minor',figsize=[3,3],xmax=14,ymax=14)
 
 
 If you *mess everything up*, click on Action -&gt; Restart Worksheet

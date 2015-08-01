@@ -85,9 +85,9 @@ A  *generator*  is a function that is used to define an iterator. Instead of  ``
 ::
 
     sage: def fibonacci_iterator(a=0, b=1):
-    ...       while True:
-    ...           yield b
-    ...           a, b = b, a+b
+    ....:     while True:
+    ....:         yield b
+    ....:         a, b = b, a+b
 
 
 .. end of output
@@ -164,10 +164,10 @@ Find the sum of all the even\-valued terms in the sequence which do not exceed f
 ::
 
     sage: for f in fibonacci_iterator():
-    ...       if f > 4000000:
-    ...           break
-    ...       if is_even(f):
-    ...           result += f
+    ....:     if f > 4000000:
+    ....:         break
+    ....:     if is_even(f):
+    ....:         result += f
 
 
 .. end of output
@@ -246,7 +246,7 @@ There are many objects in Sage that model sets of combinatorial objects.
 ::
 
     sage: for p in Partitions(4):
-    ...       print p
+    ....:     print p
     [4]
     [3, 1]
     [2, 2]
@@ -258,7 +258,7 @@ There are many objects in Sage that model sets of combinatorial objects.
 ::
 
     sage: for c in Compositions(4):
-    ...       print c
+    ....:     print c
     [1, 1, 1, 1]
     [1, 1, 2]
     [1, 2, 1]
@@ -288,7 +288,7 @@ There are many objects in Sage that model sets of combinatorial objects.
 ::
 
     sage: for dw in DyckWords(4):
-    ...       print dw
+    ....:     print dw
     ()()()()
     ()()(())
     ()(())()
@@ -326,7 +326,7 @@ There are many objects in Sage that model sets of combinatorial objects.
 
     sage: it = iter(W)
     sage: for a in range(16):
-    ...       print it.next()
+    ....:     print it.next()
     word: 
     word: a
     word: b
@@ -367,7 +367,7 @@ There are many objects in Sage that model sets of combinatorial objects.
 
     sage: it = iter(P)
     sage: for a in range(10):
-    ...       print it.next()
+    ....:     print it.next()
     Finite poset containing 0 elements
     Finite poset containing 1 elements
     Finite poset containing 2 elements
@@ -462,7 +462,7 @@ We can create the set of vexillary involutions of the set {1,2,3,4} in Sage by  
 ::
 
     sage: def is_involution(p):
-    ...       return p == p.inverse()
+    ....:     return p == p.inverse()
 
 
 .. end of output
@@ -493,8 +493,8 @@ We can create the set of vexillary involutions of the set {1,2,3,4} in Sage by  
 ::
 
     sage: def number_of_vexillary_involutions(n):
-    ...       P = Permutations(n, avoiding=[2,1,4,3]).filter(is_involution)
-    ...       return P.cardinality()
+    ....:     P = Permutations(n, avoiding=[2,1,4,3]).filter(is_involution)
+    ....:     return P.cardinality()
 
 
 .. end of output
@@ -542,19 +542,19 @@ At the very minimum, you should implement the following methods:
 ::
 
     sage: class VexillaryInvolutions(CombinatorialClass):
-    ...       def __init__(self, n):
-    ...           """
-    ...           The combinatorial class of vexillary involutions
-    ...           """
-    ...           self._n = n
-    ...           
-    ...       def __iter__(self):
-    ...           P = Permutations(self._n, avoiding=[2,1,4,3]).filter(lambda p : p == p.inverse())
-    ...           for p in P:        
-    ...               yield p
-    ...               
-    ...       def __repr__(self):
-    ...           return "Vexillary involutions of %s" % self._n
+    ....:     def __init__(self, n):
+    ....:         """
+    ....:         The combinatorial class of vexillary involutions
+    ....:         """
+    ....:         self._n = n
+    ....:         
+    ....:     def __iter__(self):
+    ....:         P = Permutations(self._n, avoiding=[2,1,4,3]).filter(lambda p : p == p.inverse())
+    ....:         for p in P:        
+    ....:             yield p
+    ....:             
+    ....:     def __repr__(self):
+    ....:         return "Vexillary involutions of %s" % self._n
 
 
 .. end of output
@@ -586,23 +586,23 @@ At the very minimum, you should implement the following methods:
 ::
 
     sage: class VexillaryInvolutions(CombinatorialClass):
-    ...       def __init__(self, n):
-    ...           """
-    ...           The combinatorial class of vexillary involutions
-    ...           """
-    ...           self._n = n
-    ...           
-    ...       def __iter__(self):
-    ...           P = Permutations(self._n, avoiding=[2,1,4,3]).filter(lambda p : p == p.inverse())
-    ...           for p in P:        
-    ...               yield p
-    ...               
-    ...       def __repr__(self):
-    ...           return "Vexillary involutions of %s" % self._n
-    ...           
-    ...       def __contains__(self, p):
-    ...           p = Permutation(p)
-    ...           return len(p) == self._n and p.avoids([2,1,4,3]) and p == p.inverse()
+    ....:     def __init__(self, n):
+    ....:         """
+    ....:         The combinatorial class of vexillary involutions
+    ....:         """
+    ....:         self._n = n
+    ....:         
+    ....:     def __iter__(self):
+    ....:         P = Permutations(self._n, avoiding=[2,1,4,3]).filter(lambda p : p == p.inverse())
+    ....:         for p in P:        
+    ....:             yield p
+    ....:             
+    ....:     def __repr__(self):
+    ....:         return "Vexillary involutions of %s" % self._n
+    ....:         
+    ....:     def __contains__(self, p):
+    ....:         p = Permutation(p)
+    ....:         return len(p) == self._n and p.avoids([2,1,4,3]) and p == p.inverse()
 
 
 .. end of output
