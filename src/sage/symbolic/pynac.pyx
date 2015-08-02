@@ -233,7 +233,7 @@ cdef int py_get_ginac_serial():
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import get_ginac_serial
-        sage: get_ginac_serial() >= 40
+        sage: get_ginac_serial() >= 35
         True
     """
     global GINAC_FN_SERIAL
@@ -245,7 +245,7 @@ def get_ginac_serial():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.get_ginac_serial() >= 40
+        sage: sage.symbolic.pynac.get_ginac_serial() >= 35
         True
     """
     return py_get_ginac_serial()

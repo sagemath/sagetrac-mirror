@@ -120,7 +120,7 @@ Test if :trac:`9947` is fixed::
     sage: a.real_part()
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
-    sqrt(abs(4*(sqrt(3) + 5)*(sqrt(3) - 5) + 48))/(sqrt(3) + 5)
+    2*sqrt(10)/(sqrt(3) + 5)
 """
 
 ###############################################################################
@@ -2924,7 +2924,7 @@ cdef class Expression(CommutativeRingElement):
         Products of non integer powers of exp are not simplified::
 
             sage: exp(x)^I*exp(z)^(2.5)
-            (e^x)^I*(e^z)^2.50000000000000
+            e^x^I*e^z^2.50000000000000
 
         ::
 
@@ -3525,7 +3525,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 0^1.0
             0.000000000000000
             sage: exp(x)^1.0
-            (e^x)^1.00000000000000
+            e^x^1.00000000000000
         """
         cdef Expression base, nexp
 
@@ -4111,7 +4111,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y = var('x,y', domain='real')
             sage: p,q = var('p,q', domain='positive')
             sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
-            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
+            1/2*45^(7/2*c)*(a^2*b^2)^(7/2*c)*c*p^(7*c)*q^(7*c)*(x^2)^(7/2*c)*(y^2)^(7/2*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
@@ -10495,7 +10495,7 @@ cdef class Expression(CommutativeRingElement):
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
-        if solution_dict not in (True,False):
+        if not (solution_dict == True or solution_dict == False):
             raise AttributeError("Please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
             ex = self.lhs() - self.rhs()
