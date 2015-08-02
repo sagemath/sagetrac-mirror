@@ -160,7 +160,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
 
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
-    bint relational_to_bool(GEx e)
+    unsigned decide_relational(GEx e)
     operators relational_operator(GEx e)
     operators switch_operator(operators op)
     GEx relational(GEx lhs, GEx rhs, operators o)
@@ -176,6 +176,12 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned domain_real "GiNaC::domain::real"
     unsigned domain_positive "GiNaC::domain::positive"
     unsigned domain_infinity "GiNaC::domain::infinity"
+
+    # relational outcomes
+    unsigned relational_true "GiNaC::relational::True"
+    unsigned relational_false "GiNaC::relational::False"
+    unsigned relational_undecidable "GiNaC::relational::undecidable"
+    unsigned relational_notimplemented "GiNaC::relational::notimplemented"
 
     # info flags
     unsigned info_real          "GiNaC::info_flags::real"

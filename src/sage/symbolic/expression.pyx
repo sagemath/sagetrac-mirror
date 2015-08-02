@@ -2390,22 +2390,17 @@ cdef class Expression(CommutativeRingElement):
             # constants are wrappers around Sage objects, compare directly
             if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+            pynac_result = decide_relational(self._gobj)
+            if pynac_result != relational_notimplemented:
+                if pynac_result == relational_undecidable:
+                    raise TypeError('Undecidable relation: ' + repr(self))
+                return pynac_result == relational_true
 
-            pynac_result = relational_to_bool(self._gobj)
-
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
-
-            if pynac_result:
-                if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
-                    m = self._maxima_()
-                    s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-                    if s == 'false':
-                        return False
-                    else:
-                        return True
-                else:
+            # at this point infinities are gone so we can subtract
+            if (self.lhs() - self.rhs()).is_symbol():
+                if self.operator() == operator.eq:
+                    return False
+                if self.operator() == operator.ne:
                     return True
 
             # If assumptions are involved, falsification is more complicated...
@@ -2440,7 +2435,11 @@ cdef class Expression(CommutativeRingElement):
             # precision, etc., that can lead to subtle bugs.  Also, a
             # lot of basic Sage objects can't be put into maxima.
             from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
+            res = test_relation_maxima(self)
+            if res:
+                return True
+            else:
+                return False
 
         self_is_zero = self._gobj.is_zero()
         if self_is_zero:
