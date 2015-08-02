@@ -2328,21 +2328,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(not x == 0)
             sage: assert(x != 0)
             sage: assert(not x == 1)
-
-        The following must be true, even though we do not
-        know for sure that x is not 1, as symbolic comparisons
-        elsewhere rely on x!=y unless we are sure it is not
-        true; there is no equivalent of Maxima's ``unknown``.
-        Since it is False that x==1, it is True that x != 1.
-
-        ::
-
-            sage: assert(x != 1)
             sage: forget()
             sage: assume(x>y)
             sage: assert(not x==y)
             sage: assert(x != y)
-            sage: assert(x != y) # The same comment as above applies here as well
             sage: forget()
 
         Comparisons of infinities::
