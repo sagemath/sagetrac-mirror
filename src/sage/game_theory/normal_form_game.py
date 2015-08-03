@@ -1844,7 +1844,16 @@ class NormalFormGame(SageObject, MutableMapping):
     def _lh_lexicographic_min_ratio(self, dim1, dim2, tab, ntab, column):
         r"""
         Given a tableau and the column of the variable entering the basis, this method returns the
-        row of the leaving variable by calculating the lexicographic minimum ratio.
+        row of the leaving variable by calculating the lexicographic minimum ratio. 
+
+        .. NOTE ::
+            Due to floating point errors caused due to the pivoting process, it is possible that
+            this method might not find a variable which is fit to leave the basis, or could produce
+            a row which has a min ratio but is not the lexicographical minimum.
+
+        .. NOTE ::
+            This implementation is an adaptation of the implementation within the LCP solver written
+            by B. von Stengel https://github.com/stengel/ecta2002
 
         INPUT:
 
@@ -1852,13 +1861,49 @@ class NormalFormGame(SageObject, MutableMapping):
         - ``dim2`` -- Number of rows of the second tableau
         - ``tab`` -- A list containing two tableaus
         - ``ntab`` -- An integer (either 0 or 1) representing which of the tableaus being conisdered
-        - ``column`` -- An integer representing the column of the entering variable
+        - ``column`` -- An integer representing the column of the entering variable within the range
+          ``[2, 2 + dim1 + dim2)``
 
         OUTPUT:
 
         A non-negative integer showing the index of the leaving variable in the tableau, or -1 if an
         error occurred.
+
+        TESTS:
+            sage: g = NormalFormGame([matrix(3)])
+            sage: tab = g._init_lh_tableau(matrix.identity(3), matrix.identity(3))
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: valid column indexes should be within the range [2, 2 + dim1 + dim2)
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: valid column indexes should be within the range [2, 2 + dim1 + dim2)
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 8)
+            Traceback (most recent call last):
+            ...
+            ValueError: valid column indexes should be within the range [2, 2 + dim1 + dim2)
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 2)
+            -1
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 5)
+            0
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 1, 2)
+            -1
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 1, 5)
+            0
+            sage: tab = g._init_lh_tableau(matrix(3), matrix(3))
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 5)
+            2
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 0, 6)
+            2
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 1, 5)
+            2
+            sage: g._lh_lexicographic_min_ratio(3, 3, tab[2], 1, 6)
+            2
         """
+        if column < 2 or column >= 2 + dim1 + dim2:
+            raise ValueError("valid column indexes should be within the range [2, 2 + dim1 + dim2)")
         if ntab == 0:
             nlines = dim1
         else:
@@ -2669,7 +2714,14 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         This method computes and returns all equilibria which are reachable by the Lemke-Howson
         algorithm by starting from the artificial equilibrium, as well as a bipartite graph showing
-        how these equilibria are connected.
+        how these equilibria are connected. Each node in the graph represents a Nash equilibrium of
+        the game, with the sign of the label representing which list they are in (i.e. if they have
+        a positive or negative index), and the value of the label represents the location in the
+        list. An edge (u, v), shows that by starting LH from either u or v with any of
+        the stratagies in the label of the edge, we would arrive at the other equilibrium.
+
+        .. NOTE ::
+            The node in the graph with label ``-0`` is the artificial equilibrium.
 
         OUTPUT:
 
@@ -2692,21 +2744,37 @@ class NormalFormGame(SageObject, MutableMapping):
              [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
              [Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[0, 0, 0, 0, 0, 0]])
 
+        .. PLOT::
+            :width: 500px
+
+            A = matrix.identity(3)
+            g = NormalFormGame([A])
+            sol = g._lh_bipartite_graph()
+            p = sol[0].plot(edge_labels = True)
+            sphinx_plot(p)
+
         A game with multiple equilibria::
 
-            sage: A = matrix.identity(3)
-            sage: g = NormalFormGame([A, A])
+            sage: A = matrix([[10, 0], [5, 5], [0, 9]])
+            sage: B = matrix([[2, 0], [1, 2], [2, 0]])
+            sage: g = NormalFormGame([A, B])
             sage: sol = g._lh_bipartite_graph()
             sage: sol
-            (Bipartite graph on 8 vertices,
-             [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[0.500000000000000, 0.500000000000000, 0.0], [0.500000000000000, 0.500000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[0.500000000000000, 0.0, 0.500000000000000], [0.500000000000000, 0.0, 0.500000000000000]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[0.0, 0.500000000000000, 0.500000000000000], [0.0, 0.500000000000000, 0.500000000000000]] Labels[3, 2, 1, 3, 2, 1]],
-             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
+            (Bipartite graph on 4 vertices,
+             [Equ [[0, 0, 0], [0, 0]] Labels[0, 1, 0, 0, 1],
+              Equ [[0.333333333333333, 0.666666666666667, 0.0], [0.500000000000000, 0.500000000000000]] Labels[1, 0, 1, 1, 0]],
+             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0]] Labels[0, 1, 0, 0, 1],
+              Equ [[0.0, 0.666666666666667, 0.333333333333333], [0.444444444444444, 0.555555555555556]] Labels[1, 0, 1, 1, 0]])
+
+        .. PLOT::
+            :width: 500px
+
+            A = matrix([[10, 0], [5, 5], [0, 9]])
+            B = matrix([[2, 0], [1, 2], [2, 0]])
+            g = NormalFormGame([A, B])
+            sol = g._lh_bipartite_graph()
+            p = sol[0].plot(edge_labels = True)
+            sphinx_plot(p)
         """
         neg, pos = self._lh_find_all()
         #G = {}
