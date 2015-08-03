@@ -341,7 +341,7 @@ class DirichletSeries(SageObject):
 
     @staticmethod
     def _is_exp_expr(ex, v):
-        import operator
+        from sage.symbolic.operators import add_vararg
         w0 = SR.wild(0); w1 = SR.wild(1)
         dummy = dirichlet_series.MaskFunction()
         d = ex.match(dummy(w0, w1))
@@ -350,7 +350,7 @@ class DirichletSeries(SageObject):
         var = ex.variables()[0]
         arg2 = d.get(w1)
         return (d is not None
-                and (arg2 == -var or arg2.operator() == operator.add))
+                and (arg2 == -var or arg2.operator() == add_vararg))
 
     @staticmethod
     def _Lseries_coeff(m, r, prec, R=ZZ):
