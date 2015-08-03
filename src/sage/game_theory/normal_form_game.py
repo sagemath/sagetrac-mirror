@@ -1846,12 +1846,12 @@ class NormalFormGame(SageObject, MutableMapping):
         Given a tableau and the column of the variable entering the basis, this method returns the
         row of the leaving variable by calculating the lexicographic minimum ratio. 
 
-        .. NOTE ::
+        .. NOTE::
             Due to floating point errors caused due to the pivoting process, it is possible that
             this method might not find a variable which is fit to leave the basis, or could produce
             a row which has a min ratio but is not the lexicographical minimum.
 
-        .. NOTE ::
+        .. NOTE::
             This implementation is an adaptation of the implementation within the LCP solver written
             by B. von Stengel https://github.com/stengel/ecta2002
 
@@ -2495,7 +2495,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Solve the current game by running the Lemke-Howson algorithm from the artificial algorithm
         with a given missing label.
 
-        .. NOTE ::
+        .. NOTE::
             Note that the implementation could get unstable and equilibria might not be found on
             certain instances due to floating point errors.
 
@@ -2720,7 +2720,7 @@ class NormalFormGame(SageObject, MutableMapping):
         list. An edge (u, v), shows that by starting LH from either u or v with any of
         the stratagies in the label of the edge, we would arrive at the other equilibrium.
 
-        .. NOTE ::
+        .. NOTE::
             The node in the graph with label ``-0`` is the artificial equilibrium.
 
         OUTPUT:
