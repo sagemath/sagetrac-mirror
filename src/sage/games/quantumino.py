@@ -553,7 +553,7 @@ class QuantuminoSolver(SageObject):
         for pentos in T.solve(partial=partial):
             yield QuantuminoState(pentos, aside)
 
-    def number_of_solutions(self, ncpus=0):
+    def number_of_solutions(self, ncpus=0, modpi=True):
         r"""
         Return the number of solutions.
 
@@ -562,6 +562,8 @@ class QuantuminoSolver(SageObject):
         - ``ncpus`` -- integer (default: 0), number of cpus used for the
           computation. If this is 0, determine the number of cpus
           automatically based on the hardware being used.
+        - ``modpi`` -- bool (default: ``True``), whether to consider only
+          solutions up to rotations of angle pi.
 
         OUTPUT:
 
@@ -573,10 +575,10 @@ class QuantuminoSolver(SageObject):
             sage: QuantuminoSolver(4, box=(3,2,2)).number_of_solutions()
             0
 
-        This computation takes several days::
+        This computation takes two days on my machine with 4 cpus::
 
             sage: QuantuminoSolver(0).number_of_solutions()    # not tested
-            ??? hundreds of millions ???
+            634900493
         """
-        return self.tiling_solver().number_of_solutions(ncpus=ncpus)
+        return self.tiling_solver().number_of_solutions(ncpus=ncpus, modpi=modpi)
 

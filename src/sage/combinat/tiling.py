@@ -104,9 +104,9 @@ If reflections are allowed, there are solutions. Solve the puzzle and show
 one solution::
 
     sage: T = TilingSolver(L, (8,8), reflection=True)
-    sage: solution = next(T.solve())
-    sage: G = sum([piece.show2d() for piece in solution], Graphics())
-    sage: G.show(aspect_ratio=1, axes=False)
+    sage: solution = next(T.solve())                                  # long time (7s)
+    sage: G = sum([piece.show2d() for piece in solution], Graphics()) # long time (<1s)
+    sage: G.show(aspect_ratio=1, axes=False)                          # long time (2s)
 
 Compute the number of solutions::
 
@@ -140,9 +140,9 @@ The same thing done in 3d *without* allowing reflections this time::
 Solve the puzzle and show one solution::
 
     sage: T = TilingSolver(L, (8,8,1))
-    sage: solution = next(T.solve())
-    sage: G = sum([piece.show3d(size=0.85) for piece in solution], Graphics())
-    sage: G.show(aspect_ratio=1, viewer='tachyon')
+    sage: solution = next(T.solve())                                   # long time (8s)
+    sage: G = sum([p.show3d(size=0.85) for p in solution], Graphics()) # long time (<1s)
+    sage: G.show(aspect_ratio=1, viewer='tachyon')                     # long time (2s)
 
 Let us compute the number of solutions::
 
@@ -161,8 +161,8 @@ Donald Knuth [Knuth1]_ considered the problem of packing 45 Y pentaminoes into a
     sage: T.number_of_solutions()
     10
     sage: solution = next(T.solve())
-    sage: G = sum([piece.show2d() for piece in solution], Graphics())
-    sage: G.show(aspect_ratio=1)
+    sage: G = sum([p.show2d() for p in solution], Graphics())
+    sage: G.show(aspect_ratio=1)                       # long time (2s)
 
 ::
 
@@ -238,16 +238,19 @@ from sage.misc.mrange import xmrange
 
 
 @cached_function
-def orthogonal_transformation(n, orientation_preserving=True):
+def orthogonal_transformation(n, orientation_preserving=True, modpi=False):
     r"""
     Return the list of orthogonal transformation matrices in the
     `n`-dimensional vector space.
 
     INPUT:
 
-    - ``n`` - positive integer, dimension of the space
-    - ``orientation_preserving`` - bool (optional, default: ``True``),
+    - ``n`` -- positive integer, dimension of the space
+    - ``orientation_preserving`` -- bool (optional, default: ``True``),
       whether the orientation is preserved
+    - ``modpi`` -- bool (default: ``False``), whether to quotient by
+      rotations of angle pi. Supported only if ``orientation_preserving``
+      is True. Currently implemented only if ``n`` is 3.
 
     OUTPUT:
 
@@ -285,6 +288,15 @@ def orthogonal_transformation(n, orientation_preserving=True):
         [ 0  1  0], [ 0 -1  0], [ 1  0  0], [ 1  0  0], [-1  0  0], [-1  0  0]
         ]
 
+    ::
+
+        sage: orthogonal_transformation(3, modpi=True)
+        [
+        [1 0 0]  [ 0  0 -1]  [0 0 1]  [ 0 -1  0]  [0 1 0]  [-1  0  0]
+        [0 1 0]  [ 0 -1  0]  [1 0 0]  [-1  0  0]  [0 0 1]  [ 0  0 -1]
+        [0 0 1], [-1  0  0], [0 1 0], [ 0  0 -1], [1 0 0], [ 0 -1  0]
+        ]
+
     TESTS::
 
         sage: orthogonal_transformation(1)
@@ -295,8 +307,16 @@ def orthogonal_transformation(n, orientation_preserving=True):
         ValueError: ['B', 0] is not a valid Cartan type
     """
     if orientation_preserving:
-        return [w.matrix() for w in WeylGroup(['B', n])
-                if w.matrix().det() == 1]
+        if modpi:
+            if n == 3:
+                L = [w.matrix() for w in WeylGroup(['A', n-1])]
+                return [m.det() * m for m in L]
+            else:
+                raise NotImplementedError("when orientation_preserving and"
+                        " modpi are True, it is implemented only for n==3")
+        else:
+            return [w.matrix() for w in WeylGroup(['B', n])
+                    if w.matrix().det() == 1]
     else:
         return [w.matrix() for w in WeylGroup(['B', n])]
 
@@ -465,7 +485,7 @@ class Polyomino(SageObject):
         """
         return len(self._blocs)
 
-    def orthogonals(self, orientation_preserving=True):
+    def orthogonals(self, orientation_preserving=True, modpi=False):
         r"""
         Iterator over the images of self under orthogonal transformations.
 
@@ -477,6 +497,8 @@ class Polyomino(SageObject):
 
         - ``orientation_preserving`` - bool (optional, default: ``True``),
           whether the orientation is preserved
+        - ``modpi`` -- bool (default: ``False``), whether to quotient by
+          rotations of angle pi.
 
         OUTPUT:
 
@@ -492,12 +514,15 @@ class Polyomino(SageObject):
             sage: L = list(p.orthogonals(False))
             sage: len(L)
             48
+            sage: L = list(p.orthogonals(modpi=True))
+            sage: len(L)
+            6
         """
         return (m * self for m in
                 orthogonal_transformation(self._dimension,
-                                          orientation_preserving))
+                                          orientation_preserving, modpi))
 
-    def canonical_orthogonals(self, orientation_preserving=True):
+    def canonical_orthogonals(self, orientation_preserving=True, modpi=False):
         r"""
         Iterator over the image of self under orthogonal transformations
         where the coordinates are all positive and minimal.
@@ -510,6 +535,8 @@ class Polyomino(SageObject):
 
         - ``orientation_preserving`` - bool (optional, default: ``True``),
           whether the orientation is preserved
+        - ``modpi`` -- bool (default: ``False``), whether to quotient by
+          rotations of angle pi.
 
         OUTPUT:
 
@@ -534,8 +561,14 @@ class Polyomino(SageObject):
             sage: s = set(p.canonical_orthogonals(False))
             sage: len(s)
             24
+
+        Modulo rotation by angle 180 degrees::
+
+            sage: s = set(p.canonical_orthogonals(modpi=True))
+            sage: len(s)
+            3
         """
-        for q in self.orthogonals(orientation_preserving):
+        for q in self.orthogonals(orientation_preserving, modpi):
             yield q.canonical()
 
     def canonical(self):
@@ -738,7 +771,7 @@ class Polyomino(SageObject):
         for v in xmrange(vector(box) - vector(size), tuple):
             yield cano + v
 
-    def translated_orthogonals(self, box, orientation_preserving=True):
+    def translated_orthogonals(self, box, orientation_preserving=True, modpi=False):
         r"""
         Return the translated and rotated of self that lies in the box.
 
@@ -747,6 +780,8 @@ class Polyomino(SageObject):
         - ``box`` - tuple of size three, size of the box
         - ``orientation_preserving`` - bool (optional, default: ``True``),
           whether the orientation is preserved
+        - ``modpi`` -- bool (default: ``False``), whether to quotient by
+          rotations of angle pi.
 
         EXAMPLES::
 
@@ -762,18 +797,17 @@ class Polyomino(SageObject):
             sage: L = list(p.translated_orthogonals(box=(5,8,2)))
             sage: len(L)
             180
-
-        ::
-
-            sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,2,0),(1,2,1)], color='orange')
             sage: L = list(p.translated_orthogonals((5,8,2), False))
             sage: len(L)
             360
+            sage: L = list(p.translated_orthogonals((5,8,2), modpi=True))
+            sage: len(L)
+            45
         """
         if not len(box) == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
-        all_distinct_cano = set(self.canonical_orthogonals(orientation_preserving))
+        all_distinct_cano = set(self.canonical_orthogonals(orientation_preserving, modpi))
         for cano in all_distinct_cano:
             for t in cano.translated(box=box):
                 yield t
@@ -907,7 +941,7 @@ class Polyomino(SageObject):
 
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-            sage: p.show3d()
+            sage: p.show3d()                # long time (2s)
             Graphics3d Object
         """
         assert self._dimension == 3, "Dimension of the polyomino must be 3."
@@ -1217,9 +1251,15 @@ class TilingSolver(SageObject):
                         for i, c in enumerate(self.space()))
 
     @cached_method
-    def rows_for_piece(self, i):
+    def rows_for_piece(self, i, modpi=False):
         r"""
         Return the rows for the i-th piece.
+
+        INPUT:
+
+        - ``i`` -- integer, the i-th piece
+        - ``modpi`` -- bool (default: ``False``), whether to consider only
+          rows for positions up to rotations of angle pi.
 
         EXAMPLES::
 
@@ -1234,6 +1274,25 @@ class TilingSolver(SageObject):
             [[1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 8, 7]]
             sage: T.rows_for_piece(2)
             [[2, 3, 4, 5], [2, 4, 5, 6], [2, 5, 6, 7], [2, 8, 6, 7]]
+
+        Less rows when using ``modpi=True``::
+
+            sage: a = Polyomino([(0,0,0), (0,0,1), (1,0,0)])
+            sage: b = Polyomino([(0,0,0), (1,0,0), (0,1,0)])
+            sage: T = TilingSolver([a,b], box=(2,1,3))
+            sage: T.rows_for_piece(0)
+            [[0, 5, 3, 6],
+             [0, 7, 4, 6],
+             [0, 2, 3, 6],
+             [0, 7, 3, 4],
+             [0, 5, 2, 3],
+             [0, 3, 4, 6],
+             [0, 5, 2, 6],
+             [0, 7, 3, 6]]
+            sage: T.rows_for_piece(0, modpi=True)
+            [[0, 5, 3, 6], [0, 7, 4, 6], [0, 5, 2, 3], [0, 3, 4, 6]]
+            sage: T.rows_for_piece(1, modpi=True)
+            [[1, 5, 3, 6], [1, 7, 4, 6], [1, 5, 2, 3], [1, 3, 4, 6]]
         """
         p = self._pieces[i]
         if self._rotation:
@@ -1242,7 +1301,8 @@ class TilingSolver(SageObject):
             else:
                 orientation_preserving = True
             it = p.translated_orthogonals(self._box,
-                          orientation_preserving=orientation_preserving)
+                          orientation_preserving=orientation_preserving,
+                          modpi=modpi)
         else:
             if self._reflection:
                 raise NotImplementedError("Reflection allowed, Rotation not "
@@ -1292,13 +1352,13 @@ class TilingSolver(SageObject):
             rows.extend(self.rows_for_piece(i))
         return rows
 
-    def _subproblem_rows(self, i, k):
+    def _subproblem_rows(self, i, k, modpi=False):
         r"""
         Return a list of rows associated to a subproblem.
 
         The rows correspond to the case where the i-th piece is placed at
-        the k-th position. Used for a parallel computation of the number of
-        solutions.
+        the k-th position up to rotations of angle pi. Used for a parallel
+        computation of the number of solutions.
 
         It is currently implemented only when the pieces are not reusable.
 
@@ -1306,6 +1366,8 @@ class TilingSolver(SageObject):
 
         - ``i`` - integer, the i-th piece to consider
         - ``k`` - integer, the k-th row for the i-th piece
+        - ``modpi`` -- bool (default: ``False``), whether to consider only
+          rows for positions up to rotations of angle pi.
 
         EXAMPLES::
 
@@ -1341,8 +1403,11 @@ class TilingSolver(SageObject):
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: q = QuantuminoSolver(0)
             sage: T = q.tiling_solver()
-            sage: rows = T._subproblem_rows(0, 0)
-            sage: x = dlx_solver(rows); x
+            sage: len(T.rows_for_piece(0, modpi=True))
+            90
+            sage: k = 0     # must be in range(90)
+            sage: rows = T._subproblem_rows(0, k, modpi=True)   # long time (10s)
+            sage: x = dlx_solver(rows); x                       # long time (fast)
             Dancing links solver for 96 columns and 5125 rows
             sage: x.number_of_solutions()   # not tested (3h 52min)
             5004159
@@ -1351,7 +1416,7 @@ class TilingSolver(SageObject):
         len_pieces = len(self._pieces)
         if not 0 <= i < len_pieces:
             raise ValueError("i(={}) must be 0 <= i < {}".format(i,len_pieces))
-        rows_for_i = self.rows_for_piece(i)
+        rows_for_i = self.rows_for_piece(i, modpi=modpi)
         if not 0 <= k < len(rows_for_i):
             raise ValueError("k(={}) must be 0 <= k < {}".format(k,len(rows_for_i)))
         row = rows_for_i[k]
@@ -1711,7 +1776,7 @@ class TilingSolver(SageObject):
         for solution in it:
             yield map(self.row_to_polyomino, solution)
 
-    def _number_of_solutions_iterator(self, i, K=None, ncpus=1):
+    def _number_of_solutions_iterator(self, i, K=None, ncpus=1, modpi=True):
         r"""
         Return an iterator of the number of solutions according to the
         position of the i-th piece (computed in parallel).
@@ -1724,10 +1789,12 @@ class TilingSolver(SageObject):
           ``None``, the all the positions are computed.
         - ``ncpus`` -- integer (default: ``1``),  number of cpus used for
           the computation.
+        - ``modpi`` -- bool (``True``), whether to consider only solutions
+          up to rotations of angle pi.
 
         OUPUT:
 
-            iterator of tuples (position, number of solutions)
+            iterator of tuples of int (position, number of solutions)
 
         EXAMPLES::
 
@@ -1759,15 +1826,15 @@ class TilingSolver(SageObject):
         from sage.combinat.matrices.dancing_links import dlx_solver
         @parallel(ncpus=ncpus)
         def nb_sol(k):
-            rows = self._subproblem_rows(i, k)
+            rows = self._subproblem_rows(i, k, modpi=modpi)
             x = dlx_solver(rows)
             return x.number_of_solutions()
         if K is None:
-            K = range(len(self.rows_for_piece(i)))
+            K = range(len(self.rows_for_piece(i, modpi=modpi)))
         for ((args, kwds), val) in nb_sol(K):
             yield args[0], val
 
-    def number_of_solutions(self, ncpus=1):
+    def number_of_solutions(self, ncpus=1, modpi=True):
         r"""
         Return the number of distinct solutions.
 
@@ -1777,6 +1844,8 @@ class TilingSolver(SageObject):
           computation. Used only if the piece are not reusable. If this is
           0, determine the number of cpus automatically based on the
           hardware being used.
+        - ``modpi`` -- bool (default: ``True``), whether to consider only
+          solutions up to rotations of angle pi.
 
         OUPUT:
 
@@ -1812,7 +1881,7 @@ class TilingSolver(SageObject):
                 ncpus = int(os.environ['SAGE_NUM_THREADS'])
             except KeyError:
                 ncpus = 1
-        it = self._number_of_solutions_iterator(0, ncpus=ncpus)
+        it = self._number_of_solutions_iterator(0, ncpus=ncpus, modpi=modpi)
         return sum(val for (k,val) in it)
 
     def animate(self, partial=None, stop=None, size=0.75, axes=False):
@@ -1844,7 +1913,7 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: a = T.animate()
-            sage: a             # optional -- ImageMagick
+            sage: a                   # optional -- ImageMagick
             Animation with 10 frames
 
         Include partial solutions (common prefix between two consecutive
