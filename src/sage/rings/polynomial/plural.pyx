@@ -109,14 +109,23 @@ from sage.categories.algebras import Algebras
 
 # singular rings
 
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring
+
+from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
+
+
 from sage.libs.singular.function cimport RingWrap
 
 from sage.libs.singular.polynomial cimport (singular_polynomial_call, singular_polynomial_cmp, singular_polynomial_add, singular_polynomial_sub, singular_polynomial_neg, singular_polynomial_pow, singular_polynomial_mul, singular_polynomial_rmul, singular_polynomial_deg, singular_polynomial_str_with_changed_varnames, singular_polynomial_latex, singular_polynomial_str, singular_polynomial_div_coeff)
 
 import sage.libs.singular.ring
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring
 
-from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
+
+#from sage.libs.singular.decl cimport *
+
+
+#from sage.libs.singular.decl cimport n_coeffType
+#from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.integer cimport Integer
@@ -485,7 +494,7 @@ cdef class NCPolynomialRing_plural(Ring):
             if  <Parent>element.parent() is base_ring:
                 # shortcut for GF(p)
                 if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element) % _ring.ch, _ring)
+                    _p = p_ISet(int(element) % _ring.cf.ch, _ring)
                 else:
                     _n = sa2si(element,_ring)
                     _p = p_NSet(_n, _ring)
@@ -506,7 +515,7 @@ cdef class NCPolynomialRing_plural(Ring):
         # Accepting int
         elif isinstance(element, int):
             if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(int(element) % _ring.ch,_ring)
+                _p = p_ISet(int(element) % _ring.cf.ch,_ring)
             else:
                 _n = sa2si(base_ring(element),_ring)
                 _p = p_NSet(_n, _ring)
@@ -989,10 +998,12 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
+        cdef n_coeffType unknownRingtype = n_unknown
+  
         res = pDivide(f._poly,g._poly)
         if coeff:
-            if r.ringtype == 0 or r.cf.nDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r)):
-                n = r.cf.nDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r))
+            if (r.cf.type == unknownRingtype) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
+                n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
                 p_SetCoeff0(res, n, r)
             else:
                 raise ArithmeticError("Cannot divide these coefficients.")
@@ -2329,7 +2340,7 @@ cdef class NCPolynomial_plural(RingElement):
 
     def is_homogeneous(self):
         """
-        Return ``True`` if this polynomial is homogeneous.
+        Return ``True`` if this polynomial is homogeneous. 
 
         EXAMPLES::
 
@@ -2352,7 +2363,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         cdef ring *_ring = (<NCPolynomialRing_plural>self._parent)._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(pIsHomogeneous(self._poly))
+        return bool(p_IsHomogeneous(self._poly,_ring))
 
 
     def is_monomial(self):
@@ -2390,7 +2401,7 @@ cdef class NCPolynomial_plural(RingElement):
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = bool((not self._poly.next) and _ring.cf.nIsOne(_n))
+        ret = bool((not self._poly.next) and _ring.cf.cfIsOne(_n,_ring.cf))
 
         p_Delete(&_p, _ring)
         return ret
@@ -2986,3 +2997,7 @@ cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring)
       tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
     p_Setm(tempvector, _ring)
     return tempvector
+    
+
+ 
+ 

@@ -11,7 +11,7 @@ from sage.rings.finite_rings.element_ntl_gf2e cimport FiniteField_ntl_gf2eElemen
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 
-from sage.rings.number_field.number_field_base cimport NumberField
+from sage.rings.number_field.number_field_base cimport NumberField 
 
 # ======================================
 # Conversion from Singular to Sage types
