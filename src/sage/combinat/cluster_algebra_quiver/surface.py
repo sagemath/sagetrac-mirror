@@ -1439,7 +1439,10 @@ def GetAllMatchings(G):
 
     MinMatching = GetMinimalMatching(G)  # Return [['minimal PM'], [minimal matching with directions]]
     #print 'MinMatching = GetMinimalMatching(G) : ', MinMatching
-    tile_flip_max = fibonacci(len(G)+1)  # We do not need this upper bound, but we do this to avoid infinite loop in case of a bug in the code
+
+    tile_flip_max = len(G) # The maximal number of flips is equal to the number of tiles of G.
+    # The maximal number of flips produces the maximal matching, i.e. the opposite of the minimal matching.
+    # Other matchings are produced by flips fewer than the maximal number.
 
     old_matchings = []
     current_matchings = [MinMatching]
@@ -1460,6 +1463,9 @@ def GetAllMatchings(G):
                 old_matchings = UniqueList(old_matchings + current_matchings)
                 current_matchings = new_matchings_corrected_indices
             else:
+                print 'WARNING: This else break should be removed.'
+                print 'All the perfect matchings of G are found when the maximal matching is produced (after tile_flip_max) flips.'
+                print 'loop count: ', loop_count
                 break
 
         all_matchings = UniqueList(old_matchings + current_matchings)
