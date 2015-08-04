@@ -252,6 +252,8 @@ class QuantuminoState(SageObject):
     - ``pentos`` - list of 16 3d pentamino representing the (partial)
       solution
     - ``aside`` - 3d polyomino, the unused 3D pentamino
+    - ``box`` - tuple of size three (optional, default: ``(5,8,2)``),
+      size of the box
 
     EXAMPLES::
 
@@ -271,7 +273,7 @@ class QuantuminoState(SageObject):
         Quantumino state where the following pentamino is put aside :
         Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (1, 0, 0), (1, 0, 1)], Color: green
     """
-    def __init__(self, pentos, aside):
+    def __init__(self, pentos, aside, box=(5,8,2)):
         r"""
         EXAMPLES::
 
@@ -286,6 +288,7 @@ class QuantuminoState(SageObject):
         assert isinstance(aside, Polyomino), "aside must be a Polyomino"
         self._pentos = pentos
         self._aside = aside
+        self._box = box
 
     def __repr__(self):
         r"""
@@ -363,6 +366,12 @@ class QuantuminoState(SageObject):
             G += p.show3d(size=size)
         aside_pento = self._aside.canonical() + (2.5*size/0.75,-4*size/0.75,0)
         G += aside_pento.show3d(size=size)
+
+        # the box to fill
+        half_box = tuple(a/2 for a in self._box)
+        b = cube(color='gray',opacity=0.2).scale(self._box).translate(half_box)
+        b = b.translate((0, -.5, -.5))
+        G += b
 
         # hack to set the aspect ratio to 1
         a,b = G.bounding_box()
@@ -551,7 +560,7 @@ class QuantuminoSolver(SageObject):
         T = self.tiling_solver()
         aside = pentaminos[self._aside]
         for pentos in T.solve(partial=partial):
-            yield QuantuminoState(pentos, aside)
+            yield QuantuminoState(pentos, aside, self._box)
 
     def number_of_solutions(self, ncpus=0, modpi=True):
         r"""
