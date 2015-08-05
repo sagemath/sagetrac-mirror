@@ -771,25 +771,18 @@ class ExtensiveFormGame():
         If the generator is an ``EFG_Node``, it needs children, actions and
         players::
 
-            sage: false_root_1 = EFG_Node(False, {'C': node_a1,
-            ....:                                 'D': node_a2}, 'False Root')
-            sage: false_egame_2 = ExtensiveFormGame(false_root_1)
+            sage: false_root_1 = EFG_Node(args = {'C': node_a1,
+            ....:                                 'D': node_a2})
+            sage: false_egame_1 = ExtensiveFormGame(false_root_1)
             Traceback (most recent call last):
             ...
             AttributeError: Root node has no player.
 
-            sage: false_root_2 = EFG_Node(args = ['Action1', 'Action2'])
-            sage: false_root_2.player = player_a1
+            sage: false_root_2 = EFG_Node(player_a1)
             sage: false_egame_2 = ExtensiveFormGame(false_root_2)
             Traceback (most recent call last):
             ...
             AttributeError: Root node has no children.
-
-            sage: false_root_3 = EFG_Node(args = [])
-            sage: false_egame_3 = ExtensiveFormGame(false_root_3)
-            Traceback (most recent call last):
-            ...
-            AttributeError: Root node has no actions.
 
         Similarly, we cannot create a tree with a Node with a player attribute
         which isn't an instance of the ``Player`` class::
@@ -964,7 +957,7 @@ class ExtensiveFormGame():
         if isinstance(generator, EFG_Node):
             if generator.actions is False:
                 raise AttributeError("Root node has no actions.")
-            elif generator.children is False:
+            elif generator.children == []:
                 raise AttributeError("Root node has no children.")
             elif generator.player is False:
                 raise AttributeError("Root node has no player.")
@@ -3536,7 +3529,7 @@ class EFG_Node():
     def __init__(self, player=False, args={}, name=None):
         r"""
         An ``EFG_Node`` is specifically for creating an ``ExtensiveFormGame``.
-        Node ``args`` can be in a dictionary format, consisting of the actions
+        Node ``args`` must be in a dictionary format, consisting of the actions
         and the children of that node::
 
             sage: player_1 = EFG_Player('Player 1')
@@ -3563,53 +3556,39 @@ class EFG_Node():
             sage: mother_node.parent
             EFG Node "Node A"
 
-        Nodes can also be created without specifying children, by just passing
-        the list of actions.::
-
-            sage: grandmother_node = EFG_Node(args = ['A', 'B'])
-            sage: grandmother_node.children
-            False
-            sage: grandmother_node.parent
-            False
-            sage: grandmother_node.actions
-            ['A', 'B']
-
         Nodes automatically have player set to ``False``, if we do not assign a
         player upon initalisation, we can simply set it up afterwards::
 
+            sage: grandmother_node = EFG_Node()
             sage: grandmother_node.player
             False
             sage: grandmother_node.player = player_1
             sage: grandmother_node.player
             EFG Player "Player 1"
 
-        If we try to pass an ``args`` that isn't a dictionary or a list, an
-        error is returned::
+        If we try to pass an ``args`` that isn't a dictionary, an error is
+        returned::
 
             sage: grandmother_node = EFG_Node(args = 5)
             Traceback (most recent call last):
             ...
-            TypeError: Node must be passed an args in the form of a dictionary
-            or a list.
+            TypeError: Node must be passed an args in the form of a dictionary.
 
             sage: grandmother_node = EFG_Node(args = 'This is a string')
             Traceback (most recent call last):
             ...
-            TypeError: Node must be passed an args in the form of a dictionary
-            or a list.
+            TypeError: Node must be passed an args in the form of a dictionary.
 
             sage: grandmother_node = EFG_Node(args = matrix([[1, 1], [1, 1]]))
             Traceback (most recent call last):
             ...
-            TypeError: Node must be passed an args in the form of a dictionary
-            or a list.
+            TypeError: Node must be passed an args in the form of a dictionary.
 
             sage: sis_node = EFG_Node()
             sage: grandmother_node = EFG_Node(args = sis_node)
             Traceback (most recent call last):
             ...
-            TypeError: Node must be passed an args in the form of a dictionary
-            or a list.
+            TypeError: Node must be passed an args in the form of a dictionary.
         """
 
         self.action_to_node_dict = {}
@@ -3627,17 +3606,9 @@ class EFG_Node():
             for child in self.children:
                 child.parent = self
 
-        elif type(args) is list:
-            if args == []:
-                self.actions = False
-            else:
-                self.actions = args
-                for action in args:
-                    self.action_to_node_dict[action] = False
-
         else:
             raise TypeError("Node must be passed an args in the form of a "
-                            "dictionary or a list.")
+                            "dictionary.")
 
 
     def __repr__(self):
@@ -4002,14 +3973,14 @@ class EFG_Player():
 
         If a node is not specificed a player, then this should return false::
 
-            sage: sam_1 = EFG_Node(args = [0, 1])
+            sage: sam_1 = EFG_Node()
             sage: sam_1.player
             False
             sage: sam_player = EFG_Player('Sam')
             sage: sam_1.player = sam_player
             sage: sam_1.player
             EFG Player "Sam"
-            sage: sam_2 = EFG_Node(sam_player, [0, 1])
+            sage: sam_2 = EFG_Node(sam_player)
             sage: sam_2.player
             EFG Player "Sam"
 
