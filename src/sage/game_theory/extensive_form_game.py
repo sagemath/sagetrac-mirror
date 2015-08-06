@@ -3471,6 +3471,7 @@ class ExtensiveFormGame():
         solver = ExternalLCPSolver()
         lcp_output = solver.solve(gambit_efg)
         nasheq = Parser(lcp_output).format_gambit_efg_tree(gambit_efg)
+        # I am not 100% convinced this is done in the right way.
         return nasheq
 
     def is_constant_sum(self):
