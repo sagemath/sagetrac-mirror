@@ -1267,6 +1267,8 @@ class ExtensiveFormGame():
 
         """
 
+        # Why can't we just loop over the players directly? (I tried and tests
+        # failed)
         for index in range(len(gambit_game.players)):
             self._gambit_to_sage_player_dict[gambit_game.players[index]] = EFG_Player(gambit_game.players[index].label)
 
@@ -1947,7 +1949,7 @@ class ExtensiveFormGame():
             sage: egame.perfect_info()
             True
 
-        As this game as perfect information, the Extensive Form tree should
+        As this game has perfect information, the Extensive Form tree should
         not show an information sets::
 
             sage: egame.plot()
@@ -1979,7 +1981,7 @@ class ExtensiveFormGame():
             sage: egame.remove_info_set([node_1, node_2])
             Traceback (most recent call last):
             ...
-            ValueError: Information set to be set does not exist.
+            ValueError: Information set to be removed does not exist.
 
         However if we try to remove a set which has duplicates, it reads it as
         if the duplicates aren't there::
@@ -2000,7 +2002,7 @@ class ExtensiveFormGame():
                 self.info_sets.append([node_to_be_readded])
             self.info_sets.sort(key=lambda x: x[0].name)
         except ValueError:
-            raise ValueError("Information set to be set does not exist.")
+            raise ValueError("Information set to be removed does not exist.")
 
     def perfect_info(self):
         r"""
