@@ -3,7 +3,7 @@ Extensive Form Games with N players.
 
 This module implements a class for extensive form games
 [NN2007]_. Graphical representations of the games are implemented and solution
-algorithms are being developed (with an interface to gambit).
+algorithms are being developed (with an interface to gambit [MMAT2014]_).
 
 A well known example that can be implemented as an extensive form game is the
 battle of the sexes. Consider two players, Celine and Bob. The two are deciding
