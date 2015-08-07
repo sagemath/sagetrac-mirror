@@ -279,6 +279,7 @@ from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealLiteral
 from sage.rings.integer import Integer
 from sage.combinat.cartesian_product import CartesianProduct
+from collections import OrderedDict
 
 try:
     from gambit import Game
@@ -2394,7 +2395,7 @@ class ExtensiveFormGame():
             sage: node_a = EFG_Node({'X': leaf_1, 'W': leaf_2}, 'a', player_1)
             sage: example = ExtensiveFormGame(node_a)
             sage: example.generate_strategies()
-            [[('X',), ('W',)]]
+            [[{('a',): 'X'}, {('a',): 'W'}]]
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -2409,8 +2410,22 @@ class ExtensiveFormGame():
             sage: node_a = EFG_Node({'X': node_b, 'W': node_c}, 'a', player_1)
             sage: example = ExtensiveFormGame(node_a)
             sage: example.generate_strategies()
-            [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')],
-             [('C', 'A'), ('C', 'B'), ('D', 'A'), ('D', 'B')]]
+            [[{('a',): 'X',
+               ('d',): 'Y'},
+              {('a',): 'X',
+               ('d',): 'Z'},
+              {('a',): 'W',
+               ('d',): 'Y'},
+              {('a',): 'W',
+               ('d',): 'Z'}],
+             [{('b',): 'C',
+               ('c',): 'A'},
+              {('b',): 'C',
+               ('c',): 'B'},
+              {('b',): 'D',
+               ('c',): 'A'},
+              {('b',): 'D',
+               ('c',): 'B'}]]
 
             catdog:
             sage: player_1 = EFG_Player('1')
@@ -2420,11 +2435,15 @@ class ExtensiveFormGame():
             sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
             sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
             sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'b', player_2)
-            sage: node_c = EFG_Node({'meow': leaf_4, 'scratch': leaf_5}, 'c', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'c', player_2)
             sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'a', player_1)
             sage: example = ExtensiveFormGame(node_a)
             sage: example.generate_strategies()
-            [[('woof',), ('bark',)], [('meow', 'meow'), ('meow', 'scratch'), ('scratch', 'meow'), ('scratch', 'scratch')]]
+            [[{('a',): 'woof'}, {('a',): 'bark'}],
+             [{('b',): 'meow', ('c',): 'meow'},
+              {('b',): 'meow', ('c',): 'scratch'},
+              {('b',): 'scratch', ('c',): 'meow'},
+              {('b',): 'scratch', ('c',): 'scratch'}]]
 
             catdogsharedinfoset:
             sage: player_1 = EFG_Player('1')
@@ -2434,12 +2453,13 @@ class ExtensiveFormGame():
             sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
             sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
             sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'b', player_2)
-            sage: node_c = EFG_Node({'meow': leaf_4, 'scratch': leaf_5}, 'c', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'c', player_2)
             sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'a', player_1)
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_b, node_c])
             sage: example.generate_strategies()
-            [[('woof',), ('bark',)], [('meow',), ('scratch',)]]
+            [[{('a',): 'woof'}, {('a',): 'bark'}],
+             [{('b', 'c'): 'meow'}, {('b', 'c'): 'scratch'}]]
 
             rockpaperscissors:
             sage: player_1 = EFG_Player('1')
@@ -2460,7 +2480,10 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_b, node_c, node_d])
             sage: example.generate_strategies()
-            [[('P',), ('S',), ('R',)], [('P',), ('S',), ('R',)]]
+            [[{('a',): 'P'}, {('a',): 'S'}, {('a',): 'R'}],
+             [{('b', 'c', 'd'): 'P'},
+              {('b', 'c', 'd'): 'S'},
+              {('b', 'c', 'd'): 'R'}]]
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -2478,8 +2501,14 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_e, node_d])
             sage: example.generate_strategies()
-            [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')],
-             [('C', 'A'), ('C', 'B'), ('D', 'A'), ('D', 'B')]]
+            [[{('a',): 'X', ('d', 'e'): 'Y'},
+              {('a',): 'X', ('d', 'e'): 'Z'},
+              {('a',): 'W', ('d', 'e'): 'Y'},
+              {('a',): 'W', ('d', 'e'): 'Z'}],
+             [{('b',): 'C', ('c',): 'A'},
+              {('b',): 'C', ('c',): 'B'},
+              {('b',): 'D', ('c',): 'A'},
+              {('b',): 'D', ('c',): 'B'}]]
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -2497,15 +2526,15 @@ class ExtensiveFormGame():
             sage: example = ExtensiveFormGame(node_a)
             sage: example.set_info_set([node_b, node_c])
             sage: example.generate_strategies()
-            [[('X', 'Y', 'Y'),
-              ('X', 'Y', 'Z'),
-              ('X', 'Z', 'Y'),
-              ('X', 'Z', 'Z'),
-              ('W', 'Y', 'Y'),
-              ('W', 'Y', 'Z'),
-              ('W', 'Z', 'Y'),
-              ('W', 'Z', 'Z')],
-             [('C',), ('D',)]]
+            [[{('a',): 'X', ('d',): 'Y', ('e',): 'Y'},
+              {('a',): 'X', ('d',): 'Y', ('e',): 'Z'},
+              {('a',): 'X', ('d',): 'Z', ('e',): 'Y'},
+              {('a',): 'X', ('d',): 'Z', ('e',): 'Z'},
+              {('a',): 'W', ('d',): 'Y', ('e',): 'Y'},
+              {('a',): 'W', ('d',): 'Y', ('e',): 'Z'},
+              {('a',): 'W', ('d',): 'Z', ('e',): 'Y'},
+              {('a',): 'W', ('d',): 'Z', ('e',): 'Z'}],
+             [{('b', 'c'): 'C'}, {('b', 'c'): 'D'}]]
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -2524,53 +2553,226 @@ class ExtensiveFormGame():
             sage: example.set_info_set([node_b, node_c])
             sage: example.set_info_set([node_e, node_d])
             sage: example.generate_strategies()
-            [[('X', 'Y'), ('X', 'Z'), ('W', 'Y'), ('W', 'Z')], [('C',), ('D',)]]
+            [[{('a',): 'X', ('d', 'e'): 'Y'},
+              {('a',): 'X', ('d', 'e'): 'Z'},
+              {('a',): 'W', ('d', 'e'): 'Y'},
+              {('a',): 'W', ('d', 'e'): 'Z'}],
+             [{('b', 'c'): 'C'}, {('b', 'c'): 'D'}]]
 
-        Games with 3 players::
-
-            sage: def strategy_to_utility(P1, P2, P3):
-            ....:     what_beats = {'R': 'P', 'P': 'S', 'S': 'R'}
-            ....:     what_loses = {'R': 'S', 'P': 'R', 'S': 'P'}
-            ....:     p1_score = [P2, P3].count(what_loses[P1])- [P2, P3].count(what_beats[P1])
-            ....:     p2_score = [P1, P3].count(what_loses[P2])- [P1, P3].count(what_beats[P2])
-            ....:     p3_score = [P2, P1].count(what_loses[P3])- [P2, P1].count(what_beats[P3])
-            ....:     return p1_score, p2_score, p3_score
-            sage: import itertools
-            sage: all_possible_profiles = list(itertools.product(['R','P','S'], repeat=3))
-            sage: all_second_level_profiles = list(itertools.product(['R','P','S'], repeat=2))
-            sage: all_first_level_profiles = [('R',), ('P',), ('S',)]
-            sage: p1 = EFG_Player('P1')
-            sage: p2 = EFG_Player('P2')
-            sage: p3 = EFG_Player('P3')
-            sage: third_level_dictionary = {profile:EFG_Leaf({p1:strategy_to_utility(*profile)[0], p2:strategy_to_utility(*profile)[1], p3:strategy_to_utility(*profile)[2]}) for profile in all_possible_profiles}
-            sage: second_level_dictionary = {profile:EFG_Node({'R':third_level_dictionary[profile+('R',)], 'P':third_level_dictionary[profile+('P',)], 'S':third_level_dictionary[profile+('S',)]},player=p3) for profile in all_second_level_profiles}
-            sage: first_level_dictionary = {profile:EFG_Node({'R':second_level_dictionary[profile+('R',)], 'P':second_level_dictionary[profile+('P',)], 'S':second_level_dictionary[profile+('S',)]},player=p2) for profile in all_first_level_profiles}
-            sage: root = EFG_Node({'P':first_level_dictionary[('P',)], 'R':first_level_dictionary[('R',)], 'S':first_level_dictionary[('S',)]}, player=p1)
-            sage: g = ExtensiveFormGame(root)
-            sage: info_set_for_p3 = second_level_dictionary.values()
-            sage: info_set_for_p2 = first_level_dictionary.values()
-            sage: g.set_info_set(info_set_for_p2)
-            sage: g.set_info_set(info_set_for_p3)
-            sage: g.generate_strategies()
-            [[('P',), ('S',), ('R',)], [('P',), ('S',), ('R',)], [('P',), ('S',), ('R',)]]
-
-
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'cat', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'cat', player_2)
+            sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'dog', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example.generate_strategies()
+            [[{('dog',): 'woof'}, {('dog',): 'bark'}],
+             [{('cat',): 'meow', ('cat',): 'meow'},
+              {('cat',): 'meow', ('cat',): 'scratch'},
+              {('cat',): 'scratch', ('cat',): 'meow'},
+              {('cat',): 'scratch', ('cat',): 'scratch'}]]
+              
+###make dictionaries tuples (key, value), ordered
+###implement so that games without perfect recall return an error
         """
         strategies = []
 
         for p in self.players:
-            p_strategies = []
+            p_strat = []
             for information_set in self.info_sets:
+
+                actions_of_info_set = []
                 node = information_set[0]
-                #for node in information_set:
                 if node.player == p:
-                    #if tuple(node.actions) not in p_strategies: #breaks some games with perfect info
-                    p_strategies.append(tuple(node.actions))
-                    L = list(CartesianProduct(*p_strategies))
-            strategies.append([tuple(l) for l in L])
+                    for action in node.actions:
+                        strategy_dictionary = {}
+                        strategy_dictionary[tuple([node.name for node in information_set])] = action
+                        actions_of_info_set.append(strategy_dictionary)
+                    p_strat.append(actions_of_info_set)
+                    L = list(CartesianProduct(*p_strat))
+            strategies.append([{k: v for d in l for k, v in d.items()} for l in L])
         return strategies
 
+    def _build_utility_dictionary(self):
+        r"""
+        A method to return the utilities of each player when given a strategy profile
 
+        TESTS::
+
+            sage: player_1 = EFG_Player('1')
+            sage: leaf_1 = EFG_Leaf({player_1: 2}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3}, 'Leaf 2')
+            sage: node_a = EFG_Node({'X': leaf_1, 'W': leaf_2}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: d = {player_1: 2}
+            sage: example.utilities[(('X',),)] == d
+            True
+
+
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'b', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'c', player_2)
+            sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('bark',), ('meow', 'scratch'))] == {player_1: 2, player_2: 0}
+            True
+
+            catdogsharedinfoset:
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'b', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'c', player_2)
+            sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example.set_info_set([node_b, node_c])
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('bark',), ('meow',))] == {player_1: 2, player_2: 0}
+            True
+
+            rockpaperscissors:
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 0, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 0, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 1, player_2: 0}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 1, player_2: 0}, 'Leaf 4')
+            sage: leaf_5 = EFG_Leaf({player_1: 0, player_2: 0}, 'Leaf 5')
+            sage: leaf_6 = EFG_Leaf({player_1: 0, player_2: 1}, 'Leaf 6')
+            sage: leaf_7 = EFG_Leaf({player_1: 0, player_2: 1}, 'Leaf 7')
+            sage: leaf_8 = EFG_Leaf({player_1: 1, player_2: 0}, 'Leaf 8')
+            sage: leaf_9 = EFG_Leaf({player_1: 0, player_2: 0}, 'Leaf 9')
+            sage: node_d = EFG_Node({'R': leaf_7, 'P': leaf_8, 'S': leaf_9}, 'd', player_2)
+            sage: node_c = EFG_Node({'R': leaf_4, 'P': leaf_5, 'S': leaf_6}, 'c', player_2)
+            sage: node_b = EFG_Node({'R': leaf_1, 'P': leaf_2, 'S': leaf_3}, 'b', player_2)
+            sage: node_a = EFG_Node({'R': node_b, 'P': node_c, 'S': node_d}, 'a', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example.set_info_set([node_b, node_c, node_d])
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('R',), ('R',))] == {player_1: 0, player_2: 0}
+            True
+            sage: example.utilities[(('P',), ('R',))] == {player_1: 1, player_2: 0}
+            True
+            sage: example.utilities[(('P',), ('S',))] == {player_1: 0, player_2: 1}
+            True
+            sage: example.utilities[(('S',), ('S',))] == {player_1: 0, player_2: 0}
+            True
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+            sage: node_d = EFG_Node({'Z': leaf_2, 'Y': leaf_3}, 'a', player_1)
+            sage: node_c = EFG_Node({'D': leaf_1, 'C': node_d}, 'c', player_2)
+            sage: node_b = EFG_Node({'B': leaf_4, 'A': leaf_5}, 'b', player_2)
+            sage: node_a = EFG_Node({'X': node_b, 'W': node_c}, 'd', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('X', 'Y'), ('A', 'C'))] == {player_1: 4, player_2: 1}
+            True
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+            sage: node_d = EFG_Node({'Z': leaf_2, 'Y': leaf_3}, '4', player_1)
+            sage: node_c = EFG_Node({'D': leaf_1, 'C': node_d}, '3', player_2)
+            sage: node_b = EFG_Node({'B': leaf_4, 'A': leaf_5}, '2', player_2)
+            sage: node_a = EFG_Node({'X': node_b, 'W': node_c}, '1', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('W', 'Y'), ('A', 'C'))] == {player_1: 4, player_2: 2}
+            True
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: player_3 = EFG_Player('3')
+            sage: leaf_1 = EFG_Leaf({player_1 : 0, player_2: 1, player_3: -5}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1 : 1, player_2: 0, player_3: -4}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1 : 2, player_2: 4, player_3: -3}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1 : 2, player_2: 1, player_3: -2}, 'Leaf 4')
+            sage: node_1 = EFG_Node({'A': leaf_1, 'B': leaf_2}, 'Node 1', player_3)
+            sage: node_2 = EFG_Node({'A': leaf_3, 'B': leaf_4}, 'Node 2', player_2)
+            sage: root_1 = EFG_Node({'C': node_1, 'D': node_2}, 'Root 1', player_1)
+            sage: example = ExtensiveFormGame(root_1)
+            sage: example._build_utility_dictionary()
+            sage: expected_utility = {player_1: 1, player_2: 0, player_3: -4}
+            sage: example.utilities[(('C',), ('A',), ('B',))] == expected_utility
+            True
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'cat', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'acat', player_2)
+            sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'dog', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('bark',), ('meow', 'scratch'))] == {player_1: 2, player_2: 0}
+            True
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: node_b = EFG_Node({'meow': leaf_1, 'scratch': leaf_2}, 'cat', player_2)
+            sage: node_c = EFG_Node({'meow': leaf_3, 'scratch': leaf_4}, 'cat', player_2)
+            sage: node_a = EFG_Node({'bark': node_b, 'woof': node_c}, 'dog', player_1)
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: example.utilities[(('bark',), ('meow', 'scratch'))] == {player_1: 2, player_2: 0}
+            True
+
+        """
+        self.utilities = {}
+        strategy_profiles = list(CartesianProduct(*self.generate_strategies()))
+        for profile in strategy_profiles:
+            next_node = self.tree_root
+            while isinstance(next_node, EFG_Node):
+                player = next_node.player
+                player_strategy = profile[self.players.index(player)]
+
+                information_set = tuple(node.name for node in [info_set for info_set in self.info_sets if next_node in info_set][0])
+                action = player_strategy[information_set]
+
+                next_node = next_node.node_input[action]
+            L = []
+            d = self._grow_infoset_graph_dictionary()
+            return d
+            for player_strategy in profile:
+                players_actions = []
+                for info_set in self.info_sets: #does this alphabetically which means the order of the actions in a players_actions is in this order
+                    for key in player_strategy.keys(): #keys are tupled info_sets/node names
+                        if key == tuple(node.name for node in info_set):
+                            players_actions.append(player_strategy[key])
+                L.append(tuple(players_actions))
+            self.utilities[tuple(L)] = next_node.payoffs
 
 class EFG_Node():
     def __init__(self, node_input, name=False, player=False):
