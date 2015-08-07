@@ -318,7 +318,9 @@ class Parser():
 
     def format_gambit_efg_tree(self, gambit_game):
         """
-        Parses the output of gambit so as to return vectors
+        Parses the output of gambit so as to return lists for each equilibria,
+        with lists for each player within, that contains dictionaries that
+        maps infomration sets to probabilities,
         corresponding to equilibria obtained using the LCP algorithm.
 
         TESTS:
@@ -383,13 +385,12 @@ class Parser():
         The Parser class outputs the equilibrium::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [[[{'Node 3': {'Y': 1.0, 'Z': 0.0}, 'Root': {'W': 0.0, 'X': 1.0}}],
-            ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
+            sage: expected_outcome = [[[{tuple(['Node 3']): {'Y': 1.0, 'Z': 0.0}, tuple(['Root']): {'W': 0.0, 'X': 1.0}}],
+            ....: [{tuple(['Node 1']): {'C': 0.0, 'D': 1.0}, tuple(['Node 2']): {'A': 1.0, 'B': 0.0}}]]]
             sage: nasheq == expected_outcome # optional - gambit
             True
 
-        If we change one of the outputs for the above tree, more nash equilibria
-        are obtained::
+        If we change one of the outputs for the above tree, more nash equilibria are obtained::
 
             sage: alternate_output = g.outcomes.add()  # optional - gambit
             sage: alternate_output[int(0)] = int(5)  # optional - gambit
@@ -402,12 +403,13 @@ class Parser():
              <NashProfile for 'Parser example': [0.0, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.0]>,
              <NashProfile for 'Parser example': [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]>]
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [[[{'Node 3': {'Y': 0.5, 'Z': 0.5}, 'Root': {'W': 1.0, 'X': 0.0}}],
-            ....: [{'Node 1': {'C': 1.0, 'D': 0.0}, 'Node 2': {'A': 0.0, 'B': 1.0}}]],
-            ....: [[{'Node 3': {'Y': 0.5, 'Z': 0.5}, 'Root': {'W': 1.0, 'X': 0.0}}],
-            ....: [{'Node 1': {'C': 0.5, 'D': 0.5}, 'Node 2': {'A': 0.0, 'B': 1.0}}]],
-            ....: [[{'Node 3': {'Y': 1.0, 'Z': 0.0}, 'Root': {'W': 0.0, 'X': 1.0}}],
-            ....: [{'Node 1': {'C': 0.0, 'D': 1.0}, 'Node 2': {'A': 1.0, 'B': 0.0}}]]]
+            sage: expected_outcome = [[[{tuple(['Node 3']): {'Y': 0.5, 'Z': 0.5},
+            ....: tuple(['Root']): {'W': 1.0, 'X': 0.0}}],
+            ....: [{tuple(['Node 1']): {'C': 1.0, 'D': 0.0}, tuple(['Node 2']): {'A': 0.0, 'B': 1.0}}]],
+            ....: [[{tuple(['Node 3']): {'Y': 0.5, 'Z': 0.5}, tuple(['Root']): {'W': 1.0, 'X': 0.0}}],
+            ....: [{tuple(['Node 1']): {'C': 0.5, 'D': 0.5}, tuple(['Node 2']): {'A': 0.0, 'B': 1.0}}]],
+            ....: [[{tuple(['Node 3']): {'Y': 1.0, 'Z': 0.0}, tuple(['Root']): {'W': 0.0, 'X': 1.0}}],
+            ....: [{tuple(['Node 1']): {'C': 0.0, 'D': 1.0}, tuple(['Node 2']): {'A': 1.0, 'B': 0.0}}]]]
             sage: nasheq  == expected_outcome  # optional - gambit
             True
 
@@ -469,8 +471,8 @@ class Parser():
 
         The output of the Parser::
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [[[{'Node 3': {'F': 0.5, 'G': 0.5}, 'Root': {'A': 0.0, 'B': 1.0, 'C': 0.0}}],
-            ....: [{'Node 1': {'D': 0.75, 'E': 0.25}, 'Node 2': {'H': 0.0, 'I': 1.0}}]]]
+            sage: expected_outcome = [[[{tuple(['Node 3']): {'F': 0.5, 'G': 0.5}, tuple(['Root']): {'A': 0.0, 'B': 1.0, 'C': 0.0}}],
+            ....: [{tuple(['Node 1']): {'D': 0.75, 'E': 0.25}, tuple(['Node 2']): {'H': 0.0, 'I': 1.0}}]]]
             sage: nasheq == expected_outcome  # optional - gambit
             True
 
@@ -524,9 +526,9 @@ class Parser():
         The output of the Parser::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [[[{'Root': {'A': 0.0, 'B': 1.0}}],
-            ....: [{'Node 1': {'C': 0.75, 'D': 0.25, 'E': 0.0},
-            ....: 'Node 2': {'F': 0.0, 'G': 1.0}}]]]
+            sage: expected_outcome = [[[{tuple(['Root']): {'A': 0.0, 'B': 1.0}}],
+            ....: [{tuple(['Node 1']): {'C': 0.75, 'D': 0.25, 'E': 0.0},
+            ....: tuple(['Node 2']): {'F': 0.0, 'G': 1.0}}]]]
             sage: nasheq == expected_outcome  # optional - gambit
             True
 
@@ -575,8 +577,8 @@ class Parser():
         The output of the Parser::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [[[{'Root': {'A': 0.7, 'B': 0.3}}],
-            ....: [{'Node 1': {'C': 0.6, 'D': 0.4}, 'Node 2': {'C': 0.6, 'D': 0.4}}]]]
+            sage: expected_outcome = [[[{tuple(['Root']): {'A': 0.7, 'B': 0.3}}],
+            ....: [{tuple(['Node 1', 'Node 2']): {'C': 0.6, 'D': 0.4}}]]]
             sage: nasheq  == expected_outcome # optional - gambit
             True
 
@@ -590,14 +592,13 @@ class Parser():
             for player in list(gambit_game.players):
                 player_dict = {}
                 for infoset in list(player.infosets):
-                    infoset_strategy = gambitstrategy[infoset_action_count:
-                                                      infoset_action_count +
-                                                      int(len(list(infoset.actions)))]
+                    infoset_strategy = gambitstrategy[infoset_action_count: infoset_action_count + int(len(list(infoset.actions)))]
                     infoset_action_count += int(len(infoset.actions))
-                    action_dict = {action.label: infoset_strategy[i] for i,
-                                   action in enumerate(infoset.actions)}
+                    action_dict = {action.label:infoset_strategy[i] for i,action in enumerate(infoset.actions)}
+                    player_dict_node_list = []
                     for node in infoset.members:
-                        player_dict[node.label] = action_dict
+                        player_dict_node_list.append(node.label)
+                    player_dict[tuple(player_dict_node_list)] = action_dict
                 player_list = [player_dict]
                 gambitstrategy_list.append(player_list)
             nice_stuff.append(gambitstrategy_list)
