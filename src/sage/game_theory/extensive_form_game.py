@@ -1266,11 +1266,8 @@ class ExtensiveFormGame():
              [EFG Node "Tree Root"]]
 
         """
-
-        # Why can't we just loop over the players directly? (I tried and tests
-        # failed)
-        for index in range(len(gambit_game.players)):
-            self._gambit_to_sage_player_dict[gambit_game.players[index]] = EFG_Player(gambit_game.players[index].label)
+        for player in gambit_game.players:
+            self._gambit_to_sage_player_dict[player] = EFG_Player(player.label)
 
         index = 1
         node_indexed_dict = {0: gambit_game.root}
@@ -1278,8 +1275,8 @@ class ExtensiveFormGame():
         while len(node_list) != 0:
             new_node_list = []
             for node in node_list:
-                for other_index in range(len(node.children)):
-                    new_node_list.append(node.children[other_index])
+                for child in node.children:
+                    new_node_list.append(child)
             if len(new_node_list) != 0:
                 node_indexed_dict[index] = new_node_list
                 index += 1
@@ -1460,7 +1457,7 @@ class ExtensiveFormGame():
             if not gambit_node.outcome :
                 raise AttributeError("One or more terminal nodes in the Gambit Game have no outcome.")
             leaf_dictionary = {self._gambit_to_sage_player_dict[gambit_game.players[outcome_index]]:gambit_node.outcome[outcome_index]
-                               for outcome_index in  range(len(list(gambit_node.outcome)))}
+                               for outcome_index in range(len(list(gambit_node.outcome)))}
             leaf = EFG_Leaf(leaf_dictionary, gambit_node.label)
             self._gambit_to_sage_node_dict[gambit_node] = leaf
         else:
