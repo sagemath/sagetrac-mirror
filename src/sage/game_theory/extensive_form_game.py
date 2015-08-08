@@ -1269,27 +1269,10 @@ class ExtensiveFormGame():
         for player in gambit_game.players:
             self._gambit_to_sage_player_dict[player] = EFG_Player(player.label)
 
-        index = 1
-        node_indexed_dict = {0: gambit_game.root}
-        node_list = [gambit_game.root]
-        while len(node_list) != 0:
-            new_node_list = []
-            for node in node_list:
-                for child in node.children:
-                    new_node_list.append(child)
-            if len(new_node_list) != 0:
-                node_indexed_dict[index] = new_node_list
-                index += 1
-            node_list = new_node_list
+        self._gambit_to_sage_organize_nodes_for_looping(gambit_game)
 
-        for i in reversed(range(len(node_indexed_dict))):
-            if type(node_indexed_dict[i]) is not list:
-                gambit_node = node_indexed_dict[i]
-                self._gambit_to_sage_rename_blank_actions(gambit_node)
-                self._gambit_to_sage_create_node_or_leaf(gambit_node,
-                                                         gambit_game)
-            else:
-                for gambit_node in node_indexed_dict[i]:
+        for i in reversed(range(len(self._gambit_to_sage_node_indexed_dict))):
+                for gambit_node in self._gambit_to_sage_node_indexed_dict[i]:
                     self._gambit_to_sage_rename_blank_actions(gambit_node)
                     self._gambit_to_sage_create_node_or_leaf(gambit_node,
                                                              gambit_game)
@@ -1301,6 +1284,79 @@ class ExtensiveFormGame():
                                              converted_gambit_game)
         self._gambit_to_sage_setup_attributes(converted_root,
                                               converted_gambit_game)
+
+    def _gambit_to_sage_organize_nodes_for_looping(self, gambit_game):
+        """
+        A method for ``_gambit_to_sage`` which goes through nodes of
+        a gambit game, and stores them in a dictionary with corresponding keys
+        depending on what 'generation' they are. i.e. the tree root is at 0,
+        its children are at 1.
+
+        If we wish to test the method, we need a gambit game set up (this one
+        has some unlabeled actions)::
+
+            sage: import gambit  # optional - gambit
+            sage: g = gambit.Game.new_tree()  # optional - gambit
+            sage: g.players.add("1")  # optional - gambit
+            <Player [0] '1' in game ''>
+            sage: g.players.add("2")  # optional - gambit
+            <Player [1] '2' in game ''>
+            sage: move_1 = g.root.append_move(g.players["1"], int(2))  # optional - gambit
+            sage: move_2 = g.root.children[int(0)].append_move(g.players["2"], int(3))  # optional - gambit
+            sage: move_3 = g.root.children[int(1)].append_move(g.players["2"], int(2))  # optional - gambit
+            sage: move_3.actions[int(0)].label = 'A' # optional - gambit
+            sage: move_3.actions[int(1)].label = 'B' # optional - gambit
+            sage: g.root.label = 'Root'  # optional - gambit
+            sage: g.root.children[int(0)].label = 'Node 1'  # optional - gambit
+            sage: g.root.children[int(1)].label = 'Node 2'  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(1)  # optional - gambit
+            sage: outcome[int(1)] = int(5)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(5)  # optional - gambit
+            sage: outcome[int(1)] = int(2)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(1)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(9)  # optional - gambit
+            sage: outcome[int(1)] = int(1)  # optional - gambit
+            sage: g.root.children[int(0)].children[int(2)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(3)  # optional - gambit
+            sage: outcome[int(1)] = int(0)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(0)].outcome = outcome  # optional - gambit
+            sage: outcome = g.outcomes.add()  # optional - gambit
+            sage: outcome[int(0)] = int(2)  # optional - gambit
+            sage: outcome[int(1)] = int(7)  # optional - gambit
+            sage: g.root.children[int(1)].children[int(1)].outcome = outcome  # optional - gambit
+
+        We can then see the dictionary::
+
+            sage: sage_game = ExtensiveFormGame(g)
+            sage: sage_game._gambit_to_sage_organize_nodes_for_looping(g)
+            sage: expected_dict = {0: [g.root],
+            ....:                  1: [g.root.children[int(0)],
+            ....:                      g.root.children[int(1)]],
+            ....:                  2: [g.root.children[int(0)].children[int(0)],
+            ....:                      g.root.children[int(0)].children[int(1)],
+            ....:                      g.root.children[int(0)].children[int(2)],
+            ....:                      g.root.children[int(1)].children[int(0)],
+            ....:                      g.root.children[int(1)].children[int(1)]]}
+            sage: sage_game._gambit_to_sage_node_indexed_dict == expected_dict
+            True
+        """
+        index = 1
+        self._gambit_to_sage_node_indexed_dict = {0: [gambit_game.root]}
+        node_list = [gambit_game.root]
+        while len(node_list) != 0:
+            new_node_list = []
+            for node in node_list:
+                for child in node.children:
+                    new_node_list.append(child)
+            if len(new_node_list) != 0:
+                self._gambit_to_sage_node_indexed_dict[index] = new_node_list
+                index += 1
+            node_list = new_node_list
 
     def _gambit_to_sage_rename_blank_actions(self, gambit_node):
         """
