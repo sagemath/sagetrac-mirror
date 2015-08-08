@@ -277,15 +277,15 @@ maps information sets to probability vectors representing probabilities
 of taking specific actions with the game.::
 
     sage: battle_of_the_sexes.obtain_nash()  # optional - gambit
-    [[[{('a',): {'Comedy': 0.0, 'Sports': 1.0}}],
-      [{('b',): {'Comedy': 0.0, 'Sports': 1.0},
-        ('c',): {'Comedy': 0.0, 'Sports': 1.0}}]],
-     [[{('a',): {'Comedy': 0.0, 'Sports': 1.0}}],
-      [{('b',): {'Comedy': 0.5, 'Sports': 0.5},
-        ('c',): {'Comedy': 0.0, 'Sports': 1.0}}]],
-     [[{('a',): {'Comedy': 1.0, 'Sports': 0.0}}],
-      [{('b',): {'Comedy': 1.0, 'Sports': 0.0},
-        ('c',): {'Comedy': 0.0, 'Sports': 1.0}}]]]
+    [((('a',), {'Comedy': 0.0, 'Sports': 1.0}),
+      (('b',), {'Comedy': 0.0, 'Sports': 1.0}),
+      (('c',), {'Comedy': 0.0, 'Sports': 1.0})),
+     ((('a',), {'Comedy': 0.0, 'Sports': 1.0}),
+      (('b',), {'Comedy': 0.5, 'Sports': 0.5}),
+      (('c',), {'Comedy': 0.0, 'Sports': 1.0})),
+     ((('a',), {'Comedy': 1.0, 'Sports': 0.0}),
+      (('b',), {'Comedy': 1.0, 'Sports': 0.0}),
+      (('c',), {'Comedy': 0.0, 'Sports': 1.0}))]
 
 We can also check if the game is a constant sum game, with the ``is_constant_sum``
 method, which simply checks that the sum of utilities for a Leaf within the game
@@ -3364,12 +3364,18 @@ class ExtensiveFormGame():
 
         Then we simply use the obtain_nash method::
 
-            sage: expected_outcome = [[[{('a',): {'W': 1.0, 'X': 0.0}, ('d',): {'Y': 0.5, 'Z': 0.5}}],
-            ....: [{('b',): {'C': 0.0, 'D': 1.0}, ('c',): {'A': 0.0, 'B': 1.0}}]],
-            ....: [[{('a',): {'W': 1.0, 'X': 0.0}, ('d',): {'Y': 0.5, 'Z': 0.5}}],
-            ....: [{('b',): {'C': 0.5, 'D': 0.5}, ('c',): {'A': 0.0, 'B': 1.0}}]],
-            ....: [[{('a',): {'W': 0.0, 'X': 1.0}, ('d',): {'Y': 1.0, 'Z': 0.0}}],
-            ....: [{('b',): {'C': 1.0, 'D': 0.0}, ('c',): {'A': 0.0, 'B': 1.0}}]]]
+            sage: expected_outcome = [((('a',), {'W': 1.0, 'X': 0.0}),
+            ....:                      (('d',), {'Y': 0.5, 'Z': 0.5}),
+            ....:                      (('b',), {'C': 0.0, 'D': 1.0}),
+            ....:                      (('c',), {'A': 0.0, 'B': 1.0})),
+            ....:                     ((('a',), {'W': 1.0, 'X': 0.0}),
+            ....:                      (('d',), {'Y': 0.5, 'Z': 0.5}),
+            ....:                      (('b',), {'C': 0.5, 'D': 0.5}),
+            ....:                      (('c',), {'A': 0.0, 'B': 1.0})),
+            ....:                     ((('a',), {'W': 0.0, 'X': 1.0}),
+            ....:                      (('d',), {'Y': 1.0, 'Z': 0.0}),
+            ....:                      (('b',), {'C': 1.0, 'D': 0.0}),
+            ....:                      (('c',), {'A': 0.0, 'B': 1.0}))]
             sage: expected_outcome == example.obtain_nash()   # optional - gambit
             True
 
@@ -3390,12 +3396,13 @@ class ExtensiveFormGame():
             sage: node_b1 = EFG_Node(player_1, {'a': node_b2, 'b': leaf_b4,
             ....:                               'c': node_b4}, 'Tree Root')
             sage: example_b = ExtensiveFormGame(node_b1)
-            sage: expected_outcome = [[[{('Node A',): {'f': 0.5, 'g': 0.5},
-            ....: ('Tree Root',): {'a': 0.0, 'b': 1.0, 'c': 0.0}}],
-            ....: [{('Node B',): {'d': 1.0, 'e': 0.0}, ('Node C',): {'h': 1.0, 'i': 0.0}}]]]
+            sage: expected_outcome = [((('Tree Root',), {'a': 0.0, 'b': 1.0, 'c': 0.0}),
+            ....:                      (('Node A',), {'f': 0.5, 'g': 0.5}),
+            ....:                      (('Node B',), {'d': 1.0, 'e': 0.0}),
+            ....:                      (('Node C',), {'h': 1.0, 'i': 0.0}))]
             sage: example_b.obtain_nash() == expected_outcome  # optional - gambit
             True
-
+           
         The following is a test to show that this works for larger trees too::
 
             sage: player_c1 = EFG_Player('Player 1')
@@ -3421,17 +3428,17 @@ class ExtensiveFormGame():
             sage: node_c6 = EFG_Node(player_c2, {'C': node_c3,
             ....:                                'D': node_c4}, "Node 6")
             sage: root_c = EFG_Node(player_c1, {'A': node_c5, 'B': node_c6})
-            sage: egame_c = ExtensiveFormGame(root_c)
-            sage: egame_c.set_info_set([node_c5, node_c6])
-            sage: egame_c.set_info_set([node_c1, node_c2])
-            sage: egame_c.set_info_set([node_c3, node_c4])
-            sage: expected_outcome = [[[{('Node 1', 'Node 2',): {'A': 0.0, 'B': 1.0},
-            ....: ('Node 3', 'Node 4',): {'A': 0.5, 'B': 0.5},
-            ....: ('Tree Root',): {'A': 1.0, 'B': 0.0}}],
-            ....: [{('Node 5', 'Node 6',): {'C': 0.0, 'D': 1.0}}]]]
-            sage: expected_outcome == egame_c.obtain_nash()  # optional - gambit
+            sage: example_c = ExtensiveFormGame(root_c)
+            sage: example_c.set_info_set([node_c5, node_c6])
+            sage: example_c.set_info_set([node_c1, node_c2])
+            sage: example_c.set_info_set([node_c3, node_c4])
+            sage: expected_outcome = [((('Tree Root',), {'A': 1.0, 'B': 0.0}),
+            ....:                      (('Node 1', 'Node 2'), {'A': 0.0, 'B': 1.0}),
+            ....:                      (('Node 3', 'Node 4'), {'A': 0.5, 'B': 0.5}),
+            ....:                      (('Node 5', 'Node 6'), {'C': 0.0, 'D': 1.0}))]
+            sage: expected_outcome == example_c.obtain_nash()  # optional - gambit
             True
-
+            
         Curently we cannot obtain Nash Equilibria for games with more than two
         players, so an error will be returned in these instances::
 
