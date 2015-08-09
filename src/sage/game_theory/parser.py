@@ -318,10 +318,10 @@ class Parser():
 
     def format_gambit_efg_tree(self, gambit_game):
         """
-        Parses the output of gambit so as to return lists for each equilibria,
-        with lists for each player within, that contains dictionaries that
-        maps infomration sets to probabilities,
-        corresponding to equilibria obtained using the LCP algorithm.
+        Parses the output of gambit so as to returns a list of each equilibria,
+        with tuples that contains information sets and corresponding dictionaries
+        that maps actions to probabilities, corresponding to equilibria
+        obtained using Gambit's LCP algorithm.
 
         TESTS:
 
@@ -374,9 +374,9 @@ class Parser():
             sage: g.root.children[int(0)].children[int(1)].children[int(1)].outcome = XCY  # optional - gambit
             sage: g.root.children[int(1)].children[int(0)].outcome = WB  # optional - gambit
             sage: g.root.children[int(1)].children[int(1)].outcome = WA  # optional - gambit
-           
+
         Here is the output of the LCP algorithm::
-        
+
             sage: solver = gambit.nash.ExternalLCPSolver()  # optional - gambit  # optional - gambit
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit  # optional - gambit
@@ -385,11 +385,11 @@ class Parser():
         The Parser class outputs the equilibrium::
 
             sage: nasheq = Parser(LCP_output).format_gambit_efg_tree(g)  # optional - gambit
-            sage: expected_outcome = [((('Root',), {'W': 0.0, 'X': 1.0}), (('Node 3',), {'Y': 1.0, 'Z': 0.0}), 
+            sage: expected_outcome = [((('Root',), {'W': 0.0, 'X': 1.0}), (('Node 3',), {'Y': 1.0, 'Z': 0.0}),
             ....: (('Node 1',), {'C': 0.0, 'D': 1.0}), (('Node 2',), {'A': 1.0, 'B': 0.0}))]
             sage: nasheq == expected_outcome # optional - gambit
             True
-            
+
         If we change one of the outputs for the above tree, more nash equilibria are obtained::
 
             sage: alternate_output = g.outcomes.add()  # optional - gambit
@@ -411,7 +411,7 @@ class Parser():
             ....: (('Node 1',), {'C': 0.0, 'D': 1.0}), (('Node 2',), {'A': 1.0, 'B': 0.0}))]
             sage: nasheq  == expected_outcome  # optional - gambit
             True
-            
+
         Another test::
 
             sage: g = gambit.Game.new_tree()  # optional - gambit
@@ -474,7 +474,7 @@ class Parser():
             ....: (('Node 1',), {'D': 0.75, 'E': 0.25}), (('Node 2',), {'H': 0.0, 'I': 1.0}))]
             sage: nasheq == expected_outcome  # optional - gambit
             True
-                        
+
         Another test with a different tree::
 
             sage: g = gambit.Game.new_tree()  # optional - gambit
