@@ -530,6 +530,18 @@ REFERENCES:
    *Multiagent systems: Algorithmic, game-theoretic, and logical foundations.*
    Cambridge University Press, 2008.
 
+.. [LH1964] C.E. Lemke and J. Howson.
+   *Equilibrium points of bimatrix games.*
+   Journal of the Society for Industrial and Applied Mathematics, 1964.
+
+.. [CRP2008] B. Codenotti, S. D. Rossi and M. Pagan.
+   *An experimental analysis of Lemke-Howson algorithm*
+   CoRR, abs/0811.3247, 2008.
+
+.. [SS2008] A. von Schemde and B. von Stengel.
+   *Strategic Characterization of the Index of an Equilibrium*
+   Algorithmic Game Theory, LNCS, 2008.
+
 AUTHOR:
 
 - James Campbell and Vince Knight (06-2014): Original version
@@ -1094,6 +1106,9 @@ class NormalFormGame(SageObject, MutableMapping):
             See the gambit web site (http://gambit.sourceforge.net/). Note
             that the output differs from the other algorithms: floats are
             returned.
+
+          * ``'lh-*'`` - This is an implementation of the Lemke-Howson algorithm which is a
+            complementary pivoting algorithm on a pair of best response polytopes for both players.
 
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
@@ -1823,7 +1838,31 @@ class NormalFormGame(SageObject, MutableMapping):
             False
             sage: g._lh_is_column_basic(3, 3, t[2], 0, 2)
             True
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 3)
+            True
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 4)
+            True
             sage: g._lh_is_column_basic(3, 3, t[2], 0, 5)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 6)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 7)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 8)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 0, 2)
+            True
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 3)
+            True
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 4)
+            True
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 5)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 6)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 7)
+            False
+            sage: g._lh_is_column_basic(3, 3, t[2], 1, 8)
             False
         """
         if ntab == 0:
@@ -1831,7 +1870,7 @@ class NormalFormGame(SageObject, MutableMapping):
         else:
             nlines = dim2
 
-        if column < 2 :
+        if column < 2 or column >= 2 + dim1 + dim2:
             return False
 
         for i in range(nlines):
@@ -1984,7 +2023,54 @@ class NormalFormGame(SageObject, MutableMapping):
     def _init_lh_tableau(self, A, B, ring = RR):
         r"""
         Creates the set of tableaus representing the best response polytopes for the two players
-        given their payoff matrices.
+        given their payoff matrices. Given the payoff matrices ``A, B``, the tableaus representing
+        the best response polytopes for the players can be represented by the following systems
+
+        .. MATH ::
+
+            \begin{equation*}
+            s = 1 - B^Tx \qquad r = 1 - Ay
+            \end{equation*}
+            where
+            $x \ge 0, y \ge 0, r \ge 0, s \ge 0$
+
+        EXAMPLES::
+
+        Consider the following game with payoff matrices (A, B)
+
+        sage: A = matrix([[1, 2], [3, 4], [5, 6]])
+        sage: B = matrix([[1, 2], [3, 4], [5, 6]])
+        sage: g = NormalFormGame([A, B])
+
+        .. MATH ::
+
+            \begin{equation*}
+            \left\{
+              \begin{array}{llllll}
+                r_1 = 1 & { } & { } & { } & -y_4 & -2y_5\\
+                r_2 = 1 & { } & { } & { } & -3y_4 & -4y_5\\
+                r_3 = 1 & { } & { } & { } & -5y_4 & -6y_5\\
+                s_4 = 1 & -1x_1 & -3x_2 & -5x_3 & { } & { }\\
+                s_5 = 1 & -2x_1 & -4x_2 & -6x_3 & { } & { }
+              \end{array}
+            \right.
+            \end{equation*}
+
+        And is represented within sage as shown below.
+
+        sage: t = g._init_lh_tableau(A, B, QQ)
+        sage: t[2][0]
+        [-1  1  0  0  0 -1 -2]
+        [-2  1  0  0  0 -3 -4]
+        [-3  1  0  0  0 -5 -6]
+        sage: t[2][1]
+        [-4  1  0  0 -1 -3 -5]
+        [-5  1  0  0 -2 -4 -6]
+        
+        In the representation used, the first column represents the basic variable for the
+        individual rows, while the second column represents the constant in the RHS. The next set of
+        columns represent the columns of the slack variables r, s, followed by the columns for the
+        variables y, x for the first and second tableaus respectively.
 
         INPUT:
 
@@ -2040,6 +2126,28 @@ class NormalFormGame(SageObject, MutableMapping):
             [-5.00  1.00 0.000 0.000 0.000 -3.00 -2.00 -4.00 -5.00]
             [-6.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -5.00 -2.00]
             [-7.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -2.00 -3.00]
+            sage: tab = g._init_lh_tableau(A, B, QQ)
+            sage: tab[0]
+            4
+            sage: tab[1]
+            3
+            sage: print tab[2][0]
+            [  -1    1    0    0    0    0 -117 -162   -1]
+            [  -2    1    0    0    0    0 -132 -137   -2]
+            [  -3    1    0    0    0    0 -158 -161   -7]
+            [  -4    1    0    0    0    0  -77 -164   -6]
+            sage: print tab[2][1]
+            [-5  1  0  0  0 -3 -2 -4 -5]
+            [-6  1  0  0  0 -3 -1 -5 -2]
+            [-7  1  0  0  0 -3 -1 -2 -3]
+            sage: type(tab[2][0])
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: type(tab[2][1])
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: tab = g._init_lh_tableau(A, B, ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: `ring` specified should either be `RR` or `QQ`
         """
         A = self._positivize_matrix(A)
         B = self._positivize_matrix(B.T)
@@ -2205,7 +2313,8 @@ class NormalFormGame(SageObject, MutableMapping):
     def _get_tableau(self, dim1, dim2, strategy):
         r"""
         Given a strategy index, returns which tableau it belongs to and returns -1 if it belongs to
-        neither.
+        neither. Due to the construction of the tableau, positive strategies are the variables of
+        the tableau, while negetive strategy values represent slack variables in a tableau.
         
         TESTS:
 
@@ -2242,7 +2351,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         .. NOTE::
             For the implementation of Lemke-Howson, the individual strategies are indexed from 1 to
-            ``dim1`` for the row player and ``dim1 + 1`` to ``dim2`` for the column player.
+            ``dim1`` for the row player and ``1 + dim1`` to ``1 + dim1 + dim2`` for the column player.
 
         .. NOTE::
             ``strategy`` takes an input within the range from ``- dim1 - dim2`` to ``dim1 + dim2``
@@ -2310,16 +2419,32 @@ class NormalFormGame(SageObject, MutableMapping):
         
         return strategy
 
-    def _lh_solve_tableau(self, tableaus, startpivot):
+    def _lh_solve_tableau(self, tableaus, missing):
         r"""
         Runs the Lemke-Howson algorithm with the given tableaus starting with the given missing
-        label (or entering variable).
+        label (or entering variable). The Lemke-Howson [LH1964]_ algorithm is a complementary based
+        pivoting algorithm on a pair of best response polytopes 'P' and 'Q' where:
+
+        .. MATH::
+
+            \begin{equation*}
+            P = { x \in R^M | x \ge \mathbf{0}, B^T x \le 1 }
+            Q = { y \in R^N | y \ge \mathbf{0}, Ay \le 1}
+            \end{equation*}
+
+        The algorithm starts from a pair of vertices on the polytopes which represent an equilibrium
+        with a parameter usually known as the missing label `k` (``missing``). Starting from an
+        equilibrium, it pivots in the variable `k` (or it's complementary slack variable) into the
+        basis of a tableau `A`. After variable `k` enters the basis, the variable `l` leaves the
+        basis and the complementary variable of `l` then becomes the entering variable in the
+        tableau `B`. This process continues until either the variable `k` or it's complementary
+        variable leaves the basis.
 
         INPUT:
         
-        - ``tableaus`` -- The tableaus representing the best response polytopes for the players in
-          the game.
-        - ``startpivot`` -- The initial missing label (entering variable)
+        - ``tableaus`` -- The tableaus representing an equilibrium point in the best response
+          polytope of the game.
+        - ``missing`` -- The initial missing label (entering variable)
 
         TESTS:
 
@@ -2394,12 +2519,15 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]] 
             [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
         """
+        missing = missing
+        if missing <= 0 or missing > tableaus[0].nrows() + tableaus[1].nrows():
+            raise ValueError("The ``missing`` variable should be within the range [1, dim1 + dim2]")
         #tab = [matrix(tableaus[0], copy=True), matrix(tableaus[1], copy=True)]
         tab = [copy(tableaus[0]), copy(tableaus[1])]
         dim1 = tab[0].nrows()
         dim2 = tab[1].nrows()
         index = 0
-        pivot = self._get_pivot_gen(dim1, dim2, tab, startpivot)
+        pivot = self._get_pivot_gen(dim1, dim2, tab, missing)
 
         epsilon = sys.float_info.epsilon
         
@@ -2457,7 +2585,7 @@ class NormalFormGame(SageObject, MutableMapping):
                     tab[ntab][i,column] = 0
                     
             pivot = -newpivot
-            if newpivot == startpivot or newpivot == -startpivot :
+            if newpivot == missing or newpivot == -missing :
                 break
         
         #print "=========="
@@ -2492,27 +2620,35 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_lh(self, missing = 1, ring = RR):
         r"""
-        Solve the current game by running the Lemke-Howson algorithm from the artificial algorithm
-        with a given missing label.
+        Solves the current game by running the Lemke-Howson algorithm from the artificial algorithm
+        with a given missing label and returns the single equilibrium which was found.
 
         .. NOTE::
+
+            The artificial equilibrium is the solution where both players don't play the game i.e.
+            they both play the 0 vector.
+
+        .. NOTE::
+
             Note that the implementation could get unstable and equilibria might not be found on
             certain instances due to floating point errors.
 
-        EXAMPLES::
-
-        A simple game::
+        TESTS::
 
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
-            sage: g._solve_lh()
-            [[[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]]]
-            sage: g._solve_lh(2)
-            [[[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]]]
-            sage: g._solve_lh(4)
-            [[[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]]]
-
-        2 random matrices::
+            sage: g._solve_lh(ring=QQ)
+            [[[1, 0.0, 0.0], [1, 0.0, 0.0]]]
+            sage: g._solve_lh(2, ring=QQ)
+            [[[0.0, 1, 0.0], [0.0, 1, 0.0]]]
+            sage: g._solve_lh(3, ring=QQ)
+            [[[0.0, 0.0, 1], [0.0, 0.0, 1]]]
+            sage: g._solve_lh(4, ring=QQ)
+            [[[1, 0.0, 0.0], [1, 0.0, 0.0]]]
+            sage: g._solve_lh(5, ring=QQ)
+            [[[0.0, 1, 0.0], [0.0, 1, 0.0]]]
+            sage: g._solve_lh(6, ring=QQ)
+            [[[0.0, 0.0, 1], [0.0, 0.0, 1]]]
             sage: p1 = matrix([[-1, 4, 0, 2, 0],
             ....:              [-17, 246, -5, 1, -2],
             ....:              [0, 1, 1, -4, -4],
@@ -2527,6 +2663,46 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = biggame._solve_lh()
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
+            sage: ne = biggame._solve_lh(ring=QQ)
+            sage: ne
+            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            sage: ne = biggame._solve_lh(2)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
+            [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
+            sage: ne = biggame._solve_lh(2, ring=QQ)
+            sage: ne
+            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            sage: ne = biggame._solve_lh(3)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
+            [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
+            sage: ne = biggame._solve_lh(3, ring=QQ)
+            sage: ne
+            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            sage: A = matrix([[3,3],
+            ....:             [2,5],
+            ....:             [0,6]])
+            sage: B = matrix([[3,2],
+            ....:             [2,6],
+            ....:             [3,1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g._solve_lh(1, ring=QQ)
+            [[[1, 0.0, 0.0], [1, 0.0]]]
+            sage: g._solve_lh(2, ring=QQ)
+            [[[0.0, 1/3, 2/3], [1/3, 2/3]]]
+            sage: g._solve_lh(3, ring=QQ)
+            [[[1, 0.0, 0.0], [1, 0.0]]]
+            sage: g._solve_lh(4, ring=QQ)
+            [[[1, 0.0, 0.0], [1, 0.0]]]
+            sage: g._solve_lh(5, ring=QQ)
+            [[[0.0, 1/3, 2/3], [1/3, 2/3]]]
+            sage: g._solve_lh(0, ring=QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ``missing`` variable should be within the range [1, dim1 + dim2]
+            sage: g._solve_lh(6, ring=QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ``missing`` variable should be within the range [1, dim1 + dim2]
         """
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B, ring)
@@ -2537,7 +2713,10 @@ class NormalFormGame(SageObject, MutableMapping):
         Computes all equilibria which can be found by starting from the current equilibrium using
         all pure strategies as the starting missing label. Upon computation of an equiibrium, it
         adds it to the corresponding list depending on whether it was a positive or a negatively
-        indexed equilibrium.
+        indexed equilibrium. Also, it updates the labels parameter of the current equilibrium so as
+        to show which equilibria were found using the different missing labels. If the same
+        equilibrium is found by starting from two different equilibria, then the label list within
+        the equilibrium found shows.
 
         INPUT:
 
@@ -2552,19 +2731,28 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: from sage.game_theory.normal_form_game import _LHEquilibrium
             sage: A = B = matrix.identity(3)
             sage: g = NormalFormGame([A, B])
-            sage: tab = g._init_lh_tableau(A, B)
+            sage: tab = g._init_lh_tableau(A, B, QQ)
             sage: neg = [_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]])]
             sage: pos = []
+            sage: neg[0]
+            Equ [[0, 0, 0], [0, 0, 0]] Labels[-1, -1, -1, -1, -1, -1]
             sage: g._lh_find_all_from(0, True, neg, pos)
+            sage: neg[0]
+            Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2]
             sage: pos
-            [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
-             Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
-             Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[-1, -1, 0, -1, -1, 0]]
+            [Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
+             Equ [[0.0, 1, 0.0], [0.0, 1, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [[0.0, 0.0, 1], [0.0, 0.0, 1]] Labels[-1, -1, 0, -1, -1, 0]]
             sage: g._lh_find_all_from(0, True, neg, pos)
-            sage: pos
-            [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
-             Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
-             Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[-1, -1, 0, -1, -1, 0]]
+            sage: pos[0]
+            Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1]
+            sage: g._lh_find_all_from(0, False, neg, pos)
+            sage: pos[0]
+            Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2]
+            sage: neg
+            [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
+             Equ [[1/2, 1/2, 0.0], [1/2, 1/2, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [[1/2, 0.0, 1/2], [1/2, 0.0, 1/2]] Labels[-1, -1, 0, -1, -1, 0]]
         """
         if isneg:
             cur = neg[i]
@@ -2593,7 +2781,15 @@ class NormalFormGame(SageObject, MutableMapping):
     def _lh_find_all(self, ring = RR):
         r"""
         This method computes and returns all equilibria which are reachable by the Lemke-Howson
-        algorithm by starting from the artificial equilibrium.
+        algorithm by starting from the artificial equilibrium. Not all equilibria in a game can be
+        found using the Lemke-Howson algorithm, however this method finds all equilibria reachable
+        by starting from the artificial equilibrium. This result is then returned in the form of two
+        lists of equilibria. The first contains all equilibria found (including the artificial) which have
+        a negative index, and the second contains the equilibria found which have a positive index.
+
+        .. SEEALSO::
+            
+            For information on the index of an equilibrium see [SS2008]_.
 
         INPUT:
 
