@@ -1,0 +1,63 @@
+diff --git a/Makefile.in b/Makefile.in
+index 73ffe52..c4af83c 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -115,7 +115,7 @@ $(FLINT_LIB): $(LOBJS) $(LIB_SOURCES) $(EXT_SOURCES) $(HEADERS) $(EXT_HEADERS) |
+ 	  $(CC) $(CFLAGS) $(ABI_FLAG) -shared $(EXTRA_SHARED_FLAGS) $(LOBJS) $(MOD_LOBJS) $(EXT_OBJS) -o $(FLINT_LIB) $(LDFLAGS) $(LIBS2); \
+ 	fi
+ 	$(AT)if [ "$(FLINT_SOLIB)" -eq "1" ]; then \
+-		ldconfig -n "$(CURDIR)"; \
++		$(LDCONFIG) -n "$(CURDIR)"; \
+ 	else \
+ 		ln -sf "$(CURDIR)/$(FLINT_LIB)" "$(CURDIR)/$(FLINT_LIBNAME)"; \
+ 	fi
+diff --git a/configure b/configure
+index 80bb54e..1c071d4 100755
+--- a/configure
++++ b/configure
+@@ -73,6 +73,7 @@ usage()
+    echo "     CC=<name>            Use the C compiler with the given name (default: gcc)"
+    echo "     CXX=<name>           Use the C++ compiler with the given name (default: g++)"
+    echo "     AR=<name>            Use the AR library builder with the given name (default: ar)"
++   echo "     LDCONFIG=<name>      Use the given dynamic linker"
+    echo "     CFLAGS=<flags>       Pass the given flags to the compiler"
+    echo "     CXXFLAGS=<flags>     Pass the given flags to the C++ compiler"
+    echo "     ABI=[32|64]          Tell the compiler to use given ABI (default: empty)"
+@@ -186,6 +187,9 @@ while [ "$1" != "" ]; do
+       CC)
+          CC="$VALUE"
+          ;;
++      LDCONFIG)
++         LDCONFIG="$VALUE"
++         ;;
+       CXX)
+          CXX="$VALUE"
+          ;;
+@@ -307,6 +311,19 @@ if [ -z "$AR" ]; then
+    AR=ar
+ fi
+ 
++# sometimes LDCONFIG is not to be found in the path. Look at some common places.
++
++if [ -z "$LDCONFIG" ]; then
++    if command -v ldconfig > /dev/null; then
++        LDCONFIG="ldconfig"
++    elif [ -x /sbin/ldconfig ]; then
++        LDCONFIG="/sbin/ldconfig"
++    else
++        echo "ldconfig was not found. You can specify a path on the command line with LDCONFIG=<name>";
++        exit 1;
++    fi
++fi
++
+ #handle gc and reentrant flags
+ 
+ if [ "$WANT_GC" = "1" ]; then
+@@ -704,6 +721,7 @@ echo "" >> Makefile
+ echo "CC=$CC" >> Makefile
+ echo "CXX=$CXX" >> Makefile
+ echo "AR=$AR" >> Makefile
++echo "LDCONFIG=$LDCONFIG" >> Makefile
+ echo "" >> Makefile
+ echo "CFLAGS=$CFLAGS" >> Makefile
+ echo "CXXFLAGS=$CXXFLAGS" >> Makefile
