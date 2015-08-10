@@ -416,7 +416,7 @@ def lift_cross_ratios(A, lift_map = None):
         sage: Z
         [ 1  0  1  1  1]
         [ 1  1  0  0  z]
-        [ 0  1 -z -1  0]
+        [ 0  z - 1  1  -z + 1  0]
         sage: M = LinearMatroid(reduced_matrix = A)
         sage: sorted(M.cross_ratios())
         [3, 5]
@@ -487,7 +487,7 @@ def lift_cross_ratios(A, lift_map = None):
             cr = -cr
             if not cr ==plus_one1:
                 monomial[cr] = 1
-            if  monomial.has_key(minus_one1):
+            if  minus_one1 in monomial:
                 monomial[minus_one1] = monomial[minus_one1] + 1
             else:
                 monomial[minus_one1] = 1
@@ -499,13 +499,13 @@ def lift_cross_ratios(A, lift_map = None):
         for entry2 in entries:
             if div:
                 for cr, degree in F[entry2].iteritems():
-                    if monomial.has_key(cr):
+                    if cr in monomial:
                         monomial[cr] = monomial[cr]+ degree
                     else:
                         monomial[cr] = degree
             else:
                 for cr, degree in F[entry2].iteritems():
-                    if monomial.has_key(cr):
+                    if cr in monomial:
                         monomial[cr] = monomial[cr] - degree
                     else:
                         monomial[cr] = -degree
