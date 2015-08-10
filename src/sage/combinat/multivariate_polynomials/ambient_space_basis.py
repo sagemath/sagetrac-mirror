@@ -16,7 +16,7 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis
+from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -155,12 +155,13 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
                 sage: # Fix a nice example
             """
             i = self._i
-            keys = self._module.basis().keys()
-            n = key.scalar(keys.simple_coroot(i))
+            ambient_space = key.parent().ambient_space()
+            as_key = key.ambient_space_element()
+            n = as_key.scalar(ambient_space.simple_coroot(i))
             if n >= 0:
-                return self._module.sum_of_monomials((keys(key-(j)*keys.simple_root(i)-keys.basis()[i-1]) for j in xrange(n)))
+                return self._module.sum_of_monomials((key.parent()(as_key-(j)*ambient_space.simple_root(i)-ambient_space.basis()[i-1]) for j in xrange(n)))
             else:
-                return -self.divided_difference_on_basis(keys.simple_reflection(i)(key))
+                return -self.divided_difference_on_basis(key.parent()(ambient_space.simple_reflection(i)(as_key)))
 
         @cached_method
         def isobaric_divided_difference_on_basis(self, key):
@@ -172,12 +173,13 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
                 sage: # Fix a nice example
             """
             i = self._i
-            keys = self._module.basis().keys()
-            n = key.scalar(keys.simple_coroot(i))
+            ambient_space = key.parent().ambient_space()
+            as_key = key.ambient_space_element()
+            n = as_key.scalar(ambient_space.simple_coroot(i))
             if n >= -1:
-                return self._module.sum_of_monomials((keys(key-j*keys.simple_root(i)) for j in range(n+1)))
+                return self._module.sum_of_monomials((key.parent()(as_key-j*ambient_space.simple_root(i)) for j in range(n+1)))
             else:
-                return -self._module.sum_of_monomials((keys(key+(j+1)*keys.simple_root(i)) for j in range(-n-1)))
+                return -self._module.sum_of_monomials((key.parent()(as_key+(j+1)*ambient_space.simple_root(i)) for j in range(-n-1)))
 
         @cached_method
         def hat_isobaric_divided_difference_on_basis(self, key):
@@ -186,7 +188,7 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
             return res1 - res2
 
         def si_on_basis(self, key):
-            return self._module(key.weyl_action([self._i]))
+            return self._module(key.parent()(key.ambient_space_element().weyl_action([self._i])))
 
         @cached_method
         def hecke_generator_on_basis(self, key):
@@ -221,11 +223,12 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
         if(basis_repr is None): basis_repr = abstract_polynomial_ring._main_repr_var
         self._root_system = RootSystem(group_code)
         self._group_type = group_type
+        self._basis_keys = MonomialKeyWrapper(self._root_system)
         FinitePolynomialRingWithBasis.__init__(
             self,
             abstract_polynomial_ring,
             abstract_polynomial_ring.polynomial_ring_tower().monomial_basis_with_type(group_type),
-            self._root_system.ambient_space(QQ),
+            self._basis_keys,
             basis_name,
             basis_repr
         )
@@ -253,7 +256,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice example
         """
-        return self.basis().keys().zero()
+        return self._basis_keys(self._basis_keys.ambient_space().zero())
 
     def product_on_basis(self, key1, key2):
         r"""
@@ -264,7 +267,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice example
         """
-        return self.term(key1 + key2)
+        return self.term( self._basis_keys(tuple(key1[i]+key2[i] for i in xrange(len(key1)))) )
 
     def _to_monomial_on_basis(self, key):
         r"""
@@ -273,15 +276,15 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
             sage: # Fix a nice test
         """
         monomial_basis = self.abstract_algebra().monomial_basis()
-        return monomial_basis( [key[i] for i in xrange(self.nb_variables())] )
+        return monomial_basis(key)
 
-    def _from_monomial_on_basis(self, vector):
+    def _from_monomial_on_basis(self, key):
         r"""
         TESTS::
 
             sage: # Fix a nice test
         """
-        return self.term( self._basis_keys( vector.coeffs_to_list() ) )
+        return self.term( self._basis_keys( key ) )
 
     def to_monomial_morphism(self):
         """
@@ -311,7 +314,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice example
         """
-        return self._basis_keys.weyl_group()
+        return self._basis_keys.ambient_space().weyl_group()
 
     def group_type(self):
         r"""
@@ -340,8 +343,8 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice test
         """
-        if( type(obj) is list or type(obj) is tuple ):
-            return self.term( self._basis_keys( obj))
+        if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element) ):
+            return self.term( self._basis_keys( list(obj)))
         else:
             return super(FinitePolynomialRingWithBasisFromAmbientSpace, self).__call__(obj)
 
@@ -376,6 +379,6 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
                 l = list(self)
                 vect = l[0][0]
                 coef = l[0][1]
-                return coef**-1 * self.parent().term(vect.parent().zero() - vect)
+                return coef**-1 * self.parent()( tuple(-v for v in vect) )
             raise ValueError,"%s is not invertible in %s"%(self, self.parent())
 

@@ -9,54 +9,18 @@ Misc classes used for multivariate polynomials
 #*****************************************************************************
 
 from sage.combinat.free_module import CombinatorialFreeModule
-
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.root_system.root_system import RootSystem
+from sage.rings.integer_ring import ZZ
+from sage.sets.non_negative_integers import NonNegativeIntegers
 
 from sage.rings.rational_field import QQ
 
-class MonomialKeyWrapper(Parent, UniqueRepresentation):
-
-    def __init__(self, root_system = None, length = None):
-        self._length = length
-        self._root_system = root_system
-
-        if length is None and root_system is None:
-            raise ValueError("Either length or root_system must be initialize")
-
-        if not root_system is None:
-            self._is_typed = True
-            self.Element = self.RootSystemWrapper
-        else:
-            self._is_typed = False
-            self.Element = self.SimpleWrapper
-
-    def is_typed(self):
-        return self._is_typed
-
-    def length(self):
-        return self._length
-
-    def root_sytem(self):
-        return
-
-
-    class SimpleWrapper(Element):
-
-        def __init__(self, parent, wrapped):
-            Element.__init__(parent = parent)
-            self._wrapped = wrapped
-
-        def __iter__(self):
-
-            for i in self._wrapped:
-                yield i
-
-        def __getitem__(self, key):
-            return self._wrapped[key]
 
 
 
-    class RootSystemWrapper(Element):
-        pass
 
 # NT, VP : Any suggestion for the place where this code should go ?
 class RelativeIntegerVectors(CombinatorialFreeModule):

@@ -17,10 +17,380 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutation
+from sage.combinat.root_system.root_system import RootSystem
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.rings.integer_ring import ZZ
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.rings.rational_field import QQ
+
+class MonomialKeyWrapper(Parent, UniqueRepresentation):
+    r"""
+    A wrapper class to represent keys of monomials of the multivariate
+    polynomial algebra.
+
+    Depending of the basis, a key can be either represented by a tuple
+    (untyped basis) or by an element of the ambient space of a root system
+    (typed basis). This wrapper parent gives an easy and consistent access
+    to oth types of keys independently of their inner structure.
+
+    INPUT:
+
+    - ``wrapping_parameter`` -- a parameter representing the elements to
+      wrapp, either a non negative integer or a root system.
+
+    To create a wrapper for untyped key, send the key size::
+
+        sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+        sage: MonomialKeyWrapper(3)
+        Monomial key wrapper for untyped key of size 3
+
+    For keys depending on a root system, send the root system::
+
+        sage: MonomialKeyWrapper(RootSystem("A3"))
+        Monomial key wrapper for Ambient space of the Root system of type ['A', 3]
+
+    In both cases, elements can be created from lists and treated like tuples::
+
+        sage: w = MonomialKeyWrapper(3)
+        sage: key = w([1,2,3]); key
+        [1, 2, 3]
+        sage: tuple(key)
+        (1, 2, 3)
+        sage: list(key)
+        [1, 2, 3]
+        sage: key[:]
+        (1, 2, 3)
+        sage: len(key)
+        3
+        sage: w = MonomialKeyWrapper(RootSystem("A2"))
+        sage: key = w([1,2,3]); key
+        [1, 2, 3]
+        sage: tuple(key)
+        (1, 2, 3)
+        sage: list(key)
+        [1, 2, 3]
+        sage: key[:]
+        (1, 2, 3)
+        sage: len(key)
+        3
+
+    If the wrapped element comes from an ambient space, then it can be retrieved.
+
+        sage: w = MonomialKeyWrapper(RootSystem("A2"))
+        sage: key = w([1,2,3])
+        sage: key.ambient_space_element()
+        (1, 2, 3)
+    """
+
+    def __init__(self, wrapping_parameter):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: MonomialKeyWrapper(3)
+            Monomial key wrapper for untyped key of size 3
+            sage: MonomialKeyWrapper(RootSystem("A3"))
+            Monomial key wrapper for Ambient space of the Root system of type ['A', 3]
+        """
+
+        self._root_system = None
+        self._ambient_space = None
+        self._length = None
+
+        if isinstance(wrapping_parameter, RootSystem):
+            self._is_typed = True
+            self._root_system = wrapping_parameter
+            self._ambient_space = wrapping_parameter.ambient_space(QQ)
+        elif wrapping_parameter in NonNegativeIntegers():
+            self._is_typed = False
+            self._length = wrapping_parameter
+        else:
+            raise TypeError("Must be initialized with either a length (integer) or a root system")
+
+        Parent.__init__(self)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: MonomialKeyWrapper(3)
+            Monomial key wrapper for untyped key of size 3
+            sage: MonomialKeyWrapper(RootSystem("A3"))
+            Monomial key wrapper for Ambient space of the Root system of type ['A', 3]
+        """
+        if self.is_typed():
+            return "Monomial key wrapper for " + str(self.ambient_space())
+        else:
+            return "Monomial key wrapper for untyped key of size " + str(self.length())
+
+    def is_typed(self):
+        r"""
+        Return whether ``self`` is a typed wrapped, i.e. does it wrapp
+        root system ambient space elements or just integer tuples.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: w = MonomialKeyWrapper(3)
+            sage: w.is_typed()
+            False
+            sage: w = MonomialKeyWrapper(RootSystem("A3"))
+            sage: w.is_typed()
+            True
+
+        """
+        return self._is_typed
+
+    def length(self):
+        r"""
+        Return the length of the wrapped keys of ``self``
+
+        OUTPUT:
+
+        A integer if ``self`` is not typed or else ``None``
+
+        EXAMPLES::
+
+            sage: w = MonomialKeyWrapper(3)
+            sage: w.length()
+            3
+            sage: w = MonomialKeyWrapper(RootSystem("A3"))
+            sage: w.length() is None
+            True
+        """
+        return self._length
+
+    def ambient_space(self):
+        r"""
+        Return the ambient space whose elements are wrapped in ``self``.
+
+        OUTPUT:
+
+        An ambient space of a root system if ``self`` is typed, or else ``None``
+
+        EXAMPLES::
+
+            sage: w = MonomialKeyWrapper(3)
+            sage: w.ambient_space() is None
+            True
+            sage: w = MonomialKeyWrapper(RootSystem("A3"))
+            sage: w.ambient_space()
+            Ambient space of the Root system of type ['A', 3]
+
+        """
+        return self._ambient_space
+
+    def root_sytem(self):
+        r"""
+        Return the group system whose ambien space elements are wrapped in ``self``.
+
+        OUTPUT:
+
+        A root system if ``self`` is typed, or else ``None``
+
+        EXAMPLES::
+
+            sage: w = MonomialKeyWrapper(3)
+            sage: w.root_sytem() is None
+            True
+            sage: w = MonomialKeyWrapper(RootSystem("A3"))
+            sage: w.root_sytem()
+            Root system of type ['A', 3]
+
+        """
+        return self._root_system
+
+    def _element_constructor_(self, wrapped):
+        r"""
+        Construct an element of ``self``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: w = MonomialKeyWrapper(3)
+            sage: w([1,2,3])
+            [1, 2, 3]
+            sage: type(w([1,2,3]))
+            <class 'sage.combinat.multivariate_polynomials.misc.MonomialKeyWrapper.element_class'>
+        """
+        return self.element_class(self, wrapped)
+
+
+    class Element(Element):
+        r"""
+        The element class for the monomial key wrapper.
+
+        INPUT:
+
+            - ``parent`` -- the parent to use
+            - ``wrapped```-- a list of integers or an ambient space element
+              to be wrapped
+
+        EXAMPLES::
+
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: w = MonomialKeyWrapper(3)
+            sage: key = w([1,2,3]); key
+            [1, 2, 3]
+            sage: list(key)
+            [1, 2, 3]
+            sage: key[0]
+            1
+            sage: w = MonomialKeyWrapper(RootSystem("A2"))
+            sage: key = w([1,2,3]); key
+            [1, 2, 3]
+            sage: list(key)
+            [1, 2, 3]
+            sage: key[0]
+            1
+        """
+
+
+        def __init__(self, parent, wrapped):
+            r"""
+            TESTS::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(3)
+                sage: w([1,2,3])
+                [1, 2, 3]
+                sage: w([1,2])
+                Traceback (most recent call last):
+                ...
+                ValueError: Length of key [1, 2] is different from parent length 3
+                sage: w(1)
+                Traceback (most recent call last):
+                ...
+                TypeError: Cannot make 1 into a tuple: not a proper untyped monomial key
+                sage: w([1.2,3,4])
+                Traceback (most recent call last):
+                ...
+                ValueError: [1.20000000000000, 3, 4] is not a proper monomial key (must contain only integers)
+                sage: w = MonomialKeyWrapper(RootSystem("A2"))
+                sage: w([1,2,3])
+                [1, 2, 3]
+                sage: w(1)
+                Traceback (most recent call last):
+                ...
+                TypeError: Cannot make 1 into an element of Ambient space of the Root system of type ['A', 2]
+            """
+            Element.__init__(self, parent = parent)
+            self._ambient_space_element = None
+            if self.parent().is_typed():
+                if not wrapped in self.parent().ambient_space():
+                    try:
+                        wrapped = self.parent().ambient_space()(wrapped)
+                    except:
+                        raise TypeError("Cannot make {} into an element of {}".format(wrapped, self.parent().ambient_space()))
+                self._wrapped = tuple(wrapped.to_vector())
+                self._ambient_space_element = wrapped
+            else:
+                try:
+                    self._wrapped = tuple(wrapped)
+                except:
+                    raise TypeError("Cannot make {} into a tuple: not a proper untyped monomial key".format(wrapped))
+                if len(wrapped) != self.parent().length():
+                    raise ValueError("Length of key {} is different from parent length {}".format(wrapped, self.parent().length()))
+                if not all(i in ZZ for i in wrapped):
+                    raise ValueError("{} is not a proper monomial key (must contain only integers)".format(wrapped))
+
+        def __iter__(self):
+            r"""
+            TESTS::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(3)
+                sage: list(w([1,2,3]))
+                [1, 2, 3]
+                sage: w = MonomialKeyWrapper(RootSystem("A2"))
+                sage: list(w([1,2,3]))
+                [1, 2, 3]
+            """
+            for i in self._wrapped:
+                yield i
+
+        def __len__(self):
+            r"""
+            Return the length of ``self``
+
+            EXAMPLES::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(3)
+                sage: len(w([1,2,3]))
+                3
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(RootSystem("A2"))
+                sage: len(w([1,2,3]))
+                3
+            """
+            return len(self._wrapped)
+
+        def __getitem__(self, key):
+            r"""
+            TESTS::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(3)
+                sage: w([1,2,3])[0]
+                1
+                sage: w([1,2,3])[4]
+                0
+                sage: w = MonomialKeyWrapper(RootSystem("A2"))
+                sage: w([1,2,3])[0]
+                1
+
+            """
+            if key in ZZ and key >= len(self):
+                return 0
+            return self._wrapped[key]
+
+        def _repr_(self):
+            r"""
+            Return a string representation of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(3)
+                sage: w([1,2,3])
+                [1, 2, 3]
+            """
+            return str(list(self._wrapped))
+
+        def ambient_space_element(self):
+            r"""
+            Return the ambient space element wrapped into ``self``
+
+            OUTPUT:
+
+            an element of the ambient space of a root system or ``None``
+            if ``self`` is not typed key.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+                sage: w = MonomialKeyWrapper(RootSystem("A2"))
+                sage: key = w([1,2,3])
+                sage: key.ambient_space_element()
+                (1, 2, 3)
+                sage: type(key.ambient_space_element())
+                <class 'sage.combinat.root_system.ambient_space.AmbientSpace_with_category.element_class'>
+                sage: key.ambient_space_element() in key.parent().ambient_space()
+                True
+                sage: w = MonomialKeyWrapper(3)
+                sage: w([1,2,3]).ambient_space_element() is None
+                True
+            """
+            return self._ambient_space_element
 
 r"""
     The category of bases of (see :class:``MultivariatePolynomialAlgebra``). These
@@ -1878,7 +2248,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
             x[1, 2, 3]
 
         """
-        nb_variables = len(key.parent()._basis_keys)
+        nb_variables = len(key)
         return self.finite_basis(nb_variables).term(key, coeff)
 
     def add_operator(self, name, method):

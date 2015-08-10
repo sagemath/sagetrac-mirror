@@ -13,9 +13,7 @@ This file contains the `MonomialBasis` and `FiniteMonomialBasis` classes which
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis
-from misc import RelativeIntegerVectors
-
+from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
 class MonomialBasis(PolynomialRingWithBasis):
     r"""
     This class implements the monomial basis. Polynomials are seen as
@@ -266,7 +264,6 @@ class MonomialBasis(PolynomialRingWithBasis):
             """
             i = self._i
             otype  = self._type
-            key = key.coeffs_to_list()
             if(otype == "A"):
                 monomial_basis_with_type = self._module.abstract_algebra().monomial_basis_with_type(otype)
                 morph = monomial_basis_with_type.get_morphism(i,method=method,t1=self._t1,t2 = self._t2)
@@ -373,7 +370,7 @@ class MonomialBasis(PolynomialRingWithBasis):
                 sage: wrapp.product_variable_on_basis(key)
                 x[3, 1, 1]
             """
-            key = key.coeffs_to_list()
+            key = list(key)
             i = self._i
             key[i-1] = key[i-1]+1
             return self._module(key)
@@ -407,7 +404,7 @@ class MonomialBasis(PolynomialRingWithBasis):
                 ValueError: Unknown type E
 
             """
-            key = key.coeffs_to_list()
+            key = list(key)
             i = self._i -1
             otype = self._type
             if(otype=="A"):
@@ -454,7 +451,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
         The ring of multivariate polynomials on x over Rational Field with 3 variables on the monomial basis
         sage: TestSuite(m3).run()
     """
-    def __init__(self, abstract_polynomial_ring, basis_repr = None):
+    def __init__(self, abstract_algebra, basis_repr = None):
         r"""
         TESTS::
 
@@ -463,12 +460,12 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             sage: m3 = m.finite_basis(3)
 
         """
-        if(basis_repr is None): basis_repr = abstract_polynomial_ring._main_repr_var
-        basis_keys = RelativeIntegerVectors(abstract_polynomial_ring.nb_variables())
+        if(basis_repr is None): basis_repr = abstract_algebra._main_repr_var
+        basis_keys = MonomialKeyWrapper(abstract_algebra.nb_variables())
         FinitePolynomialRingWithBasis.__init__(
             self,
-            abstract_polynomial_ring,
-            abstract_polynomial_ring.polynomial_ring_tower().monomial_basis(),
+            abstract_algebra,
+            abstract_algebra.polynomial_ring_tower().monomial_basis(),
             basis_keys,
             "monomial basis",
             basis_repr
@@ -487,7 +484,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             [0, 0, 0]
 
         """
-        return self._basis_keys[ list(0 for i in xrange(self.nb_variables())) ]
+        return self._basis_keys( list(0 for i in xrange(self.nb_variables())) )
 
     def __getitem__(self, c, *rest):
         r"""
@@ -504,7 +501,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
         """
         if len(rest) > 0 or type(c) is int or type(c) is Integer:
             c = tuple([c])+tuple(rest)
-        return self.term( self._basis_keys[ list(c) ] )
+        return self.term( self._basis_keys( c ) )
 
     def __call__(self, obj):
         r"""
@@ -519,8 +516,8 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             x[2, 1, 3]
 
         """
-        if( type(obj) is list or type(obj) is tuple):
-            return self.term( self._basis_keys[ list(obj)])
+        if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element)):
+            return self.term( self._basis_keys( list(obj)))
         else:
             return super(FiniteMonomialBasis, self).__call__(obj)
 
@@ -541,7 +538,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             x[3, 4, 3]
 
         """
-        return self.term( vector1 + vector2 )
+        return self.term( self._basis_keys(tuple(vector1[i]+vector2[i] for i in xrange(len(vector1)))) )
 
 
     class Element(FinitePolynomialRingWithBasis.Element):
@@ -571,12 +568,8 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
                 l = list(self)
                 vect = l[0][0]
                 coef = l[0][1]
-                return coef**-1 * self.parent().term(vect.parent().zero() - vect)
+                return coef**-1 * self.parent()( tuple(-v for v in vect) )
             raise ValueError,"%s is not invertible in %s"%(self, self.parent())
-
-
-
-
 
         def _right_number_of_variables_pol(self, i, otype= "A"):
             r"""
