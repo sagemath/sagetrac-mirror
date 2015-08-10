@@ -1720,6 +1720,84 @@ class NormalFormGame(SageObject, MutableMapping):
         x = tuple(p.get_values(x).values())
         return [[x, y]]
 
+    def _solve_gambit(self, solver):
+        r"""
+        A generic wraper for gambit solvers. The function takes as input an instance of a gambit
+        solver, solves the current game instance using the ``solver`` and returns a lists of
+        equilibria.
+        """
+        if not isinstance(solver, ExternalSolver):
+            raise ValueError("The `solver` is not a valid gambit solver")
+        g = self._gambit_()
+        output = solver.solve(g)
+        nasheq = Parser(output).format_gambit(g)
+        return sorted(nasheq)
+
+    def _solve_gambit_simpdiv(self):
+        r"""
+        Gambit's implementation of the simplical subdivision algorithm.
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalSimpdivSolver())
+
+    def _solve_gambit_gnm(self):
+        r"""
+        Gambit's implementation of the Global Newton method.
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalGlobalNewtonSolver())
+
+    def _solve_gambit_enum_poly(self):
+        r"""
+        Gambit's implementation of the support enumeration algorithm
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalEnumPolySolver())
+
+    def _solve_gambit_liap(self):
+        r"""
+        Gambit's implementation of the Lyapunov algorithm
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalLyapunovSolver())
+
+    def _solve_gambit_ipa(self):
+        r"""
+        Gambit's implementation of the iterated polymatrix game method
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalIteratedPolymatrixSolver())
+
+    def _solve_gambit_logit(self):
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalLogitSolver())
+
+    def _solve_gambit_enum_mixed(self):
+        r"""
+        Gambit's implementation of support enumeration for two players
+        """
+        if len(self.players) != 2:
+            raise ValueError("Only available for 2 player games")
+
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalEnumMixedSolver())
+
+    def _solve_gambit_enum_pure(self):
+        r"""
+        Gambit's implementation of enumeration of pure strategies for n-player games.
+        """
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
+        return self._solve_gambit(ExternalEnumPureSolver())
+
+
     def _solve_enumeration(self, maximization=True):
         r"""
         Obtain the Nash equilibria using support enumeration.
