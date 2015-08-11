@@ -20,3 +20,10 @@ FLINT is licensed GPL v2+.
  * MPIR
  * MPFR
  * NTL
+
+== Patches ==
+
+Those two patches are merged upstream and should be available with flint-2.5.1
+
+ * ldconfig_detection.patch: https://github.com/wbhart/flint2/issues/176
+ * nmod_mat_ncols.patch: https://github.com/wbhart/flint2/issues/174
