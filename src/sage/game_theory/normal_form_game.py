@@ -1087,7 +1087,7 @@ class NormalFormGame(SageObject, MutableMapping):
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
-    def obtain_nash(self, algorithm=False, maximization=True):
+    def obtain_nash(self, algorithm=False, maximization=True, missing=1, ring = RR):
         r"""
         A function to return the Nash equilibrium for the game.
         Optional arguments can be used to specify the algorithm used.
@@ -1108,7 +1108,70 @@ class NormalFormGame(SageObject, MutableMapping):
             returned.
 
           * ``'lh-*'`` - This is an implementation of the Lemke-Howson algorithm which is a
-            complementary pivoting algorithm on a pair of best response polytopes for both players.
+            complementary pivoting algorithm on a pair of best response polytopes for both players
+            [LH1964]_. Given a bimatrix game `(A, B)`, the pair of best response polytopes can be
+            represented by `P` and `Q`.
+            
+            .. MATH::
+
+                \begin{equation*}
+                P = { x \in R^M | x \ge \mathbf{0}, B^T x \le 1 }
+                Q = { y \in R^N | y \ge \mathbf{0}, Ay \le 1}
+                \end{equation*}
+
+            - ``lh-single``
+                The algorithm starts from a pair of vertices on the polytopes which represent an
+                equilibrium of the game, and takes a variable `k` from the tableau as parameter
+                also known as the ``missing`` label. As no equilibrium might not be known for the game,
+                the common starting point for the algorithm is the artificial equilibrium, where both
+                players don't participate in the game i.e. they both play the zero vector. This point
+                can be represented as a tableau shown below 
+
+                .. MATH ::
+
+                    \begin{equation*}
+                    s = 1 - B^Tx \qquad r = 1 - Ay
+                    \end{equation*}
+                    where
+                    $x \ge 0, y \ge 0, r \ge 0, s \ge 0$
+
+                In this tableau, $r$ is the complementary slack of $x$, likewise for $s$ and y.
+
+                In its first step, either variable `k` or its
+                corresponding slack variable enters the basis of one of the tableaus, resulting in
+                variable `l` leaving the basis. Following this, the complementary variable to `l` then
+                enters the basis of the other tableau. This procedure then continues until either the
+                missing label or its complementary leaves the basis. Upon termination, this tableau
+                represents an equilibrium point in the polytope.
+
+                This method returns a list with a single element representing the equilibrium found.
+
+            - ``'lh-all'``
+                Using the property that the LH algorithm starts from a Nash equilibrium, it is possible
+                to find multiple Nash equilibria in a game (although not all). This method involves
+                starting from the artificial equilibrium and finding all Nash equilibria which can
+                be found by using all possible `m + n` missing labels in a `m \times n` bimatrix
+                game. Once these have all been found, we then start from all of the equilibria which
+                were found and for each equilibrium, we use only the missing labels which weren't
+                used to find the current equilibrium (i.e. labels which if LH is run from a previous 
+                equilibrium will result in the current equilibrium). This process continues until no
+                new equilibria is found.
+
+                This returns two lists of equilibria, where each equilibrium not only contains the
+                equilibrium strategy, but also a list showing how an equilibrium in one list is
+                connected to the equilibria of the second list.
+
+            - ``'lh-bipartite'``
+                The relationship between equilibria found by the LH algorithm can be represented as
+                a bipartite graph, where the nodes of the graph are the equilibria in the game, and
+                the edges of the graph represent the labels connecting the two equilibria together.
+                For instance, if there is an edge `(u, v)` with labels `l, k`, then starting LH from
+                either `u, v`, with either missing label `l` or `k`, you would be able to find the
+                other equilibrium.
+
+                This returns a bipartite graph which shows the connenctions between the different
+                equilibria in the game, as well as returning two lists containing the equilibria in
+                the game.
 
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
@@ -1157,6 +1220,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
           * When set to ``False`` it is assumed that players aim to
             minimise their utility.
+
+        - ``ring`` -- This determines the ring which would be used for performing the computations
+          for the LH algorithm. Note only ``QQ`` and ``RR`` are supported.
+
+        - ``missing`` -- When running ``'lh-single'``, this is the missing label which would be
+          entering the basis.
 
         EXAMPLES:
 
@@ -1239,7 +1308,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 1/3, 2/3), (1/3, 2/3)], [(4/5, 1/5, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
 
-        Note that outputs for all algorithms are as lists of lists of
+        Note that outputs for most algorithms are as lists of lists of
         tuples and the equilibria have been sorted so that all algorithms give
         a comparable output (although ``'LCP'`` returns floats)::
 
@@ -1264,6 +1333,128 @@ class NormalFormGame(SageObject, MutableMapping):
             False
             sage: [[[round(float(p), 6) for p in str] for str in eq] for eq in enumeration_eqs] == [[[round(float(p), 6) for p in str] for str in eq] for eq in LCP_eqs]  # optional - gambit
             True
+
+        When running the Lemke-Howson algorithm to find a single Nash equilibrium, you can pass
+        as a parameter which variable should be used as a missing label, otherwise this defaults
+        to 1::
+
+            sage: g = NormalFormGame([matrix.identity(3),matrix.identity(3)])
+            sage: res = g.obtain_nash(algorithm='lh-single')
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
+            sage: res = g.obtain_nash(algorithm='lh-single', missing=1)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
+            sage: res = g.obtain_nash(algorithm='lh-single', missing=2)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]]
+            sage: A = matrix([[10, 500, 44],
+            ....:       [15, 10, 105],
+            ....:       [19, 204, 55],
+            ....:       [20, 200, 590]])
+            sage: B = matrix([[2, 1, 2],
+            ....:             [0, 5, 6],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 20]])
+            sage: g=NormalFormGame([A, B])
+            sage: res = g.obtain_nash(algorithm='lh-single')
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            sage: res =g.obtain_nash(algorithm='lh-single', missing=1)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+            sage: res = g.obtain_nash(algorithm='lh-single', missing=2)
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
+
+        Note that this has to be a valid strategy of either the row or column player, i.e. within
+        the range `[1, m + n]`, for a game of size `m \times n`::
+
+            sage: g.obtain_nash(algorithm='lh-single', missing=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ``missing`` variable should be within the range [1, dim1 + dim2]
+            sage: g.obtain_nash(algorithm='lh-single', missing=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ``missing`` variable should be within the range [1, dim1 + dim2]
+            sage: g.obtain_nash(algorithm='lh-single', missing=8)
+            Traceback (most recent call last):
+            ...
+            ValueError: The ``missing`` variable should be within the range [1, dim1 + dim2]
+
+        The computation of the LH algorithm, by default, is done using the ``RR`` ring, however this
+        can be modified to allow for exact computations using the ``QQ`` ring::
+
+            sage: A = matrix.identity(3)
+            sage: g = NormalFormGame([A])
+            sage: res = g.obtain_nash(algorithm='lh-single')
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
+            sage: g.obtain_nash(algorithm='lh-single', ring = QQ)
+            [[[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]]]
+
+        Multiple equilibria in a game can be computed using the LH algorithm::
+
+            sage: neq, peq = g.obtain_nash(algorithm='lh-all', ring=QQ)
+            sage: neq
+            [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]]
+            sage: peq
+            [Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[0, 0, 0, 0, 0, 0]]
+            sage: g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
+            sage: neq, peq = g.obtain_nash(algorithm='lh-all', ring=QQ)
+            sage: neq
+            [Equ [[0, 0], [0, 0]] Labels[0, 1, 0, 1],
+             Equ [[1/2, 1/2], [1/2, 1/2]] Labels[1, 0, 1, 0]]
+            sage: peq
+            [Equ [[1, 0.0], [1, 0.0]] Labels[0, 1, 0, 1],
+             Equ [[0.0, 1], [0.0, 1]] Labels[1, 0, 1, 0]]
+
+        Each element in the list has two properties, the first which is the equilibrium, and the
+        second represents how the labels connect the different equilibria. Taking a look at the
+        first element in the `neq` list, we have the aritificial equilibrium, and based on the
+        labels, we know that label `1, 3` would lead us to ``peq[0]``, `2, 4` would lead us to
+        ``peq[1]``. We can follow a similar process to see the relationship between the two
+        equilibria::
+
+            sage: neq[0].eq
+            [[0, 0], [0, 0]]
+            sage: neq[0].labels
+            [0, 1, 0, 1]
+            sage: peq[0].eq
+            [[1, 0.0], [1, 0.0]]
+            sage: peq[0].labels
+            [0, 1, 0, 1]
+            sage: peq[1].eq
+            [[0.0, 1], [0.0, 1]]
+            sage: peq[1].labels
+            [1, 0, 1, 0]
+            sage: neq[1].eq
+            [[1/2, 1/2], [1/2, 1/2]]
+            sage: neq[1].labels
+            [1, 0, 1, 0]
+
+        The relationship between the two equilibria can be shown by obtaining and plotting a
+        bipartite graph which shows this relationship::
+
+            sage: b, neq, peq = g.obtain_nash(algorithm='lh-bipartite', ring=QQ)
+            sage: b
+            Bipartite graph on 4 vertices
+            sage: neq
+            [Equ [[0, 0], [0, 0]] Labels[0, 1, 0, 1],
+             Equ [[1/2, 1/2], [1/2, 1/2]] Labels[1, 0, 1, 0]]
+            sage: peq
+            [Equ [[1, 0.0], [1, 0.0]] Labels[0, 1, 0, 1],
+             Equ [[0.0, 1], [0.0, 1]] Labels[1, 0, 1, 0]]
+
+        Note that nodes on the left side of the bipartite graph correspond to equilibria in the first list
+        and the nodes on the right side are equlibria in the second list of equilibria.
+
+        .. PLOT::
+
+            g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
+            b, _ = g.obtain_nash(algorithm='lh-bipartite, ring=QQ)
+            sphinix_plot(b, edge+labels = True)
 
         """
         if len(self.players) > 2:
@@ -1298,6 +1489,16 @@ class NormalFormGame(SageObject, MutableMapping):
                                      allows for integer valued payoffs.
                                      Please scale your payoff matrices.""")
             return self._solve_LCP(maximization)
+
+        if algorithm.startswith('lh-'):
+            if algorithm[3:] == 'single':
+                return self._solve_lh(missing=missing, ring=ring)
+            if algorithm[3:] == 'all':
+                return self._lh_find_all(ring=ring)
+            if algorithm[3:] == 'bipartite':
+                return self._lh_bipartite_graph(ring=ring)
+            raise ValueError("""'solver' is not a valid lh-* option. Options include 'single', 'all',
+                and 'bipartite'.""")
 
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
@@ -2906,7 +3107,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return (neg, pos)
 
-    def _lh_bipartite_graph(self):
+    def _lh_bipartite_graph(self, ring=RR):
         r"""
         This method computes and returns all equilibria which are reachable by the Lemke-Howson
         algorithm by starting from the artificial equilibrium, as well as a bipartite graph showing
@@ -2972,7 +3173,7 @@ class NormalFormGame(SageObject, MutableMapping):
             p = sol[0].plot(edge_labels = True)
             sphinx_plot(p)
         """
-        neg, pos = self._lh_find_all()
+        neg, pos = self._lh_find_all(ring=ring)
         #G = {}
         #for i in range(len(neg)):
         #    G[str(-i)] = neg[i].labels
