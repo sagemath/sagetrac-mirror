@@ -1336,17 +1336,17 @@ class NormalFormGame(SageObject, MutableMapping):
 
         When running the Lemke-Howson algorithm to find a single Nash equilibrium, you can pass
         as a parameter which variable should be used as a missing label, otherwise this defaults
-        to 1::
+        to ``1``::
 
             sage: g = NormalFormGame([matrix.identity(3),matrix.identity(3)])
             sage: res = g.obtain_nash(algorithm='lh-single')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
             [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
             sage: res = g.obtain_nash(algorithm='lh-single', missing=1)
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res]
             [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
             sage: res = g.obtain_nash(algorithm='lh-single', missing=2)
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in res]
             [[[0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]]
             sage: A = matrix([[10, 500, 44],
             ....:       [15, 10, 105],
@@ -1454,7 +1454,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
             b, _ = g.obtain_nash(algorithm='lh-bipartite, ring=QQ)
-            sphinix_plot(b, edge+labels = True)
+            sphinix_plot(b)
 
         """
         if len(self.players) > 2:
@@ -2148,10 +2148,6 @@ class NormalFormGame(SageObject, MutableMapping):
             nlines = dim1
         else:
             nlines = dim2
-        #print tab[0]
-        #print "----"
-        #print tab[1]
-        #print "===="
 
         epsilon = sys.float_info.epsilon
         if tab[0][0,0] in QQ:
@@ -2166,8 +2162,6 @@ class NormalFormGame(SageObject, MutableMapping):
             if tab[ntab][i,column] < -epsilon :
                 leavecand.append(i)
                 numcand += 1
-
-        #print numcand, leavecand
 
         if numcand == 0:
             return -1
@@ -2217,7 +2211,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if not updated :
             return -1
-        #print "Leave", leavecand[0]
 
         return leavecand[0]
 
@@ -2388,7 +2381,6 @@ class NormalFormGame(SageObject, MutableMapping):
             [ 77 164   6]
         """
         m = min(A.list())
-        #R = matrix(A, copy=True)
         R = copy(A)
         for i in range(A.nrows()):
             for j in range(A.ncols()):
@@ -2723,7 +2715,6 @@ class NormalFormGame(SageObject, MutableMapping):
         missing = missing
         if missing <= 0 or missing > tableaus[0].nrows() + tableaus[1].nrows():
             raise ValueError("The ``missing`` variable should be within the range [1, dim1 + dim2]")
-        #tab = [matrix(tableaus[0], copy=True), matrix(tableaus[1], copy=True)]
         tab = [copy(tableaus[0]), copy(tableaus[1])]
         dim1 = tab[0].nrows()
         dim2 = tab[1].nrows()
@@ -2743,30 +2734,12 @@ class NormalFormGame(SageObject, MutableMapping):
             nlines = dim1 if (ntab == 0) else dim2
             column = self._get_column(dim1, dim2, pivot)
             
-            # Standard min-ratio
-            #for i in range(nlines):
-            #    if tab[ntab][i,column] > -sys.float_info.epsilon : #check for eps
-            #        continue
-            #    val = -tab[ntab][i,1] / tab[ntab][i,column]
-            #    
-            #    if not updated or val < min_ratio - sys.float_info.epsilon :
-            #        min_ratio = val
-            #        updated = True
-            #        index = i
             index = self._lh_lexicographic_min_ratio(dim1, dim2, tab, ntab, column)
 
-            #print "=========="
-            #print tab[0]
-            #print "----------"
-            #print tab[1]
-            #print "=========="
-            
-            #if not updated :
             if index < 0 :
                 raise Exception("floating point error most likely occured")
             
             newpivot = int(tab[ntab][index,0])
-            #print ntab, index, newpivot
             
             tab[ntab][index,self._get_column(dim1, dim2, newpivot)] = -1
             tab[ntab][index,0] = pivot
@@ -2778,7 +2751,6 @@ class NormalFormGame(SageObject, MutableMapping):
             
             for i in range(nlines):
                 if tab[ntab][i][column] < -epsilon or tab[ntab][i][column] > epsilon :
-                #if tab[ntab][i,column] != 0 :
                     for j in range(1, 2 + dim1 + dim2) :
                         agg = tab[ntab][i,column] * tab[ntab][index,j]
                         tab[ntab][i,j] += agg
@@ -2789,13 +2761,6 @@ class NormalFormGame(SageObject, MutableMapping):
             if newpivot == missing or newpivot == -missing :
                 break
         
-        #print "=========="
-        #print "After LH"
-        #print tab[0]
-        #print "----------"
-        #print tab[1]
-        #print "=========="
-            
         tot1 = 0
         tot2 = 0
         
@@ -2962,15 +2927,11 @@ class NormalFormGame(SageObject, MutableMapping):
             cur = pos[i]
             eq_list = neg
 
-        #print cur.tab
-        #print "Starting ", i, " isneg ", isneg
-
         for k in range(len(cur.labels)):
             if cur.labels[k] != -1:
                 continue
-            #print k
+            
             tab, eq = self._lh_solve_tableau(cur.tab, k + 1)
-            #print eq
 
             e = _LHEquilibrium(tab, eq)
             if e not in eq_list:
@@ -3073,14 +3034,9 @@ class NormalFormGame(SageObject, MutableMapping):
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B, ring)
         neg.append(_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
-        #print "Load", neg[0].tab[0]
-        #print "Load", neg[0].tab[1]
 
         tab, eq = self._lh_solve_tableau(neg[0].tab, 1)
         pos.append(_LHEquilibrium(tab, eq))
-
-        #print "Load", neg[0].tab[0]
-        #print "Load", neg[0].tab[1]
 
         neg[0].labels[0] = 0
         pos[0].labels[0] = 0
@@ -3174,16 +3130,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sphinx_plot(p)
         """
         neg, pos = self._lh_find_all(ring=ring)
-        #G = {}
-        #for i in range(len(neg)):
-        #    G[str(-i)] = neg[i].labels
-        #return G
         B = BipartiteGraph()
         for i in range(len(neg)):
             for j in set(neg[i].labels):
                 indices = ",".join([str(k + 1) for k, x in enumerate(neg[i].labels) if x == j])
                 B.add_edge("-"+str(i), j, indices)
-                #print i, "->",  indices
         return (B, neg, pos)
 
 class _LHEquilibrium():
@@ -3205,6 +3156,8 @@ class _LHEquilibrium():
 
     def __eq__(self, other):
         r"""
+        Tests equality based on the variables in the basis of the tableaus.
+
         TESTS::
 
             sage: from sage.game_theory.normal_form_game import _LHEquilibrium
@@ -3243,15 +3196,6 @@ class _LHEquilibrium():
 
         if basis_1 != basis_2:
             return False
-
-        #for i in range(len(self.eq[0])):
-        #    diff = abs(self.eq[0][i] - other.eq[0][i])
-        #    if diff > sys.float_info.epsilon :
-        #        return False
-        #for i in range(len(self.eq[1])):
-        #    diff = abs(self.eq[1][i] - other.eq[1][i])
-        #    if diff > sys.float_info.epsilon :
-        #        return False
 
         return True
 
