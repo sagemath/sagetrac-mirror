@@ -525,7 +525,23 @@ cdef class Element(SageObject):
         return res
 
     def __hash__(self):
-        return hash(str(self))
+        r"""
+        Default hash function
+
+        Note that two elements which evaluate as equal must have the same
+        hash. For this reason, a very naive hash is implemented here (see
+        :trac:19016`)::
+
+            sage: from sage.structure.element import Element
+            sage: class MyClass(Element):
+            ....:     def __eq__(self, other):
+            ....:         return True
+            ....:     def __repr__(self):
+            ....:         return str(random())
+            sage: len({MyClass(ZZ), MyClass(ZZ)}) == 1
+            True
+        """
+        return 0
 
     def _im_gens_(self, codomain, im_gens):
         """
