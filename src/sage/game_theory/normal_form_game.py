@@ -1451,10 +1451,11 @@ class NormalFormGame(SageObject, MutableMapping):
         and the nodes on the right side are equlibria in the second list of equilibria.
 
         .. PLOT::
+            :width: 500px
 
             g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
             b, _ = g.obtain_nash(algorithm='lh-bipartite, ring=QQ)
-            sphinix_plot(b)
+            sphinix_plot(b.plot(edge_labels=True))
 
         """
         if len(self.players) > 2:
