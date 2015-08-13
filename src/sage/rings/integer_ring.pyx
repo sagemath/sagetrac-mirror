@@ -455,7 +455,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())
 
-        return PrincipalIdealDomain.__getitem__(self, x)
+        # the code to generate polynomial ring is contained in
+        #   sage.categories.rings.Rings.ParentMethods.__getitem__
+        from sage.structure.misc import getattr_from_other_class
+        return getattr_from_other_class(self, self._category.parent_class, '__getitem__')(x)
 
     def range(self, start, end=None, step=None):
         """
