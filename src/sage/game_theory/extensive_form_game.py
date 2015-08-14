@@ -558,6 +558,101 @@ the ``sage_to_gambit`` method::
     sage: type(gambit_game)  # optional - gambit
     <class 'gambit.Game'>
 
+It is also possible to convert an extensive form game to a normal form game where the strategies of the normal form game correspond to the collection of actions available to each player. Let us illustrate this with the following game::
+
+.. PLOT::
+    :width: 500 px
+
+    player_1 = EFG_Player('1')
+    player_2 = EFG_Player('2')
+    leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+    leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+    leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+    leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+    leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+    node_d = EFG_Node(player_1, {'Y': leaf_3, 'Z': leaf_2}, 'd')
+    node_c = EFG_Node(player_2, {'A': leaf_5, 'B': leaf_4}, 'c')
+    node_b = EFG_Node(player_2, {'C': node_d, 'D': leaf_1}, 'b')
+    node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, 'a')
+    example = ExtensiveFormGame(node_a)
+    p = example.plot_info_sets()
+    sphinx_plot(p)
+
+This game is built with the following code::
+
+    sage: player_1 = EFG_Player('1')
+    sage: player_2 = EFG_Player('2')
+    sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+    sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+    sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+    sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+    sage: leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+    sage: node_d = EFG_Node(player_1, {'Y': leaf_3, 'Z': leaf_2}, 'd')
+    sage: node_c = EFG_Node(player_2, {'A': leaf_5, 'B': leaf_4}, 'c')
+    sage: node_b = EFG_Node(player_2, {'C': node_d, 'D': leaf_1}, 'b')
+    sage: node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, 'a')
+    sage: example = ExtensiveFormGame(node_a)
+
+Both players have two information sets, thus any given strategy
+indicates what the player should do at each of their information
+sets. For example, a valid strategy for player one would be doing
+`W` at node `a` and `Z` at node `d` (Even though playing `W` at
+node `a` means that player one will never ''get'' to node `d`).
+We can obtain all strategy sets for each player::
+
+    sage: strategies = example.generate_strategies()
+    sage: strategies
+    [[((('a',), 'X'), (('d',), 'Y')),
+      ((('a',), 'X'), (('d',), 'Z')),
+      ((('a',), 'W'), (('d',), 'Y')),
+      ((('a',), 'W'), (('d',), 'Z'))],
+     [((('b',), 'C'), (('c',), 'A')),
+      ((('b',), 'C'), (('c',), 'B')),
+      ((('b',), 'D'), (('c',), 'A')),
+      ((('b',), 'D'), (('c',), 'B'))]]
+
+We see that both players have four possible strategies,
+and sage outputs these as tuples which indicate the
+specific information set. In this instance player one's
+first strategy is to player `X` followed by `Y` and player
+two's first strategy is to player `C` at `b` and `A` and `c`.
+This would result in ending at leaf 3, resulting in the
+utility tuple `(4, 2)`.
+
+To see this, let us build the corresponding normal form game::
+
+    sage: g = example.to_nfg()
+    sage: g.payoff_matrices()
+    (
+    [4 4 2 2]  [2 2 0 0]
+    [3 3 2 2]  [1 1 0 0]
+    [4 3 4 3]  [1 5 1 5]
+    [4 3 4 3], [1 5 1 5]
+    )
+    sage: g[0,0]
+    [4, 2]
+
+We can compare the Nash equilibria of this game (in both forms)::
+
+    sage: example.obtain_nash()  # optional - gambit
+    [[[{('a',): {'W': 1.0, 'X': 0.0}, ('d',): {'Y': 0.5, 'Z': 0.5}}],
+      [{('b',): {'C': 0.0, 'D': 1.0}, ('c',): {'A': 0.0, 'B': 1.0}}]],
+     [[{('a',): {'W': 1.0, 'X': 0.0}, ('d',): {'Y': 0.5, 'Z': 0.5}}],
+      [{('b',): {'C': 0.5, 'D': 0.5}, ('c',): {'A': 0.0, 'B': 1.0}}]],
+     [[{('a',): {'W': 0.0, 'X': 1.0}, ('d',): {'Y': 1.0, 'Z': 0.0}}],
+      [{('b',): {'C': 1.0, 'D': 0.0}, ('c',): {'A': 0.0, 'B': 1.0}}]]]
+    sage: g.obtain_nash(algorithm='enumeration')
+    [[(0, 0, 0, 1), (0, 0, 0, 1)],
+     [(0, 0, 1, 0), (0, 0, 0, 1)],
+     [(1, 0, 0, 0), (0, 1, 0, 0)],
+     [(1, 0, 0, 0), (1, 0, 0, 0)]]
+
+Whilst not all Nash equilibria have been calculated in both cases
+(due to degeneracy), we see that the last equilibrium calculated
+for the extensive form game corresponds to the 3rd equilibrium
+calculated for the normal form game.
+
+
 AUTHOR:
 
 - Hannah Lorrimore (07-2015): Original version
