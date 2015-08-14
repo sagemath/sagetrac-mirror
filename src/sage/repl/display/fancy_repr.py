@@ -366,9 +366,10 @@ class PythonIntegerRepr(ObjectReprABC):
             sage: format_list([1, int(2), identity_matrix(2)])
             '[\n      [1 0]\n1, int(2), [0 1]\n]'
         """
-        if not isinstance(obj, int):
+        if type(obj) is int:
+            p.text('int({0})'.format(obj))
+            return True
+        else:
             return False
-        p.text('int({0})'.format(obj))
-        return True
 
             
