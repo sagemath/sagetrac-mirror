@@ -5312,3 +5312,177 @@ def __create__RealIntervalFieldElement_version1(parent, lower, upper):
         2.226?
     """
     return RealIntervalFieldElement(parent, (lower, upper))
+
+
+def bisect(f, start, test,
+           max_iterations=None,
+           max_open=None,
+           use_fast_callable=None,
+           join_neighboring_cells=True):
+    r"""
+    Perform a bisection search on the given function.
+
+    INPUT:
+
+    - ``f`` -- the function as something callable or ``None``.
+
+    - ``start`` -- the starting cell of the bisection process. This is
+      usually an element of an
+      :class:`~sage.rings.real_mpfi.RealIntervalField` or an
+      :class:`~sage.rings.complex_interval_field.ComplexIntervalField`.
+
+    - ``test`` -- the condition which is tested for. This function
+      gets ``f`` (or a modified ``f`` when ``use_fast_callable`` is
+      used) as its first argument and the cell which is to be tested
+      as its second argument.
+
+    - ``max_iterations`` (default: ``None``) -- an integer.
+
+    - ``max_open`` (default: ``None``) -- an integer.
+
+    - ``use_fast_callable`` (default: ``None``) -- a boolean. If
+      ``None``, then the function tries to use
+      :mod:`sage.ext.fast_callable`.
+
+    - ``join_neighboring_cells`` (default: ``True``) -- if set, then
+      the result will be simplified by joining cells which overlap.
+
+    OUTPUT:
+
+    A list of cells (elements of the same parent as ``start``).
+
+    EXAMPLES:
+
+    We can use this function to find the roots of some function::
+
+        sage: from sage.rings.real_mpfi import bisect
+        sage: set_verbose(42)
+        sage: def contains_zero(fct, cell):
+        ....:     return fct(cell).contains_zero()
+        sage: result = bisect(lambda x: x^3-4*x+2, RIF(-10, 10), contains_zero)
+        verbose 1 (<module>) starting the bisection-process...
+        verbose 2 (<module>) iteration 0 with results in 1 of 1 cells
+        verbose 2 (<module>) iteration 1 with results in 2 of 2 cells
+        verbose 2 (<module>) iteration 2 with results in 2 of 4 cells
+        ...
+        verbose 2 (<module>) iteration 50 with results in 6 of 14 cells
+        verbose 2 (<module>) iteration 51 with results in 6 of 12 cells
+        verbose 1 (<module>) found results in 6 cells
+        verbose 1 (<module>) joining neighboring cells...
+        verbose 1 (<module>) reduced results to 3 cells
+        sage: result
+        [-2.2143197433776?, 0.53918887281089?, 1.6751308705667?]
+        sage: tuple(r.str(style='brackets') for r in result)
+        ('[-2.2143197433775442 .. -2.2143197433775263]',
+         '[0.53918887281088068 .. 0.53918887281089845]',
+         '[1.6751308705666367 .. 1.6751308705666546]')
+        sage: set_verbose(0)
+
+    Of course, for polynomials as above, Sage can do this already::
+
+        sage: P.<p> = ZZ[]
+        sage: (p^3-4*p+2).roots(RIF)
+        [(-2.2143197433775351874155?, 1),
+         (0.53918887281088911652587590269852?, 1),
+         (1.67513087056664607088962179815?, 1)]
+
+    We can use it to find roots of other functions as well::
+
+        sage: bisect(lambda x: exp(x) + x, RIF(-1, 1), contains_zero)
+        [-0.567143290409784?]
+
+    We can also use it starting with complex intervals::
+
+        sage: bisect(lambda x: exp(x) - 1, CIF((-7,7), (-7,7)), contains_zero)
+        [0.?e-14 - 6.28318530717959?*I,
+         0.?e-14 + 0.?e-14*I,
+         0.?e-14 + 6.28318530717959?*I]
+
+    We can also test if a certain function is strictly positive::
+
+        sage: def not_larger_than_zero(fct, cell):
+        ....:     return not fct(cell) > 0
+        sage: bisect(lambda x: exp(sin(x)), RIF(-4, 4), not_larger_than_zero)
+        []
+
+    The returned empty list states that everything is larger than
+    `0`. In the following example, this is not always the case::
+
+        sage: bisect(lambda x: sin(x)^2, RIF(-1, 1), not_larger_than_zero)
+        [0.?e-15]
+
+    .. SEEALSO::
+
+        :class:`sage.rings.polynomial.polynomial_element.roots`,
+        :class:`sage.numerical.optimize.find_root`,
+        :class:`sage.rings.real_mpfi.RealIntervalField`,
+        :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.find_subintervals`,
+        :class:`sage.rings.complex_interval_field.ComplexIntervalField`,
+        :meth:`sage.rings.complex_interval.ComplexIntervalFieldElement.find_subintervals`.
+    """
+    from sage.misc.misc import verbose
+
+    R = start.parent()
+
+    if max_iterations is None:
+        max_iterations = R.precision() - 1
+    if max_open is None:
+        max_open = 10 * R.precision()
+
+    if f is None and use_fast_callable is None:
+        use_fast_callable = False
+    if use_fast_callable is False:
+        ff = f
+    else:
+        from sage.ext.fast_callable import fast_callable
+        try:
+            ff = fast_callable(f, expect_one_var=True, domain=R)
+        except AttributeError:
+            if use_fast_callable is True:
+                raise
+            ff = f
+
+    # init
+    open = [start]
+    iteration = 0
+
+    verbose('starting the bisection-process...', level=1)
+
+    while iteration < max_iterations and 0 < len(open) < max_open:
+        new_open = []
+        result = []
+        for cell in open:
+            if not test(ff, cell):
+                continue
+            result.append(cell)
+            for c in cell.bisection():
+                new_open.append(c)
+
+        verbose('iteration %s with results in %s of %s cells' %
+                (iteration, len(result), len(open)), level=2)
+
+        open = new_open
+        iteration += 1
+
+    verbose('found results in %s cells' % (len(result),), level=1)
+
+    if join_neighboring_cells:
+        verbose('joining neighboring cells...', level=1)
+        cells = result
+        result = []
+
+        while len(cells) > 0:
+            joined = cells.pop(0)
+            k = 0
+            while k < len(cells):
+                try:
+                    joined.intersection(cells[k])
+                except ValueError:
+                    k += 1
+                else:
+                    joined = joined.union(cells.pop(k))
+            result.append(joined)
+
+        verbose('reduced results to %s cells' % (len(result),), level=1)
+
+    return result
