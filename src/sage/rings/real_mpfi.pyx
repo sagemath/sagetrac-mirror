@@ -5380,13 +5380,15 @@ def bisect(f, start, test,
       used) as its first argument and the cell which is to be tested
       as its second argument.
 
-    - ``max_iterations`` (default: ``None``) -- an integer.
+    - ``max_iterations`` (default: ``None``) -- an integer specifying the
+      maximum number of iterations.
 
-    - ``max_open`` (default: ``None``) -- an integer.
+    - ``max_open`` (default: ``None``) -- an integer specifying the maximum
+      number of simultanously non-processed cells.
 
     - ``use_fast_callable`` (default: ``None``) -- a boolean. If
       ``None``, then the function tries to use
-      :mod:`sage.ext.fast_callable`.
+      :mod:`sage.ext.fast_callable`. If this fails, then it is not used.
 
     - ``join_neighboring_cells`` (default: ``True``) -- if set, then
       the result will be simplified by joining cells which overlap.
