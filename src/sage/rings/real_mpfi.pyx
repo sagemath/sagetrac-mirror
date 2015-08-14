@@ -5104,6 +5104,50 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         sig_off()
 #         return x
 
+    def find_subintervals(self, f, test, **kwds):
+        r"""
+        Find subintervals of this interval passing the given ``test``
+        on the function ``f``.
+
+        INPUT::
+
+        - ``f`` -- the function as something callable or ``None``.
+
+        - ``test`` -- the condition which is tested for. This function
+          gets ``f`` (or a modified ``f`` when ``use_fast_callable``
+          is used) as its first argument and the cell which is to be
+          tested as its second argument.
+
+        See :func:`bisect` for further options.
+
+        OUTPUT:
+
+        A list of intervals.
+
+        .. NOTE::
+
+            This method performs a search by a bisection algorithm,
+            see :func:`bisect`.
+
+        EXAMPLES::
+
+            sage: def contains_zero(fct, cell):
+            ....:     return fct(cell).contains_zero()
+            sage: RIF(-10,10).find_subintervals(lambda x: x^2-2, contains_zero)
+            [-1.41421356237310?, 1.41421356237310?]
+
+        ::
+
+            sage: RIF(-2, 2).find_subintervals(lambda x: sin(x) - x/2, contains_zero)
+            [-1.895494267033981?, 0.?e-14, 1.895494267033981?]
+
+        .. SEEALSO::
+
+            :func:`bisect`
+            :meth:`sage.rings.complex_interval.ComplexIntervalFieldElement.find_subintervals`,
+        """
+        return bisect(f, self, test, **kwds)
+
 
 def _simplest_rational_test_helper(low, high, low_open=False, high_open=False):
     """

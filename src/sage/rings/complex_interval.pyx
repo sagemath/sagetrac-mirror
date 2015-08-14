@@ -1655,6 +1655,48 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return self.sinh() / self.cosh()
 
+    def find_subintervals(self, f, test, **kwds):
+        r"""
+        Find subintervals of this interval passing the given ``test``
+        on the function ``f``.
+
+        INPUT::
+
+        - ``f`` -- the function as something callable or ``None``.
+
+        - ``test`` -- the condition which is tested for. This function
+          gets ``f`` (or a modified ``f`` when ``use_fast_callable``
+          is used) as its first argument and the cell which is to be
+          tested as its second argument.
+
+        See :func:`~sage.rings.real_mpfi.bisect` for further options.
+
+        OUTPUT:
+
+        A list of intervals.
+
+        .. NOTE::
+
+            This method performs a search by a bisection algorithm,
+            see :func:`~sage.rings.real_mpfi.bisect`.
+
+        EXAMPLES::
+
+            sage: def contains_zero(fct, cell):
+            ....:     return fct(cell).contains_zero()
+            sage: CIF((-4,4), (-7,7)).find_subintervals(lambda x: exp(x) - 2, contains_zero)
+            [0.69314718055995? - 6.28318530717959?*I,
+             0.69314718055995? + 0.?e-14*I,
+             0.69314718055995? + 6.28318530717959?*I]
+
+        .. SEEALSO::
+
+            :func:`sage.rings.real_mpfi.bisect`
+            :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.find_subintervals`,
+        """
+        from sage.rings.real_mpfi import bisect
+        return bisect(f, self, test, **kwds)
+
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
     """
