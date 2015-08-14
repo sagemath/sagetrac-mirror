@@ -3890,7 +3890,31 @@ class ExtensiveFormGame():
 
     def to_nfg(self):
         r"""
-        A method to convert an extensive form game to a normal form game. The NFGs are such that every possible combination of player's strategy profiles are mapped, in a dictionary, to the utilities that playing these strategies would return.
+        A method to convert an extensive form game to the corresponding normal form game.
+
+        Consider the following basic two player game::
+
+            sage: player_1 = EFG_Player('1')
+            sage: player_2 = EFG_Player('2')
+            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
+            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
+            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
+            sage: leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
+            sage: node_d = EFG_Node(player_1, {'Z': leaf_2, 'Y': leaf_3}, '4')
+            sage: node_c = EFG_Node(player_2, {'D': leaf_1, 'C': node_d}, '3')
+            sage: node_b = EFG_Node(player_2, {'B': leaf_4, 'A': leaf_5}, '2')
+            sage: node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, '1')
+            sage: example = ExtensiveFormGame(node_a)
+
+        Let us create the corresponding NFG::
+
+            sage: g = example.to_nfg()
+            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5],  (2, 0): [4, 2], (1, 3): [3, 5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
+            sage: g
+            Normal Form Game with the following utilities: ...
+            sage: g == d
+            True
 
         TESTS::
 
@@ -3910,25 +3934,6 @@ class ExtensiveFormGame():
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
-            sage: leaf_1 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 1')
-            sage: leaf_2 = EFG_Leaf({player_1: 3, player_2: 1}, 'Leaf 2')
-            sage: leaf_3 = EFG_Leaf({player_1: 4, player_2: 2}, 'Leaf 3')
-            sage: leaf_4 = EFG_Leaf({player_1: 3, player_2: 5}, 'Leaf 4')
-            sage: leaf_5 = EFG_Leaf({player_1: 4, player_2: 1}, 'Leaf 5')
-            sage: node_d = EFG_Node(player_1, {'Z': leaf_2, 'Y': leaf_3}, '4')
-            sage: node_c = EFG_Node(player_2, {'D': leaf_1, 'C': node_d}, '3')
-            sage: node_b = EFG_Node(player_2, {'B': leaf_4, 'A': leaf_5}, '2')
-            sage: node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, '1')
-            sage: example = ExtensiveFormGame(node_a)
-            sage: g = example.to_nfg()
-            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5], (2, 0): [4, 2], (1, 3): [3, 5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
-            sage: g
-            Normal Form Game with the following utilities: ...
-            sage: g == d
-            True
-
-            sage: player_1 = EFG_Player('1')
-            sage: player_2 = EFG_Player('2')
             sage: player_3 = EFG_Player('3')
             sage: leaf_1 = EFG_Leaf({player_1 : 0, player_2: 1, player_3: -5}, 'Leaf 1')
             sage: leaf_2 = EFG_Leaf({player_1 : 1, player_2: 0, player_3: -4}, 'Leaf 2')
@@ -3939,15 +3944,23 @@ class ExtensiveFormGame():
             sage: root_1 = EFG_Node(player_1, {'C': node_1, 'D': node_2}, 'Root 1')
             sage: example = ExtensiveFormGame(root_1)
             sage: g = example.to_nfg()
-            sage: d = {(0, 1, 1): [1, 0, -4], (1, 1, 0): [2, 1, -2], (1, 0, 0): [2, 4, -3], (0, 0, 1): [1, 0, -4], (1, 0, 1): [2, 4, -3], (0, 0, 0): [0, 1, -5], (0, 1, 0): [0, 1, -5], (1, 1, 1):                     [2, 1, -2]}
+            sage: d = {(0, 1, 1): [1, 0, -4], (1, 1, 0): [2, 1, -2], (1, 0, 0): [2, 4, -3], (0, 0, 1): [1, 0, -4], (1, 0, 1): [2, 4, -3], (0, 0, 0): [0, 1, -5], (0, 1,  0): [0, 1, -5], (1, 1, 1): [2, 1, -2]}
             sage: g
             Normal Form Game with the following utilities: ...
             sage: g == d
             True
 
-        A few tests to show that the Nash equilibria obtained directly from the extensive form game and the converted normal form game are equivalent.
-        The obtain_nash() function for extensive form games represents Nash equilibria by mapping information sets to probability vectors representing probabilities
-        of taking specific actions; whereas, for normal form games, it gives the Nash equilibria as a probability distribution over the possible strategy profiles of the players.The Nash equilibra obtained directly from the gambit games is also shown. These are all equivalent. Nash equilibria can only be obtained from games with two players:
+        A few tests to show that the Nash equilibria obtained directly
+        from the extensive form game and the converted normal form
+        game are equivalent. The obtain_nash() function for extensive
+        form games represents Nash equilibria by mapping information
+        sets to probability vectors representing probabilities
+        of taking specific actions; whereas, for normal form games,
+        it gives the Nash equilibria as a probability distribution over
+        the possible strategy profiles of the players. The Nash
+        equilibra obtained directly from the gambit games is also shown.
+        These are all equivalent. Nash equilibria can only be obtained
+        from games with two players:::
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -4028,9 +4041,7 @@ class ExtensiveFormGame():
             True
             sage: example.obtain_nash() # optional - gambit
             [[[{('a',): {'P': 0.3333333333, 'R': 0.3333333333, 'S': 0.3333333333}}],
-              [{('c', 'b', 'd'): {'P': 0.3333333333,
-                 'R': 0.3333333333,
-                 'S': 0.3333333333}}]]]
+              [{('c', 'b', 'd'): {'P': 0.3333333333, 'R': 0.3333333333, 'S': 0.3333333333}}]]]
             sage: from gambit.nash import ExternalLCPSolver
             sage: gambit = example.sage_to_gambit()
             sage: ExternalLCPSolver().solve(gambit)
@@ -4051,7 +4062,7 @@ class ExtensiveFormGame():
             sage: node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, '1')
             sage: example = ExtensiveFormGame(node_a)
             sage: g = example.to_nfg()
-            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5], (2, 0): [4, 2],                            (1, 3): [3, 5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
+            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5], (2, 0): [4, 2], (1, 3): [3, 5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
             sage: g
             Normal Form Game with the following utilities: ...
             sage: g == d
@@ -4074,39 +4085,6 @@ class ExtensiveFormGame():
              [(0, 0, 1, 0), (1, 0, 0, 0)],
              [(0, 1, 0, 0), (0, 0, 0, 1)],
              [(1, 0, 0, 0), (0, 0, 0, 1)]]
-
-            sage: player_1 = EFG_Player('1')
-            sage: player_2 = EFG_Player('2')
-            sage: leaf_1 = EFG_Leaf({player_1: 1, player_2: 1}, 'Leaf 1')
-            sage: leaf_2 = EFG_Leaf({player_1: 1, player_2: 2}, 'Leaf 2')
-            sage: leaf_3 = EFG_Leaf({player_1: 2, player_2: 0}, 'Leaf 3')
-            sage: leaf_4 = EFG_Leaf({player_1: 1, player_2: 3}, 'Leaf 4')
-            sage: leaf_5 = EFG_Leaf({player_1: 0, player_2: 5}, 'Leaf 5')
-            sage: leaf_6 = EFG_Leaf({player_1: 5, player_2: 0}, 'Leaf 5')
-            sage: node_e = EFG_Node(player_1, {'Y': leaf_5, 'Z': leaf_6}, 'e')
-            sage: node_d = EFG_Node(player_1, {'Y': leaf_2, 'Z': leaf_3}, 'd')
-            sage: node_c = EFG_Node(player_2, {'C': leaf_4, 'D': node_e}, 'c')
-            sage: node_b = EFG_Node(player_2, {'C': node_d, 'D': leaf_1}, 'b')
-            sage: node_a = EFG_Node(player_1, {'W': node_b, 'X': node_c}, 'a')
-            sage: example = ExtensiveFormGame(node_a)
-            sage: example.set_info_set([node_b, node_c])
-            sage: g = example.to_nfg()
-            sage: import warnings
-            sage: warnings.filterwarnings("ignore")
-            sage: example.obtain_nash() # optional - gambit
-            [[[{('a',): {'W': 0.75, 'X': 0.25},
-                ('d',): {'Y': 0.0, 'Z': 1.0},
-                ('e',): {'Y': 0.0, 'Z': 1.0}}],
-              [{('b', 'c'): {'C': 0.8, 'D': 0.2}}]]]
-            sage: from gambit.nash import ExternalLCPSolver
-            sage: gambit = example.sage_to_gambit()
-            sage: ExternalLCPSolver().solve(gambit)
-            [<NashProfile for '': [0.25, 0.75, 0.0, 1.0, 0.0, 1.0, 0.8, 0.2]>]
-            sage: g.obtain_nash(algorithm='enumeration')
-            [[(0, 0, 0, 1/4, 0, 0, 0, 3/4), (4/5, 1/5)],
-             [(0, 0, 0, 1/4, 0, 0, 3/4, 0), (4/5, 1/5)],
-             [(0, 1/4, 0, 0, 0, 0, 0, 3/4), (4/5, 1/5)],
-             [(0, 1/4, 0, 0, 0, 0, 3/4, 0), (4/5, 1/5)]]
         """
         self._build_utility_dictionary()
         efg_strategies = self.generate_strategies()
