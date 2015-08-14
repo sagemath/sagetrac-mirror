@@ -194,7 +194,7 @@ class DocTestSource(object):
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
                                              and dt.examples[-1].sage_source == sig_on_count_doc_doctest):
                 # Line number refers to the end of the docstring
-                sigon = doctest.Example(sig_on_count_doc_doctest, "0\n", lineno=docstring.count("\n"))
+                sigon = doctest.Example(sig_on_count_doc_doctest, "int(0)\n", lineno=docstring.count("\n"))
                 sigon.sage_source = sig_on_count_doc_doctest
                 dt.examples.append(sigon)
             doctests.append(dt)
