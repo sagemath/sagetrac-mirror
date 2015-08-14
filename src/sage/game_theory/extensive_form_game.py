@@ -3976,9 +3976,13 @@ class ExtensiveFormGame():
                 player_strategy = profile[self.players.index(player)]
 
                 information_set = tuple(node.name for node in [info_set for info_set in self.info_sets if next_node in info_set][0])
-                for t in player_strategy:
-                    if t[0] == information_set:
-                        action = t[1]
+
+                action = False
+                k = 0
+                while not action:
+                    if player_strategy[k][0] == information_set:
+                        action = player_strategy[k][1]
+                    k += 1
 
                 next_node = next_node.action_to_node_dict[action]
             self.utilities[tuple(profile)] = next_node.payoffs
