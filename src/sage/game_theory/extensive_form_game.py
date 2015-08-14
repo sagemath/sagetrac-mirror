@@ -656,6 +656,7 @@ calculated for the normal form game.
 AUTHOR:
 
 - Hannah Lorrimore (07-2015): Original version
+- Rhys Ward (08-2015): Conversion to Normal form games
 """
 
 from operator import attrgetter
