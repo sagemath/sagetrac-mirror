@@ -38,6 +38,7 @@ class SagePrettyPrinter(PrettyPrinter):
     # These object representers will be tried, in this order, until
     # one is found that is able to deal with the object.
     pretty_repr = (
+        PythonIntegerRepr(),
         TallListRepr(),
         LargeMatrixHelpRepr(),
         SomeIPythonRepr(),

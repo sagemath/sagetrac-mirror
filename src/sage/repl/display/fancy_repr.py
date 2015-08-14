@@ -335,3 +335,40 @@ class TallListRepr(ObjectReprABC):
         return True
 
             
+class PythonIntegerRepr(ObjectReprABC):
+    """
+    Print Python ints special
+
+    .. automethod:: __call__
+    """
+
+    def __call__(self, obj, p, cycle):
+        r"""
+        Print Python ints special
+
+        INPUT:
+
+        - ``obj`` -- anything. Object to format.
+
+        - ``p`` -- PrettyPrinter instance.
+
+        - ``cycle`` -- boolean. Whether there is a cycle.
+
+        OUTPUT:
+
+        Boolean. Whether the representer is applicable to ``obj``. If
+        ``True``, the string representation is appended to ``p``.
+
+        EXAMPLES::
+
+            sage: from sage.repl.display.fancy_repr import PythonIntegerRepr
+            sage: format_list = PythonIntegerRepr().format_string
+            sage: format_list([1, int(2), identity_matrix(2)])
+            '[\n      [1 0]\n1, int(2), [0 1]\n]'
+        """
+        if not isinstance(obj, int):
+            return False
+        p.text('int({0})'.format(obj))
+        return True
+
+            
