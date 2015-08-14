@@ -3702,20 +3702,10 @@ class ExtensiveFormGame():
 
     def _build_utility_dictionary(self):
         r"""
-        A method to return the utilities of each player when given a strategy profile.
-        The strategies are represented by tuple pairs of information sets and the actions taken at said information sets.
+        A method to build a dictionary which maps strategy profiles
+        as output by the `generate_strategies` method, to utilities.
 
-        TESTS::
-
-            sage: player_1 = EFG_Player('1')
-            sage: leaf_1 = EFG_Leaf({player_1: 2}, 'Leaf 1')
-            sage: leaf_2 = EFG_Leaf({player_1: 3}, 'Leaf 2')
-            sage: node_a = EFG_Node(player_1, {'X': leaf_1, 'W': leaf_2}, 'a')
-            sage: example = ExtensiveFormGame(node_a)
-            sage: example._build_utility_dictionary()
-            sage: d = {player_1: 2}
-            sage: example.utilities[(((('a',), 'X'),),)] == d
-            True
+        Let us consider this simple two player game::
 
             sage: player_1 = EFG_Player('1')
             sage: player_2 = EFG_Player('2')
@@ -3727,8 +3717,54 @@ class ExtensiveFormGame():
             sage: node_c = EFG_Node(player_2, {'meow': leaf_3, 'scratch': leaf_4}, 'c')
             sage: node_a = EFG_Node(player_1, {'bark': node_b, 'woof': node_c}, 'a')
             sage: example = ExtensiveFormGame(node_a)
+
+        At present this game does not have a utilities attribute::
+
+            sage: example.utilities
+            Traceback (most recent call last):
+            ...
+            AttributeError: ExtensiveFormGame instance has no attribute 'utilities'
+
+        Now when we build the dictionary we get the expected outcome::
+
             sage: example._build_utility_dictionary()
-            sage: example.utilities[(((('a',), 'bark'),), ((('b',), 'meow'), (('c',), 'scratch')))] == {player_1: 2, player_2: 0}
+            sage: d = {(((('a',), 'bark'),),
+            ....:       ((('b',), 'meow'),
+            ....:        (('c',), 'meow'))): {player_1: 2, player_2: 0},
+            ....:      (((('a',), 'bark'),),
+            ....:       ((('b',), 'meow'),
+            ....:        (('c',), 'scratch'))): {player_1: 2, player_2: 0},
+            ....:      (((('a',), 'bark'),),
+            ....:       ((('b',), 'scratch'),
+            ....:        (('c',), 'meow'))): {player_1: 3, player_2: 1},
+            ....:      (((('a',), 'bark'),),
+            ....:       ((('b',), 'scratch'),
+            ....:        (('c',), 'scratch'))): {player_1: 3, player_2: 1},
+            ....:      (((('a',), 'woof'),),
+            ....:       ((('b',), 'meow'),
+            ....:        (('c',), 'meow'))): {player_1: 4, player_2: 2},
+            ....:      (((('a',), 'woof'),),
+            ....:       ((('b',), 'meow'),
+            ....:        (('c',), 'scratch'))): {player_1: 3, player_2: 5},
+            ....:      (((('a',), 'woof'),),
+            ....:       ((('b',), 'scratch'),
+            ....:        (('c',), 'meow'))): {player_1: 4, player_2: 2},
+            ....:      (((('a',), 'woof'),),
+            ....:       ((('b',), 'scratch'),
+            ....:        (('c',), 'scratch'))): {player_1: 3, player_2: 5}}
+            sage: example.utilities == d
+            True
+
+        TESTS::
+
+            sage: player_1 = EFG_Player('1')
+            sage: leaf_1 = EFG_Leaf({player_1: 2}, 'Leaf 1')
+            sage: leaf_2 = EFG_Leaf({player_1: 3}, 'Leaf 2')
+            sage: node_a = EFG_Node(player_1, {'X': leaf_1, 'W': leaf_2}, 'a')
+            sage: example = ExtensiveFormGame(node_a)
+            sage: example._build_utility_dictionary()
+            sage: d = {player_1: 2}
+            sage: example.utilities[(((('a',), 'X'),),)] == d
             True
 
             sage: player_1 = EFG_Player('1')
@@ -3885,7 +3921,7 @@ class ExtensiveFormGame():
             sage: node_a = EFG_Node(player_1, {'X': node_b, 'W': node_c}, '1')
             sage: example = ExtensiveFormGame(node_a)
             sage: g = example.to_nfg()
-            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5], (2, 0): [4, 2], (1, 3): [3,                     5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
+            sage: d = {(0, 1): [4, 1], (1, 2): [3, 5], (3, 2): [3, 1], (0, 0): [4, 1], (3, 3): [2, 0], (3, 0): [3, 1], (3, 1): [2, 0], (2, 1): [2, 0], (0, 2): [3, 5], (2, 0): [4, 2], (1, 3): [3, 5], (2, 3): [2, 0], (2, 2): [4, 2], (1, 0): [4, 1], (0, 3): [3, 5], (1, 1): [4, 1]}
             sage: g
             Normal Form Game with the following utilities: ...
             sage: g == d
