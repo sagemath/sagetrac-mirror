@@ -1435,7 +1435,10 @@ class NormalFormGame(SageObject, MutableMapping):
             [1, 0, 1, 0]
 
         The relationship between the two equilibria can be shown by obtaining and plotting a
-        bipartite graph which shows this relationship::
+        bipartite graph which shows this relationship. This can be done by using the
+        ``'lh-bipartite'`` option, which outputs a three tuple. The first of which is a bipartite
+        graph, the second and third are both lists of equilibria (results of running ``'lh-all'``)
+        which form the two partitions of the graph::
 
             sage: b, neq, peq = g.obtain_nash(algorithm='lh-bipartite', ring=QQ)
             sage: b
@@ -1447,15 +1450,15 @@ class NormalFormGame(SageObject, MutableMapping):
             [Equ [[1, 0.0], [1, 0.0]] Labels[0, 1, 0, 1],
              Equ [[0.0, 1], [0.0, 1]] Labels[1, 0, 1, 0]]
 
-        Note that nodes on the left side of the bipartite graph correspond to equilibria in the first list
-        and the nodes on the right side are equlibria in the second list of equilibria.
+        Note that nodes on the left partition of the bipartite graph correspond to equilibria in the first list
+        and the nodes on the right partition are equlibria in the second list of equilibria.
 
         .. PLOT::
             :width: 500px
 
             g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
-            b, _ = g.obtain_nash(algorithm='lh-bipartite, ring=QQ)
-            sphinix_plot(b.plot(edge_labels=True))
+            b, _, _ = g.obtain_nash(algorithm='lh-bipartite', ring=QQ)
+            sphinx_plot(b.plot(edge_labels=True))
 
         """
         if len(self.players) > 2:
