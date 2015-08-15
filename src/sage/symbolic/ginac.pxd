@@ -191,6 +191,12 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned info_odd           "GiNaC::info_flags::odd"
     unsigned info_rational_function "GiNaC::info_flags::rational_function"
 
+    # assumptions
+    void pynac_assume_rel "GiNaC::assume" (GEx rel)
+    void pynac_assume_gdecl "GiNaC::assume" (GEx x, char*)
+    void pynac_forget_rel "GiNaC::forget" (GEx rel)
+    void pynac_forget_gdecl "GiNaC::forget" (GEx x, char*)
+
     # Constants
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
