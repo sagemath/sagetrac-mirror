@@ -5359,6 +5359,7 @@ def __create__RealIntervalFieldElement_version1(parent, lower, upper):
 
 
 def bisect(f, start, test,
+           bisect_on_success=True,
            max_iterations=None,
            max_open=None,
            use_fast_callable=None,
@@ -5379,6 +5380,10 @@ def bisect(f, start, test,
       gets ``f`` (or a modified ``f`` when ``use_fast_callable`` is
       used) as its first argument and the cell which is to be tested
       as its second argument.
+
+    - ``bisect_on_success`` (default: ``True``) -- if set, then a cell
+      which is successfully tested is bisected, otherwise a failing
+      cell is bisected.
 
     - ``max_iterations`` (default: ``None``) -- an integer specifying the
       maximum number of iterations.
@@ -5457,6 +5462,16 @@ def bisect(f, start, test,
         sage: bisect(lambda x: sin(x)^2, RIF(-1, 1), not_larger_than_zero)
         [0.?e-15]
 
+    We can achieve the results above also without this "doubly
+    inverted thinking" by using the ``bisect_on_success``-flag::
+
+        sage: def larger_than_zero(fct, cell):
+        ....:     return fct(cell) > 0
+        sage: result = bisect(lambda x: exp(sin(x)), RIF(-4, 4),
+        ....:                 larger_than_zero, bisect_on_success=False)
+        sage: tuple(r.str(style='brackets') for r in result)
+        ('[-4.0000000000000000 .. 4.0000000000000000]',)
+
     .. SEEALSO::
 
         :class:`sage.rings.polynomial.polynomial_element.roots`,
@@ -5466,7 +5481,7 @@ def bisect(f, start, test,
         :class:`sage.rings.complex_interval_field.ComplexIntervalField`,
         :meth:`sage.rings.complex_interval.ComplexIntervalFieldElement.find_subintervals`.
     """
-    from sage.misc.misc import verbose
+    from sage.misc.misc import verbose, get_verbose
 
     R = start.parent()
 
@@ -5494,15 +5509,23 @@ def bisect(f, start, test,
 
     verbose('starting the bisection-process...', level=1)
 
+    result = []
     while iteration < max_iterations and 0 < len(open) < max_open:
         new_open = []
-        result = []
+        if bisect_on_success:
+            result = []
         for cell in open:
-            if not test(ff, cell):
+            success = test(ff, cell)
+
+            if bisect_on_success:
+                if not success:
+                    continue
+                result.append(cell)
+            elif success:
+                result.append(cell)
                 continue
-            result.append(cell)
-            for c in cell.bisection():
-                new_open.append(c)
+
+            new_open.extend(cell.bisection())
 
         verbose('iteration %s with results in %s of %s cells' %
                 (iteration, len(result), len(open)), level=2)
