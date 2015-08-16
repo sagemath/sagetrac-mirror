@@ -233,13 +233,11 @@ information. You can use the existing functions of Sage as templates.
   the REFERENCES block described below), explanations, etc. It can be several
   paragraphs long.
 
-- **INPUT** and **OUTPUT** describing the input/output of the function. These
-  blocks are mandatory only if the input or output is not clear from the
-  description.
+- **INPUT** block describing the input of the function.
 
-   The INPUT block describes all arguments that the function accepts,
-   and the OUTPUT section describes its expected output. The OUTPUT block can
-   also mentioned the errors that the function can possibly raise.
+   The INPUT block describes all arguments that the function accepts.  This
+   block is mandatory only if the input is not clear from the description.  You
+   should omit it if there is no argument.
 
    1. The type names should be descriptive, but do not have to represent
       the exact Sage/Python types. For example, use "integer" for
@@ -252,6 +250,13 @@ information. You can use the existing functions of Sage as templates.
        INPUT:
 
        - ``p`` -- (default: 2) a positive prime integer.
+
+- **OUTPUT** block describing the output of the function
+
+  The OUTPUT section describes its expected output.  This block is mandatory
+  only if the output is not clear from the description. You should omit it if
+  the function does not return a value. The OUTPUT block can also mentionned
+  the errors that the function can possibly raise.
 
        OUTPUT:
 
