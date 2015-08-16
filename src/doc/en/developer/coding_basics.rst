@@ -223,15 +223,23 @@ information. You can use the existing functions of Sage as templates.
 
 -  A **one-sentence description** of the function.
 
-   It must be followed by a blank line and end in a period.  It
-   describes the function or method's effect as a command ("Do this",
-   "Return that"), not as a description like "Returns the pathname ...".
+   It must be followed by a blank line and end in a period.  It describes the
+   function or method's effect as a command ("Do this", "Return that"), not as
+   a description like "Returns the pathname ...". Keep it as short as possible.
 
--  An **INPUT** and an **OUTPUT** block describing the input/output of
-   the function. This is not optional.
+- A **detailed description** (optional).
+
+  This part might include definitions, reference to the literature (see also
+  the REFERENCES block described below), explanations, etc. It can be several
+  paragraphs long.
+
+- **INPUT** and **OUTPUT** describing the input/output of the function. These
+  blocks are mandatory only if the input or output is not clear from the
+  description.
 
    The INPUT block describes all arguments that the function accepts,
-   and the OUTPUT section describes its expected output.
+   and the OUTPUT section describes its expected output. The OUTPUT block can
+   also mentioned the errors that the function can possibly raise.
 
    1. The type names should be descriptive, but do not have to represent
       the exact Sage/Python types. For example, use "integer" for
