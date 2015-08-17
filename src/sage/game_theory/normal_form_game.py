@@ -7,6 +7,8 @@ of these games:
 
  * ``'enumeration'`` - An implementation of the support enumeration algorithm built in Sage.
 
+ * ``'gambit-*'`` - A group of several algorithms which interface with the gambit solvers.
+
  * ``'lcp'`` - An interface with the 'gambit' solver's implementation of the Lemke-Howson algorithm.
 
  * ``'lp-*'`` - A built-in Sage implementation (with a gambit alternative) of a zero-sum game solver
@@ -31,7 +33,6 @@ This can be modeled using the following two matrices:
         3&1\\
         0&2\\
         \end{pmatrix}
-
 
     B = \begin{pmatrix}
         2&1\\
@@ -213,11 +214,42 @@ time spent in prison)::
 
 When obtaining Nash equilibrium the following algorithms are currently available:
 
+* ``'gambit-*'`` : A group of several algorithms which interface with the solvers implemented in the
+  gambit library. These options all start with ``'gambit-'``, and end with the name of the
+  algorithm. These algorithms make use of the open source game theory package: 
+  `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. To install it, type 
+  ``sage -i gambit`` at the command line. These algorithms are for 2 player games only:
+
+  - ``'enummixed'`` - Enumeration of all equilibria in bimatrix games
+
+  - ``'lp'`` - Solves a bimatrix zero-sum game using a linear program (equivalent to
+    ``'lp-gambit'``)
+
+  - ``'lcp'`` - Solves a bimatrix game using Lemke-Howson algorithm (equivalent to ``'lcp'``)
+
+  The following can be used for `n` player games:
+
+  - ``'enumpure'`` - Enumeration of all pure strategy equilibria
+
+  - ``'enumpoly'`` - Support enumeration for n-player games using a polynomial
+    system of equations
+
+  - ``'simpdiv'`` - Simplical division method
+
+  - '``gnm'`` - Global Newton Method
+
+  - '``liap'`` - Lyapunov Solver
+
+  - '``ipa'`` - Iterated Polymatrix Solver
+
+  - '``logit'`` - Logit Solver
+
+
 * ``'lp-*'``: A solver for constant-sum 2 player games using linear programming. This contructs a
   `:mod:MixedIntegerLinearProgram <sage.numerical.MILP>` using the solver which was passed in as
   part of the algorithm string to solve the linear programming representation of the game, for
   instance, ``'lp-glpk'`` would make use of the ``GLPK`` solver, while ``'lp-gambit'`` would make
-  use of the gambit implementation of this method.
+  use of the gambit implementation of this method (equivalent to ``'gambit-lp'``).
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrslib' package. To install it type ``sage -i
@@ -226,9 +258,7 @@ When obtaining Nash equilibrium the following algorithms are currently available
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
   `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
-  the only gambit algorithm available in sage but further development will
-  hope to implement more algorithms
-  (in particular for games with more than 2 players). To install it
+  (in particular for games with more than 2 players). To install gambit
   type ``sage -i gambit`` at the command line.
 
 * ``'enumeration'``: Support enumeration for 2 player games. This
@@ -288,6 +318,7 @@ game::
     )
     sage: f.obtain_nash(algorithm='enumeration')
     [[(0, 1), (0, 1)]]
+
 
 We can add an extra strategy to the first player::
 
@@ -1273,16 +1304,26 @@ class NormalFormGame(SageObject, MutableMapping):
             the 'gambit-' string followed by the abbreviation of the algorithm name (see
             http://www.gambit-project.org/gambit14/tools.html#command-line for more information).
             The solvers include:
+
             - ``'gambit-enumpure'`` - Enumeration of all pure strategy equilibria
+
             - ``'gambit-enumpoly'`` - Support enumeration for n-player games using a polynomial
               system of equations
+
             - ``'gambit-enummixed'`` - Enumeration of all equilibria in bimatrix games
+
             - ``'gambit-lp'`` - Solves a bimatrix zero-sum game using a linear program
+
             - ``'gambit-lcp'`` - Solves a bimatrix game using Lemke-Howson algorithm
+
             - ``'gambit-simpdiv'`` - Simplical division method
+
             - '``gambit-gnm'`` - Global Newton Method
+
             - '``gambit-liap'`` - Lyapunov Solver
+
             - '``gambit-ipa'`` - Iterated Polymatrix Solver
+
             - '``gambit-logit'`` - Logit Solver
 
           * ``'enumeration'`` - This is a very inefficient
