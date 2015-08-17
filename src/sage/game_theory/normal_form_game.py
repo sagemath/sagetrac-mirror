@@ -2,8 +2,9 @@ r"""
 Normal form games with N players.
 
 This module implements a class for normal form games (strategic form games)
-[NN2007]_. At present 3 algorithms are implemented to compute equilibria
-of these games (``'lrs'`` - interfaced with the 'lrslib' library, ``'LCP'`` interfaced
+[NN2007]_. At present 4 algorithms are implemented to compute equilibria
+of these games (``'lh-*'`` - which is an implementation of the Lemke Howson algorithm within Sage,
+``'lrs'`` - interfaced with the 'lrslib' library, ``'LCP'`` interfaced
 with the 'gambit' library and support enumeration built in Sage). The architecture
 for the class is based on the gambit architecture to ensure an easy transition
 between gambit and Sage.  At present the algorithms for the computation of equilibria
@@ -201,7 +202,14 @@ time spent in prison)::
     sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
     [[(0, 1), (0, 1)]]
 
-When obtaining Nash equilibrium there are 3 algorithms currently available:
+When obtaining Nash equilibrium there are 4 algorithms currently available:
+
+* ``'lh-*'``:This is an implementation of the Lemke-Howson algorithm which solves 2 player games.
+  This algorithm is a complementary pivoting algorithm on a pair of best response polytopes for both
+  players. This solver option starts with the string ``'lh-'``, and is followed by either
+  ``'single'``, ``'all'`` or ``'bipartite'``, each of which returns a single Nash equilibrium, all
+  Nash equilibria which the algorithm can find, and a :mod:`BipartiteGraph
+  <sage.graphs.bipartite_graph>` along with all Nash equilibria found.
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrslib' package. To install it type ``sage -i
@@ -223,7 +231,7 @@ When obtaining Nash equilibrium there are 3 algorithms currently available:
   algorithm described in [NN2007]_ and a pruning component described
   in [SLB2008]_.
 
-Below we show how the three algorithms are called::
+Below we show how the algorithms are called::
 
     sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrslib
     [[(1/2, 1/2), (1/2, 1/2)]]
@@ -231,6 +239,18 @@ Below we show how the three algorithms are called::
     [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
+    sage: ne = matching_pennies.obtain_nash(algorithm='lh-single')
+    sage: [[[round(el, 3) for el in v] for v in eq] for eq in ne] 
+    [[[0.5, 0.5], [0.5, 0.5]]]
+    sage: matching_pennies.obtain_nash(algorithm='lh-single', ring=QQ)
+    [[(1/2, 1/2), (1/2, 1/2)]]
+    sage: matching_pennies.obtain_nash(algorithm='lh-all', ring=QQ)
+    ([Equ [(0, 0), (0, 0)] Labels[0, 0, 0, 0]],
+     [Equ [(1/2, 1/2), (1/2, 1/2)] Labels[0, 0, 0, 0]])
+    sage: matching_pennies.obtain_nash(algorithm='lh-bipartite', ring=QQ)
+    (Bipartite graph on 2 vertices,
+     [Equ [(0, 0), (0, 0)] Labels[0, 0, 0, 0]],
+     [Equ [(1/2, 1/2), (1/2, 1/2)] Labels[0, 0, 0, 0]])
 
 Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
@@ -465,11 +485,16 @@ is evidenced by the various algorithms returning different solutions::
     [[(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)],
      [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
      [(1.0, 0.0, 0.0), (1.0, 0.0)]]
+    sage: degenerate_game.obtain_nash(algorithm='lh-all', ring=QQ)
+    ([Equ [(0, 0, 0), (0, 0)] Labels[0, 0, 0, 0, 0]],
+     [Equ [(0.0, 1/3, 2/3), (1/3, 2/3)] Labels[0, 0, 0, 0, 0]])
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
 
 Note the 'negative' `-0.0` output by gambit. This is due to the numerical
-nature of the algorithm used.
+nature of the algorithm used. Note that although the gambit's ``'LCP'`` algorithm is an
+implementation of the Lemke-Howson algorithm, the difference in output is due to different
+degeneracy resolution methods used.
 
 Here is an example with the trivial game where all payoffs are 0::
 
@@ -1392,23 +1417,23 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in res] 
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
             sage: g.obtain_nash(algorithm='lh-single', ring = QQ)
-            [[[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]]]
+            [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
 
         Multiple equilibria in a game can be computed using the LH algorithm::
 
             sage: neq, peq = g.obtain_nash(algorithm='lh-all', ring=QQ)
             sage: neq
-            [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]]
+            [Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 0, 0, 0, 0, 0]]
             sage: peq
-            [Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[0, 0, 0, 0, 0, 0]]
+            [Equ [(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)] Labels[0, 0, 0, 0, 0, 0]]
             sage: g = NormalFormGame([matrix.identity(2), matrix.identity(2)])
             sage: neq, peq = g.obtain_nash(algorithm='lh-all', ring=QQ)
             sage: neq
-            [Equ [[0, 0], [0, 0]] Labels[0, 1, 0, 1],
-             Equ [[1/2, 1/2], [1/2, 1/2]] Labels[1, 0, 1, 0]]
+            [Equ [(0, 0), (0, 0)] Labels[0, 1, 0, 1],
+             Equ [(1/2, 1/2), (1/2, 1/2)] Labels[1, 0, 1, 0]]
             sage: peq
-            [Equ [[1, 0.0], [1, 0.0]] Labels[0, 1, 0, 1],
-             Equ [[0.0, 1], [0.0, 1]] Labels[1, 0, 1, 0]]
+            [Equ [(1, 0.0), (1, 0.0)] Labels[0, 1, 0, 1],
+             Equ [(0.0, 1), (0.0, 1)] Labels[1, 0, 1, 0]]
 
         Each element in the list has two properties, the first which is the equilibrium, and the
         second represents how the labels connect the different equilibria. Taking a look at the
@@ -1418,19 +1443,19 @@ class NormalFormGame(SageObject, MutableMapping):
         equilibria::
 
             sage: neq[0].eq
-            [[0, 0], [0, 0]]
+            [(0, 0), (0, 0)]
             sage: neq[0].labels
             [0, 1, 0, 1]
             sage: peq[0].eq
-            [[1, 0.0], [1, 0.0]]
+            [(1, 0.0), (1, 0.0)]
             sage: peq[0].labels
             [0, 1, 0, 1]
             sage: peq[1].eq
-            [[0.0, 1], [0.0, 1]]
+            [(0.0, 1), (0.0, 1)]
             sage: peq[1].labels
             [1, 0, 1, 0]
             sage: neq[1].eq
-            [[1/2, 1/2], [1/2, 1/2]]
+            [(1/2, 1/2), (1/2, 1/2)]
             sage: neq[1].labels
             [1, 0, 1, 0]
 
@@ -1444,11 +1469,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: b
             Bipartite graph on 4 vertices
             sage: neq
-            [Equ [[0, 0], [0, 0]] Labels[0, 1, 0, 1],
-             Equ [[1/2, 1/2], [1/2, 1/2]] Labels[1, 0, 1, 0]]
+            [Equ [(0, 0), (0, 0)] Labels[0, 1, 0, 1],
+             Equ [(1/2, 1/2), (1/2, 1/2)] Labels[1, 0, 1, 0]]
             sage: peq
-            [Equ [[1, 0.0], [1, 0.0]] Labels[0, 1, 0, 1],
-             Equ [[0.0, 1], [0.0, 1]] Labels[1, 0, 1, 0]]
+            [Equ [(1, 0.0), (1, 0.0)] Labels[0, 1, 0, 1],
+             Equ [(0.0, 1), (0.0, 1)] Labels[1, 0, 1, 0]]
 
         Note that nodes on the left partition of the bipartite graph correspond to equilibria in the first list
         and the nodes on the right partition are equlibria in the second list of equilibria.
@@ -2786,7 +2811,7 @@ class NormalFormGame(SageObject, MutableMapping):
             if tab[1][i,0] > epsilon:
                 x[int(tab[1][i,0] - 1)] = (tab[1][i,1]/tot2)
 
-        return (tab, [x, y])
+        return (tab, [tuple(x), tuple(y)])
 
     def _solve_lh(self, missing = 1, ring = RR):
         r"""
@@ -2808,17 +2833,17 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
             sage: g._solve_lh(ring=QQ)
-            [[[1, 0.0, 0.0], [1, 0.0, 0.0]]]
+            [[(1, 0.0, 0.0), (1, 0.0, 0.0)]]
             sage: g._solve_lh(2, ring=QQ)
-            [[[0.0, 1, 0.0], [0.0, 1, 0.0]]]
+            [[(0.0, 1, 0.0), (0.0, 1, 0.0)]]
             sage: g._solve_lh(3, ring=QQ)
-            [[[0.0, 0.0, 1], [0.0, 0.0, 1]]]
+            [[(0.0, 0.0, 1), (0.0, 0.0, 1)]]
             sage: g._solve_lh(4, ring=QQ)
-            [[[1, 0.0, 0.0], [1, 0.0, 0.0]]]
+            [[(1, 0.0, 0.0), (1, 0.0, 0.0)]]
             sage: g._solve_lh(5, ring=QQ)
-            [[[0.0, 1, 0.0], [0.0, 1, 0.0]]]
+            [[(0.0, 1, 0.0), (0.0, 1, 0.0)]]
             sage: g._solve_lh(6, ring=QQ)
-            [[[0.0, 0.0, 1], [0.0, 0.0, 1]]]
+            [[(0.0, 0.0, 1), (0.0, 0.0, 1)]]
             sage: p1 = matrix([[-1, 4, 0, 2, 0],
             ....:              [-17, 246, -5, 1, -2],
             ....:              [0, 1, 1, -4, -4],
@@ -2835,19 +2860,19 @@ class NormalFormGame(SageObject, MutableMapping):
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
             sage: ne = biggame._solve_lh(ring=QQ)
             sage: ne
-            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            [[(0.0, 0.0, 0.0, 20/21, 1/21), (11/12, 0.0, 0.0, 1/12, 0.0)]]
             sage: ne = biggame._solve_lh(2)
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
             sage: ne = biggame._solve_lh(2, ring=QQ)
             sage: ne
-            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            [[(0.0, 0.0, 0.0, 20/21, 1/21), (11/12, 0.0, 0.0, 1/12, 0.0)]]
             sage: ne = biggame._solve_lh(3)
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] 
             [[[0.0, 0.0, 0.0, 0.952381, 0.047619], [0.916667, 0.0, 0.0, 0.083333, 0.0]]]
             sage: ne = biggame._solve_lh(3, ring=QQ)
             sage: ne
-            [[[0.0, 0.0, 0.0, 20/21, 1/21], [11/12, 0.0, 0.0, 1/12, 0.0]]]
+            [[(0.0, 0.0, 0.0, 20/21, 1/21), (11/12, 0.0, 0.0, 1/12, 0.0)]]
             sage: A = matrix([[3,3],
             ....:             [2,5],
             ....:             [0,6]])
@@ -2856,15 +2881,15 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
             sage: g._solve_lh(1, ring=QQ)
-            [[[1, 0.0, 0.0], [1, 0.0]]]
+            [[(1, 0.0, 0.0), (1, 0.0)]]
             sage: g._solve_lh(2, ring=QQ)
-            [[[0.0, 1/3, 2/3], [1/3, 2/3]]]
+            [[(0.0, 1/3, 2/3), (1/3, 2/3)]]
             sage: g._solve_lh(3, ring=QQ)
-            [[[1, 0.0, 0.0], [1, 0.0]]]
+            [[(1, 0.0, 0.0), (1, 0.0)]]
             sage: g._solve_lh(4, ring=QQ)
-            [[[1, 0.0, 0.0], [1, 0.0]]]
+            [[(1, 0.0, 0.0), (1, 0.0)]]
             sage: g._solve_lh(5, ring=QQ)
-            [[[0.0, 1/3, 2/3], [1/3, 2/3]]]
+            [[(0.0, 1/3, 2/3), (1/3, 2/3)]]
             sage: g._solve_lh(0, ring=QQ)
             Traceback (most recent call last):
             ...
@@ -2902,27 +2927,27 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = B = matrix.identity(3)
             sage: g = NormalFormGame([A, B])
             sage: tab = g._init_lh_tableau(A, B, QQ)
-            sage: neg = [_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]])]
+            sage: neg = [_LHEquilibrium(tab[2], [tuple([0]*tab[0]), tuple([0]*tab[1])])]
             sage: pos = []
             sage: neg[0]
-            Equ [[0, 0, 0], [0, 0, 0]] Labels[-1, -1, -1, -1, -1, -1]
+            Equ [(0, 0, 0), (0, 0, 0)] Labels[-1, -1, -1, -1, -1, -1]
             sage: g._lh_find_all_from(0, True, neg, pos)
             sage: neg[0]
-            Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2]
+            Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 1, 2, 0, 1, 2]
             sage: pos
-            [Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1],
-             Equ [[0.0, 1, 0.0], [0.0, 1, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
-             Equ [[0.0, 0.0, 1], [0.0, 0.0, 1]] Labels[-1, -1, 0, -1, -1, 0]]
+            [Equ [(1, 0.0, 0.0), (1, 0.0, 0.0)] Labels[0, -1, -1, 0, -1, -1],
+             Equ [(0.0, 1, 0.0), (0.0, 1, 0.0)] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [(0.0, 0.0, 1), (0.0, 0.0, 1)] Labels[-1, -1, 0, -1, -1, 0]]
             sage: g._lh_find_all_from(0, True, neg, pos)
             sage: pos[0]
-            Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, -1, -1, 0, -1, -1]
+            Equ [(1, 0.0, 0.0), (1, 0.0, 0.0)] Labels[0, -1, -1, 0, -1, -1]
             sage: g._lh_find_all_from(0, False, neg, pos)
             sage: pos[0]
-            Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2]
+            Equ [(1, 0.0, 0.0), (1, 0.0, 0.0)] Labels[0, 1, 2, 0, 1, 2]
             sage: neg
-            [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
-             Equ [[1/2, 1/2, 0.0], [1/2, 1/2, 0.0]] Labels[-1, 0, -1, -1, 0, -1],
-             Equ [[1/2, 0.0, 1/2], [1/2, 0.0, 1/2]] Labels[-1, -1, 0, -1, -1, 0]]
+            [Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 1, 2, 0, 1, 2],
+             Equ [(1/2, 1/2, 0.0), (1/2, 1/2, 0.0)] Labels[-1, 0, -1, -1, 0, -1],
+             Equ [(1/2, 0.0, 1/2), (1/2, 0.0, 1/2)] Labels[-1, -1, 0, -1, -1, 0]]
         """
         if isneg:
             cur = neg[i]
@@ -2977,41 +3002,41 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A])
             sage: g._lh_find_all()
-            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
-             [Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[0, 0, 0, 0, 0, 0]])
+            ([Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [(0.333333333333333, 0.333333333333333, 0.333333333333333), (0.333333333333333, 0.333333333333333, 0.333333333333333)] Labels[0, 0, 0, 0, 0, 0]])
 
         A game with multiple Nash equilibria::
 
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A, A])
             sage: g._lh_find_all()
-            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[0.500000000000000, 0.500000000000000, 0.0], [0.500000000000000, 0.500000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[0.500000000000000, 0.0, 0.500000000000000], [0.500000000000000, 0.0, 0.500000000000000]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[0.0, 0.500000000000000, 0.500000000000000], [0.0, 0.500000000000000, 0.500000000000000]] Labels[3, 2, 1, 3, 2, 1]],
-             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[0.0, 1.00000000000000, 0.0], [0.0, 1.00000000000000, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[3, 2, 1, 3, 2, 1]])
+            ([Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 1, 2, 0, 1, 2],
+              Equ [(0.500000000000000, 0.500000000000000, 0.0), (0.500000000000000, 0.500000000000000, 0.0)] Labels[1, 0, 3, 1, 0, 3],
+              Equ [(0.500000000000000, 0.0, 0.500000000000000), (0.500000000000000, 0.0, 0.500000000000000)] Labels[2, 3, 0, 2, 3, 0],
+              Equ [(0.0, 0.500000000000000, 0.500000000000000), (0.0, 0.500000000000000, 0.500000000000000)] Labels[3, 2, 1, 3, 2, 1]],
+             [Equ [(1.00000000000000, 0.0, 0.0), (1.00000000000000, 0.0, 0.0)] Labels[0, 1, 2, 0, 1, 2],
+              Equ [(0.0, 1.00000000000000, 0.0), (0.0, 1.00000000000000, 0.0)] Labels[1, 0, 3, 1, 0, 3],
+              Equ [(0.0, 0.0, 1.00000000000000), (0.0, 0.0, 1.00000000000000)] Labels[2, 3, 0, 2, 3, 0],
+              Equ [(0.333333333333333, 0.333333333333333, 0.333333333333333), (0.333333333333333, 0.333333333333333, 0.333333333333333)] Labels[3, 2, 1, 3, 2, 1]])
 
         Making use of the ring parameter, it is possible to use rationals to perform the
         computations in exact arithmetic::
 
             sage: g._lh_find_all(QQ)
-            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[1/2, 1/2, 0.0], [1/2, 1/2, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[1/2, 0.0, 1/2], [1/2, 0.0, 1/2]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[0.0, 1/2, 1/2], [0.0, 1/2, 1/2]] Labels[3, 2, 1, 3, 2, 1]],
-             [Equ [[1, 0.0, 0.0], [1, 0.0, 0.0]] Labels[0, 1, 2, 0, 1, 2],
-              Equ [[0.0, 1, 0.0], [0.0, 1, 0.0]] Labels[1, 0, 3, 1, 0, 3],
-              Equ [[0.0, 0.0, 1], [0.0, 0.0, 1]] Labels[2, 3, 0, 2, 3, 0],
-              Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[3, 2, 1, 3, 2, 1]])
+            ([Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 1, 2, 0, 1, 2],
+              Equ [(1/2, 1/2, 0.0), (1/2, 1/2, 0.0)] Labels[1, 0, 3, 1, 0, 3],
+              Equ [(1/2, 0.0, 1/2), (1/2, 0.0, 1/2)] Labels[2, 3, 0, 2, 3, 0],
+              Equ [(0.0, 1/2, 1/2), (0.0, 1/2, 1/2)] Labels[3, 2, 1, 3, 2, 1]],
+             [Equ [(1, 0.0, 0.0), (1, 0.0, 0.0)] Labels[0, 1, 2, 0, 1, 2],
+              Equ [(0.0, 1, 0.0), (0.0, 1, 0.0)] Labels[1, 0, 3, 1, 0, 3],
+              Equ [(0.0, 0.0, 1), (0.0, 0.0, 1)] Labels[2, 3, 0, 2, 3, 0],
+              Equ [(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)] Labels[3, 2, 1, 3, 2, 1]])
 
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A])
             sage: g._lh_find_all(QQ)
-            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
-             [Equ [[1/3, 1/3, 1/3], [1/3, 1/3, 1/3]] Labels[0, 0, 0, 0, 0, 0]])
+            ([Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)] Labels[0, 0, 0, 0, 0, 0]])
 
         This algorithm might not be able to find all the Nash equilibria within a game most
         especially when the game is degenerate::
@@ -3029,15 +3054,15 @@ class NormalFormGame(SageObject, MutableMapping):
              [(1, 0, 0), (0, 1, 0)],
              [(1, 0, 0), (1, 0, 0)]]
             sage: g._lh_find_all()
-            ([Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
-             [Equ [[0.0, 0.0, 1.00000000000000], [0.0, 0.0, 1.00000000000000]] Labels[0, 0, 0, 0, 0, 0]])
+            ([Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [(0.0, 0.0, 1.00000000000000), (0.0, 0.0, 1.00000000000000)] Labels[0, 0, 0, 0, 0, 0]])
         """
         neg = []
         pos = []
 
         A, B = self.payoff_matrices()
         tab = self._init_lh_tableau(A, B, ring)
-        neg.append(_LHEquilibrium(tab[2], [[0]*tab[0], [0]*tab[1]]))
+        neg.append(_LHEquilibrium(tab[2], [tuple([0]*tab[0]), tuple([0]*tab[1])]))
 
         tab, eq = self._lh_solve_tableau(neg[0].tab, 1)
         pos.append(_LHEquilibrium(tab, eq))
@@ -3095,11 +3120,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: A = matrix.identity(3)
             sage: g = NormalFormGame([A])
-            sage: sol = g._lh_bipartite_graph()
+            sage: sol = g._lh_bipartite_graph(ring=QQ)
             sage: sol
             (Bipartite graph on 2 vertices,
-             [Equ [[0, 0, 0], [0, 0, 0]] Labels[0, 0, 0, 0, 0, 0]],
-             [Equ [[0.333333333333333, 0.333333333333333, 0.333333333333333], [0.333333333333333, 0.333333333333333, 0.333333333333333]] Labels[0, 0, 0, 0, 0, 0]])
+             [Equ [(0, 0, 0), (0, 0, 0)] Labels[0, 0, 0, 0, 0, 0]],
+             [Equ [(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)] Labels[0, 0, 0, 0, 0, 0]])
 
         .. PLOT::
             :width: 500px
@@ -3115,13 +3140,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[10, 0], [5, 5], [0, 9]])
             sage: B = matrix([[2, 0], [1, 2], [2, 0]])
             sage: g = NormalFormGame([A, B])
-            sage: sol = g._lh_bipartite_graph()
+            sage: sol = g._lh_bipartite_graph(ring=QQ)
             sage: sol
             (Bipartite graph on 4 vertices,
-             [Equ [[0, 0, 0], [0, 0]] Labels[0, 1, 0, 0, 1],
-              Equ [[0.333333333333333, 0.666666666666667, 0.0], [0.500000000000000, 0.500000000000000]] Labels[1, 0, 1, 1, 0]],
-             [Equ [[1.00000000000000, 0.0, 0.0], [1.00000000000000, 0.0]] Labels[0, 1, 0, 0, 1],
-              Equ [[0.0, 0.666666666666667, 0.333333333333333], [0.444444444444444, 0.555555555555556]] Labels[1, 0, 1, 1, 0]])
+             [Equ [(0, 0, 0), (0, 0)] Labels[0, 1, 0, 0, 1],
+              Equ [(1/3, 2/3, 0.0), (1/2, 1/2)] Labels[1, 0, 1, 1, 0]],
+             [Equ [(1, 0.0, 0.0), (1, 0.0)] Labels[0, 1, 0, 0, 1],
+              Equ [(0.0, 2/3, 1/3), (4/9, 5/9)] Labels[1, 0, 1, 1, 0]])
 
         .. PLOT::
             :width: 500px
@@ -3129,7 +3154,7 @@ class NormalFormGame(SageObject, MutableMapping):
             A = matrix([[10, 0], [5, 5], [0, 9]])
             B = matrix([[2, 0], [1, 2], [2, 0]])
             g = NormalFormGame([A, B])
-            sol = g._lh_bipartite_graph()
+            sol = g._lh_bipartite_graph(ring=QQ)
             p = sol[0].plot(edge_labels = True)
             sphinx_plot(p)
         """
