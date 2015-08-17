@@ -239,7 +239,7 @@ information. You can use the existing functions of Sage as templates.
   Do not refer to ``self``. Instead talk about "the object".
 
   Include common aliases to description if there is some. Think how a
-  user could try to find you function.
+  user could try to find your function.
   
 - **INPUT** block describing the input of the function.
 
