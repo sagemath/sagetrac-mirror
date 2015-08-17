@@ -233,6 +233,14 @@ information. You can use the existing functions of Sage as templates.
   the REFERENCES block described below), explanations, etc. It can be several
   paragraphs long.
 
+  Explain what the function assumes. For example if a function of graphs
+  only makes sense for a connected graph, say it out.
+
+  Do not refer to ``self``. Instead talk about "the object".
+
+  Include common aliases to description if there is some. Think how a
+  user could try to find you function.
+  
 - **INPUT** block describing the input of the function.
 
    The INPUT block describes all arguments that the function accepts.  This

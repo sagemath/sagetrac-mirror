@@ -47,13 +47,17 @@ The following should generally be checked while reading and testing the code:
   mathematical notions involved standard, or is there explanation (or a link
   to one) provided? Can he/she find the new code easily if he/she needs it?
 
-- **Code documentation**: Is the code sufficiently commented so that a developer
-  does not have to wonder what exactly it does?
+- **Code documentation**: Is the code sufficiently commented so that a
+  developer does not have to wonder what exactly it does?
 
 - **Conventions**: Does the code respect :ref:`Sage's conventions
   <chapter-code-basics>`? :ref:`Python's convention <chapter-python>`?
   :ref:`Cython's convention <chapter-cython>`?
 
+- **Input checking**: Is there reasonable checks for errors? If a
+  function accepts ``'small'`` and ``'big'`` as values for ``size``, test
+  that ``size='junk'`` raises an exception.
+  
 - **Doctest coverage**: Do all functions contain doctests? Use ``sage -coverage
   <files>`` to check it. Are all aspects of the new/modified methods and classes
   tested (see :ref:`section-doctest-writing`)?
