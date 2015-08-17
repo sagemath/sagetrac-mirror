@@ -196,6 +196,10 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.combinat.partitions',
+              sources = ['sage/combinat/partitions.pyx'],
+              libraries = ['ntl']),
+
     Extension('*', ['sage/combinat/**/*.pyx']),
 
     ################################
