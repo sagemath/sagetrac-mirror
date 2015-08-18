@@ -427,6 +427,8 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         """
         IndexedMonoidElement.__init__(self, F, tuple(map(tuple, x)))
 
+    def __hash__(self):
+        return hash(self._monomial)
 
     def _sorted_items(self):
         """
@@ -541,6 +543,9 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
+
+    def __hash__(self):
+        return hash(frozenset(self._monomial.items()))
 
     def _mul_(self, other):
         """
