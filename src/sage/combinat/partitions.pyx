@@ -2,7 +2,7 @@
 # which requires the gmp and mpfr libraries.
 #
 # distutils: sources = sage/combinat/partitions_c.cc
-# distutils: libraries = gmp mpfr
+# distutils: libraries = gmp mpfr ntl
 # distutils: language = c++
 """
 Number of partitions of an integer

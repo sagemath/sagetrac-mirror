@@ -542,7 +542,7 @@ ext_modules = [
 
     Extension('sage.libs.fplll.fplll',
               sources = ['sage/libs/fplll/fplll.pyx'],
-              libraries = ['gmp', 'mpfr', 'fplll'],
+              libraries = ['gmp', 'mpfr', 'fplll', 'ntl'],
               language="c++",
               include_dirs = [SAGE_INC + '/fplll'],
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
@@ -610,7 +610,7 @@ ext_modules = [
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
-              libraries = ['ppl', 'gmpxx', 'gmp', 'm'],
+              libraries = ['ppl', 'gmpxx', 'gmp', 'm', 'ntl'],
               language="c++",
               depends = [SAGE_INC + "/ppl.hh"]),
 
@@ -1011,7 +1011,7 @@ ext_modules = [
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
                          'sage/modular/arithgroup/farey.cpp',
                          'sage/modular/arithgroup/sl2z.cpp'],
-              libraries = ['gmpxx', 'gmp'],
+              libraries = ['gmpxx', 'gmp', 'ntl'],
               language = 'c++'),
 
     Extension('sage.modular.arithgroup.arithgroup_element',
@@ -1503,7 +1503,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp', 'ntl'],
               language="c++",
               include_dirs = singular_incs,
               depends = [SAGE_INC + "/libsingular.h"],
@@ -1573,7 +1573,7 @@ ext_modules = [
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
               libraries=['polybori-' + polybori_major_version,
-                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'gd', 'png12'],
+                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'gd', 'png12', 'ntl'],
               depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] + \
                         [SAGE_INC + '/m4ri/m4ri.h'],
               extra_compile_args = polybori_extra_compile_args + m4ri_extra_compile_args,
@@ -1734,6 +1734,7 @@ ext_modules = [
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],
+              libraries = ['ntl'],
               language = 'c++'),
 
     Extension('sage.tests.cython',

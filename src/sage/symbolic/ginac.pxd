@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: libraries = pynac gmp
+# distutils: libraries = pynac gmp ntl
 """
 Declarations for pynac, a Python frontend for ginac
 
