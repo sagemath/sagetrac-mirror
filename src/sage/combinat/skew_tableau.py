@@ -194,8 +194,8 @@ class SkewTableau(ClonableList):
         TESTS::
 
             sage: t = SkewTableau([[None,1,4],[2,3]])
-            sage: hash(t)
-            1927396217
+            sage: hash(t) in ZZ
+            True
             sage: hash(t) == hash(StandardSkewTableaux()(t[:]))
             True
             sage: hash(t) == hash(SemistandardSkewTableaux()(t[:]))
