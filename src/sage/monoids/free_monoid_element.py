@@ -79,6 +79,9 @@ class FreeMonoidElement(MonoidElement):
         else:
             # TODO: should have some other checks here...
             raise TypeError("Argument x (= %s) is of the wrong type."%x)
+ 
+    def __hash__(self):
+        return hash(tuple(self._element_list))
 
     def __iter__(self):
         """

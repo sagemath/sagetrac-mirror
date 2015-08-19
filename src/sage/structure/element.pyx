@@ -128,6 +128,9 @@ underscores).
 # by any element.  Derived class must call __init__
 ##################################################################
 
+cdef extern from "limits.h":
+    long LONG_MAX, LONG_MIN
+
 include "sage/ext/python.pxi"
 from sage.ext.stdsage cimport *
 
@@ -3279,10 +3282,12 @@ cdef class InfinityElement(RingElement):
         return ZZ(0)
 
 cdef class PlusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        return LONG_MAX
 
 cdef class MinusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        return LONG_MIN
 
 
 #################################################################################
