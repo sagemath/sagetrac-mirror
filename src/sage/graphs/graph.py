@@ -139,6 +139,7 @@ graphs.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
     :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
+    :meth:`~Graph.arboricity` | Returns the arboricity of the graph and an optional certificate.
 
 AUTHORS:
 
