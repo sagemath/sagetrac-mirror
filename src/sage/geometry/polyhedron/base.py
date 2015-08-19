@@ -120,6 +120,22 @@ class Polyhedron_base(Element):
         else:
             self._init_empty_polyhedron()
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: p = Polyhedron(vertices=[(0,1,a),(3,a,5)],
+            ....:                rays=[(a,2,3), (0,0,1)],
+            ....:                base_ring=K)
+            sage: q = Polyhedron(vertices=[(3,a,5),(0,1,a)],
+            ....:                rays=[(0,0,1), (a,2,3)],
+            ....:                base_ring=K)
+            sage: hash(p) == hash(q)
+            True
+        """
+        return hash(tuple(sorted(self.Vrepresentation())))
+
     def _sage_input_(self, sib, coerced):
         """
         Return Sage command to reconstruct ``self``.
