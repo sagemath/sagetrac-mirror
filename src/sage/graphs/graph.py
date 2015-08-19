@@ -6844,7 +6844,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``certificate`` -- boolean (default: ``False``) Whether to return 
-        a certificate.
+          a certificate.
 
         OUTPUT:
 
