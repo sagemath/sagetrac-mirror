@@ -184,6 +184,25 @@ class SkewTableau(ClonableList):
         else:
             return list(self) != other
 
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        Currently, this is a hash of the tuple of tuples that
+        ``self`` wraps.
+
+        TESTS::
+
+            sage: t = SkewTableau([[None,1,4],[2,3]])
+            sage: hash(t)
+            1927396217
+            sage: hash(t) == hash(StandardSkewTableaux()(t[:]))
+            True
+            sage: hash(t) == hash(SemistandardSkewTableaux()(t[:]))
+            True
+        """
+        return hash(tuple(self[:]))
+
     def check(self):
         r"""
         Check that ``self`` is a valid skew tableau. This is currently far too
