@@ -164,8 +164,10 @@ class SiegelModularFormPrecision (SageObject):
     def prec(self):
         r"""
         Returns the tuple of the maximal box, the integer for the
-        maximal discriminant and infinity otherwise. If self is of
-        type disc then it will return the largest fundamental
+        maximal discriminant and infinity otherwise.
+
+        If ``self`` is of
+        type "disc" then it will return the largest fundamental
         discriminant just below.
 
         EXAMPLES::
@@ -182,7 +184,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def is_in_bound(self, t):
         r"""
-        Return True or False accordingly as the GL(2, Z)-reduction of
+        Return ``True`` or ``False`` accordingly as the GL(2, Z)-reduction of
         the tuple (a, b, c)=t is within the bounds of this precision.
 
         EXAMPLES::
@@ -220,7 +222,7 @@ class SiegelModularFormPrecision (SageObject):
             (a, b, c) = reduce_GL(a, b, c)
             if a == 0 and b == 0:
                 return c < self.get_contents_bound_for_semi_definite_forms()
-            D = 4*a*c-b**2
+            D = 4 * a * c - b ** 2
             if D < 0:
                 return False
             if D > 0:
@@ -265,9 +267,9 @@ class SiegelModularFormPrecision (SageObject):
 
     def __lt__(self, other):
         r"""
-        Return True if the set of GL(2, Z)-reduced forms within the
-        precision self is contained in but not equal to the
-        coresponding set of forms within the precision other.
+        Return ``True`` if the set of GL(2, Z)-reduced forms within the
+        precision ``self`` is contained in but not equal to the
+        corresponding set of forms within the precision ``other``.
 
         EXAMPLES::
 

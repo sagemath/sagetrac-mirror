@@ -4,51 +4,49 @@ Siegel modular forms
 Implementation of a class describing (scalar and vector valued) Siegel
 modular forms of degree 2 and arbitrary group and weight.
 
-
 AUTHORS:
 
-- CC: Craig Citro
+- CC -- Craig Citro
 
-- MR: Martin Raum
+- MR -- Martin Raum
 
-- NR: Nathan Ryan
+- NR -- Nathan Ryan
 
-- NS: Nils-Peter Skoruppa
-
+- NS -- Nils-Peter Skoruppa
 
 HISTORY:
 
-- NS: Class SiegelModularForm_class.
+- NS -- Class SiegelModularForm_class.
 
-- NS: Factory function SiegelModularForm().
-      Code parts concerning the Maass lift are partly based on code
-      written by David Gruenewald in August 2006 which in turn is
-      based on the PARI/GP code by Nils-Peter Skoruppa from 2003.
+- NS -- Factory function SiegelModularForm().
+  Code parts concerning the Maass lift are partly based on code
+  written by David Gruenewald in August 2006 which in turn is
+  based on the PARI/GP code by Nils-Peter Skoruppa from 2003.
 
-- CC, NR: _mult_, _reduce_GL using Cython.
+- CC, NR -- _mult_, _reduce_GL using Cython.
 
-- NR: Hecke operators.
+- NR -- Hecke operators.
 
-- CC: Rewriting of fastmult.spyx for arbitrary base rings.
+- CC -- Rewriting of fastmult.spyx for arbitrary base rings.
 
-- NS: Class Morp.
+- NS -- Class Morp.
 
-- MR, NS: SiegelModularFormsAlgebra_class, SiegelModularFormsAlgebra
-
+- MR, NS -- SiegelModularFormsAlgebra_class, SiegelModularFormsAlgebra
 
 REFERENCES:
 
-- [Sko] Nils-Peter Skoruppa, ...
+.. [Sko] Nils-Peter Skoruppa, ...
 
-- [I-H] Tomoyoshi Ibukiyama and Shuichi Hayashida, ...
+.. [I-H] Tomoyoshi Ibukiyama and Shuichi Hayashida, ...
 
 
 USAGE:
+
 This class allows users to produce Siegel modular forms of degree 2.  In particular, one can compute generators of rings for which the generators and known.  Currently the rings are of levels 1 to 4.  Furthermore, one can compute specific kinds of Siegel modular forms of degree 2:  theta series attached to binary quadratic forms, theta constants, Eisenstein series, and Saito-Kurokawa and Maass lifts.  Finally one can also compute certain vector-valued Siegel modular forms; in particular, those of weight (k,2).
 
 For each such Siegel modular form object one can compute the action of Hecke operators on it.  One can also add two Siegel modular forms (provided they are both either scalar valued or vector valued and of the same weight) and multiply two Siegel modular forms (in this implementation one can, indeed, multiply scalar-valued and vector-valued Siegel modular forms).
 
-Siegel modular forms of degree 2 have Fourier expansions supported on positive semi-definite binary quadratic forms.  The precision of a Siegel modular form `F` is measured in one of four different ways:  box precision `(a,b,c)` means that the support of `F` includes all binary quadratic forms `(x,y,z)` less than `x<a`, `y<b` and `z<c`; disc precision `D>0` means that the support of `F` contains all positive definite quadratic forms of discrimant `d` such that `-d<D` and all indefinite forms `(0,0,c)` where `c< D/4`; trace precision `T` means that the support of `F` contains all quadratic forms whose trace is less than `T`; dyadic traice precision `W` means that the support of `F` contains all quadratic forms `(a,b,c)` whose dyadic trace `w((a,b,c)):=a+b-|c|/2` is less than `W`.
+Siegel modular forms of degree 2 have Fourier expansions supported on positive semi-definite binary quadratic forms.  The precision of a Siegel modular form `F` is measured in one of four different ways:  box precision `(a,b,c)` means that the support of `F` includes all binary quadratic forms `(x,y,z)` less than `x<a`, `y<b` and `z<c`; disc precision `D>0` means that the support of `F` contains all positive definite quadratic forms of discrimant `d` such that `-d<D` and all indefinite forms `(0,0,c)` where `c< D/4`; trace precision `T` means that the support of `F` contains all quadratic forms whose trace is less than `T`; dyadic trace precision `W` means that the support of `F` contains all quadratic forms `(a,b,c)` whose dyadic trace `w((a,b,c)):=a+b-|c|/2` is less than `W`.
 
 EXAMPLES::
 
@@ -313,13 +311,15 @@ class SiegelModularForm_class(AlgebraElement):
 
     def coeffs(self, disc=None):
         r"""
-        Return the dictionary of coefficients of ``self``.  If ``disc`` is
+        Return the dictionary of coefficients of ``self``.
+
+        If ``disc`` is
         specified, return the dictionary of coefficients indexed by
         semi-positive definite quadratic forms of discriminant ``disc``.
 
         INPUT:
 
-        - ``disc`` -- optional (default: None); a negative integer giving
+        - ``disc`` -- optional (default: ``None``); a negative integer giving
           the discriminant of a semi-positive definite quadratic form
 
         EXAMPLES::
@@ -382,7 +382,7 @@ class SiegelModularForm_class(AlgebraElement):
         Note that since these discriminants are all non-positive, this
         corresponds in some sense to the "smallest" non-zero Fourier
         coefficient.  It is analogous to the valuation of a power series
-        (=smallest degree of a non-zero term).
+        (smallest degree of a non-zero term).
 
         EXAMPLES::
 
@@ -460,6 +460,7 @@ class SiegelModularForm_class(AlgebraElement):
             True
 
         TESTS::
+
             sage: A.truncate(30)
             Traceback (most recent call last):
             ...
@@ -1031,9 +1032,10 @@ def SiegelModularForm(arg0, arg1=None, arg2=None, prec=None, name=None,
            creates the Siegel modular form VI(f,g) from the elliptic
            modular forms f, g as in [Sko].
            Shortforms:
-               SiegelModularForm(f) for SiegelModularForm(f, 0-form),
-               SiegelModularForm(f, 0) for SiegelModularForm(f, 0-form),
-               SiegelModularForm(0, f) for SiegelModularForm(0-form, f).
+
+               - SiegelModularForm(f) for SiegelModularForm(f, 0-form),
+               - SiegelModularForm(f, 0) for SiegelModularForm(f, 0-form),
+               - SiegelModularForm(0, f) for SiegelModularForm(0-form, f).
 
         2. SiegelModularForm(x):
            if x is an element of a commutative ring creates the constant

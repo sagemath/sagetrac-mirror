@@ -109,7 +109,8 @@ class SiegelModularFormsAlgebra_class(Algebra):
         considered; if ``weights`` is 'all', then all forms are
         considered.
 
-        The parameter `default_prec` is the precision to which every Siegel modular form in `self` is known.
+        The parameter ``default_prec`` is the precision to which every
+        Siegel modular form in `self` is known.
 
         EXAMPLES::
 
@@ -163,7 +164,7 @@ class SiegelModularFormsAlgebra_class(Algebra):
 
     def is_commutative(self):
         r"""
-        Return True since all our algebras are commutative.
+        Return ``True`` since all our algebras are commutative.
 
         EXAMPLES::
 
@@ -223,13 +224,12 @@ class SiegelModularFormsAlgebra_class(Algebra):
             sage: S = SiegelModularFormsAlgebra(group=Sp4Z_Gamma0(7))
             sage: S.group()
             Siegel Modular Group Gamma0(7)
-
         """
         return self.__group
 
     def weights(self):
         """
-        Return 'even' or 'all' depending on whether this algebra
+        Return ``'even'`` or ``'all'`` depending on whether this algebra
         contains only even weight forms, or forms of all weights.
 
         EXAMPLES::
@@ -296,7 +296,7 @@ class SiegelModularFormsAlgebra_class(Algebra):
 
     def _coerce_map_from_(self, other):
         r"""
-        Return True if it is possible to coerce from ``other`` into the
+        Return ``True`` if it is possible to coerce from ``other`` into the
         algebra of Siegel modular forms ``self``.
 
         EXAMPLES::
@@ -330,7 +330,7 @@ class SiegelModularFormsAlgebra_class(Algebra):
             sage: S(B)
             Igusa_6
             sage: S(1/5)
-            1/5
+            Siegel modular form on Siegel Modular Group Sp(4,Z) of weight 0
             sage: S(1/5).parent() is S
             True
             sage: S._element_constructor_(2.67)
@@ -424,10 +424,10 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
     If weights = 'all' you get the Siegel modular forms of degree 2, level 1
     and even and odd weight.
 
-    The parameter `coefficient_degree` is 0 if the Siegel modular form
-    is scalar- valued and otherwise is the degree of the coefficients
+    The parameter ``coefficient_degree`` is 0 if the Siegel modular form
+    is scalar-valued and otherwise is the degree of the coefficients
     of the vector-valued Siegel modular form when coefficients are
-    considered as being homogeneous polynomials
+    considered as being homogeneous polynomials.
 
     EXAMPLES::
 
@@ -504,7 +504,7 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
 @cached_function
 def KleinFourGroupAlgebra(base_ring):
     """
-    Return the group algebra of the Klein four group over the given ring
+    Return the group algebra of the Klein four group over the given ring.
 
     EXAMPLES::
 

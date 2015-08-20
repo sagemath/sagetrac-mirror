@@ -1,3 +1,6 @@
+"""
+Arithmetic subgroups of {GSp}(4,QQ)
+"""
 import sage.groups.group as group
 
 
