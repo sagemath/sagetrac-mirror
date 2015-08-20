@@ -9,9 +9,13 @@ Low level functions for coefficients of Siegel modular forms
 # (0,A)x(0,B)x(0,C) or else of all reduced triples (a,b,c) with 4ac-b^2 below
 # a given bound (and c <=  if 4ac-b^2=0).
 
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 
 from sage.structure.element cimport Element
-import operator
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 
