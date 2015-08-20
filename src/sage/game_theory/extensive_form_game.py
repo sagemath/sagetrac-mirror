@@ -633,13 +633,14 @@ from sage.plot.line import line2d
 from sage.plot.circle import circle
 from sage.graphs.generic_graph import GenericGraph
 from sage.plot.colors import rainbow
+from sage.structure.sage_object import SageObject
 
 try:
     from gambit import Game
 except ImportError:
     Game = None
 
-class ExtensiveFormGame():
+class ExtensiveFormGame(SageObject):
     def __init__(self, generator):
         r"""
         An object representing an Extensive Form Game. Primarily used to
@@ -2901,7 +2902,7 @@ class ExtensiveFormGame():
                 elif isinstance(child, EFG_Leaf):
                     self.leafs.append(child)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Representation method for the Extensive Form Game::
 
@@ -2940,7 +2941,8 @@ class ExtensiveFormGame():
         Extensive Form Game with the following underlying tree: {...}
         """
 
-        return "Extensive Form Game with the following underlying tree: " + str(self.tree_dictionary)
+        base_str = "Extensive Form Game with the following underlying tree: {}"
+        return base_str.format(self.tree_dictionary)
 
     def sage_to_gambit(self):
         r"""
