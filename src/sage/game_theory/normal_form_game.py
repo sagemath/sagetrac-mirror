@@ -252,7 +252,14 @@ Below we show how the algorithms are called::
      [Equ [(0, 0), (0, 0)] Labels[0, 0, 0, 0]],
      [Equ [(1/2, 1/2), (1/2, 1/2)] Labels[0, 0, 0, 0]])
 
-Note that if no algorithm argument is passed then the default will be
+Note that there is a difference in the output format of ``'lh-all'`` and ``'lh-bipartite'``. This is
+due to ``'lh-all'`` trying all possible ``'missing'`` labels for all equilibria found. The two lists
+which are returned by these methods are lists of equilibria with positive and negative indeces
+respectively. For each element `e` in each list, the first property ``e.eq`` represents the equilibrium,
+and the second ``e.labels`` shows that starting from that equilibrium with missing label `i`, you
+would find the equilibrium in the opposite list indexed by the element ``e.labels[i]``.
+
+If no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
@@ -1169,7 +1176,8 @@ class NormalFormGame(SageObject, MutableMapping):
                 missing label or its complementary leaves the basis. Upon termination, this tableau
                 represents an equilibrium point in the polytope.
 
-                This method returns a list with a single element representing the equilibrium found.
+                This method returns a list with a single element representing the equilibrium found
+                when the given ``missing`` label is used.
 
             - ``'lh-all'``
                 Using the property that the LH algorithm starts from a Nash equilibrium, it is possible
