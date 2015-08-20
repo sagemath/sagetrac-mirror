@@ -100,7 +100,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def _repr_(self):
         r"""
-        Returns the repr of self
+        Return the repr of ``self``.
 
         EXAMPLES::
 
@@ -123,7 +123,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def _latex_(self):
         r"""
-        Returns the latex of self
+        Return the latex of ``self``.
 
         EXAMPLES::
 
@@ -146,7 +146,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def type(self):
         r"""
-        Returns the type of self: box, disc or infinity
+        Return the type of self: "box", "disc" or "infinity".
 
         EXAMPLES::
 
@@ -163,7 +163,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def prec(self):
         r"""
-        Returns the tuple of the maximal box, the integer for the
+        Return the tuple of the maximal box, the integer for the
         maximal discriminant and infinity otherwise.
 
         If ``self`` is of
@@ -310,7 +310,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def __le__(self, other):
         r"""
-        Returns whether self <= other
+        Return whether ``self <= other``.
 
         EXAMPLES::
 
@@ -337,7 +337,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def __eq__(self, other):
         r"""
-        Returns self == other as defined by having the same prec and type
+        Return self == other as defined by having the same prec and type.
 
         EXAMPLES::
 
@@ -365,7 +365,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def __ne__(self, other):
         r"""
-        Returns self != other
+        Return self != other.
 
         EXAMPLES::
 
@@ -384,7 +384,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def __gt__(self, other):
         r"""
-        Returns self > other
+        Return self > other.
 
         EXAMPLES::
 
@@ -400,7 +400,7 @@ class SiegelModularFormPrecision (SageObject):
 
     def __ge__(self, other):
         r"""
-        Returns self >= other
+        Return self >= other.
 
         EXAMPLES::
 

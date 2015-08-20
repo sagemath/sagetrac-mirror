@@ -1030,7 +1030,7 @@ def SiegelModularForm(arg0, arg1=None, arg2=None, prec=None, name=None,
 
         1. SiegelModularForm(f, g):
            creates the Siegel modular form VI(f,g) from the elliptic
-           modular forms f, g as in [Sko].
+           modular forms f, g as in [Sko]_.
            Shortforms:
 
                - SiegelModularForm(f) for SiegelModularForm(f, 0-form),

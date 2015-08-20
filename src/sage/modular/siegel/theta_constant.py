@@ -31,7 +31,8 @@ def _compute_theta_char_poly(char_dict, f):
         sage: _compute_theta_char_poly(theta_constants, [0, 0, 0])
         0
     """
-    return sum(_multiply_theta_char(list(l), f)*char_dict[l] for l in char_dict)
+    return sum(_multiply_theta_char(list(l), f) * char_dict[l]
+               for l in char_dict)
 
 
 def _multiply_theta_char(l, f):
@@ -63,22 +64,22 @@ def _multiply_theta_char(l, f):
     a, b, c = f
     m1, m2, m3, m4 = l[0]
     # if the characteristic is not even:
-    if 1 == (m1*m3 + m2*m4) % 2:
+    if 1 == (m1 * m3 + m2 * m4) % 2:
         return 0
     coeff = 0
     from sage.misc.all import isqrt, xsrange
-    for u in xsrange(m1, isqrt(a)+1, 2):
-        for v in xsrange(m2, isqrt(c)+1, 2):
+    for u in xsrange(m1, isqrt(a) + 1, 2):
+        for v in xsrange(m2, isqrt(c) + 1, 2):
             if 0 == u and 0 == v:
                 coeff += _multiply_theta_char(l[1:], (a, b, c))
                 continue
-            ap, bp, cp = (a-u*u, b-2*u*v, c-v*v)
-            if bp*bp-4*ap*cp <= 0:
-                val = (2 if 0 == (u*m3 + v*m4) % 4 else -2)
+            ap, bp, cp = (a - u * u, b - 2 * u * v, c - v * v)
+            if bp * bp - 4 * ap * cp <= 0:
+                val = (2 if 0 == (u * m3 + v * m4) % 4 else -2)
                 coeff += val * _multiply_theta_char(l[1:], (ap, bp, cp))
             if u != 0 and v != 0:
-                ap, bp, cp = (a-u*u, b+2*u*v, c-v*v)
-                if bp*bp-4*ap*cp <= 0:
-                    val = (2 if 0 == (u*m3 - v*m4) % 4 else -2)
+                ap, bp, cp = (a - u * u, b + 2 * u * v, c - v * v)
+                if bp * bp - 4 * ap * cp <= 0:
+                    val = (2 if 0 == (u * m3 - v * m4) % 4 else -2)
                     coeff += val * _multiply_theta_char(l[1:], (ap, bp, cp))
     return coeff
