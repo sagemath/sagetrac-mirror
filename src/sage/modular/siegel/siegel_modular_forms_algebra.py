@@ -508,7 +508,9 @@ def KleinFourGroupAlgebra(base_ring):
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.siegel_modular_forms_algebra import KleinFourGroupAlgebra
         sage: KleinFourGroupAlgebra(ZZ)
+        Group algebra of group "The Klein 4 group of order 4, as a permutation group" over base ring Integer Ring
     """
     from sage.groups.all import KleinFourGroup
     from sage.algebras.all import GroupAlgebra

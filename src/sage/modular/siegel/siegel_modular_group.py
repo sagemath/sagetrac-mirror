@@ -45,7 +45,7 @@ class Sp4Z_class(GSp4_Arithmetic_Subgroups):
 
     def _repr_(self):
         """
-        Return the string representation of self
+        Return the string representation of self.
         """
         return "Siegel Modular Group Sp(4,Z)"
 

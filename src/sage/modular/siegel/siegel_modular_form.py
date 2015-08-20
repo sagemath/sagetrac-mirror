@@ -1107,7 +1107,7 @@ def SiegelModularForm(arg0, arg1=None, arg2=None, prec=None, name=None,
         4
     """
     try:
-        from sage.structure.element import py_scalar_to_element
+        from sage.structure.coerce import py_scalar_to_element
         arg0 = py_scalar_to_element(arg0)
     except TypeError:
         pass
@@ -1213,7 +1213,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     ## Create the quasi Dedekind eta^-6 power series:
     pari_prec = max(1, precision - 1)
     # next line yields error if 0 == pari_prec
-    from sage.libs.pari.gen import pari
+    from sage.libs.pari.all import pari
     from sage.rings.all import O
     pari.set_series_precision(pari_prec)
     eta_quasi = PS(pari('Vec(eta(q))')) + O(q**precision)
