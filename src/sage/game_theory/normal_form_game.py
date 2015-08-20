@@ -391,9 +391,9 @@ utility function::
     sage: threegame.obtain_nash('gambit-enumpoly')
     [[(0.0, 1.0), (0.0, 1.0), (0.0, 1.0)], [(1.0, 0.0), (0.0, 1.0), (0.0, 1.0)]]
 
-There are however a variety of such algorithms available in gambit,
-further compatibility between Sage and gambit is actively being developed:
-https://github.com/tturocy/gambit/tree/sage_integration.
+Note that the only algorithms which are currently available for solving games with more than 2
+players are within the gambit library which can be installed by typing ``sage -i gambit`` at the
+command line.
 
 It can be shown that linear scaling of the payoff matrices conserves the
 equilibrium values::
