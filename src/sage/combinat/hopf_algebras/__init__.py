@@ -75,7 +75,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
                 setattr(Fcls, "_basis_indices_", self._default_basis_indices_)
             getattr(self, realization_name)()
         try:
-            self.a_realization = lambda : self._realizations[0]
+            self.a_realization = lambda : getattr(self, self._external_realizations[0])()
         except IndexError:
             raise AssertionError("A Hopf algebras with realizations must " +
                                  "have realizations")
