@@ -5602,6 +5602,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         b = E.a6()
         return mod5family.mod5family(a,b)
 
+    def chow_heegner_point(self, F):
+        """
+        The Chow-Heegner point on the optimal curve E associated to
+        the optimal curve F of the same conductor.
+
+        EXAMPLES::
+
+            sage: P = EllipticCurve('37a').chow_heegner_point(EllipticCurve('37b')); P
+            Chow-Heegner point on 37a1 associated to 37b1
+            sage: P.point_exact(deg1=100)
+            (6 : 14 : 1)
+            sage: P.numerical_approx(deg1=100)
+            (6.00000000000... : 14.0000000000... : 1.00000000000000)
+        """
+        import chow_heegner
+        return chow_heegner.ChowHeegnerPoint(self, F)    
+
     def tate_curve(self, p):
         r"""
         Create the Tate curve over the `p`-adics associated to
