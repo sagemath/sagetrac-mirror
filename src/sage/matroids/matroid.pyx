@@ -6037,38 +6037,59 @@ cdef class Matroid(SageObject):
         X1 = E - self._closure(Y)
         X2 = E - other._closure(Y)
         # partition the vertices into layers according to distance
-        visited = set()
-        next_layer = set(X1)
-        layers = {}
+        # the modification of the code in _intersection_augmentation
+        w = {x: -1 for x in X1}
+        out_neighbors = {x: set() for x in X2}
         d = {}
-        X3 = set()
-        dist = 0
-        while next_layer:
-            todo = next_layer
-            # data structure for distance
-            layers[dist] = set(todo)
-            for u in todo:
-                d[u] = dist
-            next_layer = set()
+        dist=0
+        todo = set(X1)
+        next_layer = set()
+        layers = {}
 
-            while todo:
-                # all previous level are visited
-                visited |= todo
-                u = todo.pop()
-                neighbors = set()
-                if d[u]%2==0 and u not in X2:
-                    neighbors = other._circuit(Y|set([u])) - set([u])
-                else:
-                    neighbors = X - self._closure(Y - set([u]))
-                neighbors -=visited
-                for y in neighbors:
-                    next_layer.add(y)
-            X3 = X2 & visited # see if any element in X2 has been reached
-            dist += 1
+        X3 = X2.intersection(w)
+        while todo:
+            layers[dist] = set(todo)
             if X3:
                 break
+            while todo: # todo is subset of X
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
+                for y in out_neighbors[u]:
+                    m2 = m + 1
+                    if not y in w or w[y] > m2:
+                        w[y] = m2
+                        next_layer.add(y)
+            todo = next_layer
+            next_layer = set()
+            dist += 1
+            X3 = X2.intersection(w)
+            layers[dist] = set(todo)
+            if X3:
+                break
+            if not todo:
+                break
+            while todo: # todo is subset of Y
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = X - self._closure(Y - set([u]))
+                for x in out_neighbors[u]:
+                    m2 = m - 1
+                    if not x in w or w[x] > m2:
+                        w[x] = m2
+                        next_layer.add(x)
+            todo = next_layer
+            next_layer = set()
+            dist += 1
+            X3 = X2.intersection(w)
+
+        for x, y in layers.iteritems():
+            for z in y:
+                d[z] = x
         if not X3:                 # if no path from X1 to X2, then no augmenting set exists
-            return False, frozenset(visited)
+            return False, frozenset(w)
         else:
             visited = set()
             # find augmenting paths successively without explicitly construct the graph
