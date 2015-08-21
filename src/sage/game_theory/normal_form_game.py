@@ -623,13 +623,88 @@ except ImportError:
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
-    An object representing a Normal Form Game. Primarily used to compute the
-    Nash Equilibria.
+    The ``NormalFormGame`` class is a representation of normal form (strategic form) games, with
+    implementations of several algorithms within Sage, as well as integrations with external
+    libraries for solving these games.
+
+    A game in normal form consists of a set `n` of players, where each player has a number of actions
+    which they can perform in the game. All `n` tuples of actions (1 action per player) correspond
+    to the outcomes of the game which the players rank by giving their utility (how much they like a
+    given outcome) as input in the game.
 
     INPUT:
 
-    - ``generator`` -- can be a list of 2 matrices, a single matrix or left
+    - ``generator`` -- can be a list of 2 matrices, a single matrix, a gambit game, or left
       blank
+
+    EXAMPLES:
+
+    A NormalFormGame can be created in several ways. One of which is to pass in a list of two
+    matrices (A, B) would create a 2-player bimatrix game, with A and B being the payoff matrices
+    for the row and column players respectively.
+
+    Computation of the Nash equilibria of a 2-player game Prisoners Dilemma :func:`RPS` ::
+
+        sage: A = matrix([[-2, -5], [0, -4]])
+        sage: g = NormalFormGame([A, A.transpose()])
+        sage: g
+        Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
+        sage: g.obtain_nash()
+        [[(0, 1), (0, 1)]]
+
+    The second method would be to pass in a list containing a single matrix A, which would then
+    create a zero-sum bimatrix game (A, -A).
+
+    Computation of the Nash equilibria of a 2-player game :func:`MatchingPennies`::
+
+        sage: A = matrix([[1, -1], [-1, 1]])
+        sage: g = NormalFormGame([A])
+        sage: g
+        Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 0): [-1, 1], (0, 0): [1, -1], (1, 1): [1, -1]}
+        sage: g.obtain_nash()
+        [[(1/2, 1/2), (1/2, 1/2)]]
+
+    The third method would be to create an empty game by not passing in any parameters, and then
+    filling out the game. Note that the previous two methods cannot be used to create games with
+    more than 2 players::
+
+        sage: g = NormalFormGame()
+
+    Once the ``NormalFormGame`` object is created, players are added using the :func:`add_player`
+    function, which takes as a parameter the number of actions of the player::
+
+        sage: g.add_player(2)
+        sage: g.add_player(2)
+
+    Finally, the utilities of the players can be filled in, by setting for each possible outcome the
+    payoff of all the players::
+
+        sage: g[0, 0] = [1, -1]
+        sage: g[0, 1] = [-1, 1]
+        sage: g[1, 0] = [-1, 1]
+        sage: g[1, 1] = [1, -1]
+        sage: g
+        Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 0): [-1, 1], (0, 0): [1, -1], (1, 1): [1, -1]}
+        sage: g.obtain_nash()
+        [[(1/2, 1/2), (1/2, 1/2)]]
+
+    Finally, you can create a game by converting from its gambit representation::
+
+        sage: from gambit import Game  # optional - gambit
+        sage: gambitgame= Game.new_table([2, 2])  # optional - gambit
+        sage: gambitgame[int(0), int(0)][int(0)] = int(8)  # optional - gambit
+        sage: gambitgame[int(0), int(0)][int(1)] = int(8)  # optional - gambit
+        sage: gambitgame[int(0), int(1)][int(0)] = int(2)  # optional - gambit
+        sage: gambitgame[int(0), int(1)][int(1)] = int(10)  # optional - gambit
+        sage: gambitgame[int(1), int(0)][int(0)] = int(10)  # optional - gambit
+        sage: gambitgame[int(1), int(0)][int(1)] = int(2)  # optional - gambit
+        sage: gambitgame[int(1), int(1)][int(0)] = int(5)  # optional - gambit
+        sage: gambitgame[int(1), int(1)][int(1)] = int(5)  # optional - gambit
+        sage: g = NormalFormGame(gambitgame)  # optional - gambit
+        sage: g  # optional - gambit
+        Normal Form Game with the following utilities: {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+        sage: g.obtain_nash() # optional - gambit
+        [[(0, 1), (0, 1)]]
 
     """
 
