@@ -41,6 +41,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.categories.combinatorial_structures import CombinatorialStructures
 
@@ -56,7 +57,7 @@ class Structure(Element):
         [3, 1, 2, 2]
     """
 
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall__(cls, *args, **options):
