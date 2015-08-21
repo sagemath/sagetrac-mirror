@@ -285,6 +285,7 @@ REFERENCES
 ..  [BC79] R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
 ..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
 ..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
+..  [Cunningham] W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 ..  [GR01] C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
 ..  [Hlineny] Petr Hlineny, "Equivalence-free exhaustive generation of matroid representations", Discrete Applied Mathematics 154 (2006), pp. 1210-1222.
@@ -5799,6 +5800,12 @@ cdef class Matroid(SageObject):
 
         A subset of the groundset.
 
+        .. NOTE::
+
+            There is an ``_intersection_augmentation_unweighted()`` method
+            that might be faster for unweighted intersections, depending on
+            both the matroids involved and the size of the intersection.
+
         EXAMPLES::
 
             sage: M = matroids.named_matroids.T12()
@@ -5984,6 +5991,11 @@ cdef class Matroid(SageObject):
         .. NOTE::
 
             This does not test if the input is well-formed.
+
+        ALGORITHM:
+
+        A blocking flow based algorithm which performs well if the size of
+        the intersection is large [Cunningham]_.
 
         EXAMPLES::
 
