@@ -48,20 +48,24 @@ AUTHORS:
 # than implementing Polynomial_RDF_gsl below.
 ##############################################################################
 
-include 'sage/gsl/gsl_complex.pxi'
-include 'sage/gsl/gsl_poly.pxi'
+from sage.libs.gsl.types cimport *
+from sage.libs.gsl.complex cimport *
+from sage.libs.gsl.poly cimport *
 
 cdef extern from "gsl/gsl_poly.h":
     gsl_complex gsl_poly_complex_eval (double c[], int n, gsl_complex z)
 
-from sage.rings.all import CDF
-
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
+from sage.rings.all import CDF
 from sage.rings.all import RR
-
+from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.stats.intlist cimport IntList
+
+from sage.rings.complex_number cimport (ComplexNumber,
+     mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, GMP_RNDN)
+
 
 def required_series_prec(y, prec):
     """
@@ -114,9 +118,6 @@ def required_series_prec(y, prec):
 # like the ones below.  However, that would be a lot more work
 # for a questionable payback.
 ###############################################################
-
-from sage.rings.complex_number cimport (ComplexNumber,
-     mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, GMP_RNDN)
 
 cdef int ComplexNumber_mul(ComplexNumber x, ComplexNumber left, ComplexNumber right):
     """
@@ -247,8 +248,6 @@ cdef class ComplexPolynomial:
         return self.f.degree()
 
 
-from sage.rings.complex_double cimport ComplexDoubleElement
-
 cdef class Polynomial_RDF_gsl:
     """
     A polynomial with RDF (real double) coefficients, which can
@@ -261,10 +260,12 @@ cdef class Polynomial_RDF_gsl:
         sage: s = Polynomial_RDF_gsl(RDF['x']([1..3]))
         sage: TestSuite(s).run()    
     """
-    cdef double *c, *c_d
+    cdef double *c
+    cdef double *c_d
     cdef readonly object f
-    cdef int n, n_d
-    
+    cdef int n
+    cdef int n_d
+
     def __cinit__(self, f):
         """
         EXAMPLES::
@@ -555,7 +556,7 @@ def cdf_roots_of_rdf_poly(f):
     sig_off()
     gsl_poly_complex_workspace_free(w)
     
-    rts = [CDF(z[2*i],z[2*i+1]) for i in range(n-1)]
+    rts = [CDF(z[2*i], z[2*i+1]) for i in range(n-1)]
     rts.sort()
     
     sage_free(a)

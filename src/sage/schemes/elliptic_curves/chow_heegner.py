@@ -41,7 +41,10 @@ TESTS::
 """
 
 # General Sage imports
-from sage.misc.all import (cached_method, cputime, verbose, parent)
+from sage.misc.all import verbose
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc import cputime
+from sage.structure.element import parent
 from sage.parallel.all import parallel
 from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, xgcd, NumberField, ComplexField)
 
