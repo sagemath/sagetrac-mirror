@@ -129,7 +129,7 @@ class DieseProductAlgebras(Category_over_base_ring):
                     for (mon, coef) in (self(mon1) * self(mon2)).\
                             monomial_coefficients().iteritems():
                         res += coef1 * coef2 * coef * self.\
-                            diese_linear_operator_on_basis(mon1.size(), mon)
+                            diese_linear_operator_on_basis(mon1.grade(), mon)
             return res
 
         def _default_diese_product_from_diese_linear_operator_on_basis(self, x, y):
@@ -139,7 +139,7 @@ class DieseProductAlgebras(Category_over_base_ring):
                     for (mon, coef) in (self(mon1) * self(mon2)).\
                             monomial_coefficients().iteritems():
                         res += coef1 * coef2 * coef * self.\
-                            diese_linear_operator_on_basis(mon1.size(), mon)
+                            diese_linear_operator_on_basis(mon1.grade(), mon)
             return res
 
     class ElementMethods:
