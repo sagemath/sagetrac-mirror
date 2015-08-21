@@ -45,10 +45,9 @@ from sage.misc.all import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import cputime
 from sage.structure.element import parent
-from sage.parallel.all import parallel
-from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, xgcd, NumberField, ComplexField)
+from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, xgcd, ComplexField)
 
-from sage.rings.complex_field  import is_ComplexField
+from sage.rings.complex_field import is_ComplexField
 from sage.rings.rational_field import is_RationalField
 
 from sage.modular.all import Gamma0
@@ -64,6 +63,7 @@ from sage.schemes.elliptic_curves.chow_heegner_fast import (
 ######################################################################
 # Gamma0(N) equivalence of points in the upper half plane
 ######################################################################
+
 
 def _slz2_rep_in_fundom_helper(z):
     """
@@ -89,7 +89,7 @@ def _slz2_rep_in_fundom_helper(z):
         sage: from sage.schemes.elliptic_curves.chow_heegner import _slz2_rep_in_fundom_helper
         sage: z = CDF(110.1, 1e-10)
         sage: zz,g = _slz2_rep_in_fundom_helper(z)
-        sage: zz
+        sage: zz  # rel tol 1e-10
         0.341867712408 + 99999999.6769*I
 
     The value of zz above is wrong, as we see applying the raw
@@ -110,7 +110,7 @@ def _slz2_rep_in_fundom_helper(z):
     gamma = SL2Z(1)
     S, T = SL2Z.gens()
     change = True
-    half = z.real().parent()(1)/2
+    half = z.real().parent().one() / 2
     while change:
         change = False
         t = z.real()
@@ -126,12 +126,13 @@ def _slz2_rep_in_fundom_helper(z):
                 k = round(n.center())
             else:
                 k = n
-            gamma *= T**k
+            gamma *= T ** k
         if abs(z) < 1:
             change = True
-            z = -1/z
+            z = -1 / z
             gamma *= S
-    return z, gamma**(-1)
+    return z, gamma ** (-1)
+
 
 def sl2z_rep_in_fundom(z, eps=None):
     """
@@ -161,12 +162,12 @@ def sl2z_rep_in_fundom(z, eps=None):
         sage: from sage.schemes.elliptic_curves.chow_heegner import sl2z_rep_in_fundom
         sage: z = CDF(2.17,.19)
         sage: w, g = sl2z_rep_in_fundom(z)
-        sage: w
+        sage: w  # abs tol 1e-10
         0.384615384615 + 2.92307692308*I
         sage: g
         [-3  7]
         [-1  2]
-        sage: g.acton(z)
+        sage: g.acton(z)  # abs tol 1e-10
         0.384615384615 + 2.92307692308*I
 
     An example in which the imaginary part is small, which leads to
@@ -174,19 +175,19 @@ def sl2z_rep_in_fundom(z, eps=None):
 
         sage: z = CDF(110.1, 1e-10)
         sage: zz, g = sl2z_rep_in_fundom(z)
-        sage: zz
+        sage: zz  # rel tol 1e-10
         0.241867713702 + 99999999.6769*I
         sage: g
         [ -56841 6258194]
         [     10   -1101]
-        sage: g.acton(z)         # far from zz due to rounding during action
+        sage: g.acton(z)    # rel tol 1e-10 - far from zz due to rounding during action
         -5684.1 + 99999999.6275*I
         sage: g.acton(CIF(z))    # indeed to double precision, everything lost
         0.?e5 + 1.0000000?e8*I
         sage: g.acton(ComplexField(100)(z))   # get correct zz above with higher prec
         0.24186771370190053192231958133 + 9.9999999676882570622302579775e7*I
 
-    Here is a similer, but much more extreme, example::
+    Here is a similar, but much more extreme, example::
 
         sage: z = CC(110.1 + 1e-100*I)
         sage: zz, g = sl2z_rep_in_fundom(z); zz
@@ -239,7 +240,7 @@ def sl2z_rep_in_fundom(z, eps=None):
 
     The Python complex type is allowed::
 
-        sage: sl2z_rep_in_fundom(complex(2.17,.19))
+        sage: sl2z_rep_in_fundom(complex(2.17,.19))  # abs tol 1e-10
         (
                                           [-3  7]
         0.384615384615 + 2.92307692308*I, [-1  2]
@@ -249,25 +250,24 @@ def sl2z_rep_in_fundom(z, eps=None):
         z = CDF(z)
 
     if isinstance(z, (float, int, long)) or z.imag() <= 0:
-        raise ValueError, "z must be in the upper half plane"
+        raise ValueError("z must be in the upper half plane")
 
     if eps is None:
         # set default value of eps if it is not given
-        eps = RR(2)**(-z.parent().prec())
+        eps = RR(2) ** (-z.parent().prec())
     else:
         # make sure eps is *positive* and in RR.
         eps = RR(eps)
         if eps <= 0:
-            raise ValueError, "eps must be positive"
+            raise ValueError("eps must be positive")
 
     # To avoid rounding errors, we use interval arithmetic for the
     # actual calculation (until the precision is sufficient).
-    from sage.rings.complex_interval_field import (
-        is_ComplexIntervalField, ComplexIntervalField)
+    from sage.rings.complex_interval_field import ComplexIntervalField
 
     # We start with twice the precision to avoid an extra iteration:
     # the documentation warns that this function may be slow.
-    prec = -2*eps.log(2).ceil()
+    prec = -2 * eps.log(2).ceil()
     while True:
         # make the interval version of z to the given precision
         w = ComplexIntervalField(prec)(z)
@@ -327,7 +327,7 @@ def canonicalize_sl2z(a, g=None, eps_ratio=2):
 
     When a is on the right side of the unit circle::
 
-        sage: canonicalize_sl2z(CDF(1/sqrt(2),1/sqrt(2)), SL2Z([1,0,0,1]))
+        sage: canonicalize_sl2z(CDF(1/sqrt(2),1/sqrt(2)), SL2Z([1,0,0,1]))  # abs tol 1e-10
         (
                                             [ 0 -1]
         -0.707106781187 + 0.707106781187*I, [ 1  0]
@@ -346,8 +346,8 @@ def canonicalize_sl2z(a, g=None, eps_ratio=2):
 
         sage: canonicalize_sl2z(CDF(0.500001, 1))
         (0.500001 + 1.0*I, None)
-        sage: canonicalize_sl2z(CDF(0.500001, 1), eps_ratio=4)
-        (-0.499999 + 1.0*I, None)
+        sage: canonicalize_sl2z(CDF(0.500001, 1), eps_ratio=4)  # abs tol 1e-10
+        (-0.49999899999999997 + 1.0*I, None)
     """
     if g is not None:
         S, T = g.parent().gens()
@@ -360,15 +360,18 @@ def canonicalize_sl2z(a, g=None, eps_ratio=2):
     # and we use eps=2**(-prec//eps_ratio), where prec is the number of bits
     # of precision of the parent, and eps_ratio=2 by default.
     C = a.parent()
-    eps = 2**(-C.prec() // eps_ratio)
-    if abs(a.real() - C(1)/2)<eps:
+    eps = 2 ** (-C.prec() // eps_ratio)
+    if abs(a.real() - C(1) / 2) < eps:
         a -= 1
-        if g is not None: g = T**(-1)*g
-    elif abs(abs(a) - 1)<eps and a.real() > 0:
+        if g is not None:
+            g = T ** (-1) * g
+    elif abs(abs(a) - 1) < eps and a.real() > 0:
         # points are sl2z equivalent on boundary of unit circle
-        a = -1/a
-        if g is not None: g = S*g
+        a = -1 / a
+        if g is not None:
+            g = S * g
     return a, g
+
 
 def is_sl2z_equivalent(z1, z2, prec):
     """
@@ -402,7 +405,7 @@ def is_sl2z_equivalent(z1, z2, prec):
     rounding errors, though 40 bits works::
 
         sage: z1 = CDF(5,7)
-        sage: z2 = (-5*z1 - 6)/(11*z1 + 13); z2
+        sage: z2 = (-5*z1 - 6)/(11*z1 + 13); z2  # abs tol 1e-10
         -0.455131242301 + 0.000663318487634*I
         sage: is_sl2z_equivalent(z1, z2, 53)
         False
@@ -425,7 +428,8 @@ def is_sl2z_equivalent(z1, z2, prec):
     w2, _ = sl2z_rep_in_fundom(z2)
     a1, _ = canonicalize_sl2z(w1)
     a2, _ = canonicalize_sl2z(w2)
-    return abs(a1 - a2) < 2**(-prec)
+    return abs(a1 - a2) < 2 ** (-prec)
+
 
 def is_gamma0N_equivalent(z1, z2, N, prec):
     """
@@ -451,7 +455,7 @@ def is_gamma0N_equivalent(z1, z2, N, prec):
     Gamma0(11), and do some basic checks::
 
         sage: z1 = CDF(5,7)
-        sage: z2 = (-5*z1 - 6)/(11*z1 + 13); z2
+        sage: z2 = (-5*z1 - 6)/(11*z1 + 13); z2  # abs tol 1e-10
         -0.455131242301 + 0.000663318487634*I
         sage: is_gamma0N_equivalent(z1, z2, 11, 30)
         True
@@ -489,7 +493,7 @@ def is_gamma0N_equivalent(z1, z2, N, prec):
         True
     """
     C = ComplexField(prec)
-    eps = RR(2)**(-prec)
+    eps = RR(2) ** (-prec)
     w1, g1 = sl2z_rep_in_fundom(z1, eps)  # g1(z1) = w1 = canonical rep
     w2, g2 = sl2z_rep_in_fundom(z2, eps)  # g2(z2) = w2 = canonical rep
     a1, g1 = canonicalize_sl2z(w1, g1)
@@ -503,7 +507,7 @@ def is_gamma0N_equivalent(z1, z2, N, prec):
     # made above.  We double check.
     # This C2 is purely used for the assert below and nothing else, so this
     # "magic constant" not so evil.
-    C2 = ComplexField(2*prec+10)
+    C2 = ComplexField(2 * prec + 10)
     assert abs(g1.acton(C2(z1)) - g2.acton(C2(z2))) < eps
 
     # So now we have z := g1(z1) = g2(z2), both in the standard
@@ -521,17 +525,18 @@ def is_gamma0N_equivalent(z1, z2, N, prec):
     # g2^(-1)*A*g1 for A in Stab(z), so we just check if any are in
     # Gamma0(N).
 
-    g2i = g2**(-1)
-    g = g2i*g1
+    g2i = g2 ** (-1)
+    g = g2i * g1
     i = C.gen()
     pi = C.pi()
-    if g[1,0]%N == 0:
+    if g[1, 0] % N == 0:
         return True
     S, T = g1.parent().gens()
     if a1 == i:
-        return (g2i*S*g1)[1,0]%N == 0
-    elif a1 == ((2*pi*i)/3).exp():
-        return (g2i*S*T*g1)[1,0]%N == 0 or (g2i*S*T*S*T*g1)[1,0]%N == 0
+        return (g2i * S * g1)[1, 0] % N == 0
+    elif a1 == ((2 * pi * i) / 3).exp():
+        return ((g2i * S * T * g1)[1, 0] % N == 0 or
+                (g2i * S * T * S * T * g1)[1, 0] % N == 0)
     return False
 
 
@@ -611,10 +616,12 @@ class X0NPoint(object):
             False
         """
         c = cmp(self._N, right._N)
-        if c: return c
+        if c:
+            return c
         if self._N == 1:
             return cmp(self._sl2z_rep(), right.sl2z_rep())
-        if is_gamma0N_equivalent(self._z, right._z, self._N, min(self._prec, right._prec)):
+        if is_gamma0N_equivalent(self._z, right._z,
+                                 self._N, min(self._prec, right._prec)):
             return 0
         return cmp(self._z, right._z)
 
@@ -626,7 +633,7 @@ class X0NPoint(object):
             sage: X0NPoint(CDF(1,1), 11,30).__repr__()
             '[1.0000000 + 1.0000000*I]'
         """
-        return "[%s]"%self._C(self._z)
+        return "[%s]" % self._C(self._z)
 
     @cached_method
     def sl2z_rep(self):
@@ -706,18 +713,18 @@ class X0NPoint(object):
         if q is None:
             # Main involution
             z, N, prec = self._z, self._N, self._prec
-            return X0NPoint(-1/(N*z), N, prec)
+            return X0NPoint(-1 / (N * z), N, prec)
         else:
             z, N, prec = self._z, self._N, self._prec
             q = ZZ(q)
-            if N%q != 0:
-                raise ValueError, "q must divide N"
-            g, x, y = xgcd(q, -N//q)
+            if N % q != 0:
+                raise ValueError("q must divide N")
+            g, x, y = xgcd(q, -N // q)
             if g != 1:
-                raise ValueError, "q must exactly divide N"
+                raise ValueError("q must exactly divide N")
             # Now q*x - (N//q)*y = 1
             # W_q = [q*x,  y;  N,  q]
-            return X0NPoint((q*x*z + y)/(N*z + q), N, prec)
+            return X0NPoint((q * x * z + y) / (N * z + q), N, prec)
 
     def __hash__(self):
         """
@@ -732,6 +739,7 @@ class X0NPoint(object):
             0
         """
         return 0
+
 
 def disk_to_h(q):
     """
@@ -753,15 +761,16 @@ def disk_to_h(q):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.chow_heegner import disk_to_h, h_to_disk
-        sage: disk_to_h(CDF(.5,.3))
+        sage: disk_to_h(CDF(.5,.3))  # abs tol 1e-10
         0.0860104348113 + 0.0858489451313*I
-        sage: disk_to_h(ComplexField(100)(.5,.3))
+        sage: disk_to_h(ComplexField(100)(.5,.3))  # abs tol 1e-10
         0.086010434811315337269743555113 + 0.085848945131318196784916564927*I
-        sage: h_to_disk(disk_to_h(CDF(.5,.3)))
+        sage: h_to_disk(disk_to_h(CDF(.5,.3)))  # abs tol 1e-10
         0.5 + 0.3*I
     """
     K = q.parent()
-    return q.log() / (2*K.pi()*K.gen())
+    return q.log() / (2 * K.pi() * K.gen())
+
 
 def h_to_disk(z):
     """
@@ -783,12 +792,12 @@ def h_to_disk(z):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.chow_heegner import disk_to_h, h_to_disk
-        sage: h_to_disk(CDF(0,2))
+        sage: h_to_disk(CDF(0,2))  # rel tol 1e-10
         3.48734235621e-06
         sage: disk_to_h(h_to_disk(CDF(0,2)))
         2.0*I
-        sage: h_to_disk(CDF(2,1))
-        0.00186744273171 - ...e-19*I
+        sage: h_to_disk(CDF(2,1))  # abs tol 1e-10
+        0.0018674427317079893 + 0.0*I
 
     Notice that the two maps are not mutual inverses, since the result
     of disk_to_h is always (approximately) in the vertical strip from
@@ -800,7 +809,8 @@ def h_to_disk(z):
         1.0*I
     """
     K = z.parent()
-    return (2*K.pi()*K.gen()*z).exp()
+    return (2 * K.pi() * K.gen() * z).exp()
+
 
 class CloseEqual:
     """
@@ -853,6 +863,7 @@ class CloseEqual:
         """
         return cmp(self.y, right.y)
 
+
 def throw_away_close(v, prec):
     """
     Return list of 'distinct' elements of v, where we consider two
@@ -876,12 +887,12 @@ def throw_away_close(v, prec):
 
     All are distinct::
 
-        sage: throw_away_close(v, 53)
+        sage: throw_away_close(v, 53)  # abs tol 1e-10
         [1.0 + 1.0*I, 1.00000000023 + 1.0*I, 1.00000095367 + 1.0*I]
 
     Now v[1] and v[0] considered same::
 
-        sage: throw_away_close(v, 30)
+        sage: throw_away_close(v, 30)  # abs tol 1e-10
         [1.0 + 1.0*I, 1.00000095367 + 1.0*I]
 
     Now all the same::
@@ -891,13 +902,14 @@ def throw_away_close(v, prec):
 
     But not to slightly higher precision::
 
-        sage: throw_away_close(v, 21)
+        sage: throw_away_close(v, 21)  # abs tol 1e-10
         [1.0 + 1.0*I, 1.00000095367 + 1.0*I]
     """
     C = ComplexField(prec)
     w = [a.x for a in set([CloseEqual(x, C) for x in v])]
     w.sort()
     return w
+
 
 def newton(f, x, max_iter=1000, max_err=1e-14):
     """
@@ -930,19 +942,19 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
 
     Starting value of 1 (not a list)::
 
-        sage: t = newton(f, 1); t
+        sage: t = newton(f, 1); t  # abs tol 1e-10
         [(1.21341166276, 6, 0.0)]
 
     Resulting value is an approximate root as required::
 
-        sage: f(t[0][0])
+        sage: f(t[0][0])  # rel tol 1e-10
         -4.4408920985e-16
 
     In the following, we input three different starting values.  The
     first two converge to the same root, and the third to a different
     imaginary root::
 
-        sage: t = newton(f, [1, 5, -.6-1.4*I]); t
+        sage: t = newton(f, [1, 5, -.6-1.4*I]); t  # abs tol 1e-10
         [(1.21341166276, 6, 0.0), (1.21341166276, 9, 0.0), (-0.606705831381 - 1.45061224919*I, 5, 0.0)]
 
     An example in which f has precision less than 53 bits::
@@ -958,9 +970,9 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
         sage: from sage.schemes.elliptic_curves.chow_heegner import newton
         sage: R.<x> = CDF[]; f = x^3 + CDF.0*x - 3; f
         x^3 + I*x - 3.0
-        sage: t = newton(f, 1); t
+        sage: t = newton(f, 1); t  # abs tol 1e-10
         [(1.44257744162 - 0.233096549477*I, 7, 2.77555756156e-17)]
-        sage: f(t[0][0])
+        sage: f(t[0][0])  # rel tol 1e-10
         4.4408920985e-16 - 1.11022302463e-16*I
 
     An example in which f has higher precision::
@@ -1021,24 +1033,24 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
     # ComplexPolynomial(...) is roughly 10 times faster to evaluate
     # than a usual Sage polynomial over a higher precision complex
     # field, so we use it instead.
-    tm = verbose("Running Newton refinement on degree %s polynomial to precision %s on %s roots"%(
-        f.degree(), C.prec(), len(x)))
-    f = ComplexPolynomial(f); f_prime = ComplexPolynomial(f_prime)
+    tm = verbose("Running Newton refinement on degree %s polynomial to precision %s on %s roots" % (f.degree(), C.prec(), len(x)))
+    f = ComplexPolynomial(f)
+    f_prime = ComplexPolynomial(f_prime)
     ans = []
     for root in x:
         root = C(root)
         last_root = root
-        g_root = C(root)
         for i in range(max_iter):
-            root = root - f(root)/f_prime(root)
+            root = root - f(root) / f_prime(root)
             err = abs(last_root - root)
-            if  err <= max_err:
+            if err <= max_err:
                 break
             last_root = root
-        ans.append((root, i+1, err))
-        verbose("Newton iterations: %s"%i)
-    verbose("Completed %s Newton refinements in %s seconds."%(len(x), cputime(tm)))
+        ans.append((root, i + 1, err))
+        verbose("Newton iterations: %s" % i)
+    verbose("Completed %s Newton refinements in %s seconds." % (len(x), cputime(tm)))
     return ans
+
 
 class NumericalPoint(object):
     """
@@ -1099,7 +1111,8 @@ class NumericalPoint(object):
             sage: Q.rational_curve()
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         """
-        return EllipticCurve(QQ,[int(a.real()) for a in self._P.curve().a_invariants()])
+        return EllipticCurve(QQ, [int(a.real())
+                                  for a in self._P.curve().a_invariants()])
 
     def close_points(self, search_bound, eps=1e-3):
         """
@@ -1154,20 +1167,20 @@ class NumericalPoint(object):
         g = E.gens()
         if len(g) == 0:
             P = E(0)
-            search_bound=0
+            search_bound = 0
         elif len(g) == 1:
             P = g[0]
         else:
-            raise NotImplementedError, "curve must have rank 0 or 1"
+            raise NotImplementedError("curve must have rank 0 or 1")
         T = E.torsion_points()
         v = []
         from sage.groups.generic import multiples
-        for Q in multiples(P, 2*search_bound+1, -search_bound*P):
+        for Q in multiples(P, 2 * search_bound + 1, -search_bound * P):
             for t in T:
                 R = Q + t
                 if abs(R[0] - self[0]) < eps and abs(R[1] - self[1]) < eps:
                     # record pair (distance, point)
-                    v.append(  ((R[0] - self[0])**2 + (R[1] - self[1])**2, R)  )
+                    v.append(((R[0] - self[0]) ** 2 + (R[1] - self[1]) ** 2, R))
         v.sort()
         return [R for _, R in v]
 
@@ -1221,7 +1234,7 @@ class NumericalPoint(object):
         if isinstance(right, int) and right == 0:
             return self
         return NumericalPoint(self._P + self._P.curve().point(
-            (right._P[0],right._P[1],right._P[2]),check=False), self._eps)
+            (right._P[0], right._P[1], right._P[2]), check=False), self._eps)
 
     def __radd__(self, left):
         """
@@ -1243,7 +1256,7 @@ class NumericalPoint(object):
             sage: 2*Q
             (1.61355529131... : 1.18446840788... : 1.00000000000000)
         """
-        return NumericalPoint(left*self._P, self._eps)
+        return NumericalPoint(left * self._P, self._eps)
 
     def __mul__(self, right):
         """
@@ -1253,7 +1266,7 @@ class NumericalPoint(object):
             sage: Q*2
             (1.61355529131... : 1.18446840788... : 1.00000000000000)
         """
-        return NumericalPoint(self._P*right, self._eps)
+        return NumericalPoint(self._P * right, self._eps)
 
     def __cmp__(self, right):
         """
@@ -1284,7 +1297,7 @@ class NumericalPoint(object):
             sage: Q == Z
             True
         """
-        if max([abs(self._P[i]-right._P[i]) for i in range(3)]) < min(self._eps, right._eps):
+        if max([abs(self._P[i] - right._P[i]) for i in range(3)]) < min(self._eps, right._eps):
             return 0
         return cmp(self._P, right._P)
 
@@ -1297,7 +1310,6 @@ class NumericalPoint(object):
             '(6.00000000000... : 14.0000000000... : 1.00000000000000)'
         """
         return repr(self._P)
-
 
     def identify(self, search=200, eps=1e-5, infinity=1e12):
         """
@@ -1333,21 +1345,20 @@ class NumericalPoint(object):
             sage: c.numerical_approx().identify()
             (0 : 1 : 0)
         """
-        if max(abs(self[0]),abs(self[1])) >= infinity or self._P == 0:
+        if max(abs(self[0]), abs(self[1])) >= infinity or self._P == 0:
             return self.rational_curve()(0)
 
         m = self.close_points(search, eps)
         if len(m) != 1:
-            raise ValueError, "unable to identify rational point"
+            raise ValueError("unable to identify rational point")
         else:
             return m[0]
-
-
 
 ########################################################################
 # Some helper functions needed for evaluation of the
 # modular parametrization
 ########################################################################
+
 
 def B_bound(ymin, prec):
     """
@@ -1380,21 +1391,22 @@ def B_bound(ymin, prec):
 
         sage: from sage.schemes.elliptic_curves.chow_heegner import phi_poly
         sage: phi = phi_poly(EllipticCurve([1..5]), 6765)
-        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))
-        0.635422328062 + ...e-14*I
+        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))  # abs tol 1e-10
+        0.6354223280617955 + 0.0*I
         sage: phi = phi_poly(EllipticCurve([1..5]), 20000)
-        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))
-        0.635422328062 + ...e-14*I
+        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))  # abs tol 1e-10
+        0.6354223280617955 + 0.0*I
         sage: phi = phi_poly(EllipticCurve([1..5]), 1000)
-        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))
-        0.634984898068 + ...e-14*I
+        sage: phi(CDF(e^(2*pi*i*(1+1e-3*I))))  # abs tol 1e-10
+        0.6349848980682667 + 0.0*I
     """
     # It is important to use RR instead of RDF in this function
     # in order to get a larger range of exponents.
     y = RR(ymin)
-    epsilon = RR(2)**(-(prec+1))
-    pi = RR.pi()
-    return int((epsilon*(1 - (-2*pi*y).exp())).log() / (-2*pi*y)) + 1
+    epsilon = RR(2) ** (-(prec + 1))
+    mtwopiy = - 2 * RR.pi() * y
+    return int((epsilon * (1 - mtwopiy.exp())).log() / mtwopiy) + 1
+
 
 def phi_poly(E, B, base_field=QQ):
     """
@@ -1427,13 +1439,16 @@ def phi_poly(E, B, base_field=QQ):
         -0.25000000000000000000000000000*q^4 + 0.50000000000000000000000000000*q^2 + q
     """
     R = base_field['q']
-    v = E.anlist(B+1)
-    return R([0] + [v[n]/n for n in range(1,B+1)])
+    v = E.anlist(B + 1)
+    return R([0] + [v[n] / n for n in range(1, B + 1)])
+
 
 def label(E):
     """
     Return the Cremona label of E if it is in the installed database,
-    and otherwise just return the string representation of E. This
+    and otherwise just return the string representation of E.
+
+    This
     function is used by some of the other printing functions in this
     module.
 
@@ -1457,6 +1472,7 @@ def label(E):
         return E.cremona_label()
     except RuntimeError:
         return str(E)
+
 
 def check_optimal(E):
     """
@@ -1494,9 +1510,10 @@ def check_optimal(E):
         if lbl.startswith('990h'):
             return lbl.endswith('3')
         if not lbl.endswith('1'):
-            raise ValueError, "curve must be optimal"
+            raise ValueError("curve must be optimal")
     except RuntimeError:
         pass
+
 
 class ModularParametrization(object):
     """
@@ -1523,11 +1540,11 @@ class ModularParametrization(object):
         sage: phi.cusps_over_torsion()
         {1: [Infinity], 3: [0]}
         sage: phi.images_of_cusps()
-        {(0, 1): [0], (0, 0): [Infinity]}
-        sage: phi(CDF(1,1))
-        0.00186744489643 - ...e-19*I
-        sage: phi(CDF(2,1))
-        0.00186744489643 - ...e-19*I
+        {(0, 0): [Infinity], (0, 1): [0]}
+        sage: phi(CDF(1,1))  # abs tol 1e-10
+        0.0018674448964312565 + 0.0*I
+        sage: phi(CDF(2,1))  # abs tol 1e-10
+        0.0018674448964312565 + 0.0*I
 
     Find points in the fiber over the point 1 mod the period lattice::
 
@@ -1560,9 +1577,9 @@ class ModularParametrization(object):
         The input must be an elliptic curve over the rational numbers, so this works::
 
             sage: ModularParametrization(EllipticCurve([1/2,19/4]))
-            Modular parametrization of Elliptic Curve defined by y^2 = x^3 + 1/2*x + 19/4 over Rational Field having degree 127872
+            Modular parametrization of 312160a1 having degree 127872
 
-        But these don't work::
+        But these do not work::
 
             sage: ModularParametrization('37b1')
             Traceback (most recent call last):
@@ -1574,9 +1591,9 @@ class ModularParametrization(object):
             TypeError: E must be over QQ
         """
         if not is_EllipticCurve(E):
-            raise TypeError, "E must be an elliptic curve"
+            raise TypeError("E must be an elliptic curve")
         if not is_RationalField(E.base_field()):
-            raise TypeError, "E must be over QQ"
+            raise TypeError("E must be over QQ")
         check_optimal(E)
         self._E = E
         self._label = label(E)
@@ -1664,9 +1681,9 @@ class ModularParametrization(object):
         phi = self._E.modular_symbol_space(0).integral_period_mapping()
         v = {}
         for c in Gamma0(self._E.conductor()).cusps():
-            i = phi([c,infinity])
+            i = phi([c, infinity])
             d = i.denominator()
-            if v.has_key(d):
+            if d in v:
                 v[d].append(c)
             else:
                 v[d] = [c]
@@ -1675,7 +1692,9 @@ class ModularParametrization(object):
     def images_of_cusps(self):
         """
         Return dictionary with keys elements of a finite module
-        isomorphic to E[d] = (Z/dZ)x(Z/dZ).  The corresponding values
+        isomorphic to E[d] = (Z/dZ)x(Z/dZ).
+
+        The corresponding values
         for the keys are the cusps that map to that element of E[d].
         Here d is the exponent of the finite group generated by
         images of cusps.
@@ -1688,10 +1707,8 @@ class ModularParametrization(object):
 
             sage: from sage.schemes.elliptic_curves.chow_heegner import ModularParametrization
             sage: phi = ModularParametrization(EllipticCurve('57b'))
-            sage: phi.images_of_cusps()
-            {(0, 1): [0], (1, 0): [1/19], (0, 0): [Infinity], (1, 1): [1/3]}
             sage: Z = phi.images_of_cusps(); Z
-            {(0, 1): [0], (1, 0): [1/19], (0, 0): [Infinity], (1, 1): [1/3]}
+            {(0, 0): [Infinity], (0, 1): [0], (1, 0): [1/19], (1, 1): [1/3]}
             sage: Z.keys()[0].parent()
             Finitely generated module V/W over Integer Ring with invariants (2, 2)
             sage: phi = ModularParametrization(EllipticCurve('11a'))
@@ -1702,18 +1719,18 @@ class ModularParametrization(object):
             {(): [0, 1/19, 1/3, Infinity]}
         """
         phi = self._E.modular_symbol_space(0).integral_period_mapping()
-        d = ZZ(1)
+        d = ZZ.one()
         ims = []
         for c in Gamma0(self._E.conductor()).cusps():
-            i = phi([c,infinity])
+            i = phi([c, infinity])
             d = d.lcm(i.denominator())
-            ims.append((c,i))
-        V = (ZZ**2)
+            ims.append((c, i))
+        V = (ZZ ** 2)
         Q = V / V.scale(d)
         v = {}
         for c, i in ims:
-            P = Q(d*i)
-            if v.has_key(P):
+            P = Q(d * i)
+            if P in v:
                 v[P].append(c)
             else:
                 v[P] = [c]
@@ -1727,11 +1744,12 @@ class ModularParametrization(object):
             sage: ModularParametrization(EllipticCurve('37a')).__repr__()
             'Modular parametrization of 37a1 having degree 2'
         """
-        return "Modular parametrization of %s having degree %s"%(self._label, self.degree())
+        return "Modular parametrization of %s having degree %s" % (self._label, self.degree())
 
     def __call__(self, z):
         """
         Compute the image of z under this modular parametrization map.
+
         We allow z to be either a point in the upper half plane or a
         list of such points.
 
@@ -1747,12 +1765,15 @@ class ModularParametrization(object):
 
             sage: from sage.schemes.elliptic_curves.chow_heegner import ModularParametrization
             sage: phi = ModularParametrization(EllipticCurve('11a'))
-            sage: phi(CDF(1,1))
-            0.00186395322463 - ...e-19*I
+            sage: phi(CDF(1,1))  # abs tol 1e-10
+            0.0018639532246330697 + 0.0*I
             sage: phi(ComplexField(100)(1,1))
             0.0018639532246330691303545022211 - 6.3095154969118369542516994420e-34*I
-            sage: phi([CDF(1,1), CDF(2,1), CDF(2,1/2)])
-            [0.00186395322463..., 0.00186395322463..., 0.0413213515947...]
+            sage: phi([CDF(1,1), CDF(2,1), CDF(2,1/2)])  # abs tol 1e-10
+            [0.0018639532246330697 + 0.0*I, 0.0018639532246330697 + 0.0*I,
+            0.04132135159467291 + 0.0*I]
+
+[0.0018639532246330697, 0.00186395322463..., 0.0413213515947...]
 
         A consistency check with the other modular parametrization in Sage::
 
@@ -1768,7 +1789,7 @@ class ModularParametrization(object):
         if isinstance(z, list):
             if len(z) == 0:
                 return []
-            z = [(x.z() if isinstance(x,X0NPoint) else x) for x in z]
+            z = [(x.z() if isinstance(x, X0NPoint) else x) for x in z]
             d = max([B_bound(x.imag(), x.prec()) for x in z])
             is_list = True
         else:
@@ -1816,7 +1837,7 @@ class ModularParametrization(object):
 
             sage: from sage.schemes.elliptic_curves.chow_heegner import ModularParametrization
             sage: phi = ModularParametrization(EllipticCurve('57b'))
-            sage: v = phi._points_in_h_double(z=.1, min_imag=1e-3); v
+            sage: v = phi._points_in_h_double(z=.1, min_imag=1e-3); v  # abs tol 1e-10
             [-0.448258381107 + 0.00603424481535*I, -0.381277139742 + 0.00147982187514*I, -0.303618734588 + 0.0143125900531*I, 0.374289971606*I, 0.303618734588 + 0.0143125900531*I, 0.381277139742 + 0.00147982187514*I, 0.448258381107 + 0.00603424481535*I]
             sage: [phi(t) for t in v]
             [0.1..., 0.1..., 0.1..., 0.1, 0.1..., 0.1..., 0.1...]
@@ -1826,8 +1847,8 @@ class ModularParametrization(object):
         try:
             v = [x for x in cdf_roots_of_rdf_poly(f) if abs(x) < 1]
         except TypeError:
-            v = [x for x,_ in f.roots() if abs(x) < 1]
-        verbose('Number of double precision roots in upper half plane: %s'%len(v))
+            v = [x for x, _ in f.roots() if abs(x) < 1]
+        verbose('Number of double precision roots in upper half plane: %s' % len(v))
         if len(v) == 0:
             return []
 
@@ -1839,24 +1860,24 @@ class ModularParametrization(object):
         min_imag = min(w)
 
         f = phi_poly(self._E, B_bound(min_imag, 53), base_field=CDF) - z
-        t = verbose("deg of refinement poly = %s"%f.degree())
+        t = verbose("deg of refinement poly = %s" % f.degree())
         w = []
         if z.imag() == 0:
             roots = Polynomial_RDF_gsl(f).newton(v, max_iter)
         else:
             roots = newton(f, v, max_iter=max_iter)
 
-        for b,i,err in roots:
+        for b, i, err in roots:
             if abs(b) < 1 and i < max_iter:
                 w.append(b)
 
-        verbose("found %s double prec roots that refined in %s seconds"%(len(w), cputime(t)))
+        verbose("found %s double prec roots that refined in %s seconds" % (len(w), cputime(t)))
         w.sort()
         w = throw_away_close(w, prec=45)
 
         # Put points in upper half plane.
-        w = [disk_to_h(z) for z in w]
-        w = [z for z in w if z.imag() >= min_imag]  # 1000 is effectively oo
+        w = [disk_to_h(zz) for zz in w]
+        w = [zz for zz in w if z.imag() >= min_imag]  # 1000 is effectively oo
         w.sort()
         return w
 
@@ -1904,15 +1925,15 @@ class ModularParametrization(object):
 
             sage: v = phi.points_in_h(deg1=100); v
             [[-0.3441 + 0.008841*I], [-0.2982 + 0.001291*I]]
-            sage: phi(v[0]), phi(v[1])
-            (0.1 ..., 0.1 ...)
+            sage: phi(v[0]), phi(v[1])  # abs tol 1e-10
+            (0.1 + 0.0*I, 0.1 + 0.0*I)
 
         Compute points over 1::
 
             sage: v = phi.points_in_h(RDF(1), deg1=100); v
             [[-0.3512 + 0.001870*I], [-0.1683 + 0.001018*I]]
-            sage: phi(v[0]), phi(v[1])
-            (1.0 ..., 1.0 ...)
+            sage: phi(v[0]), phi(v[1])  # abs tol 1e-10
+            (1.0 + 0.0*I, 1.0 + 0.0*I)
 
         Points over I::
 
@@ -1967,12 +1988,13 @@ class ModularParametrization(object):
                 prec = z.prec()
             except AttributeError:
                 prec = 53
-            C = CDF if prec==53 else ComplexField(prec)
+            C = CDF if prec == 53 else ComplexField(prec)
             z = C(z)
 
         N = self._E.conductor()
 
-        v = self._points_in_h_double(z, min_imag=min_imag, max_iter=max_iter1, deg1=deg1)
+        v = self._points_in_h_double(z, min_imag=min_imag,
+                                     max_iter=max_iter1, deg1=deg1)
         if len(v) == 0:
             return []
 
@@ -1980,43 +2002,43 @@ class ModularParametrization(object):
 
         prec = z.prec()
         if equiv_prec is None:
-            equiv_prec = prec//3
+            equiv_prec = prec // 3
         if prec <= 53:
             # double precision already enough
-            ans = list(set([X0NPoint(C(x),N,prec=equiv_prec) for x in v]))
+            ans = list(set([X0NPoint(C(x), N, prec=equiv_prec) for x in v]))
             ans.sort()
             if len(ans) < m_E:
-                raise RuntimeError, "did not find enough points in the preimage. "
+                raise RuntimeError("did not find enough points in the preimage.")
             return ans
 
-
         # refine to higher precision, and keep only good roots
-        verbose("Number of double precision roots to refine via Newton iteration: %s"%len(v))
+        verbose("Number of double precision roots to refine via Newton iteration: %s" % len(v))
         t = cputime()
         f = phi_poly(self._E, B_bound(min_imag, prec), base_field=C) - z
 
         # We try m_E points at a time, since the newton step below is expensive.
-        w0 = []; w = []
+        w0 = []
+        w = []
         #while len(w) < m_E:
         while len(v) > 0:
         # changed so that it always terminates
-            for b,i,err in newton(f, [h_to_disk(C(a)) for a in v[:m_E]],
-                                            max_iter, max_err=C(2)**(2-prec)):
+            for b, i, err in newton(f, [h_to_disk(C(a)) for a in v[:m_E]],
+                                    max_iter, max_err=C(2) ** (2 - prec)):
                 if abs(b) < 1 and i < max_iter:
                     w0.append(b)
             v = v[m_E:]
-            w0 = throw_away_close(w0, prec=prec-10)
+            w0 = throw_away_close(w0, prec=prec - 10)
 
             # transform and take distinct X0 points in upper half plane.
-            w = [disk_to_h(z) for z in w0]
-            w = [z for z in w if z.imag() >= min_imag and z.imag() <= 1]  # above 1 --> is point at oo
-            w = [X0NPoint(z, N, prec=prec//2) for z in w]
+            w = [disk_to_h(zz) for zz in w0]
+            w = [zz for zz in w if z.imag() >= min_imag and z.imag() <= 1]  # above 1 --> is point at oo
+            w = [X0NPoint(zz, N, prec=prec // 2) for zz in w]
             w = list(set(w))
 
-        verbose("found %s roots to prec %s that refined in %s seconds"%(len(w), prec, cputime(t)))
+        verbose("found %s roots to prec %s that refined in %s seconds" % (len(w), prec, cputime(t)))
         w.sort()
         if len(w) < m_E:
-            raise RuntimeError, "did not find enough points in the preimage, try changing parameters"
+            raise RuntimeError("did not find enough points in the preimage, try changing parameters")
         return w
 
 
@@ -2101,15 +2123,17 @@ class ChowHeegnerPoint(object):
             ...
             ValueError: E and F must be elliptic curves over QQ
         """
-        if isinstance(E, str): E = EllipticCurve(E)
-        if isinstance(F, str): F = EllipticCurve(F)
+        if isinstance(E, str):
+            E = EllipticCurve(E)
+        if isinstance(F, str):
+            F = EllipticCurve(F)
 
         if not is_RationalField(E.base_ring()) or not is_RationalField(F.base_ring()):
-            raise ValueError, "E and F must be elliptic curves over QQ"
+            raise ValueError("E and F must be elliptic curves over QQ")
         if E.conductor() != F.conductor():
-            raise NotImplementedError, "E and F must currently have the same conductor"
+            raise NotImplementedError("E and F must currently have the same conductor")
         if E.is_isomorphic(F):
-            raise ValueError, "E and F must not be isomorphic"
+            raise ValueError("E and F must not be isomorphic")
         check_optimal(E)
         check_optimal(F)
         self._E = E
@@ -2145,7 +2169,7 @@ class ChowHeegnerPoint(object):
             sage: P.__repr__()
             'Chow-Heegner point on 446a1 associated to 446b1'
         """
-        return "Chow-Heegner point on %s associated to %s"%(label(self._E), label(self._F))
+        return "Chow-Heegner point on %s associated to %s" % (label(self._E), label(self._F))
 
     def curves(self):
         """
@@ -2196,8 +2220,9 @@ class ChowHeegnerPoint(object):
             sage: v = P.points_over_F(1/4, deg1=100); v
             [[-0.3465 + 0.008016*I], [-0.2989 + 0.001326*I]]
             sage: phi = P.parametrizations()[1]
-            sage: phi(v[0]), phi(v[1])
-            (0.25..., 0.25...)
+            sage: phi(v[0]), phi(v[1])  # abs tol 1e-10
+            (0.25000000000000194 + 5.967448757360216e-16*I,
+            0.24999999999999745 + 6.938893903907228e-17*I)
 
         Here's an example of getting the points, but to higher precision::
 
@@ -2230,7 +2255,7 @@ class ChowHeegnerPoint(object):
         if P is not None:
             return P
         else:
-            raise RuntimeError, "failed to compute"
+            raise RuntimeError("failed to compute")
 
     @cached_method
     def point_exact(self, search=100, eps=1e-5, infinity=1e12, **kwds):
@@ -2307,7 +2332,7 @@ class ChowHeegnerPoint(object):
         P = self.point_exact(*args, **kwds)
         h = P.height()
         E = self._E
-        return ZZ(int((h/E.regulator()).sqrt().round()))
+        return ZZ(int((h / E.regulator()).sqrt().round()))
 
     @cached_method
     def compute(self, prec=53, z='0.1',
@@ -2371,7 +2396,7 @@ class ChowHeegnerPoint(object):
             z = ComplexField(prec)(z)
 
         if equiv_prec is None:
-            equiv_prec = z.prec()//3
+            equiv_prec = z.prec() // 3
 
         if fiber is None:
             fiber = []
@@ -2380,7 +2405,7 @@ class ChowHeegnerPoint(object):
 
         base_points = [z]
         mF = self._fF.degree()
-        verbose("Modular degree of F (target fiber size) = %s"%mF)
+        verbose("Modular degree of F (target fiber size) = %s" % mF)
         target = mF
         Omega = self._F.period_lattice().basis(z.prec())[0]
         n = 0
@@ -2388,46 +2413,45 @@ class ChowHeegnerPoint(object):
             # reduce target by number of cusps that map to 0
             C = self._fF.cusps_over_torsion()[1]
             target -= len(C)
-            verbose("Reducing target by %s cusps to %s (TODO *** result may be off by torsion! *** )"%(len(C), target))
+            verbose("Reducing target by %s cusps to %s (TODO *** result may be off by torsion! *** )" % (len(C), target))
 
         same_in_a_row = 0
         while len(fiber) < target:
             b = len(fiber)
-            tm = verbose("** deg1 = %s, min_imag = %s, equiv_prec = %s, len(fiber) = %s, target = %s"%(deg1, min_imag, equiv_prec, b, target))
+            tm = verbose("** deg1 = %s, min_imag = %s, equiv_prec = %s, len(fiber) = %s, target = %s" % (deg1, min_imag, equiv_prec, b, target))
             for t in self.points_over_F(z, min_imag=min_imag, deg1=deg1, equiv_prec=equiv_prec):
                 fiber.append(t)
             fiber = list(set(fiber))
-            verbose("** Found %s new points in %s seconds"%(len(fiber)-b, cputime(tm)))
+            verbose("** Found %s new points in %s seconds" % (len(fiber) - b, cputime(tm)))
             if len(fiber) == b:
                 same_in_a_row += 1
                 if same_in_a_row >= number_to_stabilize:
-                    verbose("*"*80)
-                    verbose("** ERROR: same result %s times in a row, so 'stabilized' (GIVING UP!)"%same_in_a_row)
-                    verbose("*"*80)
-                    stabilize = True
+                    verbose("*" * 80)
+                    verbose("** ERROR: same result %s times in a row, so 'stabilized' (GIVING UP!)" % same_in_a_row)
+                    verbose("*" * 80)
                     break
             else:
                 same_in_a_row = 0
             if len(fiber) < target:
-                verbose('*'*80)
+                verbose('*' * 80)
                 # change base point
                 n += 1
-                z += ((-1)**(n+1)) * n*Omega
+                z += ((-1) ** (n + 1)) * n * Omega
                 base_points.append(z)
-                verbose("z (=%s) |--> %s"%(base_points[-1], z))
+                verbose("z (=%s) |--> %s" % (base_points[-1], z))
             elif len(fiber) == target:
-                verbose('+'*80)
-                verbose("*** Found all %s points in the fiber ***"%target)
+                verbose('+' * 80)
+                verbose("*** Found all %s points in the fiber ***" % target)
             else:
-                verbose('-'*80)
-                raise RuntimeError, "Found too many points (%s > %s) -- try (good) increasing precision of z (now=%s) or (bad) *decreasing* equiv_prec (now=%s)"%(
-                    len(fiber),target,z.prec(),equiv_prec)
+                verbose('-' * 80)
+                raise RuntimeError("Found too many points (%s > %s) -- try (good) increasing precision of z (now=%s) or (bad) *decreasing* equiv_prec (now=%s)" % (
+                    len(fiber), target, z.prec(), equiv_prec))
 
         if len(fiber) == target:
             verbose("Mapping points on modular curve to E...")
             t = cputime()
             m = self._fE(fiber)
-            verbose("Mapped to E in %s seconds"%cputime(t))
+            verbose("Mapped to E in %s seconds" % cputime(t))
             s = sum(m)
             if isinstance(s, int) and s == 0:
                 P = NumericalPoint(self._E(0), 1e-4)
@@ -2437,5 +2461,3 @@ class ChowHeegnerPoint(object):
             P = None
 
         return P, fiber, base_points
-
-
