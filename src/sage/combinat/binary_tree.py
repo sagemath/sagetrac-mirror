@@ -38,10 +38,16 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.category import Category
+from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.functions.other import sqrt
+from sage.rings.rational_field import RationalField
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
@@ -2935,6 +2941,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         # R + 1
         return self[0].is_complete() and self[1].is_perfect() and dL == dR + 1
 
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.misc.cachefunc import cached_method
+
 
 # Abstract class to serve as a Factory no instance are created.
 class BinaryTrees(UniqueRepresentation, Parent):
@@ -3034,7 +3048,8 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
-            facade=True, keepkey = False)
+            facade=True, keepkey=False, category=Category.join([InfiniteEnumeratedSets(), CombinatorialStructures()])
+        )
 
     def _repr_(self):
         """
@@ -3105,9 +3120,57 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
         """
         return self.element_class(self, *args, **keywords)
 
+    def generating_series(self, var='x'):
+        """
+        The generating series of the class of binary trees is given by
+
+        MATH::
+
+            B(x) = \frac{1 - \sqrt{1 - 4x}}{2x}
+
+        TESTS::
+
+            sage: ascii_art(BinaryTrees().generating_series())
+             /  __________    \
+            -\\/ -4*x + 1  - 1/
+            --------------------
+                    2*x
+        """
+        R = PolynomialRing(RationalField(), var)
+        x = R.gen()
+        return (Integer(1) - sqrt(Integer(1) - Integer(4) * x)) / (Integer(2) * x)
+
+    def grading(self, t):
+        """
+        TESTS::
+
+            sage: b = BinaryTree([[],[[],[]]]); ascii_art(b)
+              _o_
+             /   \
+            o     o
+                 / \
+                o   o
+            sage: b.grade()
+            5
+            sage: BinaryTrees().grading(b)
+            5
+        """
+        return t.node_number()
+
+    @lazy_attribute
+    def graded_component(self):
+        """
+        TESTS::
+
+            sage: B = BinaryTrees()
+            sage: B.graded_component(3)
+            Binary trees of size 3
+
+        """
+        return BinaryTrees_size
+
     Element = BinaryTree
 
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 #################################################################
 # Enumerated set of binary trees of a given size
 #################################################################
@@ -3131,8 +3194,15 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category = FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(category=CombinatorialStructures.GradedComponents())
         self._size = size
+
+    def grading(self):
+        return self._size
+
+    @lazy_attribute
+    def ambient(self):
+        return BinaryTrees_all
 
     def _repr_(self):
         """
