@@ -70,26 +70,6 @@ class AbstractTableau(Element):
         """
         self._parent = parent
 
-    def __eq__(self, other):
-        r"""
-        Check whether ``self`` is equal to ``other`` by comparing
-        the underlying mapping dictionaries.
-        """
-        try:
-            return self._dict_unsafe() == other._dict_unsafe()
-        except AttributeError:
-            return False
-
-    def __neq__(self, other):
-        r"""
-        Check whether ``self`` is equal to ``other`` by comparing
-        the underlying mapping dictionaries.
-        """
-        try:
-            return self._dict_unsafe() != other._dict_unsafe()
-        except AttributeError:
-            return True
-
     @staticmethod
     def _gp(m, c):
         r"""

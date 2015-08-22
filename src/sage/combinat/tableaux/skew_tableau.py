@@ -523,28 +523,6 @@ class SkewTableau(BadShapeTableau):
         """
         return self.is_row_strict() and self.is_column_strict()
 
-    def is_standard(self):
-        """
-        Return ``True`` if ``self`` is a standard skew tableau and ``False``
-        otherwise.
-        
-        A skew tableaux is standard if it is row strict, column strict,
-        and uses each entry from 1 to its size exactly once.
-
-        EXAMPLES::
-
-            sage: SkewTableau([[None, 2], [1, 3]]).is_standard()
-            True
-            sage: SkewTableau([[None, 2], [2, 4]]).is_standard()
-            False
-            sage: SkewTableau([[None, 3], [2, 4]]).is_standard()
-            False
-            sage: SkewTableau([[None, 2], [2, 4]]).is_standard()
-            False
-        """
-        return (self.is_increasing() and
-                sorted(self.iter_entries()) == range(1, self.size()+1) )
-
     def is_semistandard(self):
         """
         Return ``True`` if ``self`` is a semistandard skew tableau and
@@ -575,6 +553,34 @@ class SkewTableau(BadShapeTableau):
             False
         """
         return self.is_column_strict() and self.is_row_increasing()
+
+    def has_standard_entries(self):
+        """
+        Return ``True`` if ``self`` uses each entry from 1 to its size
+        exactly once.
+        """
+        return sorted(self.iter_entries()) == range(1, self.size()+1) 
+
+    def is_standard(self):
+        """
+        Return ``True`` if ``self`` is a standard skew tableau and ``False``
+        otherwise.
+
+        A skew tableaux is standard if it is row strict, column strict,
+        and uses each entry from 1 to its size exactly once.
+
+        EXAMPLES::
+
+            sage: SkewTableau([[None, 2], [1, 3]]).is_standard()
+            True
+            sage: SkewTableau([[None, 2], [2, 4]]).is_standard()
+            False
+            sage: SkewTableau([[None, 3], [2, 4]]).is_standard()
+            False
+            sage: SkewTableau([[None, 2], [2, 4]]).is_standard()
+            False
+        """
+        return self.is_increasing() and self.has_standard_entries()
 
     def is_ribbon(self):
         r"""

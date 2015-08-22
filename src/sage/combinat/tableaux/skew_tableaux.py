@@ -186,11 +186,12 @@ class SkewTableaux(BadShapeTableaux):
     def _element_constructor_(self, x, st=None, expr=None, shape_word=None,
                                     dct=None, check=True):
         r"""
-        Construct a new SkewTableau using one of several input formats,
-        optionally validating and normalizing input.
+        Construct a new SkewTableau by converting from one of several input
+        formats, optionally validating and normalizing input.
 
-        If multiple formats are specified, the left-most is used. If
-        no format is specified, the "trivial" skew tableau is returned.
+        These are conversions. If multiple formats are specified, the
+        left-most is used. If no format is specified, the "trivial" skew
+        tableau is returned.
 
         INPUT:
         - ``x`` -- used in :meth:`Parent.__call__` and can be ignored here.
@@ -214,8 +215,6 @@ class SkewTableaux(BadShapeTableaux):
           etc.
         """
         # TODO: normalize st input by removing empty rows
-        # TODO: implement this using coercions
-
         if st is not None:
             return self.from_st(st, check)
 
@@ -364,6 +363,16 @@ class SkewTableaux(BadShapeTableaux):
         """
         return "Skew tableaux"
 
+    def __contains__(self, other):
+        # The default contains method doesn't trust conversions
+        #   enough. TODO: make ticket to add coersions from
+        #   SkewTableaux to List.
+        try:
+            self(0, other)
+        except Exception:
+            return False
+        return True
+
 # TODO: make this into a factory function rather than a class
 class SemistandardSkewTableaux(SkewTableaux):
     r"""
@@ -468,6 +477,15 @@ class SemistandardSkewTableaux(SkewTableaux):
     """
     Element = SemistandardSkewTableau
 
+    # TODO: move to ..._all class when this is made into a factory
+    # TODO: add coersion to SkewTableaux
+    def _element_constructor_(self, *args, **kwds):
+        ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
+        if "check" not in kwds or ("check" in kwds and kwds["check"]):
+            if not ret.is_semistandard():
+                raise ValueError("Input is not semistandard")
+        return ret
+
     @staticmethod
     def __classcall_private__(cls, p=None, mu=None, max_entry=None):
         """
@@ -571,14 +589,20 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
              [[None, 1], [2]],
              [[None, 2], [2]]]
         """
-        # Old behavior, kept here for backwards compatibility.
-        # The usefulness of this iterator is questionable.
-        n = 0
-        while True:
-            for ssst in SemistandardSkewTableaux_size(n, min(n, self.max_entry)):
-                # TODO: why isn't this just yielding ssst?
-                yield self._new_element(ssst)
-            n += 1
+        if self.max_entry == PlusInfinity():
+            # Old behavior, kept here for backwards compatibility.
+            # The usefulness of this iterator is questionable.
+            n = 0
+            while True:
+                for ssst in SemistandardSkewTableaux_size(n, n):
+                    yield self._new_element(ssst)
+                n += 1
+        else:
+            n = 0
+            while True:
+                for ssst in SemistandardSkewTableaux_size(n, self.max_entry):
+                    yield self._new_element(ssst)
+                n += 1
 
 class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
     """
@@ -888,7 +912,17 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
          [[None, 2, 4], [None, 3], [1]]]
     """
     Element = StandardSkewTableau
-    
+
+    # TODO: move to ..._all class when this is made into a factory
+    # TODO: add coersion to SemistandardSkewTableaux
+    def _element_constructor_(self, *args, **kwds):
+        ret = super(StandardSkewTableaux, self)._element_constructor_(*args, **kwds)
+        if "check" not in kwds or ("check" in kwds and kwds["check"]):
+            # Semistandardness has already been checked
+            if not ret.has_standard_entries():
+                raise ValueError("Input is not standard")
+        return ret
+
     @staticmethod
     def __classcall_private__(cls, skp=None):
         """
