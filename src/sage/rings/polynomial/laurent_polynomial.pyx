@@ -1335,6 +1335,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         return self._parent, (self._poly,)
 
+    def __hash__(self):
+        return hash(self._poly)
+
     cdef _new_c(self):
         """
         Returns a new Laurent polynomial

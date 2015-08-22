@@ -25,6 +25,7 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
@@ -33,7 +34,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-class Subcrystal(Parent, UniqueRepresentation):
+class Subcrystal(UniqueRepresentation, Parent):
     """
     A subcrystal `X` of an ambient crystal `Y` is a crystal formed by taking a
     subset of `Y` and whose crystal structure is induced by `Y`.
@@ -285,7 +286,7 @@ class Subcrystal(Parent, UniqueRepresentation):
         """
         An element of a subcrystal. Wraps an element in the ambient crystal.
         """
-        def __lt__(self, other):
+        def __eq__(self, other):
             """
             Check less than.
 
@@ -307,11 +308,23 @@ class Subcrystal(Parent, UniqueRepresentation):
                 [[-1, -1]](1),
                 [[-1, -1]](2)]
             """
-            if not isinstance(other, Subcrystal.Element):
-                return False
-            if other.parent() is not self.parent():
-                return False
-            return self.value < other.value
+            return parent(self) is parent(other) and self.value == other.value
+        def __ne__(self, other):
+            return parent(self) is not parent(other) or self.value != other.value
+        def __lt__(self, other):
+            return parent(self) is parent(other) and self.value < other.value
+        def __le__(self, other):
+            return parent(self) is parent(other) and self.value <= other.value
+        def __gt__(self, other):
+            return parent(self) is parent(other) and self.value > other.value
+        def __ge__(self, other):
+            return parent(self) is parent(other) and self.value >= other.value
+        
+        def __cmp__(self, other):
+            if parent(self) is parent(other):
+                return cmp(self.value, other.value)
+            else:
+                return cmp(parent(self), parent(other))
 
         def e(self, i):
             """

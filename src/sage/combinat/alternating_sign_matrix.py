@@ -103,6 +103,17 @@ class AlternatingSignMatrix(Element):
         self._matrix = asm
         Element.__init__(self, parent)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: hash(elt)
+            12
+        """
+        return hash(self._matrix)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -890,7 +901,7 @@ class AlternatingSignMatrix(Element):
         """
         return self.left_key().to_permutation()
 
-class AlternatingSignMatrices(Parent, UniqueRepresentation):
+class AlternatingSignMatrices(UniqueRepresentation, Parent):
     r"""
     Class of all `n \times n` alternating sign matrices.
 
@@ -1036,7 +1047,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
         if asm in MonotoneTriangles(self._n):
             return self.from_monotone_triangle(asm)
-        return self.element_class(self, self._matrix_space(asm))
+        m = self._matrix_space(asm)
+        m.set_immutable()
+        return self.element_class(self, m)
 
     Element = AlternatingSignMatrix
 
@@ -1082,7 +1095,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             asm.append(row)
             prev = v
 
-        return self.element_class(self, self._matrix_space(asm))
+        m = self._matrix_space(asm)
+        m.set_immutable()
+        return self.element_class(self, m)
 
     def from_corner_sum(self, corner):
         r"""
