@@ -31,7 +31,7 @@ from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 from sage.structure.parent cimport Parent
 from polynomial_element cimport Polynomial
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -237,8 +237,10 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_init2(f._coeffs[i], prec)
         return f
 
-    cpdef Py_ssize_t degree(self):
+    def degree(self):
         """
+        Return the degree of the polynomial.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -246,8 +248,13 @@ cdef class PolynomialRealDense(Polynomial):
             3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
             sage: f.degree()
             2
+
+        TESTS::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        return self._degree
+        return smallInteger(self._degree)
 
     cpdef Polynomial truncate(self, long n):
         r"""
@@ -562,6 +569,8 @@ cdef class PolynomialRealDense(Polynomial):
     @coerce_binop
     def quo_rem(self, PolynomialRealDense other):
         """
+        Return the quotient with remainder of ``self`` by ``other``.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -585,9 +594,25 @@ cdef class PolynomialRealDense(Polynomial):
             sage: q, r = f.quo_rem(g)
             sage: g*q + r == f
             True
+
+        TESTS:
+
+        Check that :trac:`18467` is fixed::
+
+            sage: S.<x> = RR[]
+            sage: z = S.zero()
+            sage: z.degree()
+            -1
+            sage: q, r = z.quo_rem(x)
+            sage: q.degree()
+            -1
         """
         if other._degree < 0:
-            raise ZeroDivisionError, "other must be nonzero"
+            raise ZeroDivisionError("other must be nonzero")
+        elif other._degree == 0:
+            return self * ~other[0], self._parent.zero()
+        elif other._degree > self._degree:
+            return self._parent.zero(), self
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense q, r
         cdef Py_ssize_t i, j
@@ -627,7 +652,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f(RealField(10)(2))
             2.0
             sage: f(pi)
-            pi^2 - 2.00000000000000
+            1.00000000000000*pi^2 - 2.00000000000000
 
 
             sage: f = PolynomialRealDense(RR['x'], range(5))
