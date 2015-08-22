@@ -409,9 +409,9 @@ cdef class Polynomial_RDF_gsl:
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..3]))
             sage: s
             3.0*x^2 + 2.0*x + 1.0
-            sage: s.roots()
+            sage: s.roots()  # abs tol 1e-10
             [-0.333333333333 - 0.471404520791*I, -0.333333333333 + 0.471404520791*I]
-            sage: s.f.roots(CDF, multiplicities=False)
+            sage: s.f.roots(CDF, multiplicities=False)  # abs tol 1e-10
             [-0.333333333333 - 0.471404520791*I, -0.333333333333 + 0.471404520791*I]
 
         A higher degree example::
@@ -450,28 +450,28 @@ cdef class Polynomial_RDF_gsl:
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..4])); s
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
-            sage: s.f.roots(CDF, multiplicities=False)
+            sage: s.f.roots(CDF, multiplicities=False)  # abs tol 1e-10
             [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]
-            sage: s.newton(0)
+            sage: s.newton(0)  # abs tol 1e-10
             [(-0.605829586188, 7, 0.0)]
 
         The above used 7 iterations; let's restrict to at most 4 iterations::
         
-            sage: s.newton(0, 4)
-            [(-0.605830058052, 4, 0.00055292...)]
+            sage: s.newton(0, 4)  # abs tol 1e-8
+            [(-0.6058300580523304, 4, 0.000552920671073931)]
 
         A very small max_err::
 
-            sage: s.newton(0, max_err=0.1)
+            sage: s.newton(0, max_err=0.1)  # abs tol 1e-10
             [(-0.606382978723, 3, 0.018617021276595702)]        
 
         Start at a complex approximate root::
         
-            sage: s.newton(-.6*I)
+            sage: s.newton(-.6*I)  # abs tol 1e-10
             [(-0.0720852069059 - 0.638326735148*I, 6, 1.3877787807814457e-17)]
 
         Make x a list of approximate roots::
-            sage: s.newton([0, -.6*I])
+            sage: s.newton([0, -.6*I])  # abs tol 1e-10
             [(-0.605829586188, 7, 0.0), (-0.0720852069059 - 0.638326735148*I, 6, 1.3877787807814457e-17)]
         """
         self._init_deriv()
@@ -517,6 +517,7 @@ cdef class Polynomial_RDF_gsl:
 def cdf_roots_of_rdf_poly(f):
     """
     Return the CDF roots of a polynomial with coefficients in RDF.
+
     Uses a very fast function in GSL that works by computing the
     eigenvalues of the companion matrix. 
     
@@ -532,9 +533,9 @@ def cdf_roots_of_rdf_poly(f):
 
         sage: from sage.schemes.elliptic_curves.chow_heegner_fast import cdf_roots_of_rdf_poly
         sage: f = RDF['x']([1..4])
-        sage: cdf_roots_of_rdf_poly(f)
+        sage: cdf_roots_of_rdf_poly(f)  # abs tol 1e-10
         [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]
-        sage: f.roots(CDF, multiplicities=False)
+        sage: f.roots(CDF, multiplicities=False)  # abs tol 1e-10
         [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]    
     """
     cdef Py_ssize_t i, n = f.degree() + 1
@@ -556,7 +557,7 @@ def cdf_roots_of_rdf_poly(f):
     sig_off()
     gsl_poly_complex_workspace_free(w)
     
-    rts = [CDF(z[2*i], z[2*i+1]) for i in range(n-1)]
+    rts = [CDF(z[2 * i], z[2 * i + 1]) for i in range(n - 1)]
     rts.sort()
     
     sage_free(a)
