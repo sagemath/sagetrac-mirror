@@ -477,7 +477,7 @@ def xreduce_GL(a, b, c):
     # We want to check that (a,b,c) is semipositive definite
     # since otherwise we might end up in an infinite loop.
     if b*b-4*a*c > 0 or a < 0 or c < 0:
-        raise NotImplementedError, "only implemented for nonpositive discriminant"
+        raise NotImplementedError("only implemented for nonpositive discriminant")
 
     res = _xreduce_GL(a, b, c)
     return ((res.a, res.b, res.c), (res.O, res.o, res.U, res.u))
@@ -608,7 +608,7 @@ def chi35(disc, A,B,C,D) :
     prec = min([ disc, A.prec(), B.prec(), C.prec(), D.prec()])
 
     if prec != disc:
-        raise ValueError, "Insufficient precision of Igusa forms"
+        raise ValueError("Insufficient precision of Igusa forms")
     from siegel_modular_form_prec import SiegelModularFormPrecision
     prec_class = SiegelModularFormPrecision( prec)
 
