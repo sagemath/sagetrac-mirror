@@ -37,4 +37,17 @@ Design Notes
 
    sage/modular/modform/notes
 
+Siegel Modular Forms
+====================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/modular/siegel/siegel_modular_form
+   sage/modular/siegel/siegel_modular_form_prec
+   sage/modular/siegel/siegel_modular_forms_algebra
+   sage/modular/siegel/siegel_modular_group
+   sage/modular/siegel/theta_constant
+   sage/modular/siegel/fastmult
+
 .. include:: ../footer.txt
