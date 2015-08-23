@@ -6,7 +6,7 @@ import os
 
 from sage.rings.integer import Integer
 from sage.misc.all import tmp_dir
-from sage.misc.misc import SAGE_LOCAL
+from sage.env import SAGE_LOCAL
 
 binary = os.path.join(SAGE_LOCAL,"bin","msieve")
 

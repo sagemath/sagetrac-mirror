@@ -1,0 +1,21 @@
+= MSIEVE =
+
+== Description ==
+
+Msieve is a C library implementing a suite of algorithms to factor large
+integers. It contains an implementation of the SIQS and GNFS algorithms; the
+latter has helped complete some of the largest public factorizations known
+
+== License ==
+
+Public Domain
+
+== Upstream Contact ==
+
+Jason Papadopoulos
+http://sourceforge.net/projects/msieve/
+
+== Changelog ==
+
+06/16/11 Version 1.49
+01/08/11 Version 1.48

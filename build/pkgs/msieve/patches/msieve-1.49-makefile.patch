@@ -1,0 +1,10 @@
+--- Makefile	2011-05-08 03:05:11.000000000 +0200
++++ Makefile	2011-11-01 18:09:54.000000000 +0100
+@@ -32,6 +32,7 @@
+ 
+ ifeq ($(ECM),1)
+ 	CFLAGS += -DHAVE_GMP_ECM
++	CFLAGS += "-I$(SAGE_LOCAL)/include"
+ 	LIBS += -lecm
+ endif
+ ifeq ($(WIN32_3GB),1)
