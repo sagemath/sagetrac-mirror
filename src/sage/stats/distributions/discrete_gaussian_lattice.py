@@ -274,7 +274,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: sigma = 30.0
             sage: M = Matrix(RDF, n, n)
             sage: for i in range(n):
-            ...     M[i, i] = i+1
+            ....:     M[i, i] = i+1
 
             sage: D = DiscreteGaussianDistributionLatticeSampler(M, sigma)
             sage: want = RR(sqrt(n)*D.sigma)
