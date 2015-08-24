@@ -20,13 +20,13 @@ from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
 
 #from sage.libs.singular.decl cimport number, lnumber, napoly, ring, currRing
 from sage.libs.singular.decl cimport number,  napoly, ring, currRing
-from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete
+from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete, idInit
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
 from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a
 from sage.libs.singular.decl cimport p_Copy
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
-from sage.libs.singular.decl cimport n_coeffType
-from sage.libs.singular.decl cimport rDefault, GFInfo, ZnmInfo, nInitChar
+from sage.libs.singular.decl cimport n_coeffType, cfInitCharProc
+from sage.libs.singular.decl cimport rDefault, GFInfo, ZnmInfo, nInitChar, AlgExtInfo, nRegister, naInitChar
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -113,30 +113,29 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         sage: P.<x,y,z> = Zmod(25213521351515232)[]; P
         Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 25213521351515232
     """
-    cdef long longcharacteristic
     cdef long cexponent
     cdef GFInfo* _param
     cdef ZnmInfo _info
     cdef ring* _ring
     cdef char **_names
+    cdef char **_ext_names
     cdef char *_name
     cdef int i,j
     cdef int nblcks
     cdef int offset
     cdef int nvars
     cdef int characteristic
+    cdef int modbase
+
     cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
     cdef MPolynomial_libsingular minpoly
-    #cdef lnumber *nmp
-    cdef int * m
+    cdef AlgExtInfo extParam
+    cdef n_coeffType _type = n_unknown
 
-    cdef __mpz_struct* ringflaga
-    cdef unsigned long ringflagb
+    #cdef cfInitCharProc myfunctionptr;
 
     _ring  = NULL
-
-    is_extension = False
 
     n = int(n)
     if n<1:
@@ -220,9 +219,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     # position determines whether we break ties at monomials first or
     # whether we break at indices first!
     _order[nblcks] = ringorder_C
-    
-    if is_extension:
-        raise "extension ring disabled"
+      
     
     if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
 
@@ -235,25 +232,25 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #_ring = rDefault(characteristic, nvars, _names)         
         
         _ring = rDefault( characteristic , nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        print "ring with prime coefficient field created"
+        #print "ring with prime coefficient field created"
 
 
     elif isinstance(base_ring, RationalField):
         characteristic = 0
         _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        print "ring with rational coefficient field created"
+        #print "ring with rational coefficient field created"
         
 
     elif isinstance(base_ring, IntegerRing_class):
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        print "polynomial ring over integers created"
+        #print "polynomial ring over integers created"
          
 
     elif isinstance(base_ring, FiniteField_generic):
-        print "creating generic finite field"
+        #print "creating generic finite field"
         # raise "Ring disabled "
-        print "Warning: minpoly in Sage and in Singular may differ(not checked yet) "
+        #print "Warning: minpoly in Sage and in Singular may differ(not checked yet) "
         if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
@@ -264,54 +261,92 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         except TypeError:
             raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s"%(base_ring.variable_name(), base_ring,MPolynomialRing_libsingular)
         minpoly = base_ring.polynomial()(k.gen())
-        is_extension = True
         
-        #_parameter = <char**>omAlloc0(sizeof(char*)*2)
-        #_parameter[0] = omStrDup(_ring.algring.names[0])
-        #
-        #nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
-        #nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
-        # nmp.s=2
+        ##print "k._singular_=",k._singular_()
+        ##print "GFcharacteristic=",characteristic
 
-
-        _param = <GFInfo *>omAlloc(sizeof(GFInfo))
+        #_param = <GFInfo *>omAlloc(sizeof(GFInfo))
             
-        _param.GFChar     = characteristic
-        _param.GFDegree   = base_ring.degree()
-        
-        _param.GFPar_name = omStrDup(base_ring.gen())
+        #_param.GFChar     = characteristic
+        #_param.GFDegree   = base_ring.degree()      
+        #_param.GFPar_name = omStrDup(base_ring.gen())
 
-        _cf = nInitChar( n_GF, _param )
-        _ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #_cf = nInitChar( n_GF, _param )
+        #_ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
+        ch = base_ring.characteristic()
+        F = ch.factor()
+        assert(len(F)==1)
+
+        modbase = F[0][0]
+        cexponent = F[0][1]
+
+        _ext_names = <char**>omAlloc0(sizeof(char*))
+        extname = k.gen()
+        _name = k._names[0]      
+        _ext_names[0] = omStrDup(_name)
+        _cfr = rDefault( modbase, 1, _ext_names ); 
+
+        _cfr.qideal = idInit(1,1)
+        _cfr.qideal.m[0] = minpoly._poly;
+        # rComplete(_cfr, 1)
+        extParam.r =  _cfr;
+
+        _cf = nInitChar( n_algExt,  <void *>&extParam) 
+
+        if (_cf is NULL):
+            print "Failed to allocate _cf ring."
+            raise "Failed to allocate _cf ring."
+
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
         
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
-        raise "create ring: temporarily disabled for NumberField basering "
+
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
         except TypeError:
+            print "falied  k = PolynomialRing(RationalField()"
             raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
+
         minpoly = base_ring.polynomial()(k.gen())
-        is_extension = True
+        #print "minpoly", minpoly
+
+        _ext_names = <char**>omAlloc0(sizeof(char*))
+        extname = k.gen()
+        #print "extname",extname
+        #_name = extname
+        _name = k._names[0]      
+        _ext_names[0] = omStrDup(_name)
+        _cfr = rDefault( 0, 1, _ext_names ); 
+
+        _cfr.qideal = idInit(1,1)
+        _cfr.qideal.m[0] = minpoly._poly;
+        # rComplete(_cfr, 1)
+        extParam.r =  _cfr;
+
+        # _type = nRegister(n_algExt, <cfInitCharProc> naInitChar);
+
+        _cf = nInitChar( n_algExt,  <void *>&extParam) #  
+
+        if (_cf is NULL):
+            print "Failed to allocate _cf ring."
+            raise "Failed to allocate _cf ring."
+
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
 
     elif is_IntegerModRing(base_ring):
-        print  " creating IntegerModRing "
+        #print  " creating IntegerModRing "
 
         ch = base_ring.characteristic()
         if ch.is_power_of(2):
-            print  " creating IntegerModRing : char is power of 2"
+            #print  " creating IntegerModRing : char is power of 2"
             exponent = ch.nbits() -1
             
-            #assert( exponent == base_ring.degree() )
-
-            cexponent = exponent
-
-            _param = <GFInfo *>omAlloc(sizeof(GFInfo))
-            
-            _param.GFChar     = ch;
-            _param.GFDegree   = base_ring.degree();
-            _param.GFPar_name = omStrDup(base_ring.gen());   
+            cexponent = exponent          
         
             if sizeof(long) > 4:
             
@@ -319,34 +354,46 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 # internally, cf. #6051 (Sage) and #138 (Singular)
                 
                 if exponent <= 30:  ringtype = n_Z2m
-                else:               ringtype = n_GF
+                else:               ringtype = n_Znm
             else:
                 if exponent <= 30: ringtype = n_Z2m
-                else:              ringtype = n_GF
+                else:              ringtype = n_Znm
                       
-            if ringtype == n_GF:
-                _cf = nInitChar( n_GF, <void *>&_param )
+            if ringtype == n_Znm:
+
+              F = ch.factor()
+
+              modbase = F[0][0]
+              cexponent = F[0][1]
+              
+              _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
+              mpz_init_set_ui(_info.base, modbase)
+              _info.exp = cexponent
+              _cf = nInitChar( n_Znm, <void *>&_info )
+              #print  " creating IntegerModRing : using n_Znm"
+
             elif  ringtype == n_Z2m:
+                #print  " creating IntegerModRing : using n_Z2m"
                 _cf = nInitChar( n_Z2m, <void *>cexponent )
                         
 
         elif base_ring.characteristic().is_prime_power()  and ch < ZZ(2)**160:
-            print  " creating IntegerModRing : char is prime power"
+            #print  " creating IntegerModRing : char is prime power, using n_Znm"
             F = ch.factor()
-            print "base_ring.characteristic().is_prime_power()"
-            print "F ",F
+            #print "base_ring.characteristic().is_prime_power()"
+            #print "F ",F
             assert(len(F)==1)
+           
+            modbase = F[0][0]
+            cexponent = F[0][1]
 
-            # ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
-            # mpz_init_set(ringflaga, (<Integer>F[0][0]).value)
-            # ringflagb = F[0][1]
-            
-            characteristic = F[0][1]
-            longcharacteristic = characteristic          
-            _cf = nInitChar( n_Zp, <void *>longcharacteristic )
+            _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
+            mpz_init_set_ui(_info.base, modbase)
+            _info.exp = cexponent
+            _cf = nInitChar( n_Znm, <void *>&_info )
 
         else:
-            print "creating IntegerModRing: normal modulus"
+            #print "creating IntegerModRing: normal modulus n_Zn"
             # normal modulus
             try:
                 characteristic = ch
@@ -361,44 +408,28 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             
             
     else:
+        #print "Base ring is not supported."
         raise NotImplementedError("Base ring is not supported.")
 
-    # _ring = <ring*>omAlloc0Bin(sip_sring_bin)
     
     if (_ring is NULL):
+        print "Failed to allocate Singular ring."
         raise ValueError("Failed to allocate Singular ring.")
         
     #  assert( _ring.cf.ch == characteristic )
     #  _ring.cf.type = ringtype
     #  assert(_ring.N == nvars)
-    ## _ring.names  = _names
+  
 
-    if is_extension:
-        raise "Ring disabled "
-        # rChangeCurrRing(k._ring)
-        # _ring.algring = rCopy0(k._ring)
-        # rComplete(_ring.algring, 1)
-        # _ring.algring.pCompIndex = -1
-        # _ring.P = _ring.algring.N
-        # _ring.parameter = <char**>omAlloc0(sizeof(char*)*2)
-        # _ring.parameter[0] = omStrDup(_ring.algring.names[0])
-        #
-        # nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
-        # nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
-        # nmp.s=2
-        #
-        # _ring.minpoly=<number*>nmp
-
-
-    print "_ring.ShortOut",_ring.ShortOut
-    print "_ring.N",_ring.N
+    #print "_ring.ShortOut",_ring.ShortOut
+    #print "_ring.N",_ring.N
 
     
     _ring.ShortOut = 0   
     
     if order.is_local():
         assert(_ring.OrdSgn == -1)
-    else:
+    if order.is_global():
          assert(_ring.OrdSgn == 1)
          
 
@@ -408,10 +439,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     if wrapped_ring in ring_refcount_dict:
         raise ValueError('newly created ring already in dictionary??')
     ring_refcount_dict[wrapped_ring] = 1
-    
-
-     
-
     
     
     return _ring

@@ -1363,6 +1363,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             order = 'lp'
         else:
             _vars = str(self.gens())
+            #_vars = str(self.variable_names())
             order = self.term_order().singular_str()%dict(ngens=self.ngens())
 
         base_ring = self.base_ring()
@@ -1395,8 +1396,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
             gen = str(base_ring.gen())
+            print "gen", gen
             poly = base_ring.polynomial()
+            print "poly", str(poly)
             poly_gen = str(poly.parent().gen())
+            print "poly_gen", poly_gen
+            print "__vars",_vars
             poly_str = str(poly).replace(poly_gen,gen)
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
             self.__minpoly = (poly_str).replace(" ","")
@@ -3946,7 +3951,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         quo = p_Add_q(quo, temp, r)
                     p = pNext(p)
                 return new_MP(parent, quo)
-            raise NotImplementedError("Division of multivariate polynomials over non fields by non-monomials not implemented.")
+            if r.cf.type == n_Znm or r.cf.type == n_Zn or r.cf.type == n_Z2m :
+                raise NotImplementedError("Division of multivariate polynomials over non fields by non-monomials not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(_self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
@@ -4505,7 +4511,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
                 return self._parent(coef*res)
 
-            raise NotImplementedError("GCD over rings not implemented.")
+            #TODO: 
+            if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                raise NotImplementedError("GCD over rings not implemented.")
+            #raise NotImplementedError("GCD over rings not implemented.")
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
@@ -4576,7 +4585,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 py_prod = P(self*g)
                 return self.parent(py_prod//py_gcd)
             else:
-                raise TypeError("LCM over non-integral domains not available.")
+                if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                    raise TypeError("LCM over non-integral domains not available.")
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)
@@ -4614,6 +4624,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: h.is_squarefree()
             False
         """
+        print "was removed from singular"
         raise NotImplementedError,"was removed from singular"
         cdef ring *_ring = self._parent_ring
 

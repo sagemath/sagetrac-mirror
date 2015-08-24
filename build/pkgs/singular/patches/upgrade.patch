@@ -1,3 +1,31 @@
+diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
+--- a/Singular/ipprint.cc	2015-08-23 16:41:08.243790168 +0200
++++ b/Singular/ipprint.cc	2015-08-23 16:41:42.179806546 +0200
+@@ -198,15 +198,15 @@ static BOOLEAN ipPrint_MA(leftv u)
+ static BOOLEAN ipPrint_RING(leftv u)
+ {
+   ring r=(ring)u->Data();
+-  PrintS("polynomial ring, over a ");
+-  if (rField_is_Ring(r))
+-  {
+-    if (rField_is_Domain(r)) PrintS("domain");
+-    else                     PrintS("ring (with zero-divisors)");
+-  }
+-  else PrintS("field");
+-  if (r->OrdSgn==1) PrintS(", global"); else PrintS(", local/mixed");
+-  PrintS(" ordering\n");
++  // PrintS("polynomial ring, over a ");
++  // if (rField_is_Ring(r))
++  // {
++  //   if (rField_is_Domain(r)) PrintS("domain");
++  //   else                     PrintS("ring (with zero-divisors)");
++  // }
++  // else PrintS("field");
++  // if (r->OrdSgn==1) PrintS(", global"); else PrintS(", local/mixed");
++  // PrintS(" ordering\n");
+   rWrite(r, TRUE);
+   return FALSE;
+ }
 diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
 --- a/libpolys/coeffs/rmodulon.h	2014-10-28 17:57:19.000000000 +0100
 +++ b/libpolys/coeffs/rmodulon.h	2015-01-31 16:34:10.000000000 +0100

@@ -494,7 +494,8 @@ cdef number *sa2si_NF(object elem, ring *_ring):
 
     for i from 0 <= i < len(elem):
         nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value), _ring.cf )
-        naCoeff = naMap00(nlCoeff, currRing.cf, _ring.cf)
+        #naCoeff = naMap00(nlCoeff, currRing.cf, _ring.cf)
+        naCoeff = naMap00(nlCoeff, _ring.cf, currRing.cf )
         nlDelete(&nlCoeff, _ring.cf)
 
         # faster would be to assign the coefficient directly

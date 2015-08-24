@@ -158,6 +158,7 @@ cdef extern from "Singular/libsingular.h":
         n_CF=13  #/**< ? */tons_of_spam = 3
         
     ctypedef struct ring "ip_sring"
+    ctypedef struct AlgExtInfo
 
     #cdef struct  n_Procs_s;
     #ctypedef n_Procs_s* coeffs;
@@ -270,6 +271,9 @@ cdef extern from "Singular/libsingular.h":
     
 
     # available ring orders
+
+    ctypedef struct AlgExtInfo:
+        ring * r
 
     cdef enum rRingOrder_t:
         ringorder_no
@@ -467,8 +471,15 @@ cdef extern from "Singular/libsingular.h":
     # singular init
 
     int siInit(char *)
-    
 
+    naInitChar(n_Procs_s* cf, void * infoStruct)
+
+    #int cfInitCharProc(n_Procs_s* cf, void * initCcharProc);
+
+    ctypedef short (*cfInitCharProc)(coeffs, void *)
+  
+    n_coeffType nRegister(n_coeffType n, cfInitCharProc p)
+    #n_coeffType nRegister(n_coeffType n, void * p)
 
     # external resource init
 
