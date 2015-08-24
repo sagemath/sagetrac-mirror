@@ -143,9 +143,6 @@ class SkewTableau(BadShapeTableau):
 
     def __iter__(self):
         return self._st.__iter__()
-        
-#    def __reduce__(self):
-#        return self.parent(), (self._st,)
 
     def __len__(self):
         r"""

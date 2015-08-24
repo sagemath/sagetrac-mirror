@@ -231,6 +231,27 @@ class SkewTableaux(BadShapeTableaux):
 
         return self._new_element(())
 
+    def _coerce_map_from_(self, S):
+        if isinstance(S, self.__class__):
+            return True
+        elif isinstance(S, list):
+            return True
+        return False
+
+    def __contains__(self, other):
+        r'''
+        Determines whether or not ``other`` is contained in ``self``.
+        
+        The default implementation from :class:`Parent` is too restrictive
+        and requires ``other == self(other)``. This does not work for
+        skew tableaux, which are frequently thought of as lists of lists.
+        '''
+        try:
+            self(other)
+        except Exception:
+            return False
+        return True
+
     def from_st(self, st, check=True):
         try:
             # Remove empty rows
@@ -364,15 +385,15 @@ class SkewTableaux(BadShapeTableaux):
         """
         return "Skew tableaux"
 
-    def __contains__(self, other):
-        # The default contains method doesn't trust conversions
-        #   enough. TODO: make ticket to add coersions from
-        #   SkewTableaux to List.
-        try:
-            self(0, other)
-        except Exception:
-            return False
-        return True
+#    def __contains__(self, other):
+#        # The default contains method doesn't trust conversions
+#        #   enough. TODO: make ticket to add coersions from
+#        #   SkewTableaux to List.
+#        try:
+#            self(0, other)
+#        except Exception:
+#            return False
+#        return True
 
 # TODO: make this into a factory function rather than a class
 class SemistandardSkewTableaux(SkewTableaux):
@@ -949,13 +970,10 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
         """
         EXAMPLES::
 
-            sage: s = StandardSkewTableaux()
-            sage: TestSuite(s).run()
+            sage: S = StandardSkewTableaux()
+            sage: TestSuite(S).run()
         """
         super(StandardSkewTableaux, self).__init__(category=InfiniteEnumeratedSets())
-
-    def _coerce_map_from_(self, S):
-        return isinstance(S, StandardSkewTableaux)
 
     def _repr_(self):
         """

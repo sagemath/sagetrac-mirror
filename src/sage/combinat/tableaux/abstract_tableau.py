@@ -86,18 +86,6 @@ class AbstractTableau(Element):
         """
         return hash(tuple(six.iteritems(self._dict_unsafe())))
 
-    def __reduce__(self):
-        r"""
-        Return enough information to pickle.
-
-        TESTS::
-
-            sage: b = BadShapeTableau({(1, 2): 3, (4, 5): "horse"})
-            sage: loads(dumps(b)) == b # indirect doctest
-            True
-        """
-        return self.parent(), (self._dict_unsafe(),)
-    
     def _richcmp_(self, other, op):
         r"""
         Provide rich comparison.
