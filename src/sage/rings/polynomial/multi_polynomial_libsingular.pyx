@@ -1396,12 +1396,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
             gen = str(base_ring.gen())
-            print "gen", gen
             poly = base_ring.polynomial()
-            print "poly", str(poly)
             poly_gen = str(poly.parent().gen())
-            print "poly_gen", poly_gen
-            print "__vars",_vars
             poly_str = str(poly).replace(poly_gen,gen)
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
             self.__minpoly = (poly_str).replace(" ","")
