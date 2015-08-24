@@ -47,6 +47,21 @@ class BadShapeTableaux(AbstractTableaux):
           passable to ``dict``) whose keys are pairs of integers
         - ``check`` -- (default: ``True``) if ``True``, then check that
           the keys of ``dct`` are in fact pairs of integers
+
+        TESTS::
+
+            sage: BadShapeTableaux()({(9, 8): 7, (6, 5): 3}) # indirect doctest
+            {(9, 8): 7, (6, 5): 3}
+            sage: BadShapeTableaux()({('fly', 1): 5}, check=False)
+            {('fly', 1): 5}
+            sage: BadShapeTableaux()({('fly', 1): 5})
+            Traceback (most recent call last):
+            ...
+            ValueError: keys must be pairs of integers
+            sage: BadShapeTableaux()('horse')
+            Traceback (most recent call last):
+            ...
+            ValueError: dct must be a dictionary
         """
         try:
             dct = dict(dct)
@@ -54,9 +69,7 @@ class BadShapeTableaux(AbstractTableaux):
             raise ValueError('dct must be a dictionary')
 
         if check:
-            try:
-                all(x in ZZ and y in ZZ for x, y in six.iterkeys(dct))
-            except:
+            if not all(x in ZZ and y in ZZ for x, y in six.iterkeys(dct)):
                 raise ValueError('keys must be pairs of integers')
 
         return self._new_element(dct)
@@ -65,8 +78,9 @@ class BadShapeTableaux(AbstractTableaux):
         r"""
         Return the representation string.
 
-        OUTPUT:
+        TESTS::
 
-        A string.
+            sage: BadShapeTableaux()
+            Bad Shape Tableaux
         """
         return "Bad Shape Tableaux"

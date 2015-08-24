@@ -32,7 +32,7 @@ class BadShapeTableau(AbstractTableau):
     r"""
     A tableau of bad shape.
 
-    See Parent `class:BadShapeTableaux` for construction options.
+    See Parent class:`BadShapeTableaux` for construction options.
 
     A tableau of bad shape is a tableau whose cells are pairs of
     integers and whose entries are arbitrary.
@@ -51,65 +51,78 @@ class BadShapeTableau(AbstractTableau):
     def _dict_unsafe(self):
         r"""
         Return the dictionary containing the defining data of ``self``.
-
-        OUTPUT:
-
-        A dictionary.
         """
         return self._dict
 
     def filter_by_cells(self, predicate):
         r"""
-        Return the subtableau of ``self`` which consists only of the
-        entries in the cells satisfying the given predicate
-        ``predicate``.
+        Return the subtableau of ``self`` obtained by removing cells
+        which do not satisfy the given predicate ``predicate``.
 
         INPUT:
 
-        - ``predicate`` -- a function accepting two parameters and returning
-          ``True`` or ``False``
+        - ``predicate`` -- a function accepting two parameters, namely the
+          row and column indexes of a cell, and returning ``True`` or ``False``
 
         OUTPUT:
 
-        A BadShapeTableau
+        A class:`BadShapeTableau`
+
+        TEST::
+
+            sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
+            sage: b2 = b.filter_by_cells(lambda r, c: r <= 3)
+            sage: b2.dict() == {(2, 2): 5, (3, 4): 0}
+            True
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(*k)}
-        return self.__class__(dictionary=data, check=True)
+        return self.parent()(data, check=True)
 
-    def filter_by_values(self, predicate):
+    def filter_by_entries(self, predicate):
         r"""
-        Return the subtableau of ``self`` which consists only of the
-        entries satisfying the given ``predicate``.
+        Return the subtableau of ``self`` obtained by removing cells
+        whose entries do not satisfy the given predicate ``predicate``.
 
         INPUT:
 
-        - ``predicate`` -- a function accepting one parameter and returning
-          ``True`` or ``False``
+        - ``predicate`` -- a function accepting one parameter, namely the
+          entry of a cell, and returning ``True`` or ``False``
 
         OUTPUT:
 
-        A BadShapeTableau
+        A class:`BadShapeTableau`
+
+        TEST::
+
+            sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
+            sage: b.filter_by_entries(lambda v: type(v) is str)
+            {(6, 7): 'cat'}
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(v)}
-        return self.__class__(dictionary=data, check=True)
+        return self.parent()(data, check=True)
 
     def conjugate(self):
         r"""
         Return the conjugate of ``self``.
 
-        If `T` is a tableau of bad shape, then the conjugate of `T`
-        is the tableau of bad shapes whose cells are the pairs
-        `(x, y)` for `(y, x)` being cells of `T`, and which sends
-        every `(x, y)` to `T(y, x)`.
+        The conjugate of a tableaux of bad shape is the tableau of
+        bad shape obtained by swapping row and column indexes in
+        each cell.
 
         OUTPUT:
 
-        A BadShapeTableau.
+        A class:`BadShapeTableau`
+
+        TEST::
+
+            sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
+            sage: b.conjugate().dict() == {(7, 6): 'cat', (2, 2): 5, (4, 3): 0}
+            True
         """
-        data = {(k[1], k[0]): v for k, v in self._dict_unsafe()}
-        return self.__class__(dictionary=data, check=True)
+        data = {(k[1], k[0]): v for k, v in six.iteritems(self._dict_unsafe())}
+        return self.parent()(data, check=True)
 
     # Alias
     transpose = conjugate
