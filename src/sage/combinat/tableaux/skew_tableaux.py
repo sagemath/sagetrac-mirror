@@ -174,7 +174,8 @@ TableauOptions=GlobalOptions(name='skew tableaux',
 
 class SkewTableaux(BadShapeTableaux):
     r"""
-    Parent class of all skew tableaux.
+    Parent class of all skew tableaux. See `meth:_element_constructor_` for
+    element class construction options and examples.
     
     See SkewTableau for the Element class.
     """
@@ -183,7 +184,7 @@ class SkewTableaux(BadShapeTableaux):
     # Convenient shortcut to global options
     global_options = TableauOptions
 
-    def _element_constructor_(self, x, st=None, expr=None, shape_word=None,
+    def _element_constructor_(self, st=0, expr=None, shape_word=None,
                                     dct=None, check=True):
         r"""
         Construct a new SkewTableau by converting from one of several input
@@ -191,7 +192,7 @@ class SkewTableaux(BadShapeTableaux):
 
         These are conversions. If multiple formats are specified, the
         left-most is used. If no format is specified, the "trivial" skew
-        tableau is returned.
+        tableau with no entries is returned.
 
         INPUT:
         - ``x`` -- used in :meth:`Parent.__call__` and can be ignored here.
@@ -215,7 +216,7 @@ class SkewTableaux(BadShapeTableaux):
           etc.
         """
         # TODO: normalize st input by removing empty rows
-        if st is not None:
+        if st is not 0:
             return self.from_st(st, check)
 
         if expr is not None:
@@ -231,14 +232,14 @@ class SkewTableaux(BadShapeTableaux):
         return self._new_element(())
 
     def from_st(self, st, check=True):
-        if check:
-            try:
-                # Remove empty rows
-                st = tuple( ifilter(lambda t: t,
-                            (tuple(row) for row in st)) )
-            except TypeError:
-                raise TypeError("each element of the skew tableau must be an iterable")
+        try:
+            # Remove empty rows
+            st = tuple( ifilter(lambda t: t,
+                        (tuple(row) for row in st)) )
+        except TypeError:
+            raise TypeError("each element of the skew tableau must be an iterable")
 
+        if check:
             # Make sure rows begin with blocks of nones
             inner = [0]*len(st)
             outer = [0]*len(st)
@@ -258,12 +259,12 @@ class SkewTableaux(BadShapeTableaux):
                 inner[i] = noneCount
                 outer[i] = len(row)
 
-                # Make sure inner and outer are partitions
-                if (any(inner[i+1] > inner[i] for i in range(len(st) - 1)) or
-                    any(outer[i+1] > outer[i] for i in range(len(st) - 1))):
-                    raise ValueError("Input must be of skew shape")
+            # Make sure inner and outer are partitions
+            if (any(inner[i+1] > inner[i] for i in range(len(st) - 1)) or
+                any(outer[i+1] > outer[i] for i in range(len(st) - 1))):
+                raise ValueError("Input must be of skew shape")
 
-            return self._new_element(st)
+        return self._new_element(st)
 
     def from_expr(self, expr, check=True):
         r"""
@@ -936,7 +937,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
             True
         """
         if skp is None:
-            return StandardSkewTableaux_all()
+            return type.__call__(StandardSkewTableaux)
         elif isinstance(skp, (int, Integer)):
             return StandardSkewTableaux_size(skp)
         elif skp in SkewPartitions():
@@ -944,10 +945,6 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
         else:
             raise TypeError("Invalid argument")
 
-class StandardSkewTableaux_all(StandardSkewTableaux):
-    """
-    Class of all standard skew tableaux.
-    """
     def __init__(self):
         """
         EXAMPLES::
@@ -955,7 +952,10 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
             sage: s = StandardSkewTableaux()
             sage: TestSuite(s).run()
         """
-        StandardSkewTableaux.__init__(self, category=InfiniteEnumeratedSets())
+        super(StandardSkewTableaux, self).__init__(category=InfiniteEnumeratedSets())
+
+    def _coerce_map_from_(self, S):
+        return isinstance(S, StandardSkewTableaux)
 
     def _repr_(self):
         """
@@ -1001,7 +1001,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
             sage: TestSuite(S).run()
         """
         self.n = n
-        StandardSkewTableaux.__init__(self, category=FiniteEnumeratedSets())
+        super(StandardSkewTableaux, self).__init__(category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -1087,7 +1087,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
             sage: TestSuite(S).run()
         """
         self.skp = skp
-        StandardSkewTableaux.__init__(self, category=FiniteEnumeratedSets())
+        super(StandardSkewTableaux, self).__init__(category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """

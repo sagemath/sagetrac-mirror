@@ -1,7 +1,7 @@
 r"""
 AbstractTableau Element class.
 
-See AbstractTableaux for the corresponding Parent class.
+See `class:AbstractTableaux` for the corresponding Parent class.
 
 AUTHORS:
 
@@ -25,92 +25,109 @@ AUTHORS:
 
 import six
 from collections import defaultdict
-from copy import deepcopy
 from sage.structure.element import Element
 from sage.misc.abstract_method import abstract_method
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.lazy_import import LazyImport
 
 class AbstractTableau(Element):
     r"""
-    Abstract class for the various element classes of tableaux.
+    Abstract class for the various Element classes of tableaux.
 
     A tableau is thought of as a mapping which sends some pairs
     ``(x, y)`` (commonly, but not necessarily, pairs of nonnegative
     integers) to some arbitrary objects. Any two x-coordinates are
     assumed to be comparable via `>` and `<`, and so are any two
     y-coordinates.
+
     Subclasses are welcome to add further data (e.g., a skew shape).
     Tableaux are assumed to be immutable; see :trac:`15862`.
 
     The pairs ``(x, y)`` in the domain of a tableau are called its
     *cells*, and their images under the tableaux are referred to as
-    its *entries* (in these cells).
+    the *entries* in those cells.
 
     Subclasses must implement :meth:`_dict_unsafe`.
     """
-    # See __classcall__.
-    __metaclass__ = ClasscallMetaclass
-
-    # "Default" parent class. See __classcall__.
-    _generic_parent = LazyImport(
-                      'sage.combinat.tableaux.abstract_tableaux',
-                      'AbstractTableaux')
-
     def __init__(self, parent, *args, **kwds):
         r"""
-        Initialize the AbstractTableau.
+        Initialize the `class:AbstractTableau`.
 
-        Input validation should be done in parent classes, likely in
-        their ``_element_constructor_`` method or coercions.
+        Input normalization and validation should be done in parent classes,
+        likely in their ``_element_constructor_`` method or coercions.
         Element class initialization should be quite minimal.
 
-        We need to either call Element's __init__ method or
-        set _parent by hand.
+        We need to either call Element's ``__init__`` method or
+        set `_parent` by hand.
+        
+        TESTS::
+
+            sage: SkewTableau([[None, None, 1, 3], [None, 4, 4], [None]]).parent()
+            Skew tableaux 
         """
         self._parent = parent
-
-    @staticmethod
-    def _gp(m, c):
-        r"""
-        Lazily import a parent class by name.
-
-        Allows separating element and parent class files while also
-        using __classcall__ shortcuts on element classes
-        without circular references. One could simply call LazyImport
-        directly in subclasses, but this way allows subclasses to
-        ignore more details.
-        """
-        return LazyImport(m, c)
-
-    @staticmethod
-    def __classcall__(cls, *args, **kwds):
-        r"""
-        Provide shortcut syntax like ``Tableau([[1, 2], [3]])`` for
-        ``Tableaux()([[1, 2], [3]])``.
-
-        Input validation should be done in parent classes, likely in
-        their ``_element_constructor_`` method or coercions.
-        Element class initialization should be quite minimal.
-
-        Inherited by child classes, unlike ``__classcall_private__``.
-        """
-        return cls._generic_parent()(0, *args, **kwds)
 
     def __hash__(self):
         r""""
         Return the hash of ``self`` based on the underlying mapping of
         cells to values.
+        
+        TESTS::
+
+            sage: b1 = BadShapeTableau({(2, 2): 1, (0, 0): 0})
+            sage: b2 = BadShapeTableau({(2, 2): 2, (0, 0): 0})
+            sage: b3 = BadShapeTableau({(2, 1): 1, (0, 0): 0})
+            sage: b1.__hash__() == b1.__hash__()
+            True
+            sage: b1.__hash__() != b2.__hash__()
+            True
+            sage: b2.__hash__() != b3.__hash__()
+            True
+            sage: b3.__hash__() != b1.__hash__()
+            True
         """
         return hash(tuple(six.iteritems(self._dict_unsafe())))
+
+    def __reduce__(self):
+        r"""
+        Return enough information to pickle.
+
+        TESTS::
+
+            sage: b = BadShapeTableau({(1, 2): 3, (4, 5): "horse"})
+            sage: loads(dumps(b)) == b # indirect doctest
+            True
+        """
+        return self.parent(), (self._dict_unsafe(),)
+    
+    def _richcmp_(self, other, op):
+        r"""
+        Provide rich comparison.
+
+        Equality and inequality are tested by comparing the underlying `_dict_unsafe`.
+
+        TESTS::
+
+            sage: b1 = BadShapeTableau({(1, 1): 1, (3, 4): 5})
+            sage: b2 = BadShapeTableau({(1, 1): 2, (3, 4): 5})
+            sage: b1 == b2 # indirect doctest
+            False
+            sage: b1 != b2
+            True
+        """
+        # TODO: find a way to get these magic constants from outside of Cython
+        if op == 2:
+            return self._dict_unsafe() == other._dict_unsafe()
+        elif op == 3:
+            return self._dict_unsafe() != other._dict_unsafe()
+        raise TypeError("unorderable types")
 
     def _repr_(self):
         r"""
         Return the representation string.
 
-        OUTPUT:
+        TESTS::
 
-        A string.
+            sage: BadShapeTableau({(-1, -2): 'a'})
+            {(-1, -2): 'a'}
         """
         return repr(self._dict_unsafe())
 
@@ -118,14 +135,23 @@ class AbstractTableau(Element):
         r"""
         Return a dictionary which is a copy of the underlying data.
 
+        Values are not deeply copied. For instance, if entries are lists,
+        one could change the underlying tableau by modifying those lists.
+        Tableaux are assumed to be immutable, so this is okay.
+
         OUTPUT:
 
         A dictionary. The value of this dictionary at the key
         ``(x, y)`` is the entry of the tableau ``self`` in the cell
         ``(x, y)``.
+
+        TEST::
+
+            sage: st = BadShapeTableau({(4, 3): 'a', (1, 2): 3})
+            sage: st.dict() == {(4, 3): 'a', (1, 2): 3}
+            True
         """
-        # TODO: do we really want a deepcopy here? or just dict(...)?
-        return deepcopy(self._dict_unsafe())
+        return dict(self._dict_unsafe())
 
     @abstract_method
     def _dict_unsafe(self):
@@ -133,17 +159,20 @@ class AbstractTableau(Element):
         Return a dictionary representing the underlying data.
 
         It is unsafe to alter this dictionary or pass it along, since
-        this might (and might not) mutate ``self``. That said, it is
-        also unsafe to try and mutate ``self`` by altering this
-        dictionary; this will often fail or result in broken objects.
-        The main use of ``_dict_unsafe`` should be getting entries
-        of ``self``.
+        this might or might not mutate ``self`` and tableaux are assumed
+        to be immutable.
         """
         pass
 
     def cells(self):
         r"""
-        Return an iterable over the cells in this tableau.
+        Return an iterable over the cells in this tableau in no particular order.
+
+        TESTS::
+
+            sage: b = BadShapeTableau({(4, -1): -2, (3, 3): 'cow'})
+            sage: set(b.cells()) == set(((4, -1), (3, 3)))
+            True
         """
         return six.iterkeys(self._dict_unsafe())
 
@@ -151,8 +180,16 @@ class AbstractTableau(Element):
         r"""
         Return a list of lists given by grouping the values of ``self``.
 
-        Inner lists come from fibers of projection onto index `a` of keys,
+        Inner lists are the fibers of projection onto index `a` of keys,
         sorted by index `b`. The outer list is sorted by index `a`.
+
+        TESTS::
+
+            sage: st = SkewTableau([[None, 1, 2], [None, 3], [None], [1]])
+            sage: st._group_by(0, 1)
+            [[1, 2], [3], [1]]
+            sage: st._group_by(1, 0)
+            [[1], [1, 3], [2]]
         """
         # We imagine a=0 and b=1, meaning we group into rows.
         rows = defaultdict(list)
@@ -171,7 +208,13 @@ class AbstractTableau(Element):
         r"""
         Return the values of ``self`` as a list of rows in order of
         increasing row index, where each row is a list and has been sorted
-        by column index.
+        by increasing column index.
+
+        TESTS::
+        
+            sage: s = SkewTableau([[None, 1, 1, 2, 4], [None, 2, 3, 3, 5], [1, 3, 5, 7]])
+            sage: s.rows()
+            [[1, 1, 2, 4], [2, 3, 3, 5], [1, 3, 5, 7]]
         """
         return self._group_by(0, 1)
 
@@ -179,78 +222,43 @@ class AbstractTableau(Element):
         r"""
         Return the values of ``self`` as a list of columns in order of
         increasing columns index, where each column is a list and has been
-        sorted by row index.
+        sorted by increasing row index.
+
+        TESTS::
+
+            sage: s = SkewTableau([[None, 1, 1, 2, 4], [None, 2, 3, 3, 5], [1, 3, 5, 7]])
+            sage: s.columns()
+            [[1], [1, 2, 3], [1, 3, 5], [2, 3, 7], [4, 5]]
         """
         return self._group_by(1, 0)
 
     def iter_cells(self):
         r"""
         Iterate over the cells of ``self`` in no particular order.
+
+        TESTS::
+
+            sage: s = SkewTableau([[None, 5, 5, 6], [None, 1, 2, 3]])
+            sage: set(s.iter_cells()) == {(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)}
+            True
         """
         return six.iterkeys(self._dict_unsafe())
 
     def iter_entries(self):
         r"""
         Iterate over the entries of ``self`` in no particular order.
+
+        TESTS::
+
+            set(SkewTableau([[None, 7, 8, 9], [None, 1, 2, 4]]).iter_entries()) == {1, 2, 4, 7, 8, 9}
+            True
         """
         return six.itervalues(self._dict_unsafe())
 
-    def iter_by_row_reversed(self):
-        r"""
-        Iterate over entries of ``self``, row-by-row from higher row indexes to lower,
-        and within each row from lower column indexes to higher.
-        """
-        # Row index is more important than column index; higher row indexes
-        #   are earlier; lower column indiexes are earlier
-        def mixed_lex((x1, y1), (x2, y2)):
-            if x1 < x2:
-                return 1
-            if x1 > x2:
-                return -1
-            # Assume x1 == x2
-            if y1 < y2:
-                return -1
-            if y1 > y2:
-                return 1
-            # Assume y1 == y2
-            return 0
-
-        _dict = self._dict_unsafe()
-        # TODO: replace cmp with key for Python 3 compatibility
-        sorted_cells = sorted(six.iterkeys(_dict), cmp=mixed_lex)
-        for cell in sorted_cells:
-            yield _dict[cell]
-
-    def iter_by_col_reversed(self):
-        r"""
-        Iterate over entries of ``self``, column-by-column from higher column indexes to
-        lower, and within each column from lower row indexes to higher.
-        """
-        # Column index is more important than row index; higher column indexes
-        #   are earlier; lower row indexes are earlier
-        def mixed_lex((x1, y1), (x2, y2)):
-            if y1 < y2:
-                return 1
-            if y1 > y2:
-                return -1
-            # Assume y1 == y2
-            if x1 < x2:
-                return -1
-            if x1 > x2:
-                return 1
-            # Assume x1 == x2
-            return 0
-
-        _dict = self._dict_unsafe()
-        # TODO: replace cmp with key for Python 3 compatibility
-        sorted_cells = sorted(six.iterkeys(_dict), cmp=mixed_lex)
-        for cell in sorted_cells:
-            yield _dict[cell]
-
     def cells_by_content(self, c):
-        """
-        Return the coordinates of the cells in ``self`` with content ``c``.
-        
+        r"""
+        Return a list of the coordinates of the cells in ``self`` with content ``c``.
+
         The content of a cell `(a, b)` is defined as `b-a`.
 
         EXAMPLES::
@@ -271,8 +279,10 @@ class AbstractTableau(Element):
                                   if b-a == c]
 
     def entries_by_content(self, c):
-        """
-        Return the entries in ``self`` with content ``c``.
+        r"""
+        Return a list of the entries in ``self`` with content ``c``.
+
+        The content of a cell `(a, b)` is defined as `b-a`.
 
         EXAMPLES::
 
@@ -292,22 +302,21 @@ class AbstractTableau(Element):
                                if b-a==c]
 
     def cells(self):
-        """
-        Return a list of cells in ``self``.
+        r"""
+        Return a list of cells in ``self`` in no particular order.
 
         EXAMPLES::
 
             sage: s = SkewTableau([[None,1,2],[3],[6]])
-            sage: s.cells()
-            [(0, 1), (0, 2), (1, 0), (2, 0)]
+            sage: set(s.cells()) == set([(0, 1), (0, 2), (1, 0), (2, 0)])
+            True
         """
-        return list(self.iter_cels())
+        return list(self.iter_cells())
 
     def cells_containing(self, i):
         r"""
-        Return the list of cells in which the letter ``i`` appears in the
-        tableau ``self``.
-        
+        Return the list of cells which have entry ``i``.
+
         The list is ordered by column index, with no guarantee on row
         index ordering.
 
@@ -335,37 +344,55 @@ class AbstractTableau(Element):
             sage: SkewTableau([[None,None],[None]]).cells_containing(3)
             []
         """
-        def second_coord(P, Q):
-            return P[1] - Q[1]
 
-        # TODO: replace cmp with key for Python 3 compatibility
-        sorted_cells = sorted(six.iterkeys(self._dict_unsafe()),
-                              cmp=second_coord)
-
-        return sorted_cells
+        return sorted([c for c, v
+                       in six.iteritems(self._dict_unsafe())
+                       if v==i], key=lambda c: c[1])
 
     def to_word_by_row(self):
         r"""
-        Return a flattened version of ``self.iter_by_row'' as a
-        :class:`sage.combinat.words.word.FiniteWord_list`.
+        Return the row reading word.
+
+        More precisely, return a :class:`sage.combinat.words.word.FiniteWord_list`
+        obtained from reading entries row-by-row, from the topmost row to the bottommost,
+        in increasing order of column index within each row.
+
+        TESTS::
+
+            sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
+            sage: s.to_word_by_row()
+            word: fly,0,0,fruit,1
         """
         from sage.combinat.words.word import Word
-        return Word(x for x in self.iter_by_row_reversed())
+        return Word(v for x in reversed(self.rows()) for v in x)
 
     def to_word_by_column(self):
         r"""
         Return a flattened version of ``self.iter_by_col'' as a
         :class:`sage.combinat.words.word.FiniteWord_list`.
+
+        TESTS::
+
+            sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
+            sage: s.to_word_by_column()
+            word: 1,0,fruit,0,fly
         """
         from sage.combinat.words.word import Word
-        return Word(x for x in self.iter_by_col_reversed())
+        return Word(v for x in reversed(self.columns()) for v in x)
 
     # Alias
     to_word = to_word_by_row
 
-    def weight_dict(self):
+    def weight_counter(self):
         r"""
-        Return a Counter mapping values of ``self`` to multiplicities.
+        Return a `class:Counter` mapping values of ``self`` to multiplicities.
+
+        TESTS::
+
+            sage: from collections import Counter
+            sage: s = SkewTableau([[None, None, 2, 2, 3, 4], [None, 1, 2, 3]])
+            sage: s.weight_counter() == Counter({2: 3, 3: 2, 1: 1, 4: 1})
+            True
         """
         from collections import Counter
         return Counter(self.iter_entries())
@@ -373,6 +400,12 @@ class AbstractTableau(Element):
     def size(self):
         r"""
         Return the number of cells in ``self``.
+
+        TESTS::
+
+            sage: b = BadShapeTableau({(3, 3): 2, (2, 2): 1, (1, 1): -1})
+            sage: b.size()
+            3
         """
         return len(self._dict_unsafe())
 

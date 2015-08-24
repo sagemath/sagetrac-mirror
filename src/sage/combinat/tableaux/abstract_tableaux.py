@@ -2,7 +2,7 @@ r"""
 AbstractTableaux Parent class.
 
 This is an abstract base class for numerous tableaux-like
-Parent subclasses. See AbstractTableau for the corresponding
+Parent classes. See `class:AbstractTableau' for the corresponding
 Element class.
 
 AUTHORS:
@@ -43,22 +43,27 @@ class AbstractTableaux(UniqueRepresentation, Parent):
     def __init__(self, category=None):
         r"""
         Initialize the parent.
+
+        TESTS::
+
+            sage: AbstractTableaux().category() # indirect doctest
+            Category of sets
         """
         if category is None:
             Parent.__init__(self, category=Sets())
         else:
             Parent.__init__(self, category=category)
 
-    def _element_constructor_(self, x, *args, **kwds):
+    def _element_constructor_(self, *args, **kwds):
         r"""
         Constructs an Element of ``self``.
         
         Input validation and normalization should be done here.
-        The argument ``x`` can be ignored.
 
-        OUTPUT:
+        TESTS::
 
-        - The corresponding tableau object
+            sage: type(AbstractTableaux()()) # indirect doctest
+            <class 'sage.combinat.tableaux.abstract_tableau.AbstractTableaux_with_category.element_class'>
         """
         return self._new_element(*args, **kwds)
 
@@ -66,20 +71,22 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         r"""
         Constructs an Element of ``self``.
         
-        We assume the Element class will implement __classcall__, which
-        will pick an appropriate Parent class to construct a new Element.
-        Hence we must use __call__ directly to bypass using __classcall__,
-        which would be circular.
+        Does not do input validation or normalization.
+
+        TESTS::
+
+            sage: type(AbstractTableaux()()) # indirect doctest
+            <class 'sage.combinat.tableaux.abstract_tableau.AbstractTableaux_with_category.element_class'>
         """
-        return type.__call__(self.element_class, self, *args, **kwds)
+        return self.element_class(self, *args, **kwds)
 
     def _repr_(self):
         r"""
         Return the representation string.
 
-        OUTPUT:
+        TESTS::
 
-        A string.
+            sage: AbstractTableaux()
+            Abstract tableaux
         """
         return "Abstract tableaux"
-

@@ -41,6 +41,16 @@ Orphaned tests:
     word: 3412
     sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
     word: 325146
+
+Orphaned comment:
+
+    Straight and skew tableaux can be regarded as tableaux of
+    bad shape, but for skew tableaux this amounts to forgetting
+    part of the data. (In fact, a skew tableau "knows" its inner
+    shape and its outer shape, whereas a tableau of bad shape
+    only knows its cells and entries. Thus, the (empty) skew
+    tableaux of shapes `()/()` and `(1)/(1)` are equal when
+    regarded as tableaux of bad shape.)
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Josh Swanson,
@@ -79,8 +89,8 @@ class SkewTableau(BadShapeTableau):
     Cell locations are pairs of non-negative integers, though values are
     unrestricted. Cells must form a skew shape.
 
-    TODO: add documentation for the various input formats, as is
-    SkewTableaux._element_constructor_.
+    TODO: reference SkewTableaux._element_constructor_ for
+    documentation on the various construction formats.
 
     EXAMPLES::
 
@@ -104,10 +114,6 @@ class SkewTableau(BadShapeTableau):
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
-    _generic_parent = BadShapeTableau._gp(
-                      'sage.combinat.tableaux.skew_tableaux',
-                      'SkewTableaux')
-
     def __init__(self, parent, st):
         """
         Note: ``st`` is used as-is. Validation, normalization, etc.
@@ -137,6 +143,9 @@ class SkewTableau(BadShapeTableau):
 
     def __iter__(self):
         return self._st.__iter__()
+        
+#    def __reduce__(self):
+#        return self.parent(), (self._st,)
 
     def __len__(self):
         r"""
@@ -146,6 +155,14 @@ class SkewTableau(BadShapeTableau):
         where :meth:`__len__` returns the number of cells.
         """
         return len(self._st)
+
+    def _richcmp_(self, other, op):
+        # TODO: find a way to get these magic constants from outside of Cython
+        if op == 2:
+            return self._st == other._st
+        elif op == 3:
+            return self._st != other._st
+        raise TypeError("unorderable types")
 
     @cached_method
     def _dict_unsafe(self):
@@ -368,7 +385,7 @@ class SkewTableau(BadShapeTableau):
             for j in range(len(conj_i)):
                 conj_i[j] = self._st[j][i]
 
-        return self.__class__(conj)
+        return self.parent(conj)
 
     def weight(self):
         """
@@ -416,7 +433,7 @@ class SkewTableau(BadShapeTableau):
             sage: all(by_word(t) == SkewTableau(t).weight() for t in SST)
             True
         """
-        d = self.weight_dict()
+        d = self.weight_counter()
         if not d:
             return []
         ret = [0]*max(d)
@@ -746,10 +763,6 @@ class SemistandardSkewTableau(SkewTableau):
     frequently imagine their entries are non-negative integers, though this
     is not strictly enforced.
     """
-    _generic_parent = SkewTableau._gp(
-                      'sage.combinat.tableaux.skew_tableaux',
-                      'SemistandardSkewTableaux')
-
     def slide(self, corner=None):
         """
         Apply a jeu-de-taquin slide to ``self`` on the specified corner and
@@ -820,7 +833,7 @@ class SemistandardSkewTableau(SkewTableau):
         if len(new_st[spotl]) == 0:
             new_st.pop()
 
-        return self.__class__(new_st)
+        return self.parent(new_st)
 
     def rectify(self):
         """
@@ -885,7 +898,7 @@ class SemistandardSkewTableau(SkewTableau):
 
             sage: p = Partition([4,3,3,2])
             sage: q = Partitions(3).random_element()
-            sage: all((t == t.standardization() for t in StandardSkewTableaux([p, q])))
+            sage: all(t == t.standardization() for t in StandardSkewTableaux([p, q]))
             True
 
         The reading word of the standardization is the
@@ -907,7 +920,8 @@ class SemistandardSkewTableau(SkewTableau):
             []
         """
         # Can skip the check since we're already semistandard.
-        return StandardSkewTableau(check=False, shape_word=(
+        # TODO: make this return a StandardSkewTableau_shape
+        return StandardSkewTableauFactory(check=False, shape_word=(
                    self.shape(),
                    self.to_word_by_row().standard_permutation()) )
 
@@ -1063,7 +1077,7 @@ class SemistandardSkewTableau(SkewTableau):
                 for j in range(sk, sk+a):
                     result_tab[i][j] = k + 1
 
-        return self.__class__(result_tab)
+        return self.parent(result_tab)
 
     def restrict(self, n):
         """
@@ -1086,7 +1100,7 @@ class SemistandardSkewTableau(SkewTableau):
             sage: SemistandardSkewTableau([[None,1],[1],[2]]).restrict(1)
             [[None, 1], [1]]
         """
-        return self.__class__((x for x in row if x is None or x <= n)
+        return self.parent((x for x in row if x is None or x <= n)
                                  for row in self)
 
     def restriction_outer_shape(self, n):
@@ -1202,10 +1216,6 @@ class StandardSkewTableau(SemistandardSkewTableau):
     increasing along rows and columns, and they use entries from 1
     through the size of the tableau precisely once each.
     """
-    _generic_parent = SkewTableau._gp(
-                      'sage.combinat.tableaux.skew_tableaux',
-                      'StandardSkewTableaux')
-
     def to_permutation(self):
         """
         Return a permutation with the entries of ``self`` obtained by reading
@@ -1226,3 +1236,28 @@ class StandardSkewTableau(SemistandardSkewTableau):
         return Permutation(i for row in reversed(list(self))
                              for i in row
                              if i is not None)
+
+# Use a factory method to create `class:SkewTableau`, etc.
+def SkewTableauFactory(*args, **kwds):
+    r"""
+    (See `class:SkewTableau` for docstring.)
+    """
+    from skew_tableaux import SkewTableaux
+    return SkewTableaux()(*args, **kwds)
+SkewTableauFactory.__doc__ = SkewTableau.__doc__
+
+def SemistandardSkewTableauFactory(*args, **kwds):
+    r"""
+    (See `class:SemistandardSkewTableau` for docstring.)
+    """
+    from skew_tableaux import SemistandardSkewTableaux
+    return SemistandardSkewTableaux()(*args, **kwds)
+SemistandardSkewTableauFactory.__doc__ = SemistandardSkewTableau.__doc__
+
+def StandardSkewTableauFactory(*args, **kwds):
+    r"""
+    (See `class:StandardSkewTableau` for docstring.)
+    """
+    from skew_tableaux import StandardSkewTableaux
+    return StandardSkewTableaux()(*args, **kwds)
+StandardSkewTableauFactory.__doc__ = StandardSkewTableau.__doc__

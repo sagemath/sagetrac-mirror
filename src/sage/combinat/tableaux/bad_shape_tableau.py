@@ -32,23 +32,11 @@ class BadShapeTableau(AbstractTableau):
     r"""
     A tableau of bad shape.
 
-    A tableau of bad shape is a tableau whose cells belong to
-    `\ZZ^2` (that is, their coordinates are integers). It is
-    specified by a dictionary whose keys are pairs of integers
-    and whose values are arbitrary.
+    See Parent `class:BadShapeTableaux` for construction options.
 
-    Straight and skew tableaux can be regarded as tableaux of
-    bad shape, but for skew tableaux this amounts to forgetting
-    part of the data. (In fact, a skew tableau "knows" its inner
-    shape and its outer shape, whereas a tableau of bad shape
-    only knows its cells and entries. Thus, the (empty) skew
-    tableaux of shapes `()/()` and `(1)/(1)` are equal when
-    regarded as tableaux of bad shape.)
+    A tableau of bad shape is a tableau whose cells are pairs of
+    integers and whose entries are arbitrary.
     """
-    _generic_parent = AbstractTableau._gp(
-                      'sage.combinat.tableaux.bad_shape_tableaux',
-                      'BadShapeTableaux')
-
     def __init__(self, parent, dct):
         r"""
         Initialize the BadShapeTableau.
@@ -125,3 +113,12 @@ class BadShapeTableau(AbstractTableau):
 
     # Alias
     transpose = conjugate
+
+# Use a factory method to create `class:BadShapeTableau`.
+def BadShapeTableauFactory(*args, **kwds):
+    r"""
+    (See `class:BadShapeTableau` for docstring.)
+    """
+    from bad_shape_tableaux import BadShapeTableaux
+    return BadShapeTableaux()(*args, **kwds)
+BadShapeTableauFactory.__doc__ = BadShapeTableau.__doc__
