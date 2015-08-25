@@ -166,12 +166,12 @@ cdef extern from "Singular/libsingular.h":
     ctypedef struct n_Procs_s:
 
         number* cfDiv(number *, number *, const n_Procs_s* r)
-        number* cfAdd(number *, number *, const n_Procs_s* r)
+        number* cfAdd(number *, number *, const n_Procs_s* r)  # algebraic number addition
         number* cfSub(number *, number *, const n_Procs_s* r)
-        number* cfMult(number *, number *, const n_Procs_s* r)
+        number* cfMult(number *, number *, const n_Procs_s* r)  # algebraic number multiplication
 
         #void    (*nNew)(number* * a)
-        number*  (*cfInit)(int i, const n_Procs_s* r )
+        number*  (*cfInit)(int i, const n_Procs_s* r ) # algebraic number from int
         number*  (*cfParameter)(int i, const n_Procs_s* r)
         int     (*cfParDeg)(number* n, const n_Procs_s* r)
         int     (*cfSize)(number* n, const n_Procs_s* r)
@@ -180,9 +180,11 @@ cdef extern from "Singular/libsingular.h":
         number*  (*cfGetUnit)(number* a, const n_Procs_s* r)
         number*  (*cfExtGcd)(number* a, number* b, number* *s, number* *t , const n_Procs_s* r)
 
+        void (*cfDelete)(number **, const n_Procs_s*)
+
         number*  (*cfInpNeg)(number* a,  const n_Procs_s* r)
         number*  (*cfInvers)(number* a,  const n_Procs_s* r)
-        number*  (*cfCopy)(number* a,  const n_Procs_s* r)
+        number*  (*cfCopy)(number* a,  const n_Procs_s* r) # deep copy of algebraic number
         number*  (*cfRePart)(number* a, const n_Procs_s* cf)
         number*  (*cfImPart)(number* a, const n_Procs_s* cf)
         void    (*cfWrite)(number* a, const n_Procs_s* r)
@@ -192,13 +194,13 @@ cdef extern from "Singular/libsingular.h":
 
         bint (*cfDivBy)(number* a, number* b, const n_Procs_s* r)
         bint (*cfEqual)(number* a,number* b, const n_Procs_s* )
-        bint (*cfIsZero)(number* a, const n_Procs_s* )
-        bint (*cfIsOne)(number* a, const n_Procs_s* )
+        bint (*cfIsZero)(number* a, const n_Procs_s* ) # algebraic number comparison with zero
+        bint (*cfIsOne)(number* a, const n_Procs_s* )  # algebraic number comparison with one
         bint (*cfIsMOne)(number* a, const n_Procs_s* )
         bint (*cfGreaterZero)(number* a, const n_Procs_s* )
-        void (*cfPower)(number* a, int i, number* * result,  const n_Procs_s* r)
+        void (*cfPower)(number* a, int i, number* * result,  const n_Procs_s* r) # algebraic number power
         
-        
+            
         int ch
         mpz_ptr    modBase;
         unsigned long modExponent;
@@ -260,7 +262,7 @@ cdef extern from "Singular/libsingular.h":
         unsigned long bitmask # mask for getting single exponents
         
 
-        n_Procs_s*    cf
+        n_Procs_s*    cf # coefficient field/ring
         int ref
         
         # return total degree of p
@@ -472,7 +474,7 @@ cdef extern from "Singular/libsingular.h":
 
     int siInit(char *)
 
-    naInitChar(n_Procs_s* cf, void * infoStruct)
+
 
     #int cfInitCharProc(n_Procs_s* cf, void * initCcharProc);
 
@@ -480,6 +482,10 @@ cdef extern from "Singular/libsingular.h":
   
     n_coeffType nRegister(n_coeffType n, cfInitCharProc p)
     #n_coeffType nRegister(n_coeffType n, void * p)
+
+
+
+
 
     # external resource init
 
@@ -518,11 +524,7 @@ cdef extern from "Singular/libsingular.h":
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
   
   
-    # see rmodulon.h
-    
-    ctypedef struct ZnmInfo:
-       mpz_ptr base;  
-       unsigned long exp; 
+
   
     # see coeffs.h
     ctypedef struct  GFInfo:
@@ -810,9 +812,7 @@ cdef extern from "Singular/libsingular.h":
 
     number *nlRInit(int)
 
-    # rational number from numerator and denominator
 
-    number *nlInit2gmp(mpz_t n, mpz_t d,const n_Procs_s* cf)
 
     # rational number from numerator and denominator
 
@@ -826,54 +826,20 @@ cdef extern from "Singular/libsingular.h":
 
     number *nlCopy(number *)
 
-    # get numerator
 
-    number *nlGetNumerator(number *n, const n_Procs_s* cf)
 
-    # get denominator
 
-    number *nlGetDenom(number *n, const n_Procs_s* cf)
-
-    # delete rational number
-
-    void nlDelete(number **n, const n_Procs_s* cf)
 
     # i-th algebraic number paraemeter
 
     #see ring .cf.cfParameter
     #number *naParameter(int i, const n_Procs_s* cf)
 
-    # algebraic number power
-
-    void naPower(number *, int, number **)
-
-    # algebraic number multiplication
-
-    number *naMult(number *, number *, const n_Procs_s* cf)
-
-    # algebraic number addition
-
-    number *naAdd(number *, number *, const n_Procs_s* cf)
-
-    # deep copy of algebraic number
-
-    number *naCopy(number *)
-
-    # algebraic number from int
-
-    number *naInit(int, const n_Procs_s*)
-
+    
     # algebraic number destructor
 
-    void naDelete(number **, const n_Procs_s*)
 
-    # algebraic number comparison with zero
 
-    int naIsZero(number *,const n_Procs_s*)
-
-    # algebraic number comparison with one
-
-    int naIsOne(number *,const n_Procs_s*)
 
     # get current coefficent
 
@@ -885,7 +851,6 @@ cdef extern from "Singular/libsingular.h":
 
     # normalize a number
 
-    void naNormalize(number *)
 
     # number to integer handle
 
@@ -895,17 +860,14 @@ cdef extern from "Singular/libsingular.h":
 
     long SR_HDL(number *)
 
-    # map Q -> Q(a)
+    ## map Q -> Q(a)
     number *naMap00(number *c,const n_Procs_s* src,const n_Procs_s* dst)
 
-    # init integer
-    number *nrzInit(int i, const n_Procs_s* cf)
 
-    # init ZmodN from GMP
-    number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
 
-    #init 2^m from a long
-    number *nr2mMapZp(number *,const n_Procs_s* src,const n_Procs_s* dst)
+
+
+
 
 
     # get C int from ZmodN
@@ -919,9 +881,6 @@ cdef extern from "Singular/libsingular.h":
 
     void id_Delete(ideal **, ring *)
 
-    # mappinf from ideal i1 in r1 by i2 to r2
-
-    ideal *fast_map(ideal *i1, ring *r1, ideal *i2, ring *r2)
 
     # lifting
 
@@ -1097,6 +1056,50 @@ cdef extern from "Singular/libsingular.h":
     int hasFlag(leftv *A, int F)
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
+
+cdef extern from "coeffs/rmodulon.h":
+
+    # init ZmodN from GMP
+    number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
+
+
+cdef extern from "coeffs/rmodulo2m.h":
+
+    #init 2^m from a long
+    number *nr2mMapZp(number *,const n_Procs_s* src,const n_Procs_s* dst)
+
+
+cdef extern from "kernel/maps/fast_maps.h":
+
+    # mappinf from ideal i1 in r1 by i2 to r2
+
+    ideal *fast_map(ideal *i1, ring *r1, ideal *i2, ring *r2)
+
+
+
+cdef extern from "polys/ext_fields/algext.h":
+
+    naInitChar(n_Procs_s* cf, void * infoStruct)
+
+    ctypedef number* (*nMapFunc)(number *c,const n_Procs_s* src,const n_Procs_s* dst)
+
+    nMapFunc naSetMap(const n_Procs_s* src, const n_Procs_s* dst)
+
+
+
+cdef extern from "coeffs/rmodulon.h":
+    # see rmodulon.h
+    
+    ctypedef struct ZnmInfo:
+       mpz_ptr base;  
+       unsigned long exp; 
+
+
+cdef extern from "coeffs/rintegers.h":
+
+    # init integer
+    number *nrzInit(int i, const n_Procs_s* cf)
+
     
 cdef extern from "polys/weight.h":
 
@@ -1124,6 +1127,28 @@ cdef extern from "polys/nc/nc.h":
     nc_type ncRingType_get "ncRingType" (ring *)
     int nc_CallPlural(matrix* CC, matrix* DD, poly* CN, poly* DN, ring* r)
     bint nc_SetupQuotient(ring *, ring *, bint)
+
+
+cdef extern from "coeffs/longrat.h":
+
+    # get numerator
+
+    number *nlGetNumerator(number *n, const n_Procs_s* cf)
+
+    # get denominator
+
+    number *nlGetDenom(number *n, const n_Procs_s* cf)
+
+
+    # rational number from numerator and denominator
+
+    number *nlInit2gmp(mpz_t n, mpz_t d,const n_Procs_s* cf)
+
+
+    # delete rational number
+
+    void nlDelete(number **n, const n_Procs_s* cf)
+
 
 cdef extern from "polys/nc/sca.h":
     void sca_p_ProcsSet(ring *, p_Procs_s *)

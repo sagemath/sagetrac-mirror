@@ -32,9 +32,8 @@ from sage.libs.singular.decl cimport napoly, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY,
 #from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
 from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
 from sage.libs.singular.decl cimport n_Z2m, n_unknown
-from sage.libs.singular.decl cimport naIsOne, naIsOne, naIsZero,  naInit, naAdd, naMult, naDelete, naMap00
 from sage.libs.singular.decl cimport napGetCoeff, napGetExpFrom, pNext
-from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
+from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP, naMap00
 from sage.libs.singular.decl cimport siInit
 from sage.libs.singular.decl cimport n_Init
 from sage.libs.singular.decl cimport rChangeCurrRing, currRing
@@ -151,9 +150,9 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     cdef int ret
     cdef int order
 
-    if naIsZero(n,_ring.cf):
+    if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
-    elif naIsOne(n,_ring.cf):
+    elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
     raise "nonImplemented"
     
@@ -192,9 +191,9 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     cdef FFgf2eE a
     cdef FFgf2eE ret
 
-    if naIsZero(n,_ring.cf):
+    if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
-    elif naIsOne(n,_ring.cf):
+    elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
     raise "notImplemented"
     
@@ -236,9 +235,9 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef object a
     cdef object ret
 
-    if naIsZero(n,_ring.cf):
+    if _ring.cf.cfIsZero(n,_ring.cf):
         return base.zero_element()
-    elif naIsOne(n,_ring.cf):
+    elif _ring.cf.cfIsOne(n,_ring.cf):
         return base.one_element()
     raise "notImplemented"
     
@@ -275,9 +274,9 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
     cdef object a
     cdef object ret
 
-    if naIsZero(n,_ring.cf):
+    if _ring.cf.cfIsZero(n,_ring.cf):
         return base._zero_element
-    elif naIsOne(n,_ring.cf):
+    elif _ring.cf.cfIsOne(n,_ring.cf):
         return base._one_element
     raise "notImeplemented"
     #z = (<lnumber*>n).z
@@ -368,28 +367,28 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 
     a = _ring.cf.cfParameter(1,_ring.cf)
 
-    apow1 = naInit(1, _ring.cf)
-    n1 = naInit(0, _ring.cf)
+    apow1 = _ring.cf.cfInit(1, _ring.cf)
+    n1 = _ring.cf.cfInit(0, _ring.cf)
 
     while quo!=0:
-        coeff = naInit(quo%b, _ring.cf)
+        coeff = _ring.cf.cfInit(quo%b, _ring.cf)
 
-        if not naIsZero(coeff,_ring.cf):
-            apow2 = naMult(coeff, apow1,_ring.cf)
-            n2 = naAdd(apow2, n1,_ring.cf)
-            naDelete(&apow2, _ring.cf)
-            naDelete(&n1, _ring.cf)
+        if not _ring.cf.cfIsZero(coeff,_ring.cf):
+            apow2 = _ring.cf.cfMult(coeff, apow1,_ring.cf)
+            n2 = _ring.cf.cfAdd(apow2, n1,_ring.cf)
+            _ring.cf.cfDelete(&apow2, _ring.cf)
+            _ring.cf.cfDelete(&n1, _ring.cf)
             n1 = n2
 
-        apow2 = naMult(apow1, a,_ring.cf)
-        naDelete(&apow1, _ring.cf)
+        apow2 = _ring.cf.cfMult(apow1, a,_ring.cf)
+        _ring.cf.cfDelete(&apow1, _ring.cf)
         apow1 = apow2
 
         quo = quo/b
-        naDelete(&coeff, _ring.cf)
+        _ring.cf.cfDelete(&coeff, _ring.cf)
 
-    naDelete(&apow1, _ring.cf)
-    naDelete(&a, _ring.cf)
+    _ring.cf.cfDelete(&apow1, _ring.cf)
+    _ring.cf.cfDelete(&a, _ring.cf)
     return n1
 
 cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
@@ -406,30 +405,30 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
-        n1 = naInit(0, _ring.cf)
+        n1 = _ring.cf.cfInit(0, _ring.cf)
         a = _ring.cf.cfParameter(1,_ring.cf)
-        apow1 = naInit(1, _ring.cf)
+        apow1 = _ring.cf.cfInit(1, _ring.cf)
 
         for i from 0 <= i <= GF2X_deg(rep):
-            coeff = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)), _ring.cf)
+            coeff = _ring.cf.cfInit(GF2_conv_to_long(GF2X_coeff(rep,i)), _ring.cf)
 
-            if not naIsZero(coeff,_ring.cf):
-                apow2 = naMult(coeff, apow1,_ring.cf)
-                n2 = naAdd(apow2, n1,_ring.cf)
-                naDelete(&apow2, _ring.cf)
-                naDelete(&n1, _ring.cf);
+            if not _ring.cf.cfIsZero(coeff,_ring.cf):
+                apow2 = _ring.cf.cfMult(coeff, apow1,_ring.cf)
+                n2 = _ring.cf.cfAdd(apow2, n1,_ring.cf)
+                _ring.cf.cfDelete(&apow2, _ring.cf)
+                _ring.cf.cfDelete(&n1, _ring.cf);
                 n1 = n2
 
-            apow2 = naMult(apow1, a,_ring.cf)
-            naDelete(&apow1, _ring.cf)
+            apow2 = _ring.cf.cfMult(apow1, a,_ring.cf)
+            _ring.cf.cfDelete(&apow1, _ring.cf)
             apow1 = apow2
 
-            naDelete(&coeff, _ring.cf)
+            _ring.cf.cfDelete(&coeff, _ring.cf)
 
-        naDelete(&apow1, _ring.cf)
-        naDelete(&a, _ring.cf)
+        _ring.cf.cfDelete(&apow1, _ring.cf)
+        _ring.cf.cfDelete(&a, _ring.cf)
     else:
-        n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)), _ring.cf)
+        n1 = _ring.cf.cfInit(GF2_conv_to_long(GF2X_coeff(rep,0)), _ring.cf)
 
     return n1
 
@@ -447,30 +446,30 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
 
     if _ring != currRing: rChangeCurrRing(_ring)
     if elem.degree() > 0:
-        n1 = naInit(0, _ring.cf)
+        n1 = _ring.cf.cfInit(0, _ring.cf)
         a = _ring.cf.cfParameter(1,_ring.cf)
-        apow1 = naInit(1, _ring.cf)
+        apow1 = _ring.cf.cfInit(1, _ring.cf)
 
         for i from 0 <= i <= elem.degree():
-            coeff = naInit(int(elem[i]), _ring.cf)
+            coeff = _ring.cf.cfInit(int(elem[i]), _ring.cf)
 
-            if not naIsZero(coeff,_ring.cf):
-                apow2 = naMult(coeff, apow1,_ring.cf)
-                n2 = naAdd(apow2, n1,_ring.cf)
-                naDelete(&apow2, _ring.cf)
-                naDelete(&n1, _ring.cf);
+            if not _ring.cf.cfIsZero(coeff,_ring.cf):
+                apow2 = _ring.cf.cfMult(coeff, apow1,_ring.cf)
+                n2 = _ring.cf.cfAdd(apow2, n1,_ring.cf)
+                _ring.cf.cfDelete(&apow2, _ring.cf)
+                _ring.cf.cfDelete(&n1, _ring.cf);
                 n1 = n2
 
-            apow2 = naMult(apow1, a,_ring.cf)
-            naDelete(&apow1, _ring.cf)
+            apow2 = _ring.cf.cfMult(apow1, a,_ring.cf)
+            _ring.cf.cfDelete(&apow1, _ring.cf)
             apow1 = apow2
 
-            naDelete(&coeff, _ring.cf)
+            _ring.cf.cfDelete(&coeff, _ring.cf)
 
-        naDelete(&apow1, _ring.cf)
-        naDelete(&a, _ring.cf)
+        _ring.cf.cfDelete(&apow1, _ring.cf)
+        _ring.cf.cfDelete(&a, _ring.cf)
     else:
-        n1 = naInit(int(elem), _ring.cf)
+        n1 = _ring.cf.cfInit(int(elem), _ring.cf)
 
     return n1
 
@@ -485,33 +484,46 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     cdef number *naCoeff
     cdef number *apow1
     cdef number *apow2
+
+    cdef nMapFunc nMapFuncPtr = NULL;
+  
+    nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function 
+
+    if (nMapFuncPtr is NULL):
+            print "Failed to determine nMapFuncPtr"
+            raise "Failed to determine nMapFuncPtr"
+
     elem = list(elem)
 
     if _ring != currRing: rChangeCurrRing(_ring)
-    n1 = naInit(0, _ring.cf)
+    n1 = _ring.cf.cfInit(0, _ring.cf)
     a = _ring.cf.cfParameter(1,_ring.cf)
-    apow1 = naInit(1, _ring.cf)
+    apow1 = _ring.cf.cfInit(1, _ring.cf)
+
+    # print "_ring.cf.type",_ring.cf.type       #(=6 ^=AlgExt)
+    # print "currRing.cf.type",currRing.cf.type #(=6 ^=AlgExt)
 
     for i from 0 <= i < len(elem):
         nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value), _ring.cf )
-        #naCoeff = naMap00(nlCoeff, currRing.cf, _ring.cf)
+        #print "call Map00"
         naCoeff = naMap00(nlCoeff, _ring.cf, currRing.cf )
+        #naCoeff = nMapFuncPtr(nlCoeff, _ring.cf, currRing.cf )
         nlDelete(&nlCoeff, _ring.cf)
 
         # faster would be to assign the coefficient directly
-        apow2 = naMult(naCoeff, apow1,_ring.cf)
-        n2 = naAdd(apow2, n1,_ring.cf)
-        naDelete(&apow2, _ring.cf)
-        naDelete(&n1, _ring.cf);
-        naDelete(&naCoeff, _ring.cf)
+        apow2 = _ring.cf.cfMult(naCoeff, apow1,_ring.cf)
+        n2 = _ring.cf.cfAdd(apow2, n1,_ring.cf)
+        _ring.cf.cfDelete(&apow2, _ring.cf)
+        _ring.cf.cfDelete(&n1, _ring.cf);
+        _ring.cf.cfDelete(&naCoeff, _ring.cf)
         n1 = n2
 
-        apow2 = naMult(apow1, a,_ring.cf)
-        naDelete(&apow1, _ring.cf)
+        apow2 = _ring.cf.cfMult(apow1, a,_ring.cf)
+        _ring.cf.cfDelete(&apow1, _ring.cf)
         apow1 = apow2
 
-    naDelete(&apow1, _ring.cf)
-    naDelete(&a, _ring.cf)
+    _ring.cf.cfDelete(&apow1, _ring.cf)
+    _ring.cf.cfDelete(&a, _ring.cf)
 
     return n1
 
