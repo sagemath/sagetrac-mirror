@@ -34,6 +34,11 @@ class BadShapeTableaux(AbstractTableaux):
     Parent class of all bad shape tableaux.
     
     See BadShapeTableau for the Element class.
+
+    TESTS::
+
+        sage: B = BadShapeTableaux()
+        sage: TestSuite(B).run()
     """
     Element = BadShapeTableau
 
@@ -73,6 +78,18 @@ class BadShapeTableaux(AbstractTableaux):
                 raise ValueError('keys must be pairs of integers')
 
         return self._new_element(dct)
+
+    def _an_element_(self):
+        r"""
+        Return a typical element of ``self``.
+
+        TESTS::
+
+            sage: BadShapeTableaux().an_element() # indirect doctest
+            {(1, 2): 4, (2, -2): 'cow', (1, 1): 0, (-1, -2): (1, 2)}
+        """
+        return self({(1, 1): 0, (2, -2): 'cow',
+                    (-1, -2): (1, 2), (1, 2): 4})
 
     def _repr_(self):
         r"""

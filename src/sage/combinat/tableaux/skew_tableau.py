@@ -51,6 +51,10 @@ Orphaned comment:
     only knows its cells and entries. Thus, the (empty) skew
     tableaux of shapes `()/()` and `(1)/(1)` are equal when
     regarded as tableaux of bad shape.)
+
+    The ``expr`` form of a skew tableau consists of the inner partition
+    followed by a list of the entries in each row from bottom to top::
+
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Josh Swanson,
@@ -80,17 +84,14 @@ class SkewTableau(BadShapeTableau):
     r"""
     A tableau of skew shape.
 
+    See Parent :class:`SkewTableaux` for construction options.
+
     If `\lambda` and `\mu` are two partitions such that
     `\mu \subseteq \lambda`, then a tableau of skew shape
     `\lambda / \mu` means a map that sends the cells of this
-    skew shape to some objects. This map "knows" the
-    partitions `\lambda` and `\mu`.
-
-    Cell locations are pairs of non-negative integers, though values are
-    unrestricted. Cells must form a skew shape.
-
-    TODO: reference SkewTableaux._element_constructor_ for
-    documentation on the various construction formats.
+    skew shape to some arbitrary objects. This map "knows" the
+    partitions `\lambda` and `\mu`. For instance, the skew tableaux
+    `[] / []` differs from `[1] / [1]`.
 
     EXAMPLES::
 
@@ -100,17 +101,10 @@ class SkewTableau(BadShapeTableau):
         [1]
         sage: st.outer_shape()
         [2, 2]
-
-    EXAMPLES::
-
         sage: SkewTableau([[None,1],[2,3]])
         [[None, 1], [2, 3]]
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
-
-    The ``expr`` form of a skew tableau consists of the inner partition
-    followed by a list of the entries in each row from bottom to top::
-
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """

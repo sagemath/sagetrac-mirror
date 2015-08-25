@@ -44,6 +44,11 @@ class BadShapeTableau(AbstractTableau):
         INPUT:
 
         - ``dct`` -- a dictionary whose keys are pairs of integers
+
+        TESTS::
+        
+            sage: b = BadShapeTableau({(4, 4): 4, (3, 2): -1})
+            sage: TestSuite(b).run()
         """
         self._set_parent(parent)
         self._dict = dict(dct)
@@ -51,6 +56,12 @@ class BadShapeTableau(AbstractTableau):
     def _dict_unsafe(self):
         r"""
         Return the dictionary containing the defining data of ``self``.
+
+        TESTS::
+
+            sage: b = BadShapeTableau({(2, 3): 4, (5, 6): 7})
+            sage: b._dict_unsafe() == {(2, 3): 4, (5, 6): 7}
+            True
         """
         return self._dict
 
@@ -127,7 +138,7 @@ class BadShapeTableau(AbstractTableau):
     # Alias
     transpose = conjugate
 
-# Use a factory method to create `class:BadShapeTableau`.
+# Use a factory method to create class:`BadShapeTableau`.
 def BadShapeTableauFactory(*args, **kwds):
     r"""
     (See `class:BadShapeTableau` for docstring.)
