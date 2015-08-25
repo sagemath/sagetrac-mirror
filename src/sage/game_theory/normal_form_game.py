@@ -954,6 +954,59 @@ class NormalFormGame(SageObject, MutableMapping):
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
 
+
+    def _partition_strategy_profiles(self, player_indx):
+        """
+        Return a partition of all the strategy profiles on the strategies played by the given player
+
+        TESTS::
+
+            sage: g = game_theory.normal_form_games.PrisonersDilemma()
+            sage: g._partition_strategy_profiles(0)
+            [[(0, 0), (0, 1)], [(1, 0), (1, 1)]]
+            sage: g._partition_strategy_profiles(1)
+            [[(0, 0), (1, 0)], [(0, 1), (1, 1)]]
+
+        Note that this function's output only depends on the dimensions of the game::
+
+            sage: g = game_theory.normal_form_games.MatchingPennies()
+            sage: g._partition_strategy_profiles(0)
+            [[(0, 0), (0, 1)], [(1, 0), (1, 1)]]
+            sage: g._partition_strategy_profiles(1)
+            [[(0, 0), (1, 0)], [(0, 1), (1, 1)]]
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g[0, 0, 0] = [0, 0, 0]
+            sage: g[0, 0, 1] = [1, 0, -1]
+            sage: g[0, 1, 0] = [0, 1, 0]
+            sage: g[0, 1, 1] = [0, 0, -1]
+            sage: g[1, 0, 0] = [0, 0, 0]
+            sage: g[1, 0, 1] = [0, 0, 0]
+            sage: g[1, 1, 0] = [0, 0, -1]
+            sage: g[1, 1, 1] = [0, 1, -1]
+            sage: g[2, 0, 0] = [3, 0, 5]
+            sage: g[2, 0, 1] = [-1, 0, 6]
+            sage: g[2, 1, 0] = [4, 0, 4]
+            sage: g[2, 1, 1] = [-1, 3, 5]
+            sage: g._partition_strategy_profiles(0)
+            [[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1)],
+             [(1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)],
+             [(2, 0, 0), (2, 0, 1), (2, 1, 0), (2, 1, 1)]]
+            sage: g._partition_strategy_profiles(1)
+            [[(0, 0, 0), (0, 0, 1), (1, 0, 0), (1, 0, 1), (2, 0, 0), (2, 0, 1)],
+             [(0, 1, 0), (0, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 0), (2, 1, 1)]]
+            sage: g._partition_strategy_profiles(2)
+            [[(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0), (2, 0, 0), (2, 1, 0)],
+             [(0, 0, 1), (0, 1, 1), (1, 0, 1), (1, 1, 1), (2, 0, 1), (2, 1, 1)]]
+
+        """
+        num_strategies = self.players[player_indx].num_strategies
+        return [sorted([profile for profile in self.utilities.keys() if profile[player_indx] == strategy]) for strategy in range(num_strategies)]
+
+
     def get_dominated_strategies(self):
         """
         A method that returns the indices of the dominated strategies for all players.
