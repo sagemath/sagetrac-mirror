@@ -1068,46 +1068,49 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.get_dominated_strategies() # strategies may be added multiple times
             [[0, 1, 2, 3, 4, 5], []]
 
-        A three player example::
+        Some three player examples::
 
-            sage: threegame = NormalFormGame()
-            sage: threegame.add_player(2)
-            sage: threegame.add_player(2)
-            sage: threegame.add_player(2)
-            sage: threegame[0, 0, 0][0] = 0
-            sage: threegame[0, 0, 0][1] = 0
-            sage: threegame[0, 0, 0][2] = 0
-            sage: threegame[0, 0, 1][0] = 0
-            sage: threegame[0, 0, 1][1] = 0
-            sage: threegame[0, 0, 1][2] = 0
-            sage: threegame[0, 1, 0][0] = 5
-            sage: threegame[0, 1, 0][1] = 10
-            sage: threegame[0, 1, 0][2] = 5
-            sage: threegame[0, 1, 1][0] = 20
-            sage: threegame[0, 1, 1][1] = 5
-            sage: threegame[0, 1, 1][2] = 10
-            sage: threegame[1, 0, 0][0] = 0
-            sage: threegame[1, 0, 0][1] = 0
-            sage: threegame[1, 0, 0][2] = 0
-            sage: threegame[1, 0, 1][0] = 0
-            sage: threegame[1, 0, 1][1] = 0
-            sage: threegame[1, 0, 1][2] = 0
-            sage: threegame[1, 1, 0][0] = 5
-            sage: threegame[1, 1, 0][1] = 10
-            sage: threegame[1, 1, 0][2] = 5
-            sage: threegame[1, 1, 1][0] = 10
-            sage: threegame[1, 1, 1][1] = 5
-            sage: threegame[1, 1, 1][2] = 10
-            sage: threegame
-            Normal Form Game with the following utilities: {...}
-            sage: d = {(0, 0, 0): [0, 0, 0], (0, 0, 1): [0, 0, 0], (0, 1, 0): [5, 10, 5], (0, 1, 1): [20, 5, 10], (1, 0, 0): [0, 0, 0], (1, 0, 1): [0, 0, 0], (1, 1, 0): [5, 10, 5], (1, 1, 1): [10, 5, 10]}
-            sage: threegame == d
-            True
-            sage: threegame.get_dominated_strategies()
-            [[1], [0], [0]]
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g[0, 0, 0] = [0, 0, 0]
+            sage: g[0, 0, 1] = [1, 0, -1]
+            sage: g[0, 1, 0] = [0, 1, 0]
+            sage: g[0, 1, 1] = [0, 0, -1]
+            sage: g[1, 0, 0] = [0, 0, 0]
+            sage: g[1, 0, 1] = [0, 0, 0]
+            sage: g[1, 1, 0] = [0, 0, -1]
+            sage: g[1, 1, 1] = [0, 1, -1]
+            sage: g[2, 0, 0] = [3, 0, 5]
+            sage: g[2, 0, 1] = [-1, 0, 6]
+            sage: g[2, 1, 0] = [4, 0, 4]
+            sage: g[2, 1, 1] = [-1, 3, 5]
+            sage: g.get_dominated_strategies()
+            [[], [], []]
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g[0, 0, 0] = [0, 0, 0]
+            sage: g[0, 0, 1] = [1, 0, -1]
+            sage: g[0, 1, 0] = [0, 1, 0]
+            sage: g[0, 1, 1] = [0, 0, -1]
+            sage: g[1, 0, 0] = [0, 0, 0]
+            sage: g[1, 0, 1] = [0, 0, -1]
+            sage: g[1, 1, 0] = [0, 0, -1]
+            sage: g[1, 1, 1] = [0, 1, -2]
+            sage: g[2, 0, 0] = [3, 0, 5]
+            sage: g[2, 0, 1] = [-1, 0, -6]
+            sage: g[2, 1, 0] = [4, 0, 4]
+            sage: g[2, 1, 1] = [-1, 3, -5]
+            sage: g.get_dominated_strategies()
+            [[], [], [1]]
 
         An example where the column player's third strategy is dominated by
-        the mixed strategy of playing their 1st and 2nd strategies with equal probability::
+        the mixed strategy of playing their 1st and 2nd strategies with equal probability.
+        Note that this method only returns strategies which are dominated by pure strategies::
 
             sage: g = NormalFormGame()
             sage: g.add_player(3)
@@ -1131,7 +1134,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[2, 2][0] = 3
             sage: g[2, 2][1] = 2
             sage: g.get_dominated_strategies()
-            [[0, 1], [0, 2]] # we expect an error for now
+            [[0], []]
         """
         dominated_strategies = []
 
@@ -1147,7 +1150,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 if all(self.utilities[profile][index] < self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
                     if first_strategy not in p_dominated_strategies:
                         p_dominated_strategies.append(first_strategy)
-                
+
                 elif all(self.utilities[profile][index] > self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
                     if second_strategy not in p_dominated_strategies:
                         p_dominated_strategies.append(second_strategy)
