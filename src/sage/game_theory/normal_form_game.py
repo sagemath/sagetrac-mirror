@@ -1134,17 +1134,10 @@ class NormalFormGame(SageObject, MutableMapping):
             [[0, 1], [0, 2]] # we expect an error for now
         """
         dominated_strategies = []
-        players = self.players
 
-        for index, p in enumerate(players):
+        for index in range(len(self.players)):
             p_dominated_strategies = []
-            profiles = []
-            for i in range(p.num_strategies):
-                L = []
-                for strategy_profile in self.utilities.keys():
-                    if strategy_profile[index] == i:
-                        L.append(strategy_profile)
-                profiles.append(tuple(sorted(L))) #profiles is a list of tuples for all keys which the player plays a certain strategy
+            profiles = self._partition_strategy_profiles(index)
 
             pairs_of_profiles = Combinations(profiles, 2).list()
             for tuple_pair in pairs_of_profiles:
