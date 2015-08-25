@@ -615,6 +615,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
 from sage.misc.package import is_package_installed
 from sage.misc.temporary_file import tmp_filename
+from sage.combinat.combination import Combinations
 
 try:
     from gambit import Game
@@ -952,6 +953,155 @@ class NormalFormGame(SageObject, MutableMapping):
         for strategy_profile in self.utilities:
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
+
+    def get_dominated_strategies(self):
+        """
+        A method that returns the indices of the dominated strategies for all players.
+
+        EXAMPLES::
+
+        An example with no dominated strategies::
+
+            sage: A = matrix([[3, 1], [0, 2]])
+            sage: B = matrix([[2, 1], [0, 3]])
+            sage: battle_of_the_sexes = NormalFormGame([A, B])
+            sage: battle_of_the_sexes
+            Normal Form Game with the following utilities: {...}
+            sage: d = {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
+            sage: battle_of_the_sexes == d
+            True
+            sage: battle_of_the_sexes.get_dominated_strategies()
+            [[], []]
+
+            sage: A = matrix([[0, 3], [5, -1]])
+            sage: B = matrix([[1, 5], [10, 34]])
+            sage: g = NormalFormGame([A, B])
+            sage: g
+            Normal Form Game with the following utilities: {...}
+            sage: d = {(0, 1): [3, 5], (1, 0): [5, 10], (0, 0): [0, 1], (1, 1): [-1, 34]}
+            sage: g == d
+            True
+            sage: g.get_dominated_strategies()
+            [[], [0]]
+
+            sage: A = matrix([[-1, -5], [0, -2]])
+            sage: B = matrix([[-1, 0], [-5, -2]])
+            sage: Prisoners_Dilemma = NormalFormGame([A, B])
+            sage: Prisoners_Dilemma
+            Normal Form Game with the following utilities: {...}
+            sage: d = {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-1, -1], (1, 1): [-2, -2]}
+            sage: Prisoners_Dilemma == d
+            True
+            sage: Prisoners_Dilemma.get_dominated_strategies()
+            [[0], [0]]
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(7)
+            sage: g.add_player(1)
+            sage: g[0, 0][0] = 0
+            sage: g[0, 0][1] = 1
+            sage: g[1, 0][0] = 2
+            sage: g[1, 0][1] = 3
+            sage: g[2, 0][0] = 4
+            sage: g[2, 0][1] = 5
+            sage: g[3, 0][0] = 6
+            sage: g[3, 0][1] = 5
+            sage: g[4, 0][0] = 7
+            sage: g[4, 0][1] = 8
+            sage: g[5, 0][0] = 9
+            sage: g[5, 0][1] = 10
+            sage: g[6, 0][0] = 11
+            sage: g[6, 0][1] = 12
+            sage: g.get_dominated_strategies() # strategies may be added multiple times
+            [[0, 1, 2, 3, 4, 5], []]
+
+        A three player example::
+
+            sage: threegame = NormalFormGame()
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame[0, 0, 0][0] = 0
+            sage: threegame[0, 0, 0][1] = 0
+            sage: threegame[0, 0, 0][2] = 0
+            sage: threegame[0, 0, 1][0] = 0
+            sage: threegame[0, 0, 1][1] = 0
+            sage: threegame[0, 0, 1][2] = 0
+            sage: threegame[0, 1, 0][0] = 5
+            sage: threegame[0, 1, 0][1] = 10
+            sage: threegame[0, 1, 0][2] = 5
+            sage: threegame[0, 1, 1][0] = 20
+            sage: threegame[0, 1, 1][1] = 5
+            sage: threegame[0, 1, 1][2] = 10
+            sage: threegame[1, 0, 0][0] = 0
+            sage: threegame[1, 0, 0][1] = 0
+            sage: threegame[1, 0, 0][2] = 0
+            sage: threegame[1, 0, 1][0] = 0
+            sage: threegame[1, 0, 1][1] = 0
+            sage: threegame[1, 0, 1][2] = 0
+            sage: threegame[1, 1, 0][0] = 5
+            sage: threegame[1, 1, 0][1] = 10
+            sage: threegame[1, 1, 0][2] = 5
+            sage: threegame[1, 1, 1][0] = 10
+            sage: threegame[1, 1, 1][1] = 5
+            sage: threegame[1, 1, 1][2] = 10
+            sage: threegame
+            Normal Form Game with the following utilities: {...}
+            sage: d = {(0, 0, 0): [0, 0, 0], (0, 0, 1): [0, 0, 0], (0, 1, 0): [5, 10, 5], (0, 1, 1): [20, 5, 10], (1, 0, 0): [0, 0, 0], (1, 0, 1): [0, 0, 0], (1, 1, 0): [5, 10, 5], (1, 1, 1): [10, 5, 10]}
+            sage: threegame == d
+            True
+            sage: threegame.get_dominated_strategies()
+            [[1], [0], [0]]
+
+        An example where the column player's third strategy is dominated by
+        the mixed strategy of playing their 1st and 2nd strategies with equal probability::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(3)
+            sage: g[0, 0][0] = 0
+            sage: g[0, 0][1] = 2
+            sage: g[0, 1][0] = 3
+            sage: g[0, 1][1] = 1
+            sage: g[0, 2][0] = 2
+            sage: g[0, 2][1] = 3
+            sage: g[1, 0][0] = 1
+            sage: g[1, 0][1] = 4
+            sage: g[1, 1][0] = 2
+            sage: g[1, 1][1] = 1
+            sage: g[1, 2][0] = 4
+            sage: g[1, 2][1] = 1
+            sage: g[2, 0][0] = 2
+            sage: g[2, 0][1] = 1
+            sage: g[2, 1][0] = 4
+            sage: g[2, 1][1] = 4
+            sage: g[2, 2][0] = 3
+            sage: g[2, 2][1] = 2
+            sage: g.get_dominated_strategies()
+            [[0, 1], [0, 2]] # we expect an error for now
+        """
+        dominated_strategies = []
+        players = self.players
+
+        for index, p in enumerate(players):
+            p_dominated_strategies = []
+            profiles = []
+            for i in range(p.num_strategies):
+                L = []
+                for strategy_profile in self.utilities.keys():
+                    if strategy_profile[index] == i:
+                        L.append(strategy_profile)
+                profiles.append(tuple(sorted(L))) #profiles is a list of tuples for all keys which the player plays a certain strategy
+
+            pairs_of_profiles = Combinations(profiles, 2).list()
+            for tuple_pair in pairs_of_profiles:
+                if all(self.utilities[tuple_pair[0][num]][index] < self.utilities[tuple_pair[1][num]][index] for num in range(len(tuple_pair[0]))):
+                    p_dominated_strategies.append(tuple_pair[0][0][index])
+                if all(self.utilities[tuple_pair[1][num]][index] < self.utilities[tuple_pair[0][num]][index] for num in range(len(tuple_pair[0]))):
+                    p_dominated_strategies.append(tuple_pair[1][0][index])
+            dominated_strategies.append(p_dominated_strategies)
+        return dominated_strategies
+
 
     def payoff_matrices(self):
         r"""
