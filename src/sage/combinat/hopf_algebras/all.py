@@ -6,5 +6,3 @@ WQSym = WordQuasiSymmetricFunctions
 
 from pbt import PlanarBinaryTreeFunctions
 PBT = PlanarBinaryTreeFunctions
-
-

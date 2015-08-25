@@ -59,7 +59,11 @@ class PlanarBinaryTreeFunctions(GenericGradedConnexeHopfAlgebra):
     def _extra_categories_(self, R):
         return [BidendriformBialgebras(R).WithRealizations()]
 
-    def __init__(self, R, left_to_right=False):
+    @staticmethod
+    def __classcall_private__(cls, R, left_to_right=False):
+        return super(PlanarBinaryTreeFunctions, cls).__classcall__(cls, R, left_to_right)
+
+    def __init__(self, R, left_to_right):
         """
         INPUT:
 
@@ -83,6 +87,12 @@ class PlanarBinaryTreeFunctions(GenericGradedConnexeHopfAlgebra):
              o
               \
                o
+
+        TESTS::
+
+            sage: PBT(QQ) == PBT(QQ, False)
+            True
+
         """
         GenericGradedConnexeHopfAlgebra.__init__(self, R)
         self._left_to_right = left_to_right

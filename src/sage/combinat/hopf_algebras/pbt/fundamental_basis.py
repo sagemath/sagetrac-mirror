@@ -97,7 +97,7 @@ class Fundamental(PlanarBinaryTreeFunctions._Basis):
     """
     _prefix_ = "P"
 
-    def build_morphisms(self):
+    def _morphisms_(self):
         self._P_to_F_FQSym()
 
     def _P_to_F_FQSym(self):

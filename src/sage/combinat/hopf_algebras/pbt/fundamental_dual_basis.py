@@ -87,7 +87,7 @@ class FundamentalDual(PlanarBinaryTreeFunctions._Basis):
     """
     _prefix_ = "Q"
 
-    def build_morphisms(self):
+    def _morphisms_(self):
         self._morph_G_to_Q_FQSym()
         self._morph_Q_P()
 
@@ -130,11 +130,7 @@ class FundamentalDual(PlanarBinaryTreeFunctions._Basis):
             on_basis=lambda bt: self.sum_of_monomials(map(
                 lambda sigma: self._get_tree(sigma.inverse()),
                 self._get_sylvester_class(bt)
-            )), codomain=self
-            #### FIXME:: must be invertible ####
-            #triangular="upper",
-            #inverse_on_support=lambda bt: self._get_tree(self._get_permutation(bt).inverse()),
-            #cmp=lambda t1, t2: self._get_permutation(t1) >= self._get_permutation(t2)
+            )), codomain=self,
         ).register_as_coercion()
 
     def dual_basis(self):
