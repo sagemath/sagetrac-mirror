@@ -1140,11 +1140,11 @@ class NormalFormGame(SageObject, MutableMapping):
             profiles = self._partition_strategy_profiles(index)
 
             pairs_of_profiles = Combinations(profiles, 2).list()
-            for tuple_pair in pairs_of_profiles:
-                if all(self.utilities[tuple_pair[0][num]][index] < self.utilities[tuple_pair[1][num]][index] for num in range(len(tuple_pair[0]))):
-                    p_dominated_strategies.append(tuple_pair[0][0][index])
-                if all(self.utilities[tuple_pair[1][num]][index] < self.utilities[tuple_pair[0][num]][index] for num in range(len(tuple_pair[0]))):
-                    p_dominated_strategies.append(tuple_pair[1][0][index])
+            for pair in pairs_of_profiles:
+                if all(self.utilities[profile][index] < self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
+                    p_dominated_strategies.append(pair[0][0][index])
+                if all(self.utilities[profile][index] > self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
+                    p_dominated_strategies.append(pair[1][0][index])
             dominated_strategies.append(p_dominated_strategies)
         return dominated_strategies
 
