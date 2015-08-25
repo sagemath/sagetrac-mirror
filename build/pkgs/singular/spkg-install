@@ -27,13 +27,13 @@ fi
 
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-    WITH_DEBUG="--with-debug"
+    WITH_DEBUG="--enable-debug --disable-optimizationflags"
     ENABLE_DEBUGOUTPUT="--enable-debugoutput"
 
     CFLAGS="-O0 -g $CFLAGS"
     CXXFLAGS="-O0 -g $CXXFLAGS"
 else
-    WITH_DEBUG="--without-debug"
+    WITH_DEBUG="--disable-debug"
     ENABLE_DEBUGOUTPUT="--disable-debugoutput"
 
     # By default, parts of Singular are compiled with -O2 and parts
@@ -140,7 +140,7 @@ config()
                 --enable-factory \
                 --disable-doc \
                 $SINGULAR_CONFIGURE \
-                --with-debug
+                $WITH_DEBUG
 
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to configure Singular."
@@ -175,7 +175,8 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --with-gmp="$SAGE_LOCAL" 
+                --with-gmp="$SAGE_LOCAL" \
+                $WITH_DEBUG
                 
                 
 #                --enable-streamio --without-Singular
