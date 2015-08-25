@@ -1,3 +1,73 @@
+diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
+--- ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:07.391998888 +0200
++++ ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:59.927433872 +0200
+@@ -18,6 +18,7 @@ struct snumber; typedef struct snumber *
+ typedef struct { mpz_ptr base;  unsigned long exp; } ZnmInfo;
+ 
+ BOOLEAN nrnInitChar    (coeffs r, void*);
++number nrnMapGMP(number from, const coeffs /*src*/, const coeffs dst);
+ 
+ #endif
+ 
+diff -rupN a/libpolys/coeffs/rmodulo2m.h b/libpolys/coeffs/rmodulo2m.h
+--- a/libpolys/coeffs/rmodulo2m.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rmodulo2m.h	2015-08-25 12:05:09.850443994 +0200
+@@ -16,6 +16,7 @@ struct snumber; typedef struct snumber *
+ #ifdef HAVE_RINGS
+ 
+ BOOLEAN nr2mInitChar    (coeffs r, void*);
++number  nr2mMapZp       (number from, const coeffs /*src*/, const coeffs dst);
+ 
+ #endif
+ #endif
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/rintegers.h
+--- a/libpolys/coeffs/rintegers.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rintegers.h	2015-08-25 04:20:52.296192386 +0200
+@@ -28,6 +28,8 @@ BOOLEAN nrzInitChar    (coeffs r,  void
+ // will be reused by rmodulon.cc
+ void    nrzWrite       (number a, const coeffs r);
+ 
++number  nrzInit        (long i, const coeffs r);
++
+ #endif
+ 
+ #endif
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/rintegers.cc
+--- a/libpolys/coeffs/rintegers.cc	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rintegers.cc	2015-08-25 04:20:33.660749263 +0200
+@@ -36,7 +36,6 @@ int     nrzSize        (number a, const
+ void    nrzDelete      (number *a, const coeffs r);
+ BOOLEAN nrzGreaterZero (number k, const coeffs r);
+ number  nrzMult        (number a, number b, const coeffs r);
+-number  nrzInit        (long i, const coeffs r);
+ long    nrzInt         (number &n, const coeffs r);
+ number  nrzAdd         (number a, number b, const coeffs r);
+ number  nrzSub         (number a, number b, const coeffs r);
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/longrat.h
+--- a/libpolys/coeffs/longrat.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/longrat.h	2015-08-25 03:13:10.349703511 +0200
+@@ -13,6 +13,9 @@
+ 
+ struct snumber; typedef struct snumber  *number;
+ 
++number   nlGetNumerator(number &n, const coeffs r);
++number   nlGetDenom(number &n, const coeffs r);
++
+ /*-----------------------------------------------------------------*/
+ /**
+ **  'SR_INT' is the type of those integers small enough to fit into  29  bits.
+diff -rupN a/libpolys/coeffs/longrat.cc b/libpolys/coeffs/longrat.cc
+--- a/libpolys/coeffs/longrat.cc	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/longrat.cc	2015-08-25 03:13:04.064891751 +0200
+@@ -70,8 +70,6 @@ void     nlPower(number x, int exp, numb
+ const char *   nlRead (const char *s, number *a, const coeffs r);
+ void     nlWrite(number a, const coeffs r);
+ 
+-number   nlGetDenom(number &n, const coeffs r);
+-number   nlGetNumerator(number &n, const coeffs r);
+ void     nlCoeffWrite(const coeffs r, BOOLEAN details);
+ number   nlChineseRemainder(number *x, number *q,int rl, const coeffs C);
+ number   nlFarey(number nN, number nP, const coeffs CF);
 diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
 --- a/Singular/ipprint.cc	2015-08-23 16:41:08.243790168 +0200
 +++ b/Singular/ipprint.cc	2015-08-23 16:41:42.179806546 +0200
@@ -26,105 +96,15 @@ diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
    rWrite(r, TRUE);
    return FALSE;
  }
-diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
---- a/libpolys/coeffs/rmodulon.h	2014-10-28 17:57:19.000000000 +0100
-+++ b/libpolys/coeffs/rmodulon.h	2015-01-31 16:34:10.000000000 +0100
-@@ -63,5 +63,6 @@ void    nrnInitExp(unsigned long c, cons
- coeffs  nrnQuot1(number c, const coeffs r);
+diff -rupN a/Singular/ipprint.cc b/Singular/libsingular.h
+--- a/Singular/libsingular.h	2015-08-25 00:53:26.000000000 +0200
++++ b/Singular/libsingular.h	2015-08-25 12:12:04.803693562 +0200
+@@ -28,8 +28,6 @@
  
- number nrnMapQ(number from, const coeffs src, const coeffs dst);
-+number nrnMapGMP(number from, const coeffs /*src*/, const coeffs dst);
- #endif
- #endif
-diff -rupN a/libpolys/polys/ext_fields/algext.cc b/libpolys/polys/ext_fields/algext.cc
---- a/libpolys/polys/ext_fields/algext.cc	2014-10-28 17:57:19.000000000 +0100
-+++ b/libpolys/polys/ext_fields/algext.cc	2015-01-31 00:57:10.000000000 +0100
-@@ -78,33 +78,7 @@ static const n_coeffType ID = n_algExt;
- /* minimal polynomial */
- #define naMinpoly naRing->qideal->m[0]
- 
--/// forward declarations
--BOOLEAN  naGreaterZero(number a, const coeffs cf);
--BOOLEAN  naGreater(number a, number b, const coeffs cf);
--BOOLEAN  naEqual(number a, number b, const coeffs cf);
--BOOLEAN  naIsOne(number a, const coeffs cf);
--BOOLEAN  naIsMOne(number a, const coeffs cf);
--BOOLEAN  naIsZero(number a, const coeffs cf);
--number   naInit(long i, const coeffs cf);
--int      naInt(number &a, const coeffs cf);
--number   naNeg(number a, const coeffs cf);
--number   naInvers(number a, const coeffs cf);
--number   naAdd(number a, number b, const coeffs cf);
--number   naSub(number a, number b, const coeffs cf);
--number   naMult(number a, number b, const coeffs cf);
--number   naDiv(number a, number b, const coeffs cf);
--void     naPower(number a, int exp, number *b, const coeffs cf);
--number   naCopy(number a, const coeffs cf);
--void     naWriteLong(number &a, const coeffs cf);
--void     naWriteShort(number &a, const coeffs cf);
--number   naGetDenom(number &a, const coeffs cf);
--number   naGetNumerator(number &a, const coeffs cf);
--number   naGcd(number a, number b, const coeffs cf);
--int      naSize(number a, const coeffs cf);
--void     naDelete(number *a, const coeffs cf);
--void     naCoeffWrite(const coeffs cf, BOOLEAN details);
--//number   naIntDiv(number a, number b, const coeffs cf);
--const char * naRead(const char *s, number *a, const coeffs cf);
-+
- 
- static BOOLEAN naCoeffIsEqual(const coeffs cf, n_coeffType n, void * param);
- 
-diff -rupN a/libpolys/polys/ext_fields/algext.h b/libpolys/polys/ext_fields/algext.h
---- a/libpolys/polys/ext_fields/algext.h	2014-10-28 17:57:19.000000000 +0100
-+++ b/libpolys/polys/ext_fields/algext.h	2015-01-31 16:16:11.000000000 +0100
-@@ -47,6 +47,35 @@ BOOLEAN  naInitChar(coeffs cf, void* inf
- 
- /// if m == var(i)/1 => return i,
- int naIsParam(number, const coeffs);
-+/// forward declarations
-+BOOLEAN  naGreaterZero(number a, const coeffs cf);
-+BOOLEAN  naGreater(number a, number b, const coeffs cf);
-+BOOLEAN  naEqual(number a, number b, const coeffs cf);
-+BOOLEAN  naIsOne(number a, const coeffs cf);
-+BOOLEAN  naIsMOne(number a, const coeffs cf);
-+BOOLEAN  naIsZero(number a, const coeffs cf);
-+number   naInit(long i, const coeffs cf);
-+int      naInt(number &a, const coeffs cf);
-+number   naNeg(number a, const coeffs cf);
-+number   naInvers(number a, const coeffs cf);
-+number   naAdd(number a, number b, const coeffs cf);
-+number   naSub(number a, number b, const coeffs cf);
-+number   naMult(number a, number b, const coeffs cf);
-+number   naDiv(number a, number b, const coeffs cf);
-+void     naPower(number a, int exp, number *b, const coeffs cf);
-+number   naCopy(number a, const coeffs cf);
-+void     naWriteLong(number &a, const coeffs cf);
-+void     naWriteShort(number &a, const coeffs cf);
-+number   naGetDenom(number &a, const coeffs cf);
-+number   naGetNumerator(number &a, const coeffs cf);
-+number   naGcd(number a, number b, const coeffs cf);
-+int      naSize(number a, const coeffs cf);
-+void     naDelete(number *a, const coeffs cf);
-+void     naCoeffWrite(const coeffs cf, BOOLEAN details);
-+//number   naIntDiv(number a, number b, const coeffs cf);
-+const char * naRead(const char *s, number *a, const coeffs cf);
-+number naMap00(number a, const coeffs src, const coeffs dst);
-+
- 
- struct  spolyrec;
- typedef struct spolyrec    polyrec;
-diff -rupN a/Singular/libsingular.h b/Singular/libsingular.h
---- a/Singular/libsingular.h	2014-10-28 17:57:18.000000000 +0100
-+++ b/Singular/libsingular.h	2015-01-31 16:34:14.000000000 +0100
-@@ -26,6 +26,11 @@
- #include <Singular/attrib.h>
- #include <misc/options.h>
- 
-+#include <polys/ext_fields/algext.h>
-+#include <kernel/maps/fast_maps.h>
-+#include <coeffs/rintegers.h>
-+#include <coeffs/rmodulon.h>
-+number nr2mMapZp(number from, const coeffs /*src*/, const coeffs dst);
  void siInit(char *);
  
- /* we need this function in Sage*/
+-/* we need this function in Sage*/
+-number nr2mMapZp(number from); // TODO: replace with something else...
+ 
+ 
+ #endif // #ifndef LIBSINGULAR__H

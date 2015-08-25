@@ -262,17 +262,29 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s"%(base_ring.variable_name(), base_ring,MPolynomialRing_libsingular)
         minpoly = base_ring.polynomial()(k.gen())
         
-        ##print "k._singular_=",k._singular_()
-        ##print "GFcharacteristic=",characteristic
+        #print "k._singular_=",k._singular_()
+        #print "GFcharacteristic=",characteristic
+
+        ###################################### first variant: no control of minpoly
+        # following example passes:
+        # sage: K.<a> = GF(5^3) 
+        # sage: R.<x,y,z> = PolynomialRing(K) 
+        # sage: K( (4*R(a)^2 + R(a))^3 )
 
         #_param = <GFInfo *>omAlloc(sizeof(GFInfo))
-            
+           
         #_param.GFChar     = characteristic
         #_param.GFDegree   = base_ring.degree()      
         #_param.GFPar_name = omStrDup(base_ring.gen())
 
         #_cf = nInitChar( n_GF, _param )
         #_ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
+        ###################################### second variant: using AlgExt and minpoly: 
+        # following example eats all mem:
+        # sage: K.<a> = GF(5^3) 
+        # sage: R.<x,y,z> = PolynomialRing(K) 
+        # sage: K( (4*R(a)^2 + R(a))^3 )
 
         ch = base_ring.characteristic()
         F = ch.factor()
@@ -282,14 +294,16 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         cexponent = F[0][1]
 
         _ext_names = <char**>omAlloc0(sizeof(char*))
-        extname = k.gen()
-        _name = k._names[0]      
-        _ext_names[0] = omStrDup(_name)
+        #extname = k.gen()
+        #_name = k._names[0]      
+        #_ext_names[0] = omStrDup(_name)
+        _ext_names[0] = omStrDup(base_ring.gen())
         _cfr = rDefault( modbase, 1, _ext_names ); 
 
         _cfr.qideal = idInit(1,1)
+        ##print "minpoly", minpoly;
         _cfr.qideal.m[0] = minpoly._poly;
-        # rComplete(_cfr, 1)
+        rComplete(_cfr, 1)
         extParam.r =  _cfr;
 
         _cf = nInitChar( n_algExt,  <void *>&extParam) 
@@ -303,7 +317,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
-
+        #print  " creating NumberField "
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
