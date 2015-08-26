@@ -28,12 +28,19 @@ from sage.rings.integer_ring                  import ZZ
 
 from sage.combinat.tableaux.abstract_tableaux import AbstractTableaux
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
+from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableauFactory
 
 class BadShapeTableaux(AbstractTableaux):
     r"""
     Parent class of all bad shape tableaux.
     
     See BadShapeTableau for the Element class.
+
+    EXAMPLES::
+
+        sage: B = BadShapeTableaux(); B
+        Bad Shape Tableaux
+        sage: B.an_element()
 
     TESTS::
 
@@ -43,31 +50,6 @@ class BadShapeTableaux(AbstractTableaux):
     Element = BadShapeTableau
 
     def _element_constructor_(self, dct, check=True):
-        r"""
-        Construct a new BadShapeTableau, optionally validating input.
-
-        INPUT:
-
-        - ``dct`` -- a dictionary (or more generally something
-          passable to ``dict``) whose keys are pairs of integers
-        - ``check`` -- (default: ``True``) if ``True``, then check that
-          the keys of ``dct`` are in fact pairs of integers
-
-        TESTS::
-
-            sage: BadShapeTableaux()({(9, 8): 7, (6, 5): 3}) # indirect doctest
-            {(9, 8): 7, (6, 5): 3}
-            sage: BadShapeTableaux()({('fly', 1): 5}, check=False)
-            {('fly', 1): 5}
-            sage: BadShapeTableaux()({('fly', 1): 5})
-            Traceback (most recent call last):
-            ...
-            ValueError: keys must be pairs of integers
-            sage: BadShapeTableaux()('horse')
-            Traceback (most recent call last):
-            ...
-            ValueError: dct must be a dictionary
-        """
         try:
             dct = dict(dct)
         except:
@@ -78,6 +60,9 @@ class BadShapeTableaux(AbstractTableaux):
                 raise ValueError('keys must be pairs of integers')
 
         return self._new_element(dct)
+    # For user convenience, documentation for this method has
+    #    been placed on the bad shape tableau factory function.
+    _element_constructor_.__doc__ = BadShapeTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -85,8 +70,9 @@ class BadShapeTableaux(AbstractTableaux):
 
         TESTS::
 
-            sage: BadShapeTableaux().an_element() # indirect doctest
-            {(1, 2): 4, (2, -2): 'cow', (1, 1): 0, (-1, -2): (1, 2)}
+            sage: b = BadShapeTableaux().an_element() # indirect doctest
+            sage: sorted(b.dict().items())
+            [((-1, -2), (1, 2)), ((1, 1), 0), ((1, 2), 4), ((2, -2), 'cow')]
         """
         return self({(1, 1): 0, (2, -2): 'cow',
                     (-1, -2): (1, 2), (1, 2): 4})

@@ -402,7 +402,7 @@ class AbstractTableau(Element):
 
     def weight_counter(self):
         r"""
-        Return a `class:Counter` mapping values of ``self`` to multiplicities.
+        Return a class:`Counter` mapping values of ``self`` to multiplicities.
 
         TESTS::
 
@@ -420,8 +420,7 @@ class AbstractTableau(Element):
 
         TESTS::
 
-            sage: b = BadShapeTableau({(3, 3): 2, (2, 2): 1, (1, 1): -1})
-            sage: b.size()
+            sage: BadShapeTableau({(3, 3): 2, (2, 2): 1, (1, 1): -1}).size()
             3
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).size()
             4

@@ -2,8 +2,8 @@ r"""
 AbstractTableaux Parent class.
 
 This is an abstract base class for numerous tableaux-like
-Parent classes. See `class:AbstractTableau' for the corresponding
-Element class.
+Parent classes. See class:`AbstractTableau` for the
+corresponding Element class.
 
 AUTHORS:
 
@@ -35,8 +35,16 @@ from sage.combinat.tableaux.abstract_tableau import AbstractTableau
 class AbstractTableaux(UniqueRepresentation, Parent):
     r"""
     Parent class of all abstract tableaux.
-    
+
     See AbstractTableau for the Element class.
+
+    EXAMPLES::
+
+        sage: BadShapeTableaux()
+        Bad Shape Tableaux
+        sage: b = BadShapeTableaux()({(1, 2): -1, (2, 3): 'kitty'})
+        sage: set(b.iter_entries()) == set(-1, 'kitty')
+        True
     """
     Element = AbstractTableau
 

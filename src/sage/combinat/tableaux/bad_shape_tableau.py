@@ -35,6 +35,12 @@ class BadShapeTableau(AbstractTableau):
 
     A tableau of bad shape is a tableau whose cells are pairs of
     integers and whose entries are arbitrary.
+
+    EXAMPLES::
+
+        sage: b = BadShapeTableau({(7, 7): 7, (9, 6): 3});
+        sage: b.to_word()
+        word: 37
     """
     def __init__(self, parent, dct):
         r"""
@@ -140,8 +146,32 @@ class BadShapeTableau(AbstractTableau):
 # Use a factory method to create class:`BadShapeTableau`.
 def BadShapeTableauFactory(*args, **kwds):
     r"""
-    (See `class:BadShapeTableau` for docstring.)
+    Construct a new BadShapeTableau, optionally validating input.
+
+    INPUT:
+
+    - ``dct`` -- a dictionary (or more generally something
+      passable to ``dict``) whose keys are pairs of integers
+    - ``check`` -- (default: ``True``) if ``True``, then check that
+      the keys of ``dct`` are in fact pairs of integers
+
+    EXAMPLES::
+
+        sage: BadShapeTableau({(9, 8): 7, (6, 5): 3}).dict()[(9, 8)]
+        7
+
+    TESTS::
+
+        sage: BadShapeTableaux()({('fly', 1): 5}, check=False) # indirect doctest
+        {('fly', 1): 5}
+        sage: BadShapeTableaux()({('fly', 1): 5})
+        Traceback (most recent call last):
+        ...
+        ValueError: keys must be pairs of integers
+        sage: BadShapeTableaux()('horse')
+        Traceback (most recent call last):
+        ...
+        ValueError: dct must be a dictionary
     """
     from bad_shape_tableaux import BadShapeTableaux
     return BadShapeTableaux()(*args, **kwds)
-BadShapeTableauFactory.__doc__ = BadShapeTableau.__doc__
