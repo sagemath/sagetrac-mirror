@@ -1,7 +1,9 @@
 r"""
 AbstractTableau Element class.
 
-See `class:AbstractTableaux` for the corresponding Parent class.
+This is an abstract base class for numerous tableaux-like
+Element classes. See class:`AbstractTableaux` for the
+corresponding Parent class.
 
 AUTHORS:
 
@@ -30,7 +32,7 @@ from sage.misc.abstract_method import abstract_method
 
 class AbstractTableau(Element):
     r"""
-    Abstract class for the various Element classes of tableaux.
+    Abstract base class for the various Element classes of tableaux.
 
     A tableau is thought of as a mapping which sends some pairs
     ``(x, y)`` (commonly, but not necessarily, pairs of nonnegative
@@ -38,25 +40,31 @@ class AbstractTableau(Element):
     assumed to be comparable via `>` and `<`, and so are any two
     y-coordinates.
 
-    Subclasses are welcome to add further data (e.g., a skew shape).
-    Tableaux are assumed to be immutable; see :trac:`15862`.
-
     The pairs ``(x, y)`` in the domain of a tableau are called its
     *cells*, and their images under the tableaux are referred to as
     the *entries* in those cells.
 
+    Subclasses are welcome to add further data (e.g., a skew shape).
+    Tableaux are assumed to be immutable, see :trac:`15862`, so
+    in particular entries are assumed to be immutable.
     Subclasses must implement :meth:`_dict_unsafe`.
+
+    EXAMPLES::
+
+        sage: b = BadShapeTableau({(0, 0): 1, (1, 0): 2, (0, 1): 3})
+        sage: b.to_word_by_row()
+        word: 213
     """
     def __init__(self, parent, *args, **kwds):
         r"""
-        Initialize the `class:AbstractTableau`.
+        Initialize the class:`AbstractTableau`.
 
         Input normalization and validation should be done in parent classes,
         likely in their ``_element_constructor_`` method or coercions.
         Element class initialization should be quite minimal.
 
         We need to either call Element's ``__init__`` method or
-        set `_parent` by hand.
+        set ``_parent`` by hand.
         
         TESTS::
 
@@ -69,7 +77,7 @@ class AbstractTableau(Element):
         r""""
         Return the hash of ``self`` based on the underlying mapping of
         cells to values.
-        
+
         TESTS::
 
             sage: b1 = BadShapeTableau({(2, 2): 1, (0, 0): 0})
@@ -90,7 +98,7 @@ class AbstractTableau(Element):
         r"""
         Provide rich comparison.
 
-        Equality and inequality are tested by comparing the underlying `_dict_unsafe`.
+        Equality and inequality are tested by comparing the underlying ``_dict_unsafe``.
 
         TESTS::
 
@@ -144,7 +152,7 @@ class AbstractTableau(Element):
     @abstract_method
     def _dict_unsafe(self):
         r"""
-        Return a dictionary representing the underlying data.
+        Return a dictionary representing the underlying mapping.
 
         It is unsafe to alter this dictionary or pass it along, since
         this might or might not mutate ``self`` and tableaux are assumed
@@ -168,8 +176,9 @@ class AbstractTableau(Element):
         r"""
         Return a list of lists given by grouping the values of ``self``.
 
-        Inner lists are the fibers of projection onto index `a` of keys,
-        sorted by index `b`. The outer list is sorted by index `a`.
+        Inner lists are the fibers of projection onto index `a` of
+        cell locations, sorted by index `b`. The outer list is sorted
+        by index `a`.
 
         TESTS::
 
@@ -332,18 +341,18 @@ class AbstractTableau(Element):
             sage: SkewTableau([[None,None],[None]]).cells_containing(3)
             []
         """
-
         return sorted([c for c, v
                        in six.iteritems(self._dict_unsafe())
-                       if v==i], key=lambda c: c[1])
+                           if v==i], key=lambda c: c[1])
 
     def to_word_by_row(self):
         r"""
         Return the row reading word.
 
         More precisely, return a :class:`~sage.combinat.words.word.FiniteWord_list`
-        obtained from reading entries row-by-row, from the topmost row to
-        the bottommost, in increasing order of column index within each row.
+        obtained from reading entries row-by-row, from the bottom-most
+        row to the top-most in English notation, from left to right
+        within each row.
 
         TESTS::
 
@@ -351,14 +360,14 @@ class AbstractTableau(Element):
             sage: s.to_word_by_row()
             word: fly,0,0,fruit,1
 
-            sage: Tableau([[1,2],[3,4]]).to_word_by_row()
+            sage: SkewTableau([[None, 1,2],[None, 3,4]]).to_word_by_row()
             word: 3412
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
+            sage: SkewTableau([[None, 1, 4, 6], [None, 2, 5], [None, 3]]).to_word_by_row()
             word: 325146
 
-            sage: Tableau([[1,2],[3,4]]).to_word()
+            sage: SkewTableau([[None, 1, 2],[None, 3, 4]]).to_word()
             word: 3412
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
+            sage: SkewTableau([[None, 1, 4, 6], [None, 2, 5], [None, 3]]).to_word()
             word: 325146
         """
         from sage.combinat.words.word import Word
@@ -369,22 +378,24 @@ class AbstractTableau(Element):
         Return the column reading word.
 
         More precisely, return a :class:`~sage.combinat.words.word.FiniteWord_list`
-        obtained from reading entries row-by-row, from the topmost row to
-        the bottommost, in increasing order of column index within each row.
+        obtained from reading entries column-by-column, from the left-most
+        column to the right-most in English notation, from the bottom to
+        the top within each column.
 
         TESTS::
 
             sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
             sage: s.to_word_by_column()
-            word: 1,0,fruit,0,fly
+            word: fly,0,fruit,0,1
+            1,0,fruit,0,fly
 
-            sage: Tableau([[1,2],[3,4]]).to_word_by_column()
+            sage: SkewTableau([[None, 1, 2], [None, 3, 4]]).to_word_by_column()
             word: 3142
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
+            sage: SkewTableau([[None, 1, 4, 6], [None, 2, 5], [None, 3]]).to_word_by_column()
             word: 321546
         """
         from sage.combinat.words.word import Word
-        return Word(v for x in reversed(self.columns()) for v in x)
+        return Word(v for x in self.columns() for v in reversed(x))
 
     # Alias
     to_word = to_word_by_row

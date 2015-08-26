@@ -135,8 +135,9 @@ class SkewTableau(BadShapeTableau):
 
     def _richcmp_(self, other, op):
         r"""
-        Provide equality and inequality testing by comparing the
-        underlying st representations.
+        Provide rich comparison.
+
+        Equality and inequality are tested by comparing the underlying ``_st``.
 
         TESTS::
 
