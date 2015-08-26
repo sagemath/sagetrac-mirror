@@ -528,7 +528,7 @@ strategy is dominated::
     sage: A = matrix([[-1, -5], [0, -2]])
     sage: B = matrix([[-1, 0], [-5, -2]])
     sage: Prisoners_Dilemma = NormalFormGame([A, B])
-    sage: Prisoners_Dilemma.get_dominated_strategies()
+    sage: Prisoners_Dilemma.get_purely_dominated_strategies()
     [[0], [0]]
 
 We can also obtain strategies which are weakly dominated::
@@ -609,7 +609,7 @@ REFERENCES:
 
 AUTHOR:
 
-- James Campbell and Vince Knight (06-2014): Original version
+- James Campbell, Francis Rhys Ward, and Vince Knight (06-2014): Original version
 
 """
 
@@ -1027,7 +1027,7 @@ class NormalFormGame(SageObject, MutableMapping):
         return [sorted([profile for profile in self.utilities.keys() if profile[player_indx] == strategy]) for strategy in range(num_strategies)]
 
 
-    def get_dominated_strategies(self):
+    def get_purely_dominated_strategies(self):
         """
         A method that returns the indices of the strictly dominated strategies for all players.
 
@@ -1043,7 +1043,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d = {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
             sage: battle_of_the_sexes == d
             True
-            sage: battle_of_the_sexes.get_dominated_strategies()
+            sage: battle_of_the_sexes.get_purely_dominated_strategies()
             [[], []]
 
             sage: A = matrix([[0, 3], [5, -1]])
@@ -1054,7 +1054,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d = {(0, 1): [3, 5], (1, 0): [5, 10], (0, 0): [0, 1], (1, 1): [-1, 34]}
             sage: g == d
             True
-            sage: g.get_dominated_strategies()
+            sage: g.get_purely_dominated_strategies()
             [[], [0]]
 
             sage: A = matrix([[-1, -5], [0, -2]])
@@ -1065,7 +1065,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d = {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-1, -1], (1, 1): [-2, -2]}
             sage: Prisoners_Dilemma == d
             True
-            sage: Prisoners_Dilemma.get_dominated_strategies()
+            sage: Prisoners_Dilemma.get_purely_dominated_strategies()
             [[0], [0]]
 
             sage: g = NormalFormGame()
@@ -1085,7 +1085,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[5, 0][1] = 10
             sage: g[6, 0][0] = 11
             sage: g[6, 0][1] = 12
-            sage: g.get_dominated_strategies()
+            sage: g.get_purely_dominated_strategies()
             [[0, 1, 2, 3, 4, 5], []]
 
         Some three player examples::
@@ -1106,7 +1106,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[2, 0, 1] = [-1, 0, 6]
             sage: g[2, 1, 0] = [4, 0, 4]
             sage: g[2, 1, 1] = [-1, 3, 5]
-            sage: g.get_dominated_strategies()
+            sage: g.get_purely_dominated_strategies()
             [[], [], []]
 
             sage: g = NormalFormGame()
@@ -1125,7 +1125,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[2, 0, 1] = [-1, 0, -6]
             sage: g[2, 1, 0] = [4, 0, 4]
             sage: g[2, 1, 1] = [-1, 3, -5]
-            sage: g.get_dominated_strategies()
+            sage: g.get_purely_dominated_strategies()
             [[], [], [1]]
 
         An example where the column player's third strategy is dominated by
@@ -1153,7 +1153,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[2, 1][1] = 4
             sage: g[2, 2][0] = 3
             sage: g[2, 2][1] = 2
-            sage: g.get_dominated_strategies()
+            sage: g.get_purely_dominated_strategies()
             [[0], []]
         """
         dominated_strategies = []
