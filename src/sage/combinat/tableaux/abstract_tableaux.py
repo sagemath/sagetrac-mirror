@@ -43,7 +43,7 @@ class AbstractTableaux(UniqueRepresentation, Parent):
         sage: BadShapeTableaux()
         Bad Shape Tableaux
         sage: b = BadShapeTableaux()({(1, 2): -1, (2, 3): 'kitty'})
-        sage: set(b.iter_entries()) == set(-1, 'kitty')
+        sage: set(b.iter_entries()) == set((-1, 'kitty'))
         True
     """
     Element = AbstractTableau

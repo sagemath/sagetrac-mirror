@@ -1,7 +1,7 @@
 r"""
 BadShapeTableaux Parent class.
 
-See BadShapeTableau for the corresponding Element class.
+See class:`BadShapeTableau` for the corresponding Element class.
 
 AUTHORS:
 
@@ -40,11 +40,12 @@ class BadShapeTableaux(AbstractTableaux):
 
         sage: B = BadShapeTableaux(); B
         Bad Shape Tableaux
-        sage: B.an_element()
+        sage: b = B.an_element()
+        sage: sorted(b.dict().items())
+        [((-1, -2), (1, 2)), ((1, 1), 0), ((1, 2), 4), ((2, -2), 'cow')]
 
     TESTS::
 
-        sage: B = BadShapeTableaux()
         sage: TestSuite(B).run()
     """
     Element = BadShapeTableau

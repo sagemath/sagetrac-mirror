@@ -384,11 +384,8 @@ class AbstractTableau(Element):
 
         TESTS::
 
-            sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
-            sage: s.to_word_by_column()
+            sage: SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]]).to_word_by_column()
             word: fly,0,fruit,0,1
-            1,0,fruit,0,fly
-
             sage: SkewTableau([[None, 1, 2], [None, 3, 4]]).to_word_by_column()
             word: 3142
             sage: SkewTableau([[None, 1, 4, 6], [None, 2, 5], [None, 3]]).to_word_by_column()

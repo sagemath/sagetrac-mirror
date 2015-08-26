@@ -1,7 +1,9 @@
 r"""
-SkewTableax, SemistandardSkewTableaux, StandardSkewTableaux, and related Parent classes.
+SkewTableax, SemistandardSkewTableaux, StandardSkewTableaux, and related
+Parent classes.
 
-See :class:`SkewTableau` and its subclasses for the corresponding Element classes.
+See :class:`SkewTableau` and its subclasses for the corresponding Element
+classes.
 
 AUTHORS:
 
@@ -39,7 +41,6 @@ from sage.combinat.skew_partition              import SkewPartition, SkewPartiti
 from sage.matrix.all                           import zero_matrix
 from sage.rings.all                            import Integer, ZZ, QQ, NN
 from sage.rings.arith                          import factorial
-from sage.rings.infinity                       import PlusInfinity
 from sage.structure.global_options             import GlobalOptions
 from sage.structure.parent                     import Parent
 
@@ -51,10 +52,13 @@ from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableauFac
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableau
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableauFactory
 
+# TODO: GlobalOptions docs are not currently doctested. Manually make sure
+# these tests (and possibly the Partitions tests?) work after refactoring
+# has been completed.
 TableauOptions=GlobalOptions(name='skew tableaux',
     doc=r"""
-    Sets the global options for elements of the SkewTableau class.
-    By default, they are displayed as a list, LaTeXed as a Young
+    Sets the global options for elements of the :class:`SkewTableau` class.
+    By default, they are displayed as a list, `\LaTeX`ed as a Young
     diagram, and English convention is used.
     """,
     end_doc=r"""
@@ -63,10 +67,6 @@ TableauOptions=GlobalOptions(name='skew tableaux',
 
         Changing the ``convention`` for tableaux also changes the
         ``convention`` for partitions.
-
-    TODO: GlobalOptions docs are not currently doctested. Manually make sure
-    these tests (and possibly the Partitions tests?) work after refactoring
-    has been completed.
 
     If no parameters are set, then the function returns a copy of the
     options dictionary.
@@ -266,10 +266,13 @@ class SkewTableaux(BadShapeTableaux):
           shape
         - ``check`` -- boolean, ``True`` if input should be validated
 
-        TESTS::
+        EXAMPLE::
 
             sage: SkewTableaux().from_st([[None, 1, 2], [3, 4]])
             [[None, 1, 2], [3, 4]]
+
+        TESTS::
+
             sage: SkewTableaux().from_st([[None, 1, None], [3, 4]])
             Traceback (most recent call last):
             ...
@@ -327,12 +330,15 @@ class SkewTableaux(BadShapeTableaux):
           of the entries in that row from left to right.
         - ``check`` -- boolean, ``True`` if input should be validated
 
-        TESTS::
+        EXAMPLES::
 
             sage: SkewTableaux().from_expr([[1,1], [[5],[3,4],[1,2]]])
             [[None, 1, 2], [None, 3, 4], [5]]
             sage: SkewTableaux().from_expr([[1,1,1], [[5],[3,4]]])
             [[None, 3, 4], [None, 5], [None]]
+
+        TESTS::
+
             sage: SkewTableaux().from_expr([[1,2,1], [[5],[3,4]]])
             Traceback (most recent call last):
             ...
@@ -373,13 +379,18 @@ class SkewTableaux(BadShapeTableaux):
         - ``word`` -- the row reading word
         - ``check`` -- boolean, ``True`` if input should be validated
 
-        TESTS::
+        EXAMPLES::
 
             sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
-            sage: shape = t.shape()
-            sage: word  = t.to_word()
+            sage: shape = t.shape(); shape
+            [3, 2, 1] / [1, 1]
+            sage: word  = t.to_word(); word
+            word: 4213
             sage: SkewTableaux().from_shape_and_word(shape, word)
             [[None, 1, 3], [None, 2], [4]]
+
+        TESTS::
+
             sage: SkewTableaux().from_shape_and_word([[3, 2], [1]], [1, 2, 3])
             Traceback (most recent call last):
             ...
@@ -422,6 +433,8 @@ class SkewTableaux(BadShapeTableaux):
 
         EXAMPLES::
 
+            sage: SkewTableaux().from_dict({(0, 1): 1, (0, 2): 2, (1, 1): 2})
+            [[None, 1, 2], [None, 2]]
             sage: s1 = SkewTableau(dct={(0, 1): 1}); s1
             [[None, 1]]
             sage: s2 = SkewTableau([[None, 1], [None]]); s2
@@ -433,8 +446,6 @@ class SkewTableaux(BadShapeTableaux):
 
         TESTS::
 
-            sage: SkewTableaux().from_dict({(0, 1): 1, (0, 2): 2, (1, 1): 2})
-            [[None, 1, 2], [None, 2]]
             sage: SkewTableaux().from_dict({'cat': 1, (0, 2): 3})
             Traceback (most recent call last):
             ...
@@ -493,8 +504,26 @@ class SkewTableaux(BadShapeTableaux):
 
 class SemistandardSkewTableaux(SkewTableaux):
     r"""
-    Class of all semistandard skew tableaux, possibly with a given
-    maximum entry.
+    Parent class of all semistandard skew tableaux, possibly with a given
+    upper bound on entries.
+
+    See meth:`_element_constructor_` for Element class construction
+    options and further examples. See :class:`SemistandardSkewTableau`
+    for the Element class itself.
+
+    EXAMPLES::
+
+        sage: SemistandardSkewTableau([[None, 1, 2], [None, 3], [1]]).shape()
+        [3, 2, 1] / [1, 1]
+        sage: [[None, 1, 2], [None, 3], [1]] in SemistandardSkewTableaux(max_entry=4)
+        True
+        sage: [[None, 1, 2], [None, 3], [1]] in SemistandardSkewTableaux(max_entry=2)
+        False
+
+    TESTS::
+
+        sage: S = SemistandardSkewTableaux()
+        sage: TestSuite(S).run()
     """
     Element = SemistandardSkewTableau
 
@@ -502,18 +531,20 @@ class SemistandardSkewTableaux(SkewTableaux):
         r"""
         Initialize ``self``.
 
-        EXAMPLES::
+        INPUT:
+        
+        - ``max_entry`` -- an upper bound on entries.
+
+        TESTS::
 
             sage: S = SemistandardSkewTableaux()
             sage: TestSuite(S).run()
 
-            sage: S = SemistandardSkewTableaux(3)
+            sage: S = SemistandardSkewTableaux(max_entry=3)
             sage: TestSuite(S).run()
         """
         Parent.__init__(self, category=InfiniteEnumeratedSets())
-        if max_entry is None:
-            self.max_entry = PlusInfinity()
-        else:
+        if max_entry is not None:
             self.max_entry = max_entry
 
     def _element_constructor_(self, *args, **kwds):
@@ -521,6 +552,9 @@ class SemistandardSkewTableaux(SkewTableaux):
         if "check" not in kwds or kwds["check"]: # uses shortcircuiting
             if not ret.is_semistandard():
                 raise ValueError("Input is not semistandard")
+            if hasattr(self, "max_entry") and ret.size() > 0:
+                if max(ret.iter_entries()) > self.max_entry:
+                    raise ValueError("Entries must be at most %i"%self.max_entry)
         return ret
     # For user convenience, documentation for this method has
     #    been placed on the semistandard skew tableau factory function.
@@ -532,12 +566,10 @@ class SemistandardSkewTableaux(SkewTableaux):
 
         TESTS::
 
-            sage: SemistandardSkewTableaux().an_element() # indirect doctest
-            [[None, None, 1, 1, 2, 4], [None, 2, 3, 3, 3], [1, 4]]
+            sage: SemistandardSkewTableaux().an_element() in SemistandardSkewTableaux()
+            True
         """
-        return self([[None, None, 1, 1, 2, 4],
-                     [None, 2, 3, 3, 3],
-                     [1, 4]])
+        return super(Parent, self)._an_element_()
 
     def _repr_(self):
         r"""
@@ -550,7 +582,7 @@ class SemistandardSkewTableaux(SkewTableaux):
             sage: SemistandardSkewTableaux(max_entry=5)
             Semistandard skew tableaux with maximum entry 5
         """
-        if self.max_entry == PlusInfinity():
+        if not hasattr(self, "max_entry"):
             return "Semistandard skew tableaux"
         return "Semistandard skew tableaux with maximum entry {}".format(self.max_entry)
 
@@ -592,17 +624,17 @@ class SemistandardSkewTableaux(SkewTableaux):
              [[None, 1], [2]],
              [[None, 2], [2]]]
         """
-        if self.max_entry == PlusInfinity():
+        if not hasattr(self, "max_entry"):
             n = 0
             while True:
                 for ssst in SemistandardSkewTableaux_size(n, n):
-                    yield self._new_element(ssst)   # Remember to switch Parents
+                    yield self(ssst, check=False)
                 n += 1
         else:
             n = 0
             while True:
                 for ssst in SemistandardSkewTableaux_size(n, self.max_entry):
-                    yield self._new_element(ssst)
+                    yield self(ssst, check=False)
                 n += 1
 
 class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
@@ -662,7 +694,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
         """
         for p in SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_shape(p, self.max_entry):
-                yield self._new_element(ssst)   # Remember to switch Parents
+                yield self(ssst, check=False)
 
 class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
     r"""
@@ -717,7 +749,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
         """
         for p in SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_shape_weight(p, self.weight):
-                yield self._new_element(ssst)   # Remember to switch Parents
+                yield self(ssst, check=False)
 
 class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
     r"""
@@ -786,7 +818,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         """
         for weight in IntegerVectors(self.p.size(), self.max_entry):
             for ssst in SemistandardSkewTableaux_shape_weight(self.p, tuple(weight)):
-                yield self._new_element(ssst)    # Remember to update Parents
+                yield self(ssst, check=False)
 
 class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
     r"""
@@ -831,7 +863,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         """
         from sage.combinat.ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, tuple(self.weight), 1):
-            yield self._new_element(x)    # Remember to update Parents
+            yield self(x, check=False)
 
 class StandardSkewTableaux(SemistandardSkewTableaux):
     r"""
@@ -902,7 +934,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
         n = 0
         while True:
             for st in StandardSkewTableaux_size(n):
-                yield self._new_element(st)    # Remember to update Parents
+                yield self(st, check=False)
             n += 1
 
 class StandardSkewTableaux_size(StandardSkewTableaux):
@@ -972,7 +1004,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         """
         for skp in SkewPartitions(self.n):
             for sst in StandardSkewTableaux_shape(skp):
-                yield self._new_element(sst)   # Remember to update Parents
+                yield self(sst, check=False)
 
 class StandardSkewTableaux_shape(StandardSkewTableaux):
     r"""

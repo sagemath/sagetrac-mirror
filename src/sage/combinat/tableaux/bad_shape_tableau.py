@@ -1,7 +1,7 @@
 r"""
 BadShapeTableau Element class.
 
-See BadShapeTableaux for the corresponding Parent class.
+See :class:`BadShapeTableaux` for the corresponding Parent class.
 
 AUTHORS:
 

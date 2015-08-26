@@ -1,8 +1,10 @@
 r"""
-SkewTableau Element class and subclasses.
+SkewTableau, SemistandardSkewTableau, and StandardSkewTableau Element
+classs.
 
-See SkewTableaux and its subclasses for the corresponding Parent
-classes.
+See :class:`SkewTableaux`, :class:`SemistandardSkewTableaux`, and
+:class:`StandardSkewTableaux` and their subclasses for the corresponding
+Parent classes.
 
 AUTHORS:
 
@@ -1390,13 +1392,19 @@ def SemistandardSkewTableauFactory(*args, **kwds):
 
         sage: SemistandardSkewTableau([[None, None, 1], [None, 2], [3]])
         [[None, None, 1], [None, 2], [3]]
+        sage: [[None, None, 1], [None, 2], [3]] in SemistandardSkewTableaux()
+        True
+        sage: [[None, 1, 3], [1, 4]] in SemistandardSkewTableaux()
+        True
+        sage: [[None, 1, 3], [1, 4]] in SemistandardSkewTableaux(max_entry=3)
+        False
 
     TESTS::
 
-        sage: [[None, None, 1], [None, 2], [3]] in SemistandardSkewTableaux()
-        True
-        sage: [[None, 3, 1], [1, 4]] in SemistandardSkewTableaux()
-        False
+        sage: SemistandardSkewTableaux(max_entry=4)([[None, 1, 5], [1, 2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: Entries must be at most 4
     """
     from skew_tableaux import SemistandardSkewTableaux
     return SemistandardSkewTableaux()(*args, **kwds)
