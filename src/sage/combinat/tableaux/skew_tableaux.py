@@ -85,8 +85,12 @@ from sage.structure.global_options             import GlobalOptions
 from sage.structure.parent                     import Parent
 
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
-from sage.combinat.tableaux.skew_tableau       import (
-     SkewTableau, SkewTableauFactory, SemistandardSkewTableau, StandardSkewTableau)
+from sage.combinat.tableaux.skew_tableau       import SkewTableau
+from sage.combinat.tableaux.skew_tableau       import SkewTableauFactory
+from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableau
+from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableauFactory
+from sage.combinat.tableaux.skew_tableau       import StandardSkewTableau
+from sage.combinat.tableaux.skew_tableau       import StandardSkewTableauFactory
 
 TableauOptions=GlobalOptions(name='skew tableaux',
     doc=r"""
@@ -492,7 +496,7 @@ class SkewTableaux(BadShapeTableaux):
         max_row_index = max(six.iterkeys(dct), key=lambda k: k[0])[0]
         outer = [0]*(max_row_index+1)
         for r, c in six.iterkeys(dct):
-            if outer[r] < c: outer[r] = c
+            if outer[r] < c+1: outer[r] = c+1
         for i in range(1,len(outer)+1):
             if outer[-i] == 0:
                 outer[-i] = c
@@ -504,7 +508,7 @@ class SkewTableaux(BadShapeTableaux):
                 raise ValueError("Outer shape must form a partition")
 
         # Compute the st representation
-        st = [[None]*(l+1) for l in outer]
+        st = [[None]*l for l in outer]
         for k, v in six.iteritems(dct):
             st[k[0]][k[1]] = v
 
@@ -549,10 +553,13 @@ class SemistandardSkewTableaux(SkewTableaux):
 
     def _element_constructor_(self, *args, **kwds):
         ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
-        if "check" not in kwds or ("check" in kwds and kwds["check"]):
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
             if not ret.is_semistandard():
                 raise ValueError("Input is not semistandard")
         return ret
+    # For user's convenience, documentation for this method has
+    #    been placed on the semistandard skew tableau factory function.
+    _element_constructor_.__doc__ = SemistandardSkewTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -876,6 +883,9 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
             if not ret.has_standard_entries():
                 raise ValueError("Input is not standard")
         return ret
+    # For user's convenience, documentation for this method has
+    #    been placed on the standard skew tableau factory function.
+    _element_constructor_.__doc__ = StandardSkewTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -1096,8 +1106,6 @@ def _label_skew(list_of_cells, sk):
             skew[row][column] = i
             i += 1
     return skew
-
-# TODO: make parent construction consistent--always use a factory method?
 
 # Factory methods for constructing various Parent classes of tableaux
 def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):

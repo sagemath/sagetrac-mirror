@@ -1232,7 +1232,7 @@ class StandardSkewTableau(SemistandardSkewTableau):
 def SkewTableauFactory(*args, **kwds):
     r"""
     Construct a new SkewTableau by converting from one of several input
-    formats, optionally validating and normalizing input.
+    formats, optionally validating input.
 
     If multiple formats are specified, the left-most is used. If no
     format is specified, the "trivial" skew tableau with no entries is
@@ -1254,36 +1254,65 @@ def SkewTableauFactory(*args, **kwds):
     - ``dct`` -- a dictionary whose keys are pairs of non-negative
       integers
     - ``check`` -- (default: ``True``) if ``True``, then validate 
-      and normalize input: ensure ``st`` or the cells of ``dct``
-      actually form a skew shape, remove empty rows from ``st``,
-      etc.
+      input: ensure ``st`` or the cells of ``dct`` actually form
+      a skew shape, remove empty rows from ``st``, etc.
 
-TODO: add examples and tests
     EXAMPLES::
 
-        sage: True
-        True
-
-    TESTS::
-
-        sage: True
-        True
+        sage: SkewTableau([[None, None, 1], [None, 2], [3]])
+        [[None, None, 1], [None, 2], [3]]
+        sage: SkewTableau(expr=([2, 1], [[3], [2], [1]]))
+        [[None, None, 1], [None, 2], [3]]
+        sage: SkewTableau(shape_word=([[3, 2, 1], [2, 1]], [3, 2, 1]))
+        [[None, None, 1], [None, 2], [3]]
+        sage: SkewTableau(dct={(0, 2): 1, (1, 1): 2, (2, 0): 3})
+        [[None, None, 1], [None, 2], [3]]
     """
     from skew_tableaux import SkewTableaux
     return SkewTableaux()(*args, **kwds)
 
 def SemistandardSkewTableauFactory(*args, **kwds):
     r"""
-    (See class:`SemistandardSkewTableau for docstring.)
+    Construct a new :class:`SemistandardSkewTableau` by converting from
+    one of several input formats, optionally validating input.
+    
+    See `SkewTableau` (:meth:`SkewTableauFactory`) for details and
+    further examples.
+
+    EXAMPLES::
+
+        sage: SemistandardSkewTableau([[None, None, 1], [None, 2], [3]])
+        [[None, None, 1], [None, 2], [3]]
+
+    TESTS::
+
+        sage: [[None, None, 1], [None, 2], [3]] in SemistandardSkewTableaux()
+        True
+        sage: [[None, 3, 1], [1, 4]] in SemistandardSkewTableaux()
+        False
     """
     from skew_tableaux import SemistandardSkewTableaux
     return SemistandardSkewTableaux()(*args, **kwds)
-SemistandardSkewTableauFactory.__doc__ = SemistandardSkewTableau.__doc__
 
 def StandardSkewTableauFactory(*args, **kwds):
     r"""
-    (See class:`StandardSkewTableau` for docstring.)
+    Construct a new :class:`StandardSkewTableau` by converting from
+    one of several input format,s optionally validating input.
+
+    See `SkewTableau` (:meth:`SkewTableauFactory`) for details and
+    further examples.
+
+    EXAMPLES::
+
+        sage: StandardSkewTableau([[None, None, 1], [None, 2], [3]])
+        [[None, None, 1], [None, 2], [3]]
+
+    TESTS::
+
+        sage: [[None, None, 1], [None, 2], [3]] in StandardSkewTableaux()
+        True
+        sage: [[None, 1, 3], [2, 3]] in StandardSkewTableaux()
+        False
     """
     from skew_tableaux import StandardSkewTableaux
     return StandardSkewTableaux()(*args, **kwds)
-StandardSkewTableauFactory.__doc__ = StandardSkewTableau.__doc__
