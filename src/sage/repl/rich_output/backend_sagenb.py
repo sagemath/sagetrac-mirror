@@ -311,6 +311,7 @@ class BackendSageNB(BackendBase):
             SageNbOutputSceneJmol,
             OutputSceneCanvas3d,
             OutputVideoOgg, OutputVideoWebM, OutputVideoMp4,
+            OutputVideoAnimatedPng,
         ])
 
     def display_immediately(self, plain_text, rich_output):
@@ -364,6 +365,8 @@ class BackendSageNB(BackendBase):
             rich_output.embed()
         elif isinstance(rich_output, OutputSceneCanvas3d):
             self.embed_image(rich_output.canvas3d, '.canvas3d')
+        elif isinstance(rich_output, OutputVideoAnimatedPng):
+            self.embed_image(rich_output.png, '.png')
         elif isinstance(rich_output, OutputVideoBase):
             self.embed_video(rich_output)
         else:

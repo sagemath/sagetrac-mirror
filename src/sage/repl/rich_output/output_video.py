@@ -228,3 +228,61 @@ class OutputVideoQuicktime(OutputVideoBase):
 
     ext = ".mov"
     mimetype = "video/quicktime"
+
+class OutputVideoAnimatedPng(OutputBase):
+
+    def __init__(self, apng):
+        """
+        Animated PNG video
+
+        .. NOTE::
+
+            APNG degrades gracefully, so every backend should be capable
+            of at least showing one frame of the animation.  Actual support
+            for multiple frames depends not only on the backend, but often
+            also on the environment, e.g. the user's browser.
+
+        INPUT:
+
+        - ``apng`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          APNG image data.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputVideoAnimatedPng
+            sage: OutputVideoAnimatedPng.example()
+            OutputVideoAnimatedPng container
+
+        """
+        self.png = OutputBuffer(apng)
+
+    @classmethod
+    def example(cls):
+        r"""
+        Construct a sample APNG output container
+
+        This static method is meant for doctests, so they can easily
+        construct an example.
+
+        OUTPUT:
+
+        An instance of :class:`OutputVideoAnimatedPng`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputVideoAnimatedPng
+            sage: OutputVideoAnimatedPng.example()
+            OutputVideoAnimatedPng container
+            sage: OutputVideoAnimatedPng.example().png
+            buffer containing 1559 bytes
+            sage: '\0\0\0\x1afcTL' in OutputVideoAnimatedPng.example().png.get()
+            True
+        """
+        from sage.env import SAGE_EXTCODE
+        filename = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.apng')
+        with open(filename) as f:
+            return cls(f.read())

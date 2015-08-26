@@ -42,9 +42,7 @@ Animate using FFmpeg_ instead of ImageMagick::
 
 Animate as an APNG_::
 
-    sage: a.apng()  # long time
-    doctest:...: DeprecationWarning: use tmp_filename instead
-    See http://trac.sagemath.org/17234 for details.
+    sage: a.show(format="png")  # long time
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
@@ -654,6 +652,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         if format == "gif":
             outputType = t.OutputImageGif
             suffix = ".gif"
+        if format == "png" or format == "apng":
+            outputType = t.OutputVideoAnimatedPng
+            suffix = ".png"
         if format == "ogg":
             outputType = t.OutputVideoOgg
         if format == "webm":
@@ -735,6 +736,13 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         To put a half-second delay between frames::
 
             sage: a.show(delay=50)        # optional -- ImageMagick
+
+        Sometimes one can obtain better results, or obtain results more
+        quickly, by using a different file format or conversion tool::
+
+            sage: a.show(format="gif")                   # optional -- ImageMagick
+            sage: a.show(format="gif", use_ffmpeg=True)  # optional -- ffmpeg
+            sage: a.show(format="png")                   # long time
 
         You can also make use of the HTML5 video element in the Sage Notebook::
 
@@ -1075,6 +1083,8 @@ please install it and try again."""
         if filename is None or suffix == '.gif':
             self.gif(savefile=filename, show_path=show_path,
                      use_ffmpeg=use_ffmpeg, **kwds)
+        elif suffix == '.png':
+            self.apng(savefile=filename, show_path=show_path, **kwds)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
             if show_path:

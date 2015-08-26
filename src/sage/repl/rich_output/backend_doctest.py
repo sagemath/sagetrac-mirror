@@ -139,7 +139,7 @@ class BackendDoctest(BackendBase):
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
             OutputVideoOgg, OutputVideoWebM, OutputVideoMp4,
             OutputVideoFlash, OutputVideoMatroska, OutputVideoAvi,
-            OutputVideoWmv, OutputVideoQuicktime,
+            OutputVideoWmv, OutputVideoQuicktime, OutputVideoAnimatedPng,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -257,6 +257,7 @@ class BackendDoctest(BackendBase):
             sage: backend.validate(dm.types.OutputVideoAvi.example())
             sage: backend.validate(dm.types.OutputVideoWmv.example())
             sage: backend.validate(dm.types.OutputVideoQuicktime.example())
+            sage: backend.validate(dm.types.OutputVideoAnimatedPng.example())
         """
         if isinstance(rich_output, OutputPlainText):
             pass
@@ -315,5 +316,7 @@ class BackendDoctest(BackendBase):
         elif isinstance(rich_output, OutputVideoQuicktime):
             data = rich_output.video.get()
             assert data[4:12] == 'ftypqt  ' or data[4:8] == 'moov'
+        elif isinstance(rich_output, OutputVideoAnimatedPng):
+            assert '\0\0\0\x1afcTL' in rich_output.png.get()
         else:
             raise TypeError('rich_output type not supported')

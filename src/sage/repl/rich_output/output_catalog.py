@@ -46,4 +46,5 @@ from .output_video import (
     OutputVideoAvi,
     OutputVideoWmv,
     OutputVideoQuicktime,
+    OutputVideoAnimatedPng,
 )
