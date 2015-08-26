@@ -274,7 +274,7 @@ We can add an extra strategy to the first player::
     sage: f
     Normal Form Game with the following utilities: {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
-If we do this and try and obtain the Nash equilibrium or view the payoff
+If we do this and try to obtain the Nash equilibrium or view the payoff
 matrices(without specifying the utilities), an error is returned::
 
     sage: f.obtain_nash()
@@ -520,6 +520,25 @@ responses::
     sage: g.best_responses((0, 0, 0, 0, 1), player=1)
     [1, 3]
 
+We can also obtain any dominated strategies which players may have.
+Lists of each player's strictly dominated strategies are returned.
+In this example of the prisoner's dilemma each player's cooporate
+strategy is dominated::
+
+    sage: A = matrix([[-1, -5], [0, -2]])
+    sage: B = matrix([[-1, 0], [-5, -2]])
+    sage: Prisoners_Dilemma = NormalFormGame([A, B])
+    sage: Prisoners_Dilemma.get_dominated_strategies()
+    [[0], [0]]
+
+We can also obtain strategies which are weakly dominated::
+
+    sage: A = matrix([[3, 2], [2, 2]])
+    sage: B = matrix([[3, 2], [1, 1]])
+    sage: g = NormalFormGame([A, B])
+    sage: g.get_weakly_dominated_strategies()
+    [[1], [1]]
+    
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which
 is evidenced by the various algorithms returning different solutions::
@@ -543,6 +562,7 @@ We can check the cause of this by using ``is_degenerate()``::
 
 Note the 'negative' `-0.0` output by gambit. This is due to the numerical
 nature of the algorithm used.
+
 
 Here is an example with the trivial game where all payoffs are 0::
 
