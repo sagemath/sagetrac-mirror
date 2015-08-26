@@ -1009,7 +1009,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def get_dominated_strategies(self):
         """
-        A method that returns the indices of the dominated strategies for all players.
+        A method that returns the indices of the strictly dominated strategies for all players.
 
         EXAMPLES::
 
@@ -1065,7 +1065,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g[5, 0][1] = 10
             sage: g[6, 0][0] = 11
             sage: g[6, 0][1] = 12
-            sage: g.get_dominated_strategies() # strategies may be added multiple times
+            sage: g.get_dominated_strategies()
             [[0, 1, 2, 3, 4, 5], []]
 
         Some three player examples::
@@ -1158,7 +1158,117 @@ class NormalFormGame(SageObject, MutableMapping):
             dominated_strategies.append(p_dominated_strategies)
         return dominated_strategies
 
+    def get_weakly_dominated_strategies(self):
+        """
+        A method that returns the indices of the weakly dominated strategies for all players.
+        Note that if a strategy is striclty dominated then it is also weakly dominated.
 
+        EXAMPLES::
+
+        An example with no dominated strategies::
+
+            sage: A = matrix([[3, 1], [0, 2]])
+            sage: B = matrix([[2, 1], [0, 3]])
+            sage: battle_of_the_sexes = NormalFormGame([A, B])
+            sage: battle_of_the_sexes
+            Normal Form Game with the following utilities: {...}
+            sage: d = {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
+            sage: battle_of_the_sexes == d
+            True
+            sage: battle_of_the_sexes.get_weakly_dominated_strategies()
+            [[], []]
+
+            sage: A = matrix([[0, 3], [5, 3]])
+            sage: B = matrix([[1, 5], [10, 10]])
+            sage: g = NormalFormGame([A, B])
+            sage: g
+            Normal Form Game with the following utilities: {...}
+            sage: g.get_weakly_dominated_strategies()
+            [[0], [0]]
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(7)
+            sage: g.add_player(1)
+            sage: g[0, 0][0] = 0
+            sage: g[0, 0][1] = 1
+            sage: g[1, 0][0] = 2
+            sage: g[1, 0][1] = 3
+            sage: g[2, 0][0] = 4
+            sage: g[2, 0][1] = 5
+            sage: g[3, 0][0] = 10
+            sage: g[3, 0][1] = 10
+            sage: g[4, 0][0] = 10
+            sage: g[4, 0][1] = 10
+            sage: g[5, 0][0] = 10
+            sage: g[5, 0][1] = 10
+            sage: g[6, 0][0] = 10
+            sage: g[6, 0][1] = 10
+            sage: g.get_weakly_dominated_strategies()
+            [[0, 1, 2], []]
+
+        Some three player examples::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g[0, 0, 0] = [0, 0, 0]
+            sage: g[0, 0, 1] = [1, 0, -1]
+            sage: g[0, 1, 0] = [0, 1, 0]
+            sage: g[0, 1, 1] = [0, 0, -1]
+            sage: g[1, 0, 0] = [0, 0, 0]
+            sage: g[1, 0, 1] = [0, 0, 0]
+            sage: g[1, 1, 0] = [0, 0, -1]
+            sage: g[1, 1, 1] = [0, 1, -1]
+            sage: g[2, 0, 0] = [3, 0, 5]
+            sage: g[2, 0, 1] = [-1, 0, -6]
+            sage: g[2, 1, 0] = [4, 0, 4]
+            sage: g[2, 1, 1] = [-1, 3, -5]
+            sage: g.get_weakly_dominated_strategies()
+            [[1], [0], [1]]
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g[0, 0, 0] = [0, 0, 0]
+            sage: g[0, 0, 1] = [0, 0, -1]
+            sage: g[0, 1, 0] = [0, 1, 0]
+            sage: g[0, 1, 1] = [0, 0, -1]
+            sage: g[1, 0, 0] = [0, 0, 0]
+            sage: g[1, 0, 1] = [0, 0, -1]
+            sage: g[1, 1, 0] = [0, 0, -1]
+            sage: g[1, 1, 1] = [0, 1, -2]
+            sage: g[2, 0, 0] = [0, 0, 5]
+            sage: g[2, 0, 1] = [0, 0, -6]
+            sage: g[2, 1, 0] = [0, 0, 4]
+            sage: g[2, 1, 1] = [0, 3, -5]
+            sage: g.get_weakly_dominated_strategies()
+            [[], [0], [1]]
+
+        """
+        dominated_strategies = []
+
+        for index in range(len(self.players)):
+            p_dominated_strategies = []
+            profiles = self._partition_strategy_profiles(index)
+            pairs_of_profiles = Combinations(profiles, 2).list()
+
+            for pair in pairs_of_profiles:
+                first_strategy = pair[0][0][index]
+                second_strategy = pair[1][0][index]
+
+                if all(self.utilities[profile][index] <= self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])) and any(self.utilities[profile][index] < self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
+                    if first_strategy not in p_dominated_strategies:
+                        p_dominated_strategies.append(first_strategy)
+
+                elif all(self.utilities[profile][index] >= self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])) and any(self.utilities[profile][index] > self.utilities[pair[1][i]][index] for i, profile in enumerate(pair[0])):
+                    if second_strategy not in p_dominated_strategies:
+                        p_dominated_strategies.append(second_strategy)
+
+            dominated_strategies.append(p_dominated_strategies)
+        return dominated_strategies
+        
     def payoff_matrices(self):
         r"""
         Return 2 matrices representing the payoffs for each player.
