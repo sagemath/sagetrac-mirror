@@ -1186,6 +1186,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.get_weakly_dominated_strategies()
             [[0], [0]]
 
+            sage: A = matrix([[3, 2], [2, 2]])
+            sage: B = matrix([[3, 2], [1, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g
+            Normal Form Game with the following utilities: {...}
+            sage: g.get_weakly_dominated_strategies()
+            [[1], [1]]
+
             sage: g = NormalFormGame()
             sage: g.add_player(7)
             sage: g.add_player(1)
