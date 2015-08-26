@@ -152,7 +152,7 @@ class SkewTableaux(BadShapeTableaux):
 
     See meth:`_element_constructor_` for Element class construction
     options and further examples. See :class:`SkewTableau` for the Element
-    class itself.
+    class.
 
     EXAMPLES::
 
@@ -285,7 +285,7 @@ class SkewTableaux(BadShapeTableaux):
         try:
             # Remove empty rows, normalize input
             st = tuple( ifilter(None,
-                        (tuple(row) for row in st)) )
+                                (tuple(row) for row in st)) )
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
 
@@ -519,11 +519,6 @@ class SemistandardSkewTableaux(SkewTableaux):
         True
         sage: [[None, 1, 2], [None, 3], [1]] in SemistandardSkewTableaux(max_entry=2)
         False
-
-    TESTS::
-
-        sage: S = SemistandardSkewTableaux()
-        sage: TestSuite(S).run()
     """
     Element = SemistandardSkewTableau
 
@@ -549,12 +544,15 @@ class SemistandardSkewTableaux(SkewTableaux):
 
     def _element_constructor_(self, *args, **kwds):
         ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
+
         if "check" not in kwds or kwds["check"]: # uses shortcircuiting
             if not ret.is_semistandard():
                 raise ValueError("Input is not semistandard")
+
             if hasattr(self, "max_entry") and ret.size() > 0:
                 if max(ret.iter_entries()) > self.max_entry:
                     raise ValueError("Entries must be at most %i"%self.max_entry)
+
         return ret
     # For user convenience, documentation for this method has
     #    been placed on the semistandard skew tableau factory function.
@@ -569,6 +567,7 @@ class SemistandardSkewTableaux(SkewTableaux):
             sage: SemistandardSkewTableaux().an_element() in SemistandardSkewTableaux()
             True
         """
+        # Use Parent's default implementation, since we have an iterator available
         return super(Parent, self)._an_element_()
 
     def _repr_(self):
@@ -588,7 +587,10 @@ class SemistandardSkewTableaux(SkewTableaux):
 
     def __iter__(self):
         r"""
-        Iterate over the elements of ``self``.
+        Iterate over the tableux in ``self``.
+        
+        We restrict to reduced skew shapes in the sense of
+        :class:`SkewPartitions`.
 
         EXAMPLES::
 
@@ -639,11 +641,25 @@ class SemistandardSkewTableaux(SkewTableaux):
 
 class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
     r"""
-    Class of all semistandard skew tableaux of a fixed size `n`,
-    possibly with a given maximum entry which defaults to `n`.
+    Parent class of all semistandard skew tableaux of a fixed size `n`,
+    possibly with an upper bound on entries which defaults to `n`.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(5)
+        True
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(4)
+        False
     """
     def __init__(self, n, max_entry=None):
         r"""
+        Initialize ``self``.
+
+        INPUT:
+        - ``n``         -- the number of cells in these tableaux
+        - ``max_entry`` -- an upper bound on the entries in these
+          tableaux
+
         EXAMPLES::
 
             sage: S = SemistandardSkewTableaux(3)
@@ -656,8 +672,37 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
         else:
             self.max_entry = max_entry
 
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+        
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = SemistandardSkewTableaux(p=4, max_entry=3)
+            sage: [[None, 1, 3], [2, 3]] in S
+            True
+            sage: [[None, 1, 3], [2, 4]] in S
+            False
+            sage: [[None, 1, 3], [2]] in S
+            False
+        """
+        ret = super(SemistandardSkewTableaux_size, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            s=ret.size()
+            if s != self.n:
+                raise ValueError("Input must have size %i"%self.n)
+            if s > 0 and max(ret.iter_entries()) > self.max_entry:
+                raise ValueError("Entries must be at most %i"%self.max_entry)
+
+        return ret
+
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(3)
@@ -670,6 +715,8 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
 
     def cardinality(self):
         r"""
+        Return the cardinality of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2).cardinality()
@@ -680,6 +727,8 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
 
     def __iter__(self):
         r"""
+        Iterate over the tableaux in ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2).list()
@@ -698,17 +747,25 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
 
 class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
     r"""
-    Class of semistandard skew tableaux of a fixed size and weight.
+    Parent class of all semistandard skew tableaux of a fixed size and
+    weight.
 
     To ensure finiteness, we restrict to reduced skew shapes in the
     sense of :class:`SkewPartitions`.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(5, (2, 2, 1))
+        True
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(5, (2, 1, 2))
+        False
     """
     def __init__(self, n, weight):
         r"""
         Initialize ``self``.
 
         INPUT:
-        - ``n`` -- the number of cells of these tableaux
+        - ``n``      -- the number of cells of these tableaux
         - ``weight`` -- a tuple of integers giving the weight of these tableaux
 
         TESTS::
@@ -717,11 +774,39 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
             sage: TestSuite(S).run()
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
-        self.n = n
+        self.n      = n
         self.weight = weight
+
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+        
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = SemistandardSkewTableaux(p=4, max_entry=3)
+            sage: [[None, 1, 3], [2, 3]] in S
+            True
+            sage: [[None, 1, 3], [2, 4]] in S
+            False
+            sage: [[None, 1, 3], [2]] in S
+            False
+        """
+        ret = super(SemistandardSkewTableaux_size_weight, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            if ret.size() != self.n:
+                raise ValueError("Input must have size %i"%self.n)
+            if tuple(ret.weight()) != self.weight:
+                raise ValueError("Input must have weight %s"%repr(self.weight))
+
+        return ret
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(3,[2,1])
@@ -732,6 +817,8 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
 
     def cardinality(self):
         r"""
+        Return the cardinality of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2,[1,1]).cardinality()
@@ -742,6 +829,11 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
 
     def __iter__(self):
         r"""
+        Iterate over the tableaux in ``self``.
+
+        We restrict to reduced skew shapes in the
+        sense of :class:`SkewPartitions`.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2,[1,1]).list()
@@ -753,15 +845,25 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
 
 class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
     r"""
-    Class of semistandard skew tableaux of a fixed skew shape
-    with a given max entry.
+    Parent class of semistandard skew tableaux of a fixed skew shape
+    with a given upper bound on entries.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux([[4,2], [1]])
+        True
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux([[4,2], [2]])
+        False
     """
     def __init__(self, p, max_entry=None):
         r"""
+        Initialize ``self``.
+
         INPUT:
 
-        - ``p`` -- a skew partition
-        - ``max_entry`` -- the max entry; defaults to the size of ``p``.
+        - ``p``         -- a skew partition
+        - ``max_entry`` -- an upper bound on entries; defaults to the
+          size of ``p``.
 
         TESTS::
 
@@ -777,8 +879,36 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         self.p = p
         self.max_entry = max_entry
 
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+        
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = SemistandardSkewTableaux(p=[[3, 1], [1]])
+            sage: [[None, 1, 3], [2]] in S
+            True
+            sage: [[None, 1, 3], [2, 4]] in S
+            False
+            sage: [[None, 1, 4], [2]] in S
+            False
+        """
+        ret = super(SemistandardSkewTableaux_shape, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            if ret.shape() != self.p:
+                raise ValueError("Input must have shape %i"%repr(self.p))
+            if ret.size() > 0 and max(ret.iter_entries()) > self.max_entry:
+                raise ValueError("Entries must be at most %i"%self.max_entry)
+
+        return ret
+
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux([[2,1],[]])
@@ -789,6 +919,8 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
 
     def cardinality(self):
         r"""
+        Return the cardinality of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux([[2,1],[]]).cardinality()
@@ -801,6 +933,8 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
 
     def __iter__(self):
         r"""
+        Iterate over the tableaux in ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux([[2,1],[]]).list()
@@ -822,13 +956,21 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
 
 class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
     r"""
-    Parent class of semistandard skew tableaux of a fixed skew shape and weight.
+    Parent class of semistandard skew tableaux of a fixed skew shape
+    and weight.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(p=[[4,2], [1]], weight=(2, 2, 1))
+        True
+        sage: [[None, 1, 2, 3], [1, 1]] in SemistandardSkewTableaux(p=[[4,2], [1]], weight=(2, 2, 1))
+        False
     """
     def __init__(self, p, weight):
         r"""
         INPUT:
 
-        - ``p`` -- a skew partition giving the shape of these tableaux
+        - ``p``      -- a skew partition giving the shape of these tableaux
         - ``weight`` -- a tuple of integers giving the weight of these tableaux
 
         TESTS::
@@ -839,11 +981,40 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
             sage: TestSuite(S).run()
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
-        self.p = p
+        self.p      = p
         self.weight = weight
+
+
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+        
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = SemistandardSkewTableaux(p=[[3, 1], [1]], weight=(2, 1))
+            sage: [[None, 1, 2], [1]] in S
+            True
+            sage: [[None, 1, 3], [2]] in S
+            False
+            sage: [[1, 1], [2]] in S
+            False
+        """
+        ret = super(SemistandardSkewTableaux_shape_weight, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            if ret.shape() != self.p:
+                raise ValueError("Input must have shape %i"%repr(self.p))
+            if tuple(ret.weight()) != self.weight:
+                raise ValueError("Input must have weight %s"%repr(self.weight))
+
+        return ret
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1])
@@ -867,38 +1038,34 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
 
 class StandardSkewTableaux(SemistandardSkewTableaux):
     r"""
-    Standard skew tableaux.
+    Parent class of standard skew tableaux.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux()
+        True
+        sage: [[None, 1, 2, 3], [1, 1]] in StandardSkewTableaux()
+        False
     """
     Element = StandardSkewTableau
 
-    # TODO: move to ..._all class when this is made into a factory
-    # TODO: add coersion to SemistandardSkewTableaux
     def _element_constructor_(self, *args, **kwds):
         ret = super(StandardSkewTableaux, self)._element_constructor_(*args, **kwds)
+
         if "check" not in kwds or ("check" in kwds and kwds["check"]):
             # Semistandardness has already been checked
             if not ret.has_standard_entries():
                 raise ValueError("Input is not standard")
+
         return ret
     # For user convenience, documentation for this method has
     #    been placed on the standard skew tableau factory function.
     _element_constructor_.__doc__ = StandardSkewTableauFactory.__doc__
 
-    def _an_element_(self):
-        r"""
-        Return a typical element of ``self``.
-
-        TESTS::
-
-            sage: StandardSkewTableaux().an_element() # indirect doctest
-            [[None, None, 1, 2, 4, 7], [None, 5, 6, 8, 10], [3, 9]]
-        """
-        return self([[None, None, 1, 2, 4, 7],
-                     [None, 5, 6, 8, 10],
-                     [3, 9]])
-
     def __init__(self):
         r"""
+        Initialize ``self``.
+
         TESTS::
 
             sage: S = StandardSkewTableaux()
@@ -908,6 +1075,8 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
 
     def _repr_(self):
         r"""
+        Return a string representatino of ``self``.
+
         TESTS::
 
             sage: StandardSkewTableaux()
@@ -917,9 +1086,10 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
 
     def __iter__(self):
         r"""
-        Iterate through all standard skew tableaux having
-        no empty rows (before nonempty rows) and no empty columns
-        (before nonempty columns).
+        Iterate through the tableaux in ``self``.
+
+        We restrict to reduced skew shapes in the
+        sense of :class:`SkewPartitions`.
 
         EXAMPLES::
 
@@ -939,10 +1109,22 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
 
 class StandardSkewTableaux_size(StandardSkewTableaux):
     r"""
-    Standard skew tableaux of a fixed size `n`.
+    Parent class of standard skew tableaux of a fixed size.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux(5)
+        True
+        sage: [[None, 1, 2, 3], [4]] in StandardSkewTableaux(5)
+        False
     """
     def __init__(self, n):
-        """
+        r"""
+        Initialize ``self``.
+
+        INPUT:
+        - ``n`` -- the number of cells in these tableaux
+
         TESTS::
 
             sage: S = StandardSkewTableaux(3)
@@ -951,8 +1133,34 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self.n = n
 
-    def _repr_(self):
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = StandardSkewTableaux(3)
+            sage: [[None, 1, 2], [3]] in S
+            True
+            sage: [[None, 1, 2], [2]] in S
+            False
+            sage: [[1, 2], [2, 4]] in S
+            False
         """
+        ret = super(StandardSkewTableaux_size, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            if ret.size() != self.n:
+                raise ValueError("Input must have size %i"%repr(self.n))
+
+        return ret
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
         TESTS::
 
             sage: StandardSkewTableaux(3)
@@ -962,6 +1170,12 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
 
     def cardinality(self):
         r"""
+        Return the cardinality of ``self``.
+
+        We restrict to reduced skew shapes in the
+        sense of :class:`SkewPartitions` (otherwise
+        the count would be infinite).
+
         EXAMPLES::
 
             sage: StandardSkewTableaux(1).cardinality()
@@ -978,10 +1192,10 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
 
     def __iter__(self):
         r"""
-        Iterate through all standard skew tableaux of size `n` having
-        no empty rows (before nonempty rows) and no empty columns
-        (before nonempty columns). (The last two requirements
-        ensure that the iterator terminates after finitely many steps.)
+        Iterate through the tableaux in ``self``.
+
+        We restrict to reduced skew shapes in the
+        sense of :class:`SkewPartitions`.
 
         EXAMPLES::
 
@@ -1009,16 +1223,52 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
 class StandardSkewTableaux_shape(StandardSkewTableaux):
     r"""
     Parent class of standard skew tableaux of a fixed skew shape.
+
+    EXAMPLES::
+
+        sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux([[4, 2], [1]])
+        True
+        sage: [[None, 1, 2, 3], [4]] in StandardSkewTableaux([[4, 2], [1]])
+        False
     """
     def __init__(self, skp):
         r"""
+        Initialize ``self``.
+
+        INPUT:
+        - ``skp`` -- a :class:`SkewPartition`
+
         TESTS::
 
             sage: S = StandardSkewTableaux([[3, 2, 1], [1, 1]])
             sage: TestSuite(S).run()
         """
-        self.skp = skp
         Parent.__init__(self, category=FiniteEnumeratedSets())
+        self.skp = skp
+
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Return a new Element of ``self``.
+
+        See :class:`SkewTableaux` for further details.
+
+        TESTS::
+
+            sage: S = StandardSkewTableaux([[3, 1], [1]])
+            sage: [[None, 1, 2], [3]] in S
+            True
+            sage: [[None, 1, 2], [2]] in S
+            False
+            sage: [[1, 2], [2, 4]] in S
+            False
+        """
+        ret = super(StandardSkewTableaux_shape, self)._element_constructor_(*args, **kwds)
+
+        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+            if ret.shape() != self.skp:
+                raise ValueError("Input must have shape %i"%repr(self.p))
+
+        return ret
 
     def _repr_(self):
         r"""
@@ -1033,8 +1283,9 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def cardinality(self):
         r"""
-        Return the number of standard skew tableaux with shape of the skew
-        partition ``skp``. This uses a formula due to Aitken
+        Return the cardinality of ``self``.
+
+        This uses a formula due to Aitken
         (see Cor. 7.16.3 of [Sta-EC2]_).
 
         EXAMPLES::
@@ -1059,9 +1310,11 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         r"""
-        An iterator for all the standard skew tableaux with shape of the
-        skew partition ``skp``. The standard skew tableaux are ordered
-        lexicographically by the word obtained from their row reading.
+        Iterate over the tableaux in ``self``.
+
+        The resulting standard skew tableaux are ordered
+        lexicographically by the word obtained from their
+        row reading.
 
         EXAMPLES::
 
@@ -1081,34 +1334,19 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         empty = [[None]*row_length for row_length in self.skp.outer()]
 
         for le in le_list:
-            yield self._new_element(_label_skew(le, empty))
+            i = 1
+            skew = [list(row) for row in empty]
+            for row, column in le:
+                    skew[row][column] = i
+                    i += 1
 
-def _label_skew(list_of_cells, sk):
-    r"""
-    Return a filled-in standard standard skew tableau given an
-    ordered list ``list_of_cells`` of the coordinates to fill in
-    (as pairs) and an empty shape ``sk``.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.skew_tableau as skew_tableau
-        sage: l = [(0, 0), (1, 1), (1, 0), (0, 1)]
-        sage: empty = [[None,None],[None,None]]
-        sage: skew_tableau._label_skew(l, empty)
-        [[1, 4], [3, 2]]
-    """
-    i = 1
-    skew = [list(row) for row in sk]
-    for row, column in list_of_cells:
-            skew[row][column] = i
-            i += 1
-    return skew
+            yield self(skew, check=False)
 
 # Factory methods for constructing various Parent classes of tableaux
 def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
     r"""
     Factory function to create various Parent classes of certain types of
-    semistandard tableaux.
+    semistandard skew tableaux.
 
     INPUT:
     - ``p`` -- either an integer specifying the number of cells in the
@@ -1190,30 +1428,19 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
         sage: S1 is S2
         True
 
-    TODO: After input validation has been added to the resulting classes,
-    remove the following warning.
-
-    .. WARNING::
-
-        The resulting parents are mainly useful for iteration. Do not rely on their
-        containment tests, as they are not generally correct, e. g.::
-
-            sage: SkewTableau([[None]]) in SemistandardSkewTableaux(2)
-            True
-
     .. WARNING::
 
         If the shape is not specified, the iterator for the resulting
-        Parents (if it exists) yields only those skew tableaux whose shape
-        is reduced, in the sense that there are no empty rows before the
-        last nonempty row, and there are no empty columns before the last
-        nonempty column. (Otherwise it would go on indefinitely.)
+        Parents yields only those skew tableaux whose shape is reduced, in
+        the sense of :class:`SkewPartitions`, meaning there are no empty rows
+        before the last nonempty row, and there are no empty columns before
+        the last nonempty column. (This is typically what one wants in
+        applications.)
     """
-    # Note: input validation and normalization for these Parent classes
+    # Input validation and normalization for these Parent classes
     #   should be done here rather than in their `__init__` methods;
     #   analogously, input validation and normalization for Element
     #   classes should be done by their Parents.
-    # TODO: add some more input validation (e.g. make sure weight is a composition)
     if p is None:
         if weight is None:
             return SemistandardSkewTableaux(max_entry)
@@ -1235,26 +1462,34 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
 
 def StandardSkewTableauxFactory(skp=None):
     r"""
-    Return the class of standard skew tableaux of skew shape ``skp``.
+    Factory function to create various Parent classes of certain types of
+    standard tableaux.
 
-    TODO: add more examples.
+    INPUT:
+    - ``skp` -- either an integer specifying the number of cells in the
+      tableaux, or a :class:`SkewPartition` specifying the skew shape,
+      or `None` if unrestricted
 
     EXAMPLES::
+
+    The (infinite) class of all standard skew tableaux::
 
         sage: S = StandardSkewTableaux(); S
         Standard skew tableaux
         sage: S.cardinality()
         +Infinity
 
-    ::
+    The class of all semistandard skew tableaux of size `3`
 
-        sage: S = StandardSkewTableaux(2); S
-        Standard skew tableaux of size 2
+        sage: S = StandardSkewTableaux(3); S
+        Standard skew tableaux of size 3
         sage: S.cardinality()
-        4
+        24
 
-    ::
+    Specifying a shape::
 
+        sage: StandardSkewTableaux([[2,1],[]])
+        Standard skew tableaux of shape [2, 1] / []
         sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
         [[[None, 1, 2], [None, 3], [4]],
          [[None, 1, 2], [None, 4], [3]],
@@ -1264,13 +1499,6 @@ def StandardSkewTableauxFactory(skp=None):
          [[None, 1, 4], [None, 3], [2]],
          [[None, 2, 3], [None, 4], [1]],
          [[None, 2, 4], [None, 3], [1]]]
-
-    EXAMPLES::
-
-        sage: SST1 = StandardSkewTableaux([[3, 2, 1], [1, 1]])
-        sage: SST2 = StandardSkewTableaux(SkewPartition([[3, 2, 1], [1, 1]]))
-        sage: SST1 is SST2
-        True
     """
     if skp is None:
         return StandardSkewTableaux()
