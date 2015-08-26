@@ -71,23 +71,22 @@ Orphaned tests::
 #*****************************************************************************
 
 import six
-from itertools import ifilter
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.skew_partition import SkewPartition, SkewPartitions
-from sage.matrix.all import zero_matrix
-from sage.rings.all import Integer, ZZ, QQ
-from sage.rings.arith import factorial
-from sage.rings.infinity import PlusInfinity
-from sage.structure.global_options import GlobalOptions
-from sage.structure.parent import Parent
+from itertools                                 import ifilter
+from sage.categories.infinite_enumerated_sets  import InfiniteEnumeratedSets
+from sage.categories.finite_enumerated_sets    import FiniteEnumeratedSets
+from sage.combinat.integer_vector              import IntegerVectors
+from sage.combinat.partition                   import Partitions
+from sage.combinat.skew_partition              import SkewPartition, SkewPartitions
+from sage.matrix.all                           import zero_matrix
+from sage.rings.all                            import Integer, ZZ, QQ, NN
+from sage.rings.arith                          import factorial
+from sage.rings.infinity                       import PlusInfinity
+from sage.structure.global_options             import GlobalOptions
+from sage.structure.parent                     import Parent
 
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
-from sage.combinat.tableaux.skew_tableau import (
-     SkewTableau, SemistandardSkewTableau, StandardSkewTableau)
-
-# TODO: remove tableaux's global options when tableaux is refactored
+from sage.combinat.tableaux.skew_tableau       import (
+     SkewTableau, SkewTableauFactory, SemistandardSkewTableau, StandardSkewTableau)
 
 TableauOptions=GlobalOptions(name='skew tableaux',
     doc=r"""
@@ -187,10 +186,10 @@ TableauOptions=GlobalOptions(name='skew tableaux',
 class SkewTableaux(BadShapeTableaux):
     r"""
     Parent class of all skew tableaux.
-    
+
     See meth:`_element_constructor_` for Element class construction
     options and further examples. See :class:`SkewTableau` for the Element
-    class itself
+    class itself.
 
     EXAMPLES::
 
@@ -203,42 +202,10 @@ class SkewTableaux(BadShapeTableaux):
         sage: TestSuite(S).run()
     """
     Element = SkewTableau
-
-    # Convenient shortcut to global options
     global_options = TableauOptions
 
     def _element_constructor_(self, st=0, expr=None, shape_word=None,
                                     dct=None, check=True):
-        r"""
-        Construct a new SkewTableau by converting from one of several input
-        formats, optionally validating and normalizing input.
-
-        These are conversions. If multiple formats are specified, the
-        left-most is used. If no format is specified, the "trivial" skew
-        tableau with no entries is returned.
-
-        INPUT:
-        - ``x`` -- used in :meth:`Parent.__call__` and can be ignored here.
-        - ``st`` -- an iterable of rows from top to bottom in English
-          notation, where each row is an iterable of entries from left
-          to right but where ``None``'s do not give cells of the skew
-          tableau
-        - ``expr`` -- a pair (``inner``, ``rows``) where ``inner`` is
-          the inner partition and ``rows`` is an iterable of rows from
-          bottom to top in English notation, where each row is an iterable
-          of the entries in that row from left to right. Provided for
-          compatibility with MuPAD-Combinat.
-        - ``shape_word'' -- a pair (``shape``, ``word``) where ``shape``
-          is a skew partition and the word ``word`` is obtained from the
-          row reading
-        - ``dct`` -- a dictionary whose keys are pairs of non-negative
-          integers
-        - ``check`` -- (default: ``True``) if ``True``, then validate 
-          and normalize input: ensure ``st`` or the cells of ``dct``
-          actually form a skew shape, remove empty rows from ``st``,
-          etc.
-        """
-        # TODO: normalize st input by removing empty rows
         if st is not 0:
             return self.from_st(st, check)
 
@@ -253,6 +220,9 @@ class SkewTableaux(BadShapeTableaux):
             return self.from_dict(dct, check)
 
         return self._new_element(())
+    # For user's convenience, documentation for this method has
+    #    been placed on the skew tableau factory function.
+    _element_constructor_.__doc__ = SkewTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -269,12 +239,12 @@ class SkewTableaux(BadShapeTableaux):
 
     def _coerce_map_from_(self, S):
         r"""
-        Determines whether or not we can coerce from `S` to the current
+        Determine whether or not we can coerce from `S` to the current
         Parent.
 
-        Subclasses are not (currently) allowed to coerce by default.
-        Skew tableaux are often thought of as lists of lists, so allow that
-        format as well.
+        Subclasses are not (currently) allowed to coerce by default, but they
+        should typically just work. Skew tableaux are often thought of as lists
+        of lists, so allow that format as well.
 
         TESTS::
 
@@ -291,12 +261,25 @@ class SkewTableaux(BadShapeTableaux):
 
     def __contains__(self, other):
         r"""
-        Determines whether or not ``other`` is contained in ``self``.
+        Determine whether or not ``other`` is contained in ``self``.
         
         The default implementation from :class:`Parent` is too restrictive
-        and requires ``other == self(other)``. This does not work for
+        and requires `other == self(other)`. This does not work for
         skew tableaux, which are frequently thought of as lists of lists.
+
+        TESTS::
+
+            sage: SkewTableau([[None, 1, 2], [3]]) in SkewTableaux()
+            True
+            sage: [[None, 1, 2], [3]] in SkewTableaux()
+            True
+            sage: [[None, 1, 2], [3, None]] in SkewTableaux()
+            False
+            sage: StandardSkewTableau([[None, 1, 2], [None, 3, 4]]) in SkewTableaux()
+            True
         """
+        if isinstance(other, self.Element):
+            return True
         try:
             self(other)
         except Exception:
@@ -304,9 +287,32 @@ class SkewTableaux(BadShapeTableaux):
         return True
 
     def from_st(self, st, check=True):
+        r"""
+        Construct a skew tableaux, optionally validating input.
+
+        INPUT:
+        - ``st`` -- an iterable of rows from top to bottom in English
+          notation, where each row is an iterable of entries from left
+          to right but where ``None``'s indicate the cells of the inner
+          shape
+        - ``check`` -- boolean, ``True`` if input should be validated
+
+        TESTS::
+
+            sage: SkewTableaux().from_st([[None, 1, 2], [3, 4]])
+            [[None, 1, 2], [3, 4]]
+            sage: SkewTableaux().from_st([[None, 1, None], [3, 4]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Row (None, 1, None) has a None after a non-None
+            sage: SkewTableaux().from_st(([[None, 1, 2], [3, 4, 5, 6]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Input must be of skew shape
+        """
         try:
-            # Remove empty rows
-            st = tuple( ifilter(lambda t: t,
+            # Remove empty rows, normalize input
+            st = tuple( ifilter(None,
                         (tuple(row) for row in st)) )
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
@@ -320,10 +326,10 @@ class SkewTableaux(BadShapeTableaux):
 
                 finishedNones = False
                 noneCount = 0
-                for j, val in enumerate(row):
+                for val in row:
                     if val is None:
                         if finishedNones:
-                            raise ValueError("Row %s does not start with a block of Nones"%str(row))
+                            raise ValueError("Row %s has a None after a non-None"%str(row))
                         noneCount += 1
                     else:
                         finishedNones = True
@@ -331,38 +337,59 @@ class SkewTableaux(BadShapeTableaux):
                 inner[i] = noneCount
                 outer[i] = len(row)
 
-            # Make sure inner and outer are partitions
-            if (any(inner[i+1] > inner[i] for i in range(len(st) - 1)) or
-                any(outer[i+1] > outer[i] for i in range(len(st) - 1))):
+            # Make sure inner and outer form a skew partition
+            if (outer, inner) not in SkewPartitions():
                 raise ValueError("Input must be of skew shape")
 
         return self._new_element(st)
 
     def from_expr(self, expr, check=True):
         r"""
-        Return a :class:`SkewTableau` from a MuPAD-Combinat expr for a skew
-        tableau. The first list in ``expr`` is the inner shape of the skew
-        tableau. The second list are the entries in the rows of the skew
-        tableau from bottom to top.
+        Return a :class:`SkewTableau` from a MuPAD-Combinat ``expr``
+        for a skew tableau.
 
         Provided primarily for compatibility with MuPAD-Combinat.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: SkewTableaux().from_expr([[1,1],[[5],[3,4],[1,2]]])
+        - ``expr`` -- a pair (``inner``, ``rows``) where ``inner`` is
+          the inner partition and ``rows`` is an iterable of rows from
+          bottom to top in English notation, where each row is an iterable
+          of the entries in that row from left to right.
+        - ``check`` -- boolean, ``True`` if input should be validated
+
+        TESTS::
+
+            sage: SkewTableaux().from_expr([[1,1], [[5],[3,4],[1,2]]])
             [[None, 1, 2], [None, 3, 4], [5]]
+            sage: SkewTableaux().from_expr([[1,1,1], [[5],[3,4]]])
+            [[None, 3, 4], [None, 5], [None]]
+            sage: SkewTableaux().from_expr([[1,2,1], [[5],[3,4]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: shape must form a skew partition
         """
-        inner, outer = expr
-        inner = inner+[0]*(len(outer)-len(inner))
+        inner, rows = expr
+
+        # Make inner and rows the same length by padding
+        li = len(inner)
+        lr = len(rows)
+        if lr > li:
+            inner += [0]*(lr-li)
+            li=lr
+        elif lr < li:
+            rows = [[]]*(li-lr) + rows
+            lr=li
 
         if check:
-            # TODO: make sure inner is weakly decreasing; make sure shape
-            # is skew
-            pass
+            # Make sure shape is skew
+            outer = [inner[i] + len(rows[-(i+1)]) for i in range(lr)]
+            if (outer, inner) not in SkewPartitions():
+                raise ValueError("shape must form a skew partition")
 
-        st = []
-        for i in range(len(outer)):
-            st.append( [None]*(inner[i]) + outer[-(i+1)] )
+        # Create a normalized st representation
+        st = tuple( (None,)*(inner[i]) + tuple(rows[-(i+1)])
+                    for i in range(lr) )
 
         return self._new_element(st)
 
@@ -371,59 +398,118 @@ class SkewTableaux(BadShapeTableaux):
         Return the skew tableau corresponding to the skew partition ``shape``
         and the word ``word`` obtained from the row reading.
 
-        EXAMPLES::
+        INPUT:
+
+        - ``shape`` -- a skew partition
+        - ``word`` -- the row reading word
+        - ``check`` -- boolean, ``True`` if input should be validated
+
+        TESTS::
 
             sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
             sage: shape = t.shape()
             sage: word  = t.to_word()
             sage: SkewTableaux().from_shape_and_word(shape, word)
             [[None, 1, 3], [None, 2], [4]]
+            sage: SkewTableaux().from_shape_and_word([[3, 2], [1]], [1, 2, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Shape and word must be the same length
+            sage: SkewTableaux().from_shape_and_word([[2, 3], [1]], [1, 2, 3, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Input must be of skew shape
         """
-        # TODO: add validation
+        outer, inner = shape
 
-        inner, outer = shape
+        if check:
+            if sum(outer) - sum(inner) != len(word):
+                raise ValueError("Shape and word must be the same length")
 
-        st = [ [None]*row_length for row_length in inner ]
+        # Construct the default input format
+        st = [ [None]*row_length for row_length in outer ]
         w_count = 0
-        for i in reversed(range(len(inner))):
-            for j in range(inner[i]):
-                if i >= len(outer) or j >= outer[i]:
+        for i in reversed(range(len(outer))):
+            for j in range(outer[i]):
+                if i >= len(inner) or j >= inner[i]:
                     st[i][j] = word[w_count]
                     w_count += 1
 
-        return self._new_element(st)
-    
+        # from_st performs additional validation and normalization
+        return self.from_st(st, check)
+
     def from_dict(self, dct, check=True):
         r"""
         Return the skew tableau obtained from the given dictionary.
-        """
-        # TODO: add validation
-        
-        rows = defaultdict(dict)
-        min_row_index = None
-        max_row_index = None
-        min_col_index = None
-        for i, j in six.iteritems(dictionary):
-            rows[i[0]][i[1]] = j
-            if (min_row_index is None) or (min_row_index > i[0]):
-                min_row_index = i[0]
-            if (max_row_index is None) or (min_row_index < i[0]):
-                max_row_index = i[0]
-            if (min_col_index is None) or (min_col_index > i[1]):
-                min_col_index = i[1]
 
-        st = []
-        for row_index in range(min_row_index, max_row_index + 1):
-            row = rows[row_index]
-            if not row:
-                st.append([])
-                continue
-            tmp = [None]*(max(row.keys()) - min_col_index + 1)
-            for col_index, value in six.iteritems(row):
-                tmp[col_index - min_col_index] = value
-            st.append(tmp)
-        
-        return self._new_element(st)
+        The shape of the skew tableau is not uniquely specified by the
+        dictionary in general, so the smallest outer shape is used.
+
+        INPUT:
+
+        - ``dct`` -- a dictionary whose keys are pairs of non-negative
+          integers
+        - ``check`` -- boolean, ``True`` if input should be validated
+
+        EXAMPLES::
+
+            sage: s1 = SkewTableau(dct={(0, 1): 1}); s1
+            [[None, 1]]
+            sage: s2 = SkewTableau([[None, 1], [None]]); s2
+            [[None, 1], [None]]
+            sage: s1.dict() == s2.dict()
+            True
+            sage: s1.shape() == s2.shape()
+            False
+
+        TESTS::
+
+            sage: SkewTableaux().from_dict({(0, 1): 1, (0, 2): 2, (1, 1): 2})
+            [[None, 1, 2], [None, 2]]
+            sage: SkewTableaux().from_dict({'cat': 1, (0, 2): 3})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys must be pairs of non-negative integers
+            sage: SkewTableaux().from_dict({(1, 2): 3, (2, 1): 4, (15, 3): 5})
+            Traceback (most recent call last):
+            ...
+            ValueError: Outer shape must form a partition
+        """
+        # Can assume non-emptiness
+        if len(dct)==0:
+            return self._new_element(())
+
+        if check:
+            # Make sure indexes are pairs of non-negative integers
+            try:
+                for v in six.iterkeys(dct):
+                    if v[0] not in NN or v[1] not in NN:
+                        raise ValueError
+            except (TypeError, ValueError):
+                raise ValueError("Keys must be pairs of non-negative integers")
+
+        # Figure out the outer shape
+        max_row_index = max(six.iterkeys(dct), key=lambda k: k[0])[0]
+        outer = [0]*(max_row_index+1)
+        for r, c in six.iterkeys(dct):
+            if outer[r] < c: outer[r] = c
+        for i in range(1,len(outer)+1):
+            if outer[-i] == 0:
+                outer[-i] = c
+            else:
+                c = outer[-i]
+
+        if check:
+            if outer not in Partitions():
+                raise ValueError("Outer shape must form a partition")
+
+        # Compute the st representation
+        st = [[None]*(l+1) for l in outer]
+        for k, v in six.iteritems(dct):
+            st[k[0]][k[1]] = v
+
+        # Additional normalization and validation is performed in from_st
+        return self.from_st(st, check)
 
     def _repr_(self):
         r"""

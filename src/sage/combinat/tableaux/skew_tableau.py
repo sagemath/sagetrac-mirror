@@ -1231,15 +1231,50 @@ class StandardSkewTableau(SemistandardSkewTableau):
 # Use a factory method to create `class:SkewTableau`, etc.
 def SkewTableauFactory(*args, **kwds):
     r"""
-    (See `class:SkewTableau` for docstring.)
+    Construct a new SkewTableau by converting from one of several input
+    formats, optionally validating and normalizing input.
+
+    If multiple formats are specified, the left-most is used. If no
+    format is specified, the "trivial" skew tableau with no entries is
+    returned.
+
+    INPUT:
+    - ``st`` -- an iterable of rows from top to bottom in English
+      notation, where each row is an iterable of entries from left
+      to right but where ``None``'s indicate the cells of the inner
+      shape
+    - ``expr`` -- a pair (``inner``, ``rows``) where ``inner`` is
+      the inner partition and ``rows`` is an iterable of rows from
+      bottom to top in English notation, where each row is an iterable
+      of the entries in that row from left to right. Provided for
+      compatibility with MuPAD-Combinat.
+    - ``shape_word'' -- a pair (``shape``, ``word``) where ``shape``
+      is a skew partition and the word ``word`` is obtained from the
+      row reading
+    - ``dct`` -- a dictionary whose keys are pairs of non-negative
+      integers
+    - ``check`` -- (default: ``True``) if ``True``, then validate 
+      and normalize input: ensure ``st`` or the cells of ``dct``
+      actually form a skew shape, remove empty rows from ``st``,
+      etc.
+
+TODO: add examples and tests
+    EXAMPLES::
+
+        sage: True
+        True
+
+    TESTS::
+
+        sage: True
+        True
     """
     from skew_tableaux import SkewTableaux
     return SkewTableaux()(*args, **kwds)
-SkewTableauFactory.__doc__ = SkewTableau.__doc__
 
 def SemistandardSkewTableauFactory(*args, **kwds):
     r"""
-    (See `class:SemistandardSkewTableau` for docstring.)
+    (See class:`SemistandardSkewTableau for docstring.)
     """
     from skew_tableaux import SemistandardSkewTableaux
     return SemistandardSkewTableaux()(*args, **kwds)
@@ -1247,7 +1282,7 @@ SemistandardSkewTableauFactory.__doc__ = SemistandardSkewTableau.__doc__
 
 def StandardSkewTableauFactory(*args, **kwds):
     r"""
-    (See `class:StandardSkewTableau` for docstring.)
+    (See class:`StandardSkewTableau` for docstring.)
     """
     from skew_tableaux import StandardSkewTableaux
     return StandardSkewTableaux()(*args, **kwds)
