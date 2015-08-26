@@ -8,8 +8,8 @@ AUTHORS:
 - Josh Swanson (and others) (2015): initial version
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Josh Swanson,
-#                     2015 Jan Keitel
+#       Copyright (C) 2015 Jan Keitel
+#                     2015 Josh Swanson
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -24,8 +24,8 @@ AUTHORS:
 #*****************************************************************************
 
 import six
-from collections import defaultdict
-from sage.structure.element import Element
+from collections               import defaultdict
+from sage.structure.element    import Element
 from sage.misc.abstract_method import abstract_method
 
 class AbstractTableau(Element):
@@ -341,29 +341,47 @@ class AbstractTableau(Element):
         r"""
         Return the row reading word.
 
-        More precisely, return a :class:`sage.combinat.words.word.FiniteWord_list`
-        obtained from reading entries row-by-row, from the topmost row to the bottommost,
-        in increasing order of column index within each row.
+        More precisely, return a :class:`~sage.combinat.words.word.FiniteWord_list`
+        obtained from reading entries row-by-row, from the topmost row to
+        the bottommost, in increasing order of column index within each row.
 
         TESTS::
 
             sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
             sage: s.to_word_by_row()
             word: fly,0,0,fruit,1
+
+            sage: Tableau([[1,2],[3,4]]).to_word_by_row()
+            word: 3412
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
+            word: 325146
+
+            sage: Tableau([[1,2],[3,4]]).to_word()
+            word: 3412
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
+            word: 325146
         """
         from sage.combinat.words.word import Word
         return Word(v for x in reversed(self.rows()) for v in x)
 
     def to_word_by_column(self):
         r"""
-        Return a flattened version of ``self.iter_by_col'' as a
-        :class:`sage.combinat.words.word.FiniteWord_list`.
+        Return the column reading word.
+
+        More precisely, return a :class:`~sage.combinat.words.word.FiniteWord_list`
+        obtained from reading entries row-by-row, from the topmost row to
+        the bottommost, in increasing order of column index within each row.
 
         TESTS::
 
             sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
             sage: s.to_word_by_column()
             word: 1,0,fruit,0,fly
+
+            sage: Tableau([[1,2],[3,4]]).to_word_by_column()
+            word: 3142
+            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
+            word: 321546
         """
         from sage.combinat.words.word import Word
         return Word(v for x in reversed(self.columns()) for v in x)
@@ -393,6 +411,10 @@ class AbstractTableau(Element):
 
             sage: b = BadShapeTableau({(3, 3): 2, (2, 2): 1, (1, 1): -1})
             sage: b.size()
+            3
+            sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).size()
+            4
+            sage: SkewTableau([[None, 2], [1, 3]]).size()
             3
         """
         return len(self._dict_unsafe())

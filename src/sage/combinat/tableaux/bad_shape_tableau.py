@@ -8,8 +8,8 @@ AUTHORS:
 - Josh Swanson (and others) (2015): initial version
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Josh Swanson,
-#                     2015 Jan Keitel
+#       Copyright (C) 2015 Jan Keitel
+#                     2015 Josh Swanson
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -24,7 +24,6 @@ AUTHORS:
 #*****************************************************************************
 
 import six
-from collections import defaultdict
 
 from sage.combinat.tableaux.abstract_tableau import AbstractTableau
 

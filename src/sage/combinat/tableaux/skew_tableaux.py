@@ -9,47 +9,6 @@ AUTHORS:
 - Travis Scrimshaw, Arthur Lubovsky (2013-02-11): Factored out
   ``CombinatorialClass``
 - Josh Swanson (and others) (2015): tableaux refactoring/cleanup
-
-Orphaned tests::
-
-    sage: T = SkewTableau([[None, None, 1], [3], [4]])
-    sage: T in SkewTableaux()
-    True
-    sage: [[None,1],[2,3]] in SkewTableaux()
-    True
-
-    sage: [[None, 2], [1, 3]] in StandardSkewTableaux()
-    True
-    sage: [[None, 2], [2, 4]] in StandardSkewTableaux()
-    False
-    sage: [[None, 3], [2, 4]] in StandardSkewTableaux()
-    False
-    sage: [[None, 2], [1, 4]] in StandardSkewTableaux()
-    False
-
-    sage: [[None, 2], [1, 3]] in SemistandardSkewTableaux()
-    True
-    sage: [[None, 2], [2, 4]] in SemistandardSkewTableaux()
-    True
-    sage: [[None, 3], [2, 4]] in SemistandardSkewTableaux()
-    True
-    sage: [[None, 2], [2, 4]] in SemistandardSkewTableaux()
-    True
-
-    sage: S = SemistandardSkewTableaux(3, [2,1])
-    sage: S2 = SemistandardSkewTableaux(int(3), (2,1))
-    sage: S is S2
-    True
-
-    sage: S = SemistandardSkewTableaux([[2,1],[]])
-    sage: S2 = SemistandardSkewTableaux(SkewPartition([[2,1],[]]))
-    sage: S is S2
-    True
-
-    sage: S = StandardSkewTableaux([[3, 2, 1], [1, 1]])
-    sage: S2 = StandardSkewTableaux(SkewPartition([[3, 2, 1], [1, 1]]))
-    sage: S is S2
-    True
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -224,7 +183,7 @@ class SkewTableaux(BadShapeTableaux):
             return self.from_dict(dct, check)
 
         return self._new_element(())
-    # For user's convenience, documentation for this method has
+    # For user convenience, documentation for this method has
     #    been placed on the skew tableau factory function.
     _element_constructor_.__doc__ = SkewTableauFactory.__doc__
 
@@ -281,6 +240,12 @@ class SkewTableaux(BadShapeTableaux):
             False
             sage: StandardSkewTableau([[None, 1, 2], [None, 3, 4]]) in SkewTableaux()
             True
+            sage: [[None, 2], [1, 3]] in SemistandardSkewTableaux()
+            True
+            sage: [[None, 2], [1, 3]] in StandardSkewTableaux()
+            True
+            sage: [[None, 2], [2, 4]] in StandardSkewTableaux()
+            False
         """
         if isinstance(other, self.Element):
             return True
@@ -295,7 +260,7 @@ class SkewTableaux(BadShapeTableaux):
         Construct a skew tableaux, optionally validating input.
 
         INPUT:
-        - ``st`` -- an iterable of rows from top to bottom in English
+        - ``st``    -- an iterable of rows from top to bottom in English
           notation, where each row is an iterable of entries from left
           to right but where ``None``'s indicate the cells of the inner
           shape
@@ -557,7 +522,7 @@ class SemistandardSkewTableaux(SkewTableaux):
             if not ret.is_semistandard():
                 raise ValueError("Input is not semistandard")
         return ret
-    # For user's convenience, documentation for this method has
+    # For user convenience, documentation for this method has
     #    been placed on the semistandard skew tableau factory function.
     _element_constructor_.__doc__ = SemistandardSkewTableauFactory.__doc__
 
@@ -883,7 +848,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
             if not ret.has_standard_entries():
                 raise ValueError("Input is not standard")
         return ret
-    # For user's convenience, documentation for this method has
+    # For user convenience, documentation for this method has
     #    been placed on the standard skew tableau factory function.
     _element_constructor_.__doc__ = StandardSkewTableauFactory.__doc__
 
@@ -1184,9 +1149,13 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
 
     TESTS::
 
-        sage: SSST1 = SemistandardSkewTableaux([[3, 2, 1], [1, 1]])
-        sage: SSST2 = SemistandardSkewTableaux(SkewPartition([[3, 2, 1], [1, 1]]))
-        sage: SSST1 is SSST2
+        sage: S1 = SemistandardSkewTableaux(3, [2,1])
+        sage: S2 = SemistandardSkewTableaux(int(3), (2,1))
+        sage: S1 is S2
+        True
+        sage: S1 = StandardSkewTableaux([[3, 2, 1], [1, 1]])
+        sage: S2 = StandardSkewTableaux(SkewPartition([[3, 2, 1], [1, 1]]))
+        sage: S1 is S2
         True
 
     TODO: After input validation has been added to the resulting classes,

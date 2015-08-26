@@ -10,8 +10,8 @@ AUTHORS:
 - Josh Swanson (and others) (2015): initial version
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Josh Swanson,
-#                     2015 Jan Keitel
+#       Copyright (C) 2015 Jan Keitel
+#                     2015 Josh Swanson
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -26,9 +26,9 @@ AUTHORS:
 #*****************************************************************************
 
 import six
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.sets_cat import Sets
+from sage.structure.parent                   import Parent
+from sage.structure.unique_representation    import UniqueRepresentation
+from sage.categories.sets_cat                import Sets
 
 from sage.combinat.tableaux.abstract_tableau import AbstractTableau
 

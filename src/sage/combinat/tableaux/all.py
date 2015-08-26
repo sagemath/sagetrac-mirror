@@ -12,6 +12,3 @@ from skew_tableaux      import SemistandardSkewTableauxFactory as SemistandardSk
 from skew_tableau       import SkewTableauFactory              as SkewTableau
 from skew_tableau       import SemistandardSkewTableauFactory  as SemistandardSkewTableau
 from skew_tableau       import StandardSkewTableauFactory      as StandardSkewTableau
-
-# TODO: organize all tableaux under a "tableaux" namespace like graphs are and
-#   add a zillion deprecation warnings

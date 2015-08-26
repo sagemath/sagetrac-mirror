@@ -8,8 +8,8 @@ AUTHORS:
 - Josh Swanson (and others) (2015): initial version
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Josh Swanson,
-#                     2015 Jan Keitel
+#       Copyright (C) 2015 Jan Keitel
+#                     2015 Josh Swanson
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -24,7 +24,7 @@ AUTHORS:
 #*****************************************************************************
 
 import six
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer_ring                  import ZZ
 
 from sage.combinat.tableaux.abstract_tableaux import AbstractTableaux
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
