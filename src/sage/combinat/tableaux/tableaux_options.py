@@ -35,6 +35,7 @@ def _doc():
     """
     pass
 
+# TODO: fix failing doctests
 def _end_doc():
     r"""
     .. NOTE::

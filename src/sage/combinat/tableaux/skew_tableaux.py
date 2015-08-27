@@ -1325,7 +1325,7 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
 
     TESTS::
 
-        sage: S1 = SemistandardSkewTableaux(3, [2,1])
+        sage: S1 = SemistandardSkewTableaux(3, [2,1]) # indirect doctest
         sage: S2 = SemistandardSkewTableaux(int(3), (2,1))
         sage: S1 is S2
         True
@@ -1394,7 +1394,7 @@ def StandardSkewTableauxFactory(skp=None):
 
     Specifying a shape::
 
-        sage: StandardSkewTableaux([[2,1],[]])
+        sage: StandardSkewTableaux([[2,1],[]]) # indirect doctest
         Standard skew tableaux of shape [2, 1] / []
         sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
         [[[None, 1, 2], [None, 3], [4]],
@@ -1423,4 +1423,6 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_p',  SemistandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_pmu',  SemistandardSkewTableaux_shape_weight)
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
+# TODO: Travis added the following line and "SkewTableau_class" a few months ago
+#   to the old skew_tableau.py, but tests don't break without it; remove?
 #register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)

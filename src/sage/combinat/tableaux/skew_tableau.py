@@ -1382,7 +1382,7 @@ def SkewTableauFactory(*args, **kwds):
 
     EXAMPLES::
 
-        sage: SkewTableau([[None, None, 1], [None, 2], [3]])
+        sage: SkewTableau([[None, None, 1], [None, 2], [3]]) # indirect doctest
         [[None, None, 1], [None, 2], [3]]
         sage: SkewTableau(expr=([2, 1], [[3], [2], [1]]))
         [[None, None, 1], [None, 2], [3]]
@@ -1407,7 +1407,7 @@ def SemistandardSkewTableauFactory(*args, **kwds):
 
     EXAMPLES::
 
-        sage: SemistandardSkewTableau([[None, None, 1], [None, 2], [3]])
+        sage: SemistandardSkewTableau([[None, None, 1], [None, 2], [3]]) # indirect doctest
         [[None, None, 1], [None, 2], [3]]
         sage: [[None, None, 1], [None, 2], [3]] in SemistandardSkewTableaux()
         True
@@ -1436,7 +1436,7 @@ def StandardSkewTableauFactory(*args, **kwds):
 
     EXAMPLES::
 
-        sage: StandardSkewTableau([[None, None, 1], [None, 2], [3]])
+        sage: StandardSkewTableau([[None, None, 1], [None, 2], [3]]) # indirect doctest
         [[None, None, 1], [None, 2], [3]]
 
     TESTS::

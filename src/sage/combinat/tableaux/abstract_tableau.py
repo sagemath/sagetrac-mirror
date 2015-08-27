@@ -157,6 +157,13 @@ class AbstractTableau(Element):
         It is unsafe to alter this dictionary or pass it along, since
         this might or might not mutate ``self`` and tableaux are assumed
         to be immutable.
+
+        TESTS::
+
+            sage: d = {(4, -1): -2, (3, 3): 'cow'}
+            sage: b = BadShapeTableau(d)
+            sage: b._dict_unsafe() == d
+            True
         """
         pass
 
@@ -247,7 +254,7 @@ class AbstractTableau(Element):
 
         TESTS::
 
-            set(SkewTableau([[None, 7, 8, 9], [None, 1, 2, 4]]).iter_entries()) == {1, 2, 4, 7, 8, 9}
+            sage: set(SkewTableau([[None, 7, 8, 9], [None, 1, 2, 4]]).iter_entries()) == {1, 2, 4, 7, 8, 9}
             True
         """
         return six.itervalues(self._dict_unsafe())
