@@ -146,18 +146,36 @@ class Tarball(object):
         successful_download = False
         log.info('Attempting to download package {0} from mirrors'.format(self.filename))
         for mirror in MirrorList():
-            url = mirror + '/'.join(['spkg', 'upstream', self.package.name, self.filename])
-            log.info(url)
-            try:
-                Download(url, self.upstream_fqn).run()
-                successful_download = True
+            successful_download = self._download_from_mirror(mirror)
+            if successful_download:
                 break
-            except IOError:
-                log.debug('File not on mirror')
+        if not successful_download:
+            successful_download = self._download_by_sha1()
         if not successful_download:
             raise FileNotMirroredError('tarball does not exist on mirror network')
         if not self.checksum_verifies():
             raise ChecksumError('checksum does not match')
+
+    def _download_from_mirror(self, mirror):
+            url = mirror + '/'.join(['spkg', 'upstream', self.package.name, self.filename])
+            log.info(url)
+            try:
+                Download(url, self.upstream_fqn).run()
+                return True
+            except IOError:
+                log.debug('File not on mirror')
+            return False
+
+    def _download_by_sha1(self):
+        url_template = 'http://fileserver.sagemath.org:8080/api/v1/pkg/download/{sha1}'
+        url = url_template.format(sha1=self.package.sha1)
+        log.info(url)
+        try:
+            Download(url, self.upstream_fqn).run()
+            return True
+        except IOError:
+            log.debug('File sha1 not on mirror')
+        return False
 
     def save_as(self, destination):
         """
