@@ -32,6 +32,10 @@ from copy import copy
 
 import sage.categories.pushout
 
+# this is used by matrix() when given a string
+from string import maketrans
+matrix_string = maketrans(';,[]','\n   ')
+
 def matrix_method(func=None, name=None):
     """
     Allows a function to be tab-completed on the global matrix
@@ -100,17 +104,18 @@ def _matrix_constructor(*args, **kwds):
     preceded by a ring and the dimensions of the matrix, and returns a
     matrix.
 
-    The entries of a matrix can be specified as a flat list of
-    elements, a list of lists (i.e., a list of rows), a list of Sage
-    vectors, a callable object, or a dictionary having positions as
-    keys and matrix entries as values (see the examples). If you pass
-    in a callable object, then you must specify the number of rows and
-    columns. You can create a matrix of zeros by passing an empty list
-    or the integer zero for the entries.  To construct a multiple of
-    the identity (`cI`), you can specify square dimensions and pass in
-    `c`. Calling matrix() with a Sage object may return something that
-    makes sense. Calling matrix() with a NumPy array will convert the
-    array to a matrix.
+    The entries of a matrix can be specified as a flat list of elements,
+    a list of lists (i.e., a list of rows), a list of Sage vectors, a
+    callable object, or a dictionary having positions as keys and matrix
+    entries as values (see the examples). You can also use a string with
+    Matlab-like syntax, although there are some limitations (see below).
+    If you pass in a callable object, then you must specify the number
+    of rows and columns. You can create a matrix of zeros by passing an
+    empty list or the integer zero for the entries. To construct a
+    multiple of the identity (`cI`), you can specify square dimensions
+    and pass in `c`. Calling matrix() with a Sage object may return
+    something that makes sense. Calling matrix() with a NumPy array will
+    convert the array to a matrix.
 
     The ring, number of rows, and number of columns of the matrix can
     be specified by setting the ring, nrows, or ncols parameters or by
@@ -135,7 +140,7 @@ def _matrix_constructor(*args, **kwds):
 
     OUTPUT:
 
-    a matrix
+    A matrix.
 
     EXAMPLES::
 
@@ -265,6 +270,58 @@ def _matrix_constructor(*args, **kwds):
         [x6 x7 x8]
         sage: det(A)
         -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
+
+    In some cases, you can also just pass in a string, using
+    `Matlab-like syntax
+    <http://www.mathworks.com/help/techdoc/math/f1-84864.html#f1-84906>`_.
+    Separate entries with spaces and/or commas, and use semicolons or
+    newlines to delimit rows. You can also put square brackets around
+    the entire expression, as you would in Matlab, or at the beginning
+    and end of rows::
+
+        sage: matrix('1 2 ; 3 4')
+        [1 2]
+        [3 4]
+        sage: matrix('1, 2 ; 3 4')
+        [1 2]
+        [3 4]
+        sage: matrix('1 2 3\n4 5 6')
+        [1 2 3]
+        [4 5 6]
+        sage: matrix('[1, 2/3 ; 4, 5]')
+        [  1 2/3]
+        [  4   5]
+        sage: matrix('''\n[  1 2/3]\n[  4   5]''')
+        [  1 2/3]
+        [  4   5]
+        sage: matrix('1 sqrt(2) ; 3/4 9')
+        [      1 sqrt(2)]
+        [    3/4       9]
+        sage: matrix('1 2+sqrt(2) ; 3/4 9')
+        [          1 sqrt(2) + 2]
+        [        3/4           9]
+        sage: matrix('1/10, 2 ; 3, 4.12345678901234567890')
+        [0.10000000000000000000  2.0000000000000000000]
+        [ 3.0000000000000000000  4.1234567890123456789]
+        sage: matrix('1/3,2+I ; 3 4.1234')
+        [             1/3            I + 2]
+        [               3 4.12340000000000]
+
+    There are limitations, however: this function interprets all commas
+    and spaces as separating entries, so something like ``1 + sqrt(3)``
+    or ``f(1,2,3)`` will be interpreted as three entries; also, the
+    string is not evaluated in the current context, so if you have done
+    ``x = 4``, then you cannot use ``x`` in a string and have it
+    evaluate to 4. This form of the matrix constructor is really only
+    useful for matrices composed of numeric literals.
+
+    A string that doesn't yield any entries results in the empty matrix::
+
+        sage: matrix('')
+        []
+        sage: matrix('[ ,, , ,, \n ,;;;;,,,;,;,;]')
+        []
+
 
     TESTS::
 
@@ -511,12 +568,53 @@ def _matrix_constructor(*args, **kwds):
         sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero() # see #10158
         True
 
+    For the Matlab-style strings, here are some tests to see if we
+    accept strings the same way that Matlab does::
+
+        sage: matrix('''[\n 1 2 3 \n 4 5 6 \n ]''')
+        [1 2 3]
+        [4 5 6]
+        sage: matrix('''[\n 1 2 3; \n 4 5 6 \n ]''')
+        [1 2 3]
+        [4 5 6]
+        sage: matrix('''[\n 1 2 3; ;\n 4 5 6 \n ]''')
+        [1 2 3]
+        [4 5 6]
+        sage: matrix('[;;1 2;;3 4]')
+        [1 2]
+        [3 4]
+        sage: matrix('''[ \n\n  ; \n 1 2 3]''')
+        [1 2 3]
+        sage: matrix(''' [1, 2, 3 \n \n 4 5 6  \n ] \n ''')
+        [1 2 3]
+        [4 5 6]
+
+    Using strings, all spaces are interpreted as separating entries, and
+    evaluation is not done in the context of the :func:`matrix` call::
+
+        sage: matrix('1 2 + sqrt(2) ; 3/4 9')
+        Traceback (most recent call last):
+        ...
+        ValueError: Rows are not of consistent length.
+
+        sage: matrix('2 + sqrt(2) ; 2 3/4 9')
+        Traceback (most recent call last):
+        ...
+        SyntaxError: unexpected EOF while parsing
+
+        sage: x = 1; matrix('x, 2; 3, 4')
+        Traceback (most recent call last):
+        ...
+        NameError: name 'x' is not defined
+
+
     AUTHORS:
 
     - ??: Initial implementation
 
     - Jason Grout (2008-03): almost a complete rewrite, with bits and
       pieces from the original implementation
+
     """
     args = list(args)
     sparse = kwds.get('sparse',False)
@@ -560,8 +658,11 @@ def _matrix_constructor(*args, **kwds):
             import numpy
             if isinstance(args[0], numpy.ndarray):
                 raise TypeError
-            nrows = int(args[0])
-            args.pop(0)
+            try:
+                nrows = int(args[0])
+                args.pop(0)
+            except ValueError:
+                nrows = None
             if kwds.get('nrows', nrows) != nrows:
                 raise ValueError("Number of rows specified in two places and they are not the same")
         except TypeError:
@@ -575,8 +676,11 @@ def _matrix_constructor(*args, **kwds):
             import numpy
             if isinstance(args[0], numpy.ndarray):
                 raise TypeError
-            ncols = int(args[0])
-            args.pop(0)
+            try:
+                ncols = int(args[0])
+                args.pop(0)
+            except ValueError:
+                ncols = None
             if kwds.get('ncols', ncols) != ncols:
                 raise ValueError("Number of columns specified in two places and they are not the same")
         except TypeError:
@@ -589,7 +693,8 @@ def _matrix_constructor(*args, **kwds):
     # We've also taken care of the Sage object case.
 
     # Now the rest of the arguments are a list of rows, a flat list of
-    # entries, a callable, a dict, a numpy array, or a single value.
+    # entries, a callable, a dict, a numpy array, a string, or a single
+    # value.
     if len(args) == 0:
         # If no entries are specified, pass back a zero matrix
         entries = 0
@@ -626,9 +731,7 @@ def _matrix_constructor(*args, **kwds):
                 elif ncols != len(args[0][0]):
                     raise ValueError("Number of columns does not match up with specified number.")
 
-                entries = []
-                for v in args[0]:
-                    entries.extend(v)
+                entries = [entry for row in args[0] for entry in row]
 
             else:
                 # We have a flat list; figure out nrows and ncols
@@ -647,6 +750,38 @@ def _matrix_constructor(*args, **kwds):
 
             if nrows > 0 and ncols > 0 and ring is None:
                 entries, ring = prepare(entries)
+
+        elif isinstance(args[0], basestring):
+            # input is a Matlab-style string; see trac #11699
+            rows = args[0].strip().translate(matrix_string).split('\n')
+            # throw away empty rows, strip leading/trailing [ and ],
+            # split on whitespace
+            entries = [r.split() for r in rows if r.strip()]
+
+            if entries:
+                first_len = len(entries[0])
+                if not all(len(v) == first_len for v in entries):
+                    raise ValueError, "Rows are not of consistent length."
+
+                # now get number of rows, cols, and check consistency with keywords
+                if nrows is None:
+                    nrows = len(entries)
+                elif nrows != len(entries):
+                    raise ValueError, "Number of rows does not match up with specified number."
+                if ncols is None:
+                    ncols = len(entries[0])
+                elif ncols != len(entries[0]):
+                    raise ValueError, "Number of columns does not match up with specified number."
+                from sage.misc.sage_eval import sage_eval
+                entries = [map(sage_eval, r) for r in entries]
+                entries = [entry for row in entries for entry in row]
+
+                if nrows > 0 and ncols > 0 and ring is None:
+                    entries, ring = prepare(entries)
+            else:
+                # got the empty string or something equivalent
+                entries = 0
+                entry_ring = rings.ZZ
 
         elif isinstance(args[0], dict):
             # We have a dictionary
