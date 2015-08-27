@@ -82,7 +82,7 @@ def matrix_method(func=None, name=None):
         return lambda func: matrix_method(func, name=name)
 
 def _matrix_constructor(*args, **kwds):
-    """
+    r"""
     Create a matrix.
 
     This implements the ``matrix`` constructor::
