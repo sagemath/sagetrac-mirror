@@ -93,7 +93,7 @@ class BadShapeTableau(AbstractTableau):
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(*k)}
-        return self.parent()(data, check=True)
+        return self.parent(data)
 
     def filter_by_entries(self, predicate):
         r"""
@@ -117,7 +117,7 @@ class BadShapeTableau(AbstractTableau):
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(v)}
-        return self.parent()(data, check=True)
+        return self.parent(data)
 
     def conjugate(self):
         r"""
@@ -138,7 +138,7 @@ class BadShapeTableau(AbstractTableau):
             True
         """
         data = {(k[1], k[0]): v for k, v in six.iteritems(self._dict_unsafe())}
-        return self.parent()(data, check=True)
+        return self.parent(data)
 
     # Alias
     transpose = conjugate

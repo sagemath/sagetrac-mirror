@@ -44,6 +44,7 @@ from sage.rings.arith                          import factorial
 from sage.structure.global_options             import GlobalOptions
 from sage.structure.parent                     import Parent
 
+from sage.combinat.tableaux.tableau_options    import TableauOptions
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
 from sage.combinat.tableaux.skew_tableau       import SkewTableau
 from sage.combinat.tableaux.skew_tableau       import SkewTableauFactory
@@ -51,100 +52,6 @@ from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableau
 from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableauFactory
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableau
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableauFactory
-
-# TODO: GlobalOptions docs are not currently doctested. Manually make sure
-# these tests (and possibly the Partitions tests?) work after refactoring
-# has been completed.
-TableauOptions=GlobalOptions(name='skew tableaux',
-    doc=r"""
-    Sets the global options for elements of the :class:`SkewTableau` class.
-    By default, they are displayed as a list, `\LaTeX`ed as a Young
-    diagram, and English convention is used.
-    """,
-    end_doc=r"""
-
-    .. NOTE::
-
-        Changing the ``convention`` for tableaux also changes the
-        ``convention`` for partitions.
-
-    If no parameters are set, then the function returns a copy of the
-    options dictionary.
-
-    EXAMPLES::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T
-        [[1, 2, 3], [4, 5]]
-        sage: Tableaux.global_options(display="array")
-        sage: T
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(convention="french")
-        sage: T
-          4  5
-          1  2  3
-
-    Changing the ``convention`` for tableaux also changes the ``convention``
-    for partitions and vice versa::
-
-        sage: P = Partition([3,3,1])
-        sage: print P.ferrers_diagram()
-        *
-        ***
-        ***
-        sage: Partitions.global_options(convention="english")
-        sage: print P.ferrers_diagram()
-        ***
-        ***
-        *
-        sage: T
-          1  2  3
-          4  5
-
-    The ASCII art can also be changed::
-
-        sage: t = Tableau([[1,2,3],[4,5]])
-        sage: ascii_art(t)
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(ascii_art="table")
-        sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
-        +---+---+---+
-        | 1 | 2 | 3 |
-        +---+---+---+
-        sage: Tableaux.global_options(ascii_art="compact")
-        sage: ascii_art(t)
-        |4|5|
-        |1|2|3|
-        sage: Tableaux.global_options.reset()
-    """,
-    display=dict(default="list",
-                 description='Controls the way in which tableaux are printed',
-                 values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
-                             compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    ascii_art=dict(default="repr",
-                 description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
-                             compact='minimal length ascii art'),
-                 case_sensitive=False),
-    latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
-               values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-               case_sensitive=False),
-    convention=dict(default="English",
-                    description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention'),
-                    case_sensitive=False),
-    notation = dict(alt_name="convention")
-)
 
 class SkewTableaux(BadShapeTableaux):
     r"""
@@ -218,7 +125,7 @@ class SkewTableaux(BadShapeTableaux):
         """
         if isinstance(S, SkewTableaux):
             return True
-        elif S is list:
+        elif S in (list,tuple):
             return True
         return False
 
@@ -545,7 +452,7 @@ class SemistandardSkewTableaux(SkewTableaux):
     def _element_constructor_(self, *args, **kwds):
         ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if not ret.is_semistandard():
                 raise ValueError("Input is not semistandard")
 
@@ -594,7 +501,7 @@ class SemistandardSkewTableaux(SkewTableaux):
 
         EXAMPLES::
 
-            sage: it = SemistandardSkewTableaux(max_entry=5).__iter__()
+            sage: it = iter(SemistandardSkewTableaux(max_entry=5))
             sage: [next(it) for x in range(12)]
             [[],
              [[1]],
@@ -613,7 +520,7 @@ class SemistandardSkewTableaux(SkewTableaux):
         semistandard skew tableaux of size `n` with max entry `n`,
         for all `n`::
 
-            sage: it = SemistandardSkewTableaux().__iter__()
+            sage: it = iter(SemistandardSkewTableaux())
             sage: [next(it) for x in range(10)]
             [[],
              [[1]],
@@ -690,7 +597,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
         """
         ret = super(SemistandardSkewTableaux_size, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             s=ret.size()
             if s != self.n:
                 raise ValueError("Input must have size %i"%self.n)
@@ -795,7 +702,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
         """
         ret = super(SemistandardSkewTableaux_size_weight, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if ret.size() != self.n:
                 raise ValueError("Input must have size %i"%self.n)
             if tuple(ret.weight()) != self.weight:
@@ -836,7 +743,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
 
         EXAMPLES::
 
-            sage: SemistandardSkewTableaux(2,[1,1]).list()
+            sage: list(SemistandardSkewTableaux(2,[1,1]))
             [[[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]]]
         """
         for p in SkewPartitions(self.n):
@@ -897,7 +804,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         """
         ret = super(SemistandardSkewTableaux_shape, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if ret.shape() != self.p:
                 raise ValueError("Input must have shape %i"%repr(self.p))
             if ret.size() > 0 and max(ret.iter_entries()) > self.max_entry:
@@ -1003,7 +910,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         """
         ret = super(SemistandardSkewTableaux_shape_weight, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if ret.shape() != self.p:
                 raise ValueError("Input must have shape %i"%repr(self.p))
             if tuple(ret.weight()) != self.weight:
@@ -1029,7 +936,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
 
         EXAMPLES::
 
-            sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
+            sage: list(SemistandardSkewTableaux([[2,1],[]],[2,1]))
             [[[1, 1], [2]]]
         """
         from sage.combinat.ribbon_tableau import RibbonTableaux_shape_weight_length
@@ -1052,7 +959,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
     def _element_constructor_(self, *args, **kwds):
         ret = super(StandardSkewTableaux, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or ("check" in kwds and kwds["check"]):
+        if kwds.get("check", True):
             # Semistandardness has already been checked
             if not ret.has_standard_entries():
                 raise ValueError("Input is not standard")
@@ -1151,7 +1058,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         """
         ret = super(StandardSkewTableaux_size, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if ret.size() != self.n:
                 raise ValueError("Input must have size %i"%repr(self.n))
 
@@ -1264,7 +1171,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         """
         ret = super(StandardSkewTableaux_shape, self)._element_constructor_(*args, **kwds)
 
-        if "check" not in kwds or kwds["check"]: # uses shortcircuiting
+        if kwds.get("check", True):
             if ret.shape() != self.skp:
                 raise ValueError("Input must have shape %i"%repr(self.p))
 
@@ -1509,4 +1416,12 @@ def StandardSkewTableauxFactory(skp=None):
     else:
         raise TypeError("Invalid argument")
 
-# TODO: deal with pickling/unpickling. See the end of the old skew_tableau.py.
+# Allow unpickling old pickles using deprecated class names
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_n',  SemistandardSkewTableaux_size)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_nmu',  SemistandardSkewTableaux_size_weight)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_p',  SemistandardSkewTableaux_shape)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_pmu',  SemistandardSkewTableaux_shape_weight)
+register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
+#register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)

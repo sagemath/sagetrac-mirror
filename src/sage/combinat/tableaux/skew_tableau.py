@@ -112,7 +112,19 @@ class SkewTableau(BadShapeTableau):
             sage: list(SkewTableau([[None,1], [2,3]]))
             [(None, 1), (2, 3)]
         """
-        return self._st.__iter__()
+        return iter(self._st)
+
+    def __reversed__(self):
+        r"""
+        Return an iterator over the reverse of the underlying st
+        representation, which is a tuple of tuples.
+
+        TESTS::
+
+            sage: list(reversed(SkewTableau([[None,1], [2,3]])))
+            [(2, 3), (None, 1)]
+        """
+        return reversed(self._st)
 
     def __len__(self):
         r"""
@@ -199,7 +211,7 @@ class SkewTableau(BadShapeTableau):
             sage: SkewTableau([[None, 1, 2], [3]]).to_list()
             [[None, 1, 2], [3]]
         """
-        return [list(i) for i in self._st]
+        return list(six.moves.map(list, self))
 
     def to_expr(self):
         r"""
@@ -299,7 +311,7 @@ class SkewTableau(BadShapeTableau):
             sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr([list(row) for row in self])
+        return repr(self.to_list())
 
     # See #18024. CombinatorialObject provided __str__, so
     # emulate the old functionality.
@@ -392,7 +404,7 @@ class SkewTableau(BadShapeTableau):
             sage: SkewTableau([[None,1,2],[None,3],[4]]).outer_shape()
             [3, 2, 1]
         """
-        return Partition(len(row) for row in self)
+        return Partition(six.moves.map(len, self))
 
     def inner_shape(self):
         r"""
@@ -964,7 +976,6 @@ class SemistandardSkewTableau(SkewTableau):
                    self.shape(),
                    self.to_word_by_row().standard_permutation()) )
 
-    # TODO: Merge in #18691 changes
     def bender_knuth_involution(self, k, rows=None):
         r"""
         Return the image of ``self`` under the `k`-th Bender--Knuth
@@ -1092,13 +1103,6 @@ class SemistandardSkewTableau(SkewTableau):
             ....:             if abs(k - l) > 1)
             True
 
-        Coxeter relation of the Bender--Knuth involutions (they have the form
-        `(ab)^6 = 1`)::
-
-            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5))
-            True
-
         TESTS::
 
             sage: t = SemistandardSkewTableau([])
@@ -1107,6 +1111,19 @@ class SemistandardSkewTableau(SkewTableau):
             sage: t = SemistandardSkewTableau([[None,None],[None]])
             sage: t.bender_knuth_involution(3)
             [[None, None], [None]]
+
+        The `(s_1 s_2)^6 = id` identity that holds for Bender--Knuth
+        involutions on straight shapes does not generally hold for
+        skew shapes::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: t = SkewTableau([[None,1,2],[2,3]])
+            sage: x = t
+            sage: for i in range(6): x = p(x, 1)
+            sage: x
+            [[None, 2, 2], [1, 3]]
+            sage: x == t
+            False
 
         AUTHORS:
 
@@ -1330,7 +1347,7 @@ class StandardSkewTableau(SemistandardSkewTableau):
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(i for row in reversed(list(self))
+        return Permutation(i for row in reversed(self)
                              for i in row
                                  if i is not None)
 
