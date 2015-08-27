@@ -4,9 +4,149 @@
 Using SageTeX
 *************
 
-The SageTeX package allows you to embed the results of Sage computations into a
-LaTeX document. To use it, you will need to "install" it first (see
-:ref:`sec-sagetex_install`).
+The SageTeX package allows you to embed the results of Sage computations
+into a LaTeX document. To use it, you will need to "install" it first
+(see :ref:`sec-sagetex_install`).
+
+.. _sec-sagetex_install:
+
+Make SageTeX known to TeX
+-------------------------
+
+Sage is largely self-contained, but some parts do need some intervention
+to work properly. SageTeX is one such part.
+
+SageTeX is installed in Sage by default, but to use SageTeX with your
+LaTeX documents, you need to make your TeX installation aware of SageTeX
+before it will work. The key to this is that TeX needs to be able to
+find ``sagetex.sty``, which can be found in
+``SAGE_ROOT/local/share/texmf/tex/latex/sagetex/``, where ``SAGE_ROOT``
+is the name of the directory where you built or installed Sage. If TeX
+can find ``sagetex.sty``, then SageTeX will work. There are several ways
+to accomplish this.
+
+- The first and simplest way is simply to copy ``sagetex.sty`` into the
+  same directory as your LaTeX document. Since the current directory is
+  always searched when typesetting a document, this will always work.
+
+  There are a couple small problems with this, however: the first is
+  that you will end up with many unnecessary copies of ``sagetex.sty``
+  scattered around your computer. The second and more serious problem is
+  that if you upgrade Sage and get a new version of SageTeX, the Python
+  code and LaTeX code for SageTeX may no longer match, causing errors.
+
+- Probably the best way to make TeX aware of ``sagetex.sty`` is to copy
+  that file into a convenient place in your home directory. In most TeX
+  distributions, the ``texmf`` directory in your home directory is
+  automatically searched for packages. To find out exactly what this
+  directory is, do the following on the command line::
+
+      kpsewhich -var-value=TEXMFHOME
+
+  which will print out a directory, such as ``/home/drake/texmf`` or
+  ``/Users/drake/Library/texmf``. Copy the ``tex/`` directory from
+  ``SAGE_ROOT/local/share/texmf/`` into your home ``texmf`` directory
+  (which you may have to create) with a command like
+
+  ::
+
+      cp -R SAGE_ROOT/local/share/texmf/tex TEXMFHOME
+
+  where ``SAGE_ROOT`` is, as usual, replaced with the location of your
+  Sage installation and ``TEXMFHOME`` is the result of the
+  ``kpsewhich`` command above.
+
+  If you upgrade Sage and discover that SageTeX no longer works, you can
+  simply repeat these steps and the Sage and TeX parts of SageTeX will
+  again be synchronized.
+
+  A variation on this is to use a `symbolic link
+  <https://en.wikipedia.org/wiki/Symbolic_link>`_ to Sage's copy of
+  ``sagetex.sty`` instead of copying the file over; this can be
+  convenient because you can upgrade your Sage installation and TeX will
+  automatically find the new ``sagetex.sty`` as long as you install Sage
+  into the same place. To make a symlink, use
+  ``kpsewhich -var-value=TEXMFHOME`` to find the name of your home
+  directory and then, in a terminal:
+
+  ::
+
+      mkdir -p TEXMFHOME/tex/latex
+      ln -s SAGE_ROOT/local/share/texmf/tex/latex/sagetex/sagetex.sty TEXMFHOME/tex/latex/sagetex.sty 
+
+  where you replace ``TEXMFHOME`` with the output from the above
+  ``kpsewhich`` command, and ``SAGE_ROOT`` with the location of your
+  Sage install.
+
+  .. note::
+
+     Older versions of SageTeX used
+     ``SAGE_ROOT/local/share/texmf/tex/generic/latex/sagetex`` -- note
+     the "generic" instead of "latex" above. If you run across an older
+     version and can't find the SageTeX files in the "latex" location,
+     try looking in the "generic" path.
+
+- A third way is to use the ``TEXINPUTS`` environment variable. If you
+  are using the bash shell, you can do
+
+  ::
+
+      export TEXINPUTS="SAGE_ROOT/local/share/texmf//:"
+
+  where ``SAGE_ROOT`` is again the location of your Sage installation.
+  Note that the double slash and colon at the end of that line are
+  important. Thereafter, TeX and friends will find the SageTeX style
+  file. If you want to make this change permanent, you can add the above
+  line to your home directory's ``.bashrc`` file. If you are using a
+  different shell, you may have to modify the above command to make the
+  environment variable known; see your shell's documentation for how to
+  do that.
+
+  One flaw with this method is that if you use applications like
+  TeXShop, Kile, or Emacs/AucTeX, they will not necessarily pick up the
+  environment variable, since when they run LaTeX, they may do so
+  outside your usual shell environment.
+
+  If you ever move your Sage installation, or install a new version into
+  a new directory, you'll need to update the above command to reflect
+  the new name of the directory where Sage is installed.
+
+.. _sagetex_installation_multiuser:
+
+- For installation on a multiuser system, you just modify the above
+  instructions appropriately to copy or symlink ``sagetex.sty`` into a
+  systemwide TeX directory. Instead of the directory ``TEXMFHOME``,
+  probably the best choice is to use the result of
+
+  ::
+
+      kpsewhich -var-value=TEXMFLOCAL
+
+  which will likely produce something like ``/usr/local/share/texmf``.
+  Copy the ``tex`` directory (or symlink the ``sagetex`` directory) as
+  above into the ``TEXMFLOCAL`` directory. Now you need to update TeX's
+  database of packages, which you can do simply by running
+
+  ::
+
+      texhash TEXMFLOCAL
+
+  as root, replacing ``TEXMFLOCAL`` appropriately. Now all users of your
+  system will have access to the LaTeX package, and if they can also run
+  Sage, they will be able to use SageTeX.
+
+.. warning::
+
+   it's very important that the file ``sagetex.sty`` that LaTeX uses
+   when typesetting your document match the version of SageTeX that Sage
+   is using. If you upgrade your Sage installation, you really should
+   delete all the old versions of ``sagetex.sty`` floating around.
+
+   Because of this problem, we recommend copying or symlinking the
+   SageTeX files into your home directory's texmf directory (the second
+   method above). Then you only need to copy a directory (or do nothing
+   at all, if you used a symlink) when you upgrade Sage to insure that
+   SageTeX will work properly.
 
 An example
 ----------
@@ -15,12 +155,12 @@ Here is a very brief example of using SageTeX. The full documentation
 can be found in ``SAGE_ROOT/local/share/doc/sagetex``,
 where ``SAGE_ROOT`` is the directory where your Sage installation is
 located. That directory contains the documentation and an example file.
-See ``SAGE_ROOT/local/share/texmf/tex/generic/sagetex`` for
+See ``SAGE_ROOT/local/share/texmf/tex/latex/sagetex`` for
 some possibly useful Python scripts.
 
-To see how SageTeX works, follow the directions for installing SageTeX (in
-:ref:`sec-sagetex_install`) and copy the following text into a file named, say,
-``st_example.tex``:
+To see how SageTeX works, follow the directions for installing SageTeX
+(in :ref:`sec-sagetex_install`) and copy the following text into a file
+named, say, ``st_example.tex``:
 
 .. warning::
 
@@ -72,16 +212,16 @@ complaints, which will include::
     st_example.tex again.
 
 Notice that, in addition to the usual collection of files produced by
-LaTeX, there is a file called ``st_example.sagetex.sage``. That is a Sage script
-produced when you run LaTeX on ``st_example.tex``. The warning message
-told you to run Sage on ``st_example.sagetex.sage``, so take its advice and do
-that. It will tell you to run LaTeX on ``st_example.tex`` again, but
-before you do that, notice that a new file has been created:
-``st_example.sagetex.sout``. That file contains the results of Sage's
-computations, in a format that LaTeX can use to insert into your text. A
-new directory containing an EPS file of your plot has also been created.
-Run LaTeX again and you'll see that everything that Sage computed and
-plotted is now included in your document.
+LaTeX, there is a file called ``st_example.sagetex.sage``. That is a
+Sage script produced when you run LaTeX on ``st_example.tex``. The
+warning message told you to run Sage on ``st_example.sagetex.sage``, so
+take its advice and do that. It will tell you to run LaTeX on
+``st_example.tex`` again, but before you do that, notice that a new file
+has been created: ``st_example.sagetex.sout``. That file contains the
+results of Sage's computations, in a format that LaTeX can use to insert
+into your text. A new directory containing an EPS file of your plot has
+also been created. Run LaTeX again and you'll see that everything that
+Sage computed and plotted is now included in your document.
 
 The different macros used above should be pretty easy to understand. A
 ``sageblock`` environment typesets your code verbatim and also executes
@@ -102,123 +242,7 @@ commands in your document.
 
 There's a lot more to SageTeX, and since both Sage and LaTeX are
 complex, powerful tools, it's a good idea to read the documentation for
-SageTeX, which is in
-``SAGE_ROOT/local/share/doc/sagetex``.
-
-.. _sec-sagetex_install:
-
-Make SageTeX known to TeX
--------------------------
-
-Sage is largely self-contained, but some parts do need some intervention
-to work properly. SageTeX is one such part.
-
-The SageTeX package allows one to embed computations and plots from Sage
-into a LaTeX document. SageTeX is installed in Sage by default, but to
-use SageTeX with your LaTeX documents, you need to make your TeX
-installation aware of it before it will work.
-
-The key to this is that TeX needs to be able to find ``sagetex.sty``,
-which can be found in
-``SAGE_ROOT/local/share/texmf/tex/generic/sagetex/``, where
-``SAGE_ROOT`` is the directory where you built or installed Sage. If
-TeX can find ``sagetex.sty``, then SageTeX will work. There are several
-ways to accomplish this.
-
-- The first and simplest way is simply to copy ``sagetex.sty`` into the
-  same directory as your LaTeX document. Since the current directory is
-  always searched when typesetting a document, this will always work.
-
-  There are a couple small problems with this, however: the first is
-  that you will end up with many unnecessary copies of ``sagetex.sty``
-  scattered around your computer. The second and more serious problem is
-  that if you upgrade Sage and get a new version of SageTeX, the Python
-  code and LaTeX code for SageTeX may no longer match, causing errors.
-
-- The second way is to use the ``TEXINPUTS`` environment variable. If
-  you are using the bash shell, you can do
-
-  ::
-
-      export TEXINPUTS="SAGE_ROOT/local/share/texmf//:"
-
-  where ``SAGE_ROOT`` is the location of your Sage installation. Note
-  that the double slash and colon at the end of that line are important.
-  Thereafter, TeX and friends will find the SageTeX style file. If you
-  want to make this change permanent, you can add the above line to your
-  ``.bashrc`` file. If you are using a different shell, you may have to
-  modify the above command to make the environment variable known; see
-  your shell's documentation for how to do that.
-
-  One flaw with this method is that if you use applications like
-  TeXShop, Kile, or Emacs/AucTeX, they will not necessarily pick up the
-  environment variable, since when they run LaTeX, they may do so
-  outside your usual shell environment.
-
-  If you ever move your Sage installation, or install a new version into
-  a new directory, you'll need to update the above command to reflect
-  the new value of ``SAGE_ROOT``.
-
-- The third (and best) way to make TeX aware of ``sagetex.sty`` is to
-  copy that file into a convenient place in your home directory. In most
-  TeX distributions, the ``texmf`` directory in your home directory is
-  automatically searched for packages. To find out exactly what this
-  directory is, do the following on the command line::
-
-      kpsewhich -var-value=TEXMFHOME
-
-  which will print out a directory, such as ``/home/drake/texmf`` or
-  ``/Users/drake/Library/texmf``. Copy the ``tex/`` directory from
-  ``SAGE_ROOT/local/share/texmf/`` into your home ``texmf`` directory
-  with a command like
-
-  ::
-
-      cp -R SAGE_ROOT/local/share/texmf/tex TEXMFHOME
-
-  where ``SAGE_ROOT`` is, as usual, replaced with the location of your
-  Sage installation and ``TEXMFHOME`` is the result of the
-  ``kpsewhich`` command above.
-
-  If you upgrade Sage and discover that SageTeX no longer works, you can
-  simply repeat these steps and the Sage and TeX parts of SageTeX will
-  again be synchronized.
-
-.. _sagetex_installation_multiuser:
-
-- For installation on a multiuser system, you just modify the above
-  instructions appropriately to copy ``sagetex.sty`` into a systemwide
-  TeX directory. Instead of the directory ``TEXMFHOME``, probably the
-  best choice is to use the result of
-
-  ::
-
-      kpsewhich -var-value=TEXMFLOCAL
-
-  which will likely produce something like ``/usr/local/share/texmf``.
-  Copy the ``tex`` directory as above into the ``TEXMFLOCAL``
-  directory. Now you need to update TeX's database of packages, which
-  you can do simply by running
-
-  ::
-
-      texhash TEXMFLOCAL
-
-  as root, replacing ``TEXMFLOCAL`` appropriately. Now all users of your
-  system will have access to the LaTeX package, and if they can also run
-  Sage, they will be able to use SageTeX.
-
-.. warning::
-
-  it's very important that the file ``sagetex.sty`` that LaTeX uses when
-  typesetting your document match the version of SageTeX that Sage is
-  using. If you upgrade your Sage installation, you really should delete
-  all the old versions of ``sagetex.sty`` floating around.
-
-  Because of this problem, we recommend copying the SageTeX files into
-  your home directory's texmf directory (the third method above). Then
-  there is only one thing you need to do (copy a directory) when you
-  upgrade Sage to insure that SageTeX will work properly.
+SageTeX -- see below.
 
 SageTeX documentation
 ---------------------
@@ -228,14 +252,16 @@ the documentation for SageTeX is maintained in
 ``SAGE_ROOT/local/share/doc/sagetex/sagetex.pdf``. There is also an
 example file in the same directory -- see ``example.tex`` and
 ``example.pdf``, the pre-built result of typesetting that file with
-LaTeX and Sage. You can also get those files from the `SageTeX bitbucket
-page <https://bitbucket.org/ddrake/sagetex/downloads>`_.
+LaTeX and Sage. You can also find SageTeX's source code and some
+possibly useful scripts in the directory
+``SAGE_ROOT/local/share/texmf/tex/latex/sagetex`` -- the
+``run-sagetex-if-necessary.py`` one might be particularly helpful.
 
-SageTeX and TeXLive
--------------------
+SageTeX and TeXLive 2009
+------------------------
 
 One potentially confusing issue is that the popular TeX distribution
-`TeXLive 2009 <http://www.tug.org/texlive/>`_ includes SageTeX. This may
+`TeXLive 2009 <http://www.tug.org/texlive/>`_ included SageTeX. This may
 seem nice, but with SageTeX, it's important that the Sage bits and LaTeX
 bits be synchronized -- which is a problem in this case, since both Sage
 and SageTeX are updated frequently, and TeXLive is not.
