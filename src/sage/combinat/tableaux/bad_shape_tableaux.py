@@ -1,7 +1,7 @@
 r"""
-BadShapeTableaux Parent class.
+BadShapeTableaux Parent class
 
-See class:`BadShapeTableau` for the corresponding Element class.
+See :class:`BadShapeTableau` for the corresponding Element class.
 
 AUTHORS:
 
@@ -34,7 +34,7 @@ class BadShapeTableaux(AbstractTableaux):
     r"""
     Parent class of all bad shape tableaux.
     
-    See BadShapeTableau for the Element class.
+    See :class:`BadShapeTableau` for the Element class.
 
     EXAMPLES::
 

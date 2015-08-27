@@ -1,5 +1,5 @@
 r"""
-GlobalOptions for (skew) tableau.
+GlobalOptions for (skew) tableau
 
 Constrols display options for tableau, like using English
 vs. French notation.

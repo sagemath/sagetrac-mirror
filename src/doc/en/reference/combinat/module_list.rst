@@ -313,6 +313,14 @@ Comprehensive Module list
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau
     sage/combinat/tableau_tuple
+    sage/combinat/tableaux/all
+    sage/combinat/tableaux/abstract_tableau
+    sage/combinat/tableaux/abstract_tableaux
+    sage/combinat/tableaux/bad_shape_tableau
+    sage/combinat/tableaux/bad_shape_tableaux
+    sage/combinat/tableaux/skew_tableau
+    sage/combinat/tableaux/skew_tableaux
+    sage/combinat/tableaux/tableaux_options
     sage/combinat/tamari_lattices
     sage/combinat/tiling
     sage/combinat/tools

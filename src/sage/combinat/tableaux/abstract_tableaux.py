@@ -1,8 +1,8 @@
 r"""
-AbstractTableaux Parent class.
+AbstractTableaux Parent class
 
 This is an abstract base class for numerous tableaux-like
-Parent classes. See class:`AbstractTableau` for the
+Parent classes. See :class:`AbstractTableau` for the
 corresponding Element class.
 
 AUTHORS:

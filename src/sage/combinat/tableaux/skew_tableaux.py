@@ -1,8 +1,8 @@
 r"""
-SkewTableax, SemistandardSkewTableaux, StandardSkewTableaux, and related
-Parent classes.
+SkewTableax, SemistandardSkewTableaux, StandardSkewTableaux, and related Parent classes
 
-See :class:`SkewTableau` and its subclasses for the corresponding Element
+See :class:`SkewTableau`, :class:`SemistandardSkewTableau`, and
+:class:`StandardSkewTableau` for the corresponding Element
 classes.
 
 AUTHORS:
@@ -56,9 +56,8 @@ class SkewTableaux(BadShapeTableaux):
     r"""
     Parent class of all skew tableaux.
 
-    See meth:`_element_constructor_` for Element class construction
-    options and further examples. See :class:`SkewTableau` for the Element
-    class.
+    See :meth:`SkewTableauxFactory` (``SkewTableaux``) for
+    construction options and more examples.
 
     EXAMPLES::
 
@@ -166,6 +165,7 @@ class SkewTableaux(BadShapeTableaux):
         Construct a skew tableaux, optionally validating input.
 
         INPUT:
+
         - ``st``    -- an iterable of rows from top to bottom in English
           notation, where each row is an iterable of entries from left
           to right but where ``None``'s indicate the cells of the inner
@@ -413,9 +413,8 @@ class SemistandardSkewTableaux(SkewTableaux):
     Parent class of all semistandard skew tableaux, possibly with a given
     upper bound on entries.
 
-    See meth:`_element_constructor_` for Element class construction
-    options and further examples. See :class:`SemistandardSkewTableau`
-    for the Element class itself.
+    See :meth:`SemistandardSkewTableauxFactory` (``SemistandardSkewTableaux``)
+    for construction options and more examples.
 
     EXAMPLES::
 
@@ -550,6 +549,9 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
     Parent class of all semistandard skew tableaux of a fixed size `n`,
     possibly with an upper bound on entries which defaults to `n`.
 
+    See :meth:`SemistandardSkewTableauxFactory` (``SemistandardSkewTableaux``)
+    for construction options and more examples.
+
     EXAMPLES::
 
         sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(5)
@@ -656,8 +658,12 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
     Parent class of all semistandard skew tableaux of a fixed size and
     weight.
 
+    See :meth:`SemistandardSkewTableauxFactory` (``SemistandardSkewTableaux``)
+    for construction options and more examples.
+
     To ensure finiteness, we restrict to reduced skew shapes in the
-    sense of :class:`SkewPartitions`.
+    sense of :class:`SkewPartitions`, at least for cardinality and
+    iteration.
 
     EXAMPLES::
 
@@ -753,6 +759,9 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
     r"""
     Parent class of semistandard skew tableaux of a fixed skew shape
     with a given upper bound on entries.
+
+    See :meth:`SemistandardSkewTableauxFactory` (``SemistandardSkewTableaux``)
+    for construction options and more examples.
 
     EXAMPLES::
 
@@ -865,6 +874,9 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
     Parent class of semistandard skew tableaux of a fixed skew shape
     and weight.
 
+    See :meth:`SemistandardSkewTableauxFactory` (``SemistandardSkewTableaux``)
+    for construction options and more examples.
+
     EXAMPLES::
 
         sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(p=[[4,2], [1]], weight=(2, 2, 1))
@@ -946,6 +958,9 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
     r"""
     Parent class of standard skew tableaux.
 
+    See :meth:`StandardSkewTableauxFactory` (``StandardSkewTableaux``)
+    for construction options and more examples.
+
     EXAMPLES::
 
         sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux()
@@ -1017,6 +1032,13 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
     r"""
     Parent class of standard skew tableaux of a fixed size.
 
+    See :meth:`StandardSkewTableauxFactory` (``StandardSkewTableaux``)
+    for construction options and more examples.
+
+    To ensure finiteness, we restrict to reduced skew shapes in the
+    sense of :class:`SkewPartitions`, at least for cardinality and
+    iteration.
+
     EXAMPLES::
 
         sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux(5)
@@ -1044,6 +1066,9 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         Return a new Element of ``self``.
 
         See :class:`SkewTableaux` for further details.
+
+        We restrict to reduced skew shapes in the
+        sense of :class:`SkewPartitions`.
 
         TESTS::
 
@@ -1078,10 +1103,6 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         r"""
         Return the cardinality of ``self``.
 
-        We restrict to reduced skew shapes in the
-        sense of :class:`SkewPartitions` (otherwise
-        the count would be infinite).
-
         EXAMPLES::
 
             sage: StandardSkewTableaux(1).cardinality()
@@ -1099,9 +1120,6 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
     def __iter__(self):
         r"""
         Iterate through the tableaux in ``self``.
-
-        We restrict to reduced skew shapes in the
-        sense of :class:`SkewPartitions`.
 
         EXAMPLES::
 
@@ -1130,6 +1148,9 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
     r"""
     Parent class of standard skew tableaux of a fixed skew shape.
 
+    See :meth:`StandardSkewTableauxFactory` (``StandardSkewTableaux``)
+    for construction options and more examples.
+
     EXAMPLES::
 
         sage: [[None, 1, 2, 4], [3, 5]] in StandardSkewTableaux([[4, 2], [1]])
@@ -1142,6 +1163,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         Initialize ``self``.
 
         INPUT:
+
         - ``skp`` -- a :class:`SkewPartition`
 
         TESTS::
@@ -1255,12 +1277,13 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
     semistandard skew tableaux.
 
     INPUT:
+
     - ``p`` -- either an integer specifying the number of cells in the
       tableaux, or a :class:`SkewPartition` specifying the skew shape,
-      or `None` if unrestricted
-    - ``weight`` -- an iterable specifying the weight of the tableaux
+      or ``None`` if unrestricted
+    - ``weight``    -- an iterable specifying the weight of the tableaux
     - ``max_entry`` -- an upper bound for entries (the lower bound of 1
-      being implicit), or `None` if unrestricted
+      being implicit), or ``None`` if unrestricted
 
     If neither the weight nor the maximum entry is specified, the
     maximum entry defaults to the size of the tableau. Note that
@@ -1342,6 +1365,10 @@ def SemistandardSkewTableauxFactory(p=None, weight=None, max_entry=None):
         before the last nonempty row, and there are no empty columns before
         the last nonempty column. (This is typically what one wants in
         applications.)
+
+    .. NOTE::
+
+        This appears as ``SemistandardSkewTableaux`` in the interpreter namespace.
     """
     # Input validation and normalization for these Parent classes
     #   should be done here rather than in their `__init__` methods;
@@ -1372,9 +1399,10 @@ def StandardSkewTableauxFactory(skp=None):
     standard tableaux.
 
     INPUT:
-    - ``skp` -- either an integer specifying the number of cells in the
+
+    - ``skp`` -- either an integer specifying the number of cells in the
       tableaux, or a :class:`SkewPartition` specifying the skew shape,
-      or `None` if unrestricted
+      or ``None`` if unrestricted
 
     EXAMPLES::
 
@@ -1385,7 +1413,7 @@ def StandardSkewTableauxFactory(skp=None):
         sage: S.cardinality()
         +Infinity
 
-    The class of all semistandard skew tableaux of size `3`
+    The class of all semistandard skew tableaux of size 3::
 
         sage: S = StandardSkewTableaux(3); S
         Standard skew tableaux of size 3
@@ -1405,6 +1433,10 @@ def StandardSkewTableauxFactory(skp=None):
          [[None, 1, 4], [None, 3], [2]],
          [[None, 2, 3], [None, 4], [1]],
          [[None, 2, 4], [None, 3], [1]]]
+
+    .. NOTE::
+
+        This appears as ``StandardSkewTableaux`` in the interpreter namespace.
     """
     if skp is None:
         return StandardSkewTableaux()

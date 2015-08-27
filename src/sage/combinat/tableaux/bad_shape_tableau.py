@@ -1,5 +1,5 @@
 r"""
-BadShapeTableau Element class.
+BadShapeTableau Element class
 
 See :class:`BadShapeTableaux` for the corresponding Parent class.
 
@@ -31,7 +31,7 @@ class BadShapeTableau(AbstractTableau):
     r"""
     A tableau of bad shape.
 
-    See Parent class:`BadShapeTableaux` for construction options.
+    See Parent :class:`BadShapeTableaux` for construction options.
 
     A tableau of bad shape is a tableau whose cells are pairs of
     integers and whose entries are arbitrary.
@@ -80,11 +80,7 @@ class BadShapeTableau(AbstractTableau):
         - ``predicate`` -- a function accepting two parameters, namely the
           row and column indexes of a cell, and returning ``True`` or ``False``
 
-        OUTPUT:
-
-        A class:`BadShapeTableau`
-
-        TEST::
+        EXAMPLES::
 
             sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
             sage: b2 = b.filter_by_cells(lambda r, c: r <= 3)
@@ -105,11 +101,7 @@ class BadShapeTableau(AbstractTableau):
         - ``predicate`` -- a function accepting one parameter, namely the
           entry of a cell, and returning ``True`` or ``False``
 
-        OUTPUT:
-
-        A class:`BadShapeTableau`
-
-        TEST::
+        EXAMPLES::
 
             sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
             sage: b.filter_by_entries(lambda v: type(v) is str)
@@ -127,11 +119,7 @@ class BadShapeTableau(AbstractTableau):
         bad shape obtained by swapping row and column indexes in
         each cell.
 
-        OUTPUT:
-
-        A class:`BadShapeTableau`
-
-        TEST::
+        EXAMPLES::
 
             sage: b = BadShapeTableau({(6, 7): 'cat', (2, 2): 5, (3, 4): 0})
             sage: b.conjugate().dict() == {(7, 6): 'cat', (2, 2): 5, (4, 3): 0}
@@ -147,6 +135,8 @@ class BadShapeTableau(AbstractTableau):
 def BadShapeTableauFactory(*args, **kwds):
     r"""
     Construct a new BadShapeTableau, optionally validating input.
+
+    This appears as ``BadShapeTableau`` in the interpreter namespace.
 
     INPUT:
 

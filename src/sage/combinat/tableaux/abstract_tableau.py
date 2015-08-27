@@ -1,8 +1,8 @@
 r"""
-AbstractTableau Element class.
+AbstractTableau Element class
 
 This is an abstract base class for numerous tableaux-like
-Element classes. See class:`AbstractTableaux` for the
+Element classes. See :class:`AbstractTableaux` for the
 corresponding Parent class.
 
 AUTHORS:
@@ -27,8 +27,9 @@ AUTHORS:
 
 import six
 from collections               import defaultdict
-from sage.structure.element    import Element
 from sage.misc.abstract_method import abstract_method
+from sage.rings.all            import Integer
+from sage.structure.element    import Element
 
 class AbstractTableau(Element):
     r"""
@@ -41,7 +42,7 @@ class AbstractTableau(Element):
     y-coordinates.
 
     The pairs ``(x, y)`` in the domain of a tableau are called its
-    *cells*, and their images under the tableaux are referred to as
+    *cells*, and their images under the tableau are referred to as
     the *entries* in those cells.
 
     Subclasses are welcome to add further data (e.g., a skew shape).
@@ -141,7 +142,7 @@ class AbstractTableau(Element):
         ``(x, y)`` is the entry of the tableau ``self`` in the cell
         ``(x, y)``.
 
-        TEST::
+        EXAMPLES::
 
             sage: st = BadShapeTableau({(4, 3): 'a', (1, 2): 3})
             sage: st.dict() == {(4, 3): 'a', (1, 2): 3}
@@ -171,7 +172,7 @@ class AbstractTableau(Element):
         r"""
         Return an iterable over the cells in this tableau in no particular order.
 
-        TESTS::
+        EXAMPLES::
 
             sage: b = BadShapeTableau({(4, -1): -2, (3, 3): 'cow'})
             sage: set(b.cells()) == set(((4, -1), (3, 3)))
@@ -214,7 +215,7 @@ class AbstractTableau(Element):
         increasing row index, where each row is a list and has been sorted
         by increasing column index.
 
-        TESTS::
+        EXAMPLES::
         
             sage: s = SkewTableau([[None, 1, 1, 2, 4], [None, 2, 3, 3, 5], [1, 3, 5, 7]])
             sage: s.rows()
@@ -228,7 +229,7 @@ class AbstractTableau(Element):
         increasing columns index, where each column is a list and has been
         sorted by increasing row index.
 
-        TESTS::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None, 1, 1, 2, 4], [None, 2, 3, 3, 5], [1, 3, 5, 7]])
             sage: s.columns()
@@ -240,7 +241,7 @@ class AbstractTableau(Element):
         r"""
         Iterate over the cells of ``self`` in no particular order.
 
-        TESTS::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None, 5, 5, 6], [None, 1, 2, 3]])
             sage: set(s.iter_cells()) == {(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)}
@@ -252,7 +253,7 @@ class AbstractTableau(Element):
         r"""
         Iterate over the entries of ``self`` in no particular order.
 
-        TESTS::
+        EXAMPLES::
 
             sage: set(SkewTableau([[None, 7, 8, 9], [None, 1, 2, 4]]).iter_entries()) == {1, 2, 4, 7, 8, 9}
             True
@@ -361,7 +362,7 @@ class AbstractTableau(Element):
         row to the top-most in English notation, from left to right
         within each row.
 
-        TESTS::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]])
             sage: s.to_word_by_row()
@@ -389,7 +390,7 @@ class AbstractTableau(Element):
         column to the right-most in English notation, from the bottom to
         the top within each column.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SkewTableau([[None, 'fruit', 1], ['fly', 0, 0]]).to_word_by_column()
             word: fly,0,fruit,0,1
@@ -406,9 +407,9 @@ class AbstractTableau(Element):
 
     def weight_counter(self):
         r"""
-        Return a class:`Counter` mapping values of ``self`` to multiplicities.
+        Return a :class:`Counter` mapping values of ``self`` to multiplicities.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from collections import Counter
             sage: s = SkewTableau([[None, None, 2, 2, 3, 4], [None, 1, 2, 3]])
@@ -418,11 +419,11 @@ class AbstractTableau(Element):
         from collections import Counter
         return Counter(self.iter_entries())
 
-    def size(self):
+    def __len__(self):
         r"""
-        Return the number of cells in ``self``.
+        Return the number of cells in ``self`` as a Python int.
 
-        TESTS::
+        EXAMPLES::
 
             sage: BadShapeTableau({(3, 3): 2, (2, 2): 1, (1, 1): -1}).size()
             3
@@ -433,5 +434,13 @@ class AbstractTableau(Element):
         """
         return len(self._dict_unsafe())
 
-    # Alias
-    __len__ = size
+    def size(self):
+        r"""
+        Return the number of cells in ``self`` as a Sage int.
+
+        EXAMPLES::
+            
+            sage: SkewTableau([[None, None, 2], [None, 1, 3], [1]]).size()
+            4
+        """
+        return Integer(len(self))

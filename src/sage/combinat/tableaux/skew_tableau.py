@@ -1,6 +1,5 @@
 r"""
-SkewTableau, SemistandardSkewTableau, and StandardSkewTableau Element
-classs.
+SkewTableau, SemistandardSkewTableau, and StandardSkewTableau Element classes
 
 See :class:`SkewTableaux`, :class:`SemistandardSkewTableaux`, and
 :class:`StandardSkewTableaux` and their subclasses for the corresponding
@@ -33,7 +32,7 @@ import six
 from sage.misc.cachefunc                      import cached_method
 from sage.combinat.partition                  import Partition
 from sage.combinat.skew_partition             import SkewPartition
-from sage.rings.all                           import ZZ
+from sage.rings.all                           import Integer, ZZ
 
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
 
@@ -41,7 +40,7 @@ class SkewTableau(BadShapeTableau):
     r"""
     A tableau of skew shape.
 
-    See `SkewTableau` (:meth:`SkewTableauFactory`) for
+    See :meth:`SkewTableauFactory` (``SkewTableau``) for
     construction options and more examples. See :class:`SkewTableaux`
     for its usual Parent class.
 
@@ -125,6 +124,17 @@ class SkewTableau(BadShapeTableau):
             [(2, 3), (None, 1)]
         """
         return reversed(self._st)
+
+    def size(self):
+        r"""
+        Return the number of cells of ``self`` as a Sage integer.
+
+        TESTS::
+
+            sage: SkewTableau([[None, 1, 1], [5, 5]]).size()
+            4
+        """
+        return Integer(len(self._dict_unsafe()))
 
     def __len__(self):
         r"""
@@ -223,9 +233,9 @@ class SkewTableau(BadShapeTableau):
           inner partition of the skew shape and the second list being
           a list of the rows read from bottom up in English notation.
 
-        Provided for compatibility with MuPAD-Combinat. In MuPAD-Combinat,
-        if ``t`` is a skew tableau, then to_expr gives the same result as
-        ``expr(t)`` would give in MuPAD-Combinat.
+        Provided for compatibility with MuPAD-Combinat.
+        If ``t`` is a skew tableau, then ``to_expr`` gives the same
+        result as ``expr(t)`` would give in MuPAD-Combinat.
 
         EXAMPLES::
 
@@ -531,7 +541,9 @@ class SkewTableau(BadShapeTableau):
 
     def filling(self):
         r"""
-        Return a list of lists of the non-empty entries in ``self``.
+        Return a list of lists of the non-empty entries in ``self``,
+        grouped by rows from left to right within each row, going
+        from the top row to the bottom in English notation.
 
         EXAMPLES::
 
@@ -599,7 +611,7 @@ class SkewTableau(BadShapeTableau):
         
             Many sources define "column strict" to mean strictly
             increasing along columns and weakly increasing along
-            rows.
+            rows. We enforce only the former condition here.
 
         EXAMPLES::
 
@@ -621,7 +633,7 @@ class SkewTableau(BadShapeTableau):
             False
         """
         return all( col[i]<col[i+1] for col in self.columns()
-                                     for i in range(len(col)-1) )
+                                    for i   in range(len(col)-1) )
 
     def is_increasing(self):
         r"""
@@ -1354,27 +1366,32 @@ class StandardSkewTableau(SemistandardSkewTableau):
 # Use a factory method to create `class:SkewTableau`, etc.
 def SkewTableauFactory(*args, **kwds):
     r"""
-    Construct a new SkewTableau by converting from one of several input
-    formats, optionally validating input.
+    Construct a new :class:`SkewTableau` by converting from one of
+    several input formats, optionally validating input.
 
     If multiple formats are specified, the left-most is used. If no
     format is specified, the "trivial" skew tableau with no entries is
     returned.
 
+    .. NOTE::
+
+        This appears as ``SkewTableau`` in the interpreter namespace.
+
     INPUT:
-    - ``st`` -- an iterable of rows from top to bottom in English
+
+    - ``st``    -- an iterable of rows from top to bottom in English
       notation, where each row is an iterable of entries from left
       to right but where ``None``'s indicate the cells of the inner
       shape
-    - ``expr`` -- a pair (``inner``, ``rows``) where ``inner`` is
+    - ``expr``  -- a pair (``inner``, ``rows``) where ``inner`` is
       the inner partition and ``rows`` is an iterable of rows from
       bottom to top in English notation, where each row is an iterable
       of the entries in that row from left to right. Provided for
       compatibility with MuPAD-Combinat.
-    - ``shape_word'' -- a pair (``shape``, ``word``) where ``shape``
+    - ``shape_word`` -- a pair (``shape``, ``word``) where ``shape``
       is a skew partition and the word ``word`` is obtained from the
       row reading
-    - ``dct`` -- a dictionary whose keys are pairs of non-negative
+    - ``dct``   -- a dictionary whose keys are pairs of non-negative
       integers
     - ``check`` -- (default: ``True``) if ``True``, then validate 
       input: ensure ``st`` or the cells of ``dct`` actually form
@@ -1382,6 +1399,8 @@ def SkewTableauFactory(*args, **kwds):
 
     EXAMPLES::
 
+    Construct a tableau using each input format:
+    
         sage: SkewTableau([[None, None, 1], [None, 2], [3]]) # indirect doctest
         [[None, None, 1], [None, 2], [3]]
         sage: SkewTableau(expr=([2, 1], [[3], [2], [1]]))
@@ -1390,9 +1409,20 @@ def SkewTableauFactory(*args, **kwds):
         [[None, None, 1], [None, 2], [3]]
         sage: SkewTableau(dct={(0, 2): 1, (1, 1): 2, (2, 0): 3})
         [[None, None, 1], [None, 2], [3]]
-        
+
+    Bypass validation:
+
         sage: SkewTableau([[1, None], [None, 2]], check=False) # bad!
         [[1, None], [None, 2]]
+
+    TESTS::
+
+    Input is normalized:
+
+        sage: type(SkewTableau([[1]])._st)
+        <type 'tuple'>
+        sage: type(SkewTableau(SkewTableau([[1]]))._st)
+        <type 'tuple'>
     """
     from skew_tableaux import SkewTableaux
     return SkewTableaux()(*args, **kwds)
@@ -1402,8 +1432,12 @@ def SemistandardSkewTableauFactory(*args, **kwds):
     Construct a new :class:`SemistandardSkewTableau` by converting from
     one of several input formats, optionally validating input.
     
-    See `SkewTableau` (:meth:`SkewTableauFactory`) for details and
+    See :meth:`SkewTableauFactory` (``SkewTableau``) for details and
     further examples.
+
+    .. NOTE::
+
+        This appears as ``SemistandardSkewTableau`` in the interpreter namespace.
 
     EXAMPLES::
 
@@ -1429,10 +1463,14 @@ def SemistandardSkewTableauFactory(*args, **kwds):
 def StandardSkewTableauFactory(*args, **kwds):
     r"""
     Construct a new :class:`StandardSkewTableau` by converting from
-    one of several input format,s optionally validating input.
+    one of several input formats optionally validating input.
 
-    See `SkewTableau` (:meth:`SkewTableauFactory`) for details and
+    See :meth:`SkewTableauFactory` (``SkewTableau``) for details and
     further examples.
+
+    .. NOTE::
+
+        This appears as ``StandardSkewTableau`` in the interpreter namespace.
 
     EXAMPLES::
 
