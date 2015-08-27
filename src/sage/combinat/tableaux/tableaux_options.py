@@ -23,8 +23,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# GlobalOptions input docstrings are not doctested, so force doctesting using a
-#   dummy method.
+from sage.structure.global_options import GlobalOptions
+
+# GlobalOptions input docstrings are not doctested, so force doctesting using
+#   dummy methods.
 def _doc():
     r"""
     Sets the global options for elements of the :class:`SkewTableau` class.
@@ -96,29 +98,35 @@ def _end_doc():
     pass
 
 TableauOptions=GlobalOptions(name='skew tableaux',
-    doc=_doc.__docstring__,
-    end_doc=_end_doc.__docstring__,
-    display=dict(default="list",
-                 description='Controls the way in which tableaux are printed',
-                 values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
-                             compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    ascii_art=dict(default="repr",
-                 description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
-                             compact='minimal length ascii art'),
-                 case_sensitive=False),
-    latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
-               values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-               case_sensitive=False),
-    convention=dict(default="English",
-                    description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention'),
-                    case_sensitive=False),
-    notation = dict(alt_name="convention")
+    doc        = _doc.__doc__,
+    end_doc    = _end_doc.__doc__,
+    display    = dict(default        = "list",
+                      description    = 'Controls the way in which tableaux are printed',
+                      values         = dict(list    = 'print tableaux as lists',
+                                            diagram = 'display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                                            compact = 'minimal length string representation'),
+                      alias          = dict(array           = "diagram",
+                                            ferrers_diagram = "diagram",
+                                            young_diagram   = "diagram"),
+                      case_sensitive = False),
+    ascii_art  = dict(default        = "repr",
+                      description    = 'Controls the ascii art output for tableaux',
+                      values         = dict(repr    = 'display using the diagram string representation',
+                                            table   = 'display as a table',
+                                            compact = 'minimal length ascii art'),
+                      case_sensitive = False),
+    latex      = dict(default        = "diagram",
+                      description    = 'Controls the way in which tableaux are latexed',
+                      values         = dict(list    = 'as a list',
+                                            diagram = 'as a Young diagram'),
+                      alias          = dict(array           = "diagram",
+                                            ferrers_diagram = "diagram",
+                                            young_diagram   = "diagram"),
+                      case_sensitive = False),
+    convention = dict(default        = "English",
+                      description    = 'Sets the convention used for displaying tableaux and partitions',
+                      values         = dict(English = 'use the English convention',
+                                            French  = 'use the French convention'),
+                      case_sensitive = False),
+    notation   = dict(alt_name       = "convention")
 )

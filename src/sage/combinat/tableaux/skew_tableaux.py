@@ -41,10 +41,9 @@ from sage.combinat.skew_partition              import SkewPartition, SkewPartiti
 from sage.matrix.all                           import zero_matrix
 from sage.rings.all                            import Integer, ZZ, QQ, NN
 from sage.rings.arith                          import factorial
-from sage.structure.global_options             import GlobalOptions
 from sage.structure.parent                     import Parent
 
-from sage.combinat.tableaux.tableau_options    import TableauOptions
+from sage.combinat.tableaux.tableaux_options   import TableauOptions
 from sage.combinat.tableaux.bad_shape_tableaux import BadShapeTableaux
 from sage.combinat.tableaux.skew_tableau       import SkewTableau
 from sage.combinat.tableaux.skew_tableau       import SkewTableauFactory

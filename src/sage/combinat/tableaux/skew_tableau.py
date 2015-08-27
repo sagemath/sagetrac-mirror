@@ -1117,7 +1117,7 @@ class SemistandardSkewTableau(SkewTableau):
         skew shapes::
 
             sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: t = SkewTableau([[None,1,2],[2,3]])
+            sage: t = SemistandardSkewTableau([[None,1,2],[2,3]])
             sage: x = t
             sage: for i in range(6): x = p(x, 1)
             sage: x
