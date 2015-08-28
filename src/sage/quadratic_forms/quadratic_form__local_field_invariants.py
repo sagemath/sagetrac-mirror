@@ -46,9 +46,11 @@ def rational_diagonal_form(self, return_matrix=False):
     second argument.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         Q -- the diagonalized form of this quadratic form
         (optional) T -- matrix which diagonalizes Q (over it's fraction field)
 
@@ -219,12 +221,15 @@ def signature(self):
     of the matrix of the quadratic form.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         an integer
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,0,0,-4,3,11,3])
         sage: Q.signature()
         3
@@ -277,9 +282,11 @@ def hasse_invariant(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -300,20 +307,28 @@ def hasse_invariant(self, p):
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
-        [1, 1, 1, 1, 1, 1, 1, 1]
+        [-1, 1, 1, 1, 1, 1, 1, 1]
 
     ::
 
-        sage: Q = DiagonalQuadraticForm(ZZ, [1,-1, -1])
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
-        [-1, 1, 1, 1, 1, 1, 1, 1]
-        sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
+        sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
+        [-1, 1, 1, 1, 1, 1, 1, 1]
+
+    ::
+
+        sage: K.<a>=NumberField(x^2-23)
+        sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
+        sage: [Q.hasse_invariant(p) for p in K.primes_above(19)]
+        [-1, 1]
 
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
 
     Diag = self.rational_diagonal_form()
+    R = Diag.base_ring()
 
     ## DIAGNOSTIC
     #print "\n Q = " + str(self)
@@ -322,9 +337,15 @@ def hasse_invariant(self, p):
     hasse_temp = 1
     n = Diag.dim()
 
-    for j in range(n-1):
-        for k in range(j+1, n):
-            hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
+    if R == QQ:
+        for j in range(n-1):
+            for k in range(j+1, n):
+                hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
+
+    else:
+        for j in range(n-1):
+            for k in range(j+1, n):
+                hasse_temp = hasse_temp * R.hilbert_symbol(Diag[j,j], Diag[k,k], p)
 
     return hasse_temp
 
@@ -347,9 +368,11 @@ def hasse_invariant__OMeara(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -370,20 +393,28 @@ def hasse_invariant__OMeara(self, p):
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
-        [1, 1, 1, 1, 1, 1, 1, 1]
+        [-1, 1, 1, 1, 1, 1, 1, 1]
 
     ::
 
-        sage: Q = DiagonalQuadraticForm(ZZ, [1,-1, -1])
+        sage: Q=DiagonalQuadraticForm(ZZ,[1,-1,-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
-        [1, 1, 1, 1, 1, 1, 1, 1]
+        [-1, 1, 1, 1, 1, 1, 1, 1]
+
+    ::
+
+        sage: K.<a>=NumberField(x^2-23)
+        sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
+        sage: [Q.hasse_invariant__OMeara(p) for p in K.primes_above(19)]
+        [1, 1]
 
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
 
     Diag = self.rational_diagonal_form()
+    R = Diag.base_ring()
 
     ## DIAGNOSTIC
     #print "\n Q = " + str(self)
@@ -391,10 +422,15 @@ def hasse_invariant__OMeara(self, p):
 
     hasse_temp = 1
     n = Diag.dim()
+    if R == QQ:
+        for j in range(n):
+            for k in range(j, n):
+                hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
 
-    for j in range(n-1):
-        for k in range(j, n):
-            hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
+    else:
+        for j in range(n):
+            for k in range(j, n):
+                hasse_temp = hasse_temp * R.hilbert_symbol(Diag[j,j], Diag[k,k], p)
 
     return hasse_temp
 
@@ -407,14 +443,17 @@ def is_hyperbolic(self, p):
     the p-adic numbers Q_p.
 
     REFERENCES:
+
         This criteria follows from Cassels's "Rational Quadratic Forms":
             - local invariants for hyperbolic plane (Lemma 2.4, p58)
             - direct sum formulas (Lemma 2.3 on p58)
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -445,7 +484,7 @@ def is_hyperbolic(self, p):
     ## Compare local invariants
     ## (Note: since the dimension is even, the extra powers of 2 in
     ##        self.det() := Det(2*Q) don't affect the answer!)
-    m = ZZ(self.dim() / 2)
+    m = ZZ(self.dim() // 2)
     if p == "infinity":
         return (self.signature() == 0)
 
@@ -462,9 +501,11 @@ def is_anisotropic(self, p):
     Checks if the quadratic form is anisotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -518,7 +559,7 @@ def is_anisotropic(self, p):
     if (n == 1):
         return (self[0,0] != 0)
 
-    raise NotImplementedError, "Oops!  We haven't established a convention for 0-dim'l quadratic forms... =("
+    raise NotImplementedError("Oops!  We haven't established a convention for 0-dim'l quadratic forms... =(")
 
 
 def is_isotropic(self, p):
@@ -526,9 +567,11 @@ def is_isotropic(self, p):
     Checks if Q is isotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -571,9 +614,11 @@ def anisotropic_primes(self):
 
 
     INPUT:
+
         None
 
     OUTPUT:
+
         Returns a list of prime numbers >0.
 
     EXAMPLES::
@@ -630,9 +675,11 @@ def compute_definiteness(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         QuadraticForm
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -677,7 +724,7 @@ def compute_definiteness(self):
     """
     ## Sanity Check
     if not ((self.base_ring() == ZZ) or (self.base_ring() == QQ) or (self.base_ring() == RR)):
-        raise NotImplementedError, "Oops!  We can only check definiteness over ZZ, QQ, and RR for now."
+        raise NotImplementedError("Oops!  We can only check definiteness over ZZ, QQ, and RR for now.")
 
     ## Some useful variables
     n = self.dim()
@@ -715,12 +762,15 @@ def compute_definiteness_string_by_determinants(self):
     self.compute_definiteness() for more documentation.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         string describing the definiteness
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
         sage: Q.compute_definiteness_string_by_determinants()
         'pos_def'
@@ -752,7 +802,7 @@ def compute_definiteness_string_by_determinants(self):
     """
     ## Sanity Check
     if not ((self.base_ring() == ZZ) or (self.base_ring() == QQ) or (self.base_ring() == RR)):
-        raise NotImplementedError, "Oops!  We can only check definiteness over ZZ, QQ, and RR for now."
+        raise NotImplementedError("Oops!  We can only check definiteness over ZZ, QQ, and RR for now.")
 
     ## Some useful variables
     n = self.dim()
@@ -804,9 +854,11 @@ def is_positive_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -843,9 +895,11 @@ def is_negative_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -881,9 +935,11 @@ def is_indefinite(self):
     Note:  The zero-dim'l form is not considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -918,9 +974,11 @@ def is_definite(self):
     Note:  The zero-dim'l form is considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::

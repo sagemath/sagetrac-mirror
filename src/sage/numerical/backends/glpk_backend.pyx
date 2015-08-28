@@ -18,6 +18,7 @@ AUTHORS:
 
 from sage.numerical.mip import MIPSolverException
 
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cdef class GLPKBackend(GenericBackend):
@@ -386,6 +387,8 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x,y = p[0], p[1]
+            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
+            See http://trac.sagemath.org/15521 for details.
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
             sage: p.set_objective(x + y + 7)
@@ -805,6 +808,8 @@ cdef class GLPKBackend(GenericBackend):
         The user can ask sage to solve via ``simplex`` or ``intopt``.
         The default solver is ``intopt``, so we get integer solutions.
 
+        EXAMPLE::
+
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
@@ -820,36 +825,123 @@ cdef class GLPKBackend(GenericBackend):
 
         If we switch to ``simplex``, we get continuous solutions.
 
+        EXAMPLE::
+
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
             sage: lp.solve()
             2.0
             sage: lp.get_values([x, y])
             [1.5, 0.5]
+
+        GLPK also has an exact rational simplex solver.  The only
+        access to data is via double-precision floats, however. It
+        reconstructs rationals from doubles and also provides results
+        as doubles.
+
+        EXAMPLE::
+
+            sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
+            sage: lp.solve()
+            glp_exact: 3 rows, 2 columns, 6 non-zeros
+            GNU MP bignum library is being used
+            *     5:   objval =                      2   (0)
+            *     5:   objval =                      2   (0)
+            OPTIMAL SOLUTION FOUND
+            2.0
+            sage: lp.get_values([x, y])
+            [1.5, 0.5]
+
+        If you need the rational solution, you need to retrieve the
+        basis information via ``get_col_stat`` and ``get_row_stat``
+        and calculate the corresponding basic solution.  Below we only
+        test that the basis information is indeed available.
+        Calculating the corresponding basic solution is left as an
+        exercise.
+
+        EXAMPLE::
+
+            sage: lp.get_backend().get_row_stat(0)
+            1
+            sage: lp.get_backend().get_col_stat(0)
+            1
+
+        Below we test that integers that can be exactly represented by
+        IEEE 754 double-precision floating point numbers survive the
+        rational reconstruction done by ``glp_exact`` and the subsequent
+        conversion to double-precision floating point numbers.
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = True)
+            sage: test = 2^53 - 43
+            sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
+            sage: x = lp[0]
+            sage: lp.add_constraint(x <= test)
+            sage: lp.set_objective(x)
+            sage: lp.solve() == test # yes, we want an exact comparison here
+            glp_exact: 1 rows, 1 columns, 1 non-zeros
+            GNU MP bignum library is being used
+            *     0:   objval =                      0   (0)
+            *     1:   objval =   9.00719925474095e+15   (0)
+            OPTIMAL SOLUTION FOUND
+            True
+            sage: lp.get_values(x) == test # yes, we want an exact comparison here
+            True
+
+        Solving a LP within the acceptable gap. No exception is raised, even if
+        the result is not optimal. To do this, we try to compute the maximum
+        number of disjoint balls (of diameter 1) in a hypercube::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1
+
+        Same, now with a time limit::
+
+            sage: p.solver_parameter("mip_gap_tolerance",1)
+            sage: p.solver_parameter("timelimit",0.01)
+            sage: p.solve() # rel tol 1
+            1
         """
 
         cdef int status
-        if self.simplex_or_intopt == glp_simplex_only or self.simplex_or_intopt == glp_simplex_then_intopt:
-            status = glp_simplex(self.lp, self.smcp)
+        if (self.simplex_or_intopt == glp_simplex_only
+            or self.simplex_or_intopt == glp_simplex_then_intopt
+            or self.simplex_or_intopt == glp_exact_simplex_only):
+            if self.simplex_or_intopt == glp_exact_simplex_only:
+                status = glp_exact(self.lp, self.smcp)
+            else:
+                status = glp_simplex(self.lp, self.smcp)
             status = glp_get_prim_stat(self.lp)
             if status == GLP_OPT or status == GLP_FEAS:
                 pass
             elif status == GLP_UNDEF or status == GLP_NOFEAS:
                 raise MIPSolverException("GLPK : Simplex cannot find a feasible solution")
 
-        if self.simplex_or_intopt != glp_simplex_only:
+        if (self.simplex_or_intopt != glp_simplex_only
+            and self.simplex_or_intopt != glp_exact_simplex_only):
           sig_str('GLPK : Signal sent, try preprocessing option')
-          status = glp_intopt(self.lp, self.iocp)
+          intopt_status = glp_intopt(self.lp, self.iocp)
           sig_off()
-          # this is necessary to catch errors when certain options are enabled, e.g. tm_lim
-          if status == GLP_ETMLIM: raise MIPSolverException("GLPK : The time limit was reached")
-          elif status == GLP_EITLIM: raise MIPSolverException("GLPK : The iteration limit was reached")
+
+          if intopt_status == GLP_EITLIM:
+              raise MIPSolverException("GLPK : The iteration limit was reached")
 
           status = glp_mip_status(self.lp)
           if status == GLP_OPT:
               pass
           elif status == GLP_UNDEF:
               raise MIPSolverException("GLPK : Solution is undefined")
-          elif status == GLP_FEAS:
+          elif (status == GLP_FEAS          and
+                intopt_status != GLP_ETMLIM and # no exception when time limit reached
+                intopt_status != GLP_EMIPGAP):  # no exception when sol within gap
               raise MIPSolverException("GLPK : Feasible solution found, while optimality has not been proven")
           elif status == GLP_INFEAS:
               raise MIPSolverException("GLPK : Solution is infeasible")
@@ -880,12 +972,13 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5
         """
-        if self.simplex_or_intopt != glp_simplex_only:
+        if (self.simplex_or_intopt != glp_simplex_only
+            and self.simplex_or_intopt != glp_exact_simplex_only):
           return glp_mip_obj_val(self.lp)
         else:
           return glp_get_obj_val(self.lp)
@@ -910,12 +1003,13 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5
         """
-        if self.simplex_or_intopt != glp_simplex_only:
+        if (self.simplex_or_intopt != glp_simplex_only
+            and self.simplex_or_intopt != glp_exact_simplex_only):
           return glp_mip_col_val(self.lp, variable+1)
         else:
           return glp_get_col_prim(self.lp, variable+1)
@@ -1117,17 +1211,26 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_upper_bound(0, 5)
             sage: p.col_bounds(0)
             (0.0, 5.0)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x = P["x"]
+            sage: P.set_max(x, 0)
+            sage: P.get_max(x)
+            0.0
         """
         cdef double x
         cdef double min
 
-        if value == False:
+        if value is False:
             x = glp_get_col_ub(self.lp, index +1)
             if x == DBL_MAX:
                 return None
             else:
                 return x
-
         else:
             min = glp_get_col_lb(self.lp, index + 1)
 
@@ -1145,7 +1248,6 @@ cdef class GLPKBackend(GenericBackend):
 
             else:
                 glp_set_col_bnds(self.lp, index + 1, GLP_DB, min, value)
-
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1170,11 +1272,22 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_lower_bound(0, 5)
             sage: p.col_bounds(0)
             (5.0, None)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x = P["x"]
+            sage: P.set_min(x, 5)
+            sage: P.set_min(x, 0)
+            sage: P.get_min(x)
+            0.0
         """
         cdef double x
         cdef double max
 
-        if value == False:
+        if value is False:
             x = glp_get_col_lb(self.lp, index +1)
             if x == -DBL_MAX:
                 return None
@@ -1318,14 +1431,16 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - whether to use the ``simplex`` or ``intopt`` routines in
-             GLPK. This is controlled by using ``glp_simplex_only``,
-             ``glp_intopt_only``, and ``glp_simplex_then_intopt``. The latter
-             is useful to deal with a problem in GLPK where problems with no
-             solution hang when using integer optimization; if you specify
-             ``glp_simplex_then_intopt``, sage will try simplex first, then
-             perform integer optimization only if a solution of the LP
-             relaxation exists.
+           - specifiy which of ``simplex``, ``exact`` and ``intopt`` routines
+             in GLPK to use.
+             This is controlled by setting ``simplex_or_intopt`` to
+             ``glp_simplex_only``, ``glp_exact_simplex_only``,
+             ``glp_intopt_only`` and ``glp_simplex_then_intopt``, respectively.
+             The latter is useful to deal with a problem in GLPK where
+             problems with no solution hang when using integer optimization;
+             if you specify ``glp_simplex_then_intopt``,
+             sage will try simplex first, then perform integer optimization
+             only if a solution of the LP relaxation exists.
 
          * - ``verbosity_intopt`` and ``verbosity_simplex``
 
@@ -1536,175 +1651,175 @@ cdef class GLPKBackend(GenericBackend):
         if type(value) == str: value = solver_parameter_values[value]
 
         if name == timelimit_intopt:
-            if value == None: return self.iocp.tm_lim
+            if value is None: return self.iocp.tm_lim
             else: self.iocp.tm_lim = value
 
         if name == timelimit_seconds:
-            if value == None: return self.iocp.tm_lim / 1000.0
+            if value is None: return self.iocp.tm_lim / 1000.0
             else:
                 self.iocp.tm_lim = value * 1000.0
                 self.smcp.tm_lim = value * 1000.0
 
         elif name == timelimit_simplex:
-            if value == None: return self.smcp.tm_lim
+            if value is None: return self.smcp.tm_lim
             else: self.smcp.tm_lim = value
 
         elif name == simplex_or_intopt:
-            if value == None: return self.simplex_or_intopt
-            if not value in (simplex_only,intopt_only,simplex_then_intopt):
+            if value is None: return self.simplex_or_intopt
+            if not value in (simplex_only,intopt_only,simplex_then_intopt,exact_simplex_only):
                 raise MIPSolverException, "GLPK: invalid value for simplex_or_intopt; see documentation"
             self.simplex_or_intopt = value
 
         elif name == msg_lev_simplex:
-            if value == None: return self.smcp.msg_lev
+            if value is None: return self.smcp.msg_lev
             else: self.smcp.msg_lev = value
 
         elif name == msg_lev_intopt:
-            if value == None: return self.iocp.msg_lev
+            if value is None: return self.iocp.msg_lev
             else: self.iocp.msg_lev = value
 
         elif name == br_tech:
-            if value == None: return self.iocp.br_tech
+            if value is None: return self.iocp.br_tech
             else: self.iocp.br_tech = value
 
         elif name == bt_tech:
-            if value == None: return self.iocp.bt_tech
+            if value is None: return self.iocp.bt_tech
             else: self.iocp.bt_tech = value
 
         elif name == pp_tech:
-            if value == None: return self.iocp.pp_tech
+            if value is None: return self.iocp.pp_tech
             else: self.iocp.pp_tech = value
 
         elif name == fp_heur:
-            if value == None: return self.iocp.fp_heur
+            if value is None: return self.iocp.fp_heur
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.fp_heur = value
 
         elif name == gmi_cuts:
-            if value == None: return self.iocp.gmi_cuts
+            if value is None: return self.iocp.gmi_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.gmi_cuts = value
 
         elif name == mir_cuts:
-            if value == None: return self.iocp.mir_cuts
+            if value is None: return self.iocp.mir_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.mir_cuts = value
 
         elif name == cov_cuts:
-            if value == None: return self.iocp.cov_cuts
+            if value is None: return self.iocp.cov_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.cov_cuts = value
 
         elif name == clq_cuts:
-            if value == None: return self.iocp.clq_cuts
+            if value is None: return self.iocp.clq_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.clq_cuts = value
 
         elif name == tol_int:
-            if value == None: return self.iocp.tol_int
+            if value is None: return self.iocp.tol_int
             else: self.iocp.tol_int = value
 
         elif name == tol_obj:
-            if value == None: return self.iocp.tol_obj
+            if value is None: return self.iocp.tol_obj
             else: self.iocp.tol_obj = value
 
         elif name == mip_gap:
-            if value == None: return self.iocp.mip_gap
+            if value is None: return self.iocp.mip_gap
             else: self.iocp.mip_gap = value
 
         elif name == tm_lim_intopt:
-            if value == None: return self.iocp.tm_lim
+            if value is None: return self.iocp.tm_lim
             else: self.iocp.tm_lim = value
 
         elif name == out_frq_intopt:
-            if value == None: return self.iocp.out_frq
+            if value is None: return self.iocp.out_frq
             else: self.iocp.out_frq = value
 
         elif name == out_dly_intopt:
-            if value == None: return self.iocp.out_dly
+            if value is None: return self.iocp.out_dly
             else: self.iocp.out_dly = value
 
         elif name == presolve_intopt:
-            if value == None: return self.iocp.presolve
+            if value is None: return self.iocp.presolve
             else:
-                if value == True: value = GLP_ON
-                elif value == False: value = GLP_OFF
+                if value: value = GLP_ON
+                else: value = GLP_OFF
                 self.iocp.presolve = value
 
         elif name == binarize:
-            if value == None: return self.iocp.binarize
+            if value is None: return self.iocp.binarize
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.binarize = value
 
         elif name == msg_lev_simplex:
-            if value == None: return self.smcp.msg_lev
+            if value is None: return self.smcp.msg_lev
             else: self.smcp.msg_lev = value
 
         elif name == meth:
-            if value == None: return self.smcp.meth
+            if value is None: return self.smcp.meth
             else: self.smcp.meth = value
 
         elif name == pricing:
-            if value == None: return self.smcp.pricing
+            if value is None: return self.smcp.pricing
             else: self.smcp.pricing = value
 
         elif name == r_test:
-            if value == None: return self.smcp.r_test
+            if value is None: return self.smcp.r_test
             else: self.smcp.r_test = value
 
         elif name == tol_bnd:
-            if value == None: return self.smcp.tol_bnd
+            if value is None: return self.smcp.tol_bnd
             else: self.smcp.tol_bnd = value
 
         elif name == tol_dj:
-            if value == None: return self.smcp.tol_dj
+            if value is None: return self.smcp.tol_dj
             else: self.smcp.tol_dj = value
 
         elif name == tol_piv:
-            if value == None: return self.smcp.tol_piv
+            if value is None: return self.smcp.tol_piv
             else: self.smcp.tol_piv = value
 
         elif name == obj_ll:
-            if value == None: return self.smcp.obj_ll
+            if value is None: return self.smcp.obj_ll
             else: self.smcp.obj_ll = value
 
         elif name == obj_ul:
-            if value == None: return self.smcp.obj_ul
+            if value is None: return self.smcp.obj_ul
             else: self.smcp.obj_ul = value
 
         elif name == it_lim:
-            if value == None: return self.smcp.it_lim
+            if value is None: return self.smcp.it_lim
             else: self.smcp.it_lim = value
 
         elif name == tm_lim_simplex:
-            if value == None: return self.smcp.tm_lim
+            if value is None: return self.smcp.tm_lim
             else: self.smcp.tm_lim = value
 
         elif name == out_frq_simplex:
-            if value == None: return self.smcp.out_frq
+            if value is None: return self.smcp.out_frq
             else: self.smcp.out_frq = value
 
         elif name == out_dly_simplex:
-            if value == None: return self.smcp.out_dly
+            if value is None: return self.smcp.out_dly
             else: self.smcp.out_dly = value
 
         elif name == presolve_simplex:
-            if value == None: return self.smcp.presolve
+            if value is None: return self.smcp.presolve
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.smcp.presolve = value
 
         else:
@@ -1889,6 +2004,290 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
+    cpdef int get_row_stat(self, int i):
+        """
+        Retrieve the status of a constraint.
+
+        INPUT:
+
+        - ``i`` -- The index of the constraint
+
+        OUTPUT:
+
+        - Returns current status assigned to the auxiliary variable associated with i-th row:
+
+            * GLP_BS = 1     basic variable
+            * GLP_NL = 2     non-basic variable on lower bound
+            * GLP_NU = 3     non-basic variable on upper bound
+            * GLP_NF = 4     non-basic free (unbounded) variable
+            * GLP_NS = 5     non-basic fixed variable
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_row_stat(0)
+            1
+            sage: lp.get_row_stat(1)
+            3
+            sage: lp.get_row_stat(-1)
+            Exception ValueError: ...
+            0
+        """
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+        return glp_get_row_stat(self.lp, i+1)
+
+    cpdef int get_col_stat(self, int j):
+        """
+        Retrieve the status of a variable.
+
+        INPUT:
+
+        - ``j`` -- The index of the variable
+
+        OUTPUT:
+
+        - Returns current status assigned to the structural variable associated with j-th column:
+
+            * GLP_BS = 1     basic variable
+            * GLP_NL = 2     non-basic variable on lower bound
+            * GLP_NU = 3     non-basic variable on upper bound
+            * GLP_NF = 4     non-basic free (unbounded) variable
+            * GLP_NS = 5     non-basic fixed variable
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_col_stat(0)
+            1
+            sage: lp.get_col_stat(1)
+            2
+            sage: lp.get_col_stat(-1)
+            Exception ValueError: ...
+            0
+        """
+        if j < 0 or j >= glp_get_num_cols(self.lp):
+            raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
+
+        return glp_get_col_stat(self.lp, j+1)
+
+    cpdef eval_tab_row(self, int k):
+        r"""
+        Computes a row of the current simplex tableau.
+
+        A row corresponds to some basic variable specified by the parameter
+        ``k`` as follows:
+
+        - if `0 \leq k \leq m-1`, the basic variable is `k`-th auxiliary
+          variable,
+
+        - if `m \leq k \leq m+n-1`, the basic variable is `(k-m)`-th structual
+          variable,
+
+        where `m` is the number of rows and `n` is the number of columns in the
+        specified problem object.
+
+        .. NOTE::
+
+            The basis factorization must exist.
+            Otherwise, a ``MIPSolverException`` will be raised.
+
+        INPUT:
+
+        - ``k`` (integer) -- the id of the basic variable.
+
+        OUTPUT:
+
+        A pair ``(indices, coeffs)`` where ``indices`` lists the
+        entries whose coefficient is nonzero, and to which ``coeffs``
+        associates their coefficient in the computed row
+        of the current simplex tableau.
+
+        .. NOTE::
+
+            Elements in ``indices`` have the same sense as index ``k``.
+            All these variables are non-basic by definition.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.eval_tab_row(0)
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: ...
+            sage: lp.solve()
+            0
+            sage: lp.eval_tab_row(0)
+            ([1, 2, 4], [-2.0, 8.0, -2.0])
+            sage: lp.eval_tab_row(3)
+            ([1, 2, 4], [-0.5, 1.5, -1.25])
+            sage: lp.eval_tab_row(5)
+            ([1, 2, 4], [2.0, -4.0, 2.0])
+            sage: lp.eval_tab_row(1)
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: ...
+            sage: lp.eval_tab_row(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+        """
+        cdef int n = glp_get_num_cols(self.lp)
+        cdef int i,j
+
+        if k < 0 or k >= n + glp_get_num_rows(self.lp):
+            raise ValueError("k = %s; Variable number out of range" % k)
+
+        cdef int    * c_indices = <int*>    sage_malloc((n+1)*sizeof(int))
+        cdef double * c_values  = <double*> sage_malloc((n+1)*sizeof(double))
+        if c_indices == NULL or c_values == NULL:
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MemoryError
+
+        try:
+            sig_on()            # To catch SIGABRT
+            i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be basic')
+        else:
+            indices = [c_indices[j+1] - 1 for j in range(i)]
+            values  = [c_values[j+1]      for j in range(i)]
+            return (indices, values)
+        finally:
+            sage_free(c_indices)
+            sage_free(c_values)
+
+    cpdef eval_tab_col(self, int k):
+        r"""
+        Computes a column of the current simplex tableau.
+
+        A (column) corresponds to some non-basic variable specified by the
+        parameter ``k`` as follows:
+
+        - if `0 \leq k \leq m-1`, the non-basic variable is `k`-th auxiliary
+          variable,
+
+        - if `m \leq k \leq m+n-1`, the non-basic variable is `(k-m)`-th
+          structual variable,
+
+        where `m` is the number of rows and `n` is the number of columns
+        in the specified problem object.
+
+        .. NOTE::
+
+            The basis factorization must exist.
+            Otherwise a ``MIPSolverException`` will be raised.
+
+        INPUT:
+
+        - ``k`` (integer) -- the id of the non-basic variable.
+
+        OUTPUT:
+
+        A pair ``(indices, coeffs)`` where ``indices`` lists the
+        entries whose coefficient is nonzero, and to which ``coeffs``
+        associates their coefficient in the computed column
+        of the current simplex tableau.
+
+        .. NOTE::
+
+            Elements in ``indices`` have the same sense as index `k`.
+            All these variables are basic by definition.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.eval_tab_col(1)
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: ...
+            sage: lp.solve()
+            0
+            sage: lp.eval_tab_col(1)
+            ([0, 5, 3], [-2.0, 2.0, -0.5])
+            sage: lp.eval_tab_col(2)
+            ([0, 5, 3], [8.0, -4.0, 1.5])
+            sage: lp.eval_tab_col(4)
+            ([0, 5, 3], [-2.0, 2.0, -1.25])
+            sage: lp.eval_tab_col(0)
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: ...
+            sage: lp.eval_tab_col(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+        """
+        cdef int m = glp_get_num_rows(self.lp)
+        cdef int i,j
+
+        if k < 0 or k >= m + glp_get_num_cols(self.lp):
+            raise ValueError("k = %s; Variable number out of range" % k)
+
+        cdef int    * c_indices = <int*>    sage_malloc((m+1)*sizeof(int))
+        cdef double * c_values  = <double*> sage_malloc((m+1)*sizeof(double))
+        if c_indices == NULL or c_values == NULL:
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MemoryError
+
+        try:
+            sig_on()            # To catch SIGABRT
+            i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be non-basic')
+        else:
+            indices = [c_indices[j+1] - 1 for j in range(i)]
+            values  = [c_values[j+1]      for j in range(i)]
+            return (indices, values)
+        finally:
+            sage_free(c_indices)
+            sage_free(c_values)
 
     def __dealloc__(self):
         """
@@ -2036,12 +2435,18 @@ glp_opt = GLP_OPT
 glp_feas = GLP_FEAS
 glp_nofeas = GLP_NOFEAS
 
+glp_bs = GLP_BS
+glp_nl = GLP_NL
+glp_nu = GLP_NU
+glp_nf = GLP_NF
+
 cdef enum more_parameter_values:
-  simplex_only, simplex_then_intopt, intopt_only
+  simplex_only, simplex_then_intopt, intopt_only, exact_simplex_only
 
 glp_simplex_only = simplex_only
 glp_simplex_then_intopt = simplex_then_intopt
 glp_intopt_only = intopt_only
+glp_exact_simplex_only = exact_simplex_only
 
 # dictionaries for those who prefer to use strings
 
@@ -2050,6 +2455,7 @@ solver_parameter_values = {
   'simplex_only': simplex_only,
   'simplex_then_intopt': simplex_then_intopt,
   'intopt_only': intopt_only,
+  'exact_simplex_only': exact_simplex_only,
 
   'GLP_MSG_OFF' : GLP_MSG_OFF,
   'GLP_MSG_ON' : GLP_MSG_ON,

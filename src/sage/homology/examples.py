@@ -74,9 +74,9 @@ def matching(A, B):
 
         sage: from sage.homology.examples import matching
         sage: matching([1,2], [3,4])
-        [set([(1, 3), (2, 4)]), set([(2, 3), (1, 4)])]
+        [{(1, 3), (2, 4)}, {(1, 4), (2, 3)}]
         sage: matching([0,2], [0])
-        [set([(0, 0)]), set([(2, 0)])]
+        [{(0, 0)}, {(2, 0)}]
     """
     answer = []
     if len(A) == 0 or len(B) == 0:
@@ -244,13 +244,31 @@ class SimplicialComplexExamples():
         return SimplicialComplex([Simplex(n)], is_mutable=False)
 
     def Torus(self):
-        """
+        r"""
         A minimal triangulation of the torus.
+
+        This is a simplicial complex with 7 vertices, 21 edges and 14
+        faces. It is the unique triangulation of the torus with 7
+        vertices, and has been found by Möbius in 1861.
+
+        This is also the combinatorial structure of the Császár
+        polyhedron (see :wikipedia:`Császár_polyhedron`).
 
         EXAMPLES::
 
-            sage: simplicial_complexes.Torus().homology(1)
+            sage: T = simplicial_complexes.Torus(); T.homology(1)
             Z x Z
+            sage: T.f_vector()
+            [1, 7, 21, 14]
+
+        TESTS::
+
+            sage: T.flip_graph().is_isomorphic(graphs.HeawoodGraph())
+            True
+
+        REFERENCES:
+
+        .. [LutzCsas] `Császár's Torus <http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html>`_
         """
         return SimplicialComplex([[0,1,2], [1,2,4], [1,3,4], [1,3,6],
                                   [0,1,5], [1,5,6], [2,3,5], [2,4,5],
@@ -334,7 +352,7 @@ class SimplicialComplexExamples():
         """
         if g == 0:
             if not orientable:
-                raise ValueError, "No non-orientable surface of genus zero."
+                raise ValueError("No non-orientable surface of genus zero.")
             else:
                 return simplicial_complexes.Sphere(2)
         if orientable:
@@ -1278,7 +1296,7 @@ class SimplicialComplexExamples():
             C23
             sage: S = simplicial_complexes.SumComplex(11, [0,1,2,3,4,7]); S
             Simplicial complex with 11 vertices and 252 facets
-            sage: S.homology() # long time
+            sage: S.homology(algorithm='no_chomp') # long time
             {0: 0, 1: 0, 2: 0, 3: 0, 4: C645679, 5: 0}
             sage: factor(645679)
             23 * 67 * 419
@@ -1291,32 +1309,32 @@ class SimplicialComplexExamples():
             3 * 53
             sage: S = simplicial_complexes.SumComplex(13, [0,1,2,5]); S
             Simplicial complex with 13 vertices and 220 facets
-            sage: S.homology() # long time
+            sage: S.homology(algorithm='no_chomp') # long time
             {0: 0, 1: 0, 2: C146989209, 3: 0}
             sage: factor(1648910295)
             3^2 * 5 * 53 * 521 * 1327
             sage: S = simplicial_complexes.SumComplex(13, [0,1,2,3,5]); S
             Simplicial complex with 13 vertices and 495 facets
-            sage: S.homology() # long time
+            sage: S.homology(algorithm='no_chomp') # long time
             {0: 0, 1: 0, 2: 0, 3: C3 x C237 x C706565607945, 4: 0}
             sage: factor(706565607945)
             3 * 5 * 53 * 79 * 131 * 157 * 547
 
             sage: S = simplicial_complexes.SumComplex(17, [0, 1, 4]); S
             Simplicial complex with 17 vertices and 120 facets
-            sage: S.homology(1)
+            sage: S.homology(1, algorithm='no_chomp')
             C140183
             sage: factor(140183)
             103 * 1361
             sage: S = simplicial_complexes.SumComplex(19, [0, 1, 4]); S
             Simplicial complex with 19 vertices and 153 facets
-            sage: S.homology(1)
+            sage: S.homology(1,algorithm='no_chomp')
             C5670599
             sage: factor(5670599)
             11 * 191 * 2699
             sage: S = simplicial_complexes.SumComplex(31, [0, 1, 4]); S
             Simplicial complex with 31 vertices and 435 facets
-            sage: S.homology(1) # long time
+            sage: S.homology(1,algorithm='no_chomp') # long time
             C5 x C5 x C5 x C5 x C26951480558170926865
             sage: factor(26951480558170926865)
             5 * 311 * 683 * 1117 * 11657 * 1948909
