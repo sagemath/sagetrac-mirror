@@ -331,7 +331,7 @@ considerations:
       sage: cmp(a,b)
       Traceback (most recent call last):
       ...
-      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+      TypeError: unorderable type: __main__.Foo()
 
 - In the single underscore methods, we can assume that
   *both arguments belong to the same parent*.

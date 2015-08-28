@@ -157,6 +157,80 @@ cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
 
+
+# rich comparison helper functions for implementing partial ordering
+# from a subset of the comparison operators
+cdef object _lt_from_lt(Element left, Element right):
+    return left._lt_(right)
+
+cdef object _lt_from_gt(Element left, Element right):
+    return left._parent._element_gt(right, left)
+
+cdef object _lt_from_le_and_ne(Element left, Element right):
+    return (left._parent._element_le(left, right)
+            and left._parent._element_ne(left, right))
+
+cdef object _lt_from_le_and_ge(Element left, Element right):
+    return (left._parent._element_le(left, right)
+            and not left._parent._element_ge(left, right))
+
+cdef object _le_from_le(Element left, Element right):
+    return left._le_(right)
+
+cdef object _le_from_ge(Element left, Element right):
+    return left._parent._element_ge(right, left)
+
+cdef object _le_from_lt_and_eq(Element left, Element right):
+    return (left._parent._element_lt(left, right)
+            or left._parent._element_eq(left, right))
+
+cdef object _eq_from_eq(Element left, Element right):
+    return left._eq_(right)
+
+cdef object _eq_from_ne(Element left, Element right):
+    return not left._parent._element_ne(left, right)
+
+cdef object _eq_from_le_and_ge(Element left, Element right):
+    return (left._parent._element_le(left, right)
+            and left._parent._element_ge(left, right))
+
+cdef object _ne_from_ne(Element left, Element right):
+    return left._ne_(right)
+
+cdef object _ne_from_eq(Element left, Element right):
+    return not left._parent._element_eq(left, right)
+
+cdef object _ne_from_le_and_ge(Element left, Element right):
+    return (not left._parent._element_le(left, right)
+            or not left._parent._element_ge(left, right))
+
+cdef object _gt_from_gt(Element left, Element right):
+    return left._gt_(right)
+
+cdef object _gt_from_lt(Element left, Element right):
+    return left._parent._element_lt(right, left)
+
+cdef object _gt_from_ge_and_ne(Element left, Element right):
+    return (left._parent._element_ge(left, right)
+            and left._parent._element_ne(left, right))
+
+cdef object _gt_from_ge_and_le(Element left, Element right):
+    return (left._parent._element_ge(left, right)
+            and not left._parent._element_le(left, right))
+
+cdef object _ge_from_ge(Element left, Element right):
+    return left._ge_(right)
+
+cdef object _ge_from_le(Element left, Element right):
+    return left._parent._element_le(right, left)
+
+cdef object _ge_from_gt_and_eq(Element left, Element right):
+    return (left._parent._element_gt(left, right)
+            or left._parent._element_eq(left, right))
+# end of rich comparison helper functions
+
+
+
 def make_element(_class, _dict, parent):
     """
     This function is only here to support old pickles.
@@ -927,7 +1001,7 @@ cdef class Element(SageObject):
             sage: a._cmp_(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
+            TypeError: unorderable type: ...FloatCmp()
         """
         if have_same_parent_c(self, other):
             left = self
@@ -952,7 +1026,7 @@ cdef class Element(SageObject):
         try:
             # First attempt: use _cmp_()
             return (<Element>left)._cmp_(<Element>right)
-        except NotImplementedError:
+        except TypeError:
             # Second attempt: use _richcmp_()
             if (<Element>left)._richcmp_(<Element>right, Py_EQ):
                 return 0
@@ -1009,8 +1083,8 @@ cdef class Element(SageObject):
             if isinstance(left, Element):
                 return (<Element>left)._richcmp(<Element>right, op)
             # left and right are the same non-Element type:
-            # use a plain cmp()
-            return rich_to_bool(op, cmp(left, right))
+            # use a plain richcmp
+            return PyObject_RichCompare(left, right, op)
 
         # Comparing with coercion didn't work, try something else.
 
@@ -1030,17 +1104,14 @@ cdef class Element(SageObject):
             pass
 
         # If types are not equal: compare types
-        cdef int r = cmp(type(self), type(other))
-        if r:
-            return rich_to_bool(op, r)
+        cdef object res = PyObject_RichCompare(type(self), type(other), op)
+        if (op in (Py_LT, Py_LE, Py_GT, Py_GE) or
+            (op == Py_EQ and not res) or
+            (op == Py_NE and res)):
+            return res
 
         # Final attempt: compare by id()
-        if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
-            # It cannot happen that self is other, since they don't
-            # have the same parent.
-            return rich_to_bool(op, 1)
-        else:
-            return rich_to_bool(op, -1)
+        return PyObject_RichCompare(id(self), id(other), op)
 
     ####################################################################
     # For a Cython class, you must define either _cmp_ (if your subclass
@@ -1062,15 +1133,42 @@ cdef class Element(SageObject):
     def __cmp__(left, right):
         return (<Element>left)._cmp(right)
 
+    cpdef _lt_(left, Element right):
+        return NotImplemented
+
+    cpdef _le_(left, Element right):
+        return NotImplemented
+
+    cpdef _eq_(left, Element right):
+        return NotImplemented
+
+    cpdef _ne_(left, Element right):
+        return NotImplemented
+
+    cpdef _gt_(left, Element right):
+        return NotImplemented
+
+    cpdef _ge_(left, Element right):
+        return NotImplemented
+
     cpdef _richcmp_(left, Element right, int op):
         r"""
         Default implementation of rich comparisons for elements with
         equal parents.
 
-        It tries to see if ``_cmp_`` is implemented. Otherwise it does a
-        comparison by id for ``==`` and ``!=``. Calling this default method
-        with ``<``, ``<=``, ``>`` or ``>=`` will raise a
-        ``NotImplementedError``.
+        To start with it follows the Python model of checking the
+        individual functions ``_lt_``, ``_le_``, ``_eq_``, ``_ne_``,
+        ``_gt_``, and ``_ge_``. If a subset of these functions are
+        provided, then as many of the rest are filled in under the
+        assumption that elements of a fixed parent are partially
+        ordered. If this is not the case for your ``Parent``/``Element``
+        pair, you should either overwrite all of these functions or this
+        method in your element class.
+
+        Failing to use the above logic, it then tries to see if
+        ``_cmp_`` is implemented. Finally, it does a comparison by id
+        for ``==`` and ``!=``. Failing all of the above, this
+        method will raise a ``TypeError``.
 
         EXAMPLES::
 
@@ -1085,8 +1183,164 @@ cdef class Element(SageObject):
             sage: e1 < e2     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+            TypeError: unorderable type: sage.structure.element.Element()
+            sage: class MyElt(Element):
+            ....:     def _lt_(left, right):
+            ....:         print('asked for <')
+            ....:         return False
+            ....:     def _eq_(left, right):
+            ....:         print('asked for ==')
+            ....:         return True
+            sage: e3 = MyElt(Parent())
+            sage: e3 < e3     # indirect doctest
+            asked for <
+            False
+            sage: e3 <= e3    # indirect doctest
+            asked for <
+            asked for ==
+            True
+            sage: e3 == e3    # indirect doctest
+            asked for ==
+            True
+            sage: e3 != e3    # indirect doctest
+            asked for ==
+            False
+            sage: e3 > e3     # indirect doctest
+            asked for <
+            False
+            sage: e3 >= e3    # indirect doctest
+            asked for <
+            asked for ==
+            True
         """
+        cdef type element_class
+        cdef Parent parent = left._parent or left.parent()
+        cdef bint has_lt, has_le, has_eq, has_ne, has_gt, has_ge
+        cdef bint has_strict, has_weak, has_equality
+
+        if not parent._element_richcmp_initialized:
+            # we cache the partial order resolution on the parent so
+            # as to only have overhead on the first call
+
+            element_class = type(left)
+
+            # we need to caste Element as type since otherwise we
+            # cython just gives us the cython method wrappers rather
+            # than the underlying python methods
+            has_lt = element_class._lt_ is not (<type>Element)._lt_
+            has_le = element_class._le_ is not (<type>Element)._le_
+            has_eq = element_class._eq_ is not (<type>Element)._eq_
+            has_ne = element_class._ne_ is not (<type>Element)._ne_
+            has_gt = element_class._gt_ is not (<type>Element)._gt_
+            has_ge = element_class._ge_ is not (<type>Element)._ge_
+
+
+            # In each case we prefer the the user's code over our
+            # generic implementation. Failing that, we try to use
+            # the paired operator to keep our generic implementation
+            # down to one comparison call
+            if has_lt:
+                parent._element_lt = _lt_from_lt
+            elif has_gt:
+                parent._element_lt = _lt_from_gt
+
+            if has_le:
+                parent._element_le = _le_from_le
+            elif has_ge:
+                parent._element_le = _le_from_ge
+
+            if has_eq:
+                parent._element_eq = _eq_from_eq
+            elif has_ne:
+                parent._element_eq = _eq_from_ne
+
+            if has_ne:
+                parent._element_ne = _ne_from_ne
+            elif has_eq:
+                parent._element_ne = _ne_from_eq
+
+            if has_gt:
+                parent._element_gt = _gt_from_gt
+            elif has_lt:
+                parent._element_gt = _gt_from_lt
+
+            if has_ge:
+                parent._element_ge = _ge_from_ge
+            elif has_le:
+                parent._element_ge = _ge_from_le
+
+
+            # at this point each pair of operators are (as a pair)
+            # either assigned or not, so we are only tracking three
+            # pairs of operators from this point on
+            has_strict = has_lt or has_gt
+            has_weak = has_le or has_ge
+            has_equality = has_eq or has_ne
+
+
+            # we can always derive strict inequality from
+            # weak inequality
+            if not has_strict and has_weak:
+                if has_equality:
+                    # if the user has implemented equality,
+                    # assume it is faster than inequality
+                    parent._element_lt = _lt_from_le_and_ne
+                    parent._element_gt = _gt_from_ge_and_ne
+                else:
+                    parent._element_lt = _lt_from_le_and_ge
+                    parent._element_gt = _gt_from_ge_and_le
+                has_strict = True
+
+            # we can always derive equality from weak inequality
+            if not has_equality and has_weak:
+                parent._element_eq = _eq_from_le_and_ge
+                parent._element_ne = _ne_from_le_and_ge
+                has_equality = True
+
+            # for a partial ordering, we need to both be able
+            # to test strict inequality and equality to get
+            # weak inequality
+            # TODO: maybe have some option for total orderings?
+            if not has_weak and has_strict and has_equality:
+                parent._element_le = _le_from_lt_and_eq
+                parent._element_ge = _ge_from_gt_and_eq
+                has_weak = True
+
+
+            # at this point anything that hasn't been assigned
+            # should get the default NotImplemented implementation
+            if not has_strict:
+                parent._element_lt = _lt_from_lt
+                parent._element_gt = _gt_from_gt
+
+            if not has_weak:
+                parent._element_le = _le_from_le
+                parent._element_ge = _ge_from_ge
+
+            if not has_equality:
+                parent._element_eq = _eq_from_eq
+                parent._element_ne = _ne_from_ne
+
+            parent._element_richcmp_initialized = True
+
+
+        cdef object res
+        if      op == Py_LT:
+            res = parent._element_lt(left, right)
+        elif    op == Py_LE:
+            res = parent._element_le(left, right)
+        elif    op == Py_EQ:
+            res = parent._element_eq(left, right)
+        elif    op == Py_NE:
+            res = parent._element_ne(left, right)
+        elif    op == Py_GT:
+            res = parent._element_gt(left, right)
+        else: # op == Py_GE
+            res = parent._element_ge(left, right)
+
+        if res is not NotImplemented:
+            return res
+
         # Obvious case
         if left is right:
             return rich_to_bool(op, 0)
@@ -1094,7 +1348,7 @@ cdef class Element(SageObject):
         cdef int c
         try:
             c = left._cmp_(right)
-        except NotImplementedError:
+        except TypeError:
             # Check equality by id(), knowing that left is not right
             if op == Py_EQ: return False
             if op == Py_NE: return True
@@ -1110,8 +1364,8 @@ cdef class Element(SageObject):
         left_cmp = left.__cmp__
         if isinstance(left_cmp, MethodType):
             return left_cmp(right)
-        msg = LazyFormat("comparison not implemented for %r")%type(left)
-        raise NotImplementedError(msg)
+        msg = LazyFormat("unorderable type: %s.%s()")%(type(left).__module__, type(left).__name__)
+        raise TypeError(msg)
 
 
 def is_ModuleElement(x):

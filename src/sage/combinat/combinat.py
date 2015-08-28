@@ -942,7 +942,7 @@ class CombinatorialObject(SageObject):
                 sage: sorted(L, cmp)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
+                TypeError: unorderable type: __main__.Bar()
         """
         if isinstance(other, CombinatorialObject):
             return cmp(self._list, other._list)

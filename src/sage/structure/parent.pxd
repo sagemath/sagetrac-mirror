@@ -9,6 +9,8 @@
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
+from sage.structure.element cimport Element
+
 cdef class Parent(category_object.CategoryObject):
 
     cdef public _element_constructor
@@ -95,5 +97,15 @@ cdef class Parent(category_object.CategoryObject):
     cdef MonoDict _convert_from_hash
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
+
+    # helper functions for caching partial order comparison resolution
+    # for elements
+    cdef bint _element_richcmp_initialized
+    cdef object (*_element_lt)(Element, Element)
+    cdef object (*_element_le)(Element, Element)
+    cdef object (*_element_eq)(Element, Element)
+    cdef object (*_element_ne)(Element, Element)
+    cdef object (*_element_gt)(Element, Element)
+    cdef object (*_element_ge)(Element, Element)
 
 cpdef Parent Set_PythonType(theType)
