@@ -94,97 +94,14 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 
-TableauOptions=GlobalOptions(name='tableaux',
-    doc=r"""
-    Sets the global options for elements of the tableau, skew_tableau,
-    and tableau tuple classes. The defaults are for tableau to be
-    displayed as a list, latexed as a Young diagram using the English
-    convention.
-    """,
-    end_doc=r"""
-
-    .. NOTE::
-
-        Changing the ``convention`` for tableaux also changes the
-        ``convention`` for partitions.
-
-    If no parameters are set, then the function returns a copy of the
-    options dictionary.
-
-    EXAMPLES::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T
-        [[1, 2, 3], [4, 5]]
-        sage: Tableaux.global_options(display="array")
-        sage: T
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(convention="french")
-        sage: T
-          4  5
-          1  2  3
-
-    Changing the ``convention`` for tableaux also changes the ``convention``
-    for partitions and vice versa::
-
-        sage: P = Partition([3,3,1])
-        sage: print P.ferrers_diagram()
-        *
-        ***
-        ***
-        sage: Partitions.global_options(convention="english")
-        sage: print P.ferrers_diagram()
-        ***
-        ***
-        *
-        sage: T
-          1  2  3
-          4  5
-
-    The ASCII art can also be changed::
-
-        sage: t = Tableau([[1,2,3],[4,5]])
-        sage: ascii_art(t)
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(ascii_art="table")
-        sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
-        +---+---+---+
-        | 1 | 2 | 3 |
-        +---+---+---+
-        sage: Tableaux.global_options(ascii_art="compact")
-        sage: ascii_art(t)
-        |4|5|
-        |1|2|3|
-        sage: Tableaux.global_options.reset()
-    """,
-    display=dict(default="list",
-                 description='Controls the way in which tableaux are printed',
-                 values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
-                             compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    ascii_art=dict(default="repr",
-                 description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
-                             compact='minimal length ascii art'),
-                 case_sensitive=False),
-    latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
-               values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-               case_sensitive=False),
-    convention=dict(default="English",
-                    description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention'),
-                    case_sensitive=False),
-    notation = dict(alt_name="convention")
-)
+from sage.misc.lazy_import import lazy_import
+# TODO: update imports to use tableaux_options directly.
+# The following deprecation warning produces a strange error
+#   about linked options...
+#lazy_import('sage.combinat.tableaux.tableaux_options',
+#            'TableauOptions',
+#             deprecation=18013)
+from sage.combinat.tableaux.tableaux_options import TableauOptions
 
 class Tableau(ClonableList):
     """
@@ -822,8 +739,8 @@ class Tableau(ClonableList):
             for j in range(t_i):
                 st_i[j] = None
 
-        from sage.combinat.skew_tableau import SkewTableau
-        return SkewTableau(st)
+        from sage.combinat.tableaux.skew_tableau import SkewTableauFactory
+        return SkewTableauFactory(st)
 
     def __call__(self, *cell):
         r"""
@@ -1459,8 +1376,8 @@ class Tableau(ClonableList):
         """
         if check and self not in SemistandardTableaux():
             raise ValueError("the tableau must be semistandard")
-        from sage.combinat.skew_tableau import SkewTableau
-        sk = SkewTableau(self).bender_knuth_involution(k, rows, False)
+        from sage.combinat.tableaux.skew_tableau import SemistandardSkewTableauFactory
+        sk = SemistandardSkewTableauFactory(self, check=False).bender_knuth_involution(k, rows)
         return SemistandardTableaux()(list(sk))
 
     @combinatorial_map(name ='reading word permutation')
@@ -2139,8 +2056,8 @@ class Tableau(ClonableList):
             [[None, None, None], [None, None]]
         """
         t_new = [[None if g <= n else g for g in row] for row in self]
-        from sage.combinat.skew_tableau import SkewTableau
-        return SkewTableau(t_new)
+        from sage.combinat.tableaux.skew_tableau import SkewTableauFactory
+        return SkewTableauFactory(t_new)
 
     def to_list(self):
         """
@@ -2490,8 +2407,8 @@ class Tableau(ClonableList):
         for row in left:
             st.append(row)
 
-        from sage.combinat.skew_tableau import SkewTableau
-        return SkewTableau(st).rectify()
+        from sage.combinat.tableaux.skew_tableau import SemistandardSkewTableauFactory
+        return SemistandardSkewTableauFactory(st).rectify()
 
     def _slide_up(self, c):
         r"""

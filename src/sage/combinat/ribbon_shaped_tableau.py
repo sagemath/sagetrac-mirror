@@ -16,13 +16,15 @@ Ribbon Shaped Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux
+from sage.combinat.tableaux.skew_tableau import SkewTableau
+from sage.combinat.tableaux.skew_tableaux import SkewTableaux, StandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 class RibbonShapedTableau(SkewTableau):
     r"""
@@ -62,12 +64,14 @@ class RibbonShapedTableau(SkewTableau):
     TESTS::
 
         sage: r = RibbonShapedTableau([[1], [2,3], [4, 5, 6]])
-        sage: r.to_permutation()
-        [4, 5, 6, 2, 3, 1]
+        sage: r.to_word()
+        word: 456231
 
         sage: RibbonShapedTableau([[1,2],[3,4]]).evaluation()
         [1, 1, 1, 1]
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
     @staticmethod
     def __classcall_private__(cls, r):
         r"""
@@ -83,9 +87,9 @@ class RibbonShapedTableau(SkewTableau):
         except TypeError:
             raise TypeError("r must be a list of positive integers")
         if not r:
-            return StandardRibbonShapedTableaux()(r)
+            return RibbonShapedTableaux()(r)
         if all(all(j is None or (isinstance(j, (int, Integer)) and j>0) for j in i) for i in r):
-            return StandardRibbonShapedTableaux()(r)
+            return RibbonShapedTableaux()(r)
         raise TypeError("r must be a list of positive integers")
 
     def __init__(self, parent, t):
@@ -180,6 +184,12 @@ class RibbonShapedTableaux(SkewTableaux):
         # Otherwise arg0 takes the place of the category in pickling
         return super(RibbonShapedTableaux, cls).__classcall__(cls, **kwds)
 
+    def _element_constructor_(self, x=0, r=None):
+        # Interpret the first non-keyword argument as r
+        if x is not 0:
+            r = x
+        return self.element_class(self, r)
+
     def __init__(self, category=None):
         """
         Initialize ``self``.
@@ -249,6 +259,12 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
 
         # Otherwise arg0 takes the place of the category in pickling
         return super(StandardRibbonShapedTableaux, cls).__classcall__(cls, **kwds)
+
+    def _element_constructor_(self, x=0, r=None):
+        # Interpret the first non-keyword argument as r
+        if x is not 0:
+            r = x
+        return self.element_class(self, r)
 
     def __init__(self, category=None):
         """

@@ -417,8 +417,8 @@ cdef void late_import():
     import sage.combinat.tableau
     Tableau = sage.combinat.tableau.Tableau
 
-    import sage.combinat.skew_tableau
-    SkewTableau = sage.combinat.skew_tableau.SkewTableau
+    import sage.combinat.tableaux.skew_tableau
+    SkewTableau = sage.combinat.tableaux.skew_tableau.SkewTableauFactory
 
     import sage.combinat.skew_partition
     SkewPartition = sage.combinat.skew_partition.SkewPartition

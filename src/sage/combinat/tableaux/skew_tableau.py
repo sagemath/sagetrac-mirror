@@ -88,15 +88,14 @@ class SkewTableau(BadShapeTableau):
         uses should work either way.::
 
             sage: T = SkewTableau([[None,2],[2]])
-            sage: t0 = list(T)[0]
-            sage: t0[1] = 3
+            sage: T[0] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'SkewTableaux_with_category.element_class' object does not support item assignment
+            sage: T[0][1] = 3
             Traceback (most recent call last):
             ...
             TypeError: 'tuple' object does not support item assignment
-            sage: T[0][1] = 5
-            Traceback (most recent call last):
-            ...
-            TypeError: 'SkewTableaux_with_category.element_class' object does not support indexing
         """
         self._set_parent(parent)
         self._st = st
@@ -156,6 +155,41 @@ class SkewTableau(BadShapeTableau):
             3
         """
         return len(self._st)
+
+    def __getitem__(self, key):
+        r"""
+        Allow indexing and slicing using the underlying ``_st``.
+
+        INPUT:
+
+        - ``key`` -- an index or slice, or a tuple of length two.
+
+        If ``key`` is an index or slice, the behavior is as usual
+        for a tuple of tuples. If ``key = (r, c)``, returns the
+        entry in row ``r``, column ``c``.
+
+        EXAMPLES::
+
+            sage: st = SkewTableau([[None, 1], [2, 3]])
+            sage: st[0, 1]
+            1
+            sage: st[0, 0]
+            Traceback (most recent call last):
+            ...
+            KeyError: (0, 0)
+
+        TESTS::
+
+            sage: st[:] is st._st # tuples are immutable
+            True
+            sage: st[0:1] == st.to_tuple()[0:1]
+            True
+            sage: st[0:1] is st.to_tuple()[0:1]
+            False
+        """
+        if isinstance(key, tuple) and len(key)==2:
+            return self._dict_unsafe()[key]
+        return self._st[key]
 
     def _richcmp_(self, other, op):
         r"""
@@ -248,8 +282,6 @@ class SkewTableau(BadShapeTableau):
         rows.reverse()
         return [self.inner_shape(), rows]
 
-    # TODO: once straight shape and ribbon shape tableaux have been
-    #   fixed up, use them in to_tableau and to_ribbon
     def to_tableau(self):
         r"""
         Returns a :class:`Tableau` with the same filling.
@@ -384,7 +416,7 @@ class SkewTableau(BadShapeTableau):
             [   1  3    1  2 ]
             [   2   ,   3    ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
 
     def _latex_(self):
@@ -467,6 +499,155 @@ class SkewTableau(BadShapeTableau):
             1
         """
         return self.inner_shape().size()
+
+    def restrict(self, n):
+        r"""
+        Return the restriction of ``self`` to all the entries
+        less than or equal to ``n``.
+
+        More precisely, each cell which is not bounded by ``n``
+        is deleted, and the resulting "rows" are left-justified
+        while leaving the inner shape unchanged.
+
+        If the result is not of skew shape, an error is raised.
+        The result is guaranteed to be of skew shape in nice cases,
+        for instance for (semi)standard skew tableaux.
+
+        INPUT:
+
+        - ``n`` -- an upper bound on entries
+
+        .. NOTE::
+
+            If only the outer shape of the restriction, rather than
+            the whole restriction, is needed, then the faster method
+            :meth:`restriction_outer_shape` is preferred. Similarly if
+            only the skew shape is needed, use :meth:`restriction_shape`.
+
+        EXAMPLES::
+
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(2)
+            [[None, 1], [2]]
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(1)
+            [[None, 1]]
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).restrict(1)
+            [[None, 1], [1]]
+            sage: SkewTableau([[None,None,1,2], [None,3,2,1]]).restrict(1)
+            [[None, None, 1], [None, 1]]
+
+        TESTS::
+
+            sage: SkewTableau([[None,2,2],[None,1,1]]).restrict(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input must be of skew shape
+        """
+        return self.parent((x for x in row if x is None or x <= n)
+                              for row in self)
+
+    def restriction_outer_shape(self, n):
+        r"""
+        Return the outer shape of the restriction of the
+        semistandard skew tableau ``self`` to `n`.
+
+        See :meth:`restrict` for further information.
+
+        EXAMPLES::
+
+            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_outer_shape(3)
+            [2, 2, 1]
+            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_outer_shape(2)
+            [2, 1]
+            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T.restriction_outer_shape(0)
+            [2, 1]
+            sage: T.restriction_outer_shape(2)
+            [2, 1]
+            sage: T.restriction_outer_shape(3)
+            [3, 1]
+            sage: T.restriction_outer_shape(4)
+            [3, 3]
+            sage: T.restriction_outer_shape(19)
+            [4, 3, 1]
+        """
+        from sage.combinat.partition import Partition
+        return Partition(sum(1 for x in row if x is None or x <= n)
+                         for row in self)
+
+    def restriction_shape(self, n):
+        r"""
+        Return the skew shape of the restriction of the semistandard
+        skew tableau ``self`` to ``n``.
+
+        See :meth:`restrict` for further information.
+
+        EXAMPLES::
+
+            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_shape(3)
+            [2, 2, 1] / [2]
+            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_shape(2)
+            [2, 1] / [1, 1]
+            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T.restriction_shape(0)
+            [2, 1] / [2, 1]
+            sage: T.restriction_shape(2)
+            [2, 1] / [2, 1]
+            sage: T.restriction_shape(3)
+            [3, 1] / [2, 1]
+            sage: T.restriction_shape(4)
+            [3, 3] / [2, 1]
+        """
+        return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
+
+    def to_chain(self, max_entry=None):
+        r"""
+        Return the chain of partitions making up the skew tableau ``self``.
+
+        See :meth:`restrict` for further information.
+
+        The optional keyword parameter ``max_entry`` can be used to
+        customize the length of the chain. Specifically, if this parameter
+        is set to a nonnegative integer ``n``, then the chain is
+        constructed from the positions of the letters `1, 2, \ldots, n`
+        in the tableau.
+
+        EXAMPLES::
+
+            sage: SemistandardSkewTableau([[None,1],[2],[3]]).to_chain()
+            [[1], [2], [2, 1], [2, 1, 1]]
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain()
+            [[1], [2, 1], [2, 1, 1]]
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=2)
+            [[1], [2, 1], [2, 1, 1]]
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=3)
+            [[1], [2, 1], [2, 1, 1], [2, 1, 1]]
+            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=1)
+            [[1], [2, 1]]
+            sage: SemistandardSkewTableau([[None,None,2],[None,3],[None,5]]).to_chain(max_entry=6)
+            [[2, 1, 1], [2, 1, 1], [3, 1, 1], [3, 2, 1], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
+            sage: SemistandardSkewTableau([]).to_chain()
+            [[]]
+            sage: SemistandardSkewTableau([]).to_chain(max_entry=1)
+            [[], []]
+
+        TESTS:
+
+        Check that :meth:`to_chain()` does not skip letters::
+
+            sage: t = SemistandardSkewTableau([[None, 2, 3], [3]])
+            sage: t.to_chain()
+            [[1], [1], [2], [3, 1]]
+
+            sage: T = SemistandardSkewTableau([[None]])
+            sage: T.to_chain()
+            [[1]]
+        """
+        if max_entry is None:
+            if not self.size():
+                max_entry = 0
+            else:
+                max_entry = max(self.iter_entries())
+        return [self.restriction_outer_shape(n) for n in range(max_entry+1)]
 
     def conjugate(self):
         r"""
@@ -795,17 +976,16 @@ class SkewTableau(BadShapeTableau):
                                   if count > 0)
         return content_counts == range(content_counts[0], content_counts[-1]+1)
 
-
     def is_k_tableau(self, k):
         r"""
         Checks whether ``self`` is a valid skew weak `k`-tableau.
 
         EXAMPLES::
 
-            sage: t = SemistandardSkewTableau([[None,2,3],[2,3],[3]])
+            sage: t = SkewTableau([[None,2,3],[2,3],[3]])
             sage: t.is_k_tableau(3)
             True
-            sage: t = SemistandardSkewTableau([[None,1,3],[2,2],[3]])
+            sage: t = SkewTableau([[None,1,3],[2,2],[3]])
             sage: t.is_k_tableau(3)
             False
         """
@@ -1194,134 +1374,6 @@ class SemistandardSkewTableau(SkewTableau):
 
         return self.parent(result_tab)
 
-    def restrict(self, n):
-        r"""
-        Return the restriction of the semistandard skew
-        tableau to all the entries less than or equal to ``n``.
-
-        .. NOTE::
-
-            If only the outer shape of the restriction, rather than
-            the whole restriction, is needed, then the faster method
-            :meth:`restriction_outer_shape` is preferred. Similarly if
-            only the skew shape is needed, use :meth:`restriction_shape`.
-
-        EXAMPLES::
-
-            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(2)
-            [[None, 1], [2]]
-            sage: SemistandardSkewTableau([[None,1],[2],[3]]).restrict(1)
-            [[None, 1]]
-            sage: SemistandardSkewTableau([[None,1],[1],[2]]).restrict(1)
-            [[None, 1], [1]]
-        """
-        return self.parent((x for x in row if x is None or x <= n)
-                                 for row in self)
-
-    def restriction_outer_shape(self, n):
-        r"""
-        Return the outer shape of the restriction of the
-        semistandard skew tableau ``self`` to `n`.
-
-        See :meth:`restrict` for further information.
-
-        EXAMPLES::
-
-            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_outer_shape(3)
-            [2, 2, 1]
-            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_outer_shape(2)
-            [2, 1]
-            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
-            sage: T.restriction_outer_shape(0)
-            [2, 1]
-            sage: T.restriction_outer_shape(2)
-            [2, 1]
-            sage: T.restriction_outer_shape(3)
-            [3, 1]
-            sage: T.restriction_outer_shape(4)
-            [3, 3]
-            sage: T.restriction_outer_shape(19)
-            [4, 3, 1]
-        """
-        from sage.combinat.partition import Partition
-        return Partition(sum(1 for x in row if x is None or x <= n)
-                         for row in self)
-
-    def restriction_shape(self, n):
-        r"""
-        Return the skew shape of the restriction of the semistandard
-        skew tableau ``self`` to ``n``.
-
-        See :meth:`restrict` for further information.
-
-        EXAMPLES::
-
-            sage: SemistandardSkewTableau([[None,None],[2,3],[3,4]]).restriction_shape(3)
-            [2, 2, 1] / [2]
-            sage: SemistandardSkewTableau([[None,2],[None],[4],[5]]).restriction_shape(2)
-            [2, 1] / [1, 1]
-            sage: T = SemistandardSkewTableau([[None,None,3,5],[None,4,4],[17]])
-            sage: T.restriction_shape(0)
-            [2, 1] / [2, 1]
-            sage: T.restriction_shape(2)
-            [2, 1] / [2, 1]
-            sage: T.restriction_shape(3)
-            [3, 1] / [2, 1]
-            sage: T.restriction_shape(4)
-            [3, 3] / [2, 1]
-        """
-        return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
-
-    def to_chain(self, max_entry=None):
-        r"""
-        Return the chain of partitions making up the skew tableau ``self``.
-
-        See :meth:`restrict` for further information.
-
-        The optional keyword parameter ``max_entry`` can be used to
-        customize the length of the chain. Specifically, if this parameter
-        is set to a nonnegative integer ``n``, then the chain is
-        constructed from the positions of the letters `1, 2, \ldots, n`
-        in the tableau.
-
-        EXAMPLES::
-
-            sage: SemistandardSkewTableau([[None,1],[2],[3]]).to_chain()
-            [[1], [2], [2, 1], [2, 1, 1]]
-            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain()
-            [[1], [2, 1], [2, 1, 1]]
-            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=2)
-            [[1], [2, 1], [2, 1, 1]]
-            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=3)
-            [[1], [2, 1], [2, 1, 1], [2, 1, 1]]
-            sage: SemistandardSkewTableau([[None,1],[1],[2]]).to_chain(max_entry=1)
-            [[1], [2, 1]]
-            sage: SemistandardSkewTableau([[None,None,2],[None,3],[None,5]]).to_chain(max_entry=6)
-            [[2, 1, 1], [2, 1, 1], [3, 1, 1], [3, 2, 1], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
-            sage: SemistandardSkewTableau([]).to_chain()
-            [[]]
-            sage: SemistandardSkewTableau([]).to_chain(max_entry=1)
-            [[], []]
-
-        TESTS:
-
-        Check that :meth:`to_chain()` does not skip letters::
-
-            sage: t = SemistandardSkewTableau([[None, 2, 3], [3]])
-            sage: t.to_chain()
-            [[1], [1], [2], [3, 1]]
-
-            sage: T = SemistandardSkewTableau([[None]])
-            sage: T.to_chain()
-            [[1]]
-        """
-        if max_entry is None:
-            if not self.size():
-                max_entry = 0
-            else:
-                max_entry = max(self.iter_entries())
-        return [self.restriction_outer_shape(n) for n in range(max_entry+1)]
-
 class StandardSkewTableau(SemistandardSkewTableau):
     r"""
     A standard tableau of skew shape.
@@ -1363,7 +1415,29 @@ class StandardSkewTableau(SemistandardSkewTableau):
                              for i in row
                                  if i is not None)
 
-# Use a factory method to create `class:SkewTableau`, etc.
+# Allow unpickling old pickles using deprecated class names
+from sage.structure.sage_object import register_unpickle_override
+class SkewTableau_class(SkewTableau):
+    """
+    This exists solely for unpickling ``SkewTableau_class`` objects.
+    """
+    def __setstate__(self, state):
+        r"""
+        Unpickle old ``SkewTableau_class`` objects.
+
+        TESTS::
+
+            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
+            [3, 2, 1]
+            sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
+            [[1, 1], [3, 2, 1]]
+        """
+        from sage.combinat.tableaux.skew_tableaux import SkewTableaux
+        self.__class__ = SkewTableau
+        self.__init__(SkewTableaux(), state['_list'])
+register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
+
+# Use a factory method to create class:`SkewTableau`, etc.
 def SkewTableauFactory(*args, **kwds):
     r"""
     Construct a new :class:`SkewTableau` by converting from one of

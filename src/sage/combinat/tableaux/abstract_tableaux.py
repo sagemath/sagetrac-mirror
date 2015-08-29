@@ -32,7 +32,7 @@ from sage.categories.sets_cat                import Sets
 
 from sage.combinat.tableaux.abstract_tableau import AbstractTableau
 
-class AbstractTableaux(UniqueRepresentation, Parent):
+class AbstractTableaux(Parent, UniqueRepresentation):
     r"""
     Parent class of all abstract tableaux.
 
@@ -58,11 +58,10 @@ class AbstractTableaux(UniqueRepresentation, Parent):
             Category of sets
         """
         if category is None:
-            Parent.__init__(self, category=Sets())
-        else:
-            Parent.__init__(self, category=category)
+            category = Sets()
+        super(AbstractTableaux, self).__init__(category=category)
 
-    def _element_constructor_(self, *args, **kwds):
+    def _element_constructor_(self, x=0, *args, **kwds):
         r"""
         Constructs an Element of ``self``.
         

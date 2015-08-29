@@ -23,13 +23,17 @@ from sage.categories.sets_cat import Sets
 from sage.rings.all import QQ, ZZ
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
-from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
+from sage.combinat.tableaux.skew_tableau import SkewTableau as SkewTableauClass
+from sage.combinat.tableaux.skew_tableau import SkewTableauFactory as SkewTableau
+from sage.combinat.tableaux.skew_tableaux import SkewTableaux
+from sage.combinat.tableaux.skew_tableaux import SemistandardSkewTableauxFactory as SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
 import permutation
 import functools
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-class RibbonTableau(SkewTableau):
+class RibbonTableau(SkewTableauClass):
     r"""
     A ribbon tableau.
 
@@ -70,6 +74,8 @@ class RibbonTableau(SkewTableau):
         sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
         [2, 1, 1, 1]
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
     #The following method is private and will only get called
     #when calling RibbonTableau() directly, and not via element_class
     @staticmethod
@@ -212,6 +218,21 @@ class RibbonTableaux(Parent, UniqueRepresentation):
             return super(RibbonTableaux, cls).__classcall__(cls)
 
         return RibbonTableaux_shape_weight_length(shape, weight, length)
+
+    def _coerce_map_from_(self, S):
+        """
+        EXAMPLES::
+
+            sage: R = RibbonTableaux([[2,2],[]],[1,1],2)
+            sage: r = R.an_element()
+            sage: r.to_list() == r
+            True
+        """
+        if isinstance(S, RibbonTableaux):
+            return True
+        elif S in (list,tuple):
+            return True
+        return False
 
     def __init__(self):
         """
@@ -877,7 +898,7 @@ class MultiSkewTableau(CombinatorialElement):
         EXAMPLES::
 
             sage: s = MultiSkewTableau([ [[2,3],[5,5]], [[1,1],[3,3]], [[2],[6]] ])
-            sage: s.inversion_pairs()
+            sage: sorted(s.inversion_pairs())
             [((0, (0, 0)), (1, (0, 0))),
              ((0, (1, 0)), (1, (0, 1))),
              ((0, (1, 1)), (1, (0, 0))),

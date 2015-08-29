@@ -50,7 +50,11 @@ class BadShapeTableaux(AbstractTableaux):
     """
     Element = BadShapeTableau
 
-    def _element_constructor_(self, dct, check=True):
+    def _element_constructor_(self, x=0, dct=None, check=True):
+        # Interpret the first non-keyword argument as dct
+        if x is not 0:
+            dct = x
+
         try:
             dct = dict(dct)
         except:

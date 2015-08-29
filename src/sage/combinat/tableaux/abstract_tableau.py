@@ -56,7 +56,7 @@ class AbstractTableau(Element):
         sage: b.to_word_by_row()
         word: 213
     """
-    def __init__(self, parent, *args, **kwds):
+    def __init__(self, parent):
         r"""
         Initialize the class:`AbstractTableau`.
 

@@ -44,7 +44,8 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
+from sage.combinat.tableaux.skew_tableau import SkewTableauFactory as SkewTableau
+from sage.combinat.tableaux.skew_tableaux import SemistandardSkewTableauxFactory as SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.core import Core
@@ -3054,7 +3055,7 @@ class StrongTableau(ClonableList):
             []
             sage: T.entries_by_content(2)
             [-1]
-            sage: T.entries_by_content(-2)
+            sage: sorted(T.entries_by_content(-2))
             [-1, 2]
 
         TESTS::
@@ -3091,7 +3092,7 @@ class StrongTableau(ClonableList):
             []
             sage: T.entries_by_content_standard(2)
             [-2]
-            sage: T.entries_by_content_standard(-2)
+            sage: sorted(T.entries_by_content_standard(-2))
             [-1, 4]
 
         TESTS::

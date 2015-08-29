@@ -35,7 +35,6 @@ def _doc():
     """
     pass
 
-# TODO: fix failing doctests
 def _end_doc():
     r"""
     .. NOTE::
@@ -85,15 +84,15 @@ def _end_doc():
           4  5
         sage: Tableaux.global_options(ascii_art="table")
         sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
         +---+---+---+
         | 1 | 2 | 3 |
         +---+---+---+
+        | 4 | 5 |
+        +---+---+
         sage: Tableaux.global_options(ascii_art="compact")
         sage: ascii_art(t)
-        |4|5|
         |1|2|3|
+        |4|5|
         sage: Tableaux.global_options.reset()
     """
     pass

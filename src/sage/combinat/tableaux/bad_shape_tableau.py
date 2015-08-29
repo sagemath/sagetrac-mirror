@@ -86,10 +86,13 @@ class BadShapeTableau(AbstractTableau):
             sage: b2 = b.filter_by_cells(lambda r, c: r <= 3)
             sage: b2.dict() == {(2, 2): 5, (3, 4): 0}
             True
+            sage: s = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: s.filter_by_cells(lambda r, c: c==1)
+            [[None, 1], [None, 4]]
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(*k)}
-        return self.parent(data)
+        return self.parent()(dct=data)
 
     def filter_by_entries(self, predicate):
         r"""
@@ -109,7 +112,7 @@ class BadShapeTableau(AbstractTableau):
         """
         data = {k:v for k, v in six.iteritems(self._dict_unsafe())
                 if predicate(v)}
-        return self.parent(data)
+        return self.parent()(dct=data)
 
     def conjugate(self):
         r"""
@@ -126,7 +129,7 @@ class BadShapeTableau(AbstractTableau):
             True
         """
         data = {(k[1], k[0]): v for k, v in six.iteritems(self._dict_unsafe())}
-        return self.parent(data)
+        return self.parent()(dct=data)
 
     # Alias
     transpose = conjugate

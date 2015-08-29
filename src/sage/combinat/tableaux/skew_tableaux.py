@@ -52,6 +52,20 @@ from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableauFac
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableau
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableauFactory
 
+def list_method(self):
+    r"""
+    Return a list of the elements in ``self``.
+
+    Provided entirely for backwards compatibility; new code
+    should just use ``list(...)``.
+
+    EXAMPLES::
+
+        sage: len(SemistandardSkewTableaux([[3, 1], [1]]).list())
+        18
+    """
+    return list(iter(self))
+
 class SkewTableaux(BadShapeTableaux):
     r"""
     Parent class of all skew tableaux.
@@ -72,9 +86,13 @@ class SkewTableaux(BadShapeTableaux):
     Element = SkewTableau
     global_options = TableauOptions
 
-    def _element_constructor_(self, st=0, expr=None, shape_word=None,
+    def _element_constructor_(self, x=0, st=None, expr=None, shape_word=None,
                                     dct=None, check=True):
-        if st is not 0:
+        # Interpret the first non-keyword argument as st
+        if x is not 0:
+            st = x
+
+        if st is not None:
             return self.from_st(st, check)
 
         if expr is not None:
@@ -105,14 +123,15 @@ class SkewTableaux(BadShapeTableaux):
                      [None, 2, 3, 3, 0],
                      [1, -1]])
 
-    def _coerce_map_from_(self, S):
+    @classmethod
+    def _coerce_map_from_(cls, S):
         r"""
         Determine whether or not we can coerce from `S` to the current
         Parent.
 
         Subclasses are not (currently) allowed to coerce by default, but they
         should typically just work. Skew tableaux are often thought of as lists
-        of lists, so allow that format as well.
+        of lists or tuples of tuples, so allow those formats as well.
 
         TESTS::
 
@@ -121,7 +140,15 @@ class SkewTableaux(BadShapeTableaux):
             sage: SkewTableaux().has_coerce_map_from(list)
             True
         """
-        if isinstance(S, SkewTableaux):
+        # Hack to get non-category framework class
+        name = cls.__name__
+        if name.endswith('_with_category'):
+            name = name[:-len('_with_category')]
+            for cls in cls.mro():
+                if cls.__name__ == name:
+                    break
+
+        if isinstance(S, cls):
             return True
         elif S in (list,tuple):
             return True
@@ -427,7 +454,7 @@ class SemistandardSkewTableaux(SkewTableaux):
     """
     Element = SemistandardSkewTableau
 
-    def __init__(self, max_entry=None):
+    def __init__(self, max_entry=None, category=InfiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -443,9 +470,9 @@ class SemistandardSkewTableaux(SkewTableaux):
             sage: S = SemistandardSkewTableaux(max_entry=3)
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=InfiniteEnumeratedSets())
         if max_entry is not None:
             self.max_entry = max_entry
+        super(SemistandardSkewTableaux, self).__init__(category=category)
 
     def _element_constructor_(self, *args, **kwds):
         ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
@@ -559,7 +586,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
         sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(4)
         False
     """
-    def __init__(self, n, max_entry=None):
+    def __init__(self, n, max_entry=None, category=FiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -573,7 +600,7 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
             sage: S = SemistandardSkewTableaux(3)
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(SemistandardSkewTableaux_size, self).__init__(category=category)
         self.n = n
         if max_entry is None:
             self.max_entry = n
@@ -606,6 +633,8 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
                 raise ValueError("Entries must be at most %i"%self.max_entry)
 
         return ret
+
+    list=list_method
 
     def _repr_(self):
         r"""
@@ -672,7 +701,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
         sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux(5, (2, 1, 2))
         False
     """
-    def __init__(self, n, weight):
+    def __init__(self, n, weight, category=FiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -685,7 +714,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
             sage: S = SemistandardSkewTableaux(3,[2,1])
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(SemistandardSkewTableaux_size_weight, self).__init__(category=category)
         self.n      = n
         self.weight = weight
 
@@ -714,6 +743,8 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
                 raise ValueError("Input must have weight %s"%repr(self.weight))
 
         return ret
+
+    list=list_method
 
     def _repr_(self):
         r"""
@@ -770,7 +801,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         sage: [[None, 1, 2, 3], [1, 2]] in SemistandardSkewTableaux([[4,2], [2]])
         False
     """
-    def __init__(self, p, max_entry=None):
+    def __init__(self, p, max_entry=None, category=FiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -787,7 +818,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
             True
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(SemistandardSkewTableaux_shape, self).__init__(category=category)
 
         if max_entry is None:
             max_entry = sum(p[0])-sum(p[1])
@@ -832,6 +863,8 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         return ("Semistandard skew tableaux of shape %s and maximum entry %s"
                 %(repr(self.p), repr(self.max_entry)))
 
+    list=list_method
+
     def cardinality(self):
         r"""
         Return the cardinality of ``self``.
@@ -861,8 +894,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
              [[1, 3], [3]],
              [[2, 2], [3]],
              [[2, 3], [3]]]
-            sage: from sage.combinat.skew_tableau import SemistandardSkewTableaux_shape
-            sage: SemistandardSkewTableaux_shape([[2,1],[]], max_entry=2).list()
+            sage: SemistandardSkewTableaux([[2,1],[]], max_entry=2).list()
             [[[1, 1], [2]], [[1, 2], [2]]]
         """
         for weight in IntegerVectors(self.p.size(), self.max_entry):
@@ -884,7 +916,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         sage: [[None, 1, 2, 3], [1, 1]] in SemistandardSkewTableaux(p=[[4,2], [1]], weight=(2, 2, 1))
         False
     """
-    def __init__(self, p, weight):
+    def __init__(self, p, weight, category=FiniteEnumeratedSets()):
         r"""
         INPUT:
 
@@ -898,10 +930,9 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
             True
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(SemistandardSkewTableaux_shape_weight, self).__init__(category=category)
         self.p      = p
         self.weight = weight
-
 
     def _element_constructor_(self, *args, **kwds):
         r"""
@@ -928,6 +959,8 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
                 raise ValueError("Input must have weight %s"%repr(self.weight))
 
         return ret
+
+    list=list_method
 
     def _repr_(self):
         r"""
@@ -983,7 +1016,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
     #    been placed on the standard skew tableau factory function.
     _element_constructor_.__doc__ = StandardSkewTableauFactory.__doc__
 
-    def __init__(self):
+    def __init__(self, category=InfiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -992,7 +1025,7 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
             sage: S = StandardSkewTableaux()
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=InfiniteEnumeratedSets())
+        super(StandardSkewTableaux, self).__init__(category=category)
 
     def _repr_(self):
         r"""
@@ -1046,7 +1079,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         sage: [[None, 1, 2, 3], [4]] in StandardSkewTableaux(5)
         False
     """
-    def __init__(self, n):
+    def __init__(self, n, category=FiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -1058,7 +1091,7 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
             sage: S = StandardSkewTableaux(3)
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(StandardSkewTableaux_size, self).__init__(category=category)
         self.n = n
 
     def _element_constructor_(self, *args, **kwds):
@@ -1087,6 +1120,8 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
                 raise ValueError("Input must have size %i"%repr(self.n))
 
         return ret
+
+    list=list_method
 
     def _repr_(self):
         r"""
@@ -1158,7 +1193,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         sage: [[None, 1, 2, 3], [4]] in StandardSkewTableaux([[4, 2], [1]])
         False
     """
-    def __init__(self, skp):
+    def __init__(self, skp, category=FiniteEnumeratedSets()):
         r"""
         Initialize ``self``.
 
@@ -1171,7 +1206,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
             sage: S = StandardSkewTableaux([[3, 2, 1], [1, 1]])
             sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        super(StandardSkewTableaux_shape, self).__init__(category=category)
         self.skp = skp
 
     def _element_constructor_(self, *args, **kwds):
@@ -1197,6 +1232,8 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
                 raise ValueError("Input must have shape %i"%repr(self.p))
 
         return ret
+
+    list=list_method
 
     def _repr_(self):
         r"""
@@ -1455,6 +1492,3 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_p',  SemistandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_pmu',  SemistandardSkewTableaux_shape_weight)
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
-# TODO: Travis added the following line and "SkewTableau_class" a few months ago
-#   to the old skew_tableau.py, but tests don't break without it; remove?
-#register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
