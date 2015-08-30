@@ -1,7 +1,7 @@
 r"""
 AbstractTableaux Parent class
 
-This is an abstract base class for numerous tableaux-like
+This is a base class for numerous tableaux-like
 Parent classes. See :class:`AbstractTableau` for the
 corresponding Element class.
 
@@ -36,7 +36,7 @@ class AbstractTableaux(Parent, UniqueRepresentation):
     r"""
     Parent class of all abstract tableaux.
 
-    See AbstractTableau for the Element class.
+    See :class:`AbstractTableau` for the Element class.
 
     EXAMPLES::
 
@@ -61,7 +61,7 @@ class AbstractTableaux(Parent, UniqueRepresentation):
             category = Sets()
         super(AbstractTableaux, self).__init__(category=category)
 
-    def _element_constructor_(self, x=0, *args, **kwds):
+    def _element_constructor_(self, x=0, dct={}, check=True):
         r"""
         Constructs an Element of ``self``.
         
@@ -69,10 +69,19 @@ class AbstractTableaux(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: type(AbstractTableaux()()) # indirect doctest
+            sage: type(AbstractTableaux()({})) # indirect doctest
             <class 'sage.combinat.tableaux.abstract_tableau.AbstractTableaux_with_category.element_class'>
         """
-        return self._new_element(*args, **kwds)
+        # Interpret the first non-keyword argument as dct
+        if x is not 0:
+            dct = x
+
+        try:
+            dct = dict(dct)
+        except:
+            raise ValueError('dct must be a dictionary')
+
+        return self._new_element(dct)
 
     def _new_element(self, *args, **kwds):
         r"""

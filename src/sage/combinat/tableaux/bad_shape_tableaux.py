@@ -50,21 +50,14 @@ class BadShapeTableaux(AbstractTableaux):
     """
     Element = BadShapeTableau
 
-    def _element_constructor_(self, x=0, dct=None, check=True):
-        # Interpret the first non-keyword argument as dct
-        if x is not 0:
-            dct = x
+    def _element_constructor_(self, *args, **kwds):
+        ret = super(BadShapeTableaux, self)._element_constructor_(*args, **kwds)
 
-        try:
-            dct = dict(dct)
-        except:
-            raise ValueError('dct must be a dictionary')
-
-        if check:
-            if not all(x in ZZ and y in ZZ for x, y in six.iterkeys(dct)):
+        if kwds.get("check", True):
+            if not all(x in ZZ and y in ZZ for x, y in six.iterkeys(ret._dict_unsafe())):
                 raise ValueError('keys must be pairs of integers')
 
-        return self._new_element(dct)
+        return ret
     # For user convenience, documentation for this method has
     #    been placed on the bad shape tableau factory function.
     _element_constructor_.__doc__ = BadShapeTableauFactory.__doc__

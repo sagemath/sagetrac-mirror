@@ -42,34 +42,6 @@ class BadShapeTableau(AbstractTableau):
         sage: b.to_word()
         word: 37
     """
-    def __init__(self, parent, dct):
-        r"""
-        Initialize the BadShapeTableau.
-
-        INPUT:
-
-        - ``dct`` -- a dictionary whose keys are pairs of integers
-
-        TESTS::
-        
-            sage: b = BadShapeTableau({(4, 4): 4, (3, 2): -1})
-            sage: TestSuite(b).run()
-        """
-        self._set_parent(parent)
-        self._dict = dict(dct)
-
-    def _dict_unsafe(self):
-        r"""
-        Return the dictionary containing the defining data of ``self``.
-
-        TESTS::
-
-            sage: b = BadShapeTableau({(2, 3): 4, (5, 6): 7})
-            sage: b._dict_unsafe() == {(2, 3): 4, (5, 6): 7}
-            True
-        """
-        return self._dict
-
     def filter_by_cells(self, predicate):
         r"""
         Return the subtableau of ``self`` obtained by removing cells
@@ -134,10 +106,10 @@ class BadShapeTableau(AbstractTableau):
     # Alias
     transpose = conjugate
 
-# Use a factory method to create class:`BadShapeTableau`.
-def BadShapeTableauFactory(*args, **kwds):
+# Use a factory method to create :class:`BadShapeTableau`.
+def BadShapeTableauFactory(dct, check=True):
     r"""
-    Construct a new BadShapeTableau, optionally validating input.
+    Construct a new :class:`BadShapeTableau`, optionally validating input.
 
     This appears as ``BadShapeTableau`` in the interpreter namespace.
 
@@ -167,4 +139,4 @@ def BadShapeTableauFactory(*args, **kwds):
         ValueError: dct must be a dictionary
     """
     from bad_shape_tableaux import BadShapeTableaux
-    return BadShapeTableaux()(*args, **kwds)
+    return BadShapeTableaux()(dct, check)

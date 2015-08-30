@@ -34,7 +34,53 @@ from sage.combinat.partition                  import Partition
 from sage.combinat.skew_partition             import SkewPartition
 from sage.rings.all                           import Integer, ZZ
 
+from sage.combinat.tableaux.abstract_tableau  import AbstractTableau
 from sage.combinat.tableaux.bad_shape_tableau import BadShapeTableau
+
+# Deprecations, August 2015, #18013
+def _method_move_deprecation(ticket, new_class_name, method_name):
+    r"""
+    Create a method for use in deprecating methods when moving them
+    down the class hierarchy.
+
+    If a method has been moved from a superclass to a subclass,
+    using ``deprecated_function_alias`` from the superclass to call the
+    method on the subclass will produce circular import errors.
+    So, we return a method which gives a deprecation warning
+    and resolves the method call at runtime to avoid circular
+    imports. There are several solutions to this problem, though
+    this is rather general and perhaps something like it should be
+    added to `sage.misc.superseded`.
+
+    INPUT::
+
+    - ``ticket``         -- ticket number
+    - ``new_class_name`` -- name of the class the method has been moved to
+    - ``method_name``    -- name of the method to be moved
+
+    TESTS::
+
+        sage: S = SkewTableau([[None, 1, 1], [2, 3]])
+        sage: S.slide()
+        doctest:...: DeprecationWarning: `sage.combinat.tableaux.skew_tableau.SkewTableaux_with_category.element_class.slide` is deprecated.
+        Please use `sage.combinat.tableaux.skew_tableau.SemistandardSkewTableau.slide` instead.
+        See http://trac.sagemath.org/18013 for details.
+        [[1, 1], [2, 3]]
+        sage: print(S.slide.__doc__)
+        Do not use, deprecated; see :trac:`18013`.
+    """
+    def func(self, *args, **kwds):
+        from sage.misc.superseded import deprecation
+        deprecation(ticket,
+           ("`sage.combinat.tableaux.skew_tableau.{self_class}.{method_name}` is deprecated.\n"
+            "Please use `sage.combinat.tableaux.skew_tableau.{new_class_name}.{method_name}` instead.").format(
+                 new_class_name=new_class_name,
+                 method_name=method_name,
+                 self_class=self.__class__.__name__,
+                 ticket=ticket))
+        return getattr(globals()[new_class_name+"Factory"](self), method_name)(*args, **kwds)
+    func.__doc__ = 'Do not use, deprecated; see :trac:`{}`.'.format(ticket)
+    return func
 
 class SkewTableau(BadShapeTableau):
     r"""
@@ -97,7 +143,8 @@ class SkewTableau(BadShapeTableau):
             ...
             TypeError: 'tuple' object does not support item assignment
         """
-        self._set_parent(parent)
+        # Don't necessarily want to provide a dict
+        super(AbstractTableau, self).__init__(parent)
         self._st = st
 
     def __iter__(self):
@@ -993,6 +1040,13 @@ class SkewTableau(BadShapeTableau):
         kshapes = [ la.k_conjugate(k) for la in shapes ]
         return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
+    # Deprecations, August 2015, #18013
+    slide = _method_move_deprecation(18013, 'SemistandardSkewTableau', 'slide')
+    rectify = _method_move_deprecation(18013, 'SemistandardSkewTableau', 'rectify')
+    standardization = _method_move_deprecation(18013, 'SemistandardSkewTableau', 'standardization')
+    bender_knuth_involution = _method_move_deprecation(18013, 'SemistandardSkewTableau', 'bender_knuth_involution')
+    to_permutation = _method_move_deprecation(18013, 'StandardSkewTableau', 'to_permutation')
+
 class SemistandardSkewTableau(SkewTableau):
     r"""
     A semistandard tableau of skew shape.
@@ -1015,7 +1069,7 @@ class SemistandardSkewTableau(SkewTableau):
         ValueError: Input is not semistandard
     """
     def slide(self, corner=None):
-        """
+        r"""
         Apply a jeu-de-taquin slide to ``self`` on the specified corner and
         returns the new tableau.
         
@@ -1429,8 +1483,8 @@ class SkewTableau_class(SkewTableau):
 
             sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
             [3, 2, 1]
-            sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
-            [[1, 1], [3, 2, 1]]
+            sage: loads(dumps( SkewTableau([[3,2,1], [1,1]]) ))  # indirect doctest
+            [[3, 2, 1], [1, 1]]
         """
         from sage.combinat.tableaux.skew_tableaux import SkewTableaux
         self.__class__ = SkewTableau
@@ -1440,8 +1494,9 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  S
 # Use a factory method to create class:`SkewTableau`, etc.
 def SkewTableauFactory(*args, **kwds):
     r"""
-    Construct a new :class:`SkewTableau` by converting from one of
-    several input formats, optionally validating input.
+    Factory function for constructing a new :class:`SkewTableau` by
+    converting from one of several input formats, optionally
+    validating input.
 
     If multiple formats are specified, the left-most is used. If no
     format is specified, the "trivial" skew tableau with no entries is
@@ -1489,23 +1544,19 @@ def SkewTableauFactory(*args, **kwds):
         sage: SkewTableau([[1, None], [None, 2]], check=False) # bad!
         [[1, None], [None, 2]]
 
-    TESTS::
+    SEEALSO::
 
-    Input is normalized:
-
-        sage: type(SkewTableau([[1]])._st)
-        <type 'tuple'>
-        sage: type(SkewTableau(SkewTableau([[1]]))._st)
-        <type 'tuple'>
+        :meth:`~sage.combinat.tableaux.skew_tableaux.SkewTableaux._an_element_`
     """
     from skew_tableaux import SkewTableaux
     return SkewTableaux()(*args, **kwds)
 
 def SemistandardSkewTableauFactory(*args, **kwds):
     r"""
-    Construct a new :class:`SemistandardSkewTableau` by converting from
-    one of several input formats, optionally validating input.
-    
+    Factory function for constructing a new :class:`SemistandardSkewTableau`
+    by converting from one of several input formats, optionally validating
+    input.
+
     See :meth:`SkewTableauFactory` (``SkewTableau``) for details and
     further examples.
 
@@ -1524,20 +1575,18 @@ def SemistandardSkewTableauFactory(*args, **kwds):
         sage: [[None, 1, 3], [1, 4]] in SemistandardSkewTableaux(max_entry=3)
         False
 
-    TESTS::
+    SEEALSO::
 
-        sage: SemistandardSkewTableaux(max_entry=4)([[None, 1, 5], [1, 2]])
-        Traceback (most recent call last):
-        ...
-        ValueError: Entries must be at most 4
+        :meth:`~sage.combinat.tableaux.skew_tableaux.SemistandardSkewTableaux._an_element_`
     """
     from skew_tableaux import SemistandardSkewTableaux
     return SemistandardSkewTableaux()(*args, **kwds)
 
 def StandardSkewTableauFactory(*args, **kwds):
     r"""
-    Construct a new :class:`StandardSkewTableau` by converting from
-    one of several input formats optionally validating input.
+    Factory function for constructing a new :class:`StandardSkewTableau`
+    by converting from one of several input formats, optionally
+    validating input.
 
     See :meth:`SkewTableauFactory` (``SkewTableau``) for details and
     further examples.
@@ -1551,12 +1600,9 @@ def StandardSkewTableauFactory(*args, **kwds):
         sage: StandardSkewTableau([[None, None, 1], [None, 2], [3]]) # indirect doctest
         [[None, None, 1], [None, 2], [3]]
 
-    TESTS::
+    SEEALSO::
 
-        sage: [[None, None, 1], [None, 2], [3]] in StandardSkewTableaux()
-        True
-        sage: [[None, 1, 3], [2, 3]] in StandardSkewTableaux()
-        False
+        :meth:`~sage.combinat.tableaux.skew_tableaux.StandardSkewTableaux._an_element_`
     """
     from skew_tableaux import StandardSkewTableaux
     return StandardSkewTableaux()(*args, **kwds)

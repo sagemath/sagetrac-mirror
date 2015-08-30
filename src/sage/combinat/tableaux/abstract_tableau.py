@@ -35,7 +35,7 @@ class AbstractTableau(Element):
     r"""
     Abstract base class for the various Element classes of tableaux.
 
-    A tableau is thought of as a mapping which sends some pairs
+    An abstract tableau is thought of as a mapping which sends some pairs
     ``(x, y)`` (commonly, but not necessarily, pairs of nonnegative
     integers) to some arbitrary objects. Any two x-coordinates are
     assumed to be comparable via `>` and `<`, and so are any two
@@ -48,7 +48,6 @@ class AbstractTableau(Element):
     Subclasses are welcome to add further data (e.g., a skew shape).
     Tableaux are assumed to be immutable, see :trac:`15862`, so
     in particular entries are assumed to be immutable.
-    Subclasses must implement :meth:`_dict_unsafe`.
 
     EXAMPLES::
 
@@ -56,23 +55,27 @@ class AbstractTableau(Element):
         sage: b.to_word_by_row()
         word: 213
     """
-    def __init__(self, parent):
+    def __init__(self, parent, dct):
         r"""
         Initialize the class:`AbstractTableau`.
+
+        INPUT:
+
+        - ``dct`` -- a dictionary whose keys are pairs
 
         Input normalization and validation should be done in parent classes,
         likely in their ``_element_constructor_`` method or coercions.
         Element class initialization should be quite minimal.
 
-        We need to either call Element's ``__init__`` method or
-        set ``_parent`` by hand.
-        
         TESTS::
 
             sage: SkewTableau([[None, None, 1, 3], [None, 4, 4], [None]]).parent()
             Skew tableaux 
+            sage: b = BadShapeTableau({(4, 4): 4, (3, 2): -1})
+            sage: TestSuite(b).run()
         """
-        self._parent = parent
+        super(AbstractTableau, self).__init__(parent)
+        self._dict = dct
 
     def __hash__(self):
         r""""
@@ -150,7 +153,6 @@ class AbstractTableau(Element):
         """
         return dict(self._dict_unsafe())
 
-    @abstract_method
     def _dict_unsafe(self):
         r"""
         Return a dictionary representing the underlying mapping.
@@ -166,7 +168,7 @@ class AbstractTableau(Element):
             sage: b._dict_unsafe() == d
             True
         """
-        pass
+        return self._dict
 
     def cells(self):
         r"""

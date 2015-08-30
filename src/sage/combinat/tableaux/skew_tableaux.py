@@ -52,20 +52,6 @@ from sage.combinat.tableaux.skew_tableau       import SemistandardSkewTableauFac
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableau
 from sage.combinat.tableaux.skew_tableau       import StandardSkewTableauFactory
 
-def list_method(self):
-    r"""
-    Return a list of the elements in ``self``.
-
-    Provided entirely for backwards compatibility; new code
-    should just use ``list(...)``.
-
-    EXAMPLES::
-
-        sage: len(SemistandardSkewTableaux([[3, 1], [1]]).list())
-        18
-    """
-    return list(iter(self))
-
 class SkewTableaux(BadShapeTableaux):
     r"""
     Parent class of all skew tableaux.
@@ -88,6 +74,47 @@ class SkewTableaux(BadShapeTableaux):
 
     def _element_constructor_(self, x=0, st=None, expr=None, shape_word=None,
                                     dct=None, check=True):
+        r"""
+        Construct a new :class:`SkewTableau` by converting from one of
+        several input formats, optionally validating input.
+
+        If multiple formats are specified, the left-most is used. If no
+        format is specified, the "trivial" skew tableau with no entries is
+        returned.
+
+        INPUT:
+
+        - ``st``    -- an iterable of rows from top to bottom in English
+          notation, where each row is an iterable of entries from left
+          to right but where ``None``'s indicate the cells of the inner
+          shape
+        - ``expr``  -- a pair (``inner``, ``rows``) where ``inner`` is
+          the inner partition and ``rows`` is an iterable of rows from
+          bottom to top in English notation, where each row is an iterable
+          of the entries in that row from left to right. Provided for
+          compatibility with MuPAD-Combinat.
+        - ``shape_word`` -- a pair (``shape``, ``word``) where ``shape``
+          is a skew partition and the word ``word`` is obtained from the
+          row reading
+        - ``dct``   -- a dictionary whose keys are pairs of non-negative
+          integers
+        - ``check`` -- (default: ``True``) if ``True``, then validate 
+          input: ensure ``st`` or the cells of ``dct`` actually form
+          a skew shape, remove empty rows from ``st``, etc.
+
+        TESTS::
+
+        Input is normalized:
+
+            sage: type(SkewTableau([[1]])._st)
+            <type 'tuple'>
+            sage: type(SkewTableau(SkewTableau([[1]]))._st)
+            <type 'tuple'>
+
+        SEEALSO::
+
+            :meth:`SkewTableauFactory`
+        """
         # Interpret the first non-keyword argument as st
         if x is not 0:
             st = x
@@ -106,9 +133,6 @@ class SkewTableaux(BadShapeTableaux):
             return self.from_dict(dct, check)
 
         return self._new_element(())
-    # For user convenience, documentation for this method has
-    #    been placed on the skew tableau factory function.
-    _element_constructor_.__doc__ = SkewTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -475,6 +499,25 @@ class SemistandardSkewTableaux(SkewTableaux):
         super(SemistandardSkewTableaux, self).__init__(category=category)
 
     def _element_constructor_(self, *args, **kwds):
+        r"""
+        Construct a new :class:`SemistandardSkewTableau`
+        by converting from one of several input formats, optionally validating
+        input.
+
+        See :meth:`SkewTableau._an_element_` for details and
+        further tests.
+
+        TESTS::
+
+            sage: SemistandardSkewTableaux(max_entry=4)([[None, 1, 5], [1, 2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Entries must be at most 4
+
+        SEEALSO::
+
+            :meth:`SemistandardSkewTableauFactory`
+        """
         ret = super(SemistandardSkewTableaux, self)._element_constructor_(*args, **kwds)
 
         if kwds.get("check", True):
@@ -486,9 +529,6 @@ class SemistandardSkewTableaux(SkewTableaux):
                     raise ValueError("Entries must be at most %i"%self.max_entry)
 
         return ret
-    # For user convenience, documentation for this method has
-    #    been placed on the semistandard skew tableau factory function.
-    _element_constructor_.__doc__ = SemistandardSkewTableauFactory.__doc__
 
     def _an_element_(self):
         r"""
@@ -634,8 +674,6 @@ class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
 
         return ret
 
-    list=list_method
-
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -743,8 +781,6 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
                 raise ValueError("Input must have weight %s"%repr(self.weight))
 
         return ret
-
-    list=list_method
 
     def _repr_(self):
         r"""
@@ -863,8 +899,6 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         return ("Semistandard skew tableaux of shape %s and maximum entry %s"
                 %(repr(self.p), repr(self.max_entry)))
 
-    list=list_method
-
     def cardinality(self):
         r"""
         Return the cardinality of ``self``.
@@ -960,8 +994,6 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
 
         return ret
 
-    list=list_method
-
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -1004,6 +1036,25 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
     Element = StandardSkewTableau
 
     def _element_constructor_(self, *args, **kwds):
+        r"""
+        Construct a new :class:`StandardSkewTableau`
+        by converting from one of several input formats, optionally
+        validating input.
+
+        See :meth:`SemistandardSkewTableau._an_element_` for details and
+        further tests.
+
+        TESTS::
+
+            sage: [[None, None, 1], [None, 2], [3]] in StandardSkewTableaux()
+            True
+            sage: [[None, 1, 3], [2, 3]] in StandardSkewTableaux()
+            False
+
+        SEEALSO::
+
+            :meth:`StandardSkewTableauFactory`
+        """
         ret = super(StandardSkewTableaux, self)._element_constructor_(*args, **kwds)
 
         if kwds.get("check", True):
@@ -1012,9 +1063,6 @@ class StandardSkewTableaux(SemistandardSkewTableaux):
                 raise ValueError("Input is not standard")
 
         return ret
-    # For user convenience, documentation for this method has
-    #    been placed on the standard skew tableau factory function.
-    _element_constructor_.__doc__ = StandardSkewTableauFactory.__doc__
 
     def __init__(self, category=InfiniteEnumeratedSets()):
         r"""
@@ -1120,8 +1168,6 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
                 raise ValueError("Input must have size %i"%repr(self.n))
 
         return ret
-
-    list=list_method
 
     def _repr_(self):
         r"""
@@ -1232,8 +1278,6 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
                 raise ValueError("Input must have shape %i"%repr(self.p))
 
         return ret
-
-    list=list_method
 
     def _repr_(self):
         r"""

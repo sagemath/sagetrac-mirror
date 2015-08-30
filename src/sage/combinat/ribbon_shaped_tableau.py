@@ -185,6 +185,19 @@ class RibbonShapedTableaux(SkewTableaux):
         return super(RibbonShapedTableaux, cls).__classcall__(cls, **kwds)
 
     def _element_constructor_(self, x=0, r=None):
+        r"""
+        INPUT:
+
+        - ``r`` -- A tuple of tuples giving the entries of the
+          ribbon shaped tableau, where the inner tuples go from
+          the top-most row to the bottom-most in English notation.
+
+        TESTS::
+
+            sage: RibbonShapedTableaux()([[1, 2], [3, 4, 5]]).pp()
+              .  .  1  2
+              3  4  5
+        """
         # Interpret the first non-keyword argument as r
         if x is not 0:
             r = x
@@ -261,6 +274,19 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
         return super(StandardRibbonShapedTableaux, cls).__classcall__(cls, **kwds)
 
     def _element_constructor_(self, x=0, r=None):
+        r"""
+        INPUT:
+
+        - ``r`` -- A tuple of tuples giving the entries of the
+          ribbon shaped tableau, where the inner tuples go from
+          the top-most row to the bottom-most in English notation.
+
+        TESTS::
+
+            sage: StandardRibbonShapedTableaux()([[1, 2], [3, 4, 5]]).pp()
+              .  .  1  2
+              3  4  5
+        """
         # Interpret the first non-keyword argument as r
         if x is not 0:
             r = x
