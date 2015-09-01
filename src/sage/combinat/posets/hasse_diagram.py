@@ -379,6 +379,33 @@ class HasseDiagram(DiGraph):
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
 
+    def is_vertically_decomposable(self):
+        """
+        Return ``True`` if the lattice is vertically decomposable, and
+        ``False`` otherwise.
+
+        The property of being vertically decomposable is defined for lattices.
+        This is not checked, and the function works with any bounded poset.
+
+        EXAMPLES::
+
+            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H.is_vertically_decomposable()
+            False
+            sage: P = Poset( ([1,2,3,6,12,18,36], attrcall("divides")) )
+            sage: P._hasse_diagram.is_vertically_decomposable()
+            True
+        """
+        n = self.cardinality()
+        e = 0
+        m = 0
+        for i in range(n-1):
+            for j in self.outgoing_edge_iterator(i):
+                m = max(m, j[1])
+            if m == i+1:
+                break
+        return m < n-1
+
     def dual(self):
         """
         Returns a poset that is dual to the given poset.
