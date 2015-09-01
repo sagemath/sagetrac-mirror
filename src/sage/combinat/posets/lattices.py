@@ -513,11 +513,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return ``True`` if the lattice is vertically decomposable, and
         ``False`` otherwise.
-    
+
         Informally a lattice is vertically decomposable if it can be seen as
         two lattices "glued" by unifying the top element of first lattice to
         the bottom element of second one.
-        
+
         Formally defined, a lattice is vertically decomposable if 1) it has
         an element that is comparable to all elements and is not the bottom
         neither the top element, or 2) is the two-element lattice.
