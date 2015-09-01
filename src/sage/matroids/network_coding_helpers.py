@@ -4,8 +4,8 @@ from sage.all import *
 
 def appcons(cons):
     r"""
-	Return a dictionary of network constraints applicable to each subset
-    of indices appearing in ``cons``
+    Return a dictionary of network constraints applicable to each subset
+    of indices appearing in ``cons``.
     
     INPUT:
     
@@ -17,7 +17,15 @@ def appcons(cons):
     
     - A dictionary with subsets of indices appearing in ``cons`` as keys
     and associated set of applicable constraint indices as values
-	"""
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    
+    EXAMPLES::
+    
+        
+    """
     allvars=set([])
     for k in cons.keys():
         allvars=allvars|cons[k][0]|cons[k][1]
@@ -33,7 +41,7 @@ def appcons(cons):
     
 def testcons(M1,pcode,nsrc, appcns,newvar,netcons):
     r"""
-	Tests whether a matroid satisfies network constrains under given map
+    Tests whether a matroid satisfies network constrains under given map
     
     INPUT:
     
@@ -53,7 +61,11 @@ def testcons(M1,pcode,nsrc, appcns,newvar,netcons):
     
     - A boolean indicating whether definition of ``newvar`` satisfies 
     network constraints
-	"""
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     newcons= set(appcns[tuple(sorted(list(set(pcode.values()))))])-set(appcns[tuple(sorted(list(  set(pcode.values())-set([newvar]) )))])
     inv_pcode = {v: k for k, v in pcode.items()}
     if(len(newcons)>0):
@@ -74,8 +86,8 @@ def testcons(M1,pcode,nsrc, appcns,newvar,netcons):
     
 def extend_matroids_simple(list_of_matroids):
     r"""
-	Returns a list of simple single element linear extensions of matroids.
-	
+    Returns a list of simple single element linear extensions of matroids.
+
     INPUT:
     
     -``list_of_matroids`` - A list of simple representable matroids
@@ -83,7 +95,11 @@ def extend_matroids_simple(list_of_matroids):
     OUTPUT:
     
     A list of pairs ``[Me,p]`` where ``Me`` is a simple linear extension
-    of matroid at index ``p`` of ``list of matroids``  
+    of matroid at index ``p`` of ``list of matroids``
+    
+    .. NOTE::
+
+            This method does NOT do any checks.  
     """
     matroidset=set([])
     extmats=[]
@@ -104,7 +120,7 @@ def extend_matroids_simple(list_of_matroids):
 
 def certsearch_dfs_withrates(M1,pcode,rate_vector,netcons,appcns,d,nsrc,nvars):
     r"""
-	Return the lexicographically smallest matroid-network map that forms
+    Return the lexicographically smallest matroid-network map that forms
     a partial code 
     
     INPUT:
@@ -122,8 +138,12 @@ def certsearch_dfs_withrates(M1,pcode,rate_vector,netcons,appcns,d,nsrc,nvars):
     
     OUTPUT:
     
-    A 2-tuple containing a boolean and a dictionary 
-	"""
+    A 2-tuple containing a boolean and a dictionary
+    
+    .. NOTE::
+
+            This method does NOT do any checks. 
+    """
     ret=False
     if len(pcode.values())>d:
         ret,pcode1=certsearch_dfs_withrates(M1,pcode,rate_vector,netcons,appcns,d+1,nsrc,nvars)
@@ -167,9 +187,22 @@ def certsearch_dfs_withrates(M1,pcode,rate_vector,netcons,appcns,d,nsrc,nvars):
 
 def parallel_loopy_extensions(Mlist):
     r"""
-	Returns all linear extensions of a list of matroids obtained by 
+    Returns all linear extensions of a list of matroids obtained by 
     adding parallel elements and loops
-	"""
+    
+    INPUT:
+    
+    - ``Mlist`` - A list of representable matroids
+    
+    OUTPUT:
+    
+    - A list of pairs ``[Me,p]`` where ``Me`` is a simple linear extension
+    of matroid at index ``p`` of ``list of matroids``
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     Mset=[]
     for i in range(len(Mlist)):
         M1=Mlist[i]
@@ -190,6 +223,11 @@ def parallel_loopy_extensions(Mlist):
 
 
 def idmatrix_codecert_withrates(rate_vector,nsrc,q):
+    r"""
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     nonloopysrc=[i for i in range(1,nsrc+1) if rate_vector[i-1]==1 ]
     loopysrc=[i for i in range(1,nsrc+1) if rate_vector[i-1]==0]
     nloopysrc=len(loopysrc)
@@ -212,9 +250,13 @@ def idmatrix_codecert_withrates(rate_vector,nsrc,q):
 
 def parallel_loopy_extensions(Mlist,loopy):
     r"""
-	Returns all linear extensions of a list of matroids obtained by 
+    Returns all linear extensions of a list of matroids obtained by 
     adding parallel elements and loops
-	"""
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     Mset=[]
     for i in range(len(Mlist)):
         M1=Mlist[i]
@@ -235,6 +277,23 @@ def parallel_loopy_extensions(Mlist,loopy):
     return Mset
 
 def matroid2degrees(M):
+    r"""
+    Return a vector specifying the degree of each unique column in the 
+    matroid representation
+    
+    INPUT:
+    
+    - ``M`` -- A representable matroid
+    
+    OUTPUT:
+    
+    A vector specifying number of times each coulumn occurs in 
+    ``M.representation()``, in sorted order.
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     repdict=M.representation_vectors()
     d=[repdict.values().count(vector([0]*M.rank()))]
     for v in sorted(M.simplify().representation_vectors().values()):
@@ -244,35 +303,142 @@ def matroid2degrees(M):
     return d
 
 def findcode_with_seed(M,pcode,rate_vector,netcons,appcns,known_bad,nsrc,nvars):
+    r"""
+    Recursively test if a matroid has any sequence of parallel and/or loopy 
+    linear extensions achieving the specified rate vector
+    
+    INPUT:
+    
+    ``M`` - A representable matroid
+    ``pcode`` - A dictionary giving a mapping from ground set of ``M1``
+    to the random variable indices 
+    ``nsrc`` - Number of sources in a network
+    ``appcns`` - A dictionary mapping subsets of random variables (as 
+    sorted tuples) to a subset of constraint labels in ``netcons.keys()``
+    ``newvar`` - newest member of ``pcode.values()`` for which the cons-
+    -raints are to be tested
+    -``netcons`` - A dictionary specifying network constraints as 
+    ``[list1,list2]`` where ``list1`` and ``list2`` are subsets of 
+    random variable indices that are forced to have equal rank (entropy)
+    
+    OUTPUT:
+    
+    A 3-tuple containing:
+
+    1. A boolean indicating whether ``M`` has a  sequence of parallel and/or 
+    loopy linear extensions achieving ``rate_vector``
+    2. If 1. is ``True``, pair ``[Mx,pcode]`` where  ``Mx`` is matroid of size
+    ``nvars`` obtained from  ``M`` via a sequence of parallel and/or loopy 
+    linear extensions 
+    3. A list of bad linear extensions specified as vectors of element degrees
+    for future reference during recursion 
+    
+    
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     # see if there is any extension of M that is feasible code
     if len(M.groundset())==len(rate_vector):
-        return 1,[M,pcode],known_bad
+        return True,[M,pcode],known_bad
     extmats=parallel_loopy_extensions([M],len(M.loops())<len([i for i in rate_vector if i==0]))
     for mat in extmats:
         if matroid2degrees(mat[0]) not in known_bad: 
             ret1,pcode1=certsearch_dfs_withrates(mat[0],pcode,rate_vector,netcons,appcns,nsrc,nsrc,nvars)
             if ret1==True:
                 ret2,pcode2,known_bad=findcode_with_seed(mat[0],pcode1,rate_vector,netcons,appcns,known_bad,nsrc,nvars)
-                if ret2==1:
-                    return 1,[M,pcode2[1]],known_bad
+                if ret2==True:
+                    return True,pcode2,known_bad
             else:
                 known_bad.append(matroid2degrees(M))
-    return 0,[M,pcode],known_bad
+    return False,[M,pcode],known_bad
 
 def conslist2dict(cons):
+    r"""
+    Return a dictionary containing constraints
+    
+    INPUT:
+    
+    - ``cons`` -- A list of lists specifying network constraints
+    
+    OUTPUT:
+    
+    - A dictionary with integers as keys and constraints as values
+    
+    EXAMPLES::
+    
+        sage: from sage.matroids.network_coding_helpers import *
+        sage: from sage.matroids.networks_catalog import *
+        sage: cons=[[[1,2],[1,2,3]],[[1,3],[1,2,3]],[[2,3],[1,2,3]]]
+        sage: conslist2dict(cons)
+        {0: [{1, 2}, {1, 2, 3}], 1: [{1, 3}, {1, 2, 3}], 2: [{2, 3}, {1, 2, 3}]}
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     d={}
     for i in range(len(cons)):
         d[i]=[set(cons[i][0]),set(cons[i][1])]
     return d
 
 def ratecertgen(netcons,rate_vector,nsrc,nvars,q):
+    r"""
+    Test if a rate vector is achievable with scalar linear network codes
+    over a specific field
+    
+    INPUT:
+    
+    - ``netcons`` -- A dictionary specifying network constraints
+    - ``rate_vector`` -- A 0-1 vector whose achievability is to be tested
+    -  ``nsrc`` -- Number of sources in the network
+    - ``q`` -- Size of finite field over which achievability is to be tested
+    
+    OUTPUT:
+    
+    A 2-tuple containing:
+    
+    1. A boolean indicating whether ``rate_vector`` is achievable with scalar 
+    linear network coding over finite field of size ``q``.
+    2. If 1. is ``True``, a pair ``[M,pcode]`` where ``M`` is a matroid of size
+    ``nvars`` representable over finite field of size ``q`` and ``pcode`` is a 
+    dictionary mapping groundset elements to random variable associated with 
+    the network
+    
+    EXAMPLES::
+    
+        sage: from sage.matroids.network_coding_helpers import *
+        sage: from sage.matroids.networks_catalog import *
+        sage: N=FanoNet()
+        sage: r,code=ratecertgen(N.constraints,[1,1,1,1,1,1,1],N.nsrc,N.size,2)
+        sage: r
+        True
+        sage: code
+        [Binary matroid of rank 3 on 7 elements, type (3, 0),
+         {0: 1, 1: 2, 2: 3, 3: 4, 4: 6, 5: 7, 6: 5}]
+        sage: code[0].representation()
+        [1 0 0 1 1 1 0]
+        [0 1 0 1 0 1 1]
+        [0 0 1 0 1 1 1]
+        sage: code[0].is_isomorphic(matroids.named_matroids.Fano())
+        True
+        sage: r,code=ratecertgen(N.constraints,[1,1,1,1,1,1,1],N.nsrc,N.size,3)
+        sage: r
+        False
+
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
     max_nsimple=len([r for r in rate_vector if r==1])
     min_nsimple=len([i for i in range(nsrc+1) if rate_vector[i]==1])
     simple_pcodes=[idmatrix_codecert_withrates(rate_vector,nsrc,q)]
     appcns=appcons(netcons)
     for i in range(min_nsimple,max_nsimple+1):
         if len(simple_pcodes)==0:
-            return 0,[]
+            return False,[]
         simple_pcodes_new=[]
         extmats=extend_matroids_simple([code[0] for code in simple_pcodes])
         known_bad=[]
@@ -283,8 +449,8 @@ def ratecertgen(netcons,rate_vector,nsrc,nvars,q):
                 simple_pcodes_new.append([mtr[0],pcode])
                 # now search via parallel/loopy extensions of mtr[0]
                 ret1,pcode1,known_bad=findcode_with_seed(mtr[0],pcode,rate_vector,netcons,appcns,known_bad,nsrc,nvars)
-                if ret1==1:
+                if ret1==True:
                     # we are done
-                    return 1,pcode1
+                    return True,pcode1
         simple_pcodes=simple_pcodes_new
-    return 0,[]
+    return False,[]

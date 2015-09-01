@@ -29,6 +29,8 @@ Concrete implementations
    sage/matroids/circuit_closures_matroid
    sage/matroids/linear_matroid
    sage/matroids/rank_matroid
+   sage/matroids/network_coding
+   sage/matroids/networks_catalog 
 
 Abstract matroid classes
 ------------------------
@@ -49,6 +51,7 @@ Advanced functionality
    sage/matroids/advanced
    sage/matroids/utilities
    sage/matroids/extension
+
 
 Internals
 ---------
