@@ -1660,7 +1660,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Find subintervals of this interval passing the given ``test``
         on the function ``f``.
 
-        INPUT::
+        INPUT:
 
         - ``f`` -- the function as something callable or ``None``.
 
