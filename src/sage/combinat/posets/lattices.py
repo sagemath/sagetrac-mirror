@@ -529,8 +529,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
             sage: Posets.PentagonPoset().is_vertically_decomposable()
             False
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
+            ....:     range(5)]
+            [False, False, True, True, True]
         """
-        return self._hasse_diagram.is_vertically_decomposable()
+        return self._hasse_diagram.vertical_decomposition()
 
     def is_complemented(self):
         r"""
