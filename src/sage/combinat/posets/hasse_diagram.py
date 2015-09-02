@@ -389,11 +389,11 @@ class HasseDiagram(DiGraph):
         The property of being vertically decomposable is defined for lattices.
         This is not checked, and the function works with any bounded poset.
 
-        INPUT::
+        INPUT:
 
-            - ``return_list``, a boolean. If ``False`` (the default), return
-            ``True`` if the lattice is vertically decomposable and ``False``
-            otherwise. If ``True``, return list of decomposition elements.
+        - ``return_list``, a boolean. If ``False`` (the default), return
+          ``True`` if the lattice is vertically decomposable and ``False``
+          otherwise. If ``True``, return list of decomposition elements.
 
         EXAMPLES::
 
