@@ -5476,8 +5476,8 @@ def bisect(f, start, test,
 
     .. SEEALSO::
 
-        :class:`sage.rings.polynomial.polynomial_element.roots`,
-        :class:`sage.numerical.optimize.find_root`,
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`,
+        :func:`sage.numerical.optimize.find_root`,
         :class:`sage.rings.real_mpfi.RealIntervalField`,
         :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.find_subintervals`,
         :class:`sage.rings.complex_interval_field.ComplexIntervalField`,
