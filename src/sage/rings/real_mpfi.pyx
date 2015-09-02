@@ -304,8 +304,10 @@ cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     -  ``prec`` -- (integer) precision; default = 53:
        The number of bits used to represent the mantissa of a
        floating-point number. The precision can be any integer between
-       :func:`mpfr_prec_min()` and :func:`mpfr_prec_max()`. In the current
-       implementation, :func:`mpfr_prec_min()` is equal to 2.
+       :func:`~sage.rings.real_mpfr.mpfr_prec_min()` and
+       :func:`~sage.rings.real_mpfr.mpfr_prec_max()`. In the current
+       implementation, :func:`~sage.rings.real_mpfr.mpfr_prec_min()`
+       is equal to 2.
 
     -  ``sci_not`` -- (default: ``False``) whether or not to display using
        scientific notation
