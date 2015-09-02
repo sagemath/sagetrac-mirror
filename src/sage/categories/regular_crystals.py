@@ -18,6 +18,7 @@ Regular Crystals
 #****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
