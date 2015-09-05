@@ -16,13 +16,13 @@ AUTHORS:
 
 EXAMPLES::
 
-  sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
-  sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^10, 3.0)
-  sage: D(), D(), D()
-  ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
+    sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
+    sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^10, 3.0)
+    sage: D(), D(), D()
+    ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
 
 """
-#******************************************************************************
+# *****************************************************************************
 #
 #                        DGS - Discrete Gaussian Samplers
 #
@@ -52,7 +52,7 @@ EXAMPLES::
 # The views and conclusions contained in the software and documentation are
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
-#*****************************************************************************/
+# ****************************************************************************/
 
 from sage.functions.log import exp
 from sage.functions.other import ceil
@@ -101,6 +101,7 @@ def _iter_vectors(n, lower, upper, step=None):
             for v in _iter_vectors(n, lower, upper, step-1):
                 v[step-1] = x
                 yield v
+
 
 class DiscreteGaussianDistributionLatticeSampler(SageObject):
     r"""
