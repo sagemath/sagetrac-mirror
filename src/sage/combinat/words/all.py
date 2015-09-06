@@ -2,6 +2,7 @@ r"""
 Word features that are imported by default in the interpreter namespace
 """
 from alphabet import Alphabet, build_alphabet
+from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from morphism import WordMorphism
 from paths import WordPaths
 from word import Word
