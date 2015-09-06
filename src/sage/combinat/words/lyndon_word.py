@@ -17,14 +17,14 @@ Lyndon words
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass
+from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import divisors, gcd, moebius, Integer
 from sage.rings.arith import factorial
 from sage.misc.all import prod
 import __builtin__
-import necklace
-from integer_vector import IntegerVectors
+import sage.combinat.necklace
+from sage.combinat.integer_vector import IntegerVectors
 
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.words import Words_all, FiniteWords_length_k_over_OrderedAlphabet
