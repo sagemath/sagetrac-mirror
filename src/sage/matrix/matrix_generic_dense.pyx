@@ -105,8 +105,11 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             elif copy:
                 self._entries = self._entries[:]
         else:
+            from sage.symbolic.ring import SR
             self._entries = [zero]*(self._nrows*self._ncols)
-            if entries != zero:
+            if R is SR and entries.is_trivial_zero():
+                return
+            if R is SR or entries != zero:
                 if self._nrows != self._ncols:
                     raise TypeError("nonzero scalar matrix must be square")
                 for i in range(self._nrows):
