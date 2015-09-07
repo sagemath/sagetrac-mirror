@@ -6,6 +6,7 @@ REFERENCES:
 .. [CanakciSchiffler] Canakci and Schiffler,
     *Snake graph calculus and cluster algebras from surfaces*
     :arxiv:`abs/1209.4617`
+
 .. [MSW_Positivity] Musiker - Schiffler - Williams,
    *Positivity for Cluster Algebras from Surfaces*,
    :arxiv:`0906.0748`
