@@ -95,7 +95,8 @@ from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *
-
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.combinat.words.lyndon_word', *, deprecation=19150))
 from subword import Subwords
 
 from graph_path import GraphPaths
