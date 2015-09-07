@@ -6,5 +6,3 @@ lazy_import("sage.combinat.cluster_algebra_quiver.quiver_mutation_type", "Quiver
 lazy_import("sage.combinat.cluster_algebra_quiver.quiver", "ClusterQuiver")
 lazy_import("sage.combinat.cluster_algebra_quiver.cluster_seed", "ClusterSeed")
 lazy_import("sage.combinat.cluster_algebra_quiver.cluster_snakegraph", ["SnakeGraphs","SnakeGraph"])
-lazy_import("sage.combinat.cluster_algebra_quiver.cluster_snakegraph_matching", ["ClusterSnakeGraphMatchings","ClusterSnakeGraphMatching"])
-lazy_import("sage.combinat.cluster_algebra_quiver.cluster_weightedsnakegraph", "ClusterWeightedSnakeGraph")
