@@ -61,21 +61,6 @@ class SnakeGraph(Element):
          -- --
         |  |  |
          -- --
-
-        sage: #SnakeGraphMatching(snake_graph=SG,tile_toggles=[])
-        sage: #The minimal matching of a snake graph of shape (2,1,3)
-        sage: #SnakeGraphMatching(snake_graph_shape=(2,1,3),tile_toggles=[])
-        sage: #The minimal matching of a snake graph of shape (2,1,3)
-
-        sage: #SnakeGraphMatching(snake_graph=SG,tile_toggles=(0,2,4,2))
-        sage: #The matching of a snake graph of shape (2,1,3) with a flip sequence (0,4) from the minimal matching
-        sage: #SnakeGraphMatching(snake_graph_shape=(2,1,3),tile_toggles=(0,2,4,2))
-        sage: #The matching of a snake graph of shape (2,1,3) with a flip sequence (0,4) from the minimal matching
-
-        sage: #SnakeGraphMatching([],[])
-        sage: #Traceback (most recent call last):
-        sage: #...
-        sage: #ValueError: The first input must be a SnakeGraph class or a list (or tuple) of shape.
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
@@ -207,6 +192,20 @@ class SnakeGraph(Element):
     def shape(self):
         """
         Return shape of the snake graph.
+
+        EXAMPLES::
+
+            sage: Gs = SnakeGraphs(9)
+            sage: Gs((3,3,3))
+                         -- -- --
+                        |  |  |  |
+                   -- -- -- -- --
+                  |  |  |  |
+             -- -- -- -- --
+            |  |  |  |
+             -- -- --
+            sage: Gs((3,3,3)).shape()
+            [3, 3, 3]
         """
         return self._shape
 
