@@ -39,9 +39,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-RIGHT='right'
-UP='up'
-
 class SnakeGraph(Element):
     """
     A snake graph is a connected sequence of square tiles which goes north and east,
@@ -259,10 +256,10 @@ class SnakeGraph(Element):
         DIRs = []
         for i in range(len(self._shape)):
             r = temp_shape.pop()
-            DIRs.extend((r-1)*[RIGHT])
+            DIRs.extend((r-1)*['right'])
             if i == len(self._shape)-1:
                 break
-            DIRs.append(UP)
+            DIRs.append('up')
         return DIRs
 
     def plot(self, rgb_color=(0,0,0), xy=(0, 0)):
@@ -298,7 +295,7 @@ class SnakeGraph(Element):
             tile_drawing = line([(x+1,y+0),(x+0,y+0),(x+0,y+1),(x+1,y+1),(x+1,y+0)],rgbcolor=rgb_color)
 
             DIR = DIRs[pos]
-            if DIR == UP:
+            if DIR == 'up':
                 y=y+1
             else:
                 x=x+1
@@ -351,9 +348,9 @@ class SnakeGraphs(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: SnakeGraphs(2)
-            The snake graphs with 2 tiles
+            Snake graphs with 2 tiles
         """
-        return "The snake graphs with {} tiles".format(self._d)
+        return "Snake graphs with {} tiles".format(self._d)
 
     def _repr_option(self, key):
         """
@@ -377,8 +374,9 @@ class SnakeGraphs(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: M = SnakeGraphs(6)
-            sage: M((2,1,3))
+            sage: Gs = SnakeGraphs(6)
+            sage: g = Gs((2,1,3))
+            sage: g
                 -- -- --
                |  |  |  |
                 -- -- --
@@ -386,14 +384,43 @@ class SnakeGraphs(Parent, UniqueRepresentation):
              -- --
             |  |  |
              -- --
+
+            sage: Gs(g)
+                -- -- --
+               |  |  |  |
+                -- -- --
+               |  |
+             -- --
+            |  |  |
+             -- --
+
+            sage: Gs((2,2))
+            Traceback (most recent call last):
+            ...
+            ValueError: Input a composition of 6
+
+            sage: Gs((2,2))
+            Traceback (most recent call last):
+            ...
+            ValueError: Input a composition of 6
+
+            sage: Gs(matrix([1,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: [1 1] is not a SnakeGraph nor a list of positive integers
         """
         if isinstance(x, SnakeGraph):
             if x in self.parent():
                 return x
             else:
-                print 'print an error message here TODO'
+                raise ValueError("Cannot convert between Snake Graphs of different number of tiles")
+        elif isinstance(x, list) or isinstance(x, tuple) or isinstance(x, set):
+            if sum(x) == self._d:
+                return self.element_class(self, x)
+            else:
+                raise ValueError("Input a composition of {}".format(self._d))
         else:
-            return self.element_class(self, x)
+            raise ValueError("{} is not a SnakeGraph nor a list of positive integers".format(x))
 
     Element = SnakeGraph
 
