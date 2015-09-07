@@ -339,3 +339,4 @@ Comprehensive Module list
     sage/combinat/words/word_options
     sage/combinat/words/words
     sage/combinat/yang_baxter_graph
+    sage/rings/cfinite_sequence
