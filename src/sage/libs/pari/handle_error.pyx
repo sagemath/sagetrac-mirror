@@ -158,13 +158,6 @@ cdef int _pari_err_handle(GEN E) except 0:
         PariError: impossible inverse in gdiv: 0
 
     """
-    cdef long errnum = E[1]
-    if errnum == e_STACK:
-        # PARI is out of memory.  We double the size of the PARI stack
-        # and retry the computation.
-        pari_instance.allocatemem(silent=True)
-        return 0
-
     sig_block()
     cdef char* errstr
     cdef char* s
@@ -176,7 +169,7 @@ cdef int _pari_err_handle(GEN E) except 0:
         if s is not NULL:
             pari_error_string = s.decode('ascii') + ": " + pari_error_string
 
-        raise PariError(errnum, pari_error_string, pari_instance.new_gen_noclear(E))
+        raise PariError(E[1], pari_error_string, pari_instance.new_gen_noclear(E))
     finally:
         pari_free(errstr)
         sig_unblock()

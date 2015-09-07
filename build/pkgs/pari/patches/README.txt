@@ -12,5 +12,5 @@ Patches to configuration files:
   the flag unconditionally.
 
 C files:
-* public_memory_functions.patch (Jeroen Demeyer, #16997): Make some of
-  PARI's private memory functions public to improve interface with Sage.
+* paristack_resize.patch (Peter Bruin, #TODO): Do not print a warning
+  when resizing the PARI stack.

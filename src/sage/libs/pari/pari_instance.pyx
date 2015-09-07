@@ -438,7 +438,7 @@ cdef class PariInstance(PariInstance_auto):
             return  # pari already initialized.
 
         # The size here doesn't really matter, because we will allocate
-        # our own stack anyway. We ask PARI not to set up signal and
+        # a new stack anyway. We ask PARI not to set up signal and
         # error handlers.
         pari_init_opts(10000, maxprime, INIT_DFTm)
 
@@ -452,10 +452,7 @@ cdef class PariInstance(PariInstance_auto):
         # so we need to reset them.
         init_memory_functions()
 
-        # Free the PARI stack and allocate our own (using Cython)
-        pari_mainstack_free(pari_mainstack)
-        pari_mainstack.vbot = 0
-        init_stack(size)
+        self.set_stacksize(size, 1 << 30)
 
         # Set printing functions
         global pariOut, pariErr
@@ -517,12 +514,6 @@ cdef class PariInstance(PariInstance_auto):
         indirect doctest. See the discussion at :trac:`13741`.
 
         """
-        sage_free(<void*>pari_mainstack.vbot)
-        pari_mainstack.rsize = 0
-        pari_mainstack.vsize = 0
-        pari_mainstack.bot = 0
-        pari_mainstack.vbot = 0
-        pari_mainstack.top = 0
         pari_close()
 
     def __repr__(self):
@@ -1107,11 +1098,13 @@ cdef class PariInstance(PariInstance_auto):
     ############################################################
 
     def stacksize(self):
-        r"""
-        Returns the current size of the PARI stack, which is `10^6`
-        by default.  However, the stack size is automatically doubled
-        when needed.  It can also be set directly using
-        ``pari.allocatemem()``.
+        """
+        Return the current size of the PARI stack.
+
+        The stack size is `10^6` by default.  It is automatically
+        doubled when needed.  It can also be enlarged directly using
+        the method :meth:`allocatemem`, or set to a specific value
+        using the method :meth:`set_stacksize`.
 
         EXAMPLES::
 
@@ -1119,53 +1112,81 @@ cdef class PariInstance(PariInstance_auto):
             1000000
 
         """
-        return pari_mainstack.rsize
+        return pari_mainstack.size
+
+    def stacksizemax(self):
+        """
+        Return the maximum size of the PARI stack.
+
+        A value of 0 means that we are not using a dynamic stack.
+
+        EXAMPLES::
+
+            sage: pari.stacksizemax()
+            1073741824
+
+        """
+        return pari_mainstack.vsize
+
+    def set_stacksize(self, size_t rsize, vsize=None):
+        """
+        Resize the PARI stack.
+
+        EXAMPLES::
+
+            sage: pari.set_stacksize(10^4)
+            sage: pari.stacksize()
+            10000
+            sage: pari.stacksizemax()
+            1073741824
+
+            sage: pari.set_stacksize(10^4, 10^6)
+            sage: pari.stacksize()
+            10000
+            sage: pari.stacksizemax()
+            1003520
+
+            sage: pari.set_stacksize(10^4, 0)
+            sage: pari.stacksize()
+            10000
+            sage: pari.stacksizemax()
+            0
+
+            sage: pari.set_stacksize(10^6, 1 << 30)
+        """
+        if vsize is None:
+            vsize = self.stacksizemax()
+        if vsize:
+            rsize = min(rsize, vsize)
+        sig_on()
+        paristack_setsize(rsize, vsize)
+        sig_off()
 
     def _allocate_huge_mem(self):
-        r"""
+        """
         This function tries to allocate an impossibly large amount of
-        PARI stack in order to test ``init_stack()`` failing.
+        PARI stack in order to show how ``set_stacksize()`` behaves.
 
         TESTS::
 
             sage: pari.allocatemem(10^6, silent=True)
             sage: pari._allocate_huge_mem()
-            Traceback (most recent call last):
+              ***   Warning: not enough memory, new stack 9223372036854775808
+              ***   Warning: not enough memory, new stack 4611686018427387904
             ...
-            MemoryError: Unable to allocate ... (instead, allocated 1000000 bytes)
+              ***   Warning: not enough memory, new stack ...
 
-        Test that the PARI stack is sane after this failure::
+        Test that the PARI stack is sane after this::
 
             sage: a = pari('2^10000000')
-            sage: pari.allocatemem(10^6, silent=True)
+            sage: pari.set_stacksize(10^6, 1 << 30)
         """
         # Since size_t is unsigned, this should wrap over to a very
         # large positive number.
-        init_stack(<size_t>(-4096))
-
-    def _setup_failed_retry(self):
-        r"""
-        This function pretends that the PARI stack is larger than it
-        actually is such that allocatemem(0) will allocate much more
-        than double the current stack.  That allocation will then fail.
-        This function is meant to be used only in this doctest.
-
-        TESTS::
-
-            sage: pari.allocatemem(4096, silent=True)
-            sage: pari._setup_failed_retry()
-            sage: a = pari('2^1000000')
-            Traceback (most recent call last):
-            ...
-            MemoryError: Unable to enlarge PARI stack (instead, kept the stack at ... bytes)
-            sage: pari.allocatemem(10^6, silent=True)
-        """
-        # Pretend that the stack is much larger than it actually is,
-        # JUST FOR TESTING!
-        pari_mainstack.rsize = <size_t>(-16)
+        self.set_stacksize(<size_t>(-4096), 0)
 
     def allocatemem(self, long s=0, silent=False):
-        r"""
+        """
         Change the PARI stack space to the given size (or double the
         current size if ``s`` is `0`).
 
@@ -1226,16 +1247,17 @@ cdef class PariInstance(PariInstance_auto):
         from a very small stack size::
 
             sage: pari.allocatemem(1)
-            PARI stack size set to 1024 bytes
+            PARI stack size set to 1 bytes
             sage: a = pari(2)^100000000
             sage: pari.stacksize()
             16777216
         """
-        if s < 0:
-            raise ValueError("Stack size must be nonnegative")
-        init_stack(s)
+        if s:
+            self.set_stacksize(s)
+        else:
+            self.set_stacksize(2 * self.stacksize())
         if not silent:
-            print "PARI stack size set to", self.stacksize(), "bytes"
+            print('PARI stack size set to %s bytes' % self.stacksize())
 
     def pari_version(self):
         return str(PARIVERSION)
@@ -1671,97 +1693,6 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen t0 = objtogen(P)
         pari_catch_sig_on()
         return self.new_gen(genus2red(t0.g, NULL))
-
-
-cdef int init_stack(size_t requested_size) except -1:
-    r"""
-    Low-level Cython function to allocate the PARI stack.  This
-    function should not be called directly, use ``pari.allocatemem()``
-    instead.
-    """
-    global avma
-
-    cdef size_t old_size = pari_mainstack.rsize
-
-    cdef size_t new_size
-    cdef size_t max_size = <size_t>(-1)
-    if (requested_size == 0):
-        if old_size < max_size/2:
-            # Double the stack
-            new_size = 2*old_size
-        elif old_size < 4*(max_size/5):
-            # We cannot possibly double since we already use over half
-            # the addressable memory: take the average of current and
-            # maximum size
-            new_size = max_size/2 + old_size/2
-        else:
-            # We already use 80% of the addressable memory => give up
-            raise MemoryError("Unable to enlarge PARI stack (instead, kept the stack at %s bytes)"%(old_size))
-    else:
-        new_size = requested_size
-
-    # Align size to 16 bytes and take 1024 bytes as a minimum
-    new_size = (new_size/16)*16
-    if (new_size < 1024):
-        new_size = 1024
-
-    # Disable interrupts
-    sig_on()
-    sig_block()
-
-    # If this is non-zero, the size we failed to allocate
-    cdef size_t failed_size = 0
-
-    cdef pari_sp bot  # New stack
-    try:
-        # Free the current stack
-        libc.stdlib.free(<void*>pari_mainstack.vbot)
-        pari_mainstack.rsize = 0
-        pari_mainstack.vsize = 0
-        pari_mainstack.bot = 0
-        pari_mainstack.vbot = 0
-        pari_mainstack.top = 0
-
-        # Allocate memory for new stack.
-        bot = <pari_sp> libc.stdlib.malloc(new_size)
-
-        # If doubling failed, instead add 25% to the current stack size.
-        # We already checked that we use less than 80% of the maximum value
-        # for s, so this will not overflow.
-        if (bot == 0) and (requested_size == 0):
-            new_size = (old_size/64)*80
-            bot = <pari_sp> libc.stdlib.malloc(new_size)
-
-        if not bot:
-            failed_size = new_size
-            # We lost our PARI stack and are not able to allocate the
-            # requested size.  If we just raise an exception now, we end up
-            # *without* a PARI stack which is not good.  We will raise an
-            # exception later, after allocating *some* PARI stack.
-            new_size = old_size
-            while new_size >= 1024:  # hope this never fails!
-                bot = <pari_sp> libc.stdlib.malloc(new_size)
-                if bot: break
-                new_size = (new_size/32)*16
-
-        if not bot:
-            avma = 0
-            raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
-
-        pari_mainstack.rsize = new_size
-        pari_mainstack.vsize = 0
-        pari_mainstack.bot = bot
-        pari_mainstack.vbot = bot
-        pari_mainstack.top = bot + new_size
-        avma = pari_mainstack.top
-
-        if failed_size:
-            raise MemoryError("Unable to allocate %s bytes for the PARI stack (instead, allocated %s bytes)"%(failed_size, new_size))
-
-        return 0
-    finally:
-        sig_unblock()
-        sig_off()
 
 
 cdef inline void INT_to_mpz(mpz_ptr value, GEN g):

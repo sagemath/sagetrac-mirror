@@ -1,0 +1,12 @@
+diff --git a/src/language/init.c b/src/language/init.c
+index d85a58e..692a4a2 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -750,7 +750,6 @@ paristack_resize(ulong newsize)
+   newsize = maxuu(minuu(newsize, vsize), pari_mainstack->size);
+   pari_mainstack->size = newsize;
+   pari_mainstack->bot = pari_mainstack->top - pari_mainstack->size;
+-  pari_warn(warner,"increasing stack size to %lu",newsize);
+ }
+ 
+ void
