@@ -105,8 +105,8 @@ class GenericDeclaration(SageObject):
             False
         """
         if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
-            return cmp((self._var, self._assumption),
-                       (other._var, other._assumption))
+            return cmp((repr(self._var), self._assumption),
+                       (repr(other._var), other._assumption))
         else:
             return cmp(type(self), type(other))
 
