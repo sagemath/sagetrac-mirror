@@ -5,7 +5,7 @@ REFERENCES:
 
 .. [CanakciSchiffler] Canakci and Schiffler,
     *Snake graph calculus and cluster algebras from surfaces*
-    :arxiv:`abs/1209.4617`
+    :arxiv:`1209.4617`
 
 .. [MSW_Positivity] Musiker - Schiffler - Williams,
    *Positivity for Cluster Algebras from Surfaces*,
@@ -42,7 +42,16 @@ from sage.structure.list_clone import ClonableArray
 
 class SnakeGraph(ClonableArray):
     """
-    A snake graph is a connected sequence of square tiles.
+    A snake graph is a connected sequence of square tiles. A square tile is considered
+    as a graph with four vertices and four edges in the obvious way,
+    and we use the following ascii art to visualize each tile::
+
+             north
+               --
+        west  |  | east
+               --
+             south
+
     To build a snake graph, start with one tile, then glue a new tile so that
     the new tile is glued to the north or the east of the previous tile.
     See [MSW_Positivity]_ or [CanakciSchiffler]_.
