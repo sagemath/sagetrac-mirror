@@ -2640,7 +2640,7 @@ class FiniteWord_class(Word_class):
             [0, 2, 0, 2, 2, 4, 6, 8]
         """
 
-        if naive_algorithm == True:
+        if naive_algorithm:
             return self.lps_lengths_naive()
         else:
             return self.lps_lengths_max_palindrome()
