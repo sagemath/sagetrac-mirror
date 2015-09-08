@@ -42,8 +42,16 @@ from sage.structure.list_clone import ClonableArray
 
 class SnakeGraph(ClonableArray):
     """
-    A snake graph is a connected sequence of square tiles which goes north and east,
-    see [CanakciSchiffler]_.
+    A snake graph is a connected sequence of square tiles.
+    To build a snake graph, start with one tile, then glue a new tile so that
+    the new tile is glued to the north or the east of the previous tile.
+    See [MSW_Positivity] or [CanakciSchiffler]_.
+
+    Note that the edges of the graph are not labeled. Hence a snake graph is uniquely
+    determined by a list of positive integers (``shape``) such that their sum is
+    equal to the number of the snake graph's tiles, i.e. a snake graph is uniquely
+    determined by a composition of ``d``, where ``d`` is the number of tiles
+    of the snake graph.
 
     INPUT:
 
@@ -189,7 +197,9 @@ class SnakeGraph(ClonableArray):
 
     def shape(self):
         """
-        Return shape of the snake graph.
+        Return the shape of ``self``. The shape is a list of positive integers,
+        which corresponds to the number of tiles on each row of the snake graph.
+        Recall that the shape of a snake graph uniquely determines a snake graph.
 
         EXAMPLES::
 
@@ -242,9 +252,16 @@ class SnakeGraph(ClonableArray):
 
     def directions(self):
         """
-        Return the list of directions for each tile (except the final tile),
-        thinking of the graph as starting from
-        the southwest corner to the northeast corner.
+        Return the list DIRs of directions (either 'up' or 'right').
+        This list is of length `len(self)-1` and corresponds to all
+        the tiles of ``self`` except for the last tile.
+
+        Recall that we build a snake graph by starting with one tile, then glue
+        a new tile so that the new tile is glued to the north or the east of
+        the previous tile (see [MSW_Positivity] or [CanakciSchiffler]_).
+        The entry in position `k` the list DIRs is `up`
+        if the tile `k+1` is glued above tile `k`,
+        and `right` if the tile `k+1` is glued to the right of tile `k`.
 
         EXAMPLES::
 
@@ -265,6 +282,9 @@ class SnakeGraph(ClonableArray):
             'right',
             'up',
             'right']
+
+            sage: SnakeGraph([1]).directions()
+            []
         """
         temp_shape = self._shape[:]
         temp_shape.reverse()
@@ -323,6 +343,21 @@ class SnakeGraph(ClonableArray):
 
 class SnakeGraphs(Parent, UniqueRepresentation):
     """
+    Class of all snake graphs with `d` square tiles.
+
+    A snake graph is a connected sequence of square tiles.
+    To build a snake graph, start with one tile, then glue a new tile so that
+    the new tile is glued to the north or the east of the previous tile.
+    See [MSW_Positivity] or [CanakciSchiffler]_.
+
+    Note that the edges of the graph are not labeled. Hence snake graphs with `d`
+    tiles are in bijection with :class:`Compositions` (of positive integers)
+    with total sum `d`
+
+    .. SEEALSO::
+
+        :class:SnakeGraph
+
     INPUT:
 
     - ``d`` -- the number of tiles
