@@ -45,7 +45,7 @@ class SnakeGraph(ClonableArray):
     A snake graph is a connected sequence of square tiles.
     To build a snake graph, start with one tile, then glue a new tile so that
     the new tile is glued to the north or the east of the previous tile.
-    See [MSW_Positivity] or [CanakciSchiffler]_.
+    See [MSW_Positivity]_ or [CanakciSchiffler]_.
 
     Note that the edges of the graph are not labeled. Hence a snake graph is uniquely
     determined by a list of positive integers (``shape``) such that their sum is
@@ -258,7 +258,7 @@ class SnakeGraph(ClonableArray):
 
         Recall that we build a snake graph by starting with one tile, then glue
         a new tile so that the new tile is glued to the north or the east of
-        the previous tile (see [MSW_Positivity] or [CanakciSchiffler]_).
+        the previous tile (see [MSW_Positivity]_ or [CanakciSchiffler]_).
         The entry in position `k` the list DIRs is `up`
         if the tile `k+1` is glued above tile `k`,
         and `right` if the tile `k+1` is glued to the right of tile `k`.
@@ -348,7 +348,7 @@ class SnakeGraphs(Parent, UniqueRepresentation):
     A snake graph is a connected sequence of square tiles.
     To build a snake graph, start with one tile, then glue a new tile so that
     the new tile is glued to the north or the east of the previous tile.
-    See [MSW_Positivity] or [CanakciSchiffler]_.
+    See [MSW_Positivity]_ or [CanakciSchiffler]_.
 
     Note that the edges of the graph are not labeled. Hence snake graphs with `d`
     tiles are in bijection with :class:`Compositions` (of positive integers)
@@ -356,15 +356,13 @@ class SnakeGraphs(Parent, UniqueRepresentation):
 
     .. SEEALSO::
 
-        :class:SnakeGraph
+        :class:`SnakeGraph`
 
     INPUT:
 
     - ``d`` -- the number of tiles
 
-    EXAMPLES:
-
-    Here are the two types of snake graphs that can be created::
+    EXAMPLES::
 
         sage: M = SnakeGraphs(2)
         sage: list(M)
@@ -375,9 +373,6 @@ class SnakeGraphs(Parent, UniqueRepresentation):
         |  |  |  |  |
          -- ,  -- --
         ]
-
-    REFERENCES:
-
     """
     def __init__(self, d):
         """
