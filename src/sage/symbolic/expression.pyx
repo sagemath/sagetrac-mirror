@@ -2416,22 +2416,33 @@ cdef class Expression(CommutativeRingElement):
             if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
 
-            pynac_result = relational_to_bool(self._gobj)
+            pynac_result = decide_relational(self._gobj)
+            if (pynac_result != relational_notimplemented
+            and pynac_result != relational_undecidable):
+                return pynac_result == relational_true
 
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
+            if self.operator() != operator.eq and self.operator() != operator.eq:
+                raise AttributeError("Please use satisfiable() or solve() to decide or solve symbolic inequalities.")
+            # at this point infinities are gone so we can subtract
+            zero = (self.lhs()-self.rhs()).is_trivial_zero()
+            if self.operator() == operator.eq:
+                return zero
+            else:
+                return not zero
+        return not self.is_trivial_zero()
 
-            if pynac_result:
-                if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
-                    m = self._maxima_()
-                    s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-                    if s == 'false':
-                        return False
-                    else:
-                        return True
-                else:
-                    return True
+    def satisfiable(self):
+        if self.is_relational():
+            # constants are wrappers around Sage objects, compare directly
+            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
+                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+
+            pynac_result = decide_relational(self._gobj)
+            if pynac_result != relational_notimplemented:
+                if pynac_result == relational_undecidable:
+                    raise TypeError('Undecidable relation: ' + repr(self))
+                return pynac_result == relational_true
+
 
             # If assumptions are involved, falsification is more complicated...
             need_assumptions = False
@@ -2466,12 +2477,8 @@ cdef class Expression(CommutativeRingElement):
             # lot of basic Sage objects can't be put into maxima.
             from sage.symbolic.relation import test_relation_maxima
             return test_relation_maxima(self)
-
-        self_is_zero = self._gobj.is_zero()
-        if self_is_zero:
-            return False
         else:
-            return not bool(self == self._parent.zero())
+            raise AttributeError("satisfiable() needs a relation argument")
 
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
