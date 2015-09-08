@@ -38,8 +38,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.list_clone import ClonableArray
 
-class SnakeGraph(Element):
+class SnakeGraph(ClonableArray):
     """
     A snake graph is a connected sequence of square tiles which goes north and east,
     see [CanakciSchiffler]_.
@@ -94,7 +95,7 @@ class SnakeGraph(Element):
             sage: TestSuite(G).run()
         """
         self._shape = list(shape)
-        Element.__init__(self, parent)
+        ClonableArray.__init__(self, parent, shape)
 
     def check(self):
         """
@@ -218,12 +219,26 @@ class SnakeGraph(Element):
             True
             sage: G == Gs([3,3,3])
             False
-            sage: G == AlternatingSignMatrix([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
+            sage: G == 'I am a string'
             False
+
         """
         if isinstance(other, SnakeGraph):
             return self._shape == other._shape
         return False
+
+    def __ne__(self, other):
+        """
+        Check not equals. This is needed because otherwise != gives a wrong result.
+
+        EXAMPLES::
+
+            sage: SnakeGraph([1,1,1])==SnakeGraph([3])
+            False
+            sage: SnakeGraph([1,1,1])!=SnakeGraph([3])
+            True
+        """
+        return not self.__eq__(other)
 
     def directions(self):
         """
