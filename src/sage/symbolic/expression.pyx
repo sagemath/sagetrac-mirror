@@ -2422,6 +2422,33 @@ cdef class Expression(CommutativeRingElement):
             if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
                 return pynac_result
 
+            if self.operator() != operator.eq and self.operator() != operator.ne:
+                raise AttributeError("Please use satisfiable(), truth(), or solve() to decide symbolic inequalities.")
+            zero = (self.lhs()-self.rhs()).is_trivial_zero()
+            if self.operator() == operator.eq:
+                return zero
+            else:
+                return not zero
+
+        self_is_zero = self._gobj.is_zero()
+        if self_is_zero:
+            return False
+        else:
+            return not bool(self == self._parent.zero())
+
+
+    def satisfiable(self):
+        if self.is_relational():
+            # constants are wrappers around Sage objects, compare directly
+            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
+                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+
+            pynac_result = relational_to_bool(self._gobj)
+
+            # pynac is guaranteed to give the correct answer for comparing infinities
+            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
+                return pynac_result
+
             if pynac_result:
                 if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
                     m = self._maxima_()
