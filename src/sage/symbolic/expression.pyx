@@ -2412,8 +2412,9 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         if self.is_relational():
-            # constants are wrappers around Sage objects, compare directly
-            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
+            # constants and numerics are wrappers around Sage objects, compare directly
+            if ((self.lhs().is_numeric() or is_a_constant(self._gobj.lhs()))
+            and (self.rhs().is_numeric() or is_a_constant(self._gobj.rhs()))):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
 
             pynac_result = relational_to_bool(self._gobj)
