@@ -509,7 +509,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
 
-    def is_vertically_decomposable(self):
+    def is_vertically_decomposable(self, return_type='boolean'):
         r"""
         Return ``True`` if the lattice is vertically decomposable, and
         ``False`` otherwise.
@@ -518,25 +518,54 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         two lattices "glued" by unifying the top element of first lattice to
         the bottom element of second one.
 
-        Formally defined, a lattice is vertically decomposable if 1) it has
+        Formally defined, a lattice is vertically decomposable if it has
         an element that is comparable to all elements and is not the bottom
-        neither the top element, or 2) is the two-element lattice.
+        neither the top element.
+
+        INPUT:
+
+        - ``return_elements`` - if 'boolean' (the default), return only
+          ``True`` or false; if 'elements', return the list on "decomposing
+          elements"; if 'sublattices', return the list of sublattices so that
+          the lattice is a vertical composition of them.
 
         EXAMPLES::
 
-            sage: P = LatticePoset( ([1,2,3,6,12,18,36], attrcall("divides")) )
-            sage: P.is_vertically_decomposable()
-            True
-            sage: Posets.PentagonPoset().is_vertically_decomposable()
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
             False
+
+        Number 6 is divided by 1, 2, and 3, and divides 12, 18 and 36::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: L.is_vertically_decomposable()
+            True
+            sage: L.is_vertically_decomposable(return_type='elements')
+            [6]
+            sage: sl = L.is_vertically_decomposable(return_type='sublattices')
+            sage: [lat.list() for lat in sl]
+            [[1, 2, 3, 6], [6, 12, 18, 36]]
 
         TESTS::
 
             sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
             ....:     range(5)]
-            [False, False, True, True, True]
+            [False, False, False, True, True]
         """
-        return self._hasse_diagram.vertical_decomposition()
+        if return_type == 'boolean':
+            return self._hasse_diagram.vertical_decomposition()
+        if return_type == 'elements':
+            return [self[e] for e in
+                    self._hasse_diagram.vertical_decomposition(return_list=True)]
+        if return_type == 'sublattices':
+            elms = [0] + self._hasse_diagram.vertical_decomposition(return_list=True) + [self.cardinality()-1]
+            n = len(elms)
+            result = []
+            for i in range(n-1):
+                result.append(LatticePoset(
+                    self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
+            return result
+        raise ValueError("return_type must be one of 'boolean', 'elements' or 'sublattices'")
 
     def is_complemented(self):
         r"""

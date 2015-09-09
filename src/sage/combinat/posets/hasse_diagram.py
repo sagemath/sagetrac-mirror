@@ -409,8 +409,6 @@ class HasseDiagram(DiGraph):
         n = self.cardinality()
 
         if not return_list:
-            if n == 2:
-                return True
             e = 0
             m = 0
             for i in range(n-1):
@@ -421,8 +419,6 @@ class HasseDiagram(DiGraph):
             return m < n-1
 
         # Compute decomposition elements
-        if n <= 2:
-            return []
         result = [] # Never take the bottom element to list.
         e = 0
         m = 0
