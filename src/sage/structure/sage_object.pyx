@@ -31,8 +31,8 @@ def py_rich_to_bool(op, c):
     Return ``True`` or ``False`` for a rich comparison, given the result of an
     ordinary comparison.
 
-    If you need to call this function from Cython prefer the inlined
-    ``rich_to_bool`` or ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
+    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
+    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
 
     INPUT:
 
