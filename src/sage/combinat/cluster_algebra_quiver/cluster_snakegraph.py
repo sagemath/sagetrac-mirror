@@ -100,7 +100,7 @@ class SnakeGraph(ClonableArray):
         if not list(shape) in Compositions():
             raise ValueError("The input must be a composition of positive integers")
         SGs = SnakeGraphs(sum(shape))
-        return SGs(shape)#, first_tile_orientation, edge_weights, diagonal_weights)
+        return SGs(shape)
 
     def __init__(self, parent, shape):
         """
@@ -447,11 +447,6 @@ class SnakeGraphs(Parent, UniqueRepresentation):
              -- --
             |  |  |
              -- --
-
-            sage: Gs((2,2))
-            Traceback (most recent call last):
-            ...
-            ValueError: Input a composition of 6
 
             sage: Gs((2,2))
             Traceback (most recent call last):
