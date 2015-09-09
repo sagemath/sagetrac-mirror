@@ -2412,30 +2412,30 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         if self.is_relational():
-            # constants and numerics are wrappers around Sage objects, compare directly
-            if ((self.lhs().is_numeric() or is_a_constant(self._gobj.lhs()))
-            and (self.rhs().is_numeric() or is_a_constant(self._gobj.rhs()))):
-                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
-
-            pynac_result = relational_to_bool(self._gobj)
-
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
+            ex = (self.lhs() - self.rhs()).expand()
+            try:
+                num = ex.n()
+            except TypeError:
+                pass
+            else:
+                return self.operator()(num, 0)
 
             if self.operator() != operator.eq and self.operator() != operator.ne:
                 raise AttributeError("Please use satisfiable(), truth(), or solve() to decide symbolic inequalities.")
-            zero = (self.lhs()-self.rhs()).is_trivial_zero()
+            zero = (self.lhs()-self.rhs()).expand().is_trivial_zero()
             if self.operator() == operator.eq:
                 return zero
             else:
                 return not zero
 
-        self_is_zero = self._gobj.is_zero()
-        if self_is_zero:
-            return False
+        try:
+            num = self.n()
+        except TypeError:
+            pass
         else:
-            return not bool(self == self._parent.zero())
+            return not num == 0
+
+        return not self.expand().is_trivial_zero()
 
 
     def satisfiable(self):
