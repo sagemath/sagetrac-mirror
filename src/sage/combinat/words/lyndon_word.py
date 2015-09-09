@@ -23,7 +23,7 @@ from sage.rings.all import divisors, gcd, moebius, Integer
 from sage.rings.arith import factorial
 from sage.misc.all import prod
 import __builtin__
-import sage.combinat.necklace
+from sage.combinat import necklace  # Necklaces 
 from sage.combinat.integer_vector import IntegerVectors
 
 from sage.combinat.words.word import FiniteWord_list
@@ -422,7 +422,7 @@ def standard_bracketing(lw):
 
     EXAMPLES::
 
-        sage: import sage.combinat.lyndon_word as lyndon_word
+        sage: import sage.combinat.words.lyndon_word as lyndon_word
         sage: map( lyndon_word.standard_bracketing, LyndonWords(3,3) )
         [[1, [1, 2]],
          [1, [1, 3]],

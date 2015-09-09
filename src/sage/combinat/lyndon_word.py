@@ -10,5 +10,5 @@ lazy_import('sage.combinat.words.lyndon_word', '*', deprecation=19150)
 """
 TESTS::
 
-sage: fromm sage.combinat.lyndon_word import *
+sage: from sage.combinat.lyndon_word import *
 """
