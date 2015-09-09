@@ -2524,7 +2524,7 @@ class FiniteWord_class(Word_class):
 
             sage: Word('01101001').lps_lengths_max_palindrome()
             [1, 1, 2, 4, 3, 3, 2, 4]
-            sage: Word('00000').lps_lengths_max_palindrome())
+            sage: Word('00000').lps_lengths_max_palindrome()
             [1, 2, 3, 4, 5]
             sage: Word('0').lps_lengths_max_palindrome()
             [1]
@@ -2641,9 +2641,9 @@ class FiniteWord_class(Word_class):
         """
 
         if naive_algorithm:
-            return self.lps_lengths_naive()
+            return self.lps_lengths_naive(f)
         else:
-            return self.lps_lengths_max_palindrome()
+            return self.lps_lengths_max_palindrome(f)
 
     def lacunas(self, f=None):
         r"""
@@ -2868,8 +2868,9 @@ class FiniteWord_class(Word_class):
             sage: sorted(Word('abbabaab').palindromes(f))
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
-        LPS = self.lps_lengths_max_palindrome(f)
-        return set((self[i-LPS[i] + 1 : i + 1] for i in range(len(self)+1)), Word())
+        LPS = [0]
+        LPS.extend(self.lps_lengths(f))
+        return set(self[i-LPS[i] : i] for i in range(len(self) + 1))
 
     def palindrome_prefixes(self):
         r"""
