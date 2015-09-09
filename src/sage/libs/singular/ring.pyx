@@ -295,9 +295,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         _ext_names = <char**>omAlloc0(sizeof(char*))
         #extname = k.gen()
-        #_name = k._names[0]      
-        #_ext_names[0] = omStrDup(_name)
-        _ext_names[0] = omStrDup(base_ring.gen())
+        _name = k._names[0]      
+        _ext_names[0] = omStrDup(_name)
         _cfr = rDefault( modbase, 1, _ext_names ); 
 
         _cfr.qideal = idInit(1,1)
@@ -305,15 +304,16 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _cfr.qideal.m[0] = minpoly._poly;
         rComplete(_cfr, 1)
         extParam.r =  _cfr;
-
-        _cf = nInitChar( n_algExt,  <void *>&extParam) 
+        print "here will be a problem. Incorrect minpoly assembly?"
+        _cf = nInitChar( n_algExt,  <void *>&extParam)
+        print "here was a problem. Incorrect minpoly assembly?" 
 
         if (_cf is NULL):
             print "Failed to allocate _cf ring."
             raise "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-
+        print "ring created"
         
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
@@ -338,19 +338,22 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         _cfr.qideal = idInit(1,1)
         _cfr.qideal.m[0] = minpoly._poly;
-        # rComplete(_cfr, 1)
+        rComplete(_cfr, 1)
         extParam.r =  _cfr;
-
+ 
+        print "here will be a problem. Incorrect minpoly assembly?"
         # _type = nRegister(n_algExt, <cfInitCharProc> naInitChar);
 
         _cf = nInitChar( n_algExt,  <void *>&extParam) #  
+        print "here was a problem. Incorrect minpoly assembly?"
 
         if (_cf is NULL):
             print "Failed to allocate _cf ring."
             raise "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-
+        print "ring created"
+        
 
     elif is_IntegerModRing(base_ring):
         #print  " creating IntegerModRing "
