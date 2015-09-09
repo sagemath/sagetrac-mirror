@@ -555,9 +555,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if return_type == 'boolean':
             return self._hasse_diagram.vertical_decomposition()
         if return_type == 'elements':
+            if self.cardinality() < 2:
+                return []
             return [self[e] for e in
                     self._hasse_diagram.vertical_decomposition(return_list=True)]
         if return_type == 'sublattices':
+            if self.cardinality() < 3:
+                return [self]
             elms = [0] + self._hasse_diagram.vertical_decomposition(return_list=True) + [self.cardinality()-1]
             n = len(elms)
             result = []
