@@ -33,6 +33,8 @@ AUTHORS:
 
 - Simon Spicer (2014-08): Added new analytic rank computatation functionality
 
+- Michelle Kovesi (2015-09): Added provable functionality to analytic_rank()
+
 """
 
 ##############################################################################
@@ -1333,10 +1335,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return self.q_expansion(prec)
 
-    def analytic_rank(self, algorithm="pari", leading_coefficient=False):
+    def analytic_rank(self, algorithm="pari", leading_coefficient=False, proof=False):
         r"""
-        Return an integer that is *probably* the analytic rank of this
-        elliptic curve.
+        If proof=False, return an integer that is *probably* the analytic rank of this
+        elliptic curve. If proof=True, return, if possible, an integer that is provably 
+        the analytic rank of this elliptic curve (only implemented for analytic rank < 4).
 
         INPUT:
 
@@ -1355,6 +1358,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           True, return a tuple `(rank, lead)` where `lead` is the value of
           the first non-zero derivative of the L-function of the elliptic
           curve. Only implemented for algorithm='pari'.
+
+        - ``proof`` -- (default: False) Boolean; if set to True, outputs 
+          (if possible) an integer that is provably the analytic rank of this 
+          elliptic curve. Only implemented for analytic rank < 4. 
 
         .. note::
 
@@ -1422,35 +1429,30 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ...
             RuntimeError: failed to compute analytic rank
         """
+
+        # Run designated algorithm to determine rank (and possibly leading coefficient)
+        rank = -1
+        lead = -1
+        if leading_coefficient and not algorithm == 'pari':
+            raise NotImplementedError("Cannot compute leading coefficient using algorithm: %s"%algorithm)
         if algorithm == 'pari':
             rank_lead = self.pari_curve().ellanalyticrank()
-            if leading_coefficient:
-                return (rings.Integer(rank_lead[0]), rank_lead[1].python())
-            else:
-                return rings.Integer(self.pari_curve().ellanalyticrank()[0])
+            rank = rings.Integer(rank_lead[0])
+            lead = rank_lead[1].python()
         elif algorithm == 'rubinstein':
-            if leading_coefficient:
-                raise NotImplementedError("Cannot compute leading coefficient using rubinstein algorithm")
             try:
                 from sage.lfunctions.lcalc import lcalc
-                return lcalc.analytic_rank(L=self)
+                rank = lcalc.analytic_rank(L=self)
             except TypeError as msg:
                 raise RuntimeError("unable to compute analytic rank using rubinstein algorithm (%s)"%msg)
         elif algorithm == 'sympow':
-            if leading_coefficient:
-                raise NotImplementedError("Cannot compute leading coefficient using sympow")
             from sage.lfunctions.sympow import sympow
-            return sympow.analytic_rank(self)[0]
+            rank = sympow.analytic_rank(self)[0]
         elif algorithm == 'magma':
-            if leading_coefficient:
-                raise NotImplementedError("Cannot compute leading coefficient using magma")
             from sage.interfaces.all import magma
-            return rings.Integer(magma(self).AnalyticRank())
+            rank = rings.Integer(magma(self).AnalyticRank())
         elif algorithm == 'zero_sum':
-            if leading_coefficient:
-                s = "Cannot compute leading coefficient using the zero sum method"
-                raise NotImplementedError(s)
-            return self.analytic_rank_upper_bound()
+            rank = self.analytic_rank_upper_bound()
         elif algorithm == 'all':
             if leading_coefficient:
                 S = set([self.analytic_rank('pari', True)])
@@ -1459,9 +1461,145 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     self.analytic_rank('rubinstein'), self.analytic_rank('sympow')])
             if len(S) != 1:
                 raise RuntimeError("Bug in analytic_rank; algorithms don't agree! (E=%s)"%self)
-            return list(S)[0]
+            rank = list(S)[0]
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
+
+        # If proof == True, verify analytic rank (if possible) before returning the value
+        if proof:
+            try:
+                if leading_coefficient:
+                    return (_verify_analytic_rank(self,rank), lead)
+                else:  
+                    return _verify_analytic_rank(self,rank)
+            except RuntimeError:
+                print "Unable to prove correctness of analytic rank"
+        else:
+            if leading_coefficient:
+                return (rank, lead)
+            else:
+                return rank
+
+    def _verify_analytic_rank(self, rank):
+
+        # Check whether rank is zero (analytic rank = 0 iff L(E,1) is nonzero iff L_ratio() is nonzero)
+        rank_is_zero = False
+        if (not self.lseries().L_ratio() == 0):
+            rank_is_zero = true
+
+        if rank_is_zero:
+            return 0
+
+        else:
+
+            # Compute an approximation of L^(rank)(E,1) which is within epsilon of the true value. 
+            # If the approximation is > epsilon, then the true value is nonzero (provably).
+            epsilon = RR(10^-1) # this seems to work fine; can play with other values
+            approx_Lderiv = 0
+
+            N = self.conductor()
+            k = ceil(RR(sqrt(N))/RR(2*pi)) 
+
+            if self.root_number()==-1: # rank is odd
+
+                if rank == 1:
+
+                    delta = RR(10^-10)
+
+                    # Find k
+                    while True:
+                        value = RR(2*exp(RR(-2*pi*k)/RR(sqrt(N)))) / (1-exp(RR(-2*pi)/RR(sqrt(N))))+RR(2*delta*(k-1))
+                        if k > 15000: # if k is this big, something's probably wrong
+                            raise RuntimeError("Unable to prove correctness of analytic rank")
+                        if value > epsilon:
+                            k = k + 1
+                        else:
+                            break
+
+                    # Find approximation of L'(E,1) (using k terms in the sum)
+                    approx_Lderiv = 2 * sum([RR(self.an(n)/n)*_E1(RR(2*pi*n)/RR(sqrt(N)), delta) for n in range(1,k)])
+
+                elif rank == 3:
+
+                    delta = RR(10^-5)
+
+                    # Check that algebraic rank is 3
+                    if self.rank() == 3:
+
+                        # Find k
+                        while True:
+                            value = 2*RR(2*exp(RR(-2*pi*k)/RR(sqrt(N)))) / (1-exp(RR(-2*pi)/RR(sqrt(N))))+RR(2*delta*(k-1))
+                            if k > 15000: # if k is this big, something's probably wrong
+                                raise RuntimeError("Unable to prove correctness of analytic rank")
+                            if value > epsilon:
+                                k = k + 1
+                            else:
+                                break
+
+                        # Find approximation of L^(3)(E,1) (using k terms in the sum)
+                        approx_Lderiv = 2 * sum([RR(E.an(n)/n)*_G3(RR(2*pi*n)/RR(sqrt(N)), delta, 10^-10) for n in range(1,k)])
+
+                else:
+                    raise ValueError("Unable to prove correctness of analytic rank for rank > 3")
+
+            else: # rank is even
+
+                if rank == 2:
+
+                    delta = RR(10^-10)
+                    
+                    # Find k
+                    while True:
+                        value = 2*RR(2*exp(RR(-2*pi*k)/RR(sqrt(N)))) / (1-exp(RR(-2*pi)/RR(sqrt(N))))+RR(2*delta*(k-1))
+                        if k > 15000: # if k is this big, something's probably wrong
+                            raise RuntimeError("Unable to prove correctness of analytic rank")
+                        if value > epsilon:
+                            k = k + 1
+                        else:
+                            break
+
+                    # Find approximation of L''(E,1) (using k terms in the sum)
+                    approx_Lderiv = 2 * sum([RR(E.an(n)/n)*_G2(RR(2*pi*n)/RR(sqrt(N)), delta) for n in range(1,k)])
+
+                else:
+                    raise ValueError("Unable to prove correctness of analytic rank for rank > 3")
+
+            if approx_Lderiv > epsilon:
+                # Yay! Analytic rank is proven to be true :)
+                return rank
+            else:
+                raise RuntimeError("Unable to prove correctness of analytic rank")
+
+    # Compute E_1 (with j terms)
+    def _E1(x, delta):
+        j = 1
+        while True:
+            if abs(RR(-x)^j/((j)*factorial(j))) > delta:
+                j = j+2
+            else:
+                break
+        return RR(log(1/x)) - RR(euler_gamma) - sum([(-x)^n/(n*factorial(n)) for n in range(1,j)])
+
+    # Compute G2 (with j terms)
+    def _G2(x, delta):
+        j = 1
+        while True:
+            if abs(RR(-x)^j/((j**2)*factorial(j))) > delta:
+                j = j+2
+            else:
+                break
+        return 0.5*(RR(log(1/x)) - RR(euler_gamma))**2 + RR(pi**2)/RR(12) + sum([(-x)**n/(n*n*factorial(n)) for n in range(1,j)])
+
+    # Compute E1 (with j terms)
+    def _G3(x, delta, mu):
+        j = 1
+        while True:
+            if abs(RR(-x)^j/((j**3)*factorial(j))) > delta - mu:
+                j = j+2
+            else:
+                break
+        h = RR(1/(2*mu)^(1/2)) + 2
+        return RR(1/6)*(RR(log(1/x))-RR(euler_gamma))**3 + RR(pi**2/12)*(RR(log(1/x))-RR(euler_gamma)) - RR(1/3)*sum([RR(1/n**3) for n in range(1,h)]) - sum([(-x)**n/(n*n*n*factorial(n)) for n in range(1,j)])
 
     def analytic_rank_upper_bound(self,
                                   max_Delta=None,
