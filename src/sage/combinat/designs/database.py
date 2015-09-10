@@ -4374,6 +4374,7 @@ def HigmanSimsDesign():
     EXAMPLE::
 
         sage: H = designs.HigmanSimsDesign(); H
+        Incidence structure with 176 points and 176 blocks
         sage: H.is_t_design(return_parameters=1)
         (True, (2, 176, 50, 14))
 
