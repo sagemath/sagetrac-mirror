@@ -2724,7 +2724,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x<y).contradicts({x: 30, y: 20})
             True
         """
-        return bool(self.negation().subs(soln))
+        return (self.negation().subs(soln)).satisfiable()
 
     def is_unit(self):
         """
