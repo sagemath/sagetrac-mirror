@@ -34,7 +34,7 @@ else:
 ### Commonly used definitions and aliases
 #########################################################
 
-singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
+singular_incs = [os.path.join(SAGE_INC, 'singular')]
 
 aliases = dict(
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
