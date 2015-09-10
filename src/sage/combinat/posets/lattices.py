@@ -18,24 +18,46 @@ This module implements finite (semi)lattices. It defines:
 List of (semi)lattice methods
 -----------------------------
 
+**Meet and join**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+
+**Properties of the lattice**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+
+**Elements and sublattices**
+
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
-    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
-    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
-    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
-    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
-    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
-    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
-    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
-    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
-    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -509,7 +531,68 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
 
-    def is_vertically_decomposable(self, return_type='boolean'):
+    def vertical_decomposition(self, as_lattices=True):
+        r"""
+        Return sublattices from vertical decomposition of the lattice.
+
+        Informally this returns the lattice splitted to parts from
+        every single-element "cutting point".
+
+        Formally, let `d_1, \ldots, d_n` be elements comparable to
+        every element of the lattice, excluding the top and bottom
+        elements. Let `b` be a bottom element and `t` be the top
+        element. This function returns either a list `d_1, \ldots,
+        d_n`, or the list of intervals `[b, d_1], [d_1, d_2], \ldots,
+        [d_{n-1}, d_n], [d_n, t]`.
+
+        INPUT:
+
+        - ``as_lattices`` - if ``False``, return the list on decomposing
+          elements as defined above; if ``True`` (the default),
+          return the list of sublattices so that the lattice is a
+          vertical composition of them.
+
+        .. SEEALSO::
+
+            :meth:`is_vertically_decomposable`
+
+        EXAMPLES:
+
+        Number 6 is divided by 1, 2, and 3, and it divides 12, 18 and 36::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: parts = L.vertical_decomposition()
+            sage: [lat.list() for lat in parts]
+            [[1, 2, 3, 6], [6, 12, 18, 36]]
+            sage: L.vertical_decomposition(as_lattices=False)
+            [6]
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).vertical_decomposition(as_lattices=False)
+            ....:     for i in range(5)]
+            [[], [], [], [1], [1, 2]]
+        """
+        if self.cardinality() <= 2:
+            if as_lattices:
+                return [self]
+            else:
+                return []
+        if not as_lattices:
+            return [self[e] for e in
+                    self._hasse_diagram.vertical_decomposition(return_list=True)]
+        elms = ( [0] +
+                 self._hasse_diagram.vertical_decomposition(return_list=True) +
+                 [self.cardinality()-1] )
+        n = len(elms)
+        result = []
+        for i in range(n-1):
+            result.append(LatticePoset(
+                self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
+        return result
+
+    def is_vertically_decomposable(self):
         r"""
         Return ``True`` if the lattice is vertically decomposable, and
         ``False`` otherwise.
@@ -522,29 +605,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         an element that is comparable to all elements and is not the bottom
         neither the top element.
 
-        INPUT:
+        .. SEEALSO::
 
-        - ``return_elements`` - if 'boolean' (the default), return only
-          ``True`` or false; if 'elements', return the list on "decomposing
-          elements"; if 'sublattices', return the list of sublattices so that
-          the lattice is a vertical composition of them.
+            :meth:`vertical_decomposition`
 
         EXAMPLES::
-
-            sage: Posets.TamariLattice(4).is_vertically_decomposable()
-            False
-
-        Number 6 is divided by 1, 2, and 3, and divides 12, 18 and 36::
 
             sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
             ....:     attrcall("divides")) )
             sage: L.is_vertically_decomposable()
             True
-            sage: L.is_vertically_decomposable(return_type='elements')
-            [6]
-            sage: sl = L.is_vertically_decomposable(return_type='sublattices')
-            sage: [lat.list() for lat in sl]
-            [[1, 2, 3, 6], [6, 12, 18, 36]]
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
+            False
 
         TESTS::
 
@@ -552,24 +624,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:     range(5)]
             [False, False, False, True, True]
         """
-        if return_type == 'boolean':
-            return self._hasse_diagram.vertical_decomposition()
-        if return_type == 'elements':
-            if self.cardinality() < 2:
-                return []
-            return [self[e] for e in
-                    self._hasse_diagram.vertical_decomposition(return_list=True)]
-        if return_type == 'sublattices':
-            if self.cardinality() < 3:
-                return [self]
-            elms = [0] + self._hasse_diagram.vertical_decomposition(return_list=True) + [self.cardinality()-1]
-            n = len(elms)
-            result = []
-            for i in range(n-1):
-                result.append(LatticePoset(
-                    self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
-            return result
-        raise ValueError("return_type must be one of 'boolean', 'elements' or 'sublattices'")
+        # TODO: Make better example when compose_vertically() is done.
+        return self._hasse_diagram.vertical_decomposition()
 
     def is_complemented(self):
         r"""
