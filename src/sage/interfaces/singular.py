@@ -1154,8 +1154,15 @@ class Singular(Expect):
         singular_console()
 
     def version(self):
-        """
-        EXAMPLES:
+        r"""
+        Returns the version of Singular being used.
+
+        EXAMPLES::
+
+            sage: singular.version()
+            ((3, ..., ...),
+             'Singular for ... version 3-... (3...) ...Current HelpBrowser: ...')
+
         """
         return singular_version()
 
@@ -2316,13 +2323,23 @@ def singular_console():
 
 
 def singular_version():
-    """
+    r"""
     Returns the version of Singular being used.
 
-    EXAMPLES:
-    """
-    return singular.eval('system("--version");')
+    EXAMPLES::
 
+        sage: singular_version()
+        ((3, ..., ...),
+         'Singular for ... version 3-... (3...) ...Current HelpBrowser: ...')
+
+    """
+    try:
+        verstr = singular.eval('system("--version");')
+    except SingularError:
+        # the above command will typically fail when first called,
+        # but is supposed to subsequently work
+        verstr = singular.eval('system("--version");')
+    return (tuple(int(s) for s in singular.eval('system("version")')[:-1]), verstr)
 
 
 class SingularGBLogPrettyPrinter:
