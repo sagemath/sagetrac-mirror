@@ -2423,8 +2423,16 @@ cdef class Expression(CommutativeRingElement):
             else:
                 return self.operator()(num, 0)
 
-            if self.operator() != operator.eq and self.operator() != operator.ne:
+            so = self.operator()
+            if so != operator.eq and so != operator.ne:
                 raise AttributeError("Please use satisfiable(), truth(), or solve() to decide symbolic inequalities.")
+                #poc = print_order_compare(self._gobj.lhs(), self._gobj.rhs())
+                #if poc == 0:
+                #    return so == operator.ge or so == operator.le
+                #elif poc == 1:
+                #    return so == operator.ge or so == operator.gt
+                #elif poc == -1:
+                #    return so == operator.le or so == operator.lt
             zero = (self.lhs()-self.rhs()).expand().is_trivial_zero()
             if self.operator() == operator.eq:
                 return zero
@@ -2442,67 +2450,51 @@ cdef class Expression(CommutativeRingElement):
 
 
     def satisfiable(self):
-        if self.is_relational():
-            # constants are wrappers around Sage objects, compare directly
-            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
-                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+        if len(self.variables())==0:
+            return self.__nonzero__()
+            
+        res = relational_to_bool(self._gobj)
+        if res and self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
+            m = self._maxima_()
+            s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
+            if s == 'false':
+                return False
+            else:
+                return True
 
-            pynac_result = relational_to_bool(self._gobj)
+        # If assumptions are involved, falsification is more complicated...
+        need_assumptions = False
+        from sage.symbolic.assumptions import assumptions
+        assumption_list = assumptions()
+        if assumption_list:
+            vars = self.variables()
+            if vars:
+                assumption_var_list = []
+                for eqn in assumption_list:
+                    try:
+                        assumption_var_list.append(eqn.variables())
+                    except AttributeError: # if we have a GenericDeclaration
+                        assumption_var_list.append((eqn._var,))
+                assumption_vars = set(sum(assumption_var_list, ()))
+                if set(vars).intersection(assumption_vars):
+                    need_assumptions = True
 
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
+        # Use interval fields to try and falsify the relation
+        if not need_assumptions:
+            res = self.test_relation()
+            if res is True:
+                return True
+            elif res is False:
+                return False
 
-            if pynac_result:
-                if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
-                    m = self._maxima_()
-                    s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-                    if s == 'false':
-                        return False
-                    else:
-                        return True
-                else:
-                    return True
-
-            # If assumptions are involved, falsification is more complicated...
-            need_assumptions = False
-            from sage.symbolic.assumptions import assumptions
-            assumption_list = assumptions()
-            if assumption_list:
-                vars = self.variables()
-                if vars:
-                    assumption_var_list = []
-                    for eqn in assumption_list:
-                        try:
-                            assumption_var_list.append(eqn.variables())
-                        except AttributeError: # if we have a GenericDeclaration
-                            assumption_var_list.append((eqn._var,))
-                    assumption_vars = set(sum(assumption_var_list, ()))
-                    if set(vars).intersection(assumption_vars):
-                        need_assumptions = True
-
-            # Use interval fields to try and falsify the relation
-            if not need_assumptions:
-                res = self.test_relation()
-                if res is True:
-                    return True
-                elif res is False:
-                    return False
-
-            # we really have to do some work here...
-            # I really don't like calling Maxima to test equality.  It
-            # is SUPER SUPER SLOW, and it has all the problem
-            # associated with different semantics, different
-            # precision, etc., that can lead to subtle bugs.  Also, a
-            # lot of basic Sage objects can't be put into maxima.
-            from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
-
-        self_is_zero = self._gobj.is_zero()
-        if self_is_zero:
-            return False
-        else:
-            return not bool(self == self._parent.zero())
+        # we really have to do some work here...
+        # I really don't like calling Maxima to test equality.  It
+        # is SUPER SUPER SLOW, and it has all the problem
+        # associated with different semantics, different
+        # precision, etc., that can lead to subtle bugs.  Also, a
+        # lot of basic Sage objects can't be put into maxima.
+        from sage.symbolic.relation import test_relation_maxima
+        return test_relation_maxima(self)
 
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
