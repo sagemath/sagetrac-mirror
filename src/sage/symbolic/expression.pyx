@@ -2412,6 +2412,9 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         if self.is_relational():
+            if (self.lhs().is_infinity() or self.rhs().is_infinity()):
+                return relational_to_bool(self._gobj)
+
             ex = (self.lhs() - self.rhs()).expand()
             try:
                 num = ex.n()
