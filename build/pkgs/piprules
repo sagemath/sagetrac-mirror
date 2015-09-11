@@ -2,9 +2,11 @@ beautifulsoup
 biopython
 brian
 guppy
+mercurial
 mpi4py
 nibabel
 pybtex
 pyflakes
 pyopenssl
+sqlalchemy
 trac
