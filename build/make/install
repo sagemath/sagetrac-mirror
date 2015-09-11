@@ -300,6 +300,7 @@ newest_version() {
 filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
+        test -d "$DIR" || continue
 
         PKG_TYPE_FILE="$DIR/type"
         if [ -f "$PKG_TYPE_FILE" ]; then
@@ -456,6 +457,25 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "	rm -f \$(INST)/\$($PKG_VAR)"
     echo >&5
 done
+
+cat >&5 <<EOF
+
+#==============================================================================
+# Rules generated from pkgs/piprules
+#==============================================================================
+
+EOF
+
+while read PKG_NAME; do
+    echo >&5 "$PKG_NAME: \$(INST)/\$(PIP)"
+    echo >&5 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+    echo >&5
+
+    # Add a target to remove the "installed" file for "sage -f"
+    echo >&5 "$PKG_NAME-clean:"
+    echo >&5 "	sage --pip uninstall -y $PKG_NAME"
+    echo >&5
+done <"$SAGE_ROOT/build/pkgs/piprules"
 
 # Close the Makefile
 exec 5>&-
