@@ -786,6 +786,52 @@ def SRG_120_77_52_44():
     H = IncidenceStructure([x for x in W if 22 not in x and 21 not in x])
     return H.intersection_graph(3)
 
+def SRG_176_49_12_14():
+    r"""
+    Return a `(176,49,12,14)`-strongly regular graph.
+
+    This graph is built from the symmetric Higman-Sims design. In
+    [BrouwerPolarities82]_, it is explained that there exists an involution
+    `\sigma` exchanging the points and blocks of the Higman-Sims design, such
+    that each point is mapped on a block that contains it (i.e. `\sigma` is a
+    'polarity with all universal points'). The graph is then built by making two
+    vertices `u,v` adjacent whenever `v\in \sigma(u)`.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_176_49_12_14
+        sage: G = SRG_176_49_12_14()                 # optional - gap_packages # long time
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        (176, 49, 12, 14)
+
+    REFERENCE:
+
+    .. [BrouwerPolarities82] A. Brouwer,
+       Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
+       Aequationes mathematicae 25, no. 1 (1982): 77-82.
+    """
+    from sage.combinat.designs.database import HigmanSimsDesign
+    d = HigmanSimsDesign()
+    g = d.incidence_graph(labels=True)
+    ag=g.automorphism_group().conjugacy_classes_representatives()
+
+    # Looking for an involution that maps a point of the design to one of the
+    # blocks that contains it. It is called a polarity with only absolute
+    # points in
+    polarity=None
+    for aut in ag:
+        try:
+            0 in aut(0)
+        except TypeError:
+            continue
+        if (aut.order() == 2 and
+            all(i in aut(i) for i in d.ground_set())):
+            polarity=aut
+            break
+    g = Graph()
+    g.add_edges((u,v) for u in d.ground_set() for v in polarity(u))
+    return g
+
 def SRG_176_105_68_54():
     r"""
     Return a `(176, 105, 68, 54)`-strongly regular graph.
@@ -1704,6 +1750,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (126,  50,  13, 24): [SRG_126_50_13_24],
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
+        (176,  49,  12, 14): [SRG_176_49_12_14],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (231,  30,   9,  3): [CameronGraph],
