@@ -224,7 +224,8 @@ class SnakeGraph(ClonableArray):
 
     def directions(self):
         """
-        Return the list DIRs of directions (either 'up' or 'right').
+        Return the list of directions (either 'up' or 'right').
+
         This list is of length `len(self)-1` and corresponds to all
         the tiles of ``self`` except for the last tile.
 
@@ -240,20 +241,20 @@ class SnakeGraph(ClonableArray):
             sage: G = SnakeGraph([1,3,3,1,2,4,2])
             sage: G.directions()
             ['up',
-            'right',
-            'right',
-            'up',
-            'right',
-            'right',
-            'up',
-            'up',
-            'right',
-            'up',
-            'right',
-            'right',
-            'right',
-            'up',
-            'right']
+             'right',
+             'right',
+             'up',
+             'right',
+             'right',
+             'up',
+             'up',
+             'right',
+             'up',
+             'right',
+             'right',
+             'right',
+             'up',
+             'right']
 
             sage: SnakeGraph([1]).directions()
             []
@@ -417,12 +418,12 @@ class SnakeGraphs(Parent, UniqueRepresentation):
             sage: Gs((2,2))
             Traceback (most recent call last):
             ...
-            ValueError: Input a composition of 6
+            ValueError: input a composition of 6
 
             sage: Gs(matrix([1,1]))
             Traceback (most recent call last):
             ...
-            ValueError: [1 1] is not a SnakeGraph nor a list of positive integers
+            ValueError: [1 1] is not a snake graph nor a list of positive integers
         """
         if isinstance(x, SnakeGraph):
             if x in self.parent():
@@ -483,10 +484,13 @@ class SnakeGraphs(Parent, UniqueRepresentation):
         return ZZ(2)**self._d
 
 class LabeledSnakeGraph(SnakeGraph):
-    """
-    A labeled snake graph is a snake graph in which each edge and each tile carries
-    a label or weight [CanakciSchiffler]_. For example, for snake graphs arising
-    from cluster algebras from surfaces [FominShapiroThurston]_, these labels are cluster variables.
+    r"""
+    A labeled snake graph.
+
+    A *labeled snake graph* is a snake graph in which each edge and each
+    tile carries a label or weight [CanakciSchiffler]_. For example, for
+    snake graphs arising from cluster algebras from surfaces
+    [FominShapiroThurston]_, these labels are cluster variables.
     See [MSW_Positivity]_.
 
     In some situation we would like to consider the weights of the diagonals of the
@@ -504,18 +508,20 @@ class LabeledSnakeGraph(SnakeGraph):
 
         :class:`SnakeGraph`
 
-    Note that :class:`LabeledSnakeGraph` differs from :class:`SnakeGraph` in that user
-    may specify two optional attributes ``diagonal_weights`` and ``weights``.
+    Note that :class:`LabeledSnakeGraph` differs from :class:`SnakeGraph`
+    in that user may specify two optional attributes ``diagonal_weights``
+    and ``weights``.
 
     INPUT:
 
-    - ``shape`` -- a tuple/list listing the sizes of the rows of the snake graph
-    - ``weights`` -- (default:None) a list/tuple/dictionary giving the weight
-      of each edge of the snake graph
-    - ``diagonal_weights`` -- (default: None) a list/tuple/dictionary giving
-      the weight for the diagonal of each tile
+    - ``shape`` -- a tuple/list listing the sizes of the rows of
+      the snake graph
+    - ``weights`` -- (default: ``None``) a list/tuple/dictionary giving
+      the weight of each edge of the snake graph
+    - ``diagonal_weights`` -- (default: ``None``) a list/tuple/dictionary
+      giving the weight for the diagonal of each tile
     - ``first_tile_orientation`` -- (default: 1) whether the orientation
-      of the first tile is 1 or -1
+      of the first tile is `1` or `-1`
 
     EXAMPLES::
 
@@ -543,11 +549,10 @@ class LabeledSnakeGraph(SnakeGraph):
         ...
         ValueError: weights must be a dictionary of length 3
     """
-
     __metaclass__ = InheritComparisonClasscallMetaclass
 
-    def __init__(self, shape, weights={}, diagonal_weights={}, first_tile_orientation=1,\
-    from_surface=False):
+    def __init__(self, shape, weights={}, diagonal_weights={},
+                 first_tile_orientation=1, from_surface=False):
         """
         Initialize ``self``.
 
@@ -558,10 +563,10 @@ class LabeledSnakeGraph(SnakeGraph):
 
         TESTS::
 
-            sage: G = SnakeGraph((2,1,1))
+            sage: G = LabeledSnakeGraph((2,1,1))
             sage: TestSuite(G).run()
         """
-        self._shape = list(shape)
+        SnakeGraph.__init__(self, SnakeGraphs(sum(shape)), shape)
         self._weights = weights
         self._diagonal_weights = diagonal_weights
         self._first_tile_orientation = 1
@@ -583,8 +588,8 @@ class LabeledSnakeGraph(SnakeGraph):
 
         EXAMPLES::
 
-            sage: LabeledSnakeGraph([1,1,2,1], weights={0:(1,2,3,4),1:(5,6,7,8),\
-            2:(9,8,7,6),3:(1,1,1,1),4:(2,2,2,2)})
+            sage: LabeledSnakeGraph([1,1,2,1], weights={0:(1,2,3,4),1:(5,6,7,8),2:(9,8,7,6),
+            ....:                                       3:(1,1,1,1),4:(2,2,2,2)})
                 --
                |  |
              -- --
@@ -596,40 +601,7 @@ class LabeledSnakeGraph(SnakeGraph):
              --
             with edge labels
         """
-        sh = self._shape
-        ret = ''
-        top_row = sh[-1]
-        skips = sum(sh[:-1])-(len(sh)-1)
-        white_sp = '   '
-
-        ret += white_sp* skips
-        ret +=' -- '
-        for i in range(1,top_row):
-            ret +='-- '
-        ret +='\n' + white_sp * skips + '|  |'
-        for i in range(1,top_row):
-            ret +='  |'
-
-        for i in range(len(sh)-2,-1,-1):
-            r = sh[i]
-            skips += -(r-1)
-
-            ret +='\n' + white_sp * skips
-            for i in range(0,r+sh[i+1]-1):
-                ret +=' --'
-
-            ret +='\n' + white_sp * skips + '|  |'
-            for i in range(1,r):
-                ret +='  |'
-
-        bottom_row = sh[0]
-        ret +='\n' + ' --'
-        for i in range(1,bottom_row):
-            ret +=' --'
-
-        ret += '\nwith edge labels'
-
-        return ret
+        return SnakeGraph._repr_(self) + '\nwith edge labels'
 
     def __eq__(self, other):
         """
@@ -645,12 +617,11 @@ class LabeledSnakeGraph(SnakeGraph):
             False
             sage: G == 'I am a string'
             False
-
         """
         if isinstance(other, LabeledSnakeGraph):
-            return self._shape == other._shape and\
-            self._weights == other._weights and\
-            self._diagonal_weights == other._diagonal_weights
+            return (list(self) == list(other)
+                    and self._weights == other._weights
+                    and self._diagonal_weights == other._diagonal_weights)
         return False
 
     def __ne__(self, other):
@@ -662,7 +633,7 @@ class LabeledSnakeGraph(SnakeGraph):
 
             sage: LabeledSnakeGraph([1,1,1]) == LabeledSnakeGraph([3])
             False
-            sage: LabeledSnakeGraph([1,1,1])!= LabeledSnakeGraph([3])
+            sage: LabeledSnakeGraph([1,1,1]) != LabeledSnakeGraph([3])
             True
 
             sage: LabeledSnakeGraph([2,1],{0:('B1','B2','b','d'),1:('a','c','B3','a'),
@@ -697,20 +668,23 @@ class LabeledSnakeGraph(SnakeGraph):
         """
         return self._weights
 
-    def plot(self, rgb_color=(0,0,0), xy=(0, 0), draw_weights=True,\
-    draw_diagonal_weights=True, text_color = (1,0,0)):
+    def plot(self, rgb_color=(0,0,0), xy=(0,0), draw_weights=True,
+             draw_diagonal_weights=True, text_color=(1,0,0)):
         """
         Return a plot of ``self``.
 
         INPUT:
 
-        - ``rgb_color`` -- (default:(0,0,0), black) The color as an RGB tuple
-        - ``xy`` -- (default:(0,0)) Snake graph will be plotted at xy=(a,b)
-        - ``text_color`` -- (default:(1,0,0), red) The color of the edge labels
+        - ``rgb_color`` -- (default: ``(0,0,0)``, black) the color as
+          an RGB tuple
+        - ``xy`` -- (default: ``(0,0)``) the coordinates to start plotting
+          the snake graph
+        - ``text_color`` -- (default: ``(1,0,0)``, red) the color of the
+          edge labels
 
         EXAMPLES::
 
-            sage: L=LabeledSnakeGraph([2])
+            sage: L = LabeledSnakeGraph([2])
             sage: print L.plot().description()
             Line defined by 5 points:       [(1.0, 0.0), (0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
             Line defined by 5 points:       [(2.0, 0.0), (1.0, 0.0), (1.0, 1.0), (2.0, 1.0), (2.0, 0.0)]
@@ -773,7 +747,7 @@ class LabeledSnakeGraph(SnakeGraph):
             Text 'd' at the point (1.5,2.0)
         """
         if not draw_weights:
-            return SnakeGraph(self._shape).plot()
+            return SnakeGraph(self).plot()
 
         from sage.plot.graphics import Graphics
         from sage.plot.line import line
@@ -782,12 +756,12 @@ class LabeledSnakeGraph(SnakeGraph):
         DIRs = self.directions()[:]
 
         drawing = Graphics()
-        x, y = 0,0
-        (x,y)=xy
+        x, y = 0, 0
+        (x,y) = xy
 
         for pos in range(0,len(DIRs)+1):
-
-            tile_drawing = line([(x+1,y+0),(x+0,y+0),(x+0,y+1),(x+1,y+1),(x+1,y+0)],rgbcolor=rgb_color)
+            tile_drawing = line([(x+1,y+0),(x+0,y+0),(x+0,y+1),
+                                 (x+1,y+1),(x+1,y+0)], rgbcolor=rgb_color)
 
             if self._weights:
                 floor = str(self._weights[pos][0])
@@ -795,26 +769,26 @@ class LabeledSnakeGraph(SnakeGraph):
                 ceiling = str(self._weights[pos][2])
                 left_side = str(self._weights[pos][3])
             else:
-                floor, right_side, ceiling, left_side = str(),str(),str(),str()
+                floor, right_side, ceiling, left_side = '', '', '', ''
 
             if self._diagonal_weights:
                 diagonal = str(self._diagonal_weights[pos])
             else:
-                diagonal =str()
+                diagonal = ''
 
             if self._first_tile_orientation == 1:
-                orientation=(-1)**pos
+                orientation = (-1)**pos
             elif self._first_tile_orientation == -1:
-                orientation=-1*(-1)**pos
+                orientation = -1*(-1)**pos
             if orientation == 1: orientation='$+$'
             else: orientation='$-$'
 
-            labels = text(diagonal,(x+0.5,y+0.5),vertical_alignment='bottom', rgbcolor=text_color)\
-            + text(right_side,(x+1,y+0.5),horizontal_alignment='left', rgbcolor=text_color)\
-            + text(ceiling,(x+0.5,y+1),vertical_alignment='bottom', rgbcolor=text_color) \
-            + text(orientation,(x+0.8, y+0.8))
+            labels = ( text(diagonal, (x+0.5,y+0.5), vertical_alignment='bottom', rgbcolor=text_color)
+                      + text(right_side, (x+1,y+0.5), horizontal_alignment='left', rgbcolor=text_color)
+                      + text(ceiling, (x+0.5,y+1), vertical_alignment='bottom', rgbcolor=text_color)
+                      + text(orientation, (x+0.8, y+0.8)) )
 
-            if pos>0:
+            if pos > 0:
                 PREVIOUS_DIR = DIRs[pos-1]
                 if PREVIOUS_DIR == 'right': # Then draw the label of the bottom edge
                     labels = labels + text(floor,(x+0.5,y+0),vertical_alignment='bottom', rgbcolor=text_color)
@@ -825,15 +799,16 @@ class LabeledSnakeGraph(SnakeGraph):
                 text(floor,(x+0.5,y+0),vertical_alignment='bottom', rgbcolor=text_color)\
                 + text(left_side,(x+0,y+0.5),horizontal_alignment='left', rgbcolor=text_color)
 
-            if pos<len(DIRs):
+            if pos < len(DIRs):
                 DIR = DIRs[pos]
             if DIR == 'up':
-                y=y+1
+                y = y + 1
             else:
-                x=x+1
+                x = x + 1
 
             drawing = drawing + tile_drawing + labels
             drawing.axes(False)
             drawing.set_aspect_ratio(1)
 
         return drawing
+
