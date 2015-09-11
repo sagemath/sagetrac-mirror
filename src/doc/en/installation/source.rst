@@ -402,7 +402,7 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    sage -f python2  # rebuild Python
+    sage -f python   # rebuild Python
     make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
@@ -705,7 +705,7 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     ./sage -i openssl
-    ./sage -f python2
+    ./sage -f python
     make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
