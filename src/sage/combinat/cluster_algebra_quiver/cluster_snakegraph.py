@@ -25,6 +25,7 @@ REFERENCES:
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -36,9 +37,9 @@ class SnakeGraph(ClonableArray):
     """
     A snake graph is a connected sequence of square tiles.
 
-    A snake graph is a connected sequence of square tiles. A square tile is considered
-    as a graph with four vertices and four edges in the obvious way,
-    and we use the following ascii art to visualize each tile::
+    A snake graph is a connected sequence of square tiles. A square tile
+    is considered as a graph with four vertices and four edges in the
+    obvious way, and we use the following ascii art to visualize each tile::
 
              north
                --
@@ -100,9 +101,9 @@ class SnakeGraph(ClonableArray):
             False
             sage: G == 'I am a string'
             False
-            sage: SnakeGraph([1,1,1])==SnakeGraph([3])
+            sage: SnakeGraph([1,1,1]) == SnakeGraph([3])
             False
-            sage: SnakeGraph([1,1,1])!=SnakeGraph([3])
+            sage: SnakeGraph([1,1,1]) != SnakeGraph([3])
             True
 
             sage: G = SnakeGraph((2,1,1))
@@ -202,9 +203,11 @@ class SnakeGraph(ClonableArray):
 
     def shape(self):
         """
-        Return the shape of ``self``. The shape is a list of positive integers,
-        which corresponds to the number of tiles on each row of the snake graph.
-        Recall that the shape of a snake graph uniquely determines a snake graph.
+        Return the shape of ``self``.
+
+        The shape is a list of positive integers, which corresponds to
+        the number of tiles on each row of the snake graph. Recall that
+        the shape of a snake graph uniquely determines a snake graph.
 
         EXAMPLES::
 
@@ -229,12 +232,12 @@ class SnakeGraph(ClonableArray):
         This list is of length `len(self)-1` and corresponds to all
         the tiles of ``self`` except for the last tile.
 
-        Recall that we build a snake graph by starting with one tile, then glue
-        a new tile so that the new tile is glued to the north or the east of
-        the previous tile (see [MSW_Positivity]_ or [CanakciSchiffler]_).
-        The entry in position `k` the list DIRs is `up`
-        if the tile `k+1` is glued above tile `k`,
-        and `right` if the tile `k+1` is glued to the right of tile `k`.
+        Recall that we build a snake graph by starting with one tile,
+        then glue a new tile so that the new tile is glued to the north
+        or the east of the previous tile (see [MSW_Positivity]_ or
+        [CanakciSchiffler]_). The entry in position `k` the list DIRs
+        is ``'up'`` if the tile `k+1` is glued above tile `k`, and
+        ``'right'`` if the tile `k+1` is glued to the right of tile `k`.
 
         EXAMPLES::
 
@@ -270,7 +273,7 @@ class SnakeGraph(ClonableArray):
             DIRs.append('up')
         return DIRs
 
-    def plot(self, rgb_color=(0,0,0), xy=(0, 0)):
+    def plot(self, rgb_color=(0,0,0), xy=(0,0)):
         """
         Return a plot of ``self``.
 
@@ -296,20 +299,21 @@ class SnakeGraph(ClonableArray):
         DIRs = self.directions()[:]
 
         drawing = Graphics()
-        x, y = 0,0
-        (x,y)=xy
+        x,y = 0,0
+        (x,y) = xy
 
         for pos in range(0,len(DIRs)+1):
 
-            tile_drawing = line([(x+1,y+0),(x+0,y+0),(x+0,y+1),(x+1,y+1),(x+1,y+0)],rgbcolor=rgb_color)
+            tile_drawing = line([(x+1,y+0),(x+0,y+0),(x+0,y+1),
+                                 (x+1,y+1),(x+1,y+0)],rgbcolor=rgb_color)
 
             if pos < len(DIRs):
                 DIR = DIRs[pos]
 
             if DIR == 'up':
-                y=y+1
+                y = y + 1
             else:
-                x=x+1
+                x = x + 1
 
             drawing = drawing + tile_drawing
             drawing.axes(False)
@@ -326,9 +330,9 @@ class SnakeGraphs(Parent, UniqueRepresentation):
     the new tile is glued to the north or the east of the previous tile.
     See [MSW_Positivity]_ or [CanakciSchiffler]_.
 
-    Note that the edges of the graph are not labeled. Hence snake graphs with `d`
-    tiles are in bijection with :class:`Compositions` (of positive integers)
-    with total sum `d`
+    Note that the edges of the graph are not labeled. Hence snake graphs
+    with `d` tiles are in bijection with :class:`Compositions` (of
+    positive integers) with total sum `d`.
 
     .. SEEALSO::
 
@@ -551,8 +555,14 @@ class LabeledSnakeGraph(SnakeGraph):
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
-    def __init__(self, shape, weights={}, diagonal_weights={},
+    @staticmethod
+    def __classcall_private__(cls, shape, weights={}, diagonal_weights={},
                  first_tile_orientation=1, from_surface=False):
+        return LabeledSnakeGraphs()(shape, weights, diagonal_weights,
+                 first_tile_orientation, from_surface)
+
+    def __init__(self, parent, shape, weights, diagonal_weights,
+                 first_tile_orientation, from_surface):
         """
         Initialize ``self``.
 
@@ -566,7 +576,7 @@ class LabeledSnakeGraph(SnakeGraph):
             sage: G = LabeledSnakeGraph((2,1,1))
             sage: TestSuite(G).run()
         """
-        SnakeGraph.__init__(self, SnakeGraphs(sum(shape)), shape)
+        SnakeGraph.__init__(self, parent, shape)
         self._weights = weights
         self._diagonal_weights = diagonal_weights
         self._first_tile_orientation = 1
@@ -811,4 +821,15 @@ class LabeledSnakeGraph(SnakeGraph):
             drawing.set_aspect_ratio(1)
 
         return drawing
+
+class LabeledSnakeGraphs(Parent, UniqueRepresentation):
+    Element = LabeledSnakeGraph
+
+    def __init__(self):
+        Parent.__init__(self, category=Sets().Infinite())
+
+    def _element_constructor_(self, shape, weights={}, diagonal_weights={},
+                 first_tile_orientation=1, from_surface=False):
+        return self.element_class(self, shape, weights, diagonal_weights,
+                                  first_tile_orientation, from_surface)
 
