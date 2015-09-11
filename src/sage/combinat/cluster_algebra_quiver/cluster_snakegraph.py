@@ -4,8 +4,8 @@ Snake Graphs
 REFERENCES:
 
 .. [CanakciSchiffler] Canakci and Schiffler,
-    *Snake graph calculus and cluster algebras from surfaces*
-    :arxiv:`abs/1209.4617`
+   *Snake graph calculus and cluster algebras from surfaces*
+   :arxiv:`abs/1209.4617`
 
 .. [MSW_Positivity] Musiker - Schiffler - Williams,
    *Positivity for Cluster Algebras from Surfaces*,
@@ -39,23 +39,27 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.list_clone import ClonableArray
+from sage.rings.all import ZZ
+from sage.combinat.composition import composition_iterator_fast
 
 class SnakeGraph(ClonableArray):
     """
     A snake graph is a connected sequence of square tiles.
+
     To build a snake graph, start with one tile, then glue a new tile so that
     the new tile is glued to the north or the east of the previous tile.
     See [MSW_Positivity]_ or [CanakciSchiffler]_.
 
-    Note that the edges of the graph are not labeled. Hence a snake graph is uniquely
-    determined by a list of positive integers (``shape``) such that their sum is
-    equal to the number of the snake graph's tiles, i.e. a snake graph is uniquely
-    determined by a composition of ``d``, where ``d`` is the number of tiles
-    of the snake graph.
+    Note that the edges of the graph are not labeled. Hence a snake graph
+    is uniquely determined by a list of positive integers (``shape``) such
+    that their sum is equal to the number of the snake graph's tiles, i.e.
+    a snake graph is uniquely determined by a composition of ``d``, where
+    ``d`` is the number of tiles of the snake graph.
 
     INPUT:
 
-    - ``shape`` -- a tuple/list listing the sizes of the rows of the snake graph
+    - ``shape`` -- a tuple/list listing the sizes of the rows of
+      the snake graph
 
     EXAMPLES::
 
@@ -85,25 +89,27 @@ class SnakeGraph(ClonableArray):
              -- --
             |  |  |
              -- --
-        """
-        from sage.combinat.composition import Compositions
-        from sympy import Sum
-        if not list(shape) in Compositions():
-            raise ValueError("The input must be a composition of positive integers")
-        SGs = SnakeGraphs(sum(shape))
-        return SGs(shape)#, first_tile_orientation, edge_weights, diagonal_weights)
-
-    def __init__(self, parent, shape):
-        """
-        Initialize ``self``.
 
         TESTS::
+
+            sage: Gs = SnakeGraphs(9)
+            sage: G = Gs((3,2,4))
+            sage: G == Gs([3,2,4])
+            True
+            sage: G == Gs([3,3,3])
+            False
+            sage: G == 'I am a string'
+            False
+            sage: SnakeGraph([1,1,1])==SnakeGraph([3])
+            False
+            sage: SnakeGraph([1,1,1])!=SnakeGraph([3])
+            True
 
             sage: G = SnakeGraph((2,1,1))
             sage: TestSuite(G).run()
         """
-        self._shape = list(shape)
-        ClonableArray.__init__(self, parent, shape)
+        SGs = SnakeGraphs(sum(shape))
+        return SGs(shape)#, first_tile_orientation, edge_weights, diagonal_weights)
 
     def check(self):
         """
@@ -114,8 +120,8 @@ class SnakeGraph(ClonableArray):
             sage: M = SnakeGraphs(3)
             sage: M[0].check()
         """
-        if self not in self.parent():
-            raise ValueError("invalid snake graph")
+        if any(x not in ZZ or x <= 0 for x in self):
+            raise ValueError("the snake graph must consist of positive integers")
 
     def _repr_(self):
         """
@@ -162,35 +168,34 @@ class SnakeGraph(ClonableArray):
              -- -- -- ,  -- -- --    ,  -- -- -- -- ,  -- -- -- -- --
             ]
         """
-        sh = self._shape
         ret = ''
-        top_row = sh[-1]
-        skips = sum(sh[:-1])-(len(sh)-1)
+        top_row = self[-1]
+        skips = sum(self[:-1])-(len(self)-1)
         white_sp = '   '
 
         ret += white_sp* skips
         ret +=' -- '
-        for i in range(1,top_row):
+        for i in range(1, top_row):
             ret +='-- '
         ret +='\n' + white_sp * skips + '|  |'
-        for i in range(1,top_row):
+        for i in range(1, top_row):
             ret +='  |'
 
-        for i in range(len(sh)-2,-1,-1):
-            r = sh[i]
+        for i in range(len(self)-2,-1,-1):
+            r = self[i]
             skips += -(r-1)
 
             ret +='\n' + white_sp * skips
-            for i in range(0,r+sh[i+1]-1):
+            for i in range(r + self[i+1] - 1):
                 ret +=' --'
 
             ret +='\n' + white_sp * skips + '|  |'
-            for i in range(1,r):
+            for i in range(1, r):
                 ret +='  |'
 
-        bottom_row = sh[0]
+        bottom_row = self[0]
         ret +='\n' + ' --'
-        for i in range(1,bottom_row):
+        for i in range(1, bottom_row):
             ret +=' --'
 
         return ret
@@ -215,40 +220,7 @@ class SnakeGraph(ClonableArray):
             sage: Gs((3,3,3)).shape()
             [3, 3, 3]
         """
-        return self._shape
-
-    def __eq__(self, other):
-        """
-        Check equality.
-
-        EXAMPLES::
-
-            sage: Gs = SnakeGraphs(9)
-            sage: G = Gs((3,2,4))
-            sage: G == Gs([3,2,4])
-            True
-            sage: G == Gs([3,3,3])
-            False
-            sage: G == 'I am a string'
-            False
-
-        """
-        if isinstance(other, SnakeGraph):
-            return self._shape == other._shape
-        return False
-
-    def __ne__(self, other):
-        """
-        Check not equals. This is needed because otherwise != gives a wrong result.
-
-        EXAMPLES::
-
-            sage: SnakeGraph([1,1,1])==SnakeGraph([3])
-            False
-            sage: SnakeGraph([1,1,1])!=SnakeGraph([3])
-            True
-        """
-        return not self.__eq__(other)
+        return list(self)
 
     def directions(self):
         """
@@ -286,13 +258,13 @@ class SnakeGraph(ClonableArray):
             sage: SnakeGraph([1]).directions()
             []
         """
-        temp_shape = self._shape[:]
+        temp_shape = self[:]
         temp_shape.reverse()
         DIRs = []
-        for i in range(len(self._shape)):
+        for i in range(len(self)):
             r = temp_shape.pop()
             DIRs.extend((r-1)*['right'])
-            if i == len(self._shape)-1:
+            if i == len(self)-1:
                 break
             DIRs.append('up')
         return DIRs
@@ -458,14 +430,14 @@ class SnakeGraphs(Parent, UniqueRepresentation):
             if x in self.parent():
                 return x
             else:
-                raise ValueError("Cannot convert between Snake Graphs of different number of tiles")
+                raise ValueError("cannot convert between snake graphs of different number of tiles")
         elif isinstance(x, list) or isinstance(x, tuple) or isinstance(x, set):
             if sum(x) == self._d:
                 return self.element_class(self, x)
             else:
-                raise ValueError("Input a composition of {}".format(self._d))
+                raise ValueError("input a composition of {}".format(self._d))
         else:
-            raise ValueError("{} is not a SnakeGraph nor a list of positive integers".format(x))
+            raise ValueError("{} is not a snake graph nor a list of positive integers".format(x))
 
     Element = SnakeGraph
 
@@ -485,13 +457,12 @@ class SnakeGraphs(Parent, UniqueRepresentation):
              -- ,  -- --
             ]
         """
-        from sage.combinat.composition import Compositions
-        for c in Compositions(self._d):
-            yield self.element_class(self,c)
+        for c in composition_iterator_fast(self._d):
+            yield self.element_class(self, c)
 
     def number_of_tiles(self):
         """
-        Return the number of tiles of the snake graph.
+        Return the number of tiles of the snake graphs of ``self``.
 
         EXAMPLES::
 
@@ -500,3 +471,16 @@ class SnakeGraphs(Parent, UniqueRepresentation):
             4
         """
         return self._d
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SnakeGraphs(4)
+            sage: M.cardinality()
+            16
+        """
+        return ZZ(2)**self._d
+
