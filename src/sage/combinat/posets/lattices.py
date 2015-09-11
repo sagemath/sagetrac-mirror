@@ -8,15 +8,45 @@ This module implements finite (semi)lattices. It defines:
     :widths: 30, 70
     :delim: |
 
-    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
-    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
-    :class:`FiniteLatticePoset` | A class for finite lattices.
-    :meth:`JoinSemilattice` | Construct a join semi-lattice.
     :meth:`LatticePoset` | Construct a lattice.
     :meth:`MeetSemilattice` | Construct a meet semi-lattice.
+    :meth:`JoinSemilattice` | Construct a join semi-lattice.
+    :class:`FiniteLatticePoset` | A class for finite lattices.
+    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
+    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
 
 List of (semi)lattice methods
 -----------------------------
+
+**Meet and join**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+
+**Properties of the lattice**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+
+**Elements and sublattices**
 
 .. csv-table::
     :class: contentstable
@@ -24,20 +54,10 @@ List of (semi)lattice methods
     :delim: |
 
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
-    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
-    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices.
-    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
-    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
-    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
-    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
-    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
-    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
-    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
-    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
-    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -881,6 +901,78 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.append(H.neighbor_in_iterator(cur))
         return True
 
+    def is_vertically_decomposable(self,return_type='boolean'):
+        r"""
+        Test if the lattice if vertically decomposable, and return the
+        decomposition.
+
+        A lattice is vertically decomposable if it has an element `v` that is
+        comparable to all others, and is neither the top nor the bottom
+        element. The lattice can then be *decomposed* into [`v` with all its
+        superior elements], and [`v` with all its inferior elements], both of
+        which are sublattices.
+
+        INPUT:
+
+        - ``return_type`` (string) -- admits three values:
+
+            - ``"boolean"`` (default) -- the method answers whether the lattice
+              admits a decomposition.
+
+            - ``"lists"`` -- answer ``False`` when no decomposition exists, and
+              otherwise return an admissible decomposition, given as two lists
+              of elements of self.
+
+            - ``"sublattices"`` -- answer ``False`` when no decomposition
+              exists, and otherwise return an admissible decomposition, given as
+              two sublattices of self.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: L.is_vertically_decomposable()
+            True
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
+            False
+
+        Obtaining the decomposition::
+
+            sage: L.is_vertically_decomposable(return_type='lists')
+            ([1, 2, 3, 6], [6, 12, 18, 36])
+            sage: L.is_vertically_decomposable(return_type='sublattices')
+            (Finite lattice containing 4 elements, Finite lattice containing 4 elements)
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
+            ....:     range(5)]
+            [False, False, False, True, True]
+        """
+        if return_type not in ['boolean','lists','sublattices']:
+            raise ValueError(("'return_type'(={}) must be one of 'boolean',"+
+                              "'lists', or 'sublattices'").format(return_type))
+
+        n = self.cardinality()
+        cut_vertex = None
+        m = 0
+        for i in range(n-1):
+            for j in self._hasse_diagram.neighbors_out(i):
+                m = max(m, j)
+            if m == i+1 and m<n-1:
+                cut_vertex = m+1
+                break
+        if cut_vertex is None:
+            return False
+        elif return_type == 'boolean':
+            return True
+        top    = [self._vertex_to_element(x) for x in range(cut_vertex)]
+        bottom = [self._vertex_to_element(x) for x in range(cut_vertex-1,n)]
+        if return_type == 'sublattices':
+            top    = self.sublattice(top)
+            bottom = self.sublattice(bottom)
+        return top,bottom
+
     def sublattice(self, elms):
         r"""
         Return the smallest sublattice containing elements on the given list.
@@ -898,12 +990,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = Posets.BooleanLattice(3)
             sage: L.sublattice([3,5,6,7])
             Finite lattice containing 8 elements
-
-        .. NOTE::
-
-            This is very unoptimal algorithm. Better one is described on
-            "Computing the sublattice of a lattice generated by a set of
-            elements" by K. Bertet and M. Morvan. Feel free to implement it.
         """
         gens_remaining = set(elms)
         current_set = set()
