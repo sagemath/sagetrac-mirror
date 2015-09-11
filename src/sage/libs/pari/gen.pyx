@@ -8196,8 +8196,7 @@ cdef class gen(gen_auto):
         Before :trac:`15654`, this used to take a very long time.
         Now it takes much less than a second::
 
-            sage: pari.allocatemem(200000)
-            PARI stack size set to 200000 bytes
+            sage: pari.set_stacksize(200000)
             sage: x = polygen(ZpFM(3,10))
             sage: pol = ((x-1)^50 + x)
             sage: pari(pol).poldisc()

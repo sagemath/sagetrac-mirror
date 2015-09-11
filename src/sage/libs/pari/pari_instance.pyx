@@ -1169,7 +1169,6 @@ cdef class PariInstance(PariInstance_auto):
 
         TESTS::
 
-            sage: pari.allocatemem(10^6, silent=True)
             sage: pari._allocate_huge_mem()
               ***   Warning: not enough memory, new stack 9223372036854775808
               ***   Warning: not enough memory, new stack 4611686018427387904
@@ -1223,7 +1222,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.stacksize()
             20000000
             sage: pari.allocatemem(10^6)
-            PARI stack size set to 1000000 bytes
+            PARI stack size set to 20000000 bytes
 
         The following computation will automatically increase the PARI
         stack size::
@@ -1235,11 +1234,11 @@ cdef class PariInstance(PariInstance_auto):
         large because of the computation of ``a``::
 
             sage: pari.stacksize()
-            16000000
+            20000000
             sage: pari.allocatemem(10^6)
-            PARI stack size set to 1000000 bytes
+            PARI stack size set to 20000000 bytes
             sage: pari.stacksize()
-            1000000
+            20000000
 
         TESTS:
 
@@ -1247,15 +1246,12 @@ cdef class PariInstance(PariInstance_auto):
         from a very small stack size::
 
             sage: pari.allocatemem(1)
-            PARI stack size set to 1 bytes
+            PARI stack size set to 20000000 bytes
             sage: a = pari(2)^100000000
             sage: pari.stacksize()
-            16777216
+            20000000
         """
-        if s:
-            self.set_stacksize(s)
-        else:
-            self.set_stacksize(2 * self.stacksize())
+        pari(s).allocatemem()
         if not silent:
             print('PARI stack size set to %s bytes' % self.stacksize())
 
