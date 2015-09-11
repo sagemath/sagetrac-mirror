@@ -11,15 +11,6 @@ REFERENCES:
    *Positivity for Cluster Algebras from Surfaces*,
    :arxiv:`0906.0748`
 
-.. [MSW_Bases] Musiker - Schiffler - Williams,
-   *Bases for Cluster Algebras from Surfaces*,
-   :arxiv:`1110.4364`
-
-.. [MW_MatrixFormulae] Musiker and Williams,
-   *Matrix Formulae and Skein Relations for Cluster Algebras
-   from Surfaces*,
-   :arxiv:`1108.3382`
-
 .. [FominShapiroThurston] Fomin - Shapiro - Thurston,
    *Cluster algebras and triangulated surfaces. part I: Cluster
    complexes*,
@@ -30,7 +21,6 @@ REFERENCES:
     Cluster triangulations closely interact with
     :class:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`,
     :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
-
 """
 
 from sage.structure.parent import Parent
@@ -512,7 +502,7 @@ class LabeledSnakeGraph(SnakeGraph):
     """
     A labeled snake graph is a snake graph in which each edge and each tile carries
     a label or weight [CanakciSchiffler]_. For example, for snake graphs arising
-    from cluster algebras from surfaces, these labels are cluster variables.
+    from cluster algebras from surfaces [FominShapiroThurston]_, these labels are cluster variables.
     See [MSW_Positivity]_.
 
     In some situation we would like to consider the weights of the diagonals of the
@@ -530,18 +520,18 @@ class LabeledSnakeGraph(SnakeGraph):
 
         :class:`SnakeGraph`
 
-    Note that :class:`LabeledSnakeGraph` differs from :class:SnakeGraph in that user
+    Note that :class:`LabeledSnakeGraph` differs from :class:`SnakeGraph` in that user
     may specify two optional attributes ``diagonal_weights`` and ``weights``.
 
     INPUT:
 
     - ``shape`` -- a tuple/list listing the sizes of the rows of the snake graph
     - ``weights`` -- (default:None) a list/tuple/dictionary giving the weight
-    of each edge of the snake graph
+      of each edge of the snake graph
     - ``diagonal_weights`` -- (default: None) a list/tuple/dictionary giving
-    the weight for the diagonal of each tile
+      the weight for the diagonal of each tile
     - ``first_tile_orientation`` -- (default: 1) whether the orientation
-    of the first tile is 1 or -1
+      of the first tile is 1 or -1
 
     EXAMPLES::
 
