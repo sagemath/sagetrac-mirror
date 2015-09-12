@@ -639,6 +639,59 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
+    def is_planar(self):
+        r"""
+        Return ``True`` if the lattice is planar and ``False`` otherwise.
+
+        A lattice is planar if it's Hasse diagram can be drawn on a
+        plane without crossing lines.
+
+        The Hasse diagram of a lattice is directed graph so that
+        whenever `j` covers `i` in the lattice, in the Hasse diagram
+        there is an edge from `i` to `j` and the `y`-coordinate of `j`
+        is greater than that of `i`.
+
+        Note that this is not exactly same that planarity of graphs,
+        altought these are closely related.
+
+        EXAMPLES:
+
+        The Boolean lattice of `2^3` elements is not planar, even if
+        it's covering relations graph is planar::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_planar()
+            False
+            sage: G = B3.cover_relations_graph()
+            sage: G.is_planar()
+            True
+
+        Ordinal product of planar lattices is obviously planar. Same does
+        not apply to cartesian products::
+
+            sage: P = Posets.PentagonPoset()
+            sage: Pc = P.product(P)
+            sage: Po = P.ordinal_product(P)
+            sage: Pc.is_planar()
+            False
+            sage: Po.is_planar()
+            True
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_planar()
+            True
+            sage: Posets.ChainPoset(1).is_planar()
+            True
+        """
+        from copy import copy
+        # The 8-element Boolean lattice is the smallest non-planar lattice.
+        if self.cardinality() < 8:
+            return True
+        g = copy(self.cover_relations_graph())
+        g.add_edge(self.bottom(), self.top())
+        return g.is_planar()
+
     def is_modular(self, L=None):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
