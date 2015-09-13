@@ -110,7 +110,7 @@ cdef class RingCode: #(module.Module):
     cdef next, spanning_codewords, characteristic, _length
     cdef list codeSet
 
-    def __new__(self, matrixGen):
+    def __cinit__(self, matrixGen):
         cdef int size = <int>matrixGen.nrows()
         cdef int sizeCols = <int>matrixGen.ncols()
         #cdef int length = sizeCols
@@ -122,7 +122,12 @@ cdef class RingCode: #(module.Module):
         self.modulus = <int>matrixGen.base_ring().order()
         if sizeCols <= size + lamb:
             self._use_heap_matrix(matrixGen)
+        else:
+            raise NotImplementedError("not sure what to do in this case")
         self.gen_matrix = matrixGen
+
+    def __dealloc__(self):
+        free(self.heap_matrix)
 
     cdef void _use_heap_matrix(self, matrixGen):
         cdef int modulus = self.modulus
