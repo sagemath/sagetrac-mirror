@@ -684,12 +684,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: Posets.ChainPoset(1).is_planar()
             True
         """
-        from copy import copy
+        from sage.graphs.graph import Graph
         # The 8-element Boolean lattice is the smallest non-planar lattice.
         if self.cardinality() < 8:
             return True
-        g = copy(self.cover_relations_graph())
-        g.add_edge(self.bottom(), self.top())
+        g = Graph(self._hasse_diagram)
+        g.add_edge(0, self.cardinality()-1)
         return g.is_planar()
 
     def is_modular(self, L=None):
