@@ -24,7 +24,7 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.rings.infinity import Infinity
 
-class AffinizationOfCrystal(Parent, UniqueRepresentation):
+class AffinizationOfCrystal(UniqueRepresentation, Parent):
     r"""
     An affiniziation of a crystal.
 
@@ -103,18 +103,6 @@ class AffinizationOfCrystal(Parent, UniqueRepresentation):
             Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
         """
         return "Affinization of {}".format(self._B)
-
-    def weight_lattice_realization(self):
-        """
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
-            sage: A.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 2, 1]
-        """
-        return self.cartan_type().root_system().weight_lattice(extended=True)
 
     # TODO: This should become unnecessary once we have a proper category for KR crystals
     def digraph(self, subset=None, index_set=None):
