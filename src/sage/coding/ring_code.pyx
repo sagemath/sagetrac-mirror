@@ -36,16 +36,12 @@ TODO:
 
 import sage.modules.free_module as fm
 import sage.modules.module as module
-from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 #cython
-cdef extern from *:
-    void* malloc(int)
-    int memset(void*, int, int)
-    void free(int*)
-    double ceil( double )
-    double floor( double )
-    double pow( double, double)
+from libc.stdlib cimport malloc, free
+from libc.string cimport memset
+from libc.math cimport ceil, floor, pow
 
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule
