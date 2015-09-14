@@ -1332,7 +1332,8 @@ class FSMFourier(SageObject):
             ....:     (-3, -1, 0, 3)],
             ....:     initial_states=[0],
             ....:     final_states=[0, 1, 2, -3, -2, -1]))
-            sage: [FC0, FC1] = F.components # optional - arb
+            sage: [FC0, FC1] = sorted(F.components, # optional - arb
+            ....:     key=lambda x:x.n_states, reverse=True)
             sage: FC0.period # optional - arb
             3
             sage: FC1.period # optional - arb
