@@ -4485,10 +4485,10 @@ def HigmanSimsDesign():
           if (b     in B and
               a not in B)]
 
-    H = [[i for i,A in enumerate(Wa) if len(A&B)==2]
+    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
          for B in Wb]
 
-    H = IncidenceStructure(H).complement()
+    H = IncidenceStructure(H)
 
     return H
 
