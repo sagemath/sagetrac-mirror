@@ -5,7 +5,7 @@
 
 from __future__ import print_function
 
-import os, sys, argparse, re
+import os, argparse, re, subprocess
 from string import join
 
 if "SAGE_ROOT" not in os.environ:
@@ -60,6 +60,25 @@ for p in os.listdir(SAGE_PKGS):
         if f.read().strip() == args['category']:
             local[p] = version
 
+# pip packages: packages installable via pip using "sage -i PKG",
+# because they are listed in the file build/pkgs/piprules.  Only print
+# information about pip packages which are actually installed.
+pip = {}
+PIPRULES = os.path.join(SAGE_ROOT, "build", "pkgs", "piprules")
+try:
+    pip_output = subprocess.check_output(['pip', 'list'], stderr=subprocess.STDOUT)
+except CalledProcessError:
+    pip_output = ''
+with open(PIPRULES, 'r') as f:
+    pip_pkgs = f.read().split('\n')
+for p in pip_pkgs:
+    if p: # Skip any empty strings, i.e., blank lines.
+        s = re.search('\n{}.*\((.*)\)\n'.format(p), pip_output)
+        if s:
+            pip[p] = s.groups(0)[0]
+            # This overwrites the result from reading SAGE_SPKG_INST:
+            installed[p] = s.groups(0)[0]
+
 # remote packages
 remote = {}
 if args['remote'] and args['category']!='installed':
@@ -102,7 +121,7 @@ else:
         if not args['dump']:
             print("{:.<40} {} ({})\n".format("[package] ", "[latest version]",
                                              "[installed version]"))
-        for p in sorted(set(local).union(remote)):
+        for p in sorted(set(local).union(pip).union(remote)):
             line = [p, local.get(p, remote.get(p, 'not_found')),
                     installed.get(p, 'not_installed')]
             if args['dump']:
@@ -110,5 +129,5 @@ else:
             else:
                 print("{:.<40} {} ({})".format(*line))
     else:
-        for p in sorted(set(local).union(remote)):
+        for p in sorted(set(local).union(pip).union(remote)):
             print(p)

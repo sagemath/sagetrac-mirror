@@ -255,7 +255,8 @@ class DocTestController(SageObject):
                     from sage.misc.package import package_versions
                     optional_pkgs = package_versions("optional", local=True)
                     for pkg, versions in optional_pkgs.items():
-                        if versions[0] == versions[1]:
+                        if (versions[0] == versions[1]
+                            or (versions[0] and versions[1] == 'not_found')):
                             options.optional.add(pkg)
 
                 # Check that all tags are valid
