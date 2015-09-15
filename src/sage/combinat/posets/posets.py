@@ -4468,9 +4468,40 @@ class FinitePoset(UniqueRepresentation, Parent):
         # Maximal antichains are maximum cliques on incomparability graph.
         return self.incomparability_graph().cliques_maximal()
 
-    def maximal_chains(self, partial=None):
+    def maximal_chains(self):
+        """
+        Return all maximal chains of the poset.
+
+        Each chain is listed in increasing order.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(3)
+            sage: P.maximal_chains()
+            [[0, 1, 3, 7], [0, 1, 5, 7], [0, 2, 3, 7], [0, 2, 6, 7], [0, 4, 5, 7], [0, 4, 6, 7]]
+            sage: P = Posets.PentagonPoset()
+            sage: Q = P.relabel(lambda i: chr(ord('a')+i))
+            sage: Q.maximal_chains()
+            [['a', 'b', 'e'], ['a', 'c', 'd', 'e']]
+
+        TESTS::
+
+            sage: Poset().maximal_chains()  # Test empty poset
+            []
+
+        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
+        """
+        H = self._hasse_diagram
+        return [[self[element] for element in maxchain] for maxchain in
+                H.all_simple_paths(H.minimal_elements(), H.maximal_elements())]
+
+    def _max_chains(self, partial=None):
         """
         Return all maximal chains of this poset.
+
+        This is a helper function for computing order complex and
+        chain polytope of the poset. Do not use directly, as
+        ``partial``-option does not work like you think.
 
         Each chain is listed in increasing order.
 
@@ -4486,15 +4517,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Posets.BooleanLattice(3)
-            sage: P.maximal_chains()
+            sage: P._max_chains()
             [[0, 1, 3, 7], [0, 1, 5, 7], [0, 2, 3, 7], [0, 2, 6, 7], [0, 4, 5, 7], [0, 4, 6, 7]]
-            sage: P.maximal_chains(partial=[0,2])
+            sage: P._max_chains(partial=[0,2])
             [[0, 2, 3, 7], [0, 2, 6, 7]]
             sage: Q = Posets.ChainPoset(6)
-            sage: Q.maximal_chains()
+            sage: Q._max_chains()
             [[0, 1, 2, 3, 4, 5]]
-
-        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
         """
         if partial is None or len(partial) == 0:
             start = self.minimal_elements()
@@ -4504,11 +4533,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         if len(start) == 0:
             return [partial]
         if len(start) == 1:
-            return self.maximal_chains(partial=partial + start)
+            return self._max_chains(partial=partial + start)
         parts = [partial + [x] for x in start]
         answer = []
         for new in parts:
-            answer += self.maximal_chains(partial=new)
+            answer += self._max_chains(partial=new)
         return answer
 
     def order_complex(self, on_ints=False):
@@ -4551,7 +4580,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             iso = dict([(L[i], i) for i in range(len(L))])
 
         facets = []
-        for f in self.maximal_chains():
+        for f in self._max_chains():
             # TODO: factor out the logic for on_ints / facade / ...
             # We will want to do similar things elsewhere
             if on_ints:
@@ -4644,7 +4673,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 8 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        ineqs=[[1]+[-ZZ(j in chain) for j in self] for chain in self.maximal_chains()]
+        ineqs=[[1]+[-ZZ(j in chain) for j in self] for chain in self._max_chains()]
         for i in self:
             ineqs+=[[0]+[ZZ(j==i) for j in self]]
         return Polyhedron(ieqs=ineqs)
