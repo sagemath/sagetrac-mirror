@@ -5,7 +5,7 @@
 
 from __future__ import print_function
 
-import os, argparse, re, subprocess
+import argparse, json, os, re, subprocess, urllib2
 from string import join
 
 if "SAGE_ROOT" not in os.environ:
@@ -17,7 +17,7 @@ SAGE_ROOT = os.environ["SAGE_ROOT"]
 #################
 
 parser = argparse.ArgumentParser(description="List Sage's packages")
-parser.add_argument('category', choices=['standard', 'optional',
+parser.add_argument('category', choices=['standard', 'optional', 'python',
                                          'experimental', 'installed'],
                     metavar="category",
                     help="The type of packages. Can be 'standard', "
@@ -35,6 +35,10 @@ args = vars(parser.parse_args())
 
 # Get the data #
 ################
+# build several dictionaries package->version
+# installed: sage or python packages installed
+# local    : new style packages available
+# remote   : information from either the Sage mirror or pip
 
 def pkgname_split(name):
     r"""
@@ -42,60 +46,82 @@ def pkgname_split(name):
     """
     return (name.split('-',1) + [''])[:2]
 
+def pip_remote_version(package_name):
+    r"""
+    Return the last available version of ``package_name``.
+    """
+    url = "https://pypi.python.org/pypi/{}/json".format(package_name)
+
+    try:
+        data = json.load(urllib2.urlopen(urllib2.Request(url)))
+    except urllib2.HTTPError:
+        return None
+
+    try:
+        return data["info"]["version"]
+    except KeyError:
+        return None
+
 # Installed packages
 SAGE_SPKG_INST=os.path.join(os.environ["SAGE_ROOT"], 'local', 'var',
                             'lib', 'sage', 'installed')
 installed = dict(pkgname_split(pkgname)
                  for pkgname in os.listdir(SAGE_SPKG_INST))
 
-# new-style packages
-SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
 local = {}
-for p in os.listdir(SAGE_PKGS):
-    if not os.path.isdir(os.path.join(SAGE_PKGS, p)):
-        continue
-    with open(os.path.join(SAGE_PKGS, p, "package-version.txt")) as f:
-        version = f.read().strip()
-    with open(os.path.join(SAGE_PKGS, p, "type")) as f:
-        if f.read().strip() == args['category']:
-            local[p] = version
+if args["category"] == 'python':
+    # python packages: packages installable via pip using "sage -i PKG",
+    # because they are listed in the file build/pkgs/piprules.  Only print
+    # information about pip packages which are actually installed.
+    PIPRULES = os.path.join(SAGE_ROOT, "build", "pkgs", "piprules")
+    try:
+        pip_output = subprocess.check_output(['pip', 'list'], stderr=subprocess.STDOUT)
+    except CalledProcessError:
+        pip_output = ''
+    pip_output = pip_output.lower()
+    with open(PIPRULES, 'r') as f:
+        python_pkgs = f.read().split('\n')
+    for p in python_pkgs:
+        if p: # Skip any empty strings, i.e., blank lines.
+            s = re.search('\n{}.*\((.*)\)\n'.format(p), pip_output)
+            if s:
+                # This overwrites the result from reading SAGE_SPKG_INST:
+                installed[p] = s.groups(0)[0]
+else:
+    # new-style packages: the information is obtained by reading
+    # $SAGE_ROOT/build/pkgs/$PACKAGE_NAME/package-version.txt
+    SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
+    for p in os.listdir(SAGE_PKGS):
+        if not os.path.isdir(os.path.join(SAGE_PKGS, p)):
+            continue
+        with open(os.path.join(SAGE_PKGS, p, "package-version.txt")) as f:
+            version = f.read().strip()
+        with open(os.path.join(SAGE_PKGS, p, "type")) as f:
+            if f.read().strip() == args['category']:
+                local[p] = version
 
-# pip packages: packages installable via pip using "sage -i PKG",
-# because they are listed in the file build/pkgs/piprules.  Only print
-# information about pip packages which are actually installed.
-pip = {}
-PIPRULES = os.path.join(SAGE_ROOT, "build", "pkgs", "piprules")
-try:
-    pip_output = subprocess.check_output(['pip', 'list'], stderr=subprocess.STDOUT)
-except CalledProcessError:
-    pip_output = ''
-with open(PIPRULES, 'r') as f:
-    pip_pkgs = f.read().split('\n')
-for p in pip_pkgs:
-    if p: # Skip any empty strings, i.e., blank lines.
-        s = re.search('\n{}.*\((.*)\)\n'.format(p), pip_output)
-        if s:
-            pip[p] = s.groups(0)[0]
-            # This overwrites the result from reading SAGE_SPKG_INST:
-            installed[p] = s.groups(0)[0]
 
 # remote packages
 remote = {}
-if args['remote'] and args['category']!='installed':
-    # Get mirror URL
-    MIRROR_URL = os.popen("sage-download-file --print-fastest-mirror").read().strip()
+if args['remote'] and args['category'] != 'installed':
+    if args['category'] == 'python':
+        # Ask pip json API
+        remote = {p: pip_remote_version(p) for p in python_pkgs if p}
 
-    # Load the list of packages
-    import urllib
-    f = urllib.urlopen(MIRROR_URL+"/spkg/"+args['category']+"/list")
-    packages_list_remote = f.read()
-    f.close()
+    else:
+        # Get mirror URL
+        MIRROR_URL = os.popen("sage-download-file --print-fastest-mirror").read().strip()
 
-    if '<' in packages_list_remote:
-        print(packages_list_remote)
-        raise RuntimeError("There was an error while downloading the list of packages")
+        # Load the list of packages
+        f = urllib2.urlopen(MIRROR_URL+"/spkg/"+args['category']+"/list")
+        packages_list_remote = f.read()
+        f.close()
 
-    remote = dict(pkgname_split(p) for p in packages_list_remote.split('\n'))
+        if '<' in packages_list_remote:
+            print(packages_list_remote)
+            raise RuntimeError("There was an error while downloading the list of packages")
+
+        remote = dict(pkgname_split(p) for p in packages_list_remote.split('\n'))
 
 # OUTPUT #
 ##########
@@ -121,7 +147,7 @@ else:
         if not args['dump']:
             print("{:.<40} {} ({})\n".format("[package] ", "[latest version]",
                                              "[installed version]"))
-        for p in sorted(set(local).union(pip).union(remote)):
+        for p in sorted(set().union(local, remote)):
             line = [p, local.get(p, remote.get(p, 'not_found')),
                     installed.get(p, 'not_installed')]
             if args['dump']:
@@ -129,5 +155,5 @@ else:
             else:
                 print("{:.<40} {} ({})".format(*line))
     else:
-        for p in sorted(set(local).union(pip).union(remote)):
+        for p in sorted(set().union(local, remote)):
             print(p)
