@@ -133,16 +133,16 @@ The issue: ``plot(h(x), 0, 4)`` plots the line `y=x-2`, not the multi-line
 function defined by ``h``. The reason? In the command ``plot(h(x), 0, 4)``,
 first ``h(x)`` is evaluated: this means plugging the symbolic variable ``x``
 into the function ``h``. So, the inequality ``x < 2`` evaluates to ``False`` first,
-and hence ``h(x)`` evaluates to ``x - 2``. This can be seen with
+and hence ``h(x)`` evaluates to ``0``. This can be seen with
 
 .. link
 
 ::
 
         sage: bool(x < 2)
-        False
+        True
         sage: h(x)
-        x - 2
+        0
 
 Note that here there are two different ``x``: the Python variable used to
 define the function ``h`` (which is local to its definition) and the symbolic
