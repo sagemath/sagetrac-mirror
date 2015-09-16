@@ -22,6 +22,8 @@ AUTHORS:
 
 from math import ceil, log
 
+from six import iteritems
+
 from prefix_coding import PrefixCoding
 from misc import SimpleTable, first_binary_dec_places
 
@@ -255,7 +257,7 @@ class ShannonFanoElias(PrefixCoding):
         
         low = 0
         all_values = []
-        for s, p in dic.iteritems():
+        for s, p in iteritems(dic):
             mid = low + p/2.0
             bits = int(ceil(-log(p, 2)))
             c = first_binary_dec_places(mid, bits)

@@ -238,7 +238,6 @@ class Huffman(PrefixCoding):
         PrefixCoding.__init__(self, source, verbose, q, char_per_symbol,
                               decoding_table_key_len)
         
-        
     def _build_code_from_tree(self, tree, q, prefix):
         r"""
         Build the Huffman code corresponding to a given tree, prefix

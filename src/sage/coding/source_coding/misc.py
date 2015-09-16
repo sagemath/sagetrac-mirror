@@ -94,7 +94,7 @@ def frequency_table(string, char_per_symbol=1):
                 raise ValueError("The passed string does not match with the "
                                  "passed value for char_per_symbol.")
     d = {} 
-    for i in xrange(0, len(string), char_per_symbol):
+    for i in range(0, len(string), char_per_symbol):
         s = string[i:i+char_per_symbol]
         d[s] = d.get(s, 0) + 1
     return d

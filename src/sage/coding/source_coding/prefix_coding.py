@@ -22,6 +22,8 @@ AUTHORS:
 from abc import ABCMeta, abstractmethod
 from itertools import product
 
+from six import string_types, iteritems
+
 from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from misc import frequency_table
@@ -87,7 +89,7 @@ class PrefixCoding(SageObject):
         # Saves how many characters define a symbol.
         self._char_per_symbol = char_per_symbol
         
-        if isinstance(source, basestring):
+        if isinstance(source, string_types):
             if (self._char_per_symbol != 1 and
                 len(source) % self._char_per_symbol != 0):
                 raise ValueError("The passed string does not match with the "
@@ -158,16 +160,15 @@ class PrefixCoding(SageObject):
         """
         if self._character_to_code:
             if self._char_per_symbol == 1:
-                return "".join(map(lambda x: self._character_to_code[x],
-                                   string))
+                return "".join([self._character_to_code[x] for x in string])
             else:
                 if len(string) % self._char_per_symbol != 0:
                     raise ValueError("The passed string contains unknown "
                                      "symbols.")
                 return "".join(
-                    map(lambda x: self._character_to_code[x],
-                    (string[i:i + self._char_per_symbol]
-                    for i in xrange(0, len(string), self._char_per_symbol))))
+                    [self._character_to_code[x] for x in
+                    [string[i:i + self._char_per_symbol]
+                    for i in range(0, len(string), self._char_per_symbol)]])
     
     def decode(self, string):
         r"""
@@ -399,7 +400,7 @@ class PrefixCoding(SageObject):
         """
         g = DiGraph()
         edges = set()
-        for s, c in self._character_to_code.iteritems():
+        for s, c in iteritems(self._character_to_code):
             duplicate = False
             parent = c[:-1]
             if parent:
