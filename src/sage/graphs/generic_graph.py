@@ -15817,7 +15817,7 @@ class GenericGraph(GenericGraph_pyx):
     ### Searches
 
     def breadth_first_search(self, start, ignore_direction=False,
-                             distance=None, neighbors=None,
+                             neighbors=None,
                              report_distance=False):
         """
         Return an iterator over the vertices in a breadth-first ordering.
@@ -15872,15 +15872,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2, 3, 7, 4, 5, 6]
 
-        You can specify a maximum distance in which to search. A
-        distance of zero returns the ``start`` vertices::
-
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.breadth_first_search(0,distance=0))
-            [0]
-            sage: list(D.breadth_first_search(0,distance=1))
-            [0, 1, 2, 3]
-
         Multiple starting vertices can be specified in a list::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
@@ -15888,24 +15879,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3, 4, 5, 6, 7]
             sage: list(D.breadth_first_search([0,6]))
             [0, 6, 1, 2, 3, 7, 4, 5]
-            sage: list(D.breadth_first_search([0,6],distance=0))
-            [0, 6]
-            sage: list(D.breadth_first_search([0,6],distance=1))
-            [0, 6, 1, 2, 3, 7]
-            sage: list(D.breadth_first_search(6,ignore_direction=True,distance=2))
-            [6, 3, 7, 0, 5]
-
-        More generally, you can specify a ``neighbors`` function. For
-        example, you can traverse the graph backwards by setting
-        ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
-
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_in, distance=2))
-            [5, 1, 2, 0]
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_out, distance=2))
-            [5, 7, 0]
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
-            [5, 1, 2, 7, 0, 4, 6]
 
         It is possible (:trac:`16470`) using the keyword
         ``report_distance`` to get pairs (vertex, distance) encoding
@@ -15935,6 +15908,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
         """
+        distance = None
         # Preferably use the Cython implementation
         if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
