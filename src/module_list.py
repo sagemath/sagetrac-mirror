@@ -365,6 +365,14 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.cutwidth',
               sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
+
+    OptionalExtension('sage.graphs.graph_decompositions.tdlib',
+              sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
+              include_dirs = [os.path.join(SAGE_INC, 'tdlib')],
+              language="c++",
+              libraries = ['td'],
+              package = 'tdlib'),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -507,6 +515,8 @@ ext_modules = [
               language="c++",
               libraries = ['coxeter3'],
               package = 'coxeter3'),
+
+
 
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
