@@ -6,7 +6,7 @@
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-include "decl.pxd"
+include "decl.pxi"
 
 cdef class String:
     cdef c_String x

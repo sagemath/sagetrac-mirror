@@ -93,7 +93,7 @@ cdef extern from "graph.h":
 cdef extern from "kl.h":
     cdef cppclass c_KLPol "kl::KLPol":
         const unsigned short& operator[](int)
-        unsigned long deg()
+        Ulong deg()
         int isZero()
 
 cdef extern from "polynomials.h":
