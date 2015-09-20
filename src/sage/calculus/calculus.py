@@ -918,7 +918,9 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: cos(pi/33).minpoly(algorithm='algebraic')
         x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
         sage: cos(pi/33).minpoly(algorithm='numerical')
-        x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Could not prove minimal polynomial ...
 
     Sometimes it fails, as it must given that some numbers aren't algebraic::
 
@@ -949,7 +951,6 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                 error = abs(f(aa))
                 dx = ~RR(Integer(1) << (check_bits - degree - 2))
                 expected_error = abs(f.derivative()(CC(aa))) * dx
-
                 if error < expected_error:
                     # Degree might have been an over-estimate,
                     # factor because we want (irreducible) minpoly.
@@ -962,10 +963,11 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                         error = abs(g(aa))
                         if error < expected_error:
                             # See if we can prove equality exactly
-                            if g(ex).simplify_trig().canonicalize_radical() == 0:
+                            if (g(ex).simplify_trig().canonicalize_radical() == 0).holds():
                                 return g
                             # Otherwise fall back to numerical guess
-                            elif epsilon and error < epsilon:
+                            elif ((epsilon and error < epsilon)
+                                or (epsilon==0 and error==0)):
                                 return g
                             elif algorithm is not None:
                                 raise NotImplementedError("Could not prove minimal polynomial %s (epsilon %s)" % (g, RR(error).str(no_sci=False)))

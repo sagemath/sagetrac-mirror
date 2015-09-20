@@ -325,13 +325,13 @@ def assume(*args):
     Here, we verify that for `x>0`, `\sqrt{x^2}=x`::
 
         sage: assume(x > 0)
-        sage: bool(sqrt(x^2) == x)
+        sage: (sqrt(x^2) == x).holds()
         True
 
     This will be assumed in the current Sage session until forgotten::
 
         sage: forget()
-        sage: bool(sqrt(x^2) == x)
+        sage: (sqrt(x^2) == x).holds()
         False
 
     Another major use case is in taking certain integrals and limits
@@ -406,19 +406,19 @@ def assume(*args):
 
         sage: x, y, z = var('x, y, z')
         sage: assume(x>=y,y>=z,z>=x)
-        sage: bool(x==z)
+        sage: (x==z).holds()
         True
-        sage: bool(z<x)
+        sage: (z<x).holds()
         False
-        sage: bool(z>y)
+        sage: (z>y).holds()
         False
-        sage: bool(y==z)
+        sage: (y==z).holds()
         True
         sage: forget()
         sage: assume(x>=1,x<=1)
-        sage: bool(x==1)
+        sage: (x==1).holds()
         True
-        sage: bool(x>1)
+        sage: (x>1).holds()
         False
         sage: forget()
 
@@ -575,14 +575,14 @@ def _forget_all():
         sage: var('x,y')
         (x, y)
         sage: assume(x > 0, y < 0)
-        sage: bool(x*y < 0)      # means definitely true
+        sage: (x*y < 0).holds()      # means definitely true
         True
-        sage: bool(x*y > 0)      # might not be true
+        sage: (x*y > 0).holds()      # might not be true
         False
         sage: forget()    # implicitly calls _forget_all
-        sage: bool(x*y < 0)      # might not be true
+        sage: (x*y < 0).holds()      # might not be true
         False
-        sage: bool(x*y > 0)      # might not be true
+        sage: (x*y > 0).holds()      # might not be true
         False
 
     TESTS:

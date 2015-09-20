@@ -6,24 +6,18 @@ builtin max and min are not able to deal with variables as users might expect.
 These functions wait to evaluate if there are variables.
 
 Here you can see some differences::
-
-   sage: max(x,x^2)
-   x
-   sage: max_symbolic(x,x^2)
-   max(x, x^2)
-   sage: f(x) = max_symbolic(x,x^2); f(1/2)
-   1/2
+   
+   sage: min(3,5,x)
+   3
+   sage: min_symbolic(3,5,x)
+   min(x, 3)
 
 This works as expected for more than two entries::
 
    sage: max(3,5,x)
-   5
-   sage: min(3,5,x)
-   3
+   x
    sage: max_symbolic(3,5,x)
    max(x, 5)
-   sage: min_symbolic(3,5,x)
-   min(x, 3)
 
 """
 ###############################################################################
@@ -182,6 +176,10 @@ class MaxSymbolic(MinMax_base):
             max(x, 5)
             sage: max_symbolic([3,5,x])
             max(x, 5)
+            sage: max_symbolic(x,x^2)
+            max(x, x^2)
+            sage: f(x) = max_symbolic(x,x^2); f(1/2)
+            1/2
 
         TESTS::
 

@@ -1291,18 +1291,9 @@ cdef class Parent(category_object.CategoryObject):
                 return True
             elif EQ is False:
                 return False
-            elif EQ:
-                return True
+            elif isinstance(EQ, sage.symbolic.expression.Expression):
+                return bool(EQ)
             else:
-                from sage.symbolic.expression import is_Expression
-                if is_Expression(EQ):  # if comparing gives an Expression, then it must be an equation.
-                    # We return *true* here, even though the equation
-                    # EQ must have evaluated to False for us to get to
-                    # this point. The reason is because... in practice
-                    # SR is ultra-permissive about letting other rings
-                    # coerce in, but ultra-strict about doing
-                    # comparisons.
-                    return True
                 return False
         except (TypeError, ValueError, ZeroDivisionError):
             return False

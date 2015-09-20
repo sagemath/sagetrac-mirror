@@ -259,7 +259,7 @@ class Function_coth(HyperbolicFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(coth(x), x) == diff(1/tanh(x), x))
+            sage: (diff(coth(x), x) == diff(1/tanh(x), x)).holds()
             True
             sage: diff(coth(x), x)
             -csch(x)^2
@@ -334,7 +334,7 @@ class Function_sech(HyperbolicFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(sech(x), x) == diff(1/cosh(x), x))
+            sage: (diff(sech(x), x) == diff(1/cosh(x), x)).holds()
             True
             sage: diff(sech(x), x)
             -sech(x)*tanh(x)
@@ -407,7 +407,7 @@ class Function_csch(HyperbolicFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(csch(x), x) == diff(1/sinh(x), x))
+            sage: (diff(csch(x), x) == diff(1/sinh(x), x)).holds()
             True
             sage: diff(csch(x), x)
             -coth(x)*csch(x)

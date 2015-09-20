@@ -54,12 +54,12 @@ def reset(vars=None, attached=False):
         sage: assume(x > 3)
         sage: assumptions()
         [x > 3]
-        sage: bool(x > 3)
+        sage: (x > 3).holds()
         True
         sage: reset()
         sage: assumptions()
         []
-        sage: bool(x > 3)
+        sage: (x > 3).holds()
         False
 
     """

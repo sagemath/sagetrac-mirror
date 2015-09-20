@@ -255,7 +255,7 @@ class Function_sec(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(sec(x), x) == diff(1/cos(x), x))
+            sage: (diff(sec(x), x) == diff(1/cos(x), x)).holds()
             True
             sage: diff(sec(x), x)
             sec(x)*tan(x)
@@ -355,7 +355,7 @@ class Function_csc(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(csc(x), x) == diff(1/sin(x), x))
+            sage: (diff(csc(x), x) == diff(1/sin(x), x)).holds()
             True
             sage: diff(csc(x), x)
             -cot(x)*csc(x)
@@ -452,7 +452,7 @@ class Function_cot(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: bool(diff(cot(x), x) == diff(1/tan(x), x))
+            sage: (diff(cot(x), x) == diff(1/tan(x), x)).holds()
             True
             sage: diff(cot(x), x)
             -csc(x)^2
