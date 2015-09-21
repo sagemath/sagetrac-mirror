@@ -639,28 +639,25 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_planar(self):
+    def is_upward_planar(self):
         r"""
-        Return ``True`` if the lattice is planar and ``False`` otherwise.
+        Return ``True`` if the lattice is (upward) planar, and ``False``
+        otherwise.
 
-        A lattice is planar if it's Hasse diagram can be drawn on a
-        plane without crossing lines.
+        A lattice is upward planar if it's Hasse diagram has an upward
+        planar drawing. In other words, it can be drawn without
+        crossing lines and every covering relation directed upwards.
 
-        The Hasse diagram of a lattice is directed graph so that
-        whenever `j` covers `i` in the lattice, in the Hasse diagram
-        there is an edge from `i` to `j` and the `y`-coordinate of `j`
-        is greater than that of `i`.
-
-        Note that this is not exactly same that planarity of graphs,
-        altought these are closely related.
+        This is called planar lattice in many papers. Name here is
+        chosen to prevent confusion with planarity in graphs.
 
         EXAMPLES:
 
-        The Boolean lattice of `2^3` elements is not planar, even if
+        The Boolean lattice of `2^3` elements is not upward planar, even if
         it's covering relations graph is planar::
 
             sage: B3 = Posets.BooleanLattice(3)
-            sage: B3.is_planar()
+            sage: B3.is_upward_planar()
             False
             sage: G = B3.cover_relations_graph()
             sage: G.is_planar()
@@ -672,16 +669,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: P = Posets.PentagonPoset()
             sage: Pc = P.product(P)
             sage: Po = P.ordinal_product(P)
-            sage: Pc.is_planar()
+            sage: Pc.is_upward_planar()
             False
-            sage: Po.is_planar()
+            sage: Po.is_upward_planar()
             True
 
         TESTS::
 
-            sage: Posets.ChainPoset(0).is_planar()
+            sage: Posets.ChainPoset(0).is_upward_planar()
             True
-            sage: Posets.ChainPoset(1).is_planar()
+            sage: Posets.ChainPoset(1).is_upward_planar()
             True
         """
         from sage.graphs.graph import Graph
