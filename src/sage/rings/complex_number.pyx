@@ -795,9 +795,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
-        This takes `a^b` and compues `\exp(b \log(a))`.
+        This takes `a^b` and computes `\exp(b \log(a))` for
+        `imag(self)!=0`.
 
         EXAMPLES::
 
@@ -816,7 +817,16 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.20788
             sage: (2+i)^(0.5)
             1.4553 + 0.34356*I
+
+        TESTS:
+
+        Check if :trac:`19256` is fixed::
+
+            sage: RR(sqrt(2)) - CC(sqrt(2)) == 0
+            True
         """
+        if self.imag() == 0 and right.imag() == 0:
+            return self.parent()(self.real()**right)
         if isinstance(right, (int, long, integer.Integer)):
             return RingElement.__pow__(self, right)
 
