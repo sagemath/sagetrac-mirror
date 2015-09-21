@@ -203,7 +203,6 @@ def expand_binary_operator(cls, meth):
         True
     """
     # the method has to be defined on ParentMethods for documentation
-
     ##########################################################################
     # ElementMethods #########################################################
     ##########################################################################

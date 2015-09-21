@@ -219,5 +219,3 @@ class BidendriformBialgebras(Category_over_base_ring):
                         tensor([b, a]),
                         "Fourth condition (see :mod:sage.categories.bidendriform_bialgebras)"
                     )
-        class ElementMethods:
-            pass

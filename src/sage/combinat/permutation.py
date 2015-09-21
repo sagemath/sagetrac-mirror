@@ -5888,11 +5888,6 @@ class StandardPermutations_n_abstract(Permutations):
             sage: SP.global_options.reset()
         """
         self.n = n
-<<<<<<< HEAD
-        if category is None:
-            category = FiniteEnumeratedSets()
-        Permutations.__init__(self, category=category)
-=======
         Permutations.__init__(self,
                         category=CombinatorialStructures.GradedComponents())
 
@@ -5914,7 +5909,6 @@ class StandardPermutations_n_abstract(Permutations):
 
         """
         return self.n
->>>>>>> FETCH_HEAD
 
     def _element_constructor_(self, x, check_input=True):
         """
