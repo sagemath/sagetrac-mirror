@@ -1317,6 +1317,30 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sib.name('ZZ')
 
+    def le(self, left, right):
+        r"""
+        Return whether ``left`` is less than or equal to ``right`` in
+        this integer ring.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: QQ.le(2, 3)
+            True
+            sage: QQ.le(1, -2)
+            False
+        """
+        return self(left) <= self(right)
+
 ZZ = IntegerRing_class()
 Z = ZZ
 
