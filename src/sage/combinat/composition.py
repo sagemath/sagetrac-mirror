@@ -30,7 +30,7 @@ AUTHORS:
 #*****************************************************************************
 from itertools import imap
 from sage.categories.classes_of_combinatorial_structures import \
-    ClassesOfCombinatorialStructures
+    EnumeratedSetsWithGrading
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.structures import StructuresClass
@@ -1601,9 +1601,9 @@ class Compositions(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()
         """
         if is_infinite:
-            Parent.__init__(self, category=ClassesOfCombinatorialStructures())
+            Parent.__init__(self, category=EnumeratedSetsWithGrading())
         else:
-            Parent.__init__(self, category=ClassesOfCombinatorialStructures.\
+            Parent.__init__(self, category=EnumeratedSetsWithGrading.\
                                            GradedComponents())
 
     Element = Composition

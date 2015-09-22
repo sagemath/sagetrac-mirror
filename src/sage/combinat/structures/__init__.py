@@ -33,7 +33,7 @@ from sage.misc.classcall_metaclass import typecall
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.categories.classes_of_combinatorial_structures import \
-    ClassesOfCombinatorialStructures
+    EnumeratedSetsWithGrading
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -102,7 +102,7 @@ class StructuresClass(UniqueRepresentation, Parent):
 
     """
 
-    def __init__(self, category=ClassesOfCombinatorialStructures(),
+    def __init__(self, category=EnumeratedSetsWithGrading(),
                  *args, **options):
         """
 
@@ -178,8 +178,7 @@ class StructuresClass(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.categories.examples.\
-                  classes_of_combinatorial_structures import Compositions
+            sage: from sage.categories.examples.classes_of_combinatorial_structures import Compositions
             sage: list(Compositions().some_elements())
             [[1], [2], [3], [4]]
 
@@ -202,7 +201,7 @@ class StructuresClass(UniqueRepresentation, Parent):
         """
 
         def __init__(self, ambient, grading,
-                     category=ClassesOfCombinatorialStructures.GradedComponents()):
+                     category=EnumeratedSetsWithGrading.GradedComponents()):
             """
             TESTS::
 
