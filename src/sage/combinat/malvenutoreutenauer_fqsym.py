@@ -2,7 +2,7 @@
 Malvenuto-Reutenauer Hopf algebra of permutations (FQSym)
 
 This is also sometimes referred to in the literature as the free
-quasi-symmetric function Hopf algebra.
+quasi-symmetric function combinatorial Hopf algebra.
 """
 from sage.categories.rings import Rings
 from sage.combinat.permutation import Permutation, Permutations
