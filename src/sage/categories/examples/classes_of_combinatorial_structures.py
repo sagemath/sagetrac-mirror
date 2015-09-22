@@ -53,14 +53,14 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import imap
-from sage.combinat.structures import StructuresClass, Structure
+from sage.combinat.structures import ParentStructure, ElementStructure
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.rings.integer import Integer
 from sage.structure.list_clone import ClonableIntArray
 from sage.sets.positive_integers import PositiveIntegers
 
 
-class Composition(Structure, ClonableIntArray):
+class Composition(ElementStructure, ClonableIntArray):
     """
     A composition could be represented as a vector of integers so one use
     *ClonableIntArray* to implement our structures.
@@ -122,7 +122,7 @@ class Composition(Structure, ClonableIntArray):
         return Compositions()
 
 
-class Compositions(StructuresClass):
+class Compositions(ParentStructure):
     """
     TESTS::
 
@@ -163,7 +163,7 @@ class Compositions(StructuresClass):
     # *Composition*.
     Element = Composition
 
-    class GradedComponent(StructuresClass.GradedComponent):
+    class GradedComponent(ParentStructure.GradedComponent):
         """
         TESTS::
 

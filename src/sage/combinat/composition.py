@@ -33,7 +33,7 @@ from sage.categories.classes_of_combinatorial_structures import \
     EnumeratedSetsWithGrading
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.structures import StructuresClass
+from sage.combinat.structures import ParentStructure
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ

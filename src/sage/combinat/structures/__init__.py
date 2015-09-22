@@ -38,7 +38,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class Structure(Element):
+class ElementStructure(Element):
     """
     A *structure* is a discrete object with a degree notion. It is an element of
     a combinatorial class of structures.
@@ -82,13 +82,13 @@ class Structure(Element):
             try:
                 parent = cls._auto_parent_
             except AttributeError:
-                raise NotImplementedError("A *Structure* (%s) should"%cls +
+                raise NotImplementedError("A *ElementStructure* (%s) should"%cls +
                                           " implement *_auto_parent_*")
 
         return typecall(cls, parent, *args, **options)
 
 
-class StructuresClass(UniqueRepresentation, Parent):
+class ParentStructure(UniqueRepresentation, Parent):
     """
     *Structures* is the python class of the classes of combinatorial structures.
 
