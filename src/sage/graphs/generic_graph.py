@@ -114,7 +114,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
     :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an eulerian circuit if one exists.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
-    :meth:`~GenericGraph.interior_paths` | Return an exhaustive list of paths (also lists) through only interior vertices from vertex start to vertex end in the (di)graph.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
 
@@ -1317,7 +1316,7 @@ class GenericGraph(GenericGraph_pyx):
 
             This routine needs the optional package igraph to be installed:
             to do so, it is enough to
-            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            run ``sage -i python_igraph``. For
             more information on the Python version of igraph, see
             http://igraph.org/python/.
 
@@ -1445,8 +1444,7 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i igraph' followed by " +
-                              "'sage -i python_igraph'.")
+                              "install it, run 'sage -i python_igraph'")
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -3968,7 +3966,7 @@ class GenericGraph(GenericGraph_pyx):
 
         This wraps the reference implementation provided by John Boyer of the
         linear time planarity algorithm by edge addition due to Boyer
-        Myrvold. (See reference code in :mod:`sage.graphs.planarity`).
+        Myrvold. (See reference code in :mod:`~sage.graphs.planarity`).
 
         .. NOTE::
 
@@ -7810,8 +7808,7 @@ class GenericGraph(GenericGraph_pyx):
                 import igraph
             except ImportError:
                 raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i igraph " +
-                                 "followed by sage -i python_igraph.")
+                                 "Please, install it with sage -i python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -12540,7 +12537,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_subgraph(self, other, induced=True):
         """
-        Tests whether ``self`` is a subgraph of ``other``.
+        Return ``True`` if the graph is a subgraph of ``other``, and ``False`` otherwise.
 
         .. WARNING::
 
@@ -12553,31 +12550,34 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
-          whether ``self`` is an *induced* subgraph of ``other`` that is if
-          the vertices of ``self`` are also vertices of ``other``, and the
-          edges of  ``self`` are equal to the edges of ``other`` between the
-          vertices contained in ``self`.
-          If set to ``False`` tests whether ``self`` is a subgraph of ``other``
-          that is if all vertices of ``self`` are also in ``other`` and all
-          edges of ``self`` are also in ``other``.
+          whether the graph is an *induced* subgraph of ``other`` that is if
+          the vertices of the graph are also vertices of ``other``, and the
+          edges of the graph are equal to the edges of ``other`` between the
+          vertices contained in the graph.
+
+          If set to ``False`` tests whether the graph is a subgraph of
+          ``other`` that is if all vertices of the graph are also in
+          ``other`` and all edges of the graph are also in ``other``.
 
         OUTPUT:
 
-        boolean -- ``True`` iff ``self`` is a (possibly induced) subgraph of ``other``.
+        boolean -- ``True`` iff the graph is a (possibly induced)
+        subgraph of ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs isomorphic
-            to ``self`` in ``other``, you are looking for the following methods:
+            If you are interested in the (possibly induced) subgraphs
+            isomorphic to the graph in ``other``, you are looking for
+            the following methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- finds a subgraph
-              isomorphic to `G` inside of a `self`
+            - :meth:`~GenericGraph.subgraph_search` -- Find a subgraph
+              isomorphic to ``other`` inside of the graph.
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- Count the number
               of such copies.
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
-              the copies of `G` contained in `self`.
+            - :meth:`~GenericGraph.subgraph_search_iterator` --
+              Iterate over all the copies of ``other`` contained in the graph.
 
         EXAMPLES::
 
@@ -12586,8 +12586,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_subgraph(P)
             True
 
-            sage: H=graphs.CycleGraph(5)
-            sage: G=graphs.PathGraph(5)
+            sage: H = graphs.CycleGraph(5)
+            sage: G = graphs.PathGraph(5)
             sage: G.is_subgraph(H)
             False
             sage: G.is_subgraph(H, induced=False)
@@ -12607,6 +12607,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The input parameter must be a DiGraph.
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.digraph import DiGraph
@@ -15838,7 +15839,7 @@ class GenericGraph(GenericGraph_pyx):
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
-          :meth:`successors` function of the graph.
+          :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
         - ``report_distance`` -- (default ``False``) If ``True``,
           reports pairs (vertex, distance) where distance is the
@@ -15992,7 +15993,7 @@ class GenericGraph(GenericGraph_pyx):
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
-          :meth:`.successors` function of the graph.
+          :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
         .. SEEALSO::
 
@@ -17687,8 +17688,7 @@ class GenericGraph(GenericGraph_pyx):
            are in your path. The graphviz suite can be download from
            http://graphviz.org.
 
-         - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
-           and install it with ``sage -i dot2tex-2.8.?.spkg``
+         - Install dot2tex with ``sage -i dot2tex``
 
         .. TODO::
 
@@ -20213,18 +20213,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             False
 
-        TESTS:
+        TESTS::
 
-        When no solver is installed, a
-        ``OptionalPackageNotFoundError`` exception is raised::
-
-            sage: from sage.misc.exceptions import OptionalPackageNotFoundError
-            sage: try:
-            ...       g = graphs.ChvatalGraph()
-            ...       if not g.is_hamiltonian():
-            ...          print "There is something wrong here !"
-            ... except OptionalPackageNotFoundError:
-            ...       pass
+            sage: g = graphs.ChvatalGraph()
+            sage: g.is_hamiltonian()
+            True
 
         :trac:`16210`::
 
@@ -20437,7 +20430,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(gg)
             False
 
-        Ensure that trac:`14777` is fixed ::
+        Ensure that :trac:`14777` is fixed ::
 
             sage: g = Graph()
             sage: h = Graph()
