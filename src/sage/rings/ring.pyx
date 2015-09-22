@@ -142,6 +142,8 @@ cdef class Ring(ParentWithGens):
             and Category of commutative algebras over
                 (quotient fields and posets)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
+        Category of algebras over (algebras over (quotient fields and posets)
+                                   and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 
