@@ -39,6 +39,10 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.list_clone import ClonableArray
+from sage.categories.category import Category
+from sage.categories.classes_of_combinatorial_structures import \
+    ClassesOfCombinatorialStructures
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
@@ -3009,7 +3013,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
 #################################################################
 # Enumerated set of all binary trees
 #################################################################
-class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
+class BinaryTrees_all(BinaryTrees, DisjointUnionEnumeratedSets):
 
     def __init__(self):
         """
@@ -3034,7 +3038,29 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
-            facade=True, keepkey = False)
+            facade=True, keepkey = False,
+            category=Category.join([ClassesOfCombinatorialStructures(),
+                                    InfiniteEnumeratedSets()]))
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: BinaryTrees().graded_component(4)
+            Binary trees of size 4
+
+        """
+        return BinaryTrees_size(n)
+
+    def grading(self, T):
+        """
+        TESTS::
+
+            sage: BinaryTree([[],[]]).grade()
+            3
+
+        """
+        return T.node_number()
 
     def _repr_(self):
         """
@@ -3131,8 +3157,30 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category = FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(
+            category=ClassesOfCombinatorialStructures.GradedComponents()
+        )
         self._size = size
+
+    def grade(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(3).grade()
+            3
+
+        """
+        return self._size
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(3).ambient()
+            Binary trees
+
+        """
+        return BinaryTrees_all()
 
     def _repr_(self):
         """
@@ -3248,7 +3296,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: S = BinaryTrees(3)
             sage: S.element_class
             <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
-            sage: S.first().__class__ == BinaryTrees().first().__class__
+            sage: S.first().__class__ == BinaryTrees(5).first().__class__
             True
         """
         return self._parent_for.element_class

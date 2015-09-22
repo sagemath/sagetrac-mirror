@@ -183,6 +183,7 @@ class SetsWithGrading(Category):
             """
             return self.subset(grade)
 
+        @abstract_method
         def grading(self, elt):
             """
             Return the grading of the element ``elt`` of ``self``.
@@ -191,12 +192,15 @@ class SetsWithGrading(Category):
 
             EXAMPLES::
 
-                sage: N = SetsWithGrading().example(); N
-                Non negative integers
-                sage: N.grading(4)
-                4
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import \
+                                       Compositions
+                sage: C = Compositions(); C
+                Compositions of integers
+                sage: C.grading(C([4,2,3]))
+                9
+
             """
-            return elt.grade()
 
         def generating_series(self):
             """
@@ -225,3 +229,20 @@ class SetsWithGrading(Category):
         #   theorem on asymptotic and be a tool to determine a strategy for
         #   algorithms.
 
+    class ElementMethods:
+
+        def grade(self):
+            """
+            Return the grading of the element ``self``. It is its degree.
+
+            EXAMPLES::
+
+                sage: from sage.categories.examples.\
+                      classes_of_combinatorial_structures import \
+                                       Compositions
+                sage: C = Compositions()
+                sage: C([3,1,3]).grade()
+                7
+
+            """
+            return self.parent().grading(self)
