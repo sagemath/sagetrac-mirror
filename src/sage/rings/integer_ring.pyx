@@ -57,8 +57,6 @@ import sage.rings.ideal
 import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
-from sage.categories.basic import EuclideanDomains
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
@@ -122,6 +120,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
+            and Category of posets
             and Category of infinite enumerated sets
         sage: Z(2^(2^5) + 1)
         4294967297
@@ -302,8 +301,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: A in InfiniteEnumeratedSets()
             True
         """
+        from sage.categories.basic import EuclideanDomains
+        from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+        from sage.categories.posets import Posets
+        category = (EuclideanDomains(), InfiniteEnumeratedSets(), Posets())
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=category)
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
