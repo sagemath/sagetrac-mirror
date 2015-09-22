@@ -1313,6 +1313,30 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.structure.factorization import Factorization
         return Factorization(F, f.leading_coefficient())
 
+    def le(self, left, right):
+        r"""
+        Return whether ``left`` is less than or equal to ``right`` in
+        this rational field.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: QQ.le(2, 3)
+            True
+            sage: QQ.le(1/2, -2)
+            False
+        """
+        return self(left) <= self(right)
+
 QQ = RationalField()
 Q = QQ
 
