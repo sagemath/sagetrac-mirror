@@ -5903,9 +5903,10 @@ class StandardPermutations_n_abstract(Permutations):
             sage: SP.global_options.reset()
         """
         self.n = n
-        Permutations.__init__(self,
-                              category=ClassesOfCombinatorialStructures.\
-                                       GradedComponents())
+        if category:
+            Permutations.__init__(self, category=category & ClassesOfCombinatorialStructures.GradedComponents())
+        else:
+            Permutations.__init__(self, category=ClassesOfCombinatorialStructures.GradedComponents())
 
     def grade(self):
         """
