@@ -245,25 +245,19 @@ class CartesianProductPosets(CartesianProduct):
 
     class Element(CartesianProduct.Element):
 
-        def _le_(self, other):
+        def _richcmp_(self, other, op):
             r"""
-            Return if this element is less or equal to ``other``.
+            Comparisons of cartesian product elements.
 
             INPUT:
 
-            - ``other`` -- an element.
+            - ``other`` -- an element of the same parent as this element.
+
+            - ``op`` -- an operator (see :mod:`sage.structure.sage_object`)
 
             OUTPUT:
 
             A boolean.
-
-            .. NOTE::
-
-                This method calls :meth:`CartesianProductPosets.le`. Override
-                it in inherited class to change this.
-
-                It can be assumed that this element and ``other`` have
-                the same parent.
 
             TESTS::
 
@@ -276,75 +270,8 @@ class CartesianProductPosets(CartesianProduct):
                 True
                 sage: C((1/3, 2)) <= C((2, 2))  # indirect doctest
                 True
-            """
-            return self.parent().le(self, other)
 
-
-        def __le__(self, other):
-            r"""
-            Return if this element is less than or equal to ``other``.
-
-            INPUT:
-
-            - ``other`` -- an element.
-
-            OUTPUT:
-
-            A boolean.
-
-            .. NOTE::
-
-                This method uses the coercion framework to find a
-                suitable common parent.
-
-                This method can be deleted once :trac:`10130` is fixed and
-                provides these methods automatically.
-
-            TESTS::
-
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
-                sage: def le_sum(left, right):
-                ....:     return (sum(left) < sum(right) or
-                ....:             sum(left) == sum(right) and left[0] <= right[0])
-                sage: C = cartesian_product((QQ, QQ), order=le_sum)
-                sage: C((1/3, 2)) <= C((2, 1/3))
-                True
-                sage: C((1/3, 2)) <= C((2, 2))
-                True
-            """
-            from sage.structure.element import have_same_parent
-            if have_same_parent(self, other):
-                return self._le_(other)
-
-            from sage.structure.element import get_coercion_model
-            import operator
-            try:
-                return get_coercion_model().bin_op(self, other, operator.le)
-            except TypeError:
-                return False
-
-
-        def __ge__(self, other):
-            r"""
-            Return if this element is greater than or equal to ``other``.
-
-            INPUT:
-
-            - ``other`` -- an element.
-
-            OUTPUT:
-
-            A boolean.
-
-            .. NOTE::
-
-                This method uses the coercion framework to find a
-                suitable common parent.
-
-                This method can be deleted once :trac:`10130` is fixed and
-                provides these methods automatically.
-
-            TESTS::
+            ::
 
                 sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
                 sage: def le_sum(left, right):
@@ -355,31 +282,6 @@ class CartesianProductPosets(CartesianProduct):
                 False
                 sage: C((1/3, 2)) >= C((2, 2))
                 False
-            """
-            return other.__le__(self)
-
-
-        def __lt__(self, other):
-            r"""
-            Return if this element is less than ``other``.
-
-            INPUT:
-
-            - ``other`` -- an element.
-
-            OUTPUT:
-
-            A boolean.
-
-            .. NOTE::
-
-                This method uses the coercion framework to find a
-                suitable common parent.
-
-                This method can be deleted once :trac:`10130` is fixed and
-                provides these methods automatically.
-
-            TESTS::
 
                 sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
                 sage: def le_sum(left, right):
@@ -390,31 +292,8 @@ class CartesianProductPosets(CartesianProduct):
                 True
                 sage: C((1/3, 2)) < C((2, 2))
                 True
-            """
-            return not self == other and self.__le__(other)
 
-
-        def __gt__(self, other):
-            r"""
-            Return if this element is greater than ``other``.
-
-            INPUT:
-
-            - ``other`` -- an element.
-
-            OUTPUT:
-
-            A boolean.
-
-            .. NOTE::
-
-                This method uses the coercion framework to find a
-                suitable common parent.
-
-                This method can be deleted once :trac:`10130` is fixed and
-                provides these methods automatically.
-
-            TESTS::
+            ::
 
                 sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
                 sage: def le_sum(left, right):
@@ -426,4 +305,20 @@ class CartesianProductPosets(CartesianProduct):
                 sage: C((1/3, 2)) > C((2, 2))
                 False
             """
-            return not self == other and other.__le__(self)
+            from sage.structure.sage_object import \
+                op_EQ, op_NE, op_LE, op_GE, op_LT, op_GT
+
+            if self.value == other.value:
+                return op == op_EQ or op == op_LE or op == op_GE
+
+            elif op == op_NE:
+                return True
+
+            elif op == op_EQ:
+                return False
+
+            elif op == op_LT or op == op_LE:
+                return self.parent().le(self, other)
+
+            elif op == op_GT or op == op_GE:
+                return self.parent().le(other, self)
