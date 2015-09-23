@@ -1056,10 +1056,9 @@ def mobius_transform(A, z):
     The matrix can be symbolic or can be a matrix over the real
     or complex numbers, but must be invertible::
 
-        sage: (a,b,c,d) = var('a,b,c,d');
-        sage: mobius_transform(matrix(2,[a,b,c,d]),I)
-        (I*a + b)/(I*c + d)
-
+        sage: (b,c) = var('b,c');
+        sage: mobius_transform(matrix(2,[1,b,c,b*c+1]),I)
+        (b + I)/(b*c + I*c + 1)
         sage: mobius_transform(matrix(2,[0,0,0,0]),I)
         Traceback (most recent call last):
         ...

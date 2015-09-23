@@ -269,7 +269,7 @@ def integral(f, *args, **kwds):
          -6.9388939039072284e-17]
         sage: h.factor()
         0
-        sage: bool(h == 0)
+        sage: (h == 0).holds()
         True
     """
     try:

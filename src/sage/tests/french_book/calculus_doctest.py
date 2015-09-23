@@ -8,7 +8,7 @@ Tests extracted from ./calculus.tex.
 
 Sage example in ./calculus.tex, line 37::
 
-    sage: bool(x^2 + 3*x + 1 == (x+1)*(x+2))
+    sage: (x^2 + 3*x + 1 == (x+1)*(x+2)).holds()
     False
 
 Sage example in ./calculus.tex, line 74::
@@ -27,7 +27,7 @@ Sage example in ./calculus.tex, line 74::
 Sage example in ./calculus.tex, line 91::
 
     sage: x, y, z = var('x, y, z') ; q = x*y + y*z + z*x
-    sage: bool(q(x=y, y=z, z=x) == q), bool(q(z=y)(y=x) == 3*x^2)
+    sage: (q(x=y, y=z, z=x) == q).holds(), (q(z=y)(y=x) == 3*x^2).holds()
     (True, True)
 
 Sage example in ./calculus.tex, line 99::
@@ -106,9 +106,9 @@ Sage example in ./calculus.tex, line 318::
 
 Sage example in ./calculus.tex, line 371::
 
-    sage: assume(x > 0); bool(sqrt(x^2) == x)
+    sage: assume(x > 0); (sqrt(x^2) == x).holds()
     True
-    sage: forget(x > 0); bool(sqrt(x^2) == x)
+    sage: forget(x > 0); (sqrt(x^2) == x).holds()
     False
     sage: n = var('n'); assume(n, 'integer'); sin(n*pi).simplify()
     0
@@ -150,7 +150,7 @@ Sage example in ./calculus.tex, line 460::
 
     sage: c.simplify_trig()
     0
-    sage: c.is_zero()
+    sage: (c == 0).holds()
     True
 
 Sage example in ./calculus.tex, line 516::

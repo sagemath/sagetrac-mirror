@@ -64,7 +64,7 @@ explicit calls to Maxima or other systems.
     sage: a = sqrt(2*sqrt(3) + 4); b = 1 + sqrt(3)
     sage: print float(a-b)
     0.0
-    sage: print bool(a == b)
+    sage: (a == b).holds()
     True
     sage: # We can, of course, do this in a quadratic field
     sage: k.<sqrt3> = QuadraticField(3)
@@ -80,7 +80,7 @@ explicit calls to Maxima or other systems.
     sage: b = 3+sqrt(2)
     sage: a, b
     (sqrt(3*sqrt(2*sqrt(-12*sqrt(-2*sqrt(2) + 3) + 5) + 3) + 14), sqrt(2) + 3)
-    sage: bool(a==b)
+    sage: (a==b).holds()
     True
     sage: abs(float(a-b)) < 1e-10
     True
@@ -126,7 +126,7 @@ explicit calls to Maxima or other systems.
     e^(1/2*x) - 1
     sage: f(x=10.0).n(53), g(x=10.0).n(53)
     (147.413159102577, 147.413159102577)
-    sage: bool(f == g)
+    sage: (f == g).holds()
     True
 
 ::
@@ -204,7 +204,7 @@ explicit calls to Maxima or other systems.
     sage: var('x,y,z')
     (x, y, z)
     sage: assume(x>=y, y>=z,z>=x)
-    sage: print bool(x==z)
+    sage: (x==z).holds()
     True
 
 ::
@@ -214,7 +214,7 @@ explicit calls to Maxima or other systems.
     sage: assume(x>y, y>0)
     sage: print list(sorted(assumptions()))
     [x > y, y > 0]
-    sage: print bool(2*x^2 > 2*y^2)
+    sage: (2*x^2 > 2*y^2).holds()
     True
     sage: forget()
     sage: print assumptions()
@@ -271,14 +271,14 @@ explicit calls to Maxima or other systems.
     sage: a = sqrt(997) - (997^3)^(1/6)
     sage: a.simplify()
     0
-    sage: bool(a == 0)
+    sage: (a == 0).holds()
     True
 
 ::
 
     sage: # (YES) Sqrt(99983)-99983^3^(1/6)=0
     sage: a = sqrt(99983) - (99983^3)^(1/6)
-    sage: bool(a==0)
+    sage: (a==0).holds()
     True
     sage: float(a)
     1.1368683772...e-13
@@ -290,7 +290,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3))-6 = 0
     sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6; a
     (4^(1/3) + 2^(1/3))^3 - 6*4^(1/3) - 6*2^(1/3) - 6
-    sage: bool(a==0)
+    sage: (a==0).holds()
     True
     sage: abs(float(a)) < 1e-10
     True
@@ -308,7 +308,7 @@ explicit calls to Maxima or other systems.
     # returns True only when it can prove equality. Thus, in this case, we get
     # False even though the equality holds.
     sage: f = log(tan(x/2 + pi/4)) - arcsinh(tan(x))
-    sage: bool(f == 0)
+    sage: (f == 0).holds()
     False
     sage: [abs(float(f(x=i/10))) < 1e-15 for i in range(1,5)]
     [True, True, True, True]
@@ -329,7 +329,7 @@ explicit calls to Maxima or other systems.
     sage: f = log( (2*sqrt(r) + 1) / sqrt(4*r  + 4*sqrt(r) +  1))
     sage: f
     log((2*sqrt(r) + 1)/sqrt(4*r + 4*sqrt(r) + 1))
-    sage: bool(f == 0)
+    sage: (f == 0).holds()
     False
     sage: [abs(float(f(r=i))) < 1e-10 for i in [0.1,0.3,0.5]]
     [True, True, True]
@@ -342,7 +342,7 @@ explicit calls to Maxima or other systems.
     sage: f = (4*r+4*sqrt(r)+1)^(sqrt(r)/(2*sqrt(r)+1))*(2*sqrt(r)+1)^(2*sqrt(r)+1)^(-1)-2*sqrt(r)-1
     sage: f
     (4*r + 4*sqrt(r) + 1)^(sqrt(r)/(2*sqrt(r) + 1))*(2*sqrt(r) + 1)^(1/(2*sqrt(r) + 1)) - 2*sqrt(r) - 1
-    sage: bool(f == 0)
+    sage: (f == 0).holds()
     False
     sage: [abs(float(f(r=i))) < 1e-10 for i in [0.1,0.3,0.5]]
     [True, True, True]

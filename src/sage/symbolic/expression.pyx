@@ -1648,19 +1648,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x > 2).assume()
 
-        Bool returns True below if the inequality is *definitely* known to
+        ``holds()`` returns True below if the inequality is *definitely* known to
         be True.
 
         ::
 
-            sage: bool(x > 0)
+            sage: (x > 0).holds()
             True
-            sage: bool(x < 0)
+            sage: (x < 0).holds()
             False
 
-        This may or may not be True, so bool returns False::
+        This may or may not be True, so ``holds()`` returns False::
 
-            sage: bool(x > 3)
+            sage: (x > 3).holds()
             False
 
         If you make inconsistent or meaningless assumptions,
@@ -2251,18 +2251,17 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1./2^10000).is_trivial_zero()
             False
 
-        The :meth:`~sage.structure.element.Element.is_zero` method
-        is more capable::
+        The :meth:`holds` method is more capable::
 
             sage: t = pi + (pi - 1)*pi - pi^2
             sage: t.is_trivial_zero()
             False
-            sage: t.is_zero()
+            sage: (t==0).holds()
             True
             sage: u = sin(x)^2 + cos(x)^2 - 1
             sage: u.is_trivial_zero()
             False
-            sage: u.is_zero()
+            sage: (u==0).holds()
             True
         """
         return self._gobj.is_zero()

@@ -822,6 +822,16 @@ class Function_Bessel_K(BuiltinFunction):
             +infinity
             sage: bessel_K(-1, 1).n(128)
             0.60190723019723457473754000153561733926
+
+        ::
+            sage: bessel_K(1/2, pi)
+            sqrt(1/2)*e^(-pi)
+            sage: bessel_K(1/2, x)
+            bessel_K(1/2, x)
+            sage: assume(x > 0)
+            sage: bessel_K(1/2, x)
+            sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
+            sage: forget()
         """
         # special identity
         from sage.symbolic.ring import SR

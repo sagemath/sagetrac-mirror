@@ -903,9 +903,8 @@ def full_group_by(l, key=lambda x: x):
         ....:                            key=lambda i:t[i]),
         ....:                            key=lambda i:t[i]):
         ....:     print k, list(elements)
-        2/x [0]
         1/x [1]
-        2/x [2]
+        2/x [0, 2]
 
     Note that the behavior is different from ``itertools.groupby``
     because neither `1/x<2/x` nor `2/x<1/x` does hold.
@@ -3938,7 +3937,7 @@ class FiniteStateMachine(SageObject):
             sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: assume(p + q == 1)
-            sage: (p + q - 1).is_zero()
+            sage: (p + q - 1 == 0).holds()
             True
             sage: F.is_Markov_chain()
             True
