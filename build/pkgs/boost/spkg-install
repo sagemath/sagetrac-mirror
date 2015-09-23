@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+echo "Clean out old boost headers"
+rm -rf "${SAGE_LOCAL}"/include/boost
+if ! [ $? -eq 0 ]; then
+    echo "Failed to delete old boost headers."
+    exit 1
+fi
+
+cd src/
+echo "Bootstraping boost"
+# By default this is populated by a system value.
+# If boost has been installed system wide it can cause interference.
+# The build can fail purely and simply without much of an explanation.
+export BOOST_BUILD_PATH="${SAGE_LOCAL}"/share/boost-build
+./bootstrap.sh --with-toolset=gcc \
+               --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building b2."
+    exit 1
+fi
+echo "generating a user configuration"
+CUR=`pwd`
+
+echo "Building the boost libraries"
+./b2 --build-dir="${CUR}"/sage \
+     toolset=gcc \
+     --without-python \
+     --without-mpi \
+     -d+2
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building boost libraries."
+    exit 1
+fi
+
+echo "Installing boost"
+./b2 --build-dir="${CUR}"/sage \
+     toolset=gcc \
+     --without-python \
+     --without-mpi \
+     -d+2 \
+     --prefix="$SAGE_LOCAL" \
+     install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing boost."
+    exit 1
+fi
+
