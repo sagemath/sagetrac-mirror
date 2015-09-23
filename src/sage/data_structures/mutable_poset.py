@@ -2187,14 +2187,17 @@ class MutablePoset(SageObject):
                 return
             raise KeyError('Key %s is not contained in this poset.' % (key,))
 
-        for reverse in (False, True):
-            for p in shell.predecessors(reverse):
-                S = p.successors(reverse)
-                S.remove(shell)
-                D = set(s for s in p.iter_depth_first(reverse)
-                        if s in shell.successors(reverse))
-                S.update(shell.successors(reverse))
-                S.difference_update(D)
+        for upper in shell.successors():
+            upper.predecessors().remove(shell)
+
+        for lower in shell.predecessors():
+            lower.successors().remove(shell)
+            for upper in shell.successors():
+                if not any(s <= upper
+                           for s in lower.successors()):
+                    lower.successors().add(upper)
+                    upper.predecessors().add(lower)
+
         del self._shells_[key]
 
 
