@@ -421,6 +421,9 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     unsigned find_function "GiNaC::function::find_function" (char* name,
             unsigned nargs) except +ValueError
 
+    bint has_symbol "GiNaC::has_symbol" (GEx ex)
+    bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)
+
     GFunctionOptVector g_registered_functions \
             "GiNaC::function::registered_functions" ()
 

@@ -3631,8 +3631,12 @@ class Polyhedron_base(Element):
         if len(p)!=self.ambient_dim():
             return False
 
+        from sage.symbolic.expression import Expression
         for H in self.Hrep_generator():
-            if not H.contains(p):
+            res = H.contains(p)
+            if isinstance(res, Expression):
+                res = res.holds()
+            if not res is True:
                 return False
         return True
 

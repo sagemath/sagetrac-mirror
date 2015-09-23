@@ -824,7 +824,8 @@ class Function_Bessel_K(BuiltinFunction):
             0.60190723019723457473754000153561733926
         """
         # special identity
-        if n == Integer(1) / Integer(2) and x > 0:
+        from sage.symbolic.ring import SR
+        if n == Integer(1) / Integer(2) and (SR(x) > 0).holds():
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
