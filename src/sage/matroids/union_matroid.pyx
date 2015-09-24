@@ -86,7 +86,7 @@ cdef class MatroidUnion(Matroid):
         """
         summands = []
         for e in self.matroids:
-            summands.append(e.delete(e.groundset()-X))
+            summands.append(e.delete(e.groundset()-set(X)))
         sum_matroid = MatroidSum(summands)
         d = {}
         for (i,x) in sum_matroid.groundset():
@@ -253,10 +253,13 @@ cdef class PartitionMatroid(Matroid):
             Traceback (most recent call last):
             ...
             ValueError: not an iterator of disjoint sets
+            sage: PartitionMatroid([])
+            Partition Matroid of rank 0 on 0 elements
         """
         P2 = map(set,list(partition))
-        if len(set.union(*P2)) != sum(map(len,P2)):
-            raise ValueError("not an iterator of disjoint sets")
+        if len(P2) != 0:
+            if len(set.union(*P2)) != sum(map(len,P2)):
+                raise ValueError("not an iterator of disjoint sets")
         self.p = {}
         for i in range(len(P2)):
             for j in P2[i]:
