@@ -202,5 +202,6 @@ Miscellaneous
    sage/categories/action
    sage/categories/category_cy_helper
    sage/categories/poor_man_map
+   sage/categories/misc/operators_tools
 
 .. include:: ../footer.txt
