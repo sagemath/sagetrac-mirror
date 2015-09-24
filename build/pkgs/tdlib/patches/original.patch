@@ -1,6 +1,6 @@
-diff -rupN tdlib-1.0/Makefile tdlib-1.0_/Makefile
---- tdlib-1.0/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ tdlib-1.0_/Makefile	2015-09-19 19:28:00.726714936 +0200
+diff -rupN A/Makefile B/Makefile
+--- A/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ B/Makefile	2015-09-24 15:20:53.105460000 +0200
 @@ -0,0 +1,13 @@
 +CC=g++
 +#CFLAGS=-Wall -fPIC -O3 -fomit-frame-pointer -funroll-loops
@@ -15,21 +15,15 @@ diff -rupN tdlib-1.0/Makefile tdlib-1.0_/Makefile
 +
 +clean: 
 +	-@rm -rf *.o *.so 2>/dev/null || true
-diff -rupN tdlib-1.0/sage_tdlib.cpp tdlib-1.0_/sage_tdlib.cpp
---- tdlib-1.0/sage_tdlib.cpp	1970-01-01 01:00:00.000000000 +0100
-+++ tdlib-1.0_/sage_tdlib.cpp	2015-09-19 19:26:18.158712871 +0200
-@@ -0,0 +1,305 @@
+diff -rupN A/sage_tdlib.cpp B/sage_tdlib.cpp
+--- A/sage_tdlib.cpp	1970-01-01 01:00:00.000000000 +0100
++++ B/sage_tdlib.cpp	2015-09-24 16:03:48.121512102 +0200
+@@ -0,0 +1,121 @@
 +#include <boost/tuple/tuple.hpp>
 +#include <map>
 +
 +#include <boost/graph/adjacency_list.hpp>
 +#include "TD_combinations.hpp"
-+#include "TD_lower_bounds.hpp"
-+#include "TD_greedyCR.hpp"
-+#include "TD_dynamicCR.hpp"
-+#include "TD_seperator_algorithm.hpp"
-+#include "TD_elimination_orderings.hpp"
-+#include "TD_postprocessing.hpp"
 +#include "TD_misc.hpp"
 +
 +
@@ -129,98 +123,16 @@ diff -rupN tdlib-1.0/sage_tdlib.cpp tdlib-1.0_/sage_tdlib.cpp
 +}
 +
 +
-+/* PREPROCESSING */
-+
-+int sage_preprocessing_MD(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+
-+    treedec::preprocessing_MD(G, T, lb);
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return lb;
-+}
-+
-+
-+int sage_preprocessing_FI_TM(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+
-+    treedec::preprocessing_FI_TM(G, T, lb);
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return lb;
-+}
-+
-+
-+/* LOWER BOUNDS */
-+
-+
-+int sage_deltaC_min_d(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::deltaC_min_d(G);
-+}
-+
-+int sage_deltaC_max_d(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::deltaC_max_d(G);
-+}
-+
-+int sage_deltaC_least_c(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::deltaC_least_c(G);
-+}
-+
-+int sage_LBN_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::LBN_deltaC(G);
-+}
-+
-+int sage_LBNC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::LBNC_deltaC(G);
-+}
-+
-+int sage_LBP_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::LBP_deltaC(G);
-+}
-+
-+int sage_LBPC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    return treedec::lb::LBPC_deltaC(G);
-+}
-+
 +
 +/* EXACT TREE DECOMPOSITIONS */
 +
-+int sage_CR_greedy_decomp(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
++int sage_exact_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
 +    TD_graph_t G;
 +    make_tdlib_graph(G, V_G, E_G);
 +
 +    TD_tree_dec_t T;
 +
-+    treedec::CR_greedy_decomp(G, T, lb);
++    treedec::exact_decomposition_cutset(G, T, lb);
 +
 +    make_sage_decomp(T, V_T, E_T);
 +
@@ -228,148 +140,14 @@ diff -rupN tdlib-1.0/sage_tdlib.cpp tdlib-1.0_/sage_tdlib.cpp
 +}
 +
 +
-+int sage_CR_dynamic_decomp(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+
-+    treedec::CR_dynamic_decomp(G, T, lb);
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return treedec::get_width(T);
-+}
-+
-+/* APPOXIMATIVE TREE DECOMPOSITIONS */
-+
-+
-+int sage_seperator_algorithm(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+
-+    treedec::seperator_algorithm(G, T);
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return treedec::get_width(T);
-+}
-+
-+int sage_ordering_to_treedec(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, std::vector<unsigned int> &elim_ordering){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+    treedec::ordering_to_treedec(G, elim_ordering, T);
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return treedec::get_width(T);
-+}
-+
-+void sage_treedec_to_ordering(std::vector<std::vector<int> > &V, std::vector<unsigned int> &E, std::vector<unsigned int> &elim_ordering){
-+    TD_tree_dec_t T;
-+    make_tdlib_decomp(T, V, E);
-+
-+    treedec::treedec_to_ordering(T, elim_ordering);
-+}
-+
-+
-+/* POSTPROCESSING */
-+
-+int sage_MSVS(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;	
-+    make_tdlib_decomp(T, V_T, E_T);
-+
-+    treedec::MSVS(G, T);
-+
-+    V_T.clear();
-+    E_T.clear();
-+
-+    make_sage_decomp(T, V_T, E_T);
-+
-+    return treedec::get_width(T);
-+}
-+
-+void sage_minimalChordal(std::vector<unsigned int> &V, std::vector<unsigned int> &E, std::vector<unsigned int> &old_elimination_ordering, std::vector<unsigned int> &new_elimination_ordering){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V, E);
-+
-+    treedec::minimalChordal(G, old_elimination_ordering, new_elimination_ordering);
-+}
-+
-+
-+/* MISC */
-+
-+
-+int sage_is_valid_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
-+    TD_graph_t G;
-+    make_tdlib_graph(G, V_G, E_G);
-+
-+    TD_tree_dec_t T;
-+    make_tdlib_decomp(T, V_T, E_T);
-+
-+    return treedec::is_valid_treedecomposition(G, T);
-+}
-+
-+int sage_get_width(std::vector<std::vector<int> > &V_T){
-+    int width = 0;
-+    for(unsigned int i = 0; i< V_T.size(); i++)
-+        width = ((int)V_T[i].size() > width)? (int)V_T[i].size() : width;
-+
-+    return width-1;
-+}
-diff -rupN tdlib-1.0/sage_tdlib.hpp tdlib-1.0_/sage_tdlib.hpp
---- tdlib-1.0/sage_tdlib.hpp	1970-01-01 01:00:00.000000000 +0100
-+++ tdlib-1.0_/sage_tdlib.hpp	2015-09-19 19:27:05.166713818 +0200
-@@ -0,0 +1,45 @@
+diff -rupN A/sage_tdlib.hpp B/sage_tdlib.hpp
+--- A/sage_tdlib.hpp	1970-01-01 01:00:00.000000000 +0100
++++ B/sage_tdlib.hpp	2015-09-24 16:03:02.361511181 +0200
+@@ -0,0 +1,7 @@
 +/* TdLib interface for sage */
 +
 +
-+/* PREPROCESSING */
-+
-+int sage_preprocessing(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &bags, int lb);
-+int sage_preprocessing_MD(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb);
-+int sage_preprocessing_FI_TM(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb);
-+
-+/* LOWER BOUNDS */
-+
-+int sage_deltaC_min_d(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+int sage_deltaC_max_d(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+int sage_deltaC_least_c(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+
-+int sage_LBN_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+int sage_LBNC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+int sage_LBP_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+int sage_LBPC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G);
-+
-+
 +/* EXACT TREE DECOMPOSITIONS */
 +
-+int sage_CR_greedy_decomp(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb);
-+int sage_CR_dynamic_decomp(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb);
-+
-+
-+/* APPROXIMATIVE TREE DECOMPOSITIONS */
-+
-+int sage_seperator_algorithm(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T);
-+
-+
-+/* POSTPROCESSING */
-+
-+int sage_MSVS(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T);
-+void sage_minimalChordal(std::vector<unsigned int> &V, std::vector<unsigned int> &E, std::vector<unsigned int> &old_elimination_ordering, std::vector<unsigned int> &new_elimination_ordering);
-+
-+
-+/* MISC */
-+
-+int sage_is_valid_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T);
-+int sage_ordering_to_treedec(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, std::vector<unsigned int> &elim_ordering);
-+void sage_treedec_to_ordering(std::vector<std::vector<int> > &V, std::vector<unsigned int> &E, std::vector<unsigned int> &elim_ordering);
-+int sage_get_width(std::vector<std::vector<int> > &V_T);
++int sage_exact_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb);
 +

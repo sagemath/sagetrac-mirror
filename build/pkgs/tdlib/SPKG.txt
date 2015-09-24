@@ -1,0 +1,21 @@
+= TdLib =
+
+== Description ==
+Providing algorithms concerning treedecompositions
+
+== License ==
+GNU General Public License v2
+
+== SPKG Maintainers ==
+Lukas Larisch (larisch@informatik.uni-frankfurt.de)
+
+== Upstream Contact ==
+Lukas Larisch (larisch@informatik.uni-frankfurt.de)
+<git-repo>
+
+== Dependencies ==
+ * None
+
+== Patches ==
+ * original.patch: adding library-side glue code (instantiate template functions,
+   conversion sage-graph <-> boost-graph)
