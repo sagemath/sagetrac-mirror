@@ -306,6 +306,7 @@ class Fundamental(FreeQuasiSymmetricFunctions._Basis):
             F[2, 3, 1]
         """
         return self(sigma * mu)
+    '''
 
     def scalar_product_on_basis(self, sigma, mu):
         """
@@ -324,4 +325,3 @@ class Fundamental(FreeQuasiSymmetricFunctions._Basis):
         else:
             return self.base_ring().zero()
 
-    '''

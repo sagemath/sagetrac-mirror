@@ -64,14 +64,13 @@ AUTHOR:
 from sage.combinat.hopf_algebras import GenericGradedConnectedHopfAlgebra, \
     words_like_getitem
 from sage.combinat.permutation import Permutations
+from sage.combinat.hopf_algebras.categories.scalar_product import ScalarProductAlgebras
 ''' ### code for the future... ###
 from sage.categories.category import Category
 from sage.combinat.hopf_algebras.categories.diese_product import \
     DieseProductAlgebras
 from sage.combinat.hopf_algebras.categories.polynomial_realization import \
     PolynomialRealizationAlgebras
-from sage.combinat.hopf_algebras.categories.scalar_product import \
-    ScalarProductAlgebras
 from sage.combinat.ncsf_qsym.generic_basis_code import \
     GradedModulesWithInternalProduct
 from sage.categories.bidendriform_bialgebras import BidendriformBialgebras
@@ -115,6 +114,11 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
             sage: G[3,1,2].antipode()
             G[1, 3, 2] - G[2, 1, 3] + G[2, 3, 1] - 2*G[3, 1, 2]
+
+        - scalar product::
+
+            sage: G[4,1,2,5,3].scalar_product(F[1,2,3]*F[1,2])
+            1
 
 
     FQSym is the free graded connected Hopf algebra, with
@@ -231,42 +235,6 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
         G[1, 2, 3, 4] + G[1, 2, 4, 3] + G[1, 3, 2, 4] + G[1, 3, 4, 2] + G[1, 4, 2, 3] + G[1, 4, 3, 2] + G[2, 3, 1, 4] + G[2, 3, 4, 1] + G[2, 4, 1, 3] + G[2, 4, 3, 1] + G[3, 4, 1, 2] + G[3, 4, 2, 1]
         sage: FQS.reset_name()
 
-    TESTS::
-
-        sage: FQS = FQSym(QQ)
-        sage: TestSuite(FQS).run()
-
-    """
-
-    ''' ### documentation for the future ###
-        - internal product (composition of permutations)::
-
-            sage: F[3,1,2].internal_product(F[3,1,2])
-            F[2, 3, 1]
-
-        - scalar product::
-
-            sage: G[4,1,2,5,3].scalar_product(F[1,2,3]*F[1,2])
-            1
-
-        - #-product [AvaVien]_ and [AvNoThi]_::
-
-            sage: G[3,1,2].diese_product(G[3,1,2])
-            G[5, 1, 4, 2, 3] + G[5, 2, 4, 1, 3] + G[5, 3, 4, 1, 2]
-
-        - ((bi)-dendriform operations `\prec`, `\succ`, `\Delta_{\prec}` and
-    `\Delta_{\succ}`.) (C3 dependants)::
-
-            sage: F[1,2]>>F[2,1]
-            F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[4, 1, 2, 3]
-            sage: F[3,1,4,2].left_coproduct()
-            F[2, 1, 3] # F[1]
-
-        - expand the polynomial realization::
-
-            sage: G[1,2].expand_to_polynomial(3)
-            a1^2 + a1*a2 + a1*a3 + a2^2 + a2*a3 + a3^2
-
     Here some examples of scalar product:
 
     EXAMPLES::
@@ -348,6 +316,37 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
         [ 0 -1  0  1  0  0]
         [ 0  0 -1  0  1  0]
         [ 1  0  0 -1 -1  1]
+
+    TESTS::
+
+        sage: FQS = FQSym(QQ)
+        sage: TestSuite(FQS).run()
+
+    """
+
+    ''' ### documentation for the future ###
+        - internal product (composition of permutations)::
+
+            sage: F[3,1,2].internal_product(F[3,1,2])
+            F[2, 3, 1]
+
+        - #-product [AvaVien]_ and [AvNoThi]_::
+
+            sage: G[3,1,2].diese_product(G[3,1,2])
+            G[5, 1, 4, 2, 3] + G[5, 2, 4, 1, 3] + G[5, 3, 4, 1, 2]
+
+        - ((bi)-dendriform operations `\prec`, `\succ`, `\Delta_{\prec}` and
+    `\Delta_{\succ}`.) (C3 dependants)::
+
+            sage: F[1,2]>>F[2,1]
+            F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[4, 1, 2, 3]
+            sage: F[3,1,4,2].left_coproduct()
+            F[2, 1, 3] # F[1]
+
+        - expand the polynomial realization::
+
+            sage: G[1,2].expand_to_polynomial(3)
+            a1^2 + a1*a2 + a1*a3 + a2^2 + a2*a3 + a3^2
     '''
 
     _default_basis_indices_ = Permutations()
@@ -369,15 +368,16 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
     class _Basis(GenericGradedConnectedHopfAlgebra._Basis):
 
-        ''' ### code for the future... ###
+
         def _extra_categories_(self):
             R = self.realization_of().base_ring()
-            return [
+            return [ScalarProductAlgebras(R).WithBasis().Realizations()]
+        ''' ### code for the future... ###
                 BidendriformBialgebras(R).Realizations(),
                 DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations(),
                 PolynomialRealizationAlgebras(R).WithBasis().Realizations(),
-                ScalarProductAlgebras(R).WithBasis().Realizations()
+
             ]
         '''
 
