@@ -66,8 +66,6 @@ from sage.combinat.hopf_algebras import GenericGradedConnectedHopfAlgebra, \
 from sage.combinat.permutation import Permutations
 ''' ### code for the future... ###
 from sage.categories.category import Category
-from sage.combinat.hopf_algebras.categories.diese_product import \
-    DieseProductAlgebras
 from sage.combinat.hopf_algebras.categories.polynomial_realization import \
     PolynomialRealizationAlgebras
 from sage.combinat.hopf_algebras.categories.scalar_product import \
@@ -76,6 +74,7 @@ from sage.combinat.ncsf_qsym.generic_basis_code import \
     GradedModulesWithInternalProduct
 from sage.categories.bidendriform_bialgebras import BidendriformBialgebras
 '''
+from sage.combinat.hopf_algebras.categories.diese_algebras import DieseProductAlgebras
 
 
 class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
@@ -115,6 +114,11 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
             sage: G[3,1,2].antipode()
             G[1, 3, 2] - G[2, 1, 3] + G[2, 3, 1] - 2*G[3, 1, 2]
+
+        - #-product [AvaVien]_ and [AvNoThi]_::
+
+            sage: G[3,1,2].diese_product(G[3,1,2])
+            G[5, 1, 4, 2, 3] + G[5, 2, 4, 1, 3] + G[5, 3, 4, 1, 2]
 
 
     FQSym is the free graded connected Hopf algebra, with
@@ -249,11 +253,6 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
             sage: G[4,1,2,5,3].scalar_product(F[1,2,3]*F[1,2])
             1
 
-        - #-product [AvaVien]_ and [AvNoThi]_::
-
-            sage: G[3,1,2].diese_product(G[3,1,2])
-            G[5, 1, 4, 2, 3] + G[5, 2, 4, 1, 3] + G[5, 3, 4, 1, 2]
-
         - ((bi)-dendriform operations `\prec`, `\succ`, `\Delta_{\prec}` and
     `\Delta_{\succ}`.) (C3 dependants)::
 
@@ -369,12 +368,12 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
     class _Basis(GenericGradedConnectedHopfAlgebra._Basis):
 
-        ''' ### code for the future... ###
+
         def _extra_categories_(self):
             R = self.realization_of().base_ring()
-            return [
+            return [DieseProductAlgebras(R).WithBasis().Realizations()]
+        ''' ### code for the future... ###
                 BidendriformBialgebras(R).Realizations(),
-                DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations(),
                 PolynomialRealizationAlgebras(R).WithBasis().Realizations(),
                 ScalarProductAlgebras(R).WithBasis().Realizations()

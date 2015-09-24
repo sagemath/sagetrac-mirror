@@ -239,7 +239,6 @@ class FundamentalDual(FreeQuasiSymmetricFunctions._Basis):
             restrict(i) for i in range(len(sigma) + 1)
         )
 
-    ''' ### code for the future... ###
     def diese_linear_operator_on_basis(self, k, sigma):
         """
         TESTS::
@@ -254,6 +253,7 @@ class FundamentalDual(FreeQuasiSymmetricFunctions._Basis):
         else:
             return self.zero()
 
+    ''' ### code for the future... ###
     def expand_to_polynomial_on_basis(self, sigma, k):
         """
         TESTS::
