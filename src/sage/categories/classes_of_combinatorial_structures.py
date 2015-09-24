@@ -28,12 +28,13 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.categories.category import Category
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from sage.misc.abstract_method import abstract_method
 
 
-class ClassesOfCombinatorialStructures(Category):
+class EnumeratedSetsWithGrading(Category):
     """
     A class of combinatorial structures is a *denumerable set* of discrete
     objects (structures) on which a *degree* function is defined, satisfying the
@@ -45,7 +46,7 @@ class ClassesOfCombinatorialStructures(Category):
     """
 
     def super_categories(self):
-        return [SetsWithGrading()]
+        return [SetsWithGrading(), EnumeratedSets()]
 
     class ParentMethods:
 
@@ -56,8 +57,7 @@ class ClassesOfCombinatorialStructures(Category):
 
             EXAMPLE::
 
-                sage: ClassesOfCombinatorialStructures().example().\
-                      _test_graded_components_2()
+                sage: ClassesOfCombinatorialStructures().example()._test_graded_components_2()
 
             """
             tester = self._tester(**options)
@@ -65,9 +65,33 @@ class ClassesOfCombinatorialStructures(Category):
                 G = self.graded_component(grade)
 
                 for elt in G.some_elements():
-                    tester.assertEqual(G.grade(), self.grading(elt))
+                    tester.assertEqual(elt.grade(), self.grading(elt))
 
                 tester.assertEqual(G.ambient().graded_component(grade), G)
+
+        def __iter__(self):
+            """
+            TESTS::
+
+                sage: from sage.categories.examples.classes_of_combinatorial_structures import Compositions
+                sage: it = iter(Compositions())
+                sage: for _ in range(10):
+                ....:     print it.next()
+                []
+                [1]
+                [2]
+                [1, 1]
+                [3]
+                [1, 2]
+                [2, 1]
+                [1, 1, 1]
+                [4]
+                [1, 3]
+
+            """
+            for n in self.grading_set():
+                for a in self.graded_component(n):
+                    yield a
 
     class GradedComponents(Category):
         """

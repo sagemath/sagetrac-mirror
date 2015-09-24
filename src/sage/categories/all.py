@@ -27,7 +27,7 @@ from pointed_sets import PointedSets
 
 from sets_with_partial_maps import SetsWithPartialMaps
 from sets_with_grading import SetsWithGrading
-from classes_of_combinatorial_structures import ClassesOfCombinatorialStructures
+from classes_of_combinatorial_structures import EnumeratedSetsWithGrading
 
 from groupoid import Groupoid
 from permutation_groups import PermutationGroups

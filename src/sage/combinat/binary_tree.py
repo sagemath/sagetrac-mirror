@@ -41,7 +41,7 @@ REFERENCES:
 from sage.structure.list_clone import ClonableArray
 from sage.categories.category import Category
 from sage.categories.classes_of_combinatorial_structures import \
-    ClassesOfCombinatorialStructures
+    EnumeratedSetsWithGrading
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -3039,7 +3039,7 @@ class BinaryTrees_all(BinaryTrees, DisjointUnionEnumeratedSets):
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
             facade=True, keepkey = False,
-            category=Category.join([ClassesOfCombinatorialStructures(),
+            category=Category.join([EnumeratedSetsWithGrading(),
                                     InfiniteEnumeratedSets()]))
 
     def graded_component(self, n):
@@ -3158,7 +3158,7 @@ class BinaryTrees_size(BinaryTrees):
             True
         """
         super(BinaryTrees_size, self).__init__(
-            category=ClassesOfCombinatorialStructures.GradedComponents()
+            category=EnumeratedSetsWithGrading.GradedComponents()
         )
         self._size = size
 

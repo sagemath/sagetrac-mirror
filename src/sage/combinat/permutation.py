@@ -229,7 +229,7 @@ Classes and methods
 from sage.structure.parent import Parent
 from sage.categories.category import Category
 from sage.categories.classes_of_combinatorial_structures import \
-    ClassesOfCombinatorialStructures
+    EnumeratedSetsWithGrading
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -5799,7 +5799,7 @@ class StandardPermutations_all(Permutations):
 
         """
         Permutations.__init__(self, category=Category.join(
-                [ClassesOfCombinatorialStructures(), InfiniteEnumeratedSets()])
+                [EnumeratedSetsWithGrading(), InfiniteEnumeratedSets()])
         )
 
     def graded_component(self, n):
@@ -5904,9 +5904,9 @@ class StandardPermutations_n_abstract(Permutations):
         """
         self.n = n
         if category:
-            Permutations.__init__(self, category=category & ClassesOfCombinatorialStructures.GradedComponents())
+            Permutations.__init__(self, category=category & EnumeratedSetsWithGrading.GradedComponents())
         else:
-            Permutations.__init__(self, category=ClassesOfCombinatorialStructures.GradedComponents())
+            Permutations.__init__(self, category=EnumeratedSetsWithGrading.GradedComponents())
 
     def grade(self):
         """
