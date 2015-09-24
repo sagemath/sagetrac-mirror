@@ -160,7 +160,6 @@ class Fundamental(FreeQuasiSymmetricFunctions._Basis):
                 for i in range(len(sigma) + 1)
         )
 
-    ''' ### code for the future... ###
     def left_product_on_basis(self, sigma, mu):
         """
         Left dendriform product defines as the shifted
@@ -295,6 +294,7 @@ class Fundamental(FreeQuasiSymmetricFunctions._Basis):
             for i in range(min(sigma.index(sigma.size()), sigma.size()))]
         )
 
+    ''' ### code for the future... ###
     def internal_product_on_basis(self, sigma, mu):
         """
         TESTS::

@@ -74,8 +74,8 @@ from sage.combinat.hopf_algebras.categories.scalar_product import \
     ScalarProductAlgebras
 from sage.combinat.ncsf_qsym.generic_basis_code import \
     GradedModulesWithInternalProduct
-from sage.categories.bidendriform_bialgebras import BidendriformBialgebras
 '''
+from sage.combinat.hopf_algebras.categories.bidendriform_bialgebras import BidendriformBialgebras
 
 
 class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
@@ -115,6 +115,14 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
             sage: G[3,1,2].antipode()
             G[1, 3, 2] - G[2, 1, 3] + G[2, 3, 1] - 2*G[3, 1, 2]
+
+        - (bi)-dendriform operations `\prec`, `\succ`, `\Delta_{\prec}` and
+          `\Delta_{\succ}`::
+
+            sage: F[1,2]>>F[2,1]
+            F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[4, 1, 2, 3]
+            sage: F[3,1,4,2].left_coproduct()
+            F[2, 1, 3] # F[1]
 
 
     FQSym is the free graded connected Hopf algebra, with
@@ -254,14 +262,6 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
             sage: G[3,1,2].diese_product(G[3,1,2])
             G[5, 1, 4, 2, 3] + G[5, 2, 4, 1, 3] + G[5, 3, 4, 1, 2]
 
-        - ((bi)-dendriform operations `\prec`, `\succ`, `\Delta_{\prec}` and
-    `\Delta_{\succ}`.) (C3 dependants)::
-
-            sage: F[1,2]>>F[2,1]
-            F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[4, 1, 2, 3]
-            sage: F[3,1,4,2].left_coproduct()
-            F[2, 1, 3] # F[1]
-
         - expand the polynomial realization::
 
             sage: G[1,2].expand_to_polynomial(3)
@@ -352,10 +352,8 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
     _default_basis_indices_ = Permutations()
 
-    ''' ### code for the future... ###
     def _extra_categories_(self, R):
         return [BidendriformBialgebras(R).WithRealizations()]
-    '''
 
     def a_realization(self):
         return self.F()
@@ -369,11 +367,13 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
     class _Basis(GenericGradedConnectedHopfAlgebra._Basis):
 
-        ''' ### code for the future... ###
+
         def _extra_categories_(self):
             R = self.realization_of().base_ring()
             return [
-                BidendriformBialgebras(R).Realizations(),
+                BidendriformBialgebras(R).Realizations()
+            ]
+        ''' ### code for the future... ###
                 DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations(),
                 PolynomialRealizationAlgebras(R).WithBasis().Realizations(),
