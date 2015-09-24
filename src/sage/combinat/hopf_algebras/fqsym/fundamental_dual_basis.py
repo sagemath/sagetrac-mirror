@@ -254,6 +254,8 @@ class FundamentalDual(FreeQuasiSymmetricFunctions._Basis):
         else:
             return self.zero()
 
+    '''
+
     def expand_to_polynomial_on_basis(self, sigma, k):
         """
         TESTS::
@@ -305,4 +307,4 @@ class FundamentalDual(FreeQuasiSymmetricFunctions._Basis):
 
         return sum(itertools.imap(sigma_action, gen_increasing_words(l, descents)))
 
-    '''
+

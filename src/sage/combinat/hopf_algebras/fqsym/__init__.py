@@ -64,12 +64,11 @@ AUTHOR:
 from sage.combinat.hopf_algebras import GenericGradedConnectedHopfAlgebra, \
     words_like_getitem
 from sage.combinat.permutation import Permutations
+from sage.combinat.hopf_algebras.categories.polynomial_realizations import PolynomialRealizationAlgebras
 ''' ### code for the future... ###
 from sage.categories.category import Category
 from sage.combinat.hopf_algebras.categories.diese_product import \
     DieseProductAlgebras
-from sage.combinat.hopf_algebras.categories.polynomial_realization import \
-    PolynomialRealizationAlgebras
 from sage.combinat.hopf_algebras.categories.scalar_product import \
     ScalarProductAlgebras
 from sage.combinat.ncsf_qsym.generic_basis_code import \
@@ -115,6 +114,11 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
             sage: G[3,1,2].antipode()
             G[1, 3, 2] - G[2, 1, 3] + G[2, 3, 1] - 2*G[3, 1, 2]
+
+        - expand the polynomial realization::
+
+            sage: G[1,2].expand_to_polynomial(3)
+            a1^2 + a1*a2 + a1*a3 + a2^2 + a2*a3 + a3^2
 
 
     FQSym is the free graded connected Hopf algebra, with
@@ -262,11 +266,6 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
             sage: F[3,1,4,2].left_coproduct()
             F[2, 1, 3] # F[1]
 
-        - expand the polynomial realization::
-
-            sage: G[1,2].expand_to_polynomial(3)
-            a1^2 + a1*a2 + a1*a3 + a2^2 + a2*a3 + a3^2
-
     Here some examples of scalar product:
 
     EXAMPLES::
@@ -369,14 +368,15 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnectedHopfAlgebra):
 
     class _Basis(GenericGradedConnectedHopfAlgebra._Basis):
 
-        ''' ### code for the future... ###
+
         def _extra_categories_(self):
             R = self.realization_of().base_ring()
-            return [
+            return [PolynomialRealizationAlgebras(R).WithBasis().Realizations()]
+        ''' ### code for the future... ###
                 BidendriformBialgebras(R).Realizations(),
                 DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations(),
-                PolynomialRealizationAlgebras(R).WithBasis().Realizations(),
+
                 ScalarProductAlgebras(R).WithBasis().Realizations()
             ]
         '''
