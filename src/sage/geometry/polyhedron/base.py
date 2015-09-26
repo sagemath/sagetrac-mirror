@@ -134,7 +134,17 @@ class Polyhedron_base(Element):
             sage: hash(p) == hash(q)
             True
         """
-        return hash(tuple(sorted(self.Vrepresentation())))
+        # TODO: find something better *but* fast
+        return hash((self.dim(),
+                     self.ambient_dim(),
+                     self.n_Hrepresentation(),
+                     self.n_Vrepresentation(),
+                     self.n_equations(),
+                     self.n_facets(),
+                     self.n_inequalities(),
+                     self.n_lines(),
+                     self.n_rays(),
+                     self.n_vertices()))
 
     def _sage_input_(self, sib, coerced):
         """

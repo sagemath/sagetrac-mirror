@@ -902,16 +902,17 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         quo = self.base_projection(fiber)
         vertices = set()
         for p in points:
-            v = vector(ZZ,quo(p))
+            v = quo(p).vector()
             if v.is_zero():
                 continue
             d = GCD_list(v.list())
             if d > 1:
+                v = v.__copy__()
                 for i in range(v.degree()):
                     v[i] /= d
-            v.set_immutable()
+                v.set_immutable()
             vertices.add(v)
-        return tuple(vertices)
+        return tuple(sorted(vertices))
 
     @cached_method
     def has_IP_property(self):
