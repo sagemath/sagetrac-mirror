@@ -77,7 +77,8 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         r"""
         TESTS::
 
-            sage: hash(F.an_element()) # random
+           sage: F = AbelianGroup(3,[7,8,9])
+           sage: hash(F.an_element()) # random
             1024
         """
         return hash(self.parent()) ^ hash(self._exponents)
