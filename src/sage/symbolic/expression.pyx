@@ -6861,7 +6861,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. SEEALSO::
 
-            - :func:`sage.misc.functional.norm`
+            :func:`sage.misc.functional.norm`
 
         EXAMPLES::
 
@@ -8248,7 +8248,7 @@ cdef class Expression(CommutativeRingElement):
         """
         Return this expression normalized as a fraction
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`numerator`, :meth:`denominator`,
             :meth:`numerator_denominator`, :meth:`combine`
@@ -10658,8 +10658,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             AttributeError: Please use a tuple or list for several variables.
 
-        .. SEEALSO: http://docs.sympy.org/latest/modules/solvers/diophantine.html
-            """
+        .. SEEALSO::
+
+            http://docs.sympy.org/latest/modules/solvers/diophantine.html
+        """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
