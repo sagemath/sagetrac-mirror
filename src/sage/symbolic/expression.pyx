@@ -2266,11 +2266,37 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.is_zero()
 
+    def is_zero(self, simplify=False):
+        """
+        Return ``True`` if self is numerical or symbolical ``0``.
+
+        Fast simplifications are applied. For sophisticated
+        symbolic simplification specify ``simplify=True``.
+
+        EXAMPLES::
+
+            sage: y = 0
+            sage: y.is_zero()
+            True
+            sage: ex = sin(x)^2 + cos(x)^2 - 1
+            sage: ex.is_zero()
+            False
+            sage: ex.is_zero(simplify=True)
+            True
+        """
+        if simplify:
+            return (self == 0).holds()
+        else:
+            return bool(self == 0)
+
     def __nonzero__(self):
         """
-        Return ``True`` if self is not the same Python object as zero.
-        In case of an inequality of symbols/functions the decision is
-        made according to print order.
+        Return ``True`` if self is not the same Python object as zero,
+        or if relation is trivially true.
+
+        Fast simplifications are applied. In case of an inequality
+        of symbols/functions the decision is made according to
+        alphabetical order.
 
         EXAMPLES::
 
@@ -2283,22 +2309,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(abs(x))
             sage: assert(not x/x - 1)
 
-        This is called by :meth:`is_zero`. It does no symbolic
-        manipulation with the object::
-
-            sage: (sin(x)^2 + cos(x)^2 - 1).is_zero()
-            False
-            sage: x = 0
-            sage: x.is_zero()
-            True
-
-
         TESTS::
 
             sage: x = var('x')
             sage: assert((x-1)^2 == x^2 - 2*x + 1)
-            sage: assert(((x-1)^2 == x^2 - 2*x + 1).expand())
-            sage: assert(not ((x-1)^2 == x^2 - 2*x + 3).expand())
             sage: assert(2 + x < 3 + x)
             sage: assert(not 2 + x < 1 + x)
             sage: assert(2 + x > 1 + x)
