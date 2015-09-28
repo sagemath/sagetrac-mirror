@@ -1662,7 +1662,7 @@ class IncidenceStructure(object):
 
         .. NOTE::
 
-            Observe that some references (e.g. [PT09]_ or Wikipedia) only allow
+            Some references (e.g. [PT09]_ or Wikipedia [GQwiki]_) only allow
             *regular* generalized quadrangles. To use such a definition, see the
             ``parameters`` optional argument described below, or the methods
             :meth:`is_regular` and :meth:`is_uniform`.
