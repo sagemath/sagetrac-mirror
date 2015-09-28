@@ -525,6 +525,10 @@ cdef class Element(SageObject):
         return res
 
     def __hash__(self):
+        from sage.misc.stopgap import stopgap
+        stopgap("The __hash__ method of Element is broken. Beware of any "+
+                "function that relies on it, as it may return wrong results.",
+                19016)
         return hash(str(self))
 
     def _im_gens_(self, codomain, im_gens):
