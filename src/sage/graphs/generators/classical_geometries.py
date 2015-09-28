@@ -976,6 +976,7 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
       Finite generalized quadrangles.
       European Mathematical Society,
       2nd edition, 2009.
+      http://cage.ugent.be/~bamberg/FGQ.pdf
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     p, k = is_prime_power(q,get_data=True)

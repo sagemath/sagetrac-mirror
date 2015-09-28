@@ -1705,13 +1705,6 @@ class IncidenceStructure(object):
             sage: hypergraphs.CompleteUniform(4,2).is_generalized_quadrangle(verbose=1)
             Some point has two projections on some line.
             False
-
-        REFERENCE:
-
-        .. [PT09] S. Payne, J. Thas,
-           Finite generalized quadrangles,
-           European Mathematical Society, 2009.
-           http://cage.ugent.be/~bamberg/FGQ.pdf
         """
         # The distance between a point and a line in the incidence graph is odd
         # and must be <= 3. Thus, the diameter is at most 4
