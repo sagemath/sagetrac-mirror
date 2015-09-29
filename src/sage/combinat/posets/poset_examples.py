@@ -22,7 +22,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
-    :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
+    :meth:`~Posets.IntegerCompositions` | Return the lattice of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
@@ -285,15 +285,29 @@ class Posets(object):
         return LatticePoset(c, facade = facade)
 
     @staticmethod
-    def IntegerCompositions(n):
+    def IntegerCompositions(n, type='lattice', labels='compositions'):
         """
-        Returns the poset of integer compositions of the integer ``n``.
+        Return the lattice of integer compositions of the integer ``n``.
 
         A composition of a positive integer `n` is a list of positive
         integers that sum to `n`. The order is reverse refinement:
         `[p_1,p_2,...,p_l] < [q_1,q_2,...,q_m]` if `q` consists
         of an integer composition of `p_1`, followed by an integer
         composition of `p_2`, and so on.
+
+        INPUT:
+
+        - ``type``, either ``'lattice'`` (the default) or ``'poset'`` --
+          whether to return object of type lattice or poset.
+
+        - ``labels``, a string describing element type of the lattice.
+
+          * ``'compositions'`` (the default), elements are of class
+            :class:`~sage.combinat.composition.Composition`.
+
+          * ``'tuples'``, elements are tuples of integers.
+
+          * ``'integers'``, the lattice is relabeled to plain integers.
 
         EXAMPLES::
 
@@ -304,7 +318,22 @@ class Posets(object):
         """
         from sage.combinat.composition import Compositions
         C = Compositions(n)
-        return Poset((C, [[c,d] for c in C for d in C if d.is_finer(c)]), cover_relations=False)
+        le = [[c,d] for c in C for d in C if d.is_finer(c)]
+        if type == 'lattice':
+            constructor = LatticePoset
+        elif type == 'poset':
+            constructor = Poset
+        else:
+            raise ValueError("type must be either 'lattice' or 'poset'")
+        result = constructor((C, le), cover_relations=False)
+        if labels == 'compositions':
+            return result
+        elif labels == 'tuples':
+            return result.relabel(lambda x: tuple(x))
+        elif labels == 'integers':
+            return result.canonical_label()
+        else:
+            raise ValueError("labels must be one of 'compositions', 'tuples' or 'integers'")
 
     @staticmethod
     def IntegerPartitions(n):
