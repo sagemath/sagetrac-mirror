@@ -126,7 +126,7 @@ class Compositions(ParentStructure):
     """
     TESTS::
 
-        sage: C = ClassesOfCombinatorialStructures().example(); C
+        sage: C = EnumeratedSetsWithGrading().example(); C
         Compositions of integers
         sage: TestSuite(C).run()
 
@@ -153,7 +153,7 @@ class Compositions(ParentStructure):
         """
         TESTS::
 
-            sage: ClassesOfCombinatorialStructures().example()
+            sage: EnumeratedSetsWithGrading().example()
             Compositions of integers
 
         """
@@ -167,7 +167,7 @@ class Compositions(ParentStructure):
         """
         TESTS::
 
-            sage: C = ClassesOfCombinatorialStructures().example()
+            sage: C = EnumeratedSetsWithGrading().example()
             sage: C42 = C.graded_component(42)
             sage: TestSuite(C42).run()
 
@@ -177,7 +177,7 @@ class Compositions(ParentStructure):
             """
             TESTS::
 
-                sage: ClassesOfCombinatorialStructures().example()\
+                sage: EnumeratedSetsWithGrading().example()\
                       .graded_component(10).cardinality()
                 512
 
@@ -188,7 +188,7 @@ class Compositions(ParentStructure):
             """
             TESTS::
 
-                sage: ClassesOfCombinatorialStructures().example()\
+                sage: EnumeratedSetsWithGrading().example()\
                       .graded_component(4).list()
                 [[4], [1, 3], [2, 2], [1, 1, 2], [3, 1], [1, 2, 1],
                  [2, 1, 1], [1, 1, 1, 1]]
