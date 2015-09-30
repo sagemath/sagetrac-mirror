@@ -68,10 +68,10 @@ class ElementStructure(Element):
 
             sage: from sage.categories.examples.\
                   classes_of_combinatorial_structures import Composition
-            sage: Composition([2,1,2], parent=Parent()).parent()
-            <type 'sage.structure.parent.Parent'>
             sage: Composition([2,1,2]).parent()
             Compositions of integers
+            sage: type(Composition([2,1,2]))
+            <class 'sage.categories.examples.classes_of_combinatorial_structures.Compositions_with_category.element_class'>
 
         """
         par = "parent"
@@ -85,7 +85,8 @@ class ElementStructure(Element):
                 raise NotImplementedError("A *ElementStructure* (%s) should"%cls +
                                           " implement *_auto_parent_*")
 
-        return typecall(cls, parent, *args, **options)
+        args = (parent,) + args
+        return typecall(parent.element_class, *args, **options)
 
 
 class ParentStructure(UniqueRepresentation, Parent):
