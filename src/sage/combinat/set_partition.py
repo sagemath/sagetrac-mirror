@@ -32,7 +32,7 @@ import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.classes_of_combinatorial_structures import EnumeratedSetsWithGrading
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
@@ -1227,8 +1227,29 @@ class SetPartitions_all(SetPartitions):
 
             sage: S = SetPartitions()
             sage: TestSuite(S).run()
+
         """
-        SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
+        SetPartitions.__init__(self, category=EnumeratedSetsWithGrading())
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: SetPartitions().graded_component(4)
+            Set partitions of {1, 2, 3, 4}
+
+        """
+        return SetPartitions(n)
+
+    def grading(self, I):
+        """
+        TESTS::
+
+            sage: SetPartitions().graded_component(4)[3].grade() # indirect doctest
+            4
+
+        """
+        return sum(len(p) for p in I)
 
     def _repr_(self):
         """
@@ -1291,7 +1312,19 @@ class SetPartitions_set(SetPartitions):
             [{}]
         """
         self._set = s
-        SetPartitions.__init__(self, category=FiniteEnumeratedSets())
+        SetPartitions.__init__(self, category=EnumeratedSetsWithGrading().GradedComponents())
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: P4 = SetPartitions(4); P4
+            Set partitions of {1, 2, 3, 4}
+            sage: P4.ambient()
+            Set partitions
+
+        """
+        return SetPartitions()
 
     def _repr_(self):
         """
@@ -1361,7 +1394,7 @@ class SetPartitions_set(SetPartitions):
         """
         for p in Partitions(len(self._set)):
             for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+                yield self.ambient().element_class(self.ambient(), sp)
 
     def base_set(self):
         """

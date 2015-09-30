@@ -227,6 +227,9 @@ Classes and methods
 #*****************************************************************************
 
 from sage.structure.parent import Parent
+from sage.categories.category import Category
+from sage.categories.classes_of_combinatorial_structures import \
+    EnumeratedSetsWithGrading
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -768,6 +771,8 @@ class Permutation(CombinatorialElement):
             5
         """
         return len(self)
+
+    grade = size
 
     def cycle_string(self, singletons=False):
         """
@@ -5791,8 +5796,31 @@ class StandardPermutations_all(Permutations):
 
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
+
         """
-        Permutations.__init__(self, category=InfiniteEnumeratedSets())
+        Permutations.__init__(self, category=Category.join(
+                [EnumeratedSetsWithGrading(), InfiniteEnumeratedSets()])
+        )
+
+    def graded_component(self, n):
+        """
+        TESTS::
+
+            sage: Permutations(4) == Permutations().graded_component(4)
+            True
+
+        """
+        return StandardPermutations_n(n)
+
+    def grading(self, sig):
+        """
+        TESTS::
+
+            sage: Permutation([1,3,2,4]).grade()
+            4
+
+        """
+        return len(sig)
 
     def _repr_(self):
         """
@@ -5875,9 +5903,30 @@ class StandardPermutations_n_abstract(Permutations):
             sage: SP.global_options.reset()
         """
         self.n = n
-        if category is None:
-            category = FiniteEnumeratedSets()
-        Permutations.__init__(self, category=category)
+        if category:
+            Permutations.__init__(self, category=category & EnumeratedSetsWithGrading.GradedComponents())
+        else:
+            Permutations.__init__(self, category=EnumeratedSetsWithGrading.GradedComponents())
+
+    def grade(self):
+        """
+        TESTS::
+
+            sage: Permutations(4).grade()
+            4
+
+        """
+        return self.n
+
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Permutations(4).ambient()
+            Standard permutations
+
+        """
+        return Permutations()
 
     def _element_constructor_(self, x, check_input=True):
         """
