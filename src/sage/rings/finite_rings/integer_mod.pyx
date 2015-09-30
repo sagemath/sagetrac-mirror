@@ -1672,6 +1672,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     def _rational_(self):
         return rational.Rational(self.lift())
 
+    def inverse_of_unit(self):
+        """
+        Return the inverse of this element if it is a unit. Raise a
+        `ZeroDivisionError` otherwise.
+
+        EXAMPLES::
+
+            sage: Zn = Zmod(10)
+            sage: Zn(7).inverse_of_unit()
+            3
+            sage: Zn(4).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+        """
+        return self._parent(self.lift().inverse_mod(self.modulus()))
 
 
 
