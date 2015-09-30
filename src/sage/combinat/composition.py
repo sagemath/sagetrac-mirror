@@ -1599,6 +1599,7 @@ class Compositions(Parent, UniqueRepresentation):
 
             sage: C = Compositions()
             sage: TestSuite(C).run()
+
         """
         if is_infinite:
             Parent.__init__(self, category=EnumeratedSetsWithGrading())
@@ -1615,8 +1616,19 @@ class Compositions(Parent, UniqueRepresentation):
             sage: P = Compositions()
             sage: P([3,3,1]) # indirect doctest
             [3, 3, 1]
+            sage: P4 = P.graded_component(4)
+            sage: P4([3,3,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: `[3, 3, 1]` should be an element of Compositions of 4
+            sage: P4([2,2])
+            [2, 2]
+
         """
-        return self.ambient()._element_constructor_(lst)
+        if lst in self:
+            return self.ambient()._element_constructor_(lst)
+        raise ValueError("`%s` should be an element of %s" % (lst, self))
+
 
     def __contains__(self, x):
         """
@@ -1630,10 +1642,15 @@ class Compositions(Parent, UniqueRepresentation):
             False
             sage: [0,0] in Compositions()
             True
+            sage: () in Compositions()
+            True
+            sage: (1,) in Compositions()
+            True
+
         """
         if isinstance(x, Composition):
             return True
-        elif isinstance(x, __builtin__.list):
+        elif isinstance(x, (__builtin__.list, __builtin__.tuple)):
             for i in x:
                 if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False
