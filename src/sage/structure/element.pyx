@@ -525,7 +525,9 @@ cdef class Element(SageObject):
         return res
 
     def __hash__(self):
-        return hash(str(self))
+        #TODO: remove this function!
+        # (see trac ticket #19331, #19321 and #19016)
+        return 0
 
     def _im_gens_(self, codomain, im_gens):
         """
