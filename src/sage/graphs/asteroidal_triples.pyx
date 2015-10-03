@@ -146,9 +146,9 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     # ==> Initialize some data structures for is_asteroidal_triple_free_C
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t * waiting_list         = <uint32_t *>  mem.allocarray(n, sizeof(uint32_t))
-    cdef uint32_t * _connected_structure = <uint32_t *>  mem.calloc(n * n, sizeof(uint32_t))
-    cdef uint32_t ** connected_structure = <uint32_t **> mem.allocarray(n, sizeof(uint32_t *))
+    cdef int * waiting_list         = <int *>  mem.allocarray(n, sizeof(int))
+    cdef int * _connected_structure = <int *>  mem.calloc(n * n, sizeof(int))
+    cdef int ** connected_structure = <int **> mem.allocarray(n, sizeof(int *))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
@@ -190,8 +190,8 @@ def is_asteroidal_triple_free(G, certificate=False):
 
 cdef list is_asteroidal_triple_free_C(int n,
                                       short_digraph sd,
-                                      uint32_t ** connected_structure,
-                                      uint32_t *  waiting_list,
+                                      int ** connected_structure,
+                                      int *  waiting_list,
                                       bitset_t seen):
     """
     INPUT:
@@ -214,10 +214,10 @@ cdef list is_asteroidal_triple_free_C(int n,
 
     See the module's documentation.
     """
-    cdef uint32_t waiting_beginning = 0
-    cdef uint32_t waiting_end       = 0
-    cdef uint32_t idx_cc            = 0
-    cdef uint32_t source, u, v, w
+    cdef int waiting_beginning = 0
+    cdef int waiting_end       = 0
+    cdef int idx_cc            = 0
+    cdef int source, u, v, w
     cdef uint32_t * p_tmp
     cdef uint32_t * end
 
@@ -240,7 +240,7 @@ cdef list is_asteroidal_triple_free_C(int n,
 
         # We now search for an unseen vertex
         v = bitset_first_in_complement(seen)
-        while v != <uint32_t>-1:
+        while v != -1:
             # and add it to the queue
             waiting_list[0] = v
             waiting_beginning = 0
@@ -276,7 +276,8 @@ cdef list is_asteroidal_triple_free_C(int n,
 
                 waiting_beginning += 1
 
-            # We search for a possibly unseen vertex
+            # We search for a possibly unseen vertex. Return -1 if all vertices
+            # are seen
             v = bitset_first_in_complement(seen)
 
     # ==> Now that we have the component structure of the graph, we search for
