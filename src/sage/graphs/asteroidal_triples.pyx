@@ -70,7 +70,7 @@ Functions
 include 'sage/ext/interrupt.pxi'
 include "sage/data_structures/bitset.pxi"
 
-from libc.stdint cimport uint32_t
+from libc.stdint cimport uint32_t, int_fast32_t
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 from sage.ext.memory_allocator cimport MemoryAllocator
 
@@ -137,8 +137,8 @@ def is_asteroidal_triple_free(G, certificate=False):
     if not isinstance(G, Graph):
         raise ValueError("The first parameter must be a Graph.")
 
-    cdef int n = G.order()
-    cdef int i
+    cdef int_fast32_t n = G.order()
+    cdef int_fast32_t i
 
     # ==> Trivial cases
     if n<3:
@@ -146,9 +146,9 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     # ==> Initialize some data structures for is_asteroidal_triple_free_C
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int * waiting_list         = <int *>  mem.allocarray(n, sizeof(int))
-    cdef int * _connected_structure = <int *>  mem.calloc(n * n, sizeof(int))
-    cdef int ** connected_structure = <int **> mem.allocarray(n, sizeof(int *))
+    cdef int_fast32_t * waiting_list         = <int_fast32_t *>  mem.allocarray(n, sizeof(int_fast32_t))
+    cdef int_fast32_t * _connected_structure = <int_fast32_t *>  mem.calloc(n * n, sizeof(int_fast32_t))
+    cdef int_fast32_t ** connected_structure = <int_fast32_t **> mem.allocarray(n, sizeof(int_fast32_t *))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
@@ -188,10 +188,10 @@ def is_asteroidal_triple_free(G, certificate=False):
     return False if ret else True
 
 
-cdef list is_asteroidal_triple_free_C(int n,
+cdef list is_asteroidal_triple_free_C(int_fast32_t n,
                                       short_digraph sd,
-                                      int ** connected_structure,
-                                      int *  waiting_list,
+                                      int_fast32_t ** connected_structure,
+                                      int_fast32_t *  waiting_list,
                                       bitset_t seen):
     """
     INPUT:
@@ -214,10 +214,10 @@ cdef list is_asteroidal_triple_free_C(int n,
 
     See the module's documentation.
     """
-    cdef int waiting_beginning = 0
-    cdef int waiting_end       = 0
-    cdef int idx_cc            = 0
-    cdef int source, u, v, w
+    cdef int_fast32_t waiting_beginning = 0
+    cdef int_fast32_t waiting_end       = 0
+    cdef int_fast32_t idx_cc            = 0
+    cdef int_fast32_t source, u, v, w
     cdef uint32_t * p_tmp
     cdef uint32_t * end
 
@@ -276,7 +276,7 @@ cdef list is_asteroidal_triple_free_C(int n,
 
                 waiting_beginning += 1
 
-            # We search for a possibly unseen vertex.
+            # We search for a possibly unseen vertex
             v = bitset_first_in_complement(seen)
 
     # ==> Now that we have the component structure of the graph, we search for
