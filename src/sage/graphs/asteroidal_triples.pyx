@@ -238,7 +238,7 @@ cdef list is_asteroidal_triple_free_C(int n,
             bitset_add(seen, p_tmp[0])
             p_tmp += 1
 
-        # We now search for an unseen vertex
+        # We now search for an unseen vertex. We get -1 if all vertices are seen
         v = bitset_first_in_complement(seen)
         while v != -1:
             # and add it to the queue
@@ -276,8 +276,7 @@ cdef list is_asteroidal_triple_free_C(int n,
 
                 waiting_beginning += 1
 
-            # We search for a possibly unseen vertex. Return -1 if all vertices
-            # are seen
+            # We search for a possibly unseen vertex.
             v = bitset_first_in_complement(seen)
 
     # ==> Now that we have the component structure of the graph, we search for
