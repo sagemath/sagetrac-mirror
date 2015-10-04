@@ -5694,3 +5694,40 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     sig_off()
     return M
 
+
+# miscellaneous
+
+def hadamard_matrix_flint(int n):
+    r"""
+    Return a Hadamard matrix of size ``n`` using flint
+
+    If ``n`` is not valid a ``ValueError`` is raised. If flint is not able to
+    provide such a matrix, a ``NotImplementedError`` is raised.
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_integer_dense import hadamard_matrix_flint
+        sage: hadamard_matrix_flint(4)
+        [ 1  1  1  1]
+        [ 1 -1  1 -1]
+        [ 1  1 -1 -1]
+        [ 1 -1 -1  1]
+        sage: hadamard_matrix_flint(8)
+        [ 1  1  1  1  1  1  1  1]
+        [ 1 -1  1 -1  1 -1  1 -1]
+        [ 1  1 -1 -1  1  1 -1 -1]
+        [ 1 -1 -1  1  1 -1 -1  1]
+        [ 1  1  1  1 -1 -1 -1 -1]
+        [ 1 -1  1 -1 -1  1 -1  1]
+        [ 1  1 -1 -1 -1 -1  1  1]
+        [ 1 -1 -1  1 -1  1  1 -1]
+    """
+    if n < 0 or (n>2 and n%4 != 0):
+        raise ValueError("input n must be positive and either 1 or congruent to 0 mod 4")
+    M = matrix_space.MatrixSpace(ZZ, n)
+    cdef Matrix_integer_dense m
+    m = Matrix_integer_dense(M, None, False, False)
+    if fmpz_mat_hadamard(m._matrix):
+        return m
+    else:
+        raise NotImplementedError("flint does not know how to build such matrix")
