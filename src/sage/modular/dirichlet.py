@@ -2569,8 +2569,13 @@ class DirichletGroup_class(WithEqualityById, Parent):
         The cache attached to this methods already contains all powers of zeta,
         so the body of this method is hardly ever executed::
 
-            sage: G._zeta_dlog.cache
-            {((1,), ()): 0, ((7,), ()): 4, ((5,), ()): 5, ((4,), ()): 2, ((2,), ()): 1, ((8,), ()): 3}
+            sage: sorted(G._zeta_dlog.cache.items()) # sorted for output stability
+            [(((1,), ()), 0),
+             (((2,), ()), 1),
+             (((4,), ()), 2),
+             (((5,), ()), 5),
+             (((7,), ()), 4),
+             (((8,), ()), 3)]
 
         It is only executed for rings whose elements can not define a proper
         hash function such as `p`-adics or if ``x`` is not a power of
