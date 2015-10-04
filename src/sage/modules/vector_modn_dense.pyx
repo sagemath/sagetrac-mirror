@@ -96,6 +96,9 @@ AUTHOR:
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+
+from libc.string cimport memcmp, memcpy
+
 from sage.ext.memory cimport check_allocarray
 
 from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
@@ -114,7 +117,7 @@ cdef mod_int ivalue(IntegerMod_abstract x) except -1:
     else:
         raise TypeError, "non-fixed size integer"
 
-from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
+from sage.structure.element cimport Element, ModuleElement, RingElement, Vector, parent_c
 
 cimport free_module_element
 from free_module_element import vector
@@ -135,9 +138,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __copy__(self):
         cdef Vector_modn_dense y
         y = self._new_c()
-        cdef Py_ssize_t i
-        for i from 0 <= i < self._degree:
-            y._entries[i] = self._entries[i]
+        memcpy(y._entries, self._entries, self._degree * sizeof(mod_int))
         return y
 
     cdef _init(self, Py_ssize_t degree, parent, mod_int p):
@@ -191,17 +192,27 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             sage: w = vector(GF(11), [-1,0,0,0])
             sage: w == w
             True
+
+            sage: F = FreeModule(GF(3), 4)
+            sage: F((0,1,0,0)) < F((1,0,0,0))
+            True
+            sage: F((2,1,0,0)) > F((1,2,2,2))
+            True
+            sage: F((1,1,1,1)) > F((1,1,2,0))
+            False
+            sage: sorted([F((1,0,1,0)), F((0,2,0,0)), F((1,0,0,0)),
+            ....:         F((1,2,0,0)), F((0,1,0,0)), F((0,0,0,0))])
+            [(0, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 2, 0, 0),
+             (1, 0, 0, 0),
+             (1, 0, 1, 0),
+             (1, 2, 0, 0)]
         """
-        cdef Py_ssize_t i
-        cdef mod_int l, r
-        for i from 0 <= i < left.degree():
-            l = left._entries[i]
-            r = (<Vector_modn_dense>right)._entries[i]
-            if l < r:
-                return -1
-            elif l > r:
-                return 1
-        return 0
+        cdef int c = memcmp(left._entries,
+                      (<Vector_modn_dense>right)._entries,
+                      left._degree * sizeof(mod_int))
+        return (c > 0) - (c < 0)
 
     cdef get_unsafe(self, Py_ssize_t i):
         """
@@ -331,6 +342,204 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             else:
                 z._entries[i] = 0
         return z
+
+cdef class Vector_modn_dense_IteratorLex:
+    r"""
+    A simple iterator in lexicographic order of vector over `\ZZ/n\ZZ`
+
+    This class is mostly used to iterate over submodules of `(\ZZ/n\ZZ)^r` from
+    the classes
+    :class:`sage.modules.free_module.FreeModule_ambient_IntegerModRing` or
+    :class:`FreeModule_submodule_IntegerModRing`.
+
+    EXAMPLES::
+
+        sage: from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+        sage: F = FreeModule(IntegerModRing(6), 3)
+        sage: gens = [F((1,2,0)), F((0,0,3))]
+        sage: for v in Vector_modn_dense_IteratorLex(F, gens):
+        ....:     print v
+        (0, 0, 0)
+        (1, 2, 0)
+        (2, 4, 0)
+        (3, 0, 0)
+        (4, 2, 0)
+        (5, 4, 0)
+        (0, 0, 3)
+        (1, 2, 3)
+        (2, 4, 3)
+        (3, 0, 3)
+        (4, 2, 3)
+        (5, 4, 3)
+    """
+    cdef parent             # the parent of the vectors
+    cdef mod_int ** gens    # the generators
+    cdef mod_int * i        # the current indices
+    cdef mod_int * current  # the current vector
+    cdef mod_int * anihil   # bound for indices
+    cdef mod_int n          # cardinality of the base ring ZZ/nZZ
+    cdef size_t degree      # degree (dimension) of vectors
+    cdef size_t ngens       # number of generators
+    cdef int first          # flag to mark the start
+
+    def __cinit__(self, parent, gens):
+        self.ngens = len(gens)
+        self.degree = parent.degree()
+        self.gens = <mod_int **> check_allocarray(self.ngens, sizeof(mod_int *))
+        self.current = <mod_int *> check_allocarray(self.degree, sizeof(mod_int *))
+        self.i       = <mod_int *> check_allocarray(self.degree, sizeof(mod_int *))
+
+        self.first   = 1
+
+        cdef size_t i
+        if self.ngens:
+            self.gens[0] = <mod_int *> check_allocarray(self.degree * self.ngens, sizeof(mod_int))
+            for i in range(1,self.ngens):
+                self.gens[i] = self.gens[i-1] + self.degree
+
+            self.anihil  = <mod_int *> check_allocarray(self.ngens, sizeof(mod_int))
+
+    def __dealloc__(self):
+        sage_free(self.i)
+        sage_free(self.current)
+        sage_free(self.anihil)
+
+        if self.ngens:
+            sage_free(self.gens[0])
+            sage_free(self.gens)
+
+    def __init__(self, parent, gens):
+        r"""
+        INPUT:
+
+        - ``parent`` - parent of the vectors
+
+        - ``gens`` - an independent set of generators
+        """
+        self.parent = parent
+        from sage.rings.integer import GCD_list
+        self.n = n = parent.base_ring().cardinality()
+        cdef size_t i,j
+
+        for i in range(self.ngens):
+            if parent_c(gens[i]) is not parent:
+                raise ValueError
+            self.anihil[i] = n // GCD_list([x.lift() for x in gens[i]]).gcd(n)-1
+
+        for j in range(self.degree):
+            self.current[j] = 0
+            self.i[j] = 0
+            for i in range(self.ngens):
+                self.gens[i][j] = gens[i][j]
+
+    def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+            sage: F = FreeModule(IntegerModRing(6), 3)
+            sage: gens = [F((1,2,0)), F((0,0,3))]
+            sage: it = Vector_modn_dense_IteratorLex(F, gens)
+            sage: iter(it) is it
+            True
+        """
+        return self
+
+    cdef int next_c_lex(self) except -1:
+        r"""
+        Set ``self.i`` and ``self.current`` to the next lexicographic element.
+        """
+        cdef size_t j,k,m
+
+        m = 0
+        while m < self.ngens and self.i[m] == self.anihil[m]:
+            m += 1
+        if m == self.ngens:
+            return 0
+
+        for k in range(self.degree):
+            self.current[k] = (self.current[k] + self.gens[m][k]) % self.n
+        self.i[m] += 1
+
+        for j in range(m):
+            for k in range(self.degree):
+                self.current[k] = (self.current[k] + (self.n-self.i[j]) * self.gens[j][k]) % self.n
+            self.i[j] = 0
+
+        return 1
+
+    def minimum_distance(self):
+        r"""
+        Computation of the minimum distance of a module (e.g. linear code)
+        through naive exhaustion.
+
+        .. TODO::
+
+            Would be faster to use a Gray code iteration (and takes care about
+            the zero in the generating set).
+
+        EXAMPLES::
+
+            sage: from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+            sage: F = FreeModule(GF(2), 3)
+            sage: gens = [F((1,1,0)), F((1,0,1))]
+            sage: Vector_modn_dense_IteratorLex(F, gens).minimum_distance()
+            2
+
+            sage: F = FreeModule(GF(2), 7)
+            sage: gens = [F((1,1,1,0,0,0,0)), F((1,0,0,1,1,0,0)),
+            ....:         F((0,1,0,1,0,1,0)), F((1,1,0,1,0,0,1))]
+            sage: Vector_modn_dense_IteratorLex(F, gens).minimum_distance()
+            3
+        """
+        cdef int m = self.degree
+        cdef int c
+        cdef size_t i
+        while self.next_c_lex():
+            c = 0
+            for i in range(self.degree):
+                c += (self.current[i] != 0)
+            if c < m:
+                m = c
+        return m
+
+    def __next__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+            sage: F = FreeModule(IntegerModRing(6), 2)
+            sage: gens = [F((3,0)), F((0,2))]
+            sage: it = Vector_modn_dense_IteratorLex(F, gens)
+            sage: next(it)
+            (0, 0)
+            sage: next(it)
+            (3, 0)
+            sage: next(it)
+            (0, 2)
+            sage: next(it)
+            (3, 2)
+            sage: next(it)
+            (0, 4)
+            sage: next(it)
+            (3, 4)
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+        """
+        if self.first:
+            self.first = 0
+            return self.parent.zero().__copy__()
+
+        if not self.next_c_lex():
+            raise StopIteration
+
+        cdef Vector_modn_dense v
+        v = Vector_modn_dense.__new__(Vector_modn_dense)
+        v._init(self.degree, self.parent, self.n)
+        memcpy(v._entries, self.current, self.degree * sizeof(mod_int))
+        return v
 
 def unpickle_v0(parent, entries, degree, p):
     # If you think you want to change this function, don't.

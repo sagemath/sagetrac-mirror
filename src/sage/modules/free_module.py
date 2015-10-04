@@ -4695,8 +4695,7 @@ class FreeModule_ambient(FreeModule_generic):
         (coercions involving :class:`FreeModule_ambient` used to take
         quadratic time and space in the rank of the module)::
 
-            sage: vector([0]*50000)/1
-            (0, 0, 0, ..., 0)
+            sage: v = vector([0]*50000)/1
         """
         if i < 0 or i >= self.rank():
             raise ValueError("Generator %s not defined." % i)
@@ -5089,6 +5088,27 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
             pass
         return FreeModule_generic_field._element_constructor_(self, e, *args, **kwds)
 
+    def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: iter(GF(3)**4)
+            <sage.modules.vector_modn_dense.Vector_modn_dense_IteratorLex object at ...>
+            sage: iter(GF(4,'a')**4)
+            <generator object __iter__ at ...>
+
+            sage: list(GF(3)**2)
+            [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
+            sage: list(GF(4,'a')**2)
+            [(0, 0), (a, 0), ...,  (a + 1, 1), (1, 1)]
+        """
+        R = self.base_ring()
+        if R.is_finite() and R.is_prime_field():
+            from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+            return Vector_modn_dense_IteratorLex(self, self.basis())
+        else:
+            return super(FreeModule_ambient_field, self).__iter__()
+
 #########
 #
 #####
@@ -5159,6 +5179,40 @@ class FreeModule_ambient_IntegerModRing(FreeModule_ambient):
         if isinstance(other, FreeModule_submodule_IntegerModRing) and other.ambient() is self:
             return True
         return super(FreeModule_ambient_IntegerModRing, self)._coerce_map_from_(other)
+
+    def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: F = FreeModule(IntegerModRing(6), 2)
+            sage: for u in F: print u
+            (0, 0)
+            (1, 0)
+            (2, 0)
+            (3, 0)
+            (4, 0)
+            (5, 0)
+            (0, 1)
+            (1, 1)
+            ...
+            (5, 4)
+            (0, 5)
+            (1, 5)
+            (2, 5)
+            (3, 5)
+            (4, 5)
+            (5, 5)
+            sage: sum(1 for _ in F) == 6**2
+            True
+
+            sage: it = iter(F)
+            sage: next(it).parent() is F
+            True
+            sage: next(it).parent() is F
+            True
+        """
+        from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+        return Vector_modn_dense_IteratorLex(self, self.basis())
 
 ###############################################################################
 #
@@ -7114,20 +7168,15 @@ class FreeModule_submodule_IntegerModRing(Module):
             sage: R = IntegerModRing(6)
             sage: M = R**4
             sage: U = M.span([M((1,1,0,2))])
-            sage: next(iter(U)).parent() is U
+
+            sage: it = iter(U)
+            sage: next(it).parent() is U
+            True
+            sage: next(it).parent() is U
             True
         """
-        from itertools import product
-        d = self._d
-        m = len(self._d)
-        M = FreeModule(self.base_ring(), m)
-        T = self._T
-        n = M.base_ring().cardinality()
-        div = [range(n // d[j]) for j in range(m)]
-        for v in product(*div):
-            v = M(v) * T
-            v._set_parent(self)
-            yield v
+        from sage.modules.vector_modn_dense import Vector_modn_dense_IteratorLex
+        return Vector_modn_dense_IteratorLex(self, self.gens())
 
     def __cmp__(self, other):
         r"""
