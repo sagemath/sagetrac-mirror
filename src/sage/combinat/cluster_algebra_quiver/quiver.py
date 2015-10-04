@@ -31,6 +31,7 @@ from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
+from sage.combinat.cluster_algebra_quiver.surface import _triangulation_to_arrows, remove_duplicate_triangles
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -47,6 +48,7 @@ class ClusterQuiver(SageObject):
         * ClusterQuiver
         * Matrix - a skew-symmetrizable matrix
         * DiGraph - must be the input data for a quiver
+        * CluserTriangulation
         * List of edges - must be the edge list of a digraph for a quiver
 
     - ``frozen`` -- (default:``None``) sets the number of frozen variables if the input type is a DiGraph, it is ignored otherwise.
@@ -142,6 +144,19 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver( DiGraph([[1,2],[2,3],[3,4],[4,1]]) ); Q
             Quiver on 4 vertices
 
+        from a ClusterTriangulation::
+
+            sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+            sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+            sage: Q = ClusterQuiver(T)
+            sage: Q
+            Quiver on 4 vertices from a triangulation of type ['D', 4]
+
+            sage: T = ClusterTriangulation([(1,4,7),(1,2,5),(2,0,3),(0,6,3)])
+            sage: Q = ClusterQuiver(T)
+            sage: Q
+            Quiver on 8 vertices from a triangulation of type ['D', 8]
+
         from a List of edges::
 
             sage: Q = ClusterQuiver(['A',[2,5],1]); Q
@@ -174,7 +189,7 @@ class ClusterQuiver(SageObject):
         ...
         ValueError: The input data was not recognized.
     """
-    def __init__( self, data, frozen=None ):
+    def __init__( self, data, frozen=None, from_surface=False):
         """
         TESTS::
 
@@ -182,10 +197,20 @@ class ClusterQuiver(SageObject):
             sage: TestSuite(Q).run()
         """
         from cluster_seed import ClusterSeed
+        from cluster_triangulation import ClusterTriangulation
         from sage.matrix.matrix import Matrix
+
+        if type(data) in [ClusterSeed, ClusterQuiver]:
+            self._from_surface = from_surface if from_surface else data._from_surface
+        else:
+            self._from_surface = from_surface
+
+        #if type(data) not in [ClusterSeed, ClusterQuiver]:
+        #    self._from_surface = from_surface
 
         # constructs a quiver from a mutation type
         if type( data ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
+            #print " In quiver.py, I get [QuiverMutationType_Irreducible,QuiverMutationType_Reducible], data: ", data
             if frozen is not None:
                 print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
 
@@ -195,6 +220,7 @@ class ClusterQuiver(SageObject):
         # constructs a quiver from string representing a mutation type or a common quiver type (see Examples)
         # NOTE: for now, any string representing a *reducible type* is coerced into the standard quiver, but there is now more flexibility in how to input a connected (irreducible) quiver.
         elif type( data ) in [list,tuple] and ( isinstance(data[0], str) or all(type( comp ) in [list,tuple] and isinstance(comp[0], str) for comp in data) ):
+            #print " In quiver.py, I get [list,tupe] and ... , data: ", data
             if frozen is not None:
                 print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
             mutation_type = QuiverMutationType( data )
@@ -242,12 +268,22 @@ class ClusterQuiver(SageObject):
             else:
                 self.__init__( mutation_type.standard_quiver() )
 
-         # constructs a quiver from a cluster seed
+        # if data is a list of triangles (forming a triangulation), the appropriate digraph is constructed.
+        elif isinstance(data, ClusterTriangulation):
+            #print 'I am in quiver.py for ClusterTriangulation. data: ', data #TODO ERASE
+            #print 'I am in quiver.py for ClusterTriangulation. _from_surface: ', data._from_surface
+            #self.__init__( data._M , from_surface=True)
+            self.__init__( data.quiver(), from_surface=True)
+
+        # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
+            #print " In quiver.py, I get ClusterSeed, data: ", data
             self.__init__( data.quiver() )
 
         # constructs a quiver from a quiver
         elif isinstance(data, ClusterQuiver):
+            #print " In quiver.py, I get ClusterQuiver, data: ", data
+            #print " In quiver.py, I get ClusterQuiver, _from_surface: ", data._from_surface
             if frozen is not None:
                 print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
 
@@ -257,9 +293,14 @@ class ClusterQuiver(SageObject):
             self._digraph = copy( data._digraph )
             self._mutation_type = data._mutation_type
             self._description = data._description
+            #if from_surface:
+            #    self._from_surface = True
+            #    self._description += ' from a triangulation'
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
+            #print " In quiver.py, I get Matrix, data: ", data
+            #print " In quiver.py, I get Matrix, from_surface: ", from_surface
             if not _principal_part(data).is_skew_symmetrizable( positive=True ):
                 raise ValueError('The principal part of the matrix data must be skew-symmetrizable.')
             if frozen is not None:
@@ -276,6 +317,8 @@ class ClusterQuiver(SageObject):
                 self._description = 'Quiver on %d vertex' %(n+m)
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
+            if from_surface:
+                self._description += ' from a triangulation'
 
         # constructs a quiver from a digraph
         elif isinstance(data, DiGraph):
@@ -334,10 +377,10 @@ class ClusterQuiver(SageObject):
                 self._description = 'Quiver on %d vertex' %(n+m)
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
+            #self._cluster_triangulation = None
             self._mutation_type = None
 
         # if data is a list of edges, the appropriate digraph is constructed.
-
         elif isinstance(data,list) and all(isinstance(x,(list,tuple)) for x in data ):
             dg = DiGraph( data )
             self.__init__(data=dg, frozen=frozen )
@@ -502,7 +545,6 @@ class ClusterQuiver(SageObject):
         - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
 
         TESTS::
-
             sage: Q = ClusterQuiver(['A',4])
             sage: Q.interact() # long time
             'The interactive mode only runs in the Sage notebook.'
