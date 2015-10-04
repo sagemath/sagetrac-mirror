@@ -3,11 +3,6 @@ r"""
 Families of graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
-
-AUTHORS:
-
-- David Coudert (2012) Ringed Trees
-
 """
 
 ###########################################################################
@@ -20,10 +15,12 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 
-# import from Sage library
+
+from copy import copy
+from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from math import sin, cos, pi
+
 
 def JohnsonGraph(n, k):
     r"""
@@ -113,15 +110,16 @@ def KneserGraph(n,k):
     if not (k>0 and k<=n):
         raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
-    g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Kneser graph with parameters {},{}".format(n,k))
+
     from sage.combinat.subset import Subsets
-
-    if k>n/2:
-        g.add_vertices(Subsets(n,k).list())
-
     S = Subsets(n,k)
+    if k>n/2:
+        g.add_vertices(S)
+
+    s0 = S.underlying_set()    # {1,2,...,n}
     for s in S:
-        for t in Subsets(S.s.difference(s),k):
+        for t in Subsets(s0.difference(s), k):
             g.add_edge(s,t)
 
     return g
@@ -189,9 +187,9 @@ def BalancedTree(r, h):
 
     TESTS:
 
-     Normally we would only consider balanced trees whose root node
-     has degree `r \geq 2`, but the construction degenerates
-     gracefully::
+    Normally we would only consider balanced trees whose root node
+    has degree `r \geq 2`, but the construction degenerates
+    gracefully::
 
         sage: graphs.BalancedTree(1, 10)
         Balanced tree: Graph on 2 vertices
@@ -361,11 +359,17 @@ def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.
 
-    The vertices of the bubble sort graph are the set of permutations on
-    `n` symbols. Two vertices are adjacent if one can be obtained from the
-    other by swapping the labels in the `i`-th and `(i+1)`-th positions for
-    `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
-    of `B(n)` increases according to `f(n) = n!`.
+    The vertices of the bubble sort graph are the set of permutations
+    on `n` symbols. Two vertices are adjacent if one can be obtained
+    from the other by swapping the labels in the `i`-th and `(i+1)`-th
+    positions for `1 \leq i \leq n-1`. In total, `B(n)` has order
+    `n!`. Swapping two labels as described previously corresponds to
+    multiplying on the right the permutation corresponding to the node
+    by an elementary transposition in the
+    :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
+
+    The bubble sort graph is the underlying graph of the
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`. 
 
     INPUT:
 
@@ -381,6 +385,7 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(4); g
         Bubble sort: Graph on 24 vertices
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
 
@@ -393,6 +398,10 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(n)
         sage: g.order() == factorial(n)
         True
+
+    .. SEEALSO::
+
+        * :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
 
     TESTS:
 
@@ -438,6 +447,52 @@ def BubbleSortGraph(n):
         #add adjacency dict
         d[''.join(v)] = tmp_dict
     return Graph(d, name="Bubble sort")
+
+def chang_graphs():
+    r"""
+    Return the three Chang graphs.
+
+    Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
+    called the Chang graphs. The fourth is the line graph of `K_8`. For more
+    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+
+    EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
+    same parameters::
+
+        sage: chang_graphs = graphs.chang_graphs()
+        sage: K8 = graphs.CompleteGraph(8)
+        sage: T8 = K8.line_graph()
+        sage: four_srg = chang_graphs + [T8]
+        sage: for g in four_srg:
+        ....:     print g.is_strongly_regular(parameters=True)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        sage: from itertools import combinations
+        sage: for g1,g2 in combinations(four_srg,2):
+        ....:     assert not g1.is_isomorphic(g2)
+
+    Construct the Chang graphs by Seidel switching::
+
+        sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
+        sage: c8=graphs.CycleGraph(8)
+        sage: s=[K8.subgraph_search(c8).edges(),
+        ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
+        ....:    K8.subgraph_search(c3c5).edges()]
+        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
+        ....:                  s, chang_graphs)
+        [True, True, True]
+
+    """
+    g1 = Graph("[}~~EebhkrRb_~SoLOIiAZ?LBBxDb?bQcggjHKEwoZFAaiZ?Yf[?dxb@@tdWGkwn",
+               loops=False, multiedges=False)
+    g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
+               loops=False, multiedges=False)
+    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+               loops=False, multiedges=False)
+    return [g1,g2,g3]
 
 def CirculantGraph(n, adjacency):
     r"""
@@ -854,7 +909,7 @@ def FuzzyBallGraph(partition, q):
         sage: m=4; q=2; k=2
         sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
         sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
-        set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
+        {x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x}
     """
     from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
@@ -1033,16 +1088,16 @@ def HararyGraph( k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = CirculantGraph( n, range(1,k/2+1) )
+        G = CirculantGraph( n, range(1,k//2+1) )
     else:
         if n%2 == 0:
-            G = CirculantGraph( n, range(1,(k-1)/2+1) )
+            G = CirculantGraph( n, range(1,(k-1)//2+1) )
             for i in range(n):
-                G.add_edge( i, (i+n/2)%n )
+                G.add_edge( i, (i + n//2)%n )
         else:
             G = HararyGraph( k-1, n )
-            for i in range((n-1)/2+1):
-                G.add_edge( i, (i+(n-1)/2)%n )
+            for i in range((n-1)//2 + 1):
+                G.add_edge( i, (i + (n-1)//2)%n )
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
@@ -1065,6 +1120,7 @@ def HyperStarGraph(n,k):
 
         sage: g = graphs.HyperStarGraph(6,3)
         sage: g.plot() # long time
+        Graphics object consisting of 51 graphics primitives
 
     REFERENCES:
 
@@ -1275,7 +1331,7 @@ def MycielskiStep(g):
     """
 
     # Make a copy of the input graph g
-    gg = g.copy()
+    gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
     renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
@@ -1319,6 +1375,7 @@ def NKStarGraph(n,k):
 
         sage: g = graphs.NKStarGraph(4,2)
         sage: g.plot() # long time
+        Graphics object consisting of 31 graphics primitives
 
     REFERENCES:
 
@@ -1376,6 +1433,7 @@ def NStarGraph(n):
 
         sage: g = graphs.NStarGraph(4)
         sage: g.plot() # long time
+        Graphics object consisting of 61 graphics primitives
 
     REFERENCES:
 
@@ -1467,7 +1525,8 @@ def PaleyGraph(q):
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.constructor import FiniteField
-    assert q.is_prime_power(), "Parameter q must be a prime power"
+    from sage.rings.arith import is_prime_power
+    assert is_prime_power(q), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
     loops=False, name = "Paley graph with parameter %d"%q)
@@ -1916,6 +1975,91 @@ def petersen_family(generate=False):
     return [Graph(x) for x in l]
 
 
+def SierpinskiGasketGraph(n):
+    """
+    Return the Sierpinski Gasket graph of generation `n`.
+
+    All vertices but 3 have valence 4.
+
+    INPUT:
+
+    - `n` -- an integer
+
+    OUTPUT:
+
+    a graph `S_n` with `3 (3^{n-1}+1)/2` vertices and
+    `3^n` edges, closely related to the famous Sierpinski triangle
+    fractal.
+
+    All these graphs have a triangular shape, and three special
+    vertices at top, bottom left and bottom right. These are the only
+    vertices of valence 2, all the other ones having valence 4.
+
+    The graph `S_1` (generation `1`) is a triangle.
+
+    The graph `S_{n+1}` is obtained from the disjoint union of
+    three copies A,B,C of `S_n` by identifying pairs of vertices:
+    the top vertex of A with the bottom left vertex of B,
+    the bottom right vertex of B with the top vertex of C,
+    and the bottom left vertex of C with the bottom right vertex of A.
+
+    .. PLOT::
+
+        sphinx_plot(graphs.SierpinskiGasketGraph(4).plot(vertex_labels=False))
+
+
+    .. SEEALSO::
+
+        There is another familly of graphs called Sierpinski graphs,
+        where all vertices but 3 have valence 3. They are available using
+        ``graphs.HanoiTowerGraph(3, n)``.
+
+    EXAMPLES::
+
+        sage: s4 = graphs.SierpinskiGasketGraph(4); s4
+        Graph on 42 vertices
+        sage: s4.size()
+        81
+        sage: s4.degree_histogram()
+        [0, 0, 3, 0, 39]
+        sage: s4.is_hamiltonian()
+        True
+
+    REFERENCES:
+
+    .. [LLWC] Chien-Hung Lin, Jia-Jie Liu, Yue-Li Wang, William Chung-Kung Yen,
+       *The Hub Number of Sierpinski-Like Graphs*, Theory Comput Syst (2011),
+       vol 49, :doi:`10.1007/s00224-010-9286-3`
+    """
+    from sage.modules.free_module_element import vector
+    from sage.rings.rational_field import QQ
+
+    if n <= 0:
+        raise ValueError('n should be at least 1')
+
+    def next_step(triangle_list):
+        # compute the next subdivision
+        resu = []
+        for a, b, c in triangle_list:
+            ab = (a + b) / 2
+            bc = (b + c) / 2
+            ac = (a + c) / 2
+            resu += [(a, ab, ac), (ab, b, bc), (ac, bc, c)]
+        return resu
+
+    tri_list = [list(vector(QQ, u) for u in [(0, 0), (0, 1), (1, 0)])]
+    for k in range(n - 1):
+        tri_list = next_step(tri_list)
+    dg = Graph()
+    dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
+    dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
+    dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
+    dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
+                for (x, y) in dg.vertices()})
+    dg.relabel()
+    return dg
+
+
 def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
@@ -2126,50 +2270,3 @@ def RingedTree(k, vertex_labels = True):
     g.relabel(vertices)
 
     return g
-
-def SymplecticGraph(d,q):
-    r"""
-    Returns the Symplectic graph `Sp(d,q)`
-
-    The Symplectic Graph `Sp(d,q)` is built from a projective space of dimension
-    `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
-    made adjacent if `f(u,v)=0`.
-
-    See the `page on symplectic graphs on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
-
-    INPUT:
-
-    - ``d,q`` (integers) -- note that only even values of `d` are accepted by
-      the function.
-
-    EXAMPLES::
-
-        sage: g = graphs.SymplecticGraph(6,2)
-        sage: g.is_strongly_regular(parameters=True)
-        (63, 30, 13, 15)
-        sage: set(g.spectrum()) == {-5, 3, 30}
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module import VectorSpace
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
-
-    if d < 1 or d%2 != 0:
-        raise ValueError("d must be even and greater than 2")
-
-    F = FiniteField(q,"x")
-    M = block_matrix(F, 2, 2,
-                     [zero_matrix(F,d/2),
-                      identity_matrix(F,d/2),
-                      -identity_matrix(F,d/2),
-                      zero_matrix(F,d/2)])
-
-    V = VectorSpace(F,d)
-    PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([map(tuple,PV), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
-    G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
-    G.relabel()
-    return G
-

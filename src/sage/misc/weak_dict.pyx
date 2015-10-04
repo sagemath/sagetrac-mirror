@@ -81,12 +81,6 @@ changes, and the iteration breaks for :class:`weakref.WeakValueDictionary`::
     sage: del C[:5]
     sage: len(D)
     10
-    sage: for k in D.iterkeys():
-    ....:     gc.enable()
-    ....:     _ = gc.collect()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: dictionary changed size during iteration
 
 With :class:`~sage.misc.weak_dict.WeakValueDictionary`, the behaviour is
 safer. Note that iteration over a WeakValueDictionary is non-deterministic,
@@ -125,9 +119,9 @@ from weakref import KeyedRef
 from copy import deepcopy
 
 from cpython.dict cimport *
-from cpython.weakref cimport *
-from cpython.list cimport *
-
+from cpython.weakref cimport PyWeakref_NewRef
+from cpython.list cimport PyList_New
+from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
 
 cdef extern from "Python.h":
@@ -148,8 +142,6 @@ cdef extern from "Python.h":
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
     int PyList_SetItem(object list, Py_ssize_t index,PyObject * item) except -1
-    #this one's just missing.
-    long PyObject_Hash(object obj) except -1
 
 cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
     cdef PyDictEntry* ep
@@ -960,7 +952,8 @@ cdef class WeakValueDictionary(dict):
             [0, 1, 2, 3, 5, 6, 7, 8, 9]
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()
@@ -1065,7 +1058,8 @@ cdef class WeakValueDictionary(dict):
             <9>
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()
@@ -1165,7 +1159,8 @@ cdef class WeakValueDictionary(dict):
             [9] <9>
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()
@@ -1241,7 +1236,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k
@@ -1268,7 +1263,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k

@@ -9,6 +9,7 @@ Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.rings.infinity import infinity
@@ -56,6 +57,25 @@ class WeylGroups(Category_singleton):
             [Category of coxeter groups]
         """
         return [CoxeterGroups()]
+
+    def additional_structure(self):
+        r"""
+        Return  ``None``.
+
+        Indeed, the category of Weyl groups defines no additional
+        structure: Weyl groups are a special class of Coxeter groups.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: WeylGroups().additional_structure()
+        """
+        return None
+
+    Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:
 
@@ -392,27 +412,27 @@ class WeylGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W=WeylGroup(['C',2],prefix="s")
-                sage: r=W.from_reduced_word([1,2,1])
-                sage: r.reflection_to_root()
+                sage: W.from_reduced_word([1,2,1]).reflection_to_root()
                 2*alpha[1] + alpha[2]
-                sage: r=W.from_reduced_word([1,2])
-                sage: r.reflection_to_root()
+                sage: W.from_reduced_word([1,2]).reflection_to_root()
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
-
+                sage: W.long_element().reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
             """
 
             i = self.first_descent()
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_root(i)
-                #return self.parent().domain().simple_root(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_root(i)
+            rsi = self.apply_simple_reflection(i)
+            if not rsi.has_descent(i, side='left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_root()).simple_reflection(i)
+            return rsi.apply_simple_reflection(i, side='left').reflection_to_root().simple_reflection(i)
 
         @cached_in_parent_method
         def reflection_to_coroot(self):
@@ -422,27 +442,27 @@ class WeylGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W=WeylGroup(['C',2],prefix="s")
-                sage: r=W.from_reduced_word([1,2,1])
-                sage: r.reflection_to_coroot()
+                sage: W.from_reduced_word([1,2,1]).reflection_to_coroot()
                 alphacheck[1] + alphacheck[2]
-                sage: r=W.from_reduced_word([1,2])
-                sage: r.reflection_to_coroot()
+                sage: W.from_reduced_word([1,2]).reflection_to_coroot()
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
-
+                sage: W.long_element().reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
             """
 
             i = self.first_descent()
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_coroot(i)
-                #return self.parent().domain().simple_coroot(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_coroot(i)
+            rsi = self.apply_simple_reflection(i)
+            if not rsi.has_descent(i, side='left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_coroot()).simple_reflection(i)
+            return rsi.apply_simple_reflection(i, side='left').reflection_to_coroot().simple_reflection(i)
 
         def inversions(self, side = 'right', inversion_type = 'reflections'):
             """
@@ -492,6 +512,51 @@ class WeylGroups(Category_singleton):
             if inversion_type == 'coroots':
                 return [r.reflection_to_coroot() for r in reflections]
             raise ValueError("inversion_type {} is invalid".format(inversion_type))
+
+        def inversion_arrangement(self, side='right'):
+            r"""
+            Return the inversion hyperplane arrangement of ``self``.
+
+            INPUT:
+
+            - ``side`` -- ``'right'`` (default) or ``'left'``
+
+            OUTPUT:
+
+            A (central) hyperplane arrangement whose hyperplanes correspond
+            to the inversions of ``self`` given as roots.
+
+            The ``side`` parameter determines on which side
+            to compute the inversions.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([1, 2, 3, 1, 2])
+                sage: A = w.inversion_arrangement(); A
+                Arrangement of 5 hyperplanes of dimension 3 and rank 3
+                sage: A.hyperplanes()
+                (Hyperplane 0*a1 + 0*a2 + a3 + 0,
+                 Hyperplane 0*a1 + a2 + 0*a3 + 0,
+                 Hyperplane 0*a1 + a2 + a3 + 0,
+                 Hyperplane a1 + a2 + 0*a3 + 0,
+                 Hyperplane a1 + a2 + a3 + 0)
+
+            The identity element gives the empty arrangement::
+
+                sage: W = WeylGroup(['A',3])
+                sage: W.one().inversion_arrangement()
+                Empty hyperplane arrangement of dimension 3
+            """
+            inv = self.inversions(side=side, inversion_type='roots')
+            from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+            I = self.parent().cartan_type().index_set()
+            H = HyperplaneArrangements(QQ, tuple(['a{}'.format(i) for i in I]))
+            gens = H.gens()
+            if not inv:
+                return H()
+            return H([sum(c * gens[I.index(i)] for (i, c) in root)
+                      for root in inv])
 
         def bruhat_lower_covers_coroots(self):
             r"""
@@ -551,8 +616,8 @@ class WeylGroups(Category_singleton):
 
             - ``quantum_only`` -- (default: False) if True, returns only the quantum successors
 
-            Returns the successors of ``self`` in the quantum Bruhat graph on the parabolic quotient of the Weyl group determined
-            by the subset of Dynkin nodes ``index_set``.
+            Returns the successors of ``self`` in the quantum Bruhat graph on the parabolic
+            quotient of the Weyl group determined by the subset of Dynkin nodes ``index_set``.
 
             EXAMPLES::
 
@@ -572,8 +637,7 @@ class WeylGroups(Category_singleton):
                 sage: w.quantum_bruhat_successors([1,3])
                 Traceback (most recent call last):
                 ...
-                ValueError: s2*s3 is not of minimum length in its coset of the parabolic subgroup
-                generated by the reflections [1, 3]
+                ValueError: s2*s3 is not of minimum length in its coset of the parabolic subgroup generated by the reflections (1, 3)
 
             """
             W = self.parent()
@@ -583,14 +647,13 @@ class WeylGroups(Category_singleton):
                 index_set = []
             else:
                 index_set = [x for x in index_set]
+            index_set = tuple(index_set)
             if self != self.coset_representative(index_set):
                 raise ValueError("{} is not of minimum length in its coset of the parabolic subgroup generated by the reflections {}".format(self, index_set))
             lattice = W.cartan_type().root_system().root_lattice()
-            non_parab_roots = lattice.positive_roots_nonparabolic(tuple(index_set))
-            two_rho_minus_two_rho_P = lattice.positive_roots_nonparabolic_sum(tuple(index_set))
             w_length_plus_one = self.length() + 1
             successors = []
-            for alpha in non_parab_roots:
+            for alpha in lattice.nonparabolic_positive_roots(index_set):
                 wr = self * W.from_reduced_word(alpha.associated_reflection())
                 wrc = wr.coset_representative(index_set)
                 if wrc == wr and wr.length() == w_length_plus_one and not quantum_only:
@@ -598,7 +661,7 @@ class WeylGroups(Category_singleton):
                         successors.append((wr,alpha))
                     else:
                         successors.append(wr)
-                elif alpha.quantum_root() and wrc.length() == w_length_plus_one - two_rho_minus_two_rho_P.scalar(alpha.associated_coroot()):
+                elif alpha.quantum_root() and wrc.length() == w_length_plus_one - lattice.nonparabolic_positive_root_sum(index_set).scalar(alpha.associated_coroot()):
                     if roots:
                         successors.append((wrc,alpha))
                     else:

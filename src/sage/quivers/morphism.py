@@ -179,12 +179,12 @@ class QuiverRepHom(CallMorphism):
         self._domain = domain
         self._codomain = codomain
         self._quiver = domain._quiver
-        self._base_ring = domain._base_ring
+        self._base_ring = domain.base_ring()
 
         # Check that the quiver and base ring match
         if codomain._quiver != self._quiver:
             raise ValueError("the quivers of the domain and codomain must be equal")
-        if codomain._base_ring != self._base_ring:
+        if codomain.base_ring() != self._base_ring:
             raise ValueError("the base ring of the domain and codomain must be equal")
 
         # Get the dimensions of the spaces
@@ -266,11 +266,11 @@ class QuiverRepHom(CallMorphism):
                 start_index += dim
 
         # Get the coordinates of the vector
-        from sage.categories.morphism import is_Morphism
+        from sage.categories.map import is_Map
         vector = []
         for v in self._quiver:
             if v in maps_dict:
-                if is_Morphism(maps_dict[v]):
+                if is_Map(maps_dict[v]):
                     if hasattr(maps_dict[v], 'matrix'):
                         m = maps_dict[v].matrix()
                     else:
@@ -601,7 +601,7 @@ class QuiverRepHom(CallMorphism):
             raise ValueError("dimensions do not match domain and codomain")
 
         # Check that the edge diagrams commute
-        for e in self._quiver.edges():
+        for e in self._domain._semigroup._sorted_edges:
             if self.get_matrix(e[0])*self._codomain._maps[e].matrix() != self._domain._maps[e].matrix()*self.get_matrix(e[1]):
                 raise ValueError("the diagram of edge {} does not commute".format(e))
 
