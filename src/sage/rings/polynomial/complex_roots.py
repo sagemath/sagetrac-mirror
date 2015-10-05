@@ -219,17 +219,17 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     ::
 
         sage: def tiny(x):
-        ...       return x.contains_zero() and x.absolute_diameter() <  1e-14
+        ....:     return x.contains_zero() and x.absolute_diameter() < 1e-14
         sage: def smash(x):
-        ...       x = CIF(x[0]) # discard multiplicity
-        ...       if tiny(x.imag()): return x.real()
-        ...       if tiny(x.real()): return CIF(0, x.imag())
-        sage: rts = complex_roots(p); type(rts[0][0]), sorted(map(smash, rts))
-        (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
-        sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), sorted(map(smash, rts))
-        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
-        sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
-        (<class 'sage.rings.qqbar.AlgebraicReal'>, [(-1.618033988749895?, 1), (0.618033988749895?, 1)])
+        ....:     x = CIF(x[0]) # discard multiplicity
+        ....:     if tiny(x.imag()): return x.real()
+        ....:     if tiny(x.real()): return CIF(0, x.imag())
+        sage: rts = complex_roots(p); parent(rts[0][0]), sorted(map(smash, rts))
+        (Complex Interval Field with 53 bits of precision, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
+        sage: rts = complex_roots(p, retval='algebraic'); parent(rts[0][0]), sorted(map(smash, rts))
+        (Algebraic Field, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
+        sage: rts = complex_roots(p, retval='algebraic_real'); parent(rts[0][0]), rts
+        (Algebraic Real Field, [(-1.618033988749895?, 1), (0.618033988749895?, 1)])
 
     TESTS:
 

@@ -226,8 +226,8 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: am = G.adjacency_matrix()
             sage: spectrum = am.eigenvectors_left()
             sage: qqbar_evalue = spectrum[2][0]
-            sage: type(qqbar_evalue)
-            <class 'sage.rings.qqbar.AlgebraicNumber'>
+            sage: parent(qqbar_evalue)
+            Algebraic Field
             sage: qqbar_evalue
             0.618033988749895?
 
