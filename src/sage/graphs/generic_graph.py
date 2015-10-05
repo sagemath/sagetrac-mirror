@@ -8619,7 +8619,7 @@ class GenericGraph(GenericGraph_pyx):
                           solver = None,
                           verbose = 0):
         r"""
-        Returns the edge connectivity of the graph.
+        Return the edge connectivity of the graph.
 
         For more information, see the
         `Wikipedia article on connectivity
@@ -8725,9 +8725,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: l == minimum
             True
 
-        When ``value_only = True`` and ``implementation="sage"``, this function is
-        optimized for small connectivity values and does not need to build a
-        linear program.
+        When ``value_only = True`` and ``implementation="sage"``, this
+        function is optimized for small connectivity values and does
+        not need to build a linear program.
 
         It is the case for graphs which are not connected ::
 
@@ -8783,6 +8783,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: (2*g).edge_connectivity(vertices=True)
             [0, [], [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]]
+
+        Check ticket :trac:`19348`::
+
+            sage: g = Graph({'a': ['b']})
+            sage: g.edge_connectivity(value_only=False)[1][0][0]
+            'a'
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
@@ -8834,6 +8840,9 @@ class GenericGraph(GenericGraph_pyx):
             elif vertices:
                 val.append(self.connected_components())
 
+            verts = self.vertices()
+            edges = [(verts[x],verts[y],self.edge_label(verts[x],verts[y])) for x,y in edges]
+            val[1] = edges
             return val
 
         if use_edge_labels:
