@@ -487,7 +487,6 @@ import itertools
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
-from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement
 from sage.rings.complex_field import ComplexField
@@ -495,7 +494,6 @@ from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIn
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
@@ -580,6 +578,108 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         return infinity.infinity
 
+    def polynomial_root(self, poly, approx, multiplicity=1):
+        r"""
+        Given a polynomial with algebraic coefficients and an
+        approximation of a root of the polynomial, construct an
+        algebraic number representation of that root.
+
+        INPUT:
+
+        - ``poly`` -- a polynomial with algebraic (exact) coefficients
+
+        - ``approx`` -- either some approximation of a root or an
+          interval containing exactly one root
+
+        OUTPUT: an :class:`AlgebraicReal` or :class:`AlgebraicNumber`
+
+        The polynomial need not be irreducible, or even squarefree; but
+        if the given root is a multiple root, its multiplicity must be
+        specified.
+
+        NOTE::
+
+            Multiplicity-`k` roots are handled by taking the `(k-1)`-st
+            derivative of the polynomial. This means that, if an
+            interval is given, the interval must enclose exactly one
+            root of this derivative.
+
+        The conditions on the arguments (that the interval encloses exactly
+        one root, and that multiple roots match the given multiplicity)
+        are not checked; if they are not satisfied, an error may be
+        thrown (possibly later, when the algebraic number is used),
+        or wrong answers may result.
+
+        Note that if you are constructing multiple roots of a single
+        polynomial, it is better to use ``QQbar.common_polynomial``
+        to get a shared polynomial.
+
+        EXAMPLES:
+
+        For algebraic numbers (``QQbar``)::
+
+            sage: R.<x> = ZZ[]
+            sage: QQbar.polynomial_root(x^2 - x + 1, CC(0,-1))
+            0.500000000000000? - 0.866025403784439?*I
+            sage: QQbar.polynomial_root(x^2 - x + 1, CIF(RIF(0,1),RIF(0,1)))
+            0.50000000000000000? + 0.866025403784439?*I
+
+        For algebraic real numbers (``AA``)::
+
+            sage: R.<x> = ZZ[]
+            sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(1, 2)); phi
+            1.618033988749895?
+            sage: p = (x-1)^7 * (x-2)
+            sage: AA.polynomial_root(p, 0.9, multiplicity=7)
+            1.000000000000000?
+            sage: AA.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
+            1.000000000000000?
+            sage: p = (x - phi) * (x - sqrt(AA(2)))
+            sage: r = AA.polynomial_root(p, RIF(1, 3/2))
+            sage: r
+            1.414213562373095?
+            sage: r == sqrt(AA(2))
+            True
+
+        For ``AA``, the root we find must be real::
+
+            sage: p = x^3 - 2
+            sage: AA.polynomial_root(p, CC(1,0.1))
+            1.259921049894873?
+            sage: AA.polynomial_root(p, CC(0,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: non-real root given as argument of .polynomial_root on algebraic real field
+            sage: QQbar.polynomial_root(p, CC(0,1))
+            -0.6299605249474365? + 1.091123635971722?*I
+        """
+        if not is_RealIntervalFieldElement(approx) and not is_ComplexIntervalFieldElement(approx):
+            # Refine approx to an interval
+            from sage.rings.polynomial.refine_root import refine_root
+            try:
+                # Use some arbitrary extra bits of precision
+                prec = approx.prec() + 7
+            except AttributeError:
+                prec = 60
+
+            CIF = ComplexIntervalField(prec)
+            approx = CIF(approx)
+
+            CIFx = PolynomialRing(CIF, 'x')
+            ipoly = CIFx(poly)
+            for i in range(multiplicity-1):
+                ipoly = ipoly.derivative()
+
+            approx = refine_root(ipoly, ipoly.derivative(), approx, CIF)
+
+        if self is AA and not is_RealIntervalFieldElement(approx):
+            if not approx.imag():
+                approx = approx.real()
+            else:
+                raise ValueError("non-real root given as argument of .polynomial_root on algebraic real field")
+
+        return self.element_class(ANRoot(poly, approx, multiplicity))
+
     def common_polynomial(self, poly):
         """
         Given a polynomial with algebraic coefficients, returns a
@@ -631,7 +731,6 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         sage: AA == loads(dumps(AA))
         True
     """
-
     def __new__(cls):
         r"""
         This method is there to ensure that pickles created before this class
@@ -662,8 +761,11 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             True
 
         """
-        try: return AA
-        except BaseException: return AlgebraicField_common.__new__(cls)
+        try:
+            return AA
+        except NameError:
+            cls.Element = AlgebraicReal
+            return AlgebraicField_common.__new__(cls)
 
     def __init__(self):
         r"""
@@ -924,61 +1026,6 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         else:
             raise ValueError("no n-th root of unity in algebraic reals")
 
-    def polynomial_root(self, poly, interval, multiplicity=1):
-        r"""
-        Given a polynomial with algebraic coefficients and an interval
-        enclosing exactly one root of the polynomial, constructs
-        an algebraic real representation of that root.
-
-        The polynomial need not be irreducible, or even squarefree; but
-        if the given root is a multiple root, its multiplicity must be
-        specified. (IMPORTANT NOTE: Currently, multiplicity-`k` roots
-        are handled by taking the `(k-1)`-st derivative of the polynomial.
-        This means that the interval must enclose exactly one root
-        of this derivative.)
-
-        The conditions on the arguments (that the interval encloses exactly
-        one root, and that multiple roots match the given multiplicity)
-        are not checked; if they are not satisfied, an error may be
-        thrown (possibly later, when the algebraic number is used),
-        or wrong answers may result.
-
-        Note that if you are constructing multiple roots of a single
-        polynomial, it is better to use ``AA.common_polynomial`` (or
-        ``QQbar.common_polynomial``; the two are equivalent) to get a
-        shared polynomial.
-
-        EXAMPLES::
-
-            sage: x = polygen(AA)
-            sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(1, 2)); phi
-            1.618033988749895?
-            sage: p = (x-1)^7 * (x-2)
-            sage: r = AA.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
-            sage: r; r == 1
-            1.000000000000000?
-            True
-            sage: p = (x-phi)*(x-sqrt(AA(2)))
-            sage: r = AA.polynomial_root(p, RIF(1, 3/2))
-            sage: r; r == sqrt(AA(2))
-            1.414213562373095?
-            True
-
-        We allow complex polynomials, as long as the particular root
-        in question is real. ::
-
-            sage: K.<im> = QQ[I]
-            sage: x = polygen(K)
-            sage: p = (im + 1) * (x^3 - 2); p
-            (I + 1)*x^3 - 2*I - 2
-            sage: r = AA.polynomial_root(p, RIF(1, 2)); r^3
-            2.000000000000000?
-        """
-        if not is_RealIntervalFieldElement(interval):
-            raise ValueError("interval argument of .polynomial_root on algebraic real field must be real")
-
-        return AlgebraicReal(ANRoot(poly, interval, multiplicity))
-
     def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial ``f``.
@@ -1039,14 +1086,11 @@ def is_AlgebraicRealField(F):
     """
     return isinstance(F, AlgebraicRealField)
 
-# Create the globally unique AlgebraicRealField object.
-AA = AlgebraicRealField()
 
 class AlgebraicField(Singleton, AlgebraicField_common):
     """
     The field of all algebraic complex numbers.
     """
-
     def __new__(cls):
         r"""
         This method is there to ensure that pickles created before this class
@@ -1081,8 +1125,11 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: s is QQbar
             True
         """
-        try: return QQbar
-        except BaseException: return AlgebraicField_common.__new__(cls)
+        try:
+            return QQbar
+        except NameError:
+            cls.Element = AlgebraicNumber
+            return AlgebraicField_common.__new__(cls)
 
     def __init__(self):
         r"""
@@ -1306,47 +1353,6 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         """
         return AlgebraicNumber(ANRootOfUnity(QQ_1/n, QQ_1))
 
-    def polynomial_root(self, poly, interval, multiplicity=1):
-        r"""
-        Given a polynomial with algebraic coefficients and an interval
-        enclosing exactly one root of the polynomial, constructs
-        an algebraic real representation of that root.
-
-        The polynomial need not be irreducible, or even squarefree; but
-        if the given root is a multiple root, its multiplicity must be
-        specified. (IMPORTANT NOTE: Currently, multiplicity-`k` roots
-        are handled by taking the `(k-1)`-st derivative of the polynomial.
-        This means that the interval must enclose exactly one root
-        of this derivative.)
-
-        The conditions on the arguments (that the interval encloses exactly
-        one root, and that multiple roots match the given multiplicity)
-        are not checked; if they are not satisfied, an error may be
-        thrown (possibly later, when the algebraic number is used),
-        or wrong answers may result.
-
-        Note that if you are constructing multiple roots of a single
-        polynomial, it is better to use ``QQbar.common_polynomial``
-        to get a shared polynomial.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQbar)
-            sage: phi = QQbar.polynomial_root(x^2 - x - 1, RIF(0, 2)); phi
-            1.618033988749895?
-            sage: p = (x-1)^7 * (x-2)
-            sage: r = QQbar.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
-            sage: r; r == 1
-            1
-            True
-            sage: p = (x-phi)*(x-sqrt(QQbar(2)))
-            sage: r = QQbar.polynomial_root(p, RIF(1, 3/2))
-            sage: r; r == sqrt(QQbar(2))
-            1.414213562373095?
-            True
-        """
-        return AlgebraicNumber(ANRoot(poly, interval, multiplicity))
-
     def random_element(self, poly_degree=2, *args, **kwds):
         r"""
         Returns a random algebraic number.
@@ -1512,8 +1518,6 @@ def is_AlgebraicField(F):
     """
     return isinstance(F, AlgebraicField)
 
-# Create the globally unique AlgebraicField object.
-QQbar = AlgebraicField()
 
 def is_AlgebraicField_common(F):
     r"""
@@ -5329,6 +5333,12 @@ class AlgebraicReal(AlgebraicNumber_base):
         # of mid is the same as the rounded value of self.
 
         return field(mid)
+
+
+# Create the globally unique AlgebraicRealField and AlgebraicField objects
+AA = AlgebraicRealField()
+QQbar = AlgebraicField()
+
 
 class ANRational(ANDescr):
     r"""
