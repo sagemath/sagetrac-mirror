@@ -155,6 +155,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
     cdef bint is_real = isinstance(field, RealIntervalField_class)
     cdef bint smashed_real = False
     cdef bint smashed_imag = False
+    cdef bint converging = False
 
     if is_real:
         real_field = field
@@ -212,7 +213,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
             center = field(root.center())
             nroot = center - poly(center) / slope
 
-            if nroot in root:
+            if converging or nroot in root:
                 if i == steps - 1:
                     # This is the last iteration
                     return nroot
@@ -221,6 +222,9 @@ def refine_root(poly, deriv, root, field, long steps=10):
                     # original diameter, then we have converged reasonably
                     # well.
                     return nroot
+                # Once we are converging, assume that we keep converging
+                # (to avoid small oscillations due to limited precision)
+                converging = True
             else:
                 # If the new interval still isn't contained in the old
                 # after a while, try tripling the size of the region
