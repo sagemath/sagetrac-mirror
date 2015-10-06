@@ -10,7 +10,7 @@ AUTHORS:
 - Carl Witty (2007-11-18): initial version
 
 - Jeroen Demeyer (2015-10-06): improved code, also allow real input
-  (see :trac:`19362`)
+  and use bisection if needed (see :trac:`19362`)
 """
 
 #*****************************************************************************
@@ -82,6 +82,14 @@ def refine_root(poly, deriv, root, field, long steps=10):
         sage: refine_root(ip, ipd, irt, CIF)
         0.766044443118978? + 0.642787609686540?*I
 
+    This example requires bisection since the given interval contains
+    a zero of the derivative::
+
+        sage: R.<x> = RIF[]
+        sage: pol = 10*x^6 - 10*x^2 + 1
+        sage: refine_root(pol, pol.derivative(), RIF(-1/5, 2/3), RIF)
+        0.3178541456092885?
+
     With too few steps, the refining does not work::
 
         sage: refine_root(ip, ipd, irt, CIF, steps=1)
@@ -133,10 +141,10 @@ def refine_root(poly, deriv, root, field, long steps=10):
     # outward interval rounding; but close to zero, MPFI provides
     # extremely precise numbers.)
 
-    # If the containment check continues to fail many times in a row,
-    # we give up and raise ArithmeticError; we also raise an error if we
-    # detect that the slope in our current interval is not bounded away
-    # from zero at any step.
+    # If the slope in our current interval is not bounded away
+    # from zero, we instead try to refine the root using bisection.
+    # This might be needed if the original interval was very large
+    # (typically the output of real root isolation algorithms).
 
     # After every refinement step, we check to see if the real or
     # imaginary component of our interval is close to zero.  If so, we
@@ -155,7 +163,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
 
     epsilon = real_field(-1, 1) >> field.prec()
 
-    cdef long i
+    cdef long i, n
     for i in range(steps):
         # Check for possibly exact zero real/imaginary components
         if is_real:
@@ -172,28 +180,54 @@ def refine_root(poly, deriv, root, field, long steps=10):
 
         slope = deriv(root)
         if slope.contains_zero():
-            raise ArithmeticError("cannot refine polynomial root (precision too low?)")
-        center = field(root.center())
+            # We cannot use Newton-Raphson => use bisection instead
+            pieces = root.bisection()
+            pieces = [p for p in pieces if poly(p).contains_zero()]
+            n = len(pieces)
+            if n == 1:
+                nroot = pieces[0]
+            elif n == 0:
+                raise ArithmeticError("cannot refine polynomial root (precision too low?)")
+            else:
+                # Still more than 1 piece left: it could be that the
+                # zero of the polynomial is very close to the center of
+                # the interval. We try an additional bisection. We take
+                # the union of all pieces containing a zero.
+                nroot = None
+                for p in pieces:
+                    for q in p.bisection():
+                        if poly(q).contains_zero():
+                            if nroot is None:
+                                nroot = q
+                            else:
+                                nroot = nroot.union(q)
 
-        # New interval for root using Newton--Raphson
-        nroot = center - poly(center) / slope
-
-        if nroot in root:
-            if i == steps - 1:
-                # This is the last iteration
-                return nroot
-            if (nroot.diameter() << 2) >= root.diameter():
-                # If the new diameter is within a factor 4 of the
-                # original diameter, then we have converged reasonably
-                # well.
-                return nroot
+                if nroot is None:
+                    raise ArithmeticError("cannot refine polynomial root (precision too low?)")
+                if not nroot._cmp_(root):
+                    # nroot and root are exactly the same interval
+                    raise ArithmeticError("cannot refine polynomial root (multiple roots?)")
         else:
-            # If the new interval still isn't contained in the old
-            # after a while, try tripling the size of the region
-            if 2*i >= steps:
-                # This gives an interval with the same center
-                # but with a larger diameter
-                nroot += nroot - nroot
+            # Use Newton-Raphson to refine the root
+            center = field(root.center())
+            nroot = center - poly(center) / slope
+
+            if nroot in root:
+                if i == steps - 1:
+                    # This is the last iteration
+                    return nroot
+                if (nroot.diameter() << 2) >= root.diameter():
+                    # If the new diameter is within a factor 4 of the
+                    # original diameter, then we have converged reasonably
+                    # well.
+                    return nroot
+            else:
+                # If the new interval still isn't contained in the old
+                # after a while, try tripling the size of the region
+                if 2*i >= steps:
+                    # This gives an interval with the same center
+                    # but with a larger diameter
+                    nroot += nroot - nroot
 
         root = nroot
 
