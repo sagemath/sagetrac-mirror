@@ -75,8 +75,9 @@ def interval_roots(p, rts, prec):
     irts = []
 
     for rt in rts:
-        irt = refine_root(ip, ipd, CIF(rt), CIF)
-        if irt is None:
+        try:
+            irt = refine_root(ip, ipd, CIF(rt), CIF)
+        except ArithmeticError:
             return None
         irts.append(irt)
 
@@ -179,8 +180,8 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
 
         sage: v # random
         [(-14.61803398874990?..., 1), (-12.3819660112501...? + 0.?e-27*I, 1)]
-        sage: sorted((v[0][0].real(),v[1][0].real()))
-        [-14.61803398874989?, -12.3819660112501...?]
+        sage: sorted((v[0][0].real(),v[1][0].real()))  # abs tol 1e-14
+        [-14.6180339887499?, -12.3819660112501?]
         sage: v[0][0].imag() < 1e25
         True
         sage: v[1][0].imag() < 1e25
