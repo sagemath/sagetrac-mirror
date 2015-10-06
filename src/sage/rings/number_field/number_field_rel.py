@@ -1996,21 +1996,21 @@ class NumberField_relative(NumberField_generic):
             Relative number field morphism:
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
-              Defn: a |--> -0.62996052494743676 - 1.0911236359717214*I
-                    b |--> -1.9428902930940239e-16 + 1.0000000000000000*I,
+              Defn: a |--> -0.62996052494743658 - 1.0911236359717214*I
+                    b |--> 2.9387358770557188e-38 + 1.0000000000000000*I,
             ...
             Relative number field morphism:
               From: Number Field in a with defining polynomial x^3 - 2 over its base field
               To:   Complex Field with 58 bits of precision
-              Defn: a |--> 1.2599210498948731
-                    b |--> -0.99999999999999999*I
+              Defn: a |--> 1.2599210498948732 - 1.1754943508222875e-38*I
+                    b |--> -5.8774717541114375e-39 - 1.0000000000000000*I
             ]
             sage: f[0](a)^3
-            2.0000000000000002 - 8.6389229103644993e-16*I
+            2.0000000000000000 + 6.9388939039072284e-18*I
             sage: f[0](b)^2
-            -1.0000000000000001 - 3.8857805861880480e-16*I
+            -1.0000000000000000 + 5.8774717541114375e-38*I
             sage: f[0](a+b)
-            -0.62996052494743693 - 0.091123635971721295*I
+            -0.62996052494743658 - 0.091123635971721404*I
         """
         try:
             # this should be concordant with automorphisms
@@ -2126,25 +2126,25 @@ class NumberField_relative(NumberField_generic):
             sage: L.<b, c> = NumberFieldTower([x^2 - 5, x^3 + x + 3])
             sage: L.places()
             [Relative number field morphism:
-            From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Real Field with 106 bits of precision
-            Defn: b |--> -2.236067977499789696409173668937
-            c |--> -1.213411662762229634132131377426,
-            Relative number field morphism:
-            From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Real Field with 106 bits of precision
-            Defn: b |--> 2.236067977499789696411548005367
-            c |--> -1.213411662762229634130492421800,
-            Relative number field morphism:
-            From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Complex Field with 53 bits of precision
-            Defn: b |--> -2.23606797749979 ...e-1...*I
-            c |--> 0.606705831381... - 1.45061224918844*I,
-            Relative number field morphism:
-            From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Complex Field with 53 bits of precision
-            Defn: b |--> 2.23606797749979 - 4.44089209850063e-16*I
-            c |--> 0.606705831381115 - 1.45061224918844*I]
+               From: Number Field in b with defining polynomial x^2 - 5 over its base field
+               To:   Real Field with 106 bits of precision
+               Defn: b |--> -2.236067977499789696409173668731
+                     c |--> -1.213411662762229634132131377381,
+             Relative number field morphism:
+               From: Number Field in b with defining polynomial x^2 - 5 over its base field
+               To:   Real Field with 106 bits of precision
+               Defn: b |--> 2.236067977499789696409173668731
+                     c |--> -1.213411662762229634132131377381,
+             Relative number field morphism:
+               From: Number Field in b with defining polynomial x^2 - 5 over its base field
+               To:   Complex Field with 53 bits of precision
+               Defn: b |--> -2.23606797749979 - 1.73472347597681e-18*I
+                     c |--> 0.606705831381115 - 1.45061224918844*I,
+             Relative number field morphism:
+               From: Number Field in b with defining polynomial x^2 - 5 over its base field
+               To:   Complex Field with 53 bits of precision
+               Defn: b |--> 2.23606797749979 - 8.67361737988404e-19*I
+                     c |--> 0.606705831381115 - 1.45061224918844*I]
         """
         L = self.absolute_field('a')
         pl = L.places(all_complex, prec)

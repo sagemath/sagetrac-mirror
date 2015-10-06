@@ -2762,7 +2762,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+w*y^2,y^2])
             sage: f.critical_height()
-            0.16090842452312941163719755472
+            0.16090842452312922821521823964
 
         Postcritically finite maps have critical height 0::
 

@@ -28,7 +28,7 @@ from sage.misc.cachefunc import cached_method
 from sage.libs.pari.all import pari
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import refine_embedding
-from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
+from sage.rings.morphism import RingHomomorphism
 
 class GaloisGroup_v1(SageObject):
     r"""
@@ -244,8 +244,8 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if x == 1:
             return self.identity()
 
-        from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
-        if isinstance(x, NumberFieldHomomorphism_im_gens) and x.parent() == self.number_field().Hom(self.number_field()):
+        if (isinstance(x, RingHomomorphism)
+                and x.parent() == self.number_field().Hom(self.number_field())):
             l = [g for g in self if g.as_hom() == x]
             if len(l) != 1: raise ArithmeticError
             return l[0]
@@ -387,7 +387,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if not self.is_galois():
             raise TypeError("Decomposition groups only defined for Galois extensions")
 
-        if isinstance(P, NumberFieldHomomorphism_im_gens):
+        if isinstance(P, RingHomomorphism):
             if self.number_field().is_totally_real():
                 return self.subgroup([self.identity()])
             else:

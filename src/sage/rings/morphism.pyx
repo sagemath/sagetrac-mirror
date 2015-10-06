@@ -291,7 +291,7 @@ Embedding a number field into the reals::
     sage: alpha = RR(2)^(1/3); alpha
     1.25992104989487
     sage: i = K.hom([alpha],check=False); i
-    Ring morphism:
+    Number field embedding morphism:
       From: Number Field in beta with defining polynomial x^3 - 2
       To:   Real Field with 53 bits of precision
       Defn: beta |--> 1.25992104989487
@@ -1071,9 +1071,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
         self.__im_gens = im_gens
-
-    def __hash__(self):
-        return Morphism.__hash__(self)
 
     def im_gens(self):
         """

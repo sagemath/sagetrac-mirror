@@ -85,16 +85,13 @@ We do some arithmetic in a tower of relative number fields::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
 import sage.rings.arith
 
-import sage.rings.complex_field
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-import sage.rings.real_mpfr
 import sage.rings.real_mpfi
 import sage.rings.complex_double
 import sage.rings.real_double
@@ -103,8 +100,11 @@ import sage.rings.real_lazy
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.functional import is_odd
 from sage.misc.misc_c import prod
-from sage.categories.homset import End
+from sage.categories.homset import Hom
 from sage.rings.all import Infinity
+
+from sage.rings.real_mpfr import RealField, is_RealField
+from sage.rings.complex_field import ComplexField, is_ComplexField
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -123,7 +123,6 @@ from sage.structure.proof.proof import get_flag
 import maps
 import structure
 import number_field_morphisms
-from itertools import count, izip
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -162,7 +161,8 @@ def is_NumberFieldHomsetCodomain(codomain):
     from sage.categories.fields import Fields
     return codomain in Fields()
 
-from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
+from sage.rings.number_field.morphism import (
+        RelativeNumberFieldHomomorphism_from_abs, NumberFieldComplexEmbedding)
 
 def proof_flag(t):
     """
@@ -186,8 +186,6 @@ def proof_flag(t):
     return get_flag(t, "number_field")
 
 
-import weakref
-
 from sage.misc.latex import latex
 
 import sage.rings.arith as arith
@@ -197,7 +195,6 @@ import sage.rings.infinity as infinity
 import sage.rings.rational as rational
 import sage.rings.integer as integer
 import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 import sage.rings.complex_interval_field
 
@@ -2381,7 +2378,7 @@ class NumberField_generic(number_field_base.NumberField):
               Defn: a |--> 0.629960524947 + 1.09112363597*I
             ]
         """
-        CC = sage.rings.complex_field.ComplexField(prec)
+        CC = ComplexField(prec)
         return self.embeddings(CC)
 
     def real_embeddings(self, prec=53):
@@ -2405,41 +2402,45 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^3 + 2)
             sage: K.real_embeddings()
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 + 2
               To:   Real Field with 53 bits of precision
               Defn: a |--> -1.25992104989487
             ]
             sage: K.real_embeddings(16)
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 + 2
               To:   Real Field with 16 bits of precision
               Defn: a |--> -1.260
             ]
             sage: K.real_embeddings(100)
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 + 2
               To:   Real Field with 100 bits of precision
               Defn: a |--> -1.2599210498948731647672106073
             ]
 
-        As this is a numerical function, the number of embeddings
-        may be incorrect if the precision is too low::
+        As this is a numerical function, it might not be possible to
+        compute the embeddings if the precision is too low::
 
             sage: K = NumberField(x^2+2*10^1000*x + 10^2000+1, 'a')
             sage: len(K.real_embeddings())
-            2
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: cannot refine polynomial root (precision too low?)
             sage: len(K.real_embeddings(100))
-            2
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: cannot refine polynomial root (precision too low?)
             sage: len(K.real_embeddings(10000))
             0
             sage: len(K.embeddings(AA))
             0
 
         """
-        K = sage.rings.real_mpfr.RealField(prec)
+        K = RealField(prec)
         return self.embeddings(K)
 
     def specified_complex_embedding(self):
@@ -2510,7 +2511,6 @@ class NumberField_generic(number_field_base.NumberField):
         embedding = self.coerce_embedding()
         if embedding is not None:
             from sage.rings.real_mpfr import mpfr_prec_min
-            from sage.rings.complex_field import ComplexField
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
                  return embedding
 
@@ -4874,10 +4874,7 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self.__gen
         except AttributeError:
-            if self.__polynomial is not None:
-                X = self.__polynomial.parent().gen()
-            else:
-                X = PolynomialRing(rational_field.RationalField()).gen()
+            X = self.__polynomial.parent().gen()
             self.__gen = self._element_class(self, X)
             return self.__gen
 
@@ -5298,9 +5295,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.reduced_gram_matrix(prec=128)
             [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369360000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
-            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819322e7 -3.4807276041138450473611629088647496430e8]
-            [-2.1369360000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704285924714907491782135494859351061e12 1.1256639928034037006027526953641297995e14]
-            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256639928034037006027526953641297995e14 1.7923838231014970520503146603069479547e15]
+            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819320e7 -3.4807276041138450473611629088647496426e8]
+            [-2.1369360000000000000000000000000000000e6 -2.2467769057394530109094755223395819320e7 7.0704285924714907491782135494859351061e12 1.1256639928034037006027526953641297995e14]
+            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496426e8 1.1256639928034037006027526953641297995e14 1.7923838231014970520503146603069479547e15]
         """
         if self.is_totally_real():
             try:
@@ -5632,7 +5629,6 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self.__regulator
         except AttributeError:
-            from sage.rings.all import RealField
             k = self.pari_bnf(proof)
             self.__regulator = RealField(53)(k.bnf_get_reg())
             return self.__regulator
@@ -6387,7 +6383,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         n = len(reslist)
         if n==0:
-            return K.zero()
+            return self.zero()
         if n==1:
             return reslist[0]
         if n==2:
@@ -6573,7 +6569,6 @@ class NumberField_absolute(NumberField_generic):
 
         # Do not use CDF or RDF because of constraints on the
         # exponent of floating-point numbers
-        from sage.rings.all import RealField, ComplexField
         CC = ComplexField(53)
         RR = RealField(53)
 
@@ -6718,7 +6713,7 @@ class NumberField_absolute(NumberField_generic):
                 return self._element_class(self, x)
 
             return self._element_class(self, x._rational_())
-        except (TypeError, AttributeError) as msg:
+        except (TypeError, AttributeError):
             pass
         raise TypeError(type(x))
 
@@ -7702,7 +7697,7 @@ class NumberField_absolute(NumberField_generic):
 
         INPUT:
 
-        -  ``K`` - a number field
+        -  ``K`` -- a field into which to embed the number field
 
         EXAMPLES::
 
@@ -7738,15 +7733,15 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^3 - 2)
             sage: K.embeddings(CC)
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.62996052494743... - 1.09112363597172*I,
-            Ring morphism:
+              Defn: a |--> -0.629960524947436 - 1.09112363597172*I,
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.62996052494743... + 1.09112363597172*I,
-            Ring morphism:
+              Defn: a |--> -0.629960524947436 + 1.09112363597172*I,
+            Number field embedding morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
               Defn: a |--> 1.25992104989487
@@ -7757,6 +7752,25 @@ class NumberField_absolute(NumberField_generic):
             sage: K = NumberField(x^3 - 2, 'a')
             sage: K.embeddings(GF(3))
             []
+
+        We detect when the precision is too low::
+
+            sage: K.<a> = NumberField(x^2 - 2^61*x + 2^120 - 2)
+            sage: K.embeddings(RR)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: multiple root found (precision too low?)
+            sage: K.embeddings(RealField(128))
+            [
+            Number field embedding morphism:
+              From: Number Field in a with defining polynomial x^2 - 2305843009213693952*x + 1329227995784915872903807060280344574
+              To:   Real Field with 128 bits of precision
+              Defn: a |--> 1.1529215046068469745857864376269049512e18,
+            Number field embedding morphism:
+              From: Number Field in a with defining polynomial x^2 - 2305843009213693952*x + 1329227995784915872903807060280344574
+              To:   Real Field with 128 bits of precision
+              Defn: a |--> 1.1529215046068469774142135623730950488e18
+            ]
         """
         try:
             # this should be concordant with automorphisms
@@ -7771,7 +7785,12 @@ class NumberField_absolute(NumberField_generic):
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
-        r = sorted(f.roots(K, multiplicities=False))
+        r = f.roots(K)
+        # Check that we don't find a multiple root (otherwise something
+        # is wrong)
+        if any(x[1] > 1 for x in r):
+            raise ArithmeticError("multiple root found (precision too low?)")
+        r = sorted(K(x[0]) for x in r)
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
@@ -7837,7 +7856,7 @@ class NumberField_absolute(NumberField_generic):
         if prec is None:
             R = sage.rings.real_double.RDF
         else:
-            R = sage.rings.real_mpfr.RealField(prec)
+            R = RealField(prec)
         r,s = self.signature()
         places = self.places(prec=prec)
 
@@ -7888,51 +7907,49 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES::
 
             sage: F.<alpha> = NumberField(x^3-100*x+1) ; F.places()
-            [Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> -10.00499625499181184573367219280,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> 0.01000001000003000012000055000273,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> 9.994996244991781845613530439509]
+            [Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> -10.00499625499181184573370153752,
+             Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> 0.01000001000003000012000055000273,
+             Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> 9.994996244991781845613700987513]
 
         ::
 
             sage: F.<alpha> = NumberField(x^3+7) ; F.places()
-            [Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> -1.912931182772389101199116839549,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Complex Field with 53 bits of precision
-            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+            [Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> -1.912931182772389101199116839549,
+             Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Complex Field with 53 bits of precision
+               Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
 
         ::
 
             sage: F.<alpha> = NumberField(x^3+7) ; F.places(all_complex=True)
-            [Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Complex Field with 53 bits of precision
-            Defn: alpha |--> -1.91293118277239,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Complex Field with 53 bits of precision
-            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+            [Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Complex Field with 53 bits of precision
+               Defn: alpha |--> -1.91293118277239, Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Complex Field with 53 bits of precision
+               Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
             sage: F.places(prec=10)
-            [Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Real Field with 10 bits of precision
-            Defn: alpha |--> -1.9,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Complex Field with 10 bits of precision
-            Defn: alpha |--> 0.96 + 1.7*I]
+            [Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Real Field with 10 bits of precision
+               Defn: alpha |--> -1.9, Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^3 + 7
+               To:   Complex Field with 10 bits of precision
+               Defn: alpha |--> 0.96 + 1.7*I]
         """
         if prec is None:
             R = RIF
@@ -7947,8 +7964,8 @@ class NumberField_absolute(NumberField_generic):
             C = sage.rings.all.QQbar
 
         else:
-            R = sage.rings.real_mpfr.RealField(prec)
-            C = sage.rings.complex_field.ComplexField(prec)
+            R = RealField(prec)
+            C = ComplexField(prec)
 
         ## first, find the intervals with roots, and see how much
         ## precision we need to approximate the roots
@@ -7981,14 +7998,14 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES::
 
             sage: F.<alpha> = NumberField(x^4-7) ; F.real_places()
-            [Ring morphism:
-            From: Number Field in alpha with defining polynomial x^4 - 7
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> -1.626576561697785743211232345494,
-            Ring morphism:
-            From: Number Field in alpha with defining polynomial x^4 - 7
-            To:   Real Field with 106 bits of precision
-            Defn: alpha |--> 1.626576561697785743211232345494]
+            [Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^4 - 7
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> -1.626576561697785743211232345494,
+             Number field embedding morphism:
+               From: Number Field in alpha with defining polynomial x^4 - 7
+               To:   Real Field with 106 bits of precision
+               Defn: alpha |--> 1.626576561697785743211232345494]
         """
         return self.places(prec=prec)[0:self.signature()[0]]
 
@@ -8263,18 +8280,6 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.degree()
 
-    def absolute_polynomial(self):
-        """
-        A synonym for polynomial.
-
-        EXAMPLES::
-
-            sage: K.<i> = NumberField(x^2 + 1)
-            sage: K.absolute_polynomial()
-            x^2 + 1
-        """
-        return self.polynomial()
-
     def relative_polynomial(self):
         """
         A synonym for polynomial.
@@ -8286,24 +8291,6 @@ class NumberField_absolute(NumberField_generic):
             x^2 + 1
         """
         return self.polynomial()
-
-    def absolute_vector_space(self):
-        """
-        A synonym for vector_space.
-
-        EXAMPLES::
-
-            sage: K.<i> = NumberField(x^2 + 1)
-            sage: K.absolute_vector_space()
-            (Vector space of dimension 2 over Rational Field,
-             Isomorphism map:
-              From: Vector space of dimension 2 over Rational Field
-              To:   Number Field in i with defining polynomial x^2 + 1,
-             Isomorphism map:
-              From: Number Field in i with defining polynomial x^2 + 1
-              To:   Vector space of dimension 2 over Rational Field)
-        """
-        return self.vector_space()
 
     def relative_vector_space(self):
         """
@@ -8486,7 +8473,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.hilbert_symbol(-1, -1, K.embeddings(CC)[0])
             Traceback (most recent call last):
             ...
-            ValueError: Possibly real place (=Ring morphism:
+            ValueError: Possibly real place (=Number field embedding morphism:
               From: Number Field in a with defining polynomial x^2 - 5
               To:   Complex Field with 53 bits of precision
               Defn: a |--> -2.23606797749979) given as complex embedding in hilbert_symbol. Is it real or complex?
@@ -8577,17 +8564,16 @@ class NumberField_absolute(NumberField_generic):
             if not P.domain() == self:
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
-            from sage.rings.complex_field import is_ComplexField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
-            from sage.rings.real_mpfr import is_RealField
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
-            if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
-                                         codom is CDF or codom is QQbar:
+            if (is_ComplexField(codom) or is_ComplexIntervalField(codom) or
+                    codom is CDF or codom is QQbar):
                 if P(self.gen()).imag() == 0:
                     raise ValueError("Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P)
                 return 1
-            if is_RealField(codom) or codom is RDF or codom is AA:
+            if (is_RealField(codom) or is_RealIntervalField(codom) or
+                    codom is RDF or codom is AA):
                 if P(a) > 0 or P(b) > 0:
                     return 1
                 return -1
@@ -9455,7 +9441,6 @@ class NumberField_cyclotomic(NumberField_absolute):
                         return self.zeta(m)**(r+1)
                     z *= y
             raise TypeError("Cannot coerce %s into %s"%(x,self))
-        return self._element_class(self, g)
 
 
     def _coerce_from_gap(self, x):
@@ -9612,10 +9597,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: C = CyclotomicField(4)
             sage: C.complex_embedding()
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I
+              Defn: zeta4 |--> 1.00000000000000*I
 
         Note in the example above that the way zeta is computed (using sin
         and cosine in MPFR) means that only the prec bits of the number
@@ -9634,7 +9619,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: phi(K.0^3 + 7)
             8.0
         """
-        CC = sage.rings.complex_field.ComplexField(prec)
+        CC = ComplexField(prec)
         return self.hom([CC.zeta(self._n())], check=False)
 
     def complex_embeddings(self, prec=53):
@@ -9649,25 +9634,25 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: CyclotomicField(5).complex_embeddings()
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Field with 53 bits of precision
               Defn: zeta5 |--> 0.309016994374947 + 0.951056516295154*I,
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Field with 53 bits of precision
               Defn: zeta5 |--> -0.809016994374947 + 0.587785252292473*I,
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Field with 53 bits of precision
               Defn: zeta5 |--> -0.809016994374947 - 0.587785252292473*I,
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Field with 53 bits of precision
               Defn: zeta5 |--> 0.309016994374947 - 0.951056516295154*I
             ]
         """
-        CC = sage.rings.complex_field.ComplexField(prec)
+        CC = ComplexField(prec)
         try:
             return self.__embeddings[CC]
         except AttributeError:
@@ -9695,13 +9680,13 @@ class NumberField_cyclotomic(NumberField_absolute):
             []
             sage: CyclotomicField(2).real_embeddings()
             [
-            Ring morphism:
+            Number field embedding morphism:
               From: Cyclotomic Field of order 2 and degree 1
               To:   Real Field with 53 bits of precision
               Defn: -1 |--> -1.00000000000000
             ]
         """
-        K = sage.rings.real_mpfr.RealField(prec)
+        K = RealField(prec)
         n = self._n()
         if n > 2:
             return Sequence([], cr=False, immutable=True,
@@ -10484,10 +10469,10 @@ def refine_embedding(e, prec=None):
         sage: K.signature()
         (1, 1)
         sage: e = K.embeddings(RR)[0]; e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Real Field with 53 bits of precision
-        Defn: a |--> 1.25992104989487
+        Number field embedding morphism:
+          From: Number Field in a with defining polynomial x^3 - 2
+          To:   Real Field with 53 bits of precision
+          Defn: a |--> 1.25992104989487
         sage: e = refine_embedding(e,Infinity); e
         Ring morphism:
         From: Number Field in a with defining polynomial x^3 - 2
@@ -10506,15 +10491,15 @@ def refine_embedding(e, prec=None):
     Complex embeddings can be extended into ``QQbar``::
 
         sage: e = K.embeddings(CC)[0]; e
+        Number field embedding morphism:
+          From: Number Field in a with defining polynomial x^3 - 2
+          To:   Complex Field with 53 bits of precision
+          Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+        sage: e = refine_embedding(e, Infinity); e
         Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Complex Field with 53 bits of precision
-        Defn: a |--> -0.62996052494743... - 1.09112363597172*I
-        sage: e = refine_embedding(e,Infinity); e
-        Ring morphism:
-        From: Number Field in a with defining polynomial x^3 - 2
-        To:   Algebraic Field
-        Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
+          From: Number Field in a with defining polynomial x^3 - 2
+          To:   Algebraic Field
+          Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
         sage: ComplexField(200)(e(a))
         -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
         sage: e(a)^3
@@ -10529,10 +10514,10 @@ def refine_embedding(e, prec=None):
           To:   Complex Lazy Field
           Defn: zeta7 -> 0.623489801858734? + 0.781831482468030?*I
         sage: refine_embedding(x, 300)
-        Ring morphism:
+        Number field embedding morphism:
           From: Cyclotomic Field of order 7 and degree 6
           To:   Complex Field with 300 bits of precision
-          Defn: zeta7 |--> 0.623489801858733530525004884004239810632274730896402105365549439096853652456487284575942507 + 0.781831482468029808708444526674057750232334518708687528980634958045091731633936441700868007*I
+          Defn: zeta7 |--> 0.623489801858733530525004884004239810632274730896402105365549439096853652456487284575942508 + 0.781831482468029808708444526674057750232334518708687528980634958045091731633936441700868007*I
         sage: refine_embedding(x, infinity)
         Ring morphism:
           From: Cyclotomic Field of order 7 and degree 6
@@ -10547,7 +10532,7 @@ def refine_embedding(e, prec=None):
         sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
         sage: from sage.rings.number_field.number_field import refine_embedding
         sage: refine_embedding(K.specified_complex_embedding(), 100)
-        Ring morphism:
+        Number field embedding morphism:
           From: Number Field in a with defining polynomial x^3 + x - 1
           To:   Real Field with 100 bits of precision
           Defn: a |--> 0.68232780382801932736948373971
@@ -10561,32 +10546,37 @@ def refine_embedding(e, prec=None):
     RC = e.codomain()
     if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
         return e
-    if RC in (RLF, CLF):
-        prec_old = e.gen_image().approx().prec()
-        old_root = e(K.gen()).approx()
-    else:
-        prec_old = RC.precision()
-        old_root = e(K.gen())
 
+    is_real = is_RealField(RC) or RC in (RDF, RLF)
+
+    old_root = e(K.gen())
+    if RC in (RLF, CLF):
+        old_root = old_root.approx()
+
+    if prec == Infinity:
+        if is_real:
+            C = sage.rings.qqbar.AA
+        else:
+            C = sage.rings.qqbar.QQbar
+
+        if isinstance(e, NumberFieldComplexEmbedding):
+            # Good, since e already contains the algebraic image
+            return Hom(K,C)(e.im_gens_algebraic())
+
+        # We first compute all the embeddings in the algebraic field
+        # and determine which is an extension of the old one
+        elist = K.embeddings(C)
+        return min(elist, key=lambda ee: (RC(ee(K.gen())) - old_root).abs())
+
+    prec_old = old_root.prec()
     if prec is None:
         prec = 2*prec_old
     elif prec_old >= prec:
         return e
 
-    # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
-        if prec == Infinity:
-            elist = K.embeddings(sage.rings.qqbar.AA)
-        else:
-            elist = K.real_embeddings(prec)
+    if is_real:
+        C = RealField(prec)
     else:
-        if prec == Infinity:
-            elist = K.embeddings(sage.rings.qqbar.QQbar)
-        else:
-            elist = K.complex_embeddings(prec)
+        C = ComplexField(prec)
 
-    # Now we determine which is an extension of the old one; this
-    # relies on the fact that coercing a high-precision root into a
-    # field with lower precision will equal the lower-precision root!
-    diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(izip(diffs,count()))[1]]
+    return Hom(K,C)((old_root,))

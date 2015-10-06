@@ -353,7 +353,7 @@ sage: def gauss_sum(a,p):
 sage: g2 = gauss_sum(2,5); g2
 2*zeta^3 + 2*zeta^2 + 1
 sage: g2.complex_embedding()
--2.236067977... + ...e-16*I
+-2.23606797749979 - 4.33680868994202e-19*I
 sage: g2^2
 5
 sage: [gauss_sum(a, 7)^2 for a in range(1,7)]

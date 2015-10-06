@@ -1677,9 +1677,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [c.real() for c in Li[2].elliptic_exponential(zi[2])]
             [0.259921049894873, -0.587401051968199, 1.00000000000000]
             sage: [embs[2](c) for c in Q]
-            [0.259921049894873, -0.587401051968200, 1.00000000000000]
+            [0.259921049894873, -0.587401051968199, 1.00000000000000]
 
-        Test to show that #8820 is fixed::
+        Test to show that :trac:`8820` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-5)

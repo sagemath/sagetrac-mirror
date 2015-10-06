@@ -13,6 +13,12 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.sequence import Sequence
 
+from sage.rings.real_mpfr import RealField_class, RealField
+from sage.rings.complex_field import ComplexField_class
+from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalField
+from sage.rings.complex_interval_field import ComplexIntervalField_class, ComplexIntervalField
+
+
 class NumberFieldHomset(RingHomset_generic):
     """
     Set of homomorphisms with domain a given number field.
@@ -25,6 +31,32 @@ class NumberFieldHomset(RingHomset_generic):
         ...
         The following tests failed: _test_elements
     """
+    def __init__(self, *args, **kwds):
+        """
+        Initialize this homset. The ``element_class`` is set, depending
+        on the codomain.
+
+        EXAMPLES::
+
+            sage: K = QuadraticField(-1)
+            sage: Hom(K, K).element_class
+            <class 'sage.rings.number_field.morphism.NumberFieldHomomorphism_im_gens'>
+            sage: Hom(K, RR).element_class
+            <class 'sage.rings.number_field.morphism.NumberFieldRealEmbedding'>
+            sage: Hom(K, CC).element_class
+            <class 'sage.rings.number_field.morphism.NumberFieldComplexEmbedding'>
+        """
+        super(NumberFieldHomset, self).__init__(*args, **kwds)
+
+        if isinstance(self.codomain(),
+                (RealField_class, RealIntervalField_class)):
+            self.element_class = NumberFieldRealEmbedding
+        elif isinstance(self.codomain(),
+                (ComplexField_class, ComplexIntervalField_class)):
+            self.element_class = NumberFieldComplexEmbedding
+        else:
+            self.element_class = NumberFieldHomomorphism_im_gens
+
     def __call__(self, im_gens, check=True):
         """
         Create the homomorphism sending the generators to ``im_gens``.
@@ -38,15 +70,12 @@ class NumberFieldHomset(RingHomset_generic):
             To:   Number Field in b with defining polynomial x^2 + 1
             Defn: a |--> b
         """
-        if isinstance(im_gens, NumberFieldHomomorphism_im_gens):
+        if isinstance(im_gens, RingHomomorphism_im_gens):
             return self._coerce_impl(im_gens)
         try:
-            return NumberFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
-            try:
-                return self._coerce_impl(im_gens)
-            except TypeError:
-                raise TypeError("images do not define a valid homomorphism")
+            return self.element_class(self, im_gens, check=check)
+        except (NotImplementedError, ValueError):
+            raise TypeError("images do not define a valid homomorphism")
 
     def _coerce_impl(self, x):
         r"""
@@ -61,7 +90,7 @@ class NumberFieldHomset(RingHomset_generic):
             Ring endomorphism of Number Field in a with defining polynomial x^2 + 1
               Defn: a |--> -a
         """
-        if not isinstance(x, NumberFieldHomomorphism_im_gens):
+        if not isinstance(x, RingHomomorphism_im_gens):
             raise TypeError
         if x.parent() is self:
             return x
@@ -203,6 +232,7 @@ class NumberFieldHomset(RingHomset_generic):
         """
         return self.list()[n]
 
+
 class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
     def __invert__(self):
         r"""
@@ -320,6 +350,261 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
             raise ValueError("Element '{}' is not in the image of this homomorphism.".format(y))
         return VtoK(xvec)               # pass from the vector space representation of K back to a point in K
 
+# For old pickles
+CyclotomicFieldHomomorphism_im_gens = NumberFieldHomomorphism_im_gens
+
+
+class NumberFieldComplexEmbedding(RingHomomorphism_im_gens):
+    """
+    An embedding of a number field into a floating-point complex field
+    (either a :func:`ComplexField` or :func:`ComplexIntervalField`).
+    The image may or may not be actually real.
+
+    .. SEEALSO::
+
+        :class:`NumberFieldRealEmbedding` for embeddings into real
+        fields.
+
+    EXAMPLES::
+
+        sage: K.<zeta7> = CyclotomicField(7)
+        sage: phi = K.embeddings(CC)[0]
+        sage: phi
+        Number field embedding morphism:
+          From: Cyclotomic Field of order 7 and degree 6
+          To:   Complex Field with 53 bits of precision
+          Defn: zeta7 |--> -0.900968867902419 - 0.433883739117558*I
+        sage: type(phi)
+        <class 'sage.rings.number_field.morphism.NumberFieldComplexEmbedding'>
+        sage: phi(zeta7)
+        -0.900968867902419 - 0.433883739117558*I
+        sage: parent(phi(zeta7))
+        Complex Field with 53 bits of precision
+
+    Into the complex interval field::
+
+        sage: phi = K.embeddings(CIF)[0]
+        sage: phi
+        Number field embedding morphism:
+          From: Cyclotomic Field of order 7 and degree 6
+          To:   Complex Interval Field with 53 bits of precision
+          Defn: zeta7 |--> -0.9009688679024191? - 0.4338837391175581?*I
+        sage: type(phi)
+        <class 'sage.rings.number_field.morphism.NumberFieldComplexEmbedding'>
+        sage: phi(zeta7)
+        -0.9009688679024191? - 0.4338837391175581?*I
+        sage: parent(phi(zeta7))
+        Complex Interval Field with 53 bits of precision
+
+    In the following example, the image is real::
+
+        sage: K.<a> = NumberField(x^3 - 3*x + 1)
+        sage: phi = K.embeddings(CC)[2]
+        sage: phi(a)
+        1.53208888623796
+        sage: parent(phi(a))
+        Complex Field with 53 bits of precision
+
+    AUTHORS:
+
+    - Jeroen Demeyer (2015-10-02): see :trac:`19288`
+    """
+    def __init__(self, parent, im_gens, check=None):
+        """
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: homset = Hom(K, CC)
+            sage: from sage.rings.number_field.morphism import NumberFieldComplexEmbedding
+            sage: NumberFieldComplexEmbedding(homset, CC(-3).sqrt())
+            Number field embedding morphism:
+              From: Number Field in a with defining polynomial x^2 + 3
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> 1.73205080756888*I
+
+        It still works if the given root is approximate::
+
+            sage: NumberFieldComplexEmbedding(homset, CC(0,2))
+            Number field embedding morphism:
+              From: Number Field in a with defining polynomial x^2 + 3
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> 1.73205080756888*I
+
+        If we give a completely bogus root, we get an error::
+
+            sage: phi = NumberFieldComplexEmbedding(homset, CC(1))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: cannot refine polynomial root (not enough steps?)
+        """
+        # Compute an algebraic version of the given image g0
+        try:
+            n = len(im_gens)
+        except TypeError:
+            # No len() => assume it's a single element
+            g0 = im_gens
+        else:
+            if n != 1:
+                raise ValueError("number of images must equal number of generators")
+            g0 = im_gens[0]
+
+        pol = parent.domain().polynomial()
+        from sage.rings.all import AA, QQbar
+        if not g0.imag():
+            ga = AA.polynomial_root(pol, g0)
+        else:
+            ga = QQbar.polynomial_root(pol, g0)
+        self._im_gen_algebraic = ga
+
+        # We now initialize the RingHomomorphism_im_gens with our
+        # refined root (in the correct codomain).  This root isn't
+        # actually used to compute images, but it is used for display
+        # and other purposes.  That's why it is still useful that this
+        # class inherits from RingHomomorphism_im_gens.
+        #
+        # We always use check=False since the image is almost certainly
+        # not an exact root.
+        g = parent.codomain()(ga)
+        super(NumberFieldComplexEmbedding, self).__init__(parent, (g,), check=False)
+
+    interval_field = staticmethod(ComplexIntervalField)
+
+    def _repr_type(self):
+        """
+        Return a string used to display this morphism.
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(11)
+            sage: K.embeddings(ComplexField(20))[1]
+            Number field embedding morphism:
+              From: Cyclotomic Field of order 11 and degree 10
+              To:   Complex Field with 20 bits of precision
+              Defn: zeta11 |--> -0.95949 + 0.28173*I
+        """
+        return "Number field embedding"
+
+    def _call_(self, x):
+        """
+        Evaluate this embedding at ``x``.
+
+        ALGORITHM: to avoid catastrophic cancellation, we compute the
+        embedding at higher precision, increasing it if needed until
+        the result is precise enough.
+
+        EXAMPLES:
+
+            sage: K.<a> = NumberField(x^2 - x - 104)
+            sage: phi = K.embeddings(RR)[0]
+            sage: phi(0)
+            0.000000000000000
+            sage: phi(a)
+            -9.71028892833107
+            sage: phi(10^100)
+            1.00000000000000e100
+
+        We check that :trac:`19288` is fixed::
+
+            sage: D = -4754362903238080086532729679384769785488*a - 46166237460580684378417136025570042177152
+            sage: phi(D)
+            -4.32015718504111e-35
+
+        Compare with the naive computation which is totally wrong::
+
+            sage: D.polynomial()(phi.im_gens()[0])
+            -9.67140655691703e24
+        """
+        if not x:  # map 0 to 0
+            return self.codomain().zero()
+
+        # We evaluate this using interval arithmetic to avoid
+        # catastrophic cancellation
+        xpol = x.polynomial()
+        C = self.codomain()
+        prec = C.precision()
+        diameter_target = RealField(prec).one() >> (prec-1)
+        prec += 7  # arbitrary extra bits
+        prec1 = prec
+
+        while True:
+            g = self._im_gen_algebraic.interval_fast(self.interval_field(prec))
+            value = xpol(g)  # Result as interval
+            if value.contains_zero():
+                # This is an *embedding*, so the result can only be zero
+                # if we start from zero. We already ensured that x isn't
+                # zero, so we just keep increasing precision...
+                prec *= 2
+            elif value.diameter() >= diameter_target:
+                # If the interval does not contain zero, we probably
+                # have the magnitude correct. So we just need some
+                # extra bits of precision, doubling is overkill.
+                prec += prec1
+            else:
+                return self.codomain()(value)
+
+    def im_gens_algebraic(self):
+        """
+        Return the image of the generator in an algebraic field
+        (``AA`` or ``QQbar``) as a 1-tuple.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: phis = K.embeddings(CC)
+            sage: [phi.im_gens_algebraic() for phi in phis]
+            [(-0.6299605249474365? - 1.091123635971722?*I,),
+             (-0.6299605249474365? + 1.091123635971722?*I,),
+             (1.259921049894873?,)]
+            sage: [parent(phi.im_gens_algebraic()[0]) for phi in phis]
+            [Algebraic Field, Algebraic Field, Algebraic Real Field]
+        """
+        return (self._im_gen_algebraic,)
+
+
+class NumberFieldRealEmbedding(NumberFieldComplexEmbedding):
+    """
+    An embedding of a number field into a floating-point real field
+    (either a :func:`RealField` or :func:`RealIntervalField`).
+
+    .. SEEALSO::
+
+        :class:`NumberFieldComplexEmbedding` which contains the
+        implementation for real and complex embeddings.
+
+    EXAMPLES::
+
+        sage: K.<a> = QuadraticField(3)
+        sage: phi = K.embeddings(RR)[0]
+        sage: phi
+        Number field embedding morphism:
+          From: Number Field in a with defining polynomial x^2 - 3
+          To:   Real Field with 53 bits of precision
+          Defn: a |--> -1.73205080756888
+        sage: type(phi)
+        <class 'sage.rings.number_field.morphism.NumberFieldRealEmbedding'>
+        sage: phi(a)
+        -1.73205080756888
+        sage: parent(phi(a))
+        Real Field with 53 bits of precision
+
+    Into the complex interval field::
+
+        sage: phi = K.embeddings(RIF)[0]
+        sage: phi
+        Number field embedding morphism:
+          From: Number Field in a with defining polynomial x^2 - 3
+          To:   Real Interval Field with 53 bits of precision
+          Defn: a |--> -1.732050807568878?
+        sage: type(phi)
+        <class 'sage.rings.number_field.morphism.NumberFieldRealEmbedding'>
+        sage: phi(a)
+        -1.732050807568878?
+        sage: parent(phi(a))
+        Real Interval Field with 53 bits of precision
+    """
+    interval_field = staticmethod(RealIntervalField)
+
+
 class RelativeNumberFieldHomset(NumberFieldHomset):
     """
     Set of homomorphisms with domain a given relative number field.
@@ -378,22 +663,22 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> -a*b
                     a |--> -a
-                    
-        Using check=False, it is possible to construct homomorphisms into fields such as CC
-        where calculations are only approximate.
-        
+
+        It is possible to construct homomorphisms into fields such as
+        ``CC``, where calculations are only approximate::
+
             sage: K.<a> = QuadraticField(-7)
-            sage: f = K.hom([CC(sqrt(-7))], check=False)
+            sage: f = K.hom([CC(sqrt(-7))])
             sage: x = polygen(K)
             sage: L.<b> = K.extension(x^2 - a - 5)
-            sage: L.Hom(CC)(f(a + 5).sqrt(), f, check=False)
+            sage: L.Hom(CC)(f(a + 5).sqrt(), f)
             Relative number field morphism:
               From: Number Field in b with defining polynomial x^2 - a - 5 over its base field
               To:   Complex Field with 53 bits of precision
               Defn: b |--> 2.30833860703888 + 0.573085617291335*I
-              a |--> -8.88178419700125e-16 + 2.64575131106459*I
+                    a |--> -3.46944695195361e-18 + 2.64575131106459*I
         """
-        if isinstance(im_gen, NumberFieldHomomorphism_im_gens):
+        if isinstance(im_gen, RingHomomorphism_im_gens):
             # Then it must be a homomorphism from the corresponding
             # absolute number field
             abs_hom = im_gen
@@ -489,6 +774,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         self.__default_base_hom = v[0]
         return v[0]
 
+    @cached_method
     def list(self):
         """
         Return a list of all the elements of self (for which the domain
@@ -526,16 +812,11 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
                     b |--> z^5 + z^3 - z
             ]
         """
-        try:
-            return self.__list
-        except AttributeError:
-            pass
         D = self.domain()
         C = self.codomain()
         D_abs = D.absolute_field('a')
         v = [self(f, check=False) for f in D_abs.Hom(C).list()]
         v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
-        self.__list = v
         return v
 
 
@@ -665,59 +946,34 @@ class CyclotomicFieldHomset(NumberFieldHomset):
 
         sage: End(CyclotomicField(16))
         Automorphism group of Cyclotomic Field of order 16 and degree 8
+
+    TESTS::
+
+        sage: K.<z> = CyclotomicField(16)
+        sage: E = End(K)
+        sage: E(E[0]) # indirect doctest
+        Ring endomorphism of Cyclotomic Field of order 16 and degree 8
+          Defn: z |--> z
+        sage: E(z^5) # indirect doctest
+        Ring endomorphism of Cyclotomic Field of order 16 and degree 8
+          Defn: z |--> z^5
+        sage: E(z^6) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: images do not define a valid homomorphism
+
+    ::
+
+        sage: E = End(CyclotomicField(16))
+        sage: E.coerce(E[0]) # indirect doctest
+        Ring endomorphism of Cyclotomic Field of order 16 and degree 8
+          Defn: zeta16 |--> zeta16
+        sage: E.coerce(17) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: no canonical coercion from Integer Ring to Automorphism group of Cyclotomic Field of order 16 and degree 8
     """
-    def __call__(self, im_gens, check=True):
-        """
-        Create an element of this homset.
-
-        EXAMPLES::
-
-            sage: K.<z> = CyclotomicField(16)
-            sage: E = End(K)
-            sage: E(E[0]) # indirect doctest
-            Ring endomorphism of Cyclotomic Field of order 16 and degree 8
-              Defn: z |--> z
-            sage: E(z^5) # indirect doctest
-            Ring endomorphism of Cyclotomic Field of order 16 and degree 8
-              Defn: z |--> z^5
-            sage: E(z^6) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: images do not define a valid homomorphism
-        """
-        if isinstance(im_gens, CyclotomicFieldHomomorphism_im_gens):
-            return self._coerce_impl(im_gens)
-        try:
-            return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
-            try:
-                return self._coerce_impl(im_gens)
-            except TypeError:
-                raise TypeError("images do not define a valid homomorphism")
-
-    def _coerce_impl(self, x):
-        r"""
-        Coerce ``x`` into self. This will only work if ``x`` is already in self.
-
-        EXAMPLES::
-
-            sage: E = End(CyclotomicField(16))
-            sage: E.coerce(E[0]) # indirect doctest
-            Ring endomorphism of Cyclotomic Field of order 16 and degree 8
-              Defn: zeta16 |--> zeta16
-            sage: E.coerce(17) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Integer Ring to Automorphism group of Cyclotomic Field of order 16 and degree 8
-        """
-        if not isinstance(x, CyclotomicFieldHomomorphism_im_gens):
-            raise TypeError
-        if x.parent() is self:
-            return x
-        if x.parent() == self:
-            return CyclotomicFieldHomomorphism_im_gens(self, x.im_gens())
-        raise TypeError
-
+    @cached_method
     def list(self):
         """
         Return a list of all the elements of self (for which the domain
@@ -743,11 +999,6 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             sage: Hom(CyclotomicField(11), L).list()
             []
         """
-        try:
-            return self.__list
-        except AttributeError:
-            pass
-
         D = self.domain()
         C = self.codomain()
         z = D.gen()
@@ -761,8 +1012,4 @@ class CyclotomicFieldHomset(NumberFieldHomset):
                 w = C.zeta(n)
             v = [self([w**k], check=False) for k in Zmod(n) if k.is_unit()]
         v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
-        self.__list = v
         return v
-
-class CyclotomicFieldHomomorphism_im_gens(NumberFieldHomomorphism_im_gens):
-    pass
