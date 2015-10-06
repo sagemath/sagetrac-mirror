@@ -171,13 +171,16 @@ def refine_root(poly, deriv, root, field, long steps=10):
             if not smashed_real and root in epsilon:
                 root = field.zero()
                 smashed_real = True
+                converging = False
         else:
             if not smashed_imag and root.imag() in epsilon:
                 root = field(root.real(), 0)
                 smashed_imag = True
+                converging = False
             elif not smashed_real and root.real() in epsilon:
                 root = field(0, root.imag())
                 smashed_real = True
+                converging = False
 
         slope = deriv(root)
         if slope.contains_zero():
