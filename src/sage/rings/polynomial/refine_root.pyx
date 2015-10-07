@@ -212,11 +212,20 @@ def refine_root(poly, deriv, root, field, long steps=10):
                     # nroot and root are exactly the same interval
                     raise ArithmeticError("cannot refine polynomial root (multiple roots?)")
         else:
-            # Use Newton-Raphson to refine the root
+            # Use interval Newton-Raphson to refine the root
             center = field(root.center())
             nroot = center - poly(center) / slope
 
-            if converging or nroot in root:
+            if converging:
+                # If we are converging, make sure we never enlarge our
+                # interval again. This is in particular needed when the
+                # interval gets small to avoid oscillations.
+                nroot = nroot.intersection(root)
+            elif nroot in root:
+                # Once we are converging, assume that we keep converging.
+                converging = True
+
+            if converging:
                 if i == steps - 1:
                     # This is the last iteration
                     return nroot
@@ -225,9 +234,6 @@ def refine_root(poly, deriv, root, field, long steps=10):
                     # original diameter, then we have converged reasonably
                     # well.
                     return nroot
-                # Once we are converging, assume that we keep converging
-                # (to avoid small oscillations due to limited precision)
-                converging = True
             else:
                 # If the new interval still isn't contained in the old
                 # after a while, try tripling the size of the region
