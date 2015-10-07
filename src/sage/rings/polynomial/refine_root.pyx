@@ -10,7 +10,7 @@ AUTHORS:
 - Carl Witty (2007-11-18): initial version
 
 - Jeroen Demeyer (2015-10-06): improved code, also allow real input
-  and use bisection if needed (see :trac:`19362`)
+  and trim intervals if needed (see :trac:`19362`)
 """
 
 #*****************************************************************************
@@ -82,13 +82,16 @@ def refine_root(poly, deriv, root, field, long steps=10):
         sage: refine_root(ip, ipd, irt, CIF)
         0.766044443118978? + 0.642787609686540?*I
 
-    This example requires bisection since the given interval contains
-    a zero of the derivative::
+    The following 2 examples require trimming since the given interval
+    contains a zero of the derivative::
 
         sage: R.<x> = RIF[]
         sage: pol = 10*x^6 - 10*x^2 + 1
         sage: refine_root(pol, pol.derivative(), RIF(-1/5, 2/3), RIF)
         0.3178541456092885?
+        sage: pol = x*(x-2)*(x-4)
+        sage: refine_root(pol, pol.derivative(), RIF(1, 3), RIF)
+        2.000000000000000?
 
     With too few steps, the refining does not work::
 
@@ -117,7 +120,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
         sage: pol = x^3 - RIF(4^3, 5^3)
         sage: r = refine_root(pol, pol.derivative(), RIF(10), RIF)
         sage: r.endpoints()
-        (3.00612159221905, 6.10936449050236)
+        (3.42614016116045, 5.67620738897754)
     """
     # We start with a basic fact: if we do an interval Newton-Raphson
     # step, and the refined interval is contained in the original interval,
@@ -142,9 +145,10 @@ def refine_root(poly, deriv, root, field, long steps=10):
     # extremely precise numbers.)
 
     # If the slope in our current interval is not bounded away
-    # from zero, we instead try to refine the root using bisection.
-    # This might be needed if the original interval was very large
-    # (typically the output of real root isolation algorithms).
+    # from zero, we instead try to trim the interval containing the
+    # root by removing a small part along the edges. This might be
+    # needed if the original interval was very large (typically the
+    # output of real root isolation algorithms).
 
     # After every refinement step, we check to see if the real or
     # imaginary component of our interval is close to zero.  If so, we
@@ -164,7 +168,8 @@ def refine_root(poly, deriv, root, field, long steps=10):
 
     epsilon = real_field(-1, 1) >> field.prec()
 
-    cdef long i, n
+    cdef long i, j, jtrim
+    cdef double t
     for i in range(steps):
         # Check for possibly exact zero real/imaginary components
         if is_real:
@@ -184,33 +189,45 @@ def refine_root(poly, deriv, root, field, long steps=10):
 
         slope = deriv(root)
         if slope.contains_zero():
-            # We cannot use Newton-Raphson => use bisection instead
-            pieces = root.bisection()
-            pieces = [p for p in pieces if poly(p).contains_zero()]
-            n = len(pieces)
-            if n == 1:
-                nroot = pieces[0]
-            elif n == 0:
-                raise ArithmeticError("cannot refine polynomial root (precision too low?)")
-            else:
-                # Still more than 1 piece left: it could be that the
-                # zero of the polynomial is very close to the center of
-                # the interval. We try an additional bisection. We take
-                # the union of all pieces containing a zero.
-                nroot = None
-                for p in pieces:
-                    for q in p.bisection():
-                        if poly(q).contains_zero():
-                            if nroot is None:
-                                nroot = q
-                            else:
-                                nroot = nroot.union(q)
+            # We cannot use Newton-Raphson => trim interval instead.
+            # If a certain part along the edge of our interval does not
+            # contain a zero of the polynomial, we remove that part.
+            edges = root.edges()
+            jtrim = -1  # Index of last trimmed edge (-1 if none)
+            for j in range(len(edges)):
+                e = edges[j]
+                if poly(e).contains_zero():
+                    # Polynomial is zero on the edge => cannot trim
+                    continue
 
-                if nroot is None:
-                    raise ArithmeticError("cannot refine polynomial root (precision too low?)")
-                if not nroot._cmp_(root):
-                    # nroot and root are exactly the same interval
-                    raise ArithmeticError("cannot refine polynomial root (multiple roots?)")
+                opposite = edges[j^1]  # Opposite edge
+                diff = opposite.center() - e.center()
+                # t = fraction of the interval to trim
+                if j == jtrim | 1:
+                    # We just trimmed the opposite edge: set t to the
+                    # value which corresponds to the center of the
+                    # original interval before trimming
+                    t = 0.5/(1 - t)
+                else:
+                    t = 0.5
+
+                while t >= 0.001:
+                    trim_edge = e + field(diff*t)
+                    remove = e.union(trim_edge)
+                    if not poly(remove).contains_zero():
+                        # The polynomial is certainly not zero
+                        # on the trimmed part => trim root
+                        root = trim_edge.union(opposite)
+                        edges = root.edges()
+                        jtrim = j
+                        break
+                    t *= 0.5
+            if jtrim < 0:
+                raise ArithmeticError("cannot refine polynomial root (multiple roots?)")
+            # Trimming only makes sense if there is a zero in the
+            # remaining part
+            if not poly(root).contains_zero():
+                raise ArithmeticError("cannot refine polynomial root (precision too low?)")
         else:
             # Use interval Newton-Raphson to refine the root
             center = field(root.center())
@@ -221,19 +238,14 @@ def refine_root(poly, deriv, root, field, long steps=10):
                 # interval again. This is in particular needed when the
                 # interval gets small to avoid oscillations.
                 nroot = nroot.intersection(root)
-            elif nroot in root:
-                # Once we are converging, assume that we keep converging.
-                converging = True
-
-            if converging:
-                if i == steps - 1:
-                    # This is the last iteration
-                    return nroot
                 if (nroot.diameter() << 2) >= root.diameter():
                     # If the new diameter is within a factor 4 of the
                     # original diameter, then we have converged reasonably
                     # well.
                     return nroot
+            elif nroot in root:
+                # We are converging. Assume that we keep converging.
+                converging = True
             else:
                 # If the new interval still isn't contained in the old
                 # after a while, try tripling the size of the region
@@ -242,6 +254,9 @@ def refine_root(poly, deriv, root, field, long steps=10):
                     # but with a larger diameter
                     nroot += nroot - nroot
 
-        root = nroot
+            root = nroot
 
+    # If we are converging, return the last interval
+    if converging:
+        return root
     raise ArithmeticError("cannot refine polynomial root (not enough steps?)")
