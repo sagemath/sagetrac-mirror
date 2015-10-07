@@ -18,6 +18,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
+from sage.categories.subobjects import SubobjectsCategory
 from sage.structure.element import have_same_parent
 
 class Magmas(Category_singleton):
@@ -339,6 +340,29 @@ class Magmas(Category_singleton):
             """
             from sage.categories.magmatic_algebras import MagmaticAlgebras
             return [MagmaticAlgebras(self.base_ring())]
+
+        class Subobjects(SubobjectsCategory):
+            class ParentMethods:
+                def product(self, x, y):
+                    """
+                    Return the product of ``x`` and ``y``.
+
+                    EXAMPLES::
+
+                        sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
+                        sage: A = G.algebra(QQ)
+                        sage: S = A.subalgebra(A.algebra_generators(), prefix='S')
+                        sage: [[b * bp for b in S.basis()] for bp in S.basis()]
+                        [[S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7]],
+                         [S[1], S[0], S[6], S[7], S[5], S[4], S[2], S[3]],
+                         [S[2], S[3], S[0], S[1], S[6], S[7], S[4], S[5]],
+                         [S[3], S[2], S[4], S[5], S[7], S[6], S[0], S[1]],
+                         [S[4], S[5], S[3], S[2], S[0], S[1], S[7], S[6]],
+                         [S[5], S[4], S[7], S[6], S[1], S[0], S[3], S[2]],
+                         [S[6], S[7], S[1], S[0], S[2], S[3], S[5], S[4]],
+                         [S[7], S[6], S[5], S[4], S[3], S[2], S[1], S[0]]]
+                    """
+                    return self.retract(self.lift(x) * self.lift(y))
 
     class Commutative(CategoryWithAxiom):
 

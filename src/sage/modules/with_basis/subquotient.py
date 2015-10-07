@@ -211,7 +211,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         return super(SubmoduleWithBasis, cls).__classcall__(
             cls, basis, ambient, category, *args, **opts)
 
-    def __init__(self, basis, ambient, category):
+    def __init__(self, basis, ambient, category, *args, **opts):
         r"""
         Initialization.
 
@@ -231,10 +231,12 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         import operator
         ring = ambient.base_ring()
         CombinatorialFreeModule.__init__(self, ring, basis.keys(),
-                                         category=category.Subobjects())
+                                         category=category.Subobjects(),
+                                         *args, **opts)
         self._ambient = ambient
         self._basis = basis
         self.lift_on_basis = self._basis.__getitem__
+        self.lift.register_as_coercion()
 
     def ambient(self):
         """
@@ -356,3 +358,4 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
             except ValueError:
                 return False
         return True
+

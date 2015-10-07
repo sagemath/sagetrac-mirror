@@ -613,8 +613,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             mat.echelonize()
             return [self.from_vector(vec) for vec in mat if vec]
 
-        def submodule(self, gens,
-                      check=True, already_echelonized=False, category=None):
+        def submodule(self, gens, check=True, already_echelonized=False,
+                      category=None, *args, **opts):
             r"""
             The submodule spanned by a finite set of elements.
 
@@ -641,7 +641,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             The basis of the submodule uses the same index set as the
             generators, and the lifting map sends `y_i` to `gens[i]`.
-
 
             .. SEEALSO::
 
@@ -748,7 +747,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if not already_echelonized:
                 gens = self.echelon_form(gens)
             from sage.modules.with_basis.subquotient import SubmoduleWithBasis
-            return SubmoduleWithBasis(gens, ambient=self, category=category)
+            return SubmoduleWithBasis(gens, ambient=self, category=category, *args, **opts)
 
         def tensor(*parents):
             """

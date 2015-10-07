@@ -40,7 +40,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of finite dimensional algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of algebras with basis over Rational Field,
-         Category of finite dimensional modules with basis over Rational Field]
+         Category of finite dimensional magmatic algebras with basis over Rational Field]
         sage: C.example()
         An example of a finite dimensional algebra with basis:
         the path algebra of the Kronecker quiver
@@ -319,80 +319,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             result = self.quotient_module(self.radical(), category=category)
             result.rename("Semisimple quotient of {}".format(self))
             return result
-
-
-        @cached_method
-        def center_basis(self):
-            r"""
-            Return a basis of the center of ``self``.
-
-            OUTPUT:
-
-            - a list of elements of ``self``.
-
-            .. SEEALSO:: :meth:`center`
-
-            EXAMPLES::
-
-                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
-                An example of a finite dimensional algebra with basis:
-                the path algebra of the Kronecker quiver
-                (containing the arrows a:x->y and b:x->y) over Rational Field
-                sage: A.center_basis()
-                [x + y]
-            """
-            return self.annihilator_basis(self.algebra_generators(), self.bracket)
-
-        @cached_method
-        def center(self):
-            r"""
-            Return the center of ``self``.
-
-            .. SEEALSO:: :meth:`center_basis`
-
-            EXAMPLES::
-
-                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
-                An example of a finite dimensional algebra with basis:
-                the path algebra of the Kronecker quiver
-                (containing the arrows a:x->y and b:x->y) over Rational Field
-                sage: center = A.center(); center
-                Center of An example of a finite dimensional algebra with basis:
-                the path algebra of the Kronecker quiver
-                (containing the arrows a:x->y and b:x->y) over Rational Field
-                sage: center in Algebras(QQ).WithBasis().FiniteDimensional().Commutative()
-                True
-                sage: center.dimension()
-                1
-                sage: center.basis()
-                Finite family {0: B[0]}
-                sage: center.ambient() is A
-                True
-                sage: [c.lift() for c in center.basis()]
-                [x + y]
-
-            The center of a semisimple algebra is semisimple::
-
-                sage: DihedralGroup(6).algebra(QQ).center() in Algebras(QQ).Semisimple()
-                True
-
-            .. TODO::
-
-                - Pickling by construction, as ``A.center()``?
-                - Lazy evaluation of ``_repr_``
-
-            TESTS::
-
-                sage: TestSuite(center).run()
-            """
-            category = Algebras(self.base_ring()).FiniteDimensional().Subobjects().Commutative().WithBasis()
-            if self in Algebras.Semisimple:
-                category = category.Semisimple()
-            center = self.submodule(self.center_basis(),
-                                    category=category,
-                                    already_echelonized=True)
-            center.rename("Center of {}".format(self))
-            return center
 
         def principal_ideal(self, a, side='left'):
             r"""

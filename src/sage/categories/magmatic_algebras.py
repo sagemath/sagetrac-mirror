@@ -113,6 +113,10 @@ class MagmaticAlgebras(Category_over_base_ring):
 
     class WithBasis(CategoryWithAxiom_over_base_ring):
 
+        FiniteDimensional = LazyImport(
+            'sage.categories.finite_dimensional_magmatic_algebras_with_basis',
+            'FiniteDimensionalMagmaticAlgebrasWithBasis')
+
         class ParentMethods:
 
             def algebra_generators(self):
@@ -217,3 +221,4 @@ class MagmaticAlgebras(Category_over_base_ring):
                 return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right )
                                                   for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems()
                                                   for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )
+

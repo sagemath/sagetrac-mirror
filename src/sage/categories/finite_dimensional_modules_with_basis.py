@@ -214,7 +214,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             for s in S:
                 mat = mat.augment(matrix(self.base_ring(),
                                          [action(s, b)._vector_() for b in self.basis()]))
-            return map(self.from_vector, mat.left_kernel().basis())
+            return [self.from_vector(b) for b in mat.left_kernel().basis()]
 
         def quotient_module(self, submodule, check=True, already_echelonized=False, category=None):
             r"""

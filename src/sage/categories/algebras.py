@@ -23,7 +23,6 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.quotients import QuotientsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory
-from sage.categories.subobjects import SubobjectsCategory
 from sage.categories.associative_algebras import AssociativeAlgebras
 
 class Algebras(CategoryWithAxiom_over_base_ring):
