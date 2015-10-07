@@ -236,37 +236,38 @@ FINDSTAT_MAX_DEPTH = 5
 FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 
 # the fields of the FindStat database we expect
-FINDSTAT_STATISTIC_IDENTIFIER      = 'StatisticIdentifier'
-FINDSTAT_STATISTIC_COLLECTION      = 'StatisticCollection'
-FINDSTAT_STATISTIC_DATA            = 'StatisticData'
-FINDSTAT_STATISTIC_DESCRIPTION     = 'StatisticDescription'
-FINDSTAT_STATISTIC_REFERENCES      = 'StatisticReferences'
-FINDSTAT_STATISTIC_CODE            = 'StatisticCode'
-FINDSTAT_STATISTIC_ORIGINAL_AUTHOR = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Email, Time
-FINDSTAT_STATISTIC_UPDATE_AUTHOR   = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Email, Time
+FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
+FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
+FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
+FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
+FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
+FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
+FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
+FINDSTAT_STATISTIC_ORIGINAL_AUTHOR              = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Time
+FINDSTAT_STATISTIC_UPDATE_AUTHOR                = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Time
 
-FINDSTAT_POST_AUTHOR               = 'StatisticAuthor' # designates the name of the author
-FINDSTAT_POST_EMAIL                = 'StatisticEmail'
-FINDSTAT_POST_SAGE_CELL            = 'SageCellField'   # currently only used as post key
-FINDSTAT_POST_EDIT                 = 'EDIT'            # only used as post key
+FINDSTAT_POST_AUTHOR                            = 'StatisticAuthor' # designates the name of the author
+FINDSTAT_POST_EMAIL                             = 'StatisticEmail'
+FINDSTAT_POST_SAGE_CELL                         = 'SageCellField'   # currently only used as post key
+FINDSTAT_POST_EDIT                              = 'EDIT'            # only used as post key
 
-FINDSTAT_COLLECTION_IDENTIFIER                = 'CollectionIdentifier'
-FINDSTAT_COLLECTION_NAME                      = 'CollectionName'
-FINDSTAT_COLLECTION_NAME_PLURAL               = 'CollectionNamePlural'
-FINDSTAT_COLLECTION_NAME_WIKI                 = 'CollectionNameWiki'
-FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED = 'CollectionLevelsPrecomputed'
+FINDSTAT_COLLECTION_IDENTIFIER                  = 'CollectionIdentifier'
+FINDSTAT_COLLECTION_NAME                        = 'CollectionName'
+FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
+FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
+FINDSTAT_COLLECTION_LEVELS                      = 'CollectionLevelsSizes'
 
-FINDSTAT_MAP_IDENTIFIER  = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
-FINDSTAT_MAP_NAME        = 'MapName'
-FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
-FINDSTAT_MAP_DOMAIN      = 'MapDomain'
-FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
-FINDSTAT_MAP_CODE        = 'MapCode'
-FINDSTAT_MAP_CODE_NAME   = 'MapSageName'
+FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier'
+FINDSTAT_MAP_NAME                               = 'MapName'
+FINDSTAT_MAP_DESCRIPTION                        = 'MapDescription'
+FINDSTAT_MAP_DOMAIN                             = 'MapDomain'
+FINDSTAT_MAP_CODOMAIN                           = 'MapCodomain'
+FINDSTAT_MAP_CODE                               = 'MapCode'
+FINDSTAT_MAP_CODE_NAME                          = 'MapSageName'
 
-FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
-FINDSTAT_QUERY_MATCHING_DATA = 'QueryMatchingData'
-FINDSTAT_QUERY_MAPS          = 'QueryMaps'
+FINDSTAT_QUERY_MATCHES                          = 'QueryMatches'
+FINDSTAT_QUERY_MATCHING_DATA                    = 'QueryMatchingData'
+FINDSTAT_QUERY_MAPS                             = 'QueryMaps'
 
 # the entries of this list are required as post arguments for submitting or editing a statistic
 FINDSTAT_EDIT_FIELDS = set([FINDSTAT_STATISTIC_IDENTIFIER,
@@ -489,13 +490,15 @@ class FindStat(SageObject):
                 # either a pair (list of objects, list of integers)
                 # or a list of such or (object, integer) pairs
 
+                # correctness of data is checked in FindStatStatistic._find_by_values
+
                 # values must always be lists because otherwise we
                 # get a trailing comma when printing
                 if (len(query) == 2 and
                     isinstance(query[1], (list, tuple)) and
                     len(query[1]) != 0 and
                     isinstance(query[1][0], (int, Integer))):
-                    # just a pair
+                    # just a single pair
                     data = [(query[0], list(query[1]))]
                     collection = FindStatCollection(data[0][0][0])
                     return FindStatStatistic(id=0, data=data,
@@ -859,10 +862,17 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
-        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
-        self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
-        self._code = self._raw[FINDSTAT_STATISTIC_CODE]
+        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
+        self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
+        self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
+
+        from ast import literal_eval
+        gf                          = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+        self._generating_function_dict  = { literal_eval(key):
+                                            { literal_eval(inner_key): inner_value
+                                              for inner_key, inner_value in value.iteritems() }
+                                            for key, value in gf.iteritems() }
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
@@ -903,23 +913,30 @@ class FindStatStatistic(SageObject):
         self._query = "data"
 
         # FindStat allows to search for at most FINDSTAT_MAX_VALUES
-        # values.  For the user's convenience, from data, we take the
+        # values.  For the user's convenience, from _data, we take the
         # first min(max_values, FINDSTAT_MAX_VALUES) such that all
         # elements are in the precomputed range
+        # the internal _data is not modified
         data = []
         total = min(max_values, FINDSTAT_MAX_VALUES)
+        all_elements = []
         for (elements, values) in self._data:
             if len(elements) != len(values):
                 raise ValueError("FindStat expects the same number of objects as values!")
+
+            all_elements += elements
             try:
                 values = [int(v) for v in values]
             except ValueError:
-                raise ValueError("FindStat expects integer values as statistics!")
+                raise ValueError("FindStat expects statistics to have integer values!")
 
             if total >= len(elements):
                 if all(self._collection.in_range(e) for e in elements):
                     data += [(elements, values)]
                     total -= len(elements)
+
+        if len(set(all_elements)) != len(all_elements):
+            raise ValueError("FindStat expects that every object appears only once!")
 
         # this might go wrong:
         try:
@@ -950,9 +967,12 @@ class FindStatStatistic(SageObject):
                                        [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER]) for mp in match[FINDSTAT_QUERY_MAPS]],
                                        len(match[FINDSTAT_QUERY_MATCHING_DATA]))
                                       for match in result[FINDSTAT_QUERY_MATCHES])
-            return self
+
         except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
+
+        self._generating_function_dict = self._compute_generating_functions()
+        return self
 
     def _raise_error_modifying_statistic_with_perfect_match(self):
         r"""
@@ -1171,6 +1191,183 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
+    def _compute_generating_functions(self):
+        r""" Return the generating functions of ``self`` in a dictionary,
+        computed from ``self._data``.
+
+        TESTS:
+
+            sage: s = findstat((DyckWords(4), range(14))); s                    # optional -- internet, indirect doctest
+            a new statistic on Cc0005: Dyck paths
+            sage: s.generating_functions()                                      # optional -- internet, indirect doctest
+            {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
+        """
+        c = self.collection()
+        gfs = dict()
+        for (elements, values) in self._data:
+            l = c._get_level(elements[0])
+            if l in c._levels and all(l == c._get_level(e) for e in elements[1:]):
+                gfs[l] = gfs.get(l, dict())
+                for v in values:
+                    gfs[l][v] = gfs[l].get(v, 0) + 1
+
+        for (l, p) in gfs.items():
+            ns = sum(p.values())
+            nc = c._levels[l]
+            if ns < nc:
+                del gfs[l]
+            elif ns > nc:
+                raise ValueError("FindStat delivers more statistic values than the level has elements.  This should not happen.  Please send an email to the developers.")
+
+        return gfs
+
+    def generating_functions(self, style="polynomial"):
+        r"""
+        Return the generating functions of ``self`` in a dictionary.
+
+        The keys of this dictionary are the levels for which the
+        generating function of ``self`` can be computed from the data
+        of this statistic, and each value represents a generating
+        function for one level, as a polynomial, as a dictionary, or as
+        a list of coefficients.
+
+        INPUT:
+
+        - a string -- (default:"polynomial") can be
+          "polynomial", "dictionary", or "list".
+
+        OUTPUT:
+
+        - if ``style`` is ``"polynomial"``, the generating function is
+          returned as a polynomial.
+
+        - if ``style`` is ``"dictionary"``, the generating function is
+          returned as a dictionary representing the monomials of the
+          generating function.
+
+        - if ``style`` is ``"list"``, the generating function is
+          returned as a list of coefficients of the generating function.
+
+        EXAMPLES::
+
+            sage: st = findstat(18)                                             # optional -- internet
+
+            sage: st.generating_functions()                                     # optional -- internet,random
+            {2: q + 1,
+             3: q^3 + 2*q^2 + 2*q + 1,
+             4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
+             5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
+             6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
+
+            sage: st.generating_functions(style="dictionary")                   # optional -- internet,random
+            {2: {0: 1, 1: 1},
+             3: {0: 1, 1: 2, 2: 2, 3: 1},
+             4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
+             5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
+             6: {0: 1,
+              1: 5,
+              2: 14,
+              3: 29,
+              4: 49,
+              5: 71,
+              6: 90,
+              7: 101,
+              8: 101,
+              9: 90,
+              10: 71,
+              11: 49,
+              12: 29,
+              13: 14,
+              14: 5,
+              15: 1}}
+
+            sage: st.generating_functions(style="list")                         # optional -- internet,random
+            {2: [1, 1],
+             3: [1, 2, 2, 1],
+             4: [1, 3, 5, 6, 5, 3, 1],
+             5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
+             6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
+        """
+        gfs = self._generating_function_dict
+        if style == "dictionary":
+            return gfs
+        elif style == "list":
+            return { key : [ gfs[key][deg] if deg in gfs[key] else 0
+                             for deg in range(min(gfs[key]),max(gfs[key])+1) ]
+                     for key in gfs }
+        elif style == "polynomial":
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.integer_ring import ZZ
+            P = PolynomialRing(ZZ,"q")
+            q = P.gen()
+            return { level : sum( coefficient * q**exponent
+                                  for exponent,coefficient in gen_dict.iteritems() )
+                     for level, gen_dict in gfs.iteritems()}
+        else:
+            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'"%style)
+
+    def oeis_search(self, search_size=32, verbose=True):
+        r"""
+        Search the OEIS for the generating function of the statistic.
+
+        INPUT:
+
+        - ``search_size`` (default:32) the number of integers in the
+          sequence. If too big, the OEIS result is corrupted.
+
+        - ``verbose`` (default:True) if true, some information about
+          the search are printed.
+
+        OUTPUT:
+
+        - a tuple of OEIS sequences, see
+          :meth:`sage.databases.oeis.OEIS.find_by_description` for more
+          information.
+
+        EXAMPLES::
+
+            sage: st = findstat(18)                                             # optional -- internet
+
+            sage: st.oeis_search()                                              # optional -- internet,random
+            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  1,5,14,29,49,71,90,101"
+
+            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
+
+            sage: st.oeis_search(search_size=13)                                # optional -- internet,random
+            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1"
+
+            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
+            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers for the n-th element of the Weyl group of type A3 (in Goresky's standard ordering).
+            2: A187447: Array for all multiset choices (multiset repetition class representatives in Abramowitz-Stegun order).
+        """
+        from sage.databases.oeis import oeis
+
+        gen_funcs = self.generating_functions(style="list")
+
+        OEIS_string = ""
+        keys = sorted(gen_funcs.keys())
+        counter = 0
+        for key in keys:
+            gen_func = gen_funcs[key]
+            while gen_func[0] == 0:
+                gen_func.pop(0)
+            # we strip the result according to the search size. -- stumpc5, 2015-09-27
+            gen_func = gen_func[:search_size]
+            counter += len(gen_func)
+            if search_size > 0:
+                search_size -= len(gen_func)
+            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
+            OEIS_string         += OEIS_func_string + "  "
+        OEIS_string = OEIS_string.strip()
+        if counter >= 4:
+            if verbose:
+                print 'Searching the OEIS for "%s"'%OEIS_string
+            return oeis( OEIS_string )
+        else:
+            if verbose:
+                print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
+            return
+
     def description(self):
         r"""
         Return the description of the statistic.
@@ -1204,7 +1401,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 
@@ -1282,7 +1479,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 
@@ -1345,7 +1542,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 
@@ -1460,7 +1657,6 @@ class FindStatStatistic(SageObject):
 
     # editing and submitting is really the same thing
     edit = submit
-
 
 # helper for generation of CartanTypes
 def _finite_irreducible_cartan_types_by_rank(n):
@@ -1588,7 +1784,7 @@ class FindStatCollection(Element):
         """
         self._id = id
         (self._name, self._name_plural, self._url_name,
-         self._sageclass, self._sageconstructor, self._range,
+         self._sageclass, self._sageconstructor, self._levels, self._get_level,
          self._in_range, self._to_str, self._from_str) = c
         self._sageconstructor_overridden = sageconstructor_overridden
 
@@ -1686,7 +1882,7 @@ class FindStatCollection(Element):
             Cc0023: Parking functions 10000 True
 
         """
-        return self._in_range(element, self._range)
+        return self._in_range(element, self._levels.keys())
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1719,7 +1915,7 @@ class FindStatCollection(Element):
              ([[2, 0], [1]], 1)]
         """
         if self._sageconstructor_overridden is None:
-            g = (x for n in self._range for x in self._sageconstructor(n))
+            g = (x for n in self._levels.keys() for x in self._sageconstructor(n))
         else:
             g = self._sageconstructor_overridden
 
@@ -1883,7 +2079,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # * url's as needed by FindStat                              (FINDSTAT_COLLECTION_NAME_WIKI)
     # * sage element constructor
     # * sage constructor                                         (would be parent_initializer)
-    # * list of arguments for constructor                        (FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED)
+    # * a dictionary from levels to sizes                        (FINDSTAT_COLLECTION_LEVELS)
+    #   the levels are used as arguments for the sage constructor
     # * a function to check whether an object is produced by applying the constructor to some element in the list
     # * the (FindStat) string representations of the sage object (would be element_repr)
     # * sage constructors of the FindStat string representation  (would be element_constructor)
@@ -1903,75 +2100,92 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # upon the first call to this class
     _findstat_collections = {
         17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
+             lambda x: x.to_matrix().nrows(),
              lambda x, l: x.to_matrix().nrows() in l,
              lambda x: str(map(list, list(x._matrix))),
              lambda x: AlternatingSignMatrix(literal_eval(x))],
         10: [None, None, None, BinaryTree,            BinaryTrees,             None,
+             lambda x: x.node_number(),
              lambda x, l: x.node_number() in l,
              str,
              lambda x: BinaryTree(str(x))],
         13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
              None,
+             lambda x: (x.length(), x.k()),
              lambda x, l: (x.length(), x.k()) in l,
              lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
              lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
         5:  [None, None, None, DyckWord,              DyckWords,               None,
+             lambda x: (x.length()/2),
              lambda x, l: (x.length()/2) in l,
              lambda x: str(list(DyckWord(x))),
              lambda x: DyckWord(literal_eval(x))],
         22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
              None,
+             lambda x: x.rank(),
              lambda x, l: x.rank() in l,
              str,
              lambda x: CartanType(*literal_eval(str(x)))],
         18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
+             None,
              None,
              lambda x, l: any(len(x) == s and max([0] + [max(row) for row in x]) <= m for s, m in l),
              str,
              lambda x: GelfandTsetlinPattern(literal_eval(x))],
         20: [None, None, None, Graph,                 graphs,
              None,
+             lambda x: x.num_verts(),
              lambda x, l: x.num_verts() in l,
              lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
              lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Composition(literal_eval(x))],
         2:  [None, None, None, Partition,             Partitions,              None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Partition(literal_eval(x))],
         21: [None, None, None, OrderedTree,           OrderedTrees,            None,
+             lambda x: x.node_number(),
              lambda x, l: x.node_number() in l,
              str,
              lambda x: OrderedTree(literal_eval(x))],
         23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
+             lambda x: len(x),
              lambda x, l: len(x) in l,
              str,
              lambda x: ParkingFunction(literal_eval(x))],
         12: [None, None, None, PerfectMatching,       PerfectMatchings,        None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: PerfectMatching(literal_eval(x))],
         1:  [None, None, None, Permutation,           Permutations,            None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Permutation(literal_eval(x))],
         14: [None, None, None, FinitePoset,           posets,                  None,
+             lambda x: x.cardinality(),
              lambda x, l: x.cardinality() in l,
              lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
              None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: SemistandardTableau(literal_eval(x))],
         9:  [None, None, None, SetPartition,          SetPartitions,           None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))],
         7:  [None, None, None, StandardTableau,       StandardTableaux,        None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: StandardTableau(literal_eval(x))]}
@@ -1991,7 +2205,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
             c[0] = j[FINDSTAT_COLLECTION_NAME]
             c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-            c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+            c[5] =  {literal_eval(key):value for key,value in
+                     j[FINDSTAT_COLLECTION_LEVELS].iteritems()}
 
         Parent.__init__(self, category=Sets())
 
@@ -2102,7 +2317,6 @@ class FindStatCollections(Parent, UniqueRepresentation):
             yield FindStatCollection(c)
 
     Element = FindStatCollection
-
 
 class FindStatMap(Element):
     r"""
@@ -2469,6 +2683,5 @@ class FindStatMaps(Parent, UniqueRepresentation):
             yield FindStatMap(m)
 
     Element = FindStatMap
-
 
 findstat = FindStat()
