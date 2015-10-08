@@ -581,7 +581,7 @@ cdef class FP_LLL:
                 o.pruning.resize(block_size)
                 for j in range(block_size):
                     o.pruning[j] = prune[j]
-        
+
         o.preprocessing = NULL
 
         if verbose:
@@ -604,7 +604,7 @@ cdef class FP_LLL:
                 o.autoAbort_maxNoDec = a_l
             except TypeError:
                 pass
-            
+
         if max_loops:
             o.flags |= BKZ_MAX_LOOPS
             o.maxLoops = max_loops
@@ -644,7 +644,7 @@ cdef class FP_LLL:
                 step = list(step) + defaults[len(step):]
                 tmp.append(step)
         preprocessing = tmp
-        
+
         cdef int flags
         if preprocessing:
             for i,step in enumerate(preprocessing):
