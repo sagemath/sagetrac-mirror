@@ -6233,7 +6233,8 @@ def minkowski_sum(points1, points2):
 
 def positive_integer_relations(points):
     r"""
-    Return relations between given points.
+    Return a minimal generating set of the monoid of positive relations between
+    the vector ``points``.
 
     INPUT:
 
@@ -6245,10 +6246,12 @@ def positive_integer_relations(points):
     OUTPUT: matrix of relations between given points with non-negative
     integer coefficients
 
-    EXAMPLES: This is a 3-dimensional reflexive polytope::
+    EXAMPLES:
+    
+    This is a 3-dimensional reflexive polytope::
 
         sage: p = LatticePolytope([(1,0,0), (0,1,0),
-        ...             (-1,-1,0), (0,0,1), (-1,0,-1)])
+        ....:            (-1,-1,0), (0,0,1), (-1,0,-1)])
         sage: p.points()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -6270,53 +6273,30 @@ def positive_integer_relations(points):
     numbers. This function transforms them in such a way, that all
     coefficients are non-negative integers::
 
-        sage: lattice_polytope.positive_integer_relations(p.points().column_matrix())
-        [1 0 0 1 1 0]
-        [1 1 1 0 0 0]
-        [0 0 0 0 0 1]
-        sage: lattice_polytope.positive_integer_relations(ReflexivePolytope(2,1).vertices().column_matrix())
-        [2 1 1]
+        sage: from sage.geometry.lattice_polytope import positive_integer_relations
+        sage: positive_integer_relations(p.points().column_matrix())
+        [(0, 0, 0, 0, 0, 1), (1, 0, 0, 1, 1, 0), (1, 1, 1, 0, 0, 0)]
+        sage: positive_integer_relations(ReflexivePolytope(2,1).vertices().column_matrix())
+        [(2, 1, 1)]
+
+    TESTS:
+
+    :trac:`19365`::
+
+        sage: points = [(1,1,-1,-1,-1), (-1,-1,1,1,-1), (1,-1,-1,-1,1),
+        ....:           (-1,1,1,1,1), (1,-1,1,-1,-1)]
+        sage: positive_integer_relations(points)
+        [(1, 0, 0, 1, 0)]
     """
-    points = points.transpose().base_extend(QQ)
-    relations = points.kernel().echelonized_basis_matrix()
-    nonpivots = relations.nonpivots()
-    nonpivot_relations = relations.matrix_from_columns(nonpivots)
-    n_nonpivots = len(nonpivots)
-    n = nonpivot_relations.nrows()
-    a = matrix(QQ,n_nonpivots,n_nonpivots)
-    for i in range(n_nonpivots):
-        a[i, i] = -1
-    a = nonpivot_relations.stack(a).transpose()
-    a = sage_matrix_to_maxima(a)
-    maxima.load("simplex")
+    from sage.geometry.polyhedron.constructor import Polyhedron
+    from sage.matrix.constructor import matrix
 
-    new_relations = []
-    for i in range(n_nonpivots):
-        # Find a non-negative linear combination of relations,
-        # such that all components are non-negative and the i-th one is 1
-        b = [0]*i + [1] + [0]*(n_nonpivots - i - 1)
-        c = [0]*(n+i) + [1] + [0]*(n_nonpivots - i - 1)
-        x = maxima.linear_program(a, b, c)
-        if x.str() == r'?Problem\not\feasible\!':
-            raise ValueError("cannot find required relations")
-        x = x.sage()[0][:n]
-        v = relations.linear_combination_of_rows(x)
-        new_relations.append(v)
-
-    relations = relations.stack(matrix(QQ, new_relations))
-    # Use the new relation to remove negative entries in non-pivot columns
-    for i in range(n_nonpivots):
-        for j in range(n):
-            coef = relations[j,nonpivots[i]]
-            if coef < 0:
-                relations.add_multiple_of_row(j, n+i, -coef)
-    # Get a new basis
-    relations = relations.matrix_from_rows(relations.transpose().pivots())
-    # Switch to integers
-    for i in range(n):
-        relations.rescale_row(i, 1/integral_length(relations[i]))
-    return relations.change_ring(ZZ)
-
+    M = matrix(points)
+    nrows = M.nrows()
+    ncols = M.ncols()
+    eqns = [[0] + M[i,:].list() for i in range(nrows)]
+    ieqs = [[0]*i + [1] + [0]*(ncols-i) for i in range(1,ncols+1)]
+    return [r.vector() for r in Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=ZZ).rays()]
 
 def read_all_polytopes(file_name):
     r"""
