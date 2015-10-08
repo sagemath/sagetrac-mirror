@@ -6275,9 +6275,11 @@ def positive_integer_relations(points):
 
         sage: from sage.geometry.lattice_polytope import positive_integer_relations
         sage: positive_integer_relations(p.points().column_matrix())
-        [(0, 0, 0, 0, 0, 1), (1, 0, 0, 1, 1, 0), (1, 1, 1, 0, 0, 0)]
+        [0 0 0 0 0 1]
+        [1 0 0 1 1 0]
+        [1 1 1 0 0 0]
         sage: positive_integer_relations(ReflexivePolytope(2,1).vertices().column_matrix())
-        [(2, 1, 1)]
+        [2 1 1]
 
     TESTS:
 
@@ -6286,7 +6288,7 @@ def positive_integer_relations(points):
         sage: points = [(1,1,-1,-1,-1), (-1,-1,1,1,-1), (1,-1,-1,-1,1),
         ....:           (-1,1,1,1,1), (1,-1,1,-1,-1)]
         sage: positive_integer_relations(points)
-        [(1, 0, 0, 1, 0)]
+        [1 0 0 1 0]
     """
     from sage.geometry.polyhedron.constructor import Polyhedron
     from sage.matrix.constructor import matrix
@@ -6296,7 +6298,8 @@ def positive_integer_relations(points):
     ncols = M.ncols()
     eqns = [[0] + M[i,:].list() for i in range(nrows)]
     ieqs = [[0]*i + [1] + [0]*(ncols-i) for i in range(1,ncols+1)]
-    return [r.vector() for r in Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=ZZ).rays()]
+    P = Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=ZZ)
+    return matrix([r.vector() for r in P.rays()])
 
 def read_all_polytopes(file_name):
     r"""
