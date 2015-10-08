@@ -1,3 +1,9 @@
+# distutils: language = c++
+# distutils: libraries = gmp mpfr fplll
+# distutils: extra_compile_args = -DFPLLL_V3_COMPAT
+
+from sage.libs.gmp.types cimport mpz_t
+
 #
 # general include
 #
