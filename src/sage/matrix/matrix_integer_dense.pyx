@@ -2637,7 +2637,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return U
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, max_loops=0, max_time=0, auto_abort=False):
+            precision=0, max_loops=0, max_time=0, auto_abort=False, gh_bound=False,
+            preprocessing=None, dump_gso_filename=None):
         """
         Block Korkin-Zolotarev reduction.
 
@@ -2649,7 +2650,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``fp`` -- floating point number implementation
 
-          - ``None`` -- NTL's exact reduction or fpLLL's wrapper (default)
+          - ``None`` -- NTL's exact reduction or fpLLL's 'fp' (default)
 
           - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
 
@@ -2677,10 +2678,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           be set to any positive number to invoke the Volume Heuristic from
           [SH95]_. This can significantly reduce the running time, and hence
           allow much bigger block size, but the quality of the reduction is
-          of course not as good in general. Higher values of ``prune`` mean
-          better quality, and slower running time. When ``prune`` is ``0``,
-          pruning is disabled. Recommended usage: for ``block_size==30``, set
-          ``10 <= prune <=15``.
+          not as good in general. Higher values of ``prune`` mean better quality,
+          and slower running time. When ``prune`` is ``0``, pruning is disabled.
+          Recommended usage: for ``block_size==30``, set ``10 <= prune <=15``.
 
         - ``use_givens`` -- Use Given's orthogonalization.  This is a bit
           slower, but generally much more stable, and is really the preferred
@@ -2690,16 +2690,66 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fpLLL SPECIFIC INPUTS:
 
         - ``precision`` -- (default: ``0`` for automatic choice) bit
-          precision to use if ``fp='rr'`` is set
+          precision to use if ``fp='rr'`` is set.
 
         - ``max_loops`` -- (default: ``0`` for no restriction) maximum
-          number of full loops
+          number of full loops.
 
         - ``max_time`` -- (default: ``0`` for no restricion) stop after
-          time seconds (up to loop completion)
+          time seconds (up to loop completion).
 
         - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
-          average slope of `\log(||b_i^*||)` does not decrease fast enough
+          average slope of `\log(||b_i^*||)` does not decrease fast enough.
+          If a tuple is given it is parsed as ``(scale, max_iter)`` such that
+          the algorithm will terminate if for ``max_iter`` loops the slope is not
+          smaller than ``scale * old_slope`` where ``old_slope`` was the old minimum.
+          If ``True`` is given, this is equivalent to providing ``(1.0,5)`` which is
+          fpLLL's default.
+
+        - ``prune`` - (default: ``0`` for disabled) Prune the enumeration trees.
+          If an integer is provided this linear pruning is used where the last
+          ``block_size - prune`` drop at a rate of ``1/block_size``. If an iterable is
+          provided it is interpreted as pruning vector. It must have length ``block_size``
+          and must start with ``1``.
+          
+        - ``gh_bound`` (default: ``False``) heuristic, if ``True`` then the enumeration bound will
+            be set to ``gh_bound`` times the Gaussian Heuristic. If ``True`` then gh_bound is set to
+            1.1, which is fpLLL's default.
+
+        - ``preprocessing`` - (default: ``None``) if not ``None`` this is parameter is
+          interpreted as a list of preprocessing options. The following options are
+          supported.
+
+          - ``None``: LLL is run for pre-processing local blocks.
+
+          - an integer: this is interpreted as the block size used for preprocessing local
+            blocks before calling enumeration. Any integer ≤ 2 disables BKZ preprocessing
+            and runs LLL instead, any integer ≥ ``block_size`` raises an error.
+
+          - an iterable of integers: this is interpreted as a list of pre-processing
+            block sizes. For example, ``preprocessing=[20,5]`` would pre-process with
+            BKZ-20 where blocks in turn are preprocessed with BKZ-5.
+
+          - an iterable of tuples: this is interpreted as a list of pre-processing
+            options where each entry ``(bs, ml, mt, aa, p)`` has the following
+            interpretation:
+
+            - ``bs`` - block size used for pre-preprocessing
+
+            - ``ml`` - ``max_loops`` for each local block
+
+            - ``mt`` - ``max_time`` for each local block
+
+            - ``aa`` - auto abort for local pre-processing
+
+            - ``prune`` - ``prune`` for local blocks.
+
+            It is permissable to not set all parameters. For example, ``[(20,10)]`` is
+            interpreted as ``[(20,0,0,True,0)]``.
+
+        - ``dump_gso_filename`` - (default: ``None``) if this is not ``None``
+          then the logs of the norms of the Gram-Schmidt vectors are written
+          to this file after each BKZ loop.
 
         EXAMPLES::
 
@@ -2746,7 +2796,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if prune < 0:
             raise TypeError("prune must be >= 0")
         prune = int(prune)
-
         verbose = get_verbose() >= 2
 
         block_size = int(block_size)
@@ -2824,7 +2873,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                   verbose=verbose,
                   max_time=max_time,
                   max_loops=max_loops,
-                  auto_abort=auto_abort)
+                  auto_abort=auto_abort,
+                  prune=prune,
+                  gh_bound=gh_bound,
+                  preprocessing=preprocessing,
+                  dump_gso_filename=dump_gso_filename)
             R = A._sage_()
         return R
 
@@ -5683,4 +5736,3 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     sage_free(tmp)
     sig_off()
     return M
-
