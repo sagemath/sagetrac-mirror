@@ -6428,10 +6428,15 @@ def sage_matrix_to_maxima(m):
 
         sage: m = matrix(ZZ,2)
         sage: lattice_polytope.sage_matrix_to_maxima(m)
+        doctest:...: DeprecationWarning: sage_matrix_to_maxima is deprecated.
+        Use the _maxima_ of matrices instead
+        See http://trac.sagemath.org/19365 for details.
         matrix([0,0],[0,0])
     """
-    return maxima("matrix("+",".join(str(v.list()) for v in m.rows())+")")
-
+    from sage.misc.superseded import deprecation
+    deprecation(19365, "sage_matrix_to_maxima is deprecated. Use the _maxima_ "
+                       "of matrices instead")
+    return m._maxima_()
 
 def set_palp_dimension(d):
     r"""
