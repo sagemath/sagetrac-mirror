@@ -60,11 +60,12 @@ Two examples from the Mathematica documentation (done in Sage):
 include "sage/ext/interrupt.pxi"
 
 from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCurrRing
-from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, Sy_bit, OPT_REDSB
-from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idRankFreeModule, kStd
+from sage.libs.singular.decl cimport idInit, id_Delete, currRing, Sy_bit, OPT_REDSB
+from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, id_RankFreeModule, kStd
 from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
 from sage.libs.singular.decl cimport pp_Mult_nn, p_Delete, n_Delete
 from sage.libs.singular.decl cimport rIsPluralRing
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 
 from sage.structure.parent_base cimport ParentWithBase
 
@@ -162,7 +163,7 @@ def kbase_libsingular(I):
 
     INPUT:
 
-    - ``I`` -- a groebner basis of an ideal
+    - ``I`` -- a groebner basis of an ideal 
 
     OUTPUT:
 
@@ -184,7 +185,7 @@ def kbase_libsingular(I):
 
     cdef ideal *i = sage_ideal_to_singular_ideal(I)
     cdef ring *r = currRing
-    cdef ideal *q = currQuotient
+    cdef ideal *q = currRing.qideal
 
     cdef ideal *result
     singular_options = singular_options | Sy_bit(OPT_REDSB)
@@ -254,7 +255,7 @@ def slimgb_libsingular(I):
         id_Delete(&i, r)
         raise TypeError, "ordering must be global for slimgb"
 
-    if i.rank < idRankFreeModule(i, r):
+    if i.rank < id_RankFreeModule(i, r):
         id_Delete(&i, r)
         raise TypeError
 
@@ -319,12 +320,12 @@ def interred_libsingular(I):
 
 
     # divide head by coefficients
-    if r.ringtype == 0:
+    if r.cf.type == n_unknown:
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]
             if p:
                 n = p_GetCoeff(p,r)
-                n = r.cf.nInvers(n)
+                n = r.cf.cfInvers(n,r.cf)
             result.m[j] = pp_Mult_nn(p, n, r)
             p_Delete(&p,r)
             n_Delete(&n,r)

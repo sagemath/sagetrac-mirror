@@ -34,7 +34,7 @@ else:
 ### Commonly used definitions and aliases
 #########################################################
 
-singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
+singular_incs = [os.path.join(SAGE_INC, 'singular')]
 
 aliases = dict(
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
@@ -54,7 +54,7 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
     m4ri_extra_compile_args.extend( [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()] )
     break
 
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
+singular_libs = ['Singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Givaro flags
@@ -1487,7 +1487,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'Singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = singular_incs,
               depends = [SAGE_INC + "/libsingular.h"],

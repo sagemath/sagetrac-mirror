@@ -277,6 +277,15 @@ elif [ -z "$PKG_HAS_PATH" ]; then
                 n*|N*) exit 0;;
             esac
         fi
+        if [ $INFO -eq 0 ]; then
+            # see if we can the source tarball locally
+            if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
+                # Found a good tarball
+                PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
+                echo "Found local sources at $PKG_SRC"
+                echo "PKG_BASE_VER"$PKG_BASE_VER
+            fi
+        fi
 
     else
         cd "$SAGE_DISTFILES"
