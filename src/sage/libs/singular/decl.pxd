@@ -31,7 +31,6 @@ cdef extern from "ccobject.h":
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
-
 cdef extern from "factory/factory.h":
 
     #
@@ -48,7 +47,6 @@ cdef extern from "factory/factory.h":
     cdef int SW_USE_NTL_GCD_0
     cdef int SW_USE_NTL_GCD_P
     cdef int SW_USE_NTL_SORT
-
 
 cdef extern from "Singular/libsingular.h":
 
@@ -1185,3 +1183,4 @@ cdef extern from "singular/misc/intvec.h":
 cdef extern from "kernel/GBEngine/syz.h":
     ctypedef struct syStrategy "ssyStrategy":
         short references
+

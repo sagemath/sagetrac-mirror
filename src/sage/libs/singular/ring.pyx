@@ -23,7 +23,7 @@ from sage.libs.singular.decl cimport number,  napoly, ring, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete, idInit
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
 from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a
-from sage.libs.singular.decl cimport p_Copy
+from sage.libs.singular.decl cimport p_Copy, prCopyR
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF 
 from sage.libs.singular.decl cimport n_coeffType, cfInitCharProc
 from sage.libs.singular.decl cimport rDefault, GFInfo, ZnmInfo, nInitChar, AlgExtInfo, nRegister, naInitChar
@@ -297,32 +297,26 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #extname = k.gen()
         _name = k._names[0]      
         _ext_names[0] = omStrDup(_name)
-        _cfr = rDefault( modbase, 1, _ext_names ); 
+        _cfr = rDefault( modbase, 1, _ext_names ) 
 
         _cfr.qideal = idInit(1,1)
         ##print "minpoly", minpoly;
-        _cfr.qideal.m[0] = minpoly._poly;
         rComplete(_cfr, 1)
-        extParam.r =  _cfr;
-        print "here will be a problem. Incorrect minpoly assembly?"
+        _cfr.qideal.m[0] = prCopyR(minpoly._poly, k._ring, _cfr)
+        extParam.r =  _cfr
         _cf = nInitChar( n_algExt,  <void *>&extParam)
-        print "here was a problem. Incorrect minpoly assembly?" 
 
         if (_cf is NULL):
-            print "Failed to allocate _cf ring."
-            raise "Failed to allocate _cf ring."
+            raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        print "ring created"
-        
+
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
-        #print  " creating NumberField "
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
         except TypeError:
-            print "falied  k = PolynomialRing(RationalField()"
             raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
 
         minpoly = base_ring.polynomial()(k.gen())
@@ -334,25 +328,20 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #_name = extname
         _name = k._names[0]      
         _ext_names[0] = omStrDup(_name)
-        _cfr = rDefault( 0, 1, _ext_names ); 
+        _cfr = rDefault( 0, 1, _ext_names )
 
         _cfr.qideal = idInit(1,1)
-        _cfr.qideal.m[0] = minpoly._poly;
         rComplete(_cfr, 1)
-        extParam.r =  _cfr;
+        _cfr.qideal.m[0] = prCopyR(minpoly._poly, k._ring, _cfr)
+        extParam.r =  _cfr
  
-        print "here will be a problem. Incorrect minpoly assembly?"
         # _type = nRegister(n_algExt, <cfInitCharProc> naInitChar);
-
         _cf = nInitChar( n_algExt,  <void *>&extParam) #  
-        print "here was a problem. Incorrect minpoly assembly?"
 
         if (_cf is NULL):
-            print "Failed to allocate _cf ring."
-            raise "Failed to allocate _cf ring."
+            raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        print "ring created"
         
 
     elif is_IntegerModRing(base_ring):
