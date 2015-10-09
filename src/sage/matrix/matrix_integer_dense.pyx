@@ -2805,12 +2805,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if prune < 0:
             raise TypeError("prune must be >= 0")
-        prune = int(prune)
+
         verbose = get_verbose() >= 2
 
         block_size = int(block_size)
 
         if algorithm == "NTL":
+            prune = int(prune)
             if fp is None:
                 fp = "rr"
 
