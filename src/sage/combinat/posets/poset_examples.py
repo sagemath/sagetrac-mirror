@@ -29,10 +29,12 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~Posets.StandardExample` | Return the standard example of a poset on '2n' elements with dimension 'n'.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
     :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
+    :meth:`~Posets.UpDownPoset` | Return the up-down poset on `n` vertices with every `mth` step down instead of up.
 
 Constructions
 -------------
@@ -457,6 +459,64 @@ class Posets(object):
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)
         return Poset(D,cover_relations=False)
+
+    @staticmethod
+    def StandardExample(n):
+        r"""
+        Returns the partially ordered set on ``2n`` elements with 
+        dimension ``n``.
+
+        EXAMPLES::
+
+            sage: A = Posets.StandardExample(3); A
+            Finite poset containing 6 elements
+            sage: A.dimension()
+            3
+
+        TESTS:
+
+            sage: A = Posets.StandardExample(6); A
+            Finite poset containing 12 elements
+        """
+        return Poset( (range(2*n), [[i, j+n] for i in range(n) for j in range(n) if i != j]) )
+
+
+    @staticmethod
+    def UpDownPoset(m,n):
+        r"""
+        Returns the up-down poset on ``n`` elements where every ``(m+1)st`` 
+        step is down and the rest are up. The case where ``m=1`` is
+        sometimes referred to as the zig-zag poset.
+
+        INPUT:
+
+        - ``n`` - A nonnegative integer, number of vertices in the poset.
+        - ``m`` - A nonnegative integer, how frequently down steps occur.
+
+
+        OUTPUT:
+        
+        The partially ordered set on \{ 0, 1, ... , ``n-1`` \}
+        where ``i>i+1`` if ``i+1`` is 0 ``mod m``, and ``i<i+1`` otherwise.
+      
+
+        EXAMPLES::
+
+            sage: A = Posets.UpDownPoset(1,6); A
+            Finite poset containing 6 elements
+            sage: [len([a for a in Posets.UpDownPoset(1,n).antichains()]) for n in range(0,8)]
+            [1, 2, 3, 5, 8, 13, 21, 34]
+            sage: [len(Posets.UpDownPoset(1,n).linear_extensions()) for n in range(0,8)]
+            [1, 1, 1, 2, 5, 16, 61, 272]
+
+
+        TESTS:
+
+            sage: A = Posets.StandardExample(6); A
+            Finite poset containing 12 elements
+        """
+        return Poset( (range(0,n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]) )
+
 
     @staticmethod
     def SSTPoset(s,f=None):
