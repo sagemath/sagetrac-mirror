@@ -310,6 +310,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "FiniteField_generic ring constructed"
 
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
@@ -342,6 +343,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "NumberField ring constructed"
         
 
     elif is_IntegerModRing(base_ring):

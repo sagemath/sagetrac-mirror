@@ -1055,10 +1055,7 @@ cdef extern from "Singular/libsingular.h":
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
 
-cdef extern from "coeffs/rmodulon.h":
 
-    # init ZmodN from GMP
-    number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
 
 
 cdef extern from "coeffs/rmodulo2m.h":
@@ -1083,7 +1080,12 @@ cdef extern from "polys/ext_fields/algext.h":
 
     nMapFunc naSetMap(const n_Procs_s* src, const n_Procs_s* dst)
 
+cdef extern from "coeffs/rmodulon.h":
 
+    # init ZmodN from GMP
+    number *nrnMapGMP(number *v,const n_Procs_s* src,const n_Procs_s* dst)
+
+    nMapFunc nrnSetMap(const n_Procs_s* src,const n_Procs_s* dst)
 
 cdef extern from "coeffs/rmodulon.h":
     # see rmodulon.h

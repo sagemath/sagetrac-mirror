@@ -1,11 +1,12 @@
 diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
 --- ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:07.391998888 +0200
 +++ ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:59.927433872 +0200
-@@ -18,6 +18,7 @@ struct snumber; typedef struct snumber *
+@@ -18,6 +18,8 @@ struct snumber; typedef struct snumber *
  typedef struct { mpz_ptr base;  unsigned long exp; } ZnmInfo;
  
  BOOLEAN nrnInitChar    (coeffs r, void*);
 +number nrnMapGMP(number from, const coeffs /*src*/, const coeffs dst);
++nMapFunc nrnSetMap(const coeffs src, const coeffs dst);
  
  #endif
  

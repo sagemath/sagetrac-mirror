@@ -33,7 +33,7 @@ from sage.libs.singular.decl cimport napoly, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY,
 from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
 from sage.libs.singular.decl cimport n_Z2m, n_unknown
 from sage.libs.singular.decl cimport napGetCoeff, napGetExpFrom, pNext
-from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
+from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP, nrnSetMap
 from sage.libs.singular.decl cimport siInit
 from sage.libs.singular.decl cimport n_Init
 from sage.libs.singular.decl cimport rChangeCurrRing, currRing
@@ -500,13 +500,24 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     a = _ring.cf.cfParameter(1,_ring.cf)
     apow1 = _ring.cf.cfInit(1, _ring.cf)
 
-    # print "_ring.cf.type",_ring.cf.type       #(=6 ^=AlgExt)
-    # print "currRing.cf.type",currRing.cf.type #(=6 ^=AlgExt)
+    cdef char *_name
 
+    # the result of nlInit2gmp() is in a plain polynomial ring over QQ (not an extension ring!),
+    # so we hace to get/create one :
+    #
+    # todo: reuse qqr/ get an existing Singular polynomial ring over Q.
+    varname = "a"
+    _name = omStrDup(varname)
+    cdef char **_ext_names
+    _ext_names = <char**>omAlloc0(sizeof(char*))
+    _ext_names[0] = omStrDup(_name)
+    qqr = rDefault( 0, 1, _ext_names);
+
+    nMapFuncPtr =  naSetMap( qqr.cf , _ring.cf ) # choose correct mapping function    
+    cdef poly *_p
     for i from 0 <= i < len(elem):
-        nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value), _ring.cf )
-        #naCoeff = naMap00(nlCoeff, _ring.cf, currRing.cf )
-        naCoeff = nMapFuncPtr(nlCoeff, _ring.cf, currRing.cf )
+        nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value),  qqr.cf )
+        naCoeff = nMapFuncPtr(nlCoeff, qqr.cf , _ring.cf )
         nlDelete(&nlCoeff, _ring.cf)
 
         # faster would be to assign the coefficient directly
@@ -581,15 +592,54 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         sage: P(3)
         3
     """
+    # failing example:
+    #
+    # sage: sage: R.<a> = Zmod(5)['a', 'b']  
+    # sage: R(1)
+
     nr2mModul = d.parent().characteristic()
     if _ring != currRing: rChangeCurrRing(_ring)
+
+    cdef number *nn
+
     cdef int _d
+    cdef char *_name
+    cdef char **_ext_names
+    varname = "a"
+    #print "_ring.cf.type", _ring.cf.type
+
+    cdef nMapFunc nMapFuncPtr = NULL;
+
     if _ring.cf.type == n_Z2m:
         _d = long(d)
         return nr2mMapZp(<number *>_d, currRing.cf, _ring.cf)
     else:
         lift = d.lift()
-        return nrnMapGMP(<number *>((<Integer>lift).value), currRing.cf, _ring.cf)
+        #print "lift.base_ring ", lift.base_ring()
+        #print "lift ", lift
+     
+        # if I understand nrnMapGMP/nMapFuncPtr correctly we need first 
+        # a source value in ZZr
+        # create ZZr, a plain polynomial ring over ZZ with one variable.
+        # 
+        # todo (later): reuse ZZr
+        _name = omStrDup(varname)
+        _ext_names = <char**>omAlloc0(sizeof(char*))
+        _ext_names[0] = omStrDup(_name)
+        _cf = nInitChar( n_Z, NULL) # integer coefficient ring      
+        ZZr = rDefault (_cf ,1, _ext_names) 
+        #print "ZZr = rDefault (_cf ,1, _ext_names) ok"
+
+        nn = nrzInit(0, ZZr.cf)
+        #print "nn"
+        mpz_set(<mpz_ptr>nn, (<Integer>lift).value)
+        #print "nn is set"
+        nMapFuncPtr  = nrnSetMap( ZZr.cf, _ring.cf)
+        #print "nMapFuncPtr is set"
+
+        # it did not help. Singular crashes here...
+        return nMapFuncPtr(nn, ZZr.cf, _ring.cf)
+        #return nrnMapGMP(nn, ZZr.cf, _ring.cf)
 
 cdef object si2sa(number *n, ring *_ring, object base):
     if isinstance(base, FiniteField_prime_modn):
