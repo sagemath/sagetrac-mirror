@@ -478,27 +478,33 @@ class Posets(object):
             sage: A = Posets.StandardExample(6); A
             Finite poset containing 12 elements
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return Poset( (range(2*n), [[i, j+n] for i in range(n) for j in range(n) if i != j]) )
 
 
     @staticmethod
-    def UpDownPoset(m,n):
+    def UpDownPoset(m, n):
         r"""
         Returns the up-down poset on ``n`` elements where every ``(m+1)st`` 
-        step is down and the rest are up. The case where ``m=1`` is
-        sometimes referred to as the zig-zag poset.
+        step is down and the rest are up. 
+
+        The case where ``m=1`` is
+        sometimes referred to as the zig-zag poset, or the fence poset.
 
         INPUT:
 
         - ``n`` - A nonnegative integer, number of vertices in the poset.
         - ``m`` - A nonnegative integer, how frequently down steps occur.
 
-
         OUTPUT:
         
         The partially ordered set on \{ 0, 1, ... , ``n-1`` \}
         where ``i>i+1`` if ``i+1`` is 0 ``mod m``, and ``i<i+1`` otherwise.
-      
 
         EXAMPLES::
 
@@ -509,14 +515,24 @@ class Posets(object):
             sage: [len(Posets.UpDownPoset(1,n).linear_extensions()) for n in range(0,8)]
             [1, 1, 1, 2, 5, 16, 61, 272]
 
-
         TESTS:
 
             sage: A = Posets.StandardExample(6); A
             Finite poset containing 12 elements
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        try:
+            m = Integer(m)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(m))
+        if m < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(m))
         return Poset( (range(0,n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]) )
-
 
     @staticmethod
     def SSTPoset(s,f=None):
