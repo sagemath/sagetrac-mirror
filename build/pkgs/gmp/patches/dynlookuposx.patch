@@ -1,0 +1,32 @@
+*** src/configure	2013-09-30 12:18:33.000000000 +0200
+--- src/configure	2015-10-11 22:37:45.000000000 +0200
+***************
+*** 14597,14604 ****
+        case ${MACOSX_DEPLOYMENT_TARGET-10.0},$host in
+  	10.0,*86*-darwin8*|10.0,*-darwin[91]*)
+  	  _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
+- 	10.[012]*)
+- 	  _lt_dar_allow_undefined='${wl}-flat_namespace ${wl}-undefined ${wl}suppress' ;;
+  	10.*)
+  	  _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
+        esac
+--- 14597,14602 ----
+*** src/ltmain.sh	2012-01-26 18:27:10.000000000 +0100
+--- src/ltmain.sh	2015-10-11 22:59:23.000000000 +0200
+***************
+*** 8719,8725 ****
+  	# But is supposedly fixed on 10.4 or later (yay!).
+  	if test "$tagname" = CXX ; then
+  	  case ${MACOSX_DEPLOYMENT_TARGET-10.0} in
+! 	    10.[0123])
+  	      func_append compile_command " ${wl}-bind_at_load"
+  	      func_append finalize_command " ${wl}-bind_at_load"
+  	    ;;
+--- 8719,8725 ----
+  	# But is supposedly fixed on 10.4 or later (yay!).
+  	if test "$tagname" = CXX ; then
+  	  case ${MACOSX_DEPLOYMENT_TARGET-10.0} in
+! 	    10.xx[0123])
+  	      func_append compile_command " ${wl}-bind_at_load"
+  	      func_append finalize_command " ${wl}-bind_at_load"
+  	    ;;
