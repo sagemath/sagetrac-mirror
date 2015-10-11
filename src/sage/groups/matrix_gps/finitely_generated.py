@@ -659,9 +659,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                             sage_eval(gap.eval("MCF.IsIrreducible")) ]))
         return sorted(L)
 
-    def invariant_generators(self):
+    def invariant_generators(self, ring=None):
         r"""
         Return invariant ring generators.
+
+        INPUT:
+        
+        - ``ring`` -- (default: None) The polynomial ring where the result will live. 
+        If it is not given, it will be created according to the group.
 
         Computes generators for the polynomial ring
         `F[x_1,\ldots,x_n]^G`, where `G` in `GL(n,F)` is a finite matrix
@@ -685,18 +690,18 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()
-            [x1^7*x2 - x1*x2^7, 
-             x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12, 
-             x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
+            [x0^7*x1 - x0*x1^7, 
+             x0^12 - 2*x0^9*x1^3 - x0^6*x1^6 + 2*x0^3*x1^9 + x1^12, 
+             x0^18 + 2*x0^15*x1^3 + 3*x0^12*x1^6 + 3*x0^6*x1^12 - 2*x0^3*x1^15 + x1^18]
 
             sage: q = 4; a = 2
             sage: MS = MatrixSpace(QQ, 2, 2)
-            sage: gen1 = [[1/a,(q-1)/a],[1/a, -1/a]]; gen2 = [[1,0],[0,-1]]; gen3 = [[-1,0],[0,1]]
-            sage: G = MatrixGroup([MS(gen1),MS(gen2),MS(gen3)])
+            sage: gen1 = [[1/a,(q-1)/a],[1/a, -1/a]]; gen2 = [[1,0], [0,-1]]; gen3 = [[-1,0], [0,1]]
+            sage: G = MatrixGroup([MS(gen1), MS(gen2), MS(gen3)])
             sage: G.cardinality()
             12
             sage: G.invariant_generators()
-            [x1^2 + 3*x2^2, x1^6 + 15*x1^4*x2^2 + 15*x1^2*x2^4 + 33*x2^6]
+            [x0^2 + 3*x1^2, x0^6 + 15*x0^4*x1^2 + 15*x0^2*x1^4 + 33*x1^6]
 
             sage: F = CyclotomicField(8)
             sage: z = F.gen()
@@ -705,11 +710,12 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: MS = MatrixSpace(F,2,2)
             sage: g1 = MS([[1/a, 1/a], [1/a, -1/a]])
             sage: g2 = MS([[-b, 0], [0, b]])
-            sage: G=MatrixGroup([g1,g2])
-            sage: G.invariant_generators()
-            [x1^4 + 2*x1^2*x2^2 + x2^4,
-             x1^5*x2 - x1*x2^5,
-             x1^8 + 28/9*x1^6*x2^2 + 70/9*x1^4*x2^4 + 28/9*x1^2*x2^6 + x2^8]
+            sage: G = MatrixGroup([g1, g2])
+            sage: R = PolynomialRing(F, 'x,y')
+            sage: G.invariant_generators(R)
+            [x^4 + 2*x^2*y^2 + y^4,
+             x^5*y - x*y^5,
+             x^8 + 28/9*x^6*y^2 + 70/9*x^4*y^4 + 28/9*x^2*y^6 + y^8]
 
         AUTHORS:
 
@@ -726,74 +732,18 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
           rings of finite groups", :arxiv:`math/0703035`.
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.interfaces.singular import singular
-        gens = self.gens()
-        singular.LIB("finvar.lib")
-        n = self.degree() #len((gens[0].matrix()).rows())
-        F = self.base_ring()
-        q = F.characteristic()
-        ## test if the field is admissible
-        if F.gen()==1: # we got the rationals or GF(prime)
-            FieldStr = str(F.characteristic())
-        elif hasattr(F,'polynomial'): # we got an algebraic extension
-            if len(F.gens())>1:
-                raise NotImplementedError("can only deal with finite fields and (simple algebraic extensions of) the rationals")
-            FieldStr = '(%d,%s)'%(F.characteristic(),str(F.gen()))
-        else: # we have a transcendental extension
-            FieldStr = '(%d,%s)'%(F.characteristic(),','.join([str(p) for p in F.gens()]))
-
-        ## Setting Singular's variable names
-        ## We need to make sure that field generator and variables get different names.
-        if str(F.gen())[0]=='x':
-            VarStr = 'y'
+        if not ring:
+            F = self.base_ring()
+            n = self.matrix_space().nrows()
+            R = PolynomialRing(F, n, 'x')
         else:
-            VarStr = 'x'
-        VarNames='('+','.join((VarStr+str(i+1) for i in range(n)))+')'
-        R=singular.ring(FieldStr,VarNames,'dp')
-        if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
-            singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
-        A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
-        Lgens = ','.join((x.name() for x in A))
-        PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
-
-        if q == 0 or (q > 0 and self.cardinality()%q != 0):
-            from sage.all import Integer, Matrix
-            try:
-                elements = [ g.matrix() for g in self.list() ]
-            except (TypeError,ValueError):
-                elements
-            if elements is not None:
-                ReyName = 't'+singular._next_var_name()
-                singular.eval('matrix %s[%d][%d]'%(ReyName,self.cardinality(),n))
-                for i in range(1,self.cardinality()+1):
-                    M = Matrix(elements[i-1],F)
-                    D = [{} for foobar in range(self.degree())]
-                    for x,y in M.dict().items():
-                        D[x[0]][x[1]] = y
-                    for row in range(self.degree()):
-                        for t in D[row].items():
-                            singular.eval('%s[%d,%d]=%s[%d,%d]+(%s)*var(%d)'
-                                          %(ReyName,i,row+1,ReyName,i,row+1, repr(t[1]),t[0]+1))
-                foobar = singular(ReyName)
-                IRName = 't'+singular._next_var_name()
-                singular.eval('matrix %s = invariant_algebra_reynolds(%s)'%(IRName,ReyName))
-            else:
-                ReyName = 't'+singular._next_var_name()
-                singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
-                IRName = 't'+singular._next_var_name()
-                singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
-
-            OUT = [singular.eval(IRName+'[1,%d]'%(j))
-                   for j in range(1,1+singular('ncols('+IRName+')'))]
-            return [PR(gen) for gen in OUT]
-        if self.cardinality()%q == 0:
-            PName = 't'+singular._next_var_name()
-            SName = 't'+singular._next_var_name()
-            singular.eval('matrix %s,%s=invariant_ring(%s)'%(PName,SName,Lgens))
-            OUT = [
-                singular.eval(PName+'[1,%d]'%(j))
-                for j in range(1,1+singular('ncols('+PName+')'))
-                ] + [
-                singular.eval(SName+'[1,%d]'%(j)) for j in range(2,1+singular('ncols('+SName+')'))
-                ]
-            return [PR(gen) for gen in OUT]
+            R = ring
+        import sage.libs.singular.function_factory
+        from sage.libs.singular.function import singular_function
+        sage.libs.singular.function_factory.lib('finvar.lib')
+        inrey = singular_function('invariant_algebra_reynolds')
+        grrey = singular_function('group_reynolds')
+        lgens = [a.matrix().change_ring(R) for a in self.gens()]
+        L = grrey(*lgens)
+        invars = inrey(L[0], 0)
+        return [R(a) for a in invars[0]]
