@@ -37,6 +37,7 @@ ComplexBallField).
 
    sage/rings/real_mpfi
    sage/rings/real_interval_field
+   sage/rings/polynomial/eval_interval
    sage/rings/real_interval_absolute
    sage/rings/complex_interval_field
    sage/rings/complex_interval

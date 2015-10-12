@@ -297,9 +297,9 @@ difficult to find, but we can easily verify it. ::
     sage: lhs
     2.642040335819351?e44
     sage: rhs
-    2.642040335819351?e44
+    2.64204033581936?e44
     sage: lhs - rhs
-    0.?e29
+    0.?e30
     sage: lhs == rhs
     True
     sage: lhs - rhs

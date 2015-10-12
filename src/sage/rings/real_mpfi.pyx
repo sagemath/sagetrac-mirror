@@ -2503,6 +2503,10 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_alea(x.value, self.value)
         return x
 
+    def _evaluate_polynomial(self, pol):
+        from sage.rings.polynomial.eval_interval import eval_polynomial_interval
+        return eval_polynomial_interval(pol, self)
+
     ########################
     #   Basic Arithmetic
     ########################

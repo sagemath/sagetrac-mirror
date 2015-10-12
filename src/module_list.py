@@ -1471,6 +1471,10 @@ ext_modules = [
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
+    Extension('sage.rings.polynomial.eval_interval',
+              sources = ['sage/rings/polynomial/eval_interval.pyx'],
+              libraries = ['gmp', 'mpfr']),
+
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
 

@@ -3106,7 +3106,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         from sage.libs.mpmath.all import make_mpf
         return make_mpf(mpfr_to_mpfval(self.value))
 
-
     def sign_mantissa_exponent(self):
         r"""
         Return the sign, mantissa, and exponent of ``self``.
