@@ -198,7 +198,7 @@ from sage.misc.all import (LatexExpr,
 from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
-from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
+from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ, Integer
 from sage.structure.all import SageObject
 from sage.symbolic.all import SR
 
@@ -1616,7 +1616,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             if len(slack_variables) != m:
                 raise ValueError("wrong number of slack variables")
         if auxiliary_variable is None:
-           auxiliary_variable = x + "0" if isinstance(x, str) else "x0"
+            auxiliary_variable = x + "0" if isinstance(x, str) else "x0"
         names = [str(auxiliary_variable)]
         names.extend(map(str, self.x()))
         names.extend(slack_variables)
@@ -2065,8 +2065,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
             - an optimal dictionary with the :meth:`auxiliary_variable` among
               :meth:`~LPRevisedDictionary.basic_variables` and a non-zero
-              optimal value indicating
-              that ``self`` is infeasible;
+              optimal value indicating that ``self`` is infeasible;
 
             - a non-optimal dictionary that has marked entering
               variable for which there is no choice of the leaving variable,
@@ -2085,33 +2084,25 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
             ...
-            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\\
+            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}
             ...
-            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\\
+            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}
             ...
-            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\\
+            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}
             ...
+            \end{array}\\
             \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
             \end{array}
         """
         result = []
         d = self.revised_dictionary()
+
         while not d.is_optimal():
             entering, leaving = min(d.possible_simplex_method_steps())
-            d.enter(entering)
             if leaving:
-                leaving = min(leaving)
-                d.leave(leaving)
-                result.append(latex(d))
-                result.append(r"\text{{Entering: ${}$. Leaving: ${}$.}}"
-                              .format(latex(entering), latex(leaving)))
-                result.append("")
-                result.append(
-                        r"B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = " +
-                        latex(d.E_inverse()) + latex(d.B_inverse()))
-                result.append("")
-                d.update()
+                result.append(d.ELLUL(entering, min(leaving)))
             else:
+                d.enter(entering)
                 result.append(latex(d))
                 result.append(r"\text{{The problem is unbounded in the "
                               r"${}$ direction.}}".format(latex(entering)))
@@ -2393,8 +2384,8 @@ class LPAbstractDictionary(SageObject):
         - a polynomial ring in
           :meth:`~InteractiveLPProblemStandardForm.auxiliary_variable`,
           :meth:`~InteractiveLPProblem.decision_variables`, and
-          :meth:`~InteractiveLPProblemStandardForm.slack_variables` of ``self`` over the
-          :meth:`base_ring`
+          :meth:`~InteractiveLPProblemStandardForm.slack_variables` of
+          ``self`` over the :meth:`base_ring`
 
         EXAMPLES::
 
@@ -2805,6 +2796,111 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
+    def run_dual_simplex_method(self):
+        r"""
+        Apply the dual simplex method to solve a dictionary
+        with an added Gomory fractional cut and show the steps.
+
+        OUTPUT:
+
+        - a string with `\LaTeX` code of intermediate dictionaries
+
+        .. NOTE::
+
+            You can access the :meth:`final_dictionary`, which is
+            an optimal dictionary for ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (4/7, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.add_a_cut(
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: print(D.run_dual_simplex_method()) # not tested
+            \begin{gather*}
+            \allowdisplaybreaks
+            \renewcommand{\arraystretch}{1.5} \setlength{\arraycolsep}{0.125em}
+            \begin{array}{|rcrcrcr|}
+            \hline
+            x_{2} & = & 3 &  &  & - & x_{5}\\
+            x_{1} & = & \frac{11}{8} & - & \frac{1}{8} x_{4} & + & \frac{1}{4} x_{5}\\
+            x_{3} & = & \frac{3}{8} & - & \frac{1}{8} x_{4} & + & \frac{5}{4} x_{5}\\
+            \hline
+            z & = & \frac{248}{35} & - & \frac{1}{14} x_{4} & - & \frac{137}{70} x_{5}\\
+            \hline
+            \end{array}\displaybreak[0]\\
+            \text{The initial dictionary is feasible.}\displaybreak[0]\\
+            \text{The optimal value: $\frac{248}{35}$. An optimal solution: $\left(\frac{11}{8},\,3,\,\frac{3}{8},\,0,\,0\right)$.}
+            \end{gather*}
+            sage: A = ([-1/3, 5/7], [9/111, 13/17])
+            sage: b = (5/13, 19/27)
+            sage: c = (17/47, -23/53)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables={'x2','x3','x4'})
+            sage: D = P.final_dictionary()
+            sage: D.add_a_cut(
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: D.run_dual_simplex_method()  # not tested
+
+        You should use the typeset mode as the command above generates long
+        `\LaTeX` code::
+
+            sage: print D.run_dual_simplex_method() # not tested
+            \begin{gather*}
+            ...
+            \text{The initial dictionary is infeasible, so use the dual simplex method.}\displaybreak[0]\\
+            ...
+            \text{Entering: $x_{2}$. Leaving: $x_{5}$.}\displaybreak[0]\\
+            ...
+            \text{The dual problem is unbounded in the $x_{1}$ direction.}\displaybreak[0]\\
+            ...
+            \text{The original problem is infeasible.}
+            ...
+            \end{gather*}
+
+        """
+        result = []
+        d = self
+        result.append(latex(d))
+
+        def step(entering, leaving):
+            result.append(r"\text{{Entering: ${}$. Leaving: ${}$.}}"
+                          .format(latex(entering), latex(leaving)))
+            result.append(d.ELLUL(entering, leaving))
+
+        if d.is_feasible():
+            result.append(r"\text{The initial dictionary is feasible.}")
+        else:
+            result.append(r"\text{The initial dictionary is infeasible, "
+                          "so use the dual simplex method.}")
+            while not d.is_optimal():
+                leaving, entering = min(d.possible_dual_simplex_method_steps())
+                if entering:
+                    step(min(entering), leaving)
+                else:
+                    d.leave(leaving)
+                    result.append(r"\text{{The dual problem is unbounded in the "
+                                  r"${}$ direction.}}".format(latex(leaving)))
+                    result.append(latex(d))
+                    result.append(r"\text{The original problem is infeasible.}")
+                    break
+        if d.is_optimal():
+            v = d.objective_value()
+            result.append((r"\text{{The optimal value: ${}$. "
+                           "An optimal solution: ${}$.}}").format(
+                           latex(v),
+                           latex(
+                            d.basic_solution(include_slack_variables=True))
+                          ))
+        if generate_real_LaTeX:
+            return ("\\begin{gather*}\n\\allowdisplaybreaks\n" +
+                    "\\displaybreak[0]\\\\\n".join(result) +
+                    "\n\\end{gather*}")
+
 
 class LPDictionary(LPAbstractDictionary):
     r"""
@@ -2845,7 +2941,8 @@ class LPDictionary(LPAbstractDictionary):
     .. NOTE::
 
         This constructor does not check correctness of input, as it is
-        intended to be used internally by :class:`InteractiveLPProblemStandardForm`.
+        intended to be used internally by
+        :class:`InteractiveLPProblemStandardForm`.
 
     EXAMPLES:
 
@@ -3812,11 +3909,117 @@ class LPRevisedDictionary(LPAbstractDictionary):
         l = self._x_B.list().index(self._leaving)
         d = E[l, l]
         if d == 0:
-            raise ValueError("eta matrix is not invertible due to incompatible "
-                             "choice of entering and leaving variables")
+            raise ValueError(
+                "eta matrix is not invertible due to incompatible "
+                "choice of entering and leaving variables")
         E.set_col_to_multiple_of_col(l, l, -1/d)
         E[l, l] = 1 / d
         return E
+
+    def ELLUL(self, entering, leaving):
+        r"""
+        Perform the Enter-Leave-LaTeX-Update-LaTeX step sequence on ``self``.
+
+        INPUT:
+
+        - ``entering`` -- the entering variable
+
+        - ``leaving`` -- the leaving variable
+
+        OUTPUT:
+
+        - a string with LaTeX code for ``self`` before and after update
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.ELLUL("x1", "x4")
+            %notruncate
+            \renewcommand{\arraystretch}{1.500000}
+            \begin{array}{l}
+            \begin{array}{l|r|rr||r||r|r|r}
+            x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b
+            & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
+            \hline
+            x_{3} & 0 & 1 & 0 & 0 & 1000 & 1 & 1000 \\
+            \color{red} x_{4} & \color{red} 0 & \color{red} 0 &
+            \color{red} 1 & 0 & \color{red} 1500 & \color{red} 3 &
+            \color{red} 500 \\
+            \end{array}\\
+            \\
+            \begin{array}{r|rr}
+            x_N & \color{green} x_{1} & x_{2} \\
+            \hline
+            c_N^T & \color{green} 10 & 5 \\
+            \hline
+            y^T A_N & \color{green} 0 & 0 \\
+            \hline
+            c_N^T - y^T A_N & \color{green} 10 & 5 \\
+            \end{array}
+            \end{array} \\ \text{Entering: $\text{\texttt{x1}}$. Leaving:
+            $\text{\texttt{x4}}$.} \\ \\B_\mathrm{new}^{-1} = E^{-1}
+            B_\mathrm{old}^{-1} = \left(\begin{array}{rr}
+            1 & -\frac{1}{3} \\
+            0 & \frac{1}{3}
+            \end{array}\right) \left(\begin{array}{rr}
+            1 & 0 \\
+            0 & 1
+            \end{array}\right) \\
+
+        This is how the above output looks when rendered:
+
+        .. MATH::
+
+            %notruncate
+            \renewcommand{\arraystretch}{1.500000}
+            \begin{array}{l}
+            \begin{array}{l|r|rr||r||r|r|r}
+            x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b
+            & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
+            \hline
+            x_{3} & 0 & 1 & 0 & 0 & 1000 & 1 & 1000 \\
+            x_{4} & 0 & 0 &
+            1 & 0 & 1500 & 3 &
+            500 \\
+            \end{array}\\
+            \\
+            \begin{array}{r|rr}
+            x_N & x_{1} & x_{2} \\
+            \hline
+            c_N^T & 10 & 5 \\
+            \hline
+            y^T A_N & 0 & 0 \\
+            \hline
+            c_N^T - y^T A_N & 10 & 5 \\
+            \end{array}
+            \end{array} \\ \text{Entering: x_1. Leaving:
+            x_4.} \\ \\B_\mathrm{new}^{-1} = E^{-1}
+            B_\mathrm{old}^{-1} = \left(\begin{array}{rr}
+            1 & -\frac{1}{3} \\
+            0 & \frac{1}{3}
+            \end{array}\right) \left(\begin{array}{rr}
+            1 & 0 \\
+            0 & 1
+            \end{array}\right) \\
+        """
+        self.enter(entering)
+        self.leave(leaving)
+        result = latex(self)
+        result += "\\\\"
+        result += r"\text{{Entering: ${}$. Leaving: ${}$.}}".format(
+            latex(entering), latex(leaving))
+        result += "\\\\"
+        result += "\\\\" + \
+                  r"B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = " + \
+                  latex(self.E_inverse()) + \
+                  latex(self.B_inverse())
+        result += "\\\\"
+        self.update()
+        return LatexExpr(result)
 
     def basic_indices(self):
         r"""
@@ -3825,7 +4028,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
         .. NOTE::
 
             Basic indices are indices of :meth:`basic_variables` in the list of
-            generators of the :meth:`~InteractiveLPProblemStandardForm.coordinate_ring` of
+            generators of the
+            :meth:`~InteractiveLPProblemStandardForm.coordinate_ring` of
             the :meth:`problem` of ``self``, they may not coincide with the
             indices of variables which are parts of their names. (They will for
             the default indexed names.)
