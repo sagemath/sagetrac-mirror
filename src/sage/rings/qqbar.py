@@ -4019,23 +4019,23 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: x = polygen(ZZ)
             sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
             sage: sorted(p.roots(QQbar,False))
-            [-0.0221204634374360? - 1.090991904211621?*I,
-             -0.0221204634374360? + 1.090991904211621?*I,
+            [-0.0221204634374361? - 1.090991904211621?*I,
+             -0.0221204634374361? + 1.090991904211621?*I,
              -0.8088604911480535?*I,
              -0.7598602580415435?*I,
              0.7598602580415435?*I,
              0.8088604911480535?*I,
-             0.0221204634374360? - 1.090991904211621?*I,
-             0.0221204634374360? + 1.090991904211621?*I]
+             0.0221204634374361? - 1.090991904211621?*I,
+             0.0221204634374361? + 1.090991904211621?*I]
 
         It also works for comparison of conjugate roots even in a degenerate
         situation where many roots have the same real part. In the following
         example, the polynomial ``p2`` is irreducible and all its roots have
         real part equal to `1`::
 
-            sage: p1 = x^8 + 74*x^7 + 2300*x^6 + 38928*x^5 + \
-            ....: 388193*x^4 + 2295312*x^3 + 7613898*x^2 + \
-            ....: 12066806*x + 5477001
+            sage: p1 = (x^8 + 74*x^7 + 2300*x^6 + 38928*x^5 +
+            ....:     388193*x^4 + 2295312*x^3 + 7613898*x^2 +
+            ....:     12066806*x + 5477001)
             sage: p2 = p1((x-1)^2)
             sage: sum(1 for r in p2.roots(CC,False) if abs(r.real() - 1) < 0.0001)
             16

@@ -27,6 +27,11 @@ AUTHORS:
 
 from sage.rings.real_mpfi cimport RealIntervalField_class
 
+DEF DEBUG_REFINE_ROOT = 0
+
+cdef inline intervalstr(x):
+    return x.str(style="brackets")
+
 
 def refine_root(poly, deriv, root, field, long steps=10):
     """
@@ -89,9 +94,11 @@ def refine_root(poly, deriv, root, field, long steps=10):
         sage: pol = 10*x^6 - 10*x^2 + 1
         sage: refine_root(pol, pol.derivative(), RIF(-1/5, 2/3), RIF)
         0.3178541456092885?
-        sage: pol = x*(x-2)*(x-4)
-        sage: refine_root(pol, pol.derivative(), RIF(1, 3), RIF)
-        2.000000000000000?
+        sage: pol = (x+2)*x*(x-2)
+        sage: refine_root(pol, pol.derivative(), RIF(1/20, 10), RIF)
+        2
+        sage: refine_root(pol, pol.derivative(), RIF(6, 10), RIF)
+        2
 
     With too few steps, the refining does not work::
 
@@ -120,7 +127,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
         sage: pol = x^3 - RIF(4^3, 5^3)
         sage: r = refine_root(pol, pol.derivative(), RIF(10), RIF)
         sage: r.endpoints()
-        (3.42614016116045, 5.67620738897754)
+        (3.80661823145203, 5.34351492272488)
     """
     # We start with a basic fact: if we do an interval Newton-Raphson
     # step, and the refined interval is contained in the original interval,
@@ -168,6 +175,9 @@ def refine_root(poly, deriv, root, field, long steps=10):
 
     epsilon = real_field(-1, 1) >> field.prec()
 
+    IF DEBUG_REFINE_ROOT:
+        print("Calling refine_root() with polynomial %r" % poly)
+
     cdef long i, j, jtrim
     cdef double t
     for i in range(steps):
@@ -186,6 +196,9 @@ def refine_root(poly, deriv, root, field, long steps=10):
                 root = field(0, root.imag())
                 smashed_real = True
                 converging = False
+
+        IF DEBUG_REFINE_ROOT:
+            print("step %i: root = %s" % (i, intervalstr(root)))
 
         slope = deriv(root)
         if slope.contains_zero():
@@ -206,7 +219,7 @@ def refine_root(poly, deriv, root, field, long steps=10):
                 if j == jtrim | 1:
                     # We just trimmed the opposite edge: set t to the
                     # value which corresponds to the center of the
-                    # original interval before trimming
+                    # original interval (before trimming).
                     t = 0.5/(1 - t)
                 else:
                     t = 0.5
@@ -220,6 +233,8 @@ def refine_root(poly, deriv, root, field, long steps=10):
                         root = trim_edge.union(opposite)
                         edges = root.edges()
                         jtrim = j
+                        IF DEBUG_REFINE_ROOT:
+                            print("trim edge[%s] by %s"%(j, t))
                         break
                     t *= 0.5
             if jtrim < 0:
@@ -231,7 +246,11 @@ def refine_root(poly, deriv, root, field, long steps=10):
         else:
             # Use interval Newton-Raphson to refine the root
             center = field(root.center())
-            nroot = center - poly(center) / slope
+            centerval = poly(center)
+            nroot = center - centerval / slope
+
+            IF DEBUG_REFINE_ROOT:
+                print("nroot = %s" % intervalstr(nroot))
 
             if converging:
                 # If we are converging, make sure we never enlarge our
@@ -244,15 +263,60 @@ def refine_root(poly, deriv, root, field, long steps=10):
                     # well.
                     return nroot
             elif nroot in root:
-                # We are converging. Assume that we keep converging.
+                # We are converging => assume that we keep converging.
+                IF DEBUG_REFINE_ROOT:
+                    print("start converging")
                 converging = True
             else:
-                # If the new interval still isn't contained in the old
-                # after a while, try tripling the size of the region
-                if 2*i >= steps:
-                    # This gives an interval with the same center
-                    # but with a larger diameter
-                    nroot += nroot - nroot
+                # It could be that the original interval is simply too
+                # small for convergence. Try a new Newton-Raphson with
+                # a starting interval 3 times as large.
+                root3 = root + root - root
+                slope = deriv(root3)
+                if not slope.contains_zero():
+                    nroot3 = (center - centerval / slope)
+                    if nroot3 in root3:
+                        IF DEBUG_REFINE_ROOT:
+                            print("start converging (triple size)")
+                        converging = True
+                        root = nroot3
+                        continue
+
+                # Try to take the intersection of the old and new
+                # intervals which is likely a better approximation
+                # than just the new interval. In particular, if our
+                # old interval does contain a zero, the new interval
+                # will also contain that zero.
+                #
+                # If the intersection is either empty or the
+                # intersection is the old interval, we don't do this.
+                try:
+                    if root not in nroot:
+                        nroot = nroot.intersection(root)
+                except ValueError:
+                    pass
+#            elif 2*i >= steps:
+#                if root in nroot:
+#                    # We are enlarging our interval => ignore the new
+#                    # interval and try trimming instead.
+#                    IF DEBUG_REFINE_ROOT:
+#                        print("trim forced")
+#                    do_trim = True
+#                    continue
+#                else:
+#                    # Try to take the intersection of the old and new
+#                    # intervals which is likely a better approximation than
+#                    # just the new interval. In particular, if our old
+#                    # interval does contain a zero, the new interval will
+#                    # also contain that zero.
+#                    try:
+#                        nroot = nroot.intersection(root)
+#                    except ValueError:
+#                        # If the new interval still isn't contained in
+#                        # the old, try tripling the size of the region.
+#                        # This gives an interval with the same center
+#                        # but with a larger diameter.
+#                        nroot += nroot - nroot
 
             root = nroot
 

@@ -76,10 +76,9 @@ def interval_roots(p, rts, prec):
 
     for rt in rts:
         try:
-            irt = refine_root(ip, ipd, CIF(rt), CIF)
+            irts.append(refine_root(ip, ipd, CIF(rt), CIF))
         except ArithmeticError:
             return None
-        irts.append(irt)
 
     return irts
 
