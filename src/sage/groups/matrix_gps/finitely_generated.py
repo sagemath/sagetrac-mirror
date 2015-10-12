@@ -666,7 +666,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         INPUT:
         
         - ``ring`` -- (default: None) The polynomial ring where the result will live. 
-        If it is not given, it will be created according to the group.
+          If it is not given, it will be created according to the group.
 
         Computes generators for the polynomial ring
         `F[x_1,\ldots,x_n]^G`, where `G` in `GL(n,F)` is a finite matrix
@@ -730,8 +730,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         - S. King, "Minimal Generating Sets of non-modular invariant
           rings of finite groups", :arxiv:`math/0703035`.
+          
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.modules.free_module_element import vector
         if not ring:
             F = self.base_ring()
             n = self.matrix_space().nrows()
@@ -742,8 +744,6 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         from sage.libs.singular.function import singular_function
         sage.libs.singular.function_factory.lib('finvar.lib')
         inrey = singular_function('invariant_algebra_reynolds')
-        grrey = singular_function('group_reynolds')
-        lgens = [a.matrix().change_ring(R) for a in self.gens()]
-        L = grrey(*lgens)
-        invars = inrey(L[0], 0)
+        L = matrix([a.matrix()*vector(R.gens()) for a in self.list()])
+        invars = inrey(L, 0)
         return [R(a) for a in invars[0]]
