@@ -351,6 +351,45 @@ def _latex_product(coefficients, variables,
             separator = r" \mspace{-6mu}&\mspace{-6mu} "
     return separator.join(entries)
 
+def _form_thin_long_triangle(k):
+    r"""
+    Generate a thin long triangle.
+
+    .. NOTE::
+
+        :meth:`_form_thin_long_triangle` is for internal use. Generate a
+        thin long triangle with vertices `(0, 0)`, `(1, 0)`, and `(1/2, k)`
+        for some given integer `k`, and return a matrix `A`, and an vector
+        `b`, where the triangle is represented by a polytope defined by
+        `Ax <= b`. This thin long triangle is an example of a system with
+        large Chvatal rank.
+
+    INPUT:
+
+    - ``k``-- an integer indicating the y coordinate of the top vertex
+      for the triangle
+
+    OUTPUT:
+
+    - ``A`` -- a two by two matrix
+
+    - ``b`` -- a two-element vector
+
+    EXAMPLES::
+
+        sage: from sage.numerical.interactive_simplex_method \
+        ....:     import _form_thin_long_triangle
+        sage: A, b, = _form_thin_long_triangle(4)
+        sage: A, b
+        (
+            [-8  1]
+            [ 8  1], (0, 8)
+            )
+    """
+    A = matrix([[-2 * k, 1], [2 * k, 1]])
+    b = vector([0, 2 * k])
+    return A, b
+
 
 @cached_function
 def variable(R, v):
@@ -596,6 +635,11 @@ class InteractiveLPProblem(SageObject):
     - ``objective_constant_term`` -- (default: 0) a constant term of the
       objective
 
+    - ``integer_variables`` -- (default: False) either a boolean value
+      indicating if all the problem variables are integer or not, or a
+      set of strings giving some problem variables' names, where those
+      problem variables are integer
+
     EXAMPLES:
 
     We will construct the following problem:
@@ -635,7 +679,7 @@ class InteractiveLPProblem(SageObject):
 
     def __init__(self, A, b, c, x="x",
                  constraint_type="<=", variable_type="", problem_type="max",
-                 base_ring=None, is_primal=True, objective_constant_term=0):
+                 base_ring=None, is_primal=True, objective_constant_term=0, integer_variables=False):
         r"""
         See :class:`InteractiveLPProblem` for documentation.
 
@@ -704,8 +748,15 @@ class InteractiveLPProblem(SageObject):
         if problem_type not in ["max", "min"]:
             raise ValueError("unknown problem type")
         self._problem_type = problem_type
-
         self._is_primal = is_primal
+
+        if integer_variables is False:
+            self._integer_variables = set([])
+        elif integer_variables is True:
+            self._integer_variables = set(x)
+        else:
+            self._integer_variables = set([variable(R, v)
+                                           for v in integer_variables])
 
     def __eq__(self, other):
         r"""
@@ -926,6 +977,25 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
+    def all_variables(self):
+        r"""
+        Return a set of all decision variables of ``self``.
+
+        OUTPUT:
+
+        - a set of variables
+
+        EXAMPLES::
+
+            sage: A = ([1, 2, 1], [3, 1, 5])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5, 7)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P.all_variables()
+            {x1, x2, x3}
+        """
+        return set(self.Abcx()[3])
+
     def base_ring(self):
         r"""
         Return the base ring of ``self``.
@@ -1017,6 +1087,28 @@ class InteractiveLPProblem(SageObject):
         """
         return self._constraint_types
 
+    def continuous_variables(self):
+        r"""
+        Return a set of continuous decision variables of ``self``.
+
+        OUTPUT:
+
+        - a set of variables
+
+        EXAMPLES::
+
+            sage: A = ([1, 2, 1], [3, 1, 5])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5, 7)
+            sage: P = InteractiveLPProblem(A, b, c, integer_variables={'x1'})
+            sage: P.continuous_variables()
+            {x2, x3}
+        """
+        I = self.integer_variables()
+        all_variables = self.all_variables()
+        C = all_variables.difference(I)
+        return C
+
     def decision_variables(self):
         r"""
         Return decision variables of ``self``, i.e. `x`.
@@ -1076,6 +1168,9 @@ class InteractiveLPProblem(SageObject):
             sage: P.dual().standard_form().objective_name()
             -z
         """
+        if self._integer_variables:
+            # Duals of integer programs are complicated objects, and they are not integer programs. 
+            raise ValueError("some variables are integer")
         A, c, b, x = self.Abcx()
         A = A.transpose()
         if y is None:
@@ -1149,6 +1244,54 @@ class InteractiveLPProblem(SageObject):
             ieqs = [[R(_) for _ in ieq] for ieq in ieqs]
             eqns = [[R(_) for _ in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
+
+    def get_plot_bounding_box(self, F, b,
+                              xmin=None, xmax=None, ymin=None, ymax=None):
+        r"""
+        Return the min and max for x and y of the bounding box for ``self``.
+
+        INPUT:
+
+        - ``F`` -- the feasible set of self
+        - ``b`` -- the constant terms of self
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - four rational numbers
+        """
+        if ymax is None:
+            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
+        if ymin is None:
+            ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
+        if xmax is None:
+            xmax = max([1.5*ymax] + [v[0] for v in F.vertices()])
+        if xmin is None:
+            xmin = min([-xmax/4.0] + [v[0] for v in F.vertices()])
+        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
+        return xmin, xmax, ymin, ymax
+
+    def integer_variables(self):
+        r"""
+        Return the set of integer decision variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1/10, 15/10)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, integer_variables={'x1'})
+            sage: P.integer_variables()
+            {x1}
+            sage: P = InteractiveLPProblem(A, b, c, integer_variables=True)
+            sage: P.integer_variables()
+            {x1, x2}
+            sage: P = InteractiveLPProblem(A, b, c, integer_variables=False)
+            sage: P.integer_variables()
+            set()
+        """
+        return self._integer_variables
 
     def is_bounded(self):
         r"""
@@ -1457,14 +1600,17 @@ class InteractiveLPProblem(SageObject):
 
         - a plot
 
-        This only works for problems with two decision variables. On the plot
-        the black arrow indicates the direction of growth of the objective. The
-        lines perpendicular to it are level curves of the objective. If there
-        are optimal solutions, the arrow originates in one of them and the
-        corresponding level curve is solid: all points of the feasible set
-        on it are optimal solutions. Otherwise the arrow is placed in the
-        center. If the problem is infeasible or the objective is zero, a plot
-        of the feasible set only is returned.
+        .. NOTE::
+
+            This only works for problems with two decision variables.
+            On the plot the black arrow indicates the direction of growth
+            of the objective. The lines perpendicular to it are level
+            curves of the objective. If there are optimal solutions, the
+            arrow originates in one of them and the corresponding level
+            curve is solid: all points of the feasible set on it are optimal
+            solutions. Otherwise the arrow is placed in the center. If the
+            problem is infeasible or the objective is zero, a plot of the
+            feasible set only is returned.
 
         EXAMPLES::
 
@@ -1491,38 +1637,66 @@ class InteractiveLPProblem(SageObject):
         c = self.c().n().change_ring(QQ)
         if c.is_zero():
             return FP
-        xmin = FP.xmin()
-        xmax = FP.xmax()
-        ymin = FP.ymin()
-        ymax = FP.ymax()
-        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
-        start = self.optimal_solution()
-        start = vector(QQ, start.n() if start is not None
-                            else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
-        length = min(xmax - xmin, ymax - ymin) / 5
-        end = start + (c * length / c.norm()).n().change_ring(QQ)
-        result = FP + point(start, color="black", size=50, zorder=10)
-        result += arrow(start, end, color="black", zorder=10)
-        ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
-                (ymax, 0, -1), (- ymin, 0, 1)]
-        box = Polyhedron(ieqs=ieqs)
-        d = vector([c[1], -c[0]])
-        for i in range(-10, 11):
-            level = Polyhedron(vertices=[start + i*(end-start)], lines=[d])
-            level = box.intersection(level)
-            if level.vertices():
-                if i == 0 and self.is_bounded():
-                    result += line(level.vertices(), color="black",
-                                   thickness=2)
-                else:
-                    result += line(level.vertices(), color="black",
-                                   linestyle="--")
-        result.set_axes_range(xmin, xmax, ymin, ymax)
-        result.axes_labels(FP.axes_labels())    #FIXME: should be preserved!
+        if 'number_of_cuts' in kwds:
+             del kwds['number_of_cuts']
+        return self.plot_objective_growth_and_solution(FP, c, *args, **kwds)
+
+    def plot_constraint_or_cut(self, Ai, bi, ri, color, box, x, alpha,
+                               pad=None, ith_cut=None):
+        r"""
+        Return a plot of the constraint or cut of ``self``.
+
+        INPUT:
+
+        - ``Ai`` -- the coefficients for the constraint or cut
+
+        - ``bi`` -- the constant for the constraint or cut
+
+        - ``ri`` -- a string indicating the type for the constraint or cut
+
+        - ``color`` -- a color
+
+        - ``box`` -- a bounding box for the plot
+
+        - ``x`` -- the problem variables of the problem
+
+        - ``alpha`` -- determines how opaque are shadows
+
+        - ``pad`` -- an integer
+
+        - ``ith_cut`` -- an integer indicating the order of the cut
+
+        OUTPUT:
+
+        - a plot
+        """
+        border = box.intersection(Polyhedron(eqns=[[-bi] + list(Ai)]))
+        vertices = border.vertices()
+        if not vertices:
+            return None
+        result = Graphics()
+        if not ith_cut:
+            label = r"${}$".format(_latex_product(Ai, x, " ", tail=[ri, bi]))
+            result += line(vertices, color=color, legend_label=label)
+            if ri == "<=":
+                ieqs = [[bi] + list(-Ai), [-bi+pad*Ai.norm().n()] + list(Ai)]
+            elif ri == ">=":
+                ieqs = [[-bi] + list(Ai), [bi+pad*Ai.norm().n()] + list(-Ai)]
+            else:
+                return None
+            ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+            halfplane = box.intersection(Polyhedron(ieqs=ieqs))
+            result += halfplane.render_solid(alpha=alpha, color=color)
+        else:
+            label = "cut" + str(ith_cut)
+            label = label + " " + r"${}$".format(
+                _latex_product(Ai, x, " ", tail=[ri, bi]))
+            result += line(vertices, color=color,
+                           legend_label=label, thickness=1.5)
         return result
 
     def plot_feasible_set(self, xmin=None, xmax=None, ymin=None, ymax=None,
-                          alpha=0.2):
+                          alpha=0.2, number_of_cuts=0):
         r"""
         Return a plot of the feasible set of ``self``.
 
@@ -1537,11 +1711,13 @@ class InteractiveLPProblem(SageObject):
 
         - a plot
 
-        This only works for a problem with two decision variables. The plot
-        shows boundaries of constraints with a shadow on one side for
-        inequalities. If the :meth:`feasible_set` is not empty and at least
-        part of it is in the given boundaries, it will be shaded gray and `F`
-        will be placed in its middle.
+        .. NOTE::
+
+            This only works for a problem with two decision variables. The plot
+            shows boundaries of constraints with a shadow on one side for
+            inequalities. If the :meth:`feasible_set` is not empty and at least
+            part of it is in the given boundaries, it will be shaded gray and
+            `F` will be placed in its middle.
 
         EXAMPLES::
 
@@ -1565,15 +1741,8 @@ class InteractiveLPProblem(SageObject):
             A = A.n().change_ring(QQ)
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
-        if ymax is None:
-            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
-        if ymin is None:
-            ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
-        if xmax is None:
-            xmax = max([1.5*ymax] + [v[0] for v in F.vertices()])
-        if xmin is None:
-            xmin = min([-xmax/4.0] + [v[0] for v in F.vertices()])
-        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
+        xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
+            F, b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         pad = max(xmax - xmin, ymax - ymin) / 20
         ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
                 (ymax, 0, -1), (- ymin, 0, 1)]
@@ -1581,38 +1750,36 @@ class InteractiveLPProblem(SageObject):
         F = box.intersection(F)
         result = Graphics()
         colors = rainbow(self.m() + 2)
-        for Ai, ri, bi, color in zip(A.rows(), self._constraint_types,
-                                           b, colors[:-2]):
-            border = box.intersection(Polyhedron(eqns=[[-bi] + list(Ai)]))
-            vertices = border.vertices()
-            if not vertices:
-                continue
-            label = r"${}$".format(_latex_product(Ai, x, " ", tail=[ri, bi]))
-            result += line(vertices, color=color, legend_label=label)
-            if ri == "<=":
-                ieqs = [[bi] + list(-Ai), [-bi+pad*Ai.norm().n()] + list(Ai)]
-            elif ri == ">=":
-                ieqs = [[-bi] + list(Ai), [bi+pad*Ai.norm().n()] + list(-Ai)]
+        number_of_inequalities = self.m()
+        if number_of_cuts > number_of_inequalities:
+            raise ValueError("number of cuts must less than number of ineqalities")
+        number_of_constraints = number_of_inequalities - number_of_cuts
+        list_of_number = [int(i+1) for i in range(number_of_inequalities)]
+
+        # Plot the contraints or cuts one by one
+        for i, Ai, ri, bi, color, in zip(list_of_number, A.rows(),
+                                         self._constraint_types,
+                                         b, colors[:-2],):
+            # Contraints are the first few number of constraints
+            # inequalities of the problem
+            if i <= number_of_constraints:
+                plot_constraint = self.plot_constraint_or_cut(
+                    Ai, bi, ri, color, box, x, alpha, pad=pad, ith_cut=None
+                    )
+                if plot_constraint:
+                    result += plot_constraint
+            # Cuts are the rest of the inequalities of the problem
             else:
-                continue
-            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
-            halfplane = box.intersection(Polyhedron(ieqs=ieqs))
-            result += halfplane.render_solid(alpha=alpha, color=color)
+                plot_cut = self.plot_constraint_or_cut(
+                    Ai, bi, ri, color, box, x, alpha, pad=None,
+                    ith_cut=i-number_of_constraints
+                    )
+                if plot_cut:
+                    result += plot_cut
+
         # Same for variables, but no legend
-        for ni, ri, color in zip((QQ**2).gens(), self._variable_types,
-                                 colors[-2:]):
-            border = box.intersection(Polyhedron(eqns=[[0] + list(ni)]))
-            if not border.vertices():
-                continue
-            if ri == "<=":
-                ieqs = [[0] + list(-ni), [pad] + list(ni)]
-            elif ri == ">=":
-                ieqs = [[0] + list(ni), [pad] + list(-ni)]
-            else:
-                continue
-            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
-            halfplane = box.intersection(Polyhedron(ieqs=ieqs))
-            result += halfplane.render_solid(alpha=alpha, color=color)
+        result += self.plot_variables(F, x, box, colors, pad, alpha)
+
         if F.vertices():
             result += F.render_solid(alpha=alpha, color="gray")
             result += text("$F$", F.center(),
@@ -1624,6 +1791,153 @@ class InteractiveLPProblem(SageObject):
                                   shadow=True)
         result._extra_kwds["aspect_ratio"] = 1
         result.set_aspect_ratio(1)
+        return result
+
+    def plot_lines(self, F, integer_variable):
+        r"""
+        Return the plot of lines (either vertical or horizontal) on an interval.
+
+        INPUT:
+
+        -``F`` -- the feasible set of self
+
+        -``integer_variable`` -- a string of name of a basic integer variable
+        indicating to plot vertical lines or horizontal lines
+
+        OUTPUT:
+
+        - a plot
+        """
+        b = self.b()
+        xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
+            F, b, xmin=None, xmax=None, ymin=None, ymax=None
+            )
+        result = Graphics()
+        for i in range(xmin, xmax+1):
+            if integer_variable == "x":
+                l = Polyhedron(eqns=[[-i, 1, 0]])
+            else:
+                l = Polyhedron(eqns=[[-i, 0, 1]])
+            vertices = l.intersection(F).vertices()
+            if not vertices:
+                continue
+            if l.intersection(F).n_vertices() == 2:
+                result += line(vertices, color='blue', thickness=2)
+            else:
+                result += point(l.intersection(F).vertices_list(),
+                                color='blue', size=22)
+        return result
+
+    def plot_objective_growth_and_solution(self, FP, c,
+                                           xmin=None, xmax=None,
+                                           ymin=None, ymax=None):
+        r"""
+        Return a plot with the growth of the objective function and the objective solution. 
+
+        ..Note::
+
+            For more information, refer to the docstrings of :meth:`plot`.
+
+        INPUT:
+
+        - ``FP`` -- the plot of the feasbiel set of ``self``
+
+        - ``c`` -- the objective value of ``self``
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - a plot
+        """
+        b = self.b()
+        xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
+            self.feasible_set(), b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        start = self.optimal_solution()
+        start = vector(QQ, start.n() if start is not None
+                       else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
+        length = min(xmax - xmin, ymax - ymin) / 5
+        end = start + (c * length / c.norm()).n().change_ring(QQ)
+        result = FP + point(start, color="black", size=50, zorder=10)
+        result += arrow(start, end, color="black", zorder=10)
+        ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
+                (ymax, 0, -1), (- ymin, 0, 1)]
+        box = Polyhedron(ieqs=ieqs)
+        d = vector([c[1], -c[0]])
+        for i in range(-10, 11):
+            level = Polyhedron(vertices=[start + i*(end-start)], lines=[d])
+            level = box.intersection(level)
+            if level.vertices():
+                if i == 0 and self.is_bounded():
+                    result += line(level.vertices(), color="black",
+                                   thickness=2)
+                else:
+                    result += line(level.vertices(), color="black",
+                                   linestyle="--")
+        result.set_axes_range(xmin, xmax, ymin, ymax)
+        result.axes_labels(FP.axes_labels())
+        return result
+
+    def plot_variables(self, F, x, box, colors, pad, alpha):
+        r"""
+        Return a plot of the problem variables of ``self``
+
+        INPUT:
+
+        - ``F`` -- the feasible set of ``self``
+
+        - ``x`` -- the problem variables of ``self``
+
+        - ``colors`` -- gives a list of color
+
+        - ``pad`` -- a number determined by xmin, xmax, ymin, ymax
+          in :meth::`plot`
+
+        - ``alpha`` -- determines how opaque are shadows
+
+        OUTPUT:
+
+        - a plot
+        """
+        if self.n() != 2:
+            raise ValueError("only problems with 2 variables can be plotted")
+        result = Graphics()
+        integer_variables = self.integer_variables()
+
+        # Case 1: None of the problem variables are integer
+        # therefore, plot a half-plane
+        # If any of the variable is an integer,
+        # we will either plot integer grids or lines, but not a half-plane
+        # which will be either case 2 or case 3
+        if not integer_variables.intersection(set(x)):
+            for ni, ri, color in zip((QQ**2).gens(), self._variable_types,
+                                     colors[-2:]):
+                border = box.intersection(Polyhedron(eqns=[[0] + list(ni)]))
+                if not border.vertices():
+                    continue
+                if ri == "<=":
+                    ieqs = [[0] + list(-ni), [pad] + list(ni)]
+                elif ri == ">=":
+                    ieqs = [[0] + list(ni), [pad] + list(-ni)]
+                else:
+                    continue
+                ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+                halfplane = box.intersection(Polyhedron(ieqs=ieqs))
+                result += halfplane.render_solid(alpha=alpha, color=color)
+
+        # Case 2: all problem variables are integer
+        # therefore, plot integer grids
+        if integer_variables.intersection(set(x)) == set(x):
+            feasible_dot = F.integral_points()
+            result += point(feasible_dot, color='blue', alpha=1, size=22)
+
+        # Case 3: one of the problem variables is integer, the other is not
+        # therefore, plot lines
+        elif x[0] in integer_variables and not x[1] in integer_variables:
+            result += self.plot_lines(F, "x")
+        elif x[1] in integer_variables and not x[0] in integer_variables:
+            result += self.plot_lines(F, "y")
         return result
 
     def problem_type(self):
@@ -1737,9 +2051,30 @@ class InteractiveLPProblem(SageObject):
             sage: P.optimal_value()
             -5042
 
+        :class:`InteractiveLPProblem` does not know about slack variables,
+        but one can call :meth:`standard_form` to get access to slack variables
+        and their integrality::
+
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=")
+            sage: PSD = P.standard_form()
+            sage: PSD.slack_variables()
+            (x3, x4)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=">=", integer_variables=True)
+            sage: PSD = P.standard_form()
+            sage: PSD.integer_variables()
+            {x1, x2, x3, x4}
         """
         A, b, c, x = self.Abcx()
         f = identity_matrix(self.n()).columns()
+
+        n = self.n()
+        list_x = list(x)
+        # Since the variables in x will be changed based on different
+        # variable types, therefore, record the indices of integer
+        # variables in x before the variables are changed.
+        integer_variables_indices = [i for i in range(n)
+                                     if list_x[i] in self._integer_variables]
+
         if not all(ct == "<=" for ct in self._constraint_types):
             newA = []
             newb = []
@@ -1787,14 +2122,16 @@ class InteractiveLPProblem(SageObject):
             c = - c
             constant_term = - constant_term
             objective_name = - objective_name
+        integer_variables = [x[j] for j in integer_variables_indices]
         kwds["objective_name"] = objective_name
         kwds["problem_type"] = "-max" if is_negative else "max"
         kwds["is_primal"] = self.is_primal()
         kwds["objective_constant_term"] = constant_term
+        kwds["integer_variables"] = integer_variables
         P = InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
         f = P.c().parent().hom(f, self.c().parent())
         return (P, f) if transformation else P
-        
+
     def variable_types(self):
         r"""
         Return a tuple listing the variable types of all decision variables.
@@ -1879,6 +2216,11 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     - ``objective_constant_term`` -- (default: 0) a constant term of the
       objective
 
+    - ``integer_variables`` -- (default: False) either a boolean value
+      indicating if all the problem variables are integer or not, or a
+      set of strings giving some problem variables' names, where those
+      problem variables are integer.
+
     EXAMPLES::
 
         sage: A = ([1, 1], [3, 1])
@@ -1886,22 +2228,34 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         sage: c = (10, 5)
         sage: P = InteractiveLPProblemStandardForm(A, b, c)
 
-    Unlike :class:`InteractiveLPProblem`, this class does not allow you to adjust types of
-    constraints (they are always ``"<="``) and variables (they are always
-    ``">="``), and the problem type may only be ``"max"`` or ``"-max"``.
-    You may give custom names to slack and auxiliary variables, but in
-    most cases defaults should work::
+    Unlike :class:`InteractiveLPProblem`, this class does not allow you
+    to adjust types of constraints (they are always ``"<="``) and
+    variables (they are always ``">="``), and the problem type may only
+    be ``"max"`` or ``"-max"``. You may give custom names to slack and
+    auxiliary variables, but in most cases defaults should work::
 
         sage: P.decision_variables()
         (x1, x2)
         sage: P.slack_variables()
         (x3, x4)
+
+    Unlike :class:`InteractiveLPProblem`, this class knows about slack
+    variables. Therefore, this class allows the user to choose slack
+    variables to be integer::
+
+        sage: P = InteractiveLPProblemStandardForm(A, b, c,
+        ...   integer_variables={'x1', 'x2', 'x3'})
+        sage: P.integer_variables()
+        {x1, x2, x3}
+
+    See :meth:`integer_variables` in :class:`InteractiveLPProblemStandardForm`
+    for documentation about the integrality of variables.
     """
 
     def __init__(self, A, b, c, x="x", problem_type="max",
                  slack_variables=None, auxiliary_variable=None,
                  base_ring=None, is_primal=True, objective_name=None,
-                 objective_constant_term=0):
+                 objective_constant_term=0, integer_variables=False):
         r"""
         See :class:`InteractiveLPProblemStandardForm` for documentation.
 
@@ -1956,6 +2310,62 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
+        if integer_variables is False:
+            self._integer_variables = set([])
+        elif integer_variables is True:
+            self._integer_variables = set(self.Abcx()[3])
+        else:
+            self._integer_variables = set([variable(R, v)
+                                           for v in integer_variables])
+
+        # Sufficient conditions to assign slack variables to be integer
+        # See :meth:`integer_variables` in
+        # :class:`InteractiveLPProblemStandardForm` for documentation
+        if not self._integer_variables.intersection(
+            set(self.slack_variables())
+        ):
+            if integer_variables:
+                for i in range(m):
+                    if b[i].is_integer() and all(coef.is_integer()
+                                                 for coef in A[i]):
+                        self._integer_variables.add(
+                            variable(R, self.slack_variables()[i]))
+        # Sufficient conditions to assign decision variables to be integer
+        # See :meth:`integer_variables` in
+        # :class:`InteractiveLPProblemStandardForm` for documentation
+        if self._integer_variables.intersection(set(x)) != set(x):
+            for i in range(self.m()):
+                if self.slack_variables()[i] in self._integer_variables\
+                   and b[i].is_integer():
+                    for j in range(self.n()):
+                        copy_Ai = copy(list(A[i]))
+                        copy_Ai.remove(copy_Ai[j])
+                        if A[i][j].is_integer() and all(coef == 0
+                                                        for coef in copy_Ai):
+                            self._integer_variables.add(x[j])
+
+    def all_variables(self):
+        r"""
+        Return a set of both decision variables and slack variables of ``self``.
+
+        OUTPUT:
+
+        - a set of variables
+
+        EXAMPLES::
+
+            sage: A = ([1, 2, 1], [3, 1, 5])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5, 7)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.all_variables()
+            {x1, x2, x3, x4, x5}
+        """
+        decision_variables = self.Abcx()[3]
+        slack_variables = self.slack_variables()
+        all_variables = list(decision_variables) + list(slack_variables)
+        return set(all_variables)
+
     def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
@@ -2003,7 +2413,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         return InteractiveLPProblemStandardForm(
             A, self.b(), c,
             X[:-m], slack_variables=X[-m:], auxiliary_variable=X[0],
-            objective_name=objective_name)
+            objective_name=objective_name,
+            integer_variables=self._integer_variables)
 
     def auxiliary_variable(self):
         r"""
@@ -2165,7 +2576,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 v += cj * b[i]
         B = [self._R(_) for _ in B]
         N = [self._R(_) for _ in N]
-        return LPDictionary(A, b, c, v, B, N, self.objective_name())
+        return LPDictionary(A, b, c, v, B, N, self.objective_name(),
+                            integer_variables=self.integer_variables())
 
     def final_dictionary(self):
         r"""
@@ -2242,8 +2654,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         Construct the initial dictionary of ``self``.
 
         The initial dictionary "defines" :meth:`slack_variables` in terms
-        of the :meth:`~InteractiveLPProblem.decision_variables`, i.e. it has slack
-        variables as basic ones.
+        of the :meth:`~InteractiveLPProblem.decision_variables`, i.e.
+        it has slack variables as basic ones.
 
         OUTPUT:
 
@@ -2261,7 +2673,89 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         x = self._R.gens()
         m, n = self.m(), self.n()
         return LPDictionary(A, b, c, self._constant_term, x[-m:], x[-m-n:-m],
-                            self.objective_name())
+                            self.objective_name(),
+                            integer_variables=self.integer_variables())
+
+    def integer_variables(self):
+        r"""
+        Return the set of integer decision variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1/10, 15/10)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables={'x1'})
+            sage: P.integer_variables()
+            {x1}
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: P.integer_variables()
+            {x1, x2}
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=False)
+            sage: P.integer_variables()
+            set()
+
+        Unlike :meth:`integer_variables` in :class:`InteractiveLPProblem` which
+        only knows about the integrality of the decision variables given by the
+        user, :meth:`integer_variables` in
+        :class:`InteractiveLPProblemStandardForm` uses sufficient conditions to
+        determine the integrality of decision variables, i.e. for any row, a
+        decision variable `x` is an integer, if the following conditions hold:
+        the slack variable of that row is set by user to be integer;
+        the constant is integer;
+        any problem variables except x has has a coefficient 0;
+        and the coefficient of x is integer::
+
+            sage: A1 = ([1, 1, 4], [3, 1, 5], [0, 0, 1])
+            sage: b1 = (1/10, 15/10, 5)
+            sage: c1 = (10, 5, 12)
+            sage: P = InteractiveLPProblemStandardForm(A1, b1, c1,
+            ....: integer_variables={'x6'})
+            sage: P.integer_variables()
+            {x3, x6}
+
+        Since :class:`InteractiveLPProblemStandardForm` knows about slack
+        variables, we may use the sufficient conditions to know the
+        integrality of slack variables, i.e. the slack variable of a row
+        is an integer if the following conditions hold:
+        all problem variables are integer;
+        the constant of the row is integer;
+        and all coefficients of that row are integer::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (11, 15)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.integer_variables()
+            set()
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: P.integer_variables()
+            {x1, x2, x3, x4}
+            sage: b2 = (11/10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b2, c,
+            ....: integer_variables=True)
+            sage: P.integer_variables()
+            {x1, x2, x4}
+            sage: A2 = ([1, 1], [3/10, 1])
+            sage: P = InteractiveLPProblemStandardForm(A2, b2, c,
+            ....: integer_variables=True)
+            sage: P.integer_variables()
+            {x1, x2}
+
+        Also, :class:`InteractiveLPProblemStandardForm` allows the
+        user to choose some slack variables to be integer, which may
+        violate the sufficient conditions::
+
+            sage: P = InteractiveLPProblemStandardForm(A2, b2, c,
+            ....: integer_variables={'x1', 'x2', 'x3'})
+            sage: P.integer_variables()
+            {x1, x2, x3}
+        """
+        return self._integer_variables
 
     def inject_variables(self, scope=None, verbose=True):
         r"""
@@ -2373,7 +2867,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             bm = min(self.b())
             if bm < 0:
                 x_B[self.b().list().index(bm)] = self.auxiliary_variable()
-        return LPRevisedDictionary(self, x_B)
+        return LPRevisedDictionary(self, x_B,
+                                   integer_variables=self.integer_variables())
 
     def run_revised_simplex_method(self):
         r"""
@@ -2655,6 +3150,166 @@ class LPAbstractDictionary(SageObject):
         """
         return "LP problem dictionary (use typeset mode to see details)"
 
+    def add_a_cut(self, cut_generating_function_separator=None,
+                  basic_variable=None, new_slack_variable=None):
+        r"""
+        Update the dictionary by adding a Gomory fractional cut.
+
+        INPUT:
+
+        - ``cut_generating_function_separator``-- (default: None)
+          a string indicating the cut generating function separator
+
+        - ``basic_variable`` -- (default: None) a string specifying
+          the basic variable that will provide the source row for the cut
+
+        - ``new_slack_variable`` -- (default: None) a string giving
+          the name of the new_slack_variable. If the argument is none,
+          the new slack variable will be the `x_n` where n is
+          the next index of variable list.
+
+        OUTPUT:
+
+        - none, but the dictionary will be updated with an additional
+          row that is constructed from a Gomory fractional cut, while the
+          source row can be chosen by the user or picked by the most
+          fractional basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.add_a_cut(cut_generating_function_separator="gomory_fractional")
+            sage: D.basic_variables()
+            (x2, x1, x5)
+            sage: D.leave(5)
+            sage: D.leaving_coefficients()
+            (-1/10, -4/5)
+            sage: D.constant_terms()
+            (33/10, 13/10, -3/10)
+
+        :meth:`add_a_cut` refuses making a cut if the basic variable
+        of the source row is not an integer::
+
+            sage: b = (2/10, 17)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....:  integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.integer_variables()
+            {x1, x2, x4}
+            sage: D.add_a_cut(basic_variable="x3",
+            ....: cut_generating_function_separator="gomory_fractional")
+            Traceback (most recent call last):
+            ...
+            ValueError: chosen variable should be an integer variable
+
+
+        :meth:`add_a_cut` add_a_cut also refuses making a Gomory fractional
+        cut if a non-integer variable is among the non-basic variables 
+        with non-zero coefficients::
+
+            sage: A = ([1, 3, 5], [2, 6, 9], [6, 8, 3])
+            sage: b = (12/10, 23/10, 31/10)
+            sage: c = (3, 5, 7)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables= {'x1', 'x3'})
+            sage: D = P.final_dictionary()
+            sage: D.nonbasic_variables()
+            (x6, x2, x4)
+            sage: D.integer_variables()
+            {x1, x3}
+            sage: D.row_coefficients("x3")
+            (-1/27, 10/27, 2/9)
+
+        If the user chooses `x_3` to provide the source row,
+        :meth:`add_a_cut` will give an error, because the non-integer
+        variable `x_6` has a non-zero coefficient `1/27` on the source row::
+
+            sage: D.add_a_cut(basic_variable='x3',
+            ....: cut_generating_function_separator="gomory_fractional")
+            Traceback (most recent call last):
+            ...
+            ValueError: this is not an eligible source row
+
+        We cannot add a Gomory fractional cut to this dictionary, because
+        the non-integer variable `x_6` has non-zero coefficient on each row::
+
+            sage: D.add_a_cut(cut_generating_function_separator="gomory_fractional")
+            Traceback (most recent call last):
+            ...
+            ValueError: there does not exist an eligible source row
+
+        However, the previous condition is not necessary for Gomory
+        mixed integer cuts::
+
+            sage: D.add_a_cut(cut_generating_function_separator="gomory_mixed_integer")
+            sage: D.basic_variables()
+            (x3, x5, x1, x7)
+        """
+        choose_variable, index = self.pick_eligible_source_row(
+            basic_variable=basic_variable,
+            cut_generating_function_separator=cut_generating_function_separator
+            )
+
+        if cut_generating_function_separator == "gomory_mixed_integer":
+            cut_coefficients, cut_constant = self.make_Gomory_mixed_integer_cut(
+                choose_variable, index)
+            integer_slack_variable = False
+        elif cut_generating_function_separator == "gomory_fractional":
+            cut_coefficients, cut_constant = self.make_Gomory_fractional_cut(
+                choose_variable, index)
+            integer_slack_variable = True
+
+        if new_slack_variable is not None:
+            if not isinstance(new_slack_variable, str):
+                raise TypeError("entering must be a string\
+                                of a slack variable name")
+            else:
+                add_slack_variable = new_slack_variable
+        else:
+            cut_index = len(self.nonbasic_variables()) + \
+                        len(self.basic_variables()) + 1
+            add_slack_variable = SR("x" + str(cut_index))
+
+        self.add_row(cut_coefficients, cut_constant, add_slack_variable,
+                     integer_slack_variable=integer_slack_variable)
+
+    def add_row(self):
+        r"""
+        Update a dictionary with an additional row based on a given dictionary.
+
+        See :meth:`add_row` in :class:`LPDictionary` and
+        :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
+
+    def all_variables(self):
+        r"""
+        Return a set of all basic variables and nonbasic variables of ``self``.
+
+        OUTPUT:
+
+        - a set of variables
+
+        EXAMPLES::
+
+            sage: A = ([1, 2, 1], [3, 1, 5])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5, 7)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.all_variables()
+            {x1, x2, x3, x4, x5}
+        """
+        B = self.basic_variables()
+        N = self.nonbasic_variables()
+        all_variables = list(B) + list(N)
+        return set(all_variables)
+
     def base_ring(self):
         r"""
         Return the base ring of ``self``, i.e. the ring of coefficients.
@@ -2723,6 +3378,51 @@ class LPAbstractDictionary(SageObject):
         return vector(self.base_ring(),
                       v if include_slack_variables else v[:len(N)])
 
+    def basic_variables(self):
+        r"""
+        Return the basic variables of ``self``.
+
+        See :meth:`basic_variables` in :class:`LPDictionary`
+        and :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
+
+    def constant_terms(self):
+        r"""
+        Return constant terms in the relations of ``self``.
+
+        See :meth:`constant_terms` in :class:`LPDictionary`
+        and :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
+
+    def continuous_variables(self):
+        r"""
+        Return a set of continuous variables of ``self``.
+
+        OUTPUT:
+
+        - a set of variables
+
+        EXAMPLES::
+
+            sage: A = ([1, 2/10, 1/5], [3, 1, 5/10])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5, 7)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables={'x1'})
+            sage: D1 = P.final_dictionary()
+            sage: D1.continuous_variables()
+            {x2, x3, x4, x5}
+            sage: D2 = P.final_revised_dictionary()
+            sage: D2.continuous_variables()
+            {x2, x3, x4, x5}
+        """
+        I = self.integer_variables()
+        all_variables = self.all_variables()
+        C = all_variables.difference(I)
+        return C
+
     def coordinate_ring(self):
         r"""
         Return the coordinate ring of ``self``.
@@ -2788,7 +3488,17 @@ class LPAbstractDictionary(SageObject):
         """
         return [(c / a, x) for c, a, x in zip(self.objective_coefficients(),
                                               self.leaving_coefficients(),
-                                            self.nonbasic_variables()) if a < 0]
+                                              self.nonbasic_variables())
+                if a < 0]
+
+    def ELLUL(self, entering, leaving):
+        r"""
+        Perform the Enter-Leave-LaTeX-Update-LaTeX step sequence on ``self``.
+
+        See :meth:`ELLUL` in :class:`LPDictionary` and
+        :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
 
     def enter(self, v):
         r"""
@@ -2858,6 +3568,15 @@ class LPAbstractDictionary(SageObject):
             x1
         """
         return self._entering
+
+    def integer_variables(self):
+        r"""
+        Return the set of integer variables of ``self``.
+
+        See :meth:`integer_variables` in :class:`LPDictionary` and
+        in :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
 
     def is_dual_feasible(self):
         r"""
@@ -2976,11 +3695,270 @@ class LPAbstractDictionary(SageObject):
             sage: D = P.revised_dictionary()
             sage: D.leave(x4)
         """
-        if v is not None:
-            v = variable(self.coordinate_ring(), v)
-            if v not in self.basic_variables():
-                raise ValueError("leaving variable must be basic")
+        v = variable(self.coordinate_ring(), v)
+        if v not in self.basic_variables():
+            raise ValueError("leaving variable must be basic")
         self._leaving = v
+
+    def leaving_coefficients(self):
+        r"""
+        Return coefficients of a leaving variable
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a leaving variable
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+
+        The same works for revised dictionaries as well::
+
+            sage: D = P.revised_dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+        """
+        if self._leaving is None:
+            raise ValueError("leaving variable must be chosen to compute "
+                             "its coefficients")
+        return self.row_coefficients(self._leaving)
+
+    def make_Gomory_fractional_cut(self, choose_variable, index):
+        r"""
+        Return the coefficients and constant for a Gomory fractional cut
+
+        INPUT:
+
+        - ``choose_variable`` -- the basic variable for the chosen cut
+
+        - ``index`` -- an integer indicating the choose_variable's index
+          in :meth:`constant_terms`
+
+        OUTPUT:
+
+        - ``cut_coefficients`` -- a list of coefficients for the cut
+
+        - ``cut_constant`` -- the constant for the cut
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.basic_variables()
+            (x2, x1)
+            sage: v = D.basic_variables()[0]
+            sage: D.make_Gomory_fractional_cut(v, 0)
+            ([-1/10, -4/5], -3/10)
+        """
+        b = self.constant_terms()
+        n = len(self.nonbasic_variables())
+        A_ith_row = self.row_coefficients(choose_variable)
+        cut_coefficients = [A_ith_row[i].floor() -
+                            A_ith_row[i] for i in range(n)]
+        cut_constant = b[index].floor() - b[index]
+        return cut_coefficients, cut_constant
+
+    def make_Gomory_mixed_integer_cut(self, choose_variable, index):
+        r"""
+        Return the coefficients and constant a Gomory fractional cut
+
+        INPUT:
+
+        - ``choose_variable`` -- the basic variable of the chosen cut
+
+        - ``index`` -- an integer indicating the choose_variable's index
+          in :meth:`constant_terms`
+
+        OUTPUT:
+
+        - ``cut_coefficients`` -- a list of coefficients for the cut
+
+        - ``cut_constant`` -- the constant for the cut
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.basic_variables()
+            (x2, x1)
+            sage: v = D.basic_variables()[0]
+            sage: D.make_Gomory_mixed_integer_cut(v, 0)
+            ([-1/3, -2/7], -1)
+        """
+        N = self.nonbasic_variables()
+        b = self.constant_terms()
+        I = self.integer_variables()
+        C = self.continuous_variables()
+        n = len(N)
+
+        A_ith_row = self.row_coefficients(choose_variable)
+        f = [A_ith_row[i] - A_ith_row[i].floor() for i in range(n)]
+        f_0 = b[index] - b[index].floor()
+
+        # Make dictionaries to update f and the ith row of matrix A
+        # with the right orders
+        # First in integer variables, then in continuous variables
+        variables = list(I) + list(C)
+        set_N = set(N)
+        N_in_IC_order = [item for item in variables if item in set_N]
+        f_dic = {item: coef for item, coef in zip(N, f)}
+        new_f = [f_dic[item] for item in N_in_IC_order]
+        A_ith_row_dic = {item: coef for item, coef in zip(N, A_ith_row)}
+        new_A_ith_row = [A_ith_row_dic[item] for item in N_in_IC_order]
+
+        cut_coefficients = [0] * n
+        j = 0
+        for item in I:
+            if item in set_N:
+                f_j = new_f[j]
+                if f_j <= f_0:
+                    cut_coefficients[j] -= f_j / f_0
+                else:
+                    cut_coefficients[j] -= (1 - f_j) / (1 - f_0)
+                j += 1
+        for item in C:
+            if item in set_N:
+                a_j = new_A_ith_row[j]
+                if a_j >= 0:
+                    cut_coefficients[j] -= a_j / f_0
+                else:
+                    cut_coefficients[j] += a_j / (1 - f_0)
+                j += 1
+        cut_constant = -1
+
+        # Update cut_coefficients in the original order
+        # in self._nonbasic_variable
+        cut_coef_dic = {item: coef for item, coef
+                        in zip(N_in_IC_order, cut_coefficients)}
+        new_cut_coefficients = [cut_coef_dic[item] for item in list(N)
+                                if item in set(N_in_IC_order)]
+
+        return new_cut_coefficients, cut_constant
+
+    def pick_eligible_source_row(self, cut_generating_function_separator=None,
+                                 basic_variable=None):
+        r"""
+        Pick an eligible source row for ``self``.
+
+        INPUT:
+
+        - ``cut_generating_function_separator``-- (default: None)
+          a string indicating the cut generating function separator
+
+        - ``basic_variable`` -- (default: None) a string specifying
+          the basic variable that will provide the source row for the cut
+
+        OUTPUT:
+
+        - ``choose_variable`` -- the basic variable for the chosen cut
+
+        - ``index`` -- an integer indicating the choose_variable's index
+          in :meth:`constant_terms`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: D.basic_variables()
+            (x2, x1)
+            sage: D.integer_variables()
+            {x1, x2, x3, x4}
+            sage: D.constant_terms()
+            (33/10, 13/10)
+
+        None of the variables are continuous, and the constant term of `x_2` is
+        not an integer. Therefore, the row for x2 is an eligible source row::
+
+            sage: D.pick_eligible_source_row(
+            ....: cut_generating_function_separator="gomory_fractional")
+            (x2, 0)
+
+        See :meth:`add_a_cut` for examples in ineligible source rows
+        """
+        B = self.basic_variables()
+        list_B = list(B)
+        N = self.nonbasic_variables()
+        b = self.constant_terms()
+        n = len(N)
+        m = len(B)
+        integer_variables = self.integer_variables()
+
+        def eligible_source_row(
+            choose_variable, bi=None,
+            cut_generating_function_separator=cut_generating_function_separator
+                                ):
+            if cut_generating_function_separator == "gomory_fractional":
+                A_ith_row = self.row_coefficients(choose_variable)
+                for i in range(n):
+                    if (N[i] not in integer_variables) and (A_ith_row[i] != 0):
+                        return False
+            # If the choose_variable is integer and its constant is also
+            # integer, then there is no need for a cut
+            if (
+                (not (choose_variable in integer_variables))
+               or (bi is not None and bi.is_integer())):
+                    return False
+            return True
+        integer_basic_variables = integer_variables.intersection(set(B))
+        if all(b[list_B.index(variable)].is_integer()
+               for variable in integer_basic_variables):
+            raise ValueError("the solution of the integer basic variables are all integer, \
+                there is no way to add a cut")
+        if basic_variable is not None:
+            choose_variable = variable(self.coordinate_ring(), basic_variable)
+            if choose_variable not in integer_variables:
+                raise ValueError(
+                    "chosen variable should be an integer variable"
+                    )
+            if not eligible_source_row(choose_variable, bi=None):
+                raise ValueError("this is not an eligible source row")
+            index = list_B.index(choose_variable)
+        else:
+            fraction_list = [abs(b[i] - b[i].floor() - 0.5) for i in range(m)]
+            variable_list = copy(list_B)
+            while True:
+                temp_index = fraction_list.index(min(fraction_list))
+                # Temp index will change as long as we remove the variable of
+                # the ineglible source row from the fraction list and the
+                # variable lsit
+                choose_variable = variable_list[temp_index]
+                index = list_B.index(choose_variable)
+                # Index wil not change, since we don't modify the
+                # list of basic variables
+                if eligible_source_row(choose_variable, b[index]):
+                    break
+                fraction_list.remove(min(fraction_list))
+                variable_list.remove(choose_variable)
+                if not fraction_list:
+                    raise ValueError(
+                        "there does not exist an eligible source row"
+                    )
+        return choose_variable, index
 
     def leaving(self):
         r"""
@@ -3238,6 +4216,88 @@ class LPAbstractDictionary(SageObject):
         """
         raise NotImplementedError
 
+    def run_cutting_plane_algorithm(
+                self, plot_cuts=False,
+                xmin=None, xmax=None, ymin=None, ymax=None,
+                cut_generating_function_separator=None):
+        r"""
+        Perform the cutting plane method to solve a ILP problem.
+
+        ..NOTE::
+
+            The problem variables may not be the same as the nonbasic
+            variables of the dictionary. To see the plot based on the original
+            variables, one had better choose self to be a LPRevisedDictionary
+            object rather than a LPDictionary object.
+
+        INPUT:
+
+        - ``plot_cuts`` -- (default:False) a boolean value to decide whether
+          plot the cuts or not
+
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        - ``cut_generating_function_separator``-- (default: None) a
+          string indicating the cut generating function separator
+
+
+        OUTPUT:
+
+        - a  number which is the total number of cuts need to solve a
+          ILP problem by Gomory fractional Cut
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: number_of_cuts = D.run_cutting_plane_algorithm(
+            ....: plot_cuts=False,
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: number_of_cuts
+            5
+            sage: from sage.numerical.interactive_simplex_method \
+            ....:     import _form_thin_long_triangle
+            sage: A1, b1 = _form_thin_long_triangle(4)
+            sage: c = (-1/27, 1/31)
+            sage: P = InteractiveLPProblemStandardForm(A1, b1, c,
+            ....: integer_variables=True)
+            sage: D = P.final_dictionary()
+            sage: number_of_cuts = D.run_cutting_plane_algorithm(
+            ....: plot_cuts=False,
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: number_of_cuts
+            9
+            sage: P1 = InteractiveLPProblemStandardForm(A1, b1, c,
+            ....: integer_variables=True)
+            sage: D = P1.final_revised_dictionary()
+            sage: number_of_cuts = D.run_cutting_plane_algorithm(
+            ....: plot_cuts=False,
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: number_of_cuts
+            9
+        """
+        number_of_cuts = 0
+        while True:
+            self.add_a_cut(
+            cut_generating_function_separator=cut_generating_function_separator)
+            self.run_dual_simplex_method()
+            b = self.constant_terms()
+            number_of_cuts += 1
+            if all(i.is_integer() for i in b):
+                break
+        if plot_cuts:
+            result = self.plot(
+                number_of_cuts=number_of_cuts,
+                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+            result.show()
+        return number_of_cuts
+
     def run_dual_simplex_method(self):
         r"""
         Apply the dual simplex method and return all steps/intermediate states.
@@ -3427,6 +4487,11 @@ class LPDictionary(LPAbstractDictionary):
     
     - ``objective_name`` -- a "name" for the objective `z`
 
+    - ``integer_variables`` -- (default: False) either a boolean value
+      indicating if all the problem variables are integer or not, or a
+      set of strings giving some problem variables' names, where those
+      problem variables are integer
+
     OUTPUT:
 
     - a :class:`dictionary for an LP problem <LPDictionary>`
@@ -3464,7 +4529,7 @@ class LPDictionary(LPAbstractDictionary):
 
     def __init__(self, A, b, c, objective_value,
                  basic_variables, nonbasic_variables,
-                 objective_name):
+                 objective_name, integer_variables=False):
         r"""
         See :class:`LPDictionary` for documentation.
 
@@ -3480,13 +4545,15 @@ class LPDictionary(LPAbstractDictionary):
             sage: TestSuite(D).run()
         """
         super(LPDictionary, self).__init__()
-        # We are going to change stuff while InteractiveLPProblem has immutable data.
+        # We are going to change stuff while :class:`InteractiveLPProblem`
+        # has immutable data.
         A = copy(A)
         b = copy(b)
         c = copy(c)
         B = vector(basic_variables)
         N = vector(nonbasic_variables)
         self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_name)]
+        self._integer_variables = integer_variables
 
     def __eq__(self, other):
         r"""
@@ -3599,6 +4666,95 @@ class LPDictionary(LPAbstractDictionary):
             lines[l] = line
         return  "\n".join(lines)
 
+    def add_row(self, nonbasic_coefficients,
+                constant, slack_variable,
+                integer_slack_variable=False):
+        r"""
+        Update a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row
+
+        - ``constant``-- a number of the constant term for the new row
+
+        - ``slack_variable``-- a string of the name for the new slack variable
+
+        - ``integer_slack_variable``-- (default: False) a boolean value
+          indicating if the new slack variable is integer or not.
+
+        OUTPUT:
+
+        - none, but the dictionary will be updated with an added row
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_dictionary()
+            sage: D.add_row([7, 11], 42, 'c', integer_slack_variable=True)
+            sage: D.row_coefficients("c")
+            (7, 11)
+            sage: D.constant_terms()[2]
+            42
+            sage: D.basic_variables()[2]
+            c
+            sage: D.integer_variables()
+            {c}
+        """
+        B = self.basic_variables()
+        N = self.nonbasic_variables()
+        b = self.constant_terms()
+        n = len(N)
+        m = len(B)
+        A = tuple([self.row_coefficients(B[i]) for i in range(m)])
+        A = matrix(self.base_ring(), A)
+
+        v = vector(self.base_ring(), n, nonbasic_coefficients)
+        A = A.stack(v)
+
+        b = vector(tuple(b) + (constant,))
+        B = tuple(B) + (slack_variable,)
+
+        # Construct a larger ring for variable
+        R = B[0].parent()
+        G = list(R.gens())
+        G.append(slack_variable)
+        R = PolynomialRing(self.base_ring(), G, order="neglex")
+        # Update B and N to the larger ring
+        B2 = vector([R(x) for x in B])
+        N2 = vector([R(x) for x in N])
+
+        self._AbcvBNz[0] = matrix(QQ, A)
+        self._AbcvBNz[1] = b
+        self._AbcvBNz[4] = B2
+        self._AbcvBNz[5] = N2
+        if integer_slack_variable:
+            self._integer_variables.add(variable(R, slack_variable))
+
+    def basic_variables(self):
+        r"""
+        Return the basic variables of ``self``.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.basic_variables()
+            (x3, x4)
+        """
+        return self._AbcvBNz[4]
+
     def ELLUL(self, entering, leaving):
         r"""
         Perform the Enter-Leave-LaTeX-Update-LaTeX step sequence on ``self``.
@@ -3679,26 +4835,6 @@ class LPDictionary(LPAbstractDictionary):
         result += latex(self).split("\n", 2)[2] # Remove array header
         return LatexExpr(result)
 
-    def basic_variables(self):
-        r"""
-        Return the basic variables of ``self``.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.initial_dictionary()
-            sage: D.basic_variables()
-            (x3, x4)
-        """
-        return self._AbcvBNz[4]
-
     def constant_terms(self):
         r"""
         Return the constant terms of relations of ``self``.
@@ -3743,6 +4879,23 @@ class LPDictionary(LPAbstractDictionary):
                              "its coefficients")
         k = tuple(self.nonbasic_variables()).index(self._entering)
         return self._AbcvBNz[0].column(k)
+
+    def integer_variables(self):
+        r"""
+        Return the set of integer variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1/10, 15/10)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables={'x1'})
+            sage: D = P.final_dictionary()
+            sage: D.integer_variables()
+            {x1}
+        """
+        return self._integer_variables
 
     def nonbasic_variables(self):
         r"""
@@ -3804,6 +4957,39 @@ class LPDictionary(LPAbstractDictionary):
             0
         """
         return self._AbcvBNz[3]
+
+    def plot(self, number_of_cuts=0,
+             xmin=None, xmax=None, ymin=None, ymax=None):
+        r"""
+        Return a plot of the problem of ``self``.
+
+        ..Note::
+
+            The problem variables may not be the same as the nonbasic
+            variables of the dictionary. Therefore, the plot may not be showed
+            correct information for the original problem.
+
+        INPUT:
+
+        - ``number_of_cuts`` -- an integer indicating the number of the cuts
+          made on the original problem
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - a plot
+        """
+        B = self.basic_variables()
+        A = tuple([self.row_coefficients(B[i]) for i in range(len(B))])
+        A = matrix(self.base_ring(), A)
+        b = self.constant_terms()
+        c = self.objective_coefficients()
+        # Make a temporary problem based on the data of the dictioanry
+        P = InteractiveLPProblemStandardForm(A, b, c, integer_variables=True)
+        return P.plot(number_of_cuts=number_of_cuts, xmin=xmin, xmax=xmax,
+                      ymin=ymin, ymax=ymax)
 
     def row_coefficients(self, v):
         r"""
@@ -3956,6 +5142,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
     - ``basic_variables`` -- a list of basic variables or their indices
 
+    - ``integer_variables`` -- (default: False) either a boolean
+      value indicating if all the problem variables are integer or not,
+      or a set of strings giving some problem variables' names, where
+      those problem variables are integer
+
     OUTPUT:
 
     - a :class:`revised dictionary for an LP problem <LPRevisedDictionary>`
@@ -4063,7 +5254,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
     dictionary entries.
     """
 
-    def __init__(self, problem, basic_variables):
+    def __init__(self, problem, basic_variables, integer_variables=False):
         r"""
         See :class:`LPRevisedDictionary` for documentation.
 
@@ -4083,8 +5274,9 @@ class LPRevisedDictionary(LPAbstractDictionary):
                              "for auxiliary problems")
         super(LPRevisedDictionary, self).__init__()
         self._problem = problem
-        R =  problem.coordinate_ring()
+        R = problem.coordinate_ring()
         self._x_B = vector(R, [variable(R, v) for v in basic_variables])
+        self._integer_variables = integer_variables
 
     def __eq__(self, other):
         r"""
@@ -4289,6 +5481,136 @@ class LPRevisedDictionary(LPAbstractDictionary):
             latex(self.E_inverse()),
             latex(self.B_inverse()),
             r"\end{equation*}"]))
+
+    def add_row(self, nonbasic_coefficients, constant,
+                slack_variable, integer_slack_variable=True):
+        r"""
+        Update a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the new row
+
+        - ``constant``-- a number of the constant term for the new row
+
+        - ``slack_variable``-- a string of the name for the new slack variable
+
+        - ``integer_slack_variable``-- (default: False) a boolean value
+          indicating if the new slack variable is integer or not.
+
+        OUTPUT:
+
+        - none, but the revised dictionary will be updated with an added row
+
+        TESTS:
+
+        Tested with a variety of different bases::
+
+            sage: A = ([-1, 1111, 3, 17], [8, 222, 7, 6],
+            ....: [3, 7, 17, 5], [9, 5, 7, 3])
+            sage: b = (2, 17, 11, 27)
+            sage: c = (5/133, 1/10, 1/18, 47/3)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.Abcx()[3]
+            (x1, x2, x3, x4)
+            sage: D = P.final_revised_dictionary()
+            sage: D.nonbasic_variables()
+            (x2, x3, x5, x6)
+            sage: D.add_row([7, 11, 13, 9], 42, 'c')
+            sage: D.row_coefficients("c")
+            (7, 11, 13, 9)
+            sage: D.constant_terms()[4]
+            42
+            sage: D.basic_variables()[4]
+            c
+            sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
+            ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
+            ....: [119, 7, 121, 5, 111])
+            sage: b = (33, 27, 1, 272, 61)
+            sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.Abcx()[3]
+            (x1, x2, x3, x4, x5)
+            sage: D = P.final_revised_dictionary()
+            sage: D.nonbasic_variables()
+            (x1, x2, x4, x7, x8)
+            sage: D.add_row([5 ,7, 11, 13, 9], 99, 'c',
+            ....: integer_slack_variable=True)
+            sage: D.row_coefficients("c")
+            (5, 7, 11, 13, 9)
+            sage: D.constant_terms()[5]
+            99
+            sage: D.basic_variables()[5]
+            c
+            sage: D.integer_variables()
+            {c}
+        """
+        basic = self.basic_variables()
+        nonbasic = self.nonbasic_variables()
+
+        new_basic_variables = tuple(basic) + (slack_variable,)
+
+        # Construct a larger ring for variable
+        R = basic[0].parent()
+        G = list(R.gens())
+        G.append(slack_variable)
+        R = PolynomialRing(self.base_ring(), G, order="neglex")
+
+        # Update B to the larger ring
+        new_basic = vector([R(x) for x in new_basic_variables])
+
+        problem = self._problem
+        A = problem.Abcx()[0]
+        b = problem.Abcx()[1]
+        c = problem.Abcx()[2]
+        original = list(problem.Abcx()[3])
+        slack = list(problem.slack_variables())
+        variables = original + slack
+        n = len(original)
+        set_nonbasic = set(nonbasic)
+
+        # Update nonbasic_coefficients with the right orders
+        # in original and slack variables
+        dic = {item: coef for item, coef
+               in zip(nonbasic, nonbasic_coefficients)}
+        new_nonbasic_coef = [dic[item] for item
+                             in variables if item in set_nonbasic]
+        d = new_nonbasic_coef   # Rename new_nonbasic_coef to d
+        new_row = vector(QQ, [0] * n)
+        new_b = constant
+
+        def standard_unit_vector(index, length):
+            v = vector(QQ, [0] * length)
+            v[index] = 1
+            return v
+
+        d_index = 0
+        original_index = 0
+        slack_index = 0
+        for item in original:
+            if item in set_nonbasic:
+                new_row += d[d_index] * standard_unit_vector(original_index, n)
+                d_index += 1
+            original_index += 1
+        for item in slack:
+            if item in set_nonbasic:
+                new_row -= d[d_index] * A[slack_index]
+                new_b -= d[d_index] * b[slack_index]
+                d_index += 1
+            slack_index += 1
+
+        A = A.stack(new_row)
+        b = vector(tuple(b) + (new_b,))
+        if integer_slack_variable:
+            self._integer_variables.add(variable(R, slack_variable))
+        slack.append(R.gens()[len(R.gens())-1])
+        new_problem = InteractiveLPProblemStandardForm(
+            A, b, c, slack_variables=slack,
+            integer_variables=self._integer_variables)
+        self._problem = new_problem
+        self._x_B = new_basic
+        B = self.B()
+        self._B_inverse = B.inverse()
 
     def A(self, v):
         r"""
@@ -4654,6 +5976,23 @@ class LPRevisedDictionary(LPAbstractDictionary):
                              "its coefficients")
         return self.B_inverse() * self.A(self._entering)
 
+    def integer_variables(self):
+        r"""
+        Return the set of integer variables in the problem of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1/10, 15/10)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c,
+            ....: integer_variables={'x1'})
+            sage: D = P.final_revised_dictionary()
+            sage: D.integer_variables()
+            {x1}
+        """
+        return self._problem._integer_variables
+
     def nonbasic_indices(self):
         r"""
         Return the non-basic indices of ``self``.
@@ -4748,6 +6087,27 @@ class LPRevisedDictionary(LPAbstractDictionary):
         """
         return (self.y() * self.problem().b() +
                 self.problem().objective_constant_term())
+
+    def plot(self, number_of_cuts=0,
+             xmin=None, xmax=None, ymin=None, ymax=None):
+        r"""
+        Return the plot of the problem of `self`.
+
+        INPUT:
+
+        - ``number_of_cuts`` -- an integer indicating the number of the cuts
+          made on the original problem
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - a plot
+        """
+        return self.problem().plot(
+            number_of_cuts=number_of_cuts,
+            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
     def problem(self):
         r"""
