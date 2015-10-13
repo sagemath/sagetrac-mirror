@@ -81,6 +81,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
+from sage.rings.all import ZZ
 from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
@@ -1175,6 +1176,56 @@ class Tableau(ClonableList):
         """
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
+
+    def to_sign_matrix(T,m):
+        """
+        Return the sign matrix of ``self``. 
+
+        "T" is the name of the Tableau or SemistandardTableau, "m" is the 
+        maximum allowable number in the tableau. The entries of the tableau 
+        must be integers greater than 0.
+
+        A sign matrix is an mxn matrix of 0's, 1's and -1's such that the 
+        partial sums of each column is either 0 or 1 and the partial sums of 
+        each row is non-negative. [Aval2008]_
+
+        EXAMPLES:: 
+       
+            sage: t = SemistandardTableau([[1,1,1,2,4],[3,3,4],[4,5],[6,6]])
+            sage: t.to_sign_matrix(6)
+            [ 0  0  0  1  0  0]
+            [ 0  1  0 -1  0  0]
+            [ 1 -1  0  1  0  0]
+            [ 0  0  1 -1  1  1]
+            [ 0  0  0  1 -1  0]
+            sage: t = Tableau([[1,2,4],[3,5]])
+            sage: t.to_sign_matrix(7)
+            [ 0  0  0  1  0  0  0]
+            [ 0  1  0 -1  1  0  0]
+            [ 1 -1  1  0 -1  0  0]
+
+        REFERENCES:
+
+        .. [Aval2008] Jean-Christope Aval.
+           *Keys and Alternating Sign Matrices*,
+           Seminaire Lotharingien de Combinatoire 59 (2008) B59f 
+           :arxiv:`0711.2150`
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(ZZ, len(T[0]), m, sparse=True)
+        Tconj = T.conjugate()
+        l = len(Tconj)
+        d = {(l-i-1,elem-1): 1 for i, row in enumerate(Tconj) for elem in row}
+        partial_sum_matrix = MS(d)
+        from copy import copy
+        sign_matrix = copy(MS.zero())
+
+        for j in range(m):
+            sign_matrix[0,j] = partial_sum_matrix[0,j]
+        for i in range(1,l):
+            for j in range(m):
+                sign_matrix[i,j] = partial_sum_matrix[i,j] - partial_sum_matrix[i-1,j]
+        return sign_matrix
 
     def schuetzenberger_involution(self, n = None, check=True):
         r"""
@@ -5485,7 +5536,6 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: SemistandardTableaux(6, max_entry=7).random_element() # random
             [[2, 4, 4, 6, 6, 6]]
         """
-        from sage.rings.all import ZZ
         from sage.rings.arith import binomial
         from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
