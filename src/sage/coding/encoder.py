@@ -180,7 +180,7 @@ class Encoder(SageObject):
         If ones tries to unencode a codeword of a code of dimension 0, it
         returns the empty vector::
 
-            sage: G = Matrix(GF(17), [])
+            sage: G = Matrix(GF(17), 0, 5)
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: c = C.random_element()
@@ -188,7 +188,7 @@ class Encoder(SageObject):
             ()
         """
         C = self.code()
-        if C.ambient_space().dimension() == 0:
+        if C.dimension() == 0:
             return vector(C.base_ring(), 0)
         if nocheck == False and c not in C:
             raise EncodingError("Given word is not in the code")
