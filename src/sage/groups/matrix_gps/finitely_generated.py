@@ -716,6 +716,15 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             [x^4 + 2*x^2*y^2 + y^4,
              x^5*y - x*y^5,
              x^8 + 28/9*x^6*y^2 + 70/9*x^4*y^4 + 28/9*x^2*y^6 + y^8]
+             
+        An example of the modular case::
+        
+            sage: F = FiniteField(2)
+            sage: m1 = matrix(F, [[0,1],[1,0]])
+            sage: G = MatrixGroup([m1])
+            sage: G.invariant_generators()
+            [x0 + x1, x0*x1, 1]
+
 
         AUTHORS:
 
@@ -740,10 +749,25 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             R = PolynomialRing(F, n, 'x')
         else:
             R = ring
+        char = R.base_ring().characteristic()
         import sage.libs.singular.function_factory
         from sage.libs.singular.function import singular_function
         sage.libs.singular.function_factory.lib('finvar.lib')
-        inrey = singular_function('invariant_algebra_reynolds')
-        L = matrix([a.matrix()*vector(R.gens()) for a in self.list()])
-        invars = inrey(L, 0)
-        return [R(a) for a in invars[0]]
+        if char == 0 or self.cardinality() % char != 0: #non modular case
+            inrey = singular_function('invariant_algebra_reynolds')
+            L = matrix([a.matrix()*vector(R.gens()) for a in self.list()])
+            invars = inrey(L, 0)
+            return [R(a) for a in invars[0]]
+        else: #modular case
+            primcharp = singular_function('primary_charp_without')
+            secnm = singular_function('secondary_not_cohen_macaulay')
+            lgens = [a.matrix().change_ring(R) for a in self.gens()] + [0]
+            primgens = primcharp(*lgens)
+            secgens = secnm(primgens, *lgens)
+            return [R(a) for a in primgens.list() + secgens.list()]
+
+
+
+
+
+            
