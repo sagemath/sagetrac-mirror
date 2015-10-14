@@ -460,27 +460,10 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         cdef long t
         if isinstance(n, slice):
-            # get values from slice object
-            start = n.start if n.start is not None else 0
-            stop = self._prec if n.stop is None else n.stop
-            if stop is infinity:
-                stop = self.polynomial().degree() + 1
-            step = 1 if n.step is None else n.step
-
-            # find corresponding polynomial
-            poly = self.polynomial()[start:stop]
-            if step is not None:
-                coeffs = poly.padded_list(stop)
-                for i in range(start, stop):
-                    if (i - start) % step:
-                        coeffs[i] = 0
-                poly = self._parent._poly_ring()(coeffs)
-
-            # return the power series
-            return PowerSeries_pari(self._parent, poly,
+            return PowerSeries_pari(self._parent, self.polynomial()[n],
                                     prec=self._prec, check=False)
         elif n < 0:
-            return self.base_ring()(0)
+            return self.base_ring().zero()
         else:
             t = typ(self.g.g)
             if t == t_POL or t == t_SER:
