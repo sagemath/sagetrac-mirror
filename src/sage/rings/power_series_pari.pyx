@@ -16,11 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/libs/pari/decl.pxi"
-
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
+
 import sage.libs.pari.all
 cdef PariInstance pari = sage.libs.pari.all.pari
 
