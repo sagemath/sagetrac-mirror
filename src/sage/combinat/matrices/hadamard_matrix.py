@@ -77,22 +77,40 @@ def normalise_hadamard(H):
             H.rescale_row(i, -1)
     return H
 
-def hadamard_matrix_paleyI(n):
+def hadamard_matrix_paleyI(n, normalize=True):
     """
     Implements the Paley type I construction.
 
     The Paley type I case corresponds to the case `p \cong 3 \mod{4}` for a
     prime `p` (see [Hora]_).
 
+    INPUT:
+
+    - ``n`` -- the matrix size 
+
+    - ``normalize`` (boolean) -- whether to normalize the result.
+
     EXAMPLES:
 
-    We note that this method returns a normalised Hadamard matrix ::
+    We note that this method by default returns a normalised Hadamard matrix ::
 
-        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyI(4) # random
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyI
+        sage: hadamard_matrix_paleyI(4) # random
         [ 1  1  1  1]
         [ 1 -1  1 -1]
         [ 1 -1 -1  1]
         [ 1  1 -1 -1]
+
+    Otherwise, it returns a skew Hadamard matrix `H`, i.e. `H=S+I`, with
+    `S=-S^\top`  ::
+
+        sage: M=hadamard_matrix_paleyI(4, normalize=False); M # random
+        [ 1  1  1  1]
+        [ 1 -1  1 -1]
+        [ 1 -1 -1  1]
+        [ 1  1 -1 -1]
+        sage: S=M-identity_matrix(4); -S==S.T
+        True
 
     TESTS::
 
@@ -100,6 +118,9 @@ def hadamard_matrix_paleyI(n):
         sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
         sage: test_cases = [x+1 for x in range(100) if is_prime_power(x) and x%4==3]
         sage: all(is_hadamard_matrix(hadamard_matrix_paleyI(n),normalized=True,verbose=True)
+        ....:     for n in test_cases)
+        True
+        sage: all(is_hadamard_matrix(hadamard_matrix_paleyI(n,normalize=False),verbose=True)
         ....:     for n in test_cases)
         True
     """
@@ -115,10 +136,12 @@ def hadamard_matrix_paleyI(n):
                      for x in K_list]
                     for y in K_list])
     for i in range(n):
-        H[0,i] =  1
-        H[i,i] = -1
         H[i,0] = -1
-    H = normalise_hadamard(H)
+        H[0,i] =  1
+    if normalize:
+        for i in range(n):
+            H[i,i] = -1
+        H = normalise_hadamard(H)
     return H
 
 def hadamard_matrix_paleyII(n):
@@ -189,7 +212,7 @@ def hadamard_matrix_paleyII(n):
 
     return normalise_hadamard(H)
 
-def is_hadamard_matrix(M, normalized=False, verbose=False):
+def is_hadamard_matrix(M, normalized=False, verbose=False, skew=False):
     r"""
     Test if `M` is a hadamard matrix.
 
@@ -199,6 +222,9 @@ def is_hadamard_matrix(M, normalized=False, verbose=False):
 
     - ``normalized`` (boolean) -- whether to test if ``M`` is a normalized
       Hadamard matrix, i.e. has its first row/column filled with +1.
+
+    - ``skew`` (boolean) -- whether to test if ``M`` is a skew 
+      Hadamard matrix, i.e. `M=S+I` for `-S=S^\top`, and `I` the identity matrix. 
 
     - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
       Hadamard.
@@ -251,6 +277,13 @@ def is_hadamard_matrix(M, normalized=False, verbose=False):
             set(M.column(0)) != {1}):
             if verbose:
                 print "The matrix is not normalized"
+            return False
+
+    if skew:
+        S = M - I(n)
+        if -S != S.T:
+            if verbose:
+                print "The matrix is not skew"
             return False
 
     return True
@@ -588,7 +621,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     return M
 
-def _helper_payley_matrix(n):
+def _helper_payley_matrix(n, zero_position=1):
     r"""
     Return the marix constructed in Lemma 1.19 page 291 of [SWW72]_.
 
@@ -626,11 +659,16 @@ def _helper_payley_matrix(n):
     K_pairs = set(frozenset([x,-x]) for x in K)
     K_pairs.discard(frozenset([0]))
     K_list = [None]*n
-    for i,(x,y) in enumerate(K_pairs):
-        K_list[i]   = x
-        K_list[-i-1] = y
-    K_list[n//2] = K(0)
+    if zero_position:
+        zero_position=n//2
+        shift=0
+    else:
+        shift=1
 
+    for i,(x,y) in enumerate(K_pairs):
+        K_list[i+shift]   = x
+        K_list[-i-1] = y
+    K_list[zero_position] = K(0)
     M = matrix(n,[[2*((x-y).is_square())-1
                    for x in K_list]
                   for y in K_list])
@@ -709,3 +747,121 @@ def rshcd_from_close_prime_powers(n):
     assert len(set(map(sum,HH))) == 1
     assert HH**2 == n**2*I(n**2)
     return HH
+
+_skew_had_cache={}
+
+def skew_hadamard_matrix(n,existence=False, check=True):
+    r"""
+    Tries to construct a skew Hadamard matrix
+
+    A Hadamard matrix `H` is called skew if `H=S-I`, for `I` the identity matrix
+    and `-S=S^\top`.
+
+    INPUT:
+
+    - ``n`` (integer) -- dimension of the matrix
+
+    - ``existence`` (boolean) -- whether to build the matrix or merely query if
+      a construction is available in Sage. When set to ``True``, the function
+      returns:
+
+        - ``True`` -- meaning that Sage knows how to build the matrix
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          matrix, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the matrix does not exist.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+        sage: skew_hadamard_matrix(12).det()
+        2985984
+        sage: 12^6
+        2985984
+        sage: skew_hadamard_matrix(1)
+        [1]
+        sage: skew_hadamard_matrix(2)
+        [ 1  1]
+        [-1  1]
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+        sage: skew_hadamard_matrix(10,existence=True)
+        False
+        sage: skew_hadamard_matrix(12,existence=True)
+        True
+        sage: skew_hadamard_matrix(784,existence=True) # long time
+        True
+        sage: skew_hadamard_matrix(10)
+        Traceback (most recent call last):
+        ...
+        ValueError: A skew Hadamard matrix of order 10 does not exist
+        sage: skew_hadamard_matrix(36)
+        Traceback (most recent call last):
+        ...
+        ValueError: A skew Hadamard matrix of order 36 is not yet implemented.
+        sage: skew_hadamard_matrix(36,existence=True)
+        Unknown
+    """
+    def true():
+        _skew_had_cache[n]=True
+        return True
+    M = None
+    if existence and n in _skew_had_cache:
+        return True
+    if not(n % 4 == 0) and (n > 2):
+        if existence:
+            return False
+        raise ValueError("A skew Hadamard matrix of order %s does not exist" % n)
+    if n == 2:
+        if existence:
+            return true()
+        M = matrix([[1, 1], [-1, 1]])
+    elif n == 1:
+        if existence:
+            return true()
+        M = matrix([1])
+    elif is_prime_power(n - 1) and ((n - 1) % 4 == 3):
+        if existence:
+            return true()
+        M = hadamard_matrix_paleyI(n, normalize=False)
+
+    elif n % 8 == 0:
+        if skew_hadamard_matrix(n//2,existence=True, check=False):
+            if existence:
+                return true()
+            H = skew_hadamard_matrix(n//2,check=False)
+            M = block_matrix([[H,H], [-H.T,H.T]])
+
+        else:
+            for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
+                n1 = n//d
+                if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
+                    and skew_hadamard_matrix(n1,existence=True, check=False):
+                    if existence:
+                        return true()
+                    H = skew_hadamard_matrix(n1, check=False)-I(n1)
+                    U = matrix(ZZ, d, lambda i, j: -1 if i==j==0 else\
+                                        1 if i==j==1 or (i>1 and j-1==d-i)\
+                                          else 0)
+                    A = block_matrix([[matrix([0]), matrix(ZZ,1,n1-1,[1]*(n1-1))],
+                                      [ matrix(ZZ,n1-1,1,[-1]*(n1-1)),
+                                        _helper_payley_matrix(n1-1,zero_position=0)]])+I(n1)
+                    M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
+                    break
+    if M is None:
+        if existence:
+            return Unknown
+        raise ValueError("A skew Hadamard matrix of order %s is not yet implemented." % n)
+
+    if check:
+        assert is_hadamard_matrix(M, normalized=False, skew=True)
+    _skew_had_cache[n]=True
+    return M
