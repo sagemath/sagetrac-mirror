@@ -6,7 +6,7 @@ builtin max and min are not able to deal with variables as users might expect.
 These functions wait to evaluate if there are variables.
 
 Here you can see some differences::
-
+   
    sage: min(3,5,x)
    3
    sage: min_symbolic(3,5,x)

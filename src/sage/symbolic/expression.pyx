@@ -365,7 +365,7 @@ cdef class Expression(CommutativeRingElement):
 
         Integers and Rationals are converted internally though, so you
         won't get back the same object::
-
+        
             sage: b = -17/3
             sage: a = SR(b)
             sage: a.pyobject()
@@ -1447,14 +1447,14 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
         The hash of an object in Python or its coerced version into
-        the symbolic ring is the same::
+        the symbolic ring is usually the same::
 
-            sage: hash(SR(3/1))
-            3
-            sage: hash(SR(19/23))
-            4
-            sage: hash(19/23)
-            4
+            sage: hash(SR(3.1))
+            2093862195
+            sage: hash(SR(19.23))
+            2836855582
+            sage: hash(19.23)
+            2836855582
 
         The hash for symbolic expressions are unfortunately random. Here we
         only test that the hash() function returns without error, and that
@@ -1483,7 +1483,7 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(t)
             Traceback (most recent call last):
             ...
-            TypeError: mutable matrices are unhashable
+            RuntimeError: Python object not hashable
 
         TESTS:
 
@@ -3058,7 +3058,7 @@ cdef class Expression(CommutativeRingElement):
         Products of non integer powers of exp are not simplified::
 
             sage: exp(x)^I*exp(z)^(2.5)
-            (e^x)^I*(e^z)^2.50000000000000
+            e^x^I*e^z^2.50000000000000
 
         ::
 
@@ -3667,7 +3667,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 0^1.0
             0.000000000000000
             sage: exp(x)^1.0
-            (e^x)^1.00000000000000
+            e^x^1.00000000000000
         """
         cdef Expression base, nexp
 
@@ -4253,7 +4253,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y = var('x,y', domain='real')
             sage: p,q = var('p,q', domain='positive')
             sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
-            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
+            1/2*45^(7/2*c)*(a^2*b^2)^(7/2*c)*c*p^(7*c)*q^(7*c)*(x^2)^(7/2*c)*(y^2)^(7/2*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
@@ -7258,7 +7258,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.arcsin()
             arcsin(x)
             sage: SR(0.5).arcsin()
-            0.523598775598299
+            1/6*pi
             sage: SR(0.999).arcsin()
             1.52607123962616
             sage: SR(1/3).arcsin()

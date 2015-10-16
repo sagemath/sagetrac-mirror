@@ -30,8 +30,8 @@ Compute the Christoffel symbol.
     sage: X = christoffel(1,1,1,[t,r,theta,phi],m)
     sage: X
     1/2/(r^2*(1/r - 1))
-    sage: X.rational_simplify()
-     -1/2/(r^2 - r)
+    sage: X.simplify_rational()
+    -1/2/(r^2 - r)
 
 Some basic things::
 
