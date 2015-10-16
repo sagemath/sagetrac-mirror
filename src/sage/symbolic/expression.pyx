@@ -2259,27 +2259,52 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1./2^10000).is_trivial_zero()
             False
 
-        The :meth:`~sage.structure.element.Element.is_zero` method
-        is more capable::
+        The :meth:`holds` method is more capable::
 
             sage: t = pi + (pi - 1)*pi - pi^2
             sage: t.is_trivial_zero()
             False
-            sage: t.is_zero()
+            sage: (t==0).holds()
             True
             sage: u = sin(x)^2 + cos(x)^2 - 1
             sage: u.is_trivial_zero()
             False
-            sage: u.is_zero()
+            sage: (u==0).holds()
             True
         """
         return self._gobj.is_zero()
 
+    def is_zero(self, simplify=False):
+        """
+        Return ``True`` if self is numerical or symbolical ``0``.
+
+        Fast simplifications are applied. For sophisticated
+        symbolic simplification specify ``simplify=True``.
+
+        EXAMPLES::
+
+            sage: y = 0
+            sage: y.is_zero()
+            True
+            sage: ex = sin(x)^2 + cos(x)^2 - 1
+            sage: ex.is_zero()
+            False
+            sage: ex.is_zero(simplify=True)
+            True
+        """
+        if simplify:
+            return (self == 0).holds()
+        else:
+            return bool(self == 0)
+
     def __nonzero__(self):
         """
-        Return True unless this symbolic expression can be shown by Sage
-        to be zero.  Note that deciding if an expression is zero is
-        undecidable in general.
+        Return ``True`` if self is not the same Python object as zero,
+        or if relation is trivially true.
+
+        Fast simplifications are applied. In case of an inequality
+        of symbols/functions the decision is made according to
+        alphabetical order.
 
         EXAMPLES::
 
@@ -2419,67 +2444,200 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(f(x) - f(x) == 0)
             True
         """
-        if self.is_relational():
-            # constants are wrappers around Sage objects, compare directly
-            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
-                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+        if not self.is_relational():
+            return (self != 0).__nonzero__()
+        if (self.lhs().is_infinity() or self.rhs().is_infinity()):
+            pynac_result = decide_relational(self._gobj)
+            if pynac_result == relational_undecidable:
+                raise TypeError('Cannot compare: ' + repr(self))
+            return pynac_result == relational_true
 
-            pynac_result = relational_to_bool(self._gobj)
-
-            # pynac is guaranteed to give the correct answer for comparing infinities
-            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
-                return pynac_result
-
-            if pynac_result:
-                if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
-                    m = self._maxima_()
-                    s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-                    if s == 'false':
-                        return False
-                    else:
-                        return True
+        so = self.operator()
+        det_ex = self.lhs() - self.rhs()
+        if not has_symbol_or_function(self._gobj):
+            while hasattr(det_ex, 'pyobject') and isinstance(det_ex, Expression):
+                try:
+                    det_ex = det_ex.pyobject()
+                except TypeError:
+                    break
+            if not isinstance(det_ex, Expression):
+                    return so(det_ex, 0)
+            from sage.rings.qqbar import QQbar
+            try:
+                num = sage.rings.qqbar.QQbar(det_ex)
+            except (TypeError, AttributeError,ValueError,NotImplementedError):
+                try:
+                    from sage.rings.real_mpfi import RIF
+                    num = det_ex.expand().n(RIF.prec()+5)
+                except (TypeError, AttributeError):
+                    # this is a kludge to oblige Parent.__contains__, see #17984
+                    raise
                 else:
-                    return True
-
-            # If assumptions are involved, falsification is more complicated...
-            need_assumptions = False
-            from sage.symbolic.assumptions import assumptions
-            assumption_list = assumptions()
-            if assumption_list:
-                vars = self.variables()
-                if vars:
-                    assumption_var_list = []
-                    for eqn in assumption_list:
-                        try:
-                            assumption_var_list.append(eqn.variables())
-                        except AttributeError: # if we have a GenericDeclaration
-                            assumption_var_list.append((eqn._var,))
-                    assumption_vars = set(sum(assumption_var_list, ()))
-                    if set(vars).intersection(assumption_vars):
-                        need_assumptions = True
-
-            # Use interval fields to try and falsify the relation
-            if not need_assumptions:
-                res = self.test_relation()
-                if res is True:
-                    return True
-                elif res is False:
-                    return False
-
-            # we really have to do some work here...
-            # I really don't like calling Maxima to test equality.  It
-            # is SUPER SUPER SLOW, and it has all the problem
-            # associated with different semantics, different
-            # precision, etc., that can lead to subtle bugs.  Also, a
-            # lot of basic Sage objects can't be put into maxima.
-            from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
-
-        self_is_zero = self._gobj.is_zero()
-        if self_is_zero:
-            return False
+                    return so(num, 0)
+            else:
+                return so(num, 0)
+        elif ((so == operator.eq or so == operator.ne)
+            or not has_symbol(self._gobj)):
+            try:
+                num = det_ex.expand().n()
+            except (TypeError, AttributeError, ValueError):
+                pass
+            else:
+                return so(num, 0)
         else:
-            return not bool(self == self._parent.zero())
+            return so(repr(self.lhs()), repr(self.rhs()))
+
+        zero = det_ex.expand().is_trivial_zero()
+        if so == operator.eq:
+            return zero
+        else:
+            return not zero
+
+
+    def satisfiable(self):
+        return self.holds()
+
+    def holds(self):
+        """
+        Return ``False`` unless this relation can be shown by Sage
+        to be true.
+
+        If Sage does not know if the equation is valid it will
+        throw a ``NotImplementedError``. Note that the validity
+        of equations is an undecidable problem. Hence there will
+        always be instances for which such error is raised.
+
+        EXAMPLES::
+
+            sage: k = var('k')
+            sage: pol = 1/(k-1) - 1/k - 1/k/(k-1)
+            sage: (pol == 0).holds()
+            True
+            sage: (sin(x)^2 + cos(x)^2 == 1).holds()
+            True
+
+        The relation may be true with integers but is not
+        when in the complex domain (:trac:`15571`)::
+
+            sage: a,x = var('a,x')
+            sage: assume(a, 'integer')
+            sage: assume(x, 'integer')
+            sage: expr = a^(4*x) - (a^4)^x
+            sage: (expr == 0).holds()
+            True
+            sage: forget()
+            sage: assume(a, 'complex')
+            sage: assume(x, 'complex')
+            sage: (expr == 0).holds()
+            False
+            sage: forget()
+
+        TESTS:
+
+        Ensure assumptions are correctly used::
+
+            sage: x, y, z = var('x, y, z')
+            sage: assume(x >= y, y >= z, z >= x)
+            sage: (x == z).holds()
+            True
+            sage: (z < x).holds()
+            False
+            sage: (z > y).holds()
+            False
+            sage: (y == z).holds()
+            True
+            sage: (y <= z).holds()
+            True
+            sage: forget()
+            sage: assume(x >= 1, x <= 1)
+            sage: (x == 1).holds()
+            True
+            sage: (x != 1).holds()
+            False
+            sage: (x > 1).holds()
+            False
+            sage: forget()
+            sage: assume(x > 0)
+            sage: (x == 0).holds()
+            False
+            sage: (x != 0).holds()
+            True
+            sage: (x == 1).holds()
+            False
+
+        The following must be true, even though we do not
+        know for sure that x is not 1, as symbolic comparisons
+        elsewhere rely on x!=y unless we are sure it is not
+        true; there is no equivalent of Maxima's ``unknown``.
+        Since it is False that x==1, it is True that x != 1.
+
+        ::
+
+            sage: (x != 1).holds()
+            True
+            sage: forget()
+            sage: assume(x>y)
+            sage: (x==y).holds()
+            False
+            sage: (x != y).holds() # The same comment as above applies here as well
+            True
+            sage: forget()
+        """
+        if len(self.variables())==0:
+            if self.__nonzero__():
+                return True
+            if self.is_relational():
+                return self.operator()((self.lhs()-self.rhs()).expand().simplify_full(), 0).__nonzero__()
+            else:
+                return self.expand().simplify_full().__nonzero__()
+
+        pynac_result = decide_relational(self._gobj)
+        if pynac_result != relational_notimplemented:
+            if pynac_result == relational_undecidable:
+                raise TypeError('Undecidable relation: ' + repr(self))
+            return pynac_result == relational_true
+        if pynac_result and self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
+            m = self._maxima_()
+            s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
+            if s == 'false':
+                return False
+            else:
+                return True
+
+        # If assumptions are involved, falsification is more complicated...
+        need_assumptions = False
+        from sage.symbolic.assumptions import assumptions
+        assumption_list = assumptions()
+        if assumption_list:
+            vars = self.variables()
+            if vars:
+                assumption_var_list = []
+                for eqn in assumption_list:
+                    try:
+                        assumption_var_list.append(eqn.variables())
+                    except AttributeError: # if we have a GenericDeclaration
+                        assumption_var_list.append((eqn._var,))
+                assumption_vars = set(sum(assumption_var_list, ()))
+                if set(vars).intersection(assumption_vars):
+                    need_assumptions = True
+
+        # Use interval fields to try and falsify the relation
+        if not need_assumptions:
+            res = self.test_relation()
+            if res is True:
+                return True
+            elif res is False:
+                return False
+
+        # we really have to do some work here...
+        # I really don't like calling Maxima to test equality.  It
+        # is SUPER SUPER SLOW, and it has all the problem
+        # associated with different semantics, different
+        # precision, etc., that can lead to subtle bugs.  Also, a
+        # lot of basic Sage objects can't be put into maxima.
+        from sage.symbolic.relation import test_relation_maxima
+        return test_relation_maxima(self)
+
 
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
