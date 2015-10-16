@@ -303,8 +303,6 @@ class Constant(object):
             True
             sage: p == s
             False
-            sage: p != s
-            True
         """
         return (self.__class__ == other.__class__ and
                 self._name == other._name)

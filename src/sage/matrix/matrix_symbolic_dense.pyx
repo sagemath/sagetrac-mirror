@@ -493,14 +493,14 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [(x^2 - 5*x - 2, 1)]
             sage: a = matrix(SR,[[1,0],[0,2]])
             sage: a.fcp()
-            (x - 2) * (x - 1)
+            (x - 1) * (x - 2)
             sage: [i for i in a.fcp()]
-            [(x - 2, 1), (x - 1, 1)]
+            [(x - 1, 1), (x - 2, 1)]
             sage: a = matrix(SR, 5, [1..5^2])
             sage: a.fcp()
-            (x^2 - 65*x - 250) * x^3
+            x^3 * (x^2 - 65*x - 250)
             sage: list(a.fcp())
-            [(x^2 - 65*x - 250, 1), (x, 3)]
+            [(x, 3), (x^2 - 65*x - 250, 1)]
 
         """
         from sage.symbolic.ring import SR

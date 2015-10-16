@@ -520,7 +520,7 @@ It is trivial to verify this equation on the closed form::
     sage: equadiff.substitute_function(Cf, s0)
     doctest:...: DeprecationWarning:...
     (4*z - 1)/sqrt(-4*z + 1) + sqrt(-4*z + 1) == 0
-    sage: bool(equadiff.substitute_function(Cf, s0))
+    sage: (equadiff.substitute_function(Cf, s0)).holds()
     True
 
 .. On veut non seulement remplacer les occurences de C(z), mais

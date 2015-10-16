@@ -261,7 +261,7 @@ Sage example in ./domaines.tex, line 623::
 Sage example in ./domaines.tex, line 679::
 
     sage: x, y = var('x, y')
-    sage: bool( (x-y)*(x+y) == x^2-y^2 )
+    sage: ( (x-y)*(x+y) == x^2-y^2 ).holds()
     True
 
 Sage example in ./domaines.tex, line 697::
@@ -368,7 +368,7 @@ Sage example in ./domaines.tex, line 914::
     # machines we get a negative sign
     sage: x1, x2, x3, x4 = SR.var('x1, x2, x3, x4')
     sage: p = prod( (a-b) for (a,b) in Subsets([x1,x2,x3,x4],2) )
-    sage: bool(p == (x1 - x2)*(x1 - x3)*(x1 - x4)*(x2 - x3)*(x2 - x4)*(x3 - x4)) or bool(p == -(x1 - x2)*(x1 - x3)*(x1 - x4)*(x2 - x3)*(x2 - x4)*(x3 - x4))
+    sage: (p == (x1 - x2)*(x1 - x3)*(x1 - x4)*(x2 - x3)*(x2 - x4)*(x3 - x4)).holds() or (p == -(x1 - x2)*(x1 - x3)*(x1 - x4)*(x2 - x3)*(x2 - x4)*(x3 - x4)).holds()
     True
 
 Sage example in ./domaines.tex, line 938::

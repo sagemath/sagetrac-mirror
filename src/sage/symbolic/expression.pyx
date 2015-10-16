@@ -356,12 +356,22 @@ cdef class Expression(CommutativeRingElement):
 
             sage: var('x')
             x
+            sage: b = -17.3
+            sage: a = SR(b)
+            sage: a.pyobject()
+            -17.3000000000000
+            sage: a.pyobject() is b
+            True
+
+        Integers and Rationals are converted internally though, so you
+        won't get back the same object::
+
             sage: b = -17/3
             sage: a = SR(b)
             sage: a.pyobject()
             -17/3
             sage: a.pyobject() is b
-            True
+            False
 
         TESTS::
 
@@ -1041,10 +1051,10 @@ cdef class Expression(CommutativeRingElement):
             <type 'sage.rings.integer.Integer'>
 
         If the symbolic expression is just a wrapper around an integer,
-        that very same integer is returned::
+        that very same integer is not preserved, but a new one returned::
 
             sage: n = 17; SR(n)._integer_() is n
-            True
+            False
         """
         try:
             n = self.pyobject()
@@ -1117,10 +1127,10 @@ cdef class Expression(CommutativeRingElement):
             -3/8
 
         If the symbolic expression is just a wrapper around a rational,
-        that very same rational is returned::
+        that very same rational is not preserved, but a new one returned::
 
             sage: n = 17/1; SR(n)._rational_() is n
-            True
+            False
         """
         try:
             n = self.pyobject()
@@ -1648,19 +1658,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x > 2).assume()
 
-        Bool returns True below if the inequality is *definitely* known to
+        ``holds()`` returns True below if the inequality is *definitely* known to
         be True.
 
         ::
 
-            sage: bool(x > 0)
+            sage: (x > 0).holds()
             True
-            sage: bool(x < 0)
+            sage: (x < 0).holds()
             False
 
-        This may or may not be True, so bool returns False::
+        This may or may not be True, so ``holds()`` returns False::
 
-            sage: bool(x > 3)
+            sage: (x > 3).holds()
             False
 
         If you make inconsistent or meaningless assumptions,
@@ -2317,26 +2327,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(abs(x))
             sage: assert(not x/x - 1)
 
-        This is called by :meth:`is_zero`::
-
-            sage: k = var('k')
-            sage: pol = 1/(k-1) - 1/k - 1/k/(k-1)
-            sage: pol.is_zero()
-            True
-
-            sage: f = sin(x)^2 + cos(x)^2 - 1
-            sage: f.is_zero()
-            True
-
-        TESTS:
-
-        First, a bunch of tests of nonzero (which is called by bool)
-        for symbolic relations::
+        TESTS::
 
             sage: x = var('x')
             sage: assert((x-1)^2 == x^2 - 2*x + 1)
-            sage: assert(((x-1)^2 == x^2 - 2*x + 1).expand())
-            sage: assert(not ((x-1)^2 == x^2 - 2*x + 3).expand())
             sage: assert(2 + x < 3 + x)
             sage: assert(not 2 + x < 1 + x)
             sage: assert(2 + x > 1 + x)
@@ -2346,48 +2340,12 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(1 + x <= 1 + x)
             sage: assert(not 1 + x^2 != 1 + x*x)
             sage: assert(1 + x^2 != 2 + x*x)
-            sage: assert(SR(oo) == SR(oo))
-            sage: assert(not -SR(oo) == SR(oo))
-            sage: assert(-SR(oo) != SR(oo))
-
-        Next, tests to ensure assumptions are correctly used::
-
-            sage: x, y, z = var('x, y, z')
-            sage: assume(x >= y, y >= z, z >= x)
-            sage: assert(x == z)
-            sage: assert(not z < x)
-            sage: assert(not z > y)
-            sage: assert(y == z)
-            sage: assert(y <= z)
-            sage: forget()
-            sage: assume(x >= 1, x <= 1)
-            sage: assert(x == 1)
-            sage: assert(not x != 1)
-            sage: assert(not x > 1)
-            sage: forget()
-            sage: assume(x > 0)
-            sage: assert(not x == 0)
-            sage: assert(x != 0)
-            sage: assert(not x == 1)
-
-        The following must be true, even though we do not
-        know for sure that x is not 1, as symbolic comparisons
-        elsewhere rely on x!=y unless we are sure it is not
-        true; there is no equivalent of Maxima's ``unknown``.
-        Since it is False that x==1, it is True that x != 1.
-
-        ::
-
-            sage: assert(x != 1)
-            sage: forget()
-            sage: assume(x>y)
-            sage: assert(not x==y)
-            sage: assert(x != y)
-            sage: assert(x != y) # The same comment as above applies here as well
-            sage: forget()
 
         Comparisons of infinities::
 
+            sage: assert(SR(oo) == SR(oo))
+            sage: assert(not -SR(oo) == SR(oo))
+            sage: assert(-SR(oo) != SR(oo))
             sage: assert( (1+I)*oo == (2+2*I)*oo )
             sage: assert( SR(unsigned_infinity) == SR(unsigned_infinity) )
             sage: assert( SR(I*oo) == I*oo )
@@ -2395,22 +2353,6 @@ cdef class Expression(CommutativeRingElement):
             sage: assert( SR(oo) >= SR(-oo) )
             sage: assert( SR(oo) != SR(-oo) )
             sage: assert( sqrt(2)*oo != I*oo )
-
-        The expression may be zero with integers but is not
-        when in the complex domain (:trac:`15571`)::
-
-            sage: a,x = var('a,x')
-            sage: assume(a, 'integer')
-            sage: assume(x, 'integer')
-            sage: expr = a^(4*x) - (a^4)^x
-            sage: expr.is_zero()
-            True
-            sage: forget()
-            sage: assume(a, 'complex')
-            sage: assume(x, 'complex')
-            sage: expr.is_zero()
-            False
-            sage: forget()
 
         Check that :trac:`13326` is fixed::
 
@@ -4034,11 +3976,11 @@ cdef class Expression(CommutativeRingElement):
         by applying series again::
 
             sage: (1/(1-x)).series(x, 3)+(1/(1+x)).series(x,3)
-            (1 + (-1)*x + 1*x^2 + Order(x^3)) + (1 + 1*x + 1*x^2 + Order(x^3))
+            (1 + 1*x + 1*x^2 + Order(x^3)) + (1 + (-1)*x + 1*x^2 + Order(x^3))
             sage: _.series(x,3)
             2 + 2*x^2 + Order(x^3)
             sage: (1/(1-x)).series(x, 3)*(1/(1+x)).series(x,3)
-            (1 + (-1)*x + 1*x^2 + Order(x^3))*(1 + 1*x + 1*x^2 + Order(x^3))
+            (1 + 1*x + 1*x^2 + Order(x^3))*(1 + (-1)*x + 1*x^2 + Order(x^3))
             sage: _.series(x,3)
             1 + 1*x^2 + Order(x^3)
 

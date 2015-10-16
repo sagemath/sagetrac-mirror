@@ -396,7 +396,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
         This is a point on the curve::
 
-            sage: bool(temp == 0)
+            sage: (temp == 0).holds()
             True
         """
         a = [SR(x) for x in self.a_invariants()]
