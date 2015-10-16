@@ -2859,7 +2859,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x<y).contradicts({x: 30, y: 20})
             True
         """
-        return bool(self.negation().subs(soln))
+        return (self.negation().subs(soln)).satisfiable()
 
     def is_unit(self):
         """
@@ -10759,7 +10759,7 @@ cdef class Expression(CommutativeRingElement):
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
-        if solution_dict not in (True,False):
+        if not (solution_dict == True or solution_dict == False):
             raise AttributeError("Please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
             ex = self.lhs() - self.rhs()

@@ -4100,7 +4100,12 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             True
         """
         def default_is_zero(expression):
-            return expression.is_zero()
+            # symbolic expressions must be provably zero
+            from sage.symbolic.expression import Expression
+            if isinstance(expression, Expression):
+                return (expression == 0).holds()
+            else:
+                return expression.is_zero()
 
         is_zero_function = default_is_zero
         if is_zero is not None:

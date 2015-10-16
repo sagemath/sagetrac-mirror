@@ -214,6 +214,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         LLL = M.LLL(delta=.75)
         coeffs = LLL[0][:n]
         if height_bound:
+            from sage.rings.real_mpfr import RR
             def norm(v):
                 # norm on an integer vector invokes Integer.sqrt() which tries to factor...
                 from sage.rings.real_mpfi import RIF
@@ -222,10 +223,10 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
                 if proof:
                     # Given an LLL reduced basis $b_1, ..., b_n$, we only
                     # know that $|b_1| <= 2^((n-1)/2) |x|$ for non-zero $x \in L$.
-                    if norm(LLL[0]) <= 2**((n-1)/2) * n.sqrt() * height_bound:
+                    if norm(LLL[0]).upper() <= 2**((n-1)/2) * RR(n).sqrt() * height_bound:
                         raise ValueError("insufficient precision for non-existence proof")
                 return None
-            elif proof and norm(LLL[1]) < 2**((n-1)/2) * max(norm(LLL[0]), n.sqrt()*height_bound):
+            elif proof and norm(LLL[1]).upper() < 2**((n-1)/2) * max(norm(LLL[0]).upper(), RR(n).sqrt() * height_bound):
                 raise ValueError("insufficient precision for uniqueness proof")
         if coeffs[degree] < 0:
             coeffs = -coeffs

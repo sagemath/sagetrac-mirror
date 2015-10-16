@@ -962,10 +962,11 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                         error = abs(g(aa))
                         if error < expected_error:
                             # See if we can prove equality exactly
-                            if g(ex).simplify_trig().canonicalize_radical() == 0:
+                            if (g(ex).simplify_trig().canonicalize_radical() == 0).holds():
                                 return g
                             # Otherwise fall back to numerical guess
-                            elif epsilon and error < epsilon:
+                            elif ((epsilon and error < epsilon)
+                                or (epsilon==0 and error==0)):
                                 return g
                             elif algorithm is not None:
                                 raise NotImplementedError("Could not prove minimal polynomial %s (epsilon %s)" % (g, RR(error).str(no_sci=False)))
