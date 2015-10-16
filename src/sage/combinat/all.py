@@ -133,10 +133,10 @@ from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord
 from sloane_functions import sloane
 
-from non_ambiguous_tree import NonAmbiguousTrees, NonAmbiguousTree
 from parallelogram_polyomino import (
     ParallelogramPolyomino, ParallelogramPolyominoes
 )
+from non_ambiguous_tree import NonAmbiguousTrees, NonAmbiguousTree
 
 from root_system.all import *
 from sf.all import *

@@ -30,6 +30,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy
 )
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
 from sage.sets.set import Set
@@ -334,6 +335,7 @@ class NonAmbiguousTree( ClonableList ):
 
     '''
     __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
