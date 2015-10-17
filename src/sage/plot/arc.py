@@ -63,12 +63,10 @@ class Arc(GraphicPrimitive):
             True
             sage: A[0].r2 == 1
             True
-            sage: bool(A[0].angle == pi/4)
-            True
-            sage: bool(A[0].s1 == 0)
-            True
-            sage: bool(A[0].s2 == pi)
-            True
+            sage: abs(A[0].angle - pi.n()/4)   # abs tol 1e-10
+            0
+            sage: abs(A[0].s2 - pi.n())        # abs tol 1e-10
+            0
 
         TESTS::
 

@@ -1224,8 +1224,6 @@ cdef class Parent(category_object.CategoryObject):
             True
             sage: RIF(1, 2) in RIF
             True
-            sage: pi in RIF # there is no element of RIF equal to pi
-            False
             sage: sqrt(2) in CC
             True
             sage: pi in RR
@@ -1235,6 +1233,12 @@ cdef class Parent(category_object.CategoryObject):
             sage: pi in RDF
             True
             sage: pi in CDF
+            True
+
+        Note that this implementation can give mathematically
+        wrong results for irrationals::
+
+            sage: pi in RIF
             True
 
         Note that we have

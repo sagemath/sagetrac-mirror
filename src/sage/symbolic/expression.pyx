@@ -2533,6 +2533,9 @@ cdef class Expression(CommutativeRingElement):
             else:
                 return self.expand().simplify_full().__nonzero__()
 
+        if not self.is_relational():
+            return (self != 0).holds()
+
         pynac_result = decide_relational(self._gobj)
         if pynac_result != relational_notimplemented:
             if pynac_result == relational_undecidable:
