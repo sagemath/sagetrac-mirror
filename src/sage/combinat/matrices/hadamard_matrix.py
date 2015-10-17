@@ -719,7 +719,7 @@ def rshcd_from_close_prime_powers(n):
 
     REFERENCE:
 
-    .. [GS14] J.M. Goethals, and J. J. Seidel,
+    .. [GS14] J. M. Goethals, and J. J. Seidel,
       Strongly regular graphs derived from combinatorial designs,
       Canadian Journal of Mathematics 22(1970), 597-614,
       http://dx.doi.org/10.4153/CJM-1970-067-9
@@ -748,6 +748,115 @@ def rshcd_from_close_prime_powers(n):
     assert HH**2 == n**2*I(n**2)
     return HH
 
+def _circulant_matrix(v):
+    r"""
+    Return the circulant matrix specified by its 1st row `v`
+
+    A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is 
+    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$ where $c_{ij}=v_{j-i \mod b}$.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import _circulant_matrix 
+        sage: v=[1,2,3,4,8]
+        sage: _circulant_matrix(v)
+        [1 2 3 4 8]
+        [8 1 2 3 4]
+        [4 8 1 2 3]
+        [3 4 8 1 2]
+        [2 3 4 8 1]
+    """
+    from sage.rings.finite_rings.integer_mod import mod
+    n = len(v)
+    return matrix(n, n, lambda i, j: v[mod(j-i,n)])
+
+def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
+    r"""
+    Williamson-Goethals-Seidel construction of a skew Hadamard matrix
+
+    Given `n\times n` (anti)circulant (or matrices `A`, `B`, `C`, `D` with 1,-1 entries, 
+    and satisfying `A+A^\top = 2I`, `AA^\top + BB^\top + CC^\top + DD^\top = 4nI`,
+    one can construct a skew Hadamard matrix of order `4n`, cf. [GS70s]_.
+    Matrices for `n=36` and `52` are given in [GS70s]_. Matrices for `n=92` are given
+    in [Wall71]_.
+
+    INPUT:
+
+    - ``a`` -- 1,-1 list specifying the 1st row of `A`
+
+    - ``b`` -- 1,-1 list specifying the 1st row of `B`
+
+    - ``d`` -- 1,-1 list specifying the 1st row of `C`
+
+    - ``c`` -- 1,-1 list specifying the 1st row of `D`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import williamson_goethals_seidel_skew_hadamard_matrix as WGS
+        sage: a=[ 1,  1, 1, -1,  1, -1,  1, -1, -1]
+        sage: b=[ 1, -1, 1,  1, -1, -1,  1,  1, -1]
+        sage: c=[-1, -1]+[1]*6+[-1]
+        sage: d=[ 1,  1, 1, -1,  1,  1, -1,  1,  1]
+        sage: M=WGS(a,b,c,d,check=True)
+
+    REFERENCES:
+
+    .. [GS70s] J.M. Goethals and J. J. Seidel,
+      A skew Hadamard matrix of order 36,
+      J. Aust. Math. Soc. 11(1970), 343-344 
+    .. [Wall71] J. Wallis,
+      A skew-Hadamard matrix of order 92,
+      Bull. Aust. Math. Soc. 5(1971), 203-204 
+    .. [KoSt08] C. Koukouvinos, S. Stylianou
+      On skew-Hadamard matrices,
+      Discrete Math. 308(2008) 2723-2731
+
+
+    """
+    from sage.combinat.matrices.hadamard_matrix import _circulant_matrix 
+    n = len(a)
+    R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)
+    A,B,C,D=map(_circulant_matrix, [a,b,c,d])
+    if check:
+        assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
+        assert A+A.T==2*I(n)
+
+    M = block_matrix([[   A,    B*R,    C*R,    D*R],
+                      [-B*R,      A, -D.T*R,  C.T*R], 
+                      [-C*R,  D.T*R,      A, -B.T*R],
+                      [-D*R, -C.T*R,  B.T*R,      A]])
+    if check:
+        assert is_hadamard_matrix(M, normalized=False, skew=True)
+    return M
+
+def _GS_skew_hadamard(n, existence=False, check=True):
+    from sage.combinat.matrices.hadamard_matrix import\
+         williamson_goethals_seidel_skew_hadamard_matrix as WGS
+    def pmtoZ(s):
+       return map(lambda x: 1 if x=='+' else -1, s)
+
+    if existence:
+        return n in [36, 52, 92]
+             
+    if n==36:
+        a=[ 1,  1, 1, -1,  1, -1,  1, -1, -1]
+        b=[ 1, -1, 1,  1, -1, -1,  1,  1, -1]
+        c=[-1, -1]+[1]*6+[-1]
+        d=[ 1,  1, 1, -1,  1,  1, -1,  1,  1]
+        return WGS(a,b,c,d, check=check)
+    if n==52:
+        a=pmtoZ('++++-++--+---')
+        b=pmtoZ('-+-++----++-+')
+        c=pmtoZ('--+-+++++-+++')
+        return WGS(a,b,c,c, check=check)
+    if n==92:
+        a = [1,-1,-1,-1,-1,-1,-1,-1, 1, 1,-1, 1,-1, 1,-1,-1, 1, 1, 1, 1, 1, 1, 1]
+        b = [1, 1,-1,-1, 1,-1,-1, 1, 1, 1, 1,-1,-1, 1, 1, 1, 1,-1,-1, 1,-1,-1, 1]
+        c = [1, 1,-1,-1,-1, 1,-1, 1,-1, 1,-1, 1, 1,-1, 1,-1, 1,-1, 1,-1,-1,-1, 1]
+        d = [1,-1,-1,-1,-1, 1,-1,-1, 1,-1,-1, 1, 1,-1,-1, 1,-1,-1, 1,-1,-1,-1,-1]
+        return WGS(a,b,c,d, check=check)
+    return None 
+        
 _skew_had_cache={}
 
 def skew_hadamard_matrix(n,existence=False, check=True):
@@ -804,10 +913,16 @@ def skew_hadamard_matrix(n,existence=False, check=True):
         ...
         ValueError: A skew Hadamard matrix of order 10 does not exist
         sage: skew_hadamard_matrix(36)
+        36 x 36 dense matrix over Integer Ring...
+        sage: skew_hadamard_matrix(52)
+        52 x 52 dense matrix over Integer Ring...
+        sage: skew_hadamard_matrix(92)
+        92 x 92 dense matrix over Integer Ring...
+        sage: skew_hadamard_matrix(100)
         Traceback (most recent call last):
         ...
-        ValueError: A skew Hadamard matrix of order 36 is not yet implemented.
-        sage: skew_hadamard_matrix(36,existence=True)
+        ValueError: A skew Hadamard matrix of order 100 is not yet implemented.
+        sage: skew_hadamard_matrix(100,existence=True)
         Unknown
     """
     def true():
@@ -840,7 +955,7 @@ def skew_hadamard_matrix(n,existence=False, check=True):
             H = skew_hadamard_matrix(n//2,check=False)
             M = block_matrix([[H,H], [-H.T,H.T]])
 
-        else:
+        else: # try Williamson construction
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
@@ -856,6 +971,12 @@ def skew_hadamard_matrix(n,existence=False, check=True):
                                         _helper_payley_matrix(n1-1,zero_position=0)]])+I(n1)
                     M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
                     break
+    if M is None: # try Williamson-Goethals-Seidel construction
+        if _GS_skew_hadamard(n, existence=True):
+            if existence:
+                return true()
+            M = _GS_skew_hadamard(n)
+
     if M is None:
         if existence:
             return Unknown
