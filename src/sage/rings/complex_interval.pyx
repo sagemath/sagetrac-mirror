@@ -1665,7 +1665,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         INPUT:
 
-        - ``f`` -- the function as something callable or ``None``.
+        - ``f`` -- the function as something callable.
 
         - ``test`` -- the condition which is tested for. This function
           gets ``f`` (or a modified ``f`` when ``use_fast_callable``

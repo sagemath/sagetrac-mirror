@@ -5141,7 +5141,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``f`` -- the function as something callable or ``None``.
+        - ``f`` -- the function as something callable.
 
         - ``test`` -- the condition which is tested for. This function
           gets ``f`` (or a modified ``f`` when ``use_fast_callable``
@@ -5399,7 +5399,7 @@ cpdef bisect(f, start, test,
 
     INPUT:
 
-    - ``f`` -- the function as something callable or ``None``.
+    - ``f`` -- the function as something callable.
 
     - ``start`` -- the starting cell of the bisection process. This is
       usually an element of an
@@ -5526,8 +5526,6 @@ cpdef bisect(f, start, test,
     else:
         _max_open = max_open
 
-    if f is None and use_fast_callable is None:
-        use_fast_callable = False
     if use_fast_callable is False:
         ff = f
     else:
