@@ -5432,6 +5432,19 @@ cpdef bisect(f, start, test,
 
     A list of cells (elements of the same parent as ``start``).
 
+    .. NOTE::
+
+        It is assumed that ``test`` satisfies some monotonicity
+        condition: Suppose ``bisect_on_success`` is ``True``. Then, as
+        described above, the bisection is done on a successfully
+        tested cell. Thus, failing cells `F` and subsets of these
+        failing cells are not tested anymore. So it is assumed that
+        ``test`` fails on each of these subsets of `F`.
+
+        If ``bisect_on_success`` is ``False``, then it is the other
+        way round: A successful ``test`` on some cell `T` implies that
+        ``test`` applied on any subset of `T` is successful as well.
+
     EXAMPLES:
 
     We can use this function to find the roots of some function::
