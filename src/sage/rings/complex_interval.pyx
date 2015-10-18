@@ -1697,7 +1697,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             :func:`sage.rings.real_mpfi.bisect`
             :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.find_subintervals`,
         """
-        return real_mpfi.bisect(f, self, test, **kwds)
+        from sage.rings.real_mpfi import bisect
+        return bisect(f, self, test, **kwds)
 
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
