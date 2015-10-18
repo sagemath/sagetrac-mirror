@@ -5389,11 +5389,11 @@ def __create__RealIntervalFieldElement_version1(parent, lower, upper):
 
 
 cpdef bisect(f, start, test,
-             bisect_on_success=True,
+             bint bisect_on_success=True,
              max_iterations=None,
              max_open=None,
              use_fast_callable=None,
-             join_neighboring_cells=True):
+             bint join_neighboring_cells=True):
     r"""
     Perform a bisection search on the given function.
 
@@ -5515,10 +5515,16 @@ cpdef bisect(f, start, test,
 
     R = start.parent()
 
+    cdef Py_ssize_t _max_iterations
     if max_iterations is None:
-        max_iterations = R.precision() - 1
+        _max_iterations = R.precision() - 1
+    else:
+        _max_iterations = max_iterations
+    cdef Py_ssize_t _max_open
     if max_open is None:
-        max_open = 10 * R.precision()
+        _max_open = 10 * R.precision()
+    else:
+        _max_open = max_open
 
     if f is None and use_fast_callable is None:
         use_fast_callable = False
@@ -5535,14 +5541,15 @@ cpdef bisect(f, start, test,
 
     # init
     cdef list open = [start]
-    cdef size_t iteration = 0
+    cdef Py_ssize_t iteration = 0
 
     cdef size_t verbose_level = get_verbose()
     verbose('starting the bisection-process...', level=1)
 
     cdef list result = []
     cdef list new_open = []
-    while iteration < max_iterations and 0 < len(open) < max_open:
+    cdef bint success
+    while iteration < _max_iterations and 0 < len(open) < _max_open:
         new_open = []
         if bisect_on_success:
             result = []
