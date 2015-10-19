@@ -461,10 +461,25 @@ class Posets(object):
         return Poset(D,cover_relations=False)
 
     @staticmethod
-    def StandardExample(n):
+    def StandardExample(n, facade = None):
         r"""
         Returns the partially ordered set on ``2n`` elements with 
         dimension ``n``.
+
+        INPUT:
+
+        - ``n`` - A nonnegative integer, dimension of the constructed post.
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+
+        OUTPUT:
+
+        A poset on '\{0,1,2,\ldots, 2n-1\}` whose defining relations are that
+        every `0\leq i < n` is less than every `n\leq j <2n`, except when
+        `i+n=j`. This is the so-called "standard example" of a poset with
+        dimension `n`.
 
         EXAMPLES::
 
@@ -477,6 +492,8 @@ class Posets(object):
 
             sage: A = Posets.StandardExample(6); A
             Finite poset containing 12 elements
+            sage: A.dimension()
+            6
         """
         try:
             n = Integer(n)
@@ -484,13 +501,47 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
-        return Poset( (range(2*n), [[i, j+n] for i in range(n) for j in range(n) if i != j]) )
-
+        return Poset( (range(2*n), [[i, j+n] for i in range(n) for j in range(n) if i != j]), facade = facade )
 
     @staticmethod
-    def UpDownPoset(m, n):
+    def ZigZagPoset(n, first_step = "up", facade = None):
         r"""
-        Returns the up-down poset on ``n`` elements where every ``(m+1)st`` 
+        Returns the partially ordered set on ``n`` elements that consecutively
+        alternates between up and down steps.
+
+        INPUT:
+
+        - ``n`` - a nonnegative integer, number of elements in the poset.
+        - ``first_step`` - a string, indicating if the posets starts with an up or down step.
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+
+        OUTPUT:
+
+        A poset on `\{0,1,\ldots,n-1\}` with relations `0<1>2<\ldots` if
+        ``first_step="up"``, and relations `0>1<2>\ldots` if ``first_step="down"``.
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        if first_step == "up":
+            N=0
+        elif first_step == "down":
+            N=1
+        else:
+            raise TypeError("first step must be up or down")
+        return(Poset((range(n), [[i,i+1] for i in range(n-1) if (i+1) % 2 != N]+[[i+1,i] for i in range(n-1) if (i+1) % 2 == N]), facade = facade))
+        
+
+    @staticmethod
+    def UpDownPoset(m, n, facade = None):
+        r"""
+        Returns the up-down poset on ``n`` elements where every `(m+1)^{st}` 
         step is down and the rest are up. 
 
         The case where ``m=1`` is
@@ -503,8 +554,8 @@ class Posets(object):
 
         OUTPUT:
         
-        The partially ordered set on \{ 0, 1, ... , ``n-1`` \}
-        where ``i>i+1`` if ``i+1`` is 0 ``mod m``, and ``i<i+1`` otherwise.
+        The partially ordered set on `\{ 0, 1, ... , n-1 \}`
+        where `i>i+1` if `i+1` is `0 mod m`, and `i<i+1` otherwise.
 
         EXAMPLES::
 
@@ -532,7 +583,59 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(m))
         if m < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(m))
-        return Poset( (range(0,n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]) )
+        return Poset( (range(n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]), cover_relations = True, facade = facade )
+
+    @staticmethod
+    def DescentPoset(n, D, facade = None):
+        r"""
+        Returns the partially ordered set on ``n`` vertices with up and down
+        steps determined by ``D``.
+
+        Linear extensions of this poset will naturally be in bijection with
+        permutations of length ``n`` and descent set equal to ``D``.
+
+
+        INPUT:
+
+        - ``n`` - A nonnegative integer, number of vertices in the poset.
+        - ``D`` - A subset of `\{0,1,\ldots,n-1\}`.
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+
+        OUTPUT:
+        
+        The partially ordered set on `\{ 0, 1, ... , n-1 \}`
+        where ``i<i+1`` if ``i`` is in `D`, and ``i>i+1`` otherwise.
+
+        EXAMPLES::
+
+            sage: A = Posets.DescentPoset(1,6); A
+            Finite poset containing 6 elements
+            sage: [len([a for a in Posets.UpDownPoset(1,n).antichains()]) for n in range(0,8)]
+            [1, 2, 3, 5, 8, 13, 21, 34]
+            sage: [len(Posets.UpDownPoset(1,n).linear_extensions()) for n in range(0,8)]
+            [1, 1, 1, 2, 5, 16, 61, 272]
+
+        TESTS:
+
+            sage: A = Posets.StandardExample(6); A
+            Finite poset containing 12 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        cover=[]
+        for i in range(n):
+            if i in D:
+                cover.append([i,i+1])
+            else:
+                cover.append([i+1,i])
+        return(Poset((range(n), cover), cover_relations=True, facade = facade))
 
     @staticmethod
     def SSTPoset(s,f=None):
