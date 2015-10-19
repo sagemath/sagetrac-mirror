@@ -13,7 +13,7 @@ of published research, please cite the appropriate papers as
 listed at http://grdb.lboro.ac.uk/
 """
 from sage.rings.all import Integer
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.geometry.lattice_polytope import LatticePolytope, all_cached_data
 import os
 
