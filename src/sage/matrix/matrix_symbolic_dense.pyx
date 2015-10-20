@@ -10,7 +10,7 @@ EXAMPLES::
     sage: matrix(SR, 2, 2, range(4))
     [0 1]
     [2 3]
-    sage: matrix(SR, 2, 2, var('t'))
+    sage: matrix(SR, 2, 2, SR.var('t'))
     [t 0]
     [0 t]
 

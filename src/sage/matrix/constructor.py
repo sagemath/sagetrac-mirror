@@ -506,10 +506,25 @@ def _matrix_constructor(*args, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: List of rows is not valid (rows are wrong types or lengths)
+
+    Check that :trac:`10158` is fixed::
+
         sage: matrix(vector(RR,[1,2,3])).parent()
         Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
-        sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero() # see #10158
+        sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero()
         True
+
+    Check that the matrix constructor works with any callable input (see :trac:`18713`)::
+
+        sage: @cached_function
+        ....: def L(n,k):
+        ....:         if n==k: return 1
+        ....:         if k<0 or k>n: return 0
+        ....:         return L(n-1,k-1)+(n+k-1)*L(n-1,k)
+        ....:
+        sage: m = matrix(ZZ, 8, L)
+        sage: m[7][4]
+        4200
 
     AUTHORS:
 
@@ -595,76 +610,90 @@ def _matrix_constructor(*args, **kwds):
         entries = 0
         entry_ring = rings.ZZ
     elif len(args) == 1:
-        if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
-            if ncols is None and nrows is None:
-                raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
-            if ncols is None:
-                ncols = nrows
-            elif nrows is None:
-                nrows = ncols
-
-            f = args[0]
-            args[0] = [[f(i,j) for j in range(ncols)] for i in range(nrows)]
-
-        if isinstance(args[0], (list, tuple)):
-            if len(args[0]) == 0:
-                # no entries are specified, pass back the zero matrix
-                entries = 0
-                entry_ring = rings.ZZ
-            elif isinstance(args[0][0], (list, tuple)) or is_Vector(args[0][0]):
-                # Ensure we have a list of lists, each inner list having the same number of elements
-                first_len = len(args[0][0])
-                if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-                    raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
-                # We have a list of rows or vectors
-                if nrows is None:
-                    nrows = len(args[0])
-                elif nrows != len(args[0]):
-                    raise ValueError("Number of rows does not match up with specified number.")
+        of_other_type = False
+        try:
+            _ = iter(args[0])
+        except TypeError:
+        # not iterable
+            from sage.symbolic.expression import Expression
+            from sage.symbolic.function import Function
+            if (callable(args[0])
+            and not (isinstance(args[0], Expression)
+                    and not isinstance(args[0], Function))):
+                if ncols is None and nrows is None:
+                    raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
                 if ncols is None:
-                    ncols = len(args[0][0])
-                elif ncols != len(args[0][0]):
-                    raise ValueError("Number of columns does not match up with specified number.")
+                    ncols = nrows
+                elif nrows is None:
+                    nrows = ncols
 
-                entries = []
-                for v in args[0]:
-                    entries.extend(v)
-
+                f = args[0]
+                args[0] = [[f(i,j) for j in range(ncols)] for i in range(nrows)]
             else:
-                # We have a flat list; figure out nrows and ncols
-                if nrows is None:
-                    nrows = 1
+                of_other_type = True
 
-                if nrows > 0:
+        if not of_other_type:
+            if isinstance(args[0], (list, tuple)):
+                if len(args[0]) == 0:
+                    # no entries are specified, pass back the zero matrix
+                    entries = 0
+                    entry_ring = rings.ZZ
+                elif isinstance(args[0][0], (list, tuple)) or is_Vector(args[0][0]):
+                    # Ensure we have a list of lists, each inner list having the same number of elements
+                    first_len = len(args[0][0])
+                    if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
+                        raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
+                    # We have a list of rows or vectors
+                    if nrows is None:
+                        nrows = len(args[0])
+                    elif nrows != len(args[0]):
+                        raise ValueError("Number of rows does not match up with specified number.")
                     if ncols is None:
-                        ncols = len(args[0]) // nrows
-                    elif ncols != len(args[0]) // nrows:
+                        ncols = len(args[0][0])
+                    elif ncols != len(args[0][0]):
+                        raise ValueError("Number of columns does not match up with specified number.")
+
+                    entries = []
+                    for v in args[0]:
+                        entries.extend(v)
+
+                else:
+                    # We have a flat list; figure out nrows and ncols
+                    if nrows is None:
+                        nrows = 1
+
+                    if nrows > 0:
+                        if ncols is None:
+                            ncols = len(args[0]) // nrows
+                        elif ncols != len(args[0]) // nrows:
+                            raise ValueError("entries has the wrong length")
+                    elif len(args[0]) > 0:
                         raise ValueError("entries has the wrong length")
-                elif len(args[0]) > 0:
-                    raise ValueError("entries has the wrong length")
 
-                entries = args[0]
+                    entries = args[0]
 
-            if nrows > 0 and ncols > 0 and ring is None:
-                entries, ring = prepare(entries)
+                if nrows > 0 and ncols > 0 and ring is None:
+                    entries, ring = prepare(entries)
 
-        elif isinstance(args[0], dict):
-            # We have a dictionary
-            # default to sparse
-            sparse = kwds.get('sparse', True)
-            if len(args[0]) == 0:
-                # no entries are specified, pass back the zero matrix
-                entries = 0
+            elif isinstance(args[0], dict):
+                # We have a dictionary
+                # default to sparse
+                sparse = kwds.get('sparse', True)
+                if len(args[0]) == 0:
+                    # no entries are specified, pass back the zero matrix
+                    entries = 0
+                else:
+                    entries, entry_ring = prepare_dict(args[0])
+                    if nrows is None:
+                        nrows = nrows_from_dict(entries)
+                        ncols = ncols_from_dict(entries)
+                    # note that ncols can still be None if nrows is set --
+                    # it will be assigned nrows down below.
             else:
-                entries, entry_ring = prepare_dict(args[0])
-                if nrows is None:
-                    nrows = nrows_from_dict(entries)
-                    ncols = ncols_from_dict(entries)
-                # note that ncols can still be None if nrows is set --
-                # it will be assigned nrows down below.
+                of_other_type = True
+                # See the construction after the numpy case below.
 
-            # See the construction after the numpy case below.
-        else:
+        if of_other_type:
             import numpy
             if isinstance(args[0], numpy.ndarray):
                 num_array = args[0]
@@ -718,7 +747,6 @@ def _matrix_constructor(*args, **kwds):
         nrows = 0
     if ncols is None:
         ncols = nrows
-
 
     if ring is None:
         try:
