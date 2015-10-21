@@ -353,7 +353,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
     def faltings_height(self):
         r"""
         Faltings's height of the elliptic curve `E`.
-        This is double the formula in Silverman Math Comp 1990 page 725.
+
+        This is double the formula in Silverman Math. Comp. 1990 page 725.
 
         EXAMPLE::
 
@@ -361,18 +362,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K,[-112,400])
             sage: E.faltings_height()
             4.29484994110149
-
         """
-        RR=RealField()
+        RR = RealField()
         K = self.base_field()
         c = RR(2).log()
         if self.b2().is_zero():
-            c = 0
+            c = RR.zero()
         from sage.schemes.elliptic_curves.ell_int_points import abs_log_height
-        h1 = abs_log_height([K(self.discriminant()), K(1)])/6
-        h2 = K(self.j_invariant()).global_height_arch()/6
-        h3 = K(self.b2()/12).global_height_arch()
-        return n(h1 + h2/2 + h3/2 + c)
+        h1 = abs_log_height([K(self.discriminant()), K(1)]) / 6
+        h2 = K(self.j_invariant()).global_height_arch() / 6
+        h3 = K(self.b2() / 12).global_height_arch()
+        return (h1 + h2/2 + h3/2 + c).n()
 
     def silverman_height_bounds(self):
         r"""
