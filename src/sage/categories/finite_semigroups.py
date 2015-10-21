@@ -128,3 +128,4 @@ class FiniteSemigroups(CategoryWithAxiom):
 
         # TODO: compute eJe, where J is the J-class of e
         # TODO: construct the action of self on it, as a permutation group
+        # TODO: Construct ideals of semigroupes , ie R(a) = aS, L(a) = Sa, J(a) = SaS.

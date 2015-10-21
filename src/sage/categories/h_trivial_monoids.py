@@ -14,6 +14,8 @@ class HTrivialMonoids(Category):
     is of cardinality `1`, or equivalently if the `H`-preoder is in
     fact an order.
 
+    A `H`-trivial monoid is also called an aperiodic monoid.
+
     EXAMPLES::
 
         sage: from sage.categories.h_trivial_monoids import *
