@@ -138,6 +138,7 @@ from sloane_functions import sloane
 from parallelogram_polyomino import (
     ParallelogramPolyomino, ParallelogramPolyominoes
 )
+from non_ambiguous_tree import NonAmbiguousTrees, NonAmbiguousTree
 
 from root_system.all import *
 from sf.all import *
