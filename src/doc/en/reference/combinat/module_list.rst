@@ -78,6 +78,7 @@ Comprehensive Module list
     sage/combinat/debruijn_sequence
     sage/combinat/degree_sequences
     sage/combinat/derangements
+    sage/combinat/directed_convex_polyomino
     sage/combinat/descent_algebra
     sage/combinat/designs/__init__
     sage/combinat/designs/all

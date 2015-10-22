@@ -72,6 +72,7 @@ Polyominoes
 -----------
 
 See: :ref:`sage.combinat.parallelogram_polyomino`
+See: :ref:`sage.combinat.directed_convex_polyomino`
 
 Integer matrices, ...
 ---------------------
