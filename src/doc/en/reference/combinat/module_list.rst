@@ -154,6 +154,7 @@ Comprehensive Module list
     sage/combinat/ncsym/ncsym
     sage/combinat/necklace
     sage/combinat/non_decreasing_parking_function
+    sage/combinat/non_ambiguous_tree
     sage/combinat/ordered_tree
     sage/combinat/output
     sage/combinat/parallelogram_polyomino
