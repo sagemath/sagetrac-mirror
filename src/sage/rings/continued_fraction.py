@@ -589,7 +589,7 @@ class ContinuedFraction_base(SageObject):
             sage: cf.n(digits=11)
             8.9371541378
 
-        TESTS::
+        TESTS:
 
         We check that the rounding works as expected, at least in the rational
         case::
@@ -1471,7 +1471,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         return self.numerator(n-1) / self.denominator(n-1)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: a = continued_fraction(-17/389)
@@ -1522,7 +1522,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             1
         """
         if not self:
-            raise ZeroDivisionError("Rational division by 0")
+            raise ZeroDivisionError("rational division by zero")
         if self._x1:
             if self._x1[0] < 0:
                 return -(-self).__invert__()
