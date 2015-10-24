@@ -3368,6 +3368,9 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
         """
+        from sage.misc.stopgap import stopgap
+        stopgap("This code contains bugs and may be mathematically unreliable.",
+            16397)
         return print_order_compare(left._gobj, (<Expression>right)._gobj)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:
