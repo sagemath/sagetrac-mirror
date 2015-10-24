@@ -274,7 +274,7 @@ class Hypergeometric(BuiltinFunction):
         if not isinstance(z, Expression) and z == 0:  # Expression is excluded
             return Integer(1)                         # to avoid call to Maxima
 
-    def _evalf_try_(self, a, b, z):
+    def _evalf_try_(self, a, b, z, **kwds):
         """
         Call :meth:`_evalf_` if one of the arguments is numerical and none
         of the arguments are symbolic.
@@ -305,7 +305,7 @@ class Hypergeometric(BuiltinFunction):
         if any(self._is_numerical(x) for x in args):
             if not any(isinstance(x, Expression) for x in args):
                 p = get_coercion_model().common_parent(*args)
-                return self._evalf_(a, b, z, parent=p)
+                return self._evalf_(a, b, z, parent=p, **kwds)
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
         """
