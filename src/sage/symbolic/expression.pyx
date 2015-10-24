@@ -3369,7 +3369,7 @@ cdef class Expression(CommutativeRingElement):
             False
         """
         from sage.misc.stopgap import stopgap
-        stopgap("This code contains bugs and may be mathematically unreliable.",
+        stopgap("Comparison of symbolic expressions contains bugs and may be mathematically unreliable.",
             16397)
         return print_order_compare(left._gobj, (<Expression>right)._gobj)
 
