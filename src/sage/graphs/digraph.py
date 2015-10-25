@@ -116,7 +116,7 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-
+import os
 
 class DiGraph(GenericGraph):
     r"""
@@ -193,6 +193,14 @@ class DiGraph(GenericGraph):
          `pygraphviz <https://pygraphviz.github.io/>`__ digraph, `NetworkX
          <https://networkx.github.io/>`__ digraph, or `igraph
          <http://igraph.org/python/>`__ digraph.
+
+      #. ``DiGraph(filename)`` -- return a digraph stored as a file. To see the
+         list of formats supported, see the documentation of
+         :func:`sage.graphs.graph_input.from_file`.
+
+         The format is guessed from the file's extension. To bypass this
+         auto-detection specify this format explicitly, e.g.``DiGraph(filename,
+         format='file/nde')``.
 
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -390,6 +398,14 @@ class DiGraph(GenericGraph):
            sage: DiGraph(g).edges()                                                                            # optional - python_igraph
            [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
+    Read a digraph from an edgelist file::
+
+        sage: g = digraphs.Circuit(15)
+        sage: f = tmp_filename(ext='.edgelist')
+        sage: g.export_to_file(f,format='edgelist',data=False)
+        sage: h = DiGraph(f)
+        sage: h == g
+        True
 
     TESTS::
 
@@ -573,6 +589,10 @@ class DiGraph(GenericGraph):
                              "'static_sparse' or 'dense'")
         self._backend = CGB(0, directed=True)
 
+        if (format is None       and
+            isinstance(data,str) and
+            os.path.isfile(data)):
+            format = "file/auto"
         if format is None and isinstance(data, str):
             format = 'dig6'
             if data[:8] == ">>dig6<<":
@@ -761,6 +781,11 @@ class DiGraph(GenericGraph):
                             "those edges")
             elif loops is None:
                 self.allow_loops(False)
+        elif format.startswith("file/"):
+            self.allow_loops(loops if loops else False, check=False)
+            self.allow_multiple_edges(multiedges if multiedges else False, check=False)
+            from graph_input import from_file
+            from_file(self, data, format[5:])
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
