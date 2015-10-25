@@ -13,20 +13,59 @@ We can create matrices, polynomials, vectors, etc., over the continued fraction
 field::
 
     sage: a = random_matrix(CFF, 4)
+    doctest:...: DeprecationWarning: The continued fraction field is
+    deprecated. You can build continued fractions directly with the function
+    continued_fraction See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
     sage: a
     [    [-1; 2] [-1; 1, 94]      [0; 2]       [-12]]
     [       [-1]      [0; 2]  [-1; 1, 3]   [0; 1, 2]]
     [    [-3; 2]         [0]   [0; 1, 2]        [-1]]
     [        [1]        [-1]      [0; 3]         [1]]
     sage: f = a.charpoly()
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is
+    deprecated. You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
     sage: f
     [1]*x^4 + ([-2; 3])*x^3 + [14; 1, 1, 1, 9, 1, 8]*x^2 + ([-13; 4, 1, 2, 1, 1, 1, 1, 1, 2, 2])*x + [-6; 1, 5, 9, 1, 5]
     sage: f(a)
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
+    doctest:...: DeprecationWarning: The continued fraction field is
+    deprecated. You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
     [[0] [0] [0] [0]]
     [[0] [0] [0] [0]]
     [[0] [0] [0] [0]]
     [[0] [0] [0] [0]]
     sage: vector(CFF, [1/2, 2/3, 3/4, 4/5])
+    doctest:...: DeprecationWarning: The continued fraction field is deprecated.
+    You can build continued fractions directly with the function
+    continued_fraction
+    See http://trac.sagemath.org/19476 for details.
     ([0; 2], [0; 1, 2], [0; 1, 3], [0; 1, 4])
 
 AUTHORS:
@@ -55,8 +94,16 @@ class ContinuedFractionField(UniqueRepresentation,Field):
     EXAMPLES::
 
         sage: CFF
+        doctest:...: DeprecationWarning: The continued fraction field is
+        deprecated. You can build continued fractions directly with the function
+        continued_fraction
+        See http://trac.sagemath.org/19476 for details.
         QQ as continued fractions
         sage: CFF([0,1,3,2])
+        doctest:...: DeprecationWarning: The continued fraction field is
+        deprecated. You can build continued fractions directly with the function
+        continued_fraction
+        See http://trac.sagemath.org/19476 for details.
         [0; 1, 3, 2]
         sage: CFF(133/25)
         [5; 3, 8]
@@ -78,6 +125,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         EXAMPLES::
 
             sage: CFF(1/3)
+            doctest:...: DeprecationWarning: The continued fraction field is
+            deprecated. You can build continued fractions directly with the
+            function continued_fraction
+            See http://trac.sagemath.org/19476 for details.
             [0; 3]
             sage: CFF([1,2,3])
             [1; 2, 3]
@@ -93,6 +144,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             TESTS::
 
                 sage: TestSuite(CFF.an_element()).run()
+                doctest:...: DeprecationWarning: The continued fraction field is
+                deprecated. You can build continued fractions directly with the
+                function continued_fraction
+                See http://trac.sagemath.org/19476 for details.
             """
             ContinuedFraction_periodic.__init__(self, x1)
             FieldElement.__init__(self, parent=CFF)
@@ -104,6 +159,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             EXAMPLES::
 
                 sage: CFF(1/3) + CFF([0,1,2,3])
+                doctest:...: DeprecationWarning: The continued fraction field is
+                deprecated. You can build continued fractions directly with the
+                function continued_fraction
+                See http://trac.sagemath.org/19476 for details.
                 [1; 30]
             """
             return self.parent()(self.value() + other.value())
@@ -115,6 +174,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             EXAMPLES::
 
                 sage: CFF(1/3) * CFF([0,1,2,3])
+                doctest:...: DeprecationWarning: The continued fraction field is
+                deprecated. You can build continued fractions directly with the
+                function continued_fraction
+                See http://trac.sagemath.org/19476 for details.
                 [0; 4, 3, 2]
             """
             return self.parent()(self.value() * other.value())
@@ -126,6 +189,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             EXAMPLES::
 
                 sage: CFF(1/3) / CFF(4/5)
+                doctest:...: DeprecationWarning: The continued fraction field is
+                deprecated. You can build continued fractions directly with the
+                function continued_fraction
+                See http://trac.sagemath.org/19476 for details.
                 [0; 2, 2, 2]
             """
             return self.parent()(self.value() / other.value())
@@ -137,6 +204,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             EXAMPLES::
 
                 sage: x = CFF(1/3)
+                doctest:...: DeprecationWarning: The continued fraction field is
+                deprecated. You can build continued fractions directly with the
+                function continued_fraction
+                See http://trac.sagemath.org/19476 for details.
                 sage: loads(dumps(x)) == x
                 True
             """
@@ -147,6 +218,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         TESTS::
 
             sage: TestSuite(CFF(1/3)).run()
+            doctest:...: DeprecationWarning: The continued fraction field is
+            deprecated. You can build continued fractions directly with the
+            function continued_fraction
+            See http://trac.sagemath.org/19476 for details.
             sage: TestSuite(CFF([1,2,3])).run()
         """
         Field.__init__(self, self)
@@ -156,8 +231,16 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         EXAMPLES::
 
             sage: latex(CFF)
+            doctest:...: DeprecationWarning: The continued fraction field is
+            deprecated. You can build continued fractions directly with the
+            function continued_fraction
+            See http://trac.sagemath.org/19476 for details.
             \Bold{CFF}
         """
+        from sage.misc.superseded import deprecation
+        deprecation(19476, "The continued fraction field is deprecated. You " \
+                           "can build continued fractions directly with the "
+                           "function continued_fraction")
         return "\\Bold{CFF}"
 
     def _repr_(self):
@@ -167,6 +250,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
             sage: CFF
             QQ as continued fractions
         """
+        from sage.misc.superseded import deprecation
+        deprecation(19476, "The continued fraction field is deprecated. You " \
+                           "can build continued fractions directly with the "
+                           "function continued_fraction")
         return "QQ as continued fractions"
 
     def an_element(self):
@@ -187,6 +274,10 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         EXAMPLES::
 
             sage: CFF.some_elements()
+            doctest:...: DeprecationWarning: The continued fraction field is
+            deprecated. You can build continued fractions directly with the
+            function continued_fraction
+            See http://trac.sagemath.org/19476 for details.
             ([0], [1], [1], [-1; 2], [3; 1, 2, 3])
         """
         return (self([0]), self([1]), self([0,1]), self([-1,2]), self([3,1,2,3]))
@@ -271,12 +362,21 @@ class ContinuedFractionField(UniqueRepresentation,Field):
         TESTS::
 
             sage: CFF(1/3)
+            doctest:...: DeprecationWarning: The continued fraction field is
+            deprecated. You can build continued fractions directly with the
+            function continued_fraction
+            See http://trac.sagemath.org/19476 for details.
             [0; 3]
             sage: CFF([1,3,2])
             [1; 3, 2]
             sage: CFF(CFF(1/3))
             [0; 3]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(19476, "The continued fraction field is deprecated. You " \
+                           "can build continued fractions directly with the "
+                           "function continued_fraction")
+
         if isinstance(data, FieldElement) and data.parent() is self:
             data = list(data)
         if extra_args:
