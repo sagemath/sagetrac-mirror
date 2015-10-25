@@ -522,6 +522,101 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
             for v in D[u]:
                 G._backend.add_edge(u,v,None,is_directed)
 
+def from_nde_file(G,filename):
+    r"""
+    Build a graph from a NDE file.
+
+    The Nodes-Degree-Edges file format is used in `LASAGNE
+    <http://lasagne-unifi.sourceforge.net/>`__. For more information, see
+    `http://lasagne-unifi.sourceforge.net/content/userguide.html#zz-5.1`__.
+
+    INPUT:
+
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
+
+    - ``filename`` (string)
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_nde_file
+        sage: s = "10\n"+"\n".join(("{} 3".format(i) for i in range(10)))
+        sage: s += '\n' + "\n".join((str(u)+" "+str(v) for u,v in graphs.PetersenGraph().edges(labels=False)))
+        sage: f = tmp_filename(ext='.nde')
+        sage: open(f,'w').writelines(s)
+        sage: g = Graph()
+        sage: from_nde_file(g,f)
+        sage: g == graphs.PetersenGraph()
+        True
+    """
+    with open(filename,'r') as f:
+        # first line: <number of nodes> <is_directed> <is_weighted>
+        for first_line in f:
+            if first_line[0] != '#':
+                break
+        first_line = first_line.strip().split()
+        n = int(first_line[0])
+        G.add_vertices(range(n))
+
+        if len(first_line) == 3 and int(first_line[2]):
+            G.weighted(True)
+        else:
+            G.weighted(False)
+
+        # skip degree lines
+        for i,_ in enumerate(f):
+            if i == n-1:
+                break
+
+        is_directed = G.is_directed()
+        if G.weighted():
+            for line in f:
+                u,v,w = line.strip().split()
+                G._backend.add_edge(int(u),int(v),float(w),is_directed)
+        else:
+            for line in f:
+                u,v = line.strip().split()
+                G._backend.add_edge(int(u),int(v),None,is_directed)
+
+
+def from_file(G,filename,format=None):
+    r"""
+    Build a graph from a file
+
+    INPUT:
+
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
+
+    - ``filename`` (string)
+
+    - ``format`` (string) -- one of the following strings:
+
+      - ``"nde"`` -- Nodes-Degree-Edges used in `LASAGNE
+        <http://lasagne-unifi.sourceforge.net/>`__ (see :func:`from_nde_file`).
+
+      If set to ``None`` (default) or ``"auto"``, the file's extension is used
+      as the file format.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_file
+        sage: s = "10\n"+"\n".join(("{} 3".format(i) for i in range(10)))
+        sage: s += '\n' + "\n".join((str(u)+" "+str(v) for u,v in graphs.PetersenGraph().edges(labels=False)))
+        sage: f = tmp_filename(ext='.nde')
+        sage: open(f,'w').writelines(s)
+        sage: g = Graph()
+        sage: from_file(g,f)
+        sage: g == graphs.PetersenGraph()
+        True
+    """
+    if not format or format == 'auto':
+        import os
+        format = os.path.splitext(filename)[1][1:]
+
+    if format == "nde":
+        from_nde_file(G,filename)
+    else:
+        raise ValueError("Format '{}' not recognized".format(format))
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))
