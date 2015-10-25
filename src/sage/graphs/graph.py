@@ -1049,7 +1049,12 @@ class Graph(GenericGraph):
             isinstance(data[0],list) and # a list of two lists, the second of
             isinstance(data[1],list) and # which contains iterables (the edges)
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
-            format = "vertices_and_edges"
+            try:
+                if all(e[0] in data[0] and e[1] in data[0] for e in data[1]):
+                    format = "vertices_and_edges"
+            except Exception:
+                # If we can't get the above test, we assume the user meant [V, E]
+                format = "vertices_and_edges"
 
         if format is None and isinstance(data,dict):
             keys = data.keys()
