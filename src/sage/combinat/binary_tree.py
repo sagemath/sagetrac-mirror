@@ -2870,8 +2870,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         TODO : A name for nodes with two child leaves should be defined.
 
-        Return the binary tree obtained by removing the nodes of ``self``
-        with two child leaves.
+        Return the binary tree obtained by replacing each node of self
+        with two child leaves, by a leaf.
         If `bt` is a binary tree, bt.to_full().remove_nodes_with_two_child_leaves()
         is always equal to `bt`. But bt.remove_nodes_with_two_child_leaves().to_full()
         is equal to `bt` if, and only if, `bt` is a non empty full binary tree.
