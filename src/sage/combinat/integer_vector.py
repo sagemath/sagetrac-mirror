@@ -115,7 +115,7 @@ def is_gale_ryser(r, s):
     return len(rstar) <= len(s2) and  sum(r2) == sum(s2) and rstar.dominates(s)
 
 
-def gale_ryser_theorem(p1, p2):
+def gale_ryser_theorem(p1, p2, algorithm='gale'):
         r"""
         Return the binary matrix given by the Gale-Ryser theorem.
 
@@ -245,6 +245,13 @@ def gale_ryser_theorem(p1, p2):
             [0 0 0 0]
             [0 0 0 0]
 
+        No other algorithm is available::
+
+            sage: gale_ryser_theorem([0,0,0], [0,0,0,0], algorithm="ryser")
+            Traceback (most recent call last):
+            ...
+            ValueError: the only available algorithm is 'gale'
+
         REFERENCES:
 
         ..  [Ryser63] H. J. Ryser, Combinatorial Mathematics,
@@ -253,6 +260,9 @@ def gale_ryser_theorem(p1, p2):
                 7(1957)1073-1082.
         """
         from sage.matrix.constructor import matrix
+
+        if algorithm != "gale":
+            raise ValueError("the only available algorithm is 'gale'")
 
         if not(is_gale_ryser(p1, p2)):
             return False
