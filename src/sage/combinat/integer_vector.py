@@ -156,7 +156,7 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [2,2,1]
             sage: p2 = [2,2,1]
-            sage: print gale_ryser_theorem(p1, p2)     # not tested
+            sage: print gale_ryser_theorem(p1, p2) # random
             [1 1 0]
             [1 0 1]
             [0 1 0]
@@ -171,27 +171,27 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [3,3,1,1]
             sage: p2 = [3,3,1,1]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2) # random
             [1 1 1 0]
             [1 1 0 1]
             [1 0 0 0]
             [0 1 0 0]
             sage: p1 = [4,2,2]
             sage: p2 = [3,3,1,1]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2) # random
             [1 1 1 1]
             [1 1 0 0]
             [1 1 0 0]
             sage: p1 = [4,2,2,0]
             sage: p2 = [3,3,1,1,0,0]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2) # random
             [1 1 1 1 0 0]
             [1 1 0 0 0 0]
             [1 1 0 0 0 0]
             [0 0 0 0 0 0]
             sage: p1 = [3,3,2,1]
             sage: p2 = [3,2,2,1,1]
-            sage: print gale_ryser_theorem(p1, p2)  # not tested
+            sage: print gale_ryser_theorem(p1, p2) # random
             [1 1 1 0 0]
             [1 1 0 0 1]
             [1 0 1 0 0]
@@ -200,7 +200,7 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
         With `0` in the sequences, and with unordered inputs ::
 
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
-            sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0])
+            sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0]) # random
             [1 1 1 0 0]
             [1 0 1 1 0]
             [0 0 0 0 0]
@@ -208,7 +208,7 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
             [0 0 1 0 0]
             [0 0 0 0 0]
             sage: p1 = [3,1,1,1,1]; p2 = [3,2,2,0]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2) # random
             [1 1 1 0]
             [0 1 0 0]
             [1 0 0 0]
@@ -237,7 +237,7 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
 
             ....: for i in range(50):                            # long time
             ....:     test_algorithm("gale", 3, 10)              # long time
-            
+
         Null matrix::
 
             sage: gale_ryser_theorem([0,0,0], [0,0,0,0])
