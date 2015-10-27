@@ -35,8 +35,9 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
-
-
+from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.cartesian_product import CartesianProduct
+from sage.functions.other import binomial
 class KaryTree(AbstractClonableTree, ClonableArray):
     """
     K-ary trees.
@@ -59,6 +60,9 @@ class KaryTree(AbstractClonableTree, ClonableArray):
       that, e. g., ``KaryTree([KaryTree(None),KaryTree(None)])`` can
       be shortened to ``KaryTree([None,None])``. The arity is given by the 
       size of the list given in parameter.
+      It is also allowed to abbreviate ``[None, None, ...]`` by ``[]``, 
+      if the arity is given in parameter or if the arity can be deduced 
+      by the constructor.
 
     - `̀̀̀`arity`` -- ``None`` (default) or a positive integer. This corresponds 
       to the arity of the tree. If ``None`` is given then the constructor will 
@@ -75,10 +79,18 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         .
         sage: KaryTree([None, None, None])
         [., ., .]
+        sage: KaryTree([], 0)
+        .
+        sage: KaryTree([], 1)
+        [.]
+        sage: KaryTree([], 4)
+        [., ., ., .]
         sage: KaryTree([None, None, None], 3)
         [., ., .]
-        sage: KaryTree([None, [None, None], None])
-        [., [., .], .]
+        sage: KaryTree([None, [None, None, None], None])
+        [., [., ., .], .]
+        sage: KaryTree([None, [], None])
+        [., [., ., .], .]
         sage: KaryTree([[None, None], None])
         [[., .], .]
         sage: KaryTree("[[., ., .], ., .]")
@@ -91,16 +103,16 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         sage: KaryTree([[None, None], None, None])
         Traceback (most recent call last):
         ...
-        ValueError: this is not a k-ary tree
+        ValueError: this is not a 3-ary tree
 
     TESTS::
 
-        #sage: t1 = BinaryTree([[None, [[],[[], None]]],[[],[]]])
-        #sage: t2 = BinaryTree([[[],[]],[]])
-        #sage: with t1.clone() as t1c:
-        #....:     t1c[1,1,1] = t2
-        #sage: t1 == t1c
-        #False
+        sage: t1 = KaryTree([[None, [[],[[], None]]],[[],[]]])
+        sage: t2 = KaryTree([[[],[]],[]])
+        sage: with t1.clone() as t1c:
+        ....:     t1c[1,1,1] = t2
+        sage: t1 == t1c
+        False
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
@@ -108,38 +120,37 @@ class KaryTree(AbstractClonableTree, ClonableArray):
     def __classcall_private__(cls, *args, **opts):
         """
         TODO DOC
-        Ensure that binary trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`BinaryTree`.
+        Ensure that k-ary trees created by the enumerated sets and directly
+        are the same and that they are instances of :class:`KaryTree`.
 
         TESTS::
 
-#            sage: from sage.combinat.binary_tree import BinaryTrees_all
-#            sage: issubclass(BinaryTrees_all().element_class, BinaryTree)
-#            True
-#            sage: t0 = BinaryTree([[],[[], None]])
-#            sage: t0.parent()
-#            Binary trees
-#            sage: type(t0)
-#            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
-#
-#            sage: t1 = BinaryTrees()([[],[[], None]])
-#            sage: t1.parent() is t0.parent()
-#            True
-#            sage: type(t1) is type(t0)
-#            True
-#
-#            sage: t1 = BinaryTrees(4)([[],[[], None]])
-#            sage: t1.parent() is t0.parent()
-#            True
-#            sage: type(t1) is type(t0)
-#            True
+            sage: from sage.combinat.kary_tree import KaryTrees_all
+            sage: issubclass(KaryTrees_all().element_class, KaryTree)
+            True
+            sage: t0 = KaryTree([[],[[], None]])
+            sage: t0.parent()
+            k-ary trees
+            sage: type(t0)
+            <class 'sage.combinat.kary_tree.KaryTrees_all_with_category.element_class'>
+
+            sage: t1 = KaryTrees()([[],[[], None]])
+            sage: t1.parent() is t0.parent()
+            True
+            sage: type(t1) is type(t0)
+            True
+
+            sage: t1 = KaryTrees(2,4)([[],[[], None]])
+            sage: t1.parent() is t0.parent()
+            True
+            sage: type(t1) is type(t0)
+            True
         """
         return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
 
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        TODO DOC
         The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
@@ -147,10 +158,10 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-#            sage: BinaryTree._auto_parent
-#            Binary trees
-#            sage: BinaryTree([None, None]).parent()
-#            Binary trees
+            sage: KaryTree._auto_parent
+            k-ary trees
+            sage: KaryTree([None, None]).parent()
+            k-ary trees
         """
         return KaryTrees_all()
 
@@ -159,7 +170,7 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         TESTS::
 
             sage: KaryTree([None, None]).parent()
-            K-ary trees
+            k-ary trees
             sage: KaryTree("[., [., [., .]]]")
             [., [., [., .]]]
             sage: KaryTree("[., [., ., .], .]")
@@ -167,9 +178,14 @@ class KaryTree(AbstractClonableTree, ClonableArray):
             sage: KaryTree("[.,.,.]", 4)
             Traceback (most recent call last):
             ...
-            ValueError: wrong arity
-#            sage: all(KaryTree(repr(t)) == t for n in range(6) for t in KaryTrees(k,n))
-#            True
+            ValueError: this is not a 4-ary tree
+            sage: all(
+            ....:     KaryTree(repr(tree)) == tree
+            ....:     for arity in range(1, 4)
+            ....:     for size in range(5)
+            ....:     for tree in KaryTrees(arity, size)
+            ....: )
+            True
         """
         if (isinstance(children, str)):  # if the input is the repr of a binary tree
             children = children.replace(".","None")
@@ -177,9 +193,8 @@ class KaryTree(AbstractClonableTree, ClonableArray):
             children = literal_eval(children)
         if children is None:
             children = []
-        elif (children == [] or children == ()
-              or isinstance(children, (Integer, int))):
-            children = [None, None]
+        elif (children == [] or children == ()) and not arity is None:
+            children = [None for i in range(arity)]
         if (children.__class__ is self.__class__ and
             children.parent() == parent):
             children = list(children)
@@ -192,6 +207,22 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         ClonableArray.__init__(self, parent, children, check=check)
 
     def arity(self):
+        r"""
+        Return the arity of a k-ary tree.
+
+        If the tree is empty, the arity is 0.
+
+        Examples::
+
+            sage: KaryTree("[.]").arity()
+            1
+            sage: KaryTree("[.,.]").arity()
+            2
+            sage: KaryTree("[., [., ., .], .]").arity()
+            3
+            sage: KaryTree(".").arity()
+            0
+        """
         return len(self)
 
     def check(self):
@@ -202,21 +233,19 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
             sage: KaryTree([[None, None], [None, None]])     # indirect doctest
             [[., .], [., .]]
-            sage: BinaryTree(None) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: this is not a k-ary tree
+            sage: KaryTree(None) # indirect doctest
+            .
         """
         if self and len(self) != self._arity :
-            raise ValueError("this is not a k-ary tree")
+            raise ValueError("this is not a %d-ary tree"%(self._arity))
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: t1 = BinaryTree([[], None]); t1  # indirect doctest
+            sage: t1 = KaryTree([[], None]); t1  # indirect doctest
             [[., .], .]
-            sage: BinaryTree([[None, t1], None])   # indirect doctest
+            sage: KaryTree([[None, t1], None])   # indirect doctest
             [[., [[., .], .]], .]
         """
         if not self:
@@ -237,7 +266,13 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
             sage: KaryTree().is_empty()
             True
+            sage: KaryTree(None).is_empty()
+            True
+            sage: KaryTree(".").is_empty()
+            True
             sage: KaryTree([]).is_empty()
+            True
+            sage: KaryTree([], 1).is_empty()
             False
             sage: KaryTree([[], None]).is_empty()
             False
@@ -1619,7 +1654,7 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
 # Abstract class to serve as a Factory no instance are created.
 class KaryTrees(UniqueRepresentation, Parent):
-    """
+    r"""
     Factory for k-ary trees.
 
     INPUT:
@@ -1655,7 +1690,7 @@ class KaryTrees(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.combinat.binary_tree import KaryTrees_all, KaryTrees_size
+            sage: from sage.combinat.kary_tree import KaryTrees_all, KaryTrees_size, KaryTrees_arity
             sage: isinstance(KaryTrees(3, 2), KaryTrees)
             True
             sage: isinstance(KaryTrees(3), KaryTrees)
@@ -1664,9 +1699,11 @@ class KaryTrees(UniqueRepresentation, Parent):
             True
             sage: KaryTrees(3, 2) is KaryTrees_size(3,2)
             True
+            sage: KaryTrees(3) is KaryTrees_arity(3)
+            True
             sage: KaryTrees(2, 5).cardinality()
             42
-            sage: KaryTrees(3) is KaryTrees_all()
+            sage: KaryTrees() is KaryTrees_all()
             True
         """
         if size is None and arity is None:
@@ -1688,29 +1725,16 @@ class KaryTrees(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: KaryTrees(3).leaf()
+            sage: KaryTrees().leaf()
             .
 
         TEST::
 
-            sage: (KaryTrees(3).leaf() is
-            ....:  sage.combinat.kary_tree.KaryTrees_all(3).leaf())
+            sage: (KaryTrees().leaf() is
+            ....:  sage.combinat.kary_tree.KaryTrees_all().leaf())
             True
         """
         return self(None)
-
-    def arity(self):
-        r"""
-        Returns the arity.
-
-        EXAMPLES::
-
-            sage: KaryTrees(3).arity()
-            3
-        """
-        return self._arity
-
-
 
 
 from sage.structure.parent import Parent
@@ -1742,12 +1766,18 @@ class IntegerPairs(UniqueRepresentation, Parent):
         return "Pair of non negative integers"
 
     def __contains__(self, elt):
-        return Integer(elt[0]) >= Integer(0) and Integer(elt[0]) >= Integer(0) 
+        return (
+            ( Integer(elt[0]) == Integer(0) ) and
+            ( Integer(elt[1]) == Integer(0) )
+        ) or (
+            Integer(elt[0]) >= Integer(1) and Integer(elt[0]) >= Integer(1) 
+        )
 
     def __iter__(self):
-        n = 0
+        yield self._element_constructor_([0, 0])
+        n = 2
         while True:
-            for i in range(n+1):
+            for i in range(1, n):
                 yield self._element_constructor_([i, n-i])
             n += 1
 
@@ -1761,8 +1791,8 @@ class IntegerPairs(UniqueRepresentation, Parent):
         return self._element_constructor_([Integer(42),Integer(3)])
 
     def next(self, v):
-        if v[1] == 0:
-            return self._element_constructor_( [0, v[0]+1] )
+        if v[1] == 1:
+            return self._element_constructor_( [1, v[0]+1] )
         return self._element_constructor_( [v[0]+1, v[0]-1] )
 
     def _element_constructor_(self, *args, **keywords):
@@ -1789,11 +1819,11 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
             sage: K.cardinality()
             +Infinity
 
-#            sage: it = iter(K)
-#            sage: (next(it), next(it), next(it), next(it), next(it))
-#            (., [., .], [., [., .]], [[., .], .], [., [., [., .]]])
-#            sage: next(it).parent()
-#            k-ary trees
+            sage: it = iter(K)
+            sage: (next(it), next(it), next(it), next(it), next(it))
+            (., [.], [[.]], [., .], [[[.]]])
+            sage: next(it).parent()
+            k-ary trees
             sage: K([None, None, None])
             [., ., .]
 
@@ -1802,7 +1832,8 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
 
             sage: K is KaryTrees_all()
             True
-#            sage: TestSuite(K).run() # long time
+
+            #sage: TestSuite(K).run() # long time
             """
 
         DisjointUnionEnumeratedSets.__init__(
@@ -1838,8 +1869,6 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         """
         Ensure that ``None`` instead of ``0`` is passed by default.
 
-        TODO
-
         TESTS::
 
             sage: K = KaryTrees()
@@ -1855,7 +1884,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         EXAMPLES::
 
             sage: KaryTrees().unlabelled_trees()
-            3-ary trees
+            k-ary trees
         """
         return self
 
@@ -1874,12 +1903,12 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         """
         EXAMPLES::
 
-            sage: K = KaryTrees(3)
+            sage: K = KaryTrees()
             sage: K._element_constructor_([None, None, None])
             [., ., .]
-            sage: K([[None, None, None],None, None]) # indirect doctest
+            sage: K([[None, None, None],None, None])
             [[., ., .], ., .]
-            sage: K(None)    # indirect doctest
+            sage: K(None)
             .
         """
         return self.element_class(self, *args, **keywords)
@@ -1898,16 +1927,16 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_all
+            sage: from sage.combinat.kary_tree import KaryTrees_all, KaryTrees_arity
             sage: K = KaryTrees_arity(3)
             sage: K.cardinality()
             +Infinity
 
-#            sage: it = iter(K)
-#            sage: (next(it), next(it), next(it), next(it), next(it))
-#            (., [., .], [., [., .]], [[., .], .], [., [., [., .]]])
-#            sage: next(it).parent()
-#            k-ary trees
+            sage: it = iter(K)
+            sage: (next(it), next(it), next(it), next(it), next(it))
+            (., [., ., .], [[., ., .], ., .], [., [., ., .], .], [., ., [., ., .]])
+            sage: next(it).parent()
+            k-ary trees
             sage: K([None, None, None])
             [., ., .]
 
@@ -1916,7 +1945,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
             sage: K is KaryTrees_arity(3)
             True
-#            sage: TestSuite(K).run() # long time
+
+            #sage: TestSuite(K).run() # long time
             """
         self._arity = arity
         DisjointUnionEnumeratedSets.__init__(
@@ -1938,15 +1968,19 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         """
         TESTS::
 
-            sage: K = KaryTrees(3)
+            sage: from sage.combinat.kary_tree import KaryTrees_arity
+            sage: K = KaryTrees_arity(3)
             sage: 1 in K
             False
             sage: K([None, None, None]) in K
             True
-            sage: K([None, None]) in K
+            sage: K1 = KaryTrees()
+            sage: K1([None, None]) in K
             False
         """
-        return isinstance(x, self.element_class) and ( self.is_empty() or self.arity() == self._arity )
+        return isinstance(x, self.element_class) and (
+            x.is_empty() or x.arity() == self._arity
+        )
 
     def __call__(self, x=None, *args, **keywords):
         """
@@ -1956,11 +1990,16 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: K = KaryTrees()
-            sage: K([None, None])
-            [., .]
+            sage: from sage.combinat.kary_tree import KaryTrees_arity
+            sage: K = KaryTrees_arity(4)
+            sage: K([None, None, None, None])
+            [., ., ., .]
+            sage: K([])
+            [., ., ., .]
         """
-        return super(KaryTrees, self).__call__(x, *args, **keywords)
+        return super(KaryTrees, self).__call__(
+            x, arity=self._arity, *args, **keywords
+        )
 
     def unlabelled_trees(self):
         """
@@ -1968,7 +2007,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: KaryTrees(3).unlabelled_trees()
+            sage: from sage.combinat.kary_tree import KaryTrees_arity
+            sage: KaryTrees_arity(3).unlabelled_trees()
             3-ary trees
         """
         return self
@@ -1979,7 +2019,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: KaryTrees(3).labelled_trees()
+            sage: from sage.combinat.kary_tree import KaryTrees_arity
+            sage: KaryTrees_arity(3).labelled_trees()
             Labelled k-ary trees
         """
         return LabelledKaryTrees(self._arity)
@@ -1988,7 +2029,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         """
         EXAMPLES::
 
-            sage: K = KaryTrees(3)
+            sage: from sage.combinat.kary_tree import KaryTrees_arity
+            sage: K = KaryTrees_arity(3)
             sage: K._element_constructor_([None, None, None])
             [., ., .]
             sage: K([[None, None, None],None, None]) # indirect doctest
@@ -2014,8 +2056,8 @@ class KaryTrees_size(KaryTrees):
 
     TODO 
 
-#        sage: from sage.combinat.kary_tree import KaryTrees_size
-#        sage: for i in range(6): TestSuite(KaryTrees_size(3,i)).run()
+        #sage: from sage.combinat.kary_tree import KaryTrees_size
+        #sage: for i in range(6): TestSuite(KaryTrees_size(3,i)).run()
     """
     def __init__(self, arity, size):
         """
@@ -2048,10 +2090,15 @@ class KaryTrees_size(KaryTrees):
         TESTS::
 
             sage: K = KaryTrees(2, 3)
-            sage: 1 in S
+            sage: 1 in K
             False
-            sage: K([[None, None],[None, None]]) in K
+            sage: KS = KaryTrees()
+            sage: KS([[],[]]) in K
             True
+            sage: KS([None, []]) in K
+            False
+            sage: KS([None, [], []]) in K
+            False
         """
         return isinstance(x, self.element_class) and (
             x.is_empty() or (
@@ -2124,7 +2171,11 @@ class KaryTrees_size(KaryTrees):
             sage: KaryTrees(2, 1).list()
             [[., .]]
             sage: KaryTrees(2, 3).list()
-            [[., [., [., .]]], [., [[., .], .]], [[., .], [., .]], [[., [., .]], .], [[[., .], .], .]]
+            [[[[., .], .], .],
+             [[., [., .]], .],
+             [[., .], [., .]],
+             [., [[., .], .]],
+             [., [., [., .]]]]
         """
         if self._size == 0:
             yield self._element_constructor_(None)
@@ -2156,7 +2207,7 @@ class KaryTrees_size(KaryTrees):
 
             sage: K = KaryTrees(2, 3)
             sage: K.element_class
-            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
+            <class 'sage.combinat.kary_tree.KaryTrees_all_with_category.element_class'>
             sage: K.first().__class__ == KaryTrees().first().__class__
             True
         """
@@ -2170,19 +2221,23 @@ class KaryTrees_size(KaryTrees):
             sage: S([None])   # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: wrong number of nodes
+            ValueError: this is not a 2-ary tree
             sage: S(None)   # indirect doctest
             .
 
             sage: S = KaryTrees(2, 1)   # indirect doctest
             sage: S([None, None])
             [., .]
+            sage: S([None, []])
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of nodes
         """
-        res = self.element_class(self._parent_for, *args, **keywords)
+        res = self.element_class(
+            self._parent_for, arity=self._arity, *args, **keywords
+        )
         if res.node_number() != self._size:
             raise ValueError("wrong number of nodes")
-        if ( not res.is_empty() ) and ( res.arity() != self._arity ) :
-            raise ValueError("wrong arity")
         return res
 
 class LabelledKaryTree(AbstractLabelledClonableTree, KaryTree):
