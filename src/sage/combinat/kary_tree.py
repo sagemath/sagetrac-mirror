@@ -270,6 +270,96 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         self._require_mutable()
         self.__init__(self.parent(), None)
 
+    def comb(self, side=0):
+        r"""
+        Return the comb of a k-ary trees : there are k combs in a k-ary
+        tree (one for every direction). A comb is defined as the list of  
+        children of the nodes on branches whose direction does not change.
+
+        INPUT:
+        - ``side`` -- set to 0 to obtain the leftmost comb, to i+1 to
+        obtain the leftmost comb in the set of combs which are on the
+        right side of the ith comb and to k-1 to obtain the rightmost comb
+        of a k-ary tree.
+
+        OUTPUT:
+
+        A list of $k$ tuples of k-ary trees.
+
+        EXAMPLES::
+
+            sage: T = KaryTree([[None,None, None],[[None,None, [None, None, None]], None, None],None])
+            sage: T.comb(0)
+            [[None, ., .]]
+            sage: T.comb(1)
+            [[[., ., [., ., .]], None, .]]
+            sage: T.comb(2)
+            []
+            sage: T = KaryTree([[[[None]]]])
+            sage: T.comb(0)
+            [[None], [None], [None]]
+
+
+        """
+        if self.is_empty():
+            return []
+        d=self.arity()
+        if not side < d :
+            raise ValueError("Value %d is a wrong side value : it must be strictly smaller than the arity %d of the tree"%(side,d)) 
+        tree=self[side]
+        res=[]
+        fc=[]
+        while not tree.is_empty():
+            for i in range(d):
+                if i==side:
+                    fc.append(None)
+                else:
+                    fc.append(tree[i])
+            res.append(fc)
+            fc=[]
+            tree=tree[side]
+        return res
+
+    def hook_number(self):
+        r"""
+        Return the number of hooks in a k-ary trees.
+
+        The hook of a vertex v is the union of {v}, and all the  
+        branches from {v} in which the direction does not change. 
+
+        There is a unique way to partition the vertices in hooks.   
+        The number of hooks in such the partition is the hook number 
+        of the tree.
+
+        We can obtain this partition recursively by extracting the root's
+        hook and iterating the processus on each tree of the remaining
+        forest.      
+
+        EXAMPLES::
+            sage: T = KaryTree(None)
+            sage: T.hook_number()
+            0     
+            sage: T = KaryTree( [None,None,None] )
+            sage: T.hook_number()
+            1
+            sage: T = KaryTree([[None, [None, None]], [[None, None], None]])
+            sage: T.hook_number()
+            3
+            sage: T = KaryTree( [None,None,None] )
+            sage: T.hook_number()
+            1
+        """
+        if self.is_empty() or self==None:
+            return 0
+        s=1
+        for i in range(self.arity()):
+            for h in self.comb(i):
+                if len(h)>0:
+                    for el in h: 
+                        if not(el==None) and not(el.is_empty()):
+                            s+=el.hook_number()
+        return s
+
 #    def _ascii_art_( self ):
 #        r"""
 #        TESTS::
@@ -2794,6 +2884,7 @@ class LabelledKaryTrees(LabelledOrderedTrees):
 #        return self
 #
 #    Element = LabelledBinaryTree
+
 
 
 
