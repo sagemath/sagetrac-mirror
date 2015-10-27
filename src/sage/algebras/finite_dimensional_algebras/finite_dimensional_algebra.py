@@ -26,6 +26,7 @@ from sage.rings.ring import Algebra
 
 from sage.misc.cachefunc import cached_method
 from functools import reduce
+from copy import copy
 
 
 class FiniteDimensionalAlgebra(Algebra):
@@ -248,21 +249,38 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         return FiniteDimensionalAlgebraIdeal
 
-    def table(self):
+    def table(self, copy=True):
         """
         Return the multiplication table of ``self``, as a list of
         matrices for right multiplication by the basis elements.
 
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) a Boolean, deciding
+          whether to output a copy of the multiplication table or
+          the table itself; if you set this to ``False``, take
+          care to avoid corrupting ``self`` by mutating the
+          table!
+
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: T = A.table(); T
+            [
+            [1 0]  [0 1]
+            [0 1], [0 0]
+            ]
+            sage: T[0] = "vandalized by h4xx0r"  # checking immutability
+            sage: T[1][0] = [13, 37]
             sage: A.table()
             [
             [1 0]  [0 1]
             [0 1], [0 0]
             ]
         """
-        return self._table
+        if not copy:
+            return self._table
+        return [copy(M) for M in self._table]
 
     @cached_method
     def left_table(self):
