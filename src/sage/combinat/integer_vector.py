@@ -247,10 +247,10 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
 
         No other algorithm is available::
 
-            sage: gale_ryser_theorem([0,0,0], [0,0,0,0], algorithm="ryser")
-            Traceback (most recent call last):
-            ...
-            ValueError: the only available algorithm is 'gale'
+            sage: gale_ryser_theorem([0], [0], algorithm="ryser")
+            doctest:...: DeprecationWarning: this keyword is not used anymore; the only available algorithm is 'gale'
+            See http://trac.sagemath.org/16639 for details.
+            [0]
 
         REFERENCES:
 
@@ -260,9 +260,10 @@ def gale_ryser_theorem(p1, p2, algorithm='gale'):
                 7(1957)1073-1082.
         """
         from sage.matrix.constructor import matrix
+        from sage.misc.superseded import deprecation
 
         if algorithm != "gale":
-            raise ValueError("the only available algorithm is 'gale'")
+            deprecation(16639, "this keyword is not used anymore; the only available algorithm is 'gale'")
 
         if not(is_gale_ryser(p1, p2)):
             return False
