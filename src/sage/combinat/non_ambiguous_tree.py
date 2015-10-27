@@ -204,7 +204,7 @@ class NonAmbiguousTree( ClonableList ):
     verifying that :
 
     - the labels are integers;
-    - if p and f are left (resp.) sons and if f is a descendant of p ( f 
+    - if p and f are left (resp. right) sons and if f is a descendant of p ( f 
       is in the subtree of p with p != f ), then the label of f is 
       strictely greater than the label of p;
     - All the label of the left (resp.) sons are different and is an 
