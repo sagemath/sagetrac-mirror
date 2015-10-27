@@ -307,7 +307,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
     def base_extend(self, F):
         """
-        Return ``self`` base changed to ``F``.
+        Return ``self`` base changed to the field ``F``.
 
         EXAMPLES::
 
@@ -350,9 +350,9 @@ class FiniteDimensionalAlgebra(Algebra):
 
         - ``gens`` -- (default: None) - either an element of ``A`` or a
           list of elements of ``A``, given as vectors, matrices, or
-          FiniteDimensionalAlgebraElements.  If ``given_by_matrix`` is ``True``, then
-          ``gens`` should instead be a matrix whose rows form a basis
-          of an ideal of ``A``.
+          FiniteDimensionalAlgebraElements.  If ``given_by_matrix`` is
+          ``True``, then ``gens`` should instead be a matrix whose rows
+          form a basis of an ideal of ``A``.
 
         - ``given_by_matrix`` -- boolean (default: ``False``) - if
           ``True``, no checking is done
@@ -443,6 +443,11 @@ class FiniteDimensionalAlgebra(Algebra):
         Return ``True`` if ``self`` has a two-sided multiplicative
         identity element.
 
+        .. WARNING::
+
+            This uses linear algebra; thus expect wrong results when
+            the base ring is not a field.
+
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(QQ, [])
@@ -461,11 +466,9 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: D.is_unitary()
             False
 
-        .. NOTE::
-
-            If a finite-dimensional algebra over a field admits a left identity,
-            then this is the unique left identity, and it is also a
-            right identity.
+            sage: E = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0],[1,0]]), Matrix([[0,1],[0,1]])])
+            sage: E.is_unitary()  # checking that :trac:`19473` is gone
+            False
         """
         k = self.base_ring()
         n = self.degree()
@@ -476,6 +479,12 @@ class FiniteDimensionalAlgebra(Algebra):
                    self.table(), Matrix(k, n, 0))
         v = vector(Matrix.identity(k, n).list())
         try:
+            if B.left_kernel().dimension():
+                # This means that the left kernel of B is
+                # nonzero, and therefore, if there is a
+                # left identity, there must be many of them
+                # (whence no right identity exists).
+                return False
             self._one = B.solve_left(v)
             return True
         except ValueError:
