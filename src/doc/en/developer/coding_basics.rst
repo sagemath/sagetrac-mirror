@@ -207,6 +207,51 @@ especially if a lot of people have been working on that source file.
 All code included with Sage must be licensed under the GPLv2+ or a
 compatible, that is, less restrictive license (e.g. the BSD license).
 
+An index of functions/methods
+-----------------------------
+
+Optionally, the module's documentation can include a list of **all functions**
+it defines (e.g. :mod:`this page
+<sage.combinat.designs.difference_family>`). This list can be generated
+automatically using the functions defined in the
+:mod:`~sage.misc.rest_index_of_methods` module, in the following way::
+
+    r"""
+    A module.
+
+    Here is the list of functions implemented here:
+
+    {INDEX_OF_FUNCTIONS}
+    """
+
+    <code of the module>
+
+    import sys
+    from sage.misc.rest_index_of_methods import gen_rest_table_index
+    __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))
+
+- An index of **all methods** of a specific class can be obtained in a similar
+  fashion. See the code of the
+  :mod:`~sage.combinat.designs.incidence_structures` module for an illustration.
+
+- When a class/module defines many methods/functions it can become interesting
+  to **group them thematically**. A
+  :func:`~sage.misc.rest_index_of_methods.doc_index` decorator exists to this
+  end, and can be combined with the function above. The following mechanism
+  occurs in the :mod:`~sage.graphs.graph` module::
+
+    @doc_index("Functions starting with a vowel")
+    def A():
+        pass
+
+    @doc_index("Functions starting with a consonant")
+    def B():
+        pass
+
+    @doc_index("Functions starting with a consonant")
+    def C():
+        pass
+
 
 .. _section-docstrings:
 
