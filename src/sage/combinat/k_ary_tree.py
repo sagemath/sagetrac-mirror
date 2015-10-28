@@ -38,7 +38,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.functions.other import binomial
-class KaryTree(AbstractClonableTree, ClonableArray):
+class KAryTree(AbstractClonableTree, ClonableArray):
     """
     K-ary trees.
 
@@ -56,9 +56,9 @@ class KaryTree(AbstractClonableTree, ClonableArray):
       length k of k-ary trees or convertible objects. This corresponds
       to the standard recursive definition of a k-ary tree as either a
       leaf or a k-tuple of k-ary trees. Syntactic sugar allows leaving out
-      all but the outermost calls of the ``KaryTree()`` constructor, so
-      that, e. g., ``KaryTree([KaryTree(None),KaryTree(None)])`` can
-      be shortened to ``KaryTree([None,None])``. The arity is given by the 
+      all but the outermost calls of the ``KAryTree()`` constructor, so
+      that, e. g., ``KAryTree([KAryTree(None),KAryTree(None)])`` can
+      be shortened to ``KAryTree([None,None])``. The arity is given by the 
       size of the list given in parameter.
       It is also allowed to abbreviate ``[None, None, ...]`` by ``[]``, 
       if the arity is given in parameter or if the arity can be deduced 
@@ -73,42 +73,47 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
     EXAMPLES::
 
-        sage: KaryTree(None)
+        sage: KAryTree(None)
         .
-        sage: KaryTree(None,3)
+        sage: KAryTree(None,3)
         .
-        sage: KaryTree([None, None, None])
+        sage: KAryTree([None, None, None])
         [., ., .]
-        sage: KaryTree([], 0)
+        sage: KAryTree([], 0)
         .
-        sage: KaryTree([], 1)
+        sage: KAryTree([], 1)
         [.]
-        sage: KaryTree([], 4)
+        sage: KAryTree([], 4)
         [., ., ., .]
-        sage: KaryTree([None, None, None], 3)
+        sage: KAryTree([None, None, None], 3)
         [., ., .]
-        sage: KaryTree([None, [None, None, None], None])
+        sage: KAryTree([None, [None, None, None], None])
         [., [., ., .], .]
-        sage: KaryTree([None, [], None])
+        sage: KAryTree([None, [], None])
         [., [., ., .], .]
-        sage: KaryTree([[None, None], None])
+        sage: KAryTree([[None, None], None])
         [[., .], .]
-        sage: KaryTree("[[., ., .], ., .]")
+        sage: KAryTree("[[., ., .], ., .]")
         [[., ., .], ., .]
-        sage: KaryTree([None, KaryTree([None, None])])
+        sage: KAryTree([None, KAryTree([None, None])])
         [., [., .]]
-        sage: KaryTree([KaryTree([None])])
+        sage: KAryTree([KAryTree([None])])
         [[.]]
 
-        sage: KaryTree([[None, None], None, None])
+        sage: KAryTree([[None, None], None, None])
         Traceback (most recent call last):
         ...
         ValueError: this is not a 3-ary tree
 
+        sage: KAryTree([KAryTree([None, None, None]), None])
+        Traceback (most recent call last):
+        ...
+        ValueError: this is not a 2-ary tree
+
     TESTS::
 
-        sage: t1 = KaryTree([[None, [[],[[], None]]],[[],[]]])
-        sage: t2 = KaryTree([[[],[]],[]])
+        sage: t1 = KAryTree([[None, [[],[[], None]]],[[],[]]])
+        sage: t2 = KAryTree([[[],[]],[]])
         sage: with t1.clone() as t1c:
         ....:     t1c[1,1,1] = t2
         sage: t1 == t1c
@@ -121,26 +126,26 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         """
         TODO DOC
         Ensure that k-ary trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`KaryTree`.
+        are the same and that they are instances of :class:`KAryTree`.
 
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_all
-            sage: issubclass(KaryTrees_all().element_class, KaryTree)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_all
+            sage: issubclass(KAryTrees_all().element_class, KAryTree)
             True
-            sage: t0 = KaryTree([[],[[], None]])
+            sage: t0 = KAryTree([[],[[], None]])
             sage: t0.parent()
             k-ary trees
             sage: type(t0)
-            <class 'sage.combinat.kary_tree.KaryTrees_all_with_category.element_class'>
+            <class 'sage.combinat.k_ary_tree.KAryTrees_all_with_category.element_class'>
 
-            sage: t1 = KaryTrees()([[],[[], None]])
+            sage: t1 = KAryTrees()([[],[[], None]])
             sage: t1.parent() is t0.parent()
             True
             sage: type(t1) is type(t0)
             True
 
-            sage: t1 = KaryTrees(2,4)([[],[[], None]])
+            sage: t1 = KAryTrees(2,4)([[],[[], None]])
             sage: t1.parent() is t0.parent()
             True
             sage: type(t1) is type(t0)
@@ -158,32 +163,32 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: KaryTree._auto_parent
+            sage: KAryTree._auto_parent
             k-ary trees
-            sage: KaryTree([None, None]).parent()
+            sage: KAryTree([None, None]).parent()
             k-ary trees
         """
-        return KaryTrees_all()
+        return KAryTrees_all()
 
     def __init__(self, parent, children = None, arity = None, check = True):
         """
         TESTS::
 
-            sage: KaryTree([None, None]).parent()
+            sage: KAryTree([None, None]).parent()
             k-ary trees
-            sage: KaryTree("[., [., [., .]]]")
+            sage: KAryTree("[., [., [., .]]]")
             [., [., [., .]]]
-            sage: KaryTree("[., [., ., .], .]")
+            sage: KAryTree("[., [., ., .], .]")
             [., [., ., .], .]
-            sage: KaryTree("[.,.,.]", 4)
+            sage: KAryTree("[.,.,.]", 4)
             Traceback (most recent call last):
             ...
             ValueError: this is not a 4-ary tree
             sage: all(
-            ....:     KaryTree(repr(tree)) == tree
+            ....:     KAryTree(repr(tree)) == tree
             ....:     for arity in range(1, 4)
             ....:     for size in range(5)
-            ....:     for tree in KaryTrees(arity, size)
+            ....:     for tree in KAryTrees(arity, size)
             ....: )
             True
         """
@@ -199,7 +204,7 @@ class KaryTree(AbstractClonableTree, ClonableArray):
             children.parent() == parent):
             children = list(children)
         else:
-            children = [self.__class__(parent, x, len( children ) ) for x in children]
+            children = [self.__class__(parent, x, arity=len( children ) ) for x in children]
         if arity is None:
             self._arity = len( children )
         else:
@@ -214,13 +219,13 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         Examples::
 
-            sage: KaryTree("[.]").arity()
+            sage: KAryTree("[.]").arity()
             1
-            sage: KaryTree("[.,.]").arity()
+            sage: KAryTree("[.,.]").arity()
             2
-            sage: KaryTree("[., [., ., .], .]").arity()
+            sage: KAryTree("[., [., ., .], .]").arity()
             3
-            sage: KaryTree(".").arity()
+            sage: KAryTree(".").arity()
             0
         """
         return len(self)
@@ -231,27 +236,30 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: KaryTree([[None, None], [None, None]])     # indirect doctest
+            sage: KAryTree([[None, None], [None, None]])     # indirect doctest
             [[., .], [., .]]
-            sage: KaryTree(None) # indirect doctest
+            sage: KAryTree(None) # indirect doctest
             .
         """
         if self and len(self) != self._arity :
             raise ValueError("this is not a %d-ary tree"%(self._arity))
+            for tree in self:
+                if tree and tree.arity() != self.arity():
+                    raise ValueError("this is not a %d-ary tree"%(self._arity))
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: t1 = KaryTree([[], None]); t1  # indirect doctest
+            sage: t1 = KAryTree([[], None]); t1  # indirect doctest
             [[., .], .]
-            sage: KaryTree([[None, t1], None])   # indirect doctest
+            sage: KAryTree([[None, t1], None])   # indirect doctest
             [[., [[., .], .]], .]
         """
         if not self:
             return "."
         else:
-            return super(KaryTree, self)._repr_()
+            return super(KAryTree, self)._repr_()
 
 
     def is_empty(self):
@@ -264,17 +272,17 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: KaryTree().is_empty()
+            sage: KAryTree().is_empty()
             True
-            sage: KaryTree(None).is_empty()
+            sage: KAryTree(None).is_empty()
             True
-            sage: KaryTree(".").is_empty()
+            sage: KAryTree(".").is_empty()
             True
-            sage: KaryTree([]).is_empty()
+            sage: KAryTree([]).is_empty()
             True
-            sage: KaryTree([], 1).is_empty()
+            sage: KAryTree([], 1).is_empty()
             False
-            sage: KaryTree([[], None]).is_empty()
+            sage: KAryTree([[], None]).is_empty()
             False
         """
         return not self
@@ -292,7 +300,7 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: t = KaryTree([None, None])
+            sage: t = KAryTree([None, None])
             sage: t.make_leaf()
             Traceback (most recent call last):
             ...
@@ -323,14 +331,14 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: T = KaryTree([[None,None, None],[[None,None, [None, None, None]], None, None],None])
+            sage: T = KAryTree([[None,None, None],[[None,None, [None, None, None]], None, None],None])
             sage: T.comb(0)
             [[None, ., .]]
             sage: T.comb(1)
             [[[., ., [., ., .]], None, .]]
             sage: T.comb(2)
             []
-            sage: T = KaryTree([[[[None]]]])
+            sage: T = KAryTree([[[[None]]]])
             sage: T.comb(0)
             [[None], [None], [None]]
 
@@ -371,16 +379,16 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         forest.      
 
         EXAMPLES::
-            sage: T = KaryTree(None)
+            sage: T = KAryTree(None)
             sage: T.hook_number()
             0     
-            sage: T = KaryTree( [None,None,None] )
+            sage: T = KAryTree( [None,None,None] )
             sage: T.hook_number()
             1
-            sage: T = KaryTree([[None, [None, None]], [[None, None], None]])
+            sage: T = KAryTree([[None, [None, None]], [[None, None], None]])
             sage: T.hook_number()
             3
-            sage: T = KaryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
+            sage: T = KAryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
             sage: T.hook_number()
             3
         """
@@ -405,18 +413,18 @@ class KaryTree(AbstractClonableTree, ClonableArray):
         A list of size $k$ of non negative integers.        
 
         EXAMPLES::
-            sage: T = KaryTree(None)
+            sage: T = KAryTree(None)
             sage: T.twisting_number()
             []  
-            sage: T = KaryTree( [None,None,None] )
+            sage: T = KAryTree( [None,None,None] )
             sage: T.twisting_number()
-            [0,0,0]
-            sage: T = KaryTree([[None, [None, None]], [[None, None], None]])
+            [0, 0, 0]
+            sage: T = KAryTree([[None, [None, None]], [[None, None], None]])
             sage: T.twisting_number()
-            [2,2]
-            sage: T = KaryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
+            [2, 2]
+            sage: T = KAryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
             sage: T.twisting_number()
-            [1,1,2]
+            [1, 1, 2]
         """
         wn=[]
         d=self.arity()
@@ -1787,7 +1795,7 @@ class KaryTree(AbstractClonableTree, ClonableArray):
 
 
 # Abstract class to serve as a Factory no instance are created.
-class KaryTrees(UniqueRepresentation, Parent):
+class KAryTrees(UniqueRepresentation, Parent):
     r"""
     Factory for k-ary trees.
 
@@ -1803,19 +1811,19 @@ class KaryTrees(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: KaryTrees()
+        sage: KAryTrees()
         k-ary trees
 
-        sage: KaryTrees(3)
+        sage: KAryTrees(3)
         3-ary trees
 
-        sage: KaryTrees(3, 2)
+        sage: KAryTrees(3, 2)
         3-ary trees of size 2
 
     .. NOTE:: this is a factory class whose constructor returns instances of
               subclasses.
 
-    .. NOTE:: the fact that KaryTrees is a class instead of a simple callable
+    .. NOTE:: the fact that KAryTrees is a class instead of a simple callable
               is an implementation detail. It could be changed in the future
               and one should not rely on it.
     """
@@ -1824,33 +1832,33 @@ class KaryTrees(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_all, KaryTrees_size, KaryTrees_arity
-            sage: isinstance(KaryTrees(3, 2), KaryTrees)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_all, KAryTrees_size, KAryTrees_arity
+            sage: isinstance(KAryTrees(3, 2), KAryTrees)
             True
-            sage: isinstance(KaryTrees(3), KaryTrees)
+            sage: isinstance(KAryTrees(3), KAryTrees)
             True
-            sage: isinstance(KaryTrees(), KaryTrees)
+            sage: isinstance(KAryTrees(), KAryTrees)
             True
-            sage: KaryTrees(3, 2) is KaryTrees_size(3,2)
+            sage: KAryTrees(3, 2) is KAryTrees_size(3,2)
             True
-            sage: KaryTrees(3) is KaryTrees_arity(3)
+            sage: KAryTrees(3) is KAryTrees_arity(3)
             True
-            sage: KaryTrees(2, 5).cardinality()
+            sage: KAryTrees(2, 5).cardinality()
             42
-            sage: KaryTrees() is KaryTrees_all()
+            sage: KAryTrees() is KAryTrees_all()
             True
         """
         if size is None and arity is None:
-            return KaryTrees_all()
+            return KAryTrees_all()
         else:
             if not (isinstance(arity, (Integer, int)) and arity >= 0):
                 raise ValueError("arity must be a positive integer")
             if size is None:
-                return KaryTrees_arity(Integer(arity))
+                return KAryTrees_arity(Integer(arity))
             else:
                 if not (isinstance(size, (Integer, int)) and size >= 0):
                     raise ValueError("size must be a nonnegative integer")
-                return KaryTrees_size(Integer(arity), Integer(size))
+                return KAryTrees_size(Integer(arity), Integer(size))
 
     @cached_method
     def leaf(self):
@@ -1859,13 +1867,13 @@ class KaryTrees(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: KaryTrees().leaf()
+            sage: KAryTrees().leaf()
             .
 
         TEST::
 
-            sage: (KaryTrees().leaf() is
-            ....:  sage.combinat.kary_tree.KaryTrees_all().leaf())
+            sage: (KAryTrees().leaf() is
+            ....:  sage.combinat.k_ary_tree.KAryTrees_all().leaf())
             True
         """
         return self(None)
@@ -1940,7 +1948,7 @@ class IntegerPairs(UniqueRepresentation, Parent):
 #################################################################
 # Enumerated set of all kary trees
 #################################################################
-class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
+class KAryTrees_all(DisjointUnionEnumeratedSets, KAryTrees):
 
     def __init__(self):
         """
@@ -1948,8 +1956,8 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_all
-            sage: K = KaryTrees_all()
+            sage: from sage.combinat.k_ary_tree import KAryTrees_all
+            sage: K = KAryTrees_all()
             sage: K.cardinality()
             +Infinity
 
@@ -1964,7 +1972,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
             TOTO : est-ce que l'on permet : K([]) et K(None) qui seraient égal
             respectivement à : K([None, None, None]) et K(None, 3).
 
-            sage: K is KaryTrees_all()
+            sage: K is KAryTrees_all()
             True
 
             #sage: TestSuite(K).run() # long time
@@ -1973,7 +1981,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
                 IntegerPairs(), 
-                lambda x : KaryTrees_size(arity=x[0], size=x[1])
+                lambda x : KAryTrees_size(arity=x[0], size=x[1])
             ),
             facade=True, keepkey = False
         )
@@ -1982,7 +1990,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         """
         TEST::
 
-            sage: KaryTrees()   # indirect doctest
+            sage: KAryTrees()   # indirect doctest
             k-ary trees
         """
         return "k-ary trees"
@@ -1991,7 +1999,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         """
         TESTS::
 
-            sage: K = KaryTrees()
+            sage: K = KAryTrees()
             sage: 1 in K
             False
             sage: K([None, None, None]) in K
@@ -2005,11 +2013,11 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: K = KaryTrees()
+            sage: K = KAryTrees()
             sage: K([None, None])
             [., .]
         """
-        return super(KaryTrees, self).__call__(x, *args, **keywords)
+        return super(KAryTrees, self).__call__(x, *args, **keywords)
 
     def unlabelled_trees(self):
         """
@@ -2017,7 +2025,7 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: KaryTrees().unlabelled_trees()
+            sage: KAryTrees().unlabelled_trees()
             k-ary trees
         """
         return self
@@ -2028,16 +2036,16 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: KaryTrees().labelled_trees()
+            sage: KAryTrees().labelled_trees()
             Labelled k-ary trees
         """
-        return LabelledKaryTrees()
+        return LabelledKAryTrees()
 
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
 
-            sage: K = KaryTrees()
+            sage: K = KAryTrees()
             sage: K._element_constructor_([None, None, None])
             [., ., .]
             sage: K([[None, None, None],None, None])
@@ -2047,13 +2055,13 @@ class KaryTrees_all(DisjointUnionEnumeratedSets, KaryTrees):
         """
         return self.element_class(self, *args, **keywords)
 
-    Element = KaryTree
+    Element = KAryTree
 
 
 #################################################################
 # Enumerated set of all kary trees with a ficd arity
 #################################################################
-class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
+class KAryTrees_arity(DisjointUnionEnumeratedSets, KAryTrees):
 
     def __init__(self, arity):
         """
@@ -2061,8 +2069,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_all, KaryTrees_arity
-            sage: K = KaryTrees_arity(3)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_all, KAryTrees_arity
+            sage: K = KAryTrees_arity(3)
             sage: K.cardinality()
             +Infinity
 
@@ -2077,7 +2085,7 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
             TOTO : est-ce que l'on permet : K([]) et K(None) qui seraient égal
             respectivement à : K([None, None, None]) et K(None, 3).
 
-            sage: K is KaryTrees_arity(3)
+            sage: K is KAryTrees_arity(3)
             True
 
             #sage: TestSuite(K).run() # long time
@@ -2085,7 +2093,7 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         self._arity = arity
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
-                NonNegativeIntegers(), lambda x: KaryTrees_size(self._arity, x)
+                NonNegativeIntegers(), lambda x: KAryTrees_size(self._arity, x)
             ), facade=True, keepkey = False
         )
 
@@ -2093,7 +2101,7 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         """
         TEST::
 
-            sage: KaryTrees(3)   # indirect doctest
+            sage: KAryTrees(3)   # indirect doctest
             3-ary trees
         """
         return "%d-ary trees"%(self._arity)
@@ -2102,13 +2110,13 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         """
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_arity
-            sage: K = KaryTrees_arity(3)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_arity
+            sage: K = KAryTrees_arity(3)
             sage: 1 in K
             False
             sage: K([None, None, None]) in K
             True
-            sage: K1 = KaryTrees()
+            sage: K1 = KAryTrees()
             sage: K1([None, None]) in K
             False
         """
@@ -2124,14 +2132,14 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         TESTS::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_arity
-            sage: K = KaryTrees_arity(4)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_arity
+            sage: K = KAryTrees_arity(4)
             sage: K([None, None, None, None])
             [., ., ., .]
             sage: K([])
             [., ., ., .]
         """
-        return super(KaryTrees, self).__call__(
+        return super(KAryTrees, self).__call__(
             x, arity=self._arity, *args, **keywords
         )
 
@@ -2141,8 +2149,8 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_arity
-            sage: KaryTrees_arity(3).unlabelled_trees()
+            sage: from sage.combinat.k_ary_tree import KAryTrees_arity
+            sage: KAryTrees_arity(3).unlabelled_trees()
             3-ary trees
         """
         return self
@@ -2153,18 +2161,20 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
 
         EXAMPLES::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_arity
-            sage: KaryTrees_arity(3).labelled_trees()
-            Labelled k-ary trees
+            sage: from sage.combinat.k_ary_tree import KAryTrees_arity
+
+            TODO
+            #sage: KAryTrees_arity(3).labelled_trees()
+            #Labelled k-ary trees
         """
-        return LabelledKaryTrees(self._arity)
+        return LabelledKAryTrees(self._arity)
 
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.kary_tree import KaryTrees_arity
-            sage: K = KaryTrees_arity(3)
+            sage: from sage.combinat.k_ary_tree import KAryTrees_arity
+            sage: K = KAryTrees_arity(3)
             sage: K._element_constructor_([None, None, None])
             [., ., .]
             sage: K([[None, None, None],None, None]) # indirect doctest
@@ -2174,7 +2184,7 @@ class KaryTrees_arity(DisjointUnionEnumeratedSets, KaryTrees):
         """
         return self.element_class(self, *args, **keywords)
 
-    Element = KaryTree
+    Element = KAryTree
 
 
 
@@ -2182,7 +2192,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 #################################################################
 # Enumerated set of k-ary trees of a given size
 #################################################################
-class KaryTrees_size(KaryTrees):
+class KAryTrees_size(KAryTrees):
     """
     The enumerated sets of k-ary trees of given size
 
@@ -2190,21 +2200,21 @@ class KaryTrees_size(KaryTrees):
 
     TODO 
 
-        #sage: from sage.combinat.kary_tree import KaryTrees_size
-        #sage: for i in range(6): TestSuite(KaryTrees_size(3,i)).run()
+        #sage: from sage.combinat.k_ary_tree import KAryTrees_size
+        #sage: for i in range(6): TestSuite(KAryTrees_size(3,i)).run()
     """
     def __init__(self, arity, size):
         """
         TESTS::
 
-            sage: S = KaryTrees(2, 3)
+            sage: S = KAryTrees(2, 3)
             sage: S == loads(dumps(S))
             True
 
-            sage: S is KaryTrees(2, 3)
+            sage: S is KAryTrees(2, 3)
             True
         """
-        super(KaryTrees_size, self).__init__(
+        super(KAryTrees_size, self).__init__(
             category = FiniteEnumeratedSets()
         )
         self._arity = arity
@@ -2214,7 +2224,7 @@ class KaryTrees_size(KaryTrees):
         """
         TESTS::
 
-            sage: KaryTrees(2, 3)   # indirect doctest
+            sage: KAryTrees(2, 3)   # indirect doctest
             2-ary trees of size 3
         """
         return "%d-ary trees of size %s" % (self._arity, self._size)
@@ -2223,10 +2233,10 @@ class KaryTrees_size(KaryTrees):
         """
         TESTS::
 
-            sage: K = KaryTrees(2, 3)
+            sage: K = KAryTrees(2, 3)
             sage: 1 in K
             False
-            sage: KS = KaryTrees()
+            sage: KS = KAryTrees()
             sage: KS([[],[]]) in K
             True
             sage: KS([None, []]) in K
@@ -2244,7 +2254,7 @@ class KaryTrees_size(KaryTrees):
         """
         TESTS::
 
-            sage: KaryTrees(2, 0).an_element()  # indirect doctest
+            sage: KAryTrees(2, 0).an_element()  # indirect doctest
             .
         """
         return self.first()
@@ -2259,9 +2269,9 @@ class KaryTrees_size(KaryTrees):
         TESTS::
 
             TODO
-            sage: KaryTrees(2, 0).cardinality()
+            sage: KAryTrees(2, 0).cardinality()
             1
-            sage: KaryTrees(2, 5).cardinality()
+            sage: KAryTrees(2, 5).cardinality()
             42
         """
         return binomial(self._arity*self._size, self._size)/(
@@ -2300,11 +2310,11 @@ class KaryTrees_size(KaryTrees):
 
         TESTS::
 
-            sage: KaryTrees(2, 0).list()
+            sage: KAryTrees(2, 0).list()
             [.]
-            sage: KaryTrees(2, 1).list()
+            sage: KAryTrees(2, 1).list()
             [[., .]]
-            sage: KaryTrees(2, 3).list()
+            sage: KAryTrees(2, 3).list()
             [[[[., .], .], .],
              [[., [., .]], .],
              [[., .], [., .]],
@@ -2328,21 +2338,21 @@ class KaryTrees_size(KaryTrees):
 
         TESTS::
 
-            sage: S = KaryTrees(2, 3)
+            sage: S = KAryTrees(2, 3)
             sage: S._parent_for
             k-ary trees
         """
-        return KaryTrees_all()
+        return KAryTrees_all()
 
     @lazy_attribute
     def element_class(self):
         """
         TESTS::
 
-            sage: K = KaryTrees(2, 3)
+            sage: K = KAryTrees(2, 3)
             sage: K.element_class
-            <class 'sage.combinat.kary_tree.KaryTrees_all_with_category.element_class'>
-            sage: K.first().__class__ == KaryTrees().first().__class__
+            <class 'sage.combinat.k_ary_tree.KAryTrees_all_with_category.element_class'>
+            sage: K.first().__class__ == KAryTrees().first().__class__
             True
         """
         return self._parent_for.element_class
@@ -2351,7 +2361,7 @@ class KaryTrees_size(KaryTrees):
         """
         EXAMPLES::
 
-            sage: S = KaryTrees(2, 0)
+            sage: S = KAryTrees(2, 0)
             sage: S([None])   # indirect doctest
             Traceback (most recent call last):
             ...
@@ -2359,7 +2369,7 @@ class KaryTrees_size(KaryTrees):
             sage: S(None)   # indirect doctest
             .
 
-            sage: S = KaryTrees(2, 1)   # indirect doctest
+            sage: S = KAryTrees(2, 1)   # indirect doctest
             sage: S([None, None])
             [., .]
             sage: S([None, []])
@@ -2374,615 +2384,253 @@ class KaryTrees_size(KaryTrees):
             raise ValueError("wrong number of nodes")
         return res
 
-class LabelledKaryTree(AbstractLabelledClonableTree, KaryTree):
-    pass
-#    """
-#    Labelled binary trees.
-#
-#    A labelled binary tree is a binary tree (see :class:`BinaryTree` for
-#    the meaning of this) with a label assigned to each node.
-#    The labels need not be integers, nor are they required to be distinct.
-#    ``None`` can be used as a label.
-#
-#    .. WARNING::
-#
-#        While it is possible to assign values to leaves (not just nodes)
-#        using this class, these labels are disregarded by various
-#        methods such as
-#        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.labels`,
-#        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.map_labels`,
-#        and (ironically)
-#        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.leaf_labels`.
-#
-#    INPUT:
-#
-#    - ``children`` -- ``None`` (default) or a list, tuple or iterable of
-#      length `2` of labelled binary trees or convertible objects. This
-#      corresponds to the standard recursive definition of a labelled
-#      binary tree as being either a leaf, or a pair of:
-#
-#      - a pair of labelled binary trees,
-#      - and a label.
-#
-#      (The label is specified in the keyword variable ``label``; see
-#      below.)
-#
-#      Syntactic sugar allows leaving out all but the outermost calls
-#      of the ``LabelledBinaryTree()`` constructor, so that, e. g.,
-#      ``LabelledBinaryTree([LabelledBinaryTree(None),LabelledBinaryTree(None)])``
-#      can be shortened to ``LabelledBinaryTree([None,None])``. However,
-#      using this shorthand, it is impossible to label any vertex of
-#      the tree other than the root (because there is no way to pass a
-#      ``label`` variable without calling ``LabelledBinaryTree``
-#      explicitly).
-#
-#      It is also allowed to abbreviate ``[None, None]`` by ``[]`` if
-#      one does not want to label the leaves (which one should not do
-#      anyway!).
-#
-#    - ``label`` -- (default: ``None``) the label to be put on the root
-#      of this tree.
-#
-#    - ``check`` -- (default: ``True``) whether checks should be
-#      performed or not.
-#
-#    .. TODO::
-#
-#        It is currently not possible to use ``LabelledBinaryTree()``
-#        as a shorthand for ``LabelledBinaryTree(None)`` (in analogy to
-#        similar syntax in the ``BinaryTree`` class).
-#
-#    EXAMPLES::
-#
-#        sage: LabelledBinaryTree(None)
-#        .
-#        sage: LabelledBinaryTree(None, label="ae")    # not well supported
-#        'ae'
-#        sage: LabelledBinaryTree([])
-#        None[., .]
-#        sage: LabelledBinaryTree([], label=3)    # not well supported
-#        3[., .]
-#        sage: LabelledBinaryTree([None, None])
-#        None[., .]
-#        sage: LabelledBinaryTree([None, None], label=5)
-#        5[., .]
-#        sage: LabelledBinaryTree([None, []])
-#        None[., None[., .]]
-#        sage: LabelledBinaryTree([None, []], label=4)
-#        4[., None[., .]]
-#        sage: LabelledBinaryTree([[], None])
-#        None[None[., .], .]
-#        sage: LabelledBinaryTree("[[], .]", label=False)
-#        False[None[., .], .]
-#        sage: LabelledBinaryTree([None, LabelledBinaryTree([None, None], label=4)], label=3)
-#        3[., 4[., .]]
-#        sage: LabelledBinaryTree([None, BinaryTree([None, None])], label=3)
-#        3[., None[., .]]
-#
-#        sage: LabelledBinaryTree([[], None, []])
-#        Traceback (most recent call last):
-#        ...
-#        ValueError: this is not a binary tree
-#
-#        sage: LBT = LabelledBinaryTree
-#        sage: t1 = LBT([[LBT([], label=2), None], None], label=4); t1
-#        4[None[2[., .], .], .]
-#
-#    TESTS::
-#
-#        sage: t1 = LabelledBinaryTree([[None, [[],[[], None]]],[[],[]]])
-#        sage: t2 = LabelledBinaryTree([[[],[]],[]])
-#        sage: with t1.clone() as t1c:
-#        ....:     t1c[1,1,1] = t2
-#        sage: t1 == t1c
-#        False
-#
-#    We check for :trac:`16314`::
-#
-#        sage: t1 = LBT([ LBT([LBT([], label=2),
-#        ....:                 LBT([], label=5)], label=6),
-#        ....:            None], label=4); t1
-#        4[6[2[., .], 5[., .]], .]
-#        sage: class Foo(LabelledBinaryTree):
-#        ....:     pass
-#        sage: t2 = Foo(t1.parent(), t1); t2
-#        4[6[2[., .], 5[., .]], .]
-#        sage: t2.label()
-#        4
-#        sage: t2[0].label()
-#        6
-#        sage: t2.__class__, t2[0].__class__
-#        (<class '__main__.Foo'>, <class '__main__.Foo'>)
-#    """
-#    @staticmethod
-#    def __classcall_private__(cls, *args, **opts):
-#        """
-#        Ensure that trees created by the sets and directly are the same and
-#        that they are instances of :class:`LabelledTree`.
-#
-#        TESTS::
-#
-#            sage: issubclass(LabelledBinaryTrees().element_class, LabelledBinaryTree)
-#            True
-#            sage: t0 = LabelledBinaryTree([[],[[], None]], label = 3)
-#            sage: t0.parent()
-#            Labelled binary trees
-#            sage: type(t0)
-#            <class 'sage.combinat.binary_tree.LabelledBinaryTrees_with_category.element_class'>
-#        """
-#        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
-#
-#    @lazy_class_attribute
-#    def _auto_parent(cls):
-#        """
-#        The automatic parent of the elements of this class.
-#
-#        When calling the constructor of an element of this class, one needs a
-#        parent. This class attribute specifies which parent is used.
-#
-#        EXAMPLES::
-#
-#            sage: LabelledBinaryTree._auto_parent
-#            Labelled binary trees
-#            sage: LabelledBinaryTree([], label = 3).parent()
-#            Labelled binary trees
-#        """
-#        return LabelledBinaryTrees()
-#
-#    def _repr_(self):
-#        """
-#        TESTS::
-#
-#            sage: LBT = LabelledBinaryTree
-#            sage: t1 = LBT([[LBT([], label=2), None], None], label=4); t1
-#            4[None[2[., .], .], .]
-#            sage: LBT([[],[[], None]], label = 3)   # indirect doctest
-#            3[None[., .], None[None[., .], .]]
-#        """
-#        if not self:
-#            if self._label is not None:
-#                return repr(self._label)
-#            else:
-#                return "."
-#        else:
-#            return "%s%s"%(self._label, self[:])
-#
-#    def binary_search_insert(self, letter):
-#        """
-#        Return the result of inserting a letter ``letter`` into the
-#        right strict binary search tree ``self``.
-#
-#        INPUT:
-#
-#        - ``letter`` -- any object comparable with the labels of ``self``
-#
-#        OUTPUT:
-#
-#        The right strict binary search tree ``self`` with ``letter``
-#        inserted into it according to the binary search insertion
-#        algorithm.
-#
-#        .. NOTE:: ``self`` is supposed to be a binary search tree.
-#                  This is not being checked!
-#
-#        A right strict binary search tree is defined to be a labelled
-#        binary tree such that for each node `n` with label `x`,
-#        every descendant of the left child of `n` has a label `\leq x`,
-#        and every descendant of the right child of `n` has a label
-#        `> x`. (Here, only nodes count as descendants, and every node
-#        counts as its own descendant too.) Leaves are assumed to have
-#        no labels.
-#
-#        Given a right strict binary search tree `t` and a letter `i`,
-#        the result of inserting `i` into `t` (denoted `Ins(i, t)` in
-#        the following) is defined recursively as follows:
-#
-#        - If `t` is empty, then `Ins(i, t)` is the tree with one node
-#          only, and this node is labelled with `i`.
-#
-#        - Otherwise, let `j` be the label of the root of `t`. If
-#          `i > j`, then `Ins(i, t)` is obtained by replacing the
-#          right child of `t` by `Ins(i, r)` in `t`, where `r` denotes
-#          the right child of `t`. If `i \leq j`, then `Ins(i, t)` is
-#          obtained by replacing the left child of `t` by `Ins(i, l)`
-#          in `t`, where `l` denotes the left child of `t`.
-#
-#        See, for example, [HNT05]_ for properties of this algorithm.
-#
-#        .. WARNING::
-#
-#            If `t` is nonempty, then inserting `i` into `t` does not
-#            change the root label of `t`. Hence, as opposed to
-#            algorithms like Robinson-Schensted-Knuth, binary
-#            search tree insertion involves no bumping.
-#
-#        EXAMPLES:
-#
-#        The example from Fig. 2 of [HNT05]_::
-#
-#            sage: LBT = LabelledBinaryTree
-#            sage: x = LBT(None)
-#            sage: x
-#            .
-#            sage: x = x.binary_search_insert("b"); x
-#            b[., .]
-#            sage: x = x.binary_search_insert("d"); x
-#            b[., d[., .]]
-#            sage: x = x.binary_search_insert("e"); x
-#            b[., d[., e[., .]]]
-#            sage: x = x.binary_search_insert("a"); x
-#            b[a[., .], d[., e[., .]]]
-#            sage: x = x.binary_search_insert("b"); x
-#            b[a[., b[., .]], d[., e[., .]]]
-#            sage: x = x.binary_search_insert("d"); x
-#            b[a[., b[., .]], d[d[., .], e[., .]]]
-#            sage: x = x.binary_search_insert("a"); x
-#            b[a[a[., .], b[., .]], d[d[., .], e[., .]]]
-#            sage: x = x.binary_search_insert("c"); x
-#            b[a[a[., .], b[., .]], d[d[c[., .], .], e[., .]]]
-#
-#        Other examples::
-#
-#            sage: LBT = LabelledBinaryTree
-#            sage: LBT(None).binary_search_insert(3)
-#            3[., .]
-#            sage: LBT([], label = 1).binary_search_insert(3)
-#            1[., 3[., .]]
-#            sage: LBT([], label = 3).binary_search_insert(1)
-#            3[1[., .], .]
-#            sage: res = LBT(None)
-#            sage: for i in [3,1,5,2,4,6]:
-#            ....:     res = res.binary_search_insert(i)
-#            sage: res
-#            3[1[., 2[., .]], 5[4[., .], 6[., .]]]
-#        """
-#        LT = self.parent()._element_constructor_
-#        if not self:
-#            return LT([], label = letter)
-#        else:
-#            if letter <= self.label():
-#                fils = self[0].binary_search_insert(letter)
-#                return LT([fils, self[1]], label=self.label())
-#            else:
-#                fils = self[1].binary_search_insert(letter)
-#                return LT([self[0], fils], label=self.label())
-#
-#    def semistandard_insert(self, letter):
-#        """
-#        Return the result of inserting a letter ``letter`` into the
-#        semistandard tree ``self`` using the bumping algorithm.
-#
-#        INPUT:
-#
-#        - ``letter`` -- any object comparable with the labels of ``self``
-#
-#        OUTPUT:
-#
-#        The semistandard tree ``self`` with ``letter`` inserted into it
-#        according to the bumping algorithm.
-#
-#        .. NOTE:: ``self`` is supposed to be a semistandard tree.
-#                  This is not being checked!
-#
-#        A semistandard tree is defined to be a labelled binary tree
-#        such that for each node `n` with label `x`, every descendant of
-#        the left child of `n` has a label `> x`, and every descendant
-#        of the right child of `n` has a label `\geq x`. (Here, only
-#        nodes count as descendants, and every node counts as its own
-#        descendant too.) Leaves are assumed to have no labels.
-#
-#        Given a semistandard tree `t` and a letter `i`, the result of
-#        inserting `i` into `t` (denoted `Ins(i, t)` in the following)
-#        is defined recursively as follows:
-#
-#        - If `t` is empty, then `Ins(i, t)` is the tree with one node
-#          only, and this node is labelled with `i`.
-#
-#        - Otherwise, let `j` be the label of the root of `t`. If
-#          `i \geq j`, then `Ins(i, t)` is obtained by replacing the
-#          right child of `t` by `Ins(i, r)` in `t`, where `r` denotes
-#          the right child of `t`. If `i < j`, then `Ins(i, t)` is
-#          obtained by replacing the label at the root of `t` by `i`,
-#          and replacing the left child of `t` by `Ins(j, l)`
-#          in `t`, where `l` denotes the left child of `t`.
-#
-#        This algorithm is similar to the Robinson-Schensted-Knuth
-#        insertion algorithm for semistandard Young tableaux.
-#
-#        AUTHORS:
-#
-#        - Darij Grinberg (10 Nov 2013).
-#
-#        EXAMPLES::
-#
-#            sage: LBT = LabelledBinaryTree
-#            sage: x = LBT(None)
-#            sage: x
-#            .
-#            sage: x = x.semistandard_insert("b"); x
-#            b[., .]
-#            sage: x = x.semistandard_insert("d"); x
-#            b[., d[., .]]
-#            sage: x = x.semistandard_insert("e"); x
-#            b[., d[., e[., .]]]
-#            sage: x = x.semistandard_insert("a"); x
-#            a[b[., .], d[., e[., .]]]
-#            sage: x = x.semistandard_insert("b"); x
-#            a[b[., .], b[d[., .], e[., .]]]
-#            sage: x = x.semistandard_insert("d"); x
-#            a[b[., .], b[d[., .], d[e[., .], .]]]
-#            sage: x = x.semistandard_insert("a"); x
-#            a[b[., .], a[b[d[., .], .], d[e[., .], .]]]
-#            sage: x = x.semistandard_insert("c"); x
-#            a[b[., .], a[b[d[., .], .], c[d[e[., .], .], .]]]
-#
-#        Other examples::
-#
-#            sage: LBT = LabelledBinaryTree
-#            sage: LBT(None).semistandard_insert(3)
-#            3[., .]
-#            sage: LBT([], label = 1).semistandard_insert(3)
-#            1[., 3[., .]]
-#            sage: LBT([], label = 3).semistandard_insert(1)
-#            1[3[., .], .]
-#            sage: res = LBT(None)
-#            sage: for i in [3,1,5,2,4,6]:
-#            ....:     res = res.semistandard_insert(i)
-#            sage: res
-#            1[3[., .], 2[5[., .], 4[., 6[., .]]]]
-#        """
-#        LT = self.parent()._element_constructor_
-#        if not self:
-#            return LT([], label = letter)
-#        else:
-#            root_label = self.label()
-#            if letter < root_label:
-#                fils = self[0].semistandard_insert(root_label)
-#                return LT([fils, self[1]], label=letter)
-#            else:
-#                fils = self[1].semistandard_insert(letter)
-#                return LT([self[0], fils], label=root_label)
-#
-#    def right_rotate(self):
-#        r"""
-#        Return the result of right rotation applied to the labelled
-#        binary tree ``self``.
-#
-#        Right rotation on labelled binary trees is defined as
-#        follows: Let `T` be a labelled binary tree such that the
-#        left child of the root of `T` is a node. Let
-#        `C` be the right child of the root of `T`, and let `A`
-#        and `B` be the left and right children of the left child
-#        of the root of `T`. (Keep in mind that nodes of trees are
-#        identified with the subtrees consisting of their
-#        descendants.) Furthermore, let `y` be the label at the
-#        root of `T`, and `x` be the label at the left child of the
-#        root of `T`.
-#        Then, the right rotation of `T` is the labelled binary
-#        tree in which the root is labelled `x`, the left child of
-#        the root is `A`, whereas the right child of the root is a
-#        node labelled `y` whose left and right children are `B`
-#        and `C`. In pictures::
-#
-#            |     y                      x     |
-#            |    / \                    / \    |
-#            |   x   C -right-rotate->  A   y   |
-#            |  / \                        / \  |
-#            | A   B                      B   C |
-#
-#        Right rotation is the inverse operation to left rotation
-#        (:meth:`left_rotate`).
-#
-#        TESTS::
-#
-#            sage: LB = LabelledBinaryTree
-#            sage: b = LB([LB([LB([],"A"), LB([],"B")],"x"),LB([],"C")], "y"); b
-#            y[x[A[., .], B[., .]], C[., .]]
-#            sage: b.right_rotate()
-#            x[A[., .], y[B[., .], C[., .]]]
-#        """
-#        B = self.parent()._element_constructor_
-#        s0 = self[0]
-#        return B([s0[0], B([s0[1], self[1]], self.label())], s0.label())
-#
-#    def left_rotate(self):
-#        r"""
-#        Return the result of left rotation applied to the labelled
-#        binary tree ``self``.
-#
-#        Left rotation on labelled binary trees is defined as
-#        follows: Let `T` be a labelled binary tree such that the
-#        right child of the root of `T` is a node. Let
-#        `A` be the left child of the root of `T`, and let `B`
-#        and `C` be the left and right children of the right child
-#        of the root of `T`. (Keep in mind that nodes of trees are
-#        identified with the subtrees consisting of their
-#        descendants.) Furthermore, let `x` be the label at the
-#        root of `T`, and `y` be the label at the right child of the
-#        root of `T`.
-#        Then, the left rotation of `T` is the labelled binary tree
-#        in which the root is labelled `y`, the right child of the
-#        root is `C`, whereas the left child of the root is a node
-#        labelled `x` whose left and right children are `A` and `B`.
-#        In pictures::
-#
-#           |     y                    x     |
-#           |    / \                  / \    |
-#           |   x   C <-left-rotate- A   y   |
-#           |  / \                      / \  |
-#           | A   B                    B   C |
-#
-#        Left rotation is the inverse operation to right rotation
-#        (:meth:`right_rotate`).
-#
-#        TESTS::
-#
-#            sage: LB = LabelledBinaryTree
-#            sage: b = LB([LB([LB([],"A"), LB([],"B")],"x"),LB([],"C")], "y"); b
-#            y[x[A[., .], B[., .]], C[., .]]
-#            sage: b == b.right_rotate().left_rotate()
-#            True
-#        """
-#        B = self.parent()._element_constructor_
-#        s1 = self[1]
-#        return B([B([self[0], s1[0]], self.label()), s1[1]], s1.label())
-#
-#    def heap_insert(self, l):
-#        r"""
-#        Return the result of inserting a letter ``l`` into the binary
-#        heap (tree) ``self``.
-#
-#        A binary heap is a labelled complete binary tree such that for
-#        each node, the label at the node is greater or equal to the
-#        label of each of its child nodes. (More precisely, this is
-#        called a max-heap.)
-#
-#        For example::
-#
-#            |     _7_   |
-#            |    /   \  |
-#            |   5     6 |
-#            |  / \      |
-#            | 3   4     |
-#
-#        is a binary heap.
-#
-#        See :wikipedia:`Binary_heap#Insert` for a description of how to
-#        insert a letter into a binary heap. The result is another binary
-#        heap.
-#
-#        INPUT:
-#
-#        - ``letter`` -- any object comparable with the labels of ``self``
-#
-#        .. NOTE::
-#
-#            ``self`` is assumed to be a binary heap (tree). No check is
-#            performed.
-#
-#        TESTS::
-#
-#            sage: h = LabelledBinaryTree(None)
-#            sage: h = h.heap_insert(3); ascii_art([h])
-#            [ 3 ]
-#            sage: h = h.heap_insert(4); ascii_art([h])
-#            [   4 ]
-#            [  /  ]
-#            [ 3   ]
-#            sage: h = h.heap_insert(6); ascii_art([h])
-#            [   6   ]
-#            [  / \  ]
-#            [ 3   4 ]
-#            sage: h = h.heap_insert(2); ascii_art([h])
-#            [     6   ]
-#            [    / \  ]
-#            [   3   4 ]
-#            [  /      ]
-#            [ 2       ]
-#            sage: ascii_art([h.heap_insert(5)])
-#            [     _6_   ]
-#            [    /   \  ]
-#            [   5     4 ]
-#            [  / \      ]
-#            [ 2   3     ]
-#        """
-#        B = self.parent()._element_constructor_
-#        if self.is_empty():
-#            return B([], l)
-#
-#        if self.label() < l:
-#            label_root = l
-#            label_insert = self.label()
-#        else:
-#            label_root = self.label()
-#            label_insert = l
-#        L, R = self
-#        dL = L.depth()
-#        dR = R.depth()
-#        # if depth of L is greater than the depth of R
-#        if dL > dR:
-#            # if L is perfect we insert in R
-#            if L.is_perfect():
-#                return B([L, R.heap_insert(label_insert)], label_root)
-#            # we insert in L
-#            return B([L.heap_insert(label_insert), R], label_root)
-#        # else ==> dL == dR
-#        # if R is perfect we have to insert on the leftmost leaf
-#        if R.is_perfect():
-#            # ## TODO:: can be optimized...
-#            return B([L.heap_insert(label_insert), R], label_root)
-#        # else we insert on the right
-#        return B([L, R.heap_insert(label_insert)], label_root)
-#
-#    _UnLabelled = BinaryTree
+class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
+    """
+    Labelled k-ary trees.
+
+    A labelled k-ary tree is a k-ary tree (see :class:`KAryTree` for
+    the meaning of this) with a label assigned to each node.
+    The labels need not be integers, nor are they required to be distinct.
+    ``None`` can be used as a label.
+
+    .. WARNING::
+
+        While it is possible to assign values to leaves (not just nodes)
+        using this class, these labels are disregarded by various
+        methods such as
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.labels`,
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.map_labels`,
+        and (ironically)
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.leaf_labels`.
+
+    INPUT:
+
+    - ``children`` -- ``None`` (default) or a list, tuple or iterable of
+      length $k$ of labelled k-ary trees or convertible objects. This
+      corresponds to the standard recursive definition of a labelled
+      k-ary tree as being either a leaf, or a pair of:
+
+      - a k-tuple of labelled binary trees,
+      - and a label.
+
+      (The label is specified in the keyword variable ``label``; see
+      below.)
+
+      Syntactic sugar allows leaving out all but the outermost calls
+      of the ``LabelledKAryTree()`` constructor, so that, e. g.,
+      ``LabelledKAryTree([LabelledKAryTree(None),LabelledKAryTree(None)])``
+      can be shortened to ``LabelledKAryTree([None,None])``. However,
+      using this shorthand, it is impossible to label any vertex of
+      the tree other than the root (because there is no way to pass a
+      ``label`` variable without calling ``LabelledKAryTree``
+      explicitly).
+
+      It is also allowed to abbreviate ``[None, ...]`` by ``[]`` by using 
+      the arity parameter if one does not want to label the leaves 
+      (which one should not do anyway!).
+
+    - `̀̀̀`arity`` -- ``None`` (default) or a positive integer. This corresponds 
+      to the arity of the tree. If ``None`` is given then the constructor will 
+      try to deduce the arity from the size of ``children``.
+
+    - ``label`` -- (default: ``None``) the label to be put on the root
+      of this tree.
+
+    - ``check`` -- (default: ``True``) whether checks should be
+      performed or not.
+
+    .. TODO::
+
+        It is currently not possible to use ``LabelledKAryTree()``
+        as a shorthand for ``LabelledKAryTree(None)`` (in analogy to
+        similar syntax in the ``KAryTree`` class).
+
+    EXAMPLES::
+
+        sage: LabelledKAryTree(None)
+        .
+        sage: LabelledKAryTree(None, label="ae")    # not well supported
+        'ae'
+        sage: LabelledKAryTree([])
+        .
+        sage: LabelledKAryTree([], arity=2, label=3)    # not well supported
+        3[., .]
+        sage: LabelledKAryTree([None, None])
+        None[., .]
+        sage: LabelledKAryTree([None, None], label=5)
+        5[., .]
+        sage: LabelledKAryTree([None, []])
+        None[., None[., .]]
+        sage: LabelledKAryTree([None, [], None], label=4)
+        4[., None[., ., .], .]
+        sage: LabelledKAryTree([[], None])
+        None[None[., .], .]
+        sage: LabelledKAryTree("[[], .]", label=False)
+        False[None[., .], .]
+        sage: LabelledKAryTree([None, LabelledKAryTree([None, None], label=4)], label=3)
+        3[., 4[., .]]
+        sage: LabelledKAryTree([None, KAryTree([None, None])], label=3)
+        3[., None[., .]]
+
+        sage: LabelledKAryTree([[None, None], None, []])
+        Traceback (most recent call last):
+        ...
+        ValueError: this is not a 3-ary tree
+
+        sage: LBT = LabelledKAryTree
+        sage: t1 = LBT([[LBT([], arity=2, label=2), None], None], label=4); t1
+        4[None[2[., .], .], .]
+
+    TESTS::
+
+        sage: t1 = LabelledKAryTree([[None, [[],[[], None]]],[[],[]]])
+        sage: t2 = LabelledKAryTree([[[],[]],[]])
+        sage: with t1.clone() as t1c:
+        ....:     t1c[1,1,1] = t2
+        sage: t1 == t1c
+        False
+
+    We check for :trac:`16314`::
+
+        sage: t1 = LBT([ LBT([LBT([], arity=2, label=2),
+        ....:                 LBT([], arity=2, label=5)], label=6),
+        ....:            None], label=4); t1
+        4[6[2[., .], 5[., .]], .]
+        sage: class Foo(LabelledKAryTree):
+        ....:     pass
+        sage: t2 = Foo(t1.parent(), t1); t2
+        4[6[2[., .], 5[., .]], .]
+        sage: t2.label()
+        4
+        sage: t2[0].label()
+        6
+        sage: t2.__class__, t2[0].__class__
+        (<class '__main__.Foo'>, <class '__main__.Foo'>)
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **opts):
+        """
+        Ensure that trees created by the sets and directly are the same and
+        that they are instances of :class:`LabelledTree`.
+
+        TESTS::
+
+            sage: issubclass(LabelledKAryTrees().element_class, LabelledKAryTree)
+            True
+            sage: t0 = LabelledKAryTree([[],[[], None]], label = 3)
+            sage: t0.parent()
+            Labelled k-ary trees
+            sage: type(t0)
+            <class 'sage.combinat.k_ary_tree.LabelledKAryTrees_with_category.element_class'>
+        """
+        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
 
 
-class LabelledKaryTrees(LabelledOrderedTrees):
-    pass
-#    """
-#    This is a parent stub to serve as a factory class for trees with various
-#    labels constraints.
-#    """
-#    def _repr_(self):
-#        """
-#        TESTS::
-#
-#            sage: LabelledBinaryTrees()   # indirect doctest
-#            Labelled binary trees
-#        """
-#        return "Labelled binary trees"
-#
-#    def _an_element_(self):
-#        """
-#        Return a labelled binary tree.
-#
-#        EXAMPLE::
-#
-#            sage: LabelledBinaryTrees().an_element()   # indirect doctest
-#            toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]
-#        """
-#        LT = self._element_constructor_
-#        t  = LT([], label = 3)
-#        t1 = LT([t,t], label = 42)
-#        t2  = LT([[], []], label = 5)
-#        return LT([t1,t2], label = "toto")
-#
-#    def unlabelled_trees(self):
-#        """
-#        Return the set of unlabelled trees associated to ``self``.
-#
-#        EXAMPLES::
-#
-#            sage: LabelledBinaryTrees().unlabelled_trees()
-#            Binary trees
-#
-#        This is used to compute the shape::
-#
-#            sage: t = LabelledBinaryTrees().an_element().shape(); t
-#            [[[., .], [., .]], [[., .], [., .]]]
-#            sage: t.parent()
-#            Binary trees
-#
-#        TESTS::
-#
-#            sage: t = LabelledBinaryTrees().an_element()
-#            sage: t.canonical_labelling()
-#            4[2[1[., .], 3[., .]], 6[5[., .], 7[., .]]]
-#        """
-#        return BinaryTrees_all()
-#
-#    def labelled_trees(self):
-#        """
-#        Return the set of labelled trees associated to ``self``.
-#
-#        EXAMPLES::
-#
-#            sage: LabelledBinaryTrees().labelled_trees()
-#            Labelled binary trees
-#        """
-#        return self
-#
-#    Element = LabelledBinaryTree
+    @lazy_class_attribute
+    def _auto_parent(cls):
+        """
+        The automatic parent of the elements of this class.
+
+        When calling the constructor of an element of this class, one needs a
+        parent. This class attribute specifies which parent is used.
+
+        EXAMPLES::
+
+            sage: LabelledKAryTree._auto_parent
+            Labelled k-ary trees
+            sage: LabelledKAryTree([], arity=3, label = 3).parent()
+            Labelled k-ary trees
+        """
+        return LabelledKAryTrees()
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: LBT = LabelledKAryTree
+            sage: t1 = LBT([[LBT([], arity=2, label=2), None], None], label=4); t1
+            4[None[2[., .], .], .]
+            sage: LBT([[],[[], None]], label = 3)   # indirect doctest
+            3[None[., .], None[None[., .], .]]
+        """
+        if not self:
+            if self._label is not None:
+                return repr(self._label)
+            else:
+                return "."
+        else:
+            return "%s%s"%(self._label, self[:])
+
+    _UnLabelled = KAryTree
+
+
+class LabelledKAryTrees(LabelledOrderedTrees):
+    """
+    This is a parent stub to serve as a factory class for trees with various
+    labels constraints.
+    """
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: LabelledKAryTrees()   # indirect doctest
+            Labelled k-ary trees
+        """
+        return "Labelled k-ary trees"
+
+    def _an_element_(self):
+        """
+        Return a labelled k-ary tree.
+
+        EXAMPLE::
+
+            sage: LabelledKAryTrees().an_element()   # indirect doctest
+            toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]
+        """
+        LT = self._element_constructor_
+        t  = LT([None, None], label = 3)
+        t1 = LT([t,t], label = 42)
+        t2  = LT([[None, None], [None, None]], label = 5)
+        return LT([t1,t2], label = "toto")
+
+    def unlabelled_trees(self):
+        """
+        Return the set of unlabelled trees associated to ``self``.
+
+        EXAMPLES::
+
+            sage: LabelledKAryTrees().unlabelled_trees()
+            k-ary trees
+
+        This is used to compute the shape::
+
+            sage: t = LabelledKAryTrees().an_element().shape(); t
+            [[[., .], [., .]], [[., .], [., .]]]
+            sage: t.parent()
+            k-ary trees
+
+        TESTS::
+
+            TODO
+
+            #sage: t = LabelledKAryTrees().an_element()
+            #sage: t.canonical_labelling()
+            #4[2[1[., .], 3[., .]], 6[5[., .], 7[., .]]]
+        """
+        return KAryTrees_all()
+
+    def labelled_trees(self):
+        """
+        Return the set of labelled trees associated to ``self``.
+
+        EXAMPLES::
+
+            sage: LabelledKAryTrees().labelled_trees()
+            Labelled k-ary trees
+        """
+        return self
+
+    Element = LabelledKAryTree
 
 
 

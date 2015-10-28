@@ -117,8 +117,8 @@ from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
-from kary_tree import (KaryTree, KaryTrees,
-                         LabelledKaryTree, LabelledKaryTrees)
+from k_ary_tree import (KAryTree, KAryTrees,
+                         LabelledKAryTree, LabelledKAryTrees)
 
 lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
 from rooted_tree import (RootedTree, RootedTrees,
