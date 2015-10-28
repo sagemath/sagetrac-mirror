@@ -380,9 +380,9 @@ class KaryTree(AbstractClonableTree, ClonableArray):
             sage: T = KaryTree([[None, [None, None]], [[None, None], None]])
             sage: T.hook_number()
             3
-            sage: T = KaryTree( [None,None,None] )
+            sage: T = KaryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
             sage: T.hook_number()
-            1
+            3
         """
         if self.is_empty() or self==None:
             return 0
@@ -394,6 +394,50 @@ class KaryTree(AbstractClonableTree, ClonableArray):
                         if not(el==None) and not(el.is_empty()):
                             s+=el.hook_number()
         return s
+
+    def twisting_number(self):
+        r"""
+        Return a k-tuple where the ith element of the tuple is the number 
+        of straight branches in the k-ary tree tree
+
+        OUTPUT : 
+
+        A list of size $k$ of non negative integers.        
+
+        EXAMPLES::
+            sage: T = KaryTree(None)
+            sage: T.twisting_number()
+            []  
+            sage: T = KaryTree( [None,None,None] )
+            sage: T.twisting_number()
+            [0,0,0]
+            sage: T = KaryTree([[None, [None, None]], [[None, None], None]])
+            sage: T.twisting_number()
+            [2,2]
+            sage: T = KaryTree([None,[[None,None,None],None,[None,None,None]],[None,None,[None,None,None]]] )
+            sage: T.twisting_number()
+            [1,1,2]
+        """
+        wn=[]
+        d=self.arity()
+        for i in range(d):
+            wn.append(0)
+        if self.is_empty() or self==None:
+            return wn
+        for i in range(self.arity()):
+            if len(self.comb(i))>0:
+                wn[i]=wn[i]+1
+            for h in self.comb(i):
+                for j in range(len(h)):
+                    el=h[j] 
+                    if not(el==None) and not(el.is_empty()):
+                        partres=el.twisting_number()
+                        for k in range(d):
+                            wn[k]=wn[k]+partres[k]
+                        if el[j].is_empty:
+                            wn[j]=wn[j]+1
+        return wn
+
 
 #    def _ascii_art_( self ):
 #        r"""
