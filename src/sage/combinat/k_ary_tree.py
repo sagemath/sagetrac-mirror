@@ -105,6 +105,11 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         ...
         ValueError: this is not a 3-ary tree
 
+        sage: KAryTree([KAryTree([None, None, None]), None])
+        Traceback (most recent call last):
+        ...
+        ValueError: this is not a 2-ary tree
+
     TESTS::
 
         sage: t1 = KAryTree([[None, [[],[[], None]]],[[],[]]])
@@ -238,6 +243,9 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         """
         if self and len(self) != self._arity :
             raise ValueError("this is not a %d-ary tree"%(self._arity))
+            for tree in self:
+                if tree and tree.arity() != self.arity():
+                    raise ValueError("this is not a %d-ary tree"%(self._arity))
 
     def _repr_(self):
         """
