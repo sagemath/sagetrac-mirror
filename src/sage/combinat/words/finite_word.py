@@ -4247,10 +4247,15 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
+            sage: u = words.ThueMorseWord()[:1000]
+            sage: w = Word([0,1,0,1])
+            sage: w.nb_subword_occurrences_in(u)
+            2604124996
+
+        TESTS::
+
             sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
+            1
             sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
             11
             sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
@@ -4258,26 +4263,50 @@ class FiniteWord_class(Word_class):
             sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
             4
         """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
+        return other.binomial(self)
+
+    def binomial(self, w):
+        r"""
+        Return the number of occurences of w as subword of self.
+
+        The computation is done with Parikh matrices introduced in [1].
+
+        INPUT:
+
+        -  ``w`` - word
+
+        EXAMPLES::
+
+            sage: u = words.ThueMorseWord()[:100]
+            sage: u.binomial(Word([0,1]))
+            1250
+            sage: u.binomial(Word([0,1,1,0]))
+            250237
+
+        TESTS::
+
+            sage: u.binomial(Word([]))
+            1
+            sage: u.binomial(Word([0,2]))
+            0
+
+        REFERENCES:
+
+        - [1] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
+
+        """
+        from sage.matrix.constructor import zero_matrix, identity_matrix
+        from sage.misc.misc_c import prod
+        n = w.length()
+        D = {a:zero_matrix(n+1,n+1) for a in w.letters()}
+        D.update({a:identity_matrix(n+1) for a in self.letters()})
+        for i,a in enumerate(w):
+            m = D[a]
+            m[i,i+1] = 1
+        M = prod(D[a] for a in self)
+        return M[0,n]
 
     def _return_words_list(self, fact):
         r"""
