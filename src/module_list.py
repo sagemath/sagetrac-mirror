@@ -1724,7 +1724,7 @@ ext_modules = [
               language = 'c++'),
 
     Extension('sage.tests.cython',
-              sources = ['sage/tests/cython.pyx']),
+              sources = ['sage/tests/cython.pyx'])
 ]
 
 # Add auto-generated modules
