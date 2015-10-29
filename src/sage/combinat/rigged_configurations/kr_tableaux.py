@@ -1311,7 +1311,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].e(0)
             [[-2, 1], [-1, -1]]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             ret = self.to_kirillov_reshetikhin_crystal().e0()
             if ret is None:
                 return None
@@ -1332,7 +1332,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].f(0)
             [[1, 1], [2, -1]]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             ret = self.to_kirillov_reshetikhin_crystal().f0()
             if ret is None:
                 return None
@@ -1354,7 +1354,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].epsilon(0)
             2
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.to_kirillov_reshetikhin_crystal().epsilon0()
         return TensorProductOfRegularCrystalsElement.epsilon(self, i)
 
@@ -1372,7 +1372,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].phi(0)
             2
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
@@ -1448,7 +1448,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             [[1], [3], [-4], [-2]]
             sage: KRT(-1, -4, 3, 2).e(3)
         """
-        if i == 0: # Only need to do it once since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Only need to do it once since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.e(self, i)
 
         half = KirillovReshetikhinTableauxElement.e(self, i)
@@ -1467,7 +1468,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).f(3)
             [[2], [4], [-3], [-1]]
         """
-        if i == 0: # Only need to do it once since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Only need to do it once since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.f(self, i)
 
         half = KirillovReshetikhinTableauxElement.f(self, i)
@@ -1488,7 +1490,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).epsilon(3)
             0
         """
-        if i == 0: # Don't need to half it since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.epsilon(self, i)
         return KirillovReshetikhinTableauxElement.epsilon(self, i) // 2
 
@@ -1504,7 +1507,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).phi(3)
             1
         """
-        if i == 0: # Don't need to half it since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.phi(self, i)
         return KirillovReshetikhinTableauxElement.phi(self, i) // 2
 
