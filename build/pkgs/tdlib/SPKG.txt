@@ -11,11 +11,9 @@ Lukas Larisch (larisch@informatik.uni-frankfurt.de)
 
 == Upstream Contact ==
 Lukas Larisch (larisch@informatik.uni-frankfurt.de)
-git://pholia.tdi.cs.uni-frankfurt.de/git/tdlib
+git-repo: git://pholia.tdi.cs.uni-frankfurt.de/git/tdlib
+tarball: http://www.tdi.informatik.uni-frankfurt.de/~lukas/data/tdlib-0.3.1.tar.bz2
 
 == Dependencies ==
  * None
 
-== Patches ==
- * original.patch: adding library-side glue code (instantiate template functions,
-   conversion sage-graph <-> boost-graph)
