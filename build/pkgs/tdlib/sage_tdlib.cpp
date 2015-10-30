@@ -3,6 +3,11 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include "TD_combinations.hpp"
+#include "TD_lower_bounds.hpp"
+#include "TD_seperator_algorithm.hpp"
+#include "TD_elimination_orderings.hpp"
+#include "TD_misc.hpp"
+
 
 #ifndef TD_STRUCT_VERTEX
 #define TD_STRUCT_VERTEX
@@ -100,6 +105,75 @@ void make_sage_decomp(TD_tree_dec_t &T, std::vector<std::vector<int> > &V_T, std
 }
 
 
+/* PREPROCESSING */
+
+int sage_PP_MD(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+
+    treedec::PP_MD(G, T, lb);
+
+    make_sage_decomp(T, V_T, E_T);
+
+    return lb;
+}
+
+
+int sage_PP_FI_TM(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+
+    treedec::PP_FI_TM(G, T, lb);
+
+    make_sage_decomp(T, V_T, E_T);
+
+    return lb;
+}
+
+
+/* LOWER BOUNDS */
+
+
+int sage_deltaC_least_c(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    return treedec::lb::deltaC_least_c(G);
+}
+
+int sage_LBN_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    return treedec::lb::LBN_deltaC(G);
+}
+
+int sage_LBNC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    return treedec::lb::LBNC_deltaC(G);
+}
+
+int sage_LBP_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    return treedec::lb::LBP_deltaC(G);
+}
+
+int sage_LBPC_deltaC(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    return treedec::lb::LBPC_deltaC(G);
+}
+
+
 /* EXACT TREE DECOMPOSITIONS */
 
 int sage_exact_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, int lb){
@@ -114,3 +188,66 @@ int sage_exact_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigne
 
     return treedec::get_width(T);
 }
+
+int sage_exact_decomposition_chordal(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+
+    treedec::exact_decomposition_chordal(G, T);
+
+    make_sage_decomp(T, V_T, E_T);
+
+    return treedec::get_width(T);
+}
+
+/* APPOXIMATIVE TREE DECOMPOSITIONS */
+
+
+int sage_seperator_algorithm(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+
+    treedec::seperator_algorithm(G, T);
+
+    make_sage_decomp(T, V_T, E_T);
+
+    return treedec::get_width(T);
+}
+
+int sage_ordering_to_treedec(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T, std::vector<unsigned int> &elim_ordering){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+    treedec::ordering_to_treedec(G, elim_ordering, T);
+
+    make_sage_decomp(T, V_T, E_T);
+
+    return treedec::get_width(T);
+}
+
+void sage_treedec_to_ordering(std::vector<std::vector<int> > &V, std::vector<unsigned int> &E, std::vector<unsigned int> &elim_ordering){
+    TD_tree_dec_t T;
+    make_tdlib_decomp(T, V, E);
+
+    treedec::treedec_to_ordering(T, elim_ordering);
+}
+
+
+/* MISC */
+
+
+int sage_is_valid_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
+    TD_graph_t G;
+    make_tdlib_graph(G, V_G, E_G);
+
+    TD_tree_dec_t T;
+    make_tdlib_decomp(T, V_T, E_T);
+
+    return treedec::is_valid_treedecomposition(G, T);
+}
+

@@ -212,8 +212,8 @@ EXAMPLES::
     max = -1
 
     for v in T.vertices():
-        if(len(v) > max):
-            max = len(v)
+        if(len(v)-1 > max):
+            max = len(v)-1
 
-    return max-1
+    return max
 

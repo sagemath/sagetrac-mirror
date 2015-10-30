@@ -6,15 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cp sage_tdlib.cpp src/
-cp sage_tdlib.hpp src/
-cp configure.ac src/
-cp Makefile.am src/
-cp autogen.sh src/
+cp sage_tdlib.cpp src/src/
+cp sage_tdlib.hpp src/src/
 
 cd src
-
-sh autogen.sh
 
 ./configure --prefix="$SAGE_LOCAL" && $MAKE
 
@@ -25,7 +20,7 @@ fi
 
 rm -rf "$SAGE_LOCAL/include/tdlib/"
 mkdir "$SAGE_LOCAL/include/tdlib/"
-cp *.hpp "$SAGE_LOCAL/include/tdlib/"
+cp src/sage_tdlib.hpp "$SAGE_LOCAL/include/tdlib/"
 
 if [ "$UNAME" = "Darwin" ]; then
     cp -f ./.libs/libtd.dylib "$SAGE_LOCAL/lib/libtd.dylib"
@@ -35,3 +30,4 @@ fi
 
 # Copy this in all cases, in any case it doesn't hurt.
 cp -f ./.libs/libtd.so "$SAGE_LOCAL/lib/libtd.so"
+cp -f ./.libs/libtd.so.0 "$SAGE_LOCAL/lib/libtd.so.0"

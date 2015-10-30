@@ -365,10 +365,8 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.cutwidth',
               sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
-
     OptionalExtension('sage.graphs.graph_decompositions.tdlib',
               sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
-              include_dirs = [os.path.join(SAGE_INC, 'tdlib')],
               language="c++",
               libraries = ['td'],
               package = 'tdlib'),
