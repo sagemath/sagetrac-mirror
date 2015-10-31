@@ -11,6 +11,7 @@ Finite dimensional modules with basis
 
 import operator
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.misc.lazy_import import LazyImport
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -30,6 +31,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(C).run()
     """
+    Filtered = LazyImport('sage.categories.finite_dimensional_filtered_modules_with_basis', 'FiniteDimensionalFilteredModulesWithBasis')
 
     class ParentMethods:
 
