@@ -21,7 +21,9 @@ Symmetric functions, with their multiple realizations
 #*****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.all import Rings, GradedHopfAlgebras
+from sage.categories.rings import Rings
+from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.fields import Fields
 from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
@@ -152,7 +154,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     the mathematical properties of ``p``::
 
         sage: p.categories()
-        [Category of bases of Symmetric Functions over Rational Field, Category of graded hopf algebras with basis over Rational Field, ...]
+        [Category of graded bases of Symmetric Functions over Rational Field,
+         Category of filtered bases of Symmetric Functions over Rational Field,
+         Category of bases of Symmetric Functions over Rational Field,
+         Category of graded hopf algebras with basis over Rational Field,
+         ...]
 
     To start with, ``p`` is a graded algebra, the grading being induced
     by the size of the partitions. Due to this, the one is the basis
@@ -827,12 +833,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         """
         assert(R in Rings())
+        # FIXME: We just automatically check that the base ring is a field to
+        #   prevent category refinement during construction of the category,
+        #   thus preventing the MRO issues noted in #15536, #15475 (and likely others).
+        #   Thus fix the MRO/category-refinement issue and remove the line below.
+        R in Fields()
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
         Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
 
     def a_realization(self):
         r"""
-        Returns a particular realization of ``self`` (the Schur basis).
+        Return a particular realization of ``self`` (the Schur basis).
 
         EXAMPLES::
 
@@ -865,7 +876,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return schur.SymmetricFunctionAlgebra_schur(self)
     s = schur
     Schur = schur # Currently needed by SymmetricFunctions.__init_extra__
-                  # and sfa.SymmetricFunctionsBases.corresponding_basis_over
+                  # and sfa.GradedSymmetricFunctionsBases.corresponding_basis_over
 
     def powersum(self):
         r"""
@@ -933,7 +944,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         import witt
         return witt.SymmetricFunctionAlgebra_witt(self, coerce_h=coerce_h, coerce_e=coerce_e, coerce_p=coerce_p)
     w = witt
-    # Currently needed by sfa.SymmetricFunctionsBases.corresponding_basis_over
+    # Currently needed by sfa.GradedSymmetricFunctionsBases.corresponding_basis_over
     Witt = witt
 
     def forgotten(self):
@@ -1020,6 +1031,36 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.elementary().dual_basis()
     f = forgotten
+
+    def symplectic(self):
+        """
+        The symplectic basis of the symmetric functions.
+
+        .. SEEALSO:: :class:`~sage.combinat.sf.symplectic.SymmetricFunctionAlgebra_symplectic`
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).symplectic()
+            Symmetric Functions over Rational Field in the symplectic basis
+        """
+        import symplectic
+        return symplectic.SymmetricFunctionAlgebra_symplectic(self)
+    sp = symplectic
+
+    def orthogonal(self):
+        """
+        The orthogonal basis of the symmetric functions.
+
+        .. SEEALSO:: :class:`~sage.combinat.sf.orthogonal.SymmetricFunctionAlgebra_orthogonal`
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).orthogonal()
+            Symmetric Functions over Rational Field in the orthogonal basis
+        """
+        import orthogonal
+        return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
+    o = orthogonal
 
     def macdonald(self, q='q', t='t'):
         r"""
