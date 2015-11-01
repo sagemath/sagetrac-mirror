@@ -82,41 +82,26 @@ class TreeDecomposition(Graph):
     #This is just for the repr-message.
  
     def __repr__(self):
-        r"""
-        Returns a short string representation of self.
-
-        EXAMPLE::
-
-            sage: T = TreeDecomposition()
-            sage: T
-            Treedecomposition of width -1 on 0 vertices 
-        """
         return "Treedecomposition of width " + str(get_width(self)) + " on " + str(self.order()) + " vertices"
 
-cdef cython_make_tdlib_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
-    V_python = G.vertices()
-    for i in range(0, len(V_python)):
-        V.push_back(V_python[i])
+cdef make_tdlib_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
+    for v in G.vertices():
+        V.push_back(v)
 
-    E_python = G.edges()
-    for i in range(0, len(E_python)):
-        v,w,l = E_python[i]
+    for u,v in G.edges(labels=False):
+        E.push_back(u)
         E.push_back(v)
-        E.push_back(w)
 
-cdef cython_make_tdlib_decomp(T, vector[vector[int]] &V, vector[unsigned int] &E):
-    V_python = T.vertices()
-    for i in range(0, len(V_python)):
-        V.push_back(V_python[i])
+cdef make_tdlib_decomp(T, vector[vector[int]] &V, vector[unsigned int] &E):
+    for t in T.vertices():
+        V.push_back(t)
 
-    E_python = T.edges()
-    for i in range(0, len(E_python)):
-        v,w,l = E_python[i]
-        E.push_back(V_python.index(v))
-        E.push_back(V_python.index(w))
+    for t,u in T.edges(labels=False):
+        E.push_back(t)
+        E.push_back(u)
 
 
-cdef cython_make_sage_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
+cdef make_sage_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
     for i in range(0, len(V)):
         G.add_vertex(V[i])
 
@@ -124,7 +109,7 @@ cdef cython_make_sage_graph(G, vector[unsigned int] &V, vector[unsigned int] &E)
         G.add_edge(V[E[i]], V[E[i+1]])
 
 
-cdef cython_make_sage_decomp(G, vector[vector[int]] &V, vector[unsigned int] &E):
+cdef make_sage_decomp(G, vector[vector[int]] &V, vector[unsigned int] &E):
     for i in range(0, len(V)):
         G.add_vertex(Set(V[i]))
 
@@ -156,23 +141,26 @@ def treedecomposition_exact(G, lb=-1):
 
     The computation can take a lot of time for a graph G on more than about 30 vertices and tw(G) > 3
 
-EXAMPLES::
-
-        sage: g = graphs.HouseGraph()
-        sage: t = sage.graphs.tdlib.treedecomposition_exact(g)
+    EXAMPLES::
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
+        sage: G = graphs.HouseGraph()
+        sage: T = tdlib.treedecomposition_exact(G)
         tree decomposition of width 2 computed
-        sage: t.show(vertex_size=2000)
+        sage: T.show(vertex_size=2000)
 
-TEST::
-
-        sage: g = graphs.HouseGraph()
-        sage: t = sage.graphs.tdlib.treedecomposition_exact(g)
+    TEST::
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
+        sage: G = graphs.HouseGraph()
+        sage: T = tdlib.treedecomposition_exact(G)
         tree decomposition of width 2 computed
+        sage: G = graphs.PetersenGraph()
+        sage: T = tdlib.treedecomposition_exact(G)
+        tree decomposition of width 4 computed
     """
     cdef vector[unsigned int] V_G, E_G, E_T
     cdef vector[vector[int]] V_T
 
-    cython_make_tdlib_graph(G, V_G, E_G)
+    make_tdlib_graph(G, V_G, E_G)
 
     cdef int c_lb = lb 
 
@@ -183,7 +171,7 @@ TEST::
     sig_off()
 
     T = TreeDecomposition()
-    cython_make_sage_decomp(T, V_T, E_T)
+    make_sage_decomp(T, V_T, E_T)
 
     print("tree decomposition of width " + str(get_width(T)) + " computed")
 
@@ -201,19 +189,14 @@ def get_width(T):
 
     - The width of ``T``
 
-EXAMPLES::
-
-        sage: g = graphs.RandomGNP(10, 0.05)
-        sage: t = sage.graphs.tdlib.seperator_algorithm(g)
-        sage: sage.graphs.tdlib.get_width(t)
-        9
+    EXAMPLES::
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
+        sage: G = graphs.PetersenGraph()
+        sage: T = tdlib.treedecomposition_exact(G)
+        tree decomposition of width 4 computed
+        sage: tdlib.get_width(T)
+        4
     """
 
-    max = -1
-
-    for v in T.vertices():
-        if(len(v)-1 > max):
-            max = len(v)-1
-
-    return max
+    return max(len(x) for x in T)-1
 
