@@ -4241,9 +4241,21 @@ class FiniteWord_class(Word_class):
             n += 1
         return n
 
-    def nb_subword_occurrences_in(self, other):
+    def nb_subword_occurrences_in(self, other, algorithm="matrices", sparse=True):
         r"""
         Returns the number of times self appears in other as a subword.
+
+        INPUT:
+
+        - ``other`` -- word
+        - ``algorithm`` -- string, can take the following value:
+
+          - ``"matrices"`` -- The computation is done with Parikh matrices
+            introduced in [1].
+          - ``"original"`` -- The computation is done naively.
+
+        - ``sparse`` -- bool (default: ``True``), used only if
+          ``algorithm`` is ``'matrices'``
 
         EXAMPLES::
 
@@ -4254,59 +4266,69 @@ class FiniteWord_class(Word_class):
 
         TESTS::
 
-            sage: Word().nb_subword_occurrences_in(Word('123'))
+            sage: Word([]).nb_subword_occurrences_in(u)
             1
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
+            sage: Word([0,2]).nb_subword_occurrences_in(u)
+            0
+
+        ::
+
+            sage: u = Word('123')
+            sage: Word().nb_subword_occurrences_in(u, algorithm='original')
+            1
+            sage: u = Word('1133432311132311112')
+            sage: Word('123').nb_subword_occurrences_in(u, algorithm='original')
             11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
+            sage: u = Word('1132231112233212342231112')
+            sage: Word('4321').nb_subword_occurrences_in(u, algorithm='original')
             0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
+            sage: u = Word('122332112321213')
+            sage: Word('3').nb_subword_occurrences_in(u, algorithm='original')
             4
-        """
-        return other.binomial(self)
-
-    def binomial(self, w):
-        r"""
-        Return the number of occurences of w as subword of self.
-
-        The computation is done with Parikh matrices introduced in [1].
-
-        INPUT:
-
-        -  ``w`` - word
-
-        EXAMPLES::
-
-            sage: u = words.ThueMorseWord()[:100]
-            sage: u.binomial(Word([0,1]))
-            1250
-            sage: u.binomial(Word([0,1,1,0]))
-            250237
-
-        TESTS::
-
-            sage: u.binomial(Word([]))
-            1
-            sage: u.binomial(Word([0,2]))
-            0
 
         REFERENCES:
 
         - [1] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
           sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
           (2001) 551-564.
-
         """
-        from sage.matrix.constructor import zero_matrix, identity_matrix
-        from sage.misc.misc_c import prod
-        n = w.length()
-        D = {a:zero_matrix(n+1,n+1) for a in w.letters()}
-        D.update({a:identity_matrix(n+1) for a in self.letters()})
-        for i,a in enumerate(w):
-            m = D[a]
-            m[i,i+1] = 1
-        M = prod(D[a] for a in self)
-        return M[0,n]
+        if algorithm == 'matrices':
+            from sage.matrix.constructor import zero_matrix, identity_matrix
+            from sage.misc.misc_c import prod
+            n = self.length()
+            D = {a:zero_matrix(n+1,n+1,sparse=sparse) for a in self.letters()}
+            D.update({a:identity_matrix(n+1,sparse=sparse) for a in other.letters()})
+            for i,a in enumerate(self):
+                m = D[a]
+                m[i,i+1] = 1
+            M = prod(D[a] for a in other)
+            return M[0,n]
+
+        elif algorithm == 'original':
+            ls = self.length()
+            if ls == 0:
+                return 1
+            elif ls == 1:
+                return self.nb_factor_occurrences_in(other)
+            elif len(other) < ls:
+                return 0
+            symb = self[:1]
+            suffword = other
+            suffsm = self[1:]
+            n = 0
+            cpt = 0
+            i = symb.first_pos_in(suffword)
+            while i is not None:
+                suffword = suffword[i+1:]
+                m = suffsm.nb_subword_occurrences_in(suffword, algorithm='original')
+                if m == 0: break
+                n += m
+                i = symb.first_pos_in(suffword)
+            return n
+
+        else:
+            raise ValueError("Unknown value for algorithm (={})".format(algorithm))
+
 
     def _return_words_list(self, fact):
         r"""
