@@ -68,21 +68,13 @@ include 'sage/ext/stdsage.pxi'
 
 
 #!!!!!!   NOTICE   !!!!!!!!
-#Sage vertices have to be named by unsigned integers
-#Sage bags of decompositions have to be lists of unsigned integers
+#For a graph G, G.vertices() must return a list of unsigned integers
 #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ##############################################################
 ############ GRAPH/DECOMPOSITION ENCODING/DECODING ###########
 #the following will be used implicitly do the translation
-#between Sage graph encoding and TdLib graph encoding,
-#which is based on BGL
-
-class TreeDecomposition(Graph):
-    #This is just for the repr-message.
- 
-    def __repr__(self):
-        return "Treedecomposition of width " + str(get_width(self)) + " on " + str(self.order()) + " vertices"
+#between Sage graph encoding and BGL graph encoding.
 
 cdef make_tdlib_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
     for v in G.vertices():
@@ -145,17 +137,17 @@ def treedecomposition_exact(G, lb=-1):
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib
         sage: G = graphs.HouseGraph()
         sage: T = tdlib.treedecomposition_exact(G)
-        tree decomposition of width 2 computed
+        Tree decomposition of width 2 computed
         sage: T.show(vertex_size=2000)
 
     TEST::
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib
         sage: G = graphs.HouseGraph()
         sage: T = tdlib.treedecomposition_exact(G)
-        tree decomposition of width 2 computed
+        Tree decomposition of width 2 computed
         sage: G = graphs.PetersenGraph()
         sage: T = tdlib.treedecomposition_exact(G)
-        tree decomposition of width 4 computed
+        Tree decomposition of width 4 computed
     """
     cdef vector[unsigned int] V_G, E_G, E_T
     cdef vector[vector[int]] V_T
@@ -170,10 +162,11 @@ def treedecomposition_exact(G, lb=-1):
 
     sig_off()
 
-    T = TreeDecomposition()
+    T = Graph()
+    T.name("Tree decomposition")
     make_sage_decomp(T, V_T, E_T)
 
-    print("tree decomposition of width " + str(get_width(T)) + " computed")
+    print("Tree decomposition of width " + str(get_width(T)) + " computed")
 
     return T
 
@@ -193,10 +186,10 @@ def get_width(T):
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib
         sage: G = graphs.PetersenGraph()
         sage: T = tdlib.treedecomposition_exact(G)
-        tree decomposition of width 4 computed
+        Tree decomposition of width 4 computed
         sage: tdlib.get_width(T)
         4
     """
 
-    return max(len(x) for x in T)-1
+    return max(len(x) for x in T)-1 if len(T) > 0 else -1
 
