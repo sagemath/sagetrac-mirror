@@ -66,11 +66,6 @@ from sage.graphs.graph import Graph
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 
-
-#!!!!!!   NOTICE   !!!!!!!!
-#For a graph G, G.vertices() must return a list of unsigned integers
-#!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 ##############################################################
 ############ GRAPH/DECOMPOSITION ENCODING/DECODING ###########
 #the following will be used implicitly do the translation
@@ -101,9 +96,9 @@ cdef make_sage_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
         G.add_edge(V[E[i]], V[E[i+1]])
 
 
-cdef make_sage_decomp(G, vector[vector[int]] &V, vector[unsigned int] &E):
+cdef make_sage_decomp(G, vector[vector[int]] &V, vector[unsigned int] &E, label_map):
     for i in range(0, len(V)):
-        G.add_vertex(Set(V[i]))
+        G.add_vertex(Set([label_map[j] for j in V[i]]))
 
     for i in range(0, len(E), 2):
         G.add_edge(Set(V[E[i]]), Set(V[E[i+1]]))
@@ -152,7 +147,11 @@ def treedecomposition_exact(G, lb=-1):
     cdef vector[unsigned int] V_G, E_G, E_T
     cdef vector[vector[int]] V_T
 
-    make_tdlib_graph(G, V_G, E_G)
+
+    V = G.vertices()
+    G_int = G.relabel(inplace=False)
+
+    make_tdlib_graph(G_int, V_G, E_G)
 
     cdef int c_lb = lb 
 
@@ -164,7 +163,7 @@ def treedecomposition_exact(G, lb=-1):
 
     T = Graph()
     T.name("Tree decomposition")
-    make_sage_decomp(T, V_T, E_T)
+    make_sage_decomp(T, V_T, E_T, V)
 
     print("Tree decomposition of width " + str(get_width(T)) + " computed")
 
