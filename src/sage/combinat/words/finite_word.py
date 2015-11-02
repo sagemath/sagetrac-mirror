@@ -4241,7 +4241,7 @@ class FiniteWord_class(Word_class):
             n += 1
         return n
 
-    def nb_subword_occurrences_in(self, other, algorithm="matrices", sparse=True):
+    def nb_subword_occurrences_in(self, other, algorithm="matrices"):
         r"""
         Returns the number of times self appears in other as a subword.
 
@@ -4252,10 +4252,7 @@ class FiniteWord_class(Word_class):
 
           - ``"matrices"`` -- The computation is done with Parikh matrices
             introduced in [1].
-          - ``"original"`` -- The computation is done naively.
-
-        - ``sparse`` -- bool (default: ``True``), used only if
-          ``algorithm`` is ``'matrices'``
+          - ``"recursive"`` -- The computation is done recursively.
 
         EXAMPLES::
 
@@ -4296,15 +4293,15 @@ class FiniteWord_class(Word_class):
             from sage.matrix.constructor import zero_matrix, identity_matrix
             from sage.misc.misc_c import prod
             n = self.length()
-            D = {a:zero_matrix(n+1,n+1,sparse=sparse) for a in self.letters()}
-            D.update({a:identity_matrix(n+1,sparse=sparse) for a in other.letters()})
+            D = {a:zero_matrix(n+1,n+1) for a in self.letters()}
+            D.update({a:identity_matrix(n+1) for a in other.letters()})
             for i,a in enumerate(self):
                 m = D[a]
                 m[i,i+1] = 1
             M = prod(D[a] for a in other)
             return M[0,n]
 
-        elif algorithm == 'original':
+        elif algorithm == 'recursive':
             ls = self.length()
             if ls == 0:
                 return 1
@@ -4320,7 +4317,7 @@ class FiniteWord_class(Word_class):
             i = symb.first_pos_in(suffword)
             while i is not None:
                 suffword = suffword[i+1:]
-                m = suffsm.nb_subword_occurrences_in(suffword, algorithm='original')
+                m = suffsm.nb_subword_occurrences_in(suffword, algorithm='recursive')
                 if m == 0: break
                 n += m
                 i = symb.first_pos_in(suffword)
