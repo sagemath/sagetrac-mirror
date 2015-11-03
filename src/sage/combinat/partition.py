@@ -4669,13 +4669,9 @@ class Partition(CombinatorialElement):
             sage: mu.pairing(mu)
             5
         """
-        exp = self.to_exp_dict()
-        exp_mu = mu.to_exp_dict()
-        pairing = 0
-        for i, mla in exp.items():
-            for j, mmu in exp_mu.items():
-                pairing += min(i, j) * mla * mmu
-        return pairing
+        return sum(min(i, j) * mla * mmu
+                   for i, mla in self.to_exp_dict().items()
+                   for j, mmu in mu.to_exp_dict().items())
 
 
 ##############
