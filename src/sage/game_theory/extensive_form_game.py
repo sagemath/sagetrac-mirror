@@ -4078,15 +4078,15 @@ class ExtensiveFormGame():
             sage: d = {(1, 0): [2, 0], (1, 1): [2, 0], (1, 2): [3, 1], (1, 3): [3, 1], (0, 0): [4, 2], (0, 1): [3, 5], (0, 2): [4, 2], (0, 3): [3, 5]}
             sage: g == d
             True
-            sage: example.obtain_nash() # optional - gambit
+            sage: example.obtain_nash()  # optional - gambit
             [[[{('a',): {'bark': 1.0, 'woof': 0.0}}],
               [{('b',): {'meow': 0.0, 'scratch': 1.0},
                 ('c',): {'meow': 0.0, 'scratch': 1.0}}]]]
-            sage: from gambit.nash import ExternalLCPSolver
-            sage: gambit = example.sage_to_gambit()
-            sage: ExternalLCPSolver().solve(gambit)
+            sage: from gambit.nash import ExternalLCPSolver  # optional - gambit
+            sage: gambit = example.sage_to_gambit()  # optional - gambit
+            sage: ExternalLCPSolver().solve(gambit)  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 0.0, 1.0, 0.0, 1.0]>]
-            sage: g.obtain_nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')  # optional - gambit
             [[(0, 1), (0, 0, 0, 1)], [(1, 0), (0, 0, 0, 1)], [(1, 0), (0, 1, 0, 0)]]
 
             sage: player_1 = EFG_Player('1')
@@ -4106,14 +4106,14 @@ class ExtensiveFormGame():
             Normal Form Game with the following utilities: ...
             sage: g == d
             True
-            sage: example.obtain_nash() # optional - gambit
+            sage: example.obtain_nash()  # optional - gambit
             [[[{('a',): {'bark': 1.0, 'woof': 0.0}}],
               [{('b', 'c'): {'meow': 0.0, 'scratch': 1.0}}]]]
-            sage: from gambit.nash import ExternalLCPSolver
-            sage: gambit = example.sage_to_gambit()
-            sage: ExternalLCPSolver().solve(gambit)
+            sage: from gambit.nash import ExternalLCPSolver  # optional - gambit
+            sage: gambit = example.sage_to_gambit()  # optional - gambit
+            sage: ExternalLCPSolver().solve(gambit)  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 0.0, 1.0]>]
-            sage: g.obtain_nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')  # optional - gambit
             [[(0, 1), (0, 1)], [(1, 0), (0, 1)]]
 
             sage: player_1 = EFG_Player('1')
@@ -4139,14 +4139,14 @@ class ExtensiveFormGame():
             sage: d = {(0, 1): [0, 1], (1, 2): [0, 1], (0, 0): [0, 0], (2, 1): [1, 0], (1, 1): [0, 0], (2, 0): [0, 1], (2, 2): [0, 0], (1, 0): [1, 0], (0, 2): [1, 0]}
             sage: g == d
             True
-            sage: example.obtain_nash() # optional - gambit
+            sage: example.obtain_nash()  # optional - gambit
             [[[{('a',): {'P': 0.3333333333, 'R': 0.3333333333, 'S': 0.3333333333}}],
               [{('c', 'b', 'd'): {'P': 0.3333333333, 'R': 0.3333333333, 'S': 0.3333333333}}]]]
-            sage: from gambit.nash import ExternalLCPSolver
-            sage: gambit = example.sage_to_gambit()
-            sage: ExternalLCPSolver().solve(gambit)
+            sage: from gambit.nash import ExternalLCPSolver  # optional - gambit
+            sage: gambit = example.sage_to_gambit()  # optional - gambit
+            sage: ExternalLCPSolver().solve(gambit)  # optional - gambit
             [<NashProfile for '': [0.3333333333, 0.3333333333, 0.3333333333, 0.3333333333, 0.3333333333, 0.3333333333]>]
-            sage: g.obtain_nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')  # optional - gambit
             [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
 
             sage: player_1 = EFG_Player('1')
@@ -4167,16 +4167,16 @@ class ExtensiveFormGame():
             Normal Form Game with the following utilities: ...
             sage: g == d
             True
-            sage: example.obtain_nash() # optional - gambit
+            sage: example.obtain_nash()  # optional - gambit
             [[[{('1',): {'W': 1.0, 'X': 0.0}, ('4',): {'Y': 1.0, 'Z': 0.0}}],
               [{('2',): {'A': 0.0, 'B': 1.0}, ('3',): {'C': 1.0, 'D': 0.0}}]],
              [[{('1',): {'W': 0.0, 'X': 1.0}, ('4',): {'Y': 0.5, 'Z': 0.5}}],
               [{('2',): {'A': 0.0, 'B': 1.0}, ('3',): {'C': 0.5, 'D': 0.5}}]],
              [[{('1',): {'W': 0.0, 'X': 1.0}, ('4',): {'Y': 0.5, 'Z': 0.5}}],
               [{('2',): {'A': 0.0, 'B': 1.0}, ('3',): {'C': 0.0, 'D': 1.0}}]]]
-            sage: from gambit.nash import ExternalLCPSolver
-            sage: gambit = example.sage_to_gambit()
-            sage: ExternalLCPSolver().solve(gambit)
+            sage: from gambit.nash import ExternalLCPSolver  # optional - gambit
+            sage: gambit = example.sage_to_gambit()  # optional - gambit
+            sage: ExternalLCPSolver().solve(gambit)  # optional - gambit
             [<NashProfile for '': [0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0]>,
              <NashProfile for '': [1.0, 0.0, 0.5, 0.5, 0.0, 1.0, 0.5, 0.5]>,
              <NashProfile for '': [1.0, 0.0, 0.5, 0.5, 0.0, 1.0, 0.0, 1.0]>]
