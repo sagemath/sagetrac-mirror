@@ -11,7 +11,7 @@ sequence of (strictly) positive integers." Wikipedia
 This module provides a light implementation to rapid use. This example uses the
 following pattern::
 
-   from sage.combinat.structures import Structures, Structure
+   from sage.combinat.structures import ParentStructure, ElementStructure
 
 
    class MyStructure(Structure):
