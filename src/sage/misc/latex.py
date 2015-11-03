@@ -2174,12 +2174,12 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            from sage.misc.temporary_file import graphics_filename
-            png_file = graphics_filename()
-            png_link = "cell://" + png_file
+            from sage.misc.temporary_file import tmp_filename
+            png_file = tmp_filename(ext=".png")
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
-            print('<html><img src="{}"></html>'.format(png_link))  # put comma at end of line?
+            from IPython.core.display import Image
+            return Image(filename=png_file)
         return
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
