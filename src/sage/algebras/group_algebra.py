@@ -138,7 +138,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         sage: loads(dumps(F)) == F
         True
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of finite dimensional group algebras over Ring of integers modulo 12
+        Category of finite dimensional commutative group algebras over Ring of integers modulo 12
     """
     def __init__(self, group) :
         r"""
@@ -148,7 +148,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
             sage: from sage.algebras.group_algebra import GroupAlgebraFunctor
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of finite dimensional group algebras over Ring of integers modulo 12
+            Category of finite dimensional commutative group algebras over Ring of integers modulo 12
         """
         self.__group = group
 
@@ -236,7 +236,7 @@ class GroupAlgebra(CombinatorialFreeModule):
         TypeError: "1" is not a group
 
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of finite dimensional group algebras over Ring of integers modulo 12
+        Category of finite dimensional commutative group algebras over Ring of integers modulo 12
         sage: GroupAlgebra(KleinFourGroup()) is GroupAlgebra(KleinFourGroup())
         True
 
@@ -309,10 +309,16 @@ class GroupAlgebra(CombinatorialFreeModule):
             raise TypeError('"%s" is not a group' % group)
 
         self._group = group
+
+        try:
+            category = GroupAlgebras(base_ring).Commutative()
+        except:
+            category = GroupAlgebras(base_ring)
+
         CombinatorialFreeModule.__init__(self, base_ring, group,
                                          prefix='',
                                          bracket=False,
-                                         category=GroupAlgebras(base_ring))
+                                         category=category)
 
         if not base_ring.has_coerce_map_from(group) :
             ## some matrix groups assume that coercion is only valid to
@@ -414,6 +420,28 @@ class GroupAlgebra(CombinatorialFreeModule):
         if not self.base_ring().is_field(proof):
             return False
         return (self.group().order() == 1)
+
+    def is_prime_field(self, proof = True):
+        r"""
+        Return True if self is a prime fiels. This is always false unless
+        ``self.group()`` is trivial and ``self.base_ring()`` is a prime
+        field.
+
+        EXAMPLES::
+
+            sage: GroupAlgebra(SymmetricGroup(2)).is_prime_field()
+            False
+            sage: GroupAlgebra(SymmetricGroup(1)).is_prime_field()
+            False
+            sage: GroupAlgebra(SymmetricGroup(1), QQ).is_prime_field()
+            True
+            sage: GroupAlgebra(SymmetricGroup(1), RR).is_prime_field()
+            False
+        """
+
+        if not self.is_field(proof = proof):
+            return False
+        return self.base_ring().is_prime_field()
 
     def is_finite(self):
         r"""
