@@ -31,13 +31,44 @@ from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'[^ a-z]\s*(long time|not implemented|not tested|known bug|optional)\s*[:-]*\s*([\s\w]*)')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
 tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
+time_regex = re.compile("(\d+)([smhd]?)$")
+time_conversion = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
+
+def str_to_seconds(s, default=None):
+    r"""
+    TESTS::
+
+        sage: from sage.doctest.parsing import str_to_seconds
+        sage: str_to_seconds('12')
+        12
+        sage: str_to_seconds('25s')
+        25
+        sage: str_to_seconds('1m')
+        60
+        sage: str_to_seconds('1h')
+        3600
+        sage: str_to_seconds('2h')
+        7200
+        sage: str_to_seconds('5d')
+        432000
+    """
+    m = time_regex.match(s)
+    if not m:
+        if default is None:
+            raise ValueError("{} is not a valid time specification".format(s))
+        else:
+            return default
+    else:
+        t,u = m.groups()
+        if u == '': u = 's'
+        return int(t) * time_conversion[u]
 
 # Use this real interval field for doctest tolerances. It allows large
 # numbers like 1e1000, it parses strings with spaces like RIF(" - 1 ")
@@ -63,66 +94,89 @@ ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
 
 def parse_optional_tags(string):
     """
-    Returns a set consisting of the optional tags from the following
-    set that occur in a comment on the first line of the input string.
+    Return a pair ``(tags, long_time)`` built from ``string``.
 
-    - 'long time'
-    - 'not implemented'
-    - 'not tested'
-    - 'known bug'
-    - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
+    The output is made of ``tags`` that is a set of tags (strings) and
+    ``long_time`` is an integer value built from ``string``.
+
+    The arguments that are parsed are the following:
+
+    - 'long time: TIME' -- ``long_time`` will be set to TIME
+    - 'not implemented' -- added to ``tags``
+    - 'not tested' -- added to ``tags``
+    - 'known bug' -- ``bug`` will be added to ``tags
+    - 'optional: PKG_NAME' -- 'PKG_NAME' will be added to ``tags``
 
     EXAMPLES::
 
         sage: from sage.doctest.parsing import parse_optional_tags
         sage: parse_optional_tags("sage: magma('2 + 2')# optional: magma")
-        {'magma'}
+        ({'magma'}, None)
         sage: parse_optional_tags("sage: #optional -- mypkg")
-        {'mypkg'}
+        ({'mypkg'}, None)
         sage: parse_optional_tags("sage: print(1)  # parentheses are optional here")
-        set()
+        (set(), None)
+        sage: parse_optional_tags("sage: print(3+3) # the multiplication is not implemented")
+        (set(), None)
         sage: parse_optional_tags("sage: print(1)  # optional")
-        {''}
-        sage: sorted(list(parse_optional_tags("sage: #optional -- foo bar, baz")))
+        ({''}, None)
+        sage: sorted(parse_optional_tags("sage: #optional -- foo bar, baz")[0])
         ['bar', 'foo']
-        sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")))
+        sage: tags,time = parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")
+        sage: sorted(tags)
         ['long time', 'not tested', 'p4cka9e']
+        sage: time
+        10
         sage: parse_optional_tags("    sage: raise RuntimeError # known bug")
-        {'bug'}
-        sage: sorted(list(parse_optional_tags("    sage: determine_meaning_of_life() # long time, not implemented")))
-        ['long time', 'not implemented']
+        ({'bug'}, None)
+        sage: sorted(parse_optional_tags("    sage: determine_meaning_of_life() # long time, optional: my_pkg1 my_pkg2, not implemented")[0])
+        ['long time', 'my_pkg1', 'my_pkg2', 'not implemented']
+        sage: parse_optional_tags("sage: print(1)  # long time: 3m")
+        ({'long time'}, 180)
+        sage: parse_optional_tags("    sage: print # long time: 1m, optional: magma")
+        ({'long time', 'magma'}, 60)
 
     We don't parse inside strings::
 
         sage: parse_optional_tags("    sage: print '  # long time'")
-        set()
+        (set(), None)
         sage: parse_optional_tags("    sage: print '  # long time'  # not tested")
-        {'not tested'}
+        ({'not tested'}, None)
 
     UTF-8 works::
 
          sage: parse_optional_tags("'ěščřžýáíéďĎ'")
-         set()
+         (set(), None)
     """
     safe, literals, state = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
-        return set()
+        return set(), None
     comment = first_line[first_line.find('#')+1:]
     comment = comment[comment.index('(')+1 : comment.rindex(')')]
     # strip_string_literals replaces comments
     comment = "#" + (literals[comment]).lower()
+    long_time = None
 
-    tags = []
+    tags = set()
     for m in optional_regex.finditer(comment):
-        cmd = m.group(1)
+        cmd, opt = m.groups()
         if cmd == 'known bug':
-            tags.append('bug') # so that such tests will be run by sage -t ... -only-optional=bug
-        elif cmd:
-            tags.append(cmd)
+            tags.add('bug') # so that such tests will be run by sage -t ... -only-optional=bug
+        elif cmd == 'optional':
+            tags.update(opt.split() or [""])
+        elif cmd == 'long time':
+            if long_time is None:
+                long_time = 0
+            if not opt:
+                time = 10
+            else:
+                time = str_to_seconds(opt, default=10)
+            long_time = max(time, long_time)
+            tags.add('long time')
         else:
-            tags.extend(m.group(3).split() or [""])
-    return set(tags)
+            tags.add(cmd)
+    return tags, long_time
 
 def parse_tolerance(source, want):
     """
@@ -407,7 +461,10 @@ class SageDocTestParser(doctest.DocTestParser):
         r"""
         INPUT:
 
-        - ``long`` -- boolean, whether to run doctests marked as taking a long time.
+        - ``long`` -- boolean or integer, whether to run doctests that are
+          tagged with time at most ``long`` seconds. If set to ``True`` it will
+          be set to 10 seconds.
+
         - ``optional_tags`` -- a list or tuple of strings.
 
         EXAMPLES::
@@ -425,7 +482,13 @@ class SageDocTestParser(doctest.DocTestParser):
 
             sage: TestSuite(DTP).run()
         """
-        self.long = long
+        if long is None or long is False:
+            self.long = -1
+        elif long is True:
+            self.long = 10
+        else:
+            self.long = int(long)
+
         self.optionals = collections.defaultdict(int) # record skipped optional tests
         if optional_tags is True: # run all optional tests
             self.optional_tags = True
@@ -437,6 +500,7 @@ class SageDocTestParser(doctest.DocTestParser):
                 self.optional_tags.remove('sage')
             else:
                 self.optional_only = True
+
 
     def __cmp__(self, other):
         """
@@ -513,6 +577,16 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: ex.source
             'for i in range(Integer(4)):\n    print i\n'
 
+        Test marked with long time are skipped if they are larger than the limit::
+
+            sage: DTP = SageDocTestParser(12, ('sage','long time'))
+            sage: DTP.parse('sage: 1+1 # long time: 12s')[1]
+            <doctest.Example instance at ...>
+            sage: DTP.parse('sage: 1+1 # long time: 13s')[1]
+            ''
+            sage: DTP.parse('sage: 1+1 # long time: 1m')[1]
+            ''
+
         Sage currently accepts backslashes as indicating that the end
         of the current line should be joined to the next line.  This
         feature allows for breaking large integers over multiple lines
@@ -552,14 +626,15 @@ class SageDocTestParser(doctest.DocTestParser):
         filtered = []
         for item in res:
             if isinstance(item, doctest.Example):
-                optional_tags = parse_optional_tags(item.source)
+                optional_tags, long_time = parse_optional_tags(item.source)
+
                 if optional_tags:
                     for tag in optional_tags:
                         self.optionals[tag] += 1
                     if ('not implemented' in optional_tags) or ('not tested' in optional_tags):
                         continue
                     if 'long time' in optional_tags:
-                        if self.long:
+                        if self.long >= long_time:
                             optional_tags.remove('long time')
                         else:
                             continue
@@ -568,6 +643,8 @@ class SageDocTestParser(doctest.DocTestParser):
                 elif self.optional_only:
                     self.optionals['sage'] += 1
                     continue
+
+
                 item.want = parse_tolerance(item.source, item.want)
                 if item.source.startswith("sage: "):
                     item.sage_source = item.source[6:]

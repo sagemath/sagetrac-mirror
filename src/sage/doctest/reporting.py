@@ -141,8 +141,12 @@ class DocTestReporter(SageObject):
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"
-        if self.controller.options.long:
-            cmd += " --long"
+        long = self.controller.options.long
+        if long is not None:
+            if long != 10:
+                cmd += " --long {}".format(self.controller.options.long)
+            else:
+                cmd += " --long"
         warnlong = self.controller.options.warn_long
         if warnlong is not None:
             cmd += " --warn-long"

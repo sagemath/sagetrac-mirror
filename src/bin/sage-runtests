@@ -5,6 +5,13 @@ import optparse, os, sys
 if __name__ == "__main__":
     parser = optparse.OptionParser()
 
+    def parse_time(s):
+        import re
+        if re.compile("\s*(\d+)[smhd]?\s*$").match(s):
+            return s
+        else:
+            raise ValueError
+
     def optional_argument(option, opt_str, value, parser, typ, default_arg):
         assert value is None
         try:
@@ -23,7 +30,9 @@ if __name__ == "__main__":
     parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
     parser.add_option("--sagenb", action="store_true", default=False, help="test all files from the Sage notebook sources")
 
-    parser.add_option("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
+    parser.add_option("-l", "--long", dest="long", default=None, action="callback",
+        callback=optional_argument, callback_args=(parse_time, '10s'), nargs=0,
+        metavar="TIME", help="set a time such that test flagged with a time longer than this will be skipped")
     parser.add_option("--warn-long", dest="warn_long", default=None, action="callback",
         callback=optional_argument, callback_args=(float, 1.0), nargs=0,
         metavar="SECONDS", help="warn if tests take more time than SECONDS")

@@ -235,6 +235,9 @@ class DocTestController(SageObject):
             options.nthreads = 1
         if options.verbose:
             options.show_skipped = True
+        if options.long:
+            from parsing import str_to_seconds
+            options.long = str_to_seconds(options.long)
 
         if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
