@@ -4241,18 +4241,25 @@ class FiniteWord_class(Word_class):
             n += 1
         return n
 
-    def nb_subword_occurrences_in(self, other, algorithm="matrices"):
+    def nb_subword_occurrences_in(self, other, algorithm='matrices'):
         r"""
         Returns the number of times self appears in other as a subword.
 
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
+
         INPUT:
 
-        - ``other`` -- word
-        - ``algorithm`` -- string, can take the following value:
+        - ``other`` -- finite word
+        - ``algorithm`` -- string (default: ``'matrices'``), can take the following value:
 
-          - ``"matrices"`` -- The computation is done with Parikh matrices
-            introduced in [1].
-          - ``"recursive"`` -- The computation is done recursively.
+          - ``'matrices'`` -- The computation is done with Parikh matrices
+            introduced in [2].
+          - ``'loop_recursive'`` -- The computation is done recursively with a
+            while loop containing one recursive call.
+          - ``'recursive'`` -- The computation is done recursively with two
+            recursive calls.
 
         EXAMPLES::
 
@@ -4261,31 +4268,50 @@ class FiniteWord_class(Word_class):
             sage: w.nb_subword_occurrences_in(u)
             2604124996
 
+        When the number of subwords is near zero,
+        ``algorithm='loop_recursive'`` is faster::
+
+            sage: u = Word([randint(0,30) for _ in range(200)])
+            sage: v = Word(range(30))
+            sage: v.nb_subword_occurrences_in(u, algorithm='loop_recursive') # (2 ms)
+            0
+            sage: v.nb_subword_occurrences_in(u, algorithm='matrices') # (50 ms)
+            0
+            sage: v.nb_subword_occurrences_in(u, algorithm='recursive') # (100 ms)
+            0
+
         TESTS::
 
-            sage: Word([]).nb_subword_occurrences_in(u)
-            1
-            sage: Word([0,2]).nb_subword_occurrences_in(u)
-            0
+            sage: A = ['matrices', 'loop_recursive', 'recursive']
+            sage: v,u = Word(), Word('123')
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [1, 1, 1]
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [11, 11, 11]
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [0, 0, 0]
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [4, 4, 4]
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [1, 1, 1]
 
-        ::
+      For the following test, ``algorithm='recursive'`` reaches maximum
+      recursion depth but the other two algorithms works::
 
-            sage: u = Word('123')
-            sage: Word().nb_subword_occurrences_in(u, algorithm='original')
-            1
-            sage: u = Word('1133432311132311112')
-            sage: Word('123').nb_subword_occurrences_in(u, algorithm='original')
-            11
-            sage: u = Word('1132231112233212342231112')
-            sage: Word('4321').nb_subword_occurrences_in(u, algorithm='original')
-            0
-            sage: u = Word('122332112321213')
-            sage: Word('3').nb_subword_occurrences_in(u, algorithm='original')
-            4
+            sage: A = ['matrices', 'loop_recursive']
+            sage: v,u = Word([0, 2]), words.ThueMorseWord()[:1000]
+            sage: [v.nb_subword_occurrences_in(u, algorithm=a) for a in A]
+            [0, 0]
 
         REFERENCES:
 
-        - [1] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
           sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
           (2001) 551-564.
         """
@@ -4301,31 +4327,44 @@ class FiniteWord_class(Word_class):
             M = prod(D[a] for a in other)
             return M[0,n]
 
-        elif algorithm == 'recursive':
-            ls = self.length()
-            if ls == 0:
+        elif algorithm == 'loop_recursive':
+            len_self = self.length()
+            if len_self == 0:
                 return 1
-            elif ls == 1:
+            elif len_self == 1:
                 return self.nb_factor_occurrences_in(other)
-            elif len(other) < ls:
+            elif len_self > len(other):
                 return 0
             symb = self[:1]
             suffword = other
             suffsm = self[1:]
             n = 0
-            cpt = 0
             i = symb.first_pos_in(suffword)
             while i is not None:
                 suffword = suffword[i+1:]
-                m = suffsm.nb_subword_occurrences_in(suffword, algorithm='recursive')
+                m = suffsm.nb_subword_occurrences_in(suffword, algorithm='loop_recursive')
                 if m == 0: break
                 n += m
                 i = symb.first_pos_in(suffword)
             return n
 
+        elif algorithm == 'recursive':
+            len_self = self.length()
+            if len_self == 0:
+                return 1
+            elif len_self == 1:
+                return self.nb_factor_occurrences_in(other)
+            elif len_self > len(other):
+                return 0
+            i = self[:1].first_pos_in(other)
+            if i is None:
+                return 0
+            suffix = other[i+1:]
+            return (self[1:].nb_subword_occurrences_in(suffix, algorithm='recursive') + 
+                        self.nb_subword_occurrences_in(suffix, algorithm='recursive'))
+
         else:
             raise ValueError("Unknown value for algorithm (={})".format(algorithm))
-
 
     def _return_words_list(self, fact):
         r"""
