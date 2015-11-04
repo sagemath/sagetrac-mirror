@@ -1177,19 +1177,18 @@ class Tableau(ClonableList):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    def to_sign_matrix(self,max_entry):
+    def to_sign_matrix(self,max_entry=None):
         r"""
-        Return the sign matrix of ``self``. 
-        
-        INPUT: 
-        ``self`` is the name of the Tableau or SemistandardTableau, max_entry is the 
-        maximum allowable number in the tableau. The entries of the tableau 
-        must be integers greater than 0.
+        Return the sign matrix of ``self``.
 
-        RETURN:
         A sign matrix is an 'm \times n' matrix of 0's, 1's and -1's such that the 
         partial sums of each column is either 0 or 1 and the partial sums of 
         each row is non-negative. [Aval2008]_
+        
+        INPUT: 
+        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in 
+        the tableau. Defaults to the largest entry in the tableau if not specified.
+
 
         EXAMPLES:: 
        
@@ -1231,6 +1230,8 @@ class Tableau(ClonableList):
             if any(c not in PI for c in row):
                 raise ValueError("the entries must be non-negative integers")        
         from sage.matrix.matrix_space import MatrixSpace
+        if max_entry==None:
+            max_entry=max([max(c) for c in self])
         MS = MatrixSpace(ZZ, len(self[0]), max_entry)
         Tconj = self.conjugate()
         l = len(Tconj)
@@ -1238,7 +1239,6 @@ class Tableau(ClonableList):
         partial_sum_matrix = MS(d)
         from copy import copy
         sign_matrix = copy(MS.zero())
-
         for j in range(max_entry):
             sign_matrix[0,j] = partial_sum_matrix[0,j]
         for i in range(1,l):
