@@ -42,50 +42,18 @@ def CoxeterGraph(*args, **kwds):
     - a generalized Coxeter matrix
     - a (generalized) Coxeter matrix and an indexing set
 
-    Contrary to the convention, the labels 3 are kept for clarity purpuses.
-
-    For example, in type `C_2`, we have::
-
-        sage: C2 = CoxeterGraph(['C',2]); C2
-        O=<=O
-        1   2
-        C2
-        sage: C2.cartan_matrix()
-        [ 2 -2]
-        [-1  2]
-
-    However Bourbaki would have the Cartan matrix as:
-
-    .. MATH::
-
-        \begin{bmatrix}
-        2 & -1 \\
-        -2 & 2
-        \end{bmatrix}.
 
     EXAMPLES::
 
         sage: CoxeterGraph(['A', 4])
-        O---O---O---O
-        1   2   3   4
-        A4
+        Graph on 4 vertices
 
         sage: CoxeterGraph(['A',1],['A',1])
-        O
-        1
-        O
-        2
-        A1xA1
+        Graph on 2 vertices
 
         sage: R = RootSystem("A2xB2xF4")
         sage: CoxeterGraph(R)
-        O---O
-        1   2
-        O=>=O
-        3   4
-        O---O=>=O---O
-        5   6   7   8
-        A2xB2xF4
+        Graph on 8 vertices
 
         sage: R = RootSystem("A2xB2xF4")
         sage: CM = R.cartan_matrix(); CM
@@ -135,14 +103,15 @@ def CoxeterGraph(*args, **kwds):
 
     .. SEEALSO::
 
-        :func:`CartanType` for a general discussion on Cartan
+        :func:`CoxeterType` for a general discussion on Coxeter
         types and in particular node labeling conventions.
 
     TESTS:
 
     Check that :trac:`15277` is fixed by not having edges from 0's::
 
-        sage: CM = CartanMatrix([[2,-1,0,0],[-3,2,-2,-2],[0,-1,2,-1],[0,-1,-1,2]])
+        sage: CM =
+        CoxeterMatrix([[1,-1,0,0],[-3,1,-2,-2],[0,-1,1,-1],[0,-1,-1,1]])
         sage: CM
         [ 2 -1  0  0]
         [-3  2 -2 -2]
@@ -162,13 +131,13 @@ def CoxeterGraph(*args, **kwds):
         return CoxeterGraph_class()
     mat = args[0]
     if is_Matrix(mat):
-        mat = CartanMatrix(*args)
-    if isinstance(mat, CartanMatrix):
+        mat = CoxeterMatrix(*args)
+    if isinstance(mat, CoxeterMatrix):
         if mat.coxeter_type() is not mat:
             try:
                 return mat.coxeter_type().coxeter_graph()
             except AttributeError:
-                ct = CartanType(*args)
+                ct = CoxeterType(*args)
                 raise ValueError("Coxeter graph data not yet hardcoded for type %s"%ct)
         if len(args) > 1:
             index_set = tuple(args[1])
@@ -181,7 +150,7 @@ def CoxeterGraph(*args, **kwds):
             if i != j:
                 D.add_edge(index_set[i], index_set[j], -mat[j, i])
         return D
-    ct = CartanType(*args)
+    ct = CoxeterType(*args)
     try:
         return ct.coxeter_graph()
     except AttributeError:
@@ -227,8 +196,8 @@ class CoxeterGraph_class(Graph, CoxeterType):
         sage: d.vertices() != cd.vertices()
         True
 
-    Implementation note: if a Cartan type is given, then the nodes
-    are initialized from the index set of this Cartan type.
+    Implementation note: if a Coxeter type is given, then the nodes
+    are initialized from the index set of this Coxeter type.
     """
     def __init__(self, t=None, index_set=None, **options):
         """
@@ -267,7 +236,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
         ct = self.coxeter_type()
         result = ct.ascii_art() +"\n" if hasattr(ct, "ascii_art") else ""
 
-        if ct is None or isinstance(ct, CartanMatrix):
+        if ct is None or isinstance(ct, CoxeterMatrix):
             return result+"Coxeter graph of rank %s"%self.rank()
         else:
             return result+"%s"%ct._repr_(compact=True)
@@ -310,7 +279,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
             [-1  2 -2]
             [ 0 -1  2]
             sage: type(M)
-            <class 'sage.combinat.root_system.cartan_matrix.CartanMatrix'>
+            <class 'sage.combinat.root_system.cartan_matrix.CoxeterMatrix'>
         """
         return self.coxeter_matrix()._matrix_()
 
@@ -319,7 +288,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
         EXAMPLES::
 
             sage: from sage.combinat.root_system.coxeter_graph import CoxeterGraph_class
-            sage: d = CoxeterGraph_class(CartanType(['A',3]))
+            sage: d = CoxeterGraph_class(CoxeterType(['A',3]))
             sage: list(sorted(d.edges()))
             []
             sage: d.add_edge(2, 3)
@@ -334,7 +303,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
         """
         EXAMPLES::
 
-            sage: d = CartanType(['A',3]).coxeter_graph()
+            sage: d = CoxeterType(['A',3]).coxeter_graph()
             sage: hash(d) == hash((d.coxeter_type(), tuple(d.vertices()), tuple(d.edge_iterator(d.vertices()))))
             True
         """
@@ -372,7 +341,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
         return g
 
     ##########################################################################
-    # Cartan type methods
+    # Coxeter type methods
 
     @cached_method
     def index_set(self):
@@ -455,7 +424,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
 
         EXAMPLES::
 
-            sage: CartanType(['F',4]).coxeter_graph().is_affine()
+            sage: CoxeterType(['F',4]).coxeter_graph().is_affine()
             False
             sage: D = CoxeterGraph(CoxeterMatrix([[1, -2], [-2, 1]]))
             sage: D.is_affine()
@@ -478,7 +447,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
 
     def is_crystallographic(self):
         """
-        Implements :meth:`CartanType_abstract.is_crystallographic`
+        Implements :meth:`CoxeterType.is_crystallographic`???
 
         Checks if ``self`` corresponds to a crystallographic Coxeter group.
 
