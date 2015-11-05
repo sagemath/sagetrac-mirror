@@ -723,15 +723,24 @@ framework. Here is a comprehensive list:
   hash in a doctest, one could illustrate successfully using it as a key in a
   dict.
 
-- **long time:** The line is only tested if the ``--long`` option is given, e.g.
-  ``sage -t --long f.py``.
+- **long time:** The line is only tested if the ``--long TIME`` option given is
+  such that ``TIME`` is larger or equal than the time indicated in the doctest.
+  By default (e.g. ``sage -t --long f.py``) it is set to 10 seconds.
 
-  Use it for doctests that take more than a second to run. No example should
-  take more than about 30 seconds::
+  Use it for doctests that take more than a second to run.::
 
       sage: E = EllipticCurve([0, 0, 1, -1, 0])
-      sage: E.regulator()        # long time (1 second)
+      sage: E.regulator()        # long time: 1s
       0.0511114082399688
+      sage: proof.elliptic_curve(False)
+      sage: for i in srange(30):             # long time: 1m
+      ....:     E = EllipticCurve_from_j(i)
+      ....:     if E.regulator() == 1: print i,
+      0 4 8 9 14 17 18 20 24 34 38 40 41 46 47 49 52 54 57
+      sage: proof.elliptic_curve(True)
+
+  If the flag ``# long time`` is used without time indication, it is set to 10
+  seconds.
 
 - **tol** or **tolerance:** The numerical values returned by the line are only
   verified to the given tolerance. It is useful when the output is subject to
