@@ -330,7 +330,16 @@ Sage library are flagged with ``# long time`` because these are known to
 take a long time to run through. Without using the optional ``--long``
 argument, the module ``sage/crypto/mq/sr.py`` took about five
 seconds. With this optional argument, it required 82 seconds to run
-through all tests in that module. Here is a snippet of a function in
+through all tests in that module.
+
+It is also possible to add a finer grain of control on this
+flag with a time estimation such as ``# long time: 35s``, ``# long time: 2m``,
+``# long time: 1h`` or ``# long time: 2d`` (which corresponds respectively to
+35 seconds, 2 minutes, 1 hour and 2 days). In parallel, a time option can be added
+to ``--long`` (e.g. ``--long 5s`` or ``--long 10s``) in order to skip lengthy
+doctests.
+
+Here is a snippet of a function in
 the module ``sage/crypto/mq/sr.py`` with a doctest that has been flagged
 as taking a long time::
 
