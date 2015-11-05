@@ -4363,6 +4363,28 @@ class FiniteWord_class(Word_class):
             return (self[1:].nb_subword_occurrences_in(suffix, algorithm='recursive') + 
                         self.nb_subword_occurrences_in(suffix, algorithm='recursive'))
 
+        elif algorithm == 'vincent':
+
+            # record the position of letters in self
+            pos = {}
+            for i,a in enumerate(self):
+                if a in pos:
+                    pos[a].append(i)
+                else:
+                    pos[a] = [i]
+
+            # compute the occurrences of all prefixes of self as subwords in other
+            occ = [0] * (len(self)+1)
+            occ[0] = 1
+            for a in other:
+                l = pos.get(a)
+                if l is not None:
+                    for i in l:
+                        occ[i+1] += occ[i]
+
+            # return only the number of occurrences of self
+            return occ[-1]
+
         else:
             raise ValueError("Unknown value for algorithm (={})".format(algorithm))
 
