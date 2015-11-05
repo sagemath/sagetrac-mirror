@@ -6,24 +6,14 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cp sage_tdlib.cpp src/src/
-cp sage_tdlib.hpp src/src/
-
 cd src
 
 ./configure \
-    --prefix="$SAGE_LOCAL" \
-    --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --disable-static
-
-$MAKE
-if [ $? -ne 0 ]; then
-    echo "Error building tdlib"
-    exit 1
-fi
+    --prefix="$SAGE_LOCAL"
 
 $MAKE install -j1
 if [ $? -ne 0 ]; then
     echo "Error installing tdlib"
     exit 1
 fi
+

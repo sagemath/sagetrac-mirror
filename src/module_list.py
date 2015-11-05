@@ -358,7 +358,7 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.rankwidth',
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
               libraries=['rw']),
-
+ 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
 
@@ -368,7 +368,6 @@ ext_modules = [
     OptionalExtension('sage.graphs.graph_decompositions.tdlib',
               sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
               language="c++",
-              libraries = ['td'],
               package = 'tdlib'),
 
     Extension('sage.graphs.spanning_tree',

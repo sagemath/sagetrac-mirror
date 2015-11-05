@@ -2,8 +2,8 @@
 #include <map>
 
 #include <boost/graph/adjacency_list.hpp>
-#include "TD_combinations.hpp"
-
+#include "tdlib/TD_combinations.hpp"
+#include "tdlib/TD_misc.hpp"
 
 #ifndef TD_STRUCT_VERTEX
 #define TD_STRUCT_VERTEX
@@ -14,15 +14,13 @@ struct Vertex{
 
 #endif
 
-typedef boost::adjacency_list<boost::setS, boost::listS, boost::undirectedS, Vertex> TD_graph_t;
+typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, Vertex> TD_graph_t;
 
 struct bag{
     std::set<unsigned int> bag;
 };
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, bag> TD_tree_dec_t;
-
-#include "sage_tdlib.hpp"
 
 
 void make_tdlib_graph(TD_graph_t &G, std::vector<unsigned int> &V, std::vector<unsigned int> &E){
@@ -110,6 +108,8 @@ int sage_exact_decomposition(std::vector<unsigned int> &V_G, std::vector<unsigne
     TD_tree_dec_t T;
 
     treedec::exact_decomposition_cutset(G, T, lb);
+
+    treedec::make_small(T);
 
     make_sage_decomp(T, V_T, E_T);
 
