@@ -211,6 +211,7 @@ Comprehensive Module list
     sage/combinat/root_system/branching_rules
     sage/combinat/root_system/cartan_matrix
     sage/combinat/root_system/cartan_type
+    sage/combinat/root_system/coxeter_graph
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/coxeter_type
