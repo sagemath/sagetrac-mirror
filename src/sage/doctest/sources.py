@@ -701,6 +701,7 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
+            There are 2 unexpected tests being run in sage/combinat/backtrack.py
             There are 7 tests in sage/combinat/diagram_algebras.py that are not being run
             There are 7 tests in sage/combinat/dyck_word.py that are not being run
             There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
@@ -712,11 +713,20 @@ class FileDocTestSource(DocTestSource):
             There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
             There are 11 tests in sage/combinat/rigged_configurations/rigged_configurations.py that are not being run
             There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run
+            There are 5 tests in sage/combinat/root_system/root_lattice_realization_algebras.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_A.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
-            There are 3 unexpected tests being run in sage/doctest/parsing.py
+            There are 4 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
+            There are 3 tests in sage/doctest/tests/longtime.rst that are not being run
+            There are 1 unexpected tests being run in sage/interfaces/maxima_abstract.py
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
+            There are 6 unexpected tests being run in sage/rings/finite_rings/residue_field.pyx
+            There are 4 unexpected tests being run in sage/rings/number_field/number_field_element_quadratic.pyx
+            There are 2 unexpected tests being run in sage/rings/padics/CA_template.pxi
+            There are 2 unexpected tests being run in sage/rings/padics/FM_template.pxi
+            There are 1 unexpected tests being run in sage/sets/family.py
+            There are 6 unexpected tests being run in sage/structure/coerce_maps.pyx
             sage: os.chdir(cwd)
         """
         expected = []
@@ -753,8 +763,8 @@ class FileDocTestSource(DocTestSource):
             if len(dt.examples) > 0:
                 for ex in dt.examples[:-1]: # the last entry is a sig_on_count()
                     actual.append(dt.lineno + ex.lineno + 1)
-        shortfall = sorted(list(set(expected).difference(set(actual))))
-        extras = sorted(list(set(actual).difference(set(expected))))
+        shortfall = sorted(set(expected).difference(set(actual)))
+        extras = sorted(set(actual).difference(set(expected)))
         if len(actual) == len(expected):
             if len(shortfall) == 0: return
             dif = extras[0] - shortfall[0]

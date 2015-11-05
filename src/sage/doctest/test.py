@@ -37,10 +37,41 @@ Check that :trac:`2235` has been fixed::
     Running doctests...
     Doctesting 1 file.
     sage -t --long --warn-long 0.0 longtime.rst
-    [1 test, ...s]
+    [2 tests, ...s]
     ----------------------------------------------------------------------
     All tests passed!
     ----------------------------------------------------------------------
+    ...
+    0
+
+Check longtime optional time specifications (:trac:`19519`)::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "longtime.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --long --warn-long 0.0 longtime.rst
+    [2 tests, ... s]
+    ...
+    0
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "5s", "longtime.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --long 5 --warn-long 0.0 longtime.rst
+    [0 tests, ... s]
+    ...
+    0
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "1m", "longtime.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --long 60 --warn-long 0.0 longtime.rst
+    [4 tests, ... s]
+    ...
+    0
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "1d", "longtime.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --long 86400 --warn-long 0.0 longtime.rst
+    [5 tests, ... s]
     ...
     0
 
