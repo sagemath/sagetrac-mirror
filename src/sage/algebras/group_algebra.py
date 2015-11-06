@@ -310,9 +310,9 @@ class GroupAlgebra(CombinatorialFreeModule):
 
         self._group = group
 
-        try:
+        if group.is_abelian()
             category = GroupAlgebras(base_ring).Commutative()
-        except:
+        else:
             category = GroupAlgebras(base_ring)
 
         CombinatorialFreeModule.__init__(self, base_ring, group,
