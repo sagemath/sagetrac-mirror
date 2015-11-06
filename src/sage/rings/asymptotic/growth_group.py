@@ -1474,7 +1474,7 @@ class GenericGrowthGroup(
             sage: L1 is L2
             True
 
-        Test determining of the category (GenericGrowthGroup)::
+        Test determining of the category (:class:`GenericGrowthGroup`)::
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
@@ -1482,7 +1482,7 @@ class GenericGrowthGroup(
             sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
             Category of groups
 
-        Test determining of the category (MonomialGrowthGroup)::
+        Test determining of the category (:class:`MonomialGrowthGroup`)::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: MonomialGrowthGroup(ZZ, 'x').category()  # indirect doctest
@@ -1495,7 +1495,7 @@ class GenericGrowthGroup(
             sage: MonomialGrowthGroup(W, 'x').category()  # indirect doctest
             Category of sets
 
-        Test determining of the category (ExponentialGrowthGroup)::
+        Test determining of the category (:class:`ExponentialGrowthGroup`)::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
             sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
@@ -2556,7 +2556,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
             sage: Q = GrowthGroup('x^NN'); Q
-            Growth Group x^((Non negative integer semiring))
+            Growth Group x^(Non negative integer semiring)
             sage: e3 = ~Q('x'); e3
             x^(-1)
             sage: e3.parent()
