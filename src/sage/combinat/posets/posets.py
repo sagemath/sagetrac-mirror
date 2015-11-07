@@ -419,7 +419,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
           sage: Poset(dig, cover_relations=True)
           Traceback (most recent call last):
           ...
-          ValueError: Hasse diagram is not transitively reduced.
+          ValueError: Hasse diagram is not transitively reduced
 
     .. rubric:: Default Linear extension
 
@@ -645,7 +645,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             # type 3, list/tuple of upper covers
             D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]))
         else:
-            raise ValueError("not valid poset data.")
+            raise ValueError("not valid poset data")
 
     # DEBUG: At this point D should be a DiGraph.
     assert isinstance(D, DiGraph), "BUG: D should be a digraph."
@@ -658,11 +658,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.
     if D.has_loops():
-        raise ValueError("Hasse diagram contains loops.")
+        raise ValueError("Hasse diagram contains loops")
     elif D.has_multiple_edges():
-        raise ValueError("Hasse diagram contains multiple edges.")
+        raise ValueError("Hasse diagram contains multiple edges")
     elif cover_relations is True and not D.is_transitively_reduced():
-        raise ValueError("Hasse diagram is not transitively reduced.")
+        raise ValueError("Hasse diagram is not transitively reduced")
 
     if element_labels is not None:
         D = D.relabel(element_labels, inplace=False)
@@ -675,7 +675,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             try:
                 elements = D.topological_sort()
             except Exception:
-                raise ValueError("Hasse diagram contains cycles.")
+                raise ValueError("Hasse diagram contains cycles")
     else:
         elements = None
     return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
@@ -2009,20 +2009,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_incomparable_chain_free(2, pi)
             Traceback (most recent call last):
             ...
-            TypeError: 2 and pi must be integers.
+            TypeError: 2 and pi must be integers
             sage: Q.is_incomparable_chain_free(2, -1)
             Traceback (most recent call last):
             ...
-            ValueError: 2 and -1 must be positive integers.
+            ValueError: 2 and -1 must be positive integers
             sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
             sage: P.is_incomparable_chain_free((3, 1))
             Traceback (most recent call last):
             ...
-            TypeError: (3, 1) is not a tuple of tuples.
+            TypeError: (3, 1) is not a tuple of tuples
             sage: P.is_incomparable_chain_free([3, 1], [2, 2])
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and [2, 2] must be integers.
+            TypeError: [3, 1] and [2, 2] must be integers
             sage: P.is_incomparable_chain_free([[3, 1], [2, 2]])
             True
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2]))
@@ -2030,11 +2030,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_incomparable_chain_free([3, 1], 2)
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and 2 must be integers.
+            TypeError: [3, 1] and 2 must be integers
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2, 2]))
             Traceback (most recent call last):
             ...
-            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples.
+            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples
 
         AUTHOR:
 
@@ -2052,16 +2052,16 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
-                raise TypeError('%s is not a tuple of tuples.' % str(tuple(m)))
+                raise TypeError('%s is not a tuple of tuples' % str(tuple(m)))
             if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
-                raise ValueError('%r is not a tuple of length-2 tuples.' % str(tuple(m)))
+                raise ValueError('%r is not a tuple of length-2 tuples' % str(tuple(m)))
             return all(self.is_incomparable_chain_free(*chain_pair) for chain_pair in chain_pairs)
         try:
             m, n = Integer(m), Integer(n)
         except TypeError:
-            raise TypeError('%s and %s must be integers.' % (m, n))
+            raise TypeError('%s and %s must be integers' % (m, n))
         if m < 1 or n < 1:
-            raise ValueError("%s and %s must be positive integers." % (m, n))
+            raise ValueError("%s and %s must be positive integers" % (m, n))
         twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
         return self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced = True) is None
 
@@ -2379,7 +2379,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         """
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
         if self._hasse_diagram.transitive_closure().subgraph_search(other._hasse_diagram.transitive_closure(), induced=True) is None:
             return False
         return True
@@ -2851,7 +2851,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         elif self.is_ranked():
             return self.rank_function()(element)
         else:
-            raise ValueError("Poset is not ranked.")
+            raise ValueError("the poset is not ranked")
 
     def is_ranked(self):
         r"""
@@ -3271,7 +3271,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if hasattr(other,'hasse_diagram'):
             return self.hasse_diagram().is_isomorphic( other.hasse_diagram() )
         else:
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
 
     def isomorphic_subposets_iterator(self, other):
         """
@@ -3308,7 +3308,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         """
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
         return (self.subposet([self._list[i] for i in x]) for x in self._hasse_diagram.transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True))
 
     def isomorphic_subposets(self, other):
@@ -3343,7 +3343,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.misc.misc import uniq
 
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
         L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
         # Since subgraph_search_iterator returns labelled copies, we
         # remove duplicates.
@@ -3703,7 +3703,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         """
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
         return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(),
                                                          labels=labels))
 
@@ -3746,7 +3746,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P1.ordinal_product(24)
             Traceback (most recent call last):
             ...
-            ValueError: the input is not a finite poset
+            ValueError: other is not a finite poset
             sage: P1.ordinal_product(P2, labels='camembert')
             Traceback (most recent call last):
             ...
@@ -3756,7 +3756,7 @@ class FinitePoset(UniqueRepresentation, Parent):
              FiniteLatticePoset
 
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('the input is not a finite poset')
+            raise ValueError("other is not a finite poset")
         othermax = other.maximal_elements()
         othermin = other.minimal_elements()
 
@@ -3847,7 +3847,7 @@ class FinitePoset(UniqueRepresentation, Parent):
              FiniteMeetSemilattice, FiniteJoinSemilattice
 
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError("other is not a finite poset")
         G = self.hasse_diagram().disjoint_union(other.hasse_diagram())
         selfmax = self.maximal_elements()
         othermin = other.minimal_elements()
@@ -3857,7 +3857,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if labels == 'integers':
             G.relabel()
         elif labels != 'pairs':
-            raise ValueError("Labels must be either 'pairs' or 'integers'.")
+            raise ValueError("labels must be either 'pairs' or 'integers'")
 
         if (isinstance(self, FiniteLatticePoset) and
             isinstance(other, FiniteLatticePoset)):
@@ -4249,7 +4249,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         elements = []
         p = float(p)
         if p<0 or p>1:
-            raise ValueError("The probability p must be in [0..1].")
+            raise ValueError("probability p must be in [0..1]")
         for v in self:
             if random() <= p:
                 elements.append(v)
@@ -5012,7 +5012,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise TypeError('the poset is not bounded')
         rk = hasse.rank_function()
         if rk is None:
-            raise TypeError('the poset should be ranked')
+            raise TypeError('the poset is not ranked')
         n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
@@ -5084,7 +5084,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise TypeError('the poset is not bounded')
         rk = hasse.rank_function()
         if rk is None:
-            raise TypeError('the poset should be ranked')
+            raise TypeError('the poset is not ranked')
         n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
@@ -5130,9 +5130,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         hasse = self._hasse_diagram
         rk = hasse.rank_function()
         if not self.is_graded():
-            raise TypeError('the poset should be graded')
+            raise TypeError('the poset is not graded')
         if not self.has_bottom():
-            raise TypeError('the poset should have a bottom element')
+            raise TypeError('the poset has not a bottom element')
         n = rk(hasse.maximal_elements()[0])
         x0 = hasse.minimal_elements()[0]
         q = polygen(ZZ, 'q')
@@ -5921,7 +5921,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         - Travis Scrimshaw (27-12-2014)
         """
         if not self.is_ranked():
-            raise ValueError("poset is not ranked")
+            raise ValueError("the poset is not ranked")
         if q is None:
             q = PolynomialRing(ZZ, 'q').gen(0)
         poly = self._kl_poly(x, y, canonical_labels)

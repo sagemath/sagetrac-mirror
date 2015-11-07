@@ -85,7 +85,9 @@ In particular,
        def SomeIdentityValue(x):
            return SomeValue(1)
 
+- Start exception strings with lowercase and do not put dot to end::
 
+       raise TypeError('the graph is not connected')
 
 .. _chapter-directory-structure:
 
