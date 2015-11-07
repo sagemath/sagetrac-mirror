@@ -494,7 +494,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         sage: (x+2*x^2+3*x^3+4*x^4) * (O(x)+x^2)
         4*x^6 + O(x^5)
 
-    In particular, :meth:`~sage.rings.big_oh.O` can be used to
+    In particular, :func:`~sage.rings.big_oh.O` can be used to
     construct the asymptotic expansions. With the help of the
     :meth:`summands`, we can also have a look at the inner structure
     of an asymptotic expansion::
@@ -2170,6 +2170,51 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         S = self.summands.copy()
         S.map(mapping)
         return P(S, simplify=False, convert=False)
+
+
+    def factorial(self):
+        r"""
+        Return the factorial of this asymptotic expansion.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing(growth_group='n^ZZ * log(n)^ZZ', coefficient_ring=ZZ, default_prec=5)
+            sage: n.factorial()
+            sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(1/2)
+            + 1/12*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-1/2)
+            + 1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2)
+            + O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
+            sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring) *
+                             (e^n)^(Symbolic Constants Subring) *
+                             n^(Symbolic Constants Subring) *
+                             log(n)^(Symbolic Constants Subring)>
+            over Symbolic Constants Subring
+
+        :wikipedia:`Catalan numbers <Catalan_number>`
+        `\frac{1}{n+1}\binom{2n}{n}`::
+
+            sage: (2*n).factorial() / n.factorial()^2 / (n+1)  # long time
+            1/sqrt(pi)*(e^n)^(2*log(2))*n^(-3/2)
+            - 9/8/sqrt(pi)*(e^n)^(2*log(2))*n^(-5/2)
+            + 145/128/sqrt(pi)*(e^n)^(2*log(2))*n^(-7/2)
+            + O((e^n)^(2*log(2))*n^(-9/2))
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.asymptotic.asymptotic_expansion_generators.AsymptoticExpansionGenerators.Stirling`
+        """
+        from asymptotic_expansion_generators import asymptotic_expansions
+        S = asymptotic_expansions.Stirling(
+            'n', precision=self.parent().default_prec)
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        P = cm.common_parent(self, S)
+        return S.subs(n=P.coerce(self))
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
