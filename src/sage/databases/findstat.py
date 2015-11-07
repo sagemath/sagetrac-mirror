@@ -1998,11 +1998,15 @@ class FindStatCollections(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()                                            # optional -- internet
         """
         for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
-            c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
-            c[0] = j[FINDSTAT_COLLECTION_NAME]
-            c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
-            c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-            c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+            try:
+                c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
+                c[0] = j[FINDSTAT_COLLECTION_NAME]
+                c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
+                c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
+                c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+            except KeyError:
+                print "There is a new collection available at `%s`: %s."%(findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL])
+                print "To use it with this interface, it has to be added to the dictionary FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!"
 
         Parent.__init__(self, category=Sets())
 
