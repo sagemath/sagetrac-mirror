@@ -310,7 +310,7 @@ class GroupAlgebra(CombinatorialFreeModule):
 
         self._group = group
 
-        if group.is_abelian()
+        if group.is_abelian():
             category = GroupAlgebras(base_ring).Commutative()
         else:
             category = GroupAlgebras(base_ring)
