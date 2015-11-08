@@ -68,10 +68,8 @@ _default_options = dict()
 _default_options["mode"] = "round" # Can be also "box" and "generators"
 _default_options["show_lattice"] = None # Default is "True for small plots"
 _default_options["show_rays"] = True
-_default_options["show_ray_labels"] = True
 _default_options["show_generators"] = True
 _default_options["show_walls"] = True
-_default_options["show_wall_labels"] = True
 
 _default_options["generator_color"] = "blue"
 _default_options["label_color"] = "black"
@@ -578,8 +576,7 @@ class ToricPlotter(SageObject):
             result += line([origin, end],
                            color=color, thickness=thickness,
                            zorder=zorder, **extra_options)
-        if self.show_ray_labels:
-            result += self.plot_ray_labels()
+        result += self.plot_ray_labels()
         return result
 
     def plot_walls(self, walls):
@@ -678,8 +675,7 @@ class ToricPlotter(SageObject):
             if round:
                 result += sector(r1, r2,
                     alpha=alpha, color=color, zorder=zorder, **extra_options)
-        if self.show_wall_labels:
-            result += self.plot_labels(self.wall_label,
+        result += self.plot_labels(self.wall_label,
                     [sum(label_sector) / 3 for label_sector in label_sectors])
         return result
 
@@ -953,13 +949,9 @@ def options(option=None, **kwds):
 
     - ``show_rays`` -- boolean, whether to show rays or not;
 
-    - ``show_ray_labels`` -- boolean, whether to show ray labels or not;
-
     - ``show_generators`` -- boolean, whether to show rays or not;
 
     - ``show_walls`` -- boolean, whether to show rays or not;
-
-    - ``show_wall_labels`` -- boolean, whether to show wall labels of not;
 
     - ``generator_color`` -- a color for generators;
 
