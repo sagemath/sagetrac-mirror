@@ -1124,6 +1124,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: G.add_primitive(L)
             sage: G.add_primitive(A)
             sage: G
+            doctest:408: DeprecationWarning: elementwise == comparison failed; this will raise an error in the future.
             Graphics object consisting of 2 graphics primitives
         """
         self._objects.append(primitive)
