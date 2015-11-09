@@ -18098,7 +18098,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.plot(edge_labels=True,edge_colors=D._color_by_label())
             Graphics object consisting of 34 graphics primitives
             sage: D.plot(edge_labels=True, color_by_label={'a':'blue', 'b':'red'}, edge_style='dashed')
-            doctest:408: DeprecationWarning: elementwise == comparison failed; this will raise an error in the future.
+            doctest:...: DeprecationWarning: elementwise == comparison failed; this will raise an error in the future.
             Graphics object consisting of 34 graphics primitives
 
             sage: g = Graph({}, loops=True, multiedges=True,sparse=True)
