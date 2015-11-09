@@ -16,8 +16,9 @@ Finite Enumerated Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.structure.element import Element
+from sage.structure.element import Element, parent
 from sage.structure.parent import Parent
+from sage.structure.sequence import Sequence
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import EmptySetError
@@ -78,10 +79,26 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         sage: S.first().parent()
         Integer Ring
+
+    If you want a faster initialization you should use a tuple as a first
+    argument and provide a universe as follows::
+
+        sage: FiniteEnumeratedSet((1,3,6,-2), ZZ)
+        {1, 3, 6, -2}
+        sage: FiniteEnumeratedSet(('a', 'b', 'c'), str)
+        {'a', 'b', 'c'}
+
+    The ``universe`` argument should be the parent of all the elements in your
+    set::
+
+        sage: FiniteEnumeratedSet((1, 1/1, 1.), ZZ)
+        Traceback (most recent call last):
+        ...
+        AssertionError
     """
 
     @staticmethod
-    def __classcall__(cls, iterable):
+    def __classcall__(cls, iterable, universe=None):
         """
         Standard trick to expand the iterable upon input, and
         guarantees unique representation, independently of the type of
@@ -91,17 +108,38 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
             sage: S1 = FiniteEnumeratedSet([1, 2, 3])
             sage: S2 = FiniteEnumeratedSet((1, 2, 3))
-            sage: S3 = FiniteEnumeratedSet((x for x in range(1,4)))
+            sage: S3 = FiniteEnumeratedSet((x for x in srange(1,4)))
             sage: S1 is S2
             True
             sage: S2 is S3
             True
+
+        A universe is constructed in order that all elements share a common
+        parent that avoids identifying integers with real numbers or finite
+        field elements::
+
+            sage: F1 = FiniteEnumeratedSet([1, 2, 3])
+            sage: F2 = FiniteEnumeratedSet([1r, 2r, 3r])
+            sage: F3 = FiniteEnumeratedSet([1., 2., 3.])
+            sage: F4 = FiniteEnumeratedSet([GF(5)(1), GF(5)(2), GF(5)(3)])
+            sage: F1 is F2 or F1 is F3 or F1 is F4
+            False
+            sage: F2 is F3 or F2 is F4 or F3 is F4
+            False
         """
+        if universe is None:
+            s = Sequence(iterable)
+            universe = s.universe()
+            iterable = tuple(s)
+        else:
+            iterable = tuple(iterable)
+            assert all(parent(x) is universe for x in iterable)
         return super(FiniteEnumeratedSet, cls).__classcall__(
                 cls,
-                tuple(iterable))
+                tuple(iterable),
+                universe)
 
-    def __init__(self, elements):
+    def __init__(self, elements, universe=None):
         """
         TESTS::
 
@@ -109,6 +147,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: TestSuite(FiniteEnumeratedSet([])).run()
         """
         self._elements = elements
+        self._universe = universe
         Parent.__init__(self, facade = True, category = FiniteEnumeratedSets())
 
     def __nonzero__(self):
