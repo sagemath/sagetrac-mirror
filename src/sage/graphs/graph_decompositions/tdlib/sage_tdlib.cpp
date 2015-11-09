@@ -43,38 +43,6 @@ void make_tdlib_graph(TD_graph_t &G, std::vector<unsigned int> &V, std::vector<u
     }
 }
 
-void make_tdlib_decomp(TD_tree_dec_t &T, std::vector<std::vector<int> > &V, std::vector<unsigned int> &E){
-    std::vector<TD_tree_dec_t::vertex_descriptor> idxMap(V.size()+1);
-
-    for(unsigned int i = 0; i < V.size(); i++){
-        idxMap[i] = boost::add_vertex(T);
-        std::set<unsigned int> bag;
-        for(unsigned int j = 0; j < V[i].size(); j++)
-            bag.insert((unsigned int) V[i][j]);
-        T[idxMap[i]].bag = bag;
-    }
-
-    if(E.size() != 0){
-        for(unsigned int j = 0; j < E.size()-1; j++){
-            boost::add_edge(idxMap[E[j]], idxMap[E[j+1]], T);
-            j++;
-        }
-    }
-
-}
-
-void make_sage_graph(TD_graph_t &G, std::vector<unsigned int> &V_G, std::vector<unsigned int> &E_G){
-    boost::graph_traits<TD_graph_t>::vertex_iterator vIt, vEnd;
-    for(boost::tie(vIt, vEnd) = boost::vertices(G); vIt != vEnd; vIt++)
-        V_G.push_back(G[*vIt].id);
-
-    boost::graph_traits<TD_graph_t>::edge_iterator eIt, eEnd;
-    for(boost::tie(eIt, eEnd) = boost::edges(G); eIt != eEnd; eIt++){
-        E_G.push_back(G[boost::source(*eIt, G)].id);
-        E_G.push_back(G[boost::target(*eIt, G)].id);
-    }
-}
-
 void make_sage_decomp(TD_tree_dec_t &T, std::vector<std::vector<int> > &V_T, std::vector<unsigned int> &E_T){
     std::map<boost::graph_traits<TD_tree_dec_t>::vertex_descriptor, unsigned int> vertex_map;
     boost::graph_traits<TD_tree_dec_t>::vertex_iterator tIt, tEnd;

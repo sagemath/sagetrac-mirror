@@ -72,7 +72,7 @@ from sage.graphs.graph import Graph
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 
-cdef extern from "sage/graphs/graph_decompositions/tdlib/sage_tdlib.cpp":
+cdef extern from "tdlib/sage_tdlib.cpp":
      int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)
 
 ##############################################################
@@ -88,28 +88,12 @@ cdef make_tdlib_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
         E.push_back(u)
         E.push_back(v)
 
-cdef make_tdlib_decomp(T, vector[vector[int]] &V, vector[unsigned int] &E):
-    for t in T.vertices():
-        V.push_back(t)
-
-    for t,u in T.edges(labels=False):
-        E.push_back(t)
-        E.push_back(u)
-
-cdef make_sage_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
-    for i in range(0, len(V)):
-        G.add_vertex(V[i])
-
-    for i in range(0, len(E), 2):
-        G.add_edge(V[E[i]], V[E[i+1]])
-
 cdef make_sage_decomp(G, vector[vector[int]] &V, vector[unsigned int] &E, label_map):
     for i in range(0, len(V)):
         G.add_vertex(Set([label_map[j] for j in V[i]]))
 
     for i in range(0, len(E), 2):
         G.add_edge(Set(V[E[i]]), Set(V[E[i+1]]))
-
 
 ##############################################################
 ############ EXACT ALGORITHMS ################################
@@ -173,8 +157,6 @@ def treedecomposition_exact(G, lb=-1):
     T = Graph()
     T.name("Tree decomposition")
     make_sage_decomp(T, V_T, E_T, V)
-
-    print("Tree decomposition of width " + str(get_width(T)) + " computed")
 
     return T
 
