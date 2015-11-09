@@ -957,13 +957,21 @@ class FindStatStatistic(SageObject):
 
         try:
             result = json.load(response)
-            self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),
-                                       [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER]) for mp in match[FINDSTAT_QUERY_MAPS]],
-                                       len(match[FINDSTAT_QUERY_MATCHING_DATA]))
-                                      for match in result[FINDSTAT_QUERY_MATCHES])
-            return self
         except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
+
+        try:
+            self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),
+                                       [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER])
+                                        for mp in match[FINDSTAT_QUERY_MAPS]],
+                                       len(match[FINDSTAT_QUERY_MATCHING_DATA]))
+                                      for match in result[FINDSTAT_QUERY_MATCHES])
+        except Exception as e:
+            raise IOError("FindStat answered with a json response which " +
+                          " could not be interpreted.  Possibly something " +
+                          " is wrong at `%s`.  The error raised was:\r\n `%s`"%(findstat, e))
+
+        return self
 
     def _raise_error_modifying_statistic_with_perfect_match(self):
         r"""
@@ -1987,6 +1995,14 @@ class FindStatCollections(Parent, UniqueRepresentation):
              str,
              lambda x: StandardTableau(literal_eval(x))]}
 
+    def _raise_unsupported_error(*args):
+        raise NotImplementedError("You tried to access a FindStatCollection which is not yet supported by the SageMath interface.  Please add it to FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution and open a ticket on trac!")
+
+
+    _findstat_collection_unsupported = [None, None, None, _raise_unsupported_error,
+                                        _raise_unsupported_error, None, _raise_unsupported_error,
+                                        _raise_unsupported_error, _raise_unsupported_error]
+
     def __init__(self):
         """
         Fetch the collections from FindStat.
@@ -1998,15 +2014,26 @@ class FindStatCollections(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()                                            # optional -- internet
         """
         for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
-            try:
-                c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
-                c[0] = j[FINDSTAT_COLLECTION_NAME]
-                c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
-                c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-                c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
-            except KeyError:
-                print "There is a new collection available at `%s`: %s."%(findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL])
-                print "To use it with this interface, it has to be added to the dictionary FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!"
+            id = j[FINDSTAT_COLLECTION_IDENTIFIER]
+            if id in self._findstat_collections:
+                c = self._findstat_collections[id]
+            else:
+                print "There is a new collection available at `%s`: %s."\
+                    %(findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL])
+                print ("To use it with this interface, it has to be added " +
+                       "to the dictionary " +
+                       "FindStatCollections._findstat_collections in " +
+                       "src/sage/databases/findstat.py of the SageMath " +
+                       "distribution.  Please open a ticket on trac!")
+
+                self._findstat_collections[id] = self._findstat_collection_unsupported
+                c = self._findstat_collections[id]
+
+            c[0] = j[FINDSTAT_COLLECTION_NAME]
+            c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
+            c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
+            c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+
 
         Parent.__init__(self, category=Sets())
 
