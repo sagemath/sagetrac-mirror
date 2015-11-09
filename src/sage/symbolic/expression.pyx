@@ -120,7 +120,7 @@ Test if :trac:`9947` is fixed::
     sage: a.real_part()
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
-    sqrt(abs(4*(sqrt(3) + 5)*(sqrt(3) - 5) + 48))/(sqrt(3) + 5)
+    2*sqrt(10)/(sqrt(3) + 5)
 """
 
 ###############################################################################
@@ -1911,6 +1911,14 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: SR(5).is_integer()
+            True
+
+        TESTS:
+
+        Check that integer variables are recognized (:trac:`18921`)::
+
+            sage: _ = var('n', domain='integer')
+            sage: n.is_integer()
             True
         """
         return self._gobj.info(info_integer)
@@ -6781,7 +6789,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. SEEALSO::
 
-            - :func:`sage.misc.functional.norm`
+            :func:`sage.misc.functional.norm`
 
         EXAMPLES::
 
@@ -8168,7 +8176,7 @@ cdef class Expression(CommutativeRingElement):
         """
         Return this expression normalized as a fraction
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`numerator`, :meth:`denominator`,
             :meth:`numerator_denominator`, :meth:`combine`
@@ -10578,8 +10586,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             AttributeError: Please use a tuple or list for several variables.
 
-        .. SEEALSO: http://docs.sympy.org/latest/modules/solvers/diophantine.html
-            """
+        .. SEEALSO::
+
+            http://docs.sympy.org/latest/modules/solvers/diophantine.html
+        """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 

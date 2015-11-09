@@ -22,6 +22,10 @@ from .output_basic import (
     OutputLatex,
 )
 
+from .output_browser import (
+    OutputHtml,
+)
+
 from .output_graphics import (
     OutputImagePng,
     OutputImageGif,
@@ -39,4 +43,15 @@ from .output_graphics3d import (
 
 from .output_special import (
     OutputSavedFile,
+)
+
+from .output_video import (
+    OutputVideoOgg,
+    OutputVideoWebM,
+    OutputVideoMp4,
+    OutputVideoFlash,
+    OutputVideoMatroska,
+    OutputVideoAvi,
+    OutputVideoWmv,
+    OutputVideoQuicktime,
 )
