@@ -1241,8 +1241,8 @@ cdef class SingularFunction(SageObject):
             sage: size(1,2, ring=P)
             Traceback (most recent call last):
             ...
-            RuntimeError: Error in Singular function call 'size':
-             Wrong number of arguments (got 2 arguments, arity code is 347)
+            RuntimeError: error in Singular function call 'size':
+            Wrong number of arguments (got 2 arguments, arity code is 347)
             sage: size('foobar', ring=P)
             6
 
@@ -1291,9 +1291,9 @@ cdef class SingularFunction(SageObject):
             sage: _ = triangL(I)
             Traceback (most recent call last):
             ...
-            RuntimeError: Error in Singular function call 'triangL':
-             The input is no groebner basis.
-             leaving triang.lib::triangL
+            RuntimeError: error in Singular function call 'triangL':
+            The input is no groebner basis.
+            leaving triang.lib::triangL
 
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
@@ -1496,8 +1496,8 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
 
     if errorreported:
         errorreported = 0
-        raise RuntimeError("Error in Singular function call '%s':\n %s"%
-            (self._name, "\n ".join(error_messages)))
+        raise RuntimeError("error in Singular function call %r:\n%s"%
+            (self._name, "\n".join(error_messages)))
 
     res = argument_list.to_python(_res)
 
@@ -1637,18 +1637,18 @@ def singular_function(name):
         sage: factorize(ring=P)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments (got 0 arguments, arity code is 350)
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 0 arguments, arity code is 350)
         sage: factorize(f, 1, 2)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments (got 3 arguments, arity code is 350)
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 3 arguments, arity code is 350)
         sage: factorize(f, 1, 2, 3)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments (got 4 arguments, arity code is 350)
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 4 arguments, arity code is 350)
 
     The Singular function ``list`` can be called with any number of
     arguments::
