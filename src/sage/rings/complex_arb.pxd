@@ -5,7 +5,8 @@ from sage.structure.element cimport RingElement
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
-    ComplexIntervalFieldElement source)
+    ComplexIntervalFieldElement source,
+    long precision)
 
 cdef int acb_to_ComplexIntervalFieldElement(
     ComplexIntervalFieldElement target,

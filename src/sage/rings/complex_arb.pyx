@@ -95,11 +95,11 @@ Automatic coercions work as expected::
     sage: from sage.rings.real_arb import RealBallField
     sage: bpol = 1/3*CBF(i) + AA(sqrt(2)) + (polygen(RealBallField(20), 'x') + QQbar(i))
     sage: bpol
-    x + [1.41421 +/- 5.09e-6] + [1.33333 +/- 3.97e-6]*I
+    x + [1.41421 +/- 5.09e-6] + [1.33333 +/- 4.45e-6]*I
     sage: bpol.parent()
     Univariate Polynomial Ring in x over Complex ball field with 20 bits precision
     sage: bpol/3
-    ([0.333333 +/- 4.93e-7])*x + [0.47140 +/- 5.39e-6] + [0.44444 +/- 4.98e-6]*I
+    ([0.333333 +/- 4.93e-7])*x + [0.47140 +/- 5.39e-6] + [0.44444 +/- 5.14e-6]*I
 
 TESTS::
 
@@ -135,8 +135,10 @@ from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
-from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
-from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
+from sage.libs.flint.fmpz cimport (fmpz_t, fmpz_init, fmpz_get_mpz,
+        fmpz_set_mpz, fmpz_clear, fmpz_init_set_readonly, fmpz_clear_readonly)
+from sage.libs.flint.fmpq cimport (fmpq_t, fmpq_init, fmpq_set_mpq,
+        fmpq_clear, fmpq_init_set_readonly, fmpq_clear_readonly)
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
@@ -149,7 +151,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
-    ComplexIntervalFieldElement source):
+    ComplexIntervalFieldElement source, long precision):
     """
     Convert a :class:`ComplexIntervalFieldElement` to an ``acb``.
 
@@ -159,12 +161,12 @@ cdef void ComplexIntervalFieldElement_to_acb(
 
     - ``source`` -- a :class:`ComplexIntervalFieldElement`
 
+    - ``precision`` -- the precision for the target ball
+
     OUTPUT:
 
     None.
     """
-    cdef long precision
-    precision = source.parent().precision()
     mpfi_to_arb(acb_realref(target), source.__re, precision)
     mpfi_to_arb(acb_imagref(target), source.__im, precision)
 
@@ -695,13 +697,13 @@ cdef class ComplexBall(RingElement):
             sage: ComplexBall(CBF100)
             0
             sage: ComplexBall(CBF100, ComplexBall(CBF53, ComplexBall(CBF100, 1/3)))
-            [0.333333333333333333333333333333 +/- 4.65e-31]
+            [0.3333333333333333 +/- 7.04e-17]
             sage: ComplexBall(CBF100, RBF(pi))
             [3.141592653589793 +/- 5.61e-16]
             sage: ComplexBall(CBF100, -3r)
             -3.000000000000000000000000000000
             sage: ComplexBall(CBF100, 10^100)
-            1.000000000000000000000000000000e+100
+            [1.0000000000000000000000000000e+100 +/- 1.42e+70]
             sage: ComplexBall(CBF100, CIF(1, 2))
             1.000000000000000000000000000000 + 2.000000000000000000000000000000*I
             sage: ComplexBall(CBF100, RBF(1/3), RBF(1))
@@ -720,33 +722,33 @@ cdef class ComplexBall(RingElement):
             return
         elif y is None:
             if isinstance(x, ComplexBall):
-                acb_set(self.value, (<ComplexBall> x).value)
+                acb_set_round(self.value, (<ComplexBall> x).value, prec(self))
             elif isinstance(x, RealBall):
-                acb_set_arb(self.value, (<RealBall> x).value)
+                acb_set_round_arb(self.value, (<RealBall> x).value, prec(self))
             elif isinstance(x, int):
                 acb_set_si(self.value, PyInt_AS_LONG(x))
+                acb_set_round(self.value, self.value, prec(self))
             elif isinstance(x, sage.rings.integer.Integer):
                 if _do_sig(prec(self)): sig_on()
-                fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
-                acb_set_fmpz(self.value, tmpz)
-                fmpz_clear(tmpz)
+                fmpz_init_set_readonly(tmpz, (<sage.rings.integer.Integer> x).value)
+                acb_set_round_fmpz(self.value, tmpz, prec(self))
+                fmpz_clear_readonly(tmpz)
                 if _do_sig(prec(self)): sig_off()
             elif isinstance(x, sage.rings.rational.Rational):
                 if _do_sig(prec(self)): sig_on()
-                fmpq_init(tmpq)
-                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+                fmpq_init_set_readonly(tmpq, (<sage.rings.rational.Rational> x).value)
                 acb_set_fmpq(self.value, tmpq, prec(self))
-                fmpq_clear(tmpq)
+                fmpq_clear_readonly(tmpq)
                 if _do_sig(prec(self)): sig_off()
             elif isinstance(x, ComplexIntervalFieldElement):
                 ComplexIntervalFieldElement_to_acb(self.value,
-                                                   <ComplexIntervalFieldElement> x)
+                                                   <ComplexIntervalFieldElement> x,
+                                                   prec(self))
             else:
                 raise TypeError("unsupported initializer")
         elif isinstance(x, RealBall) and isinstance(y, RealBall):
-            arb_set(acb_realref(self.value), (<RealBall> x).value)
-            arb_set(acb_imagref(self.value), (<RealBall> y).value)
+            arb_set_round(acb_realref(self.value), (<RealBall> x).value, prec(self))
+            arb_set_round(acb_imagref(self.value), (<RealBall> y).value, prec(self))
         else:
             raise TypeError("unsupported initializer")
 
@@ -1226,34 +1228,6 @@ cdef class ComplexBall(RingElement):
     # of the radius (which radius?), or an upper bound?
 
     # Precision and accuracy
-
-    def round(self):
-        """
-        Return a copy of this ball rounded to the precision of the parent.
-
-        EXAMPLES:
-
-        It is possible to create balls whose midpoint is more precise that
-        their parent's nominal precision (see :mod:`~sage.rings.real_arb` for
-        more information)::
-
-            sage: from sage.rings.complex_arb import CBF
-            sage: b = CBF(exp(I*pi/3).n(100))
-            sage: b.mid()
-            0.50000000000000000000000000000 + 0.86602540378443864676372317075*I
-
-        The ``round()`` method rounds such a ball to its parent's precision::
-
-            sage: b.round().mid()
-            0.500000000000000 + 0.866025403784439*I
-
-        .. SEEALSO:: :meth:`trim`
-        """
-        cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_set_round(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
-        return res
 
     def accuracy(self):
         """

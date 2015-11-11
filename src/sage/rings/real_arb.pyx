@@ -52,16 +52,6 @@ certain precision::
     sage: RBF
     Real ball field with 53 bits precision
 
-It is possible to construct a ball whose parent is the real ball field with
-precision `p` but whose midpoint does not fit on `p` bits. However, the results
-of operations involving such a ball will (usually) be rounded to its parent's
-precision::
-
-    sage: RBF(factorial(50)).mid(), RBF(factorial(50)).rad()
-    (3.0414093201713378043612608166064768844377641568961e64, 0.00000000)
-    sage: (RBF(factorial(50)) + 0).mid()
-    3.04140932017134e64
-
 Comparison
 ==========
 
@@ -214,9 +204,10 @@ from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport (
-        fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_fdiv_ui
-)
-from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
+        fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear,
+        fmpz_fdiv_ui, fmpz_init_set_readonly, fmpz_clear_readonly)
+from sage.libs.flint.fmpq cimport (fmpq_t, fmpq_init, fmpq_set_mpq,
+        fmpq_clear, fmpq_init_set_readonly, fmpq_clear_readonly)
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN, mpfr_equal_p
@@ -1016,26 +1007,23 @@ cdef class RealBall(RingElement):
             sage: RBF(pi, 0.125r)
             [3e+0 +/- 0.267]
 
-        Note that integers and floating-point numbers are ''not'' rounded to
-        the parent's precision::
+        Check that integers are rounded to the parent's precision::
 
             sage: b = RBF(11111111111111111111111111111111111111111111111); b
-            [1.111111111111111e+46 +/- 1.12e+30]
+            [1.111111111111111e+46 +/- 1.89e+30]
             sage: b.mid().exact_rational()
-            11111111111111111111111111111111111111111111111
+            11111111111111110612336678101112658331831369728
 
         Similarly, converting a real ball from one real ball field to another
-        (with a different precision) only changes the way it is displayed and
-        the precision of operations involving it, not the actual representation
-        of its center::
+        (with a different precision) also involves rounding::
 
             sage: RBF100 = RealBallField(100)
             sage: b100 = RBF100(1/3); b100
             [0.333333333333333333333333333333 +/- 4.65e-31]
             sage: b53 = RBF(b100); b53
-            [0.3333333333333333 +/- 3.34e-17]
+            [0.3333333333333333 +/- 7.04e-17]
             sage: RBF100(b53)
-            [0.333333333333333333333333333333 +/- 4.65e-31]
+            [0.3333333333333333 +/- 7.04e-17]
 
         Special values are supported::
 
@@ -1073,28 +1061,28 @@ cdef class RealBall(RingElement):
             return
 
         elif isinstance(mid, RealBall):
-            arb_set(self.value, (<RealBall> mid).value) # no rounding!
+            arb_set_round(self.value, (<RealBall> mid).value, prec(self))
         elif isinstance(mid, int):
-            arb_set_si(self.value, PyInt_AS_LONG(mid)) # no rounding!
+            arb_set_si(self.value, PyInt_AS_LONG(mid))
+            arb_set_round(self.value, self.value, prec(self))
         elif isinstance(mid, sage.rings.integer.Integer):
             if _do_sig(prec(self)): sig_on()
-            fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> mid).value)
-            arb_set_fmpz(self.value, tmpz) # no rounding!
-            fmpz_clear(tmpz)
+            fmpz_init_set_readonly(tmpz, (<sage.rings.integer.Integer> mid).value)
+            arb_set_round_fmpz(self.value, tmpz, prec(self))
+            fmpz_clear_readonly(tmpz)
             if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, sage.rings.rational.Rational):
             if _do_sig(prec(self)): sig_on()
-            fmpq_init(tmpq)
-            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> mid).value)
+            fmpq_init_set_readonly(tmpq, (<sage.rings.rational.Rational> mid).value)
             arb_set_fmpq(self.value, tmpq, prec(self))
-            fmpq_clear(tmpq)
+            fmpq_clear_readonly(tmpq)
             if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, RealNumber):
             if _do_sig(prec(self)): sig_on()
             arf_init(tmpr)
             arf_set_mpfr(tmpr, (<RealNumber> mid).value)
-            arb_set_arf(self.value, tmpr) # no rounding!
+            arb_set_arf(self.value, tmpr)
+            arb_set_round(self.value, self.value, prec(self))
             arf_clear(tmpr)
             if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, sage.rings.infinity.AnInfinity):
@@ -1363,8 +1351,6 @@ cdef class RealBall(RingElement):
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
             Real Field with 16 bits of precision
-            sage: RealBallField(16)(RBF(1/3)).mid().parent()
-            Real Field with 53 bits of precision
             sage: RBF('inf').mid()
             +infinity
 
@@ -1378,7 +1364,7 @@ cdef class RealBall(RingElement):
 
         .. SEEALSO:: :meth:`rad`, :meth:`squash`
         """
-        cdef long mid_prec = max(arb_bits(self.value), prec(self))
+        cdef long mid_prec = prec(self)
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
         cdef RealField_class mid_field = RealField(mid_prec)
@@ -1632,35 +1618,6 @@ cdef class RealBall(RingElement):
         return res
 
     # Precision and accuracy
-
-    def round(self):
-        """
-        Return a copy of this ball with center rounded to the precision of the
-        parent.
-
-        EXAMPLES:
-
-        It is possible to create balls whose midpoint is more precise that
-        their parent's nominal precision (see :mod:`~sage.rings.real_arb` for
-        more information)::
-
-            sage: from sage.rings.real_arb import RBF
-            sage: b = RBF(pi.n(100))
-            sage: b.mid()
-            3.141592653589793238462643383
-
-        The ``round()`` method rounds such a ball to its parent's precision::
-
-            sage: b.round().mid()
-            3.14159265358979
-
-        .. SEEALSO:: :meth:`trim`
-        """
-        cdef RealBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        arb_set_round(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
-        return res
 
     def accuracy(self):
         """

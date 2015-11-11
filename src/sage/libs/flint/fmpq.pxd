@@ -9,6 +9,8 @@ cdef extern from "flint/fmpq.h":
     # Conversion
     void fmpq_set_mpq(fmpq_t, const mpq_t)
     void fmpq_get_mpq(mpq_t, const fmpq_t)
+    void fmpq_init_set_readonly(fmpq_t, mpq_t)
+    void fmpq_clear_readonly(fmpq_t)
 
     # Comparison
     int fmpq_is_zero(const fmpq_t res)
