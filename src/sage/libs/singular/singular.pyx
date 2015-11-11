@@ -233,14 +233,14 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef object ret
 
     if _ring.cf.cfIsZero(n,_ring.cf):
-        return base.zero_element()
+        return base.zero()
     elif _ring.cf.cfIsOne(n,_ring.cf):
-        return base.one_element()
+        return base.one()
     
     z = <poly*>n
     
     a = base.gen()
-    ret = base.zero_element()
+    ret = base.zero()
     
     while z:
         c = <long>p_GetCoeff(z, _ring)
