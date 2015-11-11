@@ -221,7 +221,21 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _order[nblcks] = ringorder_C
       
     
-    if isinstance(base_ring, RationalField):
+    if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
+
+        if base_ring.characteristic() <= 2147483647:
+            characteristic = base_ring.characteristic()
+        else:
+            raise TypeError, "Characteristic p must be <= 2147483647."
+            
+        # example for simpler ring creation interface without monomial orderings:
+        #_ring = rDefault(characteristic, nvars, _names)         
+        
+        _ring = rDefault( characteristic , nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "ring with prime coefficient field created"
+
+
+    elif isinstance(base_ring, RationalField):
         characteristic = 0
         _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         #print "ring with rational coefficient field created"
