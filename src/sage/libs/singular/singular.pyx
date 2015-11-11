@@ -153,13 +153,13 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         return cache._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
-    
+
     z = <poly*>n
-    
+
     a = cache.objectptr.indeterminate()
     ret = cache.objectptr.zero
     order = cache.objectptr.cardinality() - 1
-    
+
     while z:
         c = cache.objectptr.initi(c, <long>p_GetCoeff(z, _ring))
         e = p_GetExp(z, 1, _ring)
@@ -187,17 +187,17 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     cdef long c
     cdef int e
     cdef FFgf2eE a
-    cdef FFgf2eE ret	
+    cdef FFgf2eE ret
 
     if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
-    
+
     z = <poly*>n
     a = cache._gen
     ret = cache._zero_element
-    
+
     while z:
         c = <long>p_GetCoeff(z, _ring)
         e = p_GetExp(z, 1, _ring)
@@ -236,12 +236,12 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
         return base.zero()
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return base.one()
-    
+
     z = <poly*>n
-    
+
     a = base.gen()
     ret = base.zero()
-    
+
     while z:
         c = <long>p_GetCoeff(z, _ring)
         e = p_GetExp(z, 1, _ring)
@@ -263,7 +263,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         1024*a
         sage: type(f.lc())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
-    """    
+    """
     cdef poly *z
     cdef number *c
     cdef int e
@@ -276,10 +276,10 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         return base._one_element
 
     z = <poly*>n
-    
+
     a = base.gen()
     ret = base(0)
-    
+
     while z:
         c = p_GetCoeff(z, _ring)
         coeff = si2sa_QQ(c, _ring)
@@ -482,8 +482,8 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     cdef number *apow2
 
     cdef nMapFunc nMapFuncPtr = NULL;
-  
-    nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function 
+
+    nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function
 
     if (nMapFuncPtr is NULL):
         raise RuntimeError, "Failed to determine nMapFuncPtr"
@@ -508,7 +508,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     _ext_names[0] = omStrDup(_name)
     qqr = rDefault( 0, 1, _ext_names);
 
-    nMapFuncPtr =  naSetMap( qqr.cf , _ring.cf ) # choose correct mapping function    
+    nMapFuncPtr =  naSetMap( qqr.cf , _ring.cf ) # choose correct mapping function
     cdef poly *_p
     for i from 0 <= i < len(elem):
         nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value),  qqr.cf )
@@ -589,7 +589,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     """
     # failing example:
     #
-    # sage: sage: R.<a> = Zmod(5)['a', 'b']  
+    # sage: sage: R.<a> = Zmod(5)['a', 'b']
     # sage: R(1)
 
     nr2mModul = d.parent().characteristic()
@@ -612,17 +612,17 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         lift = d.lift()
         #print "lift.base_ring ", lift.base_ring()
         #print "lift ", lift
-     
-        # if I understand nrnMapGMP/nMapFuncPtr correctly we need first 
+
+        # if I understand nrnMapGMP/nMapFuncPtr correctly we need first
         # a source value in ZZr
         # create ZZr, a plain polynomial ring over ZZ with one variable.
-        # 
+        #
         # todo (later): reuse ZZr
         _name = omStrDup(varname)
         _ext_names = <char**>omAlloc0(sizeof(char*))
         _ext_names[0] = omStrDup(_name)
-        _cf = nInitChar( n_Z, NULL) # integer coefficient ring      
-        ZZr = rDefault (_cf ,1, _ext_names) 
+        _cf = nInitChar( n_Z, NULL) # integer coefficient ring
+        ZZr = rDefault (_cf ,1, _ext_names)
         #print "ZZr = rDefault (_cf ,1, _ext_names) ok"
 
         nn = nrzInit(0, ZZr.cf)
@@ -788,23 +788,23 @@ cdef init_libsingular():
     for extension in ["so", "dylib", "dll"]:
         lib = os.environ['SAGE_LOCAL']+"/lib/libSingular."+extension # libsingular renamed to libSingular
         if os.path.exists(lib):
-            libSingularFound = True 
+            libSingularFound = True
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
             if not handle:
                 err = dlerror()
                 if err:
                     print err
             break
-            
-    if not libSingularFound : 
-            raise OSError, "did not find libsingular file!"
+
+    if not libSingularFound :
+        raise OSError("did not find libsingular file")
 
 
     if handle == NULL:
         dlerrormsg = dlerror()
-        if not dlerrormsg == NULL:
-                print dlerrormsg
-        raise ImportError, " failed to dlopen " + lib  
+        if dlerrormsg == NULL:
+            dlerrormsg = ""
+        raise ImportError("failed to dlopen {} ({})".format(lib, dlerrormsg))
 
     # load SINGULAR
     siInit(lib)
