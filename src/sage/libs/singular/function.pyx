@@ -43,7 +43,7 @@ available, use the :func:`lib` function as shown below::
     sage: primdecSY = singular_function('primdecSY')
     Traceback (most recent call last):
     ...
-    NameError: Function 'primdecSY' is not defined.
+    NameError: Singular library function 'primdecSY' is not defined
 
     sage: singular_lib('primdec.lib')
     sage: primdecSY = singular_function('primdecSY')
@@ -937,7 +937,7 @@ cdef class Converter(SageObject):
         Check that negative integers come through unscathed::
 
             sage: P.<x,y,z> = QQ[]
-            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: C = Curve((x-y)*(y-z)*(z-x))
             sage: import sage.libs.singular.function_factory
             sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
             sage: I=C.defining_ideal()
@@ -1059,7 +1059,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
             res = <leftv*> omAllocBin(sleftv_bin)
             res.Init()
             res.Copy(&iiRETURNEXPR)
-            iiRETURNEXPR.Init();
+            iiRETURNEXPR.Init()
             return res
         raise RuntimeError("Error raised calling singular function")
 
@@ -1102,7 +1102,7 @@ cdef class KernelCallHandler(BaseCallHandler):
         cdef leftv *arg2
         cdef leftv *arg3
 
-        cdef int number_of_arguments = len(argument_list)
+        cdef Py_ssize_t number_of_arguments = len(argument_list)
 
         # Handle functions with an arbitrary number of arguments, sent
         # by an argument list.
@@ -1145,7 +1145,9 @@ cdef class KernelCallHandler(BaseCallHandler):
         global error_messages
 
         errorreported += 1
-        error_messages.append("Wrong number of arguments")
+        error_messages.append(
+                "Wrong number of arguments (got {} arguments, arity code is {})"
+                .format(number_of_arguments, self.arity))
         return NULL
 
     cdef bint free_res(self):
@@ -1239,8 +1241,8 @@ cdef class SingularFunction(SageObject):
             sage: size(1,2, ring=P)
             Traceback (most recent call last):
             ...
-            RuntimeError: Error in Singular function call 'size':
-             Wrong number of arguments
+            RuntimeError: error in Singular function call 'size':
+            Wrong number of arguments (got 2 arguments, arity code is 347)
             sage: size('foobar', ring=P)
             6
 
@@ -1289,9 +1291,9 @@ cdef class SingularFunction(SageObject):
             sage: _ = triangL(I)
             Traceback (most recent call last):
             ...
-            RuntimeError: Error in Singular function call 'triangL':
-             The input is no groebner basis.
-             leaving triang.lib::triangL
+            RuntimeError: error in Singular function call 'triangL':
+            The input is no groebner basis.
+            leaving triang.lib::triangL
 
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
@@ -1494,8 +1496,8 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
 
     if errorreported:
         errorreported = 0
-        raise RuntimeError("Error in Singular function call '%s':\n %s"%
-            (self._name, "\n ".join(error_messages)))
+        raise RuntimeError("error in Singular function call %r:\n%s"%
+            (self._name, "\n".join(error_messages)))
 
     res = argument_list.to_python(_res)
 
@@ -1536,7 +1538,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     cdef BaseCallHandler get_call_handler(self):
         cdef idhdl* singular_idhdl = ggetid(self._name)
         if singular_idhdl==NULL:
-            raise NameError("Function '%s' is not defined."%self._name)
+            raise NameError("Singular library function {!r} is not defined".format(self._name))
         if singular_idhdl.typ!=PROC_CMD:
             raise ValueError("Not a procedure")
 
@@ -1571,15 +1573,19 @@ cdef class SingularKernelFunction(SingularFunction):
             sage: f = SingularKernelFunction("std")
             sage: f(I)
             [y - 1, x + 1]
+            sage: SingularKernelFunction("no_such_function")
+            Traceback (most recent call last):
+            ...
+            NameError: Singular kernel function 'no_such_function' is not defined
         """
         super(SingularKernelFunction,self).__init__(name)
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
-        cdef int cmd_n = -1
+        cdef int cmd_n = 0
         arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
-        if cmd_n == -1:
-            raise NameError("Function '%s' is not defined."%self._name)
+        if not cmd_n:
+            raise NameError("Singular kernel function {!r} is not defined".format(self._name))
 
         return KernelCallHandler(cmd_n, arity)
 
@@ -1631,18 +1637,18 @@ def singular_function(name):
         sage: factorize(ring=P)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 0 arguments, arity code is 350)
         sage: factorize(f, 1, 2)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 3 arguments, arity code is 350)
         sage: factorize(f, 1, 2, 3)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in Singular function call 'factorize':
-         Wrong number of arguments
+        RuntimeError: error in Singular function call 'factorize':
+        Wrong number of arguments (got 4 arguments, arity code is 350)
 
     The Singular function ``list`` can be called with any number of
     arguments::
@@ -1659,10 +1665,10 @@ def singular_function(name):
 
     We try to define a non-existing function::
 
-        sage: number_foobar = singular_function('number_foobar');
+        sage: number_foobar = singular_function('number_foobar')
         Traceback (most recent call last):
         ...
-        NameError: Function 'number_foobar' is not defined.
+        NameError: Singular library function 'number_foobar' is not defined
 
     ::
 
@@ -1796,10 +1802,9 @@ def lib(name):
         sage: primes(2,10, ring=GF(127)['x,y,z'])
         (2, 3, 5, 7)
     """
-    #global verbose # verbose is now  si_opt_2
     global si_opt_2
 
-    cdef int vv =  si_opt_2
+    cdef int vv = si_opt_2
 
     if get_verbose() <= 0:
          si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
@@ -1807,12 +1812,14 @@ def lib(name):
     if get_verbose() <= 0:
          si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
-    cdef bint failure = iiLibCmd(omStrDup(name), 1, 1, 1)
+    cdef char* cname = omStrDup(name)
+    sig_on()
+    cdef bint failure = iiLibCmd(cname, 1, 1, 1)
+    sig_off()
     si_opt_2 = vv
 
     if failure:
-        raise NameError("Library '%s' not found."%(name,))
-
+        raise NameError("Singular library {!r} not found".format(name))
 
 
 def list_of_functions(packages=False):
@@ -1821,11 +1828,12 @@ def list_of_functions(packages=False):
 
     INPUT:
 
-    - ``packages`` - include local functions in packages.
+    - ``packages`` -- include local functions in packages.
 
     EXAMPLE::
 
-        sage: 'groebner' in sage.libs.singular.function.list_of_functions()
+        sage: from sage.libs.singular.function import list_of_functions
+        sage: 'groebner_norm' in list_of_functions()
         True
     """
     cdef list l = []
@@ -1845,7 +1853,6 @@ def list_of_functions(packages=False):
     return l
 
 
-#cdef ring*?
 cdef inline RingWrap new_RingWrap(ring* r):
     cdef RingWrap ring_wrap_result = RingWrap.__new__(RingWrap)
     ring_wrap_result._ring = r
