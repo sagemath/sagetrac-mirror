@@ -1102,7 +1102,7 @@ cdef class KernelCallHandler(BaseCallHandler):
         cdef leftv *arg2
         cdef leftv *arg3
 
-        cdef int number_of_arguments = len(argument_list)
+        cdef Py_ssize_t number_of_arguments = len(argument_list)
 
         # Handle functions with an arbitrary number of arguments, sent
         # by an argument list.
@@ -1145,7 +1145,9 @@ cdef class KernelCallHandler(BaseCallHandler):
         global error_messages
 
         errorreported += 1
-        error_messages.append("Wrong number of arguments")
+        error_messages.append(
+                "Wrong number of arguments (got {} arguments, arity code is {})"
+                .format(number_of_arguments, self.arity))
         return NULL
 
     cdef bint free_res(self):
@@ -1536,7 +1538,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     cdef BaseCallHandler get_call_handler(self):
         cdef idhdl* singular_idhdl = ggetid(self._name)
         if singular_idhdl==NULL:
-            raise NameError("Function '%s' is not defined."%self._name)
+            raise NameError("Singular library function {!r} is not defined".format(self._name))
         if singular_idhdl.typ!=PROC_CMD:
             raise ValueError("Not a procedure")
 
@@ -1571,15 +1573,16 @@ cdef class SingularKernelFunction(SingularFunction):
             sage: f = SingularKernelFunction("std")
             sage: f(I)
             [y - 1, x + 1]
+            sage: SingularKernelFunction("no_such_function")
         """
         super(SingularKernelFunction,self).__init__(name)
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
-        cdef int cmd_n = -1
+        cdef int cmd_n = 0
         arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
-        if cmd_n == -1:
-            raise NameError("Function '%s' is not defined."%self._name)
+        if not cmd_n:
+            raise NameError("Singular kernel function {!r} is not defined".format(self._name))
 
         return KernelCallHandler(cmd_n, arity)
 
