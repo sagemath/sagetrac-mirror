@@ -148,21 +148,21 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     cdef int a
     cdef int ret
     cdef int order
+    cdef ring *cfRing = _ring.cf.extRing
 
     if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
-    
     z = <poly*>n
-    
+
     a = cache.objectptr.indeterminate()
     ret = cache.objectptr.zero
     order = cache.objectptr.cardinality() - 1
     
     while z:
-        c = cache.objectptr.initi(c, <long>p_GetCoeff(z, _ring))
-        e = p_GetExp(z, 1, _ring)
+        c = cache.objectptr.initi(c, <long>p_GetCoeff(z, cfRing))
+        e = p_GetExp(z, 1, cfRing)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
         else:
@@ -187,7 +187,8 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     cdef long c
     cdef int e
     cdef FFgf2eE a
-    cdef FFgf2eE ret	
+    cdef FFgf2eE ret
+    cdef ring *cfRing = _ring.cf.extRing
 
     if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
@@ -199,8 +200,8 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     ret = cache._zero_element
     
     while z:
-        c = <long>p_GetCoeff(z, _ring)
-        e = p_GetExp(z, 1, _ring)
+        c = <long>p_GetCoeff(z, cfRing)
+        e = p_GetExp(z, 1, cfRing)
         ret += c * a**e
         z = <poly*>pNext(<poly*>z)
     return ret
@@ -231,20 +232,21 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef int e
     cdef object a
     cdef object ret
+    cdef ring *cfRing = _ring.cf.extRing
 
     if _ring.cf.cfIsZero(n,_ring.cf):
-        return base.zero_element()
+        return base.zero()
     elif _ring.cf.cfIsOne(n,_ring.cf):
-        return base.one_element()
+        return base.one()
     
     z = <poly*>n
     
     a = base.gen()
-    ret = base.zero_element()
+    ret = base.zero()
     
     while z:
-        c = <long>p_GetCoeff(z, _ring)
-        e = p_GetExp(z, 1, _ring)
+        c = <long>p_GetCoeff(z, cfRing)
+        e = p_GetExp(z, 1, cfRing)
         if e == 0:
             ret = ret + c
         elif c != 0:
@@ -269,6 +271,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
     cdef int e
     cdef object a
     cdef object ret
+    cdef ring *cfRing = _ring.cf.extRing
 
     if _ring.cf.cfIsZero(n,_ring.cf):
         return base._zero_element
@@ -281,9 +284,9 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
     ret = base(0)
     
     while z:
-        c = p_GetCoeff(z, _ring)
-        coeff = si2sa_QQ(c, _ring)
-        e = p_GetExp(z, 1, _ring)
+        c = p_GetCoeff(z, cfRing)
+        coeff = si2sa_QQ(c, cfRing)
+        e = p_GetExp(z, 1, cfRing)
         if e == 0:
             ret = ret + coeff
         elif coeff != 0:
@@ -359,9 +362,9 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
-    cdef int b = - _ring.cf.ch
+    cdef int b = _ring.cf.ch
 
-    a = _ring.cf.cfParameter(1,_ring.cf)
+    a = _ring.cf.cfParameter(1, _ring.cf)
 
     apow1 = _ring.cf.cfInit(1, _ring.cf)
     n1 = _ring.cf.cfInit(0, _ring.cf)
@@ -369,14 +372,14 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     while quo!=0:
         coeff = _ring.cf.cfInit(quo%b, _ring.cf)
 
-        if not _ring.cf.cfIsZero(coeff,_ring.cf):
-            apow2 = _ring.cf.cfMult(coeff, apow1,_ring.cf)
-            n2 = _ring.cf.cfAdd(apow2, n1,_ring.cf)
+        if not _ring.cf.cfIsZero(coeff, _ring.cf):
+            apow2 = _ring.cf.cfMult(coeff, apow1, _ring.cf)
+            n2 = _ring.cf.cfAdd(apow2, n1, _ring.cf)
             _ring.cf.cfDelete(&apow2, _ring.cf)
             _ring.cf.cfDelete(&n1, _ring.cf)
             n1 = n2
 
-        apow2 = _ring.cf.cfMult(apow1, a,_ring.cf)
+        apow2 = _ring.cf.cfMult(apow1, a, _ring.cf)
         _ring.cf.cfDelete(&apow1, _ring.cf)
         apow1 = apow2
 

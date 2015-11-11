@@ -188,7 +188,8 @@ cdef extern from "Singular/libsingular.h":
         bint (*cfGreaterZero)(number* a, const n_Procs_s* )
         void (*cfPower)(number* a, int i, number* * result,  const n_Procs_s* r) # algebraic number power
         
-            
+
+        ring *extRing            
         int ch
         mpz_ptr    modBase;
         unsigned long modExponent;
@@ -204,6 +205,8 @@ cdef extern from "Singular/libsingular.h":
 
     ctypedef struct poly "polyrec":
         poly *next
+        number coef
+        unsigned long exp[1]
 
     # ideals
 
