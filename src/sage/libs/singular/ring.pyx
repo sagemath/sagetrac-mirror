@@ -221,7 +221,48 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _order[nblcks] = ringorder_C
       
     
-    if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
+    if isinstance(base_ring, RationalField):
+        characteristic = 0
+        _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "ring with rational coefficient field created"
+
+    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
+        characteristic = 1
+        try:
+            k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
+        except TypeError:
+            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
+
+        minpoly = base_ring.polynomial()(k.gen())
+        #print "minpoly", minpoly
+
+        _ext_names = <char**>omAlloc0(sizeof(char*))
+        extname = k.gen()
+        #print "extname",extname
+        #_name = extname
+        _name = k._names[0]      
+        _ext_names[0] = omStrDup(_name)
+        _cfr = rDefault( 0, 1, _ext_names )
+
+        _cfr.qideal = idInit(1,1)
+        rComplete(_cfr, 1)
+        _cfr.qideal.m[0] = prCopyR(minpoly._poly, k._ring, _cfr)
+        extParam.r =  _cfr
+ 
+        # _type = nRegister(n_algExt, <cfInitCharProc> naInitChar);
+        _cf = nInitChar( n_algExt,  <void *>&extParam) #  
+
+        if (_cf is NULL):
+            raise RuntimeError, "Failed to allocate _cf ring."
+
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "NumberField ring constructed"
+    elif isinstance(base_ring, IntegerRing_class):
+        _cf = nInitChar( n_Z, NULL) # integer coefficient ring
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+        #print "polynomial ring over integers created"
+         
+    elif isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field():
 
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
@@ -233,19 +274,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         
         _ring = rDefault( characteristic , nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         #print "ring with prime coefficient field created"
-
-
-    elif isinstance(base_ring, RationalField):
-        characteristic = 0
-        _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "ring with rational coefficient field created"
-        
-
-    elif isinstance(base_ring, IntegerRing_class):
-        _cf = nInitChar( n_Z, NULL) # integer coefficient ring
-        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "polynomial ring over integers created"
-         
 
     elif isinstance(base_ring, FiniteField_generic):
         #print "creating generic finite field"
@@ -312,40 +340,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
         #print "FiniteField_generic ring constructed"
 
-
-    elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
-        characteristic = 1
-        try:
-            k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
-        except TypeError:
-            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
-
-        minpoly = base_ring.polynomial()(k.gen())
-        #print "minpoly", minpoly
-
-        _ext_names = <char**>omAlloc0(sizeof(char*))
-        extname = k.gen()
-        #print "extname",extname
-        #_name = extname
-        _name = k._names[0]      
-        _ext_names[0] = omStrDup(_name)
-        _cfr = rDefault( 0, 1, _ext_names )
-
-        _cfr.qideal = idInit(1,1)
-        rComplete(_cfr, 1)
-        _cfr.qideal.m[0] = prCopyR(minpoly._poly, k._ring, _cfr)
-        extParam.r =  _cfr
- 
-        # _type = nRegister(n_algExt, <cfInitCharProc> naInitChar);
-        _cf = nInitChar( n_algExt,  <void *>&extParam) #  
-
-        if (_cf is NULL):
-            raise RuntimeError, "Failed to allocate _cf ring."
-
-        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "NumberField ring constructed"
         
-
     elif is_IntegerModRing(base_ring):
         #print  " creating IntegerModRing "
 

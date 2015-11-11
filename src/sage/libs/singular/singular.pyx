@@ -334,7 +334,7 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
     cdef Integer ret
     if _ring.cf.type == n_Z2m:
         return base(<long>n)
-    else:
+    elif _ring.cf.type == n_Znm or _ring.cf.type == n_Zn:
         ret = Integer()
         ret.set_from_mpz(<mpz_ptr>n)
         return base(ret)
@@ -613,7 +613,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     if _ring.cf.type == n_Z2m:
         _d = long(d)
         return nr2mMapZp(<number *>_d, currRing.cf, _ring.cf)
-    else:
+    elif _ring.cf.type == n_Zn or _ring.cf.type == n_Znm:
         lift = d.lift()
         #print "lift.base_ring ", lift.base_ring()
         #print "lift ", lift
@@ -640,6 +640,8 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         # it did not help. Singular crashes here...
         return nMapFuncPtr(nn, ZZr.cf, _ring.cf)
         #return nrnMapGMP(nn, ZZr.cf, _ring.cf)
+    else:
+        raise ValueError
 
 cdef object si2sa(number *n, ring *_ring, object base):
     if isinstance(base, FiniteField_prime_modn):
