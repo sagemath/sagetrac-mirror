@@ -124,16 +124,6 @@ cdef extern from "Singular/libsingular.h":
         mpz_t n
         int s
 
-    # finite extension field elements
-
-    ctypedef struct napoly "polyrec"
-
-    # algebraic numbers
-
-    #ctypedef struct lnumber "slnumber":
-    #    napoly *z
-    #    napoly *n
-    #    int s
 
     cdef enum n_coeffType:
         n_unknown=0
@@ -823,31 +813,6 @@ cdef extern from "Singular/libsingular.h":
     # copy a number
 
     number *nlCopy(number *)
-
-
-
-
-
-    # i-th algebraic number paraemeter
-
-    #see ring .cf.cfParameter
-    #number *naParameter(int i, const n_Procs_s* cf)
-
-    
-    # algebraic number destructor
-
-
-
-
-    # get current coefficent
-
-    number *napGetCoeff(napoly *z)
-
-    # get exponent of i-th variable
-
-    int napGetExpFrom(napoly *, int i, ring* r)
-
-    # normalize a number
 
 
     # number to integer handle

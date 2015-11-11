@@ -28,11 +28,10 @@ from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options
 from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
-from sage.libs.singular.decl cimport napoly, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
-#from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
+from sage.libs.singular.decl cimport poly, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
 from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
 from sage.libs.singular.decl cimport n_Z2m, n_unknown
-from sage.libs.singular.decl cimport napGetCoeff, napGetExpFrom, pNext
+from sage.libs.singular.decl cimport p_GetCoeff, p_GetExp, pNext
 from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP, nrnSetMap
 from sage.libs.singular.decl cimport siInit
 from sage.libs.singular.decl cimport n_Init
@@ -144,7 +143,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         sage: K(R(0))
         0
     """
-    cdef napoly *z
+    cdef poly *z
     cdef int c, e
     cdef int a
     cdef int ret
@@ -154,24 +153,23 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         return cache._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
-    raise "nonImplemented"
     
-    z = (<lnumber*>n).z#
-    #
-    #a = cache.objectptr.indeterminate()
-    #ret = cache.objectptr.zero
-    #order = cache.objectptr.cardinality() - 1
-    #
-    #while z:
-    #    c = cache.objectptr.initi(c, <long>napGetCoeff(z))
-    #    e = napGetExpFrom(z,1, _ring)
-    #    if e == 0:
-    #        ret = cache.objectptr.add(ret, c, ret)
-    #    else:
-    #        a = ( e * cache.objectptr.indeterminate() ) % order
-    #        ret = cache.objectptr.axpy(ret, c, a, ret)
-    #    z = <napoly*>pNext(<poly*>z)
-    #return (<FFgivE>cache._zero_element)._new_c(ret)
+    z = <poly*>n
+    
+    a = cache.objectptr.indeterminate()
+    ret = cache.objectptr.zero
+    order = cache.objectptr.cardinality() - 1
+    
+    while z:
+        c = cache.objectptr.initi(c, <long>p_GetCoeff(z, _ring))
+        e = p_GetExp(z, 1, _ring)
+        if e == 0:
+            ret = cache.objectptr.add(ret, c, ret)
+        else:
+            a = ( e * cache.objectptr.indeterminate() ) % order
+            ret = cache.objectptr.axpy(ret, c, a, ret)
+        z = <poly*>pNext(<poly*>z)
+    return (<FFgivE>cache._zero_element)._new_c(ret)
 
 cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     """
@@ -185,28 +183,27 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
         sage: type(f.lc())
         <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement'>
     """
-    cdef napoly *z
+    cdef poly *z
     cdef long c
     cdef int e
     cdef FFgf2eE a
-    cdef FFgf2eE ret
+    cdef FFgf2eE ret	
 
     if _ring.cf.cfIsZero(n,_ring.cf):
         return cache._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return cache._one_element
-    raise "notImplemented"
     
-    #z = (<lnumber*>n).z
-    # a = cache._gen
-    #ret = cache._zero_element
-    #
-    #while z:
-    #    c = <long>napGetCoeff(z)
-    #    e = napGetExpFrom(z,1, _ring)
-    #    ret += c * a**e
-    #    z = <napoly*>pNext(<poly*>z)
-    #return ret
+    z = <poly*>n
+    a = cache._gen
+    ret = cache._zero_element
+    
+    while z:
+        c = <long>p_GetCoeff(z, _ring)
+        e = p_GetExp(z, 1, _ring)
+        ret += c * a**e
+        z = <poly*>pNext(<poly*>z)
+    return ret
 
 cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     """
@@ -229,7 +226,7 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
         2147483646
 
     """
-    cdef napoly *z
+    cdef poly *z
     cdef long c
     cdef int e
     cdef object a
@@ -239,22 +236,21 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
         return base.zero_element()
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return base.one_element()
-    raise "notImplemented"
     
-    #z = (<lnumber*>n).z
-    #
-    #a = base.gen()
-    #ret = base.zero_element()
-    #
-    #while z:
-    #    c = <long>napGetCoeff(z)
-    #    e = napGetExpFrom(z,1, _ring)
-    #    if e == 0:
-    #        ret = ret + c
-    #    elif c != 0:
-    #        ret = ret  + c * a**e
-    #    z = <napoly*>pNext(<poly*>z)
-    #return ret
+    z = <poly*>n
+    
+    a = base.gen()
+    ret = base.zero_element()
+    
+    while z:
+        c = <long>p_GetCoeff(z, _ring)
+        e = p_GetExp(z, 1, _ring)
+        if e == 0:
+            ret = ret + c
+        elif c != 0:
+            ret = ret  + c * a**e
+        z = <poly*>pNext(<poly*>z)
+    return ret
 
 cdef object si2sa_NF(number *n, ring *_ring, object base):
     """
@@ -268,7 +264,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         sage: type(f.lc())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """    
-    cdef napoly *z
+    cdef poly *z
     cdef number *c
     cdef int e
     cdef object a
@@ -278,22 +274,22 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         return base._zero_element
     elif _ring.cf.cfIsOne(n,_ring.cf):
         return base._one_element
-    raise "notImeplemented"
-    #z = (<lnumber*>n).z
-    #
-    #a = base.gen()
-    #ret = base(0)
-    #
-    #while z:
-    #    c = napGetCoeff(z)
-    #    coeff = si2sa_QQ(c, _ring)
-    #    e = napGetExpFrom(z,1, _ring)
-    #    if e == 0:
-    #        ret = ret + coeff
-    #    elif coeff != 0:
-    #        ret = ret + coeff * a**e
-    #    z = <napoly*>pNext(<poly*>z)
-    #return base(ret)
+
+    z = <poly*>n
+    
+    a = base.gen()
+    ret = base(0)
+    
+    while z:
+        c = p_GetCoeff(z, _ring)
+        coeff = si2sa_QQ(c, _ring)
+        e = p_GetExp(z, 1, _ring)
+        if e == 0:
+            ret = ret + coeff
+        elif coeff != 0:
+            ret = ret + coeff * a**e
+        z = <poly*>pNext(<poly*>z)
+    return base(ret)
 
 cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
     """
@@ -490,8 +486,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function 
 
     if (nMapFuncPtr is NULL):
-            print "Failed to determine nMapFuncPtr"
-            raise "Failed to determine nMapFuncPtr"
+        raise RuntimeError, "Failed to determine nMapFuncPtr"
 
     elem = list(elem)
 
