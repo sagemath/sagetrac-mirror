@@ -4608,20 +4608,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: f= x^2 + 2*x*y + 1/2*z
             sage: f.is_squarefree()
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_squarefree of multivariate polynomials over rings is not implemented.
             sage: h = f^2
             sage: h.is_squarefree()
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_squarefree of multivariate polynomials over rings is not implemented.
         """
-        print "was removed from singular"
-        raise NotImplementedError,"was removed from singular"
-        cdef ring *_ring = self._parent_ring
-
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
-            raise NotImplementedError, "is_squarefree of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
-
-        #if(_ring != currRing): rChangeCurrRing(_ring)
-        #return bool(singclap_isSqrFree(self._poly), _ring)
+        # singclap_isSqrFree was removed from Singular 4
+        raise NotImplementedError, "is_squarefree of multivariate polynomials over rings is not implemented."
 
     @coerce_binop
     def quo_rem(self, MPolynomial_libsingular right):

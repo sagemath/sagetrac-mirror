@@ -759,9 +759,6 @@ cdef extern from "Singular/libsingular.h":
 
     ideal *singclap_factorize ( poly *f, intvec ** v , int with_exps, ring * r)
 
-    # TRUE if p is square free
-    int singclap_isSqrFree(poly *p)
-
     # return determinant of i
     poly *singclap_det(matrix *i, ring * r)
 
