@@ -1833,7 +1833,7 @@ def list_of_functions(packages=False):
     EXAMPLE::
 
         sage: from sage.libs.singular.function import list_of_functions
-        sage: 'groebner_norm' in list_of_functions()
+        sage: 'groebner' in list_of_functions()
         True
     """
     cdef list l = []
