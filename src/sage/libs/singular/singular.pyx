@@ -740,29 +740,21 @@ cdef int overflow_check(long e, ring *_ring) except -1:
 
     Whether an overflow occurs or not, partially depends
     on the number of variables in the ring. See trac ticket
-    #11856::
+    :trac:`11856`. With Singular 4, it is by default optimized
+    for at least 4 variables on 64-bit and 2 variables on 32-bit,
+    which in both cases makes a maximal default exponent of
+    2^16-1::
 
-        sage: P.<x,y,z> = QQ[]
-        sage: y^2^30
-        Traceback (most recent call last):
-        ...
-        OverflowError: Exponent overflow (1073741824).
         sage: P.<x,y> = QQ[]
-        sage: y^2^30
-        y^1073741824                                   # 64-bit
-        Traceback (most recent call last):             # 32-bit
-        ...                                            # 32-bit
-        OverflowError: Exponent overflow (1073741824). # 32-bit
-
-        sage: x^2^30*x^2^30
+        sage: y^(2^16-1)
+        y^65535
+        sage: y^2^16
         Traceback (most recent call last):
         ...
-        OverflowError: Exponent overflow (2147483648). # 64-bit
-        OverflowError: Exponent overflow (1073741824). # 32-bit
-
+        OverflowError: Exponent overflow (65536).
     """
     # 2^31 (pPower takes ints)
-    if unlikely(e >= _ring.bitmask or e >= 2**31):
+    if unlikely(e > _ring.bitmask or e >= 2**31):
         raise OverflowError("Exponent overflow (%d)."%(e))
     return 0
 
