@@ -1566,10 +1566,10 @@ cdef class NCPolynomial_plural(RingElement):
             sage: P = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
             sage: P.inject_variables()
             Defining x, z, y
-            sage: (x^2^30) * x^2^30
+            sage: (x^2^15) * x^2^15
             Traceback (most recent call last):
             ...
-            OverflowError: exponent overflow (1073741824)
+            OverflowError: exponent overflow (65536)
         """
         # all currently implemented rings are commutative
         cdef poly *_p
@@ -1636,10 +1636,10 @@ cdef class NCPolynomial_plural(RingElement):
             sage: P = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
             sage: P.inject_variables()
             Defining x, z, y
-            sage: (x+y^2^30)^10
+            sage: (x+y^2^15)^10
             Traceback (most recent call last):
             ....
-            OverflowError: exponent overflow (1073741824)
+            OverflowError: exponent overflow (327680)
         """
         if type(exp) is not Integer:
             try:
