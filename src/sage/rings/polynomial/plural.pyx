@@ -1569,7 +1569,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: (x^2^30) * x^2^30
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (1073741824)
         """
         # all currently implemented rings are commutative
         cdef poly *_p
@@ -1639,7 +1639,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: (x+y^2^30)^10
             Traceback (most recent call last):
             ....
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (1073741824)
         """
         if type(exp) is not Integer:
             try:
