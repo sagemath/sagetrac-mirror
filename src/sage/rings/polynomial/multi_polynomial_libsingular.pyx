@@ -1619,8 +1619,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             9/4
 
             sage: P.monomial_quotient(x,y) # Note the wrong result
-            x*y^1048575*z^1048575 # 64-bit
-            x*y^65535*z^65535 # 32-bit
+            x*y^65535*z^65535
 
             sage: P.monomial_quotient(x,P(1))
             x
