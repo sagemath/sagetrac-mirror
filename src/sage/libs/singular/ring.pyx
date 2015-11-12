@@ -344,7 +344,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         #print  " creating IntegerModRing "
 
         ch = base_ring.characteristic()
-        if ch.is_power_of(2):
+        if ch != 2 and ch.is_power_of(2):
             #print  " creating IntegerModRing : char is power of 2"
             exponent = ch.nbits() -1
             
@@ -379,7 +379,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 _cf = nInitChar( n_Z2m, <void *>cexponent )
                         
 
-        elif base_ring.characteristic().is_prime_power()  and ch < ZZ(2)**160:
+        elif ch.is_prime_power()  and ch < ZZ(2)**160:
             #print  " creating IntegerModRing : char is prime power, using n_Znm"
             F = ch.factor()
             #print "base_ring.characteristic().is_prime_power()"
