@@ -3288,17 +3288,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         We are catching overflows::
 
             sage: R.<x,y> = QQ[]
-            sage: n=1000; f = x^n
+            sage: n=100; f = x^n
             sage: try:
             ....:   f.subs(x = x^n)
             ....:   print "no overflow"
             ....: except OverflowError:
             ....:   print "overflow"
-            overflow    # 32-bit
-            x^1000000   # 64-bit
-            no overflow # 64-bit
+            x^10000
+            no overflow
 
-            sage: n=100000;
+            sage: n=1000;
             sage: try:
             ....:   f = x^n
             ....:   f.subs(x = x^n)
