@@ -2454,7 +2454,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return self._default_prec_
 
 
-    def change_parameter(self, **kwds):
+    def change_parameter(self, locals=True, **kwds):
         r"""
         Return an asymptotic ring with a change in one or more of the given parameters.
 
@@ -2467,6 +2467,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         - ``category`` -- (default: ``None``) the new category.
 
         - ``default_prec`` -- (default: ``None``) the new default precision.
+
+        - ``locals`` -- (default: ``True``) the local variables used
+          during evaluation of a growth group string.
+          If ``True``, then the locals are determined
+          automatically, if ``False``, then they are not determined
+          automatically, and otherwise (a dictionary or
+          ``None``)``locals`` is used.
 
         OUTPUT:
 
@@ -2482,6 +2489,21 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A.change_parameter(coefficient_ring=ZZ) is A
             True
+
+        ::
+
+            sage: Q = QQ
+            sage: A.change_parameter(growth_group='x^Q', locals=None)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'x^Q' is not a valid substring of x^Q
+            describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'x'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'Q'.
+            >> *previous* NameError: name 'Q' is not defined
+            sage: A.change_parameter(growth_group='x^Q')
+            Asymptotic Ring <x^QQ> over Integer Ring
         """
         parameters = ('growth_group', 'coefficient_ring', 'default_prec')
         values = dict()
@@ -2490,7 +2512,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         values['category'] = self.category()
         if isinstance(values['growth_group'], str):
             from growth_group import GrowthGroup
-            values['growth_group'] = GrowthGroup(values['growth_group'])
+            from misc import locals_of_caller
+            values['growth_group'] = GrowthGroup(
+                values['growth_group'], locals=locals_of_caller(locals))
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
