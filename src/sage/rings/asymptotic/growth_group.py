@@ -3808,7 +3808,13 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     - ``specification`` -- a string.
 
-    - keyword arguments are passed on to the growth group
+    - ``locals`` -- (default: ``True``) the local variables used
+      during evaluation. If ``True``, then the locals are determined
+      automatically, if ``False``, then they are not determined
+      automatically, and otherwise (a dictionary or
+      ``None``)``locals`` is used.
+
+    - other keyword arguments are passed on to the growth group
       constructor.
       If the keyword ``ignore_variables`` is not specified, then
       ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
@@ -3935,6 +3941,31 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
+
+    def __call__(self, specification, locals=True, **kwds):
+        r"""
+        Create an object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: Z = ZZ
+            sage: GrowthGroup('n^Z', locals=None)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: 'n^Z' is not a valid substring of n^Z
+            describing a growth group.
+            > *previous* ValueError: 'n' does not describe a parent.
+            > *and* ValueError: Cannot create a parent out of 'Z'.
+            >> *previous* NameError: name 'Z' is not defined
+            sage: GrowthGroup('n^Z')  # indirect doctest
+            Growth Group n^ZZ
+        """
+        from misc import locals_of_caller
+        kwds['locals'] = locals_of_caller(locals)
+        return super(GrowthGroupFactory, self).__call__(specification, **kwds)
+
+
     def create_key_and_extra_args(self, specification, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
@@ -3990,20 +4021,25 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ValueError: '(x^y)^z' is not a valid substring of (x^y)^z
             describing a growth group.
             > *previous* ValueError: Cannot create a parent out of 'x^y'.
-            >> *previous* NameError: name 'x' is not defined
+            >> *previous* NameError: name 'y' is not defined
             > *and* ValueError: Cannot create a parent out of 'z'.
             >> *previous* NameError: name 'z' is not defined
             sage: GrowthGroup('x^(y^z)')
             Traceback (most recent call last):
             ...
-            ValueError: 'x^(y^z)' is not a valid substring of x^(y^z)
-            describing a growth group.
-            > *previous* ValueError: Cannot create a parent out of 'x'.
-            >> *previous* NameError: name 'x' is not defined
+            ValueError: 'x^(y^z)' is not a valid substring of
+            x^(y^z) describing a growth group.
+            > *previous* ValueError: 'x' does not describe a parent.
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
+
+        ::
+
+            sage: GrowthGroup('n^Z', locals={'Z': ZZ})  # indirect doctest
+            Growth Group n^ZZ
         """
         from misc import repr_short_to_parent, split_str_by_op
+        locals = kwds.pop('locals', None)
         groups = []
         for factor in factors:
             split = split_str_by_op(factor, '^')
@@ -4014,11 +4050,11 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
             b, e = split
             try:
-                B = repr_short_to_parent(b)
+                B = repr_short_to_parent(b, locals=locals)
             except ValueError as exc_b:
                 B = None
             try:
-                E = repr_short_to_parent(e)
+                E = repr_short_to_parent(e, locals=locals)
             except ValueError as exc_e:
                 E = None
 
