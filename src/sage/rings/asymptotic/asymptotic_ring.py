@@ -2542,7 +2542,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A.change_parameter(coefficient_ring=ZZ) is A
             True
-<<<<<<< HEAD
+            sage: A.change_parameter(coefficient_ring=None) is A
+            True
 
         ::
 
@@ -2558,10 +2559,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             >> *previous* NameError: name 'Q' is not defined
             sage: A.change_parameter(growth_group='x^Q')
             Asymptotic Ring <x^QQ> over Integer Ring
-=======
-            sage: A.change_parameter(coefficient_ring=None) is A
-            True
->>>>>>> asy/map_coefficients
         """
         parameters = ('growth_group', 'coefficient_ring', 'default_prec')
         values = dict()
