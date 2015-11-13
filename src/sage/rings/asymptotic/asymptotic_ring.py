@@ -2127,6 +2127,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
       subcategory of ``Category of rings``. This is also the default
       category if ``None`` is specified.
 
+    - ``locals`` -- (default: ``True``) the local variables used
+      during evaluation of a growth group string.
+      If ``True``, then the locals are determined
+      automatically, if ``False``, then they are not determined
+      automatically, and otherwise (a dictionary or
+      ``None``)``locals`` is used.
+
     EXAMPLES:
 
     We begin with the construction of an asymptotic ring in various
@@ -2204,7 +2211,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
-                      names=None, category=None, default_prec=None):
+                      names=None, category=None, default_prec=None,
+                      locals=True):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -2283,6 +2291,39 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: icecream is not a ring. Cannot continue.
+
+        ::
+
+            sage: Z = ZZ
+            sage: AsymptoticRing(growth_group='x^Z', coefficient_ring=ZZ, locals=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'x^Z' is not a valid substring of x^Z
+            describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'x'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'Z'.
+            >> *previous* NameError: name 'Z' is not defined
+            sage: AsymptoticRing(growth_group='x^Z', coefficient_ring=ZZ, locals=None)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'x^Z' is not a valid substring of x^Z
+            describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'x'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'Z'.
+            >> *previous* NameError: name 'Z' is not defined
+            sage: AsymptoticRing(growth_group='x^Z', coefficient_ring=ZZ, locals=dict())
+            Traceback (most recent call last):
+            ...
+            ValueError: 'x^Z' is not a valid substring of x^Z
+            describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'x'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'Z'.
+            >> *previous* NameError: name 'Z' is not defined
+            sage: AsymptoticRing(growth_group='x^Z', coefficient_ring=ZZ)
+            Asymptotic Ring <x^ZZ> over Integer Ring
         """
         from sage.categories.sets_cat import Sets
         from sage.categories.rings import Rings
@@ -2293,7 +2334,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         if isinstance(growth_group, str):
             from growth_group import GrowthGroup
-            growth_group = GrowthGroup(growth_group)
+            from misc import locals_of_caller
+            growth_group = GrowthGroup(growth_group,
+                                       locals=locals_of_caller(locals))
 
         if growth_group is None:
             raise ValueError('Growth group not specified. Cannot continue.')
