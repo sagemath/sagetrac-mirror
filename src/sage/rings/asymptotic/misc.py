@@ -691,3 +691,58 @@ def transform_category(category,
                              (category, A))
 
     return result
+
+
+def locals_of_caller(locals=True):
+    r"""
+    Return ``locals()`` of the namespace of the caller of the current frame.
+
+    INPUT:
+
+    - ``locals`` -- (default: ``True``) if ``True``, then the locals are
+      determined automatically, if ``False``, then ``None`` is returned, and
+      otherwise (a dictionary or ``None``) ``locals`` is returned.
+
+    OUTPUT:
+
+    Either a dictionary, ``None`` or the same as ``locals``.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import locals_of_caller
+        sage: a = 42
+        sage: def l(locals=True):
+        ....:     print locals_of_caller(locals)['a']
+        sage: l()
+        42
+
+    TESTS::
+
+        sage: l(True)
+        42
+        sage: print l(False)
+        Traceback (most recent call last):
+        ...
+        TypeError: 'NoneType' object has no attribute '__getitem__'
+        sage: print l(None)
+        Traceback (most recent call last):
+        ...
+        TypeError: 'NoneType' object has no attribute '__getitem__'
+        sage: l({})
+        Traceback (most recent call last):
+        ...
+        KeyError: 'a'
+        sage: l({'a': 39})
+        39
+    """
+    if locals is False:
+        return None
+    elif locals is True:
+        import inspect
+        frame = inspect.currentframe()
+        try:
+            return frame.f_back.f_back.f_locals
+        finally:
+            del frame
+    else:
+        return locals
