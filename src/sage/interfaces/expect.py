@@ -1336,6 +1336,9 @@ class ExpectElement(InterfaceElement):
                 self._session_number = -1
                 raise
         self._session_number = parent._session_number
+        if isinstance(self._name, six.string_types) and parent._eval_using_file_cutoff and \
+           parent._eval_using_file_cutoff < len(self._name):
+            self._get_using_file = True
 
     def __hash__(self):
         """

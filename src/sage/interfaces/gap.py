@@ -1362,7 +1362,7 @@ class Gap(Gap_generic):
         cmd = ('%s:=%s;;' % (var, value)).replace('\n','')
         self._eval_line(cmd, allow_use_file=True)
 
-    def get(self, var, use_file=False):
+    def get(self, var, use_file=None):
         """
         Get the string representation of the variable var.
 
@@ -1372,6 +1372,11 @@ class Gap(Gap_generic):
             sage: gap.get('x')
             '2'
         """
+        if use_file is None:
+            try:
+                use_file = self._get_using_file
+            except AttributeError:
+                use_file = False
         if use_file:
             tmp = self._local_tmpfile()
             if os.path.exists(tmp):
@@ -1382,7 +1387,19 @@ class Gap(Gap_generic):
             os.unlink(tmp)
             return r
         else:
-            return self.eval('Print(%s);'%var, newlines=False)
+            return self.eval('Print(%s);'%var, newlines=False, allow_use_file=False)
+
+    def get_using_file(self, var):
+        r"""
+        Get the string representation of the variable var in self using a file.
+
+        EXAMPLES::
+
+            sage: gap.set('a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file', 1234)
+            sage: gap.get_using_file('a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file')
+            '1234'
+        """
+        return self.get(var, use_file=True)
 
     def _pre_interact(self):
         """
