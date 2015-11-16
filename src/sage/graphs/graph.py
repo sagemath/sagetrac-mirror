@@ -2291,7 +2291,7 @@ class Graph(GenericGraph):
         return left == right
 
     @doc_index("Algorithmically hard stuff")
-    def treewidth(self,k=None,certificate=False):
+    def treewidth(self,k=None,certificate=False,algorithm=None):
         r"""
         Computes the tree-width of `G` (and provides a decomposition)
 
@@ -2402,9 +2402,39 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             2
         """
+
+        g = self
+
+        from sage.misc.package import is_package_installed
+        if (algorithm == 'tdlib' and is_package_installed('tdlib')):
+            import sage.graphs.graph_decompositions.tdlib as tdlib
+
+            if k is None:
+                lb = -1
+            elif k > g.order()-1:
+                raise ValueError("'k' must be lower than g.order()")
+            elif k < -1:
+                raise ValueError("'k' must be at least -1")    
+            else:
+                lb = k          
+
+            T = tdlib.treedecomposition_exact(g, lb)
+            width = tdlib.get_width(T)
+
+            if k is None:
+                return width if certificate is False else T
+
+            return True if width <= k else False
+
+        if (algorithm is not None and
+            algorithm != "sage"):
+            raise ValueError("'algorithm' must be equal to 'tdlib', 'sage', or None")
+
+
+        #sage version
+
         from sage.misc.cachefunc import cached_function
         from sage.sets.set import Set
-        g = self
 
         # Stupid cases
         if g.order() == 0:

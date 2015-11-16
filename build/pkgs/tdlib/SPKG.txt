@@ -3,7 +3,7 @@
 == Description ==
 Providing algorithms concerning treedecompositions
 
-website: http://www.tdi.informatik.uni-frankfurt.de/~lukas/
+website: http://www.tdi.informatik.uni-frankfurt.de/~lukas/tdlib.html
 
 == License ==
 GNU General Public License v2
