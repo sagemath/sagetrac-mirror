@@ -14,14 +14,14 @@ Computation of period integrals associated to spaces of modular symbols.
 from sage.modular.periods.periods_cython import extended_period_integral
 from sage.modular.arithgroup.all import Gamma0
 from sage.rings.all import CDF, ZZ, infinity as oo, next_prime
-from sage.matrix.all import matrix
-import random
+from sage.matrix.constructor import matrix
+from random import choice
 
 
 def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
     """
     Given gamma=[a,b;c,d] in Gamma_0(N), and the coefficients v of the
-    q-expansion of a modular forms f in S_k(N,eps), compute the period
+    `q`-expansion of a modular forms f in S_k(N,eps), compute the period
     integral <f, X^m*Y^(k-2-m){oo,gamma(oo)}>.
 
     INPUT:
@@ -31,7 +31,7 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
     - a,b,c,d -- integers (a matrix with determinant 1)
     - v -- a list of complex numbers
     - eps -- ?
-    - DEBUG -- (default False) whether to print details
+    - DEBUG -- (default ``False``) whether to print details
 
     ALGORITHM: See Algorithm 10.6 of Stein's book "Modular Forms, A
     Computational Approach", where here we use c instead of N*c.
@@ -98,23 +98,34 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
 
 class PeriodMapping(object):
     """
-    The period mapping associated to a space A of modular symbols
+    The period mapping associated to a space `A` of modular symbols
     corresponding to a newform, computed to complex double precision
-    using prec terms of the q-expansions.
+    using ``prec`` terms of the `q̀-expansions.
+
+    THIS IS CURRENTLY RANDOM !
 
     EXAMPLES::
 
         sage: A = ModularSymbols(Gamma1(3),weight=13,sign=0)
         sage: M = A.cuspidal_submodule().decomposition()[0]
         sage: f = M.period_mapping(100)
-        sage: A = M.ambient(); [f(A([i,0,oo]))[0] for i in range(12)]  # abs tol 1e-10
+        sage: [f(A([i,0,oo]))[0] for i in range(12)]  # abs tol 1e-10
         [27.9280923271, 5.33567468252*I, -1.12953617856, -0.271724173647*I,
         0.0784400124002, 0.0301915748497*I, -0.0174311138667,
         -0.0150957874248*I, 0.0174311138667, 0.0241532598797*I,
         -0.0380315211637, -0.0663551095597*I]
     """
     def __init__(self, M, prec):
-        DEBUG = False
+        """
+        EXAMPLES::
+
+            sage: A = ModularSymbols(Gamma1(3),weight=11,sign=0)
+            sage: M = A.cuspidal_submodule().decomposition()[0]
+            sage: f = M.period_mapping(100)
+            sage: f(A([1,0,infinity]))   # abs tol 1e-10
+            (0.7287286616327568 + 0.1419501409026777*I, -0.7971832513181062 + 0.15528451234005033*I)
+        """
+        DEBUG = True
         if not M.dimension() > 0:
             raise ValueError("M must have positive dimension")
         if not prec >= 1:
@@ -147,9 +158,9 @@ class PeriodMapping(object):
         done = False
         gens = [g.matrix() for g in Gamma0(N).gens()]
         gamma = gens[0]
-        while len(candidates) == 0:
+        while not len(candidates):
             for m in range(k - 2 + 1):
-                gamma *= random.choice(gens) ** random.choice([-1, 1])
+                gamma *= choice(gens) ** choice([-1, 1])
                 if gamma[1, 0] < 0:
                     gamma = -gamma
                 c = gamma[1, 0]
@@ -213,7 +224,7 @@ class PeriodMapping(object):
         z = [emb(a) for emb in embeddings]
         for j in range(len(embeddings) - 1):
             rows.append([z[i] * rows[-1][i] for i in range(len(embeddings))])
-        P_imag = matrix(rows)
+        P_imag = matrix(CDF, rows)
         P = P_real.stack(P_imag)
 
         # Map we want is first projection to M, followed by writing

@@ -15,8 +15,8 @@ to spaces of modular symbols.
 cdef extern:
     complex cexp(complex)
 
-import math
-cdef complex c0 = complex(0, 2 * math.pi)   # 2*pi*i
+from math import pi
+cdef complex c0 = complex(0, 2 * pi)   # 2*pi*i
 
 
 cpdef complex exp_z_integral(complex alpha, unsigned long n, unsigned int m):
@@ -31,7 +31,7 @@ cpdef complex exp_z_integral(complex alpha, unsigned long n, unsigned int m):
 
     This uses Lemma 10.4 from Stein's 2007 AMS modular forms book.
 
-    Note that m is typically small but n gets large.
+    Note that `m` is typically small but `n` gets large.
 
     EXAMPLES::
 
