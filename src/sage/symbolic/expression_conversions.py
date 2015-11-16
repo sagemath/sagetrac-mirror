@@ -239,7 +239,7 @@ class Converter(object):
             sage: c.get_fake_div((2*x^3+2*x-1)/((x-2)*(x+1)))
             FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x + 1, x - 2], <built-in function mul>)], <built-in function div>)
 
-        Check if #8056 is fixed, i.e., if numerator is 1.::
+        Check if :trac:`8056` is fixed, i.e., if numerator is 1.::
 
             sage: c.get_fake_div(1/pi/x)
             FakeExpression([1, FakeExpression([pi, x], <built-in function mul>)], <built-in function div>)
@@ -668,7 +668,7 @@ class SympyConverter(Converter):
 
     TESTS:
 
-    Make sure we can convert I (trac #6424)::
+    Make sure we can convert I (:trac:`6424`)::
 
         sage: bool(I._sympy_() == I)
         True
@@ -852,8 +852,8 @@ class AlgebraicConverter(Converter):
             sage: a = AlgebraicConverter(QQbar)
             sage: a.composition(exp(I*pi/3), exp)
             0.500000000000000? + 0.866025403784439?*I
-            sage: a.composition(sin(pi/5), sin)
-            0.5877852522924731? + 0.?e-18*I
+            sage: a.composition(sin(pi/7), sin)
+            0.4338837391175581? + 0.?e-18*I
 
         TESTS::
 
@@ -1196,7 +1196,7 @@ class FastFloatConverter(Converter):
             sage: ff(1.0,2.0,3.0)
             4.1780638977...
 
-        Using _fast_float_ without specifying the variable names is
+        Using ``_fast_float_`` without specifying the variable names is
         deprecated::
 
             sage: f = x._fast_float_()
@@ -1208,8 +1208,8 @@ class FastFloatConverter(Converter):
             sage: f(1.2)
             1.2
 
-        Using _fast_float_ on a function which is the identity is
-        now supported (see Trac 10246)::
+        Using ``_fast_float_`` on a function which is the identity is
+        now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
             sage: f._fast_float_(x)
@@ -1462,7 +1462,8 @@ class FastCallableConverter(Converter):
 
         TESTS:
 
-        Check if rational functions with numerator 1 can be converted. #8056::
+        Check if rational functions with numerator 1 can
+        be converted. (:trac:`8056`)::
 
             sage: (1/pi/x)._fast_callable_(etb)
             div(1, mul(pi, v_0))
