@@ -2290,10 +2290,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             9/4*x^2 - 1/4*y^2 - y - 1
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
-            sage: (x^2^30) * x^2^30
+            sage: (x^2^15) * x^2^15
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (...)
         """
         # all currently implemented rings are commutative
         cdef poly *_p
@@ -2404,10 +2404,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             TypeError: non-integral exponents not supported
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
-            sage: (x+y^2^30)^10
+            sage: (x+y^2^15)^10
             Traceback (most recent call last):
             ....
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (...)
         """
         if type(exp) is not Integer:
             try:
@@ -2554,7 +2554,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         argument ``std_grading=True``.
 
             sage: tord = TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
-            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order=tord)
             sage: (x^3*y+x*z^4).degree()
             9
             sage: (x^3*y+x*z^4).degree(std_grading=True)
@@ -2663,10 +2663,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         With a matrix term ordering, the grading changes.
         To evaluate the total degree using the standard grading,
-        use the optional argument``std_grading=True``.
+        use the optional argument``std_grading=True``::
 
             sage: tord=TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
-            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order=tord)
             sage: (x^2*y).total_degree()
             6
             sage: (x^2*y).total_degree(std_grading=True)
@@ -3358,7 +3358,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     if  degree > _ring.bitmask:
                         id_Delete(&to_id, _ring)
                         p_Delete(&_p, _ring)
-                        raise OverflowError("Exponent overflow (%d)."%(degree))
+                        raise OverflowError("exponent overflow (%d)"%(degree))
                     to_id.m[mi-1] = p_Copy(_f, _ring)
 
         if not try_symbolic:
@@ -3389,7 +3389,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     if degree > _ring.bitmask:
                         id_Delete(&to_id, _ring)
                         p_Delete(&_p, _ring)
-                        raise OverflowError("Exponent overflow (%d)."%(degree))
+                        raise OverflowError("exponent overflow (%d)"%(degree))
                     need_map = 1
 
             if need_map:
