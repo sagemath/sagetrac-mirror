@@ -140,7 +140,7 @@ class Graphics(WithEqualityById, SageObject):
         sage: hash(Graphics()) # random
         42
 
-    .. automethod:: _rich_repr_
+    .. automethod:: Graphics._rich_repr_
     """
 
     def __init__(self):
@@ -3256,7 +3256,7 @@ class GraphicsArray(WithEqualityById, SageObject):
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
 
-    .. automethod:: _rich_repr_
+    .. automethod:: GraphicsArray._rich_repr_
     """
     def __init__(self, array):
         """

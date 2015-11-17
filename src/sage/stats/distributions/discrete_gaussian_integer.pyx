@@ -123,8 +123,8 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
     r"""
     A Discrete Gaussian Sampler using rejection sampling.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: DiscreteGaussianDistributionIntegerSampler.__init__
+    .. automethod:: DiscreteGaussianDistributionIntegerSampler.__call__
     """
 
     # We use tables for σt ≤ table_cutoff

@@ -481,8 +481,8 @@ class Permutation(CombinatorialElement):
         sage: Permutation( [[], []] )
         []
 
-    .. automethod:: _left_to_right_multiply_on_right
-    .. automethod:: _left_to_right_multiply_on_left
+    .. automethod:: Permutation._left_to_right_multiply_on_left
+    .. automethod:: Permutation._left_to_right_multiply_on_right
     """
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):

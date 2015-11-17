@@ -75,12 +75,12 @@ cdef class Polynomial_rational_flint(Polynomial):
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
 
-    .. automethod:: _add_
-    .. automethod:: _sub_
-    .. automethod:: _lmul_
-    .. automethod:: _rmul_
-    .. automethod:: _mul_
-    .. automethod:: _mul_trunc_
+    .. automethod:: Polynomial_rational_flint._add_
+    .. automethod:: Polynomial_rational_flint._sub_
+    .. automethod:: Polynomial_rational_flint._lmul_
+    .. automethod:: Polynomial_rational_flint._rmul_
+    .. automethod:: Polynomial_rational_flint._mul_
+    .. automethod:: Polynomial_rational_flint._mul_trunc_
     """
 
     ###########################################################################

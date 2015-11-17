@@ -67,12 +67,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
     r"""
     Polynomial on `\ZZ/n\ZZ` implemented via FLINT.
 
-    .. automethod:: _add_
-    .. automethod:: _sub_
-    .. automethod:: _lmul_
-    .. automethod:: _rmul_
-    .. automethod:: _mul_
-    .. automethod:: _mul_trunc_
+    .. automethod:: Polynomial_zmod_flint._add_
+    .. automethod:: Polynomial_zmod_flint._sub_
+    .. automethod:: Polynomial_zmod_flint._lmul_
+    .. automethod:: Polynomial_zmod_flint._rmul_
+    .. automethod:: Polynomial_zmod_flint._mul_
+    .. automethod:: Polynomial_zmod_flint._mul_trunc_
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """

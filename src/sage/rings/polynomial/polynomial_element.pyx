@@ -192,12 +192,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: p = (y+1)^10; p(1)
         1024
 
-    .. automethod:: _add_
-    .. automethod:: _sub_
-    .. automethod:: _lmul_
-    .. automethod:: _rmul_
-    .. automethod:: _mul_
-    .. automethod:: _mul_trunc_
+    .. automethod:: Polynomial._add_
+    .. automethod:: Polynomial._sub_
+    .. automethod:: Polynomial._lmul_
+    .. automethod:: Polynomial._rmul_
+    .. automethod:: Polynomial._mul_
+    .. automethod:: Polynomial._mul_trunc_
     """
 
     def __init__(self, parent, is_gen = False, construct=False):

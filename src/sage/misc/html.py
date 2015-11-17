@@ -136,9 +136,8 @@ class HtmlFragment(str, SageObject):
         sage: HtmlFragment('<b>test</b>')
         <b>test</b>
 
-    .. automethod:: _rich_repr_
+    .. automethod:: HtmlFragment._rich_repr_
     """
-
     def _rich_repr_(self, display_manager, **kwds):
         """
         Rich Output Magic Method

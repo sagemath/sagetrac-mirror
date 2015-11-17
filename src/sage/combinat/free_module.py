@@ -825,7 +825,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     Some uses of
     :meth:`sage.categories.commutative_additive_semigroups.CommutativeAdditiveSemigroups.ParentMethods.summation`
-    and :meth:`.sum`::
+    and :meth:`~sage.combinat.free_module.CombinatorialFreeModule.sum`::
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
         sage: F.summation(F.monomial(1), F.monomial(3))

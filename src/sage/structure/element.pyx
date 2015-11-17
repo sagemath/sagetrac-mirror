@@ -297,8 +297,8 @@ cdef class Element(SageObject):
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
 
-    .. automethod:: _cmp_
-    .. automethod:: _richcmp_
+    .. automethod:: Element._cmp_
+    .. automethod:: Element._richcmp_
     """
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass

@@ -263,8 +263,8 @@ class AttributeAccessTracerProxy(object):
               call f(3) -> 4
             4
 
-        .. automethod:: __getattribute__
-        .. automethod:: __setattr__
+        .. automethod:: AttributeAccessTracerProxy.__getattribute__
+        .. automethod:: AttributeAccessTracerProxy.__setattr__
         """
         helper = AttributeAccessTracerHelper(delegate, **kwds)
         object.__setattr__(self, "helper", helper)

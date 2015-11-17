@@ -293,16 +293,16 @@ cdef class Parent(category_object.CategoryObject):
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
-        .. automethod:: __call__
-        .. automethod:: _populate_coercion_lists_
-        .. automethod:: __mul__
-        .. automethod:: __contains__
-        .. automethod:: _coerce_map_from_
-        .. automethod:: _convert_map_from_
-        .. automethod:: _get_action_
-        .. automethod:: _an_element_
-        .. automethod:: _repr_option
-        .. automethod:: _init_category_
+        .. automethod:: Parent.__call__
+        .. automethod:: Parent._populate_coercion_lists_
+        .. automethod:: Parent.__mul__
+        .. automethod:: Parent.__contains__
+        .. automethod:: Parent._coerce_map_from_
+        .. automethod:: Parent._convert_map_from_
+        .. automethod:: Parent._get_action_
+        .. automethod:: Parent._an_element_
+        .. automethod:: Parent._repr_option
+        .. automethod:: Parent._init_category_
         """
         # TODO: in the long run, we want to get rid of the element_constructor = argument
         # (element_constructor would always be set by inheritance)

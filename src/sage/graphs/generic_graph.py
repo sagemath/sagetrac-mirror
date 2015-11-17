@@ -321,7 +321,7 @@ class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
 
-    .. automethod:: __eq__
+    .. automethod:: GenericGraph.__eq__
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)

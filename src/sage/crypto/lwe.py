@@ -126,8 +126,8 @@ class UniformSampler(SageObject):
         sage: sampler()
         -2
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: UniformSampler.__init__
+    .. automethod:: UniformSampler.__call__
     """
     def __init__(self, lower_bound, upper_bound):
         """
@@ -184,8 +184,8 @@ class UniformPolynomialSampler(SageObject):
         sage: UniformPolynomialSampler(ZZ['x'], 8, -2, 2)()
         -2*x^7 + x^6 - 2*x^5 - x^3 - 2*x^2 - 2
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: UniformPolynomialSampler.__init__
+    .. automethod:: UniformPolynomialSampler.__call__
     """
     def __init__(self, P, n, lower_bound, upper_bound):
         """
@@ -244,8 +244,8 @@ class LWE(SageObject):
     """
     Learning with Errors (LWE) oracle.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: LWE.__init__
+    .. automethod:: LWE.__call__
     """
     def __init__(self, n, q, D, secret_dist='uniform', m=None):
         """
@@ -365,7 +365,7 @@ class Regev(LWE):
     """
     LWE oracle with parameters as in [Reg09]_.
 
-    .. automethod:: __init__
+    .. automethod:: Regev.__init__
     """
     def __init__(self, n, secret_dist='uniform', m=None):
         """
@@ -396,7 +396,7 @@ class LindnerPeikert(LWE):
     """
     LWE oracle with parameters as in [LP11]_.
 
-    .. automethod:: __init__
+    .. automethod:: LindnerPeikert.__init__
     """
     def __init__(self, n, delta=0.01, m=None):
         """
@@ -445,7 +445,7 @@ class UniformNoiseLWE(LWE):
     """
     LWE oracle with uniform secret with parameters as in [CGW13]_.
 
-    .. automethod:: __init__
+    .. automethod:: UniformNoiseLWE.__init__
     """
     def __init__(self, n, instance='key', m=None):
         """
@@ -507,8 +507,8 @@ class RingLWE(SageObject):
     """
     Ring Learning with Errors oracle.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: RingLWE.__init__
+    .. automethod:: RingLWE.__call__
     """
     def __init__(self, N, q, D, poly=None, secret_dist='uniform', m=None):
         """
@@ -600,7 +600,7 @@ class RingLindnerPeikert(RingLWE):
     """
     Ring-LWE oracle with parameters as in [LP11]_.
 
-    .. automethod:: __init__
+    .. automethod:: RingLindnerPeikert.__init__
     """
     def __init__(self, N, delta=0.01, m=None):
         """
@@ -644,8 +644,8 @@ class RingLWEConverter(SageObject):
     Wrapper callable to convert Ring-LWE oracles into LWE oracles by
     disregarding the additional structure.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: RingLWEConverter.__init__
+    .. automethod:: RingLWEConverter.__call__
     """
     def __init__(self, ringlwe):
         """

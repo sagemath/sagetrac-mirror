@@ -41,8 +41,8 @@ class DIMACS(SatSolver):
         Usually, users won't have to use this class directly but some
         class which inherits from this class.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: DIMACS.__init__
+    .. automethod:: DIMACS.__call__
     """
 
     command = ""

@@ -3007,7 +3007,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         sage: (T.input_alphabet, T.output_alphabet)
         ([0, 1], [2, 3])
 
-    .. automethod:: __call__
+    .. automethod:: FiniteStateMachine.__call__
     """
 
     on_duplicate_transition = duplicate_transition_ignore

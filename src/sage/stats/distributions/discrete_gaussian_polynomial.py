@@ -70,8 +70,8 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
         sage: [gs() for _ in xrange(3)]
         [4*x^7 + 4*x^6 - 4*x^5 + 2*x^4 + x^3 - 4*x + 7, -5*x^6 + 4*x^5 - 3*x^3 + 4*x^2 + x, 2*x^7 + 2*x^6 + 2*x^5 - x^4 - 2*x^2 + 3*x + 1]
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: DiscreteGaussianDistributionPolynomialSampler.__init__
+    .. automethod:: DiscreteGaussianDistributionPolynomialSampler.__call__
     """
     def __init__(self, P, n, sigma):
         r"""

@@ -70,12 +70,12 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
 
-    .. automethod:: _add_
-    .. automethod:: _sub_
-    .. automethod:: _lmul_
-    .. automethod:: _rmul_
-    .. automethod:: _mul_
-    .. automethod:: _mul_trunc_
+    .. automethod:: Polynomial_integer_dense_flint._add_
+    .. automethod:: Polynomial_integer_dense_flint._sub_
+    .. automethod:: Polynomial_integer_dense_flint._lmul_
+    .. automethod:: Polynomial_integer_dense_flint._rmul_
+    .. automethod:: Polynomial_integer_dense_flint._mul_
+    .. automethod:: Polynomial_integer_dense_flint._mul_trunc_
     """
 
     def __cinit__(self):

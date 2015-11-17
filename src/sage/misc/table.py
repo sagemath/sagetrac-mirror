@@ -236,7 +236,7 @@ class table(SageObject):
         ....:                  [(x,n(sin(x), digits=2)) for x in [0..3]], 
         ....:                 header_row=True, frame=True)).run()
 
-    .. automethod:: _rich_repr_
+    .. automethod:: table._rich_repr_
     """
     def __init__(self, rows=None, columns=None, header_row=False,
                  header_column=False, frame=False, align='left'):

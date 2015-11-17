@@ -586,12 +586,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     r"""
     Polynomial on `\ZZ/n\ZZ` implemented via NTL.
 
-    .. automethod:: _add_
-    .. automethod:: _sub_
-    .. automethod:: _lmul_
-    .. automethod:: _rmul_
-    .. automethod:: _mul_
-    .. automethod:: _mul_trunc_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._add_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._sub_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._lmul_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._rmul_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._mul_
+    .. automethod:: Polynomial_dense_modn_ntl_zz._mul_trunc_
     """
     def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
         r"""

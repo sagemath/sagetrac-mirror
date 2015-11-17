@@ -1341,7 +1341,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return small_primes, modulus, residue_chunks
 
-    @parallel(ncpus=NCPUS)
     def _sum_over_residues(self, residue_sum_data):
         r"""
         Return the p-power sum over residues in a residue chunk

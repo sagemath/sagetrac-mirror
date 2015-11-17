@@ -20,7 +20,7 @@ class TallListFormatter(object):
     """
     Special representation for lists with tall entries (e.g. matrices)
 
-    .. automethod:: __call__
+    .. automethod:: TallListFormatter.__call__
     """
 
     # This is used to wrap lines when printing "tall" lists.

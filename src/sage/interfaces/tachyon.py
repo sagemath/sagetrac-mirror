@@ -73,8 +73,8 @@ class TachyonRT(SageObject):
 
     EXAMPLES:
 
-    
-    .. automethod:: __call__
+
+    .. automethod:: TachyonRT.__call__
     """
     def _repr_(self):
         """

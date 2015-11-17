@@ -141,8 +141,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
                Short Basis: Trapdoors for Hard Lattices and New Cryptographic
                Constructions*. STOC 2008. http://www.cc.gatech.edu/~cpeikert/pubs/trap_lattice.pdf
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: DiscreteGaussianDistributionLatticeSampler.__init__
+    .. automethod:: DiscreteGaussianDistributionLatticeSampler.__call__
     """
     @staticmethod
     def compute_precision(precision, sigma):

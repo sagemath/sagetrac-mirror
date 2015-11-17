@@ -71,8 +71,8 @@ cdef class SageObject:
     Every object that can end up being returned to the user should
     inherit from :class:`SageObject`.
 
-    .. automethod:: _ascii_art_
-    .. automethod:: _cache_key
+    .. automethod:: SageObject._ascii_art_
+    .. automethod:: SageObject._cache_key
     """
 
     #######################################################################

@@ -56,8 +56,8 @@ class CNFEncoder(ANF2CNFConverter):
     ``cutting_number`` -- or by constructing XOR clauses if the underlying solver supports it. This
     behaviour is disabled by passing ``use_xor_clauses=False``.
 
-    .. automethod:: __init__
-    .. automethod:: __call__
+    .. automethod:: CNFEncoder.__init__
+    .. automethod:: CNFEncoder.__call__
     """
     def __init__(self, solver, ring, max_vars_sparse=6, use_xor_clauses=None, cutting_number=6, random_seed=16):
         """
