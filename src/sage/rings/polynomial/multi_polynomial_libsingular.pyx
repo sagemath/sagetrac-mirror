@@ -4273,7 +4273,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ValueError: polynomial is not in the ideal
             sage: foo = I.complete_primary_decomposition() # indirect doctest
             sage: foo[0][0]
-            Ideal (x2 - 1, x1 - 1) of Multivariate Polynomial Ring in x1, x2 over Rational Field
+            Ideal (x1 + 1, x2^2 - 3) of Multivariate Polynomial Ring in x1, x2 over Rational Field
 
         """
         global errorreported
