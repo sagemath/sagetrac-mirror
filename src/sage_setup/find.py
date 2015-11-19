@@ -13,6 +13,8 @@ Recursive Directory Contents
 
 
 import os
+from glob import glob
+from sage.env import SAGE_LOCAL
 
 
 def find_python_sources(src_dir, modules=('sage',)):
@@ -189,3 +191,24 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     finally:
         os.chdir(cwd)
     return module_files
+
+
+def find_library_files(lib):
+    """
+    Return a list of filenames which might correspond to the library
+    name ``lib``.
+
+    EXAMPLES::
+
+        sage: from sage_setup.find import find_library_files
+        sage: L = find_library_files("ntl")
+        sage: L  # random
+        ['.../local/lib/libntl.so', '.../local/lib/libntl.a']
+        sage: len(L) > 0
+        True
+    """
+    libfiles = []
+    for ext in [".so", ".dll", ".dylib", ".a"]:
+        libfiles += glob(
+            os.path.join(SAGE_LOCAL, "lib*", "lib%s%s"%(lib,ext)))
+    return libfiles

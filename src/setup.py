@@ -158,15 +158,6 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # checking that we need.
 ######################################################################
 
-# Do not put all, but only the most common libraries and their headers
-# (that are likely to change on an upgrade) here:
-# [At least at the moment. Make sure the headers aren't copied with "-p",
-# or explicitly touch them in the respective spkg's spkg-install.]
-lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #9896
-                "gmpxx":   [ os.path.join(SAGE_INC, 'gmpxx.h') ],
-                "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
-              }
-
 # In the loop below, don't append to any list, since many of these
 # lists are actually identical Python objects. For every list, we need
 # to write (at least the first time):
@@ -176,11 +167,6 @@ lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #
 for m in ext_modules:
     # Make everything depend on *this* setup.py file
     m.depends = m.depends + [__file__]
-
-    # Add dependencies for the libraries
-    for lib in lib_headers:
-        if lib in m.libraries:
-            m.depends += lib_headers[lib]
 
     m.extra_compile_args = m.extra_compile_args + extra_compile_args
     m.extra_link_args = m.extra_link_args + extra_link_args
@@ -460,9 +446,6 @@ class sage_build_ext(build_ext):
             if ext.language == 'c++' and 'stdc++' not in libs:
                 libs = libs + ['stdc++']
 
-            # Sort libraries according to library_order
-            ext.libraries = sorted(libs, key=lambda x: library_order.get(x, 0))
-
         return need_to_compile, (sources, ext, ext_filename)
 
     def build_extension(self, p):
@@ -541,6 +524,39 @@ class sage_build_ext(build_ext):
 ###### Cythonize
 #############################################
 
+from sage_setup.find import find_library_files
+
+def wrap_create_extension_list(cython_create_extension_list):
+    """
+    Decorator for Cython's ``create_extension_list()`` to add
+    Sage-specific customizations:
+
+    - sort libraries according to ``library_order``
+
+    - add libraries (not just header files) as dependencies
+    """
+    def create_extension_list(*args, **kwds):
+        module_list, module_metadata = cython_create_extension_list(*args, **kwds)
+
+        for opts in module_metadata.values():
+            d = opts['distutils']
+            try:
+                libs = d['libraries']
+            except KeyError:
+                pass
+            else:
+                libs = sorted(libs, key=lambda x: library_order.get(x, 0))
+                d['libraries'] = libs
+                for lib in libs:
+                    # Do not use += here, since some of these lists
+                    # might be identical Python objects. We really want
+                    # to make a copy!
+                    d['depends'] = d['depends'] + find_library_files(lib)
+
+        return module_list, module_metadata
+    return create_extension_list
+
+
 def run_cythonize():
     from Cython.Build import cythonize
     import Cython.Compiler.Options
@@ -555,6 +571,10 @@ def run_cythonize():
     # but Sage relies on the broken behavior of returning to the nearest
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
+
+    # Monkeypatch create_extension_list
+    import Cython.Build.Dependencies as Deps
+    Deps.create_extension_list = wrap_create_extension_list(Deps.create_extension_list)
 
     debug = False
     if os.environ.get('SAGE_DEBUG', None) != 'no':
