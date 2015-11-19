@@ -1018,10 +1018,9 @@ class InterfaceElement(RingElement):
 
     def __repr__(self):
         self._check_valid()
-        try:
-            if self._get_using_file:
-                s = self.parent().get_using_file(self._name)
-        except AttributeError:
+        if self._get_using_file:
+            s = self.parent().get_using_file(self._name)
+        else:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
             try:
