@@ -519,40 +519,10 @@ class sage_build_ext(build_ext):
 ###### Cythonize
 #############################################
 
-from sage_setup.find import find_library_files
-
-def wrap_create_extension_list(cython_create_extension_list):
-    """
-    Decorator for Cython's ``create_extension_list()`` to add
-    Sage-specific customizations:
-
-    - sort libraries according to ``library_order``
-
-    - add libraries (not just header files) as dependencies
-    """
-    def create_extension_list(*args, **kwds):
-        module_list, module_metadata = cython_create_extension_list(*args, **kwds)
-
-        for opts in module_metadata.values():
-            d = opts['distutils']
-            try:
-                libs = d['libraries']
-            except KeyError:
-                pass
-            else:
-                libs = sorted(libs, key=lambda x: library_order.get(x, 0))
-                d['libraries'] = libs
-                for lib in libs:
-                    # Do not use += here, since some of these lists
-                    # might be identical Python objects. We really want
-                    # to make a copy!
-                    d['depends'] = d['depends'] + find_library_files(lib)
-
-        return module_list, module_metadata
-    return create_extension_list
-
-
 def run_cythonize():
+    from sage_setup.cython import init_cython
+    init_cython(library_order)
+
     from Cython.Build import cythonize
     import Cython.Compiler.Options
     import Cython.Compiler.Main
@@ -566,10 +536,6 @@ def run_cythonize():
     # but Sage relies on the broken behavior of returning to the nearest
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
-
-    # Monkeypatch create_extension_list
-    import Cython.Build.Dependencies as Deps
-    Deps.create_extension_list = wrap_create_extension_list(Deps.create_extension_list)
 
     debug = False
     if os.environ.get('SAGE_DEBUG', None) != 'no':
@@ -610,6 +576,9 @@ def run_cythonize():
             'embedsignature': True,
             'profile': profile,
         })
+
+    for ext in ext_modules:
+        print("%s depends on %s"%(ext.name, ext.depends))
 
     open(version_file, 'w').write(version_stamp)
 
