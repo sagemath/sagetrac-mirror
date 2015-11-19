@@ -51,11 +51,6 @@ from sage.env import *
 ### Configuration
 #########################################################
 
-if len(sys.argv) > 1 and sys.argv[1] == "sdist":
-    sdist = True
-else:
-    sdist = False
-
 try:
     compile_result_dir = os.environ['XML_RESULTS']
     keep_going = True
