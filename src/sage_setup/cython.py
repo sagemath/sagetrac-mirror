@@ -11,7 +11,7 @@ Sage customizations to Cython
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .find import find_library_files
+from sage_setup.find import find_library_files
 
 
 def wrap_create_extension_list(cython_create_extension_list, library_sort_key):
