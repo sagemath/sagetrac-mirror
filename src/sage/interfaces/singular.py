@@ -1270,6 +1270,7 @@ class SingularElement(ExpectElement):
         else:
             self._name = value
         self._session_number = parent._session_number
+        self._get_using_file = False
 
     def __repr__(self):
         r"""

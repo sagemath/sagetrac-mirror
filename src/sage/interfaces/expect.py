@@ -1318,9 +1318,9 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, six.string_types) and parent._eval_using_file_cutoff and \
-           parent._eval_using_file_cutoff < len(value):
-            self._get_using_file = True
+        self._get_using_file = (isinstance(value, six.string_types)
+                                and parent._eval_using_file_cutoff
+                                and parent._eval_using_file_cutoff < len(value))
 
         if is_name:
             self._name = value
