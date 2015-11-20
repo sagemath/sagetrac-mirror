@@ -175,7 +175,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
@@ -910,13 +910,18 @@ class Gap_generic(Expect):
         marker = '__SAGE_LAST__:="__SAGE_LAST__";;'
         cmd = "%s(%s);;"%(function, ",".join([s.name() for s in args]+
                 ['%s=%s'%(key,value.name()) for key, value in kwds.items()]))
+        if len(cmd) > self._eval_using_file_cutoff:
+            # We are communicating the function call through a temporary file,
+            # so we can't use last.
+            self.eval("__SAGE_VAL__:=" + cmd);
+            return self.new('__SAGE_VAL__;')
         if len(marker) + len(cmd) <= self._eval_using_file_cutoff:
             # We combine the two commands so we only run eval() once and the
             #   only output would be from the second command
-            res = self.eval(marker+cmd)
+            res = self.eval(marker+cmd, allow_use_file=False)
         else:
-            self.eval(marker)
-            res = self.eval(cmd)
+            self.eval(marker, allow_use_file=False)
+            res = self.eval(cmd, allow_use_file=False)
         if self.eval('IsIdenticalObj(last,__SAGE_LAST__)') != 'true':
             return self.new('last2;')
         else:
@@ -1376,13 +1381,27 @@ class Gap(Gap_generic):
             tmp = self._local_tmpfile()
             if os.path.exists(tmp):
                 os.unlink(tmp)
-            self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)
+            # We check the length of the command here to prevent wrapping it
+            # in another print in case a file is used
+            cmd = 'PrintTo("%s", %s);'%(tmp,var)
+            if self._eval_using_file_cutoff and \
+                len(cmd) > self._eval_using_file_cutoff:
+                    with gc_disabled():
+                        Expect._eval_line_using_file(self, cmd)
+            else:
+                self.eval(cmd, strip=False, allow_use_file=False)
             r = open(tmp).read()
             r = r.strip().replace("\\\n","")
             os.unlink(tmp)
             return r
         else:
-            return self.eval('Print(%s);'%var, newlines=False)
+            cmd = 'Print(%s);'%var
+            if self._eval_using_file_cutoff and \
+                len(cmd) > self._eval_using_file_cutoff:
+                    with gc_disabled():
+                        return Expect._eval_line_using_file(self, cmd)
+            else:
+                return self.eval(cmd, newlines=False, allow_use_file=False)
 
     def _pre_interact(self):
         """
