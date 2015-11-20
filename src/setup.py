@@ -577,9 +577,6 @@ def run_cythonize():
             'profile': profile,
         })
 
-    for ext in ext_modules:
-        print("%s depends on %s"%(ext.name, ext.depends))
-
     open(version_file, 'w').write(version_stamp)
 
 

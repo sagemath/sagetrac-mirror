@@ -19,7 +19,7 @@ def wrap_create_extension_list(cython_create_extension_list, library_sort_key):
     Decorator for Cython's ``create_extension_list()`` to add
     Sage-specific customizations:
 
-    - sort libraries according to ``library_order``
+    - sort libraries according to ``library_sort_key``
 
     - add libraries (not just header files) as dependencies
     """
