@@ -16,6 +16,9 @@ import os
 from glob import glob
 from sage.env import SAGE_LOCAL
 
+# Sage is not yet built, so we cannot use Sage's cached_function
+from Cython.Utils import cached_function
+
 
 def find_python_sources(src_dir, modules=('sage',)):
     """
@@ -193,6 +196,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     return module_files
 
 
+@cached_function
 def find_library_files(lib):
     """
     Return a list of filenames which might correspond to the library
