@@ -175,7 +175,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
@@ -787,7 +787,7 @@ class Gap_generic(Expect):
             Error, Variable: 'x' must have a value
             ...
         """
-        self.eval('Unbind(%s)'%var)
+        self.eval('Unbind(%s)'%var, allow_use_file = False)
         self.clear(var)
 
     def _contains(self, v1, v2):
@@ -1156,8 +1156,8 @@ class Gap(Gap_generic):
         """
         if seed is None:
             seed = self.rand_seed()
-        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
-        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self.eval("Reset(GlobalMersenneTwister,%d);;" % seed, allow_use_file = False)
+        self.eval("Reset(GlobalRandomSource,%d);;" % seed, allow_use_file = False)
         self._seed = seed
         return seed
 
@@ -1335,10 +1335,10 @@ class Gap(Gap_generic):
             tmp_to_use = self._remote_tmpfile()
         else:
             tmp_to_use = self._local_tmpfile()
-        self.eval('SetGAPDocTextTheme("none")')
+        self.eval('SetGAPDocTextTheme("none")', allow_use_file = False)
         self.eval('$SAGE.tempfile := "%s";'%tmp_to_use)
-        line = Expect.eval(self, "? %s"%s)
-        Expect.eval(self, "? 1")
+        line = Expect.eval(self, "? %s"%s, allow_use_file = False)
+        Expect.eval(self, "? 1", allow_use_file = False)
         match = re.search("Page from (\d+)", line)
         if match is None:
             print line
@@ -1383,25 +1383,13 @@ class Gap(Gap_generic):
                 os.unlink(tmp)
             # We check the length of the command here to prevent wrapping it
             # in another print in case a file is used
-            cmd = 'PrintTo("%s", %s);'%(tmp,var)
-            if self._eval_using_file_cutoff and \
-                len(cmd) > self._eval_using_file_cutoff:
-                    with gc_disabled():
-                        Expect._eval_line_using_file(self, cmd)
-            else:
-                self.eval(cmd, strip=False, allow_use_file=False)
+            self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False, allow_use_file=False)
             r = open(tmp).read()
             r = r.strip().replace("\\\n","")
             os.unlink(tmp)
             return r
         else:
-            cmd = 'Print(%s);'%var
-            if self._eval_using_file_cutoff and \
-                len(cmd) > self._eval_using_file_cutoff:
-                    with gc_disabled():
-                        return Expect._eval_line_using_file(self, cmd)
-            else:
-                return self.eval(cmd, newlines=False, allow_use_file=False)
+            return self.eval('Print(%s);'%var, newlines=False, allow_use_file=False)
 
     def _pre_interact(self):
         """
@@ -1427,10 +1415,13 @@ class Gap(Gap_generic):
             j = line.find('"')
             if j >= 0 and j < i:
                 i = -1
-        if i == -1:
-            line0 = 'Print( %s );'%line.rstrip().rstrip(';')
-            try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
-                return Expect._eval_line_using_file(self, line0)
+        # Check that we are not assigning, entering a block, or printing
+        if i == -1 and re.match(r'\s*(if|for|while|repeat|Print)[\s(]', line) is None:
+            # Use a temporary variable so the output can be printed as if the line was run from the console
+            line0 = '__SAGE_VAL__ := %s;;'%line.rstrip().rstrip(';')
+            try:  # this is necessary, since assignment requires something as input, and some functions (e.g., Read) return nothing.
+                Expect._eval_line_using_file(self, line0)
+                return self._eval_line('__SAGE_VAL__;', allow_use_file = False)
             except RuntimeError:
                 return ''
         return Expect._eval_line_using_file(self, line)
@@ -1583,7 +1574,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
-    g.eval('SetUserPreference("HistoryMaxLines", 30)')
+    g.eval('SetUserPreference("HistoryMaxLines", 30)', allow_use_file = False)
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna', 'braid']:
