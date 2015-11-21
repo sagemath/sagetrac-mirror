@@ -890,11 +890,14 @@ class Gap_generic(Expect):
 
         When the command itself is so long that it warrants use of a temporary
         file to be communicated to GAP, this does not cause problems since
-        the file will contain a single command::
+        the file will contain a single command, see :trac:`19607`::
 
-            sage: gap.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(gap, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            sage: s = gap.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(gap, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            sage: s
             [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+            sage: type(s)
+            <class 'sage.interfaces.gap.GapElement'>
 
         """
         args, kwds = self._convert_args_kwds(args, kwds)
