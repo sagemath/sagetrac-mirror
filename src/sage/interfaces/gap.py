@@ -1419,9 +1419,9 @@ class Gap(Gap_generic):
             if j >= 0 and j < i:
                 i = -1
         # Check that we are not assigning, entering a block, or printing
-        if i == -1 and re.match(r'\s*(if|for|while|repeat|Print)[\s(]', line) is None:
+        if i == -1 and re.match(r'^[\s(]*(Print|Display)[\s(]', line) is None:
             # Use a temporary variable so the output can be printed as if the line was run from the console
-            line0 = '__SAGE_VAL__ := %s;;'%line.rstrip().rstrip(';')
+            line0 = '__SAGE_VAL__ := (%s);;'%line.rstrip().rstrip(';')
             try:  # this is necessary, since assignment requires something as input, and some functions (e.g., Read) return nothing.
                 Expect._eval_line_using_file(self, line0)
                 return self._eval_line('__SAGE_VAL__;', allow_use_file = False)
