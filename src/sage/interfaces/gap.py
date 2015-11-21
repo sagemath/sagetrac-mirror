@@ -1384,15 +1384,13 @@ class Gap(Gap_generic):
             tmp = self._local_tmpfile()
             if os.path.exists(tmp):
                 os.unlink(tmp)
-            # We check the length of the command here to prevent wrapping it
-            # in another print in case a file is used
-            self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False, allow_use_file=False)
+            self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)
             r = open(tmp).read()
             r = r.strip().replace("\\\n","")
             os.unlink(tmp)
             return r
         else:
-            return self.eval('Print(%s);'%var, newlines=False, allow_use_file=False)
+            return self.eval('Print(%s);'%var, newlines=False)
 
     def _pre_interact(self):
         """
