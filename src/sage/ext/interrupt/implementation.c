@@ -42,7 +42,13 @@ AUTHORS:
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
-#include <pari/pari.h>
+
+#include <pari/paricfg.h>
+#include <pari/parisys.h>	/* needed for THREAD and VOLATILE */
+/* It's hard to selectively include PARI headers (i.e., declarations), */
+/* so we *copy* them (from pari/paricom.h): */
+extern THREAD VOLATILE int PARI_SIGINT_block, PARI_SIGINT_pending;
+
 #include "interrupt/struct_signals.h"
 #include "interrupt/interrupt.h"
 

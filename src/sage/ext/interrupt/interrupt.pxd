@@ -1,4 +1,5 @@
 # distutils: depends = INTERRUPT_DEPENDS
+# distutils: libraries = pari
 #
 # NOTE: these functions are actually defined in "macros.h".
 # However, we intentionally do not mention that file here, because
