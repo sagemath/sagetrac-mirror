@@ -83,7 +83,8 @@ from real_double import RealDoubleField, RDF, RealDoubleElement
 
 from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 
-from sage.rings.real_arb import RealBallField, RBF
+lazy_import("sage.rings.real_arb", "RealBallField")
+lazy_import("sage.rings.real_arb", "RBF")
 
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
