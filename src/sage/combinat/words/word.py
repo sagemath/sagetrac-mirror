@@ -22,7 +22,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.words.word_char import WordDatatype_char
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.infinite_word import InfiniteWord_class
@@ -34,6 +33,11 @@ from word_infinite_datatypes import (
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
+from word_char import (WordDatatype_char_finite,
+                       WordDatatype_char_infinite,
+                       WordDatatype_callable_char,
+                       WordDatatype_iter_char,
+                       WordDatatype_substitutive_char)
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
 # TODO. Word needs to be replaced by Word. Consider renameing
@@ -216,7 +220,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
 ##### Finite Words #####
 
-class FiniteWord_char(WordDatatype_char, FiniteWord_class):
+class FiniteWord_char(WordDatatype_char_finite, FiniteWord_class):
     r"""
     Finite word represented by an array ``unsigned char *`` (i.e. integers
     between 0 and 255).
@@ -611,6 +615,18 @@ class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
         sage: type(z)
         <class 'sage.combinat.words.word.InfiniteWord_callable'>
     """
+    pass
+
+class InfiniteWord_char(WordDatatype_char_infinite, InfiniteWord_class):
+    pass
+
+class SubstitutiveWord_char(WordDatatype_substitutive_char, InfiniteWord_class):
+    pass
+
+class InfiniteWord_callable_char(WordDatatype_callable_char, InfiniteWord_class):
+    pass
+
+class InfiniteWord_iter_char(WordDatatype_iter_char, InfiniteWord_class):
     pass
 
 ##### Words of unknown length #####

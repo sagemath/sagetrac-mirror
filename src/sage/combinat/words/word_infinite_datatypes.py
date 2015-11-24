@@ -12,6 +12,7 @@ Datatypes for words defined by iterators and callables
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.words.word_datatypes import WordDatatype
+from sage.combinat.words.word_char import WordDatatype_char_infinite
 from sage.rings.all import Infinity
 from math import ceil
 import itertools
@@ -565,13 +566,33 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
         The first 40 (by default) values are always cached::
 
-            sage: w = words.ThueMorseWord()
+            sage: w = words.ThueMorseWord('ab')
             sage: w._letter_cache
-            {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0}
+            {0: 'a',
+             1: 'b',
+             2: 'b',
+             3: 'a',
+             4: 'b',
+             ...
+             36: 'a',
+             37: 'b',
+             38: 'b',
+             39: 'a'}
+
             sage: w[100]
-            1
+            'b'
             sage: w._letter_cache
-            {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0, 100: 1}
+            {0: 'a',
+             1: 'b',
+             2: 'b',
+             3: 'a',
+             4: 'b',
+             ...
+             36: 'a',
+             37: 'b',
+             38: 'b',
+             39: 'a',
+             100: 'b'}
             sage: w.flush()
             sage: w._letter_cache
             {}
@@ -1209,4 +1230,3 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
         self._gen = iter(self)
         self._list = []
         self._last_index = -1
-

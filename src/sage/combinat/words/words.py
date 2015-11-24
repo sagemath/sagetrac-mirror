@@ -58,6 +58,26 @@ from sage.rings.integer_ring import ZZ
 
 from sage.plot.misc import rename_keyword
 
+def _could_use_char(alphabet, cmp_letters):
+    r"""
+    TESTS::
+
+        sage: 'char' in Words(range(256))._element_classes   # indirect doctest
+        True
+        sage: 'char' in Words([1,19,37])._element_classes    # indirect doctest
+        True
+        sage: 'char' in Words([-1,0])._element_classes       # indirect doctest
+        False
+    """
+    if alphabet.cardinality() > 256:
+        return False
+    if any(not isinstance(i, (int,Integer)) or i < 0 or i >= 256 for i in alphabet):
+        return False
+    L = list(alphabet)
+    return all(L[i] < L[i+1] for i in range(len(L)-1)) and \
+            all(cmp_letters(L[i],L[i+1]) == -1 for i in range(len(L)-1))
+
+
 def Words(alphabet=None, length=None, finite=True, infinite=True):
     """
     Returns the combinatorial class of words of length k over an alphabet.
@@ -467,12 +487,8 @@ class FiniteWords(AbstractLanguage):
             }
 
         # test whether or not we can use the class Finiteword_char
-        if (self.alphabet().cardinality() <= 256 and
-                all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet())):
-            L = self.alphabet().list()
-            if (all(L[i] < L[i+1] for i in range(len(L)-1)) and
-                    all(self.cmp_letters(L[i],L[i+1]) == -1 for i in range(len(L)-1))):
-                classes['char'] = word.FiniteWord_char
+        if _could_use_char(self.alphabet(), self.cmp_letters):
+            classes['char'] = word.FiniteWord_char
 
         return classes
 
@@ -1376,7 +1392,7 @@ class InfiniteWords(AbstractLanguage):
             sage: from itertools import count
             sage: w = cls(W, (i%3 for i in count()))
             sage: type(w)
-            <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+            <class 'sage.combinat.words.word.InfiniteWord_iter_char'>
             sage: w
             word: 0120120120120120120120120120120120120120...
             sage: w.parent()
@@ -1394,12 +1410,20 @@ class InfiniteWords(AbstractLanguage):
             True
         """
         import sage.combinat.words.word as word
-        return {
+        d = {
             'callable_with_caching': word.InfiniteWord_callable_with_caching,
             'callable': word.InfiniteWord_callable,
             'iter_with_caching': word.InfiniteWord_iter_with_caching,
             'iter': word.InfiniteWord_iter,
             }
+
+        # test whether we could use infinite word char
+        if _could_use_char(self.alphabet(), self.cmp_letters):
+            d['callable_with_caching'] = word.InfiniteWord_callable_char
+            d['iter_with_caching'] = word.InfiniteWord_iter_char
+            d['char'] = word.InfiniteWord_char
+
+        return d
 
     def random_element(self, *args, **kwds):
         r"""
@@ -1454,12 +1478,12 @@ class InfiniteWords(AbstractLanguage):
         # Otherwise, if self is not the parent of `data`, then we try to
         # recover the data, the length and the datatype of the input `data`
         ###########################
-        from sage.combinat.words.word_infinite_datatypes import (WordDatatype_callable,
-                                                                 WordDatatype_iter)
+        from sage.combinat.words.word_infinite_datatypes import (WordDatatype,
+                                                                 WordDatatype_callable)
         if isinstance(data, WordDatatype_callable):
             data = data._func
             return self._word_from_callable(data, caching=False)
-        elif isinstance(data, WordDatatype_iter):
+        elif isinstance(data, WordDatatype):
             data = iter(data)
             return self._word_from_iter(data, caching=False)
         else:

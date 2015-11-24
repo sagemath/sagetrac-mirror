@@ -1865,6 +1865,9 @@ class WordMorphism(SageObject):
         parent = self.codomain()
         if self.is_growing(letter):
             parent = parent.shift()
+            if 'char' in self.domain()._element_classes:
+                from sage.combinat.words.word import SubstitutiveWord_char
+                return SubstitutiveWord_char(parent, self, letter)
         return parent(self._fixed_point_iterator(letter))
 
     def fixed_points(self):
