@@ -468,7 +468,7 @@ class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
             sage: C.coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 5)]
         """
-        return self._cartan_type.coxeter_diagram()
+        return self._cartan_type.coxeter_graph()
 
     def cartan_type(self):
         """

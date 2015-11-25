@@ -18,6 +18,7 @@ See :ref:`sage.combinat.root_system` for an overview.
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from cartan_type import CartanType
+from coxeter_type import CoxeterType
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from root_space import RootSpace
@@ -304,6 +305,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             Root system of type ['A', 3]
         """
         self._cartan_type = CartanType(cartan_type)
+        self._coxeter_type = CoxeterType(cartan_type)
 
         # Duality
         # The root system can be defined as dual of another root system. This will
@@ -371,6 +373,18 @@ class RootSystem(UniqueRepresentation, SageObject):
             ['A', 3]
         """
         return self._cartan_type
+    
+    def coxeter_type(self):
+        """
+        Returns the Coxeter type of the root system.
+
+        EXAMPLES::
+
+            sage: R = RootSystem(['A',3])
+            sage: R.coxeter_type()
+            ['A', 3]
+        """
+        return self._coxeter_type
 
     @cached_method
     def dynkin_diagram(self):
@@ -388,6 +402,21 @@ class RootSystem(UniqueRepresentation, SageObject):
         return self.cartan_type().dynkin_diagram()
 
     @cached_method
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph of the root system.
+
+        EXAMPLES::
+
+            sage: R = RootSystem(['A',3])
+            sage: R.coxeter_graph()
+            O---O---O
+            1   2   3
+            A3
+        """
+        return self.coxeter_type().coxeter_graph()
+
+    @cached_method
     def cartan_matrix(self):
         """
         EXAMPLES::
@@ -399,6 +428,18 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.cartan_type().cartan_matrix()
 
+    @cached_method
+    def coxeter_matrix(self):
+        """
+        EXAMPLES::
+
+            sage: RootSystem(['A',3]).coxeter_matrix()
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
+        """
+        return self.coxeter_type().coxeter_matrix()
+    
     @cached_method
     def index_set(self):
         """

@@ -40,16 +40,16 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         assert n in [3, 4]
         CartanType_standard_finite.__init__(self, "H", n)
 
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Returns a Coxeter diagram for type H.
+        Returns a Coxeter graph for type H.
 
         EXAMPLES::
 
              sage: ct = CartanType(['H',3])
-             sage: ct.coxeter_diagram()
+             sage: ct.coxeter_graph()
              Graph on 3 vertices
-             sage: sorted(ct.coxeter_diagram().edges())
+             sage: sorted(ct.coxeter_graph().edges())
              [(1, 2, 3), (2, 3, 5)]
              sage: ct.coxeter_matrix()
              [1 3 2]
@@ -57,9 +57,9 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
              [2 5 1]
 
              sage: ct = CartanType(['H',4])
-             sage: ct.coxeter_diagram()
+             sage: ct.coxeter_graph()
              Graph on 4 vertices
-             sage: sorted(ct.coxeter_diagram().edges())
+             sage: sorted(ct.coxeter_graph().edges())
              [(1, 2, 3), (2, 3, 3), (3, 4, 5)]
              sage: ct.coxeter_matrix()
              [1 3 2 2]

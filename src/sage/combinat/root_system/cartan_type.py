@@ -456,8 +456,6 @@ from __builtin__ import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
-# Implement Coxeter diagrams for non crystallographic
-
 
 # Intention: we want simultaneously CartanType to be a factory for
 # the various subtypes of CartanType_abstract, as in:
@@ -1066,23 +1064,25 @@ class CartanType_abstract(object):
     _index_set_coloring = {1:"blue", 2:"red", 3:"green"}
 
     @abstract_method(optional = True)
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Return the Coxeter diagram for ``self``.
+        Return the Coxeter graph for ``self``.
 
         EXAMPLES::
 
-            sage: CartanType(['B',3]).coxeter_diagram()
+            sage: CartanType(['B',3]).coxeter_graph()
             Graph on 3 vertices
-            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            sage: CartanType(['A',3]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 3)]
-            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            sage: CartanType(['B',3]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 4)]
-            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            sage: CartanType(['G',2]).coxeter_graph().edges()
             [(1, 2, 6)]
-            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            sage: CartanType(['F',4]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
         """
+        from sage.combinat.root_system.coxeter_graph import CoxeterGraph
+        return CoxeterGraph(self)
 
     @cached_method
     def coxeter_matrix(self):
@@ -1364,7 +1364,7 @@ class CartanType_abstract(object):
             True
         """
         try:
-            self.coxeter_diagram()
+            self.coxeter_graph()
             return True
         except Exception:
             return False
@@ -1556,42 +1556,31 @@ class CartanType_crystallographic(CartanType_abstract):
         return CartanMatrix(self.dynkin_diagram())
 
     @cached_method
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Return the Coxeter diagram for ``self``.
+        Return the Coxeter graph for ``self``.
 
         This implementation constructs it from the Dynkin diagram.
 
-        .. SEEALSO:: :meth:`CartanType_abstract.coxeter_diagram`
+        .. SEEALSO:: :meth:`CartanType_abstract.coxeter_graph`
 
         EXAMPLES::
 
-            sage: CartanType(['A',3]).coxeter_diagram()
+            sage: CartanType(['A',3]).coxeter_graph()
             Graph on 3 vertices
-            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            sage: CartanType(['A',3]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 3)]
-            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            sage: CartanType(['B',3]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 4)]
-            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            sage: CartanType(['G',2]).coxeter_graph().edges()
             [(1, 2, 6)]
-            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            sage: CartanType(['F',4]).coxeter_graph().edges()
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
-            sage: CartanType(['A',2,2]).coxeter_diagram().edges()
+            sage: CartanType(['A',2,2]).coxeter_graph().edges()
             [(0, 1, +Infinity)]
         """
-        from sage.rings.infinity import infinity
-        scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
-        from sage.graphs.graph import Graph
-        coxeter_diagram = Graph(multiedges=False)
-        a = self.dynkin_diagram()
-        I = self.index_set()
-        coxeter_diagram.add_vertices(I)
-        for i in I:
-            for j in a.neighbors_out(i):
-                # avoid adding the edge twice
-                if not coxeter_diagram.has_edge(i,j):
-                    coxeter_diagram.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])
-        return coxeter_diagram
+        from sage.combinat.root_system.coxeter_graph import CoxeterGraph
+        return CoxeterGraph(self)
 
     def is_crystallographic(self):
         """

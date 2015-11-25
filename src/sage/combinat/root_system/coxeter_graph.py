@@ -1,15 +1,10 @@
 """
 Coxeter graphs
-
-AUTHORS:
-
-- Jean-Philippe Labbe (2014-10-22): Created the class based on Dynkin diagrams.
-
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
-#       Copyright (C) 2014 Jean-Philippe Labbe <labbe@math.fu-berlin.de>
+#       Copyright (C) 2015 Jean-Philippe Labbe <labbe@math.fu-berlin.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -23,13 +18,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.matrix.matrix import is_Matrix
 from sage.graphs.graph import Graph
+from sage.rings.all import ZZ
 from sage.combinat.root_system.coxeter_type import CoxeterType 
 from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 
+"""
 def CoxeterGraph(*args, **kwds):
-    r"""
+    
     Return the Coxeter graph corresponding to the input.
 
     INPUT:
@@ -56,26 +54,18 @@ def CoxeterGraph(*args, **kwds):
         Graph on 8 vertices
 
         sage: R = RootSystem("A2xB2xF4")
-        sage: CM = R.cartan_matrix(); CM
-        [ 2 -1| 0  0| 0  0  0  0]
-        [-1  2| 0  0| 0  0  0  0]
-        [-----+-----+-----------]
-        [ 0  0| 2 -1| 0  0  0  0]
-        [ 0  0|-2  2| 0  0  0  0]
-        [-----+-----+-----------]
-        [ 0  0| 0  0| 2 -1  0  0]
-        [ 0  0| 0  0|-1  2 -1  0]
-        [ 0  0| 0  0| 0 -2  2 -1]
-        [ 0  0| 0  0| 0  0 -1  2]
+        sage: CM = R.coxeter_matrix(); CM
+        [1 3 2 2 2 2 2 2]
+        [3 1 2 2 2 2 2 2]
+        [2 2 1 4 2 2 2 2]
+        [2 2 4 1 2 2 2 2]
+        [2 2 2 2 1 3 2 2]
+        [2 2 2 2 3 1 4 2]
+        [2 2 2 2 2 4 1 3]
+        [2 2 2 2 2 2 3 1]
         sage: DD = CoxeterGraph(CM); DD
-        O---O
-        1   2
-        O=>=O
-        3   4
-        O---O=>=O---O
-        5   6   7   8
-        A2xB2xF4
-        sage: DD.cartan_matrix()
+        Graph on 8 vertices
+        sage: DD.coxeter_matrix()
         [ 2 -1  0  0  0  0  0  0]
         [-1  2  0  0  0  0  0  0]
         [ 0  0  2 -1  0  0  0  0]
@@ -126,7 +116,7 @@ def CoxeterGraph(*args, **kwds):
          (2, 3, 1),
          (3, 1, 2),
          (3, 2, 1)]
-    """
+    
     if len(args) == 0:
         return CoxeterGraph_class()
     mat = args[0]
@@ -155,19 +145,43 @@ def CoxeterGraph(*args, **kwds):
         return ct.coxeter_graph()
     except AttributeError:
         raise ValueError("Coxeter graph data not yet hardcoded for type %s"%ct)
+"""
 
-
-class CoxeterGraph_class(Graph, CoxeterType):
-    """
+class CoxeterGraph(CoxeterType):
+    r"""
     A generalized Coxeter graph.
-
-    .. SEEALSO::
-
-        :func:`CoxeterGraph()`
 
     INPUT:
 
+    The input can be one of the following:
+
+    - empty to obtain an empty Coxeter graph
+    - a Coxeter type
+    - a Coxeter matrix
+    - a generalized Coxeter matrix
+    - a (generalized) Coxeter matrix and an indexing set
     - ``t`` -- a Coxeter type, a generalized Coxeter matrix, or ``None``
+
+    A generalized Coxeter graph is a graph encoding
+    a Coxeter system `(W, S)` and a bilinear form, where the relations are given by
+    `(s_i s_j)^{m_{ij}}`. Thus `M` is symmetric and has entries
+    in `\{1, 2, 3, \ldots, \infty\}` with `m_{ij} = 1` if and only
+    if `i = j`.
+
+    We represent `m_{ij} = \infty` by any number `m_{ij} \leq -1`. In
+    particular, we can construct a bilinear form `B = (b_{ij})_{i,j \in I}`
+    from `M` by
+
+    .. MATH::
+
+        b_{ij} = \begin{cases}
+        m_{ij} & m_{ij} < 0\ (\text{i.e., } m_{ij} = \infty), \\
+        -\cos\left( \frac{\pi}{m_{ij}} \right) & \text{otherwise}.
+        \end{cases}
+        
+    The vertices of the generalized Coxeter graph are indexed by the elements of `S`.
+    If `m_{ij} = 2` there is no edge between `i` and `j`.
+    Otherwise, we label the edge between `i` and `j` by the value `m_{ij}`.
 
     EXAMPLES::
 
@@ -180,6 +194,57 @@ class CoxeterGraph_class(Graph, CoxeterType):
         Coxeter graph of rank 2
         sage: C.coxeter_graph().coxeter_matrix() == C
         True
+        
+        
+
+        sage: CoxeterGraph(['A', 4])
+        Graph on 4 vertices
+
+        sage: CoxeterGraph(['A',1],['A',1])
+        Graph on 2 vertices
+
+        sage: R = RootSystem("A2xB2xF4")
+        sage: CoxeterGraph(R)
+        Graph on 8 vertices
+
+        sage: R = RootSystem("A2xB2xF4")
+        sage: CM = R.coxeter_matrix(); CM
+        [1 3 2 2 2 2 2 2]
+        [3 1 2 2 2 2 2 2]
+        [2 2 1 4 2 2 2 2]
+        [2 2 4 1 2 2 2 2]
+        [2 2 2 2 1 3 2 2]
+        [2 2 2 2 3 1 4 2]
+        [2 2 2 2 2 4 1 3]
+        [2 2 2 2 2 2 3 1]
+        sage: DD = CoxeterGraph(CM); DD
+        Graph on 8 vertices
+        sage: DD.coxeter_matrix()
+        [ 2 -1  0  0  0  0  0  0]
+        [-1  2  0  0  0  0  0  0]
+        [ 0  0  2 -1  0  0  0  0]
+        [ 0  0 -2  2  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0]
+        [ 0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0 -2  2 -1]
+        [ 0  0  0  0  0  0 -1  2]
+
+    We can also create Coxeter graphs from arbitrary Coxeter matrices::
+
+        sage: C = CoxeterMatrix([[1, -1], [-1, 1]])
+        sage: CoxeterGraph(C)
+        Coxeter graph of rank 2
+        sage: C.index_set()
+        (0, 1)
+        sage: CI = CoxeterMatrix([[1, -2], [-2, 1]])
+        sage: DI = CoxeterGraph(CI)
+        sage: DI.index_set()
+        (3, 5)
+        sage: CII = CoxeterMatrix([[1, 5], [5, 1]])
+        sage: DII = CoxeterGraph(CII, ('y', 'x'))
+        sage: DII.index_set()
+        ('x', 'y')
+
 
     TESTS:
 
@@ -195,11 +260,131 @@ class CoxeterGraph_class(Graph, CoxeterType):
         sage: cd.add_vertex(4)
         sage: d.vertices() != cd.vertices()
         True
+        
+    Check that :trac:`15277` is fixed by not having edges from 0's::
+
+        sage: CM =
+        CoxeterMatrix([[1,-1,0,0],[-3,1,-2,-2],[0,-1,1,-1],[0,-1,-1,1]])
+        sage: CM
+        [ 2 -1  0  0]
+        [-3  2 -2 -2]
+        [ 0 -1  2 -1]
+        [ 0 -1 -1  2]
+        sage: CM.coxeter_graph().edges()
+        [(0, 1, 3),
+         (1, 0, 1),
+         (1, 2, 1),
+         (1, 3, 1),
+         (2, 1, 2),
+         (2, 3, 1),
+         (3, 1, 2),
+         (3, 2, 1)]
 
     Implementation note: if a Coxeter type is given, then the nodes
     are initialized from the index set of this Coxeter type.
+    
+    .. SEEALSO::
+
+        :func:`CoxeterType` for a general discussion on Coxeter
+        types and in particular node labeling conventions.
+
     """
-    def __init__(self, t=None, index_set=None, **options):
+    __metaclass__ = ClasscallMetaclass
+    
+    @staticmethod
+    def __classcall_private__(cls, data=None, index_set=None, coxeter_type=None,
+                              cartan_type=None, coxeter_type_check=True):
+        r"""
+        A Coxeter graph can we created via a graph, a Coxeter type, or
+        a matrix.
+
+        .. NOTE::
+
+            To disable the Coxeter type check, use the optional argument
+            ``coxeter_type_check = False``.
+
+        EXAMPLES::
+
+            sage: C = CoxeterMatrix(['A',1,1],['a','b'])
+            sage: C2 = CoxeterMatrix([[1, -1], [-1, 1]])
+            sage: C3 = CoxeterMatrix(matrix([[1, -1], [-1, 1]]), [0, 1])
+            sage: C == C2 and C == C3
+            True
+
+        Check with `\infty` because of the hack of using `-1` to represent
+        `\infty` in the Coxeter matrix::
+
+            sage: G = Graph([(0, 1, 3), (1, 2, oo)])
+            sage: W1 = CoxeterMatrix([[1, 3, 2], [3, 1, -1], [2, -1, 1]])
+            sage: W2 = CoxeterMatrix(G)
+            sage: W1 == W2
+            True
+            sage: CoxeterMatrix(W1.coxeter_graph()) == W1
+            True
+
+        The base ring of the matrix depends on the entries given::
+
+            sage: CoxeterMatrix([[1,-1],[-1,1]])._matrix.base_ring()
+            Integer Ring
+            sage: CoxeterMatrix([[1,-3/2],[-3/2,1]])._matrix.base_ring()
+            Rational Field
+            sage: CoxeterMatrix([[1,-1.5],[-1.5,1]])._matrix.base_ring()
+            Real Field with 53 bits of precision
+        """
+        if not data:
+            if coxeter_type:
+                data = CoxeterType(coxeter_type)
+            elif cartan_type:
+                data = CoxeterType(CartanType(cartan_type))
+
+        # Special cases with no arguments passed
+        if not data:
+            graph = Graph()
+            index_set = tuple()
+            coxeter_type = None
+            graph = typecall(cls, graph, coxeter_type, index_set)
+
+            return graph
+
+        if isinstance(data, CoxeterGraph):  # Initiate from itself
+            return data
+
+        # Initiate from a graph:
+        if isinstance(data, Graph):
+            return cls._from_graph(data, coxeter_type, coxeter_type_check)
+
+        # Get the Coxeter type
+        coxeter_type = None
+        from sage.combinat.root_system.cartan_type import CartanType_abstract
+        if isinstance(data, CartanType_abstract):
+            coxeter_type = data.coxeter_type()
+        else:
+            try:
+                coxeter_type = CoxeterType(data)
+            except (TypeError, ValueError, NotImplementedError):
+                pass
+
+        # Initiate from a Coxeter type
+        if coxeter_type:
+            return cls._from_coxetertype(coxeter_type)
+
+        # TODO:: remove when oo is possible in matrices.
+        n = len(data[0])
+        data = [x if x != infinity else -1 for r in data for x in r]
+        data = matrix(n, n, data)
+        # until here
+
+        # Get the index set
+        if index_set:
+            index_set = tuple(index_set)
+        else:
+            index_set = tuple(range(1,n+1))
+        if len(set(index_set)) != n:
+                raise ValueError("the given index set is not valid")
+
+        return cls._from_matrix(data, index_set, coxeter_type_check)
+
+    def __init__(self, data, coxeter_type, index_set):
         """
         Initialize ``self``.
 
@@ -208,20 +393,151 @@ class CoxeterGraph_class(Graph, CoxeterType):
             sage: d = CoxeterGraph(["A", 3])
             sage: TestSuite(d).run()
         """
-        if isinstance(t, Graph):
-            if isinstance(t, CoxeterGraph_class):
-                self._coxeter_type = t._coxeter_type
-            else:
-                self._coxeter_type = None
-            Graph.__init__(self, data=t, **options)
-            return
+        
+        self._graph = Graph(data).copy(immutable=True)      
+        self._coxeter_type = coxeter_type
+        self._index_set = index_set
+        self._rank = self._graph.num_verts()
 
-        Graph.__init__(self, **options)
-        self._coxeter_type = t
-        if index_set is not None:
-            self.add_vertices(index_set)
-        elif t is not None:
-            self.add_vertices(t.index_set())
+        if self._coxeter_type is not None:
+            if self._coxeter_type.is_finite():
+                self._is_finite = True
+                self._is_affine = False
+            elif self._coxeter_type.is_affine():
+                self._is_finite = False
+                self._is_affine = True
+            else:
+                self._is_finite = False
+                self._is_affine = False
+        else:
+            self._is_finite = False
+            self._is_affine = False
+
+    @classmethod
+    def _from_graph(cls, graph, coxeter_type, coxeter_type_check):
+        """
+        Initiate the Coxeter graph from a graph.
+
+        TESTS::
+
+            sage: CoxeterMatrix(CoxeterMatrix(['A',4,1]).coxeter_graph())
+            [1 3 2 2 3]
+            [3 1 3 2 2]
+            [2 3 1 3 2]
+            [2 2 3 1 3]
+            [3 2 2 3 1]
+            sage: CoxeterMatrix(CoxeterMatrix(['B',4,1]).coxeter_graph())
+            [1 2 3 2 2]
+            [2 1 3 2 2]
+            [3 3 1 3 2]
+            [2 2 3 1 4]
+            [2 2 2 4 1]
+            sage: CoxeterMatrix(CoxeterMatrix(['F',4]).coxeter_graph())
+            [1 3 2 2]
+            [3 1 4 2]
+            [2 4 1 3]
+            [2 2 3 1]
+
+            sage: G=Graph()
+            sage: G.add_edge([0,1,oo])
+            sage: CoxeterMatrix(G)
+            [ 1 -1]
+            [-1  1]
+            sage: H = Graph()
+            sage: H.add_edge([0,1,-1.5])
+            sage: CoxeterMatrix(H)
+            [ 1.00000000000000 -1.50000000000000]
+            [-1.50000000000000  1.00000000000000]
+        """
+        check_coxeter_graph(graph)
+        
+        verts = sorted(graph.vertices())
+        index_set = tuple(verts)
+        n = len(index_set)
+        
+        if not coxeter_type:
+            if n == 1:
+                coxeter_type = CoxeterType(['A', 1])
+            elif coxeter_type_check:
+                coxeter_type = recognize_coxeter_type_from_graph(graph, index_set)
+            else:
+                coxeter_type = None
+        graph = typecall(cls, graph, coxeter_type, index_set)
+
+        return graph
+
+    @classmethod
+    def _from_matrix(cls, data, index_set, coxeter_type_check):
+        """
+        Initiate the Coxeter graph from a matrix.
+
+        TESTS::
+
+            sage: CM = CoxeterMatrix([[1,2],[2,1]]); CM
+            [1 2]
+            [2 1]
+            sage: CM = CoxeterMatrix([[1,-1],[-1,1]]); CM
+            [ 1 -1]
+            [-1  1]
+            sage: CM = CoxeterMatrix([[1,-1.5],[-1.5,1]]); CM
+            [ 1.00000000000000 -1.50000000000000]
+            [-1.50000000000000  1.00000000000000]
+            sage: CM = CoxeterMatrix([[1,-3/2],[-3/2,1]]); CM
+            [   1 -3/2]
+            [-3/2    1]
+            sage: CM = CoxeterMatrix([[1,-3/2,5],[-3/2,1,-1],[5,-1,1]]); CM
+            [   1 -3/2    5]
+            [-3/2    1   -1]
+            [   5   -1    1]
+            sage: CM = CoxeterMatrix([[1,-3/2,5],[-3/2,1,oo],[5,oo,1]]); CM
+            [   1 -3/2    5]
+            [-3/2    1   -1]
+            [   5   -1    1]
+        """
+        # Check that the data is valid
+        from sage.combinat.root_system.coxeter_matrix import check_coxeter_matrix
+        check_coxeter_matrix(data)
+
+        M = matrix(data)
+        n = M.ncols()
+        
+        graph = Graph(multiedges=False)
+        graph.add_vertices(index_set)
+        for i in range(n):
+            for j in range(i+1,n):
+                label = M[i,j]
+                if label != 2:
+                    graph.add_edge(index_set[i],index_set[j],M[i,j])
+
+        return cls._from_graph(graph, None, index_set, coxeter_type_check)
+
+    @classmethod
+    def _from_coxetertype(cls, coxeter_type):
+        """
+        Initiate the Coxeter graph from a Coxeter type.
+
+        TESTS::
+
+            sage: CoxeterMatrix(['A',4]).coxeter_type()
+            Coxeter type of ['A', 4]
+            sage: CoxeterMatrix(['A',4,1]).coxeter_type()
+            Coxeter type of ['A', 4, 1]
+            sage: CoxeterMatrix(['D',4,1]).coxeter_type()
+            Coxeter type of ['D', 4, 1]
+        """
+        index_set = coxeter_type.index_set()
+        from sage.rings.infinity import infinity # necessary???
+        scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
+        graph = Graph(multiedges=False)
+        a = coxeter_type._cartan_type.dynkin_diagram()
+        graph.add_vertices(index_set)
+        for i in index_set:
+            for j in a.neighbors_out(i):
+                # avoid adding the edge twice
+                if not graph.has_edge(i,j):
+                    graph.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])            
+
+        return cls._from_graph(graph, coxeter_type, False)
 
     def _repr_(self):
         """
@@ -236,7 +552,7 @@ class CoxeterGraph_class(Graph, CoxeterType):
         ct = self.coxeter_type()
         result = ct.ascii_art() +"\n" if hasattr(ct, "ascii_art") else ""
 
-        if ct is None or isinstance(ct, CoxeterMatrix):
+        if ct is None or isinstance(ct, CoxeterMatrix) or isinstance(ct, CoxeterGraph):
             return result+"Coxeter graph of rank %s"%self.rank()
         else:
             return result+"%s"%ct._repr_(compact=True)
@@ -298,6 +614,14 @@ class CoxeterGraph_class(Graph, CoxeterType):
         Graph.add_edge(self, i, j, label)
         if not self.has_edge(j,i):
             self.add_edge(j,i,1)
+    
+    def edge_iterator(self):
+        """
+        EXAMPLES::
+        
+        
+        """
+        return self._graph.edge_iterator()
 
     def __hash__(self):
         """
@@ -521,6 +845,176 @@ class CoxeterGraph_class(Graph, CoxeterType):
             [(3, 2), (2, -1), (4, -2)]
         """
         return [(i,2)] + [(j,-m) for (j, i1, m) in self.incoming_edges(i)]
+
+#####################################################################
+## Other functions
+
+def recognize_coxeter_type_from_graph(graph):
+    """
+    Return the Coxeter type of ``coxeter_graph`` if known,
+    otherwise return ``None``.
+
+    EXAMPLES:
+
+    Some infinite ones::
+
+        sage: C = CoxeterMatrix([[1,3,2],[3,1,-1],[2,-1,1]])
+        sage: C.is_finite()  # indirect doctest
+        False
+        sage: C = CoxeterMatrix([[1,-1,-1],[-1,1,-1],[-1,-1,1]])
+        sage: C.is_finite()  # indirect doctest
+        False
+
+    Some finite ones::
+
+        sage: m = matrix(CoxeterMatrix(['D', 4]))
+        sage: CoxeterMatrix(m).is_finite()  # indirect doctest
+        True
+        sage: m = matrix(CoxeterMatrix(['H', 4]))
+        sage: CoxeterMatrix(m).is_finite()  # indirect doctest
+        True
+
+        sage: CoxeterMatrix(CoxeterType(['A',10]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['A', 10]
+        sage: CoxeterMatrix(CoxeterType(['B',10]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['B', 10]
+        sage: CoxeterMatrix(CoxeterType(['C',10]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['B', 10]
+        sage: CoxeterMatrix(CoxeterType(['D',10]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['D', 10]
+        sage: CoxeterMatrix(CoxeterType(['E',6]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 6]
+        sage: CoxeterMatrix(CoxeterType(['E',7]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 7]
+        sage: CoxeterMatrix(CoxeterType(['E',8]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 8]
+        sage: CoxeterMatrix(CoxeterType(['F',4]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['F', 4]
+        sage: CoxeterMatrix(CoxeterType(['G',2]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['G', 2]
+        sage: CoxeterMatrix(CoxeterType(['H',3]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['H', 3]
+        sage: CoxeterMatrix(CoxeterType(['H',4]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['H', 4]
+        sage: CoxeterMatrix(CoxeterType(['I',100]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['I', 100]
+
+    Some affine graphs::
+
+        sage: CoxeterMatrix(CoxeterType(['A',1,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['A', 1, 1]
+        sage: CoxeterMatrix(CoxeterType(['A',10,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['A', 10, 1]
+        sage: CoxeterMatrix(CoxeterType(['B',10,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['B', 10, 1]
+        sage: CoxeterMatrix(CoxeterType(['C',10,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['C', 10, 1]
+        sage: CoxeterMatrix(CoxeterType(['D',10,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['D', 10, 1]
+        sage: CoxeterMatrix(CoxeterType(['E',6,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 6, 1]
+        sage: CoxeterMatrix(CoxeterType(['E',7,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 7, 1]
+        sage: CoxeterMatrix(CoxeterType(['E',8,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['E', 8, 1]
+        sage: CoxeterMatrix(CoxeterType(['F',4,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['F', 4, 1]
+        sage: CoxeterMatrix(CoxeterType(['G',2,1]).coxeter_graph()).coxeter_type()
+        Coxeter type of ['G', 2, 1]
+
+    TESTS:
+
+    Check that we detect relabellings::
+
+        sage: M = CoxeterMatrix([[1,2,3],[2,1,6],[3,6,1]], index_set=['a', 'b', 'c'])
+        sage: M.coxeter_type()
+        Coxeter type of ['G', 2, 1] relabelled by {0: 'a', 1: 'b', 2: 'c'}
+
+        sage: from sage.combinat.root_system.coxeter_matrix import recognize_coxeter_type_from_matrix
+        sage: for C in CoxeterMatrix.samples():
+        ....:     relabelling_perm = Permutations(C.index_set()).random_element()
+        ....:     relabelling_dict = {C.index_set()[i]: relabelling_perm[i] for i in range(C.rank())}
+        ....:     relabeled_matrix = C.relabel(relabelling_dict)._matrix
+        ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix, relabelling_perm)
+        ....:     if C.is_finite() or C.is_affine():
+        ....:         assert recognized_type == C.coxeter_type()
+    """
+
+    types = []
+    for S in graph.connected_components_subgraphs():
+        r = S.num_verts()
+        # Handle the special cases first
+        if r == 1:
+            types.append(CoxeterType(['A',1]).relabel({1: S.vertices()[0]}))
+            continue
+        if r == 2: # Type B2, G2, or I_2(p)
+            e = S.edge_labels()[0]
+            if e == 3: # Can't be 2 because it is connected
+                ct = CoxeterType(['B',2])
+            elif e == 4:
+                ct = CoxeterType(['G',2])
+            elif e > 0 and e < float('inf'): # Remaining non-affine types
+                ct = CoxeterType(['I',e])
+            else: # Otherwise it is infinite dihedral group Z_2 \ast Z_2
+                ct = CoxeterType(['A',1,1])
+            if not ct.is_affine():
+                types.append(ct.relabel({1: S.vertices()[0], 2: S.vertices()[1]}))
+            else:
+                types.append(ct.relabel({0: S.vertices()[0], 1: S.vertices()[1]}))
+            continue
+
+        test = [['A',r], ['B',r], ['A',r-1,1]]
+        if r >= 3:
+            if r == 3:
+                test += [['G',2,1], ['H',3]]
+            test.append(['C',r-1,1])
+        if r >= 4:
+            if r == 4:
+                test += [['F',4], ['H',4]]
+            test += [['D',r], ['B',r-1,1]]
+        if r >= 5:
+            if r == 5:
+                test.append(['F',4,1])
+            test.append(['D',r-1,1])
+        if r == 6:
+            test.append(['E',6])
+        elif r == 7:
+            test += [['E',7], ['E',6,1]]
+        elif r == 8:
+            test += [['E',8], ['E',7,1]]
+        elif r == 9:
+            test.append(['E',8,1])
+
+        found = False
+        for ct in test:
+            ct = CoxeterType(ct)
+            print ct
+            T = ct.coxeter_graph()._graph
+            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            if iso:
+                types.append(ct.relabel(match))
+                found = True
+                break
+        if not found:
+            return None
+
+    return CoxeterType(types)
+
+def check_coxeter_graph(graph):
+    """
+    Check if ``graph`` represents a generalized Coxeter graph and raise
+    and error if not.
+
+    EXAMPLES::
+
+    """
+    for e in graph.edges():
+        label = e[2]
+        if label is not None:
+            if label not in ZZ and label > -1:
+                raise ValueError("invalid Coxeter graph label")
+            elif label == 0 or label == 1:
+                raise ValueError("invalid Coxeter graph label")
 
 def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """

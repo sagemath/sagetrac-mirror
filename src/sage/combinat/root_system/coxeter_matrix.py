@@ -1038,65 +1038,9 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
                for i in range(n) for j in range(i,n)
                if coxeter_matrix[i, j] not in [1, 2]])
     G.add_vertices(index_set)
-
-    types = []
-    for S in G.connected_components_subgraphs():
-        r = S.num_verts()
-        # Handle the special cases first
-        if r == 1:
-            types.append(CoxeterType(['A',1]).relabel({1: S.vertices()[0]}))
-            continue
-        if r == 2: # Type B2, G2, or I_2(p)
-            e = S.edge_labels()[0]
-            if e == 3: # Can't be 2 because it is connected
-                ct = CoxeterType(['B',2])
-            elif e == 4:
-                ct = CoxeterType(['G',2])
-            elif e > 0 and e < float('inf'): # Remaining non-affine types
-                ct = CoxeterType(['I',e])
-            else: # Otherwise it is infinite dihedral group Z_2 \ast Z_2
-                ct = CoxeterType(['A',1,1])
-            if not ct.is_affine():
-                types.append(ct.relabel({1: S.vertices()[0], 2: S.vertices()[1]}))
-            else:
-                types.append(ct.relabel({0: S.vertices()[0], 1: S.vertices()[1]}))
-            continue
-
-        test = [['A',r], ['B',r], ['A',r-1,1]]
-        if r >= 3:
-            if r == 3:
-                test += [['G',2,1], ['H',3]]
-            test.append(['C',r-1,1])
-        if r >= 4:
-            if r == 4:
-                test += [['F',4], ['H',4]]
-            test += [['D',r], ['B',r-1,1]]
-        if r >= 5:
-            if r == 5:
-                test.append(['F',4,1])
-            test.append(['D',r-1,1])
-        if r == 6:
-            test.append(['E',6])
-        elif r == 7:
-            test += [['E',7], ['E',6,1]]
-        elif r == 8:
-            test += [['E',8], ['E',7,1]]
-        elif r == 9:
-            test.append(['E',8,1])
-
-        found = False
-        for ct in test:
-            ct = CoxeterType(ct)
-            T = ct.coxeter_graph()
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
-            if iso:
-                types.append(ct.relabel(match))
-                found = True
-                break
-        if not found:
-            return None
-
-    return CoxeterType(types)
+    
+    from sage.combinat.root_system.coxeter_graph import recognize_coxeter_type_from_graph
+    return recognize_coxeter_type_from_graph(G)
 
 #####################################################################
 ## Other functions
@@ -1197,4 +1141,3 @@ def coxeter_matrix(t):
     from sage.misc.superseded import deprecation
     deprecation(17798, 'coxeter_matrix() is deprecated. Use CoxeterMatrix() instead')
     return CoxeterMatrix(t)
-
