@@ -1058,39 +1058,24 @@ def default_mip_solver(solver = None):
     solver = solver.capitalize()
 
     if solver == "Cplex":
-        try:
-            from sage.numerical.backends.cplex_backend import CPLEXBackend
-            default_solver = solver
-        except ImportError:
-            raise ValueError("CPLEX is not available. Please refer to the documentation to install it.")
+        from sage.numerical.backends.cplex_backend import CPLEXBackend
+        default_solver = solver
 
     elif solver == "Coin":
-        try:
-            from sage.numerical.backends.coin_backend import CoinBackend
-            default_solver = solver
-        except ImportError:
-            raise ValueError("COIN is not available. Please refer to the documentation to install it.")
+        from sage.numerical.backends.coin_backend import CoinBackend
+        default_solver = solver
 
     elif solver == "Cvxopt":
-        try:
-            from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
-            default_solver = solver
-        except ImportError:
-            raise ValueError("CVXOPT is not available. Please refer to the documentation to install it.")
+        from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+        default_solver = solver
 
     elif solver == "Ppl":
-        try:
-            from sage.numerical.backends.ppl_backend import PPLBackend
-            default_solver = solver
-        except ImportError:
-            raise ValueError("PPL is not available. Please refer to the documentation to install it.")
+        from sage.numerical.backends.ppl_backend import PPLBackend
+        default_solver = solver
 
     elif solver == "Gurobi":
-        try:
-            from sage.numerical.backends.gurobi_backend import GurobiBackend
-            default_solver = solver
-        except ImportError:
-            raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
+        from sage.numerical.backends.gurobi_backend import GurobiBackend
+        default_solver = solver
 
     elif solver == "Glpk":
         default_solver = solver

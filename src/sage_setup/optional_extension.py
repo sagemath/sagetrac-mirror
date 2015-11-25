@@ -18,6 +18,7 @@ package which must be installed.
 #*****************************************************************************
 
 
+import os
 from distutils.extension import Extension
 from sage.misc.package import is_package_installed
 
@@ -39,10 +40,131 @@ class CythonizeExtension(Extension):
     skip_build = True
 
 
+c_code_if_package_not_installed = """
+#include <Python.h>
+
+PyMODINIT_FUNC init{name}(void)
+<%
+    PyObject* modpackage = PyImport_ImportModule("sage.misc.package");
+    if (!modpackage) return;
+
+    PyObject* exc = PyObject_GetAttrString(modpackage, "PackageNotFoundError");
+    if (!exc) return;
+
+    PyErr_SetString(exc, "{package}");
+%>
+"""
+
+class PackageNotInstalledExtension(Extension):
+    """
+    Abstract base class for extensions which depend on a package.
+    Due to the way that Cython works, this must be subclassed, where
+    the subclass must add a ``package`` attribute.
+
+    EXAMPLES::
+
+        sage: from sage_setup.optional_extension import CythonizeExtension
+        sage: ext = CythonizeExtension("foo", ["foo.c"])
+        sage: ext.skip_build
+        True
+    """
+    @classmethod
+    def package_class(cls, package):
+        """
+        Return a class for extensions which depend on package
+        ``package``.
+
+        EXAMPLES::
+
+            sage: from sage_setup.optional_extension import PackageNotInstalledExtension
+            sage: PackageNotInstalledExtension.package_class("mypkg")
+            <class 'sage_setup.optional_extension.mypkgNotInstalledExtension'>
+        """
+        name = package + "NotInstalledExtension"
+        return type(cls)(name, (cls, object), dict(package=package))
+
+    def prepare(self, distutils_build_ext):
+        """
+        Convert the extension to an extension to compile a C file
+        raising ``PackageNotFoundError``.
+
+        EXAMPLES::
+
+            sage: from sage_setup.optional_extension import PackageNotInstalledExtension
+        """
+        name = self.name.split('.')[-1]
+        build_py = distutils_build_ext.get_finalized_command('build')
+        temp_dir = build_py.build_temp
+
+        csource = os.path.join(temp_dir, name + ".c")
+        with open(csource, "w") as f:
+            f.write(c_code_if_package_not_installed.format(
+                    name=name, package=self.package))
+
+        self.sources = [csource]
+        self.depends = [__file__]
+        self.libraries = []
+
+    def __reduce__(self):
+        """
+        Pickle ``self``.
+
+        We need a custom ``__reduce__`` method because the class is
+        created at run-time.
+
+        See :func:`make_PackageNotInstalledExtension`
+
+        EXAMPLES::
+
+            sage: from sage_setup.optional_extension import PackageNotInstalledExtension
+            sage: cls = PackageNotInstalledExtension.package_class("mypkg")
+            sage: ext = cls("foo", ["foo.c"])
+            sage: ext.__reduce__()
+            (<function make_PackageNotInstalledExtension at 0x...>,
+             ('mypkg',),
+             {'define_macros': [],
+              'depends': [],
+              'export_symbols': [],
+              'extra_compile_args': [],
+              'extra_link_args': [],
+              'extra_objects': [],
+              'include_dirs': [],
+              'language': None,
+              'libraries': [],
+              'library_dirs': [],
+              'name': 'foo',
+              'runtime_library_dirs': [],
+              'sources': ['foo.c'],
+              'swig_opts': [],
+              'undef_macros': []})
+        """
+        return make_PackageNotInstalledExtension, (self.package,), self.__dict__
+
+
+def make_PackageNotInstalledExtension(package):
+    """
+    Helper function for unpickling.
+
+    EXAMPLES::
+
+        sage: from sage_setup.optional_extension import PackageNotInstalledExtension
+        sage: cls = PackageNotInstalledExtension.package_class("mypkg")
+        sage: ext = cls("foo", ["foo.c"])
+        sage: ext.name, ext.package
+        ('foo', 'mypkg')
+        sage: ext = loads(dumps(ext))
+        sage: ext.name, ext.package
+        ('foo', 'mypkg')
+    """
+    t = PackageNotInstalledExtension.package_class(package)
+    return t.__new__(t)
+
+
 def OptionalExtension(*args, **kwds):
     """
     If some condition (see INPUT) is satisfied, return an ``Extension``.
-    Otherwise, return a ``CythonizeExtension``.
+    Otherwise, return a ``PackageNotInstalledExtension`` or a
+    ``CythonizeExtension``.
 
     Typically, the condition is some optional package or something
     depending on the operating system.
@@ -65,18 +187,18 @@ def OptionalExtension(*args, **kwds):
         distutils.extension.Extension
         sage: ext = OptionalExtension("foo", ["foo.c"], package="no_such_package")
         sage: print ext.__class__
-        sage_setup.optional_extension.CythonizeExtension
+        <class 'sage_setup.optional_extension.no_such_packageNotInstalledExtension'>
         sage: ext = OptionalExtension("foo", ["foo.c"], package="pari")
         sage: print ext.__class__
         distutils.extension.Extension
     """
+    cls = Extension
     try:
-        condition = kwds.pop("condition")
+        if not kwds.pop("condition"):
+            cls = CythonizeExtension
     except KeyError:
         pkg = kwds.pop("package")
-        condition = is_package_installed(pkg)
+        if not is_package_installed(pkg):
+            cls = PackageNotInstalledExtension.package_class(pkg)
 
-    if condition:
-        return Extension(*args, **kwds)
-    else:
-        return CythonizeExtension(*args, **kwds)
+    return cls(*args, **kwds)

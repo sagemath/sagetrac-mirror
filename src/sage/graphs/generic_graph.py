@@ -1456,11 +1456,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                  # optional - python_igraph
             False
         """
-        try:
-            import igraph
-        except ImportError:
-            raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i python_igraph'")
+        import igraph
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -7829,12 +7825,7 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-
-            try:
-                import igraph
-            except ImportError:
-                raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i python_igraph")
+            import igraph
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -20070,10 +20061,7 @@ class GenericGraph(GenericGraph_pyx):
              is_package_installed('bliss'))):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
-            try:
-                from sage.graphs.bliss import automorphism_group
-            except ImportError:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+            from sage.graphs.bliss import automorphism_group
 
             A = automorphism_group(self, partition)
 
@@ -20722,10 +20710,7 @@ class GenericGraph(GenericGraph_pyx):
              not edge_labels)):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
-            try:
-                from sage.graphs.bliss import canonical_form
-            except ImportError:
-                raise ImportError("You must install the 'bliss' package to run this command.")
+            from sage.graphs.bliss import canonical_form
             return canonical_form(self, partition, return_graph, certify)
 
         if (algorithm is not None and

@@ -401,6 +401,13 @@ class sage_build_ext(build_ext):
         print("Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t))
 
     def prepare_extension(self, ext):
+        try:
+            prep = ext.prepare
+        except AttributeError:
+            pass
+        else:
+            prep(self)
+
         sources = ext.sources
         if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(("in 'ext_modules' option (extension '%s'), " +

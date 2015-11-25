@@ -275,7 +275,7 @@ def upgrade():
     raise NotImplementedError("upgrading Sage using 'upgrade()' is obsolete.\nRun 'sage --upgrade' from a shell prompt instead")
 
 
-class PackageNotFoundError(RuntimeError):
+class PackageNotFoundError(ImportError):
     """
     This class defines the exception that should be raised when a
     function, method, or class cannot detect a Sage package that it

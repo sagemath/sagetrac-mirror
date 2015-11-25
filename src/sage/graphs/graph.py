@@ -1084,12 +1084,7 @@ class Graph(GenericGraph):
         if (format is None          and
             hasattr(data, 'vcount') and
             hasattr(data, 'get_edgelist')):
-            try:
-                import igraph
-            except ImportError:
-                raise ImportError("The data seems to be a igraph object, but "+
-                                  "igraph is not installed in Sage. To install "+
-                                  "it, run 'sage -i python_igraph'")
+            import igraph
             if format is None and isinstance(data, igraph.Graph):
                 format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
@@ -2422,11 +2417,7 @@ class Graph(GenericGraph):
 
         # TDLIB
         if algorithm == 'tdlib':
-            try:
-                import sage.graphs.graph_decompositions.tdlib as tdlib
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("tdlib")
+            import sage.graphs.graph_decompositions.tdlib as tdlib
 
             T = tdlib.treedecomposition_exact(g, -1 if k is None else k)
             width = tdlib.get_width(T)
@@ -5355,10 +5346,7 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm = algorithm)
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                raise ImportError("Please install the mcqd package")
+            from sage.graphs.mcqd import mcqd
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
@@ -5446,10 +5434,7 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm = algorithm))
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                raise ImportError("Please install the mcqd package")
+            from sage.graphs.mcqd import mcqd
             return len(mcqd(self))
         else:
             raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
@@ -6410,11 +6395,7 @@ class Graph(GenericGraph):
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
         """
-        try:
-            from sage.graphs.modular_decomposition import modular_decomposition
-        except ImportError:
-            raise RuntimeError("In order to use this method you must "
-                               "install the modular_decomposition package")
+        from sage.graphs.modular_decomposition import modular_decomposition
 
         self._scream_if_not_simple()
         from sage.misc.stopgap import stopgap
