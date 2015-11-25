@@ -632,12 +632,7 @@ class DiGraph(GenericGraph):
         if (format is None          and
             hasattr(data, 'vcount') and
             hasattr(data, 'get_edgelist')):
-            try:
-                import igraph
-            except ImportError:
-                raise ImportError("The data seems to be a igraph object, but "+
-                                  "igraph is not installed in Sage. To install "+
-                                  "it, run 'sage -i python_igraph'")
+            import igraph
             if format is None and isinstance(data, igraph.Graph):
                 format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):

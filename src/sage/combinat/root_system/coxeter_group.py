@@ -136,12 +136,8 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
     if implementation == "reflection":
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
     if implementation == "coxeter3":
-        try:
-            from sage.libs.coxeter3.coxeter_group import CoxeterGroup
-        except ImportError:
-            raise RuntimeError("coxeter3 must be installed")
-        else:
-            return CoxeterGroup(cartan_type)
+        from sage.libs.coxeter3.coxeter_group import CoxeterGroup
+        return CoxeterGroup(cartan_type)
     if implementation == "permutation" and is_chevie_available() and \
        cartan_type.is_finite() and cartan_type.is_irreducible():
         return CoxeterGroupAsPermutationGroup(cartan_type)

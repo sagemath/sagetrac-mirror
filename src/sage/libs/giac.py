@@ -62,7 +62,8 @@ class GiacSettingsDefaultContext:
         try:
             from giacpy import giacsettings, libgiac
         except ImportError:
-            raise ImportError("""One of the optional packages giac or giacpy is missing""")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError("giacpy")
 
         self.proba_epsilon = giacsettings.proba_epsilon
         self.threads = giacsettings.threads
@@ -84,7 +85,8 @@ class GiacSettingsDefaultContext:
         try:
             from giacpy import giacsettings, libgiac
         except ImportError:
-            raise ImportError("""One of the optional packages giac or giacpy is missing""")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError("giacpy")
 
         # Restore the debug level first to not have messages at each modification
         libgiac('debug_infolevel')(self.debuginfolevel)
@@ -241,7 +243,8 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     try:
         from giacpy import libgiac, giacsettings
     except ImportError:
-        raise ImportError("""One of the optional packages giac or giacpy is missing""")
+        from sage.misc.package import PackageNotFoundError
+        raise PackageNotFoundError("giacpy")
 
     try:
         iter(gens)
