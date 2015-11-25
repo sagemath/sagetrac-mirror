@@ -1018,7 +1018,7 @@ def default_mip_solver(solver = None):
 
     This function returns the current default solver's name if ``solver = None``
     (default). Otherwise, it sets the default solver to the one given. If this
-    solver does not exist, or is not available, a ``ValueError`` exception is
+    solver does not exist, or is not available, an ``ImportError`` exception is
     raised.
 
     EXAMPLE::
@@ -1033,57 +1033,34 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("GUROBI")
         Traceback (most recent call last):
         ...
-        ValueError: Gurobi is not available. Please refer to the documentation to install it.
+        ImportError: Gurobi is not available. Please refer to the documentation to install it
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.
+        ValueError: solver should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None (in which case the default one is used)
         sage: default_mip_solver(former_solver)
     """
     global default_solver
 
     if solver is None:
-
         if default_solver is not None:
             return default_solver
 
-        else:
-            for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
-                try:
-                    default_mip_solver(s)
-                    return s
-                except ValueError:
-                    pass
+        for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
+            try:
+                default_mip_solver(s)
+                return s
+            except ImportError:
+                pass
 
     solver = solver.capitalize()
 
-    if solver == "Cplex":
-        from sage.numerical.backends.cplex_backend import CPLEXBackend
-        default_solver = solver
+    # Check that the solver is actually available
+    get_solver(None, solver)
+    default_solver = solver
 
-    elif solver == "Coin":
-        from sage.numerical.backends.coin_backend import CoinBackend
-        default_solver = solver
 
-    elif solver == "Cvxopt":
-        from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
-        default_solver = solver
-
-    elif solver == "Ppl":
-        from sage.numerical.backends.ppl_backend import PPLBackend
-        default_solver = solver
-
-    elif solver == "Gurobi":
-        from sage.numerical.backends.gurobi_backend import GurobiBackend
-        default_solver = solver
-
-    elif solver == "Glpk":
-        default_solver = solver
-
-    else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.")
-
-cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
+cpdef GenericBackend get_solver(constraint_generation=False, solver=None):
     """
     Return a solver according to the given preferences
 
@@ -1142,29 +1119,34 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     else:
         solver = solver.capitalize()
 
+    # Standard
+    if solver == "Glpk":
+        from sage.numerical.backends.glpk_backend import GLPKBackend
+        return GLPKBackend()
+    if solver == "Ppl":
+        from sage.numerical.backends.ppl_backend import PPLBackend
+        return PPLBackend()
+    if solver == "Cvxopt":
+        from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+        return CVXOPTBackend()
+
+    # Optional
     if solver == "Coin":
         from sage.numerical.backends.coin_backend import CoinBackend
         return CoinBackend()
 
-    elif solver == "Glpk":
-        from sage.numerical.backends.glpk_backend import GLPKBackend
-        return GLPKBackend()
-
-    elif solver == "Cplex":
-        from sage.numerical.backends.cplex_backend import CPLEXBackend
+    # External (not part of Sage)
+    if solver == "Cplex":
+        try:
+            from sage.numerical.backends.cplex_backend import CPLEXBackend
+        except ImportError:
+            raise ImportError("CPLEX is not available. Please refer to the documentation to install it")
         return CPLEXBackend()
-
-    elif solver == "Cvxopt":
-        from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
-        return CVXOPTBackend()
-
-    elif solver == "Gurobi":
-        from sage.numerical.backends.gurobi_backend import GurobiBackend
+    if solver == "Gurobi":
+        try:
+            from sage.numerical.backends.gurobi_backend import GurobiBackend
+        except ImportError:
+            raise ImportError("Gurobi is not available. Please refer to the documentation to install it")
         return GurobiBackend()
 
-    elif solver == "Ppl":
-        from sage.numerical.backends.ppl_backend import PPLBackend
-        return PPLBackend()
-
-    else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL' or None (in which case the default one is used).")
+    raise ValueError("solver should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None (in which case the default one is used)")
