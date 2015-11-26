@@ -172,8 +172,12 @@ class CoxeterMatrix(CoxeterType):
         if isinstance(data, CoxeterMatrix):  # Initiate from itself
             return data
 
+        # Initiate from a Coxeter graph:
+        from sage.combinat.root_system.coxeter_graph import CoxeterGraph
+        if isinstance(data, CoxeterGraph):
+            return cls._from_coxeter_graph(data, coxeter_type_check)
+
         # Initiate from a graph:
-        # TODO: Check if a CoxeterDiagram once implemented
         if isinstance(data, Graph):
             return cls._from_graph(data, coxeter_type_check)
 
@@ -303,9 +307,9 @@ class CoxeterMatrix(CoxeterType):
         return mat
 
     @classmethod
-    def _from_graph(cls, graph, coxeter_type_check):
+    def _from_coxeter_graph(cls, coxeter_graph, coxeter_type_check):
         """
-        Initiate the Coxeter matrix from a graph.
+        Initiate the Coxeter matrix from a Coxeter graph.
 
         TESTS::
 
@@ -326,6 +330,39 @@ class CoxeterMatrix(CoxeterType):
             [3 1 4 2]
             [2 4 1 3]
             [2 2 3 1]
+
+        """
+        index_set = coxeter_graph._index_set
+        n = len(index_set)
+
+        # Setup the basis matrix as all 2 except 1 on the diagonal
+        data = []
+        for i in range(n):
+            data += [[]]
+            for j in range(n):
+                if i == j:
+                    data[-1] += [ZZ.one()]
+                else:
+                    data[-1] += [2]
+
+        for e in coxeter_graph._graph.edges():
+            label = e[2]
+            if label is None:
+                label = 3
+            elif label == infinity:
+                label = -1
+            i = index_set.index(e[0])
+            j = index_set.index(e[1])
+            data[j][i] = data[i][j] = label
+
+        return cls._from_matrix(data, coxeter_graph._coxeter_type, index_set, coxeter_type_check)
+
+    @classmethod
+    def _from_graph(cls, graph, coxeter_type_check):
+        """
+        Initiate the Coxeter matrix from a graph.
+
+        TESTS::
 
             sage: G=Graph()
             sage: G.add_edge([0,1,oo])
@@ -389,6 +426,8 @@ class CoxeterMatrix(CoxeterType):
         for (i, j, l) in coxeter_type.coxeter_graph().edge_iterator():
             if l == infinity:
                 l = -1
+            elif l == None:
+                l = 3
             data[reverse[i]][reverse[j]] = l
             data[reverse[j]][reverse[i]] = l
 

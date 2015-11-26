@@ -219,6 +219,61 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
         return 2*self.n - 2
 
     @cached_method
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type D.
+
+        EXAMPLES::
+
+            sage: d = CartanType(['D',5]).coxeter_graph(); d
+                    O 5
+                    |
+                    |
+            O---O---O---O
+            1   2   3   4
+            D5
+            sage: sorted(d.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1), (3, 4, 1), (3, 5, 1), (4, 3, 1), (5, 3, 1)]
+
+            sage: d = CartanType(['D',4]).coxeter_graph(); d
+                O 4
+                |
+                |
+            O---O---O
+            1   2   3
+            D4
+            sage: sorted(d.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (2, 4, 1), (3, 2, 1), (4, 2, 1)]
+
+            sage: d = CartanType(['D',3]).coxeter_graph(); d
+            O 3
+            |
+            |
+            O---O
+            1   2
+            D3
+            sage: sorted(d.edges())
+            [(1, 2, 1), (1, 3, 1), (2, 1, 1), (3, 1, 1)]
+
+
+            sage: d = CartanType(['D',2]).coxeter_graph(); d
+            O   O
+            1   2
+            D2
+            sage: sorted(d.edges())
+            []
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        n = self.n
+        if n >= 3:
+            for i in range(1, n-1):
+                g.add_edge(i, i+1)
+            g.add_edge(n-2, n)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
+    @cached_method
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type D.

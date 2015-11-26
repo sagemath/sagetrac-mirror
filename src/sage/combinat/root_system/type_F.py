@@ -265,6 +265,29 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         """
         return 9
 
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type F.
+
+        EXAMPLES::
+
+            sage: f = CartanType(['F',4]).coxeter_graph()
+            sage: f
+            O---O=>=O---O
+            1   2   3   4
+            F4
+            sage: sorted(f.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for i in range(1, 4):
+            g.add_edge(i, i+1)
+        g.set_edge_label(2,3,4)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type F.

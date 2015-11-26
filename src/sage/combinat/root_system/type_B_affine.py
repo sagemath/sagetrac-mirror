@@ -46,6 +46,57 @@ class CartanType(CartanType_standard_untwisted_affine):
         assert n >= 1
         CartanType_standard_untwisted_affine.__init__(self, "B", n)
 
+    def coxeter_graph(self):
+        """
+        Return the Coxeter graph for affine type `B`.
+
+        EXAMPLES::
+
+            sage: b = CartanType(['B',3,1]).coxeter_graph()
+            sage: b
+                O 0
+                |
+                |
+            O---O=>=O
+            1   2   3
+            B3~
+            sage: sorted(b.edges())
+            [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
+
+            sage: b = CartanType(['B',2,1]).coxeter_graph(); b
+            O=>=O=<=O
+            0   2   1
+            B2~
+            sage: sorted(b.edges())
+            [(0, 2, 2), (1, 2, 2), (2, 0, 1), (2, 1, 1)]
+
+            sage: b = CartanType(['B',1,1]).coxeter_graph(); b
+            O<=>O
+            0   1
+            B1~
+            sage: sorted(b.edges())
+            [(0, 1, 2), (1, 0, 2)]
+
+        """
+        import cartan_type
+        n = self.n
+        if n == 1:
+            res = cartan_type.CartanType(["A",1,1]).coxeter_graph()
+            res._cartan_type = self
+            return res
+        if n == 2:
+            res = cartan_type.CartanType(["C",2,1]).relabel({0:0, 1:2, 2:1}).coxeter_graph()
+            res._cartan_type = self
+            return res
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for i in range(1, n):
+            g.add_edge(i, i+1)
+        g.set_edge_label(n-1, n, 4)
+        g.add_edge(0,2)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Return the extended Dynkin diagram for affine type `B`.

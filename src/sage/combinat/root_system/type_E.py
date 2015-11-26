@@ -520,6 +520,57 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
         # n == 8
         return 30
 
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type E.
+
+        EXAMPLES::
+
+            sage: e = CartanType(['E',6]).coxeter_graph()
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O
+            1   3   4   5   6
+            E6
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1)]
+            sage: e = CartanType(['E',7]).coxeter_graph()
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O
+            1   3   4   5   6   7
+            E7
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1),
+             (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1),
+             (6, 7, 1), (7, 6, 1)]
+            sage: e = CartanType(['E',8]).coxeter_graph()
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O---O
+            1   3   4   5   6   7   8
+            E8
+            sage: sorted(e.edges())
+            [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1),
+             (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1),
+             (6, 7, 1), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
+
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        g.add_edge(1,3)
+        g.add_edge(2,4)
+        for i in range(3, self.n):
+            g.add_edge(i, i+1)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type E.

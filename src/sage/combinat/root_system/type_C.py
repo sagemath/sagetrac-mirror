@@ -207,6 +207,30 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         import cartan_type
         return cartan_type.CartanType(["B", self.n])
 
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type C.
+
+        EXAMPLES::
+
+            sage: c = CartanType(['C',3]).coxeter_graph()
+            sage: c
+            O---O=<=O
+            1   2   3
+            C3
+            sage: e = c.edges(); e.sort(); e
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+             sage: b = CartanType(['C',1]).coxeter_graph()
+             sage: b
+             O
+             1
+             C1
+             sage: sorted(b.edges())
+             []
+        """
+        return self.dual().coxeter_graph().dual()
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type C.

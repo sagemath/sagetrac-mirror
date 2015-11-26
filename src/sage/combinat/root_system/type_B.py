@@ -214,6 +214,38 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type B.
+
+        EXAMPLES::
+
+             sage: b = CartanType(['B',3]).coxeter_graph()
+             sage: b
+             O---O=>=O
+             1   2   3
+             B3
+             sage: sorted(b.edges())
+             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
+
+             sage: b = CartanType(['B',1]).coxeter_graph()
+             sage: b
+             O
+             1
+             B1
+             sage: sorted(b.edges())
+             []
+        """
+        from sage.graphs.graph import Graph
+        n = self.n
+        g = Graph()
+        for i in range(1, n):
+            g.add_edge(i, i+1)
+        if n >= 2:
+            g.set_edge_label(n-1, n, 4)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type B.
@@ -340,4 +372,3 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_B', 'ambient_space',  AmbientSpace)
-

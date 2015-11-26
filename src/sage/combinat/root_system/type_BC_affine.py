@@ -66,6 +66,59 @@ class CartanType(CartanType_standard_affine):
         assert n in ZZ and n >= 1
         CartanType_standard_affine.__init__(self, "BC", n, 2)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for affine type BC.
+
+        EXAMPLES::
+
+            sage: c = CartanType(['BC',3,2]).coxeter_graph()
+            sage: c
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+            sage: c = CartanType(["A", 6, 2]).coxeter_graph() # should be the same as above; did fail at some point!
+            sage: c
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+            sage: c = CartanType(['BC',2,2]).coxeter_graph()
+            sage: c
+            O=<=O=<=O
+            0   1   2
+            BC2~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 2)]
+
+            sage: c = CartanType(['BC',1,2]).coxeter_graph()
+            sage: c
+              4
+            O=<=O
+            0   1
+            BC1~
+            sage: sorted(c.edges())
+            [(0, 1, 1), (1, 0, 4)]
+
+        """
+        from sage.graphs.graph import Graph
+        n = self.n
+        g = Graph()
+        if n == 1:
+            g.add_edge(1,0,4)
+            return g
+        g.add_edge(1,0,4)
+        for i in range(1, n-1):
+            g.add_edge(i, i+1)
+        g.add_edge(n,n-1,4)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns the extended Dynkin diagram for affine type BC.

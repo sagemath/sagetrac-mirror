@@ -58,6 +58,81 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         """
         return "E_%s^{(1)}"%self.n
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for affine type E.
+
+        EXAMPLES::
+
+            sage: e = CartanType(['E', 6, 1]).coxeter_graph()
+            sage: e
+                    O 0
+                    |
+                    |
+                    O 2
+                    |
+                    |
+            O---O---O---O---O
+            1   3   4   5   6
+            E6~
+            sage: sorted(e.edges())
+            [(0, 2, 1),
+             (1, 3, 1),
+             (2, 0, 1),
+             (2, 4, 1),
+             (3, 1, 1),
+             (3, 4, 1),
+             (4, 2, 1),
+             (4, 3, 1),
+             (4, 5, 1),
+             (5, 4, 1),
+             (5, 6, 1),
+             (6, 5, 1)]
+
+            sage: e = CartanType(['E', 7, 1]).coxeter_graph()
+            sage: e
+                        O 2
+                        |
+                        |
+            O---O---O---O---O---O---O
+            0   1   3   4   5   6   7
+            E7~
+            sage: sorted(e.edges())
+            [(0, 1, 1), (1, 0, 1), (1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1),
+             (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1),
+             (6, 5, 1), (6, 7, 1), (7, 6, 1)]
+            sage: e = CartanType(['E', 8, 1]).coxeter_graph()
+            sage: e
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O---O---O
+            1   3   4   5   6   7   8   0
+            E8~
+            sage: sorted(e.edges())
+            [(0, 8, 1), (1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1),
+             (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1),
+             (6, 5, 1), (6, 7, 1), (7, 6, 1), (7, 8, 1), (8, 0, 1), (8, 7, 1)]
+
+        """
+        from sage.graphs.graph import Graph
+        n = self.n
+        g = Graph()
+        g.add_edge(1,3)
+        g.add_edge(2,4)
+        for i in range(3,n):
+            g.add_edge(i, i+1)
+        if n == 6:
+            g.add_edge(0, 2)
+        elif n == 7:
+            g.add_edge(0, 1)
+        elif n == 8:
+            g.add_edge(0, 8)
+        else:
+            raise ValueError("Invalid Cartan Type for Type E affine")
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns the extended Dynkin diagram for affine type E.

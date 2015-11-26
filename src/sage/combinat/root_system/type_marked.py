@@ -305,6 +305,34 @@ class CartanType(cartan_type.CartanType_decorator):
             node = self._ascii_art_node
         return self._type.ascii_art(label, node)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for this Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(["G", 2]).marked_nodes([2]).coxeter_graph()
+              3
+            O=<=X
+            1   2
+            G2 with node 2 marked
+
+        TESTS:
+
+        To be compared with the examples in :meth:`ascii_art`::
+
+            sage: sorted(CartanType(["G", 2]).relabel({1:2,2:1}).coxeter_graph().edges())
+            [(1, 2, 3), (2, 1, 1)]
+            sage: sorted(CartanType(["B", 3, 1]).relabel([1,3,2,0]).coxeter_graph().edges())
+            [(0, 2, 1), (1, 2, 1), (2, 0, 2), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
+            sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).coxeter_graph().edges())
+            [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+        """
+        from copy import copy
+        result = self._type.coxeter_graph().copy()
+        result._cartan_type = self
+        return result
+
     def dynkin_diagram(self):
         """
         Returns the Dynkin diagram for this Cartan type.

@@ -346,7 +346,8 @@ class CoxeterGraph(CoxeterType):
 
             return graph
 
-        if isinstance(data, CoxeterGraph):  # Initiate from itself
+        # Initiate from itself
+        if isinstance(data, CoxeterGraph):
             return data
 
         # Initiate from a graph:
@@ -384,7 +385,7 @@ class CoxeterGraph(CoxeterType):
 
         return cls._from_matrix(data, index_set, coxeter_type_check)
 
-    def __init__(self, data, coxeter_type, index_set):
+    def __init__(self, graph, coxeter_type, index_set):
         """
         Initialize ``self``.
 
@@ -394,7 +395,7 @@ class CoxeterGraph(CoxeterType):
             sage: TestSuite(d).run()
         """
         
-        self._graph = Graph(data).copy(immutable=True)      
+        self._graph = graph.copy(immutable=True)      
         self._coxeter_type = coxeter_type
         self._index_set = index_set
         self._rank = self._graph.num_verts()
@@ -460,8 +461,7 @@ class CoxeterGraph(CoxeterType):
                 coxeter_type = CoxeterType(['A', 1])
             elif coxeter_type_check:
                 coxeter_type = recognize_coxeter_type_from_graph(graph, index_set)
-            else:
-                coxeter_type = None
+
         graph = typecall(cls, graph, coxeter_type, index_set)
 
         return graph
@@ -599,7 +599,7 @@ class CoxeterGraph(CoxeterType):
         """
         return self.coxeter_matrix()._matrix_()
 
-    def add_edge(self, i, j, label=1):
+    def add_edge(self, i, j, label=1): ### I believe this function is not necessary??
         """
         EXAMPLES::
 
@@ -611,9 +611,8 @@ class CoxeterGraph(CoxeterType):
             sage: list(sorted(d.edges()))
             [(2, 3, 1), (3, 2, 1)]
         """
-        Graph.add_edge(self, i, j, label)
-        if not self.has_edge(j,i):
-            self.add_edge(j,i,1)
+        g = self._graph.add_edge(i, j, label)
+        return CoxeterGraph(g)
     
     def edge_iterator(self):
         """
@@ -622,6 +621,28 @@ class CoxeterGraph(CoxeterType):
         
         """
         return self._graph.edge_iterator()
+
+    def set_edge_label(self, u, v, l):
+        """
+        Set the edge label of a given edge.
+
+        .. note::
+
+           There can be only one edge from u to v for this to make
+           sense. Otherwise, an error is raised.
+
+        INPUT:
+
+
+        -  ``u, v`` - the vertices (and direction if digraph)
+           of the edge
+
+        -  ``l`` - the new label
+
+
+        """
+
+        self._backend.set_edge_label(u, v, l, self._directed)
 
     def __hash__(self):
         """
@@ -677,7 +698,7 @@ class CoxeterGraph(CoxeterType):
             sage: CoxeterGraph("A2","B2","F4").index_set()
             (1, 2, 3, 4, 5, 6, 7, 8)
         """
-        return tuple(self.vertices())
+        return tuple(self._index_set)
 
     def coxeter_type(self):
         """
@@ -699,7 +720,7 @@ class CoxeterGraph(CoxeterType):
             sage: CoxeterGraph("A2","B2","F4").rank()
             8
         """
-        return self.num_verts()
+        return self._rank
 
     def coxeter_graph(self):
         """
@@ -725,6 +746,46 @@ class CoxeterGraph(CoxeterType):
             [ 0 -1  2]
         """
         return CoxeterMatrix(self)
+
+    def dual(self):
+        r"""
+        Returns the dual Coxeter graph.
+
+        EXAMPLES::
+
+            sage: D = CoxeterGraph(['C',3])
+            sage: D.edges()
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+            sage: D.dual()
+            O---O=>=O
+            1   2   3
+            B3
+            sage: D.dual().edges()
+            [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
+            sage: D.dual() == CoxeterGraph(['B',3])
+            True
+
+        TESTS::
+
+            sage: D = CoxeterGraph(['A',0]); D
+            A0
+            sage: D.edges()
+            []
+            sage: D.dual()
+            A0
+            sage: D.dual().edges()
+            []
+            sage: D = CoxeterGraph(['A',1])
+            sage: D.edges()
+            []
+            sage: D.dual()
+            O
+            1
+            A1
+            sage: D.dual().edges()
+            []
+        """
+        return self
 
     def is_finite(self):
         """
@@ -988,7 +1049,6 @@ def recognize_coxeter_type_from_graph(graph):
         found = False
         for ct in test:
             ct = CoxeterType(ct)
-            print ct
             T = ct.coxeter_graph()._graph
             iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
             if iso:

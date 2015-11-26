@@ -281,6 +281,37 @@ class CartanType(cartan_type.CartanType_decorator):
             node = self._ascii_art_node
         return self._type.ascii_art(lambda i: label(self._relabelling[i]), node)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for this Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(["G", 2]).relabel({1:2,2:1}).coxeter_graph()
+              3
+            O=<=O
+            2   1
+            G2 relabelled by {1: 2, 2: 1}
+
+        TESTS:
+
+        To be compared with the examples in :meth:`ascii_art`::
+
+            sage: sorted(CartanType(["G", 2]).relabel({1:2,2:1}).coxeter_graph().edges())
+            [(1, 2, 3), (2, 1, 1)]
+            sage: sorted(CartanType(["B", 3, 1]).relabel([1,3,2,0]).coxeter_graph().edges())
+            [(0, 2, 1), (1, 2, 1), (2, 0, 2), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
+            sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).coxeter_graph().edges())
+            [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
+        """
+        # Maybe we want to move this up as a relabel method for Coxeter graph
+        # We will have to be careful setting the Cartan type of the result though
+        result = self._type.coxeter_graph().copy()
+        # relabelling in place allows to keep the extra Dynkin diagram structure
+        super(result.__class__, result).relabel(self._relabelling, inplace=True)
+        result._cartan_type = self
+        return result
+
     def dynkin_diagram(self):
         """
         Returns the Dynkin diagram for this Cartan type.

@@ -258,6 +258,41 @@ class CartanType(SageObject, CartanType_abstract):
         return CartanMatrix(block_diagonal_matrix([t.cartan_matrix() for t in self._types], subdivide=subdivide),
                             cartan_type=self)
 
+    def coxeter_graph(self):
+        """
+        Returns a Coxeter graph for type reducible.
+
+        EXAMPLES::
+
+            sage: dd = CartanType("A2xB2xF4").coxeter_graph()
+            sage: dd
+            O---O
+            1   2
+            O=>=O
+            3   4
+            O---O=>=O---O
+            5   6   7   8
+            A2xB2xF4
+            sage: dd.edges()
+            [(1, 2, 1), (2, 1, 1), (3, 4, 2), (4, 3, 1), (5, 6, 1), (6, 5, 1), (6, 7, 2), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
+
+            sage: CartanType("F4xA2").coxeter_graph()
+            O---O=>=O---O
+            1   2   3   4
+            O---O
+            5   6
+            F4xA2
+
+        """
+        from sage.graphs.graph import Graph
+        relabelling = self._index_relabelling
+        g = Graph()
+        for i in range(len(self._types)):
+            for [e1, e2, l] in self._types[i].coxeter_graph()._graph.edges():
+                g.add_edge(relabelling[i,e1], relabelling[i,e2], label=l)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type reducible.

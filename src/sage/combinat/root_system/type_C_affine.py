@@ -45,6 +45,36 @@ class CartanType(CartanType_standard_untwisted_affine):
         assert n >= 1
         CartanType_standard_untwisted_affine.__init__(self, "C", n)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for affine type C.
+
+        EXAMPLES::
+
+            sage: c = CartanType(['C',3,1]).coxeter_graph()
+            sage: c
+             O=>=O---O=<=O
+             0   1   2   3
+             C3~
+            sage: sorted(c.edges())
+            [(0, 1, 2), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+        """
+        n = self.n
+        if n == 1:
+            import coxeter_type
+            res = coxeter_type.CoxeterType(["A",1,1]).coxeter_graph()
+            res._cartan_type = self
+            return res
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for i in range(1, n):
+            g.add_edge(i, i+1)
+        g.set_edge_label(n,n-1,4)
+        g.add_edge(0,1,4)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns the extended Dynkin diagram for affine type C.

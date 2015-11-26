@@ -47,6 +47,29 @@ class CartanType(CartanType_standard_untwisted_affine):
         """
         CartanType_standard_untwisted_affine.__init__(self, "G",2)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for affine type G.
+
+        EXAMPLES::
+
+            sage: g = CartanType(['G',2,1]).coxeter_graph()
+            sage: g
+              3
+            O=<=O---O
+            1   2   0
+            G2~
+            sage: sorted(g.edges())
+            [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 3)]
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        g.add_edge(1, 2)
+        g.set_edge_label(2,1,6)
+        g.add_edge(0, 2)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns the extended Dynkin diagram for type G.

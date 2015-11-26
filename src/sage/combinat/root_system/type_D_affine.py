@@ -46,6 +46,72 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         assert n >= 3
         CartanType_standard_untwisted_affine.__init__(self, "D", n)
 
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph for affine type D.
+
+        EXAMPLES::
+
+           sage: d = CartanType(['D', 6, 1]).coxeter_graph()
+           sage: d
+              0 O       O 6
+                |       |
+                |       |
+            O---O---O---O---O
+            1   2   3   4   5
+            D6~
+           sage: sorted(d.edges())
+           [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 1), (2, 3, 1),
+            (3, 2, 1), (3, 4, 1), (4, 3, 1), (4, 5, 1), (4, 6, 1), (5, 4, 1), (6, 4, 1)]
+
+           sage: d = CartanType(['D', 4, 1]).coxeter_graph()
+           sage: d
+               O 4
+               |
+               |
+           O---O---O
+           1   |2  3
+               |
+               O 0
+           D4~
+           sage: sorted(d.edges())
+           [(0, 2, 1),
+            (1, 2, 1),
+            (2, 0, 1),
+            (2, 1, 1),
+            (2, 3, 1),
+            (2, 4, 1),
+            (3, 2, 1),
+            (4, 2, 1)]
+
+           sage: d = CartanType(['D', 3, 1]).coxeter_graph()
+           sage: d
+           0
+           O-------+
+           |       |
+           |       |
+           O---O---O
+           3   1   2
+           D3~
+           sage: sorted(d.edges())
+           [(0, 2, 1), (0, 3, 1), (1, 2, 1), (1, 3, 1), (2, 0, 1), (2, 1, 1), (3, 0, 1), (3, 1, 1)]
+
+        """
+        n = self.n
+        if n == 3:
+            import coxeter_type
+            res = coxeter_type.CoxeterType(["A",3,1]).relabel({0:0, 1:3, 2:1, 3: 2}).coxeter_graph()
+            res._coxeter_type = self
+            return res
+        from sage.graphs.graph import Graph
+        g = Graph()
+        for i in range(1, n-1):
+            g.add_edge(i, i+1)
+        g.add_edge(n-2,n)
+        g.add_edge(0,2)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
+
     def dynkin_diagram(self):
         """
         Returns the extended Dynkin diagram for affine type D.

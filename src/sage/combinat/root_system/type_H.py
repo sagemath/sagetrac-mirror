@@ -73,7 +73,8 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         for i in range(1, n):
             g.add_edge(i, i+1, 3)
         g.set_edge_label(n-1, n, 5)
-        return g
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
 
     def coxeter_number(self):
         """

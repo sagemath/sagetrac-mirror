@@ -241,6 +241,39 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             5
         """
         return self.n + 1
+      
+    def coxeter_graph(self):
+        """
+        Returns the Coxeter graph of type A.
+
+        EXAMPLES::
+
+            sage: a = CartanType(['A',3]).coxeter_graph()
+            sage: a
+            O---O---O
+            1   2   3
+            A3
+            sage: sorted(a.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
+
+        TEST::
+
+            sage: a = CoxeterGraph(['A',1])
+            sage: a
+            O
+            1
+            A1
+            sage: a.vertices(), a.edges()
+            ([1], [])
+        """
+        from sage.graphs.graph import Graph
+        n = self.n
+        g = Graph()
+        for i in range(1, n):
+            g.add_edge(i, i+1)
+        
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
 
     def dynkin_diagram(self):
         """

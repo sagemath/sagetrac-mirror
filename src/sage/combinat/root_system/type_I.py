@@ -64,9 +64,9 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         """
         return (1, 2)
 
-    def coxeter_diagram(self):
+    def coxeter_graph(self):
         """
-        Returns the Coxeter matrix for this type.
+        Returns the Coxeter graph of type `I_2(m)`.
 
         EXAMPLES::
 
@@ -80,7 +80,9 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             [4 1]
         """
         from sage.graphs.graph import Graph
-        return Graph([[1,2,self.n]], multiedges=False)
+        g = Graph([[1,2,self.n]], multiedges=False)
+        from coxeter_graph import CoxeterGraph
+        return CoxeterGraph(g, coxeter_type=self, coxeter_type_check=False)
 
     def coxeter_number(self):
         """
@@ -94,4 +96,3 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             12
         """
         return self.n
-
