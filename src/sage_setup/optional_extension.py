@@ -60,7 +60,22 @@ PyMODINIT_FUNC init{name}(void)
     PyObject* exc = PyObject_GetAttrString(modpackage, "PackageNotFoundError");
     if (!exc) return;
 
-    PyErr_SetString(exc, "{package}");
+    /* We really need an exception which inherits from ImportError;
+     * otherwise we break older code.  It can happen that this fake
+     * module remains in place after checking out a different branch
+     * without the changes to PackageNotFoundError (which used to
+     * derive from RuntimeError). In that case, we need to raise
+     * ImportError. */
+    if (PyObject_IsSubclass(exc, PyExc_ImportError))
+    <%
+        PyErr_SetString(exc, "{package}");
+    %>
+    else
+    <%
+        PyErr_SetString(PyExc_ImportError, "No module named {name}");
+    %>
+    Py_DECREF(modpackage);
+    Py_DECREF(exc);
 %>
 """
 
