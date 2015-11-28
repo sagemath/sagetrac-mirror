@@ -139,7 +139,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module_element cimport FreeModuleElement_generic_dense
 import sage.rings.arith
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.rings.complex_ball_acb cimport ComplexIntervalFieldElement_to_acb
+from sage.rings.complex_arb cimport ComplexIntervalFieldElement_to_acb
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
