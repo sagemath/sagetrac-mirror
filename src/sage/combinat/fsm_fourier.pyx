@@ -94,24 +94,8 @@ ACKNOWLEDGEMENT:
 - Clemens Heuberger and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
-.. TODO::
-
-    The following private and special methods are included now for
-    proofreading, they should be excluded. Furthermore, this module cannot
-    be shown in the documentation as it depends on arb.
-
 Classes and Methods
 ===================
-
-.. autofunction:: _hurwitz_zeta_
-.. automethod:: FSMFourierComponent.__init__
-.. automethod:: FSMFourierComponent._eigenvectors_
-.. automethod:: FSMFourierComponent._mask_
-.. automethod:: FSMFourierCache.__init__
-.. automethod:: FSMFourier.__init__
-.. automethod:: FSMFourier._H_m_rhs_
-.. automethod:: FSMFourier._w_H_Res_
-.. automethod:: FSMFourier._H_m_
 """
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
