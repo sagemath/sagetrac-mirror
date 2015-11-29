@@ -153,7 +153,7 @@ Access to the original PolyBoRi interface
 The re-implementation PolyBoRi's native wrapper is available to the
 user too::
 
-    sage: from polybori import *
+    sage: from brial import *
     sage: declare_ring([Block('x',2),Block('y',3)],globals())
     Boolean PolynomialRing in x0, x1, y0, y1, y2
     sage: r
@@ -1484,7 +1484,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         ALGORITHM: Calls ``interpolate_smallest_lex`` as described in
         the PolyBoRi tutorial.
         """
-        #from polybori.interpolate import interpolate_smallest_lex
+        #from brial.interpolate import interpolate_smallest_lex
         from sage.misc.misc_c import prod
         n = self.ngens()
         x = self.gens()
@@ -1809,7 +1809,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
     EXAMPLES::
 
-        sage: from polybori import BooleanMonomialMonoid
+        sage: from brial import BooleanMonomialMonoid
         sage: P.<x,y> = BooleanPolynomialRing(2)
         sage: M = BooleanMonomialMonoid(P)
         sage: M
@@ -1834,7 +1834,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         TESTS::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: B.<a,b,c> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(B)
             sage: M
@@ -1859,7 +1859,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         """
         EXAMPLE::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(P)
             sage: M # indirect doctest
@@ -1873,7 +1873,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLE::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(P)
             sage: {M:1} # indirect doctest
@@ -1887,7 +1887,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P = BooleanPolynomialRing(100, 'x')
             sage: M = BooleanMonomialMonoid(P)
             sage: M.ngens()
@@ -1905,7 +1905,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M.gen(0)
@@ -1932,7 +1932,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M.gens()
@@ -1946,7 +1946,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M.get_action(ZZ) # indirect doctest
@@ -1966,7 +1966,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x_monom = M(x); x_monom
@@ -1977,7 +1977,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         Convert elements from :class:`BooleanMonomialMonoid` where the
         generators of self include the generators of the other monoid::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: R.<z,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
             sage: m = M(N(y*z)); m
@@ -1987,7 +1987,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         TESTS::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: R.<t,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
             sage: m = M(N(y)); m
@@ -1995,7 +1995,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             ...
             TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
             sage: N = BooleanMonomialMonoid(R)
             sage: m = M(N(x*y*z)); m
@@ -2030,7 +2030,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x_monom = M(x); x_monom
@@ -2169,7 +2169,7 @@ cdef class BooleanMonomial(MonoidElement):
 
     EXAMPLE::
 
-        sage: from polybori import BooleanMonomialMonoid, BooleanMonomial
+        sage: from brial import BooleanMonomialMonoid, BooleanMonomial
         sage: P.<x,y,z> = BooleanPolynomialRing(3)
         sage: M = BooleanMonomialMonoid(P)
         sage: BooleanMonomial(M)
@@ -2184,7 +2184,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         EXAMPLE::
 
-            sage: from polybori import BooleanMonomialMonoid, BooleanMonomial
+            sage: from brial import BooleanMonomialMonoid, BooleanMonomial
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: BooleanMonomial(M)
@@ -2200,16 +2200,13 @@ cdef class BooleanMonomial(MonoidElement):
         self._ring = parent._ring
         self._pbmonom = PBMonom_Constructor((<BooleanPolynomialRing>self._ring)._pbring)
 
-    def __dealloc__(self):
-        pass # destruction by C++ object's destructor
-
     def __reduce__(self):
         """
         Pickling
 
         TEST::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: R.<z,x> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(R)
             sage: t = M.0*M.1
@@ -2219,13 +2216,13 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple([gens.index(x) for x in self.variables()]),)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare BooleanMonomial objects.
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x) < M(y)
@@ -2243,10 +2240,6 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x) >= M(x)
             True
         """
-        # boilerplate code from sage.structure.parent
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
         return res
@@ -2403,7 +2396,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*y).deg()
@@ -2432,7 +2425,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*y).degree()
@@ -2537,7 +2530,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: len(M(x*y))
@@ -2551,7 +2544,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: list(M(x*z)) # indirect doctest
@@ -2565,7 +2558,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLE::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*z).variables() # indirect doctest
@@ -2579,7 +2572,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: list(M(x*z).iterindex())
@@ -2593,7 +2586,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y); z=M(z)
@@ -2619,7 +2612,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y)
@@ -2663,7 +2656,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y)
@@ -2715,7 +2708,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLE::
 
-            sage: from polybori import BooleSet
+            sage: from brial import BooleSet
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3*x4+x2*x4+x3+x4+1
@@ -2893,7 +2886,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
     TEST::
 
-        sage: from polybori import BooleanPolynomial
+        sage: from brial import BooleanPolynomial
         sage: B.<a,b,z> = BooleanPolynomialRing(3)
         sage: BooleanPolynomial(B)
         0
@@ -4121,7 +4114,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: loads(dumps(a)) == a
             True
         """
-        from polybori.parallel import _encode_polynomial
+        from brial.parallel import _encode_polynomial
         return unpickle_BooleanPolynomial0, (self._parent,  _encode_polynomial(self))
 
     def _magma_init_(self, magma):
@@ -4346,7 +4339,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
         EXAMPLE::
 
-            sage: from polybori import BooleSet
+            sage: from brial import BooleSet
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3*x4+x2*x4+x3+x4+1
@@ -4706,7 +4699,7 @@ cdef class BooleanPolynomial(MPolynomial):
             ...
             TypeError: argument must be a BooleanPolynomial.
         """
-        from polybori import red_tail
+        from brial import red_tail
         if not I:
             return self
         if isinstance(I, BooleanPolynomialIdeal):
@@ -4732,7 +4725,7 @@ cdef class PolynomialConstruct:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: PolynomialConstruct().lead(a)
             a
@@ -4745,7 +4738,7 @@ cdef class PolynomialConstruct:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: PolynomialConstruct()(1, B)
             1
@@ -4782,7 +4775,7 @@ cdef class MonomialConstruct:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: MonomialConstruct()(B)
             1
@@ -4818,7 +4811,7 @@ cdef class VariableConstruct:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: VariableConstruct()(B)
             a
@@ -5090,7 +5083,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             [x*z, x*y + y*z + y]
         """
 
-        from polybori.gbcore import groebner_basis
+        from brial.gbcore import groebner_basis
 
         if self.ring().term_order()[0].name() == "degrevlex":
             # PolyBoRi's groebner_basis assumes increasing indices
@@ -5110,10 +5103,11 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
             A Simple example::
 
+                sage: from sage.doctest.fixtures import reproducible_repr
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-                sage: I.variety()
-                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
+                sage: print(reproducible_repr(I.variety()))
+                [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
 
         TESTS:
 
@@ -5130,14 +5124,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
-                 sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
-                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
+                 sage: print(reproducible_repr(I.variety()))
+                  [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )
-                 sage: (I + sage.rings.ideal.FieldIdeal(R)).variety()
-                 [{x2: 0, x5: 0, x4: 0, x1: 0, x6: 0, x3: 0}, {x2: 1, x5: 0, x4: 0, x1: 1, x6: 1, x3: 1}]
+                 sage: v = (I + sage.rings.ideal.FieldIdeal(R)).variety()
+                 sage: print(reproducible_repr(v))
+                 [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
 
             Check that :trac:`13976` is fixed::
@@ -5148,13 +5142,21 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: sols[0][y]
                 1
 
+            Make sure the result is a key converting dict, as discussed in
+            :trac:`9788` and consistent with
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.variety`::
+
+                sage: sols[0]["y"]
+                1
+
         """
+        from sage.misc.converting_dict import KeyConvertingDict
         R_bool = self.ring()
         R = R_bool.cover_ring()
         I = R.ideal( [ R( f ) for f in self.groebner_basis() ] )
         J = FieldIdeal(R)
         solutions = (I+J).variety(**kwds)
-        return [ { R_bool(var):val for var,val in s.iteritems() } for s in solutions ]
+        return [ KeyConvertingDict(R_bool, s) for s in solutions ]
 
 
     def reduce(self, f):
@@ -5179,7 +5181,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I.reduce(gb[0]*B.gen(1))
             0
         """
-        from polybori import red_tail
+        from brial import red_tail
         try:
             g = self.__gb
         except AttributeError:
@@ -5291,7 +5293,7 @@ cdef class BooleSet:
 
     EXAMPLE::
 
-        sage: from polybori import BooleSet
+        sage: from brial import BooleSet
         sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
         sage: BS = BooleSet(a.set())
         sage: BS
@@ -5301,7 +5303,7 @@ cdef class BooleSet:
         sage: BS
         {{a,b}, {c}, {}}
 
-        sage: from polybori import *
+        sage: from brial import *
         sage: BooleSet([Monomial(B)])
         {{}}
 
@@ -5360,7 +5362,7 @@ cdef class BooleSet:
         """
         EXAMPLE::
 
-            sage: from polybori import BooleSet
+            sage: from brial import BooleSet
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: BS = BooleSet(B)
             sage: repr(BS) # indirect doctest
@@ -5412,7 +5414,7 @@ cdef class BooleSet:
 
         EXAMPLE::
 
-            sage: from polybori import BooleSet
+            sage: from brial import BooleSet
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3*x4+x2*x4+x3+x4+1
@@ -6022,7 +6024,7 @@ cdef class BooleanPolynomialVector:
     EXAMPLE::
 
         sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-        sage: from polybori import BooleanPolynomialVector
+        sage: from brial import BooleanPolynomialVector
         sage: l = [B.random_element() for _ in range(3)]
         sage: v = BooleanPolynomialVector(l)
         sage: len(v)
@@ -6043,7 +6045,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
             sage: len(v)
@@ -6071,7 +6073,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
             sage: list(iter(v))
@@ -6084,7 +6086,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector()
             sage: len(v)
@@ -6100,7 +6102,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
             sage: len(v)
@@ -6131,7 +6133,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
             sage: len(v)
@@ -6164,7 +6166,7 @@ cdef class BooleanPolynomialVector:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: v = BooleanPolynomialVector()
             sage: for i in range(5):
             ...     v.append(B.random_element())
@@ -6229,7 +6231,7 @@ cdef class ReductionStrategy:
         """
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
         """
@@ -6241,7 +6243,7 @@ cdef class ReductionStrategy:
         """
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: del(red)
@@ -6259,7 +6261,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x)
@@ -6289,7 +6291,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x + y + 1)
@@ -6313,7 +6315,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x + y + 1)
@@ -6338,7 +6340,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.opt_red_tail = True
@@ -6360,7 +6362,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(a*b + c + 1)
@@ -6384,7 +6386,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(a*b + c + 1)
@@ -6425,7 +6427,7 @@ cdef class ReductionStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.opt_red_tail = True
@@ -6486,7 +6488,7 @@ cdef class ReductionStrategy:
         """
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.opt_red_tail = True
@@ -6520,7 +6522,7 @@ cdef class FGLMStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: x > y > z
             True
@@ -6572,7 +6574,7 @@ cdef class FGLMStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: ideal = BooleanPolynomialVector([x+z, y+z])
             sage: list(ideal)
@@ -6603,7 +6605,7 @@ cdef class GroebnerStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: G = GroebnerStrategy(B)
             sage: H = GroebnerStrategy(G)
@@ -6630,7 +6632,7 @@ cdef class GroebnerStrategy:
         """
         EXAMPLE::
 
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: G = GroebnerStrategy(B)
             sage: H = GroebnerStrategy(G)
@@ -6655,7 +6657,7 @@ cdef class GroebnerStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: gbs = GroebnerStrategy(B)
             sage: gbs.add_generator(a + b)
@@ -6682,7 +6684,7 @@ cdef class GroebnerStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: gbs = GroebnerStrategy(B)
             sage: gbs.add_generator(a + b)
@@ -6710,7 +6712,7 @@ cdef class GroebnerStrategy:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: gbs = GroebnerStrategy(B)
             sage: gbs.add_as_you_wish(a + b)
@@ -6768,7 +6770,7 @@ cdef class GroebnerStrategy:
         spanned by the generators but not in the set of generators::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: gb = GroebnerStrategy(B)
             sage: gb.add_generator(a*c + a*f + d*f + d + f)
             sage: gb.add_generator(b*c + b*e + c + d + 1)
@@ -6782,7 +6784,7 @@ cdef class GroebnerStrategy:
 
         Still, we have that::
 
-            sage: from polybori import groebner_basis
+            sage: from brial import groebner_basis
             sage: groebner_basis(gb)
             [1]
         """
@@ -6799,7 +6801,7 @@ cdef class GroebnerStrategy:
         EXAMPLE::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: gb = GroebnerStrategy(B)
             sage: gb.add_generator(a*c + a*f + d*f + d + f)
             sage: gb.add_generator(b*c + b*e + c + d + 1)
@@ -6809,7 +6811,7 @@ cdef class GroebnerStrategy:
             sage: gb.add_generator(a*b + b + c*e + e + 1)
             sage: gb.add_generator(a + b + c*d + c*e + 1)
 
-            sage: from polybori import BooleanPolynomialVector
+            sage: from brial import BooleanPolynomialVector
             sage: V= BooleanPolynomialVector([b*d, a*b])
             sage: list(gb.faugere_step_dense(V))
             [b + c*e + e + 1, c + d*f + e + f]
@@ -6874,7 +6876,7 @@ cdef class GroebnerStrategy:
         """
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: gbs = GroebnerStrategy(B)
             sage: gbs.add_as_you_wish(a + b)
@@ -6906,7 +6908,7 @@ cdef class GroebnerStrategy:
 
         EXAMPLE::
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: gb = GroebnerStrategy(B)
             sage: gb.add_generator(a*c + a*f + d*f + d + f)
             sage: gb.add_generator(b*c + b*e + c + d + 1)
@@ -6917,7 +6919,7 @@ cdef class GroebnerStrategy:
             sage: gb.variable_has_value(0)
             False
 
-            sage: from polybori import groebner_basis
+            sage: from brial import groebner_basis
             sage: g = groebner_basis(gb)
             sage: list(g)
             [a, b + 1, c + 1, d, e + 1, f]
@@ -6946,7 +6948,7 @@ cdef class GroebnerStrategy:
             sage: I = B.ideal([B(f) for f in I.gens()])
             sage: gb = I.groebner_basis()
 
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
 
             sage: G = GroebnerStrategy(B)
             sage: _ = [G.add_generator(f) for f in gb]
@@ -6981,7 +6983,7 @@ cdef class GroebnerStrategy:
             sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
             sage: f = B.random_element()
             sage: g = B.random_element()
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
             sage: strat = GroebnerStrategy(B)
             sage: strat.add_generator(f)
             sage: strat.add_generator(g)
@@ -7001,7 +7003,7 @@ cdef class GroebnerStrategy:
         EXAMPLE::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
-            sage: from polybori import GroebnerStrategy
+            sage: from brial import GroebnerStrategy
 
             sage: G = GroebnerStrategy(B)
             sage: G.add_as_you_wish(a)
@@ -7085,7 +7087,7 @@ class BooleanMulAction(Action):
     def _call_(self, left, right):
         """
         EXAMPLES:
-            sage: from polybori import BooleanMonomialMonoid
+            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x = M(x); xy = M(x*y); z=M(z)
@@ -7144,7 +7146,7 @@ def add_up_polynomials(BooleanPolynomialVector v, BooleanPolynomial init):
 
     EXAMPLE::
 
-        sage: from polybori import *
+        sage: from brial import *
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: v = BooleanPolynomialVector()
         sage: l = [B.random_element() for _ in range(5)]
@@ -7171,7 +7173,7 @@ def red_tail(ReductionStrategy s, BooleanPolynomial p):
 
     EXAMPLE::
 
-        sage: from polybori import *
+        sage: from brial import *
         sage: B.<x,y,z> = BooleanPolynomialRing()
         sage: red = ReductionStrategy(B)
         sage: red.add_generator(x + y + 1)
@@ -7192,7 +7194,7 @@ def map_every_x_to_x_plus_one(BooleanPolynomial p):
         sage: B.<a,b,z> = BooleanPolynomialRing(3)
         sage: f = a*b + z + 1; f
         a*b + z + 1
-        sage: from polybori import map_every_x_to_x_plus_one
+        sage: from brial import map_every_x_to_x_plus_one
         sage: map_every_x_to_x_plus_one(f)
         a*b + a + b + z + 1
         sage: f(a+1,b+1,z+1)
@@ -7227,7 +7229,7 @@ def zeros(pol, BooleSet s):
     This encodes the points (1,1,1,0), (1,1,0,0), (0,0,1,1) and
     (0,1,1,0). But of these only (1,1,0,0) evaluates to zero.::
 
-        sage: from polybori import zeros
+        sage: from brial import zeros
         sage: zeros(f,s)
         {{a,b}}
 
@@ -7261,7 +7263,7 @@ def interpolate(zero, one):
 
         sage: B = BooleanPolynomialRing(4,"x0,x1,x2,x3")
         sage: x = B.gen
-        sage: from polybori.interpolate import *
+        sage: from brial.interpolate import *
         sage: V=(x(0)+x(1)+x(2)+x(3)+1).set()
 
         sage: V
@@ -7325,7 +7327,7 @@ def interpolate_smallest_lex(zero, one):
 
         sage: B = BooleanPolynomialRing(4,"x0,x1,x2,x3")
         sage: x = B.gen
-        sage: from polybori.interpolate import *
+        sage: from brial.interpolate import *
         sage: V=(x(0)+x(1)+x(2)+x(3)+1).set()
 
     We take V = {e0,e1,e2,e3,0}, where ei describes the i-th unit
@@ -7416,7 +7418,7 @@ def ll_red_nf_redsb(p, BooleSet reductors):
 
     EXAMPLE::
 
-        sage: from polybori import ll_red_nf_redsb
+        sage: from brial import ll_red_nf_redsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
         sage: f,g  = a + c + 1, b + d + 1;
@@ -7457,7 +7459,7 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
 
     EXAMPLE::
 
-        sage: from polybori import ll_red_nf_noredsb
+        sage: from brial import ll_red_nf_noredsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
         sage: f,g  = a + c + 1, b + d + 1;
@@ -7489,7 +7491,7 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
 
     EXAMPLE::
 
-        sage: from polybori import ll_red_nf_noredsb_single_recursive_call
+        sage: from brial import ll_red_nf_noredsb_single_recursive_call
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
         sage: f,g  = a + c + 1, b + d + 1;
@@ -7528,7 +7530,7 @@ def if_then_else(root, a, b):
 
     EXAMPLE::
 
-        sage: from polybori import if_then_else
+        sage: from brial import if_then_else
         sage: B = BooleanPolynomialRing(6,'x')
         sage: x0,x1,x2,x3,x4,x5 = B.gens()
         sage: f0 = x2*x3+x3
@@ -7605,7 +7607,7 @@ def top_index(s):
     EXAMPLE::
 
         sage: B.<x,y,z> = BooleanPolynomialRing(3)
-        sage: from polybori import top_index
+        sage: from brial import top_index
         sage: top_index(x.lm())
         0
         sage: top_index(y*z)
@@ -7710,7 +7712,7 @@ def gauss_on_polys(inp):
     EXAMPLE::
 
         sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
-        sage: from polybori import *
+        sage: from brial import *
         sage: l = [B.random_element() for _ in range(B.ngens())]
         sage: A,v = Sequence(l,B).coefficient_matrix()
         sage: A
@@ -7751,7 +7753,7 @@ def substitute_variables(BooleanPolynomialRing parent, vec, BooleanPolynomial po
 
         sage: B.<a,b,c> = BooleanPolynomialRing()
         sage: f = a*b + c + 1
-        sage: from polybori import substitute_variables
+        sage: from brial import substitute_variables
         sage: substitute_variables(B, [a,b,c],f)
         a*b + c + 1
         sage: substitute_variables(B, [a+1,b,c],f)
@@ -7767,7 +7769,7 @@ def substitute_variables(BooleanPolynomialRing parent, vec, BooleanPolynomial po
         sage: f = a*b + c + 1
         sage: B.<w,x,y,z> = BooleanPolynomialRing(order='deglex')
 
-        sage: from polybori import substitute_variables
+        sage: from brial import substitute_variables
         sage: substitute_variables(B, [x,y,z], f) * w
         w*x*y + w*z + w
 
@@ -7789,7 +7791,7 @@ def set_random_seed(seed):
 
     EXAMPLE::
 
-        sage: from polybori import random_set, set_random_seed
+        sage: from brial import random_set, set_random_seed
         sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
         sage: (a*b*c*d).lm()
         a*b*c*d
@@ -7814,7 +7816,7 @@ def random_set(BooleanMonomial variables, length):
 
     EXAMPLE::
 
-        sage: from polybori import random_set, set_random_seed
+        sage: from brial import random_set, set_random_seed
         sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
         sage: (a*b*c*d).lm()
         a*b*c*d
@@ -7829,7 +7831,7 @@ def random_set(BooleanMonomial variables, length):
 def easy_linear_factors(BooleanPolynomial p):
     return new_BPV_from_PBPolyVector(p._parent, pb_easy_linear_factors(p._pbpoly))
 
-# todo: merge with pickling from polybori.parallel
+# todo: merge with pickling from brial.parallel
 def unpickle_BooleanPolynomial(ring, string):
     """
     Unpickle boolean polynomials
@@ -7843,7 +7845,7 @@ def unpickle_BooleanPolynomial(ring, string):
     """
     return ring(eval(string,ring.gens_dict()))
 
-# todo: merge with pickling from polybori.parallel
+# todo: merge with pickling from brial.parallel
 def unpickle_BooleanPolynomial0(ring, l):
     """
     Unpickle boolean polynomials
@@ -7855,11 +7857,11 @@ def unpickle_BooleanPolynomial0(ring, l):
         sage: loads(dumps(a+b)) == a+b # indirect doctest
         True
     """
-    from polybori.parallel import _decode_polynomial
+    from brial.parallel import _decode_polynomial
 
     return  _decode_polynomial(l)
 
-# todo: merge with pickling from polybori.parallel
+# todo: merge with pickling from brial.parallel
 def unpickle_BooleanPolynomialRing(n, names, order):
     """
     Unpickle boolean polynomial rings.
@@ -7885,7 +7887,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: [BooleConstant(i) for i in range(5)]
             [0, 1, 0, 1, 0]
         """
@@ -7895,7 +7897,7 @@ cdef class BooleConstant:
         """
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: repr((BooleConstant(0),BooleConstant(1))) # indirect doctest
             '(0, 1)'
 
@@ -7910,7 +7912,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(0).deg()
             -1
             sage: BooleConstant(1).deg()
@@ -7924,7 +7926,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(0).variables()
             ()
             sage: BooleConstant(1).variables()
@@ -7938,7 +7940,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(0).is_one()
             False
             sage: BooleConstant(1).is_one()
@@ -7952,7 +7954,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(1).is_zero()
             False
             sage: BooleConstant(0).is_zero()
@@ -7966,7 +7968,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(1).is_constant()
             True
             sage: BooleConstant(0).is_constant()
@@ -7980,7 +7982,7 @@ cdef class BooleConstant:
 
         EXAMPLE::
 
-            sage: from polybori import BooleConstant
+            sage: from brial import BooleConstant
             sage: BooleConstant(1).has_constant_part()
             True
             sage: BooleConstant(0).has_constant_part()
@@ -8027,7 +8029,7 @@ cdef class VariableFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: fac = VariableFactory()
             sage: fac = VariableFactory(B)
@@ -8044,7 +8046,7 @@ cdef class VariableFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: VariableFactory()(B)
             a
@@ -8076,7 +8078,7 @@ cdef class MonomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: fac = MonomialFactory()
             sage: fac = MonomialFactory(B)
@@ -8089,7 +8091,7 @@ cdef class MonomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: MonomialFactory()(B)
             1
@@ -8111,7 +8113,7 @@ cdef class MonomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: MonomialFactory()(B)
             1
@@ -8156,7 +8158,7 @@ cdef class PolynomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: fac = PolynomialFactory()
 
@@ -8173,7 +8175,7 @@ cdef class PolynomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: PolynomialFactory().lead(a)
             a
@@ -8187,7 +8189,7 @@ cdef class PolynomialFactory:
 
         EXAMPLE::
 
-            sage: from polybori import *
+            sage: from brial import *
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: PolynomialFactory()(1, B)
             1
