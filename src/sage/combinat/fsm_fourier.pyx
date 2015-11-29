@@ -1248,9 +1248,9 @@ cdef class FSMFourierCache(SageObject):
                 values[i - start] = sum/i - e_T * log(i, base=q)
             arb_to_mpfi(
                 current.value,
-                &acb_mat_entry(self.bb[i],
+                acb_realref(acb_mat_entry(self.bb[i],
                               initial,
-                              0).real,
+                              0)),
                 precision)
             sum += current.center()
 
