@@ -396,28 +396,28 @@ def _reduce_resolution_(data, x_min, x_max, resolution):
 
     EXAMPLES::
 
-        sage: from sage.combinat.fsm_fourier import _reduce_resolution_ # optional - arb
-        sage: _reduce_resolution_(((i/10, i) for i in range(10)), # optional - arb
+        sage: from sage.combinat.fsm_fourier import _reduce_resolution_
+        sage: _reduce_resolution_(((i/10, i) for i in range(10)),
         ....:                    0, 1, 2)
         [(0.0, 0, 4), (0.5, 5, 9)]
-        sage: _reduce_resolution_(((1 - i/10, i) for i in range(1, 11)), # optional - arb
+        sage: _reduce_resolution_(((1 - i/10, i) for i in range(1, 11)),
         ....:                    0, 1, 2)
         [(0.0, 6, 10), (0.5, 1, 5)]
-        sage: _reduce_resolution_(((0, 2), (0.2, 1), (0.4, 0), # optional - arb
+        sage: _reduce_resolution_(((0, 2), (0.2, 1), (0.4, 0),
         ....:                      (0.6, 1.5), (0.8, 3)), 0, 1, 2)
         [(0.0, 0, 2), (0.5, 1.50000000000000, 3)]
-        sage: _reduce_resolution_([(0, 10)],  # optional - arb
+        sage: _reduce_resolution_([(0, 10)],
         ....:                    0, 1, 2)
         [(0.0, 10, 10)]
 
     TESTS::
 
-        sage: _reduce_resolution_([(1, 10)],  # optional - arb
+        sage: _reduce_resolution_([(1, 10)],
         ....:                    0, 1, 2)
         Traceback (most recent call last):
         ...
         ValueError: x values must be >= x_min and < x_max.
-        sage: _reduce_resolution_([(-1, 10)],  # optional - arb
+        sage: _reduce_resolution_([(-1, 10)],
         ....:                    0, 1, 2)
         Traceback (most recent call last):
         ...
@@ -1173,14 +1173,14 @@ cdef class FSMFourierCache(SageObject):
             f
             sage: var('n')
             n
-            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = transducers.Recursion([
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     2, f, n)
-            sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_empirical(10, 12) # optional - arb; tolerance 1e-12
+            sage: F = FSMFourier(T)
+            sage: F.cache.fluctuation_empirical(10, 12) # tolerance 1e-12
             [(3.3219280948873626, -0.1609640474436813),
              (3.4594316186372978, -0.18426126386410324)]
 
@@ -1192,8 +1192,8 @@ cdef class FSMFourierCache(SageObject):
             sage: T.state(0).final_word_out = 1
             sage: [T(i.bits()) for i in srange(3)]
             [[1], [0, 1], [0, 0, 1]]
-            sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb; tolerance 1e-12
+            sage: F = FSMFourier(T)
+            sage: F.cache.fluctuation_empirical(1, 4) # tolerance 1e-12
             [(0.0, 1.0), (1.0, 1.0), (1.5849625007211563, 1.0)]
 
         The following transducer has sum of output `\lfloor\log n\rfloor` for input `n`. ::
@@ -1204,17 +1204,17 @@ cdef class FSMFourierCache(SageObject):
             sage: T.state(0).final_word_out = -1
             sage: [sum(T(i.bits())) for i in srange(5)]
             [-1, 0, 1, 1, 2]
-            sage: F = FSMFourier(T) # optional - arb
-            sage: F.e_T # optional - arb
+            sage: F = FSMFourier(T)
+            sage: F.e_T
             1
-            sage: F.cache.fluctuation_empirical(1, 4) # optional - arb; tolerance 1e-12
+            sage: F.cache.fluctuation_empirical(1, 4) # tolerance 1e-12
             [(0.0, -1.0),
              (1.0, -1.5),
              (1.5849625007211563, -1.5849625007211563)]
 
         The parameter ``start`` must be positive::
 
-            sage: F.cache.fluctuation_empirical(0, 2) # optional - arb
+            sage: F.cache.fluctuation_empirical(0, 2)
             Traceback (most recent call last):
             ...
             ValueError: start must be positive.
@@ -1295,15 +1295,15 @@ cdef class FSMFourierCache(SageObject):
 
         The following transducer has sum of output `1` for all input. ::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 0)],
             ....:                initial_states=[0],
             ....:                final_states=[0])
             sage: T.state(0).final_word_out = 1
             sage: [T(i.bits()) for i in srange(3)]
             [[1], [0, 1], [0, 0, 1]]
-            sage: F = FSMFourier(T) # optional - arb
-            sage: F.cache.fluctuation_fourier(2, 3, 2) # optional - arb; rel tolerance 1e-10
+            sage: F = FSMFourier(T)
+            sage: F.cache.fluctuation_fourier(2, 3, 2) # rel tolerance 1e-10
             [(2.0, 0.9999999999999978), (2.5, 0.9999999999999991)]
         """
         cdef double c0
@@ -2178,17 +2178,17 @@ class FSMFourier(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: function('f')
             f
             sage: var('n')
             n
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
+            sage: F = FSMFourier(transducers.Recursion([
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     2, f, n))
-            sage: F.plot_fluctuation(8, 9, 2) # optional - arb
+            sage: F.plot_fluctuation(8, 9, 2)
             Graphics object consisting of 2 graphics primitives
 
         .. SEEALSO::
@@ -2243,18 +2243,18 @@ class FSMFourier(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.fsm_fourier import FSMFourier # optional - arb
+            sage: from sage.combinat.fsm_fourier import FSMFourier
             sage: function('f')
             f
             sage: var('n')
             n
-            sage: F = FSMFourier(transducers.Recursion([ # optional - arb
+            sage: F = FSMFourier(transducers.Recursion([
             ....:     f(2*n + 1) == f(n) + 1,
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     2, f, n))
             sage: dir = tmp_dir()
-            sage: F.plot_fluctuation_asymptote( # optional - arb
+            sage: F.plot_fluctuation_asymptote(
             ....:     dir + "test", 8, 9, resolution=2)
 
         .. SEEALSO::
