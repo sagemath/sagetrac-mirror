@@ -11,7 +11,7 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-./configure --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" \
+./configure --disable-static --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring arb."
