@@ -29,3 +29,8 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing arb."
     exit 1
 fi
+
+# fix install_name on OS X
+if [ "$UNAME" = "Darwin" ]; then
+    install_name_tool -id "${SAGE_LOCAL}"/lib/libarb.dylib "${SAGE_LOCAL}"/lib/libarb.dylib
+fi
