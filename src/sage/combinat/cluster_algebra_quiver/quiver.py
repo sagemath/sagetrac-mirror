@@ -213,17 +213,21 @@ class ClusterQuiver(SageObject):
         elif type( data ) in [list,tuple] and ( isinstance(data[0], str) or all(type( comp ) in [list,tuple] and isinstance(comp[0], str) for comp in data) ):
             if frozen is not None:
                 print 'The input specifies a mutation type, so the additional parameter frozen is ignored.'
+            if isinstance(data[1], list) and isinstance(data[1][0],list):
+                data[1][0] = tuple(data[1][0])
             mutation_type = QuiverMutationType( data )
 
             # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.
             if len(data) == 2 and isinstance(data[0], str):
-                if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2):
+                if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2) or data[0] == 'DB':
                     if data[1] in ZZ:
                         quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1] )._digraph )
                         quiv._mutation_type = mutation_type
                         self.__init__( quiv )
                     elif isinstance(data[1], list):
-                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph )
+                        if isinstance(data[1][0], list):
+                            data[1][0] = tuple(data[1][0])
+                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph, frozen = QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._frozen )
                         quiv._mutation_type = mutation_type
                         self.__init__( quiv )
                 else:

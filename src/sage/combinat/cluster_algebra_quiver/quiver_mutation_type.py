@@ -24,6 +24,9 @@ from sage.graphs.all import Graph, DiGraph
 from sage.rings.arith import binomial, Euler_Phi
 from sage.all import prod
 from sage.matrix.all import matrix
+from sage.combinat.permutation import Permutation
+from sage.combinat.root_system.weyl_group import WeylGroupElement
+from sage.combinat.cluster_algebra_quiver.double_bruhat_digraph import dblBruhatDigraph
 
 
 class QuiverMutationTypeFactory(SageObject):
@@ -180,6 +183,9 @@ class QuiverMutationTypeFactory(SageObject):
                     data = ('BC',1,1)
                 elif data[1] == (2,2):
                     data = ('A',(1,1),1)
+            elif data[0] == 'DB':
+                if len(data[1]) == 2:
+                    data = (data[0], (None,data[1][0],tuple(data[1][1])),data[2])
 
         # setting the parameters and returning the mutation type
         letter,rank,twist = data
@@ -1144,6 +1150,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         # _letter/twist is the input letter/twist
         self._letter = letter
         self._twist = twist
+        
+        # frozen vertices in self._digraph
+        self._frozen = None
 
         data = [letter,rank,twist]
 
@@ -1633,7 +1642,26 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                     self._digraph.add_edges( [ (5,6,2),(6,2,None) ] )
             else:
                 _mutation_type_error( data )
-
+        
+        # type DB
+        elif letter == 'DB':
+            
+            # Permutations default to type A
+            if twist is None and isinstance(rank[1],Permutation) and isinstance(rank[2],Permutation) and len(rank[1]) == len(rank[2]):
+                
+                self._digraph, self._frozen = dblBruhatDigraph(['A',len(rank[0]) - 1],rank[1],rank[2])
+                
+            # All other cases 
+            elif twist is None and isinstance(rank[1], WeylGroupElement) and isinstance(rank[2], WeylGroupElement):
+                self._digraph, self._frozen = dblBruhatDigraph(rank[0],rank[1],rank[2])
+                
+            # Signed Permutations default to type B (there is currently no SignedPermutation class)
+            # elif twist is None and len(rank[0]) == len(rank[1]) and rank[0] in SignedPermutations(len(rank[0])) and rank[1] in SignedPermutations(len(rank[0])):
+            #    self._digraph, self._frozen = dblBruhatDigraph(rank[0],rank[1],['B',len(rank[0]) - 1])
+                
+            else:
+                _mutation_type_error( data )
+        
         # otherwise, an error is raised
         else:
             _mutation_type_error( data )
@@ -1653,6 +1681,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         # _description is as for CartanType
         if twist: self._description = str( [letter,rank,twist] )
         else: self._description = str( [letter,rank] )
+            
 
     def irreducible_components( self ):
         """

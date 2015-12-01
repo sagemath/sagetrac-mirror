@@ -757,7 +757,10 @@ class ClusterSeed(SageObject):
             self._init_vars = {}
             for i in xrange(len(user_labels)):
                 if isinstance(user_labels[i], Integer):
-                    self._init_vars[i] = user_labels_prefix+user_labels[i].str()
+                    if user_labels[i] < 0:
+                        self._init_vars[i] = user_labels_prefix+'neg'+(-user_labels[i]).str()
+                    else:
+                        self._init_vars[i] = user_labels_prefix+user_labels[i].str()
                 elif isinstance(user_labels[i], list):
                     self._user_labels_prefix = user_labels_prefix
                     strng = self._user_labels_prefix
