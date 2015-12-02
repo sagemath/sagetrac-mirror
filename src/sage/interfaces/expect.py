@@ -429,6 +429,7 @@ If this all works, you can then make calls like:
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),
+                        ignore_sighup=True,
                         quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
                 # Change pexpect errors to RuntimeError
@@ -446,6 +447,7 @@ If this all works, you can then make calls like:
 
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
+        self._expect.delayafterread = None
         try:
             self._expect.expect(self._prompt)
         except (pexpect.TIMEOUT, pexpect.EOF):
