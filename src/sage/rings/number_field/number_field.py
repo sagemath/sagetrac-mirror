@@ -607,7 +607,7 @@ class NumberFieldFactory(UniqueFactory):
         base, polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure = key
 
         if isinstance(base, NumberField_generic):
-            return base.extension(polynomial, name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings
+            return base.extension(polynomial, name, latex_name=latex_name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings
         if polynomial.degree() == 2:
             return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         else:
