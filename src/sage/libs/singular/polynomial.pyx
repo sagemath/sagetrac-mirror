@@ -531,12 +531,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        while p:
-            _deg = r.pFDegOrig(p,r)
-            if _deg > deg:
-                deg = _deg
-            p = pNext(p)
-        return deg
+        return r.pDeg(p,&deg,r)
 
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):
