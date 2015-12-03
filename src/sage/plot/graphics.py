@@ -38,7 +38,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
-ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
+ALLOWED_EXTENSIONS = ['.eps', '.ipe', '.pdf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 def show_default(default=None):
@@ -3086,6 +3086,8 @@ class Graphics(WithEqualityById, SageObject):
 
             * ``.eps``,
 
+            * ``.ipe``,
+
             * ``.pdf``,
 
             * ``.png``,
@@ -3158,6 +3160,11 @@ class Graphics(WithEqualityById, SageObject):
             sage: plot(x^2, (x, 1, 2), ticks=[[], []])
             Graphics object consisting of 1 graphics primitive
 
+        Save as .ipe
+            sage: c = circle((1,1), 1, color='red')
+            sage: filename = os.path.join(SAGE_TMP, 'test.ipe')
+            sage: c.save(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
+
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)
@@ -3184,19 +3191,23 @@ class Graphics(WithEqualityById, SageObject):
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                          rcParams['text.usetex']) # save the rcParams
             figure = self.matplotlib(**options)
-            # You can output in PNG, PS, EPS, PDF, or SVG format, depending
+            # You can output in PNG, PS, EPS, IPE, PDF, or SVG format, depending
             # on the file extension.
-            # matplotlib looks at the file extension to see what the renderer should be.
-            # The default is FigureCanvasAgg for PNG's because this is by far the most
-            # common type of files rendered, like in the notebook, for example.
-            # if the file extension is not '.png', then matplotlib will handle it.
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
-            figure.set_canvas(FigureCanvasAgg(figure))
-            # this messes up the aspect ratio!
-            #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
+            if ext == '.ipe':
+                from matplotlib.backends.backend_ipe import FigureCanvasIpe
+                figure.set_canvas(FigureCanvasIpe(figure))
+            else:
+                # matplotlib looks at the file extension to see what the renderer should be.
+                # The default is FigureCanvasAgg for PNG's because this is by far the most
+                # common type of files rendered, like in the notebook, for example.
+                # if the file extension is not '.png', then matplotlib will handle it.
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
+                figure.set_canvas(FigureCanvasAgg(figure))
+                # this messes up the aspect ratio!
+                #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
 
-            # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
-            figure.tight_layout()
+                # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
+                figure.tight_layout()
 
             opts = dict(dpi=dpi, transparent=transparent)
             if fig_tight is True:
