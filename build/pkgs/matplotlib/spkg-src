@@ -13,6 +13,9 @@ DOWNLOAD_URL="https://pypi.python.org/packages/source/m/matplotlib/matplotlib-${
 # fetch and unpack latest version
 tar xzf <( curl -L ${DOWNLOAD_URL} )
 
+# fetch and add ipe backend
+curl -L "https://github.com/otfried/ipe-tools/raw/master/matplotlib/backend_ipe.py" -o matplotlib-${VERSION}/lib/matplotlib/backends/backend_ipe.py
+
 
 # remove test images
 rm -rf matplotlib-${VERSION}/lib/matplotlib/tests/baseline_images/*
