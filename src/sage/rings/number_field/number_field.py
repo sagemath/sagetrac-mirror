@@ -754,7 +754,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
     var = f.variable_name() if is_Polynomial(f) else 'x'
 
     R = w[var]  # polynomial ring
-    return w.extension(R(f), name, check=check, embedding=embeddings[0], structure=structures[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
+    return w.extension(R(f), name, check=check, embedding=embeddings[0], latex_name=latex_names[0], structure=structures[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
 
 def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
@@ -1196,6 +1196,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__latex_variable_name = latex_variable_name(self.variable_name())
         else:
             self.__latex_variable_name = latex_name
+        self._latex_names = [self.__latex_variable_name]
         self.__polynomial = polynomial
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}

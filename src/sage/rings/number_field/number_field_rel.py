@@ -313,6 +313,8 @@ class NumberField_relative(NumberField_generic):
                                      latex_name=latex_name, check=False,
                                      embedding=embedding, structure=structure)
 
+        self._latex_names += base.latex_variable_names()
+
         v[0] = self._gen_relative()
         v = [self(x) for x in v]
         self.__gens = tuple(v)
