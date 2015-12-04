@@ -1610,9 +1610,14 @@ def _sage_getdoc_unformatted(obj):
     if obj is None:
         return ''
     try:
-        r = obj._sage_doc_()
-    except (AttributeError, TypeError): # the TypeError occurs if obj is a class
+        getdoc = obj._sage_doc_
+    except Exception:
         r = obj.__doc__
+    else:
+        try:
+            r = getdoc()
+        except TypeError:  # This can occur if obj is a class
+            r = obj.__doc__
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.

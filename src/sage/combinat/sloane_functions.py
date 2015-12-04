@@ -9733,7 +9733,7 @@ class Sloane(SageObject):
                 seq = f()
                 setattr(self, name, seq)
                 return seq
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise AttributeError(name)
 
 sloane = Sloane()
