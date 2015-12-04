@@ -1539,7 +1539,7 @@ class HasseDiagram(DiGraph):
     def ordinal_sum_decomposition(self):
         """
         Return the ordinal decomposition of the poset.
-        
+
         This function is kind of inverse to ordinal sum. Ordinal
         decomposition of a poset `P` is the list of posets
         `P_1, \ldots, P_n` so that `P` is ordinal sum of them.
@@ -1570,7 +1570,7 @@ class HasseDiagram(DiGraph):
         check if they can be `l` and `u` in previous description.
 
         EXAMPLES::
-    
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2], 1:[2, 3], 2:[4, 5, 6], 3:[4, 5, 6],
             ....: 4:[7], 5:[7], 6:[7], 7:[8]})
