@@ -30,7 +30,7 @@ al codice (non \`e necessario che abbia il nome o la collacazione che ha qui).
 
 Ci\`o che viene fatto \`e creare una nuova directory, spostarsi all'interno, 
 e creare un clone della versione pi\`u aggiornata dei sorgenti upstream (n.m. 
-Ipython) del notebook. Poi cancella il link simbolic ``sagenb`` nella cartella 
+Ipython) del notebook. Poi cancella il link simbolico ``sagenb`` nella cartella 
 Sage e la sostituiamo con un link al clone appena fatto, garantendo cos\`i che 
 il notebook ha le dipendenze corrette.
 
@@ -41,7 +41,7 @@ cancelli accidentalmente la tua installazione di Sage.
 Il resto di queste instruzioni \`e della documentazione generica, 
 leggermente adattata per aiutarti a sviluppare il notebook usando Git e Github.
 
-La sezione pi\`u importantem riguarda il come aggiornare il tuo nuovo 
+La sezione pi\`u importante riguarda il come aggiornare il tuo nuovo 
 repository di sorgente sagenb e come creare un "fork" della copia "master", 
 cos\`i che tu possa chiedere le che le tue modifiche vengano aggiunte ai 
 notebook Sage, detto "pull request"; see :ref:`github-development`.
