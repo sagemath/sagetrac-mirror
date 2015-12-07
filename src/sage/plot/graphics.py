@@ -3161,6 +3161,7 @@ class Graphics(WithEqualityById, SageObject):
             Graphics object consisting of 1 graphics primitive
 
         Save as .ipe ::
+
             sage: c = circle((1,1), 1, color='red')
             sage: filename = os.path.join(SAGE_TMP, 'test.ipe')
             sage: c.save(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
