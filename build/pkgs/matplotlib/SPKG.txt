@@ -36,6 +36,11 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
 == Build Instructions/Changes ==
 
+ * backend_ipe.py.patch: enable exporting graphics to ipe. This patch was made
+   repackaging version e5b23399a83d69fd5bb5d4645ef7325b4b57435b of
+   https://github.com/otfried/ipe-tools/blob/master/matplotlib/backend_ipe.py
+   into .patch form for ease of installation.
+
  * NOTE: To drastically cut down on spkg size, we delete the internal
    testing images. To do this, we repackage the tarball by removing
    the contents of lib/matplotlib/tests/baseline_images/*, this is
