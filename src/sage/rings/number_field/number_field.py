@@ -216,7 +216,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -484,6 +484,8 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    if latex_names is not None:
+        latex_name = latex_names
     if isinstance(polynomial, (list,tuple)):
         return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 
@@ -736,6 +738,8 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         embeddings = [None] * len(polynomials)
     if latex_names is None:
         latex_names = [None] * len(polynomials)
+    elif isinstance(latex_names, str):
+        latex_names = ['%s_{%s}' % (latex_names, i) for i in range(len(polynomials))]
     if structures is None:
         structures = [None] * len(polynomials)
 
