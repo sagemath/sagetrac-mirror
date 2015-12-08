@@ -32,7 +32,7 @@ from sage.rings.complex_arb cimport (
     ComplexBall,
     ComplexIntervalFieldElement_to_acb,
     acb_to_ComplexIntervalFieldElement)
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, parent_c
 
 
 cdef void matrix_to_acb_mat(acb_mat_t target, source):
@@ -243,6 +243,46 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: Matrix(CBF, 100, 0)
             100 x 0 dense matrix over Complex ball field with 53 bits precision
             (use the '.str()' method to see the entries)
+            sage: M = MatrixSpace(CBF, 2, 2)
+            sage: from sage.matrix.matrix_complex_ball_dense import Matrix_complex_ball_dense
+            sage: Matrix_complex_ball_dense(M, None, True, True)
+            [0 0]
+            [0 0]
+            sage: matrix(CBF, 2, 2, CBF(1))
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
+            sage: Matrix_complex_ball_dense(M, 1, True, True)
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
+
+        This is from :trac:`17220`, comment 28::
+
+            sage: Pol.<x> = QQ[]
+            sage: pol = 1 + x + x^2
+            sage: Mat = MatrixSpace(CBF, 3, 1)
+            sage: Mat(pol)
+            [1.000000000000000]
+            [1.000000000000000]
+            [1.000000000000000]
+
+        This is from :trac:`17220`, comment 32::
+
+            sage: A = matrix(CIF, 2, 2, 1)
+            sage: B = matrix(CBF, 2, 2, A); B
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
+            sage: C = matrix(CBF, 2, 2, B)
+            sage: C is B
+            False
+            sage: matrix(CBF, 2, 3, [1, 2, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: entries has the wrong length
+            sage: matrix(CBF, 2, 2, CBF)
+            Traceback (most recent call last):
+            ...
+            TypeError: entries must be coercible to a list
+            or to Complex ball field with 53 bits precision
         """
         cdef Py_ssize_t i, j, k
         cdef bint is_list
@@ -251,15 +291,23 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         if entries is None:
             x = self._base_ring.zero()
             is_list = False
-        elif isinstance(entries, (int, long, Element)):
-            try:
-                x = self._base_ring(entries)
-            except TypeError:
-                raise TypeError("unable to convert entry to a complex ball")
+        elif parent_c(entries) is self._base_ring:
+            x = entries
             is_list = False
         else:
-            entries = list(entries)
-            is_list = True
+            # not sure what entries is at this point... try scalar first
+            try:
+                x = self._base_ring(entries)
+                is_list = False
+            except (ValueError, TypeError):
+                # ValueError might occur if CIF tries to do conversion
+                try:
+                    entries = list(entries)
+                    is_list = True
+                except (TypeError, NotImplementedError):
+                    raise TypeError(
+                        "entries must be coercible to a list or to {}"\
+                            .format(self._base_ring))
 
         if is_list:
             # Create the matrix whose entries are in the given entry list.
