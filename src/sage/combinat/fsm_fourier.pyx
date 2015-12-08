@@ -114,8 +114,7 @@ from sage.functions.log import log
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix_complex_ball_dense cimport (
-    matrix_to_acb_mat, acb_mat_to_matrix)
+from sage.matrix.matrix_complex_ball_dense cimport Matrix_complex_ball_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import srange, verbose
@@ -924,8 +923,8 @@ cdef class FSMFourierCache(SageObject):
         self.precision = self.parent.CIF.precision()
         self.q = self.parent.q
 
-        MS_n = MatrixSpace(self.parent.CIF, self.n, self.n)
-        MS_1 = MatrixSpace(self.parent.CIF, self.n, 1)
+        MS_n = MatrixSpace(self.parent.CBF, self.n, self.n)
+        MS_1 = MatrixSpace(self.parent.CBF, self.n, 1)
 
         self.Delta_epsilon_ones = <acb_mat_t*> malloc(
             self.q * sizeof(acb_mat_t))
@@ -937,12 +936,12 @@ cdef class FSMFourierCache(SageObject):
             acb_mat_init(self.Delta_epsilon_ones[epsilon], self.n, 1)
 
         for epsilon in range(self.q):
-            matrix_to_acb_mat(self.M_epsilon[epsilon],
-                              MS_n(parent.M_epsilon[epsilon]))
+            acb_mat_set(self.M_epsilon[epsilon],
+                        (<Matrix_complex_ball_dense>MS_n(parent.M_epsilon[epsilon])).value)
 
-            matrix_to_acb_mat(self.Delta_epsilon_ones[epsilon],
-                              MS_1(parent.Delta_epsilon[epsilon] *
-                                   parent.ones))
+            acb_mat_set(self.Delta_epsilon_ones[epsilon],
+                        (<Matrix_complex_ball_dense>MS_1(parent.Delta_epsilon[epsilon] *
+                             parent.ones)).value)
         self.bb_allocated = self.q*1024
         self.bb = <acb_mat_t*> malloc(
             self.bb_allocated * sizeof(acb_mat_t))
@@ -1013,10 +1012,10 @@ cdef class FSMFourierCache(SageObject):
                 R = r*self.q + epsilon
                 acb_mat_init(self.bb[R], self.n, 1)
                 if R == 0:
-                    matrix_to_acb_mat(
+                    acb_mat_set(
                         self.bb[0],
-                        matrix(self.parent.CIF,
-                               self.parent.b0()).transpose())
+                        (<Matrix_complex_ball_dense>matrix(self.parent.CBF,
+                               self.parent.b0()).transpose()).value)
                 else:
                     acb_mat_mul(self.bb[R],
                                 self.M_epsilon[epsilon],
@@ -1058,7 +1057,9 @@ cdef class FSMFourierCache(SageObject):
             [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
         """
         self.compute_b(r+1)
-        return acb_mat_to_matrix(self.bb[r], self.parent.CIF).column(0)
+        cdef Matrix_complex_ball_dense CBF_matrix = matrix(self.parent.CBF, self.n, 1)
+        acb_mat_set(CBF_matrix.value, self.bb[r])
+        return CBF_matrix.change_ring(self.parent.CIF).column(0)
 
     cdef FreeModuleElement_generic_dense partial_dirichlet(
         self,
@@ -1084,7 +1085,6 @@ cdef class FSMFourierCache(SageObject):
         cdef acb_mat_t result;
         cdef acb_t scalar;
         cdef acb_t minuss;
-        cdef FreeModuleElement_generic_dense result_vector
 
         self.compute_b(end)
 
@@ -1098,13 +1098,14 @@ cdef class FSMFourierCache(SageObject):
             acb_pow(scalar, scalar, minuss, self.precision)
             acb_mat_scalar_addmul_acb(result, self.bb[r],
                                       scalar, self.precision)
-        result_vector = acb_mat_to_matrix(result, self.parent.CIF).column(0)
+        cdef Matrix_complex_ball_dense result_vector = matrix(self.parent.CBF, self.n, 1)
+        acb_mat_set(result_vector.value, result)
 
         acb_clear(minuss)
         acb_clear(scalar)
         acb_mat_clear(result)
 
-        return result_vector
+        return result_vector.change_ring(self.parent.CIF).column(0)
 
 class FSMFourier(SageObject):
     """
@@ -1469,11 +1470,13 @@ class FSMFourier(SageObject):
         from sage.functions.log import exp
         from sage.modules.free_module import VectorSpace
         from sage.rings.arith import lcm
+        from sage.rings.complex_arb import ComplexBallField
         from sage.rings.number_field.number_field import CyclotomicField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         self.transducer = transducer
         self.CIF = CIF
+        self.CBF = ComplexBallField(precision=CIF.precision())
         self.positions = dict((state.label(), j)
                          for j, state in enumerate(transducer.iter_states()))
         self.q = len(transducer.input_alphabet)
