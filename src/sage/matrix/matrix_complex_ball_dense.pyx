@@ -181,7 +181,9 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         -  ``coerce`` - whether need to coerce entries to the
            complex ball field (program may crash if you get this wrong)
 
-        -  ``copy`` - ignored (since complex balls are immutable)
+        - ``copy`` - ignored (since this is a specialized data
+          structure, it is impossible to just use ``entries`` without
+          copying)
 
         EXAMPLES:
 
@@ -271,9 +273,9 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: B = matrix(CBF, 2, 2, A); B
             [1.000000000000000                 0]
             [                0 1.000000000000000]
-            sage: C = matrix(CBF, 2, 2, B)
-            sage: C is B
-            False
+            sage: C = matrix(CBF, 2, 2, B); C
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
             sage: matrix(CBF, 2, 3, [1, 2, 3])
             Traceback (most recent call last):
             ...
