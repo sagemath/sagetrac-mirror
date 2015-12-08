@@ -26,73 +26,8 @@ from sage.libs.arb.acb_mat cimport *
 from sage.matrix.matrix cimport Matrix
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_generic_sparse cimport Matrix_generic_sparse
-from sage.rings.complex_interval_field import ComplexIntervalField_class, ComplexIntervalField
-from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.rings.complex_arb cimport (
-    ComplexBall,
-    ComplexIntervalFieldElement_to_acb,
-    acb_to_ComplexIntervalFieldElement)
+from sage.rings.complex_arb cimport ComplexBall
 from sage.structure.element cimport Element, parent_c
-
-
-cdef void matrix_to_acb_mat(acb_mat_t target, source):
-    """
-    Convert a matrix containing :class:`ComplexIntervalFieldElement` to an ``acb_mat_t``.
-
-    INPUT:
-
-    - ``target`` -- an ``acb_mat_t``
-
-    - ``source`` -- a matrix consisting of :class:`ComplexIntervalFieldElement`
-
-    OUTPUT:
-
-    None.
-    """
-    cdef unsigned long nrows, ncols, r, c, precision
-
-    nrows = acb_mat_nrows(target)
-    ncols = acb_mat_ncols(target)
-
-    for r in range(nrows):
-        for c in range(ncols):
-            ComplexIntervalFieldElement_to_acb(acb_mat_entry(target, r, c),
-                                               source[r][c])
-
-cdef ComplexIntervalFieldElement _to_CIF(acb_t source, ComplexIntervalFieldElement template):
-    cdef ComplexIntervalFieldElement result
-    result = template._new()
-    acb_to_ComplexIntervalFieldElement(
-        result, source)
-    return result
-
-cdef Matrix_generic_dense acb_mat_to_matrix(
-    acb_mat_t source, Parent CIF):
-    """
-    Convert an ``acb_mat_t`` to a matrix containing :class:`ComplexIntervalFieldElement`.
-
-    INPUT:
-
-    - ``source`` -- an ``acb_mat_t``
-
-    - ``precision`` -- a positive integer.
-
-    OUTPUT:
-
-    A :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`
-    containing :class:`ComplexIntervalFieldElement`.
-    """
-    cdef unsigned long nrows, ncols, r, c
-    cdef ComplexIntervalFieldElement template
-
-    nrows = acb_mat_nrows(source)
-    ncols = acb_mat_ncols(source)
-    template = CIF(0)
-
-    return matrix(
-                  [[_to_CIF(acb_mat_entry(source, r, c), template)
-                    for c in range(ncols)]
-                   for r in range(nrows)])
 
 
 cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
