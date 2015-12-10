@@ -41,7 +41,6 @@ TESTS::
 
 
 cdef is_FractionField, is_RealField, is_ComplexField
-cdef coerce_binop, generic_power, parent
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
 import operator, copy, re
@@ -73,8 +72,10 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import RingElement, generic_power, parent
-from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
+from sage.structure.element import generic_power
+from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport (Element, RingElement,
+        ModuleElement, MonoidElement, coercion_model)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -83,6 +84,7 @@ from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
 from sage.rings.integral_domain import is_IntegralDomain
+from sage.structure.category_object cimport normalize_names
 from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
@@ -428,7 +430,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
             return self
-        return self.__call__(*x, **kwds)
+        return self(*x, **kwds)
     substitute = subs
 
     def __call__(self, *args, **kwds):
@@ -924,9 +926,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if c: return c
         return 0
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     def __nonzero__(self):
         """
         EXAMPLES::
@@ -971,9 +970,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return (self.parent(), tuple(self))
 
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
 
@@ -2310,7 +2306,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
         """
-        return self.__mod__(other)
+        return self % other
 
     def _is_atomic(self):
         """
@@ -3235,7 +3231,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        cm = sage.structure.element.get_coercion_model()
+        cm = coercion_model
         try:
             S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
             Q = S.base_ring()
@@ -3981,7 +3977,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Finite Field in b of size 401^52
 
         """
-        name = sage.structure.parent_gens.normalize_names(1, names)[0]
+        name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -4161,7 +4157,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         The additional inputs to this function are to speed up computation for
         field semantics (see note).
 
-        INPUTS:
+        INPUT:
 
           - ``n`` (default: ``None``) - if provided, should equal
             `q-1` where ``self.parent()`` is the field with `q`
@@ -4576,7 +4572,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # sylvester_matrix() in multi_polynomial.pyx.
 
         if self.parent() != right.parent():
-            coercion_model = sage.structure.element.get_coercion_model()
             a, b = coercion_model.canonical_coercion(self,right)
             variable = a.parent()(self.variables()[0])
             #We add the variable to cover the case that right is a multivariate
@@ -4693,6 +4688,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_unit()
             False
 
+        EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
+        polynomial ring in one variable. Then
+        `f=\sum a_i x^i \in A[x]` is a unit if and only if
+        `a_0` is a unit and `a_1,\ldots, a_n` are
+        nilpotent.
+
         TESTS:
 
         Check that :trac:`18600` is fixed::
@@ -4701,12 +4702,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = x^2^100 + 1
             sage: c.is_unit()
             False
-
-        EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
-        polynomial ring in one variable. Then
-        `f=\sum a_i x^i \in A[x]` is a unit if and only if
-        `a_0` is a unit and `a_1,\ldots, a_n` are
-        nilpotent.
         """
         if self.degree() > 0:
             try:
@@ -5573,8 +5568,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<s> = PolynomialRing(Qp(2))
             sage: (s^2).discriminant()
             0
-
-        TESTS:
 
         This was fixed by :trac:`16014`::
 
@@ -6731,7 +6724,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         k = 0
         while self % p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self //= p
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):
@@ -7932,14 +7925,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             del x[n]
             n -= 1
 
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     def __getitem__(self, n):
         """
@@ -8381,7 +8368,8 @@ cdef class ConstantPolynomialSection(Map):
     """
     cpdef Element _call_(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import ConstantPolynomialSection
             sage: R.<x> = QQ[]
             sage: m = ConstantPolynomialSection(R, QQ); m
@@ -8519,7 +8507,8 @@ cdef class PolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(ZZ, ZZ['x']); m
             Polynomial base injection morphism:
@@ -8534,7 +8523,8 @@ cdef class PolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(Qp(5), Qp(5)['x'])
             sage: m(1 + O(5^11), absprec = 5)   # indirect doctest

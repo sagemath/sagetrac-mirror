@@ -657,7 +657,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
         return LaurentPolynomial_univariate(self._parent,
-                                            self.__u.__floordiv__(right.__u),
+                                            self.__u // right.__u,
                                             self.__n - right.__n)
 
     def shift(self, k):
@@ -775,7 +775,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             ArithmeticError: element is not a unit
         """
         if self.is_unit():
-            return self.__invert__()
+            return ~self
         raise ArithmeticError("element is not a unit")
 
     def _fraction_pair(self):
@@ -844,30 +844,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         rl = LaurentPolynomial_univariate(self._parent, r, 0)
         return (ql, rl)
 
-    def __richcmp__(left, right, int op):
-        """
-        Return the rich comparison of ``left`` and ``right`` defined by ``op``.
-
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(QQ)
-            sage: f = x^(-1) + 1 + x
-            sage: g = x^(-1) + 2
-            sage: f == g
-            False
-            sage: f != g
-            True
-            sage: f < g
-            True
-            sage: f <= g
-            True
-            sage: f > g
-            False
-            sage: f >= g
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of ``self`` and ``right_r``.
@@ -886,9 +862,15 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: g = x^(-1) + 2
             sage: f == g
             False
+            sage: f != g
+            True
             sage: f < g
             True
+            sage: f <= g
+            True
             sage: f > g
+            False
+            sage: f >= g
             False
 
         ::
@@ -1341,18 +1323,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     def __hash__(self):
         r"""
-        TESTS::
+        TESTS:
+
+        Test that the hash is non-constant (the hash does not need to be
+        deterministic so we leave some slack for collisions)::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
-            sage: f = L({(-1,-1):1})
-            sage: hash(f)
-            1
-            sage: f = L({(1,1):1})
-            sage: hash(f)
-            -2021162459040316190  # 64-bit
-            -1148451614           # 32-bit
+            sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]}) > 20
+            True
         """
-        return hash(self._poly)
+        return hash(self._poly) ^ hash(self._mon)
 
     cdef _new_c(self):
         """
@@ -2078,7 +2058,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         self._normalize()
         right._normalize()
         ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
-        ans._poly = self._poly.__floordiv__((<LaurentPolynomial_mpair>right)._poly)
+        ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
 
     cpdef int _cmp_(self, Element right) except -2:
