@@ -5769,30 +5769,32 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(ellanalyticrank(self.g, <GEN>0, prec_bits_to_words(precision)))
 
-    def ellap(self, p):
+    def ellap(self, p=None):
         r"""
-        e.ellap(p): Returns the prime-indexed coefficient `a_p` of the
-        `L`-function of the elliptic curve `e`, i.e. the `p`-th Fourier
-        coefficient of the newform attached to e.
+        Return the trace of Frobenius `a_p` for an elliptic curve
+        defined over `\QQ` or a finite field.
 
-        The computation uses the Shanks--Mestre method, or the SEA
-        algorithm.
+        .. NOTE::
 
-        .. WARNING::
+          - For elliptic curves over `\QQ`, the trace of Frobenius
+            is also the `p`-th coefficient `a_p` of the `L`-function
+            attached to the elliptic curve.
 
-            For this function to work for every n and not just those prime
-            to the conductor, e must be a minimal Weierstrass equation.
-            If this is not the case, use the function ellminimalmodel first
-            before using ellap (or you will get INCORRECT RESULTS!)
+        .. SEEALSO::
 
+          - :meth:`ellcard` for directly computing the cardinality.
 
         INPUT:
 
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
 
-        -  ``e`` - a PARI elliptic curve.
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
 
-        -  ``p`` - prime integer
-
+        ALGORITHM: the Shanks--Mestre method, or the SEA algorithm.
+        In small characteristic, Harley's algorithm.
 
         EXAMPLES::
 
@@ -5801,13 +5803,33 @@ cdef class gen(gen_auto):
             -2
             sage: e.ellap(2003)
             4
-            sage: e.ellak(-1)
-            0
-        """
-        cdef gen t0 = objtogen(p)
-        pari_catch_sig_on()
-        return P.new_gen(ellap(self.g, t0.g))
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: pari(E).ellap()
+            -4
+            sage: pari(E).ellap(13)
+            -4
+            sage: pari(E).ellap(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellap (t_INT)
 
+        Since PARI 2.7, curves over non-prime finite fields are also
+        accepted if the coefficients are ``t_FFELT``::
+
+            sage: k.<a> = GF(2^20, impl="pari_ffelt")
+            sage: E = EllipticCurve_from_j(a)
+            sage: pari(E).ellap()
+            -1643
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellap(self.g, NULL))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellap(self.g, t0.g))
 
     def ellaplist(self, long n, python_ints=False):
         r"""
@@ -5879,6 +5901,54 @@ cdef class gen(gen_auto):
             set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
         return P.new_gen(g)
 
+    def ellcard(self, p=None):
+        r"""
+        Return the number of points of the elliptic curve ``self`` over
+        `GF(q)`.
+
+        INPUT:
+
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
+
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
+
+        ALGORITHM: the Shanks--Mestre method, or the SEA algorithm.
+        In small characteristic, Harley's algorithm.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellcard(2)
+            5
+            sage: e.ellcard(2003)
+            2000
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: pari(E).ellcard()
+            18
+            sage: pari(E).ellcard(13)
+            18
+            sage: pari(E).ellcard(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellcard (t_INT)
+            sage: k.<a> = GF(2^20, impl="pari_ffelt")
+            sage: E = EllipticCurve_from_j(a)
+            sage: pari(E).ellcard()
+            1050220
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellcard(self.g, NULL))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellcard(self.g, t0.g))
+
     def ellchangecurve(self, ch):
         """
         e.ellchangecurve(ch): return the new model (equation) for the
@@ -5926,6 +5996,72 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))
+
+    def ellgroup(gen self, p=None, long flag=0):
+        r"""
+        Return the group structure of `E(GF(q))`.
+
+        INPUT:
+
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
+
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
+
+        - ``flag`` -- 0 or 1
+
+        OUTPUT:
+
+        - if ``flag`` equals 0: return `[d_1]` if the group is cyclic
+          of order `d_1` or `[d_1, d_2]` where `d_1` is a multiple of
+          `d_2` if the group is the product of two cyclic groups of
+          order `d_1` and `d_2`.
+
+        - if ``flag`` equals 1: return `[N, [d_1], [P]]` or
+          `[N, [d_1, d_2], [P,Q]]` where `d_1` and `d_2` are as for
+          ``flag = 0`` and P is a point of order `d_1`. If the group
+          is not cyclic, the points P and Q generate the group.
+
+        .. WARNING::
+
+            If the group is not cyclic, no guarantee is made about the
+            order of the point `Q`. The order is possibly a multiple of
+            `d_2`.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellgroup(2)
+            [5]
+            sage: e.ellgroup(2, flag=1)
+            [5, [5], [[Mod(0, 2), Mod(0, 2)]]]
+            sage: e.ellgroup(2003, flag=1)
+            [2000, [1000, 2], [[Mod(661, 2003), Mod(1356, 2003)], [Mod(557, 2003), Mod(344, 2003)]]]
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,0])
+            sage: pari(E).ellgroup()
+            [10, 2]
+            sage: pari(E).ellgroup(13)
+            [10, 2]
+            sage: pari(E).ellgroup(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellgroup (t_INT)
+            sage: k.<a> = GF(2^8, impl="pari_ffelt")
+            sage: E = EllipticCurve(k, j=1)
+            sage: pari(E).ellgroup(flag=1)
+            [288, [96, 3], [[a^7 + a^6 + a^5 + a + 1, a^7 + a^6 + a^4 + a], [a^3 + 1, a^7 + a^6 + a^3 + a^2 + a + 1]]]
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellgroup0(self.g, NULL, flag))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellgroup0(self.g, t0.g, flag))
 
     def ellheight(self, a, b=None, long flag=-1, unsigned long precision=0):
         """
@@ -6257,37 +6393,6 @@ cdef class gen(gen_auto):
         change = P.new_gen_noclear(y)
         model = P.new_gen(x)
         return model, change
-
-    def ellorder(self, x):
-        """
-        e.ellorder(x): return the order of the point x on the elliptic
-        curve e (return 0 if x is not a torsion point)
-
-        INPUT:
-
-
-        -  ``e`` - elliptic curve defined over `\QQ`
-
-        -  ``x`` - point on e
-
-
-        EXAMPLES::
-
-            sage: e = pari(EllipticCurve('65a1').a_invariants()).ellinit()
-
-        A point of order two::
-
-            sage: e.ellorder([0,0])
-            2
-
-        And a point of infinite order::
-
-            sage: e.ellorder([1,0])
-            0
-        """
-        cdef gen t0 = objtogen(x)
-        pari_catch_sig_on()
-        return P.new_gen(orderell(self.g, t0.g))
 
     def ellordinate(self, x, unsigned long precision=0):
         """

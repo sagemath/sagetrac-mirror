@@ -2917,13 +2917,16 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E.pari_curve()
             [0, 0, 0, 1, 1, 0, 2, 4, -1, -48, -864, -496, 6912/31, Vecsmall([2]), [O(5^3)], [0, 0]]
         """
+        # This caching is important since PARI also caches certain
+        # things. This wouldn't work if we would call ellinit()
+        # every time.
         try:
             return self._pari_curve
         except AttributeError:
             pass
 
         from sage.libs.pari.all import pari
-        self._pari_curve = pari(list(self.a_invariants())).ellinit()
+        self._pari_curve = pari(self.a_invariants()).ellinit()
         return self._pari_curve
 
     # This method is defined so that pari(E) returns exactly the same
