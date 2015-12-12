@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.pyc
 /.BUILDSTART
 /dist
@@ -76,3 +77,17 @@ $RECYCLE.BIN/
 *.sage-chat
 *.sage-history
 *.syncdoc*
+=======
+*~
+*.pyc
+.\#*
+\#*\#
+build
+dist
+MANIFEST
+.tox
+*.aux
+*.log
+*.out
+*.synctex.gz
+>>>>>>> FETCH_HEAD
