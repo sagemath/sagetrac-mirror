@@ -1,0 +1,44 @@
+diff --git a/ginac/Makefile.am b/ginac/Makefile.am
+index a0a88be..4335bd6 100755
+--- a/ginac/Makefile.am
++++ b/ginac/Makefile.am
+@@ -14,12 +14,13 @@ libpynac_la_SOURCES = py_funcs.cpp add.cpp archive.cpp basic.cpp clifford.cpp \
+ #The -no-undefined breaks Pynac on OS X 10.4.  See #9135
+ if CYGWIN
+ libpynac_la_LDFLAGS = -version-info $(LT_VERSION_INFO) -no-undefined
++libpynac_la_LIBADD = $(PYTHON_LDFLAGS) -lgmp
+ else
+ libpynac_la_LDFLAGS = -version-info $(LT_VERSION_INFO)
++libpynac_la_LIBADD = $(PYTHON_LDFLAGS)
+ endif
+ libpynac_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wno-unused-parameter
+ 
+-libpynac_la_LIBADD = $(PYTHON_LDFLAGS)
+ ginacincludedir = $(includedir)/pynac
+ ginacinclude_HEADERS = ginac.h py_funcs.h add.h archive.h assertion.h basic.h class_info.h \
+   clifford.h constant.h infinity.h container.h ex.h expair.h expairseq.h \
+diff --git a/ginac/Makefile.in b/ginac/Makefile.in
+index f1f2646..c5318ec
+--- a/ginac/Makefile.in
++++ b/ginac/Makefile.in
+@@ -126,7 +126,8 @@ am__uninstall_files_from_dir = { \
+ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(ginacincludedir)"
+ LTLIBRARIES = $(lib_LTLIBRARIES)
+ am__DEPENDENCIES_1 =
+-libpynac_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
++@CYGWIN_FALSE@libpynac_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
++@CYGWIN_TRUE@libpynac_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+ am_libpynac_la_OBJECTS = libpynac_la-py_funcs.lo libpynac_la-add.lo \
+ 	libpynac_la-archive.lo libpynac_la-basic.lo \
+ 	libpynac_la-clifford.lo libpynac_la-constant.lo \
+@@ -387,8 +389,9 @@ libpynac_la_SOURCES = py_funcs.cpp add.cpp archive.cpp basic.cpp clifford.cpp \
+ 
+ #The -no-undefined breaks Pynac on OS X 10.4.  See #9135
+ @CYGWIN_TRUE@libpynac_la_LDFLAGS = -version-info $(LT_VERSION_INFO) -no-undefined
++@CYGWIN_FALSE@libpynac_la_LIBADD = $(PYTHON_LDFLAGS)
++@CYGWIN_TRUE@libpynac_la_LIBADD = $(PYTHON_LDFLAGS) -lgmp
+ libpynac_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wno-unused-parameter
+-libpynac_la_LIBADD = $(PYTHON_LDFLAGS)
+ ginacincludedir = $(includedir)/pynac
+ ginacinclude_HEADERS = ginac.h py_funcs.h add.h archive.h assertion.h basic.h class_info.h \
+   clifford.h constant.h infinity.h container.h ex.h expair.h expairseq.h \
