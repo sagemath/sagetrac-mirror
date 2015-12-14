@@ -265,8 +265,8 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     TESTS:
 
-    A PolynomialSequence can exist with elements in a infinite field of
-    characteristic 2 that is not (see :trac:`19452`)::
+    A PolynomialSequence can exist with elements in an infinite field of
+    characteristic 2 (see :trac:`19452`)::
 
         sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         sage: F = GF(2)
