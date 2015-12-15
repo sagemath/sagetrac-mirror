@@ -3919,12 +3919,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             120
             sage: 5.multifactorial(2)
             15
+	    sage: 5.multifactorial(3)
+	    10
             sage: 23.multifactorial(2)
             316234143225
             sage: prod([1..23, step=2])
             316234143225
             sage: (-29).multifactorial(7)
             1/2640
+
+	TESTS:
+
+        This is a test to make sure multifactorial works properly, see
+        :trac:`5415`.
+
+        ::
+
+            sage: 5.multifactorial(3)
+	    10
         """
         if k <= 0:
             raise ValueError, "multifactorial only defined for positive values of k"
@@ -3936,7 +3948,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # base case
         if 0 < n < k:
-            return one
+            return n
 
         # easy to calculate
         elif n % k == 0:
@@ -3963,7 +3975,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int i,j
 
         # we need (at most) log_2(#factors) concurrent sub-products
-        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
+        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))+1
         cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
@@ -3972,12 +3984,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef residue = n % k
         cdef int tip = 0
-        for i from 1 <= i <= n//k:
+        for i from 0 <= i <= n//k:
             mpz_set_ui(sub_prods[tip], k*i + residue)
             # for the i-th terms we use the bits of i to calculate how many
             # times we need to multiply "up" the stack of sub-products
             for j from 0 <= j < 32:
-                if i & (1 << j):
+                if i+1 & (1 << j):
                     break
                 tip -= 1
                 mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
