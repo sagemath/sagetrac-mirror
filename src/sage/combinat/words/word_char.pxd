@@ -29,7 +29,7 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
     cdef size_t _current_stop  # current position up to which the word is known
     cdef size_t _alloc_size
 
-    cdef int _init_c_data(self, size_t alloc_size) except -1
+    cpdef int _init_c_data(self, size_t alloc_size) except -1
     cdef int _realloc(self, size_t new_size) except -1
     cdef int _extend_word(self) except -1
     cdef _update_word_up_to(self, size_t n)

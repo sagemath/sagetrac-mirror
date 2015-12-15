@@ -893,8 +893,53 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
     In order to build an infinite word, one needs to inherit from this class and
     either implement ``_new_slice`` (for Python classes) or ``_extend_word``
     (for Cython extension classes).
+
+    EXAMPLES:
+
+    To create your own class of words in Python, you need:
+
+    - to call the method ``_init_c_data(alloc_size)`` inside the constructor
+    ``__init__``. The argument ``alloc_size`` is the amount of memory
+    preallocated for this word.
+
+    - to implement a method ``_new_slice`` that return a new chunk of the word
+    each time
+
+    As an example, we create the Kolakoski word::
+
+        sage: from sage.combinat.words.word_char import WordDatatype_char_infinite
+        sage: from sage.combinat.words.infinite_word import InfiniteWord_class
+        sage: class MyKolakoskiWord(WordDatatype_char_infinite, InfiniteWord_class):
+        ....:     def __init__(self):
+        ....:         self._init_c_data(13)   # initialize the C data structure
+        ....:         self._parent = InfiniteWords([1,2])
+        ....:         self._letter = None
+        ....:         self._pos = None
+        ....:     def _new_slice(self):
+        ....:         if self._pos is None:
+        ....:             self._pos = 2
+        ....:             self._letter = 1
+        ....:             return [1,2,2]
+        ....:         else:
+        ....:             n = self[self._pos]
+        ....:             self._pos += 1
+        ....:             letter = self._letter
+        ....:             self._letter = 1 if letter == 2 else 2
+        ....:             return [letter]*n
+
+    Then::
+
+        sage: w = MyKolakoskiWord()
+        sage: w
+        word: 1221121221221121122121121221121121221221...
+        sage: w.parent()
+        Infinite words over {1, 2}
+
+    For examples in Cython, you might have a look at the code of
+    :class:`WordDatatype_callable_char`, :class:`WordDatatype_iter_char` or
+    :class:`WordDatatype_substitutive_char`.
     """
-    cdef int _init_c_data(self, size_t alloc_size) except -1:
+    cpdef int _init_c_data(self, size_t alloc_size) except -1:
         self._data = <unsigned char **> check_malloc(sizeof(unsigned char *))
         self._alloc_size = alloc_size
         self._data[0] = <unsigned char *> check_malloc(alloc_size * sizeof(unsigned char))
