@@ -62,11 +62,11 @@ def _could_use_char(alphabet, cmp_letters):
     r"""
     TESTS::
 
-        sage: 'char' in Words(range(256))._element_classes   # indirect doctest
+        sage: 'char' in FiniteWords(range(256))._element_classes   # indirect doctest
         True
-        sage: 'char' in Words([1,19,37])._element_classes    # indirect doctest
+        sage: 'char' in FiniteWords([1,19,37])._element_classes    # indirect doctest
         True
-        sage: 'char' in Words([-1,0])._element_classes       # indirect doctest
+        sage: 'char' in FiniteWords([-1,0])._element_classes       # indirect doctest
         False
     """
     if alphabet.cardinality() > 256:
