@@ -103,6 +103,7 @@ List of Poset methods
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
+    :meth:`~FinitePoset.ordinal_components` | Return the ordinal decomposition of the poset as subposets.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled with elements `\{0, \ldots, n-1\}`.
@@ -3623,6 +3624,44 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
+    def ordinal_components(self):
+        """
+        Return the ordinal decomposition of the poset as subposets.
+
+        The function returns list of non-empty posets so that
+        their ordinal sum is the poset.
+
+        .. SEEALSO::
+
+            :meth:`ordinal_sum`
+
+        EXAMPLES::
+
+            sage: P = Poset({'a': ['c', 'd'], 'b': ['d'], 'c': ['x', 'y'],
+            ....: 'd': ['x', 'y']})
+            sage: parts = P.ordinal_components(); parts
+            [Finite poset containing 4 elements, Finite poset containing 2 elements]
+            sage: sorted(parts[0])
+            ['a', 'b', 'c', 'd']
+            sage: Q = parts[0].ordinal_sum(parts[1])
+            sage: Q.is_isomorphic(P)
+            True
+
+        TESTS::
+
+            sage: Poset().ordinal_components()
+            []
+            sage: Poset({1:[]}).ordinal_components()
+            [Finite poset containing 1 elements]
+        """
+        if self.cardinality() == 0:
+            return []
+        splits = [-1]+self._hasse_diagram.ordinal_sum_decomposition()
+        parts = []
+        for i in range(len(splits)-1):
+            parts.append(self.subposet([self._vertex_to_element(e) for e in range(splits[i]+1, splits[i+1]+1)]))
+        return parts
+
     def product(self, other):
         """
         Return the Cartesian product of the poset with ``other``.
@@ -3861,7 +3900,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`disjoint_union`, :meth:`ordinal_product`
+            :meth:`ordinal_components`, :meth:`disjoint_union`, :meth:`ordinal_product`
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \

@@ -1590,7 +1590,7 @@ class HasseDiagram(DiGraph):
         """
         cut_points = []
         n = self.order()
-        in_degrees = [len(self.neighbors_in(e)) for e in range(n)]
+        in_degrees = self.in_degree()
         lower = set([])
         upper = set(self.sources())
 
