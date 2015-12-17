@@ -8,28 +8,28 @@ TESTS::
 
 from __future__ import print_function
 
-# constants from src/ATLAS/CONFIG/include/atlconf.h
-# Note: must be lists, not tuples, for Python-2.4 support
 
+# constants from src/ATLAS/CONFIG/include/atlconf.h
 ATLAS_OSTYPE = (  # static char *osnam
     'UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1', 'IRIX', 'AIX',
     'Win9x', 'WinNT', 'Win64', 'HPUX', 'FreeBSD', 'OSX')
 
 ATLAS_MACHTYPE = (  # static char *machnam
     'UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
-    'POWER6', 'POWER7', 'POWERe6500', 'IBMz9', 'IBMz10', 'IBMz196',
+    'POWER6', 'POWER7', 'POWER8', 'POWERe6500', 'IBMz9', 'IBMz10', 'IBMz196',
     'x86x87', 'x86SSE1', 'x86SSE2', 'x86SSE3',
     'P5', 'P5MMX', 'PPRO', 'PII', 'PIII', 'PM', 'CoreSolo',
-    'CoreDuo', 'Core2Solo', 'Core2', 'Corei1', 'Corei2', 'Corei3',
+    'CoreDuo', 'Core2Solo', 'Core2', 'Corei1', 'Corei2', 'Corei3', 'Corei3EP',
     'Atom', 'P4', 'P4E',
     'Efficeon', 'K7', 'HAMMER', 'AMD64K10h', 'AMDLLANO', 'AMDDOZER','AMDDRIVER',
     'UNKNOWNx86', 'IA64Itan', 'IA64Itan2',
-    'USI', 'USII', 'USIII', 'USIV', 'UST1', 'UST2', 'UnknownUS',
-    'MIPSR1xK', 'MIPSICE9', 'ARMv6', 'ARMv7')
+    'USI', 'USII', 'USIII', 'USIV', 'UST2', 'UnknownUS',
+    'MIPSR1xK', 'MIPSICE9', 'ARMa7', 'ARMa9', 'ARMa15', 'ARMa17', 'ARM64xgene1',
+    'TI_C66_BM', 'XeonPHI')
 
 ATLAS_ISAEXT = (  # static char *ISAXNAM
-    'None', 'VSX', 'AltiVec', 'AVXMAC', 'AVXFMA4', 'AVX', 'SSE3', 'SSE2', 'SSE1',
-    '3DNow', 'NEON')
+    'None', 'VSX', 'AltiVec', 'AVXZ', 'AVXMAC', 'AVXFMA4', 'AVX', 'SSE3', 'SSE2', 'SSE1',
+    '3DNow', 'FPV3D2MACNEON', 'FPV3D16MACNEON', 'FPV3D32MAC', 'FPV3D16MAC')
 
 
 
@@ -164,16 +164,18 @@ def check_enums_ATLAS_MACHTYPE(lines):
         got = lines.pop(0).strip()
         expect = "{0} = '{1}'".format(i, mach_type)
         if got != expect:
-            raise RuntimeError('ATLAS_MACHTYPE mismatch at position '+str(i)+
-                               ': got >>'+got+'<<, expected >>'+expect+'<<')
+            raise RuntimeError("ATLAS_MACHTYPE mismatch"
+                    " at position %s\nexpected: %r\ngot: %r"
+                    % (i, expect, got))
 
 def check_enums_ATLAS_OSTYPE(lines):
     for i, os_type in enumerate(ATLAS_OSTYPE):
         got = lines.pop(0).strip()
         expect = "{0} = '{1}'".format(i, os_type)
         if got != expect:
-            raise RuntimeError('ATLAS_OSTYPE mismatch at position '+str(i)+
-                               ': got >>'+got+'<<, expected >>'+expect+'<<')
+            raise RuntimeError("ATLAS_OSTYPE mismatch"
+                    " at position %s\nexpected: %r\ngot: %r"
+                    % (i, expect, got))
 
 def check_enums_ATLAS_ISAEXT(lines):
     for i, isaext in enumerate(ATLAS_ISAEXT):
@@ -183,8 +185,9 @@ def check_enums_ATLAS_ISAEXT(lines):
         else:
             expect = "{0}: {1}".format(isaext, 1 << i)
         if got != expect:
-            raise RuntimeError('ATLAS_ISAEXT mismatch at position '+str(i)+
-                               ': got >>'+got+'<<, expected >>'+expect+'<<')
+            raise RuntimeError("ATLAS_ISAEXT mismatch"
+                    " at position %s\nexpected: %r\ngot: %r"
+                    % (i, expect, got))
 
 
 def make_check_enums():

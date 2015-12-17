@@ -12,7 +12,7 @@ from __future__ import print_function
 ######################################################################
 
 import os, sys, shutil, time, glob
-from configuration import conf, cp, ln, which, try_run, edit_in_place
+from configuration import conf, cp, ln, which, try_run, edit_in_place, unique_glob
 from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 
 
@@ -24,7 +24,7 @@ from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
 
 # the current lapack source tarball
-LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.5.0.tar')
+LAPACK_TARFILE = unique_glob(os.path.join(conf['SPKG_DIR'], 'src', 'lapack-*.tar'))
 
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-build')
@@ -245,13 +245,6 @@ cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')
 edit_in_place('src/ATLAS/CONFIG/src/SpewMakeInc.c') \
     .replace('   goodgcc = .*', '   goodgcc = "' + os.environ['CC'] + '";') \
     .close()
-
-
-# override throttling check if architecture is specified
-edit_in_place('src/ATLAS/CONFIG/src/config.c') \
-    .replace('if \(mach == MACHOther\)', 'if (mach != MACHOther) thrchk=0; else') \
-    .close()
-
 
 
 ######################################################################

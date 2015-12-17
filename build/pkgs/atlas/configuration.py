@@ -249,6 +249,18 @@ if conf['Solaris?'] and conf['linker_GNU?']:
 conf['SPKG_DIR'] = os.getcwd()
 conf['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
 
+def unique_glob(g):
+    """
+    Return the unique file matching glob ``g``. It is an error if there
+    is not exactly one matching file.
+    """
+    f = glob.glob(g)
+    if not f:
+        raise OSError("no file matching {!r} found".format(g))
+    if len(f) >= 2:
+        raise OSError("multiple files matching {!r} found: {}".format(g, f))
+    return f[0]
+
 
 ######################################################################
 ### The end: print configuration

@@ -18,10 +18,11 @@ cd src
 
 ### ATLAS ###
 
-ATLAS=atlas3.10.1.tar.bz2
+ATLAS=atlas3.11.38.tar.bz2
 
-if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    tar xjf <( curl -L "http://downloads.sourceforge.net/project/math-atlas/Stable/3.10.1/$ATLAS?r=&ts=1373163744&use_mirror=iweb" )
+if [ ! -f "$UPSTREAM_SOURCE_DIRECTORY/$ATLAS" ]; then
+    echo >&1 "You need to download $ATLAS and put it in \$UPSTREAM_SOURCE_DIRECTORY"
+    exit 1
 else
     tar xjf "$UPSTREAM_SOURCE_DIRECTORY/$ATLAS"
 fi
@@ -33,10 +34,10 @@ fi
 
 ### Lapack ###
 
-LAPACK=lapack-3.4.2.tgz
+LAPACK=lapack-3.5.0.tgz
 
-if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    curl -O http://www.netlib.org/lapack/$LAPACK
+if [ ! -f "$UPSTREAM_SOURCE_DIRECTORY/$LAPACK" ]; then
+    sage-download-file "http://www.netlib.org/lapack/$LAPACK" >$LAPACK
 else
     cp "$UPSTREAM_SOURCE_DIRECTORY/$LAPACK" .
 fi
@@ -45,7 +46,7 @@ gunzip $LAPACK
 ### Our archdefs ###
 
 if [ -z "$SAGE_ATLAS_ARCHDEFS_DIR" ]; then
-    echo "SAGE_ATLAS_ARCHDEFS_DIR should point to a directory containing the archedef tarballs."
+    echo "SAGE_ATLAS_ARCHDEFS_DIR should point to a directory containing the archdef tarballs."
     exit 1
 fi
 

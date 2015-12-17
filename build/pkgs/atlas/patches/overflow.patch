@@ -1,0 +1,17 @@
+Fix buffer overflow in case there are >= 100 CPUs
+Writing a configure/build system in C, really?
+
+See http://sourceforge.net/p/math-atlas/support-requests/1011/
+
+diff -ru a/CONFIG/src/SpewMakeInc.c b/CONFIG/src/SpewMakeInc.c
+--- a/CONFIG/src/SpewMakeInc.c	2015-12-21 11:01:40.711545257 +0100
++++ b/CONFIG/src/SpewMakeInc.c	2015-12-21 11:03:58.052490849 +0100
+@@ -554,7 +554,7 @@
+    *BAD = 0;
+    k = l = strlen(srcd);
+    l += 1 + strlen(mach);
+-   l += 4 + 8;        /* 4 digits np, 8 for .tar.bz2 */
++   l += 14;        /* 4 digits np, 10 for /p.tar.bz2 */
+    ap = malloc(l+1);
+    assert(ap);
+    assert(np < 10000);

@@ -1,0 +1,14 @@
+Disable throttling check
+
+diff -ru ATLAS/CONFIG/src/config.c b/CONFIG/src/config.c
+--- ATLAS/CONFIG/src/config.c	2015-12-21 21:18:58.522431599 +0100
++++ b/CONFIG/src/config.c	2015-12-21 21:22:17.163432118 +0100
+@@ -1420,7 +1420,7 @@
+               "unreliable and an ATLAS install nonsensical.  Aborting.\n");
+       fprintf(stderr,
+               "See ATLAS/INSTALL.txt for further information\n");
+-      if (thrchk) exit(1);
++      if (0 && thrchk) exit(1);
+       else fprintf(stderr, "Ignoring CPU throttling by user override!\n\n");
+    }
+ /*

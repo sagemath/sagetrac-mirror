@@ -44,11 +44,12 @@ make_check()
 
 make_time()
 {
-    # collect some timings
+    # Collect some timings.  This compares against previous timings for
+    # the archdef and fails if there are no such timings. Therefore, we
+    # ignore errors.
     $MAKE time
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: The ATLAS timing data failed to be collected."
-        exit 1
+        echo "The ATLAS timing data failed to be collected."
     else
         echo "The ATLAS timing data was successfully collected."
     fi
