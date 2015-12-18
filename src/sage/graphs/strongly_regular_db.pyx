@@ -1788,7 +1788,7 @@ def SRG_176_105_68_54():
     To build this graph, we first build a `2-(22,7,16)` design, by removing one
     point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
     points. We then build the intersection graph of blocks with intersection
-    size 3.
+    size 3. Known as S.7 in [Hu75]_.
 
     EXAMPLE::
 
@@ -1862,9 +1862,8 @@ def SRG_243_110_37_60():
 
     To build this graph, we consider the orthogonal complement of the
     :func:`~sage.coding.code_constructions.TernaryGolayCode`, which has 243
-    points. On those points we define a graph, in which two points are adjacent
-    when their hamming distance is equal to 9. This construction appears in
-    [GS75]_.
+    words. On them we define a graph, in which two words are adjacent
+    whenever their Hamming distance is 9. This construction appears in [GS75]_.
 
     EXAMPLE::
 
@@ -1892,7 +1891,7 @@ def SRG_253_140_87_65():
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
-    intersection size 3.
+    intersection size 3. Known as S.6 in [Hu75]_.
 
     EXAMPLE::
 
@@ -2133,7 +2132,7 @@ def SRG_416_100_36_20():
     (among 2 that exists) of the group `G_2(4)`.
     This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
-    the neighbors of a vertex.
+    the neighbors of a vertex. Known as S.14 in [Hu75]_.
 
     EXAMPLE::
 
@@ -2313,7 +2312,7 @@ def SRG_175_72_20_36():
     This graph is obtained from the line graph of
     :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
-    two yields the strongly regular graph. For more information, see
+    2 yields the graph. For more information, see 10.B.(iv) in [BvL84]_ and
     http://www.win.tue.nl/~aeb/graphs/McL.html.
 
     EXAMPLES::
