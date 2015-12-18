@@ -114,7 +114,7 @@ EXAMPLES:
 
 
 notebook_launcher = {
-    'default': NotebookSageNB,   # change this to change the default
+    'default': NotebookJupyter,   # change this to change the default
     'sagenb': NotebookSageNB,
     'ipython': NotebookJupyter,
     'jupyter': NotebookJupyter,
@@ -155,7 +155,19 @@ def make_parser():
     return parser
 
 
+DEPRECATION_NOTICE = """
+Note
+----
+
+The default notebook implementation changed. If you prefer to use the
+old SageNB notebook, run "sage --notebook=sagenb"
+
+"""
+
+
+
 if __name__ == '__main__':
+    print(DEPRECATION_NOTICE)   # Trac #19740
     parser = make_parser()
     args, unknown = parser.parse_known_args(sys.argv[1:])
     if len(unknown) > 0 and unknown[0] == '--':
