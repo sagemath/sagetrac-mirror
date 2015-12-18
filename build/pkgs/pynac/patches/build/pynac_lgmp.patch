@@ -1,0 +1,12 @@
+ diff --git a/configure.ac b/configure.ac
+index 1209f2f..270ce08 100755
+--- a/configure.ac
++++ b/configure.ac
+@@ -124,6 +124,7 @@ if test "x$CONFIG_RUSAGE" = "xno"; then
+ fi
+ 
+ AC_CHECK_HEADERS([gmp.h], , AC_MSG_ERROR([This package needs libgmp]))
++AC_CHECK_LIB(gmp, __gmpz_init, , AC_MSG_ERROR([This package needs libgmp]))
+ 
+ dnl Check for utilities needed by the different kinds of documentation.
+ dnl Documentation needs only be built when extending it, so never mind if it
