@@ -167,7 +167,6 @@ old SageNB notebook, run "sage --notebook=sagenb"
 
 
 if __name__ == '__main__':
-    print(DEPRECATION_NOTICE)   # Trac #19740
     parser = make_parser()
     args, unknown = parser.parse_known_args(sys.argv[1:])
     if len(unknown) > 0 and unknown[0] == '--':
@@ -179,6 +178,9 @@ if __name__ == '__main__':
     logger.info('Main parser got arguments %s', args)
     logger.info('Passing on to notebook implementation: %s', unknown)
 
+    if args.notebook == 'default':
+        print(DEPRECATION_NOTICE)   # Trac #19740
+    
     try:
         launcher = notebook_launcher[args.notebook]
     except KeyError:
