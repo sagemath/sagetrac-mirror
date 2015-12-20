@@ -24,7 +24,7 @@ from sage.ext.memory cimport check_malloc, check_realloc
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from sage.rings.infinity import Infinity
-from libc.string cimport memcpy, memcmp
+from libc.string cimport memcpy, memcmp, memset
 
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
@@ -875,34 +875,106 @@ cdef class WordDatatype_char_finite(WordDatatype_char):
         raise TypeError("unsupported input {}".format(other))
 
 cdef class Slicer(object):
+    r"""
+    A simple class to handle non standard slices of infinite words.
+
+    This class is mainly a helper for ``__getitem__`` of infinite words. We made
+    it a class to allows pickling support. Let ``w`` be an infinite words. When
+    considering a slice, if step is ``1`` (like ``w[4::1]``) then the infinite
+    words will share their memory. But if it is not (like ``w[5::2]``) then we
+    need to create a new word that will read inside the first one. This class is
+    built to handle this second case.
+    """
     cdef WordDatatype_char_infinite word
     cdef Py_ssize_t start
     cdef Py_ssize_t step
 
     def __init__(self, word, start, step):
+        r"""
+        INPUT:
+
+        - ``word`` - an infinite word
+
+        - ``start`` - the starting point
+
+        - ``step`` - step
+
+        TESTS::
+
+            sage: from sage.combinat.words.word_char import Slicer
+            sage: W = InfiniteWords([0,1,2,3,4,5,6,7])
+            sage: w = W(lambda n: n%5)
+            sage: s = Slicer(w, 3, 4)
+            sage: all(s(i) == w[3 + 4*i] for i in range(10))
+            True
+        """
         self.word = word
         self.start = start
         self.step = step
 
+    def __reduce__(self):
+        r"""
+        Pickling support
+
+        TESTS::
+
+            sage: from sage.combinat.words.word_char import Slicer
+            sage: W = InfiniteWords([0,1,2,3,4,5,6,7])
+            sage: w = W(lambda n: n%5)
+            sage: s = Slicer(w, 3, 4)
+            sage: t = loads(dumps(s))
+            sage: all(t(i) == s(i) for i in range(10))
+            True
+        """
+        return Slicer, (self.word, self.start, self.step)
+
     def __call__(self, n):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.words.word_char import Slicer
+            sage: W = InfiniteWords([0,1,2,3,4,5,6,7])
+            sage: w = W(lambda n: n%5)
+            sage: s = Slicer(w, 3, 4)
+            sage: all(s(i) == w[3 + 4*i] for i in range(10))
+            True
+        """
         self.word._update_word_up_to(self.start + self.step*n + 1)
         return self.word._data[0][self.start + self.step*n]
 
+def slice_unpickle(data, start, stop, step):
+    r"""
+    Return ``data[start:stop:step]``.
+
+    This method is used for unpickling slice of infinite words (see the method
+    ``__reduce__`` of :class:`WordDatatype_char_infinite`.
+
+    TESTS::
+
+        sage: from sage.combinat.words.word_char import slice_unpickle
+        sage: slice_unpickle(range(10), 2, 7, 3)
+        [2, 5]
+    """
+    return data[start:stop:step]
+
 cdef class WordDatatype_char_infinite(WordDatatype_char):
     r"""
-    In order to build an infinite word, one needs to inherit from this class and
-    either implement ``_new_slice`` (for Python classes) or ``_extend_word``
-    (for Cython extension classes).
+    In order to build an infinite word with underlying C datatype being an array
+    of C ``unsigned char`` one needs to inherit from this class and either
+    implement ``_new_slice`` (for Python classes) or ``_extend_word`` (for
+    Cython extension classes).
 
     EXAMPLES:
 
     To create your own class of words in Python, you need:
 
+    - to inherit from this class and `InfiniteWord_class`
+
     - to call the method ``_init_c_data(alloc_size)`` inside the constructor
     ``__init__``. The argument ``alloc_size`` is the amount of memory
-    preallocated for this word.
+    preallocated for the word.
 
-    - to implement a method ``_new_slice`` that return a new chunk of the word
+    - to implement a method ``_new_slice()`` that return a new chunk of the word
     each time
 
     As an example, we create the Kolakoski word::
@@ -913,8 +985,8 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
         ....:     def __init__(self):
         ....:         self._init_c_data(13)   # initialize the C data structure
         ....:         self._parent = InfiniteWords([1,2])
-        ....:         self._letter = None
-        ....:         self._pos = None
+        ....:         self._letter = None     # current letter
+        ....:         self._pos = None        # current position
         ....:     def _new_slice(self):
         ....:         if self._pos is None:
         ....:             self._pos = 2
@@ -940,18 +1012,62 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
     :class:`WordDatatype_substitutive_char`.
     """
     cpdef int _init_c_data(self, size_t alloc_size) except -1:
+        r"""
+        Any words should call this method at initialization.
+
+        This method initialize the following attributes:
+
+        - ``self._data``
+        - ``self._alloc_size``
+
+        It must be call in the constructor (i.e. ``__init__``) *before* any
+        access to the letters.
+
+        INPUT:
+
+        - ``alloc_size`` - the size of the memory to reserve for the word
+          (beyond that limit there will be dynamic reallocation)
+
+        TESTS::
+
+            sage: W = InfiniteWords([0,1])
+            sage: w = W(lambda n: 0)          # indirect doctest
+        """
         self._data = <unsigned char **> check_malloc(sizeof(unsigned char *))
         self._alloc_size = alloc_size
         self._data[0] = <unsigned char *> check_malloc(alloc_size * sizeof(unsigned char))
         return 0
 
     cdef int _realloc(self, size_t new_size) except -1:
+        r"""
+        Allocate more memory for the word if needed.
+
+        INPUT:
+
+        - ``new_size`` - the minimum size of the new allocated memory
+        """
         if new_size >= self._alloc_size:
             self._alloc_size = max(new_size, <size_t> ((1.3) * self._alloc_size
 ))
             self._data[0] = <unsigned char *> check_realloc(self._data[0], self._alloc_size * sizeof(unsigned char))
 
         return 0
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: w = WordMorphism({1:[4], 4:[4,1]}).fixed_point(4)
+            sage: u = w[10:][4:]
+            sage: u
+            word: 1441414414414144144141441414414414144141...
+            sage: loads(dumps(u))
+            word: 1441414414414144144141441414414414144141...
+        """
+        if self._is_slice:
+            return slice_unpickle, (self._master, self._start, None, 1)
+        else:
+            raise NotImplementedError
 
     def __iter__(self):
         r"""
@@ -1014,7 +1130,8 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
         r"""
         Return a finite slice
 
-        There is no check on input.
+        There is no check on input. This method is mostly a helper for
+        ``__getitem__``.
 
         INPUT:
 
@@ -1033,7 +1150,9 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
             sage: l = [Integer(n).popcount()%3 for n in range(20)]
             sage: for (start,stop,step) in [(None,7,None), (2,9,None),
             ....:         (None,14,2), (3,17,2), (10,None,-1),
-            ....:         (14,10,-1), (1,0,None), (0,1,-1)]:
+            ....:         (14,10,-1), (1,0,None), (0,1,-1),
+            ....:         (1,5,2),  (2,5,2), (1,5,3), (2,5,3),
+            ....:         (5,1,-2), (5,2,-2), (5,1,-3), (5,2,-3)]:
             ....:    assert list(w[start:stop:step]) == l[start:stop:step]
         """
         cdef WordDatatype_char_finite w
@@ -1138,45 +1257,76 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
             True
             sage: u2[2:18:3] == w[5:37:6]
             True
+
+            sage: w[-3]
+            Traceback (most recent call last):
+            ...
+            IndexError: infinite word index must be positive
+            sage: w[1:-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: infinite word index must be positive
         """
         cdef Py_ssize_t i, start, stop, step, slicelength
-        cdef size_t j,k
-        cdef type t
-        cdef WordDatatype_char_infinite w_infinite
+        cdef slice s
 
         if PySlice_Check(key):
-            if key.step is None:
+            s = key
+            if s.step is None:
                 step = 1
             else:
-                step = key.step
+                step = s.step
 
             if not step:
                 raise ValueError("slice step can not be 0")
 
-            if key.stop is None and step > 0:
+            if s.stop is None and step > 0:
                 # build a new infinite word
-                if key.start is None:
+                if s.start is None:
                     start = 0
                 else:
-                    start = key.start
+                    start = s.start
 
                 return self._infinite_slice(start, step)
 
             else:
                 # build a new finite word
-                if step < 0 and key.start is None:
-                    raise ValueError("if step is negative, start must be specified")
-                PySlice_GetIndicesEx(key,
-                        PY_SSIZE_T_MAX,
-                        &start, &stop, &step,
-                        &slicelength)
+                # we avoid to use PySlice_GetIndicesEx because of negative
+                # indices are invalid here
+                if s.start is None:
+                    if step < 0:
+                        raise IndexError("if step is negative, start must be specified")
+                    else:
+                        start = 0
+                else:
+                    start = s.start
+                    if start < 0:
+                        raise IndexError("infinite word index must be positive")
+
+                if s.stop is None:
+                    stop = -1
+                else:
+                    stop = s.stop
+                    if stop < 0:
+                        raise IndexError("infinite word index must be positive")
+
+                if step > 0:
+                    if stop <= start:
+                        slicelength = 0
+                    else:
+                        slicelength = (stop - start + step - 1) // step
+                else:
+                    if start <= stop:
+                        slicelength = 0
+                    else:
+                        slicelength = (stop - start + step + 1) // step
                 return self._finite_slice(start, stop, step, slicelength)
 
         elif PyIndex_Check(key):
             # here the key is an int
-            i = key    # cast key into a size_t
+            i = key
             if i < 0:
-                raise IndexError("word index out of range")
+                raise IndexError("infinite word index must be positive")
             self._update_word_up_to(self._start+i+1)
             return self._data[0][self._start+i]
 
@@ -1185,6 +1335,13 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
     def __nonzero__(self):
         r"""
         An infinite word is always non-empty.
+
+        EXAMPLES::
+
+            sage: F = InfiniteWords([0,1,2])
+            sage: w = F(lambda n: Integer(n).popcount() % 3)
+            sage: bool(w)
+            True
         """
         return True
 
@@ -1200,25 +1357,20 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
         """
         return False
 
-    def _new_slice(self):
-        r"""
-        This method must be defined in Python subclasses.
-        """
-        raise NotImplementedError("must be implemented in subclasses")
-
     cdef int _extend_word(self) except -1:
         r"""
         Extend the word once.
 
-        It is up to subclasses to determine how to handle this method. See
-        examples in :class:`WordDatatype_callable_char`,
+        It is up to subclasses to determine how to handle this method. Cython
+        class might just implement it and Python class should implement
+        `_new_slice`. See examples in :class:`WordDatatype_callable_char`,
         :class:`WordDatatype_iter_char` and
         :class:`WordDatatype_substitutive_char`.
         """
         if self._is_slice:
             if (<WordDatatype_char_infinite> self._master)._current_stop == \
                     self._current_stop:
-                self._master._extend_word()
+                (<WordDatatype_char_infinite> self._master)._extend_word()
             self._current_stop = (<WordDatatype_char_infinite> self._master)._current_stop
         else:
             for letter in self._new_slice():
@@ -1230,7 +1382,7 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
 
     cdef _update_word_up_to(self, size_t n):
         r"""
-        Make sure that the prefix of length n is computed.
+        Make sure that the prefix of length ``n`` is computed.
 
         This method just call repetitively ``_extend_word``.
         """
@@ -1262,11 +1414,41 @@ cdef class WordDatatype_callable_char(WordDatatype_char_infinite):
         word: 010110100101100
     """
     def __init__(self, parent, f, length=None, slice_length=23):
+        r"""
+        INPUT:
+
+        - ``parent`` - the parent of the infinite word
+
+        - ``f`` - a function that to the integer ``n`` associates the letter at
+          position ``n`` in the word
+
+        - ``length`` - ignored (compatibility with other class of infinite
+          words)
+
+        - ``slice_length`` - determine the number of letters that is added to
+          the word at each update. Having a large number lowers the number of
+          calls. But if ``f`` is complicated enough that might be better to set
+          it to ``1``. Default is ``23``.
+
+        TESTS::
+
+            sage: W = InfiniteWords([2,4])
+            sage: w = W(lambda n: 2 + 2*(Integer(n).popcount()%2))
+            sage: w
+            word: 2442422442242442422424422442422442242442...
+            sage: w[:100] == w[:200:2]
+            True
+            sage: ldw = loads(dumps(w))
+            sage: ldw.parent() == w.parent()
+            True
+            sage: ldw[:200] == w[:200]
+            True
+        """
         self._parent = parent
-        assert slice_length
-        self._slice_length = 23
         self._init_c_data(13)
         self._f = f
+        assert slice_length > 0
+        self._slice_length = slice_length
 
     cdef int _extend_word(self) except -1:
         cdef int j
@@ -1275,6 +1457,27 @@ cdef class WordDatatype_callable_char(WordDatatype_char_infinite):
             self._data[0][self._current_stop] = self._f(self._current_stop)
             self._current_stop += 1
         return 0
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+
+        TESTS::
+
+            sage: W = InfiniteWords([0,1])
+            sage: w = W(is_prime)
+            sage: w
+            word: 0011010100010100010100010000010100000100...
+            sage: loads(dumps(w))
+            word: 0011010100010100010100010000010100000100...
+        """
+        from sage.misc.fpickle import pickle_function
+        try:
+            s = pickle_function(self._f)
+        except Exception:
+            return self._parent, (self._f, 'callable', True)
+        else:
+            return self._parent, (s, 'pickled_function', True)
 
 cdef class WordDatatype_iter_char(WordDatatype_char_infinite):
     r"""
@@ -1299,9 +1502,34 @@ cdef class WordDatatype_iter_char(WordDatatype_char_infinite):
         word: 01010101
     """
     def __init__(self, parent, iterator, length=None, slice_length=23):
+        r"""
+        INPUT:
+
+        - ``parent`` - the parent of this infinite word
+
+        - ``iterator`` - an iterator
+
+        - ``length`` - ignored (compatibility with other words)
+
+        - ``slice_length`` - the number of letters that is added to the cache at
+          each time. If larger then the number of calls might be significatively
+          lower. Though, if the iterator is relatively complicated, it might be
+          better to set it to ``1``.
+
+        TESTS::
+
+            sage: W = InfiniteWords([0,1])
+            sage: from itertools import count
+            sage: w = W(Integer(i).is_prime() for i in count())
+            sage: w[::2]
+            word: 0100000000000000000000000000000000000000...
+            sage: w[10:3:-1]
+            word: 0001010
+        """
         self._parent = parent
         self._init_c_data(13)
         self._iterator = iterator
+        assert slice_length > 0
         self._slice_length = slice_length
 
     cdef int _extend_word(self) except -1:
@@ -1333,10 +1561,26 @@ cdef class WordDatatype_substitutive_char(WordDatatype_char_infinite):
         <class 'sage.combinat.words.word.SubstitutiveWord_char'>
     """
     def __init__(self, parent, s, letter):
+        r"""
+        INPUT:
+
+        - ``parent`` - the parent for this infinite word
+
+        - ``s`` - the substitution
+
+        - ``letter`` - the first letter of the word
+
+        TESTS::
+
+            sage: s = WordMorphism({0: [0,1], 1: [0]})
+            sage: w = s.fixed_point(0)
+            sage: w[::2]
+            word: 0011001100010001000110011000100010001100...
+        """
         assert s.is_prolongable(letter) and s.is_growing(letter)
+        assert parent == s.domain().shift() == s.codomain().shift()
 
         self._parent = parent
-        assert parent == s.domain().shift() == s.codomain().shift()
         alphabet = parent.alphabet()
         d = max(alphabet)+1
         py_images = [(a,s.image(a)) for a in alphabet]
@@ -1346,6 +1590,7 @@ cdef class WordDatatype_substitutive_char(WordDatatype_char_infinite):
 
         self._images = <unsigned char **> check_malloc(d * sizeof(unsigned char *))
         self._lengths = <int *> check_malloc(d * sizeof(int))
+        memset(self._lengths, 0, d * sizeof(int))
         cdef unsigned char * ptr =  <unsigned char *> check_malloc(M * sizeof(unsigned char))
         self._images[0] = ptr
         for a,w in py_images:
@@ -1367,7 +1612,7 @@ cdef class WordDatatype_substitutive_char(WordDatatype_char_infinite):
         sage_free(self._lengths)
 
     cdef int _extend_word(self) except -1:
-        # add a new image
+        # add a new image of a letter
         self._i += 1
         cdef unsigned char letter = self._data[0][self._i]
         self._realloc(self._current_stop + self._lengths[letter])
@@ -1377,3 +1622,36 @@ cdef class WordDatatype_substitutive_char(WordDatatype_char_infinite):
                 self._lengths[letter] * sizeof(unsigned char))
         self._current_stop += self._lengths[letter]
         return 0
+
+    def morphism(self):
+        r"""
+        Return the morphism from which this infinite word was built as a fixed point.
+
+        EXAMPLES::
+
+            sage: w = WordMorphism({1:[4], 4:[4,1]}).fixed_point(4)
+            sage: w.morphism()
+            WordMorphism: 1->4, 4->41
+        """
+        from sage.combinat.words.morphism import WordMorphism
+        cdef int i,j
+        W = self._parent.factors()
+        d = {i: W([self._images[i][j] for j in range(self._lengths[i])]) for i in self._parent.alphabet()}
+        return WordMorphism(d, domain=W)
+
+    def __reduce__(self):
+        r"""
+        Pickling support.
+
+        EXAMPLES::
+
+            sage: w = WordMorphism({1:[4], 4:[4,1]}).fixed_point(4)
+            sage: w
+            word: 4144141441441414414144144141441441414414...
+            sage: loads(dumps(w))
+            word: 4144141441441414414144144141441441414414...
+            sage: parent(_)
+            Infinite words over {1, 4}
+        """
+        s = self.morphism()
+        return s.fixed_point, (self[0],)
