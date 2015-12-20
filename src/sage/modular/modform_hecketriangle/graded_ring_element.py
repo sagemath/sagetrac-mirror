@@ -28,7 +28,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-from constructor import rational_type, FormsSpace, FormsRing
+from constructor import rational_type, reduce_to_E4_rat, FormsSpace, FormsRing
 from series_constructor import MFSeriesConstructor
 
 
@@ -110,7 +110,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
 
             sage: MR = QuasiModularFormsRing(n=infinity)
-            sage: el = MR(d*x*(x-y^2))
+            sage: el = MR(d*x**8*(x**8-y^2))
             sage: el
             -E4*f_i^2*d + E4^2*d
             sage: el.rat()
@@ -121,6 +121,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
+        if (parent.hecke_n() == infinity):
+            (x,y,z,d) = parent.pol_ring().gens()
+            self._E4_rat = reduce_to_E4_rat(rat, x)
 
         if not (
             elem and\
@@ -175,7 +178,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiModularFormsRing(n=5)(x^3*z-d*y)
             f_rho^3*E2 - f_i*d
 
-            sage: QuasiModularFormsRing(n=infinity)(x)
+            sage: QuasiModularFormsRing(n=infinity)(x**8)
             E4
         """
 
@@ -192,13 +195,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiModularForms(n=5, k=6, ep=-1)(x^3*z)._rat_repr()
             'f_rho^3*E2'
 
-            sage: QuasiModularForms(n=infinity, k=10)(x*(x-y^2)*z)._rat_repr()
+            sage: QuasiModularForms(n=infinity, k=10)(x**8*(x**8-y^2)*z)._rat_repr()
             '-E4*f_i^2*E2 + E4^2*E2'
         """
 
         if (self.hecke_n() == infinity):
+#            with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+#                pol_str = str(self._rat)
             with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
-                pol_str = str(self._rat)
+                pol_str = str(self._E4_rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 pol_str = str(self._rat)
@@ -218,7 +223,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: MR(x^3*z-d*y)._qexp_repr()
             '-d + 1 + ((65*d + 33)/(200*d))*q + ((1755*d + 1437)/(320000*d^2))*q^2 + O(q^3)'
 
-            sage: QuasiModularFormsRing(n=infinity)(x*(x-y^2)*z)._qexp_repr()
+            sage: QuasiModularFormsRing(n=infinity)(x**8*(x**8-y^2)*z)._qexp_repr()
             '64*q - 3840*q^3 - 16384*q^4 + O(q^5)'
         """
 
@@ -243,15 +248,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: latex(CuspForms(k=12)(x^3-y^2))
             f_{\rho}^{3} -  f_{i}^{2}
 
-            sage: latex(QuasiModularFormsRing(n=infinity)(x*(x-y^2)*z))
+            sage: latex(QuasiModularFormsRing(n=infinity)(x**8*(x**8-y^2)*z))
             - E_{4} f_{i}^{2} E_{2} + E_{4}^{2} E_{2}
         """
 
         from sage.misc.latex import latex
 
         if (self.hecke_n() == infinity):
+#            with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+#                latex_str = latex(self._rat)
             with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
-                latex_str = latex(self._rat)
+                latex_str = latex(self._E4_rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 latex_str = latex(self._rat)
@@ -365,7 +372,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiModularFormsRing(n=12)(x^3+y^2+z+d).is_homogeneous()
             False
 
-            sage: QuasiModularFormsRing(n=infinity)(x*(x-y^2)+y^4).is_homogeneous()
+            sage: QuasiModularFormsRing(n=infinity)(x**8*(x**8-y^2)+y^4).is_homogeneous()
             True
         """
 
@@ -526,7 +533,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             False
             sage: QuasiMeromorphicModularForms(n=18).J_inv().is_weakly_holomorphic()
             True
-            sage: QuasiMeromorphicModularForms(n=infinity, k=-4)(1/x).is_weakly_holomorphic()
+            sage: QuasiMeromorphicModularForms(n=infinity, k=-4)(1/x**8).is_weakly_holomorphic()
             True
             sage: QuasiMeromorphicModularForms(n=infinity, k=-2)(1/y).is_weakly_holomorphic()
             False
@@ -655,9 +662,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + 1043/(192000000*d^3)*q^3 + 45479/(1228800000000*d^4)*q^4 + O(q^5)
             sage: QuasiMeromorphicModularForms(n=5, k=-2, ep=-1)(x/y).numerator().parent()
             QuasiModularForms(n=5, k=4/3, ep=1) over Integer Ring
-            sage: (QuasiMeromorphicModularForms(n=infinity, k=-2, ep=-1)(y/x)).numerator()
+            sage: (QuasiMeromorphicModularForms(n=infinity, k=-2, ep=-1)(y/x**8)).numerator()
             1 - 24*q + 24*q^2 - 96*q^3 + 24*q^4 + O(q^5)
-            sage: (QuasiMeromorphicModularForms(n=infinity, k=-2, ep=-1)(y/x)).numerator().parent()
+            sage: (QuasiMeromorphicModularForms(n=infinity, k=-2, ep=-1)(y/x**8)).numerator().parent()
             QuasiModularForms(n=+Infinity, k=2, ep=-1) over Integer Ring
         """
 
@@ -689,9 +696,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 - 13819/(76800000*d^3)*q^3 - 1163669/(491520000000*d^4)*q^4 + O(q^5)
             sage: QuasiMeromorphicModularForms(n=5, k=-2, ep=-1)(x/y).denominator().parent()
             QuasiModularForms(n=5, k=10/3, ep=-1) over Integer Ring
-            sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x*(x-y^2)))).denominator()
+            sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x**8*(x**8-y^2)))).denominator()
             -64*q - 512*q^2 - 768*q^3 + 4096*q^4 + O(q^5)
-            sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x*(x-y^2)))).denominator().parent()
+            sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x**8*(x**8-y^2)))).denominator().parent()
             QuasiModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
@@ -756,7 +763,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         def monomial_degree(monomial):
             ep = ZZ(ZZ(1) - 2*(( sum([monomial.exponents()[0][m] for m in [1,2]]) )%2))
             if (n == infinity):
-                weight = QQ(dhom(R(monomial.subs(x=x**4, y=y**2, z=z**2))).degree())
+                weight = QQ(dhom(R(monomial.subs(x=x**4, y=y**(2*8), z=z**(2*8)))).degree() / ZZ(8))
             else:
                 weight = QQ(dhom(R(monomial.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))))).degree() / (n-2))
             return (weight, ep)
@@ -1254,7 +1261,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
-            sage: mul_op = 4*X*dX + 2*Y*dY + 2*Z*dZ
+            sage: mul_op = ZZ(1)/ZZ(2)*X*dX + 2*Y*dY + 2*Z*dZ
             sage: der_op = MR._derivative_op()
             sage: ser_op = MR._serre_derivative_op()
             sage: der_op == ser_op + Z/4*mul_op
@@ -1273,7 +1280,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: Delta.diff_op(Z*mul_op, Delta.parent().extend_type("quasi", ring=True)) == 12*E2*Delta
             True
 
-            sage: ran_op = X + Y*X*dY*dX + dZ + dX^2
+            sage: ran_op = X**8 + ZZ(1)/ZZ(8)*Y*X*dY*dX + dZ + dY^2
             sage: Delta.diff_op(ran_op)
             -E4^3*f_i^2*d + E4^4*d - 4*E4^2*f_i^2*d - 2*f_i^2*d + 6*E4*d
             sage: E2.diff_op(ran_op)
@@ -1515,7 +1522,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             0
             sage: (MR.J_inv()^2/MR.E4()).order_at(infinity)
             -2
-            sage: el = MR((z^3-x*y)^2/(x^2*(x-y^2))).full_reduce()
+            sage: el = MR((z^3-x**8*y)^2/(x^(2*8)*(x**8-y^2))).full_reduce()
             sage: el
             4*q - 304*q^2 + 8128*q^3 - 106144*q^4 + O(q^5)
             sage: el.order_at(infinity)
@@ -1524,9 +1531,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             QuasiWeakModularForms(n=+Infinity, k=0, ep=1) over Integer Ring
             sage: el.is_holomorphic()
             False
-            sage: MR((z-x)^2+(x-y)^3).order_at(infinity)
+            sage: MR((z-x**8)^2+(x**8-y)^3).order_at(infinity)
             2
-            sage: MR((x-y)^10).order_at(infinity)
+            sage: MR((x**8-y)^10).order_at(infinity)
             10
             sage: MR.zero().order_at(infinity)
             +Infinity
@@ -1539,7 +1546,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             0
 
             sage: p = HyperbolicPlane().PD().get_point(I)
-            sage: MR((x-y)^10).order_at(p)
+            sage: MR((x**8-y)^10).order_at(p)
             10
             sage: MR.zero().order_at(p)
             +Infinity
@@ -1564,11 +1571,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 f_pol = y
             # This includes the case rho=1 resp. n=infinity
             elif (tau == self.group().rho() or tau == -self.group().rho().conjugate()):
-                f_pol = x
+                if (n == infinity):
+                    f_pol = x**8
+                else:
+                    f_pol = x
             # We intentionally leave out the d-factor!
             elif (tau == infinity):
                 if (n == infinity):
-                    f_pol = x - y**2
+                    f_pol = x**8 - y**2
                 else:
                     f_pol = x**n - y**2
             elif (tau.imag() > 0):
@@ -1665,7 +1675,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             ModularFormsRing(n=7) over Integer Ring
 
             sage: y=var("y")
-            sage: ModularFormsRing(n=infinity)(x-y^2).reduce(force=True)
+            sage: ModularFormsRing(n=infinity)(x**8-y^2).reduce(force=True)
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
         """
 
@@ -1696,9 +1706,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             ModularFormsRing(n=3) over Integer Ring
 
             sage: y=var("y")
-            sage: QuasiMeromorphicModularFormsRing(n=infinity)(x-y^2).reduced_parent()
+            sage: QuasiMeromorphicModularFormsRing(n=infinity)(x**8-y^2).reduced_parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
-            sage: QuasiMeromorphicModularFormsRing(n=infinity)(x*(x-y^2)).reduced_parent()
+            sage: QuasiMeromorphicModularFormsRing(n=infinity)(x**8*(x**8-y^2)).reduced_parent()
             CuspForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
@@ -1776,10 +1786,16 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         Y  = SC.f_i_ZZ().base_extend(formal_d.parent())
 
         if (self.parent().is_modular()):
-            qexp = self._rat.subs(x=X, y=Y, d=formal_d)
+            if (self.hecke_n() == infinity):
+                qexp = self._E4_rat.subs(x=X, y=Y, d=formal_d)
+            else:
+                qexp = self._rat.subs(x=X, y=Y, d=formal_d)
         else:
             Z = SC.E2_ZZ().base_extend(formal_d.parent())
-            qexp = self._rat.subs(x=X, y=Y, z=Z, d=formal_d)
+            if (self.hecke_n() == infinity):
+                qexp = self._E4_rat.subs(x=X, y=Y, z=Z, d=formal_d)
+            else:
+                qexp = self._rat.subs(x=X, y=Y, z=Z, d=formal_d)
 
         qexp = (qexp + O(formal_q**prec)).parent()(qexp)
         qexp = qexp(formal_q/formal_d)
@@ -1883,7 +1899,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
 
             sage: x,y = var("x,y")
-            sage: el = WeakModularFormsRing(n=infinity)((x+1)/(x-y^2))
+            sage: el = WeakModularFormsRing(n=infinity)((x**8+1)/(x**8-y^2))
             sage: el.q_expansion(prec=2, fix_prec = True)
             2*d*q^-1 + O(1)
             sage: el.q_expansion(prec=2)
@@ -1953,9 +1969,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1 - 8*q - 8*q^2 + O(q^3)
 
             sage: x,y = var("x,y")
-            sage: WeakModularFormsRing(n=infinity)((x+1)/(x-y^2)).q_expansion_fixed_d(prec=2, fix_prec = True)
+            sage: WeakModularFormsRing(n=infinity)((x**8+1)/(x**8-y^2)).q_expansion_fixed_d(prec=2, fix_prec = True)
             1/32*q^-1 + O(1)
-            sage: WeakModularFormsRing(n=infinity)((x+1)/(x-y^2)).q_expansion_fixed_d(prec=2)
+            sage: WeakModularFormsRing(n=infinity)((x**8+1)/(x**8-y^2)).q_expansion_fixed_d(prec=2)
             1/32*q^-1 + 1/2 + 39/8*q + O(q^2)
 
             sage: (WeakModularFormsRing(n=14).J_inv()^3).q_expansion_fixed_d(prec=2)
@@ -2407,7 +2423,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             dval  = self.parent().group().dvalue().n(num_prec)
             if (self.hecke_n() == infinity):
                 E4 = self.parent().graded_ring().E4()
-                return self._rat.subs(x=E4(tau), y=f_i(tau), z=E2(tau), d=dval)
+                return self._E4_rat.subs(x=E4(tau), y=f_i(tau), z=E2(tau), d=dval)
             else:
                 f_rho = self.parent().graded_ring().f_rho()
                 return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)

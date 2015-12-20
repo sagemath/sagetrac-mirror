@@ -167,8 +167,8 @@ class FormsRing_abstract(Parent):
                 el_f = el._reduce_d()._rat
                 (x,y,z,d) = self.pol_ring().gens()
 
-                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
-                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
                 new_num = num_sub.numerator()*denom_sub.denominator()
                 new_denom = denom_sub.numerator()*num_sub.denominator()
 
@@ -814,9 +814,9 @@ class FormsRing_abstract(Parent):
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
 
         if (self.hecke_n() == infinity):
-            return   (X*Z-X*Y) * dX\
-                   + ZZ(1)/ZZ(2) * (Y*Z-X) * dY\
-                   + ZZ(1)/ZZ(4) * (Z**2-X) * dZ
+            return   ZZ(1)/ZZ(8) * (X*Z-X*Y) * dX\
+                   + ZZ(1)/ZZ(2) * (Y*Z-X**ZZ(8)) * dY\
+                   + ZZ(1)/ZZ(4) * (Z**2-X**ZZ(8)) * dZ
         else:
             return   1/self._group.n() * (X*Z-Y) * dX\
                    + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n()-1)) * dY\
@@ -841,9 +841,9 @@ class FormsRing_abstract(Parent):
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
 
         if (self.hecke_n() == infinity):
-            return - X * Y * dX\
-                   - ZZ(1)/ZZ(2) * X * dY\
-                   - ZZ(1)/ZZ(4) * (Z**2+X) * dZ
+            return - ZZ(1)/ZZ(8) * X * Y * dX\
+                   - ZZ(1)/ZZ(2) * X**ZZ(8) * dY\
+                   - ZZ(1)/ZZ(4) * (Z**2+X**ZZ(8)) * dZ
         else:
             return - 1/self._group.n() * Y*dX\
                    - ZZ(1)/ZZ(2) * X**(self._group.n()-1) * dY\
@@ -878,7 +878,7 @@ class FormsRing_abstract(Parent):
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
 
         if (self.hecke_n() == infinity):
-            return   4 * X * dX\
+            return   ZZ(1)/ZZ(2) * X * dX\
                    + 2 * Y * dY\
                    + 2 * Z * dZ
         else:
@@ -1137,7 +1137,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("weak", ring=True)(x/(x-y**2)).reduce()
+            return self.extend_type("weak", ring=True)(x**8/(x**8-y**2)).reduce()
         else:
             return self.extend_type("weak", ring=True)(x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
@@ -1189,7 +1189,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("weak", ring=True)(1/d*x/(x-y**2)).reduce()
+            return self.extend_type("weak", ring=True)(1/d*x**8/(x**8-y**2)).reduce()
         else:
             return self.extend_type("weak", ring=True)(1/d*x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
@@ -1404,7 +1404,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("holo", ring=True)(d*(x-y**2)).reduce()
+            return self.extend_type("holo", ring=True)(d*(x**8-y**2)).reduce()
         else:
             return self.extend_type("cusp", ring=True)(d*(x**self._group.n()-y**2)).reduce()
 
@@ -1631,7 +1631,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("holo", ring=True)(x).reduce()
+            return self.extend_type("holo", ring=True)(x**ZZ(8)).reduce()
         else:
             return self.extend_type("holo", ring=True)(x**(self._group.n()-2)).reduce()
 
@@ -1698,7 +1698,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("holo", ring=True)(x*y).reduce()
+            return self.extend_type("holo", ring=True)(x**8*y).reduce()
         else:
             return self.extend_type("holo", ring=True)(x**(self._group.n()-3)*y).reduce()
 
@@ -1771,7 +1771,7 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            return self.extend_type("cusp", ring=True)(d*x**2*(x-y**2)).reduce()
+            return self.extend_type("cusp", ring=True)(d*x**(2*8)*(x**8-y**2)).reduce()
         else:
             return self.extend_type("cusp", ring=True)(d*x**(2*self._group.n()-6)*(x**self._group.n()-y**2)).reduce()
 

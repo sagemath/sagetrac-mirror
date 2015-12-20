@@ -107,13 +107,13 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         sage: rational_type(1.1 * z * (x^8-y^2), n=8, base_ring=CC)
         (True, True, 22/3, -1, quasi cuspidal)
 
-        sage: rational_type(x-y^2, n=infinity)
+        sage: rational_type(x**8-y^2, n=infinity)
         (True, True, 4, 1, modular)
 
-        sage: rational_type(x*(x-y^2), n=infinity)
+        sage: rational_type(x**8*(x**8-y^2), n=infinity)
         (True, True, 8, 1, cuspidal)
 
-        sage: rational_type(1/x, n=infinity)
+        sage: rational_type(1/x**8, n=infinity)
         (True, True, -4, 1, weakly holomorphic modular)
     """
 
@@ -141,8 +141,8 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     ep_denom       = set([ZZ(1) - 2*(( sum([g.exponents()[0][m] for m in [1,2]]) )%2) for g in dhom(denom).monomials()])
 
     if (n == infinity):
-        hom_num    = R(   num.subs(x=x**4, y=y**2, z=z**2) )
-        hom_denom  = R( denom.subs(x=x**4, y=y**2, z=z**2) )
+        hom_num    = R(   num.subs(x=x**(4), y=y**(2*8), z=z**(2*8)) )
+        hom_denom  = R( denom.subs(x=x**(4), y=y**(2*8), z=z**(2*8)) )
     else:
         n          = ZZ(n)
         hom_num    = R(   num.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))) )
@@ -160,7 +160,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     if (len(ep_num) == 1 and dhom(hom_num).is_homogeneous()):
         homo   = True
         if (n == infinity):
-            weight = (dhom(hom_num).degree() - dhom(hom_denom).degree())
+            weight = (dhom(hom_num).degree() - dhom(hom_denom).degree()) / ZZ(8)
         else:
             weight = (dhom(hom_num).degree() - dhom(hom_denom).degree()) / (n-2)
         ep     = ep_num.pop() / ep_denom.pop()
@@ -172,7 +172,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     # Note that we intentially leave out the d-factor!
     if (n == infinity):
-        finf_pol = (x-y**2)
+        finf_pol = (x**8-y**2)
     else:
         finf_pol = x**n-y**2
 
@@ -210,6 +210,17 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
             analytic_type = analytic_type.reduce_to(["quasi", "weak"])
 
     return (elem, homo, weight, ep, analytic_type)
+
+
+def reduce_to_E4_rat(rat, x):
+    parent_space = x.parent()
+    num = parent_space(rat.numerator()).polynomial(x)
+    denom = parent_space(rat.denominator()).polynomial(x)
+
+    new_rat_num = parent_space(sum([el[0]*x**ZZ(el[1]/ZZ(8)) for el in zip(num.coefficients(), num.exponents())]))
+    new_rat_denom = parent_space(sum([el[0]*x**ZZ(el[1]/ZZ(8)) for el in zip(denom.coefficients(), denom.exponents())]))
+
+    return FractionField(parent_space)(new_rat_num)/FractionField(parent_space)(new_rat_denom)
 
 
 def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):

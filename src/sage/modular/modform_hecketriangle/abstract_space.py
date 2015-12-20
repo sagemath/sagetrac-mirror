@@ -239,8 +239,8 @@ class FormsSpace_abstract(FormsRing_abstract):
                 el_f = el._reduce_d()._rat
                 (x,y,z,d) = self.pol_ring().gens()
 
-                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
-                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
                 new_num = num_sub.numerator()*denom_sub.denominator()
                 new_denom = denom_sub.numerator()*num_sub.denominator()
 
@@ -1070,8 +1070,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             order_1 = ZZ(order_1)
             order_inf = self._l1 - order_1
 
-            finf_pol = d*(x - y**2)
-            rat = finf_pol**order_inf * x**order_1 * y**(ZZ(1-self._ep)/ZZ(2))
+            finf_pol = d*(x**8 - y**2)
+            rat = finf_pol**order_inf * x**(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2))
         else:
             order_inf = self._l1
             order_1 = order_inf
@@ -1469,9 +1469,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (n ==infinity):
             order_1   = ZZ(order_1)
             order_inf = self._l1 - order_1
-            finf_pol  = d*(x-y**2)
-            jinv_pol  = x/(x-y**2)
-            rat       = finf_pol**order_inf * x**order_1 * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m, order_1)(jinv_pol)
+            finf_pol  = d*(x**8-y**2)
+            jinv_pol  = x**8/(x**8-y**2)
+            rat       = finf_pol**order_inf * x**(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m, order_1)(jinv_pol)
         else:
             order_inf = self._l1
             order_1   = order_inf
