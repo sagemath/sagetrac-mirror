@@ -184,9 +184,9 @@ cdef class WordDatatype_char_finite(WordDatatype_char):
         EXAMPLES::
 
             sage: W = Words([0,1,2])
-            sage: W([0,1,0,1,0,0,0], datatype='list').__hash__()
+            sage: hash(W([0,1,0,1,0,0,0], datatype='list'))
             102060647
-            sage: W([0,1,0,1,0,0,0], datatype='char').__hash__()
+            sage: hash(W([0,1,0,1,0,0,0], datatype='char'))
             102060647
         """
         cdef int res = 5381
@@ -1068,6 +1068,27 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
             return slice_unpickle, (self._master, self._start, None, 1)
         else:
             raise NotImplementedError
+
+    def __hash__(self):
+        r"""
+        A hash function that takes care of the first 1024 letters
+
+        EXAMPLES::
+
+            sage: w = WordMorphism({0:[0,1],1:[1]}).fixed_point(0)
+            sage: hash(w)
+            -1533913820
+        """
+        cdef int res = 5381
+        cdef int i
+        cdef unsigned char * data
+        if (<WordDatatype> self)._hash is None:
+            self._update_word_up_to(1025)
+            data = self._data[0]
+            for i in range(1024):
+                res = ((res << 5) + res) + data[i]
+            (<WordDatatype> self)._hash = res
+        return (<WordDatatype> self)._hash
 
     def __iter__(self):
         r"""

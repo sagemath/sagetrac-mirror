@@ -51,22 +51,25 @@ cdef class WordDatatype(object):
 
         TESTS::
 
-             sage: h = hash(Word('abc'))    # indirect test
-             sage: Word('abc').__hash__() == Word('abc').__hash__()
-             True
+             sage: h = hash(Word('abc'))
 
-             sage: tm = words.ThueMorseWord()
-             sage: hash(tm)
+             sage: hash(words.ThueMorseWord())
              -973965563
+
+             sage: hash(words.FibonacciWord(construction_method="recursive"))
+             -1921378420
+             sage: hash(words.FibonacciWord(construction_method="function"))
+             -1921378420
+             sage: hash(words.FibonacciWord(construction_method="fixed_point"))
+             -1921378420
         """
         cdef int res
         if self._hash is None:
             res = 5381
             for s in islice(self,1024):
-                res = ((res << 5) + res) + hash(s)
+                res += (res << 5) + hash(s)
             self._hash = res
         return self._hash
-
 
 cdef class WordDatatype_list(WordDatatype):
     r"""
