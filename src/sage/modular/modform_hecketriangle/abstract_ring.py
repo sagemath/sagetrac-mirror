@@ -808,7 +808,7 @@ class FormsRing_abstract(Parent):
             -1/2*X^6*dY - 5/28*X^5*dZ + 1/7*X*Z*dX + 1/2*Y*Z*dY + 5/28*Z^2*dZ - 1/7*Y*dX
 
             sage: ModularFormsRing(n=infinity)._derivative_op()
-            -X*Y*dX + X*Z*dX + 1/2*Y*Z*dY + 1/4*Z^2*dZ - 1/2*X*dY - 1/4*X*dZ
+            -1/2*X^8*dY - 1/4*X^8*dZ - 1/8*X*Y*dX + 1/8*X*Z*dX + 1/2*Y*Z*dY + 1/4*Z^2*dZ
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
@@ -835,7 +835,7 @@ class FormsRing_abstract(Parent):
             -1/2*X^7*dY - 3/16*X^6*dZ - 3/16*Z^2*dZ - 1/8*Y*dX
 
             sage: ModularFormsRing(n=infinity)._serre_derivative_op()
-            -X*Y*dX - 1/4*Z^2*dZ - 1/2*X*dY - 1/4*X*dZ
+            -1/2*X^8*dY - 1/4*X^8*dZ - 1/8*X*Y*dX - 1/4*Z^2*dZ
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
@@ -864,7 +864,7 @@ class FormsRing_abstract(Parent):
 
             sage: MR2 = ModularFormsRing(n=infinity)
             sage: MR2._multiplication_op()
-            4*X*dX + 2*Y*dY + 2*Z*dZ
+            1/2*X*dX + 2*Y*dY + 2*Z*dZ
 
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
             sage: n=8

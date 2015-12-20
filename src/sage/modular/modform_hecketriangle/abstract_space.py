@@ -1443,24 +1443,24 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF = WeakModularForms(n=infinity, k=14, ep=-1)
             sage: MF.F_basis_pol(3)
-            -y^7*d^3 + 3*x*y^5*d^3 - 3*x^2*y^3*d^3 + x^3*y*d^3
+            x^24*y*d^3 - 3*x^16*y^3*d^3 + 3*x^8*y^5*d^3 - y^7*d^3
             sage: MF.F_basis_pol(2)
-            (3*y^7*d^2 - 17*x*y^5*d^2 + 25*x^2*y^3*d^2 - 11*x^3*y*d^2)/(-8)
+            (-11*x^24*y*d^2 + 25*x^16*y^3*d^2 - 17*x^8*y^5*d^2 + 3*y^7*d^2)/(-8)
             sage: MF.F_basis_pol(1)
-            (-75*y^7*d + 225*x*y^5*d - 1249*x^2*y^3*d + 1099*x^3*y*d)/1024
+            (1099*x^24*y*d - 1249*x^16*y^3*d + 225*x^8*y^5*d - 75*y^7*d)/1024
             sage: MF.F_basis_pol(0)
-            (41*y^7 - 147*x*y^5 - 1365*x^2*y^3 - 2625*x^3*y)/(-4096)
+            (-2625*x^24*y - 1365*x^16*y^3 - 147*x^8*y^5 + 41*y^7)/(-4096)
             sage: MF.F_basis_pol(-1)
-            (-9075*y^9 + 36300*x*y^7 - 718002*x^2*y^5 - 4928052*x^3*y^3 - 2769779*x^4*y)/(8388608*y^2*d - 8388608*x*d)
-
+            (-2769779*x^32*y - 4928052*x^24*y^3 - 718002*x^16*y^5 + 36300*x^8*y^7 - 9075*y^9)/(-8388608*x^8*d + 8388608*y^2*d)
+    
             sage: MF.F_basis_pol(3, order_1=-1)
-            (-3*y^9*d^3 + 16*x*y^7*d^3 - 30*x^2*y^5*d^3 + 24*x^3*y^3*d^3 - 7*x^4*y*d^3)/(-4*x)
+            (-7*x^32*y*d^3 + 24*x^24*y^3*d^3 - 30*x^16*y^5*d^3 + 16*x^8*y^7*d^3 - 3*y^9*d^3)/(-4*x^8)
             sage: MF.F_basis_pol(1, order_1=2)
-            -x^2*y^3*d + x^3*y*d
+            x^24*y*d - x^16*y^3*d
             sage: MF.F_basis_pol(0, order_1=2)
-            (-3*x^2*y^3 - 5*x^3*y)/(-8)
+            (-5*x^24*y - 3*x^16*y^3)/(-8)
             sage: MF.F_basis_pol(-1, order_1=2)
-            (-81*x^2*y^5 - 606*x^3*y^3 - 337*x^4*y)/(1024*y^2*d - 1024*x*d)
+            (-337*x^32*y - 606*x^24*y^3 - 81*x^16*y^5)/(-1024*x^8*d + 1024*y^2*d)
         """
 
         (x,y,z,d) = self.rat_field().gens()

@@ -114,7 +114,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: el
             -E4*f_i^2*d + E4^2*d
             sage: el.rat()
-            -x*y^2*d + x^2*d
+            x^16*d - x^8*y^2*d
             sage: el.parent()
             QuasiModularFormsRing(n=+Infinity) over Integer Ring
         """
@@ -697,7 +697,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiMeromorphicModularForms(n=5, k=-2, ep=-1)(x/y).denominator().parent()
             QuasiModularForms(n=5, k=10/3, ep=-1) over Integer Ring
             sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x**8*(x**8-y^2)))).denominator()
-            -64*q - 512*q^2 - 768*q^3 + 4096*q^4 + O(q^5)
+            64*q + 512*q^2 + 768*q^3 - 4096*q^4 + O(q^5)
             sage: (QuasiMeromorphicModularForms(n=infinity, k=-6, ep=-1)(y/(x**8*(x**8-y^2)))).denominator().parent()
             QuasiModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
@@ -1282,7 +1282,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: ran_op = X**8 + ZZ(1)/ZZ(8)*Y*X*dY*dX + dZ + dY^2
             sage: Delta.diff_op(ran_op)
-            -E4^3*f_i^2*d + E4^4*d - 4*E4^2*f_i^2*d - 2*f_i^2*d + 6*E4*d
+            -E4^3*f_i^2*d + E4^4*d - 4*E4^2*f_i^2*d - 2*E4^2*d
             sage: E2.diff_op(ran_op)
             E4*E2 + 1
         """
