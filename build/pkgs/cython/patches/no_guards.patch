@@ -1,0 +1,63 @@
+commit 940267a1fa782e3ec0ab444456dd9ed18735db0d
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Tue Dec 22 12:07:52 2015 +0100
+
+    Do not generate #include guards in Cython C files
+
+diff --git a/Cython/Compiler/ModuleNode.py b/Cython/Compiler/ModuleNode.py
+index 0398bec..aeb34f0 100644
+--- a/Cython/Compiler/ModuleNode.py
++++ b/Cython/Compiler/ModuleNode.py
+@@ -628,8 +628,6 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         self.generate_extern_c_macro_definition(code)
+         code.putln("")
+ 
+-        code.putln("#define %s" % Naming.h_guard_prefix + self.api_name(env))
+-        code.putln("#define %s" % Naming.api_guard_prefix + self.api_name(env))
+         self.generate_includes(env, cimported_modules, code)
+         code.putln("")
+         code.putln("#ifdef PYREX_WITHOUT_ASSERTIONS")
+diff --git a/tests/build/include_cdef_public.srctree b/tests/build/include_cdef_public.srctree
+new file mode 100644
+index 0000000..d2f6641
+--- /dev/null
++++ b/tests/build/include_cdef_public.srctree
+@@ -0,0 +1,38 @@
++#
++# This tests a Cython file calling some function implemented in
++# C or C++, which in turn calls a function implemented in Cython.
++# All this is compiled together in one source files using #includes.
++#
++# We use C++ for this test because C++ is more strict about declarations.
++# So, if it works with C++, it most likely also works with C.
++#
++
++PYTHON setup.py build_ext --inplace
++PYTHON -c "from a import call_cython"
++
++######## setup.py ########
++
++from Cython.Build.Dependencies import cythonize
++
++from distutils.core import setup
++
++setup(
++    ext_modules = cythonize("*.pyx", language='c++'),
++)
++
++######## a.pyx ########
++
++cdef extern from "helper.cpp":
++    cpdef void call_cython(int x)
++
++cdef public void implemented_in_cython():
++    pass
++
++######## helper.cpp ########
++
++#include "a.h"
++
++template <class T>
++static void call_cython(T x) {
++    implemented_in_cython();
++}
