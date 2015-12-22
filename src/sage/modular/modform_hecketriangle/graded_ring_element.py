@@ -121,7 +121,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
-        if (parent.hecke_n() == infinity):
+        if parent.without_fractional_orders():
             (x,y,z,d) = parent.pol_ring().gens()
             self._E4_rat = reduce_to_E4_rat(rat, x)
 
@@ -200,10 +200,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
 
         if (self.hecke_n() == infinity):
-#            with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
-#                pol_str = str(self._rat)
-            with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
-                pol_str = str(self._E4_rat)
+            if (self.parent().with_fractional_orders()):
+                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+                    pol_str = str(self._rat)
+            else:
+                with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
+                    pol_str = str(self._E4_rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 pol_str = str(self._rat)
@@ -255,10 +257,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         from sage.misc.latex import latex
 
         if (self.hecke_n() == infinity):
-#            with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
-#                latex_str = latex(self._rat)
-            with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
-                latex_str = latex(self._E4_rat)
+            if (self.parent().with_fractional_orders()):
+                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+                    latex_str = latex(self._rat)
+            else:
+                with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
+                    latex_str = latex(self._E4_rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 latex_str = latex(self._rat)
@@ -704,7 +708,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         res = self.parent().rat_field()(self._rat.denominator())
         # In general the denominator has a different weight than the original function...
-        new_parent = self.parent().extend_type("holo", ring=True).reduce_type(["holo", "quasi"])
+        new_parent = self.parent().extend_type("holo", ring=True).reduce_type(["holo", "quasi", "frac"])
         return new_parent(res).reduce()
 
     def homogeneous_parts(self, degree=None):
@@ -1567,12 +1571,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             (x,y,z,d) = R.gens()
             n         = self.hecke_n()
 
+            is_theta_case = False
+
             if (tau == i):
                 f_pol = y
             # This includes the case rho=1 resp. n=infinity
             elif (tau == self.group().rho() or tau == -self.group().rho().conjugate()):
                 if (n == infinity):
-                    f_pol = x**8
+                    is_theta_case = True
+                    f_pol = x
                 else:
                     f_pol = x
             # We intentionally leave out the d-factor!
@@ -1598,7 +1605,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                     numerator  = numerator.quo_rem(f_pol)[0]
                     #numerator /= f_pol
                     numerator  = R(numerator)
-                    order_f += 1
+                    if is_theta_case:
+                        order_f += ZZ(1)/ZZ(8)
+                    else:
+                        order_f += 1
             except TypeError:
                 pass
             try:
@@ -1606,9 +1616,16 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                     denom      = denom.quo_rem(f_pol)[0]
                     #denom     /= f_pol
                     denom      = R(denom)
-                    order_f -= 1
+                    if is_theta_case:
+                        order_f -= ZZ(1)/ZZ(8)
+                    else:
+                        order_f -= 1
             except TypeError:
                 pass
+
+            # If possible we want to return an integer
+            if (QQ(order_f).is_integral()):
+                order_f = ZZ(order_f)
 
             return order_f
         else:
@@ -1780,19 +1797,22 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         formal_q = self.parent().get_q(prec)
 
         if (self.hecke_n() == infinity):
-            X = SC.E4_ZZ().base_extend(formal_d.parent())
+            if self.parent().with_fractional_orders():
+                X = SC.theta_ZZ().base_extend(formal_d.parent())
+            else:
+                X = SC.E4_ZZ().base_extend(formal_d.parent())
         else:
             X = SC.f_rho_ZZ().base_extend(formal_d.parent())
         Y  = SC.f_i_ZZ().base_extend(formal_d.parent())
 
         if (self.parent().is_modular()):
-            if (self.hecke_n() == infinity):
+            if self.parent().without_fractional_orders():
                 qexp = self._E4_rat.subs(x=X, y=Y, d=formal_d)
             else:
                 qexp = self._rat.subs(x=X, y=Y, d=formal_d)
         else:
             Z = SC.E2_ZZ().base_extend(formal_d.parent())
-            if (self.hecke_n() == infinity):
+            if self.parent().without_fractional_orders():
                 qexp = self._E4_rat.subs(x=X, y=Y, z=Z, d=formal_d)
             else:
                 qexp = self._rat.subs(x=X, y=Y, z=Z, d=formal_d)
@@ -2422,8 +2442,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             E2    = self.parent().graded_ring().E2()
             dval  = self.parent().group().dvalue().n(num_prec)
             if (self.hecke_n() == infinity):
-                E4 = self.parent().graded_ring().E4()
-                return self._E4_rat.subs(x=E4(tau), y=f_i(tau), z=E2(tau), d=dval)
+                if self.parent().with_fractional_orders():
+                    theta = self.parent().graded_ring().theta()
+                    return self._rat.subs(x=theta(tau), y=f_i(tau), z=E2(tau), d=dval)
+                else:
+                    E4 = self.parent().graded_ring().E4()
+                    return self._E4_rat.subs(x=E4(tau), y=f_i(tau), z=E2(tau), d=dval)
             else:
                 f_rho = self.parent().graded_ring().f_rho()
                 return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)

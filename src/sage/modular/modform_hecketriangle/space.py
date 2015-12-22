@@ -56,6 +56,7 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
     n = group.n()
     k = QQ(k)
     if (ep == None):
+        #TODO
         if (n == infinity):
             ep = (-1)**(k/ZZ(2))
         elif (ZZ(2).divides(n)):
@@ -65,6 +66,7 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
     ep = ZZ(ep)
 
     if (n == infinity):
+        #TODO
         num = (k-(1-ep)) / ZZ(4)
     else:
         num = (k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4)
@@ -120,7 +122,7 @@ class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresenta
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["quasi", "mero"])
+        self._analytic_type=self.AT.maximal_analytic_type()
 
 class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -684,6 +686,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             3
         """
 
+        #TODO
         return max(self._l1+1, ZZ(0))
 
     @cached_method
@@ -827,6 +830,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             1
         """
 
+        #TODO
         if (self.hecke_n() == infinity):
             return max(self._l1-1, ZZ(0))
         else:

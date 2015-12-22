@@ -695,6 +695,11 @@ Modular forms ring and spaces for Hecke triangle groups:
   is ``1``. They have the weight and multiplier ``(4/(n-2), 1)``, ``(2*n/(n-2), -1)``,
   ``(4*n/(n-2), 1)`` resp. and can be defined in terms of the Hauptmodul ``j``.
 
+  In the limit case ``n=infinity`` the generator ``f_rho`` tends to ``1`` and instead
+  the ``theta`` function is used instead as a (new) generator
+  (which has order ``1/8`` at the cusp ``-1``) resp. ``E4=theta^8`` in case only
+  integer orders are allowed.
+
   EXAMPLES::
 
       sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
@@ -706,6 +711,12 @@ Modular forms ring and spaces for Hecke triangle groups:
       q - 9/(200*d)*q^2 + 279/(640000*d^2)*q^3 + 961/(192000000*d^3)*q^4 + O(q^5)
       sage: ModularFormsRing(n=5).f_inf()
       f_rho^5*d - f_i^2*d
+
+      sage: ModularFormsRing(n=infinity, red_hom=True).theta()
+      sage: ModularFormsRing(n=infinity, red_hom=True).E4()
+      1 + 16*q + 112*q^2 + 448*q^3 + 1136*q^4 + O(q^5)
+      sage: ModularFormsRing(n=infinity, red_hom=True).f_i()
+      1 - 24*q + 24*q^2 - 96*q^3 + 24*q^4 + O(q^5)
 
 
 - **Eisenstein series and Delta:**

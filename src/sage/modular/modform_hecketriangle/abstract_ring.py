@@ -95,7 +95,7 @@ class FormsRing_abstract(Parent):
         # default values
         self._weight              = None
         self._ep                  = None
-        self._analytic_type       = self.AT(["quasi", "mero"])
+        self._analytic_type       = self.AT.maximal_analytic_type()
 
         self.default_prec(10)
         self.disp_prec(5)
@@ -499,6 +499,22 @@ class FormsRing_abstract(Parent):
             if (self.is_homogeneous() and (weight != self.weight() or ep!=self.ep())):
                 analytic_type = self._analytic_type.reduce_to([])
             return FormsSpace(analytic_type, group=self.group(), base_ring=self.base_ring(), k=weight, ep=ep)
+
+    def with_fractional_orders(self):
+        r"""
+        For ``n = infinity`` return whether ``self`` allows the possibility of fractional orders.
+        For ``n != infinity`` this always returns False.
+        """
+
+        return self.hecke_n() == infinity and self.AT("frac") <= self._analytic_type
+
+    def without_fractional_orders(self):
+        r"""
+        For ``n = infinity`` return whether ``self`` does not allow the possibility of fractional orders.
+        For ``n != infinity`` this always returns False.
+        """
+
+        return self.hecke_n() == infinity and not self.AT("frac") <= self._analytic_type
 
     @cached_method
     def contains_coeff_ring(self):
@@ -1210,8 +1226,8 @@ class FormsRing_abstract(Parent):
         If ``n=infinity`` the situation is different, there we have:
         ``f_rho=1`` (since that's the limit as ``n`` goes to infinity)
         and the polynomial variable ``x`` no longer refers to ``f_rho``.
-        Instead it refers to ``E4`` which has exactly one simple zero
-        at the cusp ``-1``. Also note that ``E4`` is the limit of
+        Instead it refers to ``theta`` (``E4=theta^8``) which has exactly
+        order 1/8 at the cusp ``-1``. Also note that ``E4=theta^8`` is the limit of
         ``f_rho^(n-2)``.
 
         EXAMPLES::
@@ -1350,7 +1366,8 @@ class FormsRing_abstract(Parent):
 
         If ``n=infinity`` then ``f_inf`` is no longer a cusp form
         since it doesn't vannish at the cusp ``-1``. The first
-        non-trivial cusp form is given by ``E4*f_inf``.
+        non-trivial cusp form is given by ``E4*f_inf`` resp. ``theta*f_inf``
+        in case rational orders at ``-1`` are allowed.
 
         EXAMPLES::
 
@@ -1843,6 +1860,22 @@ class FormsRing_abstract(Parent):
 
         return self.extend_type(["holo", "quasi"], ring=True)(z).reduce()
 
+    #TODO
+    @cached_method
+    def theta(self):
+        r"""
+        If ``n=infinity`` return the classical theta function.
+        Otherwise this method is not defined.
+        """
+
+        n = self.hecke_n()
+        (x,y,z,d) = self._pol_ring.gens()
+
+        if (n == infinity):
+            return self.extend_type(["holo", "frac"], ring=True)(x).reduce()
+        else:
+            raise NotImplementedError("theta is only defined for n=infinity.")
+
     @cached_method
     def EisensteinSeries(self, k=None):
         r"""
@@ -1983,7 +2016,10 @@ class FormsRing_abstract(Parent):
 
         if (n == infinity):
             l2  = ZZ(0)
-            l1  = ZZ((k-(1-ep)) / ZZ(4))
+            if (self.with_fractional_orders()):
+                l1  = ZZ(2*k)
+            else:
+                l1  = ZZ((k-(1-ep)) / ZZ(4))
         else:
             num = ZZ((k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4))
             l2  = num % n
@@ -2000,6 +2036,7 @@ class FormsRing_abstract(Parent):
             raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
 
         # The arithmetic cases
+        # TODO: prec for n=infinity, especially with fractional orders
         prec = reduced_self._l1 + 1
         MFC = MFSeriesConstructor(group=self.group(), prec=prec)
         d = self.get_d()

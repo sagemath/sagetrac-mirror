@@ -688,7 +688,10 @@ class FormsSpace_abstract(FormsRing_abstract):
         k = self._weight
         ep = self._ep
         if (n == infinity):
-            num = (k-(1-ep)) / ZZ(4)
+            if self.with_fractional_orders():
+                num = 2*k
+            else:
+                num = (k-(1-ep)) / ZZ(4)
         else:
             num = (k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4)
         if (num.is_integral()):
@@ -1033,9 +1036,10 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``order_1``  -- An integer (default: 0) denoting the desired order at
-                          ``-1`` in the case ``n = infinity``.
-                          If ``n != infinity`` the parameter is ignored.
+        - ``order_1``  -- If ``n != infinity`` the parameter is ignored.
+                          If no fractional orders are allowed an integer (default:0).
+                          Otherwise a multiple of 1/8 (default: 0) consistent with the given
+                          degree. The value denotes the desired order at the cusp  ``-1``.
 
         EXAMPLES::
 
@@ -1066,16 +1070,12 @@ class FormsSpace_abstract(FormsRing_abstract):
         (x,y,z,d) = self.rat_field().gens()
         n = self.hecke_n()
 
+        (order_inf, order_1) = self._get_orders(order_1)
+
         if (n == infinity):
-            order_1 = ZZ(order_1)
-            order_inf = self._l1 - order_1
-
             finf_pol = d*(x**8 - y**2)
-            rat = finf_pol**order_inf * x**(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2))
+            rat = finf_pol**order_inf * x**ZZ(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2))
         else:
-            order_inf = self._l1
-            order_1 = order_inf
-
             finf_pol = d*(x**n - y**2)
             rat = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2))
 
@@ -1202,12 +1202,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         m = ZZ(m)
-        if (self.hecke_n() == infinity):
-            order_1 = ZZ(order_1)
-            order_inf = self._l1 - order_1
-        else:
-            order_inf = self._l1
-            order_1 = order_inf
+        (order_inf, order_1) = self._get_orders(order_1)
 
         if (m > order_inf):
             raise ValueError("Invalid basis index: m = {} > {} = order_inf!".format(m, order_inf))
@@ -1344,12 +1339,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         m = ZZ(m)
-        if (self.hecke_n() == infinity):
-            order_1 = ZZ(order_1)
-            order_inf = self._l1 - order_1
-        else:
-            order_inf = self._l1
-            order_1 = order_inf
+        (order_inf, order_1) = self._get_orders(order_1)
 
         if (m > order_inf):
             raise ValueError("Invalid basis index: m = {} > {} = order_inf!".format(m, order_inf))
@@ -1452,7 +1442,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             (-2625*x^24*y - 1365*x^16*y^3 - 147*x^8*y^5 + 41*y^7)/(-4096)
             sage: MF.F_basis_pol(-1)
             (-2769779*x^32*y - 4928052*x^24*y^3 - 718002*x^16*y^5 + 36300*x^8*y^7 - 9075*y^9)/(-8388608*x^8*d + 8388608*y^2*d)
-    
+
             sage: MF.F_basis_pol(3, order_1=-1)
             (-7*x^32*y*d^3 + 24*x^24*y^3*d^3 - 30*x^16*y^5*d^3 + 16*x^8*y^7*d^3 - 3*y^9*d^3)/(-4*x^8)
             sage: MF.F_basis_pol(1, order_1=2)
@@ -1465,16 +1455,13 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         (x,y,z,d) = self.rat_field().gens()
         n = self._group.n()
+        (order_inf, order_1) = self._get_orders(order_1)
 
         if (n ==infinity):
-            order_1   = ZZ(order_1)
-            order_inf = self._l1 - order_1
             finf_pol  = d*(x**8-y**2)
             jinv_pol  = x**8/(x**8-y**2)
-            rat       = finf_pol**order_inf * x**(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m, order_1)(jinv_pol)
+            rat       = finf_pol**order_inf * x**ZZ(order_1*8) * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m, order_1)(jinv_pol)
         else:
-            order_inf = self._l1
-            order_1   = order_inf
             finf_pol  = d*(x**n-y**2)
             jinv_pol  = x**n/(x**n-y**2)
             rat       = finf_pol**order_inf * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m)(jinv_pol)
@@ -1599,11 +1586,19 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         min_exp = ZZ(min_exp)
-        order_1 = ZZ(order_1)
+
+        if (self.with_fractional_orders()):
+            order_1 = ZZ(8*order_1)/ZZ(8)
+        else:
+            order_1 = ZZ(order_1)
+
         if self.is_holomorphic():
             if self.is_cuspidal():
                 min_exp = max(min_exp, 1)
-                order_1 = max(order_1, 1)
+                if (self.with_fractional_orders()):
+                    order_1 = max(order_1, ZZ(1)/ZZ(8))
+                else:
+                    order_1 = max(order_1, 1)
             else:
                 min_exp = max(min_exp, 0)
                 order_1 = max(order_1, 0)
@@ -1742,7 +1737,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             if (r != 0):
                 return []
 
-        # The lower bounds on the powers of f_inf and E4 determine
+        # The lower bounds on the powers of f_inf and E4 resp. theta determine
         # how large powers of E2 we can fit in...
         n = self.hecke_n()
         if (n == infinity):
@@ -1847,7 +1842,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             if (r != 0):
                 return ZZ(0)
 
-        # The lower bounds on the powers of f_inf and E4 determine
+        # The lower bounds on the powers of f_inf and E4 resp. theta determine
         # how large powers of E2 we can fit in...
         n = self.hecke_n()
         if (n == infinity):
@@ -1865,10 +1860,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         k = self._weight - QQ(2*r)
         ep = self._ep * (-1)**r
+
         if (n == infinity):
-            num = (k - (1-ep)) / ZZ(4)
+            if self.with_fractional_orders():
+                num = 2*k
+                order_inf = ZZ((num - order_1*8)/ZZ(8))
+            else:
+                num = (k-(1-ep)) / ZZ(4)
+                order_inf = ZZ(num - order_1)
             l2 = order_1
-            order_inf = ZZ(num) - order_1
         else:
             num = ZZ((k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4))
             l2 = num % n
@@ -1982,7 +1982,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             raise ValueError("The Laurent coefficients are not in the proper form yet. Try rationalize_series(laurent_series) beforehand (experimental).")
 
         order_1 = self._canonical_min_exp(0, order_1)[1]
-        order_inf = self._l1 - order_1
+        (order_inf, order_1) = self._get_orders(order_1)
 
         if (laurent_series.prec() < order_inf + 1):
             raise ValueError("Insufficient precision: {} < {} = order_inf!".format(laurent_series.prec(), order_inf + 1))
@@ -2059,8 +2059,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
-
-        order_inf = self._l1 - order_1
+        (order_inf, order_1) = self._get_orders(order_1)
 
         # We have to add + 1 to get a correct upper bound in all cases
         # since corresponding weak space might have a higher l1 (+1) than
@@ -2309,7 +2308,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             except ValueError:
                 raise ValueError("The Laurent series {} does not correspond to a (quasi) form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
 
-            order_inf = self._l1 - order_1
+            (order_inf, order_1) = self._get_orders(order_1)
 
             # We have to add + 1 to get a correct upper bound in all cases
             # since corresponding weak space might have a higher l1 (+1) than
@@ -2382,7 +2381,7 @@ class FormsSpace_abstract(FormsRing_abstract):
              warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
-        order_inf = self._l1 - order_1
+        (order_inf, order_1) = self._get_orders(order_1)
 
         if (m is None):
             A = self._quasi_form_matrix(min_exp=min_exp, order_1=order_1)
@@ -2436,6 +2435,33 @@ class FormsSpace_abstract(FormsRing_abstract):
                 el = self(sum([coord_vector[l] * basis[l] for l in range(0, column_len)]))
 
                 return el
+
+    def _get_orders(self, order_1):
+        r"""
+        Return canonical (order_inf, order_1), where order_inf is calculated based on order_1 if possible.
+
+        INPUT: 
+
+        - ``order_1``  -- The desired order at ``-1`` of all quasi parts of the subspace (default: 0).
+                          If ``n!=infinity`` this parameter is ignored.
+        """
+
+        if (self.hecke_n() == infinity):
+            if (self.with_fractional_orders()):
+                order_1 = QQ(order_1)
+                order_inf = self._l1/ZZ(8) - order_1
+                if (not order_inf.is_integral()):
+                    raise ArgumentException("order_1={} is not possible for the given degree!".format(order_1))
+                else:
+                    order_inf = ZZ(order_inf)
+            else:
+                order_1 = ZZ(order_1)
+                order_inf = self._l1 - order_1
+        else:
+            order_inf = self._l1
+            order_1 = order_inf
+
+        return (order_inf, order_1)
 
     def rationalize_series(self, laurent_series, coeff_bound = 1e-10, denom_factor = ZZ(1)):
         r"""

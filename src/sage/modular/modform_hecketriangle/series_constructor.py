@@ -245,6 +245,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         return J_inv_ZZ
 
     @cached_method
+    def theta_ZZ(self):
+        #TODO
+        dval = self.group().dvalue()
+        q = self._series_ring.gen()
+
+        return sum([(ZZ(2) if m>0 else ZZ(1))*dval**m*q**m for m in range(int(sqrt(self.prec())))]).add_bigoh(self.prec())
+
+    @cached_method
     def f_rho_ZZ(self):
         r"""
         Return the rational Fourier expansion of ``f_rho``,
@@ -373,6 +381,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         n = self.hecke_n()
         # Note that G_inv is not a weakly holomorphic form (because of the behavior at -1)
+        #TODO
         if (n == infinity):
             q = self._series_ring.gen()
             temp_expr = (self.J_inv_ZZ()/self.f_inf_ZZ()*q**2).power_series()

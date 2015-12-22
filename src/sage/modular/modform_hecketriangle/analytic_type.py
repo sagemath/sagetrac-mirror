@@ -122,6 +122,8 @@ class AnalyticTypeElement(LatticePosetElement):
         name = ""
         if   self.parent()("quasi") <= self:
              name += "Quasi"
+        #if   not (self.parent()("frac") <= self):
+        #     name += "Integral"
         if   self.parent()("mero")  <= self:
              name += "MeromorphicModular"
         elif self.parent()("weak")  <= self:
@@ -169,6 +171,8 @@ class AnalyticTypeElement(LatticePosetElement):
              name += "C"
         else:
              name  = "Z"
+        #if   not (self.parent()("frac") <= self):
+        #     name += "_0"
 
         return name
 
@@ -191,6 +195,8 @@ class AnalyticTypeElement(LatticePosetElement):
         name = ""
         if   self.parent()("quasi") <= self:
              name += "quasi "
+        #if   not (self.parent()("frac") <= self):
+        #     name += "integral "
         if   self.parent()("mero")  <= self:
              name += "meromorphic modular"
         elif self.parent()("weak")  <= self:
@@ -443,7 +449,7 @@ class AnalyticType(FiniteLatticePoset):
             zero
         """
         # We (arbitrarily) choose to model by inclusion instead of restriction
-        P_elements = [ "cusp", "holo", "weak", "mero", "quasi"]
+        P_elements = [ "cusp", "holo", "weak", "mero", "quasi", "frac"]
         P_relations = [["cusp", "holo"], ["holo", "weak"], ["weak", "mero"]]
 
         self._base_poset = Poset([P_elements, P_relations], cover_relations=True,
@@ -602,3 +608,13 @@ class AnalyticType(FiniteLatticePoset):
 
         return FiniteLatticePoset(self._base_poset.order_ideals_lattice(), facade=False)
 
+    def maximal_analytic_type(self):
+        r"""
+        Return the maximal possible analytic type.
+        """
+
+        if len(self.maximal_elements()) != 1:
+            raise Exception("Unable to determine the maximal element!")
+
+        return self(["quasi", "mero"])
+        #return self.maximal_elements()[0]
