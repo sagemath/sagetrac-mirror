@@ -125,7 +125,7 @@ class ELFBinaryFile(LocalFileTest):
             sage: from sage.tests.local.binary_audit import ELFBinaryFile
             sage: patch = ELFBinaryFile.load(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
             sage: patch.rpath()
-            ('/.../sage/local/lib', '/.../sage/local/lib64')
+            ('/.../local/lib', '/.../local/lib64')
         """
         if self.rpath_string is None:
             return tuple()
