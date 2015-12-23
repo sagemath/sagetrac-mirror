@@ -7,7 +7,10 @@ import subprocess
 from glob import glob
 
 from sage.env import SAGE_LOCAL
-from sage.tests.local.test_base import LocalFileTest, TestException
+from sage.tests.local.test_base import (
+    LocalFileTest,
+    FileMagicException, TestException
+)
 
 
 
@@ -19,31 +22,8 @@ class ELFBinaryFile(LocalFileTest):
         glob(os.path.join(SAGE_LOCAL, 'lib64/lib*.so'))
     )
 
-    @classmethod
-    def is_magic(cls, head):
+    def __init__(self, filename, head):
         r"""
-        Test whether the file is an ELF binary
-
-        INPUT:
-
-        - ``head`` -- bytes. The first 512 bytes of the file.
-
-        OUTPUT:
-        
-        Boolean.
-
-        EXAMPLES::
-
-            sage: from sage.tests.local.binary_audit import ELFBinaryFile
-            sage: ELFBinaryFile.is_magic('foo')
-            False
-            sage: ELFBinaryFile.is_magic('\x7fELFbar')
-            True
-        """
-        return head.startswith('\x7fELF')
-
-    def __init__(self, filename):
-        """
         ELF Binary File
 
         This is a wrapper around a file whose magic matches that of an
@@ -56,7 +36,7 @@ class ELFBinaryFile(LocalFileTest):
         EXAMPLES::
 
             sage: from sage.tests.local.binary_audit import ELFBinaryFile
-            sage: patch = ELFBinaryFile(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
+            sage: patch = ELFBinaryFile.load(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
             sage: patch
             <sage.tests.local.binary_audit.ELFBinaryFile object at 0x...>
             sage: patch.is_dynamic
@@ -66,7 +46,9 @@ class ELFBinaryFile(LocalFileTest):
             sage: patch.needed   # random output
             ['libattr.so.1', 'libc.so.6']
         """
-        super(ELFBinaryFile, self).__init__(filename)
+        if not head.startswith('\x7fELF'):
+            raise FileMagicException('not an ELF binary')
+        super(ELFBinaryFile, self).__init__(filename, head)
         self.needed = []
         self.rpath_string = None
         self.is_dynamic = False
@@ -82,7 +64,7 @@ class ELFBinaryFile(LocalFileTest):
 
     @classmethod
     def is_sage_library(cls, lib):
-        """
+        r"""
         Test whether lib is a library shipped with sage
 
         INPUT:
@@ -105,7 +87,7 @@ class ELFBinaryFile(LocalFileTest):
         return any(lib.startswith(name) for name in cls.SAGE_LIBRARIES)
         
     def perform_tests(self):
-        """
+        r"""
         Perform tests
 
         RAISES:
@@ -115,7 +97,7 @@ class ELFBinaryFile(LocalFileTest):
         EXAMPLES::
 
             sage: from sage.tests.local.binary_audit import ELFBinaryFile
-            sage: patch = ELFBinaryFile(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
+            sage: patch = ELFBinaryFile.load(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
             sage: patch.perform_tests()
         """
         if not self.is_dynamic:
@@ -131,7 +113,7 @@ class ELFBinaryFile(LocalFileTest):
             raise TestException('{0} not in rpath: {1}'.format(local_lib64, rpath))
     
     def rpath(self):
-        """
+        r"""
         Return the rpath components
 
         OUTPUT:
@@ -141,7 +123,7 @@ class ELFBinaryFile(LocalFileTest):
         EXAMPLES::
 
             sage: from sage.tests.local.binary_audit import ELFBinaryFile
-            sage: patch = ELFBinaryFile(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
+            sage: patch = ELFBinaryFile.load(os.path.join(SAGE_LOCAL, 'bin', 'patch'))
             sage: patch.rpath()
             ('/.../sage/local/lib', '/.../sage/local/lib64')
         """

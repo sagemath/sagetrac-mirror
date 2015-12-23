@@ -4,7 +4,7 @@ Walk a file tree and read the beginning of each file
 
 import os
 
-from sage.tests.local.test_base import TestException
+from sage.tests.local.test_base import TestException, FileMagicException
 from sage.tests.local.binary_audit import ELFBinaryFile
 
 
@@ -43,11 +43,12 @@ def recursive_check(root_path):
             with open(fqn, 'rb') as f:
                 head = f.read(512)
             for cls in FileClasses:
-                if cls.is_magic(head):
-                    try:
-                        cls(fqn).perform_tests()
-                    except TestException as exc:
-                        print('File {0}: {1}'.format(fqn, exc))
-                        result = False
+                try:
+                    cls(fqn, head).perform_tests()
+                except FileMagicException:
+                    pass
+                except TestException as exc:
+                    print('File {0}: {1}'.format(fqn, exc))
+                    result = False
     return result
 
