@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import ZZ, QQ, infinity
+from sage.functions.other import floor
 
 from sage.modules.module import Module
 from sage.categories.all import Modules
@@ -27,8 +28,9 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
+from analytic_type import AT
 
-def canonical_parameters(group, base_ring, k, ep, n=None):
+def canonical_parameters(group, base_ring, k, ep, n=None, frac=False):
     r"""
     Return a canonical version of the parameters.
 
@@ -36,10 +38,10 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
 
         sage: from sage.modular.modform_hecketriangle.space import canonical_parameters
         sage: canonical_parameters(5, ZZ, 20/3, int(1))
-        (Hecke triangle group for n = 5, Integer Ring, 20/3, 1, 5)
+        (Hecke triangle group for n = 5, Integer Ring, 20/3, 1, 5, False)
 
         sage: canonical_parameters(infinity, ZZ, 2, int(-1))
-        (Hecke triangle group for n = +Infinity, Integer Ring, 2, -1, +Infinity)
+        (Hecke triangle group for n = +Infinity, Integer Ring, 2, -1, +Infinity, False)
     """
 
     if not (n is None):
@@ -54,29 +56,39 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
             group = HeckeTriangleGroup(group.n())
 
     n = group.n()
+    if (n == infinity):
+        frac = bool(frac)
+    else:
+        frac = False
+
     k = QQ(k)
     if (ep == None):
-        #TODO
         if (n == infinity):
-            ep = (-1)**(k/ZZ(2))
+            if frac:
+                ep = ZZ(1)
+            else:
+                ep = (-1)**ZZ(k/ZZ(2))
         elif (ZZ(2).divides(n)):
-            ep = (-1)**(k*ZZ(n-2)/ZZ(4))
+            ep = (-1)**ZZ(k*ZZ(n-2)/ZZ(4))
         else:
-            ep = (-1)**(k*ZZ(n-2)/ZZ(2))
-    ep = ZZ(ep)
-
-    if (n == infinity):
-        #TODO
-        num = (k-(1-ep)) / ZZ(4)
-    else:
-        num = (k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4)
+            ep = (-1)**ZZ(k*ZZ(n-2)/ZZ(2))
 
     try:
+        ep = ZZ(ep)
+
+        if (n == infinity):
+            if frac:
+                num = (k-(1-ep)) * ZZ(2)
+            else:
+                num = (k-(1-ep)) / ZZ(4)
+        else:
+            num = (k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4)
+
         num = ZZ(num)
     except TypeError:
         raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
 
-    return (group, base_ring, k, ep, n)
+    return (group, base_ring, k, ep, n, frac)
 
 
 class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
@@ -86,25 +98,29 @@ class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresenta
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, QuasiMeromorphicModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, ZZ, 20/3, int(1))
-            sage: QuasiMeromorphicModularForms(5, ZZ, 20/3, int(1)) == QuasiMeromorphicModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(5, ZZ, 20/3, int(1))
+            sage: QuasiMeromorphicModularForms(5, ZZ, 20/3, int(1)) == QuasiMeromorphicModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) quasi meromorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -120,9 +136,13 @@ class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresenta
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["quasi", "mero"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT.maximal_analytic_type()
+        self._post_init()
 
 class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -131,25 +151,29 @@ class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, QuasiWeakModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(4, ZZ, 8, -1)
-            sage: QuasiWeakModularForms(4, ZZ, 8, -1) == QuasiWeakModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(4, ZZ, 8, -1)
+            sage: QuasiWeakModularForms(4, ZZ, 8, -1) == QuasiWeakModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) quasi weakly holomorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -165,9 +189,13 @@ class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["quasi", "weak"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["quasi", "weak"])
+        self._post_init()
 
 class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -176,25 +204,29 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, QuasiModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, ZZ, 10/3, -1)
-            sage: QuasiModularForms(5, ZZ, 10/3) == QuasiModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(5, ZZ, 10/3, -1)
+            sage: QuasiModularForms(5, ZZ, 10/3) == QuasiModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) quasi modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -210,9 +242,14 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["quasi", "holo"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["quasi", "holo"])
+        self._post_init()
+
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
@@ -321,7 +358,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             gens = [v/E2**r for v in self.quasi_part_gens(r)]
 
             if len(gens) > 0:
-                ambient_space = self.graded_ring().reduce_type("holo", degree=(gens[0].weight(), gens[0].ep()))
+                ambient_space = self.graded_ring().reduce_type(["holo", "frac"], degree=(gens[0].weight(), gens[0].ep()))
                 subspace = ambient_space.subspace(gens)
                 vector_part_in_subspace = subspace(parts[r])
                 coord_part = [v for v in vector_part_in_subspace.coordinate_vector() ]
@@ -336,25 +373,28 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, QuasiCuspForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(8, ZZ, 16/3, None)
-            sage: QuasiCuspForms(8, ZZ, 16/3) == QuasiCuspForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(8, ZZ, 16/3, None)
+            sage: QuasiCuspForms(8, ZZ, 16/3) == QuasiCuspForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) quasi cusp forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered
+        (default: ``frac=False``). For ``n!=infinity`` the parameter is ignored.
 
         EXAMPLES::
 
@@ -373,9 +413,14 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             QuasiCuspForms(n=+Infinity, k=0, ep=1) over Integer Ring
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["quasi", "cusp"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["quasi", "cusp"])
+        self._post_init()
+
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
@@ -491,7 +536,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             gens = [v/E2**r for v in self.quasi_part_gens(r)]
 
             if len(gens) > 0:
-                ambient_space = self.graded_ring().reduce_type("cusp", degree=(gens[0].weight(), gens[0].ep()))
+                ambient_space = self.graded_ring().reduce_type(["cusp", "frac"], degree=(gens[0].weight(), gens[0].ep()))
                 subspace = ambient_space.subspace(gens)
                 vector_part_in_subspace = subspace(parts[r])
                 coord_part = [v for v in vector_part_in_subspace.coordinate_vector() ]
@@ -506,25 +551,29 @@ class MeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation)
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, MeromorphicModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(3, ZZ, 0, 1)
-            sage: MeromorphicModularForms() == MeromorphicModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(3, ZZ, 0, 1)
+            sage: MeromorphicModularForms() == MeromorphicModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) meromorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -540,9 +589,13 @@ class MeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation)
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["mero"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["mero"])
+        self._post_init()
 
 class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -551,25 +604,29 @@ class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, WeakModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, CC, 20/3, None)
-            sage: WeakModularForms(5, CC, 20/3) == WeakModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(5, CC, 20/3, None)
+            sage: WeakModularForms(5, CC, 20/3) == WeakModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) weakly holomorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -583,9 +640,13 @@ class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["weak"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["weak"])
+        self._post_init()
 
 class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -594,25 +655,29 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, ModularForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(3, ZZ, 0, None)
-            sage: ModularForms() == ModularForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(3, ZZ, 0, None)
+            sage: ModularForms() == ModularForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered,
+        in particular this excludes ``theta`` (default: ``frac=False``). For ``n!=infinity`` the
+        parameter is ignored.
 
         EXAMPLES::
 
@@ -640,9 +705,14 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["holo"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type = self.AT(["holo"])
+        self._post_init()
+
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
@@ -666,7 +736,10 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [1 + 240*q^2 + 2160*q^4 + O(q^5), q - 8*q^2 + 28*q^3 - 64*q^4 + O(q^5)]
         """
 
-        return [ self.F_basis(m) for m in range(self.dimension()) ]
+        if (self.hecke_n() == infinity and self.with_fractional_orders()):
+            return self.quasi_part_gens()
+        else:
+            return [ self.F_basis(m) for m in range(self.dimension()) ]
 
     @cached_method
     def dimension(self):
@@ -686,8 +759,10 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             3
         """
 
-        #TODO
-        return max(self._l1+1, ZZ(0))
+        if (self.hecke_n() == infinity and self.with_fractional_orders()):
+            return self.quasi_part_dimension()
+        else:
+            return max(self._l1+1, ZZ(0))
 
     @cached_method
     def coordinate_vector(self, v):
@@ -744,25 +819,28 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, CuspForms)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(6, ZZ, 6, 1)
-            sage: CuspForms(6, ZZ, 6, 1) == CuspForms(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(6, ZZ, 6, 1)
+            sage: CuspForms(6, ZZ, 6, 1) == CuspForms(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, frac)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the Module of (Hecke) cusp forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
+
+        If ``n=infinity`` and ``frac=False`` then only integer orders at the cusp ``-1`` are considered
+        (default: ``frac=False``). For ``n!=infinity`` the parameter is ignored.
 
         EXAMPLES::
 
@@ -782,9 +860,14 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT(["cusp"])
+        if (n == infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT(["cusp"])
+        self._post_init()
+
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
@@ -810,7 +893,10 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
           """
 
-        return [ self.F_basis(m, order_1=ZZ(1)) for m in range(1, self.dimension() + 1) ]
+        if (self.hecke_n() == infinity and self.with_fractional_orders()):
+            return self.quasi_part_gens()
+        else:
+            return [ self.F_basis(m, order_1=ZZ(1)) for m in range(1, self.dimension() + 1) ]
 
     @cached_method
     def dimension(self):
@@ -830,9 +916,11 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             1
         """
 
-        #TODO
         if (self.hecke_n() == infinity):
-            return max(self._l1-1, ZZ(0))
+            if (self.with_fractional_orders()):
+                return self.quasi_part_dimension()
+            else:
+                return max(self._l1-1, ZZ(0))
         else:
             return max(self._l1, ZZ(0))
 
@@ -896,22 +984,22 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import (canonical_parameters, ZeroForm)
-            sage: (group, base_ring, k, ep, n) = canonical_parameters(6, CC, 3, -1)
-            sage: ZeroForm(6, CC, 3, -1) == ZeroForm(group, base_ring, k, ep, n)
+            sage: (group, base_ring, k, ep, n, frac) = canonical_parameters(6, CC, 3, -1)
+            sage: ZeroForm(6, CC, 3, -1) == ZeroForm(group, base_ring, k, ep, n, frac)
             True
         """
 
-        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        (group, base_ring, k, ep, n, frac) = canonical_parameters(group, base_ring, k, ep, n, False)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, frac):
         r"""
         Return the zero Module for the zero form of weight ``k`` with multiplier ``ep``
         for the given ``group`` and ``base_ring``.
@@ -936,10 +1024,12 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
+        analytic_type = AT([])
+
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n, analytic_type=analytic_type)
         Module.__init__(self, base=self.coeff_ring())
-        self._analytic_type=self.AT([])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
+        self._post_init()
 
     def _change_degree(self, k, ep):
         r"""
@@ -1027,3 +1117,195 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         vec = []
         return self._module(vector(self.coeff_ring(), vec))
+
+def ThetaQuasiMeromorphicModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of quasi meromorphic modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiMeromorphicModularForms
+        sage: MF = ThetaQuasiMeromorphicModularForms(ZZ, 7+1/2, 1)
+        sage: MF
+        ThetaQuasiMeromorphicModularForms(n=+Infinity, k=15/2, ep=1) over Integer Ring
+        sage: MF.analytic_type()
+        theta quasi meromorphic modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_space() == MF
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return QuasiMeromorphicModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaQuasiWeakModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of quasi weak modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiWeakModularForms
+        sage: MF = ThetaQuasiWeakModularForms(ZZ, 2, -1)
+        sage: MF
+        ThetaQuasiWeakModularForms(n=+Infinity, k=2, ep=-1) over Integer Ring
+        sage: MF.analytic_type()
+        theta quasi weakly holomorphic modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_space() == MF
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return QuasiWeakModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaQuasiModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of quasi modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiModularForms
+        sage: MF = ThetaQuasiModularForms(ZZ, 2, 1)
+        sage: MF
+        ThetaQuasiModularForms(n=+Infinity, k=2, ep=1) over Integer Ring
+        sage: MF.analytic_type()
+        theta quasi modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.module()
+        Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_module() == MF.module()
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return QuasiModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaQuasiCuspForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of quasi cusp forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiCuspForms
+        sage: MF = ThetaQuasiCuspForms(ZZ, 4+1/2, 1)
+        sage: MF
+        ThetaQuasiCuspForms(n=+Infinity, k=9/2, ep=1) over Integer Ring
+        sage: MF.analytic_type()
+        theta quasi cuspidal
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.module()
+        Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_module() == MF.module()
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return QuasiCuspForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaMeromorphicModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of meromorphic modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaMeromorphicModularForms
+        sage: MF = ThetaMeromorphicModularForms(ZZ, -1/2, 1)
+        sage: MF
+        ThetaMeromorphicModularForms(n=+Infinity, k=-1/2, ep=1) over Integer Ring
+        sage: MF.analytic_type()
+        theta meromorphic modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_space() == MF
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return MeromorphicModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaWeakModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of weakly holomorphic modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaWeakModularForms
+        sage: MF = ThetaWeakModularForms(ZZ, -3-1/2, -1)
+        sage: MF
+        ThetaWeakModularForms(n=+Infinity, k=-7/2, ep=-1) over Integer Ring
+        sage: MF.analytic_type()
+        theta weakly holomorphic modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_space() == MF
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return WeakModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaModularForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of modular forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaModularForms
+        sage: MF = ThetaModularForms(ZZ, 4, -1)
+        sage: MF
+        ThetaModularForms(n=+Infinity, k=4, ep=-1) over Integer Ring
+        sage: MF.analytic_type()
+        theta modular
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.module()
+        Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_module() == MF.module()
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return ModularForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)
+
+def ThetaCuspForms(base_ring = ZZ, k=QQ(0), ep=None):
+    r"""
+    Module of cusp forms for the Theta group and the given
+    base ring, weight and multiplier (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.space import ThetaCuspForms
+        sage: MF = ThetaCuspForms(ZZ, 4+1/2, 1)
+        sage: MF
+        ThetaCuspForms(n=+Infinity, k=9/2, ep=1) over Integer Ring
+        sage: MF.analytic_type()
+        theta cuspidal
+        sage: MF.category()
+        Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.module()
+        Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+        sage: MF.ambient_module() == MF.module()
+        True
+        sage: MF.is_ambient()
+        True
+    """
+
+    return CuspForms(group=HeckeTriangleGroup(infinity), base_ring=base_ring, k=k, ep=ep, n=None, frac=True)

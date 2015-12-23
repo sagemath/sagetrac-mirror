@@ -21,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import ZZ, QQ, infinity, rising_factorial, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
+from sage.functions.other import sqrt, ceil
 from sage.rings.big_oh import O
 from sage.functions.all import exp
 from sage.rings.arith import bernoulli, sigma
@@ -246,11 +247,26 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
     @cached_method
     def theta_ZZ(self):
-        #TODO
+        r"""
+        Returns the rational Fourier expansion of ``theta`` for ``n=infinity``,
+        where the parameter ``d`` is replaced by ``1``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
+            sage: MFSeriesConstructor(group=infinity, prec=26).theta_ZZ()
+            1 + 1/32*q + 1/8388608*q^4 + 1/9007199254740992*q^9 + 1/39614081257132168796771975168*q^16 + 1/713623846352979940529142984724747568191373312*q^25 + O(q^26)
+            sage: MFSeriesConstructor(group=infinity, prec=26).theta_ZZ().parent()
+            Power Series Ring in q over Rational Field
+        """
+
+        if (self.hecke_n() != infinity):
+            raise NotImplementedError("Theta is only defined for n=infinity!")
+
         dval = self.group().dvalue()
         q = self._series_ring.gen()
 
-        return sum([(ZZ(2) if m>0 else ZZ(1))*dval**m*q**m for m in range(int(sqrt(self.prec())))]).add_bigoh(self.prec())
+        return sum([(ZZ(2) if m>0 else ZZ(1))*dval**(m**2)*q**(m**2) for m in range(ZZ(ceil(sqrt(self.prec()))))]).add_bigoh(self.prec())
 
     @cached_method
     def f_rho_ZZ(self):
@@ -380,8 +396,6 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         """
 
         n = self.hecke_n()
-        # Note that G_inv is not a weakly holomorphic form (because of the behavior at -1)
-        #TODO
         if (n == infinity):
             q = self._series_ring.gen()
             temp_expr = (self.J_inv_ZZ()/self.f_inf_ZZ()*q**2).power_series()

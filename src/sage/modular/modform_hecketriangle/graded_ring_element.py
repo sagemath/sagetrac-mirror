@@ -30,6 +30,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from constructor import rational_type, reduce_to_E4_rat, FormsSpace, FormsRing
 from series_constructor import MFSeriesConstructor
+from analytic_type import AT
 
 
 # Warning: We choose CommutativeAlgebraElement because we want the
@@ -41,9 +42,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     Element of a FormsRing.
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
-
-    from analytic_type import AnalyticType
-    AT = AnalyticType()
 
     @staticmethod
     def __classcall__(cls, parent, rat):
@@ -121,7 +119,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
-        if parent.without_fractional_orders():
+
+        if (parent.hecke_n()==infinity and not AT("frac") <= self._analytic_type):
             (x,y,z,d) = parent.pol_ring().gens()
             self._E4_rat = reduce_to_E4_rat(rat, x)
 
@@ -200,12 +199,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
 
         if (self.hecke_n() == infinity):
-            if (self.parent().with_fractional_orders()):
-                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
-                    pol_str = str(self._rat)
-            else:
+            if (self._has_E4_representation()):
                 with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
                     pol_str = str(self._E4_rat)
+            else:
+                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+                    pol_str = str(self._rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 pol_str = str(self._rat)
@@ -257,12 +256,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         from sage.misc.latex import latex
 
         if (self.hecke_n() == infinity):
-            if (self.parent().with_fractional_orders()):
-                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
-                    latex_str = latex(self._rat)
-            else:
+            if self._has_E4_representation():
                 with localvars(self.parent()._pol_ring, "E4, f_i, E2, d"):
                     latex_str = latex(self._E4_rat)
+            else:
+                with localvars(self.parent()._pol_ring, "theta, f_i, E2, d"):
+                    latex_str = latex(self._rat)
         else:
             with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
                 latex_str = latex(self._rat)
@@ -496,6 +495,56 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         else:
             return self.rat().numerator().degree(z) - self.rat().denominator().degree(z)
 
+    def has_fractional_order(self):
+        r"""
+        Return whether ``self`` (resp. its homogeneous components)
+        has a fractional order at the cusp ``-1``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, ThetaModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
+            sage: x,y,z,d = var("x,y,z,d")
+            sage: ModularFormsRing(n=infinity)(x^8+y^2).has_fractional_order()
+            False
+            sage: ThetaModularFormsRing()(x^8+y^2).has_fractional_order()
+            False
+            sage: ThetaModularFormsRing()(x+x^8).has_fractional_order()
+            True
+            sage: ThetaModularFormsRing().theta().has_fractional_order()
+            True
+            sage: ThetaModularForms(k=1/2).theta().has_fractional_order()
+            True
+        """
+
+        return AT("frac") <= self._analytic_type
+
+    def _has_E4_representation(self):
+        r"""
+        Return whether ``self`` (resp. its homogeneous components)
+        has a representation as a rational function in ``E4`` instead of ``theta``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, ThetaModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
+            sage: x,y,z,d = var("x,y,z,d")
+            sage: ModularFormsRing(n=infinity)(x^8+y^2)._has_E4_representation()
+            True
+            sage: ThetaModularFormsRing()(x^8+y^2)._has_E4_representation()
+            True
+            sage: ThetaModularFormsRing()(x+x^8)._has_E4_representation()
+            False
+            sage: ThetaModularFormsRing().theta()._has_E4_representation()
+            False
+            sage: ThetaModularForms(k=1/2).theta()._has_E4_representation()
+            False
+            sage: ModularForms().E4()._has_E4_representation()
+            False
+        """
+
+        return self.hecke_n() == infinity and not AT("frac") <= self._analytic_type
+
     def is_modular(self):
         r"""
         Return whether ``self`` (resp. its homogeneous components)
@@ -518,7 +567,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
         """
 
-        return not (self.AT("quasi") <= self._analytic_type)
+        return not (AT("quasi") <= self._analytic_type)
 
     def is_weakly_holomorphic(self):
         r"""
@@ -543,7 +592,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             False
         """
 
-        return self.AT("weak", "quasi") >= self._analytic_type
+        return AT("weak", "quasi", "frac") >= self._analytic_type
 
     def is_holomorphic(self):
         r"""
@@ -568,7 +617,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
         """
 
-        return self.AT("holo", "quasi") >= self._analytic_type
+        return AT("holo", "quasi", "frac") >= self._analytic_type
 
     def is_cuspidal(self):
         r"""
@@ -595,7 +644,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
         """
 
-        return self.AT("cusp", "quasi") >= self._analytic_type
+        return AT("cusp", "quasi", "frac") >= self._analytic_type
 
     def is_zero(self):
         r"""
@@ -618,7 +667,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             False
         """
 
-        return self.AT(["quasi"]) >= self._analytic_type
+        return AT(["quasi", "frac"]) >= self._analytic_type
 
     def analytic_type(self):
         r"""
@@ -674,7 +723,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         res = self.parent().rat_field()(self._rat.numerator())
         # In general the numerator has a different weight than the original function...
-        new_parent = self.parent().extend_type(ring=True).reduce_type(["holo", "quasi"])
+        new_parent = self.parent().extend_type(ring=True).reduce_type(["holo", "quasi", "frac"])
         return new_parent(res).reduce()
 
     def denominator(self):
@@ -1797,22 +1846,22 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         formal_q = self.parent().get_q(prec)
 
         if (self.hecke_n() == infinity):
-            if self.parent().with_fractional_orders():
-                X = SC.theta_ZZ().base_extend(formal_d.parent())
-            else:
+            if self._has_E4_representation():
                 X = SC.E4_ZZ().base_extend(formal_d.parent())
+            else:
+                X = SC.theta_ZZ().base_extend(formal_d.parent())
         else:
             X = SC.f_rho_ZZ().base_extend(formal_d.parent())
         Y  = SC.f_i_ZZ().base_extend(formal_d.parent())
 
         if (self.parent().is_modular()):
-            if self.parent().without_fractional_orders():
+            if self._has_E4_representation():
                 qexp = self._E4_rat.subs(x=X, y=Y, d=formal_d)
             else:
                 qexp = self._rat.subs(x=X, y=Y, d=formal_d)
         else:
             Z = SC.E2_ZZ().base_extend(formal_d.parent())
-            if self.parent().without_fractional_orders():
+            if self._has_E4_representation():
                 qexp = self._E4_rat.subs(x=X, y=Y, z=Z, d=formal_d)
             else:
                 qexp = self._rat.subs(x=X, y=Y, z=Z, d=formal_d)
@@ -2442,12 +2491,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             E2    = self.parent().graded_ring().E2()
             dval  = self.parent().group().dvalue().n(num_prec)
             if (self.hecke_n() == infinity):
-                if self.parent().with_fractional_orders():
-                    theta = self.parent().graded_ring().theta()
-                    return self._rat.subs(x=theta(tau), y=f_i(tau), z=E2(tau), d=dval)
-                else:
+                if self._has_E4_representation():
                     E4 = self.parent().graded_ring().E4()
                     return self._E4_rat.subs(x=E4(tau), y=f_i(tau), z=E2(tau), d=dval)
+                else:
+                    theta = self.parent().graded_ring().theta()
+                    return self._rat.subs(x=theta(tau), y=f_i(tau), z=E2(tau), d=dval)
             else:
                 f_rho = self.parent().graded_ring().f_rho()
                 return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)

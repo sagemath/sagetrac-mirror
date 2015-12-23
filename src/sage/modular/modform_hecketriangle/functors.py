@@ -28,6 +28,7 @@ from sage.categories.rings                       import Rings
 from constructor                                 import FormsSpace, FormsRing
 from abstract_space                              import FormsSpace_abstract
 from subspace                                    import SubSpaceForms
+from analytic_type                               import AT
 
 
 def _get_base_ring(ring, var_name="d"):
@@ -347,9 +348,6 @@ class FormsSpaceFunctor(ConstructionFunctor):
     between a forms space and a ring which is not a ``BaseFacade``).
     """
 
-    from analytic_type import AnalyticType
-    AT = AnalyticType()
-
     rank = 10
 
     def __init__(self, analytic_type, group, k, ep):
@@ -384,9 +382,11 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         from space import canonical_parameters
-        (self._group, R, self._k, self._ep, n) = canonical_parameters(group, ZZ, k, ep)
+        (self._group, R, self._k, self._ep, n, frac) = canonical_parameters(group, ZZ, k, ep, None, True)
+        self._analytic_type = AT(analytic_type)
 
-        self._analytic_type = self.AT(analytic_type)
+        if (n != infinity):
+            self._analytic_type = self._analytic_type.reduce_to(["quasi", "mero"])
 
     def __call__(self, R):
         r"""
@@ -538,9 +538,6 @@ class FormsRingFunctor(ConstructionFunctor):
     between a forms ring and a ring which is not a ``BaseFacade``).
     """
 
-    from analytic_type import AnalyticType
-    AT = AnalyticType()
-
     rank = 10
 
     def __init__(self, analytic_type, group, red_hom):
@@ -575,9 +572,12 @@ class FormsRingFunctor(ConstructionFunctor):
 
         Functor.__init__(self, Rings(), Rings())
         from graded_ring import canonical_parameters
-        (self._group, R, red_hom, n) = canonical_parameters(group, ZZ, red_hom)
+        (self._group, R, red_hom, n, frac) = canonical_parameters(group, ZZ, red_hom)
         self._red_hom = bool(red_hom)
-        self._analytic_type = self.AT(analytic_type)
+        self._analytic_type = AT(analytic_type)
+
+        if (n != infinity):
+            self._analytic_type = self._analytic_type.reduce_to(["quasi", "mero"])
 
     def __call__(self, R):
         r"""

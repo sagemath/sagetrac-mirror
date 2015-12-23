@@ -25,9 +25,10 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_ring import FormsRing_abstract
+from analytic_type import AT
 
 
-def canonical_parameters(group, base_ring, red_hom, n=None):
+def canonical_parameters(group, base_ring, red_hom, n=None, frac=False):
     r"""
     Return a canonical version of the parameters.
 
@@ -35,9 +36,13 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
 
         sage: from sage.modular.modform_hecketriangle.graded_ring import canonical_parameters
         sage: canonical_parameters(4, ZZ, 1)
-        (Hecke triangle group for n = 4, Integer Ring, True, 4)
+        (Hecke triangle group for n = 4, Integer Ring, True, 4, False)
         sage: canonical_parameters(infinity, RR, 0)
-        (Hecke triangle group for n = +Infinity, Real Field with 53 bits of precision, False, +Infinity)
+        (Hecke triangle group for n = +Infinity,
+         Real Field with 53 bits of precision,
+         False,
+         +Infinity,
+         False)
     """
 
     if not (n is None):
@@ -54,7 +59,12 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
     red_hom = bool(red_hom)
     n = group.n()
 
-    return (group, base_ring, red_hom, n)
+    if (n == infinity):
+        frac = bool(frac)
+    else:
+        frac = False
+
+    return (group, base_ring, red_hom, n, frac)
 
 
 class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
@@ -64,22 +74,22 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiMeromorphicModularFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(4, ZZ, 1)
-            sage: QuasiMeromorphicModularFormsRing(4, ZZ, 1) == QuasiMeromorphicModularFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(4, ZZ, 1)
+            sage: QuasiMeromorphicModularFormsRing(4, ZZ, 1) == QuasiMeromorphicModularFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) quasi meromorphic modular forms
         for the given ``group`` and ``base_ring``.
@@ -93,6 +103,10 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -114,9 +128,13 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
             QuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["quasi", "mero"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT.maximal_analytic_type()
+        self._post_init()
 
 class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -125,22 +143,22 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiWeakModularFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(5, CC, 0)
-            sage: QuasiWeakModularFormsRing(5, CC, 0) == QuasiWeakModularFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(5, CC, 0)
+            sage: QuasiWeakModularFormsRing(5, CC, 0) == QuasiWeakModularFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) quasi weakly holomorphic modular forms
         for the given ``group`` and ``base_ring``.
@@ -154,6 +172,10 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -172,9 +194,13 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["quasi", "weak"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["quasi", "weak"])
+        self._post_init()
 
 class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -183,22 +209,22 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiModularFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(6, ZZ, True)
-            sage: QuasiModularFormsRing(6, ZZ, True) == QuasiModularFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(6, ZZ, True)
+            sage: QuasiModularFormsRing(6, ZZ, True) == QuasiModularFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) quasi modular forms
         for the given ``group`` and ``base_ring``.
@@ -212,6 +238,10 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -230,9 +260,13 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["quasi", "holo"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["quasi", "holo"])
+        self._post_init()
 
 class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -241,22 +275,22 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiCuspFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(7, ZZ, 1)
-            sage: QuasiCuspFormsRing(7, ZZ, 1) == QuasiCuspFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(7, ZZ, 1)
+            sage: QuasiCuspFormsRing(7, ZZ, 1) == QuasiCuspFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) quasi cusp forms
         for the given ``group`` and ``base_ring``.
@@ -270,6 +304,10 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -288,9 +326,13 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["quasi", "cusp"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["quasi", "cusp"])
+        self._post_init()
 
 class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -299,22 +341,22 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, MeromorphicModularFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(4, ZZ, 1)
-            sage: MeromorphicModularFormsRing(4, ZZ, 1) == MeromorphicModularFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(4, ZZ, 1)
+            sage: MeromorphicModularFormsRing(4, ZZ, 1) == MeromorphicModularFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) meromorphic modular forms
         for the given ``group`` and ``base_ring``.
@@ -328,6 +370,10 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -346,9 +392,13 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["mero"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["mero"])
+        self._post_init()
 
 class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -357,22 +407,22 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, WeakModularFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(5, ZZ, 0)
-            sage: WeakModularFormsRing(5, ZZ, 0) == WeakModularFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(5, ZZ, 0)
+            sage: WeakModularFormsRing(5, ZZ, 0) == WeakModularFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) weakly holomorphic modular forms
         for the given ``group`` and ``base_ring``.
@@ -386,6 +436,10 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -404,9 +458,13 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["weak"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["weak"])
+        self._post_init()
 
 class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -415,7 +473,7 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -426,10 +484,10 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) modular forms
         for the given ``group`` and ``base_ring``.
@@ -443,6 +501,10 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            (for instance ``theta``) in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -461,9 +523,13 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["holo"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["holo"])
+        self._post_init()
 
 class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation):
     r"""
@@ -472,22 +538,22 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None, frac=False):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, CuspFormsRing)
-            sage: (group, base_ring, red_hom, n) = canonical_parameters(5, CC, True)
-            sage: CuspFormsRing(5, CC, True) == CuspFormsRing(group, base_ring, red_hom, n)
+            sage: (group, base_ring, red_hom, n, frac) = canonical_parameters(5, CC, True)
+            sage: CuspFormsRing(5, CC, True) == CuspFormsRing(group, base_ring, red_hom, n, frac)
             True
         """
 
-        (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
-        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        (group, base_ring, red_hom, n, frac) = canonical_parameters(group, base_ring, red_hom, n, frac)
+        return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n, frac=frac)
 
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, frac):
         r"""
         Return the graded ring of (Hecke) cusp forms
         for the given ``group`` and ``base_ring``.
@@ -501,6 +567,10 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the spaces of homogeneous elements.
+
+        - ``frac``       -- If True then include forms with fractional orders at the cusp ``-1``
+                            in case of ``n=infinity`` (default: ``True``).
+                            If ``n!=infinity`` this parameter is ignored.
 
         OUTPUT:
 
@@ -522,6 +592,139 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
             CuspFormsRing(n=+Infinity) over Complex Field with 53 bits of precision
         """
 
-        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+        analytic_type = AT(["cusp"])
+        if (n==infinity and frac):
+            analytic_type = analytic_type.extend_by("frac")
+
+        FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n, analytic_type=analytic_type)
         CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
-        self._analytic_type = self.AT(["cusp"])
+        self._post_init()
+
+
+def ThetaQuasiMeromorphicModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of quasi meromorphic modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiMeromorphicModularFormsRing
+        sage: MR = ThetaQuasiMeromorphicModularFormsRing()
+        sage: MR
+        ThetaQuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta quasi meromorphic modular
+    """
+
+    return QuasiMeromorphicModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaQuasiWeakModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of quasi weak modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiWeakModularFormsRing
+        sage: MR = ThetaQuasiWeakModularFormsRing()
+        sage: MR
+        ThetaQuasiWeakModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta quasi weakly holomorphic modular
+    """
+
+    return QuasiWeakModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaQuasiModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of quasi modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiModularFormsRing
+        sage: MR = ThetaQuasiModularFormsRing()
+        sage: MR
+        ThetaQuasiModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta quasi modular
+    """
+
+    return QuasiModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaQuasiCuspFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of quasi cusp forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiCuspFormsRing
+        sage: MR = ThetaQuasiCuspFormsRing()
+        sage: MR
+        ThetaQuasiCuspFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta quasi cuspidal
+    """
+
+    return QuasiCuspFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaMeromorphicModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of meromorphic modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaMeromorphicModularFormsRing
+        sage: MR = ThetaMeromorphicModularFormsRing()
+        sage: MR
+        ThetaMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta meromorphic modular
+    """
+
+    return MeromorphicModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaWeakModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of weakly holomorphic modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaWeakModularFormsRing
+        sage: MR = ThetaWeakModularFormsRing()
+        sage: MR
+        ThetaWeakModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta weakly holomorphic modular
+    """
+
+    return WeakModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaModularFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of modular forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaModularFormsRing
+        sage: MR = ThetaModularFormsRing()
+        sage: MR
+        ThetaModularFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta modular
+    """
+
+    return ModularFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)
+
+def ThetaCuspFormsRing(base_ring = ZZ, red_hom = False):
+    r"""
+    Graded ring of cusp forms for the Theta group and the given base ring (with fractional orders at the cusp ``-1``)
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaCuspFormsRing
+        sage: MR = ThetaCuspFormsRing()
+        sage: MR
+        ThetaCuspFormsRing(n=+Infinity) over Integer Ring
+        sage: MR.analytic_type()
+        theta cuspidal
+    """
+
+    return CuspFormsRing(group = HeckeTriangleGroup(infinity), base_ring = base_ring, red_hom = red_hom, n=None, frac=True)

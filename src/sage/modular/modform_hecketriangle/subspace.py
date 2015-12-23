@@ -208,8 +208,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [q + 24*q^2 + O(q^3), q - 24*q^2 + O(q^3), q - 8*q^2 + O(q^3)]
         """
 
-        FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n())
+        FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n(), analytic_type=ambient_space._real_analytic_type)
         Module.__init__(self, base=self.coeff_ring())
+        self._post_init()
 
         self._ambient_space = ambient_space
         self._basis = [v for v in basis]
@@ -217,7 +218,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         self._gens = [self._element_constructor_(v) for v in basis]
         self._module = ambient_space._module.submodule([ambient_space.coordinate_vector(v) for v in basis])
         # TODO: get the analytic type from the basis
-        #self._analytic_type=self.AT(["quasi", "mero"])
+        #self._analytic_type=AT(["quasi", "mero"])
         self._analytic_type = ambient_space._analytic_type
 
     def _repr_(self):

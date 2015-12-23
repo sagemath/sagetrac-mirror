@@ -20,10 +20,14 @@ from series_constructor    import MFSeriesConstructor
 
 from graded_ring import ( QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing, QuasiModularFormsRing,\
                           QuasiCuspFormsRing, MeromorphicModularFormsRing, WeakModularFormsRing,\
-                          ModularFormsRing, CuspFormsRing )
+                          ModularFormsRing, CuspFormsRing,\
+                          ThetaQuasiMeromorphicModularFormsRing, ThetaQuasiWeakModularFormsRing, ThetaQuasiModularFormsRing,\
+                          ThetaQuasiCuspFormsRing, ThetaMeromorphicModularFormsRing, ThetaWeakModularFormsRing,\
+                          ThetaModularFormsRing, ThetaCuspFormsRing)
 
 from space       import ( QuasiMeromorphicModularForms, QuasiWeakModularForms, QuasiModularForms, QuasiCuspForms,\
-                          MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms,\
-                          ZeroForm )
+                          MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms, ZeroForm,\
+                          ThetaQuasiMeromorphicModularForms, ThetaQuasiWeakModularForms, ThetaQuasiModularForms, ThetaQuasiCuspForms,\
+                          ThetaMeromorphicModularForms, ThetaWeakModularForms, ThetaModularForms, ThetaCuspForms)
 
 from subspace    import ModularFormsSubSpace

@@ -24,7 +24,7 @@ from sage.misc.cachefunc import cached_method
 
 from constructor import FormsRing, FormsSpace
 from series_constructor import MFSeriesConstructor
-
+from analytic_type import AT
 
 # Maybe replace Parent by just SageObject?
 class FormsRing_abstract(Parent):
@@ -38,22 +38,22 @@ class FormsRing_abstract(Parent):
     from graded_ring_element import FormsRingElement
     Element = FormsRingElement
 
-    from analytic_type import AnalyticType
-    AT = AnalyticType()
-
-    def __init__(self, group, base_ring, red_hom, n):
+    def __init__(self, group, base_ring, red_hom, n, analytic_type):
         r"""
         Abstract (Hecke) forms ring.
 
         INPUT:
 
-        - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+        - ``group``          -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``base_ring``  -- The base_ring (default: `\Z).
+        - ``base_ring``      -- The base_ring (default: `\Z).
 
-        - ``red_hom``    -- If ``True`` then results of binary operations are considered
-                            homogeneous whenever it makes sense (default: ``False``).
-                            This is mainly used by the (Hecke) forms.
+        - ``red_hom``        -- If ``True`` then results of binary operations are considered
+                                homogeneous whenever it makes sense (default: ``False``).
+                                This is mainly used by the (Hecke) forms.
+
+        - ``analytic_type``  -- The analytic type of the space. This is mainly used
+                                to calculate the weight parameters correctly.
 
         OUTPUT:
 
@@ -91,17 +91,46 @@ class FormsRing_abstract(Parent):
         self._coeff_ring          = FractionField(PolynomialRing(base_ring,'d'))
         self._pol_ring            = PolynomialRing(base_ring,'x,y,z,d')
         self._rat_field           = FractionField(self._pol_ring)
+        # Hack: See _pos_init
+        self._real_analytic_type  = analytic_type
 
         # default values
         self._weight              = None
         self._ep                  = None
-        self._analytic_type       = self.AT.maximal_analytic_type()
+        self._analytic_type       = AT.top()
 
         self.default_prec(10)
         self.disp_prec(5)
         self.default_num_prec(53)
 
         #super(FormsRing_abstract, self).__init__(self.coeff_ring())
+
+    def _post_init(self):
+        r"""
+        This is a Hack:
+        Because of sage's internal structure (a one element is created during initialization)
+        we have to use at least a holomorphic analytic type until all is initialized.
+        To set the real analytic type (afterwards) use this function.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import CuspFormsRing
+            sage: CR = CuspFormsRing()
+            sage: CR._real_analytic_type is None
+            True
+            sage: CR._real_analytic_type = CR._analytic_type
+            sage: CR._post_init()
+            sage: CR._real_analytic_type is None
+            True
+            sage: from sage.modular.modform_hecketriangle.space import ThetaCuspForms
+            sage: CM = ThetaCuspForms()
+            sage: CM._real_analytic_type is None
+            True
+        """
+
+        if not self._real_analytic_type is None:
+            self._analytic_type = self._real_analytic_type
+            self._real_analytic_type = None
 
     def _repr_(self):
         r"""
@@ -187,12 +216,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing, ModularFormsRing, CuspFormsRing, ThetaModularFormsRing
             sage: MR1 = QuasiWeakModularFormsRing(base_ring=CC)
             sage: MR2 = ModularFormsRing()
             sage: MR3 = CuspFormsRing()
             sage: MR4 = ModularFormsRing(n=infinity)
             sage: MR5 = ModularFormsRing(n=4)
+            sage: MR6 = ThetaModularFormsRing()
             sage: MR3.has_coerce_map_from(MR2)
             False
             sage: MR1.has_coerce_map_from(MR2)
@@ -207,6 +237,14 @@ class FormsRing_abstract(Parent):
             True
             sage: MR4.has_coerce_map_from(MR5)
             False
+            sage: MR6.has_coerce_map_from(MR2)
+            True
+            sage: MR6.has_coerce_map_from(MR5)
+            False
+            sage: MR6.has_coerce_map_from(MR4)
+            True
+            sage: MR4.has_coerce_map_from(MR6)
+            False
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF2 = ModularForms(k=6, ep=-1)
@@ -216,6 +254,8 @@ class FormsRing_abstract(Parent):
             sage: MR2.has_coerce_map_from(MF3)
             True
             sage: MR4.has_coerce_map_from(MF2)
+            True
+            sage: MR6.has_coerce_map_from(MF2)
             True
         """
 
@@ -231,7 +271,7 @@ class FormsRing_abstract(Parent):
         elif isinstance(S, FormsSpace_abstract):
             raise RuntimeError( "This case should not occur." )
             # return self._coerce_map_from_(S.graded_ring())
-        elif (self.AT("holo") <= self._analytic_type) and (self.coeff_ring().has_coerce_map_from(S)):
+        elif (self.contains_coeff_ring() and self.coeff_ring().has_coerce_map_from(S)):
             return True
         else:
             return False
@@ -467,12 +507,19 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing, ThetaModularFormsRing
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
 
             sage: MR = QuasiModularFormsRing()
             sage: MR.reduce_type(["quasi", "cusp"])
             QuasiCuspFormsRing(n=3) over Integer Ring
+
+            sage: TMR = ThetaModularFormsRing()
+            sage: TMR.reduce_type(degree=(1/2,1))
+            ThetaModularForms(n=+Infinity, k=1/2, ep=1) over Integer Ring
+
+            sage: MR.reduce_type(degree=(12,1))
+            QuasiModularForms(n=3, k=12, ep=1) over Integer Ring
 
             sage: MR.reduce_type("cusp", degree=(12,1))
             CuspForms(n=3, k=12, ep=1) over Integer Ring
@@ -504,19 +551,26 @@ class FormsRing_abstract(Parent):
         r"""
         For ``n = infinity`` return whether ``self`` allows the possibility of fractional orders.
         For ``n != infinity`` this always returns False.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiModularForms, QuasiModularForms
+            sage: ThetaQuasiModularForms().with_fractional_orders()
+            True
+            sage: QuasiModularForms().with_fractional_orders()
+            False
+            sage: QuasiModularForms(n=infinity).with_fractional_orders()
+            False
         """
 
-        return self.hecke_n() == infinity and self.AT("frac") <= self._analytic_type
+        #Hack because this function is used before the analytic type is initialized
+        if not self._real_analytic_type is None:
+            analytic_type = self._real_analytic_type
+        else:
+            analytic_type = self._analytic_type
 
-    def without_fractional_orders(self):
-        r"""
-        For ``n = infinity`` return whether ``self`` does not allow the possibility of fractional orders.
-        For ``n != infinity`` this always returns False.
-        """
+        return self.hecke_n() == infinity and AT("frac") <= analytic_type
 
-        return self.hecke_n() == infinity and not self.AT("frac") <= self._analytic_type
-
-    @cached_method
     def contains_coeff_ring(self):
         r"""
         Return whether ``self`` contains its coefficient ring.
@@ -530,7 +584,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return (self.AT("holo") <= self._analytic_type)
+        return (AT("holo") <= self._analytic_type)
 
     def construction(self):
         r"""
@@ -966,7 +1020,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return not (self.AT("quasi") <= self._analytic_type)
+        return not (AT("quasi") <= self._analytic_type)
 
     def is_weakly_holomorphic(self):
         r"""
@@ -988,7 +1042,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return (self.AT("weak", "quasi") >= self._analytic_type)
+        return (AT("weak", "quasi", "frac") >= self._analytic_type)
 
     def is_holomorphic(self):
         r"""
@@ -1010,7 +1064,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return (self.AT("holo", "quasi") >= self._analytic_type)
+        return (AT("holo", "quasi", "frac") >= self._analytic_type)
 
     def is_cuspidal(self):
         r"""
@@ -1031,7 +1085,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return (self.AT("cusp", "quasi") >= self._analytic_type)
+        return (AT("cusp", "quasi", "frac") >= self._analytic_type)
 
     def is_zerospace(self):
         r"""
@@ -1050,7 +1104,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return (self.AT(["quasi"]) >= self._analytic_type)
+        return (AT(["quasi", "frac"]) >= self._analytic_type)
 
     def analytic_type(self):
         r"""
@@ -1117,7 +1171,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).J_inv() == QuasiMeromorphicModularFormsRing(n=7)(J_inv)
             True
 
-            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms, ThetaWeakModularForms
             sage: MF = WeakModularForms(n=5, k=0)
             sage: J_inv = MF.J_inv()
             sage: J_inv in MF
@@ -1137,6 +1191,8 @@ class FormsRing_abstract(Parent):
             sage: WeakModularForms(n=5).J_inv().q_expansion(prec=5) == MFC(group=5, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
             True
             sage: WeakModularForms(n=infinity).J_inv().q_expansion(prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ThetaWeakModularForms().J_inv().q_expansion(prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
             True
             sage: WeakModularForms(n=5).J_inv().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).J_inv_ZZ().add_bigoh(5)
             True
@@ -1443,9 +1499,8 @@ class FormsRing_abstract(Parent):
 
         NOTE:
 
-        If ``n=infinity`` then ``G_inv`` is holomorphic everywhere except
-        at the cusp ``-1`` where it isn't even meromorphic. Consequently
-        this function raises an exception for ``n=infinity``.
+        If ``n=infinity`` then ``G_inv`` is holomorphic everywhere and it has
+        order ``1/2`` at the cusp ``-1``.
 
         EXAMPLES::
 
@@ -1494,12 +1549,28 @@ class FormsRing_abstract(Parent):
             Traceback (most recent call last):
             ...
             ArithmeticError: G_inv doesn't exists for odd n(=9).
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaWeakModularForms, CuspForms
+            sage: MF = ThetaWeakModularForms(k=0, ep=-1)
+            sage: G_inv = MF.G_inv()
+            sage: G_inv in MF
+            True
+            sage: G_inv.q_expansion(prec=5) == (d*MFC(group=infinity, prec=7).G_inv_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: G_inv.q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).G_inv_ZZ().add_bigoh(5)
+            True
+            sage: WeakModularFormsRing(n=infinity, red_hom=True).G_inv() == G_inv
+            True
+            sage: CuspForms(n=infinity, k=12, ep=1).G_inv() == G_inv
+            True
+            sage: G_inv
+            1/4096*q^-1 - 1/512 - 59/1024*q - 1/2*q^2 - 5663/2048*q^3 - 12*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
 
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("G_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+            return self.extend_type(["weak", "frac"], ring=True)(d*y*x**4/(x**8-y**2)).reduce()
         elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
@@ -1525,9 +1596,8 @@ class FormsRing_abstract(Parent):
 
         NOTE:
 
-        If ``n=infinity`` then ``g_inv`` is holomorphic everywhere except
-        at the cusp ``-1`` where it isn't even meromorphic. Consequently
-        this function raises an exception for ``n=infinity``.
+        If ``n=infinity`` then ``G_inv`` is holomorphic everywhere and it has
+        order ``1/2`` at the cusp ``-1``.
 
         EXAMPLES::
 
@@ -1567,12 +1637,25 @@ class FormsRing_abstract(Parent):
             Traceback (most recent call last):
             ...
             ArithmeticError: g_inv doesn't exists for odd n(=9).
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaWeakModularForms, CuspForms
+            sage: MF = ThetaWeakModularForms(k=0, ep=-1)
+            sage: g_inv = MF.g_inv()
+            sage: g_inv in MF
+            True
+            sage: WeakModularFormsRing(n=infinity, red_hom=True).g_inv() == g_inv
+            True
+            sage: CuspForms(n=infinity, k=12, ep=1).g_inv() == g_inv
+            True
+            sage: g_inv
+            q^-1 - 8 - 236*q - 2048*q^2 - 11326*q^3 - 49152*q^4 + O(q^5)
         """
 
+        (x,y,z,d) = self._pol_ring.gens()
+
         if (self.hecke_n() == infinity):
-            raise ArithmeticError("g_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
-        if (ZZ(2).divides(self._group.n())):
-            (x,y,z,d) = self._pol_ring.gens()
+            return self.extend_type(["weak", "frac"], ring=True)(1/d*y*x**4/(x**8-y**2)).reduce()
+        elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
            raise ArithmeticError("g_inv doesn't exists for odd n(={}).".format(self._group.n()))
@@ -1860,12 +1943,52 @@ class FormsRing_abstract(Parent):
 
         return self.extend_type(["holo", "quasi"], ring=True)(z).reduce()
 
-    #TODO
     @cached_method
     def theta(self):
         r"""
         If ``n=infinity`` return the classical theta function.
         Otherwise this method is not defined.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaMeromorphicModularFormsRing, ThetaModularFormsRing, CuspFormsRing
+            sage: MR = ThetaModularFormsRing()
+            sage: theta = MR.theta()
+            sage: theta in MR
+            True
+            sage: CuspFormsRing(n=infinity).theta() == theta
+            True
+            sage: theta
+            theta
+            sage: ThetaMeromorphicModularFormsRing().theta() == ThetaMeromorphicModularFormsRing()(theta)
+            True
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaModularForms, CuspForms
+            sage: MF = ThetaModularForms(k=1/2)
+            sage: theta = MF.theta()
+            sage: theta in MF
+            True
+            sage: ThetaModularFormsRing(red_hom=True).theta() == theta
+            True
+            sage: CuspForms(n=infinity, k=12, ep=1).theta() == theta
+            True
+            sage: MF.disp_prec(10)
+            sage: theta
+            1 + 2*q + 2*q^4 + 2*q^9 + O(q^10)
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ThetaModularForms(k=1/2)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ThetaModularForms(k=1/2).theta().q_expansion(prec=26) == MFC(group=infinity, prec=26).theta_ZZ()(q/d).add_bigoh(26)
+            True
+            sage: ThetaModularForms(k=1/2).theta().q_expansion(fix_d=1, prec=26) == MFC(group=infinity, prec=26).theta_ZZ().add_bigoh(26)
+            True
+
+            sage: CuspForms(n=infinity).E4() == theta^8
+            True
+            sage: CuspForms(n=infinity).E4().q_expansion() == (theta^8).q_expansion()
+            True
         """
 
         n = self.hecke_n()
@@ -2012,7 +2135,7 @@ class FormsRing_abstract(Parent):
         ep = (-ZZ(1))**(k/2)
         extended_self = self.extend_type(["holo"], ring=True)
         # reduced_self is a classical ModularForms space
-        reduced_self = extended_self.reduce_type(["holo"], degree = (QQ(k), ep))
+        reduced_self = extended_self.reduce_type(["holo", "frac"], degree = (QQ(k), ep))
 
         if (n == infinity):
             l2  = ZZ(0)

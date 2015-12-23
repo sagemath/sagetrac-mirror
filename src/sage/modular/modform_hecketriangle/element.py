@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from graded_ring_element import FormsRingElement
+from analytic_type import AT
 
 
 class FormsElement(FormsRingElement):
@@ -66,7 +67,7 @@ class FormsElement(FormsRingElement):
 
         super(FormsElement, self).__init__(parent, rat)
 
-        if self.AT(["quasi"])>=self._analytic_type:
+        if AT(["quasi", "frac"])>=self._analytic_type:
             pass
         elif not (\
             self.is_homogeneous() and\

@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.symbolic.all import i
+from sage.functions.other import floor
 from sage.rings.all import ZZ, QQ, infinity, AlgebraicField
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
@@ -30,6 +31,102 @@ from sage.structure.all import parent
 from sage.misc.cachefunc import cached_method
 
 from abstract_ring import FormsRing_abstract
+from analytic_type import AT
+
+
+def weight_parameters(n, k, ep, frac=True):
+    r"""
+    Check whether the supplied weight ``k`` and multiplier ``ep``
+    are valid for the given (Hecke) ``n``.
+
+    For ``n=infinity`` the parameter ``frac`` (default: ``True``)
+    specifies whether fractional orders at ``-1`` are allowed.
+    The values has relevance for the weight parameters (for ``n=infinity``).
+
+    If the weight and multiplier are valid then two weight parameters
+    are returned which are e.g. used to calculate dimensions or precisions
+    of Fourier expansions. Otherwise an exception is raised.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.abstract_space import weight_parameters
+        sage: weight_parameters(n=18, k=-7, ep=-1)
+        (-3, 17)
+        sage: weight_parameters(n=5, k=12, ep=1, frac=True)
+        (1, 4)
+        sage: weight_parameters(n=infinity, k=8, ep=1, frac=False)
+        (2, 0)
+        sage: weight_parameters(n=infinity, k=8, ep=1)
+        (16, 0)
+    """
+
+    if (n == infinity):
+        if frac:
+            num = (k-(1-ep)) * ZZ(2)
+        else:
+            num = (k-(1-ep)) / ZZ(4)
+    else:
+        num = (k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4)
+    if (num.is_integral()):
+        num = ZZ(num)
+        if (n == infinity):
+            # TODO: Figure out what to do in this case
+            # (l1 and l2 are no longer defined in an analog/unique way)
+            #l2 = num % ZZ(2)
+            #l1 = ((num-l2)/ZZ(2)).numerator()
+            ## TODO: The correct generalization seems (l1,l2) = (0,num)
+            l2 = ZZ(0)
+            l1 = num
+        else:
+            l2 = num % n
+            l1 = ((num-l2)/n).numerator()
+    else:
+        raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
+
+    return (l1, l2)
+
+def _get_orders(n, frac, l1, order_1):
+    r"""
+    This is a technical helper function:
+
+    Return canonical/minimal ``(order_inf, order_1)`` for the given ``l1`` parameter,
+    (Hecke) ``n`` and ``frac``  (whether fractional orders at ``-1`` are allowed
+    for ``n=infinity``.
+
+    ``order_1`` is the desired order at ``-1`` of all quasi parts of the subspace
+    (for ``n=infinity``).
+
+    EXAMPLES::
+
+       sage: from sage.modular.modform_hecketriangle.abstract_space import _get_orders, weight_parameters
+       sage: l1 = weight_parameters(n=infinity, k=26, ep=-1, frac=True)[0]
+       sage: _get_orders(n=infinity, frac=True, l1=l1, order_1=-1)
+       (7, -1)
+       sage: l1 = weight_parameters(n=infinity, k=26, ep=-1, frac=False)[0]
+       sage: _get_orders(n=infinity, frac=False, l1=l1, order_1=-1)
+       (7, -1)
+       sage: l1 = weight_parameters(n=infinity, k=26+1/2, ep=1, frac=True)[0]
+       sage: _get_orders(n=infinity, frac=True, l1=l1, order_1=13/8)
+       (5, 13/8)
+    """
+
+    if (n == infinity):
+        if frac:
+            order_1 = QQ(order_1)
+            order_inf = l1/ZZ(8) - order_1
+        else:
+            order_1 = ZZ(order_1)
+            order_inf = l1 - order_1
+
+        if (not order_inf.is_integral()):
+            raise ValueError("order_1={} is not possible for the given degree!".format(order_1))
+        else:
+            order_inf = ZZ(order_inf)
+    else:
+        order_inf = l1
+        order_1 = order_inf
+
+    return (order_inf, order_1)
 
 
 class FormsSpace_abstract(FormsRing_abstract):
@@ -43,21 +140,24 @@ class FormsSpace_abstract(FormsRing_abstract):
     from element import FormsElement
     Element = FormsElement
 
-    def __init__(self, group, base_ring, k, ep, n):
+    def __init__(self, group, base_ring, k, ep, n, analytic_type):
         r"""
         Abstract (Hecke) forms space.
 
         INPUT:
 
-        - ``group``       -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+        - ``group``          -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``k``           -- The weight (default: `0`)
+        - ``k``              -- The weight (default: `0`)
 
-        - ``ep``          -- The epsilon (default: ``None``).
-                             If ``None``, then k*(n-2) has to be divisible by `2` and
-                             ``ep=(-1)^(k*(n-2)/2)`` is used.
+        - ``ep``             -- The epsilon (default: ``None``).
+                                If ``None``, then k*(n-2) has to be divisible by `2` and
+                                ``ep=(-1)^(k*(n-2)/2)`` is used.
 
-        - ``base_ring``   -- The base_ring (default: `\Z`).
+        - ``base_ring``      -- The base_ring (default: `\Z`).
+
+        - ``analytic_type``  -- The analytic type of the space. This is mainly used
+                                to calculate the weight parameters correctly.
 
         OUTPUT:
 
@@ -86,7 +186,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         #from space import canonical_parameters
         #(group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
 
-        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
+        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n, analytic_type=analytic_type)
         #self.register_embedding(self.hom(lambda f: f.parent().graded_ring()(f), codomain=self.graded_ring()))
 
         self._weight = k
@@ -537,7 +637,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             False
         """
 
-        return ((self.AT("holo") <= self._analytic_type) and (self.weight()==QQ(0)) and (self.ep()==ZZ(1)))
+        return ((AT("holo") <= self._analytic_type) and (self.weight()==QQ(0)) and (self.ep()==ZZ(1)))
 
     def element_from_coordinates(self, vec):
         r"""
@@ -684,32 +784,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        n = self._group.n()
-        k = self._weight
-        ep = self._ep
-        if (n == infinity):
-            if self.with_fractional_orders():
-                num = 2*k
-            else:
-                num = (k-(1-ep)) / ZZ(4)
-        else:
-            num = (k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4)
-        if (num.is_integral()):
-            num = ZZ(num)
-            if (n == infinity):
-                # TODO: Figure out what to do in this case
-                # (l1 and l2 are no longer defined in an analog/unique way)
-                #l2 = num % ZZ(2)
-                #l1 = ((num-l2)/ZZ(2)).numerator()
-                ## TODO: The correct generalization seems (l1,l2) = (0,num)
-                l2 = ZZ(0)
-                l1 = num
-            else:
-                l2 = num % n
-                l1 = ((num-l2)/n).numerator()
-        else:
-            raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
-        return (l1, l2)
+        return weight_parameters(self._group.n(), self._weight, self._ep, self.with_fractional_orders())
 
     # TODO: this only makes sense for modular forms,
     # resp. needs a big adjustment for quasi modular forms
@@ -909,7 +984,6 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from sage.functions.other import binomial
-        from analytic_type import AnalyticType
 
         m = ZZ(m)
         if m < 0:
@@ -942,7 +1016,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             # This avoids adding "quasi" to the type.
             # Remark: Extension to holo does not seem necessary,
             #         in fact we seem to end up with cusp forms for m > 0
-            AT = AnalyticType()
             analytic_type = f.analytic_type().extend_by(g.analytic_type()).extend_by(AT("holo"))
             return res.parent().reduce_type(analytic_type)(res)
         elif not (f is None):
@@ -1598,12 +1671,15 @@ class FormsSpace_abstract(FormsRing_abstract):
                 if (self.with_fractional_orders()):
                     order_1 = max(order_1, ZZ(1)/ZZ(8))
                 else:
-                    order_1 = max(order_1, 1)
+                    order_1 = max(order_1, ZZ(1))
             else:
-                min_exp = max(min_exp, 0)
-                order_1 = max(order_1, 0)
+                min_exp = max(min_exp, ZZ(0))
+                order_1 = max(order_1, ZZ(0))
 
-        if (self.hecke_n() != infinity):
+        if (self.hecke_n() == infinity and self.with_fractional_orders()):
+            # We increase order_1 until it's consistent with integer orders at infinity
+            order_1 += QQ((self._l1/ZZ(8) - order_1) - floor(self._l1/ZZ(8) - order_1))
+        elif (self.hecke_n() != infinity):
             order_1 = ZZ(0)
 
         return (min_exp, order_1)
@@ -1757,8 +1833,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             return []
 
         E2 = self.E2()
-        ambient_weak_space = self.graded_ring().reduce_type("weak", degree=(self._weight-QQ(2*r), self._ep*(-1)**r))
-        order_inf = ambient_weak_space._l1 - order_1
+        ambient_weak_space = self.graded_ring().reduce_type(["weak", "frac"], degree=(self._weight-QQ(2*r), self._ep*(-1)**r))
+        (order_inf,_) = ambient_weak_space._get_orders(order_1)
 
         if (max_exp == infinity):
             max_exp = order_inf
@@ -1858,21 +1934,12 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (r < 0 or 2*r > max_numerator_weight):
             return ZZ(0)
 
+        # Instead of generating the corresponding spaces we calculate the values directly!
         k = self._weight - QQ(2*r)
         ep = self._ep * (-1)**r
-
-        if (n == infinity):
-            if self.with_fractional_orders():
-                num = 2*k
-                order_inf = ZZ((num - order_1*8)/ZZ(8))
-            else:
-                num = (k-(1-ep)) / ZZ(4)
-                order_inf = ZZ(num - order_1)
-            l2 = order_1
-        else:
-            num = ZZ((k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4))
-            l2 = num % n
-            order_inf = ((num - l2) / n).numerator()
+        frac = self.with_fractional_orders()
+        (l1, l2) = weight_parameters(n=n, k=k, ep=ep, frac=frac)
+        (order_inf, _) = _get_orders(n=n, frac=frac, l1=l1, order_1=order_1)
 
         if (max_exp == infinity):
             max_exp = order_inf
@@ -2004,7 +2071,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (check):
             prec = min(laurent_series.prec(), laurent_series.exponents()[-1] + 1)
             if (el.q_expansion(prec=prec) != laurent_series):
-                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["weak"])))
+                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["weak", "frac"])))
 
         return el
 
@@ -2306,7 +2373,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             try:
                 coord_vector = A.solve_right(b)
             except ValueError:
-                raise ValueError("The Laurent series {} does not correspond to a (quasi) form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
+                raise ValueError("The Laurent series {} does not correspond to a (quasi) form of {}".format(laurent_series, self.reduce_type(["quasi", "weak", "frac"])))
 
             (order_inf, order_1) = self._get_orders(order_1)
 
@@ -2320,7 +2387,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         if (check):
             if (el.q_expansion(prec=prec) != laurent_series):
-                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
+                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["quasi", "weak", "frac"])))
 
         return el
 
@@ -2440,28 +2507,27 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return canonical (order_inf, order_1), where order_inf is calculated based on order_1 if possible.
 
-        INPUT: 
+        INPUT:
 
         - ``order_1``  -- The desired order at ``-1`` of all quasi parts of the subspace (default: 0).
                           If ``n!=infinity`` this parameter is ignored.
+
+        EXAMPLES::
+
+           sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
+           sage: MF = ModularForms(n=infinity, k=26, ep=-1)
+           sage: TMF = ThetaModularForms(k=26, ep=-1)
+           sage: MF._get_orders(-1)
+           (7, -1)
+           sage: TMF._get_orders(-1)
+           (7, -1)
+           sage: TMF2 = ThetaModularForms(k=27+1/2, ep=-1)
+           sage: TMF2._get_orders(19/8)
+           (4, 19/8)
         """
 
-        if (self.hecke_n() == infinity):
-            if (self.with_fractional_orders()):
-                order_1 = QQ(order_1)
-                order_inf = self._l1/ZZ(8) - order_1
-                if (not order_inf.is_integral()):
-                    raise ArgumentException("order_1={} is not possible for the given degree!".format(order_1))
-                else:
-                    order_inf = ZZ(order_inf)
-            else:
-                order_1 = ZZ(order_1)
-                order_inf = self._l1 - order_1
-        else:
-            order_inf = self._l1
-            order_1 = order_inf
-
-        return (order_inf, order_1)
+        return _get_orders(n=self.hecke_n(), frac=self.with_fractional_orders(),\
+                           l1=self._l1, order_1=order_1)
 
     def rationalize_series(self, laurent_series, coeff_bound = 1e-10, denom_factor = ZZ(1)):
         r"""

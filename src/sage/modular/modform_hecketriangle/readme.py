@@ -576,8 +576,8 @@ Modular forms ring and spaces for Hecke triangle groups:
 
   EXAMPLES::
 
-      sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-      sage: AnalyticType()(["quasi", "cusp"])
+      sage: from sage.modular.modform_hecketriangle.analytic_type import AT
+      sage: AT(["quasi", "cusp"])
       quasi cuspidal
 
 
@@ -702,7 +702,7 @@ Modular forms ring and spaces for Hecke triangle groups:
 
   EXAMPLES::
 
-      sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+      sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, ThetaModularFormsRing
       sage: ModularFormsRing(n=5, red_hom=True).f_rho()
       1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + 1043/(192000000*d^3)*q^3 + 45479/(1228800000000*d^4)*q^4 + O(q^5)
       sage: ModularFormsRing(n=5, red_hom=True).f_i()
@@ -712,10 +712,11 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: ModularFormsRing(n=5).f_inf()
       f_rho^5*d - f_i^2*d
 
-      sage: ModularFormsRing(n=infinity, red_hom=True).theta()
-      sage: ModularFormsRing(n=infinity, red_hom=True).E4()
+      sage: ThetaModularFormsRing(red_hom=True).theta()
+      1 + 2*q + 2*q^4 + O(q^5)
+      sage: ThetaModularFormsRing(red_hom=True).E4()
       1 + 16*q + 112*q^2 + 448*q^3 + 1136*q^4 + O(q^5)
-      sage: ModularFormsRing(n=infinity, red_hom=True).f_i()
+      sage: ThetaModularFormsRing(red_hom=True).f_i()
       1 - 24*q + 24*q^2 - 96*q^3 + 24*q^4 + O(q^5)
 
 

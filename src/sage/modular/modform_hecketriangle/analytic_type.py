@@ -107,8 +107,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: AT(["quasi", "weak"]).analytic_space_name()
             'QuasiWeakModular'
             sage: AT(["quasi", "cusp"]).analytic_space_name()
@@ -120,10 +119,10 @@ class AnalyticTypeElement(LatticePosetElement):
         """
 
         name = ""
+        if   (self.parent()("frac") <= self):
+             name += "Theta"
         if   self.parent()("quasi") <= self:
              name += "Quasi"
-        #if   not (self.parent()("frac") <= self):
-        #     name += "Integral"
         if   self.parent()("mero")  <= self:
              name += "MeromorphicModular"
         elif self.parent()("weak")  <= self:
@@ -146,8 +145,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: AT("mero").latex_space_name()
             '\\tilde{M}'
             sage: AT("weak").latex_space_name()
@@ -171,8 +169,8 @@ class AnalyticTypeElement(LatticePosetElement):
              name += "C"
         else:
              name  = "Z"
-        #if   not (self.parent()("frac") <= self):
-        #     name += "_0"
+        if   self.parent()("frac") <= self:
+             name += "_0"
 
         return name
 
@@ -180,8 +178,7 @@ class AnalyticTypeElement(LatticePosetElement):
         r"""
         Return a string representation of the analytic type.
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: AT(["quasi", "weak"]).analytic_name()
             'quasi weakly holomorphic modular'
             sage: AT(["quasi", "cusp"]).analytic_name()
@@ -193,10 +190,10 @@ class AnalyticTypeElement(LatticePosetElement):
         """
 
         name = ""
+        if   self.parent()("frac") <= self:
+             name += "theta "
         if   self.parent()("quasi") <= self:
              name += "quasi "
-        #if   not (self.parent()("frac") <= self):
-        #     name += "integral "
         if   self.parent()("mero")  <= self:
              name += "meromorphic modular"
         elif self.parent()("weak")  <= self:
@@ -226,8 +223,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: el = AT(["quasi", "cusp"])
             sage: el2 = AT("holo")
 
@@ -256,8 +252,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: el = AT(["quasi", "cusp"])
             sage: el2 = AT("holo")
 
@@ -306,6 +301,7 @@ class AnalyticType(FiniteLatticePoset):
 
     The basic ``analytic properties`` are:
 
+    - ``frac``   - Whether the element has a rational order at a cusp.
     - ``quasi``  - Whether the element is quasi modular (and not modular)
                    or modular.
     - ``mero``   - ``meromorphic``: If the element is meromorphic
@@ -392,9 +388,8 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: from sage.combinat.posets.lattices import FiniteLatticePoset
-            sage: AT = AnalyticType()
             sage: AT
             Analytic Type
             sage: isinstance(AT, FiniteLatticePoset)
@@ -405,7 +400,7 @@ class AnalyticType(FiniteLatticePoset):
             sage: AT.is_finite()
             True
             sage: AT.cardinality()
-            10
+            20
             sage: AT.is_modular()
             True
             sage: AT.is_bounded()
@@ -416,35 +411,68 @@ class AnalyticType(FiniteLatticePoset):
             [zero,
              cuspidal,
              zero,
+             zero,
+             zero,
+             theta cuspidal,
+             quasi cuspidal,
              modular,
              weakly holomorphic modular,
              meromorphic modular,
-             quasi cuspidal,
              quasi modular,
              quasi weakly holomorphic modular,
-             quasi meromorphic modular]
+             quasi meromorphic modular,
+             theta modular,
+             theta weakly holomorphic modular,
+             theta meromorphic modular,
+             theta quasi cuspidal,
+             theta quasi modular,
+             theta quasi weakly holomorphic modular,
+             theta quasi meromorphic modular]
             sage: len(AT.relations())
-            45
+            135
             sage: AT.cover_relations()
             [[zero, cuspidal],
              [zero, zero],
-             [cuspidal, modular],
+             [zero, zero],
+             [cuspidal, theta cuspidal],
              [cuspidal, quasi cuspidal],
+             [cuspidal, modular],
+             [zero, zero],
              [zero, quasi cuspidal],
+             [zero, zero],
+             [zero, theta cuspidal],
+             [zero, theta quasi cuspidal],
+             [theta cuspidal, theta modular],
+             [theta cuspidal, theta quasi cuspidal],
+             [quasi cuspidal, quasi modular],
+             [quasi cuspidal, theta quasi cuspidal],
              [modular, weakly holomorphic modular],
              [modular, quasi modular],
+             [modular, theta modular],
              [weakly holomorphic modular, meromorphic modular],
              [weakly holomorphic modular, quasi weakly holomorphic modular],
+             [weakly holomorphic modular, theta weakly holomorphic modular],
              [meromorphic modular, quasi meromorphic modular],
-             [quasi cuspidal, quasi modular],
+             [meromorphic modular, theta meromorphic modular],
              [quasi modular, quasi weakly holomorphic modular],
-             [quasi weakly holomorphic modular, quasi meromorphic modular]]
+             [quasi modular, theta quasi modular],
+             [quasi weakly holomorphic modular, quasi meromorphic modular],
+             [quasi weakly holomorphic modular, theta quasi weakly holomorphic modular],
+             [quasi meromorphic modular, theta quasi meromorphic modular],
+             [theta modular, theta weakly holomorphic modular],
+             [theta modular, theta quasi modular],
+             [theta weakly holomorphic modular, theta meromorphic modular],
+             [theta weakly holomorphic modular, theta quasi weakly holomorphic modular],
+             [theta meromorphic modular, theta quasi meromorphic modular],
+             [theta quasi cuspidal, theta quasi modular],
+             [theta quasi modular, theta quasi weakly holomorphic modular],
+             [theta quasi weakly holomorphic modular, theta quasi meromorphic modular]]
             sage: AT.has_top()
             True
             sage: AT.has_bottom()
             True
             sage: AT.top()
-            quasi meromorphic modular
+            theta quasi meromorphic modular
             sage: AT.bottom()
             zero
         """
@@ -490,8 +518,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: AT("holo", "quasi") == AT(["holo", "quasi"])
             True
         """
@@ -521,8 +548,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import (AnalyticType, AnalyticTypeElement)
-            sage: AT = AnalyticType()
+            sage: from sage.modular.modform_hecketriangle.analytic_type import (AT, AnalyticTypeElement)
             sage: AT("holo") == AT(["holo"])
             True
             sage: el = AT(["quasi", "holo"])
@@ -563,12 +589,11 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AT
             sage: from sage.combinat.posets.posets import FinitePoset
-            sage: AT = AnalyticType()
             sage: P = AT.base_poset()
             sage: P
-            Finite poset containing 5 elements with distinguished linear extension
+            Finite poset containing 6 elements with distinguished linear extension
             sage: isinstance(P, FinitePoset)
             True
 
@@ -577,14 +602,14 @@ class AnalyticType(FiniteLatticePoset):
             sage: P.is_finite()
             True
             sage: P.cardinality()
-            5
+            6
             sage: P.is_bounded()
             False
             sage: P.list()
-            [cusp, holo, weak, mero, quasi]
+            [cusp, holo, weak, mero, quasi, frac]
 
             sage: len(P.relations())
-            11
+            12
             sage: P.cover_relations()
             [[cusp, holo], [holo, weak], [weak, mero]]
             sage: P.has_top()
@@ -603,18 +628,9 @@ class AnalyticType(FiniteLatticePoset):
 
             sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AnalyticType().lattice_poset()
-            Finite lattice containing 10 elements
+            Finite lattice containing 20 elements
         """
 
         return FiniteLatticePoset(self._base_poset.order_ideals_lattice(), facade=False)
 
-    def maximal_analytic_type(self):
-        r"""
-        Return the maximal possible analytic type.
-        """
-
-        if len(self.maximal_elements()) != 1:
-            raise Exception("Unable to determine the maximal element!")
-
-        return self(["quasi", "mero"])
-        #return self.maximal_elements()[0]
+AT = AnalyticType()
