@@ -1,5 +1,5 @@
 r"""
-Fast word datatype using an array of unsigned char.
+Fast word datatype using an array of unsigned char
 
 By convention, if stop is SIZE_T_MAX the word is considered to be infinite.
 """
@@ -878,12 +878,10 @@ cdef class Slicer(object):
     r"""
     A simple class to handle non standard slices of infinite words.
 
-    This class is mainly a helper for ``__getitem__`` of infinite words. We made
-    it a class to allows pickling support. Let ``w`` be an infinite words. When
-    considering a slice, if step is ``1`` (like ``w[4::1]``) then the infinite
-    words will share their memory. But if it is not (like ``w[5::2]``) then we
-    need to create a new word that will read inside the first one. This class is
-    built to handle this second case.
+    This class is mainly a helper for ``__getitem__`` of infinite words that
+    allows pickling support. For an infinite slice of an infinite word ``w``
+    there are two possibilities: either the step is 1 and the memory is shared
+    or it is > 1 in which case this class is used.
     """
     cdef WordDatatype_char_infinite word
     cdef Py_ssize_t start
@@ -968,14 +966,14 @@ cdef class WordDatatype_char_infinite(WordDatatype_char):
 
     To create your own class of words in Python, you need:
 
-    - to inherit from this class and `InfiniteWord_class`
+    - to inherit from this class and ``InfiniteWord_class``
 
     - to call the method ``_init_c_data(alloc_size)`` inside the constructor
-    ``__init__``. The argument ``alloc_size`` is the amount of memory
-    preallocated for the word.
+      ``__init__``. The argument ``alloc_size`` is the amount of memory
+      preallocated for the word.
 
     - to implement a method ``_new_slice()`` that return a new chunk of the word
-    each time
+      each time
 
     As an example, we create the Kolakoski word::
 
