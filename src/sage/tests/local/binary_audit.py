@@ -7,14 +7,11 @@ import subprocess
 from glob import glob
 
 from sage.env import SAGE_LOCAL
+from sage.tests.local.test_base import LocalFileTest, TestException
 
 
 
-class TestException(Exception):
-    pass
-
-
-class ELFBinaryFile(object):
+class ELFBinaryFile(LocalFileTest):
 
     SAGE_LIBRARIES = tuple(
         os.path.basename(lib).split('.')[0] for lib in
@@ -69,7 +66,7 @@ class ELFBinaryFile(object):
             sage: patch.needed   # random output
             ['libattr.so.1', 'libc.so.6']
         """
-        self.filename = filename
+        super(ELFBinaryFile, self).__init__(filename)
         self.needed = []
         self.rpath_string = None
         self.is_dynamic = False

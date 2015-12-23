@@ -4,7 +4,8 @@ Walk a file tree and read the beginning of each file
 
 import os
 
-from sage.tests.local.binary_audit import ELFBinaryFile, TestException
+from sage.tests.local.test_base import TestException
+from sage.tests.local.binary_audit import ELFBinaryFile
 
 
 FileClasses = (
@@ -38,7 +39,7 @@ def recursive_check(root_path):
             if os.path.islink(fqn):
                 continue
             if not os.path.isfile(fqn):
-                return
+                continue
             with open(fqn, 'rb') as f:
                 head = f.read(512)
             for cls in FileClasses:
