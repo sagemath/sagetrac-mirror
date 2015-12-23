@@ -1082,7 +1082,12 @@ cdef class CachedFunction(object):
             7
 
         """
-        del (<dict>self.cache)[self.get_key(*args, **kwds)]
+        k = self.get_key(*args, **kwds)
+        try:
+            del (<dict>self.cache)[k]
+        except TypeError: # k is not hashable
+            k = (_cache_key, _cache_key(k))
+            del (<dict>self.cache)[k]
 
     def get_key(self, *args, **kwds):
         """
@@ -1459,7 +1464,12 @@ cdef class WeakCachedFunction(CachedFunction):
             KeyError: ((5,), ())
 
         """
-        del self.cache[self.get_key(*args, **kwds)]
+        k = self.get_key(*args, **kwds)
+        try:
+            del self.cache[k]
+        except TypeError: # k is not hashable
+            k = (_cache_key, _cache_key(k))
+            del self.cache[k]
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
 
