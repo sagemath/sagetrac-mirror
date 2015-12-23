@@ -84,6 +84,7 @@ from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
 from sage.rings.integral_domain import is_IntegralDomain
+from sage.structure.category_object cimport normalize_names
 from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.derivative import multi_derivative
@@ -429,7 +430,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
             return self
-        return self.__call__(*x, **kwds)
+        return self(*x, **kwds)
     substitute = subs
 
     def __call__(self, *args, **kwds):
@@ -1339,6 +1340,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: the precision must be positive, got 0
+
+        AUTHORS:
+
+        - David Harvey (2006-09-09): Newton's method implementation for power
+          series
+
+        - Vincent Delecroix (2014-2015): move the implementation directly in
+          polynomial
         """
         if prec <= 0:
             raise ValueError("the precision must be positive, got {}".format(prec))
@@ -1985,7 +1994,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if modulus:
             from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
-        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
+        if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
@@ -2305,7 +2314,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
         """
-        return self.__mod__(other)
+        return self % other
 
     def _is_atomic(self):
         """
@@ -3976,7 +3985,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Finite Field in b of size 401^52
 
         """
-        name = sage.structure.parent_gens.normalize_names(1, names)[0]
+        name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -6723,7 +6732,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         k = 0
         while self % p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self //= p
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):
