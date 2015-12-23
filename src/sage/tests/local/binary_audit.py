@@ -17,7 +17,7 @@ class TestException(Exception):
 class ELFBinaryFile(object):
 
     SAGE_LIBRARIES = tuple(
-        os.path.basename(lib) for lib in
+        os.path.basename(lib).split('.')[0] for lib in
         glob(os.path.join(SAGE_LOCAL, 'lib/lib*.so')) + 
         glob(os.path.join(SAGE_LOCAL, 'lib64/lib*.so'))
     )
@@ -84,29 +84,28 @@ class ELFBinaryFile(object):
         return None
 
     @classmethod
-    def is_system_library(cls, lib):
+    def is_sage_library(cls, lib):
         """
-        Test whether lib is a system library
+        Test whether lib is a library shipped with sage
 
         INPUT:
 
         - ``lib`` -- string. The library name from the ELF needed
-          section, for example ``'libc.so.6'``.
+          section, for example ``'libmpir.so.16'``.
 
         OUTPUT:
 
-        Boolean. Whether the library is supposed to be part of the
-        base system.
+        Boolean. Whether the library is supposed to be part of Sage.
 
         EXAMPLES::
 
             sage: from sage.tests.local.binary_audit import ELFBinaryFile
-            sage: ELFBinaryFile.is_system_library('libc.so.6')
+            sage: ELFBinaryFile.is_sage_library('libmpir.so.2.3.4')
             True
-            sage: ELFBinaryFile.is_system_library('libpari.so')
+            sage: ELFBinaryFile.is_sage_library('libaudit.so')
             False
         """
-        return not any(lib.startswith(name) for name in cls.SAGE_LIBRARIES)
+        return any(lib.startswith(name) for name in cls.SAGE_LIBRARIES)
         
     def perform_tests(self):
         """
@@ -124,7 +123,7 @@ class ELFBinaryFile(object):
         """
         if not self.is_dynamic:
             return   # only dynamic binaries need to have their rpath set
-        if all(self.is_system_library(lib) for lib in self.needed):
+        if not any(self.is_sage_library(lib) for lib in self.needed):
             return   # No dependencies that would require rpath
         rpath = self.rpath()
         local_lib = os.path.abspath(os.path.join(SAGE_LOCAL, 'lib'))
