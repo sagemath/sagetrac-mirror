@@ -376,7 +376,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.functors import FormsSpaceFunctor
-            sage: FormsSpaceFunctor(["holo", "weak"], group=4, k=0, ep=-1)
+            sage: FormsSpaceFunctor(["holo", "weak", "frac"], group=4, k=0, ep=-1)
             WeakModularFormsFunctor(n=4, k=0, ep=-1)
         """
 

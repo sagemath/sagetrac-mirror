@@ -138,9 +138,12 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing, ThetaWeakModularFormsRing
             sage: QuasiModularFormsRing(n=4)
             QuasiModularFormsRing(n=4) over Integer Ring
+
+            sage: ThetaWeakModularFormsRing()
+            ThetaWeakModularFormsRing() over Integer Ring
         """
 
         if (self._group.n() == infinity and self.with_fractional_orders()):
@@ -428,12 +431,15 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, ThetaModularFormsRing
             sage: ModularFormsRing().change_ring(CC)
             ModularFormsRing(n=3) over Complex Field with 53 bits of precision
+
+            sage: ThetaModularFormsRing().change_ring(CC)
+            ThetaModularFormsRing() over Complex Field with 53 bits of precision
         """
 
-        return self.__class__.__base__(self._group, new_base_ring, self._red_hom)
+        return self.__class__.__base__(group=self._group, base_ring=new_base_ring, red_hom=self._red_hom, frac=self.with_fractional_orders())
 
     def graded_ring(self):
         r"""

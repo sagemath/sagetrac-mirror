@@ -116,6 +116,15 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
         sage: rational_type(1/x**8, n=infinity)
         (True, True, -4, 1, weakly holomorphic modular)
+
+        sage: rational_type(1/x, n=infinity)
+        (True, True, -1/2, 1, theta weakly holomorphic modular)
+
+        sage: rational_type(1/(x*(x**8-y^2)), n=infinity)
+        (True, True, -9/2, 1, theta weakly holomorphic modular)
+
+        sage: rational_type(x*(x**8-y^2)*z, n=infinity)
+        (True, True, 13/2, -1, theta quasi cuspidal)
     """
 
     # Determine whether f is zero
@@ -318,8 +327,8 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
         sage: FormsSpace(["quasi", "mero"], group=7, base_ring=ZZ, k=2, ep=-1)
         QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
 
-        sage: FormsSpace(["quasi", "cusp"], group=infinity, base_ring=ZZ, k=2, ep=-1)
-        QuasiCuspForms(n=+Infinity, k=2, ep=-1) over Integer Ring
+        sage: FormsSpace(["quasi", "cusp", "frac"], group=infinity, base_ring=ZZ, k=4+1/2, ep=1)
+        ThetaQuasiCuspForms(k=9/2, ep=1) over Integer Ring
     """
 
     from space import canonical_parameters
@@ -430,8 +439,8 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         sage: FormsRing(["quasi", "mero"], group=7, base_ring=ZZ, red_hom=True)
         QuasiMeromorphicModularFormsRing(n=7) over Integer Ring
 
-        sage: FormsRing(["quasi", "cusp"], group=infinity)
-        QuasiCuspFormsRing(n=+Infinity) over Integer Ring
+        sage: FormsRing(["quasi", "cusp", "frac"], group=infinity)
+        ThetaQuasiCuspFormsRing() over Integer Ring
     """
 
     from graded_ring import canonical_parameters

@@ -201,9 +201,12 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms, ThetaCuspForms
             sage: QuasiModularForms(n=4, k=2, ep=-1)
             QuasiModularForms(n=4, k=2, ep=-1) over Integer Ring
+
+            sage: ThetaCuspForms(k=4+1/2, ep=1)
+            ThetaCuspForms(k=9/2, ep=1) over Integer Ring
         """
 
         if (self._group.n() == infinity and self.with_fractional_orders()):
@@ -363,6 +366,25 @@ class FormsSpace_abstract(FormsRing_abstract):
             [0 1]
             sage: subspace(ambvec) == subspace(vec) and subspace(ambvec).parent() == subspace(vec).parent()
             True
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiModularForms
+            sage: TMF = ThetaQuasiModularForms(k=2+7/2, ep=-1)
+            sage: el = TMF.theta()^7*(TMF.E2()-7*TMF.f_i())
+            sage: subspace = TMF.subspace([TMF(el)])
+            sage: subspace
+            Subspace of dimension 1 of ThetaQuasiModularForms(k=11/2, ep=-1) over Integer Ring
+            sage: vec = TMF(el).coordinate_vector()
+            sage: vec
+            (-7, 1)
+            sage: vec.parent()
+            Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: TMF(vec) == TMF(el)
+            True
+
+            sage: subspace(TMF(el)) == subspace([-7,1]) == subspace.gen()
+            True
+            sage: subspace(vec).coordinate_vector()
+            (-7)
         """
 
         from graded_ring_element import FormsRingElement
@@ -602,12 +624,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ThetaCuspForms
             sage: CuspForms(n=5, k=24).change_ring(CC)
             CuspForms(n=5, k=24, ep=1) over Complex Field with 53 bits of precision
+
+            sage: ThetaCuspForms(k=24).change_ring(CC)
+            ThetaCuspForms(k=24, ep=1) over Complex Field with 53 bits of precision
         """
 
-        return self.__class__.__base__(self.group(), new_base_ring, self.weight(), self.ep())
+        return self.__class__.__base__(group=self.group(), base_ring=new_base_ring, k=self.weight(), ep=self.ep(), frac=self.with_fractional_orders())
 
     def construction(self):
         r"""

@@ -70,7 +70,7 @@ def ModularFormsSubSpace(*args, **kwargs):
     EXAMPLES::
 
         sage: from sage.modular.modform_hecketriangle.subspace import ModularFormsSubSpace
-        sage: from sage.modular.modform_hecketriangle.space import ModularForms
+        sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
         sage: MF = ModularForms()
         sage: subspace = ModularFormsSubSpace(MF.E4()^3, MF.E6()^2+MF.Delta(), MF.Delta())
         sage: subspace
@@ -83,6 +83,12 @@ def ModularFormsSubSpace(*args, **kwargs):
         CuspForms(n=3, k=12, ep=1) over Integer Ring
         sage: ModularFormsSubSpace(MF.E4()^3-MF.E6()^2, MF.J_inv()*MF.E4()^3, reduce=True)
         WeakModularForms(n=3, k=12, ep=1) over Integer Ring
+
+        sage: TMF = ThetaModularForms(k=19, ep=1)
+        sage: (x,y,z,d) = TMF.pol_ring().gens()
+        sage: el = TMF(x^38*d - x^30*y^2*d)
+        sage: ModularFormsSubSpace(el, reduce=True)
+        Subspace of dimension 1 of ThetaCuspForms(k=19, ep=1) over Integer Ring
     """
 
     generators = []
@@ -249,6 +255,14 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace.change_ring(CC)
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaModularForms
+            sage: TMF = ThetaModularForms(k=19, ep=1)
+            sage: subspace = TMF.subspace([TMF.Delta()*TMF.theta()^14, TMF.gen(0)])
+            sage: subspace.change_ring(QQ)
+            Subspace of dimension 2 of ThetaModularForms(k=19, ep=1) over Rational Field
+
+            sage: subspace.change_ring(CC) # known bug
         """
 
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis, check=False)
@@ -266,6 +280,13 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: new_ambient_space = QuasiModularForms(n=6, k=20, ep=1)
             sage: subspace.change_ambient_space(new_ambient_space)    # long time
             Subspace of dimension 2 of QuasiModularForms(n=6, k=20, ep=1) over Integer Ring
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaModularForms
+            sage: MF = ModularForms(n=infinity, k=20, ep=1)
+            sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
+            sage: new_ambient_space = ThetaModularForms(k=20, ep=1)
+            sage: subspace.change_ambient_space(new_ambient_space)    # long time
+            Subspace of dimension 2 of ThetaModularForms(k=20, ep=1) over Integer Ring
         """
         return self.__class__.__base__(new_ambient_space, self._basis, check=False)
 
@@ -398,7 +419,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms, ThetaQuasiCuspForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2).parent()
@@ -420,6 +441,14 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             (7, 0, -3)
             sage: subspace.ambient_coordinate_vector(el)
             (7, 21/(8*d), 0, -3)
+
+            sage: MF = ThetaQuasiCuspForms(k=13+1/2, ep=1)
+            sage: subspace = MF.subspace([MF.Delta()*MF.theta()^3, MF.theta()^11*MF.f_inf()*MF.E2()*MF.f_i(), MF.theta()^11*MF.f_inf()*MF.E2()^2, MF.theta()^11*MF.f_inf()*(MF.E4()-MF.E2()^2)])
+            sage: el = MF.theta()^11*MF.f_inf()*(7*MF.E4() - 3*MF.E2()^2)
+            sage: subspace.coordinate_vector(el)
+            (7, 0, -3)
+            sage: subspace.ambient_coordinate_vector(el)
+            (7, 105/(32*d), 357/(512*d^2), 0, 0, -3, -21/(32*d), 0, 0)
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))
