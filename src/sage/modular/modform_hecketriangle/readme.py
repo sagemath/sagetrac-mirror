@@ -1167,11 +1167,18 @@ Modular forms ring and spaces for Hecke triangle groups:
   and also the space with only integer orders at the cusp ``1`` can
   be used.
 
-  Note that modular forms for the Theta subgroup basically correspond
-  1-1 to modular forms for ``Gamma_0(4)`` by sending ``f(z)`` to
-  ``f(2z)`` and vice versa. This is of particular interest for
-  (classical) half-integer weight modular forms which are thereby
-  `implemented` as well.
+  Let ``W_4`` denote the Fricke involution. Note that
+  ``Gamma^+_0(4)=<Gamma_0(4),W_4>`` is isomorphic (conjugate) to the
+  Theta subgroup. More precisely ``Gamma_0(4)`` is conjugate to
+  ``Gamma(2)`` which is an index 2 subgroup of the Theta subgroup.
+  ``W_4`` is mapped to ``S`` and the ``1``-translation is mapped to
+  the ``2``-translation.
+
+  For modular forms of weight ``k`` for ``Gamma_0(4)`` the
+  corresponding map sends ``f(z)`` to ``f(z/2)``. The Eigenspace of
+  ``W_4`` for the Eigenvalue ``1`` resp. ``-1`` corresponds to
+  ``ThetaModularForms(k, ep)`` with ``ep=1`` resp. ``ep=-1``.
+  This correspondence includes half-integer weight forms.
 
   EXAMPLES::
 
