@@ -206,7 +206,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             QuasiModularForms(n=4, k=2, ep=-1) over Integer Ring
         """
 
-        return "{}Forms(n={}, k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._weight, self._ep, self._base_ring)
+        if (self._group.n() == infinity and self.with_fractional_orders()):
+            return "{}Forms(k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._weight, self._ep, self._base_ring)
+        else:
+            return "{}Forms(n={}, k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._weight, self._ep, self._base_ring)
 
     def _latex_(self):
         r"""
@@ -217,10 +220,17 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms
             sage: latex(QuasiWeakModularForms())
             QM^!_{ n=3 }(0,\ 1)(\Bold{Z})
+
+            sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiWeakModularForms
+            sage: latex(ThetaQuasiWeakModularForms())
+            QM^!_\inf(0,\ 1)(\Bold{Z})
         """
 
         from sage.misc.latex import latex
-        return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
+        if (self._group.n() == infinity and self.with_fractional_orders()):
+            return "{}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._weight, self._ep, latex(self._base_ring))
+        else:
+            return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
 
     def _element_constructor_(self, el):
         r"""
@@ -229,7 +239,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiWeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiWeakModularForms, ThetaWeakModularForms, ThetaQuasiWeakModularForms
             sage: MF = ModularForms(k=12, ep=1)
             sage: (x,y,z,d) = MF.pol_ring().gens()
 
@@ -293,6 +303,28 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: QF.construct_quasi_form(qexp3, order_1=-1) == el3
             True
 
+            sage: TMF = ThetaWeakModularForms(k=2+7/2, ep=-1)
+            sage: el4 = TMF.f_i()*TMF.theta()^7 + TMF.f_i()^3/TMF.theta()
+            sage: prec = TMF.required_laurent_prec(order_1=-1/8)
+            sage: qexp4 = el4.q_expansion(prec=prec)
+            sage: qexp4
+            2 - 21/(16*d)*q + O(q^2)
+            sage: TMF.construct_form(qexp4, check=False) == el4
+            False
+            sage: TMF.construct_form(qexp4, order_1=-1/8) == el4
+            True
+
+            sage: TMF = ThetaQuasiWeakModularForms(k=2+7/2, ep=-1)
+            sage: el5 = TMF.f_i()*TMF.theta()^7 + TMF.f_i()*TMF.E2()^2/TMF.theta()
+            sage: prec = TMF.required_laurent_prec(order_1=-1/8)
+            sage: qexp5 = el5.q_expansion(prec=prec)
+            sage: qexp5
+            2 - 13/(16*d)*q + 39/(512*d^2)*q^2 - 259/(16384*d^3)*q^3 + 379/(4194304*d^4)*q^4 - 2649/(67108864*d^5)*q^5 + O(q^6)
+            sage: TMF.construct_quasi_form(qexp5, check=False) == el5
+            False
+            sage: TMF.construct_quasi_form(qexp5, order_1=-1/8) == el5
+            True
+
             sage: MF([0,1]) == MF(Delta)
             True
             sage: MF([1,0]) == MF(x^3) - 720*MF(Delta)
@@ -336,7 +368,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         from graded_ring_element import FormsRingElement
         if isinstance(el, FormsRingElement):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
-                el_f = el._reduce_d()._rat
+                el_f = el.reduce_d()._rat
                 (x,y,z,d) = self.pol_ring().gens()
 
                 num_sub = el_f.numerator().subs(   x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
@@ -384,7 +416,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm, ThetaQuasiWeakModularForms
             sage: MF1 = QuasiWeakModularForms(n=4, base_ring=CC, k=0, ep=1)
             sage: MF2 = ModularForms(n=4, k=24, ep=1)
             sage: MF3 = ModularForms(n=4, k=24, ep=-1)
@@ -392,6 +424,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF5 = ZeroForm(n=4, k=10, ep=-1)
             sage: MF6 = QuasiWeakModularForms(n=3, k=24, ep=1)
             sage: MF7 = QuasiWeakModularForms(n=infinity, k=24, ep=1)
+            sage: MF8 = ThetaQuasiWeakModularForms(k=24, ep=1)
             sage: subspace1 = MF3.subspace([MF3.gen(0), MF3.gen(1)])
             sage: subspace2 = MF3.subspace([MF3.gen(2)])
             sage: subspace3 = MF3.subspace([MF3.gen(0), MF3.gen(0)+MF3.gen(2)])
@@ -410,6 +443,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: MF7.has_coerce_map_from(MF2)
             False
+            sage: MF8.has_coerce_map_from(MF6)
+            True
+            sage: MF8.has_coerce_map_from(MF2)
+            False
+            sage: MF8.has_coerce_map_from(MF7)
+            True
             sage: MF3.has_coerce_map_from(subspace1)
             True
             sage: subspace1.has_coerce_map_from(MF3)
@@ -764,7 +803,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: k == 4*(n*MF._l1 + MF._l2)/(n-2) + (1-ep)*n/(n-2)
             True
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
             sage: MF = ModularForms(n=5, k=12, ep=1)
             sage: MF.weight_parameters()
             (1, 4)
@@ -782,6 +821,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             (2, 0)
             sage: MF.dimension() == MF._l1 + 1
             True
+
+            sage: MF = ThetaModularForms(k=8, ep=1)
+            sage: MF.weight_parameters()
+            (16, 0)
         """
 
         return weight_parameters(self._group.n(), self._weight, self._ep, self.with_fractional_orders())
@@ -800,7 +843,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
             sage: MF = ModularForms(n=8, k=4, ep=1)
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: T = MF.group().T()
@@ -833,6 +876,20 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: MF.aut_factor(MF.group().V(6), z)
             13.23058830577...? + 15.71786610686...?*I
+
+            sage: TMF = ThetaModularForms(k=9+1/2, ep=-1)
+            sage: T = MF.group().T()
+            sage: S = MF.group().S()
+            sage: z = AlgebraicField()(1+i/2)
+
+            sage: TMF.aut_factor(S, z)
+            1.3267848781...? - 2.5631317231...?*I
+            sage: TMF.aut_factor(-T^(-2), z)
+            1
+            sage: TMF.aut_factor(S, z) == MF.ep() * (z/i)^TMF.weight()
+            True
+            sage: TMF.aut_factor(TMF.group().V(6), z)
+            9.665189409...?e9 - 2.2953495330...?e9*I
         """
 
         if (gamma.is_translation()):

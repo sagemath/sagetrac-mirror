@@ -143,7 +143,10 @@ class FormsRing_abstract(Parent):
             QuasiModularFormsRing(n=4) over Integer Ring
         """
 
-        return "{}FormsRing(n={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._base_ring)
+        if (self._group.n() == infinity and self.with_fractional_orders()):
+            return "{}FormsRing() over {}".format(self._analytic_type.analytic_space_name(), self._base_ring)
+        else:
+            return "{}FormsRing(n={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._base_ring)
 
     def _latex_(self):
         r"""
@@ -154,10 +157,17 @@ class FormsRing_abstract(Parent):
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing
             sage: latex(QuasiWeakModularFormsRing())
             \mathcal{ QM^! }_{n=3}(\Bold{Z})
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiWeakModularFormsRing
+            sage: latex(ThetaQuasiWeakModularFormsRing())
+            \mathcal{ QM^!_\inf }(\Bold{Z})
         """
 
         from sage.misc.latex import latex
-        return "\\mathcal{{ {} }}_{{n={}}}({})".format(self._analytic_type.latex_space_name(), self._group.n(), latex(self._base_ring))
+        if (self._group.n() == infinity and self.with_fractional_orders()):
+            return "\\mathcal{{ {} }}({})".format(self._analytic_type.latex_space_name(), latex(self._base_ring))
+        else:
+            return "\\mathcal{{ {} }}_{{n={}}}({})".format(self._analytic_type.latex_space_name(), self._group.n(), latex(self._base_ring))
 
     def _element_constructor_(self, el):
         r"""
@@ -165,7 +175,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, ThetaModularFormsRing
             sage: MR = ModularFormsRing()
             sage: (x,y,z,d) = MR.pol_ring().gens()
 
@@ -188,12 +198,20 @@ class FormsRing_abstract(Parent):
             CuspForms(n=3, k=12, ep=1) over Integer Ring
             sage: MRinf(el).parent()
             ModularFormsRing(n=+Infinity) over Integer Ring
+
+            sage: TMR = ThetaModularFormsRing()
+            sage: TMR(el)
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3)/4096
+            sage: TMR(el).parent()
+            ThetaModularFormsRing() over Integer Ring
+            sage: TMR(MRinf(el))
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3)/4096
         """
 
         from graded_ring_element import FormsRingElement
         if isinstance(el, FormsRingElement):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
-                el_f = el._reduce_d()._rat
+                el_f = el.reduce_d()._rat
                 (x,y,z,d) = self.pol_ring().gens()
 
                 num_sub = el_f.numerator().subs(   x=(y**2 + 3*x**8)/ZZ(4), y=(9*x**8*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
@@ -516,7 +534,7 @@ class FormsRing_abstract(Parent):
 
             sage: TMR = ThetaModularFormsRing()
             sage: TMR.reduce_type(degree=(1/2,1))
-            ThetaModularForms(n=+Infinity, k=1/2, ep=1) over Integer Ring
+            ThetaModularForms(k=1/2, ep=1) over Integer Ring
 
             sage: MR.reduce_type(degree=(12,1))
             QuasiModularForms(n=3, k=12, ep=1) over Integer Ring

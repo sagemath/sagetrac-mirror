@@ -610,7 +610,7 @@ def ThetaQuasiMeromorphicModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiMeromorphicModularFormsRing
         sage: MR = ThetaQuasiMeromorphicModularFormsRing()
         sage: MR
-        ThetaQuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaQuasiMeromorphicModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta quasi meromorphic modular
     """
@@ -626,7 +626,7 @@ def ThetaQuasiWeakModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiWeakModularFormsRing
         sage: MR = ThetaQuasiWeakModularFormsRing()
         sage: MR
-        ThetaQuasiWeakModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaQuasiWeakModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta quasi weakly holomorphic modular
     """
@@ -642,7 +642,7 @@ def ThetaQuasiModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiModularFormsRing
         sage: MR = ThetaQuasiModularFormsRing()
         sage: MR
-        ThetaQuasiModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaQuasiModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta quasi modular
     """
@@ -658,7 +658,7 @@ def ThetaQuasiCuspFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaQuasiCuspFormsRing
         sage: MR = ThetaQuasiCuspFormsRing()
         sage: MR
-        ThetaQuasiCuspFormsRing(n=+Infinity) over Integer Ring
+        ThetaQuasiCuspFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta quasi cuspidal
     """
@@ -674,7 +674,7 @@ def ThetaMeromorphicModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaMeromorphicModularFormsRing
         sage: MR = ThetaMeromorphicModularFormsRing()
         sage: MR
-        ThetaMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaMeromorphicModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta meromorphic modular
     """
@@ -690,7 +690,7 @@ def ThetaWeakModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaWeakModularFormsRing
         sage: MR = ThetaWeakModularFormsRing()
         sage: MR
-        ThetaWeakModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaWeakModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta weakly holomorphic modular
     """
@@ -706,7 +706,7 @@ def ThetaModularFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaModularFormsRing
         sage: MR = ThetaModularFormsRing()
         sage: MR
-        ThetaModularFormsRing(n=+Infinity) over Integer Ring
+        ThetaModularFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta modular
     """
@@ -722,7 +722,7 @@ def ThetaCuspFormsRing(base_ring = ZZ, red_hom = False):
         sage: from sage.modular.modform_hecketriangle.graded_ring import ThetaCuspFormsRing
         sage: MR = ThetaCuspFormsRing()
         sage: MR
-        ThetaCuspFormsRing(n=+Infinity) over Integer Ring
+        ThetaCuspFormsRing() over Integer Ring
         sage: MR.analytic_type()
         theta cuspidal
     """

@@ -333,7 +333,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self._rat
 
-    def _reduce_d(self):
+    def reduce_d(self):
         r"""
         Return a new version of ``self`` where `d` is replaced by its value in
         the presentation of ``self`` as a rational function in the polynomial generators.
@@ -347,7 +347,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: Delta = ModularForms().Delta()
             sage: Delta.rat()
             x^3*d - y^2*d
-            sage: Delta2 = Delta._reduce_d()
+            sage: Delta2 = Delta.reduce_d()
             sage: Delta2.rat()
             (x^3 - y^2)/1728
             sage: Delta == Delta2

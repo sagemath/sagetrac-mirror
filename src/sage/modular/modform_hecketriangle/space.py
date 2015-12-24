@@ -1128,7 +1128,7 @@ def ThetaQuasiMeromorphicModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiMeromorphicModularForms
         sage: MF = ThetaQuasiMeromorphicModularForms(ZZ, 7+1/2, 1)
         sage: MF
-        ThetaQuasiMeromorphicModularForms(n=+Infinity, k=15/2, ep=1) over Integer Ring
+        ThetaQuasiMeromorphicModularForms(k=15/2, ep=1) over Integer Ring
         sage: MF.analytic_type()
         theta quasi meromorphic modular
         sage: MF.category()
@@ -1151,7 +1151,7 @@ def ThetaQuasiWeakModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiWeakModularForms
         sage: MF = ThetaQuasiWeakModularForms(ZZ, 2, -1)
         sage: MF
-        ThetaQuasiWeakModularForms(n=+Infinity, k=2, ep=-1) over Integer Ring
+        ThetaQuasiWeakModularForms(k=2, ep=-1) over Integer Ring
         sage: MF.analytic_type()
         theta quasi weakly holomorphic modular
         sage: MF.category()
@@ -1174,7 +1174,7 @@ def ThetaQuasiModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiModularForms
         sage: MF = ThetaQuasiModularForms(ZZ, 2, 1)
         sage: MF
-        ThetaQuasiModularForms(n=+Infinity, k=2, ep=1) over Integer Ring
+        ThetaQuasiModularForms(k=2, ep=1) over Integer Ring
         sage: MF.analytic_type()
         theta quasi modular
         sage: MF.category()
@@ -1199,7 +1199,7 @@ def ThetaQuasiCuspForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaQuasiCuspForms
         sage: MF = ThetaQuasiCuspForms(ZZ, 4+1/2, 1)
         sage: MF
-        ThetaQuasiCuspForms(n=+Infinity, k=9/2, ep=1) over Integer Ring
+        ThetaQuasiCuspForms(k=9/2, ep=1) over Integer Ring
         sage: MF.analytic_type()
         theta quasi cuspidal
         sage: MF.category()
@@ -1224,7 +1224,7 @@ def ThetaMeromorphicModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaMeromorphicModularForms
         sage: MF = ThetaMeromorphicModularForms(ZZ, -1/2, 1)
         sage: MF
-        ThetaMeromorphicModularForms(n=+Infinity, k=-1/2, ep=1) over Integer Ring
+        ThetaMeromorphicModularForms(k=-1/2, ep=1) over Integer Ring
         sage: MF.analytic_type()
         theta meromorphic modular
         sage: MF.category()
@@ -1247,7 +1247,7 @@ def ThetaWeakModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaWeakModularForms
         sage: MF = ThetaWeakModularForms(ZZ, -3-1/2, -1)
         sage: MF
-        ThetaWeakModularForms(n=+Infinity, k=-7/2, ep=-1) over Integer Ring
+        ThetaWeakModularForms(k=-7/2, ep=-1) over Integer Ring
         sage: MF.analytic_type()
         theta weakly holomorphic modular
         sage: MF.category()
@@ -1270,7 +1270,7 @@ def ThetaModularForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaModularForms
         sage: MF = ThetaModularForms(ZZ, 4, -1)
         sage: MF
-        ThetaModularForms(n=+Infinity, k=4, ep=-1) over Integer Ring
+        ThetaModularForms(k=4, ep=-1) over Integer Ring
         sage: MF.analytic_type()
         theta modular
         sage: MF.category()
@@ -1295,7 +1295,7 @@ def ThetaCuspForms(base_ring = ZZ, k=QQ(0), ep=None):
         sage: from sage.modular.modform_hecketriangle.space import ThetaCuspForms
         sage: MF = ThetaCuspForms(ZZ, 4+1/2, 1)
         sage: MF
-        ThetaCuspForms(n=+Infinity, k=9/2, ep=1) over Integer Ring
+        ThetaCuspForms(k=9/2, ep=1) over Integer Ring
         sage: MF.analytic_type()
         theta cuspidal
         sage: MF.category()

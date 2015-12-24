@@ -170,7 +170,7 @@ class AnalyticTypeElement(LatticePosetElement):
         else:
              name  = "Z"
         if   self.parent()("frac") <= self:
-             name += "_0"
+             name += "_\\inf"
 
         return name
 

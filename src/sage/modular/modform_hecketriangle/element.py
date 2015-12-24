@@ -208,7 +208,7 @@ class FormsElement(FormsRingElement):
         EXAMPLES::
 
             sage: from sage.modular.modform.eis_series import eisenstein_series_lseries
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, ThetaModularForms
             sage: f = ModularForms(n=3, k=4).E4()/240
             sage: L = f.lseries()
             sage: L
@@ -286,6 +286,16 @@ class FormsElement(FormsRingElement):
             -23.9781792831...
             sage: L(10).n(53)
             -23.9781792831...
+
+            sage: from sage.functions.transcendental import zeta
+            sage: L = ThetaModularForms(k=1/2).theta().lseries()
+            sage: L.check_functional_equation() < 2^(-50)
+            True
+            sage: f = lambda z: 1/2*L(z/2)
+            sage: f(1/4)
+            -0.8132784052...
+            sage: bool(abs(f(1/4) - zeta(1/4)) < 2^(-30))
+            True
         """
 
         from sage.rings.all import ZZ
