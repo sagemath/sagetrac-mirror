@@ -258,7 +258,6 @@ cdef extern from "Singular/libsingular.h":
         
         # return total degree of p
 
-        long (*pDeg)(poly *p, int *l, ring *r)
         long (*pLDeg)(poly *p, int *l, ring *r)
         long (*pLDegOrig)(poly *p, int *l, ring *r)
         long (*pFDeg)(poly *p, ring *r)
@@ -266,6 +265,7 @@ cdef extern from "Singular/libsingular.h":
         #char  const ** rParameter(const ring * r)
     
 
+    long p_Deg(poly *p, ring *r)
     # available ring orders
 
     ctypedef struct AlgExtInfo:
