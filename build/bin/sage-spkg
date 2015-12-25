@@ -505,6 +505,15 @@ if [ ! -w "$SAGE_LOCAL" ]; then
     echo >&2 "Error: no write access to installation directory $SAGE_LOCAL."
     exit 1
 fi
+if [ ! -L "$SAGE_LOCAL/lib64" ]; then
+    # SAGE_LOCAL/lib64 is a symlink to SAGE_LOCAL/lib
+    if [ -d "$SAGE_LOCAL/lib64" ]; then
+        echo >&2 "Error: $SAGE_LOCAL/lib64 is not a symlink, see Trac #19782"
+        echo >&2 'Cannot perform incremental update, run "make distclean && make"'.
+        exit 1
+    fi
+    ln -s lib "$SAGE_LOCAL/lib64"
+fi
 
 echo "$PKG_NAME"
 echo "===================================================="
