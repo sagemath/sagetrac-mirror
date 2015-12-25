@@ -424,7 +424,7 @@ def KleinFourPresentation():
 
 def CactusPresentation(n):
     r"""
-    Build the `n`-fruit cactus group  as a finitely presented group.
+    Build the `n`-fruit cactus group as a finitely presented group.
 
     OUTPUT:
 

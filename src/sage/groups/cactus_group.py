@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.categories.groups import Groups
 from sage.groups.group import Group
+from sage.groups.kernel_subgroup import KernelSubgroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.permutation import Permutations
@@ -423,4 +424,67 @@ class CactusGroup(UniqueRepresentation, Group):
                 lst[x[0]-1:x[1]] = list(reversed(lst[x[0]-1:x[1]]))
                 ret *= P(lst)
             return ret
+
+class PureCactusGroup(KernelSubgroup):
+    """
+    The pure cactus group.
+
+    The *pure cactus group* `PJ_n` is the kernel of the natural
+    surjection of the cactus group `J_n` onto the symmetric group
+    `S_n`. In particular, we have the following exact sequence:
+
+    .. MATH::
+
+        1 \longrightarrow PJ_n \longrightarrow J_n \longrightarrow S_n
+        \longrightarrow 1.
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: PJ3 = groups.misc.PureCactus(3)
+            sage: TestSuite(PJ3).run()
+        """
+        J = CactusGroup(n)
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        S = SymmetricGroup(n)
+        KernelSubgroup.__init__(self, S.coerce_map_from(J))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: groups.misc.PureCactus(3)
+            Pure Cactus Group with 3 fruit
+        """
+        return "Pure Cactus Group with {} fruit".format(self.n())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: PJ3 = groups.misc.PureCactus(3)
+            sage: latex(PJ3)
+            PJ_{3}
+        """
+        return "PJ_{{{}}}".format(self.n())
+
+    @cached_method
+    def n(self):
+        """
+        Return the value `n`.
+
+        EXAMPLES::
+
+            sage: PJ3 = groups.misc.PureCactus(3)
+            sage: PJ3.n()
+            3
+        """
+        return self.ambient().n()
 
