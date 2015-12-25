@@ -21,6 +21,7 @@ from sage.categories.groups import Groups
 from sage.groups.group import Group
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.permutation import Permutations
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 
@@ -379,4 +380,47 @@ class CactusGroup(UniqueRepresentation, Group):
             P = self.parent()
             G = P.group_generators()
             return P.prod(G[x] for x in reversed(self._word))
+
+        def to_permutation(self):
+            """
+            Return ``self`` as a permutation.
+
+            EXAMPLES::
+
+                sage: J3 = groups.misc.Cactus(3)
+                sage: s12,s13,s23 = J3.gens()
+                sage: s12.to_permutation()
+                [2, 1, 3]
+                sage: s23.to_permutation()
+                [1, 3, 2]
+                sage: s13.to_permutation()
+                [3, 2, 1]
+                sage: elt = s12*s23*s13
+                sage: elt.to_permutation()
+                [1, 3, 2]
+
+                sage: J7 = groups.misc.Cactus(7)
+                sage: J7.group_generators()[3,6].to_permutation()
+                [1, 2, 6, 5, 4, 3, 7]
+
+            We check that this respects the multiplication order
+            of permutations::
+
+                sage: P3 = Permutations(3)
+                sage: elt = s12*s23
+                sage: elt.to_permutation() == P3(s12) * P3(s23)
+                True
+                sage: Permutations.global_options(mult='r2l')
+                sage: elt.to_permutation() == P3(s12) * P3(s23)
+                True
+                sage: Permutations.global_options.reset()
+            """
+            n = self.parent().n()
+            P = Permutations(n)
+            ret = P.one()
+            for x in self._word:
+                lst = list(range(1, n+1))
+                lst[x[0]-1:x[1]] = list(reversed(lst[x[0]-1:x[1]]))
+                ret *= P(lst)
+            return ret
 
