@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.ext.memory cimport sage_free
 
 # Unset the signal handler and create a string from the buffer,
@@ -27,7 +29,3 @@ cdef object string_delete(char* s):
     t = str(s)
     del_charstar(s)
     return t
-
-
-_INIT = None
-

@@ -1,12 +1,10 @@
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    ctypedef struct zz_p_c "struct zz_p":
-        void *rep
+# distutils: depends = NTL/ZZ.h
 
-    void zz_p_construct "Construct<zz_p>"(void *mem)
-    void zz_p_destruct "Destruct<zz_p>"(zz_p_c *mem)
+from .types cimport zz_p_c
+
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     long zz_p_rep "rep"(zz_p_c x)
     long zz_p_isZero "IsZero"(zz_p_c x)
-    void zz_p_set_from_long(zz_p_c x, long a)
     void zz_p_add "add"(zz_p_c x, zz_p_c a, zz_p_c b)
     void zz_p_sub "sub"(zz_p_c x, zz_p_c a, zz_p_c b)
     void zz_p_negate "NTL::negate"(zz_p_c x, zz_p_c a)
@@ -19,5 +17,3 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_p_set_zero "clear"(zz_p_c x)
     void zz_p_set_one "set"(zz_p_c x)
     void zz_p_swap "swap"(zz_p_c x, zz_p_c y)
-
-    bint NTL_zz_p_DOUBLE_EQUALS(zz_p_c x, zz_p_c y)

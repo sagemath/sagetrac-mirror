@@ -36,7 +36,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.posets import Poset
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.permutation import Permutation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 
@@ -54,7 +54,7 @@ class LinearExtensionOfPoset(ClonableArray):
     - ``linear_extension`` -- a list of the elements of `P`
     - ``poset`` -- the underlying poset `P`
 
-    .. SEEALSO:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
+    .. SEEALSO:: :class:`~sage.combinat.posets.posets.Poset`, :class:`LinearExtensionsOfPoset`
 
     EXAMPLES::
 
@@ -87,8 +87,7 @@ class LinearExtensionOfPoset(ClonableArray):
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
     """
-
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, linear_extension, poset):
@@ -173,7 +172,7 @@ class LinearExtensionOfPoset(ClonableArray):
         Return the poset associated to the linear extension ``self``.
 
         This method returns the poset obtained from the original poset
-        `P` by relabelling the 'i'-th element of ``self`` to the
+        `P` by relabelling the `i`-th element of ``self`` to the
         `i`-th element of the original poset, while keeping the linear
         extension of the original poset.
 
@@ -238,9 +237,9 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: l.tau(1)
             [2, 1, 3, 4]
             sage: for p in L:
-            ...       for i in range(1,4):
-            ...           print i, p, p.tau(i)
-            ...
+            ....:     for i in range(1,4):
+            ....:         print i, p, p.tau(i)
+            ....:
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
@@ -336,7 +335,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     INPUT:
 
     - ``poset`` -- a poset `P` of size `n`
-    - ``facade`` -- a boolean (default: False)
+    - ``facade`` -- a boolean (default: ``False``)
 
     .. seealso::
 

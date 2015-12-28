@@ -43,7 +43,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -271,7 +271,7 @@ class WeakTableau_abstract(ClonableList):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     def shape(self):
         r"""
@@ -2331,7 +2331,7 @@ class StrongTableau(ClonableList):
         self._tableau = T
         ClonableList.__init__(self, parent, T)
 
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, T, k, weight=None):
@@ -2908,7 +2908,7 @@ class StrongTableau(ClonableList):
         Return a dictionary of values and lists of cells where the heads with the values
         are located.
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -2957,7 +2957,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of pairs of integers of the coordinates of the heads of the ribbons
           with label ``v``
@@ -3001,7 +3001,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of integers of the content of the heads of the ribbons with label ``v``
 
@@ -3726,7 +3726,7 @@ class StrongTableau(ClonableList):
 
         - ``tij`` -- a transposition represented as a pair `(i, j)`.
 
-        OUPUT:
+        OUTPUT:
 
         - ``self`` after it has been modified by the action of the transposition ``tij``
 
@@ -4003,7 +4003,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return next(self.__iter__())
+        return next(iter(self))
 
     def outer_shape(self):
         r"""
@@ -4211,9 +4211,9 @@ class StrongTableaux(UniqueRepresentation, Parent):
         if td == {}: # the tableau is empty
             yield StrongTableau( unmarkedT, k, [] )
         else:
-            allmarkings = cartesian_product.CartesianProduct(*[td[v] for v in td.keys()])
+            import itertools
             dsc = Composition(weight).descents()
-            for m in allmarkings:
+            for m in itertools.product(*td.values()):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
                    yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
 
@@ -4377,7 +4377,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         - ``outer_shape`` - a list which is a `k+1`-core (default: ``None``)
         - ``inner_shape`` - a list which is a `k+1`-core (default: [])
 
-        OUPUT:
+        OUTPUT:
 
         - an iterator which returns the standard marked tableaux with ``size`` cells
           and that are contained in ``outer_shape`` and contain ``inner_shape``
@@ -4420,7 +4420,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         - ``T`` -- a strong standard unmarked tableau as a list of lists
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
