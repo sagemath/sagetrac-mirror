@@ -135,17 +135,16 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
         (Category of algebras over Integer Ring,
          Category of finite monoids,
          Category of coalgebras over Rational Field,
-         Category of simplicial complexes)
+         Category of finite simplicial complexes)
         sage: join_as_tuple(T,('WithBasis',),())
         (Category of algebras with basis over Integer Ring,
          Category of finite monoids,
          Category of coalgebras with basis over Rational Field,
-         Category of simplicial complexes)
+         Category of finite simplicial complexes)
         sage: join_as_tuple(T,(),((Monoids(),'Finite'),))
         (Category of algebras over Integer Ring,
          Category of coalgebras over Rational Field,
-         Category of finite sets,
-         Category of simplicial complexes)
+         Category of finite simplicial complexes)
     """
     cdef set axiomsS = set(axioms)
     for category in categories:
@@ -231,11 +230,10 @@ cdef class AxiomContainer(dict):
         EXAMPLES::
 
             sage: all_axioms = sage.categories.category_with_axiom.all_axioms
-            sage: max(all_axioms.values())
-            19
+            sage: m = max(all_axioms.values())
             sage: all_axioms.add('Awesome')
-            sage: all_axioms['Awesome']
-            20
+            sage: all_axioms['Awesome'] == m + 1
+            True
 
         To avoid side effects, we remove the added axiom::
 
@@ -250,11 +248,10 @@ cdef class AxiomContainer(dict):
         EXAMPLES::
 
             sage: all_axioms = sage.categories.category_with_axiom.all_axioms
-            sage: max(all_axioms.values())
-            19
+            sage: m = max(all_axioms.values())
             sage: all_axioms += ('Fancy', 'Awesome')
-            sage: all_axioms['Awesome']
-            21
+            sage: all_axioms['Awesome'] == m + 2
+            True
 
         To avoid side effects, we delete the axioms that we just added::
 

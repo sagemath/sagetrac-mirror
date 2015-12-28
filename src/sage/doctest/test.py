@@ -44,6 +44,66 @@ Check that :trac:`2235` has been fixed::
     ...
     0
 
+Check handling of tolerances::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "tolerance.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 tolerance.rst
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print ":-("    # abs tol 0.1
+    Expected:
+        :-)
+    Got:
+        :-(
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "1.0 2.0 3.0"  # abs tol 0.1
+    Expected:
+        4.0 5.0
+    Got:
+        1.0 2.0 3.0
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello"  # abs tol 0.1
+    Expected:
+        1.0
+    Got:
+        Hello
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "1.0"  # abs tol 0.1
+    Expected:
+        Hello
+    Got:
+        1.0
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello 1.1"  # abs tol 0.1
+    Expected:
+        Goodbye 1.0
+    Got:
+        Hello 1.1
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello 1.0"  # rel tol 1e-6
+    Expected:
+        Goodbye 0.999999
+    Got:
+        Hello 1.0
+    Tolerance exceeded:
+        0.999999 vs 1.0, tolerance 1e-06 > 1e-06
+    **********************************************************************
+    ...
+    1
+
 Test the ``--initial`` option::
 
     sage: subprocess.call(["sage", "-t", "--warn-long", "0", "-i", "initial.rst"], **kwds)  # long time
@@ -217,7 +277,7 @@ Test that ``sig_on_count`` is checked correctly::
     **********************************************************************
     File "sig_on.rst", line 5, in sage.doctest.tests.sig_on
     Failed example:
-        sig_on_count()
+        sig_on_count() # check sig_on/off pairings (virtual doctest)
     Expected:
         0
     Got:
@@ -271,14 +331,17 @@ Test running under gdb, without and with a timeout::
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
-    sage -t --warn-long 0.0 1second.rst
+    sage -t... 1second.rst
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
     ----------------------------------------------------------------------
     ...
     0
-    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
+
+gdb might need a long time to start up, so we allow 30 seconds::
+
+    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T30", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
         Timed out
