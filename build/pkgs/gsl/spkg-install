@@ -24,10 +24,13 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 if [ "$SAGE_DEBUG" = "yes" ] ; then
-  CFLAGS="-g -O0 $CFLAGS" # No optimisation, aids debugging.
+    CFLAGS="-g -O0 $CFLAGS" # No optimisation, aids debugging.
 else
-  CFLAGS="-g -O2 $CFLAGS" # Normal optimisation.
+    CFLAGS="-g -O2 $CFLAGS" # Normal optimisation.
 fi
+
+# Try to build GSL in IEEE 754 compliant mode, Trac #19797
+CFLAGS="`testcflags.sh -ffp-contract=off` $CFLAGS"
 
 export CFLAGS
 
