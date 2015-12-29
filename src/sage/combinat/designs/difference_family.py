@@ -1123,6 +1123,13 @@ def are_hadamard_difference_set_parameters(v, k, lmbda, return_parameters=False)
     r"""
     Check whether ``(v,k,lmbda)`` is of the form ``(4N^2, 2N^2 - N, N^2 - N)``.
 
+    INPUT:
+
+    - ``(v,k,lmbda)`` -- parameters of a difference set
+
+    - ``return_parameters`` -- (boolean, default ``False``) if ``True`` then
+      return pairs ``(True, N)`` or ``(False, None)`` instead of booleans.
+
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import are_hadamard_difference_set_parameters
@@ -1143,6 +1150,10 @@ def hadamard_difference_set_product_parameters(N):
     r"""
     Check whether a product construction is available for Hadamard difference
     set with parameter ``N``.
+
+    INPUT:
+
+    - ``N`` -- positive integer
 
     EXAMPLES::
 
@@ -1177,6 +1188,10 @@ def hadamard_difference_set_product(G1, D1, G2, D2):
     Make a product of two Hadamard difference sets.
 
     This product construction appears in [Tu1984]_.
+
+    INPUT:
+
+    - ``G1,D1``, ``G2,D2`` -- two Hadamard difference sets
 
     EXAMPLES::
 
@@ -1227,6 +1242,11 @@ def turyn_1965_3x3xK(k=4):
     `v=36`, `k=15`, `\lambda=6`.
 
     This example appears in [Tu1965]_.
+
+    INPUT::
+
+    - ``k`` -- either ``2`` (to get a difference set in C3xC3xC2xC2) or ``4``
+      (to get a difference set in C3xC3xC4)
 
     EXAMPLES::
 
