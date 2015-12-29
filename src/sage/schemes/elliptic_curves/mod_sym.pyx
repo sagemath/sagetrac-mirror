@@ -2,7 +2,7 @@
 r"""
 Modular symbols by numerical integration
 
-This file contains the algorithms needed for computing modular symbols
+We describe here the method for computing modular symbols
 by numerical approximations of the integral of the modular form on a
 path between cusps.
 
@@ -51,7 +51,11 @@ by using the Fourier expansion at other cusps than `\infty`.
     Manin constant for the `X_0`-optimal curve should be `1` if the curve lies
     outside the Cremona tables.
 
-EXAMPLES::
+EXAMPLES:
+
+The most likely usage for the code is through the functions
+``modular_symbol`` with method set to "num" and through
+``modular_symbol_numerical``::
 
     sage: E = EllipticCurve("5077a1")
     sage: m = E.modular_symbol(method = "num")
@@ -59,6 +63,10 @@ EXAMPLES::
     0
     sage: m(1/123)
     4
+    sage: mn = E.modular_symbol_numerical(sign=-1, prec=30)
+    sage: mn(3/123)
+    3.00000000000001
+
 
 REFERENCES:
 
@@ -69,21 +77,25 @@ REFERENCES:
    Graduate Studies in Mathematics 79, 2007.
 
 .. [Wut] Christian Wuthrich, Modular symbols via numerical
-   integration, preprint 2013.
+   integration, preprint 2016.
 
 
 AUTHOR:
 
-- Chris Wuthrich (2013)
+- Chris Wuthrich (2013-16)
 
 """
 # to do list :
-# TWISTS
-# consistent verbose
+
+# TWISTS done ?
 # overconvergent ?
+# adjust doctest precision
+# checks for unitary-ness
+# -1 symbols sage are not normalised corr for cinf = 1 (11a1)
+# shorten the doc tests
 
 #*****************************************************************************
-#       Copyright (C) 2013 Chris Wuthrich <christian.wuthrich@gmail.com>
+#       Copyright (C) 2016 Chris Wuthrich <christian.wuthrich@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -259,7 +271,7 @@ cdef int proj_normalise(llong N, llong u, llong  v,
     if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
     """
     cdef llong d, k, g, s, t, min_v, min_t, Ng, vNg
-    verbose("    enter proj_normalise with N=%s, u=%s, v=%s"%(N,u,v), level=4)
+    verbose("       enter proj_normalise with N=%s, u=%s, v=%s"%(N,u,v), level=5)
     if N == 1:
         uu[0] = 0
         vv[0] = 0
@@ -307,7 +319,7 @@ cdef int proj_normalise(llong N, llong u, llong  v,
     v = min_v
     uu[0] = u
     vv[0] = v
-    verbose("     leaving proj_normalise with s=%s, t=%s"%(u,v), level=5)
+    verbose("       leaving proj_normalise with s=%s, t=%s"%(u,v), level=5)
     return 0
 
 def _test_proj_normalise(N,u,v):
@@ -342,7 +354,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
     """
     cdef llong w, p, q, Nnew, r, a, b, si
     cdef llong x0, x1, y0, y1, t0, t1, s0, s1
-    verbose("    enter best_proj_normalise with N=%s, u=%s, v=%s"%(N,u,v), level=4)
+    verbose("       enter best_proj_normalise with N=%s, u=%s, v=%s"%(N,u,v), level=5)
     if u == 0:
         uu[0] = <llong>0
         vv[0] = <llong>1
@@ -388,7 +400,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
             t0 = s0
             t1 = s1
         # t is now the shortest vector on the line y + RR x
-        verbose("reduced vector to (%s,%s)"%(t0,t1), level=3)
+        verbose("     reduced vector to (%s,%s)"%(t0,t1), level=4)
         y0 = x0
         y1 = x1
         x0 = t0
@@ -405,7 +417,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
     else:
         # we fall here if the first two shortest vector are both
         # not permitted, here we do a search until we hit a solution.
-        verbose("both shortest vectors ((%s,%s) and (%s,%s)) are not "
+        verbose("   both shortest vectors ((%s,%s) and (%s,%s)) are not "
                 "permitted. The result is not guaranteed to "
                 "be best possible."%(x0, x1, y0, y1), level=3)
         r = <llong>2
@@ -428,7 +440,7 @@ cdef int best_proj_point(llong u, llong v, llong N,
                 si = b
             t0 =  a * x0 + b * y0
             t1 =  a * x1 + b * y1
-        verbose("works with t = %s*x+%s*y"%(a, b), level=3)
+        #verbose("works with t = %s*x+%s*y"%(a, b), level=3)
         uu[0] = t0
         vv[0] = t1
         return 0
@@ -467,7 +479,7 @@ cdef class CuspsForModularSymbolNumerical:
     Minimalistic class implementing cusps (not `\infty`).
     Here a cusp is a rational number together with a level.
     This class provides the methods atkin_lehner and
-    is_movable and attaches _width, _a, _m to it.
+    is_unitary and attaches _width, _a, _m to it.
 
     It is to only to be used internally.
     """
@@ -479,7 +491,7 @@ cdef class CuspsForModularSymbolNumerical:
         The rational (non-infinite) cusp r on X_0(N).
         """
         cdef llong a, m, B
-        verbose("    enter __init__ of cusps with r=%s and N=%s"%(r,N), level=4)
+        verbose("       enter __init__ of cusps with r=%s and N=%s"%(r,N), level=5)
         a = <llong>( r.numerator() )
         m = <llong>( r.denominator() )
         a = a % m
@@ -496,9 +508,9 @@ cdef class CuspsForModularSymbolNumerical:
         # from sage.modular.cusps import Cusp
         # Cusp.__init__(self, a,m)
 
-    cdef public int is_movable(self):
+    cdef public int is_unitary(self):
         r"""
-        Returns whether the cusp is movable,
+        Returns whether the cusp is unitary,
         i.e. whether there exists an Atkin-
         Lehner operator that brings it to i`\infty`.
         """
@@ -508,7 +520,7 @@ cdef class CuspsForModularSymbolNumerical:
 
     cdef public int atkin_lehner(self, llong* res) except -1:
         r"""
-        If the cusp is movable, this returns
+        If the cusp is unitary, this returns
         a Atkin-Lehner matrix for it. It is
         returned into the pointer as a list of
         four [a,b,c,d] corresponds to
@@ -516,7 +528,7 @@ cdef class CuspsForModularSymbolNumerical:
         """
         cdef llong Q, B, c, g, x, y
 
-        verbose("    enter atkin_lehner for cusp r=%s"%self._r, level=4)
+        verbose("       enter atkin_lehner for cusp r=%s"%self._r, level=5)
         Q = self._width
         B = llgcd(self._m, self._N)
         c = self._m / B
@@ -528,7 +540,7 @@ cdef class CuspsForModularSymbolNumerical:
         res[1] = y
         res[2] = -c * self._N
         res[3] =  Q * self._a
-        verbose("     leaving atkin_lehner with w_Q = [%s, %s, %s, %s]"%(res[0], res[1], res[2], res[3]), level=5)
+        verbose("       leaving atkin_lehner with w_Q = [%s, %s, %s, %s]"%(res[0], res[1], res[2], res[3]), level=5)
         return 0
 
 def _test_cusps(r,N):
@@ -537,7 +549,7 @@ def _test_cusps(r,N):
 
     Given the rational r and an integer N,
     this gives back its width, whether it is
-    movable and if so a atkin-lehner
+    unitary and if so a atkin-lehner
     matrix
 
     EXAMPLES::
@@ -559,7 +571,7 @@ def _test_cusps(r,N):
     cdef llong *wQ = [0L,0L,0L,0L]
     rc = CuspsForModularSymbolNumerical(r,N)
     a1 = rc._width
-    a2 = rc.is_movable()
+    a2 = rc.is_unitary()
     if a2:
         a3 = rc.atkin_lehner(wQ)
     a = Integer(wQ[0])
@@ -585,6 +597,9 @@ cdef class ModularSymbolNumerical:
 
     - ``E`` -- an elliptic curve over the rational numbers.
 
+    - ``sign`` -- either -1 or +1 (default). This sets the default
+      value of ``sign`` throughout the class. Both are still accessible.
+
     OUTPUT: a modular symbol
 
     EXAMPLES::
@@ -608,16 +623,17 @@ cdef class ModularSymbolNumerical:
 
     """
     cdef llong _N,  _cut_val, _t_plus, _t_minus
-    cdef llong _t_movable_minus, _t_movable_plus
+    cdef llong _t_unitary_minus, _t_unitary_plus
     cdef int _lans
     cdef int * _ans
     cdef double * _ans_num
-    cdef double _eps_plus, _eps_minus, _eps_movable_plus, _eps_movable_minus
+    cdef double _eps_plus, _eps_minus, _eps_unitary_plus, _eps_unitary_minus
     cdef public RealNumber _om1, _om2
     cdef object _E, _epsQs, _Mt
     cdef public dict __cached_methods
     cdef Rational _twist_q
     cdef Integer _D
+    cdef int _global_sign
     cdef public Integer _nc_debug # number of calls to summation
 
     def __cinit__(self):
@@ -639,7 +655,7 @@ cdef class ModularSymbolNumerical:
             if self._ans_num is not NULL: sage_free(self._ans_num)
             raise MemoryError("Memory.")
 
-    def __init__(self, E):
+    def __init__(self, E, sign=+1):
         r"""
         See the class docstring for full documentation.
 
@@ -654,8 +670,9 @@ cdef class ModularSymbolNumerical:
             sage: M(1/3, -1)
             1/6
         """
-        verbose("    enter __init_ of modular symbols", level=4)
+        verbose("       enter __init_ of modular symbols", level=5)
         self._E = E
+        self._global_sign = <int>sign
         self._N = <llong>( E.conductor() )
         self._D = -Integer(1)
         self._nc_debug = Integer(0)
@@ -666,7 +683,7 @@ cdef class ModularSymbolNumerical:
         # rather than using further convergents.
         # see symbol(r) where it is used
         self._cut_val = <llong>( E.conductor().isqrt() // 2 )
-        verbose("     leaving __init__", level=5)
+        verbose("       leaving __init__", level=5)
 
     def __dealloc__(self):
         r"""
@@ -703,7 +720,7 @@ cdef class ModularSymbolNumerical:
         """
         return self._E
 
-    def __call__(self, r, int sign=1, use_twist=True):
+    def __call__(self, r, int sign=0, use_twist=True):
         r"""
         The modular symbol evaluated at rational. It returns a
         rational number.
@@ -712,9 +729,10 @@ cdef class ModularSymbolNumerical:
 
         - ``r`` -- a rational (or integer)
 
-        - ``sign`` -- optional either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
-        - ``use_twist`` -- boolean (default:True); decided if we
+        - ``use_twist`` -- boolean (default:True); decides if we
           allow to use a quadratic twist.
 
         OUTPUT: a rational number
@@ -743,7 +761,10 @@ cdef class ModularSymbolNumerical:
         cdef Rational ra, ans
         self._nc_debug = Integer(0)
 
-        verbose("    enter __call__ of modular symbols for r=%s and sign=%s and use_twist=%s"%(r,sign,use_twist), level=4)
+        if sign == 0:
+            sign = self._global_sign
+
+        verbose("       enter __call__ of modular symbols for r=%s and sign=%s and use_twist=%s"%(r,sign,use_twist), level=5)
         if isinstance(r, Rational):
             ra = r
         elif isinstance(r, Integer):
@@ -759,10 +780,93 @@ cdef class ModularSymbolNumerical:
                 return self._twisted_symbol(ra, sign=sign)
         Q = rc._width
         if llgcd( Q, self._N / Q) == 1:
-            ans = self.symbol_movable(ra, sign=sign)
+            ans = self.symbol_unitary(ra, sign=sign)
         else:
-            ans = self.symbol_non_movable(ra, sign=sign)
+            ans = self.symbol_non_unitary(ra, sign=sign)
         return ans
+
+
+    def evaluate_approx(self, r, int sign=0, int prec=20):
+        r"""
+        The numerical modular symbol evaluated at rational.
+
+        It returns a real number, which should be equal
+        to a rational number to the given binary
+        precision ``prec``. In practice the precision is
+        often much higher. See the examples below.
+
+        INPUT:
+
+        - ``r`` -- a rational (or integer)
+
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
+
+        - ``prec`` -- an integer (default 20)
+
+        OUTPUT: a real number
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
+            sage: M = ModularSymbolNumerical(EllipticCurve("5077a1"))
+            sage: M.evaluate_approx(123/567)
+            -4.00000000020486
+            sage: M.evaluate_approx(123/567,prec=2)
+            -3.99993785418227
+
+            sage: E = EllipticCurve([11,88])
+            sage: E.conductor()
+            1715296
+            sage: M = ModularSymbolNumerical(E)
+            sage: M.evaluate_approx(0,prec=2)
+            -0.0000176374317982166
+            sage: M.evaluate_approx(1/7,prec=2)
+            0.999981178147778
+            sage: M.evaluate_approx(1/7,prec=10)
+            0.999999972802649
+        """
+        cdef llong Q
+        cdef Rational ra
+        cdef ComplexNumber ans
+        cdef double eps
+        cdef object L
+        cdef int cinf
+
+        eps = <double>2
+        eps = eps ** (-prec)
+        self._nc_debug = Integer(0)
+
+        if sign == 0:
+            sign = self._global_sign
+
+        verbose("       enter evaluate_approx of modular symbols for r=%s, sign=%s and prec=%s "%(r,sign,prec,), level=5)
+        if isinstance(r, Rational):
+            ra = r
+        elif isinstance(r, Integer):
+            ra = Rational( (0,1) )
+        else: #who knows
+            raise ValueError("The modular symbol can be evaluated at a"
+                             "rational number only.")
+        rc = CuspsForModularSymbolNumerical(ra, self._N)
+        Q = rc._width
+        if llgcd( Q, self._N / Q) == 1:
+            ans = self._symbol_unitary_approx(ra, eps)
+        else:
+            ans = self._symbol_non_unitary_approx(ra, eps)
+
+        if prec > self._om1.parent().prec():
+            L = self._E.period_lattice().basis(prec = prec)
+            self._om1 = L[0]
+            self._om2 = L[1].imag()
+            cinf = self._E.real_components()
+            if cinf == 1:
+                self._om2 *= 2
+
+        if sign == 1:
+            return ans.real()/ self._om1
+        else:
+            return ans.imag()/ self._om2
 
 
 # == initialisation ========
@@ -788,8 +892,8 @@ cdef class ModularSymbolNumerical:
     def _set_den_bounds(self):
         r"""
         This sets the bounds on the denominators and the allowed errors.
-        There are four integers _t_plus, _t_minus, _t_movable_plus,
-        _t_movable_minus, which are proven upper bounds for the denominator
+        There are four integers _t_plus, _t_minus, _t_unitary_plus,
+        _t_unitary_minus, which are proven upper bounds for the denominator
         of modular symbols (under the assumption that the optimal
         Manin constant is a divisor of 2).
         It also sets _eps_plus etc which are the errors that we are
@@ -809,7 +913,7 @@ cdef class ModularSymbolNumerical:
         cdef int co, cinf, E0cinf
         cdef RealNumber E0om1, E0om2, q
 
-        verbose("    enter _set_bounds", level=4)
+        verbose("       enter _set_bounds", level=5)
         N = Integer( self._N )
         E = self._E
         L = E.period_lattice().basis()
@@ -887,27 +991,27 @@ cdef class ModularSymbolNumerical:
         s = q_minus * t0
         self._t_minus = s.numerator()
 
-        # now to the bound for the movable cusps
+        # now to the bound for the unitary cusps
         # this is a bit better because they
         # are definied over Q
         t0 = E0.torsion_order()
         if cinf == 1:
             t0 *= Integer(2)
         s = q_plus * t0
-        self._t_movable_plus = s.numerator()
+        self._t_unitary_plus = s.numerator()
         t0 = Integer(2)
         s = q_minus * t0
-        self._t_movable_minus = s.numerator()
+        self._t_unitary_minus = s.numerator()
 
         if N.is_squarefree():
-            self._t_plus = llgcd(self._t_plus, self._t_movable_plus)
-            self._t_minus = llgcd(self._t_minus, self._t_movable_minus)
+            self._t_plus = llgcd(self._t_plus, self._t_unitary_plus)
+            self._t_minus = llgcd(self._t_minus, self._t_unitary_minus)
 
         # set the epsilons
         self._eps_plus = <double>self._om1 / 2 / self._t_plus
         self._eps_minus = <double>self._om2 / 2 / self._t_minus
-        self._eps_movable_plus = <double>self._om1 / 2 / self._t_movable_plus
-        self._eps_movable_minus = <double>self._om2 / 2 / self._t_movable_minus
+        self._eps_unitary_plus = <double>self._om1 / 2 / self._t_unitary_plus
+        self._eps_unitary_minus = <double>self._om2 / 2 / self._t_unitary_minus
 
         # this code checks if the above is ok,
         # we tested quite a few curves with it
@@ -919,14 +1023,14 @@ cdef class ModularSymbolNumerical:
         #     m = E.modular_symbol(-1)
         #     d_minus = lcm( [ denominator(m(r)) for r in Cu if r != oo] )
         #     M = ModularSymbolNumerical(E)
-        #     print E.label(), (d_plus, d_minus), (M._t_plus, M._t_minus), (M._t_movable_plus, M._t_movable_plus)
+        #     print E.label(), (d_plus, d_minus), (M._t_plus, M._t_minus), (M._t_unitary_plus, M._t_unitary_plus)
         #     if M._t_plus % d_plus != 0 or M._t_minus % d_minus :
         #         print "**** b u g *** "
 
     def _set_up_twist(self):
         r"""
-        This sets up the minimal twist. This is only called from __call__ as
-        soon as use_twist is True.
+        This sets up the minimal twist. This is only called from __call__
+        if use_twist is True.
 
         EXAMPLE::
 
@@ -939,14 +1043,14 @@ cdef class ModularSymbolNumerical:
         cdef Integer D, ell, de, ve, Dmax, DD, Nmin
         cdef RealNumber qq, Db
 
-        verbose("    enter _set_up_twist", level=4)
+        verbose("       enter _set_up_twist", level=5)
         Et, D = self._E.minimal_quadratic_twist()
         # we now have to make sure that |D| is as small as
         # possible (the above may give a D != 1 and yet
         # the conductor is still the same) and we
         # have to make sure that when twisting by a
         # prime ell, the twisted curve does not have
-        # additive reduction. Otherwise, movable
+        # additive reduction. Otherwise, unitary
         # cusps will become non-movalble.
         if D != 1:
             Nt = Et.conductor()
@@ -959,7 +1063,7 @@ cdef class ModularSymbolNumerical:
                 D = -D
             Et = self._E.quadratic_twist(D)
         self._D = D
-        verbose("  twisting by %s to get conductor %s"%(D,Et.conductor()), level=5)
+        verbose("  twisting by %s to get conductor %s"%(D,Et.conductor()), level=2)
         # now set up period change
         if D != 1:
             self._Mt = ModularSymbolNumerical(Et)
@@ -980,7 +1084,7 @@ cdef class ModularSymbolNumerical:
                 assert self._twist_q == Rational( ( qq.round(),2))
 
 
-    def _round(self, RealNumber val, int sign, int movable):
+    def _round(self, RealNumber val, int sign, int unitary):
         r"""
         Rounds the numerical approximation to the rational.
         A warning is printed if the rounding is off by more
@@ -992,7 +1096,7 @@ cdef class ModularSymbolNumerical:
 
         - ``sign`` -- either +1 or -1
 
-        - ``movable`` -- a boolean (int)
+        - ``unitary`` -- a boolean (int)
 
         OUTPUT: a rational.
 
@@ -1009,17 +1113,17 @@ cdef class ModularSymbolNumerical:
         cdef llong t, r
         cdef RealNumber q, qt
 
-        verbose("    enter _round with value=%s"%val, level=4)
-        if sign == 1 and movable:
+        verbose("       enter _round with value=%s"%val, level=5)
+        if sign == 1 and unitary:
             q = val/self._om1
-            t = self._t_movable_plus
-        elif sign == 1 and not movable:
+            t = self._t_unitary_plus
+        elif sign == 1 and not unitary:
             q = val/self._om1
             t = self._t_plus
-        elif sign == -1 and movable:
+        elif sign == -1 and unitary:
             q = val/self._om2
-            t = self._t_movable_minus
-        elif sign == -1 and not movable:
+            t = self._t_unitary_minus
+        elif sign == -1 and not unitary:
             q = val/self._om2
             t = self._t_minus
 
@@ -1027,9 +1131,14 @@ cdef class ModularSymbolNumerical:
         r = qt.round()
         res = Rational( (r, t) )
         err = (q-res).abs()
+
+        #switch this to -0.1 to see all errors :)
         if err > 0.1:
-            print "WARNING: Rounded an error of %s, looks like a bug."%err
-        verbose("Rounding with an error of %s"%err, level=3)
+            # did not work (compilation failed)
+            #from warnings import warn
+            #warn(Rounded an error of %s, looks like a bug."%err, RuntimeWarning, stacklevel=5)
+            print "Warning: Rounded an error of %s, looks like a bug in mod_sym.pyx."%err
+        verbose("    rounding with an error of %s"%err, level=3)
         return res
 
     def _initialise_an_coefficients(self):
@@ -1043,7 +1152,7 @@ cdef class ModularSymbolNumerical:
             sage: M = E.modular_symbol(method="num") #indirect doctest
         """
         cdef int n
-        verbose("    enter _initialise_an_coeffients", level=4)
+        verbose("       enter _initialise_an_coeffients", level=5)
         n = 0
         self_ans = self._E.anlist(1000, python_ints=True)
         while n <= 1000:
@@ -1073,7 +1182,7 @@ cdef class ModularSymbolNumerical:
             sage: M._add_an_coefficients(10000)
         """
         cdef llong n
-        verbose("    enter add_an_coeffs with T=%s"%T, level=4)
+        verbose("       enter add_an_coeffs with T=%s"%T, level=5)
         self._ans_num = <double *> sage_realloc( self._ans_num , (T+2) * sizeof(double) )
         self._ans = <int*> sage_realloc(self._ans, (T+2) * sizeof(int) )
         if self._ans is NULL or self._ans_num is NULL:
@@ -1081,8 +1190,8 @@ cdef class ModularSymbolNumerical:
             if self._ans_num is not NULL: sage_free(self._ans_num)
             raise MemoryError("Memory error with an coefficients.")
 
-        verbose("not enough precomputed coefficients, "
-                "adding %s"%(T - self._lans), level=2)
+        verbose("   not enough precomputed coefficients, "
+                "adding %s"%(T - self._lans), level=3)
         # for optimality we should not recompute
         # what we had, but anlist is much faster
         # than an's in a list
@@ -1141,14 +1250,13 @@ cdef class ModularSymbolNumerical:
             sage: ms._integration_to_tau(0.3+0.01*I,1000,60) # abs tol 1e-8
             0.41268108621256428 + 0.91370544691462463*I
         """
-        verbose("    enter _integration_to_tau with tau=%s, T=%s, prec=%s"%(tau,number_of_terms,prec), level=4)
+        verbose("       enter _integration_to_tau with tau=%s, T=%s, prec=%s"%(tau,number_of_terms,prec), level=5)
         cdef ComplexNumber q, s
         cdef int n
         self._nc_debug += 1
 
         if number_of_terms > 10000000:
             print "Warning: more than 10^7 terms to sum"
-            #raise Warning("more than 10^7 terms to sum")
         if number_of_terms > self._lans:
             self._add_an_coefficients(number_of_terms)
 
@@ -1156,7 +1264,7 @@ cdef class ModularSymbolNumerical:
         q = 2 * CC.pi() * CC.gens()[0]
         q *= CC(tau)
         q = q.exp()
-        verbose("start sum over %s terms "%number_of_terms, level=3)
+        verbose("     start sum over %s terms "%number_of_terms, level=4)
         s = CC(0)
         n = number_of_terms
         # using Horner's rule
@@ -1167,7 +1275,7 @@ cdef class ModularSymbolNumerical:
             n -= 1
         sig_off()
         s  *= q
-        verbose("     leaving integration_to_tau with sum=%s"%s, level=5)
+        verbose("       leaving integration_to_tau with sum=%s"%s, level=5)
         return s
 
     # the version using double is 70-80 times faster it seems.
@@ -1196,9 +1304,9 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("17a1"))
             sage: M._from_ioo_to_r_approx(9/13,0.01,use_partials=False) # abs tol 1e-5
-            0.386778096937003 - 2.74576088032632*I
+            0.386771552192424 - 2.74574021880459*I
         """
-        verbose("    enter integrations_to_tau_double with tau=%s, T=%s"%(tau,number_of_terms), level=4)
+        verbose("       enter integrations_to_tau_double with tau=%s, T=%s"%(tau,number_of_terms), level=5)
         cdef complex q, s
         cdef int n
         self._nc_debug += 1
@@ -1212,7 +1320,7 @@ cdef class ModularSymbolNumerical:
         q = complex(0,6.28318530717958648) # 2 pi i
         q *= tau
         q = cexp(q)
-        verbose("start sum over %s terms "%number_of_terms, level=3)
+        verbose("     start sum over %s terms "%number_of_terms, level=4)
         s = 0
         n = number_of_terms
         # using Horner's rule
@@ -1223,7 +1331,7 @@ cdef class ModularSymbolNumerical:
             n -= 1
         sig_off()
         s *= q
-        verbose("     leaving integration_to_tau_double with sum=%s"%s, level=5)
+        verbose("       leaving integration_to_tau_double with sum=%s"%s, level=5)
         return s
 
     cdef int _partial_real_sums_double(self, double y, int m,
@@ -1251,16 +1359,15 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("37b2"))
             sage: M._from_ioo_to_r_approx(0/1,0.01,use_partials=True) # abs tol 1e-5
-            0.725681061949...
+            0.725681061936153
         """
-        verbose("    enter partial_real_sums_double with y=%s, m=%s, T=%s"%(y,m,number_of_terms), level=4)
+        verbose("       enter partial_real_sums_double with y=%s, m=%s, T=%s"%(y,m,number_of_terms), level=5)
         cdef double q, qq
         cdef int n, i
         self._nc_debug += 1
 
         if number_of_terms > 10000000:
             print " Warning: more than 10^7 terms to sum"
-            #raise Warning("more than 10^7 terms to sum")
 
         if number_of_terms > self._lans:
             self._add_an_coefficients(number_of_terms)
@@ -1270,7 +1377,7 @@ cdef class ModularSymbolNumerical:
         qq = q * <double>m
         q = exp(q)
         qq = exp(qq)
-        verbose("start sum over %s terms "%number_of_terms, level=3)
+        verbose("     start sum over %s terms "%number_of_terms, level=4)
         i = 0
         while i < m:
             res[i] = 0
@@ -1291,7 +1398,7 @@ cdef class ModularSymbolNumerical:
             res[i] *= q ** i
             i += 1
         res[0] *= qq
-        verbose("     leaving _partial_real_sums_double with result %s, %s, ... %s"%(res[0], res[1], res[m-1]), level=5)
+        verbose("       leaving _partial_real_sums_double with result %s, %s, ... %s"%(res[0], res[1], res[m-1]), level=5)
         return 0
 
     def _partial_real_sums(self, RealNumber y, int m,
@@ -1323,44 +1430,43 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve([1,0,-1064,-1,0])
             sage: m = ModularSymbolNumerical(E)
             sage: m._partial_real_sums(0.2, 7, 10000, 57)
-            [0.1222167390713834 + 0.5666906712081907*I,
-            0.01987637963683561 + 0.3932850235506703*I,
-            -0.2181795938597716 + 0.4055257249632290*I,
-            0.07437111065230536 - 0.5161925540303324*I,
-            -0.08169590741088595 - 1.034514586033760*I,
-            -0.5532065616178158 + 0.6118485833352554*I,
-            0.6493515964028518 + 0.4074307792467721*I]
+            [-0.00008643214783335204,
+             0.2846256879231407,
+             -0.04049993474185631,
+             -0.01536940717542450,
+             -0.001640896372921393,
+             4.706713577985852e-8,
+             0.0001771330855478248]
         """
-        verbose("    enter partial_real_sums with y=%s, m=%s, T=%s"%(y,m,number_of_terms), level=4)
-        cdef ComplexNumber q, qq
+        verbose("       enter partial_real_sums with y=%s, m=%s, T=%s"%(y,m,number_of_terms), level=5)
+        cdef RealNumber q, qq
         cdef int n, i
         self._nc_debug += 1
 
         if number_of_terms > 10000000:
             print " Warning: more than 10^7 terms to sum"
-            #raise Warning("more than 10^7 terms to sum")
 
         if number_of_terms > self._lans:
             self._add_an_coefficients(number_of_terms)
 
-        CC = ComplexField(prec)
-        q = 2 * CC.pi() * CC.gens()[0]
-        q *= CC(y)
+        RR = RealField(prec)
+        q = - 2 * RR.pi()
+        q *= RR(y)
         qq = q * m
         q = q.exp()
         qq = qq.exp()
-        verbose("start sum over %s terms "%number_of_terms, level=3)
+        verbose("     start sum over %s terms "%number_of_terms, level=4)
         i = 0
         res = []
         while i < m:
-            res.append(CC(0))
+            res.append(RR(0))
             i += 1
         n = number_of_terms
         i = n % m
         sig_on()
         while n > 0 :
             res[i] *= qq
-            res[i] +=  CC(self._ans[n])/n
+            res[i] +=  RR(self._ans[n])/n
             n -= 1
             i -= 1
             if i == -1:
@@ -1371,8 +1477,35 @@ cdef class ModularSymbolNumerical:
             res[i] *= q ** i
             i += 1
         res[0] *= qq
-        verbose("     leaving _partial_real_sums_double with result %s, %s, ... %s"%(res[0], res[1], res[m-1]), level=5)
+        verbose("       leaving _partial_real_sums with result %s, %s, ... %s"%(res[0], res[1], res[m-1]), level=5)
         return res
+
+    def _test_partial_sums(self):
+        """ to be deleted again """
+        cdef int T, prec, j, m
+        cdef double * ra
+        cdef object res
+        cdef double y, epsi
+        cdef RealNumber yr
+
+        y = <double>0.001
+        epsi = <double>0.0001
+        T = <int>10000
+        prec = <int>100
+        for y,m,T in [ [0.001, 17, 10000], [0.1, 23, 100000], [0.001, 3, 50000], [0.001, 5, 10000]]:
+
+            RR = RealField(prec)
+            yr = RR(y)
+            res1 = self._partial_real_sums(yr, m, T, prec)
+
+            ra = <double *> sage_malloc( m * sizeof(double))
+            oi = self._partial_real_sums_double(y, m, T, ra)
+            res2 = [ra[j] for j in range(m)]
+            sage_free(ra)
+
+            print res1[0] - res2[0], res1[-1]- res2[-1]
+
+
 
 #================
 
@@ -1399,19 +1532,19 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("11a2"))
             sage: M._get_truncation_and_prec(0.001,0.0001)
-            (2276, 53)
+            (2275, 53)
             sage: M._get_truncation_and_prec(0.01,0.01)
-            (130, 53)
+            (118, 53)
             sage: M._get_truncation_and_prec(0.00001,0.01)
-            (216406, 53)
+            (216405, 53)
             sage: M._get_truncation_and_prec(0.00001,0.0001)
-            (283247, 59)
+            (283246, 58)
 
             sage: M = ModularSymbolNumerical(EllipticCurve("5077a1"))
             sage: M._get_truncation_and_prec(10^(-11),10^(-2))
             (-1, -1)
         """
-        verbose("    enter _get_truncation_and_prec with y=%s and eps=%s"%(y,eps), level=4)
+        verbose("       enter _get_truncation_and_prec with y=%s and eps=%s"%(y,eps), level=5)
         # how much of the error comes from truncation and how much
         # from precision.
         DEF split_error_truncations = 0.99
@@ -1420,56 +1553,56 @@ cdef class ModularSymbolNumerical:
         cdef double tt, bb, A, twopiy
         cdef int T, B, T0
 
-        verbose("_truncation called with %s, %s"%(y,eps), level=4)
         twopiy = <double>6.28318530717958648
         twopiy *=  y
         tt = twopiy
-        tt *= split_error_truncations * eps /2
+        tt *= split_error_truncations * eps
         tt = log(tt)
         tt = - tt / twopiy
         if tt < 2147483648:
-            T = <int>(ceil(tt)) + 1
+            T = <int>(ceil(tt))
         else:
             T = -1
             return T, T
-        verbose("now tt =%s, twopiy=%s, T=%s"%(tt,twopiy,T), level=4)
+        #verbose("      now tt =%s, twopiy=%s, T=%s"%(tt,twopiy,T), level=4)
 
         # the justification for these numbers is explained at the
         # very end of this file
         if T > 4324320:
-            A = 12
+            A = 6
             T0 = 4324320
         elif T > 2162160:
-            A = <double>10
+            A = 5
             T0 = 2162160
         elif T > 831600:
-            A = 8
+            A = 4
             T0 = 831600
         elif T > 277200:
-            A = 6
+            A = 3
             T0 = 277200
         elif T > 55440:
-            A = 4
+            A = 2
             T0 = 55440
         elif T > 10080:
-            A = 3
+            A = 3/2
             T0 = 10080
-        elif T > 1260:
-            A = 2
-            T0 = 1260
-        else:
+        else: # doesnt improve
             A = 1
-            T0 = 20
+            T0 = T
 
         tt -= log(A)/twopiy
-        T = max(<int>(ceil(tt))+1, T0)
-        bb =  split_error_prec * eps * 0.24
-        bb /=  T
+        T = min(T, max(<int>(ceil(tt)), T0))
+        #verbose("    now tt =%s, twopiy=%s, T=%s"%(tt,twopiy,T), level=4)
+
+        bb =  split_error_prec * eps
+        bb /=  T + bb
+        bb /=  2
         bb /=  T
         bb = - log(bb)/ log(2)
         B = <int>(ceil(bb))
         B = max(B, 53)
-        verbose("     leaving _get_truncation_and_prec with T=%s, B=%s"%(T,B), level = 5)
+        T = max(T, 100)
+        verbose("       leaving _get_truncation_and_prec with T=%s, B=%s"%(T,B), level=5)
         return T, B
 
 # ===============
@@ -1477,12 +1610,12 @@ cdef class ModularSymbolNumerical:
     @cached_method
     def kappa(self, llong m, llong z, eps=None):
         r"""
-        This returns all `\kappa_{j,m}(1/\sqrt(z))` for a given
+        This returns all `\kappa_{j,m}(1/\sqrt{z})` for a given
         integer `m` and another integer `z`. Here this is the sum
 
         .. MATH::
 
-           \kappa_{j,m}(y) = \sum_{n\equiv j \bmod m} \frac{a_n}{n} e^{2\pi i n y}
+           \kappa_{j,m}(y) = \sum_{n\equiv j \bmod m} \frac{a_n}{n} e^{- 2\pi n y}
 
         With its use all the modular symbols `[a/m]` can be computed
         fast.
@@ -1495,7 +1628,7 @@ cdef class ModularSymbolNumerical:
 
         - ``eps`` -- either None (default) or a real number (double),
           describing the precision to which the terms are computed.
-          Each term is off by less than eps/m. If None, the eps is
+          Each term is off by less than ``eps``/``m``. If None, the ``eps`` is
           chosen from the precomputed precision related to the periods.
 
         OUTPUT: a list of `m` real numbers
@@ -1504,16 +1637,16 @@ cdef class ModularSymbolNumerical:
 
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("43a1"))
-            sage: M.kappa(3,4) # abs tol 1e-8
-            [-5.379533671373193e-05, 0.04321566193496846, -0.0018675632930897463]
-            sage: M.kappa(3,17) # abs tol 1e-8
-            [-0.006822251640925862, 0.2189879706778557, -0.04785620498456644]
-            sage: M.kappa(3,12345,0.01) # abs tol 1e-8
-            [-0.0479068426175143, 1.5019029969344015, -1.45398756863233]
-            sage: M.kappa(3,12345,0.001) # abs tol 1e-8
-            [-0.04791306616116339, 1.5019090911640387, -1.4539956610635267]
+            sage: M.kappa(3,4) # abs tol 1e-4
+            [-0.0000537953367137319, 0.0432156619349685, -0.00186756329308975]
+            sage: M.kappa(3,17) # abs tol 1e-4
+            [-0.00682225164092586, 0.218987970677856, -0.0478562049845665]
+            sage: M.kappa(3,12345,0.01) # abs tol 1e-4
+            [-0.0480019651322545, 1.50187890874049, -1.45400356716803]
+            sage: M.kappa(3,12345,0.001) # abs tol 1e-5
+            [-0.0479088332692401, 1.50190732357395, -1.45399829091235]
         """
-        verbose("    enter kappa with m=%s and z=%s"%(m,z), level=4)
+        verbose("       enter kappa with m=%s, z=%s and eps=%s"%(m,z,eps), level=5)
         cdef int T, prec, j
         cdef double * ra
         cdef object res
@@ -1524,37 +1657,35 @@ cdef class ModularSymbolNumerical:
         y = sqrt(y)
         y = 1/y
         if eps is None:
-            epsi = self._eps_movable_plus
-            if epsi > self._eps_movable_minus:
-                epsi = self._eps_movable_minus
+            epsi = self._eps_unitary_plus
+            if epsi > self._eps_unitary_minus:
+                epsi = self._eps_unitary_minus
         else:
             epsi = eps
 
-        T, prec = self._get_truncation_and_prec(y, epsi/m)
+        T, prec = self._get_truncation_and_prec(y, epsi)
+        T += m
+        verbose("   precision in kappa set to %s, summing over %s terms"%(prec,T), level=3)
+
+        RR = RealField(prec)
+
         if T == -1:
             raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
-        T += m - 1
         if prec > 53:
-            #raise NotImplementedError("The partial modular symbol sums are "
-                                      #"only implemented using double "
-                                      #"precision and a precision of %s bits "
-                                      #"is needed here"%prec)
-            RR = RealField(prec)
             yr = RR(z)
             yr = yr.sqrt()
             yr = yr**(-1)
             res = self._partial_real_sums(yr, m, T, prec)
-            verbose("     leaving kappa with [%s, %s, ... %s]"%(res[0], res[1], res[m-1]), level=5)
-            return res
         else:
             ra = <double *> sage_malloc( m * sizeof(double))
             if ra is NULL:
                 raise MemoryError
             oi = self._partial_real_sums_double(y, m, T, ra)
-            res = [ra[j] for j in range(m)]
+            res = [RR(ra[j]) for j in range(m)]
             sage_free(ra)
-            verbose("     leaving kappa with [%s, %s, ... %s]"%(res[0], res[1], res[m-1]), level=5)
-            return res
+
+        verbose("       leaving kappa with [%s, %s, ... %s]"%(res[0], res[1], res[m-1]), level=5)
+        return res
 
     def _from_ioo_to_r_approx(self, Rational r, double eps,
                               int use_partials = True):
@@ -1570,8 +1701,6 @@ cdef class ModularSymbolNumerical:
 
         - ``use_partials`` -- a boolean (default True), whether
           the integration is done using partial summation or not
-          Note: if the required precision exceeds 53, this has
-          no affect as partial summation can not be used.
 
         OUTPUT: a complex number
 
@@ -1581,35 +1710,35 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve("37a1")
             sage: m = ModularSymbolNumerical(E)
             sage: m._from_ioo_to_r_approx(1/7,0.01) # abs tol 1e-5
-            2.99219679104899 + 0.00039694849...*I
+            2.99345862520910 - 4.24742218896323e-8*I
             sage: m._from_ioo_to_r_approx(2/7,0.01)  # abs tol 1e-5
-            2.45095445927544*I
-            sage: m._from_ioo_to_r_approx(0/1,0.01)  # abs tol 1e-5
+            2.45138940312063*I
+            sage: m._from_ioo_to_r_approx(0/1,0.001)  # abs tol 1e-5
             -2.77555756156289e-17
 
             sage: E = EllipticCurve("37b1")
             sage: m = ModularSymbolNumerical(E)
             sage: m._from_ioo_to_r_approx(0/1,0.01)  # abs tol 1e-5
-            0.725681061949...
+            0.725681061936153
 
             sage: E = EllipticCurve("5077a1")
             sage: m = ModularSymbolNumerical(E)
             sage: m._from_ioo_to_r_approx(-1/7,0.01)  # abs tol 1e-5
-            6.22752728920180 - 1.48051370937...*I
+            6.22747859174503 - 1.48055642530800*I
             sage: m._from_ioo_to_r_approx(-1/7,0.01, use_partials=False)  # abs tol 1e-5
-            6.22751500765754 - 1.48054245891393*I
+            6.22747410432385 - 1.48055182979493*I
 
-        This uses 55 bits of precision::
+        This uses 65 bits of precision::
 
-            sage: m._from_ioo_to_r_approx(-1/7,0.0000001) # abs tol 1e-8
-            6.227531974659938 - 1.480548268307900*I
+            sage: m._from_ioo_to_r_approx(-1/7,0.0000000001) # abs tol 1e-10
+            6.227531974630249361 - 1.480548268241466848*I
         """
-        verbose("    enter _from_ioo_to_r_approx with r=%s and eps=%s"%(r,eps), level=4)
+        verbose("       enter _from_ioo_to_r_approx with r=%s and eps=%s"%(r,eps), level=5)
         cdef llong m, Q, epsQ, a, u
         cdef double yy, taui, zz, epsi
         cdef int T, prec, j, oi, preci
-        cdef complex twopii, ze1, ze2, su, tauc, tauphc, int1c, int2c
-        cdef ComplexNumber tau, tauph, int1, int2
+        cdef complex  tauc, tauphc, int1c, int2c
+        cdef ComplexNumber tau, tauph, int1, int2, twopii, ze1, ze2, su
         cdef llong * wQ = [0L, 0L, 0L, 0L]
 
         rc = CuspsForModularSymbolNumerical(r, self._N)
@@ -1619,88 +1748,84 @@ cdef class ModularSymbolNumerical:
         epsQ = self._epsQs[Q]
         r = rc._r
 
+        if m == 1:
+            use_partials = False
+
         # now we determine the best place to cut the integration.
         # we will integrate from r to r+i*yy and then to i*oo
         yy = <double>Q
         yy = sqrt(yy)
         yy = 1 / yy / m
         T, prec = self._get_truncation_and_prec(yy, eps/2)
-        if not use_partials and T == -1:
+        if T == -1:
             raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
 
-        if prec > 53:
+        if not use_partials and prec > 53:
             CC = ComplexField(prec)
             tau = CC(-Q)
             tau = tau.sqrt()
             tau = r - 1/tau/m
             tauph = (tau * wQ[0]  + wQ[1])/(wQ[2]*tau + wQ[3])
-            verbose("computing integral from i*oo to %s using %s terms "
-                    "and precision %s"%(tau, T, prec),level=1)
+            verbose("  computing integral from i*oo to %s using %s terms "
+                    "and precision %s"%(tau, T, prec),level=2)
             int1 = self._integration_to_tau(tau, T, prec)
-            verbose("yields %s "%int1, level=2)
-            verbose("compute integral from %s to %s by computing an "
+            verbose("  yields %s "%int1, level=2)
+            verbose("  compute integral from %s to %s by computing an "
                     "integral from i*oo to %s"%(r, tau, tauph),level=2)
             int2 = self._integration_to_tau(tauph, T, prec)
             int2 *= -epsQ
-            verbose("yields %s"%int2, level=2)
+            verbose("  yields %s"%int2, level=2)
             return int2 + int1
 
-        elif not use_partials or m == 1 or m > 1000:
+
+        elif not use_partials: # prec = 53
             taui = <double>(Q)
             taui = sqrt(taui)
             taui =  1/taui/m
             tauc = complex(r, taui)
-            verbose("act on %s by [[%s,%s],[%s,%s]]"%(tauc, wQ[0], wQ[1], wQ[2], wQ[3]), level =4)
+            #verbose("act on %s by [[%s,%s],[%s,%s]]"%(tauc, wQ[0], wQ[1], wQ[2], wQ[3]), level =4)
             tauphc = (tauc * wQ[0] + wQ[1])/(wQ[2]*tauc + wQ[3])
-            verbose("computing integral from i*oo to %s using %s terms "
-                    "in fast double precision"%(tauc, T),level=1)
+            verbose("  computing integral from i*oo to %s using %s terms "
+                    "in fast double precision"%(tauc, T),level=2)
             int1c = self._integration_to_tau_double(tauc, T)
-            verbose("yields %s "%int1c, level=2)
-            verbose("compute integral from %s to %s by computing an "
+            verbose("  yields %s "%int1c, level=2)
+            verbose("  compute integral from %s to %s by computing an "
                     "integral from i*oo to %s"%(r, tauc, tauphc),level=2)
             int2c = self._integration_to_tau_double(tauphc, T)
             int2c *= -epsQ
-            verbose("yields %s"%int2c, level=2)
+            verbose("  yields %s"%int2c, level=2)
             CC = ComplexField(prec)
             return CC(int2c + int1c)
 
-        else: # use_partial and prec=53
-            verbose("computing integral from i*oo to %s using "
-                    "using partials in fast double precision with "
-                    "y =%s"%(r, yy), level=1)
-            # check if the prec is smaller than 53, otherwise redo the
-            # same procedure with use_partial set to False.
-            zz = <double>Q
-            zz = zz * m * m
-            zz = 1/zz
-            zz = sqrt(zz)
-            epsi = self._eps_movable_plus
-            if epsi > self._eps_movable_minus:
-                epsi = self._eps_movable_minus
-            _, preci = self._get_truncation_and_prec(zz, epsi/m)
-            if preci > 53:
-                return self._from_ioo_to_r_approx(r, eps, False)
-            ka = self.kappa(m, m*m*Q)
+        else: # use_partial
+            verbose("  computing integral from i*oo to %s using "
+                    "using partials with "
+                    "y =%s"%(r, yy), level=2)
+            CC = ComplexField(prec)
+            ka = self.kappa(m, m*m*Q,eps/2)
             a = rc._a
-            twopii = complex(0,6.28318530717958648) # 2 pi i
-            ze1 = cexp(twopii / m * a)
+
+            twopii = 2 * CC.pi() * CC.gens()[0]  # 2 pi i
+            ze1 = twopii / m * a
+            ze1 = ze1.exp()
             u = llinvmod(Q * a, m)
-            ze2 =  cexp(- twopii / m * u)
+            ze2 = - twopii / m * u
+            ze2 =  ze2.exp()
             j = 0
-            su = complex(0.0, 0.0)
-            verbose("summing up %s partial sums"%m, level=2)
+            su = CC(0)
+            verbose("      summing up %s partial sums, having set u = %s, z1 =%s, z2=%s"%(m,u,ze1,ze2), level=4)
             sig_on()
             while j < m:
-                su += ka[j] * ( ze1 ** j - epsQ * ze2 ** j)
+                su += ka[j] * ( (ze1 ** j) - epsQ * (ze2 ** j))
                 j += 1
             sig_off()
-            CC = ComplexField(53)
-            return CC(su)
+
+            return su
 
     cdef _from_r_to_rr_approx_direct(self, Rational r, Rational rr,
                                      Integer epsQ, Integer epsQQ,
                                     llong* wQ, llong* wQQ,
-                                    int T, int prec, int use_partials):
+                                    int T, int prec, double eps, int use_partials):
         r"""
         This is just a helper function for _from_r_to_rr_approx. In case
         the integral is evaluated directly this function is called.
@@ -1722,18 +1847,17 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("11a1"))
             sage: M._from_r_to_rr_approx(1/3,0/1,0.000001,use_partials = False) # abs tol 1e-8
-            -0.634604654953... + 1.45881661422987*I
+            -0.634604652139777 + 1.45881661693850*I
             sage: M._from_r_to_rr_approx(1/3,0/1,0.000001,use_partials = True) # abs tol 1e-8
-            -0.634604653927739 + 1.45881661511881*I
+            -0.634604652139776 + 1.45881661693849*I
         """
-        cdef ComplexNumber tau0, tau1, int1, int2
+        cdef ComplexNumber tau0, tau1, int1, int2, ze1, ze2, su
         cdef RealNumber x1, x2, s
-        cdef complex tau0c, tau1c, int1c, int2c, ze1, ze2, su
+        cdef complex tau0c, tau1c, int1c, int2c,
         cdef llong g, u, v, uu, vv, D, a, aa, m, mm, Q, QQ, z, xi, xixi
         cdef int oi, j, preci
-        cdef double epsi, zz
 
-        verbose("    enter _from_r_to_rr_approx_direct with r=%s, rr=%s,..."%(r,rr), level=4)
+        verbose("       enter _from_r_to_rr_approx_direct with r=%s, rr=%s,..."%(r,rr), level=5)
         rc = CuspsForModularSymbolNumerical(r, self._N)
         m = rc._m
         a = rc._a
@@ -1744,7 +1868,7 @@ cdef class ModularSymbolNumerical:
         QQ = rrc._width
         oi = llxgcd(Q*a, m, &u, &v)
         oi = llxgcd(QQ*aa, mm, &uu, &vv)
-        #verbose("The inverses are (u,v)=(%s,%s) and (uu,vv)=%s,%s"%(u,v,uu,vv), level=5)
+        #verbose("  The inverses are (u,v)=(%s,%s) and (uu,vv)=%s,%s"%(u,v,uu,vv), level=3)
         CC = ComplexField(prec)
         RR = RealField(prec)
         x1 = RR(Q)
@@ -1760,35 +1884,35 @@ cdef class ModularSymbolNumerical:
         s = 1/s
         tau0 = CC(x1, s)
         tau1 = CC(x2, s)
-        #verbose("two points are %s and %s"%(tau0, tau1), level=2)
+        #verbose("  two points are %s and %s"%(tau0, tau1), level=3)
 
-        if prec > 53:
-            verbose("computing integral from %s to tau by computing "
+        if not use_partials and prec > 53:
+            verbose("   computing integral from %s to tau by computing "
                     "the integral from i*oo to %s"%(r,tau0), level=3)
             int1 = self._integration_to_tau(tau0, T, prec)
             int1 *= - epsQ
-            verbose("yields %s "%int1, level=3)
-            verbose("computing integral from tau to %s by computing "
+            verbose("   yields %s "%int1, level=3)
+            verbose("   computing integral from tau to %s by computing "
                     "the integral from i*oo to %s"%(rr, tau1), level=3)
             int2 = self._integration_to_tau(tau1, T, prec)
             int2 *= epsQQ
-            verbose("yields %s "%int2, level=3)
+            verbose("   yields %s "%int2, level=3)
             ans = int2 + int1
         elif not use_partials:
             tau0c = complex(tau0[0],tau0[1])
             tau1c = complex(tau1[0],tau1[1])
-            verbose("computing integral from %s to tau by computing "
+            verbose("   computing integral from %s to tau by computing "
                     "the integral from i*oo to %s"%(r,
                     tau0c),level=3)
             int1c = self._integration_to_tau_double(tau0c, T)
             int1c *=  - epsQ
-            verbose("yields %s "%int1c, level=3)
-            verbose("computing integral from tau to %s by computing "
+            verbose("   yields %s "%int1c, level=3)
+            verbose("   computing integral from tau to %s by computing "
                     "the integral from i*oo to "
                     "%s"%(rr, tau1c), level=3)
             int2c = self._integration_to_tau_double(tau1c, T)
             int2c *= epsQQ
-            verbose("yields %s "%int2c, level=3)
+            verbose("   yields %s "%int2c, level=3)
             ans = CC(int2c + int1c)
         else: # use_partials
             g = llgcd(Q,QQ)
@@ -1798,36 +1922,25 @@ cdef class ModularSymbolNumerical:
             xi = (Q*aa*u+v*mm) * QQ /g * llsign(a*mm-aa*m)
             xixi = (QQ*a*uu+vv*m) * Q /g * llsign(aa*m-a*mm)
             z = Q * QQ * (a*mm-aa*m)**2
-
-            # check if the prec is smaller than 53, otherwise redo the
-            # same procedure with use_partial set to False.
-            # similarly if D > 1000 there is no point in doing it
-            # via partial summation.
-            zz = <double>z
-            zz = 1/zz
-            zz = sqrt(zz)
-            epsi = self._eps_movable_plus
-            if epsi > self._eps_movable_minus:
-                epsi = self._eps_movable_minus
-            _, preci = self._get_truncation_and_prec(zz, epsi/D)
-            if preci > 53 or D > 1000:
-                return self._from_r_to_rr_approx_direct(r, rr, epsQ,
-                                                        epsQQ, wQ,  wQQ, T,
-                                                        prec, False)
-            ka = self.kappa(D, z)
-            twopii = complex(0,6.28318530717958648) # 2 pi i
-            ze1 = cexp(twopii / D * xixi)
-            ze2 = cexp(twopii / D * xi)
+            ka = self.kappa(D, z, eps/2)
+            assert prec <= ka[0].parent().prec()
+            twopii =  2 * CC.pi() * CC.gens()[0]  # 2 pi i
+            ze1 = twopii / D * xixi
+            ze1 = ze1.exp()
+            ze2 = twopii / D * xi
+            ze2 = ze2.exp()
             j = 0
-            su = complex(0.0,0.0)
-            verbose("summing up %s partial sums"%m, level=3)
+            su = CC(0)
+            verbose("     summing up %s partial sums"%D, level=4)
             sig_on()
             while j < D:
                 su += ka[j] * ( epsQQ * ze1 ** j - epsQ * ze2 ** j)
                 j += 1
             sig_off()
-            ans = CC(su)
+            ans = su
         return ans
+
+
 
     def _from_r_to_rr_approx(self, Rational r, Rational rr, double eps,
                              method = None, int use_partials=True):
@@ -1848,10 +1961,6 @@ cdef class ModularSymbolNumerical:
           of the two is chosen. "both" raises an error if the two
           methods differ by more than ``eps``.
 
-        If ``use_partials`` is True, ``eps`` has no affect as
-        the precision is then determined in kappa. Hence also we don't
-        check the difference when ``method`` is "both".
-
         OUTPUT: a complex number
 
         EXAMPLES::
@@ -1859,28 +1968,28 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("11a1"))
             sage: M._from_r_to_rr_approx(0/1,2/5,0.01) # abs tol 1e-4
-            1.90381397184517 - 1.45881668222021*I
+            1.90381395641933 - 1.45881661693850*I
             sage: M._from_r_to_rr_approx(0/1,2/5,0.001, "both")  # abs tol 1e-5
-            1.90381528535925 - 1.45883654840441*I
+            1.90381395641933 - 1.45881661693850*I
             sage: M._from_r_to_rr_approx(0/1,2/5,0.001, "both", False) # abs tol 1e-5
-            1.90381546648321 - 1.45881479747722*I
+            1.90381395641931 - 1.45881661693851*I
 
             sage: M._from_r_to_rr_approx(1/11,1/7,0.001) # abs tol 1e-5
-            -0.888446512995707 + 1.45881661693849*I
+            -0.888446512995687 + 1.45881661693849*I
             sage: M._from_r_to_rr_approx(0/1,44/98761,0.001) # abs tol 1e-5
-            0.634604652298... + 1.45881661688450*I
+            0.634604543587755 + 1.45881658692660*I
             sage: M._from_r_to_rr_approx(0/1,123/456,0.0000001) # abs tol 1e-8
-            1.269209304362164 - 2.917633233915436*I
+            1.26920930437008 - 2.91763323391590*I
 
             sage: M = ModularSymbolNumerical(EllipticCurve("389a1"))
             sage: M._from_r_to_rr_approx(0/1,1/5,0.0001, "both") # abs tol 1e-5
-            -4.97983... + 0.00025251...*I
+            -4.98042268152401 - 3.89258902839887e-7*I
             sage: M._from_r_to_rr_approx(1/3,1/7,0.001, "both", False) # abs tol 1e-5
-            -2.49021... + 5.915210...*I
+            -2.49020330904154 + 5.91520739782657*I
             sage: M._from_r_to_rr_approx(1/3,1/7,0.0001, "both", False) # abs tol 1e-5
-            -2.49021262...+ 5.915213297...*I
+            -2.49021239793944 + 5.91521298876557*I
             sage: M._from_r_to_rr_approx(1/3,1/7,0.0001, "both") ## abs tol 1e-5
-            -2.4903167...+ 5.91227068...*I
+            -2.49021247526015 + 5.91521314939661*I
 
 
             sage: M = ModularSymbolNumerical(EllipticCurve("5077a1"))
@@ -1903,7 +2012,7 @@ cdef class ModularSymbolNumerical:
         cdef ComplexNumber ans, ans2
         cdef int  T=0, prec, T1=0, T2=0, oi
 
-        verbose("    enter _from_r_to_rr_approx with r=%s, rr=%s, "%(r,rr), level=4)
+        verbose("       enter _from_r_to_rr_approx with r=%s, rr=%s, "%(r,rr), level=5)
         rc = CuspsForModularSymbolNumerical(r, self._N)
         m = rc._m
         a = rc._a
@@ -1928,13 +2037,18 @@ cdef class ModularSymbolNumerical:
         if method != "indirect":
             # overflow danger
             s = <double>Q
-            s = s*QQ
+            s *= QQ
             s = sqrt(s)
             s = s * llabs(a*mm-aa*m)
             s = 1/s
-            verbose("direct method goes to s=%s and eps=%s"%(s,eps), level=3)
+            verbose("    direct method goes to s=%s and eps=%s"%(s,eps), level=3)
             T, prec = self._get_truncation_and_prec(s, eps/2)
-            verbose("giving T=%s and prec=%s"%(T,prec), level=3)
+            verbose("    giving T=%s and prec=%s"%(T,prec), level=3)
+            if T == -1:
+                if method == "direct" or method == "both":
+                    raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
+                else: # method was None
+                    method = "indirect"
 
         # now we compare it to the indirect integration via i*oo
         if method != "direct":
@@ -1946,22 +2060,12 @@ cdef class ModularSymbolNumerical:
             yy = sqrt(yy)
             yy = 1/yy/mm
             T2, _ = self._get_truncation_and_prec(yy, eps/4)
+            if T1 == -1 or T2 == -1:
+                if method == "indirect" or method == "both":
+                    raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
+                else: # method was None
+                    method = "direct"
 
-        if T == -1 and method == "direct":
-            raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
-        if (T1 == -1 or T2 == -1) and method == "indirect":
-            raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
-        if T == -1 and (T1 == -1 or T2 == -1) and (
-             method is None or method == "both"):
-            raise ValueError("Too many terms > 2^31 would have to be summed up. Giving up.")
-        if method == "both" and T == -1:
-            method = "indirect"
-        if method == "both" and (T1 == -1 or T2 == -1):
-            method = "direct"
-        if method is None and T == -1:
-            method = "indirect"
-        if method is None and (T1 == -1 or T2 == -1):
-            method = "direct"
         if method is None:
             if T < T1+ T2:
                 method = "direct"
@@ -1969,17 +2073,17 @@ cdef class ModularSymbolNumerical:
                 method = "indirect"
 
         if method == "direct" or method == "both":
-            verbose("Using the direct integration from %s to %s with "
-                    "%s terms to sum"%(r, rr, T), level =1)
+            verbose(" using the direct integration from %s to %s with "
+                    "%s terms to sum"%(r, rr, T), level=2)
             ans = self._from_r_to_rr_approx_direct(r, rr, epsQ, epsQQ,
-                                                   wQ, wQQ, T, prec,
+                                                   wQ, wQQ, T, prec, eps,
                                                    use_partials)
             if method != "both":
                 return ans
 
         if method == "indirect" or method == "both":
-            verbose("Using the indirect integration from %s to %s "
-                    "with %s terms to sum"%(r, rr, T1+T2), level =1)
+            verbose("  using the indirect integration from %s to %s "
+                    "with %s terms to sum"%(r, rr, T1+T2), level =2)
             ans2 = ( self._from_ioo_to_r_approx(r, eps/2, use_partials=use_partials) -
                      self._from_ioo_to_r_approx(rr, eps/2, use_partials=use_partials) )
             if method != "both":
@@ -2001,7 +2105,7 @@ cdef class ModularSymbolNumerical:
 
         So far we have only implemented that it is transported close
         to `0` or `i\infty`. Note that this method does not require the
-        cusps to be movable.
+        cusps to be unitary.
 
         INPUT:
 
@@ -2018,33 +2122,33 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("11a1"))
             sage: M._transportable_approx(0/1,-2/7,0.001) # abs tol 1e-5
-            -0.634604573773629 + 1.45881785104175*I
+            -0.634604652139777 + 1.45881661693850*I
             sage: M._from_r_to_rr_approx(0/1,-2/7,0.001) # abs tol 1e-5
-            -0.634604476423119 + 1.45881659352811*I
+            -0.634604652139776 + 1.45881661693849*I
             sage: M._from_r_to_rr_approx(0/1,-2/7,0.0001) # abs tol 1e-5
-            -0.634604476423119 + 1.45881659352811*I
+            -0.634604652139776 + 1.45881661693849*I
             sage: M._from_r_to_rr_approx(0/1,-2/7,0.00001) # abs tol 1e-8
-            -0.634604476423119 + 1.45881659352811*I
+            -0.634604652139776 + 1.45881661693849*I
             sage: M._from_r_to_rr_approx(0/1,-2/7,0.000001) # abs tol 1e-8
-            -0.634604476423119 + 1.45881659352811*I
+            -0.634604652139776 + 1.45881661693849*I
 
             sage: M = ModularSymbolNumerical(EllipticCurve("37a1"))
             sage: M._transportable_approx(0/1,-1/19,0.001) # abs tol 1e-5
-            0.0000117852501190230 - 5.85041918690909e-6*I
+            -1.14879551982305e-8 + 1.65994273881864e-10*I
             sage: M._transportable_approx(0/1,-4/17,0.001) # abs tol 1e-5
-            -2.99345736902445 + 2.45138835466090*I
+            -2.99345356727791 + 2.45138870627435*I
             sage: M._transportable_approx(0/1,-4/17,0.00001) # abs tol 1e-8
-            -2.99345864256886 + 2.45138938151459*I
+            -2.99345863532461 + 2.45138938269979*I
             sage: M._from_r_to_rr_approx(0/1,-4/17,0.00001) # abs tol 1e-8
-            -2.99332965527771 + 2.45138180854052*I
+            -2.99345862657997 + 2.45138938852658*I
 
         This goes via i `\infty`::
 
             sage: M = ModularSymbolNumerical(EllipticCurve("5077a1"))
             sage: M._transportable_approx( 0/1, -35/144, 0.001) # abs tol 1e-5
-            -6.22753166857050 + 8.71732099838596e-8*I
+            -6.22753189644996 + 3.23405342839145e-7*I
             sage: M._from_r_to_rr_approx( 0/1, -35/144, 0.001) # abs tol 1e-5
-            -6.22753291567216 + 7.62283278374354e-8*I
+            -6.22753204025024 - 1.26847638295957e-8*I
 
         While this one goes via 0 ::
 
@@ -2059,7 +2163,7 @@ cdef class ModularSymbolNumerical:
         cdef ComplexNumber tau1, tau2, int1, int2
         cdef complex tau1c, tau2c, int1c, int2c
 
-        verbose("    enter symbol_transportable_approx with r=%s, rr=%s"%(r,rr), level=4)
+        verbose("       enter symbol_transportable_approx with r=%s, rr=%s"%(r,rr), level=5)
 
         #this finds a gamma with smallest |c|
         from sage.modular.cusps import Cusp
@@ -2104,34 +2208,34 @@ cdef class ModularSymbolNumerical:
             CC = ComplexField(prec)
             tau1 = CC(-d/c, 1/c.abs())
             # computes the integral from tau to i*oo
-            verbose("computing integral from i*oo to %s using %s terms "
+            verbose("   computing integral from i*oo to %s using %s terms "
                     "and precision %s"%(tau1, T, prec),level=3)
             int1 = self._integration_to_tau(tau1, T, prec)
-            verbose("yields %s "%int1, level=3)
+            verbose("   yields %s "%int1, level=3)
             tau2 = (tau1 * a + b)/(c*tau1 + d)
-            verbose("computing integral from i*oo to %s using %s terms "
+            verbose("   computing integral from i*oo to %s using %s terms "
                     "and precision %s"%(tau2, T, prec),level=3)
             int2 = self._integration_to_tau(tau2, T, prec)
             ans = eN * (int1 - int2)
         else:
             tau1c = complex(-d/c, 1/c.abs())
             # computes the integral from tau to i*oo
-            verbose("computing integral from i*oo to %s using %s terms "
+            verbose("   computing integral from i*oo to %s using %s terms "
                     "and fast double precision"%(tau1c, T),level=3)
             int1c = self._integration_to_tau_double(tau1c, T)
-            verbose("yields %s "%int1c, level=3)
+            verbose("   yields %s "%int1c, level=3)
             tau2c = (tau1c * a + b)/(c*tau1c + d)
-            verbose("computing integral from i*oo to %s using %s terms "
+            verbose("   computing integral from i*oo to %s using %s terms "
                     "and fast double precision"%(tau2c, T),level=3)
             int2c = self._integration_to_tau_double(tau2c, T)
-            verbose("yields %s"%int2c, level=3)
+            verbose("   yields %s"%int2c, level=3)
             ans = eN * ComplexField(53)(int1c - int2c)
         return ans
 
 #======= precise rationals =====
 
     @cached_method
-    def symbol_ioo_to_r(self, Rational r, int sign = +1,
+    def symbol_ioo_to_r(self, Rational r, int sign = 0,
                         int use_partials=True):
         r"""
         This function returns `[r]^+` or `[r]^-` for a rational `r`.
@@ -2140,7 +2244,8 @@ cdef class ModularSymbolNumerical:
 
         - ``r`` -- a rational number
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         - ``use_partials`` -- an optional boolean deciding if the
           computation uses partial summation (default=True).
@@ -2164,14 +2269,16 @@ cdef class ModularSymbolNumerical:
             sage: M.symbol_ioo_to_r(-9/55,-1)
             -2
         """
-        verbose("    enter symbol_ioo_to_r with r=%s, sign=%s"%(r,sign), level=4)
+        verbose("       enter symbol_ioo_to_r with r=%s, sign=%s"%(r,sign), level=5)
         cdef double eps
         cdef ComplexNumber la
         cdef RealNumber lap
+        if sign == 0:
+            sign = self._global_sign
         if sign == 1:
-            eps = self._eps_movable_plus
+            eps = self._eps_unitary_plus
         else:
-            eps = self._eps_movable_minus
+            eps = self._eps_unitary_minus
         la = self._from_ioo_to_r_approx(r, eps, use_partials=use_partials)
         if sign == 1:
             lap = la.real()
@@ -2180,7 +2287,7 @@ cdef class ModularSymbolNumerical:
         return self._round(lap, sign, True)
 
     @cached_method
-    def symbol_r_to_rr(self, Rational r, Rational rr, int sign = +1,
+    def symbol_r_to_rr(self, Rational r, Rational rr, int sign = 0,
                        int use_partials=True):
         r"""
         This returns the rational number `[r']^+ - [r]^+`. However the
@@ -2192,7 +2299,8 @@ cdef class ModularSymbolNumerical:
 
         - ``r`` and ``rr`` -- two rational number
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         - ``use_partials`` -- an optional boolean deciding if the
           computation uses partial summation (default=True).
@@ -2222,17 +2330,19 @@ cdef class ModularSymbolNumerical:
             sage: M = ModularSymbolNumerical(E)
             sage: M.symbol_r_to_rr(0/1,4/5)
             1
-            sage: M.symbol_r_to_rr(7/11,14/75)
+            sage: M.symbol_r_to_rr(7/11,14/75) # long time
             -1
         """
-        verbose("    enter symbol_r_to_rr with r=%s, rr=%s, sign=%s"%(r,rr,sign), level=4)
+        verbose("       enter symbol_r_to_rr with r=%s, rr=%s, sign=%s"%(r,rr,sign), level=5)
         cdef double eps
         cdef ComplexNumber la
         cdef RealNumber lap
+        if sign == 0:
+            sign = self._global_sign
         if sign == 1:
-            eps = self._eps_movable_plus
+            eps = self._eps_unitary_plus
         else:
-            eps = self._eps_movable_minus
+            eps = self._eps_unitary_minus
         la = self._from_r_to_rr_approx(r, rr, eps, use_partials=use_partials)
         if sign == 1:
             lap = la.real()
@@ -2241,18 +2351,19 @@ cdef class ModularSymbolNumerical:
         return self._round(lap, sign, True)
 
     @cached_method
-    def symbol_transportable(self, Rational r, Rational rr, int sign = +1):
+    def symbol_transportable(self, Rational r, Rational rr, int sign = 0):
         r"""
         Returns the symbol `[r']^+ - [r]^+` where `r'=\gamma(r)` for some
         `\gamma\in\Gamma_0(N)`. These symbols can be computed by transporting
-        the path into the upper half plane close to one of the movable cusps.
+        the path into the upper half plane close to one of the unitary cusps.
         Here we have implemented it only to move close to `i\infty` and `0`.
 
         INPUT:
 
         - ``r`` and ``rr`` -- two rational numbers
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         OUTPUT: a rational number
 
@@ -2277,14 +2388,16 @@ cdef class ModularSymbolNumerical:
             sage: M.symbol_transportable(0/1, -7/31798, -1)
             -5
         """
-        verbose("    enter symbol_transportable with r=%s, rr=%s, sign=%s"%(r,rr,sign), level=4)
+        verbose("       enter symbol_transportable with r=%s, rr=%s, sign=%s"%(r,rr,sign), level=5)
         cdef double eps
         cdef ComplexNumber la
         cdef RealNumber lap
+        if sign == 0:
+            sign = self._global_sign
         if sign == 1:
-            eps = self._eps_movable_plus
+            eps = self._eps_unitary_plus
         else:
-            eps = self._eps_movable_minus
+            eps = self._eps_unitary_minus
         la = self._transportable_approx(r, rr, eps)
         if sign == 1:
             lap = la.real()
@@ -2293,10 +2406,10 @@ cdef class ModularSymbolNumerical:
         return self._round(lap, sign, False)
 
     @cached_method
-    def manin_symbol(self, llong u, llong v, int sign = 1):
+    def manin_symbol(self, llong u, llong v, int sign = 0):
         r"""
         Given a pair `(u,v)` presenting a point in
-        `\mathbb{P}^1(\mathbb{Z}/N)` and hence a coset of
+        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` and hence a coset of
         `\Gamma_0(N)`, this computes the value of the Manin
         symbol `M(u:v)`.
 
@@ -2307,7 +2420,9 @@ cdef class ModularSymbolNumerical:
         - ``v`` -- an integer such that `(u:v)` is a projective point
           modulo `N`
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
+
 
         EXAMPLES::
 
@@ -2332,28 +2447,31 @@ cdef class ModularSymbolNumerical:
             sage: ms.manin_symbol(-1,12)
             -1/2
         """
-        verbose("    enter manin_symbol with u=%s, v=%s, sign =%s"%(u,v,sign), level=4)
+        verbose("       enter manin_symbol with u=%s, v=%s, sign =%s"%(u,v,sign), level=5)
         cdef llong c, d, x, y, un, vn, N = self._N
         cdef int oi
         cdef Rational r, rr
 
+        if sign == 0:
+            sign = self._global_sign
+
         oi = proj_normalise(self._N, u, v, &un, &vn)
-        verbose("normalized representant on P^1: "
+        verbose("   normalized representant on P^1: "
                 "(%s,%s)"%(un, vn), level=3)
 
         if un == 0:
-            verbose("integrating from 0 to i*oo", level=3)
+            verbose("   integrating from 0 to i*oo", level=3)
             r = Rational(0)
             return self.symbol_ioo_to_r(r, sign)
         elif vn == 0:
-            verbose("integrating from i*oo to 0", level=3)
+            verbose("   integrating from i*oo to 0", level=3)
             r = Rational(0)
             return - self.symbol_ioo_to_r(r, sign)
         else :
             # (c:d) = (u:v) but c and d are fairly small
             # in absolute value
             oi = best_proj_point(un, vn, self._N, &c, &d)
-            verbose("better representant on P^1: "
+            verbose("   better representant on P^1: "
                     "(%s,%s)"%(c, d), level=3)
             # _, x, y = c.xgcd(d)
             _ = llxgcd(c, d, &x, &y)
@@ -2368,25 +2486,26 @@ cdef class ModularSymbolNumerical:
                 r = -Rational( (x,d) )
             else:
                 r =Rational( (x, (-d)) )
-            verbose("integrate between %s and %s"%(r, rr), level=3)
+            verbose("   integrate between %s and %s"%(r, rr), level=3)
             return self.symbol_r_to_rr(r, rr, sign)
 
 # ===============================
 
     @cached_method
-    def symbol_movable(self, Rational r, int sign=1):
+    def symbol_unitary(self, Rational r, int sign=0):
         r"""
         Given a rational number `r` this computes the modular symbol
         `[r]^+` or `[r]^-`. The assumption here is that the cusp `r`
-        is movable, i.e. there is an Atkin-Lehner involution that
-        brings it to `i\infty`. Otherwise ``symbol_non_movable``
+        is unitary, i.e. there is an Atkin-Lehner involution that
+        brings it to `i\infty`. Otherwise ``symbol_non_unitary``
         should be used
 
         INPUT:
 
-        - ``r`` -- a rational number representing a movable cusp
+        - ``r`` -- a rational number representing a unitary cusp
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         OUTPUT: a rational number
 
@@ -2395,25 +2514,28 @@ cdef class ModularSymbolNumerical:
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: E = EllipticCurve('5077a1')
             sage: m = ModularSymbolNumerical(E)
-            sage: m.symbol_movable(1/7)
+            sage: m.symbol_unitary(1/7)
             3
-            sage: m.symbol_movable(1/7, -1)
+            sage: m.symbol_unitary(1/7, -1)
             1
-            sage: m.symbol_movable(-1/4112)
+            sage: m.symbol_unitary(-1/4112)
             3
 
             sage: E = EllipticCurve('11a1')
             sage: m = ModularSymbolNumerical(E)
-            sage: m.symbol_movable(1/99999)
+            sage: m.symbol_unitary(1/99999)
             -4/5
 
             sage: M = ModularSymbolNumerical( EllipticCurve("32a1") )
-            sage: M.symbol_movable(3/5)
+            sage: M.symbol_unitary(3/5)
             -1/4
         """
-        verbose("    enter symbol_movable with r=%s, sign=%s"%(r,sign), level=4)
+        verbose("       enter symbol_unitary with r=%s, sign=%s"%(r,sign), level=5)
         cdef llong a, m, Q, x, y, N = self._N
         cdef Rational r2, res
+
+        if sign == 0:
+            sign = self._global_sign
 
         rc = CuspsForModularSymbolNumerical(r, N)
         r = rc._r
@@ -2421,7 +2543,7 @@ cdef class ModularSymbolNumerical:
             return self.symbol_ioo_to_r(r, sign=sign)
         Q = rc._width
         if llgcd(Q, N / Q) != 1:
-            raise ValueError("Cusp must be movable")
+            raise ValueError("Cusp must be unitary")
         a = rc._a
         m = rc._m
 
@@ -2435,8 +2557,8 @@ cdef class ModularSymbolNumerical:
             if y*2 > m:
                 y -= m
             x = (1-y*a) / m
-            verbose("    smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4 )
-            # make the cusp -x/y movable.
+            #verbose("     smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4)
+            # make the cusp -x/y unitary.
             Q = llgcd(y, N)
             if llgcd(Q, N/Q) != 1:
                 if y > 0:
@@ -2457,25 +2579,26 @@ cdef class ModularSymbolNumerical:
                     r2 = -r2
                     y = -y
                 r2 = Rational( (x, y) )
-                verbose("Move to the cusp %s "%r2, level=1)
+                verbose("Next piece: integrate to the cusp %s "%r2, level=2)
                 res = self.symbol_r_to_rr(r, r2, sign=sign)
-                res += self.symbol_movable(r2, sign=sign)
+                res += self.symbol_unitary(r2, sign=sign)
 
         return res
 
     @cached_method
-    def symbol_non_movable(self, Rational r, int sign=1):
+    def symbol_non_unitary(self, Rational r, int sign=0):
         r"""
         Given a rational number `r` this computes the modular symbol
         `[r]^+` or `[r]^-`. There is no assumption here on the cusp `r`,
         so a rather slow method via transportable paths is chosen. For
-        movable cusps please use ``symbol_movable``.
+        unitary cusps please use ``symbol_unitary``.
 
         INPUT:
 
-        - ``r`` -- a rational number representing a movable cusp
+        - ``r`` -- a rational number representing a unitary cusp
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         OUTPUT: a rational number
 
@@ -2483,29 +2606,32 @@ cdef class ModularSymbolNumerical:
 
             sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
             sage: M = ModularSymbolNumerical(EllipticCurve("20a1"))
-            sage: M.symbol_non_movable(1/2)
+            sage: M.symbol_non_unitary(1/2)
             -1/6
-            sage: M.symbol_non_movable(1/2, -1)
+            sage: M.symbol_non_unitary(1/2, -1)
             0
             sage: M = ModularSymbolNumerical(EllipticCurve("49a1"))
-            sage: M.symbol_non_movable(2/7)
+            sage: M.symbol_non_unitary(2/7)
             -1/4
             sage: M = ModularSymbolNumerical(EllipticCurve("121a1"))
-            sage: M.symbol_non_movable(3/11)
+            sage: M.symbol_non_unitary(3/11)
             1/2
 
-        A bit longer take::
+        This takes a bit longer ::
 
             sage: M = ModularSymbolNumerical(EllipticCurve("78a1"))
-            sage: M.symbol_non_movable(1/38) #long time
+            sage: M.symbol_non_unitary(1/38) #long time
             2
-            sage: M.symbol_non_movable(5/38) #long time
+            sage: M.symbol_non_unitary(5/38) #long time
             1/2
         """
-        verbose("    enter symbol_nonmovable with r=%s, sign=%s"%(r,sign), level=4)
+        verbose("       enter symbol_nonunitary with r=%s, sign=%s"%(r,sign), level=5)
         cdef llong a, m, B, Q, N_ell, aell, u, N = self._N
         cdef Integer ell
         cdef Rational r2, res
+
+        if sign == 0:
+            sign = self._global_sign
 
         rc = CuspsForModularSymbolNumerical(r, N)
         r = rc._r
@@ -2524,33 +2650,34 @@ cdef class ModularSymbolNumerical:
             aell = Integer(self._ans[ell])
         N_ell = ell + 1 - aell
         # {ell * r , r}
-        verbose("Compute symbol {ell*r -> r} = {%s -> %s}"%(ell*r,r), level=1)
+        verbose("     Compute symbol {ell*r -> r} = {%s -> %s}"%(ell*r,r), level=4)
         res = self.symbol_transportable(ell * r, r, sign=sign)
         # {(r + u)/ ell, r}
         u = Integer(0)
         while u < ell:
             r2 = (r+u) / ell
-            verbose("Compute symbol {r2-> r} = {%s -> %s}"%(r2,r), level=1)
+            verbose("     Compute symbol {r2-> r} = {%s -> %s}"%(r2,r), level=4)
             res += self.symbol_transportable(r2, r, sign=sign)
             u += 1
         return -res/N_ell
 
     @cached_method
-    def all_symbols(self, llong m, int sign=1):
+    def all_symbols(self, llong m, int sign=0):
         r"""
-        Given an integer `m` and a ``sign``, this return the
+        Given an integer ``m`` and a ``sign``, this return the
         modular symbols `[a/m]` for all `a` coprime to `m`
         using partial sums.
         This is much quicker than computing them one by one.
 
         This will only work if `m` is relatively small and
-        if the cusps `a/m` are movable.
+        if the cusps `a/m` are unitary.
 
         INPUT:
 
         - ``m`` -- a natural number
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         OUTPUT: a dictionary of fractions with denominator `m`
         giving rational numbers.
@@ -2586,13 +2713,17 @@ cdef class ModularSymbolNumerical:
         cdef double resam, twopim
         cdef RealNumber val
 
-        verbose("    enter all_symbol with m=%s"%m, level=4)
+        verbose("       enter all_symbol with m=%s"%m, level=5)
+
+        if sign == 0:
+            sign = self._global_sign
+
         RR = RealField(53)
         N = self._N
         Q = N / llgcd(m,N)
         if llgcd(m,Q) > 1 :
-            raise NotImplementedError("Only implemented for cusps that are int eh Atkin-Lehner orbit of oo")
-        verbose(" compute all partial sums with denominator m=%s"%m, level=2)
+            raise NotImplementedError("Only implemented for cusps that are in the Atkin-Lehner orbit of oo")
+        verbose("   compute all partial sums with denominator m=%s"%m, level=3)
         z = Q*m*m
         v = self.kappa(m, z)
 
@@ -2629,7 +2760,7 @@ cdef class ModularSymbolNumerical:
 
         return res
 
-    def _twisted_symbol(self, Rational ra, int sign=1):
+    def _twisted_symbol(self, Rational ra, int sign=0):
         r"""
         Computes the value of the modular symbol by
         using the symbols of the quadratic twist.
@@ -2641,7 +2772,8 @@ cdef class ModularSymbolNumerical:
 
         - ``ra`` -- a rational number
 
-        - ``sign`` -- either +1 (default) or -1
+        - ``sign`` -- optional either +1 or -1, or 0 (default),
+          in which case the sign passed to the class is taken.
 
         OUTPUT: a rational number
 
@@ -2657,13 +2789,15 @@ cdef class ModularSymbolNumerical:
         """
         cdef Integer D, Da, a
         cdef Rational res, t
-        verbose("    enter _twisted symbol with ra=%s, sign=%s"%(ra,sign), level=4)
+        verbose("       enter _twisted symbol with ra=%s, sign=%s"%(ra,sign), level=5)
+        if sign == 0:
+            sign = self._global_sign
         D = self._D
         Da = D.abs()
         a = Integer(1)
         res = Rational( (0,1) )
         s = sign * D.sign()
-        verbose("start sum of twisted symbols with disc %s"%D, level=3)
+        verbose("     start sum of twisted symbols with disc %s"%D, level=4)
         while a < Da:
             if a.gcd(Da) == 1:
                 t = self._Mt(ra - a/Da, sign=s, use_twist=False)
@@ -2673,6 +2807,168 @@ cdef class ModularSymbolNumerical:
         if sign == 1 and D < 0:
             res = -res
         return res
+
+#====================== approximative versions
+
+    def _symbol_unitary_approx(self, Rational r, double eps):
+        r"""
+        Given a rational number `r` this computes the integral
+        `\lambda(r)` with maximal error ``eps``.
+
+        The assumption here is that the cusp `r`
+        is unitary, i.e. there is an Atkin-Lehner involution that
+        brings it to `i\infty`. Otherwise
+        ``symbol_non_unitary_approx`` should be used
+
+        INPUT:
+
+        - ``r`` -- a rational number representing a unitary cusp
+
+        - ``eps`` -- a positive real number
+
+        OUTPUT: a complex number
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
+            sage: E = EllipticCurve('5077a1')
+            sage: m = ModularSymbolNumerical(E)
+            sage: m._symbol_unitary_approx(1/11,0.000001)
+            9.69540669970570e-10 - 5.80486769763411e-11*I
+            sage: m._symbol_unitary_approx(1/17,0.000001)
+            -9.01145713605445e-10 + 7.40274134212215*I
+
+            sage: M = ModularSymbolNumerical( EllipticCurve([-12,79]) )
+            sage: M.elliptic_curve().conductor()
+            287280
+            sage: M._symbol_unitary_approx(0/1,0.01)
+            0.000000000000000
+            sage: M._symbol_unitary_approx(1/17,0.01)
+            1.08712572498569 - 0.548379313090719*I
+
+        """
+        verbose("       enter _symbol_unitary_approx with r=%s, eps=%s"%(r,eps), level=5)
+        cdef llong a, m, Q, x, y, N = self._N
+        cdef ComplexNumber res
+        cdef Rational r2
+
+        rc = CuspsForModularSymbolNumerical(r, N)
+        r = rc._r
+        if r == 0:
+            return self._from_ioo_to_r_approx(r, eps, use_partials=False)
+        Q = rc._width
+        if llgcd(Q, N / Q) != 1:
+            raise ValueError("Cusp must be unitary")
+        a = rc._a
+        m = rc._m
+
+        if m < self._cut_val:
+            # now at some point we go directly to ioo
+            res = self._from_ioo_to_r_approx(r, eps, use_partials=False)
+        else:
+            # so a*y + x*m = 1 and 0 <= |y| < m/2
+            Q = llxgcd(a, m, &y, &x)
+            y = y % m
+            if y*2 > m:
+                y -= m
+            x = (1-y*a) / m
+            #verbose("     smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4)
+            # make the cusp -x/y unitary.
+            Q = llgcd(y, N)
+            if llgcd(Q, N/Q) != 1:
+                if y > 0:
+                    y -= m
+                    x += a
+                else:
+                    y += m
+                    x -= a
+            Q = llgcd(y, N)
+            if llgcd(Q, N/Q) != 1: # still bad ex: N=36 a=2, m=5
+                res = self._from_ioo_to_r_approx(r, eps, use_partials=False)
+            else:
+                r2 = Rational( (-1,1) )
+                if x < 0:
+                    r2 = -r2
+                    x = -x
+                if y < 0:
+                    r2 = -r2
+                    y = -y
+                r2 = Rational( (x, y) )
+                verbose("Next piece: integrate to the cusp %s "%r2, level=2)
+                res = self._from_r_to_rr_approx(r, r2, eps, use_partials=False)
+                res += self._symbol_unitary_approx(r2, eps)
+
+        return res
+
+    def _symbol_non_unitary_approx(self, Rational r, double eps):
+        r"""
+        Given a rational number `r` this computes the integral
+        `\\lambda(r)` to maximal error ``eps``.
+
+        There is no assumption here on the cusp `r`,
+        so a rather slow method via transportable paths is chosen. For
+        unitary cusps please use ``_symbol_unitary_approx``.
+
+        INPUT:
+
+        - ``r`` -- a rational number representing a unitary cusp
+
+        - ``eps`` -- a positive real
+
+        OUTPUT: a complex number
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
+            sage: M = ModularSymbolNumerical(EllipticCurve("20a1"))
+            sage: M._symbol_non_unitary_approx(1/2,0.0001)
+            -0.470729190326520 + 2.59052039079203e-16*I
+
+            sage: M = ModularSymbolNumerical(EllipticCurve("49a1"))
+            sage: M._symbol_non_unitary_approx(2/7,0.000000001)
+            -0.483327926404308 + 0.548042354981878*I
+
+        A bit longer take::
+
+            sage: M = ModularSymbolNumerical(EllipticCurve("78a1"))
+            sage: M._symbol_non_unitary_approx(1/38,0.1) # long time
+            2.90087559068021 + 2.86538550720028e-7*I
+            sage: M._symbol_non_unitary_approx(5/38,0.1) # long time
+            0.725215164486092 - 1.19349741385624*I
+         """
+        verbose("       enter _symbol_nonunitary_approx with r=%s, eps=%s"%(r,eps), level=5)
+        cdef llong a, m, B, Q, N_ell, aell, u, N = self._N
+        cdef Integer ell
+        cdef Rational r2
+        cdef ComplexNumber res
+
+        rc = CuspsForModularSymbolNumerical(r, N)
+        r = rc._r
+        a = rc._a
+        m = rc._m
+        Q = rc._width
+        B = llgcd(m, N)
+
+        # find a prime congruent to 1 modulo B
+        ell = Integer(B) + 1
+        while llgcd(ell, N) != 1 or not ell.is_prime():
+            ell += B
+        if ell > self._lans:
+            aell = self._E.ap(ell)
+        else:
+            aell = Integer(self._ans[ell])
+        N_ell = ell + 1 - aell
+        # {ell * r , r}
+        verbose("     Compute symbol {ell*r -> r} = {%s -> %s}"%(ell*r,r), level=4)
+        res = self._transportable_approx(ell * r, r, eps)
+        # {(r + u)/ ell, r}
+        u = Integer(0)
+        while u < ell:
+            r2 = (r+u) / ell
+            verbose("     Compute symbol {r2-> r} = {%s -> %s}"%(r2,r), level=4)
+            res += self._transportable_approx(r2, r, eps)
+            u += 1
+        return -res/N_ell
 
 #==========================
 # Doctest functions for the above class
@@ -2773,12 +3069,12 @@ def _test_init(E):
     a5 = Integer(M._ans[2013])
     t1 = Integer(M._t_plus)
     t2 = Integer(M._t_minus)
-    t3 = Integer(M._t_movable_plus)
-    t4 = Integer(M._t_movable_minus)
+    t3 = Integer(M._t_unitary_plus)
+    t4 = Integer(M._t_unitary_minus)
     e1 = M._eps_plus
     e2 = M._eps_minus
-    e3 = M._eps_movable_plus
-    e4 = M._eps_movable_minus
+    e3 = M._eps_unitary_plus
+    e4 = M._eps_unitary_minus
     return e, [a1,a2,a3,a4,a5], [t1,t2,t3,t4], [e1,e2,e3,e4]
 
 def _test_integration(E, a, b, T):
@@ -2875,6 +3171,8 @@ def _test_against_table(range_of_conductors, verb=False):
     - ``range_of_conductors`` -- a list of integers; all curves with
       conductors in that list will be tested.
 
+    - ``verb`` - if True (default) prints the values
+
     OUTPUT: Boolean. If False the function also prints information.
 
     EXAMPLE::
@@ -2888,8 +3186,8 @@ def _test_against_table(range_of_conductors, verb=False):
     for C in cremona_curves(range_of_conductors):
         if verb:
             print "testing curve ", C.label()
-        m = C.modular_symbol()
-        m2 = C.modular_symbol(-1)
+        m = C.modular_symbol(method="sage")
+        m2 = C.modular_symbol(sign=-1, method="sage")
         M = ModularSymbolNumerical(C)
         cinf = C.real_components()
         # a few random small rationals

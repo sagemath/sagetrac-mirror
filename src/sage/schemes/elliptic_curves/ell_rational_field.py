@@ -67,6 +67,7 @@ import padic_lseries
 import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
+from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
 
 from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
@@ -1101,53 +1102,73 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, method="sage", normalize = "L_ratio"):
+    def modular_symbol(self, sign=1, method="sage", normalize="L_ratio"):
         r"""
-        Return the modular symbol associated to this elliptic curve,
-        with given sign and base ring.  This is the map that sends `r/s`
-        to a fixed multiple of the integral of `2 \pi i f(z) dz`
-        from `\infty` to `r/s`, normalized so that all values of this map take
-        values in `\QQ`.
+        Return the modular symbol associated to this elliptic curve
+        with given sign.  This is a map that sends any rational number`r`
+        to a rational number `[r]_E`, defined to be a certain
+        multiple of the integral of `2 \pi i f(z) dz`
+        from `\infty` to `r` where `f` is the newform attached to `E`.
 
-        The normalization is such that for sign +1,
-        the value at the cusp 0 is equal to the quotient of `L(E,1)`
-        by the least positive period of `E` (unlike in ``L_ratio``
-        of ``lseries()``, where the value is also divided by the
-        number of connected components of `E(\RR)`). In particular the
-        modular symbol depends on `E` and not only the isogeny class of `E`.
+        More precisely: If the sign is +1, then the value returned is the
+        quotient of the real part of this integral by the least positive
+        period `\Omega_E^{+}` of `E`. In particular for `r=0`, the value
+        is equal to `L(E,1)/\Omega_E^{+}` (unlike in ``L_ratio`` of
+        ``lseries()``, where the value is also divided by the number of
+        connected components of `E(\RR)`). In particular the modular
+        symbol depends on `E` and not only the isogeny class of `E`.
+        For sign `-1`, it is the quotient of the imaginary part of the
+        integral divided by the purely imaginary period of `E` with
+        smallest positive imaginary part. Note however there is an
+        issue about these normalizations, hence the optional argument
+        ``normalize`` explained below
 
         INPUT:
-   
-        -  ``sign`` - -1, or 1
 
-        -  ``base_ring`` - a ring
+        -  ``sign`` -- either -1 or 1 (default)
 
-        -  ``normalize`` - (default: True); if True, the
-           modular symbol is correctly normalized (up to possibly a factor of
-           -1 or 2). If False, the modular symbol is almost certainly not
-           correctly normalized, i.e., all values will be a fixed scalar
-           multiple of what they should be. But the initial computation of the
-           modular symbol is much faster, though evaluation of it after
-           computing it won't be any faster.
+        -  ``method`` -- either 'sage' (default), 'num' or 'eclib'.
+           'sage' is the native python code within Sage. 'eclib' uses
+           John Cremona's C library eclib. 'num' uses the cython code
+           which uses numerical integration, rather than linear algebra.
+           See below for more detail.
 
-        -  ``method`` - either ``sage`` (default), ``num`` or ``eclib``
-           done with John Cremona's implementation of modular
-           symbols in ``eclib``
- 
-        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio', 'period', or 'none';
-           For 'L_ratio', the modular symbol is correctly normalized
-           as explained above by comparing it to ``L_ratio`` for the
-           curve and some small twists.
-           The normalization 'period' is only available if
-           ``use_eclib=False``. It uses the ``integral_period_map`` for modular
-           symbols and is known to be equal to the above normalization
-           up to the sign and a possible power of 2.
-           For 'none', the modular symbol is almost certainly
-           not correctly normalized, i.e. all values will be a
-           fixed scalar multiple of what they should be.  But
+        -  ``normalize`` -- (default: 'L_ratio'); either 'L_ratio',
+           'period', or 'none'. The option 'period' is only valid for
+           method 'sage'. This argument is ignored when the method is
+           'num' as they are always correctly normalized.
+           With the value 'L_ratio', the algorithm attempts to
+           normalize correctly by comparing the naively obtained values
+           with as explained above by comparing it to ``L_ratio`` for
+           the curve and some small twists. But it may fail in some
+           cases. The normalization 'period' uses the
+           ``integral_period_map`` for modular symbols and is known to
+           be equal to the above normalization up to the sign and a
+           possible power of 2. For 'none', the modular symbol is almos
+           t certainly not correctly normalized, i.e. all values will
+           be a fixed scalar multiple of what they should be. But
            the initial computation of the modular symbol is
-           much faster if ``use_eclib=False``, though evaluation of
+           much faster in the method 'sage', though evaluation of
            it after computing it won't be any faster.
+
+        ALGORITHM:
+
+           For the methods 'sage' and 'eclib', the used algorithm starts
+           by finding the space of modular symbols within the full
+           space of all modular symbols of that level. This initial
+           step will take a very long time if the conductor is large
+           (e.g. minutes for five digit conductors). Once the space is
+           determined, each evaluation is very fast (logarithmic in the
+           denominator of `r`).
+
+           The method 'num' uses a different algorithm. It uses numerical
+           integration along paths in the upper half plane. The bounds
+           are rigorously proved so that the outcome is known to be
+           correct. The initial step costs no time, instead each
+           evaluation will take more time than in the above. More
+           information in the documentation of the class
+           ``ModularSymbolNumerical``.
+
 
         .. SEEALSO::
 
@@ -1155,27 +1176,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES::
 
-            sage: E=EllipticCurve('37a1')
-            sage: M=E.modular_symbol(); M
+            sage: E = EllipticCurve('37a1')
+            sage: M = E.modular_symbol(); M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: M(1/2)
             0
             sage: M(1/5)
             1
 
-        ::
+        With the numerical version, rather high conductors can be computed::
 
-            sage: E=EllipticCurve('121b1')
-            sage: M=E.modular_symbol()
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
-            sage: M(1/7)  
-            -1/2
-            sage: M = E.modular_symbol(method="num")
-            sage: M(1/7)  # correct value
-            1/2
+            sage: E = EllipticCurve([999,997])
+            sage: E.conductor()
+            16059400956
+            sage: m = E.modular_symbol(method="num")
+            sage: m(0) # long time
+            16
 
-
-        ::
+        An example that shows that the symbol depends on the curve in the isogeny class::
 
             sage: E=EllipticCurve('11a1')
             sage: E.modular_symbol()(0)
@@ -1187,6 +1205,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol()(0)
             1/25
 
+        An example where the normalization fails::
+
+            sage: E=EllipticCurve('121b1')
+            sage: M=E.modular_symbol()
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            sage: M(1/7)
+            -1/2
+            sage: M = E.modular_symbol(method="num")
+            sage: M(1/7)  # correct value
+            1/2
+
         ::
 
             sage: E=EllipticCurve('11a2')
@@ -1198,31 +1227,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(method="num", normalize='L_ratio')(0)
+            sage: E.modular_symbol(method="num")(0)
             1
             sage: E.modular_symbol(normalize='none')(0)
             1
             sage: E.modular_symbol(normalize='period')(0)
             1
-
-        ::
-
-            sage: E=EllipticCurve('11a3')
-            sage: E.modular_symbol(method="eclib", normalize='L_ratio')(0)
-            1/25
-            sage: E.modular_symbol(method="eclib", normalize='none')(0)
-            2/5
-            sage: E.modular_symbol(method="eclib", normalize='period')(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(normalize='L_ratio')(0)
-            1/25
-            sage: E.modular_symbol(normalize='none')(0)
-            1
-            sage: E.modular_symbol(normalize='period')(0)
-            1/25
-
         """
         typ = (sign, normalize, method)
         try:
@@ -1236,89 +1246,68 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif method == "sage" :
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         elif method == "num":
-            from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
-            Mi = ModularSymbolNumerical(self)
-            M = lambda r: Mi(r, sign=sign)
+            M = ModularSymbolNumerical(self, sign=sign)
         self.__modular_symbol[typ] = M
         return M
 
-    def _modsym(self, tau, prec=53):
-        r"""
-        Compute the modular symbol `\{\infty, \tau\}` analytically.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.253841860855911 - 2.86184184507043e-17*I
-            sage: E = EllipticCurve('17a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.386769938387780 - 4.26353246509333e-17*I
-        """
-        from sage.modular.cusps import Cusps
-        from sage.sets.all import Primes
-        N = self.conductor()
-        # Find a prime p that is suitable, along with matrices M[i].
-        for p in Primes():
-            if N % p == 0:
-                continue
-            # Are the cusps tau, p*tau, and (tau+j)/p for j = 0, ..., p-1
-            # all equivalent?
-            t = Cusps(tau)
-            M = []
-            b, m = t.is_gamma0_equiv(p * tau, N, transformation='matrix')
-            if not b:
-                continue
-            M.append(m)
-            good = True
-            for j in range(p):
-                b, m = t.is_gamma0_equiv((tau + j) / p, N,
-                                         transformation='matrix')
-                if not b:
-                    good = False
-                    break
-                M.append(m)
-            if good:
-                # Found it!
-                break
-        f = self.newform()
-        return -sum(f.period(m, prec) for m in M) / (1 + p - self.ap(p))
-
-    def modular_symbol_numerical(self, sign=1, prec=53):
+    def modular_symbol_numerical(self, sign=1, prec=20):
         """
         Return the modular symbol as a numerical function.
 
-        .. NOTE::
+        Just as in :meth:`modular_symbol` this returns a function that
+        maps any rational `r` to a real number that should be
+        equal to the rational number with an error smaller than the
+        given binary precision. In practice the precision is
+        often much higher. See the examples below.
+        The normalisation is the same.
+
+        INPUT:
+
+        - ``sign`` -- either +1 (default) or -1
+
+        - ``prec`` -- an integer (default 20)
+
+        OUTPUT:
+
+        - a real number
+
+        ALGORITHM:
 
             This method does not compute spaces of modular symbols, so
             it is suitable for curves of larger conductor than can be
-            handled by :meth:`modular_symbol`.
+            handled by :meth:`modular_symbol`. It is essentially the
+            same implementation with method set to 'num'. However the
+            precision is not automatically chosen to be certain that the
+            output is equal to the rational number it approximates.
+
+            For large conductors one should set the ``prec`` very small.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('19a1')
-            sage: f = E.modular_symbol_numerical(1)  # indirect doctest
+            sage: f = E.modular_symbol_numerical(1)
             sage: g = E.modular_symbol(1)
-            sage: f(2), g(2)  # abs tol 1e-14
-            (0.333333333333330, 1/3)
-            sage: f(oo), g(oo)
-            (-0.000000000000000, 0)
+            sage: f(0), g(0)  # abs tol 1e-14
+            (0.333333333333333, 1/3)
 
-            sage: E = EllipticCurve('79a1')
-            sage: f = E.modular_symbol_numerical(-1)  # indirect doctest
-            sage: g = E.modular_symbol(-1)
-            sage: f(1), g(1)  # abs tol 1e-14
-            (7.60908499689245e-16, 0)
-            sage: f(oo), g(oo)
-            (0.000000000000000, 0)
+            sage: E = EllipticCurve('5077a1')
+            sage: f = E.modular_symbol_numerical(-1, prec=2)
+            sage: f(0)
+            0.000000000000000
+            sage: f(1/7)
+            0.999844176260303
+
+            sage: E = EllipticCurve([123,456])
+            sage: E.conductor()
+            104461920
+            sage: f = E.modular_symbol_numerical(prec=2)
+            sage: f(0)
+            2.00001004772210
         """
-        lam = self.period_lattice().basis(prec=prec)
-        if sign == 1:
-            P = lam[0].real()
-            return lambda a: self._modsym(a, prec).real() / P
-        else:
-            P = lam[1].imag()
-            return lambda a: self._modsym(a, prec).imag() / P
+        #from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
+        M = ModularSymbolNumerical(self, sign=sign)
+        return lambda r: M.evaluate_approx(r, prec=prec)
+
 
     padic_lseries = padics.padic_lseries
 
