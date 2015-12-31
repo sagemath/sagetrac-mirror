@@ -920,9 +920,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(7, QQbar)
             sage: G[1].gauss_sum()
             -2.440133358345538? + 1.022618791871794?*I
+
+        Check that :trac:`19060` is fixed::
+
+            sage: K.<z> = CyclotomicField(8)
+            sage: G = DirichletGroup(13, K)
+            sage: chi = G([z^2])
+            sage: chi.gauss_sum()
+            zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
         """
         G = self.parent()
         K = G.base_ring()
+        chi = self
         m = G.modulus()
         if is_ComplexField(K):
             return self.gauss_sum_numerical(a=a)
@@ -930,6 +939,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             L = K
             zeta = L.zeta(m)
         elif number_field.is_CyclotomicField(K) or is_RationalField(K):
+            chi = chi.minimize_base_ring()
             n = arith.lcm(m, G.zeta_order())
             L = rings.CyclotomicField(n)
             zeta = L.gen(0) ** (n // m)
@@ -938,7 +948,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta = zeta ** a
         g = L.zero()
         z = L.one()
-        for c in self.values()[1:]:
+        for c in chi.values()[1:]:
             z *= zeta
             g += L(c)*z
         return g
@@ -1085,9 +1095,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             11
 
-        And sums where exactly one character is nontrivial (see trac #6393)::
+        And sums where exactly one character is nontrivial (see :trac:`6393`)::
 
-            sage: G=DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: G = DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
             sage: Y.jacobi_sum(Z)
             -1
             sage: Z.jacobi_sum(Y)
@@ -1173,7 +1183,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += self.__call__(c)*z
+                g += self(c)*z
         return g
 
     def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
@@ -1220,7 +1230,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             if arith.gcd(c,m)==1:
                 e = rings.Mod(c,m)
                 z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self.__call__(c))*z
+                g += phi(self(c))*z
         return g
 
     @cached_method

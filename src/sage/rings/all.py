@@ -5,15 +5,10 @@ Rings
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -25,17 +20,11 @@ from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
 
-from commutative_algebra_element import CommutativeAlgebraElement
-
 # Ring element base classes
-from ring_element import RingElement
-from commutative_ring_element import CommutativeRingElement
-from integral_domain_element import IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement
-from field_element import FieldElement
-
+from sage.structure.element import (CommutativeAlgebraElement,
+        RingElement, CommutativeRingElement, IntegralDomainElement,
+        DedekindDomainElement, PrincipalIdealDomainElement,
+        EuclideanDomainElement, FieldElement)
 
 # Ideals
 from ideal import Ideal
@@ -89,6 +78,8 @@ from real_double import RealDoubleField, RDF, RealDoubleElement
 
 from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 
+from sage.rings.real_arb import RealBallField, RBF
+
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
@@ -116,6 +107,8 @@ from complex_interval import (create_ComplexIntervalFieldElement as ComplexInter
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 from complex_mpc import MPComplexField
+
+from sage.rings.complex_arb import ComplexBallField, CBF
 
 # Power series rings
 from power_series_ring import PowerSeriesRing
@@ -185,3 +178,9 @@ from sage.rings.continued_fraction import (farey, convergents,
    Hirzebruch_Jung_continued_fraction_list)
 # and deprecated continued fractions
 from sage.rings.contfrac import (CFF, ContinuedFractionField)
+
+# asymptotic ring
+from asymptotic.all import *
+
+# Register classes in numbers abc
+import numbers_abc
