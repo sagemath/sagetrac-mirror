@@ -20,12 +20,14 @@ Sage可以绘制二维或三维图像。
 ::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0))
+    Graphics object consisting of 1 graphics primitive
 
 实心圆：
 
 ::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0), fill=True)
+    Graphics object consisting of 1 graphics primitive
 
 还可以把圆赋给一个变量，这样并不会将其画出来：
 
@@ -60,6 +62,7 @@ Sage可以绘制二维或三维图像。
 ::
 
     sage: plot(cos, (-5,5))
+    Graphics object consisting of 1 graphics primitive
 
 一旦指定了变量名，就可以绘制参数方程的图像：
 
@@ -67,6 +70,7 @@ Sage可以绘制二维或三维图像。
 
     sage: x = var('x')
     sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
+    Graphics object consisting of 1 graphics primitive
 
 特别注意，只有当原点在图片的可视范围内时，坐标轴才会相交，
 并且对于很大的数值，会使用科学记数法标记。
@@ -74,6 +78,7 @@ Sage可以绘制二维或三维图像。
 ::
 
     sage: plot(x^2,(x,300,500))
+    Graphics object consisting of 1 graphics primitive
 
 你可以把多个图像组合在一起：
 
@@ -95,6 +100,7 @@ Sage可以绘制二维或三维图像。
     ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
+    Graphics object consisting of 1 graphics primitive
 
 输入 ``show(p, axes=false)`` 可以看到没有坐标轴的图形。
 
@@ -116,6 +122,7 @@ Sage可以绘制二维或三维图像。
 
     sage: v = [(sin(x),x) for x in srange(-2*float(pi),2*float(pi),0.1)]
     sage: line(v)
+    Graphics object consisting of 1 graphics primitive
 
 因为正切函数比正弦函数的范围大的多，
 如果你想用同样的方法做出反正切函数，需要调整一下 *x* 轴的最大、最小值：
@@ -132,6 +139,7 @@ Sage还可以绘制极坐标图形，等高线图和向量场图（对于某些�
 
     sage: f = lambda x,y: cos(x*y)
     sage: contour_plot(f, (-4, 4), (-4, 4))
+    Graphics object consisting of 1 graphics primitive
 
 绘制三维图像
 -----------------------
@@ -146,6 +154,7 @@ Sage也能创建三维图像。无论是在notebook中，还是在REPL中，
 
     sage: x, y = var('x,y')
     sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+    Graphics3d Object
 
 或者，你可以用 ``parametric_plot3d`` 绘制参数曲面，
 其中 `x, y, z` 由一个或两个变量（参数，通常为 `u` 和 `v` ）确定。
@@ -158,6 +167,7 @@ Sage也能创建三维图像。无论是在notebook中，还是在REPL中，
     sage: f_y(u, v) = v
     sage: f_z(u, v) = u^2 + v^2
     sage: parametric_plot3d([f_x, f_y, f_z], (u, -2, 2), (v, -2, 2))
+    Graphics3d Object
 
 Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
 它绘制形如 ``f(x, y, z) = 0`` （定义了一个点集）的函数的图像。
@@ -167,6 +177,7 @@ Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
 
     sage: x, y, z = var('x, y, z')
     sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (x,-2, 2), (y,-2, 2), (z,-2, 2))
+    Graphics3d Object
 
 下面是一些例子：
 
@@ -180,6 +191,7 @@ Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
     sage: fz = v^2
     sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1),
     ....: frame=False, color="yellow")
+    Graphics3d Object
 
 `Cross cap <http://en.wikipedia.org/wiki/Cross-cap>`__:
 
@@ -191,6 +203,7 @@ Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
     sage: fz = -tanh((2/3)*(u-pi))*sin(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ....: frame=False, color="red")
+    Graphics3d Object
 
 Twisted torus:
 
@@ -202,6 +215,7 @@ Twisted torus:
     sage: fz = sin(u)+2*cos(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ....: frame=False, color="red")
+    Graphics3d Object
 
 Lemniscate:
 
@@ -210,3 +224,4 @@ Lemniscate:
     sage: x, y, z = var('x,y,z')
     sage: f(x, y, z) = 4*x^2 * (x^2 + y^2 + z^2 + z) + y^2 * (y^2 + z^2 - 1)
     sage: implicit_plot3d(f, (x, -0.5, 0.5), (y, -1, 1), (z, -1, 1))
+    Graphics3d Object

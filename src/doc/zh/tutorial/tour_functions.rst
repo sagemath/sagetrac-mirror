@@ -19,6 +19,7 @@
        sage: f(3)
        9
        sage: plot(f, 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 注意最后一行的语法。如果使用 ``plot(f(z),0,2)`` 的话，会报错。
 因为在 ``f`` 的定义中 ``z`` 是一个形式变量，在 ``f`` 之外，
@@ -35,6 +36,7 @@
        sage: f(z)
        z^2
        sage: plot(f(z), 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 这里, ``f(x)`` 是一个符号表达式，这是我们下一条要讨论的。
 
@@ -54,6 +56,7 @@
        sage: type(g)
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(g, 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 注意 ``g`` 是可调用的符号表达式, ``g(x)`` 是一个与之相关，
 但是不同类型的对象，虽然 ``g(x)`` 也可用于绘图、微分等。
@@ -70,6 +73,7 @@
        sage: g(x).derivative()
        2*x
        sage: plot(g(x), 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 3. 预定义的Sage“微积分函数”，可用于绘图。要进行微积分的话，还要加工一下。
 
@@ -78,9 +82,11 @@
        sage: type(sin)
        <class 'sage.functions.trig.Function_sin'>
        sage: plot(sin, 0, 2)
+       Graphics object consisting of 1 graphics primitive
        sage: type(sin(x))
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(sin(x), 0, 2)
+       Graphics object consisting of 1 graphics primitive
        
 ``sin`` 本身不能进行微分，至少不会得到 ``cos``.
 
@@ -135,6 +141,7 @@
 ::
 
        sage: plot(h, 0, 4)
+       Graphics object consisting of 1 graphics primitive
 
 \5. 意外得到一个常数而不是一个函数
 

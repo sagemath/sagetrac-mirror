@@ -282,8 +282,7 @@ Sage用了很多Singular [Si]_, 如计算最大公因式和理想的Gröbner基�
 ::
 
     sage: B.parent()
-    Category of sequences in Multivariate Polynomial Ring in x, y over Rational 
-    Field
+    <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
     sage: B.universe()
     Multivariate Polynomial Ring in x, y over Rational Field
     sage: B[1] = x

@@ -103,7 +103,7 @@ http://docs.python.org/lib/build-in-funcs.html 找到关于正规
 
     sage: P = parallel(p_iter = d.parallel_iter)
     sage: @P
-    ...   def f(n,m):  return n+m
+    ....: def f(n,m):  return n+m
     sage: f([(1,2), (5, 10/3)])
 
 

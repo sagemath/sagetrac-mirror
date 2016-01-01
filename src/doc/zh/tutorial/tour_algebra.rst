@@ -143,7 +143,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
 ::
 
     sage: t = var('t')    # 定义变量t
-    sage: x = function('x',t)   # 定义x是变量t的函数
+    sage: x = function('x')(t)   # 定义x是变量t的函数
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)
@@ -195,7 +195,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
 
     sage: de1 = maxima("2*diff(x(t),t, 2) + 6*x(t) - 2*y(t)")
     sage: lde1 = de1.laplace("t","s"); lde1
-    2*(-?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s)-2*'laplace(y(t),t,s)+6*'laplace(x(t),t,s)
+    2*(-%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s)-2*'laplace(y(t),t,s)+6*'laplace(x(t),t,s)
 
 结果很难读，意思其实是：
 
@@ -209,7 +209,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
 
     sage: de2 = maxima("diff(y(t),t, 2) + 2*y(t) - 2*x(t)")
     sage: lde2 = de2.laplace("t","s"); lde2
-    -?%at('diff(y(t),t,1),t=0)+s^2*'laplace(y(t),t,s)+2*'laplace(y(t),t,s)-2*'laplace(x(t),t,s)-y(0)*s
+    -%at('diff(y(t),t,1),t=0)+s^2*'laplace(y(t),t,s)+2*'laplace(y(t),t,s)-2*'laplace(x(t),t,s)-y(0)*s
 
 即
 
@@ -248,8 +248,8 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
 ::
 
     sage: t = var('t')
-    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),\
-    ...   (t, 0, 2*pi), rgbcolor=hue(0.9))
+    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),
+    ....:   (t, 0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
 每一个分支都可以画出来：
