@@ -10,34 +10,31 @@ fi
 
 cd src/
 
-# Apply patches.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+cp ../patches/CMakeLists.txt source/CMakeLists.txt
 
-echo "Configuring $NAME..."
-./configure \
-    --prefix="$SAGE_LOCAL" \
-    --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --disable-static
+
+export CFLAGS="-I$SAGE_LOCAL/include"
+export VERBOSE=1
+
+cmake \
+    -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL" \
+    -DUSER_INCLUDE_PATH="$SAGE_LOCAL/include" \
+    -DUSER_LIBRARY_PATH="$SAGE_LOCAL/lib" \
+    -DBoost_INCLUDE_DIRS="$SAGE_LOCAL/include/boost" \
+    .
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error configuring $NAME."
     exit 1
 fi
 
-echo "Now building $NAME..."
-$MAKE
+make chomp-cubical
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error building $NAME."
     exit 1
 fi
 
 echo "Now installing $NAME..."
-$MAKE install
+make install
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error installing $NAME."
     exit 1
