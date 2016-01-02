@@ -31,6 +31,7 @@ Check that we can externally cimport this (:trac:`18825`)::
 # in the actual pyx code to catch control-c for long running functions.
 
 from cpython cimport PyObject
+from libc.stdint cimport uint32_t, int64_t
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
 cdef extern from "sage/symbolic/ginac_wrap.h":
@@ -43,7 +44,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
-        unsigned int gethash()
+        int64_t gethash()
         int compare(GBasic other)
 
     ctypedef struct GConstant "constant":
@@ -86,7 +87,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
         GExList append_sym "append" (GSymbol e)
 
     ctypedef struct GEx "ex":
-        unsigned int gethash()        except +
+        int64_t gethash()        except +
         int compare(GEx other)        except +
         GEx expand(unsigned int opt)  except +
         GEx collect(GEx s, bint dist) except +
