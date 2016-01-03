@@ -3,7 +3,7 @@ Cactus Groups
 
 AUTHORS:
 
-- Travis Scrimshaw: initial version
+- Travis Scrimshaw (12-2015): initial version
 """
 
 ##############################################################################
@@ -16,17 +16,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
+from sage.misc.cachefunc import cached_method
+from sage.sets.family import Family
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.matrix.constructor import matrix
 from sage.categories.groups import Groups
 from sage.groups.group import Group
 from sage.groups.kernel_subgroup import KernelSubgroup
-from sage.structure.element import MultiplicativeGroupElement
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.permutation import Permutations
-from sage.misc.cachefunc import cached_method
-from sage.sets.family import Family
-
-#################################################################
 
 class CactusGroup(UniqueRepresentation, Group):
     r"""
@@ -70,9 +68,13 @@ class CactusGroup(UniqueRepresentation, Group):
 
     REFERENCES:
 
+    .. [DJS02] M. Davis, T. Januszkiewicz, and R. Scott.
+       *Fundamental groups of blow-ups*.
+       Sel. math., New ser. 4 (2002) pp 491-547. :arxiv:`math/0203127`.
+
     .. [White15] Noah White.
        *The monodromy of real Bethe vectors for the Gaudin model*.
-       :arxiv:`http://arxiv.org/abs/1511.04740v1`.
+       (2015). :arxiv:`1511.04740v1`.
     """
     def __init__(self, n):
         """
@@ -208,6 +210,142 @@ class CactusGroup(UniqueRepresentation, Group):
         for _ in range(l):
             ret *= gens[randint(0, len(gens)-1)]
         return ret
+
+    def bilinear_form(self, t=None):
+        r"""
+        Return the ``t``-bilinear form of ``self``.
+
+        We define a bilinear form `B` on the group algebra by
+
+        .. MATH::
+
+            B(s_{ij}, s_{pq}) = \begin{cases}
+            1 & \text{if } i = p, j = q, \\
+            -t & \text{if } [i, j] \not\subseteq [p, q] \text{ and }
+            [p, q] \not\subseteq [i, j], \\
+            0 & \text{otherwise}.
+            \end{cases}
+
+        In other words, it is `1` if `s_{ij} = s_{pq}`, `-t` if `s_{ij}`
+        and `s_{pq}` generate a free group, and `0` otherwise (they commute
+        or almost commute).
+
+        INPUT:
+
+        - ``t`` -- (default: `t` in `\ZZ[t]`) the variable `t`
+
+        EXAMPLES::
+
+            sage: J = groups.misc.Cactus(4)
+            sage: B = J.bilinear_form()
+            sage: B
+            [ 1  0  0 -t -t  0]
+            [ 0  1  0  0 -t -t]
+            [ 0  0  1  0  0  0]
+            [-t  0  0  1  0 -t]
+            [-t -t  0  0  1  0]
+            [ 0 -t  0 -t  0  1]
+
+        We reorder the generators so the bilinear form is more
+        "Coxeter-like". In particular, when we remove the generator
+        `s_{1,4}`, we recover the bilinear form in Example 6.2.5
+        of [DJS02]_::
+
+            sage: J.gens()
+            (s[1,2], s[1,3], s[1,4], s[2,3], s[2,4], s[3,4])
+            sage: S = SymmetricGroup(6)
+            sage: g = S([1,4,6,2,5,3])
+            sage: B.permute_rows_and_columns(g, g)
+            sage: B
+            [ 1 -t  0  0 -t  0]
+            [-t  1 -t  0  0  0]
+            [ 0 -t  1 -t  0  0]
+            [ 0  0 -t  1 -t  0]
+            [-t  0  0 -t  1  0]
+            [ 0  0  0  0  0  1]
+        """
+        if t is None:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.all import ZZ
+            t = PolynomialRing(ZZ, 't').gen()
+        R = t.parent()
+        ret = []
+        K = self.group_generators().keys()
+        for x in K:
+            for y in K:
+                if x is y:
+                    ret.append(R.one())
+                elif (x[1] < y[0] or x[0] > y[1] # Disjoint
+                      or (x[0] <= y[0] and y[1] <= x[1]) # y <= x
+                      or (y[0] <= x[0] and x[1] <= y[1])): # x <= y
+                    ret.append(R.zero())
+                else:
+                    ret.append(-t)
+        return matrix(R, len(K), len(K), ret)
+
+    def representation_generators(self, t=None):
+        r"""
+        Return the matrices corresponding to the generators of ``self``.
+
+        We construct a representation over `R = ZZ(t)` of `J_n` as follows.
+        Let `E` be the vector space over `R` spanned by `\{\epsilon_v\}_v`,
+        where `v` is a generator of `J_n`. Fix some generator `v`, and
+        let `E_v` denote the span of `\epsilon_u - \epsilon_{u'}`,
+        where `u'` is the reflected interval of `u` in `v`, over all
+        `u` such that `u \subset v`. Let `F_v` denote the orthogonal
+        complement of `R \epsilon_v \oplus E_v` with respect to the
+        :meth:`bilinear form <bilinear_form>` `B`. We define the action
+        of `v` on `E` by
+
+        .. MATH::
+
+            \rho(v) = -I |_{R\espilon_v \oplus E_v} \oplus I |_{F_v}.
+
+        By Theorem 6.2.3 of [DJS02]_, this defines a representation of `J_n`.
+        It is expected that this is a faithful representation (see
+        Remark 6.2.4 of [DJS02]_).
+
+        INPUT:
+
+        - ``t`` -- (default: `t` in `\ZZ[t]`) the variable `t`
+
+        EXAMPLES::
+
+            sage: J = groups.misc.Cactus(3)
+            sage: list(J.representation_generators())
+            [
+            [ -1   0 2*t]  [ 0  0  1]  [  1   0   0]
+            [  0   1   0]  [ 0 -1  0]  [  0   1   0]
+            [  0   0   1], [ 1  0  0], [2*t   0  -1]
+            ]
+        """
+        B = self.bilinear_form(t)
+        F = B.base_ring().fraction_field()
+        K = self.group_generators().keys()
+        from sage.modules.free_module import FreeModule
+        V = FreeModule(F, len(K))
+        basis = V.basis()
+        ret = {}
+        for ik,k in enumerate(K):
+            E = [basis[ik]]
+            ME = matrix(E)
+            # The only non-trivial elements are those reflected by the interval k
+            for low in range(k[0], k[1]+1):
+                for high in range(low+1, k[1]+1):
+                    v = (low, high)
+                    vp = (k[0]+k[1]-high, k[0]+k[1]-low)
+                    if v == vp:
+                        continue
+                    elt = basis[K.index(v)] - basis[K.index(vp)]
+                    if elt not in ME.row_space():
+                        E.append(elt)
+                        ME = ME.stack(elt)
+            # Get the orthogonal complement wrt to the bilinear form B
+            Fv = (ME * B).right_kernel().basis_matrix()
+            T = ME.stack(Fv).transpose()
+            rho = matrix.diagonal(F, [-1]*len(E) + [1]*(len(K)-len(E)))
+            ret[k] = T * rho * ~T
+        return Family(K, lambda k: ret[k])
 
     @cached_method
     def _product_on_gens(self, x, y):
@@ -430,6 +568,42 @@ class CactusGroup(UniqueRepresentation, Group):
                 lst[x[0]-1:x[1]] = list(reversed(lst[x[0]-1:x[1]]))
                 ret *= P(lst)
             return ret
+
+        def _matrix_(self):
+            """
+            Return ``self`` as a matrix.
+
+            EXAMPLES::
+
+                sage: J3 = groups.misc.Cactus(3)
+                sage: s12,s13,s23 = J3.gens()
+                sage: s12.to_matrix()
+                [ -1   0 2*t]
+                [  0   1   0]
+                [  0   0   1]
+                sage: (s12*s13).to_matrix()
+                [2*t   0  -1]
+                [  0  -1   0]
+                [  1   0   0]
+                sage: (s13*s23).to_matrix()
+                [2*t   0  -1]
+                [  0  -1   0]
+                [  1   0   0]
+                sage: (s13*s12).to_matrix()
+                [  0   0   1]
+                [  0  -1   0]
+                [ -1   0 2*t]
+                sage: all(x.to_matrix() * y.to_matrix() == (x*y).to_matrix()
+                ....:     for x in J3.gens() for y in J3.gens())
+                True
+            """
+            G = self.parent().representation_generators()
+            ret = G[(1,2)].parent().one()
+            for x in self._word:
+                ret *= G[x]
+            return ret
+
+        to_matrix = _matrix_
 
 class PureCactusGroup(KernelSubgroup):
     """
