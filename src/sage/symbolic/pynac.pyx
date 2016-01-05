@@ -1091,9 +1091,9 @@ def py_is_crational_for_doctest(x):
         True
         sage: py_is_crational_for_doctest(1.5)
         False
-        sage: py_is_crational_for_doctest(I.pyobject())
+        sage: py_is_crational_for_doctest(I)
         True
-        sage: py_is_crational_for_doctest(I.pyobject()+1/2)
+        sage: py_is_crational_for_doctest(I + 1/2)
         True
     """
     return py_is_crational(x)
@@ -1218,11 +1218,11 @@ def py_is_cinteger_for_doctest(x):
         True
         sage: py_is_cinteger_for_doctest(long(-3))
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject())
+        sage: py_is_cinteger_for_doctest(I)
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject() - 3)
+        sage: py_is_cinteger_for_doctest(I - 3)
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject() + 1/2)
+        sage: py_is_cinteger_for_doctest(I + 1/2)
         False
     """
     return py_is_cinteger(x)
@@ -2188,7 +2188,6 @@ import sage.rings.real_double
 ginac_pyinit_Float(sage.rings.real_double.RDF)
 
 cdef Element pynac_I
-I = None
 
 def init_pynac_I():
     """
@@ -2198,8 +2197,6 @@ def init_pynac_I():
 
         sage: sage.symbolic.pynac.init_pynac_I()
         sage: type(sage.symbolic.pynac.I)
-        <type 'sage.symbolic.expression.Expression'>
-        sage: type(sage.symbolic.pynac.I.pyobject())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
 
     TESTS:
@@ -2215,12 +2212,13 @@ def init_pynac_I():
         sage: bool(z == y)
         True
     """
-    global pynac_I, I
+    global pynac_I, I, symbolic_I
     from sage.rings.number_field.number_field import QuadraticField
     K = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
     pynac_I = K.gen()
     ginac_pyinit_I(pynac_I)
-    I = new_Expression_from_GEx(ring.SR, g_I)
+    I = pynac_I
+    symbolic_I = new_Expression_from_GEx(ring.SR, g_I)
 
 
 def init_function_table():

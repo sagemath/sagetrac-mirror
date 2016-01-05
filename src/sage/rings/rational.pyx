@@ -2294,7 +2294,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return c
                 elif d == -1 and n.denominator() == 2:
                     from sage.symbolic.all import I
-                    return c * I.pyobject() ** (n.numerator() % 4)
+                    return c * I ** (n.numerator() % 4)
                 elif c != 1:
                     return c * d**n
                 # Can't simplify the power, return a symbolic expression.

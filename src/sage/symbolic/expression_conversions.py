@@ -23,7 +23,7 @@ from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
-GaussianField = I.pyobject().parent()
+GaussianField = I.parent()
 
 
 class FakeExpression(object):

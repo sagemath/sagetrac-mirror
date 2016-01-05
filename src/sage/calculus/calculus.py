@@ -2095,6 +2095,9 @@ def _find_Mvar(name):
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
+    if name == "I":
+        return sage.symbolic.pynac.symbolic_I
+
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):

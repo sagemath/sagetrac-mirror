@@ -3437,10 +3437,10 @@ cdef class Expression(CommutativeRingElement):
 
         Check if :trac:`10849` is fixed::
 
-            sage: t = I.pyobject().parent()(-1/2)
+            sage: t = I.parent()(-1/2)
             sage: t > 0
             False
-            sage: t = I*x-1/2; t
+            sage: t = SR(I)*x-1/2; t
             I*x - 1/2
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
