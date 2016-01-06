@@ -235,14 +235,14 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
 
         raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
-    def _an_element_impl(self):
+    def an_element(self):
         """
         Returns an element of self, namely the unit element.
 
         EXAMPLES::
 
             sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
-            sage: s._an_element_impl()
+            sage: s.an_element()
             s[]
             sage: _.parent() is s
             True

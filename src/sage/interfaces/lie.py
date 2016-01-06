@@ -535,11 +535,11 @@ class LiE(Expect):
         else:
             return self._trait_names_list
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         """
         EXAMPLES::
 
-            sage: lie._an_element_impl() # optional - lie
+            sage: lie.an_element() # optional - lie
             0
         """
         return self(0)
