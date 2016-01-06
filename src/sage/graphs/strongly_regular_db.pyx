@@ -857,9 +857,9 @@ def is_cossidente_penttila(int v,int k,int l,int mu):
         sage: from sage.graphs.strongly_regular_db import is_cossidente_penttila
         sage: t =  is_cossidente_penttila(378, 52, 1, 8); t
         (<function CossidentePenttilaGraph at ...>, 5)
-        sage: g = t[0](*t[1:]); g
+        sage: g = t[0](*t[1:]); g                      # optional - gap_packages
         CossidentePenttila(5): Graph on 378 vertices
-        sage: g.is_strongly_regular(parameters=True)
+        sage: g.is_strongly_regular(parameters=True)   # optional - gap_packages
         (378, 52, 1, 8)
 
     TESTS::
