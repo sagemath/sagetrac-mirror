@@ -153,25 +153,6 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return PowerSeries_pari, (self._parent, self.g, self._prec, False)
 
-    def __richcmp__(left, right, int op):
-       """
-       Used for comparing power series.
-
-       EXAMPLES::
-
-           sage: R.<t> = PowerSeriesRing(ZZ, implementation='pari')
-           sage: f = 1 + t + t^7 - 5*t^10
-           sage: g = 1 + t + t^7 - 5*t^10 + O(t^15)
-           sage: f == f
-           True
-           sage: f < g
-           False
-           sage: f == g
-           True
-
-       """
-       return (<Element>left)._richcmp(right, op)
-
     def _pari_(self):
         """
         Convert ``self`` to a PARI object.
