@@ -836,6 +836,51 @@ def is_haemers(int v,int k,int l,int mu):
             return (HaemersGraph, q)
 
 @cached_function
+def is_cossidente_penttila(int v,int k,int l,int mu):
+    r"""
+    Test whether some CossidentePenttilaGraph graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`~sage.graphs.graph_generators.GraphGenerators.CossidentePenttilaGraph`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_cossidente_penttila
+        sage: t =  is_cossidente_penttila(378, 52, 1, 8); t
+        (<function CossidentePenttilaGraph at ...>, 5)
+        sage: g = t[0](*t[1:]); g
+        CossidentePenttila(5): Graph on 378 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (378, 52, 1, 8)
+
+    TESTS::
+
+        sage: t =  is_cossidente_penttila(56,10,0,2); t
+        (<function CossidentePenttilaGraph at ...>, 3)
+        sage: t =  is_cossidente_penttila(1376,150,2,18); t
+        (<function CossidentePenttilaGraph at ...>, 7)
+        sage: t = is_cossidente_penttila(5,5,5,5); t
+    """
+    cdef int q, n, p
+    q = 2*l+3
+    p, n = is_prime_power(q, get_data=True)
+    if 2 < p and n != 0:
+        if (v  == (q**3+1)*(q+1)/2     and
+            k  == (q**2+1)*(q-1)/2      and
+            mu  == (q-1)**2/2):
+            from sage.graphs.generators.classical_geometries import CossidentePenttilaGraph
+            return (CossidentePenttilaGraph, q)
+
+@cached_function
 def is_complete_multipartite(int v,int k,int l,int mu):
     r"""
     Test whether some complete multipartite graph is `(v,k,\lambda,\mu)`-strongly regular.
@@ -2729,6 +2774,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_switch_OA_srg,
                       is_polhill,
                       is_haemers,
+                      is_cossidente_penttila,
                       is_mathon_PC_srg,
                       is_switch_skewhad]
 
@@ -2987,12 +3033,12 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  90   40   42  ) that exists. Comment ... RSHCD<sup></sup>; 2-graph
+        Sage cannot build a (196  60   14   20  ) that exists. Comment from Brouwer's database: pg(6,9,2)?
         ...
         In Andries Brouwer's database:
-        - 448 impossible entries
-        - 2950 undecided entries
-        - 1140 realizable entries (Sage misses ... of them)
+        - 452 impossible entries
+        - 2936 undecided entries
+        - 1150 realizable entries (Sage misses ... of them)
 
     """
     global _brouwer_database
