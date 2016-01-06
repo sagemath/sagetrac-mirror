@@ -1290,24 +1290,24 @@ def CossidentePenttilaGraph(q):
         raise RuntimeError('optional package gap_packages needs to be installed')
 
     adj_list=libgap.function_factory('function(q)                                       \
-        local z, eps, so, G, mu, G1, G0, B, T, s, O1, O2, x;                           \
+        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;                           \
         G0:=SO(3,q^2);                                                                  \
         so:=GeneratorsOfGroup(G0);                                                      \
         G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));               \
         B:=InvariantBilinearForm(G0).matrix;                                            \
-        z:=Z(q^2); eps:=z; sqo:=(q^2-1)/2;                                              \
-        if IsInt(sqo/Order(eps^2+z^0)) then                                             \
-            eps:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));            \
+        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;                                              \
+        if IsInt(sqo/Order(e^2+z^0)) then                                             \
+            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));            \
         fi;                                                                             \
-        mu:=z^First([0..q^2-2], x->z^x*(eps^2+z^0)+(z^x*(eps^2+z^0))^q=0*z);            \
+        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);            \
         T:=function(x)                                                                  \
             local r;                                                                    \
-            r:=mu*x*B*x;                                                                \
+            r:=nu*x*B*x;                                                                \
             return r+r^q;                                                               \
         end;                                                                            \
         s:=Group([Z(q)*IdentityMat(3,GF(q))]);                                          \
         O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);                               \
-        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,eps])), OnSets);                             \
+        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);                             \
         G:=Graph(G1,Concatenation(O1,O2),OnSets,                                        \
             function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);                       \
         return List([1..OrderGraph(G)],x->Adjacency(G,x));                              \
