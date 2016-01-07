@@ -106,29 +106,6 @@ def check_processor_flags():
         sys.exit(1)
 
 
-def update_library_files():
-    """
-    Manually change the paths in all ``.la`` libtool archives.
-    """
-    for libdir in ["lib", "lib32", "lib64"]:
-        LIB = os.path.join(SAGE_LOCAL, libdir)
-        if not os.path.isdir(LIB):
-            continue
-
-        # The .la files hardcode path info, so we manually fix the path info:
-        for F in os.listdir(LIB):
-           if os.path.splitext(F)[-1] == ".la":
-               G = open(os.path.join(LIB,F)).read()
-               i = G.find('libdir=')
-               j = i+8 + G[i+8:].find("'")
-               z = G[i+8:j].strip().strip("'")
-               i = z.rfind('local/')
-               if i != -1:
-                   z = z[:i]
-                   H = G.replace(z, SAGE_ROOT + '/')
-                   open(os.path.join(LIB, F),'w').write(H)
-
-
 def update_pkgconfig_files():
     """
     Call ``update_pkgconfig_file()`` for every ``pkg-config`` file in
@@ -260,7 +237,6 @@ def sage_relocate():
     once should be equivalent to executing them once.
     """
     check_processor_flags()
-    update_library_files()
     update_pkgconfig_files()
     make_scripts_relative()
     write_config_files()
