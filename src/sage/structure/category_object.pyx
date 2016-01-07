@@ -293,8 +293,8 @@ cdef class CategoryObject(sage_object.SageObject):
         r"""
         Return a dictionary whose entries are ``{name:variable,...}``,
         where ``name`` stands for the variable names of this
-        object (as strings) and ``variable`` stands for the corresponding
-        generators (as elements of this object).
+        object (as strings) and ``variable`` stands for the
+        corresponding defining generators (as elements of this object).
 
         EXAMPLES::
 
@@ -303,7 +303,7 @@ cdef class CategoryObject(sage_object.SageObject):
             {'a': a, 'b': b, 'c': c, 'd': d}
         """
         cdef dict v = {}
-        for x in self.gens():
+        for x in self._defining_generators():
             v[str(x)] = x
         return v
 
@@ -313,8 +313,8 @@ cdef class CategoryObject(sage_object.SageObject):
 
         OUTPUT:
 
-        - a dictionary with string names of generators as keys and generators of
-          ``self`` and its base rings as values.
+        - a dictionary with string names of generators as keys and
+          generators of ``self`` and its base rings as values.
 
         EXAMPLES::
 
