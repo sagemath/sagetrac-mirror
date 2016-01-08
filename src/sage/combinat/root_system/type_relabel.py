@@ -197,13 +197,19 @@ class CartanType(cartan_type.CartanType_decorator):
 
            sage: CartanType(['F', 4]).relabel(lambda x: 5-x)._repr_(compact = True)
            'F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}'
+
+            sage: CartanType(['H',3]).relabel({1:'a', 2:'b', 3:'c'})
+            ['H', 3] relabelled by {1: 'a', 2: 'b', 3: 'c'}
         """
-        # Special case for type D_4^3
-        if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.global_options("notation") == "Kac":
-            if compact:
-                return 'D4^3'
-            return "['D', 4, 3]"
+        try:
+            # Special case for type D_4^3
+            if (self._type.dual().type() == 'G' and self._type.is_affine()
+                        and self.global_options("notation") == "Kac"):
+                if compact:
+                    return 'D4^3'
+                return "['D', 4, 3]"
+        except NotImplementedError: # No dual for non-crystallographic types
+            pass
         return self._type._repr_(compact = compact)+" relabelled by {}".format(self._relabelling)
 
     def _latex_(self):
@@ -233,9 +239,13 @@ class CartanType(cartan_type.CartanType_decorator):
         """
         from sage.misc.latex import latex
         # Special case for type D_4^{(3)}
-        if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.global_options("notation") == "Kac":
-            return 'D_4^{(3)}'
+        try:
+            if (self._type.dual().type() == 'G'
+                        and self._type.is_affine()
+                        and self.global_options("notation") == "Kac"):
+                return 'D_4^{(3)}'
+        except NotImplementedError: # No dual for non-crystallographic types
+            pass
         ret = self._type._latex_()
         if self.global_options('latex_relabel'):
             ret += " \\text{ relabelled by } " + latex(self._relabelling)
@@ -310,6 +320,24 @@ class CartanType(cartan_type.CartanType_decorator):
         # relabelling in place allows to keep the extra Dynkin diagram structure
         super(result.__class__, result).relabel(self._relabelling, inplace=True)
         result._cartan_type = self
+        return result
+
+    def coxeter_diagram(self):
+        """
+        Return the Coxeter diagram for ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['H',3]).coxeter_diagram()
+            Graph on 3 vertices
+            sage: relabelling = {1: 'a', 2: 'b', 3: 'c'}
+            sage: R = CartanType(['H',3]).relabel(relabelling)
+            sage: R.coxeter_diagram()
+            Graph on 3 vertices
+        """
+        result = self._type.coxeter_diagram().copy()
+        # relabelling in place allows to keep the extra Dynkin diagram structure
+        result.relabel(self._relabelling, inplace=True)
         return result
 
     def index_set(self):

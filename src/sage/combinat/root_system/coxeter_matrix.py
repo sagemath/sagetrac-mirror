@@ -150,6 +150,26 @@ class CoxeterMatrix(CoxeterType):
             Rational Field
             sage: CoxeterMatrix([[1,-1.5],[-1.5,1]])._matrix.base_ring()
             Real Field with 53 bits of precision
+
+        TESTS:
+
+        Check that :trac:`19830` is fixed::
+
+            sage: M = CoxeterMatrix(['B',3], index_set=['A', 'b', 'XX'])
+            sage: M.index_set()
+            ('A', 'XX', 'b')
+            sage: M
+            [1 2 3]
+            [2 1 4]
+            [3 4 1]
+            sage: C = CoxeterMatrix(['B',3])
+            sage: R = C.relabel({1:'A', 2:'b', 3:'XX'})
+            sage: R
+            [1 2 3]
+            [2 1 4]
+            [3 4 1]
+            sage: M == R
+            True
         """
         if not data:
             if coxeter_type:
@@ -190,6 +210,11 @@ class CoxeterMatrix(CoxeterType):
 
         # Initiate from a Coxeter type
         if coxeter_type:
+            if index_set:
+                index_set = tuple(index_set)
+                if index_set != coxeter_type.index_set():
+                    d = {i: index_set[pos] for pos,i in enumerate(coxeter_type.index_set())}
+                    coxeter_type = coxeter_type.relabel(d)
             return cls._from_coxetertype(coxeter_type)
 
         # TODO:: remove when oo is possible in matrices.
@@ -587,25 +612,30 @@ class CoxeterMatrix(CoxeterType):
 
         EXAMPLES::
 
-            sage: CoxeterMatrix(['F',4]).relabel({ 1:2, 2:3, 3:4, 4:1})
-            [1 4 2 3]
-            [4 1 3 2]
-            [2 3 1 2]
-            [3 2 2 1]
+            sage: CoxeterMatrix(['F',4]).relabel({1:2, 2:3, 3:4, 4:1})
+            [1 2 2 3]
+            [2 1 3 2]
+            [2 3 1 4]
+            [3 2 4 1]
             sage: CoxeterMatrix(['F',4]).relabel(lambda x: x+1 if x<4 else 1)
-            [1 4 2 3]
-            [4 1 3 2]
-            [2 3 1 2]
-            [3 2 2 1]
+            [1 2 2 3]
+            [2 1 3 2]
+            [2 3 1 4]
+            [3 2 4 1]
         """
-        if isinstance(relabelling, dict):
-            data = [[self[relabelling[i]][relabelling[j]]
-                     for j in self.index_set()] for i in self.index_set()]
-        else:
-            data = [[self[relabelling(i)][relabelling(j)]
-                     for j in self.index_set()] for i in self.index_set()]
+        if self._coxeter_type is not None:
+            T = self._coxeter_type.relabel(relabelling)
+            return T.coxeter_matrix()
 
-        return CoxeterMatrix(data)
+        if isinstance(relabelling, dict):
+            rev = {i: a for a,i in relabelling.items()}
+        else:
+            rev = {relabelling(i): i for i in self.index_set()}
+        J = sorted(rev.keys())
+
+        data = [[self[rev[x],rev[y]] for x in J] for y in J]
+
+        return CoxeterMatrix(self._matrix, index_set=J)
 
     def __reduce__(self):
         """
@@ -1045,13 +1075,14 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         Coxeter type of ['G', 2, 1] relabelled by {0: 'a', 1: 'b', 2: 'c'}
 
         sage: from sage.combinat.root_system.coxeter_matrix import recognize_coxeter_type_from_matrix
+        sage: is_same = lambda X,Y: X.coxeter_graph().is_isomorphic(Y.coxeter_graph(), edge_labels=True)
         sage: for C in CoxeterMatrix.samples():
         ....:     relabelling_perm = Permutations(C.index_set()).random_element()
         ....:     relabelling_dict = {C.index_set()[i]: relabelling_perm[i] for i in range(C.rank())}
         ....:     relabeled_matrix = C.relabel(relabelling_dict)._matrix
         ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix, relabelling_perm)
         ....:     if C.is_finite() or C.is_affine():
-        ....:         assert recognized_type == C.coxeter_type()
+        ....:         assert is_same(recognized_type, C.coxeter_type())
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())

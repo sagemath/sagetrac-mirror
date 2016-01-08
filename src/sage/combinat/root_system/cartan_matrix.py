@@ -227,6 +227,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: cm = CartanMatrix(d)
             sage: cm.index_set()
             ('a', 'b')
+
+        Check that :trac:`19830` is fixed::
+
+            sage: M = CartanMatrix(['B',3], index_set=['A', 'b', 'XX'])
+            sage: M.index_set()
+            ('A', 'XX', 'b')
+            sage: M
+            [ 2  0 -1]
+            [ 0  2 -2]
+            [-1 -1  2]
+            sage: C = CartanMatrix(['B',3])
+            sage: R = C.relabel({1:'A', 2:'b', 3:'XX'})
+            sage: M == R
+            True
         """
         # Special case with 0 args and kwds has Cartan type
         if cartan_type is not None and data is None:
@@ -235,7 +249,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if data is None:
             data = []
             n = 0
-            index_set = tuple()
+            I = tuple()
             cartan_type = None
             subdivisions = None
         elif isinstance(data, CartanMatrix):
@@ -260,8 +274,8 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
             if dynkin_diagram is not None:
                 n = dynkin_diagram.rank()
-                index_set = dynkin_diagram.index_set()
-                reverse = {a: i for i,a in enumerate(index_set)}
+                I = dynkin_diagram.index_set()
+                reverse = {a: i for i,a in enumerate(I)}
                 data = {(i, i): 2 for i in range(n)}
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
@@ -272,22 +286,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 n = M.ncols()
                 data = M.dict()
                 subdivisions = M._subdivisions
-
-            if index_set is None:
-                index_set = tuple(range(n))
-            else:
-                index_set = tuple(index_set)
-
-        if len(index_set) != n and len(set(index_set)) != n:
-            raise ValueError("the given index set is not valid")
+                I = tuple(range(n))
 
         # We can do the Cartan type initialization later as this is not
         #   a unqiue representation
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround
-        mat._CM_init(cartan_type, index_set, cartan_type_check)
+        mat._CM_init(cartan_type, I, cartan_type_check)
         mat._subdivisions = subdivisions
+        if index_set is not None:
+            if len(index_set) != n and len(set(index_set)) != n:
+                raise ValueError("the given index set is not valid")
+            d = {a: index_set[i] for i,a in enumerate(I)}
+            return mat.relabel(d)
         return mat
 
     def _CM_init(self, cartan_type, index_set, cartan_type_check):
