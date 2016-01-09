@@ -1119,7 +1119,7 @@ cdef class CachedFunction(object):
         try:
             del (<dict>self.cache)[k]
         except TypeError: # k is not hashable
-            k = (_cache_key, _cache_key(k))
+            k = (cache_key, cache_key(k))
             del (<dict>self.cache)[k]
 
     def get_key(self, *args, **kwds):
