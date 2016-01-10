@@ -269,7 +269,10 @@ cdef class lazy_list_abstract(object):
         sage: l[200]
         1229
     """
-    def __init__(self, cache=None, start=None, stop=None, step=None):
+    def __init__(self, cache=None, start=None, stop=None, step=None,
+                 name=None, separator=None, more=None,
+                 opening_delimiter=None, closing_delimiter=None,
+                 preview=None):
         r"""
         No check is performed on input and bad input can result in a Sage crash.
         You are advised to use the function :func:`lazy_list` instead. The only
@@ -307,6 +310,14 @@ cdef class lazy_list_abstract(object):
         self.start = 0 if start is None else start
         self.stop = PY_SSIZE_T_MAX if stop is None else stop
         self.step = 1 if step is None else step
+
+        self.name = 'lazy list' if name is None else name
+        self.opening_delimiter = '[' if opening_delimiter is None else opening_delimiter
+        self.separator = ', ' if separator is None else separator
+        self.more = '...' if more is None else more
+        self.closing_delimiter = ']' if closing_delimiter is None else closing_delimiter
+        self.preview = 3 if preview is None else preview
+
 
     def start_stop_step(self):
         r"""
@@ -474,32 +485,24 @@ cdef class lazy_list_abstract(object):
         cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
         cdef Py_ssize_t length = len(self.cache)
 
-        if (length <= self.start + 3*self.step and
+        if (length <= self.start + self.preview*self.step and
             num_elts != length / self.step):
-            self._fit(self.start + 3*self.step)
+            self._fit(self.start + self.preview*self.step)
             num_elts = 1 + (self.stop-self.start-1) / self.step
 
-        if num_elts == 0:
-            return "lazy list []"
-
-        if num_elts == 1:
-            return "lazy list [{!r}]".format(self.get(0))
-
-        if num_elts == 2:
-            return "lazy list [{!r}, {!r}]".format(
-                    self.get(0),
-                    self.get(1))
-
-        if num_elts == 3:
-            return "lazy list [{!r}, {!r}, {!r}]".format(
-                self.get(0),
-                self.get(1),
-                self.get(2))
-
-        return "lazy list [{!r}, {!r}, {!r}, ...]".format(
-                self.get(0),
-                self.get(1),
-                self.get(2))
+        cdef str s = self.name
+        if s:
+            s += ' '
+        s += self.opening_delimiter
+        cdef list E = list('{!r}'.format(self.get(n))
+                           for n in xrange(min(num_elts, self.preview)))
+        if num_elts >= self.preview:
+            # PROBLEM/BUG with the following code line
+            # (run doctests of this file to see)
+            E.append(self.more)
+        s += self.separator.join(E)
+        s += self.closing_delimiter
+        return s
 
     def __reduce__(self):
         r"""
