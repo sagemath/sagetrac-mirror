@@ -1,0 +1,1 @@
+$(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(GIVARO)
