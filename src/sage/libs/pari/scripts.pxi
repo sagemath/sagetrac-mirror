@@ -6,12 +6,12 @@ the functions used privately within the script.
 
 AUTHORS:
 
- - Jeroen Demeyer (2010-08-15): initial version (#15809)
+ - Jeroen Demeyer (2015-07-10): initial version (:trac:`15809`)
 
 """
 
 # Denis Simon's scripts
-cdef extern from *:
+cdef extern:
     long DEBUGLEVEL_qfsolve
     long DEBUGLEVEL_ell
     long LIM1
