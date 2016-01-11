@@ -1214,3 +1214,28 @@ cdef class lazy_list_takewhile(lazy_list_generic):
                     return 0
         return 0
 
+
+cdef class lazy_list_dropwhile(lazy_list_generic):
+    r"""
+    EXAMPLES::
+
+        sage: from sage.data_structures.lazy_list import lazy_list, lazy_list_dropwhile
+        sage: L = lazy_list(Primes())
+        sage: lazy_list_dropwhile(L, lambda x: x <= 3)
+        lazy list [5, 7, 11, ...]
+    """
+    def __init__(self, master, predicate, **kwds):
+        lazy_list_generic.__init__(
+            self, master=master, cache=master._get_cache_(), **kwds)
+        self.predicate = predicate
+        self.dropping = True
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        while len(self.cache) <= i:
+            if lazy_list_generic.update_cache_up_to(self, i):
+                return 1
+            if not self.dropping:
+                return 0
+            while self.predicate(self.cache[0]):
+                self.cache.pop(0)
+        return 0

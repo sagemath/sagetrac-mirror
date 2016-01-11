@@ -25,3 +25,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
 cdef class lazy_list_takewhile(lazy_list_generic):
     cdef object predicate
     cdef bint taking
+
+cdef class lazy_list_dropwhile(lazy_list_generic):
+    cdef object predicate
+    cdef bint dropping
