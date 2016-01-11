@@ -37,8 +37,9 @@ TESTS::
 
 """
 
-#*****************************************************************************#
-#       Copyright (C) 2015 Antoine Joux and Vanessa Vitse
+#*****************************************************************************
+#       Copyright (C) 2015 Antoine Joux
+#       Copyright (C) 2015 Vanessa Vitse
 #       Copyright (C) 2015 Titouan Coladon
 #
 # This program is free software: you can redistribute it and/or modify
@@ -48,32 +49,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from libcpp.string cimport string
-from libcpp.vector cimport vector
-
-from libc.stdint cimport int64_t
 
 include "sage/ext/interrupt.pxi"
 
-
-cdef extern from "libopenf4.h":
-    cdef vector[string] groebnerBasisF4(int64_t modulus,
-                                        int nbVariable,
-                                        vector[string] variableName,
-                                        vector[string] polynomialList,
-                                        int nbThread, int verbose)
-    cdef vector[string] groebnerBasisGF2F4(int nbVariable,
-                                           vector[string] variableName,
-                                           vector[string] polynomialList,
-                                           int nbThread, int verbose)
-#    cdef vector[string] groebnerBasisGivaroIntegerF4(string modulus, int nbVariable, vector[string] variableName, vector[string] polynomialList, int nbThread, int verbose)
-    cdef vector[string] groebnerBasisGF2ExtensionF4(string modulus,
-                                                    int nbVariable,
-                                                    vector[string] variableName,
-                                                    string polyVarName,
-                                                    vector[string] polynomialList,
-                                                    int nbThread,
-                                                    int verbose)
 
 def groebner_basis_openf4(self, prot=0, threads=1):
     """
