@@ -207,6 +207,25 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         ...
         ValueError: only one of the arguments 'data' or 'update_function'
         can be used
+
+    Lazy lists created from each other share their cache::
+
+        sage: C = lazy_list(count())
+        sage: C[4]
+        4
+        sage: D = lazy_list(C)
+        sage: D._info()
+        cache length 5
+        start        0
+        stop         9223372036854775807
+        step         1
+        sage: D[6]
+        6
+        sage: C._info()
+        cache length 7
+        start        0
+        stop         9223372036854775807
+        step         1
     """
     cdef lazy_list_generic l
 
@@ -226,7 +245,9 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
 
     if isinstance(data, (tuple,list)):
         data = cache + list(data)
-        l = lazy_list_generic(data, 0, len(data), 1)
+        l = lazy_list_generic(data, start=0, stop=len(data), step=1, **kwds)
+    elif isinstance(data, lazy_list_generic):
+        l = data.make_linked_copy(**kwds)  # to share cache
     else:
         # the code below is not very clean
         # we just want to differentiate on the one hand iterable (= object with a
@@ -239,7 +260,10 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
 
         from sage.misc.misc import is_iterator
         if is_iterator(data):
-            l = lazy_list_from_iterator(iter(data), cache)
+            if isinstance(data, lazy_list_generic):
+                l = data.make_linked_copy()  # to share cache
+            else:
+                l = lazy_list_from_iterator(iter(data), cache, **kwds)
         elif callable(data):
             l = lazy_list_from_function(data, cache, **kwds)
         else:
@@ -458,13 +482,7 @@ cdef class lazy_list_generic(object):
         if not isinstance(self, list):
             raise TypeError("can only add list to lazy_list")
 
-        cdef lazy_list_from_iterator l = lazy_list_from_iterator.__new__(lazy_list_from_iterator)
-        l.cache = self[:]
-        l.start = 0
-        l.stop = PY_SSIZE_T_MAX
-        l.step = 1
-        l.iterator = iter(other)
-        return l
+        return lazy_list_from_iterator(iter(other), cache=self[:])
 
     def __repr__(self):
         r"""
@@ -810,14 +828,8 @@ cdef class lazy_list_generic(object):
 
         # here we return a slice of self. That is to say, a lazy list which
         # shares the same cache of values
-        cdef lazy_list_generic l = lazy_list_generic.__new__(lazy_list_generic)
-        l.master = self
-        l.cache = self.cache
-        l.start = start
-        l.stop = stop
-        l.step = step
-
-        return l
+        return self.make_linked_copy(
+            start=start, stop=stop, step=step)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
