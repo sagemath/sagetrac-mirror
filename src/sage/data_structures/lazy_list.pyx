@@ -844,6 +844,61 @@ cdef class lazy_list_generic(object):
             self.cache.extend(l)
         return 0
 
+    def make_linked_copy(self, **kwds):
+        r"""
+
+        TESTS::
+
+            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: P = lazy_list(Primes())
+            sage: Q = P.make_linked_copy()  # indirect doctest
+            sage: P[5]
+            13
+            sage: Q._info()
+            cache length 6
+            start        0
+            stop         9223372036854775807
+            step         1
+            sage: Q[10]
+            31
+            sage: P._info()
+            cache length 11
+            start        0
+            stop         9223372036854775807
+            step         1
+            sage: Q._info()
+            cache length 11
+            start        0
+            stop         9223372036854775807
+            step         1
+
+        ::
+
+            sage: S = P[::2]; S
+            lazy list [2, 5, 11, ...]
+            sage: T = S.make_linked_copy(); T  # indirect doctest
+            lazy list [2, 5, 11, ...]
+            sage: T[::2]
+            lazy list [2, 11, 23, ...]
+        """
+        # We track self by using it as master in our new lazy_list and 
+        # both share the same cache.
+        kwds_copy = {
+            'cache': self.cache,
+            'master': self,
+            'start': self.start,
+            'stop': self.stop,
+            'step': self.step,
+            'name': self.name,
+            'separator': self.separator,
+            'more': self.more,
+            'opening_delimiter': self.opening_delimiter,
+            'closing_delimiter': self.closing_delimiter,
+            'preview': self.preview}
+        kwds_copy.update(kwds)
+        return lazy_list_generic(**kwds_copy)
+
+
 cdef class lazy_list_from_iterator(lazy_list_generic):
     r"""
     Lazy list built from an iterator.
