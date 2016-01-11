@@ -260,7 +260,7 @@ class ToricVarietyFactory(SageObject):
             dict_key = (name, base_ring) + tuple(coordinate_names)
         if dict_key not in self.__dict__:
             polytope = LatticePolytope(rays, lattice=ToricLattice(len(rays[0])))
-            points = [tuple(_) for _ in polytope.points_pc()]
+            points = [tuple(_) for _ in polytope.points()]
             ray2point = [points.index(r) for r in rays]
             charts = [ [ray2point[i] for i in c] for c in cones ]
             self.__dict__[dict_key] = \
@@ -728,7 +728,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xA1(self, names='s t z', base_ring=QQ):
         r"""
-        Construct the cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
+        Construct the Cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
         a toric variety.
 
         INPUT:
