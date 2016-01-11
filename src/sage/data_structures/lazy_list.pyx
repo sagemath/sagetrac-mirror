@@ -329,7 +329,7 @@ cdef class lazy_list_generic(object):
 
             sage: from sage.data_structures.lazy_list import lazy_list_generic
             sage: l = [0,1,2]
-            sage: ll = lazy_list_generic(l, 0, 2, None)
+            sage: ll = lazy_list_generic(l, start=0, stop=2, step=None)
             sage: ll
             lazy list [0, 1]
 
