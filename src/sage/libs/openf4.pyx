@@ -104,14 +104,13 @@ def groebner_basis_openf4(self, prot=0, threads=1):
         sage: gb0 = I.groebner_basis('openf4') # optional - openf4
         Traceback (most recent call last):
         ...
-        NotImplementedError: Prime field with characteristic > 2^32 are not handled in Sage for the moment
-
+        NotImplementedError: prime field with characteristic > 2^32 is not handled by 'openf4' algorithm
     """
     R = self.ring()
     polynomial_list = self.gens()
     cdef vector[string] variable_name = [str(v) for v in R.gens()]
     cdef vector[string] polynomial_list_cpp = [str(poly).replace(" ", "") for poly in polynomial_list]
-    cdef vector[string] basis;
+    cdef vector[string] basis
     cdef int nb_variable = R.ngens()
     cdef int64_t modulus_int
     cdef string modulus_str
@@ -131,15 +130,11 @@ def groebner_basis_openf4(self, prot=0, threads=1):
             sig_off()
         else:
             # not handled gmp and givaro version in Sage are too old
-            raise NotImplementedError("Prime field with characteristic > 2^32 are not handled in Sage for the moment")
-            # modulus_str = str(R.characteristic())
-            # sig_on()
-            # basis = groebnerBasisGivaroIntegerF4(modulus_str, nb_variable, variable_name, polynomial_list_cpp, threads, prot)
-            # sig_off()
+            raise NotImplementedError("prime field with characteristic > 2^32 is not handled by 'openf4' algorithm")
 
     if not self.base_ring().is_prime_field():
         if R.characteristic() != 2:
-            raise NotImplementedError("Non prime field with characteristic != 2 are not handled by F4")
+            raise NotImplementedError("non-prime field with characteristic != 2 is not handled by 'openf4' algorithm")
         elif self.base_ring().modulus().degree() > 63:
             raise NotImplementedError("GF(2^n) field with n > 63 are not handled by F4")
 
