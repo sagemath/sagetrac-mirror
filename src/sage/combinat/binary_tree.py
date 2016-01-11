@@ -43,9 +43,17 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.misc.cachefunc import cached_method
+
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
@@ -106,7 +114,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 == t1c
         False
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -733,7 +741,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
             sage: bt = BinaryTree([[None, [[], None]], None])
             sage: ip = bt.tamari_interval(BinaryTree([None, [[None, []], None]])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_binary_tree()
             [[., [[., .], .]], .]
             sage: ip.upper_binary_tree()
@@ -759,7 +767,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
             sage: ip = bt.tamari_interval(bt)
             sage: ip
-            The tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
             sage: list(ip.binary_trees())
             [[[., [[., .], .]], .]]
 
@@ -768,7 +776,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt = BinaryTree()
             sage: ip = bt.tamari_interval(bt)
             sage: ip
-            The tamari interval of size 0 induced by relations []
+            The Tamari interval of size 0 induced by relations []
             sage: list(ip.binary_trees())
             [.]
         """
@@ -2927,15 +2935,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         # R + 1
         return self[0].is_complete() and self[1].is_perfect() and dL == dR + 1
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
-
 
 # Abstract class to serve as a Factory no instance are created.
 class BinaryTrees(UniqueRepresentation, Parent):
@@ -2946,7 +2945,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     - the set of all binary trees (of the given ``size`` if specified)
 
@@ -3396,8 +3395,6 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         sage: t2.__class__, t2[0].__class__
         (<class '__main__.Foo'>, <class '__main__.Foo'>)
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """

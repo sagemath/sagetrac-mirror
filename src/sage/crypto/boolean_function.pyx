@@ -1061,7 +1061,7 @@ cdef class BooleanFunction(SageObject):
             sage: [ int(B[i]) for i in range(len(B)) ]
             [0, 1, 1, 1]
         """
-        return self.__call__(i)
+        return self(i)
 
     def _clear_cache(self):
         """
@@ -1150,7 +1150,7 @@ cdef class BooleanFunctionIterator:
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
             sage: I = B.__iter__()
-            sage: I.next()
+            sage: next(I)
             False
         """
         if self.index == self.last:

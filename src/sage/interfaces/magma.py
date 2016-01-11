@@ -279,13 +279,11 @@ class Magma(Expect):
         '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional - magma
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
-                 logfile=None, server=None, server_tmpdir=None, user_config=False):
+    def __init__(self, maxread=None, script_subdirectory=None,
+                 logfile=None, server=None, server_tmpdir=None,
+                 user_config=False, seed=None):
         """
         INPUT:
-
-
-        -  ``maxread`` - affects buffering
 
         -  ``script_subdirectory`` - directory where scripts
            are read from
@@ -302,7 +300,7 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: Magma(maxread=1000, logfile=tmp_filename())
+            sage: Magma(logfile=tmp_filename())
             Magma
         """
         # If the -b argument is given to Magma, the opening banner and all other
@@ -316,7 +314,6 @@ class Magma(Expect):
                         name = "magma",
                         prompt = ">>SAGE>>",
                         command = command,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -331,6 +328,26 @@ class Magma(Expect):
         self.__available_var = []
         self.__cache = {}
         self._preparse_colon_equals = False  # if set to try, all "=" become ":=" (some users really appreciate this)
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for the Magma interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: m = Magma() # optional - magma
+            sage: m.set_seed(1) # optional - magma
+            1
+            sage: [m.Random(100) for i in range(5)] # optional - magma
+            [95, 20, 61, 59, 24]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('SetSeed(%d)' % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -550,6 +567,8 @@ class Magma(Expect):
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.attach_spec(extcode_dir() + '/spec')
+        # set random seed
+        self.set_seed(self._seed)
 
     def set(self, var, value):
         """
@@ -2387,7 +2406,7 @@ class MagmaElement(ExpectElement):
 
     def set_magma_attribute(self, attrname, value):
         """
-        INPUTS: attrname - string value - something coercible to a
+        INPUT: attrname - string value - something coercible to a
         MagmaElement
 
         EXAMPLES::
