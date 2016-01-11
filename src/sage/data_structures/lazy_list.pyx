@@ -856,6 +856,11 @@ cdef class lazy_list_generic(object):
             self.cache.extend(l)
         return 0
 
+
+    cpdef list _get_cache_(self):
+        # is there a more direct way to get the cache in a Python function (needed in lazy_list_takewhile.__init__) ?
+        return self.cache
+
     def make_linked_copy(self, **kwds):
         r"""
 
@@ -1148,3 +1153,64 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
         if self.start != 0 or self.step != 1:
             raise RuntimeError
         return lazy_list_from_update_function, (self.update_function, self.cache, self.stop)
+
+
+cdef class lazy_list_takewhile(lazy_list_generic):
+    r"""
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.lazy_list import lazy_list, lazy_list_takewhile
+        sage: L = lazy_list(Primes())
+        sage: lazy_list_takewhile(L, lambda x: x <= 3)
+        lazy list [2, 3]
+
+    TESTS::
+
+        sage: from sage.data_structures.lazy_list import lazy_list_generic
+        sage: class Z(lazy_list_generic):
+        ....:     def __init__(self):
+        ....:         self.i = -2
+        ....:         lazy_list_generic.__init__(self)
+        ....:     def _new_slice(self):
+        ....:         self.i += 2
+        ....:         return range(self.i, -1, -1)
+        sage: list(Z()[:16])
+        [0, 2, 1, 0, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0]
+        sage: list(lazy_list_takewhile(Z(), lambda x: x <= 3))
+        [0, 2, 1, 0]
+        sage: list(lazy_list_takewhile(Z(), lambda x: x <= 2))
+        [0, 2, 1, 0]
+        sage: lazy_list_takewhile(Z(), lambda x: x != 3)[4]
+        4
+    """
+    def __init__(self, master, predicate, **kwds):
+        lazy_list_generic.__init__(
+            self, master=master, cache=master._get_cache_(), **kwds)
+        self.predicate = predicate
+        self.taking = True
+
+    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        cdef Py_ssize_t length = len(self.cache)
+        if not self.taking:
+            if length <= i:
+                return 1
+            else:
+                return 0
+        cdef Py_ssize_t m
+        while length <= i:
+            if lazy_list_generic.update_cache_up_to(self, length):
+                return 1
+            m = length
+            length = len(self.cache)
+            while m < length and self.predicate(self.cache[m]):
+                m += 1
+            if m < length:
+                self.cache = self.cache[:m]
+                self.taking = False
+                if len(self.cache) <= i:
+                    return 1
+                else:
+                    return 0
+        return 0
+
