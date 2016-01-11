@@ -119,7 +119,7 @@ empty_lazy_list.preview = 3
 
 
 def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
-        update_function=None):
+              update_function=None, **kwds):
     r"""
     Return a lazy list.
 
@@ -241,7 +241,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         if is_iterator(data):
             l = lazy_list_from_iterator(iter(data), cache)
         elif callable(data):
-            l = lazy_list_from_function(data, cache)
+            l = lazy_list_from_function(data, cache, **kwds)
         else:
             raise ValueError("not able to build a lazy list from {}".format(type(data)))
 
@@ -870,7 +870,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         sage: loads(dumps(m))
         lazy list [0, 1, 2, ...]
     """
-    def __init__(self, iterator, cache=None):
+    def __init__(self, iterator, cache=None, **kwds):
         r"""
         INPUT:
 
@@ -889,7 +889,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
             lazy list ['a', 0, 1, ...]
         """
         self.iterator = iterator
-        lazy_list_generic.__init__(self, cache)
+        lazy_list_generic.__init__(self, cache, **kwds)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -925,7 +925,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         return lazy_list_from_iterator, (self.iterator, self.cache)
 
 cdef class lazy_list_from_function(lazy_list_generic):
-    def __init__(self, function, cache=None, stop=None):
+    def __init__(self, function, cache=None, stop=None, **kwds):
         r"""
         INPUT:
 
@@ -957,7 +957,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
             [5, 4, 3, 2, 1]
         """
         self.callable = function
-        lazy_list_generic.__init__(self, cache)
+        lazy_list_generic.__init__(self, cache, stop=stop, **kwds)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
@@ -989,7 +989,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
         return lazy_list_from_function, (self.callable, self.cache, self.stop)
 
 cdef class lazy_list_from_update_function(lazy_list_generic):
-    def __init__(self, function, cache=None, stop=None):
+    def __init__(self, function, cache=None, stop=None, **kwds):
         r"""
         INPUT:
 
@@ -1017,7 +1017,9 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
             [1, 2, 2, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16]
         """
         self.update_function = function
-        lazy_list_generic.__init__(self, cache, None, stop, None)
+        lazy_list_generic.__init__(self, cache,
+                                   start=None, stop=stop, step=None,
+                                   **kwds)
 
     cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
