@@ -16,12 +16,12 @@ Subset Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from set_species import SetSpecies
-from generating_series import _integers_from, factorial_stream
+from generating_series import factorial_stream
 from structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
+from sage.sets.all import PositiveIntegers
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -98,7 +98,6 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             [{1, 3}, {1, 3}, {1, 3}, {1, 3}]
         """
         from sage.groups.all import SymmetricGroup, PermutationGroup
-        from sage.misc.all import uniq
         a = SymmetricGroup(self._list)
         b = SymmetricGroup(self.complement()._list)
         return PermutationGroup(a.gens()+b.gens())
@@ -179,37 +178,37 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         for i in range(len(labels)+1):
             yield structure_class(self, labels, range(1, i+1))
 
-    def _gs_iterator(self, base_ring):
-        """
-        The generating series for the species of subsets is
-        `e^{2x}`.
+    class GeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            """
+            The generating series for the species of subsets is
+            `e^{2x}`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: S = species.SubsetSpecies()
-            sage: S.generating_series().coefficients(5)
-            [1, 2, 2, 4/3, 2/3]
-        """
-        for n in _integers_from(0):
-            yield  base_ring(2)**n/base_ring(factorial_stream[n])
+                sage: S = species.SubsetSpecies()
+                sage: S.generating_series().coefficients(5)
+                [1, 2, 2, 4/3, 2/3]
+            """
+            return self._base_ring(2)**n / factorial_stream[n]
 
-    def _itgs_iterator(self, base_ring):
-        """
-        The generating series for the species of subsets is
-        `e^{2x}`.
+    class IsotypeGeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            """
+            The generating series for the species of subsets is
+            `e^{2x}`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: S = species.SubsetSpecies()
-            sage: S.isotype_generating_series().coefficients(5)
-            [1, 2, 3, 4, 5]
-        """
-        for n in _integers_from(1):
-            yield base_ring(n)
+                sage: S = species.SubsetSpecies()
+                sage: S.isotype_generating_series().coefficients(5)
+                [1, 2, 3, 4, 5]
+            """
+            return self._base_ring(n + 1)
 
     def _cis(self, series_ring, base_ring):
         r"""
-        The cycle index series for the species of subsets satisfies
+        The cycle index series for the species of subsets is given by
 
         .. math::
 
@@ -231,6 +230,3 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         if self.is_weighted():
             res *= self._weight
         return res
-
-#Backward compatibility
-SubsetSpecies_class = SubsetSpecies
