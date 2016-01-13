@@ -10,7 +10,8 @@ cd LiE/
 chmod -R a+rX .
 patch -p1 <../patches/00-string.h.patch &&
 patch -p1 <../patches/01-libs.patch &&
-patch -p1 <../patches/02-hashbang.patch ||
+patch -p1 <../patches/02-hashbang.patch &&
+patch -p1 <../patches/04-nobison.patch ||
     die "Error patching LiE."
 if [ $UNAME = "SunOS" ]; then
     patch -p1 <../patches/03-solaris.patch ||
