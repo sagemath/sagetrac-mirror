@@ -867,7 +867,7 @@ cdef class lazy_list_generic(object):
 
         TESTS::
 
-            sage: from sage.data_structures.lazy_list import lazy_list
+            sage: from sage.misc.lazy_list import lazy_list
             sage: P = lazy_list(Primes())
             sage: Q = P.make_linked_copy()  # indirect doctest
             sage: P[5]
@@ -1161,14 +1161,14 @@ cdef class lazy_list_takewhile(lazy_list_generic):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.lazy_list import lazy_list, lazy_list_takewhile
+        sage: from sage.misc.lazy_list import lazy_list, lazy_list_takewhile
         sage: L = lazy_list(Primes())
         sage: lazy_list_takewhile(L, lambda x: x <= 3)
         lazy list [2, 3]
 
     TESTS::
 
-        sage: from sage.data_structures.lazy_list import lazy_list_generic
+        sage: from sage.misc.lazy_list import lazy_list_generic
         sage: class Z(lazy_list_generic):
         ....:     def __init__(self):
         ....:         self.i = -2
@@ -1220,7 +1220,7 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
     r"""
     EXAMPLES::
 
-        sage: from sage.data_structures.lazy_list import lazy_list, lazy_list_dropwhile
+        sage: from sage.misc.lazy_list import lazy_list, lazy_list_dropwhile
         sage: L = lazy_list(Primes())
         sage: lazy_list_dropwhile(L, lambda x: x <= 3)
         lazy list [5, 7, 11, ...]
