@@ -899,11 +899,18 @@ cdef class lazy_list_generic(object):
             sage: T[::2]
             lazy list [2, 11, 23, ...]
         """
+        properties = self._properties_()
+
         # We track self by using it as master in our new lazy_list and 
         # both share the same cache.
-        kwds_copy = {
-            'cache': self.cache,
-            'master': self,
+        properties['cache'] = self.cache
+        properties['master'] = self
+        properties.update(kwds)
+        cls = properties['cls']
+        return cls(**properties)
+
+    def _properties_(self):
+        return {
             'start': self.start,
             'stop': self.stop,
             'step': self.step,
@@ -912,9 +919,8 @@ cdef class lazy_list_generic(object):
             'more': self.more,
             'opening_delimiter': self.opening_delimiter,
             'closing_delimiter': self.closing_delimiter,
-            'preview': self.preview}
-        kwds_copy.update(kwds)
-        return lazy_list_generic(**kwds_copy)
+            'preview': self.preview,
+            'cls': self.cls}
 
 
 cdef class lazy_list_from_iterator(lazy_list_generic):
