@@ -922,6 +922,13 @@ cdef class lazy_list_generic(object):
             'preview': self.preview,
             'cls': self.cls}
 
+    def _change_class_(self, cls=None):
+        if cls is None:
+            cls = self.cls
+        if isinstance(self, cls):
+            return self
+        return self.make_linked_copy(cls=cls)
+
 
 cdef class lazy_list_from_iterator(lazy_list_generic):
     r"""
