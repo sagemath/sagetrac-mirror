@@ -977,6 +977,55 @@ cdef class lazy_list_generic(object):
             return self
         return self.make_linked_copy(cls=cls)
 
+    def dropwhile(self, predicate):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: lazy_list(Primes()).dropwhile(lambda x: x <= 5)
+            lazy list [7, 11, 13, ...]
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic, lazy_list_from_iterator
+            sage: class Z(lazy_list_generic):
+            ....:     pass
+            sage: lazy_list(Primes(), cls=Z).dropwhile(lambda x: x <= 5)
+            lazy list [7, 11, 13, ...]
+            sage: type(_)
+            <class '__main__.Z'>
+        """
+        return lazy_list_dropwhile(
+            self, predicate, **self._properties_())._change_class_()
+
+    def takewhile(self, predicate):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: lazy_list(Primes()).takewhile(lambda x: x <= 3)
+            lazy list [2, 3]
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic, lazy_list_from_iterator
+            sage: class Z(lazy_list_generic):
+            ....:     pass
+            sage: lazy_list(Primes(), cls=Z).takewhile(lambda x: x <= 3)
+            lazy list [2, 3]
+            sage: type(_)
+            <class '__main__.Z'>
+            sage: lazy_list(iter([4,3])).make_linked_copy(cls=Z)
+            lazy list [4, 3]
+            sage: type(_)
+            <class '__main__.Z'>
+            sage: from sage.misc.lazy_list import lazy_list_takewhile
+        """
+        return lazy_list_takewhile(
+            self, predicate, **self._properties_())._change_class_()
+
 
 cdef class lazy_list_from_iterator(lazy_list_generic):
     r"""
