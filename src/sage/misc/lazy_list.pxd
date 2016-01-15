@@ -1,10 +1,11 @@
 cdef class lazy_list_generic(object):
-    cdef list cache                  # the cache
-    cdef lazy_list_generic master   # a reference if self is a slice
-    cdef Py_ssize_t start, stop, step
+    cdef list cache                    # the cache
+    cdef lazy_list_generic master      # a reference if self is a slice or other sublist
+    cdef Py_ssize_t start, stop, step  # for slicing
 
-    cdef str name, separator, more, opening_delimiter, closing_delimiter
-    cdef int preview
+    cdef str name, separator, more     # used for representation
+    cdef str opening_delimiter, closing_delimiter
+    cdef int preview                   # number of elements to show in repr
     cdef object cls                    # the class when making a copy
 
     cpdef get(self, Py_ssize_t i)
