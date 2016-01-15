@@ -1261,16 +1261,16 @@ cdef class lazy_list_takewhile(lazy_list_generic):
                 return 0
         cdef Py_ssize_t m
         while length <= i:
-            if lazy_list_generic.update_cache_up_to(self, length):
+            if self.master._fit(length):
                 return 1
             m = length
             length = len(self.cache)
             while m < length and self.predicate(self.cache[m]):
                 m += 1
             if m < length:
-                self.cache = self.cache[:m]
+                self.stop = m
                 self.taking = False
-                if len(self.cache) <= i:
+                if m <= i:
                     return 1
                 else:
                     return 0
@@ -1285,6 +1285,23 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
         sage: L = lazy_list(Primes())
         sage: lazy_list_dropwhile(L, lambda x: x <= 3)
         lazy list [5, 7, 11, ...]
+
+    TESTS::
+
+        sage: lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
+        lazy list [17, 19, 23, ...]
+        sage: A = lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
+        sage: A[:10].list()
+        [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
+        sage: A
+        lazy list [17, 19, 23, ...]
+        sage: A[:10].list()
+        [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
+        sage: A._info()
+        cache length 16
+        start        6
+        stop         9223372036854775807
+        step         1
     """
     def __init__(self, master, predicate, **kwds):
         lazy_list_generic.__init__(
@@ -1292,12 +1309,16 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
         self.predicate = predicate
         self.dropping = True
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
-        while len(self.cache) <= i:
-            if lazy_list_generic.update_cache_up_to(self, i):
-                return 1
-            if not self.dropping:
-                return 0
-            while self.predicate(self.cache[0]):
-                self.cache.pop(0)
-        return 0
+    cpdef int _fit(self, Py_ssize_t n) except -1:
+        cdef Py_ssize_t m
+        if self.dropping:
+            m = self.start
+            lazy_list_generic._fit(self, m)
+            while m < len(self.cache) and self.predicate(self.cache[m]):
+                    m += 1
+                    lazy_list_generic._fit(self, m)
+            self.start = m
+            self.dropping = False
+            n += m
+
+        return lazy_list_generic._fit(self, n)
