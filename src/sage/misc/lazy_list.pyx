@@ -87,11 +87,15 @@ Alternatively, you can create the lazy list from an update function::
 
 You can also create extension type inheriting from :class:`lazy_list_generic`
 (with Cython). In that case you would better implement directly the method
-`update_cache_up_to`. See the examples in this file with the classes
+:meth:`~lazy_list_generic.update_cache_up_to`. See the examples in this file with the classes
 :class:`lazy_list_from_iterator` and :class:`lazy_list_from_function`.
+
+Classes and Methods
+===================
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Vincent Delecroix <20100.delecroix@gmail.com>
+#       Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -116,7 +120,7 @@ empty_lazy_list.more = '...'
 empty_lazy_list.closing_delimiter = ']'
 empty_lazy_list.preview = 3
 #empty_lazy_list = lazy_list_generic(initial_values=[],
-#                                    start=0, stop=0, step=1)
+#                                    start=0, stop=0, step=1)  # ... does not work
 
 
 def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
@@ -139,6 +143,29 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
     - ``update_function`` -- you can also construct a lazy list from a function
       that takes as input a list of precomputed values and updates it with some
       more values.
+
+    Representation string options:
+
+    - ``name`` -- (default: ``'lazy list'``) a string.
+
+    - ``opening_delimiter`` -- (default: ``'['``) a string.
+
+    - ``closing_delimiter`` -- (default: ``']'``) a string.
+
+    - ``separator`` -- (default: ``', '``) a string.
+
+    - ``more`` -- (default: ``'...'``) a string.
+
+    - ``preview`` -- (default: ``3``) an integer specifying the number of
+      elements shown in the representation string.
+
+    Other options:
+
+    - ``cls`` -- (default: ``None``) a class. If specified, then when
+      creating sublists (like slices, or
+      :meth:`~lazy_list_generic.dropwhile` or
+      :meth:`~lazy_list_generic.takewhile`) the result is assured to be an
+      instance of ``cls``.
 
     - ``start``, ``stop``, ``step`` -- deprecated arguments
 
@@ -280,7 +307,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         else:
             raise ValueError("not able to build a lazy list from {}".format(type(data)))
 
-    l = l._change_class_()
+    l = l.change_class()
 
     if start is not None or stop is not None or step is not None:
         from sage.misc.superseded import deprecation
@@ -289,6 +316,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         return l[start:stop:step]
     else:
         return l
+
 
 def slice_unpickle(master, start, stop, step):
     r"""
@@ -302,19 +330,8 @@ def slice_unpickle(master, start, stop, step):
     """
     return master[start:stop:step]
 
+
 cdef class lazy_list_generic(object):
-    r"""
-    A lazy list
-
-    EXAMPLES::
-
-        sage: from sage.misc.lazy_list import lazy_list
-        sage: l = lazy_list(Primes())
-        sage: l
-        lazy list [2, 3, 5, ...]
-        sage: l[200]
-        1229
-    """
     def __init__(self, cache=None, master=None,
                  start=None, stop=None, step=None,
                  name=None, separator=None, more=None,
@@ -322,16 +339,35 @@ cdef class lazy_list_generic(object):
                  preview=None,
                  cls=None):
         r"""
-        No check is performed on input and bad input can result in a Sage crash.
-        You are advised to use the function :func:`lazy_list` instead. The only
-        case where you might want to use directly this constructor is if you
-        have a list that you want to wrap (without copy) into a lazy list.
-        See in the example below.
+        A lazy list (generic base class).
 
-        INPUT::
+        INPUT:
 
         - ``cache`` -- an optional list to be used as the cache. Be careful that
           there is no copy.
+
+        Representation string options:
+
+        - ``name`` -- (default: ``'lazy list'``) a string.
+
+        - ``opening_delimiter`` -- (default: ``'['``) a string.
+
+        - ``closing_delimiter`` -- (default: ``']'``) a string.
+
+        - ``separator`` -- (default: ``', '``) a string.
+
+        - ``more`` -- (default: ``'...'``) a string.
+
+        - ``preview`` -- (default: ``3``) an integer specifying the number of
+          elements shown in the representation string.
+
+        Other options:
+
+        - ``cls`` -- (default: ``None``) a class. If specified, then when
+          creating sublists (like slices, or
+          :meth:`~lazy_list_generic.dropwhile` or
+          :meth:`~lazy_list_generic.takewhile`) the result is assured to be an
+          instance of ``cls``.
 
         - ``start``, ``stop``, ``step`` -- for slices
 
@@ -339,10 +375,27 @@ cdef class lazy_list_generic(object):
 
             Everywhere the constant ``PY_SSIZE_T_MAX`` plays the role of infinity
 
+        .. WARNING::
+
+            No check is performed on input and bad input can result in a Sage crash.
+            You are advised to use the function :func:`lazy_list` instead. The only
+            case where you might want to use directly this constructor is if you
+            have a list that you want to wrap (without copy) into a lazy list.
+            See also the example below.
+
         EXAMPLES::
 
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: l = lazy_list(Primes())
+            sage: l
+            lazy list [2, 3, 5, ...]
+            sage: l[200]
+            1229
+
+        ::
+
             sage: from sage.misc.lazy_list import lazy_list_generic
-            sage: l = [0,1,2]
+            sage: l = [0, 1, 2]
             sage: ll = lazy_list_generic(l, start=0, stop=2, step=None)
             sage: ll
             lazy list [0, 1]
@@ -370,6 +423,7 @@ cdef class lazy_list_generic(object):
         self.preview = 3 if preview is None else preview
         self.cls = lazy_list_generic if cls is None else cls
 
+
     def start_stop_step(self):
         r"""
         Return the triple ``(start, stop, step)`` of reference points of the
@@ -387,6 +441,7 @@ cdef class lazy_list_generic(object):
         from sage.misc.superseded import deprecation
         deprecation(16137, "The method start_stop_step is deprecated. Consider using _info() instead.")
         return (self.start, self.stop, self.step)
+
 
     def list(self):
         r"""
@@ -427,6 +482,7 @@ cdef class lazy_list_generic(object):
         self._fit(self.stop - self.step)
         return self.cache[self.start:self.stop:self.step]
 
+
     def info(self):
         r"""
         Deprecated method
@@ -446,6 +502,7 @@ cdef class lazy_list_generic(object):
         from sage.misc.superseded import deprecation
         deprecation(19428, "info is deprecated in favor of a private method. Use _info() instead")
         return self._info()
+
 
     def _info(self):
         r"""
@@ -473,6 +530,7 @@ cdef class lazy_list_generic(object):
         print "stop        ", self.stop
         print "step        ", self.step
 
+
     def __add__(self, other):
         r"""
         If ``self`` is a list then return the lazy_list that consists of the
@@ -498,6 +556,7 @@ cdef class lazy_list_generic(object):
             raise TypeError("can only add list to lazy_list")
 
         return lazy_list_from_iterator(iter(other), cache=self[:])
+
 
     def __repr__(self):
         r"""
@@ -544,6 +603,7 @@ cdef class lazy_list_generic(object):
         s += self.closing_delimiter
         return s
 
+
     def __reduce__(self):
         r"""
         Pickling support
@@ -564,6 +624,7 @@ cdef class lazy_list_generic(object):
         if self.master is None:
             raise NotImplementedError
         return slice_unpickle, (self.master, self.start, self.stop, self.step)
+
 
     cpdef int _fit(self, Py_ssize_t n) except -1:
         r"""
@@ -610,14 +671,19 @@ cdef class lazy_list_generic(object):
         """
         if n > self.stop - self.step:
             return 1
+
         cdef int result = self.update_cache_up_to(n)
+
         if self.master is not None:
+            # We have to update start in case the tracked master list
+            # changed its start (e.g. dropwhile).
             if self.master.start != self._start_master:
                 self.start += self.master.start - self._start_master
                 s = PY_SSIZE_T_MAX - self.stop
                 s = min(s, self.master.start - self._start_master)
                 self.stop += s
                 self._start_master = self.master.start
+
         if result:
             self.stop = min(self.stop, len(self.cache))
             if self.master is not None:
@@ -628,7 +694,9 @@ cdef class lazy_list_generic(object):
             if (self.start - self.stop) % self.step:
                 self.stop += self.step + (self.start - self.stop) % self.step
             return 1
+
         return 0
+
 
     cpdef get(self, Py_ssize_t i):
         r"""
@@ -683,6 +751,7 @@ cdef class lazy_list_generic(object):
                                       # changed self.start
         return self.cache[n]
 
+
     def __call__(self, i):
         r"""
         An alias for :meth:`get`
@@ -698,6 +767,7 @@ cdef class lazy_list_generic(object):
             'a'
         """
         return self.get(i)
+
 
     def __iter__(self):
         r"""
@@ -729,6 +799,7 @@ cdef class lazy_list_generic(object):
                 return
             yield self.cache[i]
             i += self.step
+
 
     def __getitem__(self, key):
         r"""
@@ -866,7 +937,8 @@ cdef class lazy_list_generic(object):
         return self.make_linked_copy(
             start=start, stop=stop, step=step)
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+
+    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -879,6 +951,18 @@ cdef class lazy_list_generic(object):
         - ``0`` -- the cache has now size larger than ``i``
 
         - ``1`` -- the lazy list is actually finite and shorter than ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic
+            sage: L = lazy_list(Primes())[2:]
+            sage: L.update_cache_up_to(4)
+            0
+            sage: L._info()
+            cache length 5
+            start        2
+            stop         9223372036854775807
+            step         1
         """
         if self.master is not None:    # this is a slice or other sublist
             return self.master._fit(i)
@@ -893,11 +977,38 @@ cdef class lazy_list_generic(object):
 
 
     cpdef list _get_cache_(self):
-        # is there a more direct way to get the cache in a Python function (needed in lazy_list_takewhile.__init__) ?
+        r"""
+        Return the internal cache.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: L = lazy_list(Primes()); L
+            lazy list [2, 3, 5, ...]
+            sage: L._get_cache_()
+            [2, 3, 5, 7]
+        """
+        # is there a more direct way to get the cache in a Python
+        # function (needed in lazy_list_takewhile.__init__) ?
         return self.cache
+
 
     def make_linked_copy(self, **kwds):
         r"""
+        Return a lazy list which tracks this (``self``) lazy list, but
+        shares the same cache.
+
+        INPUT:
+
+        - ``cls`` -- (default: ``None``) a class specifying the output.
+          If ``None``, then :class:`lazy_list_generic` is used.
+
+        Keyword arguments are passed on to the constructor of the
+        new lazy list.
+
+        OUTPUT:
+
+        An instance of ``cls``.
 
         TESTS::
 
@@ -957,7 +1068,31 @@ cdef class lazy_list_generic(object):
         cls = properties['cls']
         return cls(**properties)
 
+
     def _properties_(self):
+        r"""
+        Return the values of all the keyword arguments used in the
+        constructor.
+
+        OUTPUT:
+
+        A dictionary.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: lazy_list(Primes())._properties_()
+            {'closing_delimiter': ']',
+             'cls': <type 'sage.misc.lazy_list.lazy_list_generic'>,
+             'more': '...',
+             'name': 'lazy list',
+             'opening_delimiter': '[',
+             'preview': 3,
+             'separator': ', ',
+             'start': 0,
+             'step': 1,
+             'stop': 9223372036854775807}
+        """
         return {
             'start': self.start,
             'stop': self.stop,
@@ -970,15 +1105,56 @@ cdef class lazy_list_generic(object):
             'preview': self.preview,
             'cls': self.cls}
 
-    def _change_class_(self, cls=None):
+
+    def change_class(self, cls=None):
+        r"""
+        Return a copy of this lazy list (sharing caches), which is an instance
+        if the specified class ``cls``.
+
+        INPUT:
+
+        - ``cls`` -- (default: ``None``) a class specifying the
+          output. If ``None``, then the default value of this lazy
+          list (specified at construction and also called ``cls``) is
+          used.
+
+        OUTPUT:
+
+        An instance of ``cls``.
+
+        Note that if this lazy list is already an instance of ``cls``, then
+        no copy is made.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic
+            sage: P = lazy_list(Primes())
+            sage: P.change_class() is P
+            True
+            sage: class Z(lazy_list_generic):
+            ....:     pass
+            sage: type(P.change_class(cls=Z))
+            <class '__main__.Z'>
+        """
         if cls is None:
             cls = self.cls
         if isinstance(self, cls):
             return self
         return self.make_linked_copy(cls=cls)
 
+
     def dropwhile(self, predicate):
         r"""
+        Return a sublist (slice) but drop elements as long as the
+        ``predicate`` is ``True``; afterwards take every element.
+
+        INPUT:
+
+        - ``predicate`` -- a callable returning ``True`` or ``False``.
+
+        OUTPUT:
+
+        A lazy list.
 
         EXAMPLES::
 
@@ -997,10 +1173,21 @@ cdef class lazy_list_generic(object):
             <class '__main__.Z'>
         """
         return lazy_list_dropwhile(
-            self, predicate, **self._properties_())._change_class_()
+            self, predicate, **self._properties_()).change_class()
+
 
     def takewhile(self, predicate):
         r"""
+        Return a sublist (slice) and take elements as long as
+        the ``predicate`` is ``True``.
+
+        INPUT:
+
+        - ``predicate`` -- a callable returning ``True`` or ``False``.
+
+        OUTPUT:
+
+        A lazy list.
 
         EXAMPLES::
 
@@ -1024,43 +1211,43 @@ cdef class lazy_list_generic(object):
             sage: from sage.misc.lazy_list import lazy_list_takewhile
         """
         return lazy_list_takewhile(
-            self, predicate, **self._properties_())._change_class_()
+            self, predicate, **self._properties_()).change_class()
 
 
 cdef class lazy_list_from_iterator(lazy_list_generic):
-    r"""
-    Lazy list built from an iterator.
 
-    EXAMPLES::
-
-        sage: from sage.misc.lazy_list import lazy_list
-        sage: from itertools import count
-        sage: m = lazy_list(count()); m
-        lazy list [0, 1, 2, ...]
-
-        sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
-        sage: m2
-        lazy list [8, 10, 12, ...]
-
-        sage: x = iter(m)
-        sage: print next(x), next(x), next(x)
-        0 1 2
-        sage: y = iter(m)
-        sage: print next(y), next(y), next(y)
-        0 1 2
-        sage: print next(x), next(y)
-        3 3
-        sage: loads(dumps(m))
-        lazy list [0, 1, 2, ...]
-    """
     def __init__(self, iterator, cache=None, **kwds):
         r"""
+        Lazy list built from an iterator.
+
         INPUT:
 
         - ``iterator`` -- an iterator
 
         - ``cache`` -- an optional list to be used as the cache. Be careful that
           there is no copy.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: from itertools import count
+            sage: m = lazy_list(count()); m
+            lazy list [0, 1, 2, ...]
+
+            sage: m2 = lazy_list(count(), start=8, stop=20551, step=2)
+            sage: m2
+            lazy list [8, 10, 12, ...]
+
+            sage: x = iter(m)
+            sage: print next(x), next(x), next(x)
+            0 1 2
+            sage: y = iter(m)
+            sage: print next(y), next(y), next(y)
+            0 1 2
+            sage: print next(x), next(y)
+            3 3
+            sage: loads(dumps(m))
+            lazy list [0, 1, 2, ...]
 
         TESTS::
 
@@ -1074,7 +1261,8 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         self.iterator = iterator
         lazy_list_generic.__init__(self, cache, **kwds)
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+
+    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1084,7 +1272,19 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_iterator
+            sage: L = lazy_list_from_iterator(iter(Primes()))
+            sage: L.update_cache_up_to(10)
+            0
+            sage: L._info()
+            cache length 11
+            start        0
+            stop         9223372036854775807
+            step         1
         """
         while len(self.cache) <= i:
             try:
@@ -1093,6 +1293,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
                 return 1
             self.cache.append(o)
         return 0
+
 
     def __reduce__(self):
         r"""
@@ -1107,9 +1308,13 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         """
         return lazy_list_from_iterator, (self.iterator, self.cache)
 
+
 cdef class lazy_list_from_function(lazy_list_generic):
+
     def __init__(self, function, cache=None, stop=None, **kwds):
         r"""
+        Lazy list built from a function.
+
         INPUT:
 
         - ``function`` -- a function that maps ``n`` to the element
@@ -1142,7 +1347,8 @@ cdef class lazy_list_from_function(lazy_list_generic):
         self.callable = function
         lazy_list_generic.__init__(self, cache, stop=stop, **kwds)
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+
+    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1152,10 +1358,24 @@ cdef class lazy_list_from_function(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_function
+            sage: L = lazy_list_from_function(lambda x: 2*x); L
+            lazy list [0, 2, 4, ...]
+            sage: L.update_cache_up_to(10)
+            0
+            sage: L._info()
+            cache length 11
+            start        0
+            stop         9223372036854775807
+            step         1
         """
         while len(self.cache) <= i:
             self.cache.append(self.callable(len(self.cache)))
+
 
     def __reduce__(self):
         r"""
@@ -1171,9 +1391,13 @@ cdef class lazy_list_from_function(lazy_list_generic):
             raise RuntimeError
         return lazy_list_from_function, (self.callable, self.cache, self.stop)
 
+
 cdef class lazy_list_from_update_function(lazy_list_generic):
+
     def __init__(self, function, cache=None, stop=None, **kwds):
         r"""
+        Lazy list built from an update function.
+
         INPUT:
 
         - ``function`` -- a function that updates a list of precomputed values.
@@ -1204,7 +1428,8 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
                                    start=None, stop=stop, step=None,
                                    **kwds)
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+
+    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1214,7 +1439,20 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
 
         - ``0`` -- everything went fine
 
-        - ``1`` -- the iterator stopped before ``i`
+        - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_from_update_function
+            sage: L = lazy_list_from_update_function(lambda V: V.extend([1, 2])); L
+            lazy list [1, 2, 1, ...]
+            sage: L.update_cache_up_to(10)
+            0
+            sage: L._info()
+            cache length 12
+            start        0
+            stop         9223372036854775807
+            step         1
         """
         cdef Py_ssize_t l,ll
         l = len(self.cache)
@@ -1227,6 +1465,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
                 return 1
             l = ll
         return 0
+
 
     def __reduce__(self):
         r"""
@@ -1267,41 +1506,80 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
 
 
 cdef class lazy_list_takewhile(lazy_list_generic):
-    r"""
 
-    EXAMPLES::
-
-        sage: from sage.misc.lazy_list import lazy_list, lazy_list_takewhile
-        sage: L = lazy_list(Primes())
-        sage: lazy_list_takewhile(L, lambda x: x <= 3)
-        lazy list [2, 3]
-
-    TESTS::
-
-        sage: from sage.misc.lazy_list import lazy_list_generic
-        sage: class Z(lazy_list_generic):
-        ....:     def __init__(self):
-        ....:         self.i = -2
-        ....:         lazy_list_generic.__init__(self)
-        ....:     def _new_slice(self):
-        ....:         self.i += 2
-        ....:         return range(self.i, -1, -1)
-        sage: list(Z()[:16])
-        [0, 2, 1, 0, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0]
-        sage: list(lazy_list_takewhile(Z(), lambda x: x <= 3))
-        [0, 2, 1, 0]
-        sage: list(lazy_list_takewhile(Z(), lambda x: x <= 2))
-        [0, 2, 1, 0]
-        sage: lazy_list_takewhile(Z(), lambda x: x != 3)[4]
-        4
-    """
     def __init__(self, master, predicate, **kwds):
+        r"""
+        A lazy sublist (slice), which takes elements as long as
+        the given ``predicate`` is ``True``.
+
+        INPUT:
+
+        - ``master`` -- a lazy list.
+
+        - ``predicate`` -- a callable returning ``True`` or ``False``.
+
+        Keyword arguments are passed on to the constructor of
+        :class:`lazy_list_generic`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_takewhile
+            sage: L = lazy_list(Primes())
+            sage: lazy_list_takewhile(L, lambda x: x <= 3)
+            lazy list [2, 3]
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list_generic
+            sage: class Z(lazy_list_generic):
+            ....:     def __init__(self):
+            ....:         self.i = -2
+            ....:         lazy_list_generic.__init__(self)
+            ....:     def _new_slice(self):
+            ....:         self.i += 2
+            ....:         return range(self.i, -1, -1)
+            sage: list(Z()[:16])
+            [0, 2, 1, 0, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0]
+            sage: list(lazy_list_takewhile(Z(), lambda x: x <= 3))
+            [0, 2, 1, 0]
+            sage: list(lazy_list_takewhile(Z(), lambda x: x <= 2))
+            [0, 2, 1, 0]
+            sage: lazy_list_takewhile(Z(), lambda x: x != 3)[4]
+            4
+        """
+
         lazy_list_generic.__init__(
             self, master=master, cache=master._get_cache_(), **kwds)
         self.predicate = predicate
         self.taking = True
 
-    cdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+
+    cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
+        r"""
+        Update the cache up to ``i``.
+
+        OUTPUT:
+
+        - ``-1`` -- a Python error occurred
+
+        - ``0`` -- everything went fine
+
+        - ``1`` -- the iterator stopped before ``i``
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_takewhile
+            sage: L = lazy_list_takewhile(
+            ....:    lazy_list(Primes()), lambda x: x <= 10); L
+            lazy list [2, 3, 5, ...]
+            sage: L.update_cache_up_to(10)
+            1
+            sage: L._info()
+            cache length 5
+            start        0
+            stop         4
+            step         1
+        """
         cdef Py_ssize_t length = len(self.cache)
         if not self.taking:
             if length <= i:
@@ -1327,38 +1605,80 @@ cdef class lazy_list_takewhile(lazy_list_generic):
 
 
 cdef class lazy_list_dropwhile(lazy_list_generic):
-    r"""
-    EXAMPLES::
 
-        sage: from sage.misc.lazy_list import lazy_list, lazy_list_dropwhile
-        sage: L = lazy_list(Primes())
-        sage: lazy_list_dropwhile(L, lambda x: x <= 3)
-        lazy list [5, 7, 11, ...]
-
-    TESTS::
-
-        sage: lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
-        lazy list [17, 19, 23, ...]
-        sage: A = lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
-        sage: A[:10].list()
-        [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
-        sage: A
-        lazy list [17, 19, 23, ...]
-        sage: A[:10].list()
-        [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
-        sage: A._info()
-        cache length 16
-        start        6
-        stop         9223372036854775807
-        step         1
-    """
     def __init__(self, master, predicate, **kwds):
+        r"""
+        A lazy sublist (slice) which drops elements as long as the
+        ``predicate`` is ``True``; afterwards takes every element.
+
+        INPUT:
+
+        - ``master`` -- a lazy list.
+
+        - ``predicate`` -- a callable returning ``True`` or ``False``.
+
+        Keyword arguments are passed on to the constructor of
+        :class:`lazy_list_generic`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_dropwhile
+            sage: L = lazy_list(Primes())
+            sage: lazy_list_dropwhile(L, lambda x: x <= 3)
+            lazy list [5, 7, 11, ...]
+
+        TESTS::
+
+            sage: lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
+            lazy list [17, 19, 23, ...]
+            sage: A = lazy_list_dropwhile(lazy_list(Primes())[3:], lambda x: x <= 13)
+            sage: A[:10].list()
+            [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
+            sage: A
+            lazy list [17, 19, 23, ...]
+            sage: A[:10].list()
+            [17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
+            sage: A._info()
+            cache length 16
+            start        6
+            stop         9223372036854775807
+            step         1
+        """
         lazy_list_generic.__init__(
             self, master=master, cache=master._get_cache_(), **kwds)
         self.predicate = predicate
         self.dropping = True
 
+
     cpdef int _fit(self, Py_ssize_t n) except -1:
+        r"""
+        Fill the cache making the term at index ``n`` available.
+
+        You can access the term at position ``n`` from the cache when it returns
+        ``0``.
+
+        OUTPUT:
+
+        - ``1`` -- the lazy list is actually finite and shorter than ``n``
+
+        - ``0`` -- you can safely access the term at position ``n`` after this call
+
+        - ``-1`` -- to handle Python errors (you can ignore it in Python code)
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_dropwhile
+            sage: L = lazy_list_dropwhile(
+            ....:    lazy_list(Primes()), lambda x: x <= 10); L
+            lazy list [11, 13, 17, ...]
+            sage: L._fit(10)
+            0
+            sage: L._info()
+            cache length 11
+            start        4
+            stop         9223372036854775807
+            step         1
+        """
         cdef Py_ssize_t m
         if self.dropping:
             m = self.start
