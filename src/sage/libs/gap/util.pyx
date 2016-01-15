@@ -273,6 +273,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
     """
     initialize()
     cdef libGAP_ExecStatus status
+    cdef libGAP_UInt dualsemicol
 
     cmd = gap_string + ';\n'
     try:
@@ -280,7 +281,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, &dualsemicol)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -457,6 +458,7 @@ def command(command_string):
     """
     initialize()
     cdef libGAP_ExecStatus status
+    cdef libGAP_UInt dualsemicol
 
     cmd = command_string + ';\n'
     try:
@@ -464,7 +466,7 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, &dualsemicol)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
