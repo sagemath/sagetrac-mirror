@@ -356,6 +356,7 @@ cdef class lazy_list_generic(object):
         """
         self.cache = [] if cache is None else cache
         self.master = master
+        self._start_master = 0 if self.master is None else self.master.start
 
         self.start = 0 if start is None else start
         self.stop = PY_SSIZE_T_MAX if stop is None else stop
@@ -609,8 +610,18 @@ cdef class lazy_list_generic(object):
         """
         if n > self.stop - self.step:
             return 1
-        if self.update_cache_up_to(n):
-            self.stop = len(self.cache)
+        cdef int result = self.update_cache_up_to(n)
+        if self.master is not None:
+            if self.master.start != self._start_master:
+                self.start += self.master.start - self._start_master
+                s = PY_SSIZE_T_MAX - self.stop
+                s = min(s, self.master.start - self._start_master)
+                self.stop += s
+                self._start_master = self.master.start
+        if result:
+            self.stop = min(self.stop, len(self.cache))
+            if self.master is not None:
+                self.stop = min(self.stop, self.master.stop)
             if self.stop <= self.start:
                 self.start = self.stop = 0
                 self.step = 1
@@ -653,14 +664,24 @@ cdef class lazy_list_generic(object):
             Traceback (most recent call last):
             ...
             TypeError: rational is not an integer
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list, lazy_list_generic, lazy_list_from_iterator
+            sage: class Z(lazy_list_generic):
+            ....:     pass
+            sage: lazy_list(Primes(), cls=Z).dropwhile(lambda x: x <= 5)[1]
+            11
         """
         if i < 0:
-            raise ValueError("indices must be non negative")
+            raise ValueError("indices must be non-negative")
 
-        i = self.start + i*self.step
-        if self._fit(i):
+        n = self.start + i*self.step
+        if self._fit(n):
             raise IndexError("lazy list index out of range")
-        return self.cache[i]
+        n = self.start + i*self.step  # update since _fit may have
+                                      # changed self.start
+        return self.cache[n]
 
     def __call__(self, i):
         r"""
@@ -859,8 +880,8 @@ cdef class lazy_list_generic(object):
 
         - ``1`` -- the lazy list is actually finite and shorter than ``i``
         """
-        if self.master is not None:    # this is a slice
-            return self.master.update_cache_up_to(i)
+        if self.master is not None:    # this is a slice or other sublist
+            return self.master._fit(i)
 
         cdef list l
         while len(self.cache) <= i:
