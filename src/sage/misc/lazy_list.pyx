@@ -227,6 +227,16 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         start        0
         stop         9223372036854775807
         step         1
+
+    ::
+
+        sage: from sage.misc.lazy_list import lazy_list_generic
+        sage: class Z(lazy_list_generic):
+        ....:     pass
+        sage: P = lazy_list(Primes(), cls=Z); P
+        lazy list [2, 3, 5, ...]
+        sage: type(P)
+        <class '__main__.Z'>
     """
     cdef lazy_list_generic l
 
@@ -270,6 +280,8 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         else:
             raise ValueError("not able to build a lazy list from {}".format(type(data)))
 
+    l = l._change_class_()
+
     if start is not None or stop is not None or step is not None:
         from sage.misc.superseded import deprecation
         deprecation(16137, "The arguments start, stop, step are deprecated. "
@@ -307,7 +319,8 @@ cdef class lazy_list_generic(object):
                  start=None, stop=None, step=None,
                  name=None, separator=None, more=None,
                  opening_delimiter=None, closing_delimiter=None,
-                 preview=None):
+                 preview=None,
+                 cls=None):
         r"""
         No check is performed on input and bad input can result in a Sage crash.
         You are advised to use the function :func:`lazy_list` instead. The only
@@ -354,7 +367,7 @@ cdef class lazy_list_generic(object):
         self.more = '...' if more is None else more
         self.closing_delimiter = ']' if closing_delimiter is None else closing_delimiter
         self.preview = 3 if preview is None else preview
-
+        self.cls = lazy_list_generic if cls is None else cls
 
     def start_stop_step(self):
         r"""
@@ -898,6 +911,20 @@ cdef class lazy_list_generic(object):
             lazy list [2, 5, 11, ...]
             sage: T[::2]
             lazy list [2, 11, 23, ...]
+
+        ::
+
+            sage: from sage.misc.lazy_list import lazy_list_generic, lazy_list_from_iterator
+            sage: class Z(lazy_list_generic):
+            ....:     pass
+            sage: i = lazy_list_from_iterator(iter(Primes()), cls=Z)
+            sage: type(i)
+            <type 'sage.misc.lazy_list.lazy_list_from_iterator'>
+            sage: j = i.make_linked_copy()
+            sage: type(j)
+            <class '__main__.Z'>
+            sage: j
+            lazy list [2, 3, 5, ...]
         """
         properties = self._properties_()
 

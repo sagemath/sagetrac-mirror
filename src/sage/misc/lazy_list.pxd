@@ -5,6 +5,7 @@ cdef class lazy_list_generic(object):
 
     cdef str name, separator, more, opening_delimiter, closing_delimiter
     cdef int preview
+    cdef object cls                    # the class when making a copy
 
     cpdef get(self, Py_ssize_t i)
     cpdef int _fit(self, Py_ssize_t n) except -1
