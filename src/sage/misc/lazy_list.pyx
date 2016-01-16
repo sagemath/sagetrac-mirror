@@ -1079,8 +1079,6 @@ cdef class lazy_list_generic(object):
              'cls_kwds': {'a': 42},
              ...}
         """
-        from copy import copy
-
         properties = self._properties_()
 
         # We track self by using it as master in our new lazy_list and 
