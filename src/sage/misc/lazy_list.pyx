@@ -167,6 +167,9 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
       :meth:`~lazy_list_generic.takewhile`) the result is assured to be an
       instance of ``cls``.
 
+    - ``cls_kwds`` -- (default: ``None``) a dictionary with keyword
+      arguments which are passed to an instantiating of ``cls``.
+
     - ``start``, ``stop``, ``step`` -- deprecated arguments
 
     .. NOTE::
@@ -337,7 +340,7 @@ cdef class lazy_list_generic(object):
                  name=None, separator=None, more=None,
                  opening_delimiter=None, closing_delimiter=None,
                  preview=None,
-                 cls=None):
+                 cls=None, cls_kwds=None):
         r"""
         A lazy list (generic base class).
 
@@ -368,6 +371,9 @@ cdef class lazy_list_generic(object):
           :meth:`~lazy_list_generic.dropwhile` or
           :meth:`~lazy_list_generic.takewhile`) the result is assured to be an
           instance of ``cls``.
+
+        - ``cls_kwds`` -- (default: ``None``) a dictionary with keyword
+          arguments which are passed to an instantiating of ``cls``.
 
         - ``start``, ``stop``, ``step`` -- for slices
 
@@ -421,8 +427,9 @@ cdef class lazy_list_generic(object):
         self.more = '...' if more is None else more
         self.closing_delimiter = ']' if closing_delimiter is None else closing_delimiter
         self.preview = 3 if preview is None else preview
-        self.cls = lazy_list_generic if cls is None else cls
 
+        self.cls = lazy_list_generic if cls is None else cls
+        self.cls_kwds = {} if cls_kwds is None else cls_kwds
 
     def start_stop_step(self):
         r"""
@@ -1057,6 +1064,16 @@ cdef class lazy_list_generic(object):
             <class '__main__.Z'>
             sage: j
             lazy list [2, 3, 5, ...]
+
+        ::
+
+            sage: class Y(lazy_list_generic):
+            ....:     def __init__(self, a=0, **kwds):
+            ....:         self.a = a
+            ....:         lazy_list_generic.__init__(self, **kwds)
+            sage: y = lazy_list(Primes(), cls=Y, cls_kwds={'a': 42})
+            sage: y.a
+            42
         """
         properties = self._properties_()
 
@@ -1065,8 +1082,12 @@ cdef class lazy_list_generic(object):
         properties['cache'] = self.cache
         properties['master'] = self
         properties.update(kwds)
+
         cls = properties['cls']
-        return cls(**properties)
+        cls_kwds = properties['cls_kwds']
+        cls_kwds.update(properties)
+
+        return cls(**cls_kwds)
 
 
     def _properties_(self):
@@ -1084,6 +1105,7 @@ cdef class lazy_list_generic(object):
             sage: lazy_list(Primes())._properties_()
             {'closing_delimiter': ']',
              'cls': <type 'sage.misc.lazy_list.lazy_list_generic'>,
+             'cls_kwds': {},
              'more': '...',
              'name': 'lazy list',
              'opening_delimiter': '[',
@@ -1103,7 +1125,8 @@ cdef class lazy_list_generic(object):
             'opening_delimiter': self.opening_delimiter,
             'closing_delimiter': self.closing_delimiter,
             'preview': self.preview,
-            'cls': self.cls}
+            'cls': self.cls,
+            'cls_kwds': self.cls_kwds}
 
 
     def change_class(self, cls=None):

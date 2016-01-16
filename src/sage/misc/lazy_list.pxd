@@ -8,6 +8,7 @@ cdef class lazy_list_generic(object):
     cdef str opening_delimiter, closing_delimiter
     cdef int preview                   # number of elements to show in repr
     cdef object cls                    # the class when making a copy
+    cdef dict cls_kwds                 # additional keyword arguments
 
     cpdef get(self, Py_ssize_t i)
     cpdef int _fit(self, Py_ssize_t n) except -1
