@@ -301,10 +301,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
 
         from sage.misc.misc import is_iterator
         if is_iterator(data):
-            if isinstance(data, lazy_list_generic):
-                l = data.make_linked_copy()  # to share cache
-            else:
-                l = lazy_list_from_iterator(iter(data), cache, **kwds)
+            l = lazy_list_from_iterator(iter(data), cache, **kwds)
         elif callable(data):
             l = lazy_list_from_function(data, cache, **kwds)
         else:
