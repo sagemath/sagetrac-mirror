@@ -265,8 +265,8 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         sage: from sage.misc.lazy_list import lazy_list_generic
         sage: class Z(lazy_list_generic):
         ....:     pass
-        sage: P = lazy_list(Primes(), cls=Z); P
-        lazy list [2, 3, 5, ...]
+        sage: P = lazy_list(Primes(), cls=Z, name='primes'); P
+        primes [2, 3, 5, ...]
         sage: type(P)
         <class '__main__.Z'>
     """
