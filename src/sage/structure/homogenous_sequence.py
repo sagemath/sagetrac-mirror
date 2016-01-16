@@ -26,6 +26,46 @@ Classes and Methods
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.misc.cachefunc import cached_function
+from sage.misc.lazy_list import lazy_list, lazy_list_generic
+from sage.structure.sage_object import SageObject
+
+
+sequence_default_kwds = {
+    'name': 'sequence',
+    'opening_delimiter': '',
+    'closing_delimiter': '',
+    'preview': 10}
+
+subsequence_default_prefix = 'subsequence of '
+
+
+def Sequence(data=None, universe=None, convert=True,
+             name=None, **kwds):
+    r"""
+    EXAMPLES::
+
+        sage: from sage.structure.homogenous_sequence import Sequence
+        sage: P = Sequence(Primes(), name='sequence of primes'); P
+        sequence of primes 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, ...
+        sage: P[1]
+        3
+        sage: P[5:]
+        sequence 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, ...
+    """
+    from copy import copy
+
+    cls_kwds = copy(sequence_default_kwds)
+    if name is not None:
+        cls_kwds['name'] = name
+    cls_kwds['universe'] = universe
+    cls_kwds['convert'] = convert
+
+    return lazy_list(data,
+                     cls=HomogenousSequence,
+                     cls_kwds=cls_kwds,
+                     **kwds)
+
 
 class HomogenousSequence(SageObject, lazy_list_generic):
 
