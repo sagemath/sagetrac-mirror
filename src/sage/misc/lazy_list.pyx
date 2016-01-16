@@ -119,6 +119,8 @@ empty_lazy_list.separator = ', '
 empty_lazy_list.more = '...'
 empty_lazy_list.closing_delimiter = ']'
 empty_lazy_list.preview = 3
+empty_lazy_list.cls = lazy_list_generic
+empty_lazy_list.cls_kwds = {}
 #empty_lazy_list = lazy_list_generic(initial_values=[],
 #                                    start=0, stop=0, step=1)  # ... does not work
 
@@ -1071,20 +1073,27 @@ cdef class lazy_list_generic(object):
             sage: y = lazy_list(Primes(), cls=Y, cls_kwds={'a': 42})
             sage: y.a
             42
+            sage: y._properties_()
+            {...
+             'cls': <class '__main__.Y'>,
+             'cls_kwds': {'a': 42},
+             ...}
         """
+        from copy import copy
+
         properties = self._properties_()
 
         # We track self by using it as master in our new lazy_list and 
         # both share the same cache.
         properties['cache'] = self.cache
         properties['master'] = self
+
+        cls_kwds = kwds['cls_kwds'] if kwds.has_key('cls_kwds') else properties['cls_kwds']
+        properties.update(cls_kwds)
         properties.update(kwds)
 
         cls = properties['cls']
-        cls_kwds = properties['cls_kwds']
-        cls_kwds.update(properties)
-
-        return cls(**cls_kwds)
+        return cls(**properties)
 
 
     def _properties_(self):
