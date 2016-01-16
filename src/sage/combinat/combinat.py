@@ -15,9 +15,7 @@ docstrings.
 
 -  Eulerian/Euler numbers, :func:`euler_number` (Maxima)
 
--  Fibonacci numbers, :func:`fibonacci` (PARI) and
-   :func:`fibonacci_number` (GAP) The PARI version is
-   better.
+-  Fibonacci numbers, :func:`fibonacci`.
 
 -  Lucas numbers, :func:`lucas_number1`,
    :func:`lucas_number2`.
@@ -461,6 +459,10 @@ def catalan_number(n):
     -  http://en.wikipedia.org/wiki/Catalan_number
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
+
+    .. SEEALSO::
+
+        :meth:`sequences.catalan <sage.combinat.sequences.sequences.catalan>`
     """
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
@@ -539,6 +541,10 @@ def fibonacci(n, algorithm="pari"):
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
+
+    .. SEEALSO::
+
+        :meth:`sequences.fibonacci <sage.combinat.sequences.sequences.fibonacci>`
     """
     n = ZZ(n)
     if algorithm == 'pari':
@@ -2718,6 +2724,11 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
     EXAMPLES::
 
         sage: fibs = [i for i in fibonacci_sequence(10, 20)]
+        doctest:...: DeprecationWarning: This function is deprecated and
+        will be removed somewhere in future. Please use
+          sequences.fibonacci(start=start, stop=stop)
+        instead.
+        See http://trac.sagemath.org/99999 for details.
         sage: fibs
         [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
 
@@ -2734,6 +2745,13 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
 
     - Bobby Moretti
     """
+    from sage.misc.superseded import deprecation
+    deprecation(99999, 'This function is deprecated and will be removed '
+                'somewhere in future. '
+                'Please use\n'
+                '  sequences.fibonacci(start=start, stop=stop)\n'
+                'instead.')
+
     if stop is None:
         stop = ZZ(start)
         start = ZZ(0)
@@ -2741,12 +2759,9 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         start = ZZ(start)
         stop = ZZ(stop)
 
-    if algorithm:
-        for n in xrange(start, stop):
-            yield fibonacci(n, algorithm=algorithm)
-    else:
-        for n in xrange(start, stop):
-            yield fibonacci(n)
+    from sage.combinat.sequences import sequences
+    return sequences.fibonacci(algorithm=algorithm, start=start, stop=stop)
+
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):
     r"""
@@ -2757,6 +2772,11 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
     EXAMPLES::
 
         sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
+        doctest:...: DeprecationWarning: This function is deprecated and
+        will be removed somewhere in future. Please use
+          sequences.fibonacci(drop_until=lambda f: f >= start, take_while=lambda f: f < stop)
+        instead.
+        See http://trac.sagemath.org/99999 for details.
         sage: len(fibs_in_some_range)
         4
         sage: fibs_in_some_range
@@ -2786,6 +2806,15 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
     - Bobby Moretti
     """
+    from sage.misc.superseded import deprecation
+    deprecation(99999, 'This function is deprecated and will be removed '
+                'somewhere in future. '
+                'Please use\n'
+                '  sequences.fibonacci('
+                'drop_until=lambda f: f >= start, '
+                'take_while=lambda f: f < stop)\n'
+                'instead.')
+
     if stop is None:
         stop = ZZ(start)
         start = ZZ(0)
@@ -2793,20 +2822,11 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         start = ZZ(start)
         stop = ZZ(stop)
 
-    # iterate until we've gotten high enough
-    fn = 0
-    n = 0
-    while fn < start:
-        n += 1
-        fn = fibonacci(n)
+    from sage.combinat.sequences import sequences
+    return sequences.fibonacci(algorithm=algorithm,
+                               drop_until=lambda f: f >= start,
+                               take_while=lambda f: f < stop)
 
-    while True:
-        fn = fibonacci(n)
-        n += 1
-        if fn < stop:
-            yield fn
-        else:
-            return
 
 def bernoulli_polynomial(x, n):
     r"""
