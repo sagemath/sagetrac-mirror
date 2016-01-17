@@ -462,7 +462,7 @@ def catalan_number(n):
 
     .. SEEALSO::
 
-        :meth:`sequences.catalan <sage.combinat.sequences.sequences.catalan>`
+        :meth:`sequences.catalan <sage.misc.sequence_generators.sequences.catalan>`
     """
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
@@ -544,7 +544,7 @@ def fibonacci(n, algorithm="pari"):
 
     .. SEEALSO::
 
-        :meth:`sequences.fibonacci <sage.combinat.sequences.sequences.fibonacci>`
+        :meth:`sequences.fibonacci <sage.misc.sequence_generators.sequences.fibonacci>`
     """
     n = ZZ(n)
     if algorithm == 'pari':
@@ -2726,9 +2726,9 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         sage: fibs = [i for i in fibonacci_sequence(10, 20)]
         doctest:...: DeprecationWarning: This function is deprecated and
         will be removed somewhere in future. Please use
-          sequences.fibonacci(start=start, stop=stop)
+          sequences.fibonacci()[start:stop]
         instead.
-        See http://trac.sagemath.org/99999 for details.
+        See http://trac.sagemath.org/18565 for details.
         sage: fibs
         [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
 
@@ -2746,10 +2746,10 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
     - Bobby Moretti
     """
     from sage.misc.superseded import deprecation
-    deprecation(99999, 'This function is deprecated and will be removed '
+    deprecation(18565, 'This function is deprecated and will be removed '
                 'somewhere in future. '
                 'Please use\n'
-                '  sequences.fibonacci(start=start, stop=stop)\n'
+                '  sequences.fibonacci()[start:stop]\n'
                 'instead.')
 
     if stop is None:
@@ -2759,8 +2759,8 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         start = ZZ(start)
         stop = ZZ(stop)
 
-    from sage.combinat.sequences import sequences
-    return sequences.fibonacci(algorithm=algorithm, start=start, stop=stop)
+    from sage.misc.sequence_generators import sequences
+    return sequences.fibonacci(algorithm=algorithm)[start:stop]
 
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):
@@ -2776,7 +2776,7 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         will be removed somewhere in future. Please use
           sequences.fibonacci(drop_until=lambda f: f >= start, take_while=lambda f: f < stop)
         instead.
-        See http://trac.sagemath.org/99999 for details.
+        See http://trac.sagemath.org/18565 for details.
         sage: len(fibs_in_some_range)
         4
         sage: fibs_in_some_range
@@ -2802,12 +2802,17 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
        :func:`fibonacci_sequence`
 
+    TESTS::
+
+        sage: tuple(sequences.fibonacci().dropwhile(lambda x: x < 13).takewhile(lambda x: x < 34))
+        (13, 21)
+
     AUTHORS:
 
     - Bobby Moretti
     """
     from sage.misc.superseded import deprecation
-    deprecation(99999, 'This function is deprecated and will be removed '
+    deprecation(18565, 'This function is deprecated and will be removed '
                 'somewhere in future. '
                 'Please use\n'
                 '  sequences.fibonacci('
@@ -2822,10 +2827,9 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         start = ZZ(start)
         stop = ZZ(stop)
 
-    from sage.combinat.sequences import sequences
-    return sequences.fibonacci(algorithm=algorithm,
-                               drop_until=lambda f: f >= start,
-                               take_while=lambda f: f < stop)
+    from sage.misc.sequence_generators import sequences
+    return sequences.fibonacci(algorithm=algorithm).\
+        dropwhile(lambda f: f < start).takewhile(lambda f: f < stop)
 
 
 def bernoulli_polynomial(x, n):
