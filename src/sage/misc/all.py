@@ -168,6 +168,9 @@ from unknown import Unknown
 
 lazy_import('sage.misc.inline_fortran', 'fortran')
 
+lazy_import('sage.misc.sequence_generators',
+            ['sequences'])
+
 ##########################################################################
 def benchmark(n=-1):
     """
