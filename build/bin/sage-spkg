@@ -720,4 +720,8 @@ else
 fi
 
 
+echo "Warning: it might be needed to update the Sage library before"
+echo "installed packages work: you should run 'make' from \$SAGE_ROOT"
+echo "before running Sage."
+echo ""
 echo "Finished installing $PKG_NAME.spkg"
