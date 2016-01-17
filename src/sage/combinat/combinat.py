@@ -495,7 +495,7 @@ def euler_number(n):
         raise ValueError("n (=%s) must be a nonnegative integer"%n)
     return ZZ(maxima.eval("euler(%s)"%n))
 
-def fibonacci(n, algorithm="pari"):
+def fibonacci(n, algorithm=None):
     """
     Return the `n`-th Fibonacci number.
 
@@ -547,7 +547,7 @@ def fibonacci(n, algorithm="pari"):
         :meth:`sequences.fibonacci <sage.misc.sequence_generators.sequences.fibonacci>`
     """
     n = ZZ(n)
-    if algorithm == 'pari':
+    if algorithm is None or algorithm == 'pari':
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
