@@ -589,20 +589,15 @@ cdef class lazy_list_generic(object):
             sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
-        cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-        cdef Py_ssize_t length = len(self.cache)
-
-        if (length <= self.start + self.preview*self.step and
-            num_elts != length / self.step):
-            self._fit(self.start + self.preview*self.step)
-            num_elts = 1 + (self.stop-self.start-1) / self.step
-
         cdef str s = self.name
         if s:
             s += ' '
         s += self.opening_delimiter
-        cdef list E = list('{!r}'.format(self.get(n))
-                           for n in xrange(min(num_elts, self.preview)))
+        cdef list P = list(self[:self.preview+1])
+        cdef list E = list('{!r}'.format(e)
+                           for e in P[:self.preview])
+        cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
+
         if num_elts > self.preview:
             E.append(self.more)
         s += self.separator.join(E)
@@ -796,9 +791,16 @@ cdef class lazy_list_generic(object):
             start        0
             stop         5
             step         1
+
+        ::
+
+            sage: tuple(lazy_list(Primes()).dropwhile(lambda x: x < 10)[:5])
+            (11, 13, 17, 19, 23)
         """
         cdef Py_ssize_t i
 
+        if self._fit(self.start):
+            return
         i = self.start
         while i < self.stop:
             if self._fit(i):
@@ -1574,11 +1576,11 @@ cdef class lazy_list_takewhile(lazy_list_generic):
             sage: lazy_list_takewhile(Z(), lambda x: x != 3)[4]
             4
         """
-
         lazy_list_generic.__init__(
             self, master=master, cache=master._get_cache_(), **kwds)
         self.predicate = predicate
         self.taking = True
+        self.to_test = self.start
 
 
     cpdef int update_cache_up_to(self, Py_ssize_t i) except -1:
@@ -1599,35 +1601,88 @@ cdef class lazy_list_takewhile(lazy_list_generic):
             sage: L = lazy_list_takewhile(
             ....:    lazy_list(Primes()), lambda x: x <= 10); L
             lazy list [2, 3, 5, ...]
+            sage: L._info()
+            cache length 4
+            start        0
+            stop         9223372036854775807
+            step         1
             sage: L.update_cache_up_to(10)
             1
+            sage: tuple(L)
+            (2, 3, 5, 7)
             sage: L._info()
             cache length 5
             start        0
             stop         4
             step         1
+
+        ::
+
+            sage: P = lazy_list(Primes())
+            sage: a = tuple(P.dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20)); a
+            (11, 13, 17, 19)
+            sage: b = tuple(P.dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20))
+            sage: a == b
+            True
+
+        ::
+
+            sage: F = lazy_list(lambda x: fibonacci(x))
+            sage: tuple(F.dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20))
+            (13,)
+
+        ::
+
+            sage: P = lazy_list(srange(1,30,2))
+            sage: a = tuple(P.dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20)); a
+            (11, 13, 15, 17, 19)
+            sage: b = tuple(P.dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20))
+            sage: a == b
+            True
+
+        ::
+
+            sage: P = lazy_list(Primes())
+            sage: Q = P.takewhile(lambda x: x < 20); c = tuple(Q); c
+            (2, 3, 5, 7, 11, 13, 17, 19)
+            sage: Q._info()
+            cache length 9
+            start        0
+            stop         8
+            step         1
+            sage: Q = P.takewhile(lambda x: x < 20); d = tuple(Q)
+            sage: Q._info()
+            cache length 9
+            start        0
+            stop         8
+            step         1
+            sage: c == d
+            True
         """
-        cdef Py_ssize_t length = len(self.cache)
         if not self.taking:
-            if length <= i:
-                return 1
-            else:
-                return 0
-        cdef Py_ssize_t m
-        while length <= i:
-            if self.master._fit(length):
-                return 1
-            m = length
-            length = len(self.cache)
-            while m < length and self.predicate(self.cache[m]):
-                m += 1
-            if m < length:
-                self.stop = m
+            return 0
+
+        if self.master._fit(self.to_test):
+            self.stop = self.to_test
+            self.taking = False
+            return 1
+        self.to_test = max(self.to_test, self.start)
+
+        while self.to_test <= i:
+            if self.master._fit(self.to_test):
+                self.stop = self.to_test
                 self.taking = False
-                if m <= i:
-                    return 1
-                else:
-                    return 0
+                return 1
+            if not (self.to_test < len(self.cache) and
+                    self.predicate(self.cache[self.to_test])):
+                break
+            self.to_test += 1
+
+        if self.to_test <= i:
+            self.stop = self.to_test
+            self.taking = False
+            return 1
+
         return 0
 
 
@@ -1670,6 +1725,13 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
             start        6
             stop         9223372036854775807
             step         1
+
+        ::
+
+            sage: lazy_list(Primes()).dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20)
+            lazy list [11, 13, 17, ...]
+            sage: tuple(lazy_list(Primes()).dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20))
+            (11, 13, 17, 19)
         """
         lazy_list_generic.__init__(
             self, master=master, cache=master._get_cache_(), **kwds)
@@ -1711,8 +1773,8 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
             m = self.start
             lazy_list_generic._fit(self, m)
             while m < len(self.cache) and self.predicate(self.cache[m]):
-                    m += 1
-                    lazy_list_generic._fit(self, m)
+                m += 1
+                lazy_list_generic._fit(self, m)
             self.start = m
             self.dropping = False
             n += m
