@@ -56,7 +56,6 @@ Elements
    sage/structure/formal_sum
    sage/structure/factorization
    sage/structure/factorization_integer
-   sage/structure/sequence
    sage/sets/cartesian_product
    sage/sets/family
    sage/sets/set
@@ -68,6 +67,16 @@ Elements
    sage/sets/finite_set_maps
    sage/sets/finite_set_map_cy
    sage/sets/totally_ordered_finite_set
+
+Sequences
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/structure/sequence
+   sage/structure/homogenous_sequence
+   sage/misc/sequence_generators
 
 Sets
 ----
