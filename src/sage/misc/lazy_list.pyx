@@ -1677,6 +1677,13 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
             start        6
             stop         9223372036854775807
             step         1
+
+        ::
+
+            sage: lazy_list(Primes()).dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20)
+            lazy list [11, 13, 17, ...]
+            sage: tuple(lazy_list(Primes()).dropwhile(lambda x: x < 10).takewhile(lambda x: x < 20))
+            (11, 13, 17, 19)
         """
         lazy_list_generic.__init__(
             self, master=master, cache=master._get_cache_(), **kwds)
@@ -1718,8 +1725,8 @@ cdef class lazy_list_dropwhile(lazy_list_generic):
             m = self.start
             lazy_list_generic._fit(self, m)
             while m < len(self.cache) and self.predicate(self.cache[m]):
-                    m += 1
-                    lazy_list_generic._fit(self, m)
+                m += 1
+                lazy_list_generic._fit(self, m)
             self.start = m
             self.dropping = False
             n += m
