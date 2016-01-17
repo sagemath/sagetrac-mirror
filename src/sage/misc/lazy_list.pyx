@@ -589,20 +589,15 @@ cdef class lazy_list_generic(object):
             sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
-        cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-        cdef Py_ssize_t length = len(self.cache)
-
-        if (length <= self.start + self.preview*self.step and
-            num_elts != length / self.step):
-            self._fit(self.start + self.preview*self.step)
-            num_elts = 1 + (self.stop-self.start-1) / self.step
-
         cdef str s = self.name
         if s:
             s += ' '
         s += self.opening_delimiter
-        cdef list E = list('{!r}'.format(self.get(n))
-                           for n in xrange(min(num_elts, self.preview)))
+        cdef list P = list(self[:self.preview+1])
+        cdef list E = list('{!r}'.format(e)
+                           for e in P[:self.preview])
+        cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
+
         if num_elts > self.preview:
             E.append(self.more)
         s += self.separator.join(E)
