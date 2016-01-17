@@ -475,7 +475,7 @@ Classes and methods
 -------------------
 """
 from multiprocessing import Process, Value, Semaphore, Lock, cpu_count
-from multiprocessing.queues import Pipe, SimpleQueue
+from multiprocessing.queues import Pipe, Queue, SimpleQueue
 from multiprocessing.sharedctypes import RawArray
 from threading import Thread
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
@@ -765,7 +765,7 @@ class RESetMapReduce(object):
         """
         self._nprocess = proc_number(max_proc)
         self._results = SimpleQueue()
-        self._active_tasks = Semaphore(self._nprocess)
+        self._active_tasks = (Value(ctypes.c_int, self._nprocess), Lock())#Semaphore(self._nprocess)
         self._done = Lock()
         self._abort = Value(ctypes.c_bool, False)
         sys.stdout.flush()
@@ -912,8 +912,10 @@ class RESetMapReduce(object):
         """
         logger.info("Abort called")
         self._abort.value = True
-        while self._active_tasks.acquire(False):
-            pass
+        #while self._active_tasks.acquire(False):
+        #    pass
+        with self._active_tasks[1]:
+            self._active_tasks[0].value = 0
         self._shutdown()
 
     def _shutdown(self):
@@ -942,6 +944,7 @@ class RESetMapReduce(object):
                 worker._request.put(AbortError)
             for worker in self._workers:
                 worker._write_task.send(AbortError)
+                #worker._read_write_task.put(AbortError)
 
     def _signal_task_start(self):
         r"""
@@ -957,11 +960,11 @@ class RESetMapReduce(object):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
-            sage: S._active_tasks
+            sage: S._active_tasks # not tested TODO adapt
             <Semaphore(value=...)>
 
             sage: S._signal_task_start()
-            sage: S._active_tasks
+            sage: S._active_tasks # not tested TODO adapt
             <Semaphore(value=...)>
 
         We can't get the semaphore values on some Unixes. see in particular
@@ -981,7 +984,8 @@ class RESetMapReduce(object):
         #if self._active_tasks._semlock._is_zero():
         #    raise AbortError
         logger.debug("_signal_task_start called")
-        self._active_tasks.release()
+        with self._active_tasks[1]:
+            self._active_tasks[0].value += 1
 
     def _signal_task_done(self):
         r"""
@@ -997,11 +1001,11 @@ class RESetMapReduce(object):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
-            sage: S._active_tasks
+            sage: S._active_tasks # not tested TODO adapt
             <Semaphore(value=...)>
 
             sage: S._signal_task_done()
-            sage: S._active_tasks
+            sage: S._active_tasks # not tested TODO adapt
             <Semaphore(value=...)>
 
             sage: S._signal_task_done()
@@ -1014,12 +1018,15 @@ class RESetMapReduce(object):
             sage: del S._results, S._active_tasks, S._done, S._workers
         """
         logger.debug("_signal_task_done called")
-        if not self._active_tasks.acquire(False):
-            logger.debug("raising AbortError")
-            raise AbortError
-        if self._active_tasks._semlock._is_zero():
-            self._shutdown()
-            raise AbortError
+        with self._active_tasks[1]:
+            self._active_tasks[0].value -= 1
+            if self._active_tasks[0].value <= 0:
+                logger.debug("raising AbortError")
+                self._shutdown()
+                raise AbortError
+        #if self._active_tasks._semlock._is_zero():
+        #    self._shutdown()
+        #    raise AbortError
 
     def random_worker(self):
         r"""
@@ -1223,6 +1230,7 @@ class RESetMapReduceWorker(Process):
         # currently this is not possible to have to simultaneous read or write
         # on the following Pipe. So there is no need to have a queue.
         self._read_task, self._write_task = Pipe(duplex=False)
+        #self._read_write_task = Queue()#duplex=False)
         self._mapred = mapred
         self._stats  =  RawArray('i', 4)
         self._reduce_locally = reduce_locally
@@ -1262,10 +1270,12 @@ class RESetMapReduceWorker(Process):
                     work = self._todo.popleft()
                 except IndexError:
                     target._write_task.send(None)
+                    #target._read_write_task.put(None)
                     logger.debug("Failed Steal %s"%target.name)
                     self._mapred._signal_task_done()
                 else:
                     target._write_task.send(work)
+                    #target._read_write_task.put(work)
                     logger.debug("Succesful Steal %s"%target.name)
                     thefts += 1
         except AbortError:
@@ -1312,6 +1322,7 @@ class RESetMapReduceWorker(Process):
                 self._stats[0] += 1
                 logger.debug("waiting from steal answer from %s"%(victim.name))
                 node = self._read_task.recv()
+                #node = self._read_write_task.get()
                 logger.debug("Request answer: %s"%(node,))
                 if node is AbortError:
                     raise AbortError
@@ -1412,6 +1423,8 @@ class RESetMapReduceWorker(Process):
         self._read_task.close()
         self._write_task.close()
         del self._read_task, self._write_task
+        #self._read_write_task.close()
+        #del self._read_write_task
         del self._mapred
         del self._stats
         logger.debug("Exiting")
