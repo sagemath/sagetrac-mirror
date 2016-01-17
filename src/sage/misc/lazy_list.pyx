@@ -796,9 +796,16 @@ cdef class lazy_list_generic(object):
             start        0
             stop         5
             step         1
+
+        ::
+
+            sage: tuple(lazy_list(Primes()).dropwhile(lambda x: x < 10)[:5])
+            (11, 13, 17, 19, 23)
         """
         cdef Py_ssize_t i
 
+        if self._fit(self.start):
+            return
         i = self.start
         while i < self.stop:
             if self._fit(i):
