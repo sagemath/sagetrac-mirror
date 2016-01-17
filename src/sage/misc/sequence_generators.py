@@ -1,18 +1,23 @@
 r"""
 Common Sequences
 
-Sequences in SageMath can be built through the ``sequences``
-object, which contains common sequences. For example,
+Every sequence of this catalog is an (infinite) list of elements out
+of a common guaranteed universe. The elements are evaluated lazily.
 
+Sequences of this catalog in SageMath can be accessed through the ``sequences``
+object. For example,
 ::
 
-    sage: sequences.catalan()
+    sage: C = sequences.catalan()
+    sage: C
     catalan sequence 1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, ...
 
 generates the sequence of catalan numbers; the first `10` are shown as
 a preview.
 
-**Sequences**
+
+Overview
+========
 
 .. csv-table::
     :class: contentstable
@@ -21,6 +26,21 @@ a preview.
 
     :meth:`~Sequences.catalan` | the sequence of catalan numbers
     :meth:`~Sequences.fibonacci` | the sequence of fibonacci numbers
+
+
+Features
+========
+
+We can access the elements by
+::
+
+    sage: C[7]
+
+and build sublists (slices) via
+::
+
+    sage: C[3:100:2]
+    sequence 5, 42, 429, 4862, 58786, 742900, 9694845, 129644790, 1767263190, 24466267020, ...
 
 
 Various
