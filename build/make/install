@@ -114,4 +114,10 @@ if [ "$1" = "all" ]; then
     echo
     echo "at the Sage command prompt ('sage:')."
     echo
+else
+    echo
+    echo "Warning: it might be needed to update the Sage library before"
+    echo "installed packages work: you should run 'make' from \$SAGE_ROOT"
+    echo "before running Sage."
+    echo
 fi
