@@ -1538,7 +1538,7 @@ class HasseDiagram(DiGraph):
 
     def ordinal_sum_decomposition(self):
         """
-        Return the ordinal decomposition of the poset.
+        Return the ordinal decomposition of the Hasse diagram.
 
         This function is kind of inverse to ordinal sum. Ordinal
         decomposition of a poset `P` is the list of posets
@@ -1606,11 +1606,16 @@ class HasseDiagram(DiGraph):
                     upper.add(uc)
 
             if e+1 in up_covers:
+                uc_len = len(upper)
                 for l in lower:
-                    if set(self.neighbors_out(l)) != upper:
+                    if self.out_degree(l) != uc_len:
                         break
                 else:
-                    cut_points.append(e)
+                    for l in lower:
+                        if set(self.neighbors_out(l)) != upper:
+                            break
+                    else:
+                        cut_points.append(e)
 
         cut_points.append(n-1)
         return cut_points
