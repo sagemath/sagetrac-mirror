@@ -1560,34 +1560,57 @@ class AbstractLinearCode(module.Module):
 
     def covering_radius(self):
         r"""
-        Wraps Guava's ``CoveringRadius`` command.
+        Returns the covering radius of ``self``.
 
         The covering radius of a linear code `C` is the smallest number `r`
-        with the property that each element `v` of the ambient vector space
-        of `C` has at most a distance `r` to the code `C`. So for each
-        vector `v` there must be an element `c` of `C` with `d(v,c) \leq  r`.
-        A binary linear code with reasonable small covering radius is often
-        referred to as a covering code.
+        such that any element `v` of the ambient space of `C` is at most
+        distance `r` to the `C`.
 
-        For example, if `C` is a perfect code, the covering radius is equal
-        to `t`, the number of errors the code can correct, where `d = 2t+1`,
-        with `d` the minimum distance of `C`.
+        .. NOTE::
+
+            If the optional package Guava for Gap is installed in your system,
+            Guava's covering radius will be used. If not, a generic algorithm
+            in Python will be run, which is very slow compared to
+            the Guava one.
 
         EXAMPLES::
 
-            sage: C = codes.HammingCode(5,GF(2))
-            sage: C.covering_radius()  # optional - gap_packages (Guava package)
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: C.covering_radius()
             1
         """
-        F = self.base_ring()
-        G = self.generator_matrix()
-        gapG = gap(G)
-        C = gapG.GeneratorMatCode(gap(F))
-        r = C.CoveringRadius()
         try:
-            return ZZ(r)
-        except TypeError:
-            raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+            gap.load_package("guava")
+            F = self.base_ring()
+            G = self.generator_matrix()
+            gapG = gap(G)
+            C = gapG.GeneratorMatCode(gap(F))
+            r = C.CoveringRadius()
+            try:
+                return ZZ(r)
+            except TypeError:
+                raise TypeError("the covering radius of this code cannot be computed by Guava")
+        except RuntimeError:
+            A = self.ambient_space()
+            n = self.length()
+            Iter_ambient = iter(A)
+            distances = []
+            while(True):
+                try:
+                    x = Iter_ambient.next()
+                except StopIteration:
+                    break
+                Iter_code = iter(self)
+                smallest_distance = n + 1
+                while(True):
+                    try:
+                        distance_tmp = (Iter_code.next() - x).hamming_weight()
+                    except StopIteration:
+                        break
+                    if distance_tmp < smallest_distance:
+                        smallest_distance = distance_tmp
+                distances.append(smallest_distance)
+            return max(distances)
 
     def decode(self, right, algorithm="syndrome"):
         r"""
