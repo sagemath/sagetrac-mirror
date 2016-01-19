@@ -3628,8 +3628,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return the ordinal decomposition of the poset as subposets.
 
-        The function returns list of non-empty posets so that
-        their ordinal sum is the poset.
+        Ordinal decomposition of poset `P` is a list of non-empty subposets
+        `P_1, \ldots, P_n` so that their ordinal sum is `P` and none of
+        `P_i` can be expressed as a ordinal sum of smaller posets.
 
         .. SEEALSO::
 
@@ -3647,19 +3648,73 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(P)
             True
 
+        ALGORITHM:
+
+        Suppose that poset `P` is the ordinal sum of posets `L` and
+        `U`. Then `P` contains maximal antichains `l` and `u` such that
+        every element of `u` covers exactly every element of `l` and
+        every element of `l` is covered by exactly every element of `u`; they
+        correspond to maximal elements of `L` and minimal elements
+        of `U`.
+
+        We know that the Hasse diagram is a topologically sorted DAG,
+        starting numbering from zero. Hence, if `L` has `n` elements,
+        then `l` contains element `n-1` and `u` contains element
+        `n`.
+
+        We keep track of the maximal elements of subposet induced
+        by elements `0..e` and minimal elements of subposet induced
+        by elements `e+1..n`, incrementing `e` one by one. Then we just
+        check if they can be `l` and `u` in previous description.
+
         TESTS::
 
             sage: Poset().ordinal_components()
-            []
+            [Finite poset containing 0 elements]
             sage: Poset({1:[]}).ordinal_components()
             [Finite poset containing 1 elements]
         """
-        if self.cardinality() == 0:
-            return []
-        splits = [-1]+self._hasse_diagram.ordinal_sum_decomposition()
+        n = self.cardinality()
+        if n == 0:
+            return [Poset()]
+
+        H = self._hasse_diagram
+        cut_points = []
+        in_degrees = H.in_degree()
+        lower = set([])
+        upper = set(H.sources())
+
+        for e in range(n):
+            lower.add(e)
+            for lc in H.neighbors_in(e):
+                lower.discard(lc)
+            upper.discard(e)
+            up_covers = H.neighbors_out(e)
+            for uc in up_covers:
+                in_degrees[uc] -= 1
+                if in_degrees[uc] == 0:
+                    upper.add(uc)
+
+            if e+1 in up_covers:
+                uc_len = len(upper)
+                for l in lower:
+                    if H.out_degree(l) != uc_len:
+                        break
+                else:
+                    for l in lower:
+                        if set(H.neighbors_out(l)) != upper:
+                            break
+                    else:
+                        cut_points.append(e)
+
+        cut_points.append(n-1)
+
+        splits = [-1]+cut_points
         parts = []
         for i in range(len(splits)-1):
-            parts.append(self.subposet([self._vertex_to_element(e) for e in range(splits[i]+1, splits[i+1]+1)]))
+            parts.append(self.subposet([self._vertex_to_element(e) 
+                                        for e in range(splits[i]+1, 
+                                                       splits[i+1]+1)]))
         return parts
 
     def product(self, other):
