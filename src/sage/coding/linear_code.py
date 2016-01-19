@@ -1558,6 +1558,7 @@ class AbstractLinearCode(module.Module):
 
     check_mat = deprecated_function_alias(17973, parity_check_matrix)
 
+    @cached_method
     def covering_radius(self):
         r"""
         Returns the covering radius of ``self``.
