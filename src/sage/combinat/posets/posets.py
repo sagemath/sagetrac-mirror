@@ -3712,8 +3712,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         splits = [-1]+cut_points
         parts = []
         for i in range(len(splits)-1):
-            parts.append(self.subposet([self._vertex_to_element(e) 
-                                        for e in range(splits[i]+1, 
+            parts.append(self.subposet([self._vertex_to_element(e)
+                                        for e in range(splits[i]+1,
                                                        splits[i+1]+1)]))
         return parts
 
