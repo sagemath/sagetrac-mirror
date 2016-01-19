@@ -1580,18 +1580,7 @@ class AbstractLinearCode(module.Module):
             sage: C.covering_radius()
             1
         """
-        try:
-            gap.load_package("guava")
-            F = self.base_ring()
-            G = self.generator_matrix()
-            gapG = gap(G)
-            C = gapG.GeneratorMatCode(gap(F))
-            r = C.CoveringRadius()
-            try:
-                return ZZ(r)
-            except TypeError:
-                raise TypeError("the covering radius of this code cannot be computed by Guava")
-        except RuntimeError:
+        if not bool(gap.load_package("guava")):
             A = self.ambient_space()
             n = self.length()
             Iter_ambient = iter(A)
@@ -1612,6 +1601,16 @@ class AbstractLinearCode(module.Module):
                         smallest_distance = distance_tmp
                 distances.append(smallest_distance)
             return max(distances)
+
+        F = self.base_ring()
+        G = self.generator_matrix()
+        gapG = gap(G)
+        C = gapG.GeneratorMatCode(gap(F))
+        r = C.CoveringRadius()
+        try:
+            return ZZ(r)
+        except TypeError:
+            raise TypeError("the covering radius of this code cannot be computed by Guava")
 
     def decode(self, right, algorithm="syndrome"):
         r"""
