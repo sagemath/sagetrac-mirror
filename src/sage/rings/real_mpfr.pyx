@@ -2306,6 +2306,42 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
+    def __floordiv__(RealNumber self, other):
+        r"""
+        Return the floor of ``self`` divided by ``other``.
+        
+        EXAMPLES::
+        
+            sage: 3.5 // 2
+            1
+            sage: RR(0.9) // RR(0.2)
+            4
+            sage: RR(1) // RR(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Floor division by zero
+
+        Rounding is always downwards (the rounding mode of the parent
+        does not matter)::
+
+            sage: RR(3*2^53-4) // RR(2^53-1)
+            2
+            sage: RR(3*2^53-4) // RR(1-2^53)
+            -3
+            sage: RR(1) // RealField(100)(1 + 2^-99)
+            0
+        """
+        cdef RealNumber right
+        try:
+            right = <RealNumber?>(other)
+        except TypeError:
+            right = self.parent()(other)
+        if mpfr_zero_p(right.value):
+            raise ZeroDivisionError("Floor division by zero")
+        cdef RealNumber x = self._new()
+        mpfr_div(x.value, self.value, right.value, GMP_RNDD)
+        return x.floor()
+
     cpdef ModuleElement _neg_(self):
         """
         Return the negative of ``self``.
