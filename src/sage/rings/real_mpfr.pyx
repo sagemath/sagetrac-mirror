@@ -2306,7 +2306,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
-    def __floordiv__(RealNumber self, other):
+    cpdef RingElement _floordiv_(self, RingElement other):
         r"""
         Return the floor of ``self`` divided by ``other``.
         
@@ -2319,7 +2319,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(1) // RR(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Floor division by zero
+            ZeroDivisionError: floor division by zero
 
         Rounding is always downwards (the rounding mode of the parent
         does not matter)::
@@ -2328,19 +2328,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2
             sage: RR(3*2^53-4) // RR(1-2^53)
             -3
-            sage: RR(1) // RealField(100)(1 + 2^-99)
+            sage: RR(1) // RR(1 + 2^-52)
             0
         """
-        cdef RealNumber right
-        try:
-            right = <RealNumber?>(other)
-        except TypeError:
-            right = self.parent()(other)
+        cdef RealNumber right = <RealNumber>other
         if mpfr_zero_p(right.value):
-            raise ZeroDivisionError("Floor division by zero")
+            raise ZeroDivisionError("floor division by zero")
         cdef RealNumber x = self._new()
-        mpfr_div(x.value, self.value, right.value, GMP_RNDD)
-        return x.floor()
+        cdef Integer y = PY_NEW(Integer)
+        mpfr_div(x.value, self.value, right.value, MPFR_RNDD)
+        mpfr_get_z(y.value, x.value, MPFR_RNDD)
+        return y
 
     cpdef ModuleElement _neg_(self):
         """

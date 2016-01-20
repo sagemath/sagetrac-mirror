@@ -2163,7 +2163,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __floordiv__(self, right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Return the floor of ``self`` divided by ``right``.
 
@@ -2174,9 +2174,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(3) // 0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
-        return (self / right).floor()
+        return (self._div_(right)).floor()
 
     ################################################################
     # Other arithmetic operations.

@@ -1256,7 +1256,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
 
-    def __floordiv__(self, other):
+    cpdef RingElement _floordiv_(self, RingElement other):
         """
         Return the floor of ``self`` divided by ``other``.
 
@@ -1269,15 +1269,15 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1) // RDF(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Floor division by zero
+            ZeroDivisionError: floor division by zero
             sage: RDF(1e200) // RDF(1e-200)
             Traceback (most recent call last):
             ...
             OverflowError: cannot convert float infinity to integer
         """
-        if not other != 0:
-            raise ZeroDivisionError("Floor division by zero")
-        return (self / other).floor()
+        if not other:
+            raise ZeroDivisionError("floor division by zero")
+        return (self._div_(other)).floor()
 
     cpdef RingElement _div_(self, RingElement right):
         """
