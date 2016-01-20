@@ -39,6 +39,9 @@ of the licence above.
 
 == Special Packaging Instruction ==
 
+The sources with the appropriate copyright modifications are in
+https://github.com/dimpase/nauty_sagemath
+
 Upstream distribute tarball named nauty${version}.tar.gz. We cannot
 deal with that so rename it nauty-${version}.tar.gz (notice the "-")
 without any changes.
