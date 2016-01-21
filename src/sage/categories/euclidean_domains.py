@@ -111,6 +111,18 @@ class EuclideanDomains(Category_singleton):
             .. SEEALSO::
 
                 :meth:`_test_euclidean_degree`
+
+            TESTS:
+
+            Most of Sage fields have a coercion from the integers.
+            Here we build a field that does not have one (the one-fold
+            cartesian power of `\QQ`), to make sure that
+            :meth:`_test_quo_rem` does not use a comparison with 0::
+
+                sage: F = cartesian_product([QQ], category=Rings().CartesianProducts() & Fields())
+                sage: F.zero() == 0
+                False
+                sage: F._test_quo_rem()
             """
             tester = self._tester(**options)
             S = tester.some_elements()
@@ -123,7 +135,7 @@ class EuclideanDomains(Category_singleton):
                     tester.assertIn(q, self)
                     tester.assertIn(r, self)
                     tester.assertEqual(a,q*b+r)
-                    if r != 0:
+                    if not r.is_zero():
                         tester.assertLess(r.euclidean_degree(), b.euclidean_degree())
 
     class ElementMethods:
