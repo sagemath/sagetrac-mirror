@@ -1580,7 +1580,9 @@ class AbstractLinearCode(module.Module):
             sage: C.covering_radius()
             1
         """
-        if not bool(gap.load_package("guava")):
+        try:
+            (gap.load_package("guava"))
+        except RuntimeError:
             A = self.ambient_space()
             n = self.length()
             Iter_ambient = iter(A)
