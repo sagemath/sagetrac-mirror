@@ -409,6 +409,10 @@ class FiniteFieldFactory(UniqueFactory):
         sage: k1 is k2
         True
 
+    No need to provide a default variable name (:trac:`19929`)::
+
+        sage: GF(16)
+        Finite Field in a_2_4 of size 2^4
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True, **kwds):
@@ -475,11 +479,12 @@ class FiniteFieldFactory(UniqueFactory):
                 # is no good place to store a specific choice of
                 # pseudo-Conway polynomials.
                 if name is None:
-                    if not ('conway' in kwds and kwds['conway']):
-                        raise ValueError("parameter 'conway' is required if no name given")
-                    if 'prefix' not in kwds:
+                    if not kwds.get('conway',False):
+                        name = "a_{}_{}".format(p,n)
+                    elif 'prefix' not in kwds:
                         raise ValueError("parameter 'prefix' is required if no name given")
-                    name = kwds['prefix'] + str(n)
+                    else:
+                        name = kwds['prefix'] + str(n)
 
                 if 'conway' in kwds and kwds['conway']:
                     from conway_polynomials import conway_polynomial
