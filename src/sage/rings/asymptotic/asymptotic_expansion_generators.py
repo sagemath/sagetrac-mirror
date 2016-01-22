@@ -290,7 +290,7 @@ class AsymptoticExpansionGenerators(SageObject):
             result += log(2*coefficient_ring('pi')) / 2
 
         from sage.misc.misc import srange
-        from sage.rings.arith import bernoulli
+        from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 6, 2):
             result += bernoulli(k) / k / (k-1) / n**(k-1)
 
@@ -393,7 +393,7 @@ class AsymptoticExpansionGenerators(SageObject):
             result += 1 / (2 * n)
 
         from sage.misc.misc import srange
-        from sage.rings.arith import bernoulli
+        from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 4, 2):
             result += -bernoulli(k) / k / n**k
 
