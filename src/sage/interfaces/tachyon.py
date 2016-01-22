@@ -16,7 +16,6 @@ AUTHOR:
 #*****************************************************************************
 
 import os
-import sys
 
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
@@ -128,7 +127,7 @@ class TachyonRT(SageObject):
             sage: t(syntax_error, outfile=os.devnull)
             Traceback (most recent call last):
             ...
-            RuntimeError: Tachyon Parallel/Multiprocessor Ray Tracer   Version 0.98.9   
+            RuntimeError: Tachyon Parallel/Multiprocessor Ray Tracer...
             ...
             Parser failed due to an input file syntax error.
             Aborting render.

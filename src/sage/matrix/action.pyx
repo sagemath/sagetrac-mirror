@@ -1,17 +1,16 @@
 """
-These are the actions used by the coercion model for matrix and vector
-multiplications.
+Actions used by the coercion model for matrix and vector multiplications
 
 .. WARNING::
 
     The class :class:`MatrixMulAction` and its descendants extends the class
-    :class:`Action`. As a consequence, objects from these classes only keep weak
+    :class:`Action`. As a consequence objects from these classes only keep weak
     references to the underlying sets which are acted upon. This decision was
     made in :trac:`715` in order to allow garbage collection within the coercion
     framework, where actions are mainly used, and avoid memory leaks.
 
     To ensure that the underlying set of such an object does not get garbage
-    collected, it is sufficient to explicitely create a strong reference to it
+    collected, it is sufficient to explicitly create a strong reference to it
     before creating the action.
 
     ::
@@ -54,8 +53,10 @@ AUTHOR:
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -64,6 +65,7 @@ import operator
 
 from matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
+from sage.structure.element cimport coercion_model
 
 
 cdef class MatrixMulAction(Action):
@@ -71,8 +73,7 @@ cdef class MatrixMulAction(Action):
         if not is_MatrixSpace(G):
             raise TypeError, "Not a matrix space: %s" % G
         if G.base_ring() is not S.base_ring():
-            from sage.structure.element import get_coercion_model
-            base = get_coercion_model().common_parent(G.base_ring(), S.base_ring())
+            base = coercion_model.common_parent(G.base_ring(), S.base_ring())
         else:
             base = G.base_ring()
         Action.__init__(self, G, S, is_left, operator.mul)
@@ -280,7 +281,9 @@ cdef class MatrixVectorAction(MatrixMulAction):
         EXAMPLES::
 
             sage: from sage.matrix.action import MatrixVectorAction
-            sage: A = MatrixVectorAction(MatrixSpace(QQ, 5, 3), VectorSpace(CDF, 3)); A
+            sage: M = MatrixSpace(QQ, 5, 3)
+            sage: V = VectorSpace(CDF, 3)    # strong reference prevents garbage collection
+            sage: A = MatrixVectorAction(M, V); A
             Left action by Full MatrixSpace of 5 by 3 dense matrices over Rational Field on Vector space of dimension 3 over Complex Double Field
             sage: A.codomain()
             Vector space of dimension 5 over Complex Double Field

@@ -165,7 +165,7 @@ etc:
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *
@@ -780,7 +780,7 @@ closer examination:
 
 .. skip
 
-::
+:: 
 
     sage: %prun -r A*A
     sage: stats = _

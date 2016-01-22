@@ -1,8 +1,9 @@
 r"""
 Projective `n` space over a ring
 
-EXAMPLES: We construct projective space over various rings of
-various dimensions.
+EXAMPLES:
+
+We construct projective space over various rings of various dimensions.
 
 The simplest projective space::
 
@@ -26,17 +27,28 @@ base rings.
     sage: X/CC
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
-The third argument specifies the printing names of the generators
-of the homogenous coordinate ring. Using objgens() you can obtain
-both the space and the generators as ready to use variables.
+The third argument specifies the printing names of the generators of the
+homogenous coordinate ring. Using the method `.objgens()` you can obtain both
+the space and the generators as ready to use variables. ::
+
+    sage: P2, vars = ProjectiveSpace(10, QQ, 't').objgens()
+    sage: vars
+    (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+
+You can alternatively use the special syntax with ``<`` and ``>``.
 
 ::
 
-    sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
+    sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
     sage: P2
     Projective Space of dimension 2 over Rational Field
-    sage: x.parent()
+    sage: P2.coordinate_ring()
     Multivariate Polynomial Ring in x, y, z over Rational Field
+
+The first of the three lines above is just equivalent to the two lines::
+
+    sage: P2 = ProjectiveSpace(2, QQ, 'xyz')
+    sage: x,y,z = P2.gens()
 
 For example, we use `x,y,z` to define the intersection of
 two lines.
@@ -54,7 +66,7 @@ AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
 
-- Ben Hutz (9/2014): added support for cartesian products
+- Ben Hutz (9/2014): added support for Cartesian products
 """
 
 #*****************************************************************************
@@ -83,9 +95,8 @@ from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
-from sage.structure.parent_gens import normalize_names
-from sage.rings.arith import (gcd,
-                              binomial)
+from sage.structure.category_object import normalize_names
+from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix
@@ -538,7 +549,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j])
                                         for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 
@@ -848,7 +859,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
     def cartesian_product(self, other):
         r"""
-        Return the cartesian product of the projective spaces ``self`` and
+        Return the Cartesian product of the projective spaces ``self`` and
         ``other``.
 
         INPUT:
@@ -857,7 +868,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        - A cartesian product of projective spaces
+        - A Cartesian product of projective spaces
 
         EXAMPLES::
 
@@ -918,7 +929,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self,bound):
+    def points_of_bounded_height(self,bound, prec=53):
         r"""
         Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
         is strict for the rational field. Requires self to be projective space over a number field. Uses the
@@ -928,9 +939,19 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         - ``bound`` - a real number
 
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+
         OUTPUT:
 
         - an iterator of points in self
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
 
         EXAMPLES::
 
@@ -944,8 +965,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
-            sage: len(list(P.points_of_bounded_height(6)))
-            133
+            sage: len(list(P.points_of_bounded_height(1.5)))
+            57
         """
         if (is_RationalField(self.base_ring())):
             ftype = False # stores whether the field is a number field or the rational field
@@ -954,7 +975,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         else:
             raise NotImplementedError("self must be projective space over a number field.")
 
-        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
+        bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -966,20 +987,20 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             if (ftype == False): # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
-                iters = [ R.elements_of_bounded_height(bound) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+                iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
                     if (ftype == False): # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
-                        iters[j] = R.elements_of_bounded_height(bound) # reset
-                    iters[j].next() # put at zero
+                        iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

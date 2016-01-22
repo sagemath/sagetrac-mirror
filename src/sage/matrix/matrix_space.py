@@ -46,7 +46,7 @@ import matrix_generic_sparse
 import matrix_modn_sparse
 
 import matrix_mod2_dense
-import matrix_mod2e_dense
+import matrix_gf2e_dense
 
 import matrix_integer_dense
 import matrix_integer_sparse
@@ -118,11 +118,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of modules over (euclidean domains and infinite enumerated sets)
+        Category of infinite modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of algebras over (euclidean domains and infinite enumerated sets)
+        Category of infinite algebras over (euclidean domains
+             and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
-        Category of algebras over quotient fields
+        Category of infinite algebras over (quotient fields and metric spaces)
 
     TESTS::
 
@@ -261,6 +263,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: A = MatrixSpace(RDF,1000,1000).random_element()
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
+
+        We check that :trac:`18186` is fixed::
+
+            sage: MatrixSpace(ZZ,0,3) in FiniteSets()
+            True
+            sage: MatrixSpace(Zmod(4),2) in FiniteSets()
+            True
+            sage: MatrixSpace(ZZ,2) in Sets().Infinite()
+            True
         """
         self._implementation = implementation
 
@@ -298,8 +309,41 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             category = Modules(base_ring.category())
 
+        if not self.__nrows or not self.__ncols:
+            is_finite = True
+        else:
+            is_finite = None
+            try:
+                is_finite = base_ring.is_finite()
+            except (AttributeError,NotImplementedError):
+                pass
+
+        if is_finite is True:
+            category = category.Finite()
+        elif is_finite is False:
+            category = category.Infinite()
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
+
+    def cardinality(self):
+        r"""
+        Return the number of elements in self.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(GF(3), 2, 3).cardinality()
+            729
+            sage: MatrixSpace(ZZ, 2).cardinality()
+            +Infinity
+            sage: MatrixSpace(ZZ, 0, 3).cardinality()
+            1
+        """
+        if not self.__nrows or not self.__ncols:
+            from sage.rings.integer_ring import ZZ
+            return ZZ.one()
+        else:
+            return self.base_ring().cardinality() ** (self.__nrows * self.__ncols)
 
     def full_category_initialisation(self):
         """
@@ -467,6 +511,17 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+
+        Check that :trac:`15110` is fixed::
+
+            sage: S.<t> = LaurentSeriesRing(ZZ)
+            sage: MS = MatrixSpace(S,1,1)
+            sage: MS([[t]])   # given as a list of lists
+            [t]
+            sage: MS([t])     # given as a list of coefficients
+            [t]
+            sage: MS(t)       # given as a scalar matrix
+            [t]
         """
         return self.matrix(entries, coerce, copy)
 
@@ -833,7 +888,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: a = list(MS)
             Traceback (most recent call last):
             ...
-            NotImplementedError: object does not support iteration
+            NotImplementedError: len() of an infinite set
         """
         #Make sure that we can iterate over the base ring
         base_ring = self.base_ring()
@@ -959,7 +1014,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return matrix_modn_dense_double.Matrix_modn_dense_double
                 return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
-                return matrix_mod2e_dense.Matrix_mod2e_dense
+                return matrix_gf2e_dense.Matrix_gf2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
@@ -1307,6 +1362,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MatrixSpace(Qp(3),1,1)([Qp(3)(4/3)])
             [3^-1 + 1 + O(3^19)]
 
+        One-rowed matrices over combinatorial free modules used to break
+        the constructor (:trac:`17124`). Check that this is fixed::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: h = Sym.h()
+            sage: MatrixSpace(h,1,1)([h[1]])
+            [h[1]]
+            sage: MatrixSpace(h,2,1)([h[1], h[2]])
+            [h[1]]
+            [h[2]]
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             if self._copy_zero: # faster to copy than to create a new one.
@@ -1348,7 +1413,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for v in x:
                     l = len(new_x)
                     try:
-                        new_x.extend(v)
+                        from sage.structure.element import is_Vector
+                        if isinstance(v, (list, tuple)) or is_Vector(v):
+                            # The isinstance check should prevent the "flattening"
+                            # of v if v is an iterable but not meant to be
+                            # iterated (e.g., an element of a combinatorial free
+                            # module).
+                            new_x.extend(v)
+                        else:
+                            raise TypeError
                         if len(new_x) - l != n:
                             raise TypeError
                     except TypeError:
@@ -1710,3 +1783,5 @@ register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'Matrix_integer_2x2', Matrix_integer_dense)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'MatrixSpace_ZZ_2x2_class', MatrixSpace)
+register_unpickle_override('sage.matrix.matrix_mod2e_dense',
+    'unpickle_matrix_mod2e_dense_v0', matrix_gf2e_dense.unpickle_matrix_gf2e_dense_v0)

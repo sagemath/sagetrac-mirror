@@ -88,6 +88,8 @@ We test corner cases for multiplication::
 from libc.stdint cimport uint64_t
 from cpython.string cimport *
 
+from sage.ext.memory cimport sage_malloc, sage_free
+from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
 
@@ -101,7 +103,7 @@ from libc.stdio cimport snprintf
 
 from sage.modules.vector_modn_dense cimport Vector_modn_dense
 
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.structure.element cimport ModuleElement
 
 cimport matrix_dense
@@ -409,17 +411,17 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         TESTS::
 
-        sage: import gc
-        sage: for i in range(10):
-        ...      A = random_matrix(GF(7),1000,1000)
-        ...      B = random_matrix(Integers(10),1000,1000)
-        ...      C = random_matrix(GF(16007),1000,1000)
-        ...      D = random_matrix(Integers(1000),1000,1000)
-        ...      del A
-        ...      del B
-        ...      del C
-        ...      del D
-        ...      _ = gc.collect()
+            sage: import gc
+            sage: for i in range(10):
+            ...      A = random_matrix(GF(7),1000,1000)
+            ...      B = random_matrix(Integers(10),1000,1000)
+            ...      C = random_matrix(GF(16007),1000,1000)
+            ...      D = random_matrix(Integers(1000),1000,1000)
+            ...      del A
+            ...      del B
+            ...      del C
+            ...      del D
+            ...      _ = gc.collect()
 
         """
         if self._entries == NULL:
@@ -519,22 +521,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
                 else:
                     v[j] = <float>(entries[k])
                 k = k + 1
-
-    def __richcmp__(Matrix_modn_dense_template self, right, int op):  # always need for mysterious reasons.
-        """
-        EXAMPLES::
-
-            sage: A = matrix(ZZ, 10, 10, range(1000, 1100))
-            sage: A.change_ring(GF(17)) == A.change_ring(GF(17))
-            True
-            sage: A.change_ring(GF(17)) == A.change_ring(GF(19))
-            False
-            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
-            False
-            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
-            False
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -948,7 +934,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 
@@ -974,6 +960,18 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             False
             sage: B + 3 == A
             True
+
+        ::
+
+            sage: A = matrix(ZZ, 10, 10, range(1000, 1100))
+            sage: A.change_ring(GF(17)) == A.change_ring(GF(17))
+            True
+            sage: A.change_ring(GF(17)) == A.change_ring(GF(19))
+            False
+            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
+            False
+            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
+            False
         """
         cdef Py_ssize_t i
         cdef celement* other_ent = (<Matrix_modn_dense_template>right)._entries
@@ -1709,7 +1707,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             elimination implemented in Sage.
 
           - ``all`` - compute using both algorithms and verify that
-           the results are the same.
+            the results are the same.
 
         - ``**kwds`` - these are all ignored
 

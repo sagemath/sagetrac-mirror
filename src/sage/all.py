@@ -75,16 +75,14 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-import sage.ext.c_lib
-sage.ext.c_lib._init_csage()
-sig_on_count = sage.ext.c_lib._sig_on_reset
+# This import also setups the interrupt handler
+from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
 
 from time                import sleep
 
-from sage.ext.c_lib import AlarmInterrupt, SignalError
-
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.typeset.all    import *
 from sage.repl.all       import *
 
 from sage.misc.sh import sh
@@ -99,6 +97,7 @@ except ImportError:
 
 from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
@@ -108,6 +107,7 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
@@ -178,8 +178,8 @@ from sage.game_theory.all import *
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
-lazy_import('sagenb.notebook.interact', 'interact')
 lazy_import('sage.interacts', 'all', 'interacts')
+lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
@@ -301,9 +301,6 @@ def _write_started_file():
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-    # Do nothing if the file already exists
-    if os.path.isfile(started_file):
-        return
 
     # Current time with a resolution of 1 second
     import datetime

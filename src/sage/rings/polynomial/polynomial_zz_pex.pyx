@@ -2,6 +2,7 @@
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
 
 AUTHOR:
+
 - Yann Laigle-Chapuy (2010-01) initial implementation
 """
 
@@ -9,14 +10,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport ZZ_pEContext_c
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_PyString
-from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_to_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_to_PyString
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_deg, ZZ_pX_coeff
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_PyString
+from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_ZZ_pX
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_to_PyString
+from sage.libs.ntl.ZZ_pX cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_to_PyString
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
+from sage.libs.ntl.ZZ_p cimport ZZ_p_to_PyString
+from sage.libs.ntl.ZZ_p cimport ZZ_p_rep
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 # We need to define this stuff before including the templating stuff
@@ -177,7 +177,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
-            t = self.__class__
+            t = type(self)
             r = <Polynomial_template>t.__new__(t)
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
@@ -250,7 +250,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: SR(p)      #indirect doctest
-            (((y + x)*y + 1)*y + x + 1)*y + x + 1
+            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: p(2)
             x + 1
             sage: p(y=2)
@@ -384,7 +384,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         EXAMPLE::
 

@@ -13,23 +13,28 @@ AUTHORS:
   handling.
 
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-  Upgrade to PARI 2.4.3 (#9343)
+  Upgrade to PARI 2.4.3 (:trac:`9343`)
 
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
-  (#11611, #11854, #11952)
+  (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
-- Peter Bruin (2013-11-17): split off this file from gen.pyx (#15185)
+- Peter Bruin (2013-11-17): split off this file from gen.pyx
+  (:trac:`15185`)
 
-- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
-- Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (#16997)
+- Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (:trac:`16997`)
+
+- Jeroen Demeyer (2015-03-17): automatically generate methods from
+  ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 EXAMPLES::
 
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    85.1885681951527
+    83.8179442684285  # 32-bit
+    84.1818153922297  # 64-bit
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -150,28 +155,45 @@ Number fields and precision: TODO
 TESTS:
 
 Check that output from PARI's print command is actually seen by
-Sage (ticket #9636)::
+Sage (:trac:`9636`)::
 
     sage: pari('print("test")')
     test
 
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
+cdef extern from *:
+    int sig_on_count "_signals.sig_on_count"
 
 import sys
 
 cimport libc.stdlib
+from libc.stdio cimport *
 cimport cython
 
+from sage.ext.memory cimport sage_malloc, sage_free
+from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
-from sage.libs.flint.fmpz cimport fmpz_get_mpz
+from sage.libs.gmp.all cimport *
+from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR
 from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
+from sage.misc.superseded import deprecated_function_alias
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -370,8 +392,10 @@ cdef void sage_flush():
     sys.stdout.flush()
 
 
+include 'auto_instance.pxi'
+
 @cython.final
-cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+cdef class PariInstance(PariInstance_auto):
     def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
@@ -507,7 +531,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __hash__(self):
         return 907629390   # hash('pari')
 
-    cdef has_coerce_map_from_c_impl(self, x):
+    cpdef _coerce_map_from_(self, x):
+        """
+        Return ``True`` if ``x`` admits a coercion map into the
+        PARI interface.
+
+        This currently always returns ``True``.
+
+        EXAMPLES::
+
+            sage: pari._coerce_map_from_(ZZ)
+            True
+            sage: pari.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Interface to the PARI C library
+        """
         return True
 
     def __richcmp__(left, right, int op):
@@ -603,7 +642,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         """
         global avma
-        if _signals.sig_on_count <= 1:
+        if sig_on_count <= 1:
             avma = pari_mainstack.top
         pari_catch_sig_off()
 
@@ -640,7 +679,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         TESTS:
 
         Check that the hash of an integer does not depend on existing
-        garbage on the stack (#11611)::
+        garbage on the stack (:trac:`11611`)::
 
             sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
             sage: a5 = pari(5);
@@ -668,6 +707,18 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         return z
 
+    cdef inline GEN _new_GEN_from_fmpz_t(self, fmpz_t value):
+        r"""
+        Create a new PARI ``t_INT`` from a ``fmpz_t``.
+
+        For internal use only; this directly uses the PARI stack.
+        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
+        """
+        if COEFF_IS_MPZ(value[0]):
+            return self._new_GEN_from_mpz_t(COEFF_TO_PTR(value[0]))
+        else:
+            return stoi(value[0])
+
     cdef gen new_gen_from_int(self, int value):
         pari_catch_sig_on()
         return self.new_gen(stoi(value))
@@ -690,7 +741,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         TESTS:
 
         Check that the hash of a rational does not depend on existing
-        garbage on the stack (#11854)::
+        garbage on the stack (:trac:`11854`)::
 
             sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
             sage: a5 = pari(5/7);
@@ -880,12 +931,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN x
         cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,j))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,j))
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
@@ -903,12 +951,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN x
         cdef GEN A = zeromatcopy(nc, nr)
         cdef Py_ssize_t i, j
-        cdef mpz_t tmp
-        mpz_init(tmp)
         for i in range(nr):
             for j in range(nc):
-                fmpz_get_mpz(tmp,fmpz_mat_entry(B,i,nc-j-1))
-                x = self._new_GEN_from_mpz_t(tmp)
+                x = self._new_GEN_from_fmpz_t(fmpz_mat_entry(B,i,nc-j-1))
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
@@ -961,6 +1006,24 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
 
+    cpdef gen zero(self):
+        """
+        EXAMPLES::
+
+            sage: pari.zero()
+            0
+        """
+        return self.PARI_ZERO
+
+    cpdef gen one(self):
+        """
+        EXAMPLES::
+
+            sage: pari.one()
+            1
+        """
+        return self.PARI_ONE
+
     def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI
@@ -977,16 +1040,67 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return x
 
 
-
     cdef long get_var(self, v):
         """
-        Converts a Python string into a PARI variable reference number. Or
-        if v = -1, returns -1.
+        Convert ``v`` into a PARI variable number.
+
+        If ``v`` is a PARI object, return the variable number of
+        ``variable(v)``. If ``v`` is ``None`` or ``-1``, return -1.
+        Otherwise, treat ``v`` as a string and return the number of
+        the variable named ``v``.
+
+        OUTPUT: a PARI variable number (varn) or -1 if there is no
+        variable number.
+
+        .. WARNING::
+
+            You can easily create variables with garbage names using
+            this function. This can actually be used as a feature, if
+            you want variable names which cannot be confused with
+            ordinary user variables.
+
+        EXAMPLES:
+
+        We test this function using ``Pol()`` which calls this function::
+
+            sage: pari("[1,0]").Pol()
+            x
+            sage: pari("[2,0]").Pol('x')
+            2*x
+            sage: pari("[Pi,0]").Pol('!@#$%^&')
+            3.14159265358979*!@#$%^&
+
+        We can use ``varhigher()`` and ``varlower()`` to create
+        temporary variables without a name. The ``"xx"`` below is just a
+        string to display the variable, it doesn't create a variable
+        ``"xx"``::
+
+            sage: xx = pari.varhigher("xx")
+            sage: pari("[x,0]").Pol(xx)
+            x*xx
+
+        Indeed, this is not the same as::
+
+            sage: pari("[x,0]").Pol("xx")
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect priority in gtopoly: variable x <= xx
         """
-        if v != -1:
-            s = str(v)
-            return fetch_user_var(s)
-        return -1
+        if v is None:
+            return -1
+        cdef long varno
+        if isinstance(v, gen):
+            pari_catch_sig_on()
+            varno = gvar((<gen>v).g)
+            pari_catch_sig_off()
+            if varno < 0:
+                return -1
+            else:
+                return varno
+        if v == -1:
+            return -1
+        cdef bytes s = bytes(v)
+        return fetch_user_var(s)
 
     ############################################################
     # Initialization
@@ -1260,15 +1374,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-##         cdef long k
-##         k = (n+10)/math.log(n)
-##         p = 2
-##         while p <= n:
-##             p = self.nth_prime(k)
-##             k = 2
-##         v = self.prime_list(k)
-##         return v[:pari(n).primepi()]
-
     def __nth_prime(self, long n):
         """
         nth_prime(n): returns the n-th prime, where n is a C-int
@@ -1287,7 +1392,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         except PariError:
             self.init_primes(max(2*maxprime(), 20*n))
             return self.nth_prime(n)
-
 
     def euler(self, unsigned long precision=0):
         """
@@ -1335,22 +1439,24 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         return self.new_gen(pollegendre(n, self.get_var(v)))
 
-    def poltchebi(self, long n, v=-1):
+    def polchebyshev(self, long n, v=-1):
         """
-        poltchebi(n, v=x): Chebyshev polynomial of the first kind of degree
+        polchebyshev(n, v=x): Chebyshev polynomial of the first kind of degree
         n, in variable v.
 
         EXAMPLES::
 
-            sage: pari.poltchebi(7)
+            sage: pari.polchebyshev(7)
             64*x^7 - 112*x^5 + 56*x^3 - 7*x
-            sage: pari.poltchebi(7, 'z')
+            sage: pari.polchebyshev(7, 'z')
             64*z^7 - 112*z^5 + 56*z^3 - 7*z
-            sage: pari.poltchebi(0)
+            sage: pari.polchebyshev(0)
             1
         """
         pari_catch_sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
+
+    poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):
         """
@@ -1428,10 +1534,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         else:
             return plist
         #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
-
-    def polzagier(self, long n, long m):
-        pari_catch_sig_on()
-        return self.new_gen(polzag(n, m))
 
     def setrand(self, seed):
         """
