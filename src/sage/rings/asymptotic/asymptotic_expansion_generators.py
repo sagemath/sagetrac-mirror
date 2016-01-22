@@ -61,6 +61,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.Binomial_kn_over_n`
      - an asymptotic expansion of the binomial coefficient
 
+   * - :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+     - an asymptotic expansion obtained by singularity analysis
+
 
 AUTHORS:
 
@@ -105,6 +108,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
+    - :meth:`~SingularityAnalysis`
     """
 
     @staticmethod
@@ -553,7 +557,9 @@ class AsymptoticExpansionGenerators(SageObject):
         .. MATH::
 
             [z^n] \left(\frac{1}{1-z}\right)^\alpha
-            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta.
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta
+            \left(\frac{1}{z} \log
+            \left(\frac{1}{z} \log \frac{1}{1-z}\right)\right)^\delta.
 
         INPUT:
 
@@ -564,14 +570,16 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``alpha`` -- (default: `0`) the pole order of the singularty.
 
         - ``beta`` -- (default: `0`) the order of the logarithmic singularity.
+          Not yet implemented for ``beta != 0``.
 
         - ``delta`` -- (default: `0`) the order of the log-log singularity.
+          Not yet implemented for ``delta != 0``.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
 
         - ``skip_constant_factor`` -- (default: ``False``) a
-          boolean. If set, then the constant summand is left out.
+          boolean. If set, then the constant factor is left out.
           As a consequence, the coefficient ring of the output changes
           from ``Symbolic Constants Subring`` (if ``False``) to
           ``Rational Field`` (if ``True``).
@@ -630,6 +638,17 @@ class AsymptoticExpansionGenerators(SageObject):
             Asymptotic Ring <n^(Symbolic Subring rejecting the variable n)>
             over Symbolic Subring rejecting the variable n
 
+        ALGORITHM:
+
+        See [FS2009]_ together with the
+        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+
+        REFERENCES:
+
+        .. [FS2009] Philippe Flajolet and Robert Sedgewick,
+           `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
+           Cambridge University Press, Cambridge, 2009.
+
         TESTS::
 
             sage: asymptotic_expansions.SingularityAnalysis(
@@ -655,6 +674,29 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=-2)
             0
+
+        ::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3)
+            -1/2/sqrt(pi)*m^(-3/2)
+            - 3/16/sqrt(pi)*m^(-5/2)
+            - 25/256/sqrt(pi)*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Symbolic Constants Subring
+
+        Skip constant factor::
+
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'm', alpha=-1/2, precision=3,
+            ....:     skip_constant_factor=True)
+            m^(-3/2)
+            + 3/8*m^(-5/2)
+            + 25/128*m^(-7/2)
+            + O(m^(-9/2))
+            sage: _.parent()
+            Asymptotic Ring <m^QQ> over Rational Field
         """
         from asymptotic_ring import AsymptoticRing
         from sage.functions.other import gamma
@@ -759,7 +801,7 @@ def _sa_coefficients_e_(K, alpha):
 
 def _sa_coefficients_lambda_(K):
     r"""
-    Return the coefficient `e_k` used in singularity analysis.
+    Return the coefficients `\lambda_{k, \ell}` used in singularity analysis.
 
     INPUT:
 
