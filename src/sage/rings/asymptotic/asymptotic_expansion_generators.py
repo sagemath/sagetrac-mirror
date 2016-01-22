@@ -166,7 +166,7 @@ class AsymptoticExpansionGenerators(SageObject):
             ...
             ValueError: precision must be at least 3
         """
-        if precision <= 2:
+        if precision < 3:
             raise ValueError("precision must be at least 3")
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
@@ -271,7 +271,7 @@ class AsymptoticExpansionGenerators(SageObject):
             coefficient_ring = QQ
 
         from asymptotic_ring import AsymptoticRing
-        A = AsymptoticRing(growth_group='%s^ZZ * log(%s)^ZZ' % ((var,)*2),
+        A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
                            coefficient_ring=coefficient_ring)
         n = A.gen()
 
@@ -300,7 +300,7 @@ class AsymptoticExpansionGenerators(SageObject):
             result += n.O()
         elif precision == 2:
             result += log(n).O()
-        elif precision ==3:
+        elif precision == 3:
             result += A(1).O()
         else:
             result += (1 / n**(2*precision - 7)).O()
