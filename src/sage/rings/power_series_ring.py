@@ -454,7 +454,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
     """
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
-                 use_lazy_mpoly_ring=False, implementation=None,
+                 use_lazy_mpoly_ring=None, implementation=None,
                  category=None):
         """
         Initializes a power series ring.
@@ -518,7 +518,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             ValueError: default_prec (= -5) must be non-negative
 
         """
-        if use_lazy_mpoly_ring:
+        if use_lazy_mpoly_ring is not None:
             deprecation(15601, 'The option use_lazy_mpoly_ring is deprecated; use implementation="mpoly" instead')
 
         from sage.rings.finite_rings.finite_field_pari_ffelt import FiniteField_pari_ffelt
