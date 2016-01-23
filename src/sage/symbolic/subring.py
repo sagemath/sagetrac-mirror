@@ -823,7 +823,9 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
             (sub)ring, but Integer Ring is given.
         """
         if R is SR:
-            return SymbolicSubring(accepting_variables=self.vars)
+            if self.vars:
+                return SymbolicSubringAcceptingVars(self.vars)
+            return SymbolicConstantsSubring(self.vars)
         elif isinstance(R, GenericSymbolicSubring):
             F = R.construction()[0]
             if self == F:
@@ -1045,7 +1047,9 @@ class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
             (sub)ring, but Integer Ring is given.
         """
         if R is SR:
-            return SymbolicSubring(rejecting_variables=self.vars)
+            if self.vars:
+                return SymbolicSubringRejectingVars(self.vars)
+            return SR
         elif isinstance(R, GenericSymbolicSubring):
             F = R.construction()[0]
             if self == F:
