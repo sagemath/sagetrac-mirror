@@ -123,6 +123,22 @@ class EuclideanDomains(Category_singleton):
                 sage: F.zero() == 0
                 False
                 sage: F._test_quo_rem()
+
+            Check that `_test_quo_rem` catches `quo_rem` methods that
+            don't return elements of ``self``::
+
+                sage: F.element_class.quo_rem = lambda self, other: (self/other, 0)
+                sage: F._test_quo_rem()
+                Traceback (most recent call last):
+                ...
+                AssertionError: remainder not an element of the same parent
+
+                sage: G = cartesian_product([QQ])
+                sage: F.element_class.quo_rem = lambda self, other: (G(tuple(self/other)), 0)
+                sage: F._test_quo_rem()
+                Traceback (most recent call last):
+                ...
+                AssertionError: quotient not an element of the same parent
             """
             tester = self._tester(**options)
             S = tester.some_elements()
@@ -132,8 +148,8 @@ class EuclideanDomains(Category_singleton):
                     tester.assertRaises(ZeroDivisionError, lambda: a.quo_rem(b))
                 else:
                     q,r = a.quo_rem(b)
-                    tester.assertIn(q, self)
-                    tester.assertIn(r, self)
+                    tester.assert_(self.is_parent_of(q), "quotient not an element of the same parent")
+                    tester.assert_(self.is_parent_of(r), "remainder not an element of the same parent")
                     tester.assertEqual(a,q*b+r)
                     if not r.is_zero():
                         tester.assertLess(r.euclidean_degree(), b.euclidean_degree())
