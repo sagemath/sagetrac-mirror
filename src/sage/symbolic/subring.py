@@ -807,19 +807,34 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
             sage: F, R = SymbolicSubring(accepting_variables=('a',)).construction()
             sage: F(R)  # indirect doctest
             Symbolic Subring accepting the variable a
+            sage: F(SymbolicSubring(accepting_variables=('a', 'b')))
+            Symbolic Subring accepting the variable a
+            sage: F(SymbolicSubring(rejecting_variables=('a',)))
+            Symbolic Constants Subring
 
         TESTS::
 
             sage: F(F(R))
+            Symbolic Subring accepting the variable a
+            sage: F(ZZ)
             Traceback (most recent call last):
             ...
-            NotImplementedError: This functor can only be applied on the
-            symbolic ring but Symbolic Subring accepting the variable a given.
+            NotImplementedError: This functor can only be applied on a symbolic
+            (sub)ring, but Integer Ring is given.
         """
-        if R is not SR:
-            raise NotImplementedError('This functor can only be applied on '
-                                      'the symbolic ring but %s given.' % (R,))
-        return SymbolicSubring(accepting_variables=self.vars)
+        if R is SR:
+            return SymbolicSubring(accepting_variables=self.vars)
+        elif isinstance(R, GenericSymbolicSubring):
+            F = R.construction()[0]
+            if self == F:
+                return R
+            elif type(self) == type(F):
+                return type(self)(self.vars & F.vars)(SR)
+            elif isinstance(F, SymbolicSubringRejectingVarsFunctor):
+                return type(self)(self.vars - F.vars)(SR)
+
+        raise NotImplementedError('This functor can only be applied on a '
+                                  'symbolic (sub)ring, but %s is given.' % (R,))
 
 
 class SymbolicSubringRejectingVars(GenericSymbolicSubring):
@@ -1014,19 +1029,35 @@ class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
             sage: F, R = SymbolicSubring(rejecting_variables=('r',)).construction()
             sage: F(R)  # indirect doctest
             Symbolic Subring rejecting the variable r
+            sage: F(SymbolicSubring(accepting_variables=('r', 'u', 'v')))
+            Symbolic Subring accepting the variables u, v
+            sage: F(SymbolicSubring(rejecting_variables=('s',)))
+            Symbolic Subring rejecting the variables r, s
 
         TESTS::
 
             sage: F(F(R))
+            Symbolic Subring rejecting the variable r
+            sage: F(ZZ)
             Traceback (most recent call last):
             ...
-            NotImplementedError: This functor can only be applied on the
-            symbolic ring but Symbolic Subring rejecting the variable r given.
+            NotImplementedError: This functor can only be applied on a symbolic
+            (sub)ring, but Integer Ring is given.
         """
-        if R is not SR:
-            raise NotImplementedError('This functor can only be applied on '
-                                      'the symbolic ring but %s given.' % (R,))
-        return SymbolicSubring(rejecting_variables=self.vars)
+        if R is SR:
+            return SymbolicSubring(rejecting_variables=self.vars)
+        elif isinstance(R, GenericSymbolicSubring):
+            F = R.construction()[0]
+            if self == F:
+                return R
+            elif type(self) == type(F):
+                return type(self)(self.vars | F.vars)(SR)
+            elif isinstance(F, SymbolicSubringAcceptingVarsFunctor):
+                return type(F)(F.vars - self.vars)(SR)
+
+        raise NotImplementedError('This functor can only be applied on a '
+                                  'symbolic (sub)ring, but %s is given.' % (R,))
+
 
 
 class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
