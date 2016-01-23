@@ -1228,6 +1228,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             12003242 + 4839703*a + 2697351*a^2 + 11717046*a^3 + O(17^6)
             sage: b*(a^3-a+14)^6
             1 + O(17^6)
+
+        Check that :trac:`19943` is fixed::
+
+            sage: A.<a> = Zq(4)
+            sage: A(0)^0
+            1 + O(2^20)
         """
         cdef Integer right
         cdef bint padic_exp
@@ -1246,10 +1252,21 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef Integer base_level
         cdef pAdicZZpXCAElement ans
         cdef long i
+        if isinstance(_right, (int, long)):
+            _right = Integer(_right)
+        if isinstance(_right, Integer):
+            right = <Integer> _right
+            if right < 0 and self_ordp > 0:
+                return self.to_fraction_field()**right
+            if right == 0:
+                # return 1 to maximum precision
+                ans = self._new_c(self.prime_pow.ram_prec_cap)
+                ZZ_pX_SetCoeff_long(ans.value, 0, 1)
+                return ans
+            padic_exp = False
+            exp_val = right.valuation(self.prime_pow.prime) ##
         if self._is_inexact_zero():
             # If an integer exponent, return an inexact zero of valuation right * self_ordp.  Otherwise raise an error.
-            if isinstance(_right, (int, long)):
-                _right = Integer(_right)
             if isinstance(_right, Integer):
                 mpz_init_set_si(tmp, self_ordp)
                 mpz_mul(tmp, tmp, (<Integer>_right).value)
@@ -1265,21 +1282,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 raise ValueError, "Need more precision"
             else:
                 raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"
-        if isinstance(_right, (int, long)):
-            _right = Integer(_right)
         cdef pAdicZZpXCAElement unit
-        if isinstance(_right, Integer):
-            right = <Integer> _right
-            if right < 0 and self_ordp > 0:
-                return self.to_fraction_field()**right
-            if right == 0:
-                # return 1 to maximum precision
-                ans = self._new_c(self.prime_pow.ram_prec_cap)
-                ZZ_pX_SetCoeff_long(ans.value, 0, 1)
-                return ans
-            padic_exp = False
-            exp_val = _right.valuation(self.prime_pow.prime) ##
-        elif isinstance(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime):
+        if isinstance(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime):
             if self_ordp != 0:
                 raise ValueError, "in order to raise to a p-adic exponent, base must be a unit"
             right = Integer(_right)
