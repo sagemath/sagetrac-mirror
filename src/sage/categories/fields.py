@@ -497,6 +497,20 @@ class Fields(CategoryWithAxiom):
                 sage: f,g = QQ(1), QQ(2)
                 sage: f.quo_rem(g)
                 (1/2, 0)
+
+            TESTS::
+
+            The above example actually uses
+            :meth:`FieldElement.quo_rem`. We rerun it with a field
+            that actually uses this generic method::
+
+                sage: F = cartesian_product([QQ], category=Rings().CartesianProducts() & Fields())
+                sage: f,g = F([1]), F([2])
+                sage: f.quo_rem(g)
+                ((1/2,), (0,))
+                sage: f.quo_rem.__module__
+                'sage.categories.fields'
+                sage: F._test_quo_rem()
             """
             if other.is_zero():
                 raise ZeroDivisionError
