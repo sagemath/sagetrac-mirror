@@ -3137,11 +3137,23 @@ cdef class FieldElement(CommutativeRingElement):
         else:
             return self._parent(1)
 
-    def quo_rem(self, right):
+    def quo_rem(self, other):
         r"""
-        Return the quotient and remainder obtained by dividing ``self`` by
-        ``right``. Since this element lives in a field, the remainder is always
-        zero and the quotient is ``self/right``.
+        Return the quotient with remainder of the division of this element
+        by ``other``.
+
+        Since ``self`` and ``other`` are elements of a field, the
+        quotient is``(self/other)`` and the remainder ``0``.
+
+        This method is a pure duplicate of
+        :meth:`Fields.ElementMethods.quo_rem`, Cythonized for speed.
+
+        EXAMPLES::
+
+            sage: f,g = QQ(1), QQ(2)
+            sage: f.quo_rem(g)
+            (1/2, 0)
+            sage: QQ._test_quo_rem()
 
         TESTS:
 
@@ -3154,9 +3166,11 @@ cdef class FieldElement(CommutativeRingElement):
             sage: u.quo_rem(u)
             (1, 0)
         """
-        if not isinstance(right, FieldElement) or not (parent(right) is self._parent):
-            right = self.parent()(right)
-        return self/right, 0
+        if not have_same_parent(self, other):
+            other = self.parent()(other)
+        if other.is_zero():
+            raise ZeroDivisionError
+        return self/other, self.parent().zero()
 
     def divides(self, FieldElement other):
         r"""

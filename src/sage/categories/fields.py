@@ -14,6 +14,7 @@ Fields
 
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_import import LazyImport
+from sage.structure.element import have_same_parent
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.euclidean_domains import EuclideanDomains
@@ -488,15 +489,26 @@ class Fields(CategoryWithAxiom):
             Return the quotient with remainder of the division of this element
             by ``other``.
 
+            Since ``self`` and ``other`` are elements of a field, the
+            quotient is``(self/other)`` and the remainder ``0``.
+
             INPUT:
 
             - ``other`` -- an element of the field
 
             EXAMPLES::
 
-                sage: f,g = QQ(1), QQ(2)
-                sage: f.quo_rem(g)
+                sage: QQ(1).quo_rem(QQ(2))
                 (1/2, 0)
+                sage: QQ(1).quo_rem(2)
+                (1/2, 0)
+                sage: QQ(1).quo_rem(0)
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError
+
+            :meth:`sage.structure.element.FieldElement.quo_rem` is a
+            duplicate of this method, Cythonized for speed.
 
             TESTS::
 
@@ -506,12 +518,20 @@ class Fields(CategoryWithAxiom):
 
                 sage: F = cartesian_product([QQ], category=Rings().CartesianProducts() & Fields())
                 sage: f,g = F([1]), F([2])
-                sage: f.quo_rem(g)
+                sage: F([1]).quo_rem(F([2]))
                 ((1/2,), (0,))
+                sage: F([1]).quo_rem([2])
+                ((1/2,), (0,))
+                sage: F([1]).quo_rem(F([0]))
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError
                 sage: f.quo_rem.__module__
                 'sage.categories.fields'
                 sage: F._test_quo_rem()
             """
+            if not have_same_parent(self, other):
+                other = self.parent()(other)
             if other.is_zero():
                 raise ZeroDivisionError
             return (self/other, self.parent().zero())
