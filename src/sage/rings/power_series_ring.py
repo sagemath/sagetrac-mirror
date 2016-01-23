@@ -560,7 +560,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                                                        _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
-            self.__generator = self.element_class(self, R.gen()._pari_(), check=False)
+            self.__generator = self.element_class(self, R.gen()._pari_())
         else:
             self.__generator = self.element_class(self, R.gen(), is_gen=True)
 

@@ -28,13 +28,51 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.parent cimport Parent
 from infinity import infinity
 
+
+cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
+    """
+    Fast construction of power series from PARI objects of suitable
+    type (series, polynomials, scalars and rational functions).
+
+    The resulting series has the same precision as `g`, unless `g` is
+    a rational function, in which case the default precision of
+    ``parent`` is used.
+    """
+    cdef long t = typ(g.g)
+    v = parent.variable_name()
+    if t == t_SER and varn(g.g) == pari.get_var(v):
+        prec = lg(g.g) - 2 + valp(g.g)
+    elif t == t_RFRAC:
+        prec = parent.default_prec()
+        g = g.Ser(v, prec - g.valuation(v))
+    else:
+        prec = infinity
+    cdef PowerSeries_pari x = PowerSeries_pari.__new__(PowerSeries_pari)
+    x._parent = parent
+    x._prec = prec
+    x.g = g
+    return x
+
+
 cdef class PowerSeries_pari(PowerSeries):
     """
     A power series.
 
     """
-    def __init__(self, parent, f=0, prec=infinity, check=True):
+    def __init__(self, parent, f=0, prec=infinity, check=None):
         """
+        INPUT:
+
+        - ``parent`` -- the power series ring to use as the parent
+
+        - ``f`` -- object from which to construct a power series
+
+        - ``prec`` -- precision of the element to be constructed
+          (default: infinity)
+
+        - ``check`` -- ignored, but accepted for compatibility with
+          :class:`~sage.rings.power_series_poly.PowerSeries_poly`.
+
         TEST::
 
             sage: R.<q> = PowerSeriesRing(CC, implementation='pari')
@@ -47,26 +85,6 @@ cdef class PowerSeries_pari(PowerSeries):
         cdef pari_gen g
         cdef long t
         v = parent.variable_name()
-
-        if not check and isinstance(f, pari_gen):
-            # Fast construction for PARI objects of suitable type
-            # (series, polynomials, scalars and rational functions).
-            # We ignore the precision argument and use the precision
-            # of f, or the default precision if f is a rational
-            # function.
-            g = <pari_gen>f
-            t = typ(g.g)
-            if t == t_SER and varn(g.g) == pari.get_var(v):
-                prec = lg(g.g) - 2 + valp(g.g)
-            elif t == t_RFRAC:
-                prec = parent.default_prec()
-                g = g.Ser(v, prec - g.valuation(v))
-            else:
-                prec = infinity
-            self.g = g
-            PowerSeries.__init__(self, parent, prec)
-            return
-
         R = parent.base_ring()
         P = parent._poly_ring()
 
@@ -417,7 +435,7 @@ cdef class PowerSeries_pari(PowerSeries):
         cdef long t
         if isinstance(n, slice):
             return PowerSeries_pari(self._parent, self.polynomial()[n],
-                                    prec=self._prec, check=False)
+                                    prec=self._prec)
         elif n < 0:
             return self.base_ring().zero()
         else:
@@ -442,7 +460,7 @@ cdef class PowerSeries_pari(PowerSeries):
         h = ~self.g
         if h.valuation(self._parent.variable_name()) < 0:
             return self._parent.laurent_series_ring()(h)
-        return PowerSeries_pari(self._parent, h, check=False)
+        return construct_from_pari(self._parent, h)
 
     def __neg__(self):
         """
@@ -456,7 +474,7 @@ cdef class PowerSeries_pari(PowerSeries):
             -t - 17/5*t^3 - 2*t^4 + O(t^5)
 
         """
-        return PowerSeries_pari(self._parent, -self.g, check=False)
+        return construct_from_pari(self._parent, -self.g)
 
     def __pow__(PowerSeries_pari self, n, m):
         """
@@ -475,7 +493,7 @@ cdef class PowerSeries_pari(PowerSeries):
         h = self.g ** n
         if h.valuation(self._parent.variable_name()) < 0:
             return self._parent.laurent_series_ring()(h)
-        return PowerSeries_pari(self._parent, h, check=False)
+        return construct_from_pari(self._parent, h)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
@@ -492,7 +510,7 @@ cdef class PowerSeries_pari(PowerSeries):
             x^2 + O(x^3)
 
         """
-        return PowerSeries_pari(self._parent, self.g + (<PowerSeries_pari>right).g, check=False)
+        return construct_from_pari(self._parent, self.g + (<PowerSeries_pari>right).g)
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
@@ -506,7 +524,7 @@ cdef class PowerSeries_pari(PowerSeries):
             13 - 2*w*t
 
         """
-        return PowerSeries_pari(self._parent, self.g - (<PowerSeries_pari>right).g, check=False)
+        return construct_from_pari(self._parent, self.g - (<PowerSeries_pari>right).g)
 
     cpdef RingElement _mul_(self, RingElement right):
         """
@@ -519,7 +537,7 @@ cdef class PowerSeries_pari(PowerSeries):
             19*w^10 + 323*w^11 + O(w^12)
 
         """
-        return PowerSeries_pari(self._parent, self.g * (<PowerSeries_pari>right).g, check=False)
+        return construct_from_pari(self._parent, self.g * (<PowerSeries_pari>right).g)
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
@@ -533,7 +551,7 @@ cdef class PowerSeries_pari(PowerSeries):
             3*t + 2*t^4 + O(t^11)
 
         """
-        return PowerSeries_pari(self._parent, self.g * c, check=False)
+        return construct_from_pari(self._parent, self.g * c)
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         """
@@ -547,7 +565,7 @@ cdef class PowerSeries_pari(PowerSeries):
             2 + 6*t^4 + O(t^120)
 
         """
-        return PowerSeries_pari(self._parent, c * self.g, check=False)
+        return construct_from_pari(self._parent, c * self.g)
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -569,7 +587,7 @@ cdef class PowerSeries_pari(PowerSeries):
         h = self.g / (<PowerSeries_pari>right).g
         if h.valuation(self._parent.variable_name()) < 0:
             return self._parent.laurent_series_ring()(h)
-        return PowerSeries_pari(self._parent, h, check=False)
+        return construct_from_pari(self._parent, h)
 
     def list(self):
         """
@@ -726,7 +744,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         if var is None:
             var = self._parent.variable_name()
-        return PowerSeries_pari(self._parent, self.g.deriv(var), check=False)
+        return construct_from_pari(self._parent, self.g.deriv(var))
 
     def integral(self, var=None):
         """
@@ -770,7 +788,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         if var is None:
             var = self._parent.variable_name()
-        return PowerSeries_pari(self._parent, self.g.intformal(var), check=False)
+        return construct_from_pari(self._parent, self.g.intformal(var))
 
     def reverse(self, precision=None):
         """
@@ -863,6 +881,6 @@ cdef class PowerSeries_pari(PowerSeries):
             if precision is None:
                 precision = self._prec
             f = self
-        return PowerSeries_pari(self._parent, f.g.serreverse(), precision, check=True)
+        return PowerSeries_pari(self._parent, f.g.serreverse(), precision)
 
     reversion = deprecated_function_alias(17724, reverse)
