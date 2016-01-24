@@ -490,7 +490,7 @@ class Fields(CategoryWithAxiom):
             by ``other``.
 
             Since ``self`` and ``other`` are elements of a field, the
-            quotient is``(self/other)`` and the remainder ``0``.
+            quotient is ``(self/other)`` and the remainder is zero.
 
             INPUT:
 
@@ -508,7 +508,7 @@ class Fields(CategoryWithAxiom):
                 ZeroDivisionError
 
             :meth:`sage.structure.element.FieldElement.quo_rem` is a
-            duplicate of this method, Cythonized for speed.
+            duplicate of this method, cythonized for speed.
 
             TESTS::
 
@@ -517,7 +517,7 @@ class Fields(CategoryWithAxiom):
             that actually uses this generic method::
 
                 sage: F = cartesian_product([QQ], category=Rings().CartesianProducts() & Fields())
-                sage: f,g = F([1]), F([2])
+                sage: f, g = F([1]), F([2])
                 sage: F([1]).quo_rem(F([2]))
                 ((1/2,), (0,))
                 sage: F([1]).quo_rem([2])

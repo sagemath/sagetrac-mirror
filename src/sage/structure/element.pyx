@@ -3143,14 +3143,14 @@ cdef class FieldElement(CommutativeRingElement):
         by ``other``.
 
         Since ``self`` and ``other`` are elements of a field, the
-        quotient is``(self/other)`` and the remainder ``0``.
+        quotient is ``(self/other)`` and the remainder is zero.
 
         This method is a pure duplicate of
-        :meth:`Fields.ElementMethods.quo_rem`, Cythonized for speed.
+        :meth:`Fields.ElementMethods.quo_rem`, cythonized for speed.
 
         EXAMPLES::
 
-            sage: f,g = QQ(1), QQ(2)
+            sage: f, g = QQ(1), QQ(2)
             sage: f.quo_rem(g)
             (1/2, 0)
             sage: QQ._test_quo_rem()
