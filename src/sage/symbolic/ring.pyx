@@ -942,10 +942,8 @@ cdef class SymbolicRing(CommutativeRing):
 
             :doc:`subring`
         """
-        if self is not SR:
-            raise NotImplementedError('Cannot create subring of %s.' % (self,))
         from subring import SymbolicSubring
-        return SymbolicSubring(*args, **kwds)
+        return SymbolicSubring(self, *args, **kwds)
 
 SR = SymbolicRing()
 
