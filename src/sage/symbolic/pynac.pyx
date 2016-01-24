@@ -1475,11 +1475,11 @@ cdef object py_stieltjes(object x) except +:
         sage: py_stieltjes(-1)
         Traceback (most recent call last):
         ...
-        AttributeError: Stieltjes constant of negative index
+        ValueError: Stieltjes constant of negative index
     """
     n = ZZ(x)
     if n < 0:
-        raise AttributeError("Stieltjes constant of negative index")
+        raise ValueError("Stieltjes constant of negative index")
     import mpmath
     if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
         prec = (<Element>x)._parent.prec()
