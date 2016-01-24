@@ -1230,6 +1230,14 @@ cdef class SymbolicRing(CommutativeRing):
             sage: tuple(v for v in V if v in C)
             ()
 
+        It is also possible to create subrings of subrings with the
+        same method::
+
+            sage: A = SR.subring(accepting_variables=('a', 'b', 'c')); A
+            Symbolic Subring accepting the variables a, b, c
+            sage: A.subring(rejecting_variables=('b'))
+            Symbolic Subring accepting the variables a, c
+
         .. SEEALSO::
 
             :doc:`subring`
