@@ -108,6 +108,9 @@ class SymbolicSubringFactory(UniqueFactory):
 
     INPUT:
 
+    - ``parent`` (default: ``SR``) -- a symbolic (sub)ring from which
+      a subring shall be created.
+
     Specify one of the following keywords to create a subring.
 
     - ``accepting_variables`` (default: ``None``) -- a tuple or other
@@ -166,7 +169,7 @@ class SymbolicSubringFactory(UniqueFactory):
         True
     """
     def create_key_and_extra_args(
-            self, accepting_variables=None, rejecting_variables=None,
+            self, parent=SR, accepting_variables=None, rejecting_variables=None,
             no_variables=False, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
@@ -209,20 +212,16 @@ class SymbolicSubringFactory(UniqueFactory):
                              'since input is ambiguous.')
 
         if accepting_variables is not None:
-            vars = tuple(accepting_variables)
-            if vars:
-                cls = SymbolicSubringAcceptingVars
-            else:
-                cls = SymbolicConstantsSubring
+            vars = tuple(sorted(iter(SR(v) for v in accepting_variables), key=str))
+            fkt = SymbolicSubringAcceptingVarsFunctor(vars)
         elif rejecting_variables is not None:
-            vars = tuple(rejecting_variables)
-            cls = SymbolicSubringRejectingVars
+            vars = tuple(sorted(iter(SR(v) for v in rejecting_variables), key=str))
+            fkt = SymbolicSubringRejectingVarsFunctor(vars)
         elif no_variables:
             vars = tuple()
-            cls = SymbolicConstantsSubring
+            fkt = SymbolicSubringAcceptingVarsFunctor(vars)
 
-        vars = tuple(sorted(iter(SR(v) for v in vars), key=str))
-        return (cls, vars), kwds
+        return (fkt, parent), kwds
 
 
     def create_object(self, version, key, **kwds):
@@ -237,10 +236,8 @@ class SymbolicSubringFactory(UniqueFactory):
             sage: SymbolicSubring(rejecting_variables=tuple()) is SR  # indirect doctest
             True
         """
-        cls, vars = key
-        if cls is SymbolicSubringRejectingVars and not vars:
-            return SR
-        return cls(vars, **kwds)
+        fkt, parent = key
+        return fkt(parent)
 
 
 SymbolicSubring = SymbolicSubringFactory("SymbolicSubring")
