@@ -1400,8 +1400,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             0
         """
         from term_monoid import ExactTerm
-        return self.parent([term for term in self.summands.elements_topological()
-                            if isinstance(term, ExactTerm)])
+        exact_terms = self.summands.copy()
+        for term in self.summands.elements_topological():
+            if not isinstance(term, ExactTerm):
+                exact_terms.remove(term.growth)
+
+        return self.parent(exact_terms)
 
 
     def __pow__(self, exponent, precision=None):
@@ -3469,19 +3473,35 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-7/2)),
             singular_expansions={1/4: 2 - 2*T^(-1/2)
             + 2*T^(-1) - 2*T^(-3/2) + O(T^(-2))})
+
+        TESTS::
+
+            sage: def f(z):
+            ....:     return z/(1-z)
+            sage: B.singularity_analysis(f, (1,), precision=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term is O(0) which means
+            0 for sufficiently large n
         """
         from sage.symbolic.ring import SR
+        from sage.rings.integer_ring import ZZ
         from term_monoid import ExactTerm, OTerm
         from growth_group import MonomialGrowthGroup
         from asymptotic_expansion_generators import asymptotic_expansions
 
         singular_expansions = {}
+        # workaround: access from inner scope otherwise not possible
+        flags = {'OZeroEncountered': False}
 
         def expand_summand(summand, singularity, precision=precision):
             # helper function: takes a single summand from the singular
             # expansion and determines the asymptotic growth of the
             # coefficients.
             alpha = summand.growth.exponent
+            if alpha in ZZ and alpha <= 0:
+                flags['OZeroEncountered'] = True
+                return self(0)
             if isinstance(summand, ExactTerm):
                 expansion = asymptotic_expansions.\
                     SingularityAnalysis('Z', alpha=alpha, zeta=singularity,
@@ -3504,6 +3524,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         result = sum(handle_singularity(function, singularity)
                      for singularity in singularities)
+
+        if flags['OZeroEncountered'] and result.exact_part() == result:
+            from asymptotic_expansion_generators import NotImplementedOZero
+            raise NotImplementedOZero('The error term is O(0) which means 0 '
+                                      'for sufficiently large {}'.format(self.gen()))
 
         if return_singular_expansions:
             from collections import namedtuple
