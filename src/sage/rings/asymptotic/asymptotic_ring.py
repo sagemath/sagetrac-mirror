@@ -2112,51 +2112,51 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
-    def compare_with_values(self, variable, function, values, **kwargs):
+    def compare_with_values(self, variable, function, values, rescaled=True):
         """
-        Plot rescaled difference between this asymptotic expansion and
-        the given values.
+        Compute the (rescaled) difference between this asymptotic
+        expansion and the given values.
 
         INPUT:
 
         - ``variable`` -- an asymptotic expansion or a string.
 
-        - ``function`` -- a callable giving the comparison values.
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
 
         - ``values`` -- a list or iterable of values where the comparison
           shall be carried out.
 
-        Other paramters are passed on to :func:`plot`.
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
 
         OUTPUT:
 
-        A graphics object.
+        A list of tuples containing comparison points and (rescaled)
+        difference values.
 
-        The difference between asymptotic expansion and comparison
-        values is divided by the error term of the asymptotic expansion;
-        so the output should be bounded.
-
-        This method is mainly meant to have an easily usable
-        plausibility check for asymptotic expansions created in some
-        way.
 
         EXAMPLES:
 
         In the following example, due to :trac:`19946`, we cannot
         construct ``4^n`` directly, but need a work-around. ::
 
-            sage: A.<n> = AsymptoticRing("QQ^n*n^ZZ", SR)
-            sage: A1 = A.change_parameter(coefficient_ring=QQ)
-            sage: n1 = A1.gen()
-            sage: def catalan(n):
-            ....:     return binomial(2*n, n)/(n+1)
-            sage: e = 4^n1*(1/sqrt(pi)*n^(-3/2)
+            sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
+            sage: catalan = binomial(2*x, x)/(x+1)
+            sage: e = n.rpow(4)*(1/sqrt(pi)*n^(-3/2)
             ....:     - 9/8/sqrt(pi)*n^(-5/2)
             ....:     + 145/128/sqrt(pi)*n^(-7/2) + O(n^(-9/2)))
-            sage: e.compare_with_values(n, catalan, srange(20, 30))
-            Graphics object consisting of 1 graphics primitive
-            sage: e.compare_with_values(n, catalan, srange(20, 30), color='red')
-            Graphics object consisting of 1 graphics primitive
+            sage: e.compare_with_values(n, catalan, srange(5, 10))
+            [(5, 2625/512*sqrt(5)*(4*sqrt(5)/sqrt(pi) - 5)),
+             (6, 1/128*sqrt(6)*(3889*sqrt(6)/sqrt(pi) - 5346)),
+             (7, 3/16384*sqrt(7)*(230784*sqrt(7)/sqrt(pi) - 343343)),
+             (8, 5/32*sqrt(2)*(1437*sqrt(2)/sqrt(pi) - 1144)),
+             (9, 82953/128/sqrt(pi) - 47849373/131072)]
+            sage: e.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
+             (10, 1178112/125*sqrt(10)/sqrt(pi) - 16796),
+             (20, 650486218752/125*sqrt(5)/sqrt(pi) - 6564120420)]
 
         TESTS::
 
@@ -2177,10 +2177,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....
             NameError: name 'x' is not defined
             sage: e.compare_with_values(x, lambda z: z^2, srange(20, 30))
-            Graphics object consisting of 1 graphics primitive
+            [(20, 0), (21, 0), ..., (29, 0)]
         """
         from term_monoid import OTerm
-        from sage.plot.plot import list_plot
         from sage.rings.integer_ring import ZZ
 
         main = self.exact_part()
@@ -2192,11 +2191,92 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise NotImplementedError("{} is not an O term".format(error))
         error_growth = error_terms[0].growth
 
-        points = list([k, (main.subs({variable: k}) - function(k)) / \
-                           error_growth._substitute_({str(variable): k,
-                                                      '_one_': ZZ(1)})]
-                      for k in values)
-        return list_plot(points, **kwargs)
+        if hasattr(function, 'variables'):
+            expr = function
+            if len(expr.variables()) > 1:
+                raise NotImplementedError("expression has more than one "
+                                          "variable")
+            elif len(expr.variables()) == 1:
+                def function(arg):
+                    return expr.subs({expr.variables()[0]: arg})
+            else:
+                def function(arg):
+                    return expr
+
+        if rescaled:
+            points = list(tuple([k, (main.subs({variable: k}) - function(k)) /
+                                 error_growth._substitute_({str(variable): k,
+                                                            '_one_': ZZ(1)})])
+                          for k in values)
+        else:
+            points = list(tuple([k, (main.subs({variable: k}) - function(k))])
+                          for k in values)
+        return points
+
+
+    def plot_comparison(self, variable, function, values, rescaled=True,
+                        **kwargs):
+        r"""
+        Plot the (rescaled) difference between this asymptotic
+        expansion and the given values.
+
+        INPUT:
+
+        - ``variable`` -- an asymptotic expansion or a string.
+
+        - ``function`` -- a callable or symbolic expression giving the
+          comparison values.
+
+        - ``values`` -- a list or iterable of values where the comparison
+          shall be carried out.
+
+        - ``rescaled`` -- (default: ``True``) determines whether
+          the difference is divided by the error term of the asymptotic
+          expansion.
+
+        Other keywords are passed to :func:`list_plot`.
+
+        OUTPUT:
+
+        A graphics object.
+
+        .. NOTE::
+
+            If rescaled (i.e. divided by the error term), the output
+            should be bounded.
+
+            This method is mainly meant to have an easily usable
+            plausability check for asymptotic expansion created in
+            some way.
+
+        .. SEEALSO::
+
+            :meth:`compare_with_values`
+
+        EXAMPLES:
+
+        We want to check the quality of the asymptotic expansion of
+        the harmonic numbers::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ * log(n)^ZZ', SR)
+            sage: def H(n):
+            ....:     return sum(1/k for k in srange(1, n+1))
+            sage: H_expansion = (log(n) + euler_gamma + 1/(2*n)
+            ....:                - 1/(12*n^2) + O(n^-4))
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30))
+            Graphics object consisting of 1 graphics primitive
+
+        Alternatively, the unscaled (absolute) difference can be
+        plotted as well::
+
+            sage: H_expansion.plot_comparison(n, H, srange(1, 30),
+            ....:                             rescaled=False)
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        points = self.compare_with_values(variable, function,
+                                          values, rescaled=rescaled)
+        return list_plot(points, *kwargs)
 
 
     def symbolic_expression(self, R=None):
