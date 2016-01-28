@@ -2466,7 +2466,7 @@ class CDFInterpreter(StackInterpreter):
         self.c_header = """
 #include <stdlib.h>
 #include <complex.h>
-#include "interpreters/wrapper_cdf.h"
+extern int cdf_py_call_helper(PyObject *, int, double complex *, double complex *);
 
 /* On Solaris, we need to define _Imaginary_I when compiling with GCC,
  * otherwise the constant I doesn't work. The definition below is based
@@ -2697,7 +2697,7 @@ class RRInterpreter(StackInterpreter):
         self.pg = pg
         self.c_header = '''
 #include <mpfr.h>
-#include "interpreters/wrapper_rr.h"
+extern int rr_py_call_helper(PyObject *, PyObject *, int, mpfr_t *, __mpfr_struct *);
 '''
         self.pxd_header = """
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
@@ -2916,7 +2916,7 @@ class ElementInterpreter(PythonInterpreter):
         self.chunks = [self.mc_args, self.mc_constants, self.mc_stack,
                        self.mc_domain_info, self.mc_code]
         self.c_header = """
-#include "interpreters/wrapper_el.h"
+extern PyObject *el_check_element(PyObject *, PyObject *);
 
 #define CHECK(x) do_check(&(x), domain)
 
@@ -3287,7 +3287,8 @@ cdef extern from "Python.h":
 
 from sage.ext.fast_callable cimport Wrapper
 
-cdef extern:
+# from * ensures that Cython does not add DL_IMPORT magic, see #19868
+cdef extern from *:
     {{ myself.func_header(cython=true) -}}
 {% if s.err_return != 'NULL' %}
  except? {{ s.err_return }}
