@@ -78,6 +78,7 @@ from similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityC
 
 #Cores
 from core import Core, Cores
+from kshape import KShape, IrreducibleKShapes, UnambiguousKShapes, KShapes_from_k_and_rows, KShapes_from_k_and_weight
 
 #Tableaux
 from tableau import Tableau, SemistandardTableau, StandardTableau, \

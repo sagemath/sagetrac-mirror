@@ -3673,6 +3673,21 @@ class Partition(CombinatorialElement):
         """
         return SkewPartition([self, self.k_interior(k)])
 
+    def is_k_shape(self, k):
+        r"""
+        Returns True if this is a valid k-shape.
+        """
+        k_boundary = self.k_boundary(k)
+        return (k_boundary.row_lengths() in Partitions() and
+                k_boundary.column_lengths() in Partitions())
+
+    def k_shape(self, k):
+        """
+        Returns a k-shape object.
+        """
+        import kshape
+        return kshape.KShape(self, k)
+
     def add_cell(self, i, j = None):
         r"""
         Return a partition corresponding to ``self`` with a cell added in
