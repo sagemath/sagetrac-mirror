@@ -2197,6 +2197,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
+    def _latex_(self):
+        r"""
+        Return a LaTeX-representation of this expansion.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: A.<n> = AsymptoticRing('n^QQ * log(n)^QQ', SR)
+            sage: (n^2 * log(n)^(3/2) - 1/3 * n * log(n)^(-3/5) + log(n)^42 + O(1/n))._latex_()
+            'n^{2} \\log\\left(n\\right)^{\\frac{3}{2}} - \\frac{n}{3 \\,
+            \\log\\left(n\\right)^{\\frac{3}{5}}} + \\log\\left(n\\right)^{42} +
+            \\mathcal{O}\\left(\\frac{1}{n}\\right)'
+        """
+        A = self.parent()
+        summands_SR = (A(s).symbolic_expression() for s in
+                       self.summands.elements_topological(reverse=True))
+        return ' + '.join(s._latex_() for s in summands_SR).replace('+ -', '- ')
+
+
     def compare_with_values(self, variable, function, values,
                             rescaled=True, ring=RIF):
         """
