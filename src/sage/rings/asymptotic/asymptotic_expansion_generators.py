@@ -163,7 +163,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: expansion = asymptotic_expansions.Stirling('n', precision=5)
             sage: n = expansion.parent().gen()
-            sage: expansion.compare_with_values(n, lambda x: x.factorial(), [5, 10, 20])
+            sage: expansion.compare_with_values(n, lambda x: x.factorial(), [5, 10, 20]) # rel tol 1e-6
             [(5, 0.00675841118?), (10, 0.0067589306?), (20, 0.006744925?)]
             sage: asymptotic_expansions.Stirling('n', precision=5,
             ....:                                skip_constant_factor=True)
@@ -240,7 +240,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: expansion = asymptotic_expansions.log_Stirling('n', precision=7)
             sage: n = expansion.parent().gen()
-            sage: expansion.compare_with_values(n, lambda x: x.factorial().log(), [5, 10, 20])
+            sage: expansion.compare_with_values(n, lambda x: x.factorial().log(), [5, 10, 20])  # rel tol 1e-6
             [(5, 0.000564287?), (10, 0.0005870?), (20, 0.0006?)]
             sage: asymptotic_expansions.log_Stirling('n')
             n*log(n) - n + 1/2*log(n) + 1/2*log(2*pi) + 1/12*n^(-1)
@@ -407,7 +407,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: ex = asymptotic_expansions.HarmonicNumber('n', precision=5)
             sage: n = ex.parent().gen()
-            sage: ex.compare_with_values(n,
+            sage: ex.compare_with_values(n,                      # rel tol 1e-6
             ....:      lambda x: sum(1/k for k in srange(1, x+1)), [5, 10, 20])
             [(5, 0.0038125360?), (10, 0.00392733?), (20, 0.0039579?)]
             sage: asymptotic_expansions.HarmonicNumber('n')
@@ -541,7 +541,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: expansion = asymptotic_expansions.Binomial_kn_over_n('n', k=7/5, precision=3)
             sage: n = expansion.parent().gen()
-            sage: expansion.compare_with_values(n, lambda x: binomial(7/5*x, x), [5, 10, 20])
+            sage: expansion.compare_with_values(n, lambda x: binomial(7/5*x, x), [5, 10, 20]) # rel tol 1e-6
             [(5, -0.0287383845047?), (10, -0.030845971026?), (20, -0.03162833549?)]
             sage: asymptotic_expansions.Binomial_kn_over_n(
             ....:     'n', k=5, precision=3, skip_constant_factor=True)
@@ -709,7 +709,8 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: n = ex.parent().gen()
             sage: coefficients = ((1-x)^(1/2)).series(
             ....:     x, 21).truncate().coefficients(x, sparse=False)
-            sage: ex.compare_with_values(n, lambda k: coefficients[k], [5, 10, 20])
+            sage: ex.compare_with_values(n,    # rel tol 1e-6
+            ....:     lambda k: coefficients[k], [5, 10, 20])
             [(5, 0.015778873294?), (10, 0.01498952777?), (20, 0.0146264622?)]
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=3, precision=2)
