@@ -540,7 +540,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         elif default_prec < 0:
             raise ValueError("default_prec (= %s) must be non-negative"
                              % default_prec)
-        self.__params = (base_ring, name, default_prec, sparse)
 
         if implementation == 'poly':
             self.Element = power_series_poly.PowerSeries_poly
