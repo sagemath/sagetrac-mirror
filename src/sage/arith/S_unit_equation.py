@@ -2,20 +2,58 @@
 r"""
 S-unit equations over `QQ`
 
-Insert text here to say what S-units are S-unit equations are.
-
-EXAMPLES:
-
-Insert examples here, like doctests, to show usage
+Let `K` be a number field and `S` a finite set of prime ideals of `K`. Let `\mathcal O_{K,S}:=\{x\in K|v_{\mathfrak p}(x)
+=0` for all `\mathfrak p\not\in S\}` be the group of `S`-units then a `S`-unit equation is the Diophantine equation
+`x+y=1` where both `x,y` lie `\mathcal O_{K,S}`. Here we work on the special case `K = QQ`.
 
 AUTHORS:
 
 - Angelos Koutsianas (2015-2016)
 - John Cremona (2016)
+
+EXAMPLES::
+
+    sage: from sage.arith.S_unit_equation import solve_S_unit_equation
+    sage: solve_S_unit_equation([])
+    []
+
+    sage: solve_S_unit_equation([2,3,5])
+    [1/16, 25/16, 1/4, 1/25, 25, 4, 16/25, 16, 125/128, 5/32, 5/8, 1/10, 5/2,
+    2/5, 10, 8/5, 32/5, 128/125, -1/80, -5/4, -1/5, -5, -4/5, -80, -1/8, -1/2,
+    -25/2, -2/25, -2, -8, 1/81, 3/128, 3/8, 2/27, 6, 32/27, 9/4, 4/9, 27/32,
+    1/6, 27/2, 8/3, 128/3, -9/16, -1/9, -9, -16/9, -1/24, -2/3, -1/4, -4, -3/2,
+    -24, 1/2, -1, 2, 15/16, -15, 16/15, -1/15, 9/25, 25/9, 3/4, -3, 4/3, -1/3,
+    24/25, 25/24, -3/125, -125/3, -27/5, -5/27, -3/5, -5/3, 9/10, 10/9, 3/5, 5/3,
+    81/80, 81, 80/81, 9/5, 5/9, 6/5, 5/6, 9/8, 9, 8/9, 1/9, 3/2, 3, 2/3, 1/3, 27/25,
+    25/27, 5/4, 5, 4/5, 1/5]
+
+    sage: solve_S_unit_equation([2,3,7])
+    [1/64, 1/4, 1/49, 49, 4, 64, 7/16, 1/28, 7/4, 1/7, 7, 4/7, 28, 16/7, -49/32, -1/8,
+    -1/2, -2, -8, -32/49, -7/2, -2/7, 81/32, 2/9, 9/16, 1/8, 8, 16/9, 9/2, 32/81, -1/27,
+    -27, -6, -1/48, -4/3, -3/4, -48, -1/6, 1/2, -1, 2, 63/64, -63, 64/63, -1/63, 3/4, -3,
+    4/3, -1/3, 48/49, 49/48, -9/7, -7/9, 27/28, 28/27, 3/7, 7/3, 6/7, 7/6, 81/49, 49/81,
+    9/8, 9, 8/9, 1/9, 3/2, 3, 2/3, 1/3, 9/7, 7/9, 7/8, -7, 8/7, -1/7]
+
+REFERENCES:
+
+..  [Sma98] Nigel P. Smart. The Algorithmic Resolution of Diophantine Equations. Number 41 in Students Texts. London
+    Mathematical Society, 1998.
+
+    [Sma99] SMART, N. , Determine the small solutions to S-unit equations, Mathematics of Computations 68(228):1687-1699,1999
+
+    [Weg88] B.M.M.De Weger. Algorithms For Diophantine Equations. PhD thesis, University of Leiden, 1988.
+
+#*****************************************************************************
+#       Copyright (C) 2013 Angelos Koutsianas <koutsis.jr@hotmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 """
 from copy import copy
-# The following line looks natural but causses an infinite import loop!
-#from sage.rings.all import ZZ, QQ, RR
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
@@ -28,13 +66,12 @@ def minimal_vector(A,y):
         - ``y`` : a row vector with integer coordinates
 
     OUTPUT:
-        A low bound for the square of `\ell (\mathcal L,\vec y) =\begin{cases}\displaystyle\min_{\vec x\in\mathcal L}\Vert\vec x-\vec y\Vert &, \vec y\not\in\mathcal L. \\ \displaystyle\min_{0\neq\vec x\in\mathcal L}\Vert\vec x\Vert&,\vec y\in\mathcal L.\end{cases}`
+        A low bound for the square of `\ell (\mathcal L,\vec y) =\begin{cases}\displaystyle\min_{\vec x\in\mathcal L}
+        \Vert\vec x-\vec y\Vert &, \vec y\not\in\mathcal L. \\ \displaystyle\min_{0\neq\vec x\in\mathcal L}\Vert\vec x
+        \Vert&,\vec y\in\mathcal L.\end{cases}`
 
     COMMENT:
-        The algorithm is based on V.9 and V.10 of the reference
-
-    REFERENCE:
-        Nigel P. Smart. The Algorithmic Resolution of Diophantine Equations. Number 41 in Students Texts. London Mathematical Society, 1998.
+        The algorithm is based on V.9 and V.10 of [Sma98]_.
 
     EXAMPLE::
 
@@ -42,12 +79,12 @@ def minimal_vector(A,y):
         sage: B = matrix(ZZ,2,[1,1,1,0])
         sage: y = vector(ZZ,[2,1])
         sage: minimal_vector(B,y)
-            1/2
+        1/2
 
         sage: B = random_matrix(ZZ,3)
         sage: y = vector([1,2,100])
         sage: minimal_vector(B,y) # random
-            15/28
+        15/28
     """
     if A.is_singular():
         raise ValueError('The matrix A is singular')
@@ -72,10 +109,8 @@ def initial_bound(S):
         - ``S`` : a list of prime numbers
     
     OUTPUT:
-        A (large) upper bound for the absolute value of the exponents of the solutions of the `S`-unit equation `x \pm y=1`. This is based on the theorem 6.1 of the reference.
-        
-    REFERENCE:
-        B.M.M.De Weger. Algorithms For Diophantine Equations. PhD thesis, University of Leiden, 1988.
+        A (large) upper bound for the absolute value of the exponents of the solutions of the `S`-unit equation
+        `x \pm y=1`. This is based on the theorem 6.1 of [Weg88]_.
         
     EXAMPLE::
         
@@ -134,6 +169,7 @@ def initial_bound(S):
     C8 = max([smax, (2 * P0**smax).log()/log_smin, C2 + C1 * C7.log(), C7])
     return C8
 
+
 def primitive_p_1_root_mod_pn(p,n):
     r"""
     Return a primitive (p-1)st root of unity in Z/p^n
@@ -145,8 +181,7 @@ def primitive_p_1_root_mod_pn(p,n):
 
     OUTPUT:
 
-    A primitive (p-1)-th root of unity `\mod p^n` if there exists and
-    1 otherwise.
+        A primitive (p-1)-th root of unity `\mod p^n` if there exists and 1 otherwise.
 
     EXAMPLE::
 
@@ -161,7 +196,7 @@ def primitive_p_1_root_mod_pn(p,n):
     if p == 2 and n > 2:
         return mod(1,P)
 
-    from sage.arith.misc import primitive_root
+    from sage.arith.all import primitive_root
     ap = mod(primitive_root(p), P) # prim root mod p is enough here!
     for i in range(n-1):
         ap = ap**p
@@ -214,7 +249,7 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
 
     OUTPUT:
 
-        - The matrix `B_{\mu}` in the page 68 of the reference
+        - The matrix `B_{\mu}` in the page 68 of [Weg88]_.
 
         - A copy of ``theta`` such that the last element has the
           minimal valuation.
@@ -222,11 +257,6 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
         - the position of the element in ``theta`` that has the
           minimal valuation and was permuted with the last element of
           the theta.
-
-    REFERENCE:
-
-    B.M.M.De Weger. Algorithms For Diophantine Equations. PhD thesis,
-    University of Leiden, 1988.
 
     EXAMPLE::
 
@@ -262,6 +292,7 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
 
     from sage.matrix.all import identity_matrix
     from sage.rings.finite_rings.integer_mod import mod
+
     Bm = copy(identity_matrix(n))
     P = p**m
     Bm[n-1] = [mod(-t/a, P) for t in theta]
@@ -269,7 +300,8 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
 
     return Bm,theta,position
 
-def a_base_for_Gm_star(B,A,p,m,m0):
+
+def a_base_for_Gmstar(B,A,p,m,m0):
     r"""
     
     INPUT:
@@ -280,15 +312,31 @@ def a_base_for_Gm_star(B,A,p,m,m0):
         - ``m0``: the minimal order of `\log_p(a_i)` for `i=1,\cdots , n`
     
     OUTPUT:
-        A matrix such that its columns generate the lattice `\Gamma_{\mu}` as in page 72 of the reference when `p>3`
+
+        A matrix such that its columns generate the lattice `\Gamma_{\mu}` as in page 72 of [Weg88]_ when `p>3`
     
     COMMENT:
         It should hold `v_p(\log_p(a_n))` has to be minimal
-        
-    REFERENCE:
-        B.M.M.De Weger. Algorithms For Diophantine Equations. PhD thesis, University of Leiden, 1988.
+
+    EXAMPLE::
+
+        sage: from sage.arith.S_unit_equation import a_base_for_Gmstar
+        sage: B = matrix(ZZ,[[1,0],[1268,15625]])
+        sage: Q5 = Qp(5, prec = 200, type = 'capped-rel', print_mode = 'series')
+        sage: a_base_for_Gmstar(B,[Q5(3),Q5(2)],5,6,1)
+        [    1     6]
+        [ 1268 38858]
+
+        sage: B = matrix(ZZ,[[1,0],[757,16384]])
+        sage: Q2 = Qp(2, prec = 200, type = 'capped-rel', print_mode = 'series')
+        sage: a_base_for_Gmstar(B,[Q2(5),Q2(3)],2,14,2)
+        [    1     0]
+        [  757 16384]
     """
-    
+
+    if p <= 3:
+        return B
+
     n = len(A)
     zeta = primitive_p_1_root_mod_pn(p,m+m0)
     from sage.misc.all import prod
@@ -328,7 +376,7 @@ def a_base_for_Gm_star(B,A,p,m,m0):
     
     
     #we find bn*
-    from sage.arith.misc import lcm
+    from sage.arith.all import lcm
     gstar = lcm(kbi[n-1][0],(p-1)/2)/kbi[n-1][0]
     Bstar[n-1] = gstar * B2[n-1]
      
@@ -345,11 +393,18 @@ def reducing_the_bound(X0,A,p,m):
         - ``m`` : the precision of the lattice
         
     OUTPUT:
-        - An new upper bound with respect to the prime ``p``
-        - A boolean variable that is True when the condition of lemma 3.14 page 68 of the reference holds
-        
-    REFERENCE:
-        B.M.M.De Weger. Algorithms For Diophantine Equations. PhD thesis, University of Leiden, 1988.    
+        - An new upper bound with respect to the prime ``p``.
+        - A boolean variable that is True when the condition of lemma 3.14 page 68 of [Weg88]_ holds.
+
+    EXAMPLE::
+
+        sage: from sage.arith.S_unit_equation import reducing_the_bound
+        sage: Q2 = Qp(2, prec = 200, type = 'capped-rel', print_mode = 'series')
+        sage: reducing_the_bound(294667190680076544,[Q2(3),Q2(5)],2,116)
+        (294667190680076544, True)
+
+        sage: reducing_the_bound(294667190680076544,[Q2(3),Q2(5)],2,121)
+        (122, False)
     """    
     n = len(A)
     A_log = [a.log() for a in A]
@@ -363,10 +418,7 @@ def reducing_the_bound(X0,A,p,m):
     m0 = A_log[n-1].valuation()
 
     #if p>3 we find a matrix for Gm* lattice. Otherwise Gm=Gm*
-    if p > 3:
-        Bmstar = a_base_for_Gm_star(Bm[0],A,p,m,m0)
-    else:
-        Bmstar = Bm[0]
+    Bmstar = a_base_for_Gmstar(Bm[0],A,p,m,m0)
 
     #We have to take the transpose of the matrix because of the
     #LLL() function
@@ -385,7 +437,7 @@ def reducing_the_bound(X0,A,p,m):
     else:
         increase_m = True
 
-    return [X0,increase_m]
+    return RR(X0).floor(),increase_m
 
 
 def find_the_new_bound_for_all_primes(X0,A,precision):
@@ -411,6 +463,7 @@ def find_the_new_bound_for_all_primes(X0,A,precision):
     B = [1] * len(A)
     for i,p in enumerate(A):
         #for its prime in A we are going to find a new bound
+
         from sage.rings.padics.all import Qp
         K = Qp(p, prec = precision, type = 'capped-rel', print_mode = 'series')
 
@@ -421,7 +474,6 @@ def find_the_new_bound_for_all_primes(X0,A,precision):
         newbound = True
         while newbound:
             T = reducing_the_bound(X0,e,p,m)
-
             newbound = T[1]
             m += 1
             if m + m0 > K.precision_cap():
@@ -446,10 +498,12 @@ def applying_De_Weger_method(A,precision):
         An upper bound of the exponents of the primes in ``A``.
     
     EXAMPLE::
-        
-        sage: a=2 # placeholder for a real test
+
+        sage: from sage.arith.S_unit_equation import applying_De_Weger_method
+        sage: applying_De_Weger_method([2,3,5,11],200)
+        32
     """    
-    X0 = initial_bound(A)
+    X0 = RR(initial_bound(A)).floor()
     Xnew = max(find_the_new_bound_for_all_primes(X0,A,precision))
     while Xnew < X0:
         X0 = Xnew
@@ -512,7 +566,7 @@ def simple_loop(S,bounds):
     return solutions
 
 
-def solve_S_unit_equation(S,precision):
+def solve_S_unit_equation(S,precision = 200):
     r"""
 
     INPUT:
@@ -520,29 +574,31 @@ def solve_S_unit_equation(S,precision):
         - ``precision`` : the precision for the calculations of the `p`-adic logarithms
 
     OUTPUT:
-        All the `x` of the pairs of the solutions of the `S`-unit equation `x+y=1`
 
-    COMMENT:
-        ``S`` should have at least two elements
+        All the `x` of the pairs of the solutions of the `S`-unit equation `x+y=1`.
 
     EXAMPLE::
 
-        sage: solve_S_unit_equation([2,3], 10)
-        [1/4, 4, -1/8, -1/2, -2, -8, 1/2, -1, 2, 3/4, -3, 4/3, -1/3,
-         9/8, 9, 8/9, 1/9, 3/2, 3, 2/3, 1/3]
-        sage: solve_S_unit_equation([2,3,5], 10)
-        [1/16, 15/16, -15, 16, 1/4, 3/4, -3, 4, 1/6, 5/6, -5, 6, 1/10, 9/10, -9,
-        10, 1/2, 1/2, -1, 2, 1/81, 80/81, -80, 81, 1/9, 8/9, -8, 9, 1/3, 2/3,
-        -2, 3, 1/25, 24/25, -24, 25, 1/5, 4/5, -4, 5]
+        sage: from sage.arith.S_unit_equation import solve_S_unit_equation
+        sage: solve_S_unit_equation([2,3], 100)
+        [1/4, 4, -1/8, -1/2, -2, -8, 1/2, -1, 2, 3/4, -3, 4/3, -1/3, 9/8, 9,
+        8/9, 1/9, 3/2, 3, 2/3, 1/3]
 
-        sage: solve_S_unit_equation([3,5], 10)
-            []
+        sage: solve_S_unit_equation([2,3,5], 100)
+        [1/16, 25/16, 1/4, 1/25, 25, 4, 16/25, 16, 125/128, 5/32, 5/8, 1/10,
+        5/2, 2/5, 10, 8/5, 32/5, 128/125, -1/80, -5/4, -1/5, -5, -4/5, -80,
+        -1/8, -1/2, -25/2, -2/25, -2, -8, 1/81, 3/128, 3/8, 2/27, 6, 32/27,
+        9/4, 4/9, 27/32, 1/6, 27/2, 8/3, 128/3, -9/16, -1/9, -9, -16/9, -1/24,
+        -2/3, -1/4, -4, -3/2, -24, 1/2, -1, 2, 15/16, -15, 16/15, -1/15, 9/25,
+        25/9, 3/4, -3, 4/3, -1/3, 24/25, 25/24, -3/125, -125/3, -27/5, -5/27,
+        -3/5, -5/3, 9/10, 10/9, 3/5, 5/3, 81/80, 81, 80/81, 9/5, 5/9, 6/5, 5/6,
+        9/8, 9, 8/9, 1/9, 3/2, 3, 2/3, 1/3, 27/25, 25/27, 5/4, 5, 4/5, 1/5]
+
+        sage: solve_S_unit_equation([3,5], 100)
+        []
             
-        sage: solve_S_unit_equation([2,3,7], 10)
-            [1/64, 63/64, -63, 64, 1/8, 7/8, -7, 8, 1/28, 27/28, -27, 28, 1/4, 3/4,
-            -3, 4, 1/2, 1/2, -1, 2, 1/9, 8/9, -8, 9, 1/3, 2/3, -2, 3, 1/49, 48/49,
-            -48, 49, 1/7, 6/7, -6, 7]
-            
+        sage: solve_S_unit_equation([3,5,7], 100)
+        []
     """
     if len(S)==0:
         return []
@@ -582,15 +638,13 @@ def trivial_Tp_finite_place_over_Q(S,p,bounds,delta,precision):
 
     COMMENTS:
 
-        Here we implement paragraph 3.2 of the reference.
-
-    REFERENCE:
-        REFERENCE:
-        SMART, N. , Determine the small solutions to S-unit equations, Mathematics of Computations 68(228):1687-1699,1999
+        Here we implement paragraph 3.2 of [Sma99]_.
 
     EXAMPLE::
 
-        sage: a=3
+        sage: from sage.arith.S_unit_equation import trivial_Tp_finite_place_over_Q
+        sage: trivial_Tp_finite_place_over_Q([2,3,5],5,[24, 15, 10],1/1000000,200)
+        True
     """
 
     if p in S:
@@ -647,14 +701,21 @@ def sieve_S_unit_equation_over_Q(S,B,precision):
         A list of `x` of all the solutions of the `S`-unit group `x+y=1`
 
     COMMENTS:
-        The sieve is based on the ideas of the paper in the reference
 
-    REFERENCE:
-        SMART, N. , Determine the small solutions to S-unit equations, Mathematics of Computations 68(228):1687-1699,1999
+        The sieve is based on the ideas of [Sma99]_.
 
-    EXAMPLES::
+    EXAMPLE::
 
-        sage: a=3
+        sage: from sage.arith.S_unit_equation import sieve_S_unit_equation_over_Q
+        sage: sieve_S_unit_equation_over_Q([2,3,5],24,100)
+        [1/16, 25/16, 1/4, 1/25, 25, 4, 16/25, 16, 125/128, 5/32, 5/8, 1/10, 5/2,
+        2/5, 10, 8/5, 32/5, 128/125, -1/80, -5/4, -1/5, -5, -4/5, -80, -1/8, -1/2,
+        -25/2, -2/25, -2, -8, 1/81, 3/128, 3/8, 2/27, 6, 32/27, 9/4, 4/9, 27/32,
+        1/6, 27/2, 8/3, 128/3, -9/16, -1/9, -9, -16/9, -1/24, -2/3, -1/4, -4, -3/2,
+        -24, 1/2, -1, 2, 15/16, -15, 16/15, -1/15, 9/25, 25/9, 3/4, -3, 4/3, -1/3,
+        24/25, 25/24, -3/125, -125/3, -27/5, -5/27, -3/5, -5/3, 9/10, 10/9, 3/5, 5/3,
+        81/80, 81, 80/81, 9/5, 5/9, 6/5, 5/6, 9/8, 9, 8/9, 1/9, 3/2, 3, 2/3, 1/3,
+        27/25, 25/27, 5/4, 5, 4/5, 1/5]
     """
     #I define Q as a number field
     bounds = len(S) * [B]
@@ -710,6 +771,12 @@ def solutions_divible_by_higher_power_of_p(S,p,bounds,m):
 
     OUTPUT:
         All `x` of the solutions of the `S`-unit equation `x+y=1` such that `y` is divisible by `p^m`.
+
+    EXAMPLE::
+
+        sage: from sage.arith.S_unit_equation import solutions_divible_by_higher_power_of_p
+        sage: solutions_divible_by_higher_power_of_p([2,3,5],3,[24, 15, 10],2)
+        [5/32, 10, 25/16, 16/25, 1/10, 32/5, -2/25, -1/80, -4/5, -1/8, -8, -5/4, -80, -25/2]
     """
     if p not in S:
         raise ValueError('p not in S')
