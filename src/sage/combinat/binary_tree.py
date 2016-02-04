@@ -2904,6 +2904,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         sage: bt = BinaryTree(None)
         sage: bt.remove_nodes_with_two_child_leaves()
+        Traceback (most recent call last):
+        ...
+        ValueError: We can't remove a node from the empty binary tree.
 
     ::
 
@@ -3087,16 +3090,19 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
 # Abstract class to serve as a Factory no instance are created.
 class BinaryTrees(UniqueRepresentation, Parent):
-    """ #DOC
+    """
     Factory for binary trees.
 
     INPUT:
 
     - ``size`` -- (optional) an integer
+    - ``full = bool`` -- (optional) a boolean
 
     OUPUT:
 
-    - the set of all binary trees (of the given ``size`` if specified)
+    The set of all (full if full=True) binary trees (of the given
+    ``size`` if specified). See :meth:`is_full` for the definition
+    of a full binary tree.
 
     EXAMPLES::
 
@@ -3105,6 +3111,17 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
         sage: BinaryTrees(2)
         Binary trees of size 2
+
+        sage: BinaryTrees(full=True)
+        Full binary trees
+
+        sage: BinaryTrees(3, full=True)
+        Full binary trees of size 3
+
+        sage: BinaryTrees(4, full=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be 0 or odd
 
     .. NOTE:: this is a factory class whose constructor returns instances of
               subclasses.
@@ -3115,19 +3132,30 @@ class BinaryTrees(UniqueRepresentation, Parent):
     """
     @staticmethod
     def __classcall_private__(cls, n=None, full=False):
-        """ #DOC
+        """
         TESTS::
 
-            sage: from sage.combinat.binary_tree import BinaryTrees_all, BinaryTrees_size
+            sage: from sage.combinat.binary_tree import BinaryTrees_all,\
+            ....: BinaryTrees_size, FullBinaryTrees_all, FullBinaryTrees_size
             sage: isinstance(BinaryTrees(2), BinaryTrees)
             True
             sage: isinstance(BinaryTrees(), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(3, full=True), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(full=True), BinaryTrees)
             True
             sage: BinaryTrees(2) is BinaryTrees_size(2)
             True
             sage: BinaryTrees(5).cardinality()
             42
             sage: BinaryTrees() is BinaryTrees_all()
+            True
+            sage: BinaryTrees(3, full=True) is FullBinaryTrees_size(3)
+            True
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(full=True) is FullBinaryTrees_all()
             True
         """
         if n is None:
@@ -3144,7 +3172,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
                 if n%2==1 or n==0:
                     return FullBinaryTrees_size(Integer(n))
                 else:
-                    return []
+                    raise ValueError("n must be 0 or odd")
 
     @cached_method
     def leaf(self):
@@ -3437,32 +3465,6 @@ class BinaryTrees_size(BinaryTrees):
 # Enumerated set of all full binary trees
 #################################################################
 class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
-    r"""
-    TODO :
-        There are issues with implementation of full binary trees.
-
-        sage: FB = BinaryTrees(full=True)
-        sage: B = BinaryTrees()
-        sage: FB0 = BinaryTrees(0,full=True)
-        sage: B0 = BinaryTrees(0)
-
-        This is okay.
-
-        sage: FB0(None) == FB()
-        True
-        sage: B0(None) == B()
-        True
-
-        The following lines shouldn't be false.
-
-        sage: FB() == B()
-        False
-        sage: FB([None,[]]) == B([None,[]])
-        False
-        sage: FB0(None) == B0(None)
-        False
-    """
-
 
     def __init__(self):
         """
@@ -3477,7 +3479,7 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             sage: (next(it), next(it), next(it), next(it), next(it))
             (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]]) 
             sage: next(it).parent()
-            Full binary trees
+            Binary trees
             sage: FB([])
             [., .]
 
@@ -3493,7 +3495,7 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
         """
         TEST::
 
-            sage: FullBinaryTrees()   # indirect doctest
+            sage: BinaryTrees(full=True)   # indirect doctest
             Full binary trees
         """
         return "Full binary trees"
@@ -3502,10 +3504,10 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
         """
         TESTS::
 
-            sage: S = FullBinaryTrees()
-            sage: 1 in S
+            sage: FB = BinaryTrees(full=True)
+            sage: 1 in FB
             False
-            sage: S([]) in S
+            sage: FB([]) in FB
             True
         """
         return isinstance(x, self.element_class) and x.is_full()
@@ -3522,19 +3524,54 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
         """
         return super(BinaryTrees, self).__call__(x, *args, **keywords)
 
+
+    @lazy_attribute
+    def _parent_for(self):
+        """
+        The parent of the elements generated by ``self``.
+
+        TESTS::
+
+            sage: S = BinaryTrees(full=True)
+            sage: S._parent_for
+            Binary trees
+        """
+        return BinaryTrees_all()
+
+    @lazy_attribute
+    def element_class(self):
+        """
+        TESTS::
+
+            sage: S = BinaryTrees(full=True)
+            sage: S.element_class
+            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
+            sage: S.first().__class__ == BinaryTrees().first().__class__
+            True
+        """
+        return self._parent_for.element_class
+
+
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
 
-            sage: B = BinaryTrees()
-            sage: B._element_constructor_([])
+            sage: FB = BinaryTrees(full=True)
+            sage: FB._element_constructor_([])
             [., .]
-            sage: B([[],[]]) # indirect doctest
+            sage: FB([[],[]]) # indirect doctest
             [[., .], [., .]]
-            sage: B(None)    # indirect doctest
+            sage: FB(None)    # indirect doctest
             .
+            sage: FB([None, []]) #indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
         """
-        return self.element_class(self, *args, **keywords)
+        res =  self.element_class(self._parent_for, *args, **keywords)
+        if not res.is_full():
+            raise ValueError("not full")
+        return res
 
     Element = BinaryTree
 
@@ -3548,63 +3585,70 @@ class FullBinaryTrees_size(BinaryTrees):
     TESTS::
 
         sage: from sage.combinat.binary_tree import FullBinaryTrees_size
-        sage: for i in range(6): TestSuite(FullBinaryTrees_size(i)).run()
+        sage: for i in range(1,6):
+        ....:   TestSuite(FullBinaryTrees_size(2*i-1)).run()
     """
     def __init__(self, size):
-        """#DOC
+        r"""
         TESTS::
 
-            sage: S = BinaryTrees(3)
-            sage: S == loads(dumps(S))
+            sage: FB3 = BinaryTrees(3, full=True)
+            sage: FB3 == loads(dumps(FB3))
             True
 
-            sage: S is BinaryTrees(3)
+            sage: FB3 is BinaryTrees(3, full=True)
             True
         """
         super(FullBinaryTrees_size, self).__init__(category = FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
-        """
+        r"""
         TESTS::
 
-            sage: BinaryTrees(3, full)   # indirect doctest
+            sage: BinaryTrees(3, full=True)   # indirect doctest
             Full binary trees of size 3
         """
-        return "Full binary trees of size %s." % (self._size)
+        return "Full binary trees of size %s" % (self._size)
 
     def __contains__(self, x):
-        """
+        r"""
         TESTS::
 
-            sage: S = BinaryTrees(3)
-            sage: 1 in S
+            sage: FB3 = BinaryTrees(3, full=True)
+            sage: 1 in FB3
             False
-            sage: S([[],[]]) in S
+            sage: FB3([[], []]) in FB3
             True
+            sage: BinaryTree([[], []]) in FB3
+            True
+            sage: BinaryTree([None, []]) in FB3
+            False
         """
         return isinstance(x, self.element_class) and x.node_number() == self._size and x.is_full()
 
     def _an_element_(self):
-        """
+        r"""
         TESTS::
 
-            sage: FullBinaryTrees(0).an_element()  # indirect doctest
+            sage: BinaryTrees(0, full=True).an_element()  # indirect doctest
             .
         """
         return self.first()
 
     def cardinality(self):
-        """
+        r"""
         The cardinality of ``self``
 
         This is a Catalan number.
 
         TESTS::
 
-            sage: FullBinaryTrees(0).cardinality()
+            sage: BinaryTrees(0, full=True).cardinality()
             1
-            sage: FullBinaryTrees(5).cardinality()
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(11, full=True).cardinality()
             42
         """
         from combinat import catalan_number
@@ -3613,45 +3657,51 @@ class FullBinaryTrees_size(BinaryTrees):
         return catalan_number((self._size-1)/2)
 
     def random_element(self):
-        r"""#DOC
+        r"""
         Return a random ``FullBinaryTree`` with uniform probability.
 
-        This method generates a random ``DyckWord`` and then uses a
-        bijection between Dyck words and binary trees to get a binary
-        tree of size `(self._size-1)/2` and convert it to a full
+        This method generates a random ``DyckWord`` of size `(self._size-1)/2`,
+        uses a bijection between Dyck words and binary trees to get a binary
+        tree, and convert it to a full binary tree of size `self._size`.
         binary tree.
 
         EXAMPLES::
 
-            sage: BinaryTrees(5).random_element() # random
-            [., [., [., [., [., .]]]]]
-            sage: BinaryTrees(0).random_element()
+            sage: BinaryTrees(5, full=True).random_element() # random
+            [[], [[], []]]
+            sage: BinaryTrees(0, full=True).random_element()
             .
-            sage: BinaryTrees(1).random_element()
+            sage: BinaryTrees(1, full=True).random_element()
             [., .]
 
         TESTS::
 
-            sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
+            sage: all([BinaryTrees(19, full=True).random_element() in BinaryTrees(19, full=True) for i in range(20)])
             True
         """
         from sage.combinat.dyck_word import CompleteDyckWords_size
+        if self._size==0:
+            return BinaryTree(None)
         return CompleteDyckWords_size((self._size-1)/2).random_element().to_binary_tree().to_full()
 
     def __iter__(self):
-        """#DOC
+        """
         A basic generator.
 
         .. TODO:: could be optimized.
 
         TESTS::
 
-            sage: BinaryTrees(0).list()
+            sage: BinaryTrees(0, full=True).list()
             [.]
-            sage: BinaryTrees(1).list()
+            sage: BinaryTrees(1, full=True).list()
             [[., .]]
-            sage: BinaryTrees(3).list()
-            [[., [., [., .]]], [., [[., .], .]], [[., .], [., .]], [[., [., .]], .], [[[., .], .], .]]
+            sage: BinaryTrees(7, full=True).list()
+            [[[., .], [[., .], [[., .], [., .]]]],
+             [[., .], [[[., .], [., .]], [., .]]],
+             [[[., .], [., .]], [[., .], [., .]]],
+             [[[., .], [[., .], [., .]]], [., .]],
+             [[[[., .], [., .]], [., .]], [., .]]]
         """
         if self._size == 0:
             yield self._element_constructor_()
@@ -3671,40 +3721,47 @@ class FullBinaryTrees_size(BinaryTrees):
 
         TESTS::
 
-            sage: S = FullBinaryTrees(3)
+            sage: S = BinaryTrees(3, full=True)
             sage: S._parent_for
             Binary trees
         """
-        return FullBinaryTrees_all()
+        return BinaryTrees_all()
 
     @lazy_attribute
     def element_class(self):
-        """#DOC
+        """
         TESTS::
 
             sage: S = BinaryTrees(3, full=True)
             sage: S.element_class
-            <class 'sage.combinat.binary_tree.FullBinaryTrees_all_with_category.element_class'>
-            sage: S.first().__class__ == FullBinaryTrees().first().__class__
+            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
+            sage: S.first().__class__ == BinaryTrees().first().__class__
             True
         """
         return self._parent_for.element_class
 
     def _element_constructor_(self, *args, **keywords):
-        """#DOC
+        """
         EXAMPLES::
 
-            sage: S = FullBinaryTrees(0)
-            sage: S([])   # indirect doctest
+            sage: FB0 = BinaryTrees(0, full=True)
+            sage: FB0([])   # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: wrong number of nodes
-            sage: S(None)   # indirect doctest
+            sage: FB0(None)   # indirect doctest
             .
 
-            sage: S = BinaryTrees(1)   # indirect doctest
-            sage: S([])
+            sage: FB1 = BinaryTrees(1, full=True)   # indirect doctest
+            sage: FB1([])
             [., .]
+
+            sage: FB5 = BinaryTrees(5, full=True)   # indirect doctest
+            sage: FB5([[], [None, [None, []]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
+
         """
         res = self.element_class(self._parent_for, *args, **keywords)
         if res.node_number() != self._size:
