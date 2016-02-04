@@ -16,6 +16,7 @@ Integers
    sage/rings/sum_of_squares
    sage/ext/multi_modular
    sage/arith/misc
+   sage/arith/S_unit_equation
 
 .. SEEALSO::
 
