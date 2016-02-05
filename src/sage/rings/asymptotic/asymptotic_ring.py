@@ -1626,8 +1626,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (a + b).__pow_number__(3/2)
             Traceback (most recent call last):
             ...
-            ValueError: Expansion a + b cannot be taken to the power of 3/2
-            since there are several maximal elements a, b.
+            ValueError: Cannot determine main term of a + b since
+            there are several maximal elements a, b.
         """
         if not self.summands:
             if exponent >= 0:
@@ -1646,26 +1646,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return self.parent()._create_element_in_extension_(
                 element**exponent, element.parent())
 
-        max_elem = tuple(self.summands.maximal_elements())
-        if len(max_elem) != 1:
-            raise ValueError('Expansion {} cannot be taken to the power of '
-                             '{} since there are several maximal elements '
-                             '{}.'.format(self, exponent,
-                                          ', '.join(str(e) for e in
-                                                    sorted(max_elem, key=str))))
-        max_elem = max_elem[0]
+        (max_elem, x) = self._main_term_relative_error_()
 
         pmax_elem = max_elem**exponent
-        imax_elem = ~max_elem
-        if pmax_elem.parent() is max_elem.parent():
-            new_self = self
-        else:
-            new_self = self.parent()._create_element_in_extension_(
-                pmax_elem * imax_elem, max_elem.parent()).parent()(self)
+        x = self.parent()._create_element_in_extension_(
+                pmax_elem, max_elem.parent()).parent()(x)
 
-        one = new_self.parent().one()
+        one = x.parent().one()
 
         import itertools
+#        from sage.arith.all import binomial
 
         def binomials(a):
             P = a.parent()
@@ -1677,12 +1667,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 if b == 0:
                     return
                 f *= b / k
+#                assert f == binomial(exponent, k)
                 yield f
 
-        result = AsymptoticExpansion._taylor_(
+        result = AsymptoticExpansion._power_series_(
             coefficients=binomials(exponent),
             start=one,
-            ratio=new_self._mul_term_(imax_elem) - one,
+            ratio=x,
             ratio_start=one,
             precision=precision)
 
@@ -2112,7 +2103,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         - ``ratio_start`` -- an asymptotic expansion.
 
-        - ``precision`` -- a non-negative integer.
+        - ``precision`` -- a non-negative integer. All intermediate
+          results are truncated to this precision.
 
         OUTPUT:
 
@@ -2130,6 +2122,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     ratio_start=A(5),
             ....:     precision=4)
             42 + 5*g^(-1) + 10*g^(-2) + 15*g^(-3) + O(g^(-4))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=4)
+            42 + 5*g^(-1) + O(g^(-2))
+            sage: AsymptoticExpansion._power_series_(
+            ....:     coefficients=iter(ZZ(k) for k in count(1)),
+            ....:     start=A(42),
+            ....:     ratio=1/g+O(1/g^2),
+            ....:     ratio_start=A(5),
+            ....:     precision=1000000)
+            42 + 5*g^(-1) + O(g^(-2))
         """
         result = start
         g = ratio_start
