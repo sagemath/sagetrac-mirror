@@ -232,3 +232,156 @@ cdef class SymbolicSeries(Expression):
                 ret[c[1]] = c[0]
             return ret
 
+    def simplify(self):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.simplify`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: a,x,y = var('a,x,y')
+            sage: s = (1/(1-x/x^a*y)).series(y,3); s
+            1 + (x/x^a)*y + (x^2/(x^a)^2)*y^2 + Order(y^3)
+            sage: s.simplify()
+            1 + (x^(-a + 1))*y + (x^(-2*a + 2))*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(self._parent(co._maxima_())*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def simplify_trig(self):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.simplify_trig`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (1/(1-sin(x)*csc(x)*y)).series(y,3); s
+            1 + (csc(x)*sin(x))*y + (csc(x)^2*sin(x)^2)*y^2 + Order(y^3)
+            sage: s.simplify_trig()
+            1 + 1*y + 1*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.simplify_trig()*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def simplify_rectform(self, **kwds):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.simplify_rectform`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (1/(1-(e^(I*x)-e^(-I*x))*y)).series(y,3); s
+            1 + (e^(I*x) - e^(-I*x))*y + ((e^(I*x) - e^(-I*x))^2)*y^2 + Order(y^3)
+            sage: s.simplify_rectform()
+            1 + (2*I*sin(x))*y + (-4*sin(x)^2)*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.simplify_rectform(**kwds)*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def simplify_rational(self, **kwds):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.simplify_rational`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (1/(1-(sin(x/(x-x^2)))*y)).series(y,3); s
+            1 + (sin(-x/(x^2 - x)))*y + (sin(-x/(x^2 - x))^2)*y^2 + Order(y^3)
+            sage: s.simplify_rational()
+            1 + (-sin(1/(x - 1)))*y + (sin(1/(x - 1))^2)*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.simplify_rational(**kwds)*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def simplify_log(self, **kwds):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.simplify_log`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (x*log(9)/(1-y)).series(y,3); s
+            (x*log(9)) + (x*log(9))*y + (x*log(9))*y^2 + Order(y^3)
+            sage: s.simplify_log(algorithm='all')
+            (log(9^x)) + (log(9^x))*y + (log(9^x))*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.simplify_log(**kwds)*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def expand_log(self, **kwds):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.expand_log`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (1/(1-log(x^6)*y)).series(y,3); s
+            1 + (log(x^6))*y + (log(x^6)^2)*y^2 + Order(y^3)
+            sage: s.expand_log(algorithm='powers')
+            1 + (6*log(x))*y + (36*log(x)^2)*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.expand_log(**kwds)*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
+
+    def expand_trig(self, **kwds):
+        """
+        Return a simplified version of this symbolic series.
+
+        This calls :meth:`~sage.symbolic.expression.Expression.expand_trig`
+        for every coefficient of the series.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: s = (1/(1-sin(2*x)*y)).series(y,3); s
+            1 + (sin(2*x))*y + (sin(2*x)^2)*y^2 + Order(y^3)
+            sage: s.expand_trig()
+            1 + (2*cos(x)*sin(x))*y + (4*cos(x)^2*sin(x)^2)*y^2 + Order(y^3)
+        """
+        l = self.coefficients(sparse=True)
+        var = self.default_variable()
+        poly = sum(co.expand_trig(**kwds)*var**ex for (co,ex) in l)
+        if not self.is_terminating_series():
+            poly += var**(self.degree(var)+1)
+        return poly.series(var, self.degree(var))
