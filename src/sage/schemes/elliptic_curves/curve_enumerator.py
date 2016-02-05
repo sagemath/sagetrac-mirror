@@ -172,7 +172,7 @@ class CurveEnumerator_abstract(object):
         if N < 0:
             N = ZZ(0)
 
-        coeffs = [ceil(N**(1/n))-1 for n in self._pows]
+        coeffs = [ceil(N ** (1 / n)) - 1 for n in self._pows]
         # height = max([coeffs[i]**(self._pows[i]) for i in range(self._num_coeffs)])
         return self._height_increment(coeffs)
 
@@ -282,12 +282,14 @@ class CurveEnumerator_abstract(object):
         a4 = C[3]
         a6 = C[4]
 
-        b2 = a1**2 + 4*a2
-        b4 = 2*a4 + a1*a3
-        b6 = a3**2 + 4*a6
-        b8 = (a1**2)*a6 + 4*a2*a6 - a1*a3*a4 + a2*(a3**2) - a4**2
+        b2 = a1 ** 2 + 4 * a2
+        b4 = 2 * a4 + a1 * a3
+        b6 = a3 ** 2 + 4 * a6
+        b8 = ((a1 ** 2) * a6 + 4 * a2 * a6 - a1 * a3 * a4
+              + a2 * (a3 ** 2) - a4 ** 2)
 
-        Delta = -(b2**2)*b8 - 8*(b4**3) - 27*(b6**2) + 9*b2*b4*b6
+        Delta = (-(b2 ** 2) * b8 - 8 * (b4 ** 3) - 27 * (b6 ** 2)
+                 + 9 * b2 * b4 * b6)
         return Delta == 0
 
     def _coeffs_from_height(self, height_tuple):
@@ -466,9 +468,9 @@ class CurveEnumerator_abstract(object):
 #            for C in [flatten[C] for C in L]:
 #                out_file.write("\t".join([str(c) for c in C])+"\n")
             for C in L:
-                out_file.write(str(C[0])+"\t")
+                out_file.write(str(C[0]) + "\t")
                 for a in C[1]:
-                    out_file.write(str(a)+"\t")
+                    out_file.write(str(a) + "\t")
                 out_file.write("\n")
 
         if return_data:
@@ -567,10 +569,10 @@ class CurveEnumerator_abstract(object):
                 d = E.rank(**rank_opts)
 
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -579,9 +581,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file or append to problems list if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -594,7 +596,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -715,13 +717,13 @@ class CurveEnumerator_abstract(object):
                 if reduced:
                     d -= E.two_torsion_rank()
                 if not rank:
-                    d = 2**d
+                    d = 2 ** d
 
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -730,9 +732,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -745,7 +747,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -859,13 +861,13 @@ class CurveEnumerator_abstract(object):
                 if reduced:
                     d -= valuation(E.torsion_order(), 3)
                 if not rank:
-                    d = 3**d
+                    d = 3 ** d
 
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -874,9 +876,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -889,7 +891,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -986,13 +988,13 @@ class CurveEnumerator_abstract(object):
 
                 d = E.two_torsion_rank()
                 if not rank:
-                    d = 2**d
+                    d = 2 ** d
 
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -1001,9 +1003,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -1016,7 +1018,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -1148,7 +1150,7 @@ class CurveEnumerator_abstract(object):
                 d = E.torsion_order()
                 t = E.two_torsion_rank()
                 if t == 2:
-                    d = d/2
+                    d = d / 2
                 if n.divides(d):
                     # The only n for which E may have full n-torsion is 2,
                     # which is covered by self.two_torsion()
@@ -1158,7 +1160,7 @@ class CurveEnumerator_abstract(object):
                         # If n is even and the curve has full 2-torsion,
                         # there are twice as many points of order n
                         if t == 2 and n % 2 == 0:
-                            d = 2*d
+                            d = 2 * d
                 # Boring case: no n-torsion
                 else:
                     d = 0
@@ -1168,10 +1170,10 @@ class CurveEnumerator_abstract(object):
 
                 # Write to file and/or append to return list
                 if output_filename is not None:
-                    out_file.write(str(C[0])+"\t")
+                    out_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        out_file.write(str(a)+"\t")
-                    out_file.write(str(d)+"\n")
+                        out_file.write(str(a) + "\t")
+                    out_file.write(str(d) + "\n")
                     out_file.flush()
 
                 if return_data:
@@ -1180,9 +1182,9 @@ class CurveEnumerator_abstract(object):
             # Write to problem file if fail
             except:
                 if problems_filename is not None:
-                    prob_file.write(str(C[0])+"\t")
+                    prob_file.write(str(C[0]) + "\t")
                     for a in C[1]:
-                        prob_file.write(str(a)+"\t")
+                        prob_file.write(str(a) + "\t")
                     prob_file.write("\n")
                     prob_file.flush()
 
@@ -1195,7 +1197,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -1308,7 +1310,7 @@ class CurveEnumerator_abstract(object):
             prob_file.close()
 
         if print_timing:
-            print(time.time()-t)
+            print(time.time() - t)
         if return_data:
             return output, problems
 
@@ -1589,9 +1591,9 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
             [0, 0, 0, -837, 13797]
         """
         a2, a4, b4, a6 = c[0], c[1], c[2], c[3]
-        I = 3*(a4**2)+b4**2-3*a2*a6
-        J = -27/4*(a2**2)*a4**2+18*(a4**2)*b4 - 2*(b4**3) \
-            + 9*a2*b4*a6 - 27*(a6**2)
+        I = 3 * (a4 ** 2) + b4 ** 2 - 3 * a2 * a6
+        J = (-27 / 4 * (a2 ** 2) * a4 ** 2 + 18 * (a4 ** 2) * b4
+             - 2 * (b4 ** 3) + 9 * a2 * b4 * a6 - 27 * (a6 ** 2))
 
         # J may have denominator 2 or 4. If so, the following produces
         # an isomorphic curve with integral coefficients
@@ -1814,9 +1816,9 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
         """
         # For __repr__()
         self._name = "Rank Two + Two Torsion"
-        self._model = "Y^2 = X^3 + A*X^2 + B, where \n" + (" "*10) +\
+        self._model = "Y^2 = X^3 + A*X^2 + B, where \n" + (" " * 10) +\
             "A = 1/4*(2*(w0^2+w1^2+w2^2+w3^2) - (w0+w1+w2+w3)^2), and \n"\
-            + (" "*10) + "B = w0*w1*w2*w3"
+            + (" " * 10) + "B = w0*w1*w2*w3"
         self._coeff_names = "[w0,w1,w2,w3]"
         self._height_function = "H = min{|w0|,|w1|,|w2|,|w3|}"
 
@@ -1849,8 +1851,9 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
             [0, -10, 0, 0, 24]
         """
         w0, w1, w2, w3 = c[0], c[1], c[2], c[3]
-        A = (2*(w0**2+w1**2+w2**2+w3**2) - (w0+w1+w2+w3)**2)/4
-        B = w0*w1*w2*w3
+        A = ((2 * (w0 ** 2 + w1 ** 2 + w2 ** 2 + w3 ** 2)
+              - (w0 + w1 + w2 + w3) ** 2) / 4)
+        B = w0 * w1 * w2 * w3
 
         # A may be be a rational with denominator 2 or 4.
         # If so, the following converts to an integral model:
@@ -2145,7 +2148,7 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
                     B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
                     B.append(srange(-coeffs[j], coeffs[j] + 1))
-                    
+
             L.extend([c for c in cartesian_product(B)
                       if c[0] + c[1] == c[2] + c[3]])
             # This family has the additional constraint that
