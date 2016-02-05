@@ -26,7 +26,10 @@ from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.rings.all import RR, CC, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.rings.complex_field import ComplexField
+CC = ComplexField()
 
 
 cdef class SymbolicRing(CommutativeRing):
