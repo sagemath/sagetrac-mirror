@@ -25,7 +25,7 @@ AUTHORS:
 import time
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil
-from sage.combinat.cartesian_product import CartesianProduct
+from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc import powerset, srange
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.rings.arith import valuation
@@ -344,9 +344,7 @@ class CurveEnumerator_abstract(object):
                     B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
                     B.append(srange(-coeffs[j], coeffs[j] + 1))
-            C = CartesianProduct(*B).list()
-            for c in C:
-                L.append(c)
+            L.extend(list(cartesian_product(B)))
 
         # Convert coefficient tuples to a-invariants
         L2 = []
@@ -2030,12 +2028,9 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
                     B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
                     B.append(srange(-coeffs[j], coeffs[j] + 1))
-            C = CartesianProduct(*B).list()
-            for c in C:
-                # This family has the additional constraint that
-                # c[0]*c[1] = c[2]*c[3]
-                if c[0] * c[1] == c[2] * c[3]:
-                    L.append(c)
+
+            L.extend([c for c in cartesian_product(B)
+                      if c[0] * c[1] == c[2] * c[3]])
 
         # Convert coefficient tuples to a-invariants
         L2 = []
@@ -2150,12 +2145,11 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
                     B.append(srange(-coeffs[j] + 1, coeffs[j]))
                 else:
                     B.append(srange(-coeffs[j], coeffs[j] + 1))
-            C = CartesianProduct(*B).list()
-            for c in C:
-                # This family has the additional constraint that
-                # c[0]+c[1] = c[2]+c[3]
-                if c[0] + c[1] == c[2] + c[3]:
-                    L.append(c)
+                    
+            L.extend([c for c in cartesian_product(B)
+                      if c[0] + c[1] == c[2] + c[3]])
+            # This family has the additional constraint that
+            # c[0]+c[1] = c[2]+c[3]
 
         # Convert coefficient tuples to a-invariants
         L2 = []
