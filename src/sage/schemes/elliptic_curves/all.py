@@ -41,3 +41,5 @@ from kodaira_symbol import KodairaSymbol
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
 
 from heegner import heegner_points, heegner_point
+
+lazy_import("sage.schemes.elliptic_curves.curve_enumerator", ["EllipticCurveEnumerator"])
